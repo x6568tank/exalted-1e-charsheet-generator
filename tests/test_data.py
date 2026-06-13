@@ -159,6 +159,52 @@ def test_artifact_weapon_attunement_costs():
     assert w["weapon.archery.long_powerbow"].attunement == 7
 
 
+# --------------------------------------------------------------------------- #
+# Charm eligibility + picker graph (real Melee data)
+# --------------------------------------------------------------------------- #
+
+def test_meets_charm_requirements_gates_on_ability_essence_and_prereqs():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    fire = rs.charms["solar.melee.fire-and-stones-strike"]   # Melee 3, prereq Hungry Tiger
+
+    low = Character(id="c.low")
+    low.abilities[AbilityName.MELEE] = 2                     # below Melee 3
+    low.essence_rating = 5
+    low.charms = ["solar.melee.hungry-tiger-technique"]
+    assert validate.meets_charm_requirements(rs, low, fire) is False
+
+    no_prereq = Character(id="c.np")
+    no_prereq.abilities[AbilityName.MELEE] = 3
+    no_prereq.essence_rating = 2                            # has ability, lacks the prereq charm
+    assert validate.meets_charm_requirements(rs, no_prereq, fire) is False
+
+    ok = Character(id="c.ok")
+    ok.abilities[AbilityName.MELEE] = 3
+    ok.essence_rating = 2
+    ok.charms = ["solar.melee.hungry-tiger-technique"]
+    assert validate.meets_charm_requirements(rs, ok, fire) is True
+
+
+def test_build_charm_graph_tags_owned_available_and_locked():
+    from exalted_builder.ui import view as viewmod
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = Character(id="c.graph")
+    c.abilities[AbilityName.MELEE] = 5
+    c.essence_rating = 5
+    c.charms = ["solar.melee.excellent-strike"]
+
+    g = viewmod.build_charm_graph(rs, c, "melee")
+    assert len(g.nodes) == 22
+    state = {n.id: n.state for n in g.nodes}
+    assert state["solar.melee.excellent-strike"] == "owned"
+    assert state["solar.melee.hungry-tiger-technique"] == "available"   # prereq owned
+    assert state["solar.melee.fire-and-stones-strike"] == "locked"      # its prereq not owned yet
+    assert state["solar.melee.retrieve-the-fallen-weapon"] == "available"  # a root
+    # graph wiring
+    assert ("solar.melee.excellent-strike", "solar.melee.hungry-tiger-technique") in g.edges
+    assert "solar.melee.excellent-strike" in g.roots
+
+
 def test_artifact_gear_is_marked_and_carries_its_extra_fields():
     rs = rules_db.load_ruleset(DATA_DIR)
     daiklave = rs.weapon_catalog["weapon.melee.daiklave"]

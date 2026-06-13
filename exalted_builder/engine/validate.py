@@ -126,6 +126,21 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
     return issues
 
 
+def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> bool:
+    """Whether the character could legally learn `charm` *right now*: min essence,
+    min ability (when the category resolves to an ability), and every AND-of-OR
+    prerequisite group satisfied by an already-known Charm. The forward-looking
+    counterpart to check_charm_prerequisites; used by the charm-tree picker to
+    decide which Charms are currently selectable."""
+    if character.essence_rating < charm.min_essence:
+        return False
+    ability = _category_ability(charm.category)
+    if ability is not None and character.abilities.get(ability, 0) < charm.min_ability:
+        return False
+    known = set(character.charms)
+    return all(any(req in known for req in group) for group in charm.prerequisites)
+
+
 # --------------------------------------------------------------------------- #
 # Spell-circle access
 # --------------------------------------------------------------------------- #

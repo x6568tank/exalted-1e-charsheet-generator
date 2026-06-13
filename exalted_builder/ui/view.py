@@ -43,6 +43,48 @@ class SpellRow:
 
 
 @dataclass
+class CharmNode:
+    id: str
+    label: str
+    state: str          # 'owned' | 'available' | 'locked'
+    min_ability: int
+    min_essence: int
+
+
+@dataclass
+class CharmGraph:
+    category: str
+    nodes: list[CharmNode]
+    edges: list[tuple[str, str]]   # (prerequisite_id, charm_id)
+    roots: list[str]               # charm ids with no prerequisites
+
+
+def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> CharmGraph:
+    """Assemble the prerequisite graph for one Charm category, tagging each node
+    by the character's relationship to it: owned, available (learnable now), or
+    locked. Pure — eligibility comes from engine.validate."""
+    owned = set(character.charms)
+    charms = [c for c in ruleset.charms.values() if c.category == category]
+    charms.sort(key=lambda c: c.id)
+
+    nodes = []
+    for c in charms:
+        if c.id in owned:
+            state = "owned"
+        elif validate.meets_charm_requirements(ruleset, character, c):
+            state = "available"
+        else:
+            state = "locked"
+        nodes.append(CharmNode(c.id, c.name, state, c.min_ability, c.min_essence))
+
+    ids = {c.id for c in charms}
+    edges = [(req, c.id) for c in charms for group in c.prerequisites
+             for req in group if req in ids]
+    roots = [c.id for c in charms if not c.prerequisites]
+    return CharmGraph(category=category, nodes=nodes, edges=edges, roots=roots)
+
+
+@dataclass
 class SheetView:
     # identity / concept
     name: str
