@@ -226,6 +226,9 @@ class BonusPointCosts(BaseModel):
     background: int = 1
     background_above_3: int = 2
     specialty: int = 1
+    # p.105: a specialty dot costs 1 BP, but in a Favoured/Caste Ability you get
+    # this many dots per 1 BP ("2 per 1"). Cost is thus dots / this, rounded up.
+    specialty_favored_caste_dots_per_point: int = 2
     virtue: int = 3
     willpower: int = 2
     essence: int = 7
