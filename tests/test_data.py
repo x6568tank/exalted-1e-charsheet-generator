@@ -135,8 +135,28 @@ def test_celestial_initiate_casts_both_circles_via_prereq_chain():
 
 def test_weapon_and_armor_catalogs_load():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.weapon_catalog) == 22
+    assert len(rs.weapon_catalog) == 49
     assert len(rs.armor_catalog) == 17
+
+
+def test_mundane_melee_weapons_present():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    sledge = rs.weapon_catalog["weapon.melee.sledge"]
+    assert (sledge.speed, sledge.damage, sledge.min_strength) == (-6, 10, 4)
+    # impact weapons are lethal in 1e (per the page, not intuition)
+    assert rs.weapon_catalog["weapon.melee.mace"].damage_type == "L"
+    # a martial-arts weapon carries Dex + Martial Arts minimums
+    sss = rs.weapon_catalog["weapon.melee.seven_section_staff"]
+    assert sss.min_dexterity == 4 and sss.min_martial_arts == 4
+
+
+def test_artifact_weapon_attunement_costs():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    w = rs.weapon_catalog
+    assert w["weapon.melee.daiklave"].attunement == 5
+    assert w["weapon.melee.grand_daiklave"].attunement == 8
+    assert w["weapon.melee.goremaul"].artifact_rating == 1
+    assert w["weapon.archery.long_powerbow"].attunement == 7
 
 
 def test_artifact_gear_is_marked_and_carries_its_extra_fields():
