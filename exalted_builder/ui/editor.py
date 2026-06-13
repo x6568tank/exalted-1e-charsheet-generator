@@ -38,9 +38,11 @@ def _label(value: str) -> str:
     return value.replace("_", " ").title()
 
 
-def build_editor(ruleset: RuleSet, character: Character, save_path: Path) -> None:
+def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
+                 *, with_header: bool = True) -> None:
     """Render the whole editor for `character`. Pure-ish wiring: every control
-    mutates the Character and refreshes the live readout."""
+    mutates the Character and refreshes the live readout. With `with_header=False`
+    the title/Save bar is omitted (the embedding app provides one)."""
 
     # ---- live readout (recomputes the engine each refresh) ---------------- #
     @ui.refreshable
@@ -225,12 +227,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path) -> Non
         ui.notify(f"Saved to {save_path}", type="positive")
 
     # ---- layout: editor on the left, sticky readout on the right ---------- #
-    ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
+    if with_header:
+        ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
     with ui.row().classes("w-full max-w-7xl mx-auto gap-4 p-4 items-start no-wrap"):
         with ui.column().classes("flex-1 gap-2"):
-            with ui.row().classes("w-full items-center justify-between"):
-                ui.label("Chargen Editor").classes("text-xl font-bold")
-                ui.button("Save", icon="save", on_click=save).props("color=brown")
+            if with_header:
+                with ui.row().classes("w-full items-center justify-between"):
+                    ui.label("Chargen Editor").classes("text-xl font-bold")
+                    ui.button("Save", icon="save", on_click=save).props("color=brown")
             body()
         with ui.column().classes("w-80 gap-2 sticky top-4"):
             with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):

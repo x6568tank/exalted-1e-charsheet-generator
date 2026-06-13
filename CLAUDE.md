@@ -124,15 +124,21 @@ Exalted-1E-Charsheet-Generator/      (project root)
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
     soak (bashing/lethal/aggravated, core pp.231-232).
   - `engine/validate.py` — reference integrity, Charm prereqs (AND-of-OR + min
-    ability/essence), spell-circle access (exact circle; the pp.191 prereq chain
-    gives higher-grants-lower), and `validate_chargen` (attribute 8/6/4, ability/
-    background/virtue budgets + pre-bonus caps, caste/favoured minimums, charm
-    counts, Willpower start-cap, bonus-point accounting, pp.104-105).
+    ability/essence), `meets_charm_requirements`/`charms_depending_on` (picker
+    eligibility + safe-removal), spell-circle access (exact circle; the pp.191
+    prereq chain gives higher-grants-lower), and `validate_chargen` (attribute
+    8/6/4, ability/background/virtue budgets + pre-bonus caps, caste/favoured
+    minimums, charm counts, Willpower start-cap, bonus-point accounting, pp.104-105).
+  - `engine/lifecycle.py` — `lock_chargen` freezes wp_virtue_component + snapshot.
 - **Persistence:** `persistence.py` — atomic JSON load/save, enum-keyed dicts.
-- **UI:** `ui/view.py` (pure, NiceGUI-free presenter) + `ui/app.py` (read-only
-  sheet, loosely follows the one-page Solar layout). Run:
-  `.venv/bin/python -m exalted_builder.ui.app [char.json] [--show] [--port N]`.
-  A bundled example lives at `examples/ashes-of-dawn.character.json`.
+- **UI (NiceGUI):** `ui/view.py` is the pure, toolkit-free presenter (sheet view +
+  charm-graph data). `ui/app.py` read-only sheet, `ui/editor.py` chargen editor
+  (live validation), `ui/picker.py` Cytoscape charm-tree picker. `ui/builder.py`
+  is the **unified tabbed app** (Edit / Charms / Sheet, one shared Character, with
+  Save / Load / Finish & Lock). Run the unified app:
+  `.venv/bin/python -m exalted_builder.ui.builder [char.json] [--show] [--port N]`
+  (the individual modules also run standalone). Example char:
+  `examples/ashes-of-dawn.character.json`.
 - **Data authored:** `castes.json`, `armor.json` (mundane + 5 artifact), `weapons.json`
   (mundane melee/thrown/archery + artifact daiklaves/powerbows/Lightning Torment),
   `spells.json` (all 3 circles), `data/charms/solar_melee.json` (22), `solar_occult.json`

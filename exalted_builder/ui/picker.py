@@ -63,7 +63,12 @@ def _elements(graph: viewmod.CharmGraph) -> list[dict]:
     return nodes + edges
 
 
-def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> None:
+def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
+                 *, with_header: bool = True, register_events: bool = True):
+    """Render the picker. Returns its `toggle(charm_id)` so an embedding app can
+    own a single charm_toggle event handler (set register_events=False then).
+    with_header=False omits the title/Save bar and the head <script> (the host
+    app supplies Cytoscape)."""
     categories = sorted({c.category for c in ruleset.charms.values()})
     state = {"category": "melee" if "melee" in categories else (categories[0] if categories else "")}
 
@@ -93,12 +98,18 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> Non
           function go() {{
             tries += 1;
             var el = document.getElementById('charm-graph');
-            if (!window.cytoscape || !el) {{
+            if (!window.cytoscape) {{
               if (tries > 100) {{
                 if (el) el.innerHTML = '<div style="padding:1rem;color:#b91c1c">'
                   + 'Could not load Cytoscape from the CDN (offline?).</div>';
                 return;
               }}
+              return setTimeout(go, 50);
+            }}
+            // wait until the container is mounted AND visible (non-zero height),
+            // so the graph never renders into a hidden/collapsed tab panel
+            if (!el || el.offsetHeight === 0) {{
+              if (tries > 200) return;
               return setTimeout(go, 50);
             }}
             if (window.cy) {{ window.cy.destroy(); }}
@@ -169,19 +180,22 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> Non
         persistence.save_character(character, save_path)
         ui.notify(f"Saved to {save_path}", type="positive")
 
-    ui.on("charm_toggle", lambda e: toggle(e.args["id"]))
+    if register_events:
+        ui.on("charm_toggle", lambda e: toggle(e.args["id"]))
 
     # ---- layout ----------------------------------------------------------- #
-    ui.add_head_html(f'<script src="{_CYTOSCAPE_CDN}"></script>')
-    ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
+    if with_header:
+        ui.add_head_html(f'<script src="{_CYTOSCAPE_CDN}"></script>')
+        ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
 
     with ui.row().classes("w-full max-w-7xl mx-auto gap-4 p-4 items-start no-wrap"):
         with ui.column().classes("flex-1 gap-2"):
             with ui.row().classes("w-full items-center justify-between"):
-                ui.label("Charm-Tree Picker").classes("text-xl font-bold")
-                with ui.row().classes("items-center gap-3"):
-                    ui.select(categories, value=state["category"], label="Category",
-                              on_change=lambda e: set_category(e.value)).classes("w-40")
+                if with_header:
+                    ui.label("Charm-Tree Picker").classes("text-xl font-bold")
+                ui.select(categories, value=state["category"], label="Category",
+                          on_change=lambda e: set_category(e.value)).classes("w-40")
+                if with_header:
                     ui.button("Save", icon="save", on_click=save).props("color=brown")
             with ui.row().classes("w-full gap-4 text-xs items-center justify-between"):
                 with ui.row().classes("gap-4 items-center"):
@@ -203,6 +217,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> Non
 
     # defer the first graph build until the client is connected and the div exists
     ui.timer(0.1, init_graph, once=True)
+    return toggle
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:
