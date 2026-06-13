@@ -56,6 +56,31 @@ def test_melee_charm_tree_loads_with_intact_prerequisites():
                      "Golden Essence Block"}
 
 
+def test_dawn_caste_charm_trees_load_with_expected_counts():
+    from collections import Counter
+    rs = rules_db.load_ruleset(DATA_DIR)
+    cats = Counter(c.category for c in rs.charms.values())
+    assert cats["archery"] == 12
+    assert cats["brawl"] == 10
+    assert cats["thrown"] == 9
+    assert cats["martial_arts:snake"] == 8
+    assert cats["melee"] == 22
+
+
+def test_snake_style_charms_gate_on_martial_arts_ability():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = Character(id="c.snake")
+    c.essence_rating = 2
+    c.charms = ["solar.martial-arts.striking-cobra-technique",
+                "solar.martial-arts.serpentine-evasion",
+                "solar.martial-arts.snake-form"]   # Snake Form needs Martial Arts 4
+    c.abilities[AbilityName.MARTIAL_ARTS] = 4
+    assert validate.check_charm_prerequisites(rs, c) == []
+    c.abilities[AbilityName.MARTIAL_ARTS] = 3
+    assert any(i.code == "charm-min-ability"
+               for i in validate.check_charm_prerequisites(rs, c))
+
+
 def test_blazing_solar_bolt_requires_both_branches():
     rs = rules_db.load_ruleset(DATA_DIR)
     bolt = rs.charms["solar.melee.blazing-solar-bolt"]
