@@ -41,14 +41,14 @@ _TABS = ("Edit", "Charms", "Sheet")
 def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
     # Mutable context so Load can swap the character without losing closures.
     ctx = {"char": character, "path": save_path}
-    state: dict = {"tab": "Edit", "toggle": None}
+    state: dict = {"tab": "Edit", "select": None}
 
     ui.add_head_html(f'<script src="{_CYTOSCAPE_CDN}"></script>')
     ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
 
-    # One charm_toggle handler for the whole app; dispatch to the picker's current
-    # toggle (set whenever the Charms tab builds).
-    ui.on("charm_toggle", lambda e: state["toggle"](e.args["id"]) if state["toggle"] else None)
+    # One charm_select handler for the whole app; dispatch to the picker's current
+    # select (set whenever the Charms tab builds).
+    ui.on("charm_select", lambda e: state["select"](e.args["id"]) if state["select"] else None)
 
     @ui.refreshable
     def content() -> None:
@@ -56,7 +56,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         if state["tab"] == "Edit":
             editor.build_editor(ruleset, char, path, with_header=False)
         elif state["tab"] == "Charms":
-            state["toggle"] = picker.build_picker(
+            state["select"] = picker.build_picker(
                 ruleset, char, path, with_header=False, register_events=False)
         else:
             sheet_app.render_sheet(viewmod.build_sheet_view(ruleset, char))

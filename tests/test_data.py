@@ -81,6 +81,21 @@ def test_snake_style_charms_gate_on_martial_arts_ability():
                for i in validate.check_charm_prerequisites(rs, c))
 
 
+def test_build_charm_detail_shows_requirements_and_named_prereqs():
+    from exalted_builder.ui import view as viewmod
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = Character(id="c.detail")
+    c.abilities[AbilityName.MELEE] = 5
+    c.essence_rating = 3
+    c.charms = ["solar.melee.corona-of-radiance", "solar.melee.sandstorm-wind-attack"]
+    d = viewmod.build_charm_detail(rs, c, "solar.melee.blazing-solar-bolt")
+    assert d.name == "Blazing Solar Bolt"
+    assert d.requirement == "Melee 5, Essence 3"
+    assert d.prerequisite_groups == [["Corona of Radiance"], ["Sandstorm-Wind Attack"]]
+    assert d.available is True and d.owned is False
+    assert viewmod.build_charm_detail(rs, c, "nope") is None
+
+
 def test_blazing_solar_bolt_requires_both_branches():
     rs = rules_db.load_ruleset(DATA_DIR)
     bolt = rs.charms["solar.melee.blazing-solar-bolt"]

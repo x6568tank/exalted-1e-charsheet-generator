@@ -96,6 +96,39 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             color = {"error": "text-red-600", "warning": "text-amber-600"}.get(issue.severity, "text-gray-500")
             ui.label(f"• {issue.message}").classes(f"text-xs {color}")
 
+    # ---- selected-charm detail panel -------------------------------------- #
+    selected = {"id": None}
+
+    @ui.refreshable
+    def detail() -> None:
+        d = viewmod.build_charm_detail(ruleset, character, selected["id"]) if selected["id"] else None
+        if d is None:
+            ui.label("Tap a charm to see its details.").classes("text-xs text-gray-400")
+            return
+        ui.label(d.name).classes("text-sm font-bold").style(f"color:{_ACCENT}")
+        ui.label(f"{d.type} · {d.cost}").classes("text-xs text-gray-600")
+        if d.description:
+            ui.label(d.description).classes("text-xs")
+        ui.separator()
+        ui.label(f"Requires: {d.requirement}").classes("text-xs font-semibold")
+        if d.prerequisite_groups:
+            ui.label("Prerequisite Charms:").classes("text-xs font-semibold")
+            for group in d.prerequisite_groups:
+                ui.label("• " + " or ".join(group)).classes("text-xs ml-2")
+        else:
+            ui.label("No prerequisite Charms.").classes("text-xs text-gray-500")
+        ui.separator()
+        if d.owned:
+            ui.button("Remove", icon="remove", on_click=lambda: toggle(d.id)).props("dense color=negative")
+        elif d.available:
+            ui.button("Add", icon="add", on_click=lambda: toggle(d.id)).props("dense color=positive")
+        else:
+            ui.button("Add", icon="lock").props("dense disable").tooltip("Prerequisites not met")
+
+    def select(charm_id: str) -> None:
+        selected["id"] = charm_id
+        detail.refresh()
+
     # ---- graph (re)build / update ---------------------------------------- #
     def init_graph() -> None:
         graph = viewmod.build_charm_graph(ruleset, character, state["category"])
@@ -127,7 +160,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
               pixelRatio: Math.max(2, window.devicePixelRatio || 1),
               wheelSensitivity: 0.25, minZoom: 0.3, maxZoom: 3, textureOnViewport: false,
             }});
-            window.cy.on('tap', 'node', function(e) {{ emitEvent('charm_toggle', {{id: e.target.id()}}); }});
+            window.cy.on('tap', 'node', function(e) {{ emitEvent('charm_select', {{id: e.target.id()}}); }});
             var lay = window.cy.layout({{name: 'breadthfirst', directed: true,
               roots: {json.dumps(graph.roots)}, spacingFactor: 1.5, padding: 30,
               avoidOverlap: true, fit: false}});
@@ -177,6 +210,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.notify(f"{charm.name}: prerequisites not met", type="warning")
                 return
         update_graph()
+        detail.refresh()
 
     def set_category(value: str) -> None:
         state["category"] = value
@@ -188,7 +222,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         ui.notify(f"Saved to {save_path}", type="positive")
 
     if register_events:
-        ui.on("charm_toggle", lambda e: toggle(e.args["id"]))
+        ui.on("charm_select", lambda e: select(e.args["id"]))
 
     # ---- layout ----------------------------------------------------------- #
     if with_header:
@@ -221,10 +255,13 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
                 readout()
+            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
+                ui.label("Charm Details").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+                detail()
 
     # defer the first graph build until the client is connected and the div exists
     ui.timer(0.1, init_graph, once=True)
-    return toggle
+    return select
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:

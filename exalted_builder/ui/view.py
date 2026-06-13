@@ -59,6 +59,46 @@ class CharmGraph:
     roots: list[str]               # charm ids with no prerequisites
 
 
+@dataclass
+class CharmDetail:
+    id: str
+    name: str
+    description: str
+    type: str
+    cost: str
+    requirement: str                       # e.g. "Martial Arts 4, Essence 2"
+    prerequisite_groups: list[list[str]]   # charm names; inner list = an OR group
+    owned: bool
+    available: bool                        # learnable right now
+
+
+def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) -> Optional[CharmDetail]:
+    """Display detail for a single Charm: its requirements (gating ability + min
+    essence), prerequisite Charms by name, and the character's relationship to it.
+    Pure; eligibility comes from engine.validate."""
+    charm = ruleset.charms.get(charm_id)
+    if charm is None:
+        return None
+    ability = validate._category_ability(charm.category)
+    reqs = []
+    if ability is not None and charm.min_ability:
+        reqs.append(f"{_label(ability.value)} {charm.min_ability}")
+    reqs.append(f"Essence {charm.min_essence}")
+    groups = [[ruleset.charms[r].name if r in ruleset.charms else r for r in group]
+              for group in charm.prerequisites]
+    return CharmDetail(
+        id=charm.id,
+        name=charm.name,
+        description=charm.description,
+        type=charm.type.value,
+        cost=_cost_str(charm.cost),
+        requirement=", ".join(reqs),
+        prerequisite_groups=groups,
+        owned=charm_id in character.charms,
+        available=validate.meets_charm_requirements(ruleset, character, charm),
+    )
+
+
 def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> CharmGraph:
     """Assemble the prerequisite graph for one Charm category, tagging each node
     by the character's relationship to it: owned, available (learnable now), or
