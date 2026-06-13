@@ -86,10 +86,18 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> Non
         graph = viewmod.build_charm_graph(ruleset, character, state["category"])
         ui.run_javascript(f"""
         (function() {{
+          var tries = 0;
           function go() {{
-            if (!window.cytoscape) return setTimeout(go, 50);
+            tries += 1;
             var el = document.getElementById('charm-graph');
-            if (!el) return setTimeout(go, 50);
+            if (!window.cytoscape || !el) {{
+              if (tries > 100) {{
+                if (el) el.innerHTML = '<div style="padding:1rem;color:#b91c1c">'
+                  + 'Could not load Cytoscape from the CDN (offline?).</div>';
+                return;
+              }}
+              return setTimeout(go, 50);
+            }}
             if (window.cy) {{ window.cy.destroy(); }}
             window.cy = cytoscape({{
               container: el,
@@ -158,11 +166,16 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> Non
                               on_change=lambda e: set_category(e.value)).classes("w-40")
                     ui.button("Save", icon="save", on_click=save).props("color=brown")
             with ui.row().classes("gap-4 text-xs items-center"):
-                ui.html('<span style="color:#8a5a1a">●</span> owned')
-                ui.html('<span style="color:#15803d">●</span> available')
-                ui.html('<span style="color:#9ca3af">●</span> locked (tap to see why in the panel)')
-            ui.html('<div id="charm-graph" style="height:640px;width:100%;'
-                    'border:1px solid rgba(138,90,26,0.3);border-radius:8px;background:#fffdf7"></div>')
+                for color, text in [(_ACCENT, "owned"), ("#15803d", "available"),
+                                    ("#9ca3af", "locked (tap to see why)")]:
+                    with ui.row().classes("items-center gap-1"):
+                        ui.icon("circle", size="0.7rem").style(f"color:{color}")
+                        ui.label(text)
+            # A real element (not ui.html, whose inline style gets sanitised away),
+            # with an explicit DOM id for Cytoscape to mount into.
+            (ui.element("div").props("id=charm-graph")
+             .style("height:640px;width:100%;border:1px solid rgba(138,90,26,0.3);"
+                    "border-radius:8px;background:#fffdf7"))
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
