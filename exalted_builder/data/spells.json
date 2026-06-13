@@ -1,0 +1,154 @@
+[
+  {
+    "id": "spell.terrestrial.death-of-obsidian-butterflies",
+    "name": "Death of Obsidian Butterflies",
+    "circle": "Terrestrial",
+    "cost": {"motes": 15},
+    "description": "Conjures a cascade of razor-sharp obsidian butterflies that slash everyone in a roughly 10-yard area; defended against as a hand-to-hand attack with the caster's Perception + Occult successes.",
+    "source": {"book": "Exalted 1e Core", "page": 217}
+  },
+  {
+    "id": "spell.terrestrial.demon-of-the-first-circle",
+    "name": "Demon of the First Circle",
+    "circle": "Terrestrial",
+    "cost": {"raw": "20+ motes"},
+    "description": "Summons and binds a first-circle demon to the sorcerer's service over a night's ritual begun at sunset.",
+    "source": {"book": "Exalted 1e Core", "page": 218}
+  },
+  {
+    "id": "spell.terrestrial.emerald-countermagic",
+    "name": "Emerald Countermagic",
+    "circle": "Terrestrial",
+    "cost": {"raw": "10 or 20 motes"},
+    "description": "Dispels Terrestrial Circle sorcery; can also be used to counter a spell as it is cast.",
+    "source": {"book": "Exalted 1e Core", "page": 218}
+  },
+  {
+    "id": "spell.terrestrial.impenetrable-frost-barrier",
+    "name": "Impenetrable Frost Barrier",
+    "circle": "Terrestrial",
+    "cost": {"motes": 20},
+    "description": "Raises a barrier of intense magical cold that damages and hampers those who try to cross it.",
+    "source": {"book": "Exalted 1e Core", "page": 218}
+  },
+  {
+    "id": "spell.terrestrial.infallible-messenger",
+    "name": "Infallible Messenger",
+    "circle": "Terrestrial",
+    "cost": {"motes": 10},
+    "description": "Sends a short spoken message to anyone the sorcerer has met, delivered by a tiny figure of Essence.",
+    "source": {"book": "Exalted 1e Core", "page": 218}
+  },
+  {
+    "id": "spell.terrestrial.invulnerable-skin-of-bronze",
+    "name": "Invulnerable Skin of Bronze",
+    "circle": "Terrestrial",
+    "cost": {"motes": 20},
+    "description": "Hardens the sorcerer's skin to add +6 soak against lethal damage and +12 against bashing.",
+    "source": {"book": "Exalted 1e Core", "page": 218}
+  },
+  {
+    "id": "spell.terrestrial.stormwind-rider",
+    "name": "Stormwind Rider",
+    "circle": "Terrestrial",
+    "cost": {"motes": 15},
+    "description": "Wraps the sorcerer in a controllable dust-devil vortex that carries her at great speed and cushions falls.",
+    "source": {"book": "Exalted 1e Core", "page": 219}
+  },
+  {
+    "id": "spell.terrestrial.summon-elemental",
+    "name": "Summon Elemental",
+    "circle": "Terrestrial",
+    "cost": {"raw": "10+ motes"},
+    "description": "Summons and binds an elemental to service; like Demon of the First Circle but castable any time and with gentler terms.",
+    "source": {"book": "Exalted 1e Core", "page": 219}
+  },
+  {
+    "id": "spell.terrestrial.wood-dragons-claw",
+    "name": "Wood Dragon's Claw",
+    "circle": "Terrestrial",
+    "cost": {"motes": 10},
+    "description": "Transforms the hands into gnarled oaken claws dealing Strength + 4 lethal damage and able to block lethal attacks.",
+    "source": {"book": "Exalted 1e Core", "page": 220}
+  },
+  {
+    "id": "spell.celestial.blood-of-boiling-oil",
+    "name": "Blood of Boiling Oil",
+    "circle": "Celestial",
+    "cost": {"motes": 30},
+    "description": "Hurls a sphere of searing Essence that boils a living victim's blood, dealing aggravated damage.",
+    "source": {"book": "Exalted 1e Core", "page": 220}
+  },
+  {
+    "id": "spell.celestial.demon-of-the-second-circle",
+    "name": "Demon of the Second Circle",
+    "circle": "Celestial",
+    "cost": {"raw": "30+ motes"},
+    "description": "Summons and binds a more powerful second-circle demon; similar to Demon of the First Circle but mightier and more dangerous.",
+    "source": {"book": "Exalted 1e Core", "page": 220}
+  },
+  {
+    "id": "spell.celestial.dolorous-reflection",
+    "name": "Dolorous Reflection",
+    "circle": "Celestial",
+    "cost": {"motes": 20},
+    "description": "A defensive nimbus of mystical energy that reflects ranged and hand-to-hand attacks back at the attacker.",
+    "source": {"book": "Exalted 1e Core", "page": 220}
+  },
+  {
+    "id": "spell.celestial.incomparable-body-arsenal",
+    "name": "Incomparable Body Arsenal",
+    "circle": "Celestial",
+    "cost": {"motes": 30},
+    "description": "Grows the sorcerer's body into a living arsenal of blades and barbs, raising Strength and Stamina and dealing lethal damage.",
+    "source": {"book": "Exalted 1e Core", "page": 221}
+  },
+  {
+    "id": "spell.celestial.sapphire-countermagic",
+    "name": "Sapphire Countermagic",
+    "circle": "Celestial",
+    "cost": {"raw": "15 or 20 motes"},
+    "description": "Dispels Celestial Circle (and lower) sorcery; can also counter a spell as it is cast.",
+    "source": {"book": "Exalted 1e Core", "page": 221}
+  },
+  {
+    "id": "spell.celestial.travel-without-distance",
+    "name": "Travel Without Distance",
+    "circle": "Celestial",
+    "cost": {"motes": 25},
+    "description": "Instantly transports the sorcerer across any distance to a place she can clearly picture.",
+    "source": {"book": "Exalted 1e Core", "page": 221}
+  },
+  {
+    "id": "spell.solar.adamant-countermagic",
+    "name": "Adamant Countermagic",
+    "circle": "Solar",
+    "cost": {"raw": "20 or 25 motes"},
+    "description": "The most powerful countermagic; dispels sorcery of any circle up to and including the Solar Circle, and protects against lower-circle countermagic.",
+    "source": {"book": "Exalted 1e Core", "page": 222}
+  },
+  {
+    "id": "spell.solar.demon-of-the-third-circle",
+    "name": "Demon of the Third Circle",
+    "circle": "Solar",
+    "cost": {"raw": "40+ motes"},
+    "description": "Summons and binds one of the mighty third-circle demon princes; an extremely difficult and dangerous ritual.",
+    "source": {"book": "Exalted 1e Core", "page": 222}
+  },
+  {
+    "id": "spell.solar.rain-of-doom",
+    "name": "Rain of Doom",
+    "circle": "Solar",
+    "cost": {"motes": 60},
+    "description": "Calls down a corrosive, venomous rain over a vast area that sears and poisons everything it touches.",
+    "source": {"book": "Exalted 1e Core", "page": 222}
+  },
+  {
+    "id": "spell.solar.rune-of-singular-hate",
+    "name": "Rune of Singular Hate",
+    "circle": "Solar",
+    "cost": {"motes": 10},
+    "description": "A single spoken word of pure malice that strips dots from every Ability, Attribute, and Virtue of its target; the sorcerer also permanently loses one dot from each of her own.",
+    "source": {"book": "Exalted 1e Core", "page": 223}
+  }
+]

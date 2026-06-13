@@ -9,7 +9,7 @@ import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import validate
 from exalted_builder.models.character import Character
-from exalted_builder.models.rules import AbilityName, Caste
+from exalted_builder.models.rules import AbilityName, Caste, SpellCircle
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
@@ -76,3 +76,54 @@ def test_full_melee_chain_is_legal_on_real_data():
                 "solar.melee.hungry-tiger-technique",
                 "solar.melee.fire-and-stones-strike"]
     assert validate.check_charm_prerequisites(rs, c) == []
+
+
+# --------------------------------------------------------------------------- #
+# Spells + sorcery circles
+# --------------------------------------------------------------------------- #
+
+def test_spells_load_with_expected_circle_counts():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    assert len(rs.spells) == 19
+    by_circle = {circle: 0 for circle in SpellCircle}
+    for s in rs.spells.values():
+        by_circle[s.circle] += 1
+    assert by_circle == {SpellCircle.TERRESTRIAL: 9,
+                         SpellCircle.CELESTIAL: 6,
+                         SpellCircle.SOLAR: 4}
+
+
+def test_each_circle_is_granted_by_its_sorcery_charm():
+    # load_ruleset would raise if any spell's circle were ungranted; assert the
+    # mapping explicitly too.
+    rs = rules_db.load_ruleset(DATA_DIR)
+    grants = {c.grants_sorcery_circle for c in rs.charms.values()
+              if c.grants_sorcery_circle is not None}
+    assert grants == set(SpellCircle)
+
+
+def _sorcerer(charms) -> Character:
+    c = Character(id="char.sorc")
+    c.abilities[AbilityName.OCCULT] = 5
+    c.essence_rating = 5
+    c.charms = list(charms)
+    return c
+
+
+def test_terrestrial_initiate_cannot_cast_celestial_spell():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = _sorcerer(["solar.occult.terrestrial-circle-sorcery"])
+    c.spells = ["spell.celestial.travel-without-distance"]
+    codes = {i.code for i in validate.check_spell_access(rs, c)}
+    assert "spell-circle" in codes
+
+
+def test_celestial_initiate_casts_both_circles_via_prereq_chain():
+    # Knowing Celestial Circle Sorcery requires Terrestrial Circle Sorcery, so the
+    # character holds both Charms and can cast spells of both circles.
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = _sorcerer(["solar.occult.terrestrial-circle-sorcery",
+                   "solar.occult.celestial-circle-sorcery"])
+    c.spells = ["spell.terrestrial.death-of-obsidian-butterflies",
+                "spell.celestial.travel-without-distance"]
+    assert validate.check_spell_access(rs, c) == []
