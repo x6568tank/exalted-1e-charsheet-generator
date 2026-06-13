@@ -89,6 +89,7 @@ class CharmType(str, Enum):
     SIMPLE = "Simple"
     EXTRA_ACTION = "Extra Action"
     PERMANENT = "Permanent"
+    SPECIAL = "Special"        # e.g. Ox-Body Technique (repeatable, permanent effect)
 
 
 class SpellCircle(str, Enum):
