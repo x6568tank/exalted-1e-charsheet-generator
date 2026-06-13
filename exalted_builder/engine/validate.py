@@ -77,12 +77,13 @@ def check_references(ruleset: RuleSet, character: Character) -> list[Issue]:
 # --------------------------------------------------------------------------- #
 
 def _category_ability(category: str) -> AbilityName | None:
-    """Resolve a Charm `category` to the Ability that gates its minimum, when it
-    is a plain ability. Martial-arts styles and 'sorcery' don't map to a single
-    ability without extra data, so they are left unchecked (under-checking, never
-    a false positive)."""
+    """Resolve a Charm `category` to the Ability that gates its minimum. A plain
+    ability is itself (e.g. 'melee'); a Martial Arts style uses the convention
+    'martial_arts:<style>' (e.g. 'martial_arts:tiger') and resolves to Martial
+    Arts. Anything else (e.g. 'sorcery') has no single gating ability -> None."""
+    base = category.split(":", 1)[0]      # 'martial_arts:tiger' -> 'martial_arts'
     try:
-        return AbilityName(category)
+        return AbilityName(base)
     except ValueError:
         return None
 
@@ -349,7 +350,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         charm = ruleset.charms.get(cid)
         if charm is None:
             continue
-        ability = _category_ability(charm.category)   # MA styles unresolved -> not counted
+        ability = _category_ability(charm.category)   # resolves 'martial_arts:<style>' too
         if ability is not None and ability in cf_set:
             cf_charm_count += 1
     if cf_charm_count < b.charm_min_caste_favored:

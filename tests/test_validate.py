@@ -130,13 +130,29 @@ def test_and_of_or_group_satisfied_by_any_member():
     assert validate.check_charm_prerequisites(rs, c) == []
 
 
-def test_martial_arts_style_category_skips_ability_check():
+def test_martial_arts_style_category_resolves_to_martial_arts():
+    # Convention: a Martial Arts style charm's category is 'martial_arts:<style>',
+    # which gates on the Martial Arts ability.
     rs = _ruleset()
     rs.charms["ma"] = Charm(
-        id="ma", name="Style Charm", category="Tiger Style", type=CharmType.SIMPLE,
+        id="ma", name="Tiger Claw", category="martial_arts:tiger", type=CharmType.SIMPLE,
+        min_ability=3, min_essence=1,
+    )
+    c = _char(charms=["ma"], essence_rating=2)
+    c.abilities[AbilityName.MARTIAL_ARTS] = 2        # below the min -> flagged
+    assert [i.code for i in validate.check_charm_prerequisites(rs, c)] == ["charm-min-ability"]
+    c.abilities[AbilityName.MARTIAL_ARTS] = 3        # meets it
+    assert validate.check_charm_prerequisites(rs, c) == []
+    assert validate.meets_charm_requirements(rs, c, rs.charms["ma"]) is True
+
+
+def test_unrecognised_category_is_left_unchecked():
+    rs = _ruleset()
+    rs.charms["x"] = Charm(
+        id="x", name="Odd", category="sorcery", type=CharmType.SIMPLE,
         min_ability=5, min_essence=1,
     )
-    c = _char(charms=["ma"], essence_rating=2)   # no martial_arts dots, but unchecked
+    c = _char(charms=["x"], essence_rating=2)        # 'sorcery' has no gating ability
     assert validate.check_charm_prerequisites(rs, c) == []
 
 
