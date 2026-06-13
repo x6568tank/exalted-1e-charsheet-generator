@@ -1,0 +1,141 @@
+[
+  {
+    "id": "solar.performance.respect-commanding-attitude",
+    "name": "Respect Commanding Attitude",
+    "category": "performance",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {"motes": 5},
+    "duration": "One scene",
+    "description": "Commands the respect and attention of an audience during a performance.",
+    "source": {"book": "Exalted 1e Core", "page": 172}
+  },
+  {
+    "id": "solar.performance.unruly-mob-dispersing-rebuke",
+    "name": "Unruly Mob Dispersing Rebuke",
+    "category": "performance",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [["solar.performance.respect-commanding-attitude"]],
+    "cost": {"motes": 8, "willpower": 1},
+    "duration": "Instant",
+    "description": "A commanding rebuke that disperses an unruly or hostile crowd.",
+    "source": {"book": "Exalted 1e Core", "page": 172}
+  },
+  {
+    "id": "solar.performance.rout-stemming-gesture",
+    "name": "Rout-Stemming Gesture",
+    "category": "performance",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [["solar.performance.unruly-mob-dispersing-rebuke"]],
+    "cost": {"motes": 5, "willpower": 1},
+    "duration": "3 turns",
+    "description": "A rallying gesture that halts a panicked rout and steadies fleeing allies.",
+    "source": {"book": "Exalted 1e Core", "page": 172}
+  },
+  {
+    "id": "solar.performance.fury-inciting-presence",
+    "name": "Fury Inciting Presence",
+    "category": "performance",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [["solar.performance.unruly-mob-dispersing-rebuke"]],
+    "cost": {"motes": 8, "willpower": 1},
+    "duration": "One scene",
+    "description": "Whips a crowd into a fury, inciting them to riot or violence.",
+    "source": {"book": "Exalted 1e Core", "page": 173}
+  },
+  {
+    "id": "solar.performance.heroism-encouraging-presence",
+    "name": "Heroism-Encouraging Presence",
+    "category": "performance",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [["solar.performance.fury-inciting-presence"]],
+    "cost": {"motes": 10, "willpower": 1},
+    "duration": "One scene",
+    "description": "Inspires troops to deeds of great heroism, boosting morale and combat rolls.",
+    "source": {"book": "Exalted 1e Core", "page": 173}
+  },
+  {
+    "id": "solar.performance.tiger-warrior-training-technique",
+    "name": "Tiger-Warrior Training Technique",
+    "category": "performance",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      ["solar.performance.heroism-encouraging-presence"],
+      ["solar.performance.rout-stemming-gesture"]
+    ],
+    "cost": {"motes": 10, "willpower": 2},
+    "duration": "One week",
+    "description": "Drills raw recruits into disciplined, capable soldiers over the course of a week.",
+    "source": {"book": "Exalted 1e Core", "page": 173}
+  },
+  {
+    "id": "solar.performance.masterful-performance-exercise",
+    "name": "Masterful Performance Exercise",
+    "category": "performance",
+    "type": "Supplemental",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {"raw": "2 motes per success"},
+    "duration": "Instant",
+    "description": "Channels Essence through the voice or instrument to enhance a performance, adding successes.",
+    "source": {"book": "Exalted 1e Core", "page": 174}
+  },
+  {
+    "id": "solar.performance.phantom-conjuring-performance",
+    "name": "Phantom-Conjuring Performance",
+    "category": "performance",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      ["solar.performance.masterful-performance-exercise"],
+      ["solar.performance.respect-commanding-attitude"]
+    ],
+    "cost": {"motes": 5},
+    "duration": "One scene",
+    "description": "Weaves illusions into a performance, conjuring phantom images to illustrate the tale.",
+    "source": {"book": "Exalted 1e Core", "page": 174}
+  },
+  {
+    "id": "solar.performance.heart-compelling-method",
+    "name": "Heart-Compelling Method",
+    "category": "performance",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [["solar.performance.masterful-performance-exercise"]],
+    "cost": {"motes": 6, "willpower": 1},
+    "duration": "One scene",
+    "description": "Compels a chosen emotion in the audience through performance, swaying their hearts.",
+    "source": {"book": "Exalted 1e Core", "page": 174}
+  },
+  {
+    "id": "solar.performance.memory-reweaving-discipline-performance",
+    "name": "Memory-Reweaving Discipline Performance",
+    "category": "performance",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      ["solar.performance.heart-compelling-method"],
+      ["solar.performance.phantom-conjuring-performance"]
+    ],
+    "cost": {"motes": 10, "willpower": 1},
+    "duration": "One scene",
+    "description": "Reweaves a narrative so plausibly the audience comes to believe it, reshaping memory.",
+    "source": {"book": "Exalted 1e Core", "page": 175}
+  }
+]
