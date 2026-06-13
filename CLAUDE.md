@@ -139,13 +139,23 @@ Exalted-1E-Charsheet-Generator/      (project root)
   `.venv/bin/python -m exalted_builder.ui.builder [char.json] [--show] [--port N]`
   (the individual modules also run standalone). Example char:
   `examples/ashes-of-dawn.character.json`.
-- **Data authored:** `castes.json`, `armor.json` (mundane + 5 artifact), `weapons.json`
-  (mundane melee/thrown/archery + artifact daiklaves/powerbows/Lightning Torment),
-  `spells.json` (all 3 circles), `data/charms/solar_melee.json` (22), `solar_occult.json`
-  (3 Circle Sorcery charms).
-- **Next:** chargen editor (editable traits + live `validate_chargen`), then the
-  Cytoscape charm-tree picker.
-- **Deferred / not yet authored:** other ability charm trees; `chargen_budgets.json`,
-  `costs_bonus.json`, `costs_xp.json` (optional — loader falls back to verified model
-  defaults); combat/attack derivation (weapons are display-only); the Dire Lance
-  mounted profile; Limit Break (play-state — add at sheet-export time, not chargen).
+- **Data authored:** `castes.json`, `backgrounds.json` (10 core), `armor.json`
+  (mundane + 5 artifact), `weapons.json` (mundane + artifact), `spells.json` (all 3
+  circles), and the Circle Sorcery charms (`solar_occult.json`, 3).
+- **Charms authored** (`data/charms/solar_<ability>.json`):
+  - **Dawn — complete:** Melee (22), Archery (12), Brawl (10), Thrown (9),
+    Martial Arts / Snake Style (10, category `martial_arts:snake`).
+  - **Zenith — in progress:** Endurance (8), Performance (10), Presence (6) done.
+    **Remaining: Resistance and Survival** (pages p176-182; Resistance is a large
+    ~12-charm tree starting at Durability of Oak Meditation).
+  - Twilight / Night / Eclipse castes: not started.
+- **Charm convention:** category is the plain ability (`melee`) or
+  `martial_arts:<style>`; ids `solar.<ability>.<kebab>`. Author one ability at a
+  time from page PNGs; verify cut-off values, never guess. CharmType has a
+  `Special` value (Ox-Body Technique).
+- **Next:** finish Zenith (Resistance, Survival), then Twilight/Night/Eclipse charms
+  toward corebook-complete.
+- **Deferred / not yet authored:** `chargen_budgets.json`, `costs_bonus.json`,
+  `costs_xp.json` (optional — loader falls back to verified model defaults);
+  combat/attack derivation (weapons are display-only); the Dire Lance mounted
+  profile; Limit Break (play-state — add at sheet-export time, not chargen).
