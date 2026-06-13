@@ -1,0 +1,12 @@
+[
+  {"id": "background.allies",    "name": "Allies",    "description": "Aides and friends who help you in tasks — close, capable companions; each Ally is a Storyteller character."},
+  {"id": "background.artifact",  "name": "Artifact",  "description": "Wondrous devices of the First Age that you own, rated by power and rarity."},
+  {"id": "background.backing",   "name": "Backing",   "description": "Standing and rank within an organization of power, such as the Realm, a Guild, or a society."},
+  {"id": "background.contacts",  "name": "Contacts",  "description": "Information sources and useful connections in various places."},
+  {"id": "background.familiar",  "name": "Familiar",  "description": "An animal companion bonded to you and sustained by your Essence, rated by capability."},
+  {"id": "background.followers", "name": "Followers", "description": "Mortals who look to you for leadership, rated by their number and devotion."},
+  {"id": "background.influence", "name": "Influence", "description": "Your pull and status in society — political, social, or commercial."},
+  {"id": "background.manse",     "name": "Manse",     "description": "A geomantic structure over a demesne that produces Essence and houses a Hearthstone."},
+  {"id": "background.mentor",    "name": "Mentor",    "description": "A patron, teacher, or defender who advises and aids you, rated by their power."},
+  {"id": "background.resources", "name": "Resources", "description": "Your material wealth and income, from destitute to fabulously wealthy."}
+]

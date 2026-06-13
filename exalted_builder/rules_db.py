@@ -36,6 +36,7 @@ from pydantic import BaseModel, ValidationError
 
 from .models.rules import (
     ArmorType,
+    BackgroundType,
     BonusPointCosts,
     Caste,
     CasteDefinition,
@@ -154,6 +155,8 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
     spells = _index(_load_array(data_dir / "spells.json", Spell, problems), "id", "spell", problems)
     armor = _index(_load_array(data_dir / "armor.json", ArmorType, problems), "id", "armor", problems)
     weapons = _index(_load_array(data_dir / "weapons.json", WeaponType, problems), "id", "weapon", problems)
+    backgrounds = _index(_load_array(data_dir / "backgrounds.json", BackgroundType, problems),
+                         "id", "background", problems)
 
     bonus_costs = _load_single(data_dir / "costs_bonus.json", BonusPointCosts, problems)
     xp_costs = _load_single(data_dir / "costs_xp.json", ExperienceCosts, problems)
@@ -172,6 +175,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         spells=spells,
         armor_catalog=armor,
         weapon_catalog=weapons,
+        background_catalog=backgrounds,
         bonus_costs=bonus_costs,
         xp_costs=xp_costs,
         budgets=budgets,

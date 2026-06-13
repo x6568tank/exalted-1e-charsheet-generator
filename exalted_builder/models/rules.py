@@ -218,6 +218,16 @@ class WeaponType(BaseModel):
     tags: list[str] = Field(default_factory=list)
 
 
+class BackgroundType(BaseModel):
+    """A purchasable Background. The catalog of names a character may pick from;
+    the per-character rating/descriptor lives on character.BackgroundEntry."""
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    name: str
+    description: str = ""
+
+
 # --------------------------------------------------------------------------- #
 # Cost tables
 # --------------------------------------------------------------------------- #
@@ -306,6 +316,7 @@ class RuleSet(BaseModel):
     spells: dict[str, Spell] = Field(default_factory=dict)
     armor_catalog: dict[str, ArmorType] = Field(default_factory=dict)
     weapon_catalog: dict[str, WeaponType] = Field(default_factory=dict)
+    background_catalog: dict[str, BackgroundType] = Field(default_factory=dict)
     bonus_costs: BonusPointCosts = Field(default_factory=BonusPointCosts)
     xp_costs: ExperienceCosts = Field(default_factory=ExperienceCosts)
     budgets: ChargenBudgets = Field(default_factory=ChargenBudgets)

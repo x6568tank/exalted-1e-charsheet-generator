@@ -34,6 +34,13 @@ def test_each_caste_keyed_by_its_own_enum():
     assert all(caste == cd.caste for caste, cd in rs.castes.items())
 
 
+def test_background_catalog_has_the_ten_core_backgrounds():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    names = {b.name for b in rs.background_catalog.values()}
+    assert names == {"Allies", "Artifact", "Backing", "Contacts", "Familiar",
+                     "Followers", "Influence", "Manse", "Mentor", "Resources"}
+
+
 # --------------------------------------------------------------------------- #
 # Solar Melee charms
 # --------------------------------------------------------------------------- #

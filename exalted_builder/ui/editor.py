@@ -166,11 +166,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                           on_change=lambda e: (setattr(character, "willpower_purchased", int(e.value or 0)), changed())).classes("w-full")
 
         # backgrounds
+        bg_names = [b.name for b in ruleset.background_catalog.values()]
         with panel("Backgrounds (7 dots; ≤3 pre-bonus)"):
             for idx, bg in enumerate(character.backgrounds):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    ui.input(value=bg.name, placeholder="Background",
-                             on_change=lambda e, bg=bg: setattr(bg, "name", e.value)).classes("flex-1")
+                    (ui.select(bg_names, value=bg.name or None, label="Background",
+                               with_input=True, new_value_mode="add-unique",
+                               on_change=lambda e, bg=bg: setattr(bg, "name", e.value or ""))
+                     .classes("flex-1"))
                     ui.input(value=bg.note, placeholder="note",
                              on_change=lambda e, bg=bg: setattr(bg, "note", e.value)).classes("flex-1")
                     dots(lambda bg=bg: bg.rating, lambda v, bg=bg: setattr(bg, "rating", v), 0, 5)
