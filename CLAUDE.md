@@ -105,9 +105,9 @@ Exalted-1E-Charsheet-Generator/      (project root)
 
 ## Stack
 - Python + pydantic v2 + pytest.
-- Frontend (deferrable; the engine is UI-agnostic): leaning toward a Python-defined
-  web UI (NiceGUI or Reflex) with an embedded JS graph library (Cytoscape/d3) used
-  ONLY for the charm-tree picker.
+- Frontend: **NiceGUI** (chosen over Reflex). Installed as the optional `[ui]`
+  extra. A JS graph library (Cytoscape/d3) is still planned ONLY for the
+  charm-tree picker. Run the venv as `.venv/`; tests: `.venv/bin/python -m pytest`.
 
 ## Workflow expectations
 - **Test-first on the engine.** That's where bugs hide.
@@ -118,10 +118,28 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status
-- Done and tested: `models/rules.py`, `models/character.py`, `rules_db.py`,
-  `data/armor.json`, and a pytest suite (`tests/`, `conftest.py`) — 16 passing.
-- Next: `engine/derive.py` (Willpower → pools → per-type soak → health track) and
-  `engine/validate.py` (chargen predicates + AND-of-OR prereq + spell-circle).
-- Data still to author: `castes.json`, `chargen_budgets.json`, `costs_bonus.json`,
-  `costs_xp.json`, `spells.json`, `weapons.json`, and the charm files. Will be created last, with human help.
+## Status (86 tests passing)
+- **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
+- **Engine (done, test-first):**
+  - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
+    soak (bashing/lethal/aggravated, core pp.231-232).
+  - `engine/validate.py` — reference integrity, Charm prereqs (AND-of-OR + min
+    ability/essence), spell-circle access (exact circle; the pp.191 prereq chain
+    gives higher-grants-lower), and `validate_chargen` (attribute 8/6/4, ability/
+    background/virtue budgets + pre-bonus caps, caste/favoured minimums, charm
+    counts, Willpower start-cap, bonus-point accounting, pp.104-105).
+- **Persistence:** `persistence.py` — atomic JSON load/save, enum-keyed dicts.
+- **UI:** `ui/view.py` (pure, NiceGUI-free presenter) + `ui/app.py` (read-only
+  sheet, loosely follows the one-page Solar layout). Run:
+  `.venv/bin/python -m exalted_builder.ui.app [char.json] [--show] [--port N]`.
+  A bundled example lives at `examples/ashes-of-dawn.character.json`.
+- **Data authored:** `castes.json`, `armor.json` (mundane + 5 artifact), `weapons.json`
+  (mundane melee/thrown/archery + artifact daiklaves/powerbows/Lightning Torment),
+  `spells.json` (all 3 circles), `data/charms/solar_melee.json` (22), `solar_occult.json`
+  (3 Circle Sorcery charms).
+- **Next:** chargen editor (editable traits + live `validate_chargen`), then the
+  Cytoscape charm-tree picker.
+- **Deferred / not yet authored:** other ability charm trees; `chargen_budgets.json`,
+  `costs_bonus.json`, `costs_xp.json` (optional — loader falls back to verified model
+  defaults); combat/attack derivation (weapons are display-only); the Dire Lance
+  mounted profile; Limit Break (play-state — add at sheet-export time, not chargen).
