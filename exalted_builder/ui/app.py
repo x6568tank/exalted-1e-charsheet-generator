@@ -2,7 +2,10 @@
 ui/app.py — NiceGUI read-only character sheet.
 
 A thin renderer: it loads a RuleSet and a Character, asks ui.view to build the
-display model, and lays it out. No game logic lives here. Run with:
+display model, and lays it out to loosely follow the one-page Solar sheet —
+dot-tracks for ratings, abilities grouped by ability-caste, an attributes row,
+an advantages band, and a bottom band of Willpower / Health+Soak / Virtues +
+Essence. No game logic lives here. Run with:
 
     python -m exalted_builder.ui.app [path/to/foo.character.json]
 
@@ -11,7 +14,7 @@ With no argument it loads the bundled example character.
 
 from __future__ import annotations
 
-import sys
+import argparse
 from pathlib import Path
 
 from nicegui import ui
@@ -25,117 +28,178 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
 _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 
-
-def _section(title: str):
-    card = ui.card().classes("w-full")
-    with card:
-        ui.label(title).classes("text-lg font-bold text-amber-800")
-    return card
+_INK = "#3a2e1f"
+_ACCENT = "#8a5a1a"
 
 
-def _trait_line(row: viewmod.TraitRow) -> str:
-    mark = " ●" if row.caste else (" ✦" if row.favored else "")
-    return f"{row.label}: {row.value}{mark}"
+def _dots(value: int, total: int = 5) -> str:
+    """Filled/empty pips, e.g. 3 -> '●●●○○'. Values above `total` get a '+N'."""
+    filled = min(max(value, 0), total)
+    s = "●" * filled + "○" * (total - filled)
+    if value > total:
+        s += f" +{value - total}"
+    return s
+
+
+def _heading(text: str) -> None:
+    with ui.row().classes("w-full items-center gap-2 mt-1"):
+        ui.element("div").classes("flex-1 border-t border-amber-900/40")
+        ui.label(text.upper()).classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+        ui.element("div").classes("flex-1 border-t border-amber-900/40")
+
+
+def _panel():
+    return ui.card().classes("w-full p-3 bg-amber-50/40 border border-amber-900/20")
+
+
+def _trait_row(r: viewmod.TraitRow, dot_total: int = 5) -> None:
+    with ui.row().classes("w-full items-center gap-1 no-wrap"):
+        if r.caste:
+            ui.label("●").classes("text-xs").style(f"color:{_ACCENT}").tooltip("Caste")
+        elif r.favored:
+            ui.label("✦").classes("text-xs text-sky-700").tooltip("Favored")
+        else:
+            ui.label("").classes("w-3")
+        ui.label(r.label).classes("text-sm flex-1 truncate")
+        ui.label(_dots(r.value, dot_total)).classes("text-sm font-mono tracking-tight")
+
+
+def _named_value(label: str, value: int, dot_total: int = 5) -> None:
+    with ui.row().classes("w-full items-center gap-1 no-wrap"):
+        ui.label(label).classes("text-sm flex-1")
+        ui.label(_dots(value, dot_total)).classes("text-sm font-mono")
 
 
 def render_sheet(view: viewmod.SheetView) -> None:
-    with ui.column().classes("w-full max-w-5xl mx-auto gap-4"):
-        # --- header ---
-        with ui.card().classes("w-full"):
-            ui.label(view.name).classes("text-2xl font-bold")
-            ui.label(f"{view.caste} Caste {view.exalt_type}"
-                     f"{' · ' + view.concept if view.concept else ''}").classes("text-sm text-gray-600")
-            meta = " · ".join(p for p in [
-                f"Player: {view.player}" if view.player else "",
-                f"Nature: {view.nature}" if view.nature else "",
-                f"Essence {view.essence_rating}",
-                "CHARGEN LOCKED" if view.chargen_locked else "in creation",
-            ] if p)
-            ui.label(meta).classes("text-xs text-gray-500")
+    ui.add_head_html(f"<style>body{{background:#f7f1e3;color:{_INK};}}</style>")
+    with ui.column().classes("w-full max-w-6xl mx-auto gap-2 p-4"):
+        # --- header ------------------------------------------------------- #
+        with _panel():
+            with ui.row().classes("w-full justify-between items-start"):
+                with ui.column().classes("gap-0"):
+                    ui.label(view.name).classes("text-2xl font-bold")
+                    ui.label(f"{view.caste} Caste {view.exalt_type}").style(f"color:{_ACCENT}")
+                with ui.column().classes("gap-0 text-right text-sm text-gray-600"):
+                    if view.concept:
+                        ui.label(f"Concept: {view.concept}")
+                    if view.nature:
+                        ui.label(f"Nature: {view.nature}")
+                    ui.label("Chargen locked" if view.chargen_locked else "In creation")
 
-        # --- derived summary strip ---
-        with ui.row().classes("w-full gap-4"):
-            for label, val in [
-                ("Willpower", view.willpower),
-                ("Personal Essence", view.essence_personal),
-                ("Peripheral Essence", view.essence_peripheral),
-            ]:
-                with ui.card().classes("flex-1 items-center"):
-                    ui.label(str(val)).classes("text-2xl font-bold text-amber-800")
-                    ui.label(label).classes("text-xs text-gray-600")
-
-        # --- attributes / abilities / virtues+derived ---
-        with ui.row().classes("w-full gap-4 items-start"):
-            with _section("Attributes").classes("flex-1"):
-                for category, rows in view.attributes:
-                    ui.label(category).classes("text-sm font-semibold mt-1")
+        # --- attributes --------------------------------------------------- #
+        _heading("Attributes")
+        with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
+            for category, rows in view.attributes:
+                with _panel().classes("flex-1"):
+                    ui.label(category).classes("text-xs font-semibold text-center w-full").style(f"color:{_ACCENT}")
                     for r in rows:
-                        ui.label(_trait_line(r)).classes("text-sm ml-2")
+                        _trait_row(r)
 
-            with _section("Abilities").classes("flex-1"):
-                ui.label("● caste  ✦ favored").classes("text-xs text-gray-400")
-                for r in view.abilities:
-                    cls = "text-sm" + (" font-semibold" if r.caste or r.favored else " text-gray-600")
-                    ui.label(_trait_line(r)).classes(cls)
+        # --- abilities (grouped by ability-caste) ------------------------- #
+        _heading("Abilities")
+        ui.label("● caste · ✦ favored").classes("text-xs text-gray-400 -mt-1")
+        groups = view.ability_groups
+        for chunk_start in range(0, len(groups), 3):
+            with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
+                for group_label, rows in groups[chunk_start:chunk_start + 3]:
+                    with _panel().classes("flex-1"):
+                        ui.label(group_label).classes("text-xs font-semibold text-center w-full").style(f"color:{_ACCENT}")
+                        for r in rows:
+                            _trait_row(r)
 
-            with ui.column().classes("flex-1 gap-4"):
-                with _section("Virtues"):
-                    for r in view.virtues:
-                        ui.label(_trait_line(r)).classes("text-sm ml-2")
-                with _section("Soak"):
-                    s = view.soak
-                    ui.label(f"Bashing: {s.bashing}  (Stamina {s.natural_bashing} + armor {s.armor_bashing})").classes("text-sm")
-                    ui.label(f"Lethal: {s.lethal}  (½Stamina {s.natural_lethal} + armor {s.armor_lethal})").classes("text-sm")
-                    ui.label(f"Aggravated: {s.aggravated}  (armor only)").classes("text-sm")
-                with _section("Health"):
-                    ui.label("  ".join(view.health)).classes("text-sm font-mono")
-
-        # --- advantages ---
-        with ui.row().classes("w-full gap-4 items-start"):
-            with _section("Backgrounds").classes("flex-1"):
+        # --- specialties + backgrounds ------------------------------------ #
+        with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
+            with _panel().classes("flex-1"):
+                ui.label("Backgrounds").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
                 if not view.backgrounds:
-                    ui.label("none").classes("text-sm text-gray-400")
+                    ui.label("—").classes("text-sm text-gray-400")
                 for name, rating, note in view.backgrounds:
-                    suffix = f" — {note}" if note else ""
-                    ui.label(f"{name}: {rating}{suffix}").classes("text-sm")
-
-            with _section("Specialties").classes("flex-1"):
+                    with ui.row().classes("w-full items-center gap-1 no-wrap"):
+                        ui.label(f"{name}{' · ' + note if note else ''}").classes("text-sm flex-1 truncate")
+                        ui.label(_dots(rating)).classes("text-sm font-mono")
+            with _panel().classes("flex-1"):
+                ui.label("Specialties").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
                 if not view.specialties:
-                    ui.label("none").classes("text-sm text-gray-400")
+                    ui.label("—").classes("text-sm text-gray-400")
                 for ability, name, rating in view.specialties:
-                    ui.label(f"{ability} — {name}: {rating}").classes("text-sm")
+                    ui.label(f"{ability} — {name} ({rating})").classes("text-sm")
 
-        # --- charms / spells ---
-        with ui.row().classes("w-full gap-4 items-start"):
-            with _section(f"Charms ({len(view.charms)})").classes("flex-1"):
+        # --- charms / spells ---------------------------------------------- #
+        _heading("Charms & Sorcery")
+        with ui.row().classes("w-full gap-2 items-start no-wrap"):
+            with _panel().classes("flex-1"):
+                ui.label(f"Charms ({len(view.charms)})").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
                 if not view.charms:
-                    ui.label("none").classes("text-sm text-gray-400")
-                for name, category in view.charms:
-                    ui.label(f"{name}  ·  {category}").classes("text-sm")
-
-            with _section(f"Spells ({len(view.spells)})").classes("flex-1"):
+                    ui.label("—").classes("text-sm text-gray-400")
+                for c in view.charms:
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.label(c.name).classes("text-sm flex-1 truncate")
+                        ui.label(c.category).classes("text-xs text-gray-500")
+                        ui.label(c.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
+            with _panel().classes("flex-1"):
+                ui.label(f"Spells ({len(view.spells)})").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
                 if not view.spells:
-                    ui.label("none").classes("text-sm text-gray-400")
-                for name, circle in view.spells:
-                    ui.label(f"{name}  ·  {circle}").classes("text-sm")
+                    ui.label("—").classes("text-sm text-gray-400")
+                for s in view.spells:
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.label(s.name).classes("text-sm flex-1 truncate")
+                        ui.label(s.circle).classes("text-xs text-gray-500")
+                        ui.label(s.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
 
-        # --- equipment ---
-        with _section("Equipment"):
-            for w in view.weapons:
-                art = f"  [Artifact {w.artifact_rating}, attune {w.attunement}m]" if w.artifact_rating else ""
-                rng = f", range {w.range}" if w.range else ""
-                ui.label(f"⚔ {w.name}: Spd {w.speed:+d}, Acc {w.accuracy:+d}, "
-                         f"Dmg {w.damage:+d}{w.damage_type}, Def {w.defense:+d}{rng}{art}").classes("text-sm")
-            for a in view.armor:
-                art = f"  [Artifact {a.artifact_rating}, attune {a.attunement}m]" if a.artifact_rating else ""
-                ui.label(f"🛡 {a.name}: Soak {a.soak_lethal}L/{a.soak_bashing}B, "
-                         f"Mobility {a.mobility_penalty:+d}, Fatigue {a.fatigue}{art}").classes("text-sm")
-            if not view.weapons and not view.armor:
-                ui.label("none").classes("text-sm text-gray-400")
+        # --- bottom band: gear | willpower+health | virtues+essence ------- #
+        with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
+            # left: equipment + anima + virtue flaw
+            with _panel().classes("flex-1"):
+                ui.label("Equipment").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                for w in view.weapons:
+                    art = f" · A{w.artifact_rating}/{w.attunement}m" if w.artifact_rating else ""
+                    rng = f" · rng {w.range}" if w.range else ""
+                    ui.label(f"⚔ {w.name}  Spd{w.speed:+d} Acc{w.accuracy:+d} "
+                             f"Dmg{w.damage:+d}{w.damage_type} Def{w.defense:+d}{rng}{art}").classes("text-xs")
+                for a in view.armor:
+                    art = f" · A{a.artifact_rating}/{a.attunement}m" if a.artifact_rating else ""
+                    ui.label(f"🛡 {a.name}  Soak {a.soak_lethal}L/{a.soak_bashing}B "
+                             f"Mob{a.mobility_penalty:+d} Ftg{a.fatigue}{art}").classes("text-xs")
+                if not view.weapons and not view.armor:
+                    ui.label("—").classes("text-sm text-gray-400")
+                if view.anima:
+                    ui.separator()
+                    ui.label("Anima").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                    ui.label(view.anima).classes("text-xs")
+                if view.virtue_flaw:
+                    ui.separator()
+                    ui.label("Virtue Flaw").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                    ui.label(view.virtue_flaw).classes("text-xs")
 
-        # --- validation ---
+            # center: willpower + health + soak
+            with _panel().classes("flex-1"):
+                ui.label("Willpower").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label(_dots(view.willpower, 10)).classes("text-sm font-mono")
+                ui.separator()
+                ui.label("Soak").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                s = view.soak
+                ui.label(f"Bashing {s.bashing}  ·  Lethal {s.lethal}  ·  Aggravated {s.aggravated}").classes("text-sm")
+                ui.label(f"(Stamina {s.natural_bashing}/½{s.natural_lethal} + armor {s.armor_bashing}/{s.armor_lethal})").classes("text-xs text-gray-500")
+                ui.separator()
+                ui.label("Health").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label("  ".join(view.health)).classes("text-sm font-mono")
+
+            # right: virtues + essence + experience
+            with _panel().classes("flex-1"):
+                ui.label("Virtues").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                for r in view.virtues:
+                    _named_value(r.label, r.value)
+                ui.separator()
+                ui.label("Essence").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                _named_value("Rating", view.essence_rating)
+                ui.label(f"Personal {view.essence_personal}  ·  Peripheral {view.essence_peripheral}").classes("text-sm")
+                ui.separator()
+                ui.label(f"Experience: {view.experience}").classes("text-xs")
+
+        # --- validation --------------------------------------------------- #
         errors = [i for i in view.issues if i.severity == "error"]
-        with _section(f"Validation — {'OK' if not errors else str(len(errors)) + ' error(s)'}"):
+        _heading(f"Validation — {'OK' if not errors else str(len(errors)) + ' error(s)'}")
+        with _panel():
             for issue in view.issues:
                 color = {"error": "text-red-600", "warning": "text-amber-600"}.get(issue.severity, "text-gray-500")
                 ui.label(f"[{issue.severity}] {issue.message}").classes(f"text-sm {color}")
@@ -149,15 +213,20 @@ def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character]:
 
 
 def main() -> None:
-    arg = sys.argv[1] if len(sys.argv) > 1 else None
-    ruleset, character = load(arg)
+    parser = argparse.ArgumentParser(description="Exalted 1e read-only character sheet")
+    parser.add_argument("character", nargs="?", help="path to a .character.json (defaults to the example)")
+    parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--show", action="store_true", help="open a browser automatically")
+    args = parser.parse_args()
+
+    ruleset, character = load(args.character)
     view = viewmod.build_sheet_view(ruleset, character)
 
     @ui.page("/")
     def index() -> None:
         render_sheet(view)
 
-    ui.run(title=f"Exalted 1e — {view.name}", reload=False, show=False)
+    ui.run(title=f"Exalted 1e — {view.name}", reload=False, show=args.show, port=args.port)
 
 
 if __name__ in {"__main__", "__mp_main__"}:

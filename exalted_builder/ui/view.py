@@ -3,19 +3,21 @@ ui/view.py — the presenter: assemble a display-ready view model from a RuleSet
 and Character.
 
 This is the seam between the engine and the rendering layer. It calls the engine
-(derive, validate), resolves Charm/Spell ids to names, and shapes everything into
-plain dataclasses the UI can render directly. It contains NO game logic of its
-own and imports NO UI toolkit, so it is unit-testable on its own and the NiceGUI
-layer (ui/app.py) stays a thin renderer.
+(derive, validate), resolves Charm/Spell ids to names, groups abilities by their
+ability-caste (as the one-page sheet does), and shapes everything into plain
+dataclasses the UI can render directly. It contains NO game logic of its own and
+imports NO UI toolkit, so it is unit-testable on its own and the NiceGUI layer
+(ui/app.py) stays a thin renderer.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Optional
 
 from ..engine import derive, validate
 from ..models.character import Armor, Character, Weapon
-from ..models.rules import AbilityName, RuleSet, VirtueName
+from ..models.rules import AbilityName, Caste, CharmCost, RuleSet, VirtueName
 
 
 @dataclass
@@ -24,6 +26,20 @@ class TraitRow:
     value: int
     caste: bool = False
     favored: bool = False
+
+
+@dataclass
+class CharmRow:
+    name: str
+    category: str
+    cost: str
+
+
+@dataclass
+class SpellRow:
+    name: str
+    circle: str
+    cost: str
 
 
 @dataclass
@@ -38,23 +54,25 @@ class SheetView:
     anima: str
     essence_rating: int
     # traits
-    attributes: list[tuple[str, list[TraitRow]]]   # (category name, rows), ordered
-    abilities: list[TraitRow]                      # all 25, caste-grouped enum order
+    attributes: list[tuple[str, list[TraitRow]]]      # (category, rows), ordered
+    ability_groups: list[tuple[str, list[TraitRow]]]  # (ability-caste, rows), Dawn..Eclipse
     virtues: list[TraitRow]
     # derived
     willpower: int
     essence_personal: int
     essence_peripheral: int
     soak: derive.SoakView
-    health: list[str]                              # formatted level labels
+    health: list[str]                                 # formatted level labels
     # advantages / gear
-    backgrounds: list[tuple[str, int, str]]        # (name, rating, note)
-    specialties: list[tuple[str, str, int]]        # (ability label, name, rating)
-    charms: list[tuple[str, str]]                  # (name, category)
-    spells: list[tuple[str, str]]                  # (name, circle)
+    backgrounds: list[tuple[str, int, str]]           # (name, rating, note)
+    specialties: list[tuple[str, str, int]]           # (ability label, name, rating)
+    charms: list[CharmRow]
+    spells: list[SpellRow]
     weapons: list[Weapon]
     armor: list[Armor]
-    # status
+    # status / misc
+    virtue_flaw: Optional[str]
+    experience: int
     issues: list[validate.Issue]
     chargen_locked: bool
 
@@ -62,6 +80,19 @@ class SheetView:
 def _label(value: str) -> str:
     """'martial_arts' -> 'Martial Arts'."""
     return value.replace("_", " ").title()
+
+
+def _cost_str(cost: CharmCost) -> str:
+    if cost.raw:
+        return cost.raw
+    parts = []
+    if cost.motes:
+        parts.append(f"{cost.motes}m")
+    if cost.willpower:
+        parts.append(f"{cost.willpower}wp")
+    if cost.health:
+        parts.append(f"{cost.health}hl")
+    return ", ".join(parts) if parts else "—"
 
 
 def _health_label(hl: derive.HealthLevelView) -> str:
@@ -82,29 +113,49 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     if not character.chargen_locked:
         issues += validate.validate_chargen(ruleset, character)
 
-    caste_def = ruleset.castes.get(character.caste)
-    caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
+    own_caste = ruleset.castes.get(character.caste)
+    own_caste_abilities = set(own_caste.caste_abilities) if own_caste else set()
     favored = set(character.favored_abilities)
 
     attributes = [
         (category, [TraitRow(_label(a.value), character.attributes[a]) for a in members])
         for category, members in validate.ATTRIBUTE_CATEGORIES.items()
     ]
-    abilities = [
-        TraitRow(_label(a.value), character.abilities.get(a, 0),
-                 caste=a in caste_abilities, favored=a in favored)
-        for a in AbilityName
-    ]
+
+    # Abilities grouped by their ability-caste (Dawn..Eclipse), matching the sheet.
+    ability_groups: list[tuple[str, list[TraitRow]]] = []
+    for caste in Caste:
+        group_def = ruleset.castes.get(caste)
+        if group_def is None:
+            continue
+        rows = [
+            TraitRow(_label(a.value), character.abilities.get(a, 0),
+                     caste=a in own_caste_abilities, favored=a in favored)
+            for a in group_def.caste_abilities
+        ]
+        ability_groups.append((caste.value, rows))
+
     virtues = [TraitRow(_label(v.value), character.virtues[v]) for v in VirtueName]
 
     charms = []
     for cid in character.charms:
         charm = ruleset.charms.get(cid)
-        charms.append((charm.name, charm.category) if charm else (cid, "?"))
+        if charm:
+            charms.append(CharmRow(charm.name, charm.category, _cost_str(charm.cost)))
+        else:
+            charms.append(CharmRow(cid, "?", "—"))
     spells = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
-        spells.append((spell.name, spell.circle.value) if spell else (sid, "?"))
+        if spell:
+            spells.append(SpellRow(spell.name, spell.circle.value, _cost_str(spell.cost)))
+        else:
+            spells.append(SpellRow(sid, "?", "—"))
+
+    virtue_flaw = None
+    if character.virtue_flaw:
+        vf = character.virtue_flaw
+        virtue_flaw = f"{_label(vf.virtue.value)}: {vf.description}" if vf.description else _label(vf.virtue.value)
 
     return SheetView(
         name=character.name or "(unnamed)",
@@ -116,7 +167,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         anima=character.anima,
         essence_rating=character.essence_rating,
         attributes=attributes,
-        abilities=abilities,
+        ability_groups=ability_groups,
         virtues=virtues,
         willpower=d.willpower,
         essence_personal=d.essence_personal,
@@ -129,6 +180,8 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         spells=spells,
         weapons=list(character.weapons),
         armor=list(character.armor),
+        virtue_flaw=virtue_flaw,
+        experience=character.xp_earned,
         issues=issues,
         chargen_locked=character.chargen_locked,
     )

@@ -33,20 +33,25 @@ def test_example_character_builds_a_clean_sheet():
     assert any(i.code == "bonus-points" for i in v.issues)
 
 
-def test_charms_and_spells_resolve_to_names():
+def test_charms_resolve_to_names_with_costs():
     rs = _rs()
     char = persistence.load_character(EXAMPLE)
     v = viewmod.build_sheet_view(rs, char)
-    names = [name for name, _ in v.charms]
+    names = [c.name for c in v.charms]
     assert "Excellent Strike" in names           # resolved from id, not the raw id
     assert all(not n.startswith("solar.") for n in names)
+    # Excellent Strike's variable cost is carried through verbatim.
+    es = next(c for c in v.charms if c.name == "Excellent Strike")
+    assert es.cost == "1 mote per die" and es.category == "melee"
 
 
-def test_caste_and_favored_flags_set():
+def test_abilities_grouped_by_ability_caste_with_flags():
     rs = _rs()
     char = persistence.load_character(EXAMPLE)
     v = viewmod.build_sheet_view(rs, char)
-    by_label = {r.label: r for r in v.abilities}
+    group_names = [name for name, _ in v.ability_groups]
+    assert group_names == ["Dawn", "Zenith", "Twilight", "Night", "Eclipse"]
+    by_label = {r.label: r for _, rows in v.ability_groups for r in rows}
     assert by_label["Melee"].caste is True       # Dawn caste ability
     assert by_label["Dodge"].favored is True     # a favored ability
     assert by_label["Lore"].caste is False and by_label["Lore"].favored is False
@@ -67,4 +72,5 @@ def test_unknown_charm_id_falls_back_to_the_id():
     c = Character(id="char.x")
     c.charms = ["solar.melee.does-not-exist"]
     v = viewmod.build_sheet_view(rs, c)
-    assert v.charms == [("solar.melee.does-not-exist", "?")]
+    assert len(v.charms) == 1
+    assert v.charms[0].name == "solar.melee.does-not-exist" and v.charms[0].category == "?"
