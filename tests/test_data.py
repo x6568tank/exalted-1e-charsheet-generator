@@ -127,3 +127,41 @@ def test_celestial_initiate_casts_both_circles_via_prereq_chain():
     c.spells = ["spell.terrestrial.death-of-obsidian-butterflies",
                 "spell.celestial.travel-without-distance"]
     assert validate.check_spell_access(rs, c) == []
+
+
+# --------------------------------------------------------------------------- #
+# Weapon and armour catalogs (mundane + artifact)
+# --------------------------------------------------------------------------- #
+
+def test_weapon_and_armor_catalogs_load():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    assert len(rs.weapon_catalog) == 22
+    assert len(rs.armor_catalog) == 17
+
+
+def test_artifact_gear_is_marked_and_carries_its_extra_fields():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    daiklave = rs.weapon_catalog["weapon.melee.daiklave"]
+    assert daiklave.artifact_rating == 2 and daiklave.min_strength == 2
+    assert daiklave.damage == 5 and daiklave.damage_type == "L"
+    plate = rs.armor_catalog["armor.artifact.superheavy_plate"]
+    assert plate.artifact_rating == 5 and plate.attunement == 8
+    # mundane gear keeps the defaults
+    assert rs.armor_catalog["armor.breastplate"].artifact_rating == 0
+
+
+def test_dual_mode_weapon_has_one_entry_per_mode():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    thrown = rs.weapon_catalog["weapon.thrown.lightning_torment_hatchet"]
+    melee = rs.weapon_catalog["weapon.melee.lightning_torment_hatchet"]
+    assert thrown.range == 20 and thrown.defense == 0       # thrown profile
+    assert melee.speed == 3 and melee.range == 0            # melee profile
+    assert thrown.artifact_rating == melee.artifact_rating == 5
+
+
+def test_ranged_weapons_carry_range_and_bows_max_strength():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    long_bow = rs.weapon_catalog["weapon.archery.long_bow"]
+    assert long_bow.range == 200 and long_bow.max_strength == 4
+    powerbow = rs.weapon_catalog["weapon.archery.long_powerbow"]
+    assert powerbow.range == 350 and powerbow.artifact_rating == 3

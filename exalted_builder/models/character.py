@@ -50,6 +50,8 @@ class Combo(BaseModel):
 
 
 class Weapon(BaseModel):
+    """Inline copy of a weapon the character owns. Mirrors rules.WeaponType so the
+    catalog can autofill it; artifact/ranged fields default to mundane-melee."""
     name: str
     speed: int = 0
     accuracy: int = 0
@@ -57,15 +59,26 @@ class Weapon(BaseModel):
     damage_type: str = "L"                 # "L" lethal / "B" bashing
     defense: int = 0
     rate: int = 0
+    range: int = Field(default=0, ge=0)    # yards; 0 = melee only
+    max_strength: int = Field(default=0, ge=0)
+    min_strength: int = Field(default=0, ge=0)
+    min_dexterity: int = Field(default=0, ge=0)
+    min_martial_arts: int = Field(default=0, ge=0)
+    artifact_rating: int = Field(default=0, ge=0)
+    attunement: int = Field(default=0, ge=0)
     resources_cost: int = Field(default=0, ge=0)
+    notes: str = ""
 
 
 class Armor(BaseModel):
+    """Inline copy of armour the character owns. Mirrors rules.ArmorType."""
     name: str
     soak_lethal: int = 0                   # soak is computed per damage type in engine.derive
     soak_bashing: int = 0
     mobility_penalty: int = 0
     fatigue: int = 0
+    artifact_rating: int = Field(default=0, ge=0)
+    attunement: int = Field(default=0, ge=0)
     resources_cost: int = Field(default=0, ge=0)
 
 

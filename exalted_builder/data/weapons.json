@@ -1,0 +1,29 @@
+[
+  {"id": "weapon.archery.self_bow",      "name": "Self Bow",      "accuracy": 0, "rate": 2, "range": 150, "max_strength": 3, "resources_cost": 1, "tags": ["archery"]},
+  {"id": "weapon.archery.long_bow",      "name": "Long Bow",      "accuracy": 1, "rate": 3, "range": 200, "max_strength": 4, "resources_cost": 2, "tags": ["archery"]},
+  {"id": "weapon.archery.composite_bow", "name": "Composite Bow", "accuracy": 0, "rate": 3, "range": 250, "max_strength": 5, "resources_cost": 3, "notes": "Built for Strength 5+.", "tags": ["archery"]},
+
+  {"id": "weapon.thrown.chakram",        "name": "Chakram",        "accuracy": 0,  "damage": 1, "damage_type": "L", "rate": 3, "range": 20, "resources_cost": 1, "tags": ["thrown"]},
+  {"id": "weapon.thrown.hatchet",        "name": "Hatchet",        "accuracy": -1, "damage": 3, "damage_type": "L", "rate": 2, "range": 10, "resources_cost": 1, "tags": ["thrown"]},
+  {"id": "weapon.thrown.javelin",        "name": "Javelin",        "accuracy": 1,  "damage": 3, "damage_type": "L", "rate": 2, "range": 30, "resources_cost": 1, "tags": ["thrown"]},
+  {"id": "weapon.thrown.throwing_baton", "name": "Throwing Baton", "accuracy": 0,  "damage": 3, "damage_type": "B", "rate": 2, "range": 10, "resources_cost": 1, "tags": ["thrown"]},
+  {"id": "weapon.thrown.throwing_knife", "name": "Throwing Knife", "accuracy": 0,  "damage": 2, "damage_type": "L", "rate": 3, "range": 15, "resources_cost": 1, "tags": ["thrown"]},
+
+  {"id": "weapon.melee.hatchet",         "name": "Hatchet",        "speed": 0, "accuracy": 0, "damage": 2, "damage_type": "L", "defense": -1, "min_strength": 2, "resources_cost": 1, "tags": ["melee"]},
+  {"id": "weapon.melee.javelin",         "name": "Javelin",        "speed": 1, "accuracy": 1, "damage": 2, "damage_type": "L", "defense": 0,  "min_strength": 1, "resources_cost": 1, "tags": ["melee"]},
+  {"id": "weapon.melee.throwing_baton",  "name": "Throwing Baton", "speed": 0, "accuracy": 0, "damage": 2, "damage_type": "B", "defense": -1, "min_strength": 1, "resources_cost": 1, "tags": ["melee"]},
+  {"id": "weapon.melee.throwing_knife",  "name": "Throwing Knife", "speed": 2, "accuracy": 0, "damage": 1, "damage_type": "L", "defense": -2, "min_strength": 1, "resources_cost": 1, "tags": ["melee"]},
+
+  {"id": "weapon.melee.daiklave",            "name": "Daiklave",            "speed": 3, "accuracy": 2, "damage": 5, "damage_type": "L", "defense": 2, "min_strength": 2, "artifact_rating": 2, "resources_cost": 0, "tags": ["melee", "artifact"]},
+  {"id": "weapon.melee.dire_lance",          "name": "Dire Lance",          "speed": 6, "accuracy": 2, "damage": 5, "damage_type": "L", "defense": 0, "min_strength": 1, "artifact_rating": 2, "resources_cost": 0, "notes": "One-handed. Has a separate mounted-lance profile not yet entered.", "tags": ["melee", "artifact"]},
+  {"id": "weapon.melee.grimcleaver",         "name": "Grimcleaver",         "speed": 0, "accuracy": 1, "damage": 7, "damage_type": "L", "defense": 0, "min_strength": 2, "artifact_rating": 2, "resources_cost": 0, "tags": ["melee", "artifact"]},
+  {"id": "weapon.melee.reaver_daiklave",     "name": "Reaver Daiklave",     "speed": 0, "accuracy": 2, "damage": 8, "damage_type": "L", "defense": 0, "min_strength": 2, "artifact_rating": 2, "resources_cost": 0, "tags": ["melee", "artifact"]},
+  {"id": "weapon.melee.serpent_sting_staff", "name": "Serpent-Sting Staff", "speed": 3, "accuracy": 0, "damage": 3, "damage_type": "L", "defense": 3, "min_dexterity": 4, "min_martial_arts": 4, "artifact_rating": 2, "resources_cost": 0, "tags": ["melee", "artifact"]},
+  {"id": "weapon.melee.smashfist",           "name": "Smashfist",           "speed": 3, "accuracy": 1, "damage": 3, "damage_type": "L", "defense": 1, "min_strength": 2, "artifact_rating": 1, "resources_cost": 0, "tags": ["melee", "artifact"]},
+
+  {"id": "weapon.archery.short_powerbow", "name": "Short Powerbow", "accuracy": 2, "damage": 2, "damage_type": "L", "rate": 2, "range": 250, "min_strength": 3, "artifact_rating": 2, "resources_cost": 0, "tags": ["archery", "artifact"]},
+  {"id": "weapon.archery.long_powerbow",  "name": "Long Powerbow",  "accuracy": 1, "damage": 3, "damage_type": "L", "rate": 2, "range": 350, "min_strength": 4, "artifact_rating": 3, "resources_cost": 0, "tags": ["archery", "artifact"]},
+
+  {"id": "weapon.thrown.lightning_torment_hatchet", "name": "Lightning Torment Hatchet (Thrown)", "accuracy": 1, "damage": 4, "damage_type": "L", "rate": 2, "range": 20, "artifact_rating": 5, "attunement": 3, "resources_cost": 0, "notes": "Also usable in melee (see the melee entry). Activates lightning powers when attuned.", "tags": ["thrown", "artifact"]},
+  {"id": "weapon.melee.lightning_torment_hatchet",  "name": "Lightning Torment Hatchet (Melee)",  "speed": 3, "accuracy": 0, "damage": 3, "damage_type": "L", "defense": 0, "min_strength": 2, "artifact_rating": 5, "attunement": 3, "resources_cost": 0, "notes": "Also usable as a thrown weapon (see the thrown entry).", "tags": ["melee", "artifact"]}
+]

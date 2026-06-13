@@ -10,10 +10,12 @@ from pydantic import ValidationError
 
 from exalted_builder import persistence
 from exalted_builder.models.character import (
+    Armor,
     BackgroundEntry,
     Character,
     HealthLevel,
     Specialty,
+    Weapon,
 )
 from exalted_builder.models.rules import (
     AbilityName,
@@ -38,6 +40,11 @@ def _rich_character() -> Character:
     c.health_bonus_levels = [HealthLevel(penalty=-1, source_charm="ox-body")]
     c.willpower_purchased = 2
     c.wp_virtue_component = 6
+    # Inline equipment exercising the artifact/ranged fields on the inline models.
+    c.weapons = [Weapon(name="Daiklave", speed=3, accuracy=2, damage=5,
+                        damage_type="L", defense=2, min_strength=2, artifact_rating=2)]
+    c.armor = [Armor(name="Articulated Plate (Artifact)", soak_lethal=12, soak_bashing=14,
+                     mobility_penalty=-2, fatigue=1, attunement=6, artifact_rating=4)]
     return c
 
 

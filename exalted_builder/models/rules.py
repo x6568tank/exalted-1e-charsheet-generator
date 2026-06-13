@@ -185,6 +185,10 @@ class ArmorType(BaseModel):
     mobility_penalty: int = 0
     fatigue: int = 0
     resources_cost: int = Field(default=0, ge=0)   # dots of Resources required to buy
+    # Artifact armour (0 = mundane). artifact_rating is the dots of Artifact
+    # Background needed to start with it; attunement is the motes to commit.
+    artifact_rating: int = Field(default=0, ge=0)
+    attunement: int = Field(default=0, ge=0)
     tags: list[str] = Field(default_factory=list)
 
 
@@ -193,13 +197,24 @@ class WeaponType(BaseModel):
 
     id: str
     name: str
-    speed: int = 0
+    speed: int = 0                         # melee; modifier to initiative
     accuracy: int = 0
     damage: int = 0
     damage_type: str = "L"                 # "L" lethal / "B" bashing
-    defense: int = 0
+    defense: int = 0                       # melee
     rate: int = 0
+    range: int = Field(default=0, ge=0)    # yards; 0 = melee only (thrown/archery)
+    max_strength: int = Field(default=0, ge=0)   # bows: the Strength the bow is built for
+    # Minimums to wield without penalty (Str / Dex / Martial Arts; 0 = none).
+    min_strength: int = Field(default=0, ge=0)
+    min_dexterity: int = Field(default=0, ge=0)
+    min_martial_arts: int = Field(default=0, ge=0)
+    # Artifact weapons (0 = mundane). artifact_rating is the dots of Artifact
+    # Background needed to start with it; attunement is the motes to commit.
+    artifact_rating: int = Field(default=0, ge=0)
+    attunement: int = Field(default=0, ge=0)
     resources_cost: int = Field(default=0, ge=0)
+    notes: str = ""                        # special cases (e.g. charge damage)
     tags: list[str] = Field(default_factory=list)
 
 
