@@ -7,6 +7,8 @@ from pathlib import Path
 
 import exalted_builder
 from exalted_builder import rules_db
+from exalted_builder.engine import validate
+from exalted_builder.models.character import Character
 from exalted_builder.models.rules import AbilityName, Caste
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
@@ -30,3 +32,47 @@ def test_caste_abilities_partition_the_roster():
 def test_each_caste_keyed_by_its_own_enum():
     rs = rules_db.load_ruleset(DATA_DIR)
     assert all(caste == cd.caste for caste, cd in rs.castes.items())
+
+
+# --------------------------------------------------------------------------- #
+# Solar Melee charms
+# --------------------------------------------------------------------------- #
+
+def test_melee_charm_tree_loads_with_intact_prerequisites():
+    # load_ruleset itself link-checks prerequisites; reaching here means the whole
+    # tree resolves. Confirm the expected shape.
+    rs = rules_db.load_ruleset(DATA_DIR)
+    melee = [c for c in rs.charms.values() if c.category == "melee"]
+    assert len(melee) == 22
+    roots = {c.name for c in melee if not c.prerequisites}
+    assert roots == {"Excellent Strike", "Retrieve the Fallen Weapon",
+                     "Golden Essence Block"}
+
+
+def test_blazing_solar_bolt_requires_both_branches():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    bolt = rs.charms["solar.melee.blazing-solar-bolt"]
+    # AND-of-OR: two separate single-id groups => both required.
+    assert bolt.prerequisites == [["solar.melee.corona-of-radiance"],
+                                  ["solar.melee.sandstorm-wind-attack"]]
+
+
+def test_deep_melee_charm_flags_missing_prerequisites_on_real_data():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = Character(id="char.melee")
+    c.abilities[AbilityName.MELEE] = 3
+    c.essence_rating = 2
+    c.charms = ["solar.melee.fire-and-stones-strike"]   # skips the two charms below it
+    codes = {i.code for i in validate.check_charm_prerequisites(rs, c)}
+    assert "charm-prerequisite" in codes
+
+
+def test_full_melee_chain_is_legal_on_real_data():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = Character(id="char.melee")
+    c.abilities[AbilityName.MELEE] = 3
+    c.essence_rating = 2
+    c.charms = ["solar.melee.excellent-strike",
+                "solar.melee.hungry-tiger-technique",
+                "solar.melee.fire-and-stones-strike"]
+    assert validate.check_charm_prerequisites(rs, c) == []
