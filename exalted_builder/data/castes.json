@@ -1,0 +1,27 @@
+[
+  {
+    "caste": "Dawn",
+    "caste_abilities": ["archery", "brawl", "martial_arts", "melee", "thrown"],
+    "anima_powers": "May use their animas to appear awesome and terrifying for a time."
+  },
+  {
+    "caste": "Zenith",
+    "caste_abilities": ["endurance", "performance", "presence", "resistance", "survival"],
+    "anima_powers": "May use their animas to burn the bodies of the dead and to do aggravated damage to the undead and demons."
+  },
+  {
+    "caste": "Twilight",
+    "caste_abilities": ["craft", "investigation", "lore", "medicine", "occult"],
+    "anima_powers": "May use their animas as protective shields."
+  },
+  {
+    "caste": "Night",
+    "caste_abilities": ["athletics", "awareness", "dodge", "larceny", "stealth"],
+    "anima_powers": "May use their animas as cloaks against detection, and may mute their animas' display when using Essence."
+  },
+  {
+    "caste": "Eclipse",
+    "caste_abilities": ["bureaucracy", "linguistics", "ride", "sail", "socialize"],
+    "anima_powers": "May use their animas to sanctify oaths and contracts and to provide diplomatic immunity when dealing with spirits, demons and the Fair Folk."
+  }
+]
