@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "exalted-builder"
+version = "0.1.0"
+description = "Character builder and validator for Exalted 1st Edition (Solar)"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+]
+
+# Auto-discovers exalted_builder and any subpackages (models now; engine, ui
+# later once they have an __init__.py), so this doesn't break before they exist.
+[tool.setuptools.packages.find]
+include = ["exalted_builder*"]
+
+# Ship the rules data with the package so it's found after an install.
+[tool.setuptools.package-data]
+exalted_builder = ["data/*.json", "data/charms/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

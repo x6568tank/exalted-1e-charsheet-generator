@@ -1,0 +1,45 @@
+[
+  {
+    "id": "solar.melee.example-base-charm",
+    "name": "Example Base Charm",
+    "category": "melee",
+    "type": "Reflexive",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {"motes": 1, "raw": "1m"},
+    "duration": "Instant",
+    "keywords": [],
+    "description": "Minimal case: no prerequisites, a simple mote cost.",
+    "source": {"book": "Exalted 1e Core", "page": null}
+  },
+  {
+    "id": "solar.melee.fire-and-stones-strike",
+    "name": "Fire and Stones Strike",
+    "category": "melee",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [["solar.melee.example-base-charm"]],
+    "cost": {"motes": 1, "raw": "1m"},
+    "duration": "Instant",
+    "keywords": [],
+    "description": "Has a prerequisite. prerequisites is AND-of-OR: every inner list must be satisfied, and a list is satisfied by any one of its ids. Single-id lists = the common 'all required' case. For 'A and (B or C)', write [[\"A\"], [\"B\", \"C\"]].",
+    "source": {"book": "Exalted 1e Core", "page": null}
+  },
+  {
+    "id": "solar.occult.terrestrial-circle-sorcery",
+    "name": "Terrestrial Circle Sorcery",
+    "category": "occult",
+    "type": "Permanent",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {"raw": ""},
+    "duration": "Permanent",
+    "grants_sorcery_circle": "Terrestrial",
+    "keywords": [],
+    "description": "Initiation Charm. grants_sorcery_circle is what lets a character legally learn spells of that circle; set it ONLY on the three Circle Sorcery Charms.",
+    "source": {"book": "Exalted 1e Core", "page": null}
+  }
+]

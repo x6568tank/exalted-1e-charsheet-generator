@@ -1,0 +1,29 @@
+# Copyrighted rulebooks and their OCR output — never commit
+sources/
+images/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Claude Code local (personal) settings; shared .claude/settings.json is fine to keep
+.claude/settings.local.json
+
+# Editor / OS cruft
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Local character saves — uncomment if you don't want them tracked
+# *.character.json
