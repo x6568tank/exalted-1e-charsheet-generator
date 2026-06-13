@@ -63,7 +63,7 @@ def test_dawn_caste_charm_trees_load_with_expected_counts():
     assert cats["archery"] == 12
     assert cats["brawl"] == 10
     assert cats["thrown"] == 9
-    assert cats["martial_arts:snake"] == 8
+    assert cats["martial_arts:snake"] == 10
     assert cats["melee"] == 22
 
 

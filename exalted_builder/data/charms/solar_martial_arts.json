@@ -96,11 +96,41 @@
     "category": "martial_arts:snake",
     "type": "Supplemental",
     "min_ability": 5,
-    "min_essence": 2,
+    "min_essence": 3,
     "prerequisites": [["solar.martial-arts.snake-form"]],
     "cost": {"motes": 3},
     "duration": "Instant",
     "description": "Supplements an attack with the uncoiling speed and precision of the striking serpent.",
     "source": {"book": "Exalted 1e Core", "page": 161}
+  },
+  {
+    "id": "solar.martial-arts.striking-serpent-speed",
+    "name": "Striking Serpent Speed",
+    "category": "martial_arts:snake",
+    "type": "Extra Action",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [["solar.martial-arts.uncoiling-serpent-prana"]],
+    "cost": {"motes": 6, "willpower": 1},
+    "duration": "Instant",
+    "description": "Strikes with the coiled speed of a serpent, granting extra actions in the turn.",
+    "source": {"book": "Exalted 1e Core", "page": 162}
+  },
+  {
+    "id": "solar.martial-arts.essence-venom-strike",
+    "name": "Essence Venom Strike",
+    "category": "martial_arts:snake",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      ["solar.martial-arts.armor-penetrating-fang-strike"],
+      ["solar.martial-arts.crippling-pressure-point-strike"],
+      ["solar.martial-arts.striking-serpent-speed"]
+    ],
+    "cost": {"motes": 10, "willpower": 1, "health": 1},
+    "duration": "Instant",
+    "description": "Strikes with venomous Essence as deadly as a dozen serpents, dealing aggravated damage.",
+    "source": {"book": "Exalted 1e Core", "page": 162}
   }
 ]
