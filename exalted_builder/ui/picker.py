@@ -35,20 +35,22 @@ _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 _ACCENT = "#8a5a1a"
 _CYTOSCAPE_CDN = "https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js"
 
+# Uniform size and font for every node; owned / available / locked differ only by
+# fill and border colour. Labels sit below the node on the parchment background,
+# so label colour is the same everywhere (no font weight/size change between states).
 _STYLE = [
     {"selector": "node", "style": {
-        "label": "data(label)", "font-size": "13px", "font-weight": 500, "text-wrap": "wrap",
-        "text-max-width": "120px", "text-valign": "bottom", "text-margin-y": 5,
-        "text-outline-color": "#fffdf7", "text-outline-width": 2,
-        "color": "#3a2e1f", "width": 38, "height": 38,
+        "label": "data(label)", "font-size": "14px", "font-weight": 600, "text-wrap": "wrap",
+        "text-max-width": "130px", "text-valign": "bottom", "text-margin-y": 6,
+        "text-outline-color": "#f7f1e3", "text-outline-width": 3,
+        "color": "#3a2e1f", "width": 40, "height": 40,
         "background-color": "#cbd5e1", "border-width": 2, "border-color": "#94a3b8"}},
     {"selector": "node.owned", "style": {
-        "background-color": _ACCENT, "border-color": "#5b3a10", "width": 48, "height": 48,
-        "font-weight": "bold"}},
+        "background-color": _ACCENT, "border-color": "#5b3a10"}},
     {"selector": "node.available", "style": {
         "background-color": "#86efac", "border-color": "#15803d", "border-width": 3}},
     {"selector": "node.locked", "style": {
-        "background-color": "#e5e7eb", "border-color": "#cbd5e1", "color": "#9ca3af"}},
+        "background-color": "#e5e7eb", "border-color": "#cbd5e1"}},
     {"selector": "edge", "style": {
         "width": 2, "line-color": "#9ca3af", "target-arrow-color": "#9ca3af",
         "target-arrow-shape": "triangle", "curve-style": "bezier", "arrow-scale": 1.1}},
@@ -104,11 +106,20 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> Non
               container: el,
               elements: {json.dumps(_elements(graph))},
               style: {json.dumps(_STYLE)},
-              layout: {{name: 'breadthfirst', directed: true, roots: {json.dumps(graph.roots)},
-                        spacingFactor: 1.5, padding: 30, avoidOverlap: true}},
-              pixelRatio: 'auto', wheelSensitivity: 0.25, minZoom: 0.3, maxZoom: 3,
+              pixelRatio: Math.max(2, window.devicePixelRatio || 1),
+              wheelSensitivity: 0.25, minZoom: 0.3, maxZoom: 3, textureOnViewport: false,
             }});
             window.cy.on('tap', 'node', function(e) {{ emitEvent('charm_toggle', {{id: e.target.id()}}); }});
+            var lay = window.cy.layout({{name: 'breadthfirst', directed: true,
+              roots: {json.dumps(graph.roots)}, spacingFactor: 1.5, padding: 30,
+              avoidOverlap: true, fit: false}});
+            // Fit, but never zoom below a readable level — that is what blurred the
+            // labels (they render at font-size x zoom). Overflow becomes pannable.
+            lay.one('layoutstop', function() {{
+              window.cy.fit(undefined, 30);
+              if (window.cy.zoom() < 0.85) {{ window.cy.zoom(0.85); window.cy.center(); }}
+            }});
+            lay.run();
           }}
           go();
         }})();
@@ -130,6 +141,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> Non
 
     def toggle(charm_id: str) -> None:
         if charm_id in character.charms:
+            blockers = validate.charms_depending_on(ruleset, character, charm_id)
+            if blockers:
+                ui.notify(f"{ruleset.charms[charm_id].name}: can't remove — needed by "
+                          f"{', '.join(blockers)}", type="warning")
+                return
             character.charms.remove(charm_id)
             ui.notify(f"Removed {ruleset.charms[charm_id].name}", type="info")
         else:

@@ -185,6 +185,18 @@ def test_meets_charm_requirements_gates_on_ability_essence_and_prereqs():
     assert validate.meets_charm_requirements(rs, ok, fire) is True
 
 
+def test_charms_depending_on_blocks_removing_a_load_bearing_charm():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = Character(id="c.dep")
+    c.charms = ["solar.melee.golden-essence-block",     # prereq of dipping-swallow
+                "solar.melee.dipping-swallow-defense"]
+    # Golden Essence Block is load-bearing -> removing it would orphan Dipping Swallow.
+    assert validate.charms_depending_on(rs, c, "solar.melee.golden-essence-block") \
+        == ["Dipping Swallow Defense"]
+    # The leaf is safe to remove.
+    assert validate.charms_depending_on(rs, c, "solar.melee.dipping-swallow-defense") == []
+
+
 def test_prerequisite_error_names_the_charm_not_the_id():
     rs = rules_db.load_ruleset(DATA_DIR)
     c = Character(id="c.orphan")

@@ -142,6 +142,25 @@ def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> b
     return all(any(req in known for req in group) for group in charm.prerequisites)
 
 
+def charms_depending_on(ruleset: RuleSet, character: Character, charm_id: str) -> list[str]:
+    """Names of currently-owned Charms that would lose a prerequisite if `charm_id`
+    were dropped — i.e. they list it in an AND-of-OR group with no other owned
+    alternative. Empty means the Charm is safe to remove. Used by the picker to
+    keep the owned set internally consistent (remove leaves first)."""
+    remaining = set(character.charms) - {charm_id}
+    blockers = []
+    for oid in character.charms:
+        if oid == charm_id:
+            continue
+        charm = ruleset.charms.get(oid)
+        if charm is None:
+            continue
+        if any(charm_id in group and not any(r in remaining for r in group)
+               for group in charm.prerequisites):
+            blockers.append(charm.name)
+    return blockers
+
+
 # --------------------------------------------------------------------------- #
 # Spell-circle access
 # --------------------------------------------------------------------------- #
