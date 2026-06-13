@@ -118,10 +118,11 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
         # AND-of-OR: every inner group must be satisfied by at least one known id.
         for group in charm.prerequisites:
             if not any(req in known for req in group):
+                needed = " or ".join(
+                    ruleset.charms[r].name if r in ruleset.charms else r for r in group)
                 issues.append(Issue(
                     code="charm-prerequisite", where=cid,
-                    message=(f"{charm.name}: unmet prerequisite — needs one of "
-                             f"{group}."),
+                    message=f"{charm.name}: unmet prerequisite — needs {needed}.",
                 ))
     return issues
 

@@ -185,6 +185,18 @@ def test_meets_charm_requirements_gates_on_ability_essence_and_prereqs():
     assert validate.meets_charm_requirements(rs, ok, fire) is True
 
 
+def test_prerequisite_error_names_the_charm_not_the_id():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = Character(id="c.orphan")
+    c.abilities[AbilityName.MELEE] = 2
+    c.essence_rating = 2
+    c.charms = ["solar.melee.dipping-swallow-defense"]   # missing its prereq
+    issue = next(i for i in validate.check_charm_prerequisites(rs, c)
+                 if i.code == "charm-prerequisite")
+    assert "Golden Essence Block" in issue.message       # name, not the raw id
+    assert "solar.melee." not in issue.message
+
+
 def test_build_charm_graph_tags_owned_available_and_locked():
     from exalted_builder.ui import view as viewmod
     rs = rules_db.load_ruleset(DATA_DIR)

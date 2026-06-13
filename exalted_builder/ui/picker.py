@@ -37,20 +37,21 @@ _CYTOSCAPE_CDN = "https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.m
 
 _STYLE = [
     {"selector": "node", "style": {
-        "label": "data(label)", "font-size": "7px", "text-wrap": "wrap",
-        "text-max-width": "72px", "text-valign": "bottom", "text-margin-y": 3,
-        "color": "#3a2e1f", "width": 16, "height": 16,
-        "background-color": "#cbd5e1", "border-width": 1, "border-color": "#94a3b8"}},
+        "label": "data(label)", "font-size": "13px", "font-weight": 500, "text-wrap": "wrap",
+        "text-max-width": "120px", "text-valign": "bottom", "text-margin-y": 5,
+        "text-outline-color": "#fffdf7", "text-outline-width": 2,
+        "color": "#3a2e1f", "width": 38, "height": 38,
+        "background-color": "#cbd5e1", "border-width": 2, "border-color": "#94a3b8"}},
     {"selector": "node.owned", "style": {
-        "background-color": _ACCENT, "border-color": "#5b3a10", "width": 22, "height": 22,
+        "background-color": _ACCENT, "border-color": "#5b3a10", "width": 48, "height": 48,
         "font-weight": "bold"}},
     {"selector": "node.available", "style": {
-        "background-color": "#bbf7d0", "border-color": "#15803d", "border-width": 2}},
+        "background-color": "#86efac", "border-color": "#15803d", "border-width": 3}},
     {"selector": "node.locked", "style": {
         "background-color": "#e5e7eb", "border-color": "#cbd5e1", "color": "#9ca3af"}},
     {"selector": "edge", "style": {
-        "width": 1, "line-color": "#9ca3af", "target-arrow-color": "#9ca3af",
-        "target-arrow-shape": "triangle", "curve-style": "bezier", "arrow-scale": 0.7}},
+        "width": 2, "line-color": "#9ca3af", "target-arrow-color": "#9ca3af",
+        "target-arrow-shape": "triangle", "curve-style": "bezier", "arrow-scale": 1.1}},
 ]
 
 
@@ -104,7 +105,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> Non
               elements: {json.dumps(_elements(graph))},
               style: {json.dumps(_STYLE)},
               layout: {{name: 'breadthfirst', directed: true, roots: {json.dumps(graph.roots)},
-                        spacingFactor: 1.1, padding: 16}},
+                        spacingFactor: 1.5, padding: 30, avoidOverlap: true}},
+              pixelRatio: 'auto', wheelSensitivity: 0.25, minZoom: 0.3, maxZoom: 3,
             }});
             window.cy.on('tap', 'node', function(e) {{ emitEvent('charm_toggle', {{id: e.target.id()}}); }});
           }}
@@ -165,16 +167,18 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path) -> Non
                     ui.select(categories, value=state["category"], label="Category",
                               on_change=lambda e: set_category(e.value)).classes("w-40")
                     ui.button("Save", icon="save", on_click=save).props("color=brown")
-            with ui.row().classes("gap-4 text-xs items-center"):
-                for color, text in [(_ACCENT, "owned"), ("#15803d", "available"),
-                                    ("#9ca3af", "locked (tap to see why)")]:
-                    with ui.row().classes("items-center gap-1"):
-                        ui.icon("circle", size="0.7rem").style(f"color:{color}")
-                        ui.label(text)
+            with ui.row().classes("w-full gap-4 text-xs items-center justify-between"):
+                with ui.row().classes("gap-4 items-center"):
+                    for color, text in [(_ACCENT, "owned"), ("#15803d", "available"),
+                                        ("#9ca3af", "locked (tap to see why)")]:
+                        with ui.row().classes("items-center gap-1"):
+                            ui.icon("circle", size="0.7rem").style(f"color:{color}")
+                            ui.label(text)
+                ui.label("scroll to zoom · drag to pan").classes("text-gray-400 italic")
             # A real element (not ui.html, whose inline style gets sanitised away),
             # with an explicit DOM id for Cytoscape to mount into.
             (ui.element("div").props("id=charm-graph")
-             .style("height:640px;width:100%;border:1px solid rgba(138,90,26,0.3);"
+             .style("height:720px;width:100%;border:1px solid rgba(138,90,26,0.3);"
                     "border-radius:8px;background:#fffdf7"))
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
