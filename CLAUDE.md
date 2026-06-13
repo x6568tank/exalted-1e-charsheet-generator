@@ -145,16 +145,15 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - **Charms authored** (`data/charms/solar_<ability>.json`):
   - **Dawn — complete:** Melee (22), Archery (12), Brawl (10), Thrown (9),
     Martial Arts / Snake Style (10, category `martial_arts:snake`).
-  - **Zenith — in progress:** Endurance (8), Performance (10), Presence (6) done.
-    **Remaining: Resistance and Survival** (pages p176-182; Resistance is a large
-    ~12-charm tree starting at Durability of Oak Meditation).
-  - Twilight / Night / Eclipse castes: not started.
+  - **Zenith — complete:** Endurance (8), Performance (10), Presence (6),
+    Resistance (12), Survival (10).
+  - **Twilight / Night / Eclipse castes: not started** (the next charm work).
 - **Charm convention:** category is the plain ability (`melee`) or
   `martial_arts:<style>`; ids `solar.<ability>.<kebab>`. Author one ability at a
   time from page PNGs; verify cut-off values, never guess. CharmType has a
   `Special` value (Ox-Body Technique).
-- **Next:** finish Zenith (Resistance, Survival), then Twilight/Night/Eclipse charms
-  toward corebook-complete.
+- **Next:** Twilight charms (Craft begins on p182, Flawless Handiwork Method),
+  then Night and Eclipse, toward corebook-complete. ~112 charms authored so far.
 - **Deferred / not yet authored:** `chargen_budgets.json`, `costs_bonus.json`,
   `costs_xp.json` (optional — loader falls back to verified model defaults);
   combat/attack derivation (weapons are display-only); the Dire Lance mounted
