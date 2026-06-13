@@ -15,6 +15,9 @@ dependencies = [
 dev = [
     "pytest>=8",
 ]
+ui = [
+    "nicegui>=2",
+]
 
 # Auto-discovers exalted_builder and any subpackages (models now; engine, ui
 # later once they have an __init__.py), so this doesn't break before they exist.

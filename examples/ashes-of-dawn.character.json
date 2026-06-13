@@ -1,0 +1,141 @@
+{
+  "id": "char.example.dawn",
+  "name": "Ashes-of-Dawn",
+  "player": "Example",
+  "edition": "1e",
+  "exalt_type": "Solar",
+  "caste": "Dawn",
+  "concept": "Dawn Caste duelist",
+  "nature": "Paragon",
+  "anima": "A blazing golden sun-disc",
+  "essence_rating": 2,
+  "attributes": {
+    "strength": 5,
+    "dexterity": 4,
+    "stamina": 2,
+    "charisma": 4,
+    "manipulation": 3,
+    "appearance": 2,
+    "perception": 3,
+    "intelligence": 2,
+    "wits": 2
+  },
+  "abilities": {
+    "archery": 3,
+    "brawl": 1,
+    "martial_arts": 1,
+    "melee": 3,
+    "thrown": 1,
+    "endurance": 1,
+    "performance": 0,
+    "presence": 0,
+    "resistance": 1,
+    "survival": 2,
+    "craft": 0,
+    "investigation": 0,
+    "lore": 3,
+    "medicine": 0,
+    "occult": 2,
+    "athletics": 1,
+    "awareness": 3,
+    "dodge": 3,
+    "larceny": 0,
+    "stealth": 0,
+    "bureaucracy": 0,
+    "linguistics": 0,
+    "ride": 0,
+    "sail": 0,
+    "socialize": 0
+  },
+  "favored_abilities": [
+    "awareness",
+    "dodge",
+    "athletics",
+    "resistance",
+    "endurance"
+  ],
+  "specialties": [
+    {
+      "ability": "melee",
+      "name": "Daiklaves",
+      "rating": 2
+    }
+  ],
+  "virtues": {
+    "compassion": 3,
+    "conviction": 3,
+    "temperance": 2,
+    "valor": 1
+  },
+  "virtue_flaw": null,
+  "willpower_purchased": 0,
+  "wp_virtue_component": null,
+  "backgrounds": [
+    {
+      "name": "Artifact",
+      "rating": 3,
+      "note": "Reaver daiklave"
+    },
+    {
+      "name": "Manse",
+      "rating": 2,
+      "note": ""
+    },
+    {
+      "name": "Resources",
+      "rating": 2,
+      "note": ""
+    }
+  ],
+  "charms": [
+    "solar.melee.excellent-strike",
+    "solar.melee.hungry-tiger-technique",
+    "solar.melee.fire-and-stones-strike",
+    "solar.melee.one-weapon-two-blows",
+    "solar.melee.retrieve-the-fallen-weapon",
+    "solar.melee.call-the-blade",
+    "solar.melee.iron-raptor-technique",
+    "solar.melee.golden-essence-block",
+    "solar.melee.dipping-swallow-defense",
+    "solar.melee.bulwark-stance"
+  ],
+  "combos": [],
+  "spells": [],
+  "weapons": [
+    {
+      "name": "Reaver Daiklave",
+      "speed": 0,
+      "accuracy": 2,
+      "damage": 8,
+      "damage_type": "L",
+      "defense": 0,
+      "rate": 0,
+      "range": 0,
+      "max_strength": 0,
+      "min_strength": 2,
+      "min_dexterity": 0,
+      "min_martial_arts": 0,
+      "artifact_rating": 2,
+      "attunement": 5,
+      "resources_cost": 0,
+      "notes": ""
+    }
+  ],
+  "armor": [
+    {
+      "name": "Reinforced Buff Jacket",
+      "soak_lethal": 5,
+      "soak_bashing": 6,
+      "mobility_penalty": -2,
+      "fatigue": 2,
+      "artifact_rating": 0,
+      "attunement": 0,
+      "resources_cost": 3
+    }
+  ],
+  "health_bonus_levels": [],
+  "chargen_locked": false,
+  "chargen_snapshot": null,
+  "xp_earned": 0,
+  "xp_log": []
+}
