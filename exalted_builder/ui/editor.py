@@ -24,7 +24,8 @@ from nicegui import ui
 
 from .. import persistence, rules_db
 from ..engine import validate
-from ..models.character import BackgroundEntry, Character, Specialty
+from ..models.character import (
+    Armor, BackgroundEntry, Character, HealthLevel, Specialty, VirtueFlaw, Weapon)
 from ..models.rules import AbilityName, Caste, RuleSet, VirtueName
 from . import view as viewmod
 
@@ -192,6 +193,48 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_spec(idx)).props("flat dense round")
             ui.button("Add specialty", icon="add", on_click=add_spec).props("flat dense")
 
+        # equipment (armour affects soak; weapons are display-only)
+        armor_names = [a.name for a in ruleset.armor_catalog.values()]
+        weapon_names = [w.name for w in ruleset.weapon_catalog.values()]
+        with ui.row().classes("w-full gap-2 no-wrap items-start"):
+            with panel("Armor (sets soak)").classes("flex-1"):
+                for idx, ar in enumerate(character.armor):
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.select(armor_names, value=ar.name or None, with_input=True,
+                                  new_value_mode="add-unique", label="Armor",
+                                  on_change=lambda e, idx=idx: set_armor(idx, e.value)).classes("flex-1")
+                        ui.label(f"{ar.soak_lethal}L/{ar.soak_bashing}B").classes("text-xs w-16")
+                        ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("armor", idx)).props("flat dense round")
+                ui.button("Add armor", icon="add", on_click=lambda: add_item("armor")).props("flat dense")
+            with panel("Weapons").classes("flex-1"):
+                for idx, wp in enumerate(character.weapons):
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.select(weapon_names, value=wp.name or None, with_input=True,
+                                  new_value_mode="add-unique", label="Weapon",
+                                  on_change=lambda e, idx=idx: set_weapon(idx, e.value)).classes("flex-1")
+                        ui.label(f"Acc{wp.accuracy:+d} Dmg{wp.damage:+d}{wp.damage_type}").classes("text-xs w-24")
+                        ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("weapons", idx)).props("flat dense round")
+                ui.button("Add weapon", icon="add", on_click=lambda: add_item("weapons")).props("flat dense")
+
+        # virtue flaw + bonus health levels (e.g. Ox-Body Technique)
+        with ui.row().classes("w-full gap-2 no-wrap items-start"):
+            with panel("Virtue Flaw").classes("flex-1"):
+                vf = character.virtue_flaw
+                ui.select({v: _label(v.value) for v in VirtueName}, label="Flawed Virtue",
+                          value=vf.virtue if vf else None,
+                          on_change=lambda e: set_virtue_flaw_virtue(e.value)).classes("w-full")
+                ui.input("Description", value=vf.description if vf else "",
+                         on_change=lambda e: set_virtue_flaw_desc(e.value)).classes("w-full")
+            with panel("Bonus Health Levels (Ox-Body, etc.)").classes("flex-1"):
+                for idx, hl in enumerate(character.health_bonus_levels):
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.select({0: "-0", -1: "-1", -2: "-2", -4: "-4"}, value=hl.penalty,
+                                  on_change=lambda e, idx=idx: (setattr(character.health_bonus_levels[idx], "penalty", e.value), changed())).classes("w-20")
+                        ui.input(value=hl.source_charm, placeholder="source",
+                                 on_change=lambda e, idx=idx: setattr(character.health_bonus_levels[idx], "source_charm", e.value)).classes("flex-1")
+                        ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("health_bonus_levels", idx)).props("flat dense round")
+                ui.button("Add level", icon="add", on_click=add_health_level).props("flat dense")
+
         # charms/spells (read-only here; the picker is the next slice)
         with panel(f"Charms ({len(character.charms)}) & Spells ({len(character.spells)}) — edit via the picker"):
             view = viewmod.build_sheet_view(ruleset, character)
@@ -224,6 +267,53 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     def remove_spec(idx: int) -> None:
         del character.specialties[idx]
         body.refresh(); changed()
+
+    # equipment / health-level / virtue-flaw mutators
+    def add_item(field: str) -> None:
+        factory = {"armor": lambda: Armor(name=""), "weapons": lambda: Weapon(name="")}[field]
+        getattr(character, field).append(factory())
+        body.refresh(); changed()
+
+    def add_health_level() -> None:
+        character.health_bonus_levels.append(HealthLevel(penalty=-1, source_charm="Ox-Body Technique"))
+        body.refresh(); changed()
+
+    def remove_item(field: str, idx: int) -> None:
+        del getattr(character, field)[idx]
+        body.refresh(); changed()
+
+    def set_armor(idx: int, name: str) -> None:
+        entry = next((a for a in ruleset.armor_catalog.values() if a.name == name), None)
+        character.armor[idx] = (
+            Armor(name=entry.name, soak_lethal=entry.soak_lethal, soak_bashing=entry.soak_bashing,
+                  mobility_penalty=entry.mobility_penalty, fatigue=entry.fatigue,
+                  artifact_rating=entry.artifact_rating, attunement=entry.attunement,
+                  resources_cost=entry.resources_cost)
+            if entry else Armor(name=name or ""))
+        body.refresh(); changed()
+
+    def set_weapon(idx: int, name: str) -> None:
+        e = next((w for w in ruleset.weapon_catalog.values() if w.name == name), None)
+        character.weapons[idx] = (
+            Weapon(name=e.name, speed=e.speed, accuracy=e.accuracy, damage=e.damage,
+                   damage_type=e.damage_type, defense=e.defense, rate=e.rate, range=e.range,
+                   min_strength=e.min_strength, min_dexterity=e.min_dexterity,
+                   min_martial_arts=e.min_martial_arts, max_strength=e.max_strength,
+                   artifact_rating=e.artifact_rating, attunement=e.attunement,
+                   resources_cost=e.resources_cost, notes=e.notes)
+            if e else Weapon(name=name or ""))
+        body.refresh(); changed()
+
+    def set_virtue_flaw_virtue(virtue: VirtueName) -> None:
+        desc = character.virtue_flaw.description if character.virtue_flaw else ""
+        character.virtue_flaw = VirtueFlaw(virtue=virtue, description=desc)
+        changed()
+
+    def set_virtue_flaw_desc(text: str) -> None:
+        if character.virtue_flaw is None:
+            character.virtue_flaw = VirtueFlaw(virtue=VirtueName.COMPASSION, description=text)
+        else:
+            character.virtue_flaw.description = text
 
     def save() -> None:
         persistence.save_character(character, save_path)
