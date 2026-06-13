@@ -69,7 +69,14 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     own a single charm_toggle event handler (set register_events=False then).
     with_header=False omits the title/Save bar and the head <script> (the host
     app supplies Cytoscape)."""
+    def _pretty(cat: str) -> str:
+        if ":" in cat:                          # 'martial_arts:snake' -> 'Martial Arts: Snake'
+            base, style = cat.split(":", 1)
+            return f"{base.replace('_', ' ').title()}: {style.replace('_', ' ').title()}"
+        return cat.replace("_", " ").title()
+
     categories = sorted({c.category for c in ruleset.charms.values()})
+    category_options = {c: _pretty(c) for c in categories}
     state = {"category": "melee" if "melee" in categories else (categories[0] if categories else "")}
 
     # ---- live readout ----------------------------------------------------- #
@@ -193,8 +200,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.row().classes("w-full items-center justify-between"):
                 if with_header:
                     ui.label("Charm-Tree Picker").classes("text-xl font-bold")
-                ui.select(categories, value=state["category"], label="Category",
-                          on_change=lambda e: set_category(e.value)).classes("w-40")
+                ui.select(category_options, value=state["category"], label="Category",
+                          on_change=lambda e: set_category(e.value)).classes("w-48")
                 if with_header:
                     ui.button("Save", icon="save", on_click=save).props("color=brown")
             with ui.row().classes("w-full gap-4 text-xs items-center justify-between"):
