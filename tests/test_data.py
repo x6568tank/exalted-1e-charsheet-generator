@@ -34,13 +34,17 @@ def test_each_caste_keyed_by_its_own_enum():
     assert all(caste == cd.caste for caste, cd in rs.castes.items())
 
 
-def test_merit_catalog_loads_with_points_and_categories():
+def test_merit_flaw_catalog_loads_with_points_and_categories():
     rs = rules_db.load_ruleset(DATA_DIR)
-    merits = [m for m in rs.merit_flaw_catalog.values() if not m.is_flaw]
-    assert len(merits) >= 40
+    cat = rs.merit_flaw_catalog
+    merits = [m for m in cat.values() if not m.is_flaw]
+    flaws = [m for m in cat.values() if m.is_flaw]
+    assert len(merits) >= 40 and len(flaws) >= 40
     legendary = next(m for m in merits if m.name == "Legendary Artifact")
     assert legendary.points == 10 and legendary.category == "Property"
-    assert {m.category for m in merits} >= {"Physical", "Mental", "Social", "Supernatural"}
+    dying = next(m for m in flaws if m.name == "Dying")
+    assert dying.is_flaw and dying.category == "Physical"
+    assert {m.category for m in cat.values()} >= {"Physical", "Mental", "Social", "Supernatural", "Property"}
 
 
 def test_background_catalog_has_the_ten_core_backgrounds():
