@@ -271,15 +271,6 @@
     "description": "Descended from the Dragon-Blooded."
   },
   {
-    "id": "merit.celestial-bloodline",
-    "name": "Celestial Bloodline",
-    "points": 1,
-    "is_flaw": false,
-    "category": "Supernatural",
-    "cost_text": "1 or 3",
-    "description": "Descended from a Celestial Exalt (God-Blooded)."
-  },
-  {
     "id": "merit.priest",
     "name": "Priest",
     "points": 1,
