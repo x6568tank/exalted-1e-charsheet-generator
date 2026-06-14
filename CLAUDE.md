@@ -159,9 +159,12 @@ Exalted-1E-Charsheet-Generator/      (project root)
   time from page PNGs; verify cut-off values, never guess. CharmType has a
   `Special` value (Ox-Body Technique).
 - **The data catalogue is complete:** 220 corebook charms + all spells, the M&F
-  catalog, backgrounds, weapons/armor. **Next: package as a desktop app** (see
-  the packaging-plan memory) — vendor Cytoscape locally, then NiceGUI native mode
-  + `nicegui-pack` to produce a double-click executable.
+  catalog, backgrounds, weapons/armor.
+- **Desktop packaging:** Cytoscape vendored locally (offline-ready). `pack/` has the
+  PyInstaller one-file spec + browser-launch entry + BUILD.md. **Linux build done &
+  verified** (`pyinstaller pack/exalted-builder.spec` -> `dist/ExaltedBuilder`).
+  **Windows .exe still needs building ON Windows** (PyInstaller can't cross-compile);
+  same spec, config is ready.
 - **Merits & Flaws** (Player's Guide): authored as a catalog —
   `data/merits_flaws.json` (89: 44 merits + 45 flaws) via `MeritFlawType` +
   `RuleSet.merit_flaw_catalog`. The editor M&F field is a catalog combobox that
