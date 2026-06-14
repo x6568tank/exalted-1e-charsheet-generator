@@ -210,8 +210,10 @@ Exalted-1E-Charsheet-Generator/      (project root)
   **Windows .exe still needs building ON Windows** (PyInstaller can't cross-compile);
   same spec, config is ready.
 - **Merits & Flaws** (Player's Guide): authored as a catalog —
-  `data/merits_flaws.json` (87: 42 merits + 45 flaws; non-Solar merits removed —
-  Legendary Breeding & Celestial Bloodline, both bar Solars per their titles) via `MeritFlawType` +
+  `data/merits_flaws.json` (84: 42 merits + 42 flaws; non-Solar entries removed —
+  Merits Legendary Breeding & Celestial Bloodline, and Flaws Limited Forms & Chimera
+  (Lunars only) & Death-Taint (Abyssals/Ghosts only); each bars Solars per its own
+  text. "Celestial Exalted only" entries are kept — Solars are Celestial) via `MeritFlawType` +
   `RuleSet.merit_flaw_catalog`. The editor M&F field is a catalog combobox that
   autofills points/type (still free-entry). `validate_chargen` folds them into
   bonus points (Merits cost, Flaws grant up to 10). `cost_text` carries variable

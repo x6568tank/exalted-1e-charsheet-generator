@@ -413,14 +413,6 @@
     "description": "Physically incapable of siring or bearing children."
   },
   {
-    "id": "flaw.limited-forms",
-    "name": "Limited Forms",
-    "points": 2,
-    "is_flaw": true,
-    "category": "Physical",
-    "description": "(Lunars) Restricted in the shapes the character can assume."
-  },
-  {
     "id": "flaw.one-eye",
     "name": "One Eye",
     "points": 2,
@@ -686,14 +678,6 @@
     "description": "Has not reached full maturity; treated as a child."
   },
   {
-    "id": "flaw.chimera",
-    "name": "Chimera",
-    "points": 3,
-    "is_flaw": true,
-    "category": "Social",
-    "description": "(Lunars) Warped by the Wyld into a chimera, losing the Renown Background."
-  },
-  {
     "id": "flaw.damaged-artifact",
     "name": "Damaged Artifact",
     "points": 1,
@@ -770,15 +754,6 @@
     "is_flaw": true,
     "category": "Supernatural",
     "description": "Possesses unusually weak Essence, with a smaller mote pool."
-  },
-  {
-    "id": "flaw.death-taint",
-    "name": "Death-Taint",
-    "points": 1,
-    "is_flaw": true,
-    "category": "Supernatural",
-    "cost_text": "variable",
-    "description": "(Abyssals/Ghosts) Tainted by the Underworld, harmed by life-aspected things."
   },
   {
     "id": "flaw.throwback",
