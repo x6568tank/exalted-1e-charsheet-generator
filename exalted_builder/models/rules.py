@@ -229,6 +229,20 @@ class BackgroundType(BaseModel):
     description: str = ""
 
 
+class MeritFlawType(BaseModel):
+    """A Merit or Flaw from the Player's Guide. Autofill catalog for the per-
+    character character.MeritFlaw (which carries the chosen point value)."""
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    name: str
+    points: int                            # the listed (or lowest) bonus-point value
+    is_flaw: bool = False
+    category: str = ""                     # Physical / Mental / Social / Supernatural
+    cost_text: str = ""                    # for variable costs, e.g. "1 or 3 per sense"
+    description: str = ""
+
+
 # --------------------------------------------------------------------------- #
 # Cost tables
 # --------------------------------------------------------------------------- #
@@ -319,6 +333,7 @@ class RuleSet(BaseModel):
     armor_catalog: dict[str, ArmorType] = Field(default_factory=dict)
     weapon_catalog: dict[str, WeaponType] = Field(default_factory=dict)
     background_catalog: dict[str, BackgroundType] = Field(default_factory=dict)
+    merit_flaw_catalog: dict[str, MeritFlawType] = Field(default_factory=dict)
     bonus_costs: BonusPointCosts = Field(default_factory=BonusPointCosts)
     xp_costs: ExperienceCosts = Field(default_factory=ExperienceCosts)
     budgets: ChargenBudgets = Field(default_factory=ChargenBudgets)

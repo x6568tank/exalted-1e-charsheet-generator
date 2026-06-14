@@ -241,14 +241,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.number(label=("-0" if p == 0 else str(p)), value=total, min=0, max=20, format="%d",
                                   on_change=lambda e, p=p: set_health_total(p, int(e.value or 0))).classes("w-16")
 
-        # merits & flaws (free-entry; Merits cost BP, Flaws grant BP up to 10)
-        with panel("Merits & Flaws"):
+        # merits & flaws (catalog dropdown autofills points/type; still free-entry)
+        mf_names = sorted(m.name for m in ruleset.merit_flaw_catalog.values())
+        with panel("Merits & Flaws (Merits cost BP; Flaws grant BP up to 10)"):
             for idx, mf in enumerate(character.merits_flaws):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.select({False: "Merit", True: "Flaw"}, value=mf.is_flaw,
                               on_change=lambda e, idx=idx: (setattr(character.merits_flaws[idx], "is_flaw", e.value), changed())).classes("w-24")
-                    ui.input(value=mf.name, placeholder="Name",
-                             on_change=lambda e, idx=idx: setattr(character.merits_flaws[idx], "name", e.value)).classes("flex-1")
+                    ui.select(mf_names, value=mf.name or None, with_input=True,
+                              new_value_mode="add-unique",
+                              on_change=lambda e, idx=idx: set_merit_flaw(idx, e.value)).classes("flex-1")
                     ui.number(label="pts", value=mf.points, min=0, max=10, format="%d",
                               on_change=lambda e, idx=idx: (setattr(character.merits_flaws[idx], "points", int(e.value or 0)), changed())).classes("w-16")
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("merits_flaws", idx)).props("flat dense round")
@@ -305,6 +307,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                      for _ in range(base_n - total)]
         character.health_bonus_levels = kept
         changed()
+
+    def set_merit_flaw(idx: int, name: str) -> None:
+        mf = character.merits_flaws[idx]
+        mf.name = name or ""
+        entry = next((m for m in ruleset.merit_flaw_catalog.values() if m.name == name), None)
+        if entry:                                    # autofill from the catalog
+            mf.points = entry.points
+            mf.is_flaw = entry.is_flaw
+            mf.description = entry.description
+        body.refresh(); changed()
 
     def add_merit_flaw() -> None:
         character.merits_flaws.append(MeritFlaw(name="", points=1, is_flaw=False))

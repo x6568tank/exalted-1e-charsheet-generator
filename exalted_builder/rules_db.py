@@ -43,6 +43,7 @@ from .models.rules import (
     ChargenBudgets,
     Charm,
     ExperienceCosts,
+    MeritFlawType,
     RuleSet,
     Spell,
     WeaponType,
@@ -157,6 +158,8 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
     weapons = _index(_load_array(data_dir / "weapons.json", WeaponType, problems), "id", "weapon", problems)
     backgrounds = _index(_load_array(data_dir / "backgrounds.json", BackgroundType, problems),
                          "id", "background", problems)
+    merits_flaws = _index(_load_array(data_dir / "merits_flaws.json", MeritFlawType, problems),
+                          "id", "merit/flaw", problems)
 
     bonus_costs = _load_single(data_dir / "costs_bonus.json", BonusPointCosts, problems)
     xp_costs = _load_single(data_dir / "costs_xp.json", ExperienceCosts, problems)
@@ -176,6 +179,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         armor_catalog=armor,
         weapon_catalog=weapons,
         background_catalog=backgrounds,
+        merit_flaw_catalog=merits_flaws,
         bonus_costs=bonus_costs,
         xp_costs=xp_costs,
         budgets=budgets,
