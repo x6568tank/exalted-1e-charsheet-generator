@@ -341,14 +341,6 @@
     "description": "Senses the presence of Underworld or demonic taint."
   },
   {
-    "id": "merit.legendary-breeding",
-    "name": "Legendary Breeding",
-    "points": 3,
-    "is_flaw": false,
-    "category": "Supernatural",
-    "description": "The pinnacle of Dragon-Blooded breeding (Dragon-Blooded only)."
-  },
-  {
     "id": "merit.prescient-dreamer",
     "name": "Prescient Dreamer",
     "points": 3,
