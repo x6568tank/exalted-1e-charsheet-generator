@@ -12,6 +12,7 @@ from exalted_builder.models.character import (
     BackgroundEntry,
     Character,
     ChargenSnapshot,
+    MeritFlaw,
     Specialty,
 )
 from exalted_builder.models.rules import (
@@ -199,6 +200,30 @@ def test_caste_favored_specialty_dots_pool_before_rounding():
         Specialty(ability=A.AWARENESS, name="Ambush", rating=1),
     ]
     assert "1 of 15" in _bp(validate.validate_chargen(rs, c))
+
+
+# --------------------------------------------------------------------------- #
+# Merits & Flaws (Player's Guide): Merits cost BP, Flaws grant BP up to 10
+# --------------------------------------------------------------------------- #
+
+def test_merit_costs_bonus_points():
+    rs, c = _ruleset(), _legal_solar()
+    c.merits_flaws = [MeritFlaw(name="Quick", points=3, is_flaw=False)]
+    assert "3 of 15" in _bp(validate.validate_chargen(rs, c))
+
+
+def test_flaw_grants_bonus_points():
+    rs, c = _ruleset(), _legal_solar()
+    c.merits_flaws = [MeritFlaw(name="Nightmares", points=4, is_flaw=True)]
+    assert "0 of 19" in _bp(validate.validate_chargen(rs, c))   # 15 + 4 from the flaw
+
+
+def test_flaw_credit_is_capped_at_ten():
+    rs, c = _ruleset(), _legal_solar()
+    c.merits_flaws = [MeritFlaw(name="Cursed", points=15, is_flaw=True)]
+    issues = validate.validate_chargen(rs, c)
+    assert any(i.code == "flaw-credit-capped" for i in issues)
+    assert "0 of 25" in _bp(issues)                             # 15 + capped 10
 
 
 # --------------------------------------------------------------------------- #

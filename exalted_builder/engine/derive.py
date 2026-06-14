@@ -121,8 +121,14 @@ def health_track(character: Character) -> list[HealthLevelView]:
     levels = [HealthLevelView(penalty=p) for p in BASE_WOUND_PENALTIES]
     levels += [
         HealthLevelView(penalty=hl.penalty, source=hl.source_charm)
-        for hl in character.health_bonus_levels
+        for hl in character.health_bonus_levels if not hl.removed
     ]
+    # Curses remove a level of the given penalty (a base level first).
+    for hl in character.health_bonus_levels:
+        if hl.removed:
+            idx = next((i for i, lv in enumerate(levels) if lv.penalty == hl.penalty), None)
+            if idx is not None:
+                levels.pop(idx)
     # Stable sort by severity: 0 first (highest penalty value), -4 last.
     levels.sort(key=lambda lv: lv.penalty, reverse=True)
     levels.append(HealthLevelView(penalty=None, incapacitated=True))

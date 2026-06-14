@@ -105,6 +105,15 @@ def test_base_health_track():
     assert all(lv.source == "" for lv in track)
 
 
+def test_curse_removes_a_health_level():
+    c = _char(health_bonus_levels=[
+        HealthLevel(penalty=-1, source_charm="curse", removed=True),
+    ])
+    track = derive.health_track(c)
+    # base track has two -1 levels; the curse removes one.
+    assert [lv.penalty for lv in track] == [0, -1, -2, -2, -4, None]
+
+
 def test_ox_body_bonus_levels_merge_by_severity():
     c = _char(health_bonus_levels=[
         HealthLevel(penalty=-1, source_charm="solar.resistance.ox-body"),

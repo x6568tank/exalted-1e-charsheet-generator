@@ -396,15 +396,28 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         ))
     total_bp += max(0, essence - b.essence_start) * bp_costs.essence
 
+    # --- Merits & Flaws: Merits cost BP; Flaws grant BP (capped) -------------- #
+    total_bp += sum(mf.points for mf in character.merits_flaws if not mf.is_flaw)
+    flaw_points = sum(mf.points for mf in character.merits_flaws if mf.is_flaw)
+    flaw_credit = min(flaw_points, b.bonus_points_flaw_cap)
+    available = b.bonus_points + flaw_credit
+    if flaw_points > b.bonus_points_flaw_cap:
+        issues.append(Issue(
+            code="flaw-credit-capped", severity="warning",
+            message=(f"Flaws are worth {flaw_points} points but only "
+                     f"{b.bonus_points_flaw_cap} extra bonus points may be gained from Flaws."),
+        ))
+
     # --- Bonus-point ceiling -------------------------------------------------- #
-    if total_bp > b.bonus_points:
+    if total_bp > available:
         issues.append(Issue(
             code="bonus-points-exceeded",
-            message=f"Spends {total_bp} bonus points; only {b.bonus_points} available.",
+            message=f"Spends {total_bp} bonus points; only {available} available.",
         ))
+    flaw_note = f" (15 + {flaw_credit} from Flaws)" if flaw_credit else ""
     issues.append(Issue(
         code="bonus-points", severity="info",
-        message=f"{total_bp} of {b.bonus_points} bonus points spent.",
+        message=f"{total_bp} of {available} bonus points spent{flaw_note}.",
     ))
     return issues
 

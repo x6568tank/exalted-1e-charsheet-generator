@@ -303,6 +303,7 @@ class ChargenBudgets(BaseModel):
 
     essence_start: int = 2
     bonus_points: int = 15
+    bonus_points_flaw_cap: int = 10        # max extra bonus points gained from Flaws
 
     willpower_start_cap: int = 8           # may not start above this...
     willpower_cap_exception_virtue: int = 4   # ...unless at least

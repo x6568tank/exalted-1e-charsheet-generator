@@ -88,11 +88,24 @@ class VirtueFlaw(BaseModel):
 
 
 class HealthLevel(BaseModel):
-    """A bonus health level granted by a Charm (e.g. Ox-Body Technique). The base
-    -0/-1/-1/-2/-2/-4/Incap track is a rules constant and is derived, not stored.
-    Marked damage is play-state and is intentionally out of scope."""
+    """An adjustment to the health track. Normally a *bonus* level granted by a
+    Charm (e.g. Ox-Body Technique); with `removed=True` it instead *removes* a
+    level of that penalty (e.g. a curse that leaves a character less hale than
+    normal). The base -0/-1/-1/-2/-2/-4/Incap track is a rules constant, derived
+    not stored. Marked damage is play-state and intentionally out of scope."""
     penalty: int                           # 0, -1, -2, -4 ...
     source_charm: str = ""
+    removed: bool = False                  # True = a curse removing a level of this penalty
+
+
+class MeritFlaw(BaseModel):
+    """An optional Merit (advantage, costs bonus points) or Flaw (disadvantage,
+    grants bonus points up to a cap) from the Player's Guide. Free-entry: the
+    full catalog is not yet authored as rules data."""
+    name: str
+    points: int = Field(default=1, ge=0)
+    is_flaw: bool = False
+    description: str = ""
 
 
 class XpEntry(BaseModel):
@@ -151,6 +164,7 @@ class Character(BaseModel):
         default_factory=lambda: {v: 1 for v in VirtueName}
     )
     virtue_flaw: Optional[VirtueFlaw] = None
+    merits_flaws: list[MeritFlaw] = Field(default_factory=list)
 
     willpower_purchased: int = Field(default=0, ge=0)
     # Frozen at lock so post-creation Virtue gains can't raise Willpower; None pre-lock.

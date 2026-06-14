@@ -25,7 +25,16 @@ from nicegui import ui
 from .. import persistence, rules_db
 from ..engine import validate
 from ..models.character import (
-    Armor, BackgroundEntry, Character, HealthLevel, Specialty, VirtueFlaw, Weapon)
+    Armor, BackgroundEntry, Character, HealthLevel, MeritFlaw, Specialty, VirtueFlaw, Weapon)
+
+_BASE_HEALTH = {0: 1, -1: 2, -2: 2, -4: 1}   # base levels per penalty tier
+
+
+def _health_total(character: Character, penalty: int) -> int:
+    """Effective number of health levels at a tier: base + added - removed."""
+    delta = sum((-1 if hl.removed else 1)
+                for hl in character.health_bonus_levels if hl.penalty == penalty)
+    return max(0, _BASE_HEALTH.get(penalty, 0) + delta)
 from ..models.rules import AbilityName, Caste, RuleSet, VirtueName
 from . import view as viewmod
 
@@ -225,12 +234,25 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                           on_change=lambda e: set_virtue_flaw_virtue(e.value)).classes("w-full")
                 ui.input("Description", value=vf.description if vf else "",
                          on_change=lambda e: set_virtue_flaw_desc(e.value)).classes("w-full")
-            with panel("Bonus Health Levels (Ox-Body, etc.)").classes("flex-1"):
+            with panel("Health Levels per tier (Ox-Body raises, curses lower)").classes("flex-1"):
                 with ui.row().classes("w-full gap-3 no-wrap"):
                     for p in (0, -1, -2, -4):
-                        count = sum(1 for hl in character.health_bonus_levels if hl.penalty == p)
-                        ui.number(label=("-0" if p == 0 else str(p)), value=count, min=0, max=20, format="%d",
-                                  on_change=lambda e, p=p: set_health_count(p, int(e.value or 0))).classes("w-16")
+                        total = _health_total(character, p)
+                        ui.number(label=("-0" if p == 0 else str(p)), value=total, min=0, max=20, format="%d",
+                                  on_change=lambda e, p=p: set_health_total(p, int(e.value or 0))).classes("w-16")
+
+        # merits & flaws (free-entry; Merits cost BP, Flaws grant BP up to 10)
+        with panel("Merits & Flaws"):
+            for idx, mf in enumerate(character.merits_flaws):
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.select({False: "Merit", True: "Flaw"}, value=mf.is_flaw,
+                              on_change=lambda e, idx=idx: (setattr(character.merits_flaws[idx], "is_flaw", e.value), changed())).classes("w-24")
+                    ui.input(value=mf.name, placeholder="Name",
+                             on_change=lambda e, idx=idx: setattr(character.merits_flaws[idx], "name", e.value)).classes("flex-1")
+                    ui.number(label="pts", value=mf.points, min=0, max=10, format="%d",
+                              on_change=lambda e, idx=idx: (setattr(character.merits_flaws[idx], "points", int(e.value or 0)), changed())).classes("w-16")
+                    ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("merits_flaws", idx)).props("flat dense round")
+            ui.button("Add merit/flaw", icon="add", on_click=add_merit_flaw).props("flat dense")
 
         # charms/spells (read-only here; the picker is the next slice)
         with panel(f"Charms ({len(character.charms)}) & Spells ({len(character.spells)}) — edit via the picker"):
@@ -271,12 +293,22 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         getattr(character, field).append(factory())
         body.refresh(); changed()
 
-    def set_health_count(penalty: int, n: int) -> None:
-        # Rebuild the bonus-level list: keep other tiers, set this tier to n entries.
+    def set_health_total(penalty: int, total: int) -> None:
+        # Rebuild this tier: add bonus levels above base, or removed levels below it.
+        base_n = _BASE_HEALTH.get(penalty, 0)
         kept = [hl for hl in character.health_bonus_levels if hl.penalty != penalty]
-        kept += [HealthLevel(penalty=penalty, source_charm="Ox-Body Technique") for _ in range(n)]
+        if total > base_n:
+            kept += [HealthLevel(penalty=penalty, source_charm="Ox-Body Technique")
+                     for _ in range(total - base_n)]
+        elif total < base_n:
+            kept += [HealthLevel(penalty=penalty, source_charm="Curse", removed=True)
+                     for _ in range(base_n - total)]
         character.health_bonus_levels = kept
         changed()
+
+    def add_merit_flaw() -> None:
+        character.merits_flaws.append(MeritFlaw(name="", points=1, is_flaw=False))
+        body.refresh(); changed()
 
     def remove_item(field: str, idx: int) -> None:
         del getattr(character, field)[idx]

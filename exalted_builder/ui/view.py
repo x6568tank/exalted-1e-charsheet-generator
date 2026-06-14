@@ -154,6 +154,7 @@ class SheetView:
     armor: list[Armor]
     # status / misc
     virtue_flaw: Optional[str]
+    merits_flaws: list[tuple[str, int, bool]]   # (name, points, is_flaw)
     experience: int
     issues: list[validate.Issue]
     chargen_locked: bool
@@ -263,6 +264,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         weapons=list(character.weapons),
         armor=list(character.armor),
         virtue_flaw=virtue_flaw,
+        merits_flaws=[(mf.name, mf.points, mf.is_flaw) for mf in character.merits_flaws],
         experience=character.xp_earned,
         issues=issues,
         chargen_locked=character.chargen_locked,
