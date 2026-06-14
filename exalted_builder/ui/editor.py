@@ -226,14 +226,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.input("Description", value=vf.description if vf else "",
                          on_change=lambda e: set_virtue_flaw_desc(e.value)).classes("w-full")
             with panel("Bonus Health Levels (Ox-Body, etc.)").classes("flex-1"):
-                for idx, hl in enumerate(character.health_bonus_levels):
-                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                        ui.select({0: "-0", -1: "-1", -2: "-2", -4: "-4"}, value=hl.penalty,
-                                  on_change=lambda e, idx=idx: (setattr(character.health_bonus_levels[idx], "penalty", e.value), changed())).classes("w-20")
-                        ui.input(value=hl.source_charm, placeholder="source",
-                                 on_change=lambda e, idx=idx: setattr(character.health_bonus_levels[idx], "source_charm", e.value)).classes("flex-1")
-                        ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("health_bonus_levels", idx)).props("flat dense round")
-                ui.button("Add level", icon="add", on_click=add_health_level).props("flat dense")
+                with ui.row().classes("w-full gap-3 no-wrap"):
+                    for p in (0, -1, -2, -4):
+                        count = sum(1 for hl in character.health_bonus_levels if hl.penalty == p)
+                        ui.number(label=("-0" if p == 0 else str(p)), value=count, min=0, max=20, format="%d",
+                                  on_change=lambda e, p=p: set_health_count(p, int(e.value or 0))).classes("w-16")
 
         # charms/spells (read-only here; the picker is the next slice)
         with panel(f"Charms ({len(character.charms)}) & Spells ({len(character.spells)}) — edit via the picker"):
@@ -274,9 +271,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         getattr(character, field).append(factory())
         body.refresh(); changed()
 
-    def add_health_level() -> None:
-        character.health_bonus_levels.append(HealthLevel(penalty=-1, source_charm="Ox-Body Technique"))
-        body.refresh(); changed()
+    def set_health_count(penalty: int, n: int) -> None:
+        # Rebuild the bonus-level list: keep other tiers, set this tier to n entries.
+        kept = [hl for hl in character.health_bonus_levels if hl.penalty != penalty]
+        kept += [HealthLevel(penalty=penalty, source_charm="Ox-Body Technique") for _ in range(n)]
+        character.health_bonus_levels = kept
+        changed()
 
     def remove_item(field: str, idx: int) -> None:
         del getattr(character, field)[idx]
