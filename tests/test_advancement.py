@@ -7,7 +7,7 @@ and the running available-XP must all stay consistent, and undo must reverse the
 import pytest
 
 from exalted_builder.engine import advancement, derive, lifecycle
-from exalted_builder.models.character import Character
+from exalted_builder.models.character import Character, MeritFlaw
 from exalted_builder.models.rules import (
     AbilityName,
     AttributeName,
@@ -142,6 +142,97 @@ def test_add_combo_must_be_legal_and_costs_min_abilities():
     entry = advancement.add_combo(rs, c, "Twin", ["base", "follow"])
     assert entry.cost == 1 + 2                              # min_ability 1 + 2
     assert len(c.combos) == 1
+
+
+# --------------------------------------------------------------------------- #
+# In-play Merit/Flaw change (p.17)
+# --------------------------------------------------------------------------- #
+
+def test_gain_flaw_grants_xp():
+    rs, c = _ruleset(), _locked(xp=10)
+    entry = advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
+    assert entry.cost == -6                                 # 2 x 3, granted
+    assert any(mf.name == "Nightmares" for mf in c.merits_flaws)
+    assert advancement.xp_available(c) == 16                # 10 + 6 granted
+
+
+def test_gain_merit_costs_xp():
+    rs, c = _ruleset(), _locked(xp=10)
+    entry = advancement.gain_merit_flaw(rs, c, "Iron Will", 3, is_flaw=False)
+    assert entry.cost == 6
+    assert advancement.xp_available(c) == 4
+
+
+def test_gain_merit_unaffordable_is_blocked():
+    rs, c = _ruleset(), _locked(xp=5)
+    with pytest.raises(advancement.AdvancementError):
+        advancement.gain_merit_flaw(rs, c, "Iron Will", 3, is_flaw=False)  # needs 6
+    assert c.merits_flaws == [] and c.xp_log == []
+
+
+def test_gain_flaw_credit_capped_at_ten_points():
+    rs, c = _ruleset(), _locked()
+    c.merits_flaws.append(MeritFlaw(name="Old Flaw", points=8, is_flaw=True))
+    entry = advancement.gain_merit_flaw(rs, c, "New Flaw", 4, is_flaw=True)
+    assert entry.cost == -4                                 # only 2 of 4 points credit -> 2x2
+    # a further Flaw past the 10-point total grants nothing
+    entry2 = advancement.gain_merit_flaw(rs, c, "Excess Flaw", 3, is_flaw=True)
+    assert entry2.cost == 0
+    assert any(mf.name == "Excess Flaw" for mf in c.merits_flaws)
+
+
+def test_buy_off_flaw_costs_xp():
+    rs, c = _ruleset(), _locked(xp=10)
+    c.merits_flaws.append(MeritFlaw(name="Debt", points=2, is_flaw=True))
+    entry = advancement.lose_merit_flaw(rs, c, "Debt")
+    assert entry.cost == 4                                  # 2 x 2, paid
+    assert not any(mf.name == "Debt" for mf in c.merits_flaws)
+
+
+def test_drop_merit_grants_xp():
+    rs, c = _ruleset(), _locked(xp=10)
+    c.merits_flaws.append(MeritFlaw(name="Ally", points=3, is_flaw=False))
+    entry = advancement.lose_merit_flaw(rs, c, "Ally")
+    assert entry.cost == -6
+    assert advancement.xp_available(c) == 16
+
+
+def test_lose_unknown_merit_flaw_raises():
+    rs, c = _ruleset(), _locked()
+    with pytest.raises(advancement.AdvancementError):
+        advancement.lose_merit_flaw(rs, c, "Nope")
+
+
+def test_gain_duplicate_merit_flaw_raises():
+    rs, c = _ruleset(), _locked()
+    advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
+    with pytest.raises(advancement.AdvancementError):
+        advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
+
+
+def test_undo_gain_flaw_removes_it_and_reclaims_grant():
+    rs, c = _ruleset(), _locked(xp=10)
+    advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
+    assert advancement.xp_available(c) == 16
+    advancement.undo_last(rs, c)
+    assert not any(mf.name == "Nightmares" for mf in c.merits_flaws)
+    assert advancement.xp_available(c) == 10 and c.xp_log == []
+
+
+def test_undo_buy_off_flaw_restores_it():
+    rs, c = _ruleset(), _locked(xp=10)
+    c.merits_flaws.append(MeritFlaw(name="Debt", points=2, is_flaw=True))
+    advancement.lose_merit_flaw(rs, c, "Debt")
+    advancement.undo_last(rs, c)
+    restored = [mf for mf in c.merits_flaws if mf.name == "Debt"]
+    assert len(restored) == 1 and restored[0].points == 2 and restored[0].is_flaw
+
+
+def test_merit_flaw_grant_is_not_flagged_by_audit():
+    rs, c = _ruleset(), _locked(xp=10)
+    advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
+    codes = {i.code for i in advancement.validate_xp(rs, c)}
+    assert "xp-cost-mismatch" not in codes and "xp-overspent" not in codes
 
 
 # --------------------------------------------------------------------------- #

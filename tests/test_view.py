@@ -7,7 +7,7 @@ from pathlib import Path
 
 import exalted_builder
 from exalted_builder import persistence, rules_db
-from exalted_builder.models.character import Character, Combo, HealthLevel, XpEntry
+from exalted_builder.models.character import Character, Combo, HealthLevel, MeritFlaw, XpEntry
 from exalted_builder.models.rules import AbilityName
 from exalted_builder.ui import view as viewmod
 
@@ -129,6 +129,23 @@ def test_xp_log_presenter_labels_entries():
     assert rows[1].label == f"Charm: {rs.charms[cid].name}"
     assert rows[2].label == "Willpower 6 → 7"
     assert rows[3].label == "Specialty: melee — Swords"
+
+
+def test_xp_log_presenter_labels_merit_flaw_changes():
+    rs = _rs()
+    char = persistence.load_character(EXAMPLE)
+    char.xp_log = [
+        XpEntry(target="merits_flaws.gain", detail="Nightmares", cost=-6,
+                mf=MeritFlaw(name="Nightmares", points=3, is_flaw=True)),
+        XpEntry(target="merits_flaws.lose", detail="Debt", cost=4,
+                mf=MeritFlaw(name="Debt", points=2, is_flaw=True)),
+        XpEntry(target="merits_flaws.lose", detail="Ally", cost=-6,
+                mf=MeritFlaw(name="Ally", points=3, is_flaw=False)),
+    ]
+    rows = viewmod.build_xp_log(rs, char)
+    assert rows[0].label == "Gained Flaw: Nightmares" and rows[0].cost == -6
+    assert rows[1].label == "Bought off Flaw: Debt"
+    assert rows[2].label == "Dropped Merit: Ally"
 
 
 def test_spell_detail_reflects_circle_access():

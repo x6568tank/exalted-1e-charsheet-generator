@@ -321,6 +321,8 @@ class ExperienceCosts(BaseModel):
     new_spell: int = 10
     new_spell_occult_favored_caste: int = 8
     foreign_charm: int = 20                # spirit Charms / other Exalt types; Eclipse only (gated in engine)
+    # p.17 in-play Merit/Flaw change: XP gained/paid = this multiple of the bonus-point value.
+    merit_flaw_change_multiplier: int = 2
 
 
 class ChargenBudgets(BaseModel):

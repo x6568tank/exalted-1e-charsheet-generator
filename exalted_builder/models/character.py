@@ -110,12 +110,16 @@ class MeritFlaw(BaseModel):
 
 class XpEntry(BaseModel):
     """One post-lock purchase. The engine verifies `cost` against the XP table and
-    that the implied delta is reflected in current state."""
-    target: str                            # "abilities.melee", "essence", "charms", ...
-    detail: str = ""                       # charm/spell id for 'new' purchases
+    that the implied delta is reflected in current state. `cost` may be NEGATIVE: an
+    in-play Merit/Flaw change that *grants* experience (gaining a Flaw / dropping a
+    Merit, p.17) records a negative cost, which reduces total spend (raising
+    available XP)."""
+    target: str                            # "abilities.melee", "essence", "charms", "merits_flaws.gain", ...
+    detail: str = ""                       # charm/spell id for 'new' purchases; M&F name for merits_flaws.*
     from_rating: Optional[int] = None
     to_rating: Optional[int] = None
-    cost: int = Field(ge=0)
+    cost: int
+    mf: Optional[MeritFlaw] = None         # the Merit/Flaw added or removed, for merits_flaws.* entries
     training_complete: bool = True         # dormant hook for the parked training-time rule
 
 

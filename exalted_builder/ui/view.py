@@ -236,6 +236,10 @@ def _xp_entry_label(ruleset: RuleSet, entry: XpEntry) -> str:
         return f"Combo: {entry.detail}"
     if domain == "specialties":
         return f"Specialty: {entry.detail.replace(':', ' — ', 1)}"
+    if domain == "merits_flaws":
+        kind = "Flaw" if (entry.mf and entry.mf.is_flaw) else "Merit"
+        verb = {"gain": "Gained", "lose": "Bought off" if kind == "Flaw" else "Dropped"}.get(key, key)
+        return f"{verb} {kind}: {entry.detail}"
     return entry.target
 
 

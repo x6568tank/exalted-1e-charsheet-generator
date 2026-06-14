@@ -227,8 +227,18 @@ Exalted-1E-Charsheet-Generator/      (project root)
   spell learn cost via `validate.cost_multiplier`/`apply_cost_multiplier`, honoured in
   `costs.py` (XP) and the chargen charm/spell BP block (now itemised per pick: free
   pool covers the dearest, BP pays the rest). Authored: Brigid's Heir (Charms ×2 except
-  Ox-Body [Special] and the Circle-Sorcery initiation Charms; spells ×½). Still to do:
-  the p17 in-play Merit/Flaw change rule (gain/pay XP = 2× value). See the memory note.
+  Ox-Body [Special] and the Circle-Sorcery initiation Charms; spells ×½).
+  **In-play Merit/Flaw change — done (p.17):** `advancement.gain_merit_flaw`/
+  `lose_merit_flaw` append an `XpEntry` whose `cost` is SIGNED — gaining a Flaw or
+  dropping a Merit GRANTS xp (negative cost, raising available); gaining a Merit or
+  buying off a Flaw COSTS xp. Magnitude = `xp_costs.merit_flaw_change_multiplier` (=2)
+  × the bonus-point value, except a *gained* Flaw is credited only up to the running
+  10-pt Flaw total (`budgets.bonus_points_flaw_cap`). `costs.merit_flaw_change_cost`
+  is the pure signed price; the entry carries the full `mf` so `undo_last` can restore
+  it; these rows are skipped by the cost-tamper audit (the gain-Flaw credit is
+  state-dependent). UI: a **Merits & Flaws card** in the XP tab (catalog-autofill Gain
+  + buy-off/drop of held entries, signed-XP preview). The p.17 partial-payment "debt"
+  installment rule is out of scope (purchases require full affordability, as elsewhere).
 - **Combos — done** (chargen BP *and* during-play XP cost = Σ member `min_ability`,
   via `costs.combo_cost`/`advancement.add_combo`).
 - **XP advancement — done (post-lock):** `engine/costs.py` + `engine/advancement.py`

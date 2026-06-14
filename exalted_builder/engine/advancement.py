@@ -15,7 +15,7 @@ engine.validate; the trait caps live here.
 
 from __future__ import annotations
 
-from ..models.character import Character, Combo, Specialty, XpEntry
+from ..models.character import Character, Combo, MeritFlaw, Specialty, XpEntry
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import costs, derive, validate
 
@@ -60,14 +60,16 @@ def _ensure_locked(character: Character) -> None:
 
 
 def _commit(character: Character, target: str, detail: str,
-            frm: int | None, to: int | None, cost: int) -> XpEntry:
+            frm: int | None, to: int | None, cost: int,
+            mf: MeritFlaw | None = None) -> XpEntry:
     """Affordability gate + append the log row. Call only after the trait change is
     decided (cost computed) but it is fine to mutate before or after — nothing here
-    touches traits."""
+    touches traits. A negative `cost` is an XP *grant* (an in-play Merit/Flaw change,
+    p.17) and is always affordable."""
     if cost > xp_available(character):
         raise AdvancementError(
             f"Costs {cost} XP; only {xp_available(character)} available.")
-    entry = XpEntry(target=target, detail=detail, from_rating=frm, to_rating=to, cost=cost)
+    entry = XpEntry(target=target, detail=detail, from_rating=frm, to_rating=to, cost=cost, mf=mf)
     character.xp_log.append(entry)
     return entry
 
@@ -196,6 +198,44 @@ def add_specialty(ruleset: RuleSet, character: Character, ability: AbilityName,
 
 
 # --------------------------------------------------------------------------- #
+# In-play Merit/Flaw change (Player's Guide p.17)
+# --------------------------------------------------------------------------- #
+
+def gain_merit_flaw(ruleset: RuleSet, character: Character, name: str, points: int,
+                    is_flaw: bool, description: str = "") -> XpEntry:
+    """Acquire a Merit or Flaw after lock (p.17). Gaining a Merit costs XP; gaining a
+    Flaw grants XP (a negative log cost), capped so Flaws past the 10-point total pay
+    nothing. The Merit/Flaw is recorded on the entry so undo can drop it again."""
+    _ensure_locked(character)
+    name = name.strip()
+    if not name:
+        raise AdvancementError("A Merit or Flaw needs a name.")
+    if any(mf.name == name for mf in character.merits_flaws):
+        raise AdvancementError(f"{name} is already on the character.")
+    mf = MeritFlaw(name=name, points=points, is_flaw=is_flaw, description=description)
+    cost = costs.merit_flaw_change_cost(ruleset, character,
+                                        points=points, is_flaw=is_flaw, removing=False)
+    entry = _commit(character, "merits_flaws.gain", name, None, None, cost, mf=mf)
+    character.merits_flaws.append(mf)
+    return entry
+
+
+def lose_merit_flaw(ruleset: RuleSet, character: Character, name: str) -> XpEntry:
+    """Drop a held Merit or buy off a held Flaw after lock (p.17). Buying off a Flaw
+    costs XP; dropping a Merit grants XP. The removed Merit/Flaw is recorded on the
+    entry so undo can restore it."""
+    _ensure_locked(character)
+    mf = next((m for m in character.merits_flaws if m.name == name), None)
+    if mf is None:
+        raise AdvancementError(f"{name} is not on the character.")
+    cost = costs.merit_flaw_change_cost(ruleset, character,
+                                        points=mf.points, is_flaw=mf.is_flaw, removing=True)
+    entry = _commit(character, "merits_flaws.lose", name, None, None, cost, mf=mf)
+    character.merits_flaws.remove(mf)
+    return entry
+
+
+# --------------------------------------------------------------------------- #
 # Undo (LIFO)
 # --------------------------------------------------------------------------- #
 
@@ -236,6 +276,12 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
             if s.ability.value == ab and s.name == spec_name:
                 del character.specialties[i]
                 break
+    elif domain == "merits_flaws":
+        if key == "gain":                                  # gained one -> remove it
+            character.merits_flaws[:] = [
+                m for m in character.merits_flaws if m.name != entry.detail]
+        elif key == "lose" and entry.mf is not None:       # removed one -> put it back
+            character.merits_flaws.append(entry.mf)
 
     character.xp_log.pop()
     return entry
@@ -270,6 +316,9 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
     if domain == "combos":
         combo = next((c for c in character.combos if c.name == entry.detail), None)
         return costs.combo_cost(ruleset, combo.charm_ids) if combo else None
+    # merits_flaws.* (p.17): the gain-a-Flaw credit depends on the running Flaw total
+    # at the time of purchase, which the log alone cannot reconstruct, so these rows
+    # are not cost-audited. The overspend check still covers them.
     return None
 
 

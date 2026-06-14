@@ -35,6 +35,13 @@ def _label(value: str) -> str:
     return value.replace("_", " ").title()
 
 
+def _signed_xp(cost: int) -> str:
+    """Present a signed XP delta: a negative engine cost is a grant."""
+    if cost < 0:
+        return f"grants {-cost} XP"
+    return f"costs {cost} XP"
+
+
 def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
              *, with_header: bool = True) -> None:
     """Render the XP advancement tab. Inert until chargen is locked."""
@@ -50,6 +57,10 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         "spec_name": "",
         "combo_ids": [],
         "combo_name": "",
+        "mf_name": "",
+        "mf_points": 1,
+        "mf_is_flaw": False,
+        "mf_remove": None,
         "add_amount": 5,
         "focus": None,          # ("charm"|"spell", id) — what the detail panel describes
     }
@@ -184,6 +195,63 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button("Add Combo", on_click=lambda: _do(
                     lambda: (advancement.add_combo(rs, character, sel["combo_name"], sel["combo_ids"]),
                              sel.update({"combo_ids": [], "combo_name": ""})))).props("dense color=brown")
+
+        # --- change a Merit / Flaw in play (p.17) ------------------------- #
+        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
+            ui.label("Merits & Flaws").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+            ui.label("Gaining a Flaw or dropping a Merit grants XP; gaining a Merit or "
+                     "buying off a Flaw costs it.").classes("text-xs text-gray-500")
+
+            # Gain
+            mf_names = sorted(m.name for m in rs.merit_flaw_catalog.values())
+
+            def _pick_mf(name: str) -> None:
+                sel["mf_name"] = name
+                entry = next((m for m in rs.merit_flaw_catalog.values() if m.name == name), None)
+                if entry:                                  # autofill points/type from catalog
+                    sel["mf_points"] = entry.points
+                    sel["mf_is_flaw"] = entry.is_flaw
+                panel.refresh()
+
+            gain_cost = costs.merit_flaw_change_cost(
+                rs, character, points=int(sel["mf_points"] or 0),
+                is_flaw=sel["mf_is_flaw"], removing=False)
+            with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                ui.select(mf_names, value=sel["mf_name"] or None, with_input=True, new_value_mode="add-unique",
+                          label="Gain", on_change=lambda e: _pick_mf(e.value or "")
+                          ).props("dense").classes("flex-1")
+                ui.select({False: "Merit", True: "Flaw"}, value=sel["mf_is_flaw"],
+                          on_change=lambda e: (sel.__setitem__("mf_is_flaw", e.value), panel.refresh())
+                          ).props("dense").classes("w-24")
+                ui.number(value=sel["mf_points"], min=0, format="%d",
+                          on_change=lambda e: (sel.__setitem__("mf_points", int(e.value or 0)), panel.refresh())
+                          ).props("dense").classes("w-16")
+                ui.label(_signed_xp(gain_cost)).classes("text-xs w-24")
+                ui.button("Gain", on_click=lambda: _do(
+                    lambda: (advancement.gain_merit_flaw(
+                        rs, character, sel["mf_name"], int(sel["mf_points"] or 0), sel["mf_is_flaw"]),
+                        sel.update({"mf_name": "", "mf_points": 1, "mf_is_flaw": False})))
+                    ).props("dense color=brown")
+
+            # Remove / buy off
+            held = {m.name: f"{m.name} ({'Flaw' if m.is_flaw else 'Merit'}, {m.points})"
+                    for m in character.merits_flaws}
+            if held:
+                remove_value = sel["mf_remove"] if sel["mf_remove"] in held else None
+                held_mf = next((m for m in character.merits_flaws if m.name == remove_value), None)
+                remove_cost = (costs.merit_flaw_change_cost(
+                    rs, character, points=held_mf.points, is_flaw=held_mf.is_flaw, removing=True)
+                    if held_mf else 0)
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.select(held, value=remove_value, label="Remove / buy off",
+                              on_change=lambda e: (sel.__setitem__("mf_remove", e.value), panel.refresh())
+                              ).props("dense").classes("flex-1")
+                    ui.label(_signed_xp(remove_cost) if held_mf else "").classes("text-xs w-24")
+                    btn = ui.button("Remove", on_click=lambda: _do(
+                        lambda: (advancement.lose_merit_flaw(rs, character, sel["mf_remove"]),
+                                 sel.__setitem__("mf_remove", None)))).props("dense color=brown")
+                    if not held_mf:
+                        btn.props("disable")
 
     # ---- ledger (XP totals + log) ----------------------------------------- #
     @ui.refreshable
