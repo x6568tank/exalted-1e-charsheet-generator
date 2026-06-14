@@ -2,8 +2,9 @@
 pack/run_app.py — entry point for the packaged desktop build.
 
 Double-clicking the built executable runs this: it starts the local NiceGUI
-server and opens the user's default browser to the app. No arguments, no
-terminal. Cytoscape is vendored locally, so it works fully offline.
+server and opens it in a real native desktop window (via pywebview), so Save/Load
+use the OS file dialogs. No arguments, no terminal. Cytoscape is vendored locally,
+so it works fully offline.
 """
 
 import multiprocessing
@@ -24,8 +25,10 @@ def run() -> None:
     def index() -> None:
         builder.build_app(ruleset, character, path)
 
-    # show=True opens the default browser; reload=False is required when frozen.
-    ui.run(title="Exalted 1e — Solar Builder", reload=False, show=True, port=8080)
+    # native=True opens a real desktop window (pywebview) instead of the browser, so
+    # the OS Save As/Open dialogs are available; reload=False is required when frozen.
+    ui.run(title="Exalted 1e — Solar Builder", reload=False,
+           native=True, window_size=(1280, 900))
 
 
 # Guard covers PyInstaller's multiprocessing re-import (__mp_main__).

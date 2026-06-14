@@ -187,9 +187,11 @@ Exalted-1E-Charsheet-Generator/      (project root)
   what the shipped `pack/run_app.py` build uses — it opens the browser, not a native
   window) Save prompts for a filename and `ui.download.content`s the JSON to the
   browser's download folder, and Load is an `ui.upload` file picker (with a path field
-  as a fallback). NOTE: to make the native OS dialogs the *default* experience, the
-  packaging must switch to `ui.run(native=True)` and bundle pywebview — currently it
-  does not. Run the app:
+  as a fallback). The packaged build (`pack/run_app.py`) now runs `ui.run(native=True)`,
+  so the **shipped app opens a native window and gets the OS dialogs** by default;
+  pywebview is bundled (the `desktop` extra). The native window needs a platform web
+  backend: Windows (Edge WebView2) and macOS (WKWebView) have it built in; **Linux
+  needs WebKit2GTK or Qt WebEngine present** (see `pack/BUILD.md`). Run the app:
   `.venv/bin/python -m exalted_builder.ui.builder [char.json] [--show] [--port N] [--native]`
   (the individual modules also run standalone). Example char:
   `examples/ashes-of-dawn.character.json`.
@@ -215,10 +217,16 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - **The data catalogue is complete:** 220 corebook charms + all spells, the M&F
   catalog, backgrounds, weapons/armor.
 - **Desktop packaging:** Cytoscape vendored locally (offline-ready). `pack/` has the
-  PyInstaller one-file spec + browser-launch entry + BUILD.md. **Linux build done &
-  verified** (`pyinstaller pack/exalted-builder.spec` -> `dist/ExaltedBuilder`).
-  **Windows .exe still needs building ON Windows** (PyInstaller can't cross-compile);
-  same spec, config is ready.
+  PyInstaller one-file spec + **native-window entry** (`run_app.py` → `ui.run(native=True)`)
+  + BUILD.md. The spec now `collect_all("webview")` too, and the `desktop` extra bundles
+  pywebview. The native window needs a platform web backend (Windows Edge WebView2 /
+  macOS WKWebView built-in; **Linux needs WebKit2GTK or Qt WebEngine** — GTK via system
+  `python-gobject`+`webkit2gtk`, or `pip install pyqt6 pyqt6-webengine`). The earlier
+  **Linux *browser* build was verified; the Linux *native* build has NOT been re-verified**
+  since the switch (needs a GTK/Qt backend on the build host — was absent here, so the
+  native window couldn't be launched; the `--native` wiring was verified up to
+  `webview.start()`). **Windows .exe still needs building ON Windows** (PyInstaller
+  can't cross-compile); same spec, and Windows native is self-contained (WebView2).
 - **Merits & Flaws** (Player's Guide): authored as a catalog —
   `data/merits_flaws.json` (84: 42 merits + 42 flaws; non-Solar entries removed —
   Merits Legendary Breeding & Celestial Bloodline, and Flaws Limited Forms & Chimera

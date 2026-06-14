@@ -14,7 +14,13 @@ ROOT = Path(SPECPATH).parent
 # Pull in NiceGUI's web assets, binaries, and submodules.
 ng_datas, ng_binaries, ng_hidden = collect_all("nicegui")
 
-datas = ng_datas + [
+# pywebview backs the native window. collect_all grabs its platform backends
+# (gtk/qt/cocoa/winforms/edgechromium) and data; the per-OS GUI backend itself
+# (WebKit2GTK or Qt on Linux, the Edge WebView2 runtime on Windows) must be present
+# on the build/target machine — see pack/BUILD.md.
+wv_datas, wv_binaries, wv_hidden = collect_all("webview")
+
+datas = ng_datas + wv_datas + [
     (str(ROOT / "exalted_builder" / "data"), "exalted_builder/data"),
     (str(ROOT / "exalted_builder" / "ui" / "vendor"), "exalted_builder/ui/vendor"),
     (str(ROOT / "examples"), "examples"),
@@ -23,9 +29,9 @@ datas = ng_datas + [
 a = Analysis(
     [str(ROOT / "pack" / "run_app.py")],
     pathex=[str(ROOT)],
-    binaries=ng_binaries,
+    binaries=ng_binaries + wv_binaries,
     datas=datas,
-    hiddenimports=ng_hidden,
+    hiddenimports=ng_hidden + wv_hidden,
     hookspath=[],
     runtime_hooks=[],
     excludes=[],

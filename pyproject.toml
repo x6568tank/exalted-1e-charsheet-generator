@@ -19,8 +19,11 @@ ui = [
     "nicegui>=2",
 ]
 # Tools needed to build the standalone desktop executable (see pack/).
+# pywebview backs NiceGUI's native window (the packaged app now opens a real
+# desktop window, not the browser); PyInstaller bundles everything.
 desktop = [
     "nicegui>=2",
+    "pywebview>=5",
     "pyinstaller>=6",
 ]
 
