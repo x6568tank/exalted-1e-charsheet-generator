@@ -63,18 +63,19 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         refresh_all()
 
     # ---- buy rows --------------------------------------------------------- #
-    def _raise_row(label: str, options: dict, key: str, current: int, cost: int, action) -> None:
+    def _raise_row(label: str, options: dict, key: str, current: int, cost: int, action,
+                   cap: int = 5) -> None:
         with ui.row().classes("w-full items-center gap-2 no-wrap"):
             ui.label(label).classes("text-xs w-20")
             ui.select(options, value=sel[key],
                       on_change=lambda e, k=key: (sel.__setitem__(k, e.value), panel.refresh())
                       ).props("dense").classes("flex-1")
-            if current >= 5:
+            if current >= cap:
                 ui.label("max").classes("text-xs text-gray-400 w-24")
             else:
                 ui.label(f"{current}→{current + 1}: {cost} XP").classes("text-xs w-24")
             btn = ui.button("Raise", on_click=lambda: _do(action)).props("dense color=brown")
-            if current >= 5:
+            if current >= cap:
                 btn.props("disable")
 
     @ui.refreshable
@@ -91,7 +92,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             attr = sel["attr"]
             _raise_row("Attribute", {a: _label(a.value) for a in AttributeName}, "attr",
                        character.attributes[attr], costs.attribute_step(rs, character.attributes[attr]),
-                       lambda: advancement.raise_attribute(rs, character, sel["attr"]))
+                       lambda: advancement.raise_attribute(rs, character, sel["attr"]),
+                       cap=validate.trait_max(rs, character, f"attributes.{attr.value}", 5))
 
             ab = sel["ability"]
             ab_cur = character.abilities.get(ab, 0)
@@ -102,7 +104,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             v = sel["virtue"]
             _raise_row("Virtue", {x: _label(x.value) for x in VirtueName}, "virtue",
                        character.virtues[v], costs.virtue_step(rs, character.virtues[v]),
-                       lambda: advancement.raise_virtue(rs, character, sel["virtue"]))
+                       lambda: advancement.raise_virtue(rs, character, sel["virtue"]),
+                       cap=validate.trait_max(rs, character, f"virtues.{v.value}", 5))
 
             wp = derive.willpower(character)
             ess = character.essence_rating

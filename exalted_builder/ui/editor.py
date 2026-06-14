@@ -84,8 +84,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         @ui.refreshable
         def show() -> None:
             v = get()
+            top = max(hi, v)            # always show enough pips to step a too-high value down
             with ui.row().classes("gap-0 items-center no-wrap"):
-                for i in range(1, hi + 1):
+                for i in range(1, top + 1):
                     icon = "circle" if i <= v else "radio_button_unchecked"
                     (ui.icon(icon, size="1rem")
                        .classes("cursor-pointer").style(f"color:{_ACCENT}")
@@ -138,10 +139,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         spent = sum(character.attributes[a] - 1 for a in members)
                         ui.label(f"{category} — {spent} spent").classes("text-xs font-semibold")
                         for a in members:
+                            amax = validate.trait_max(ruleset, character, f"attributes.{a.value}", 5)
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
                                 ui.label(_label(a.value)).classes("text-sm w-28")
                                 dots(lambda a=a: character.attributes[a],
-                                     lambda v, a=a: character.attributes.__setitem__(a, v), 1, 5)
+                                     lambda v, a=a: character.attributes.__setitem__(a, v),
+                                     min(1, amax), amax)
 
         # abilities (by ability-caste group)
         with panel("Abilities (25 dots; ≥10 caste/favoured; ≤3 each pre-bonus)"):
@@ -163,10 +166,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
             with panel("Virtues (5 dots; ≤3 pre-bonus)").classes("flex-1"):
                 for v in VirtueName:
+                    vmax = validate.trait_max(ruleset, character, f"virtues.{v.value}", 5)
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):
                         ui.label(_label(v.value)).classes("text-sm w-28")
                         dots(lambda v=v: character.virtues[v],
-                             lambda val, v=v: character.virtues.__setitem__(v, val), 1, 5)
+                             lambda val, v=v: character.virtues.__setitem__(v, val), 1, vmax)
             with panel("Essence & Willpower").classes("flex-1"):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.label("Essence").classes("text-sm w-28")

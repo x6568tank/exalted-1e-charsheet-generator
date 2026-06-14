@@ -79,8 +79,9 @@ def _commit(character: Character, target: str, detail: str,
 def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName) -> XpEntry:
     _ensure_locked(character)
     frm = character.attributes[attr]
-    if frm >= _DOT_MAX:
-        raise AdvancementError(f"{attr.value} is already at {_DOT_MAX}.")
+    cap = validate.trait_max(ruleset, character, f"attributes.{attr.value}", _DOT_MAX)
+    if frm >= cap:
+        raise AdvancementError(f"{attr.value} is already at its maximum of {cap}.")
     cost = costs.attribute_step(ruleset, frm)
     entry = _commit(character, f"attributes.{attr.value}", "", frm, frm + 1, cost)
     character.attributes[attr] = frm + 1
@@ -101,8 +102,9 @@ def raise_ability(ruleset: RuleSet, character: Character, ability: AbilityName) 
 def raise_virtue(ruleset: RuleSet, character: Character, virtue: VirtueName) -> XpEntry:
     _ensure_locked(character)
     frm = character.virtues[virtue]
-    if frm >= _DOT_MAX:
-        raise AdvancementError(f"{virtue.value} is already at {_DOT_MAX}.")
+    cap = validate.trait_max(ruleset, character, f"virtues.{virtue.value}", _DOT_MAX)
+    if frm >= cap:
+        raise AdvancementError(f"{virtue.value} is already at its maximum of {cap}.")
     cost = costs.virtue_step(ruleset, frm)
     entry = _commit(character, f"virtues.{virtue.value}", "", frm, frm + 1, cost)
     character.virtues[virtue] = frm + 1

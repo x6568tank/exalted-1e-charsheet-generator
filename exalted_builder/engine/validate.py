@@ -324,6 +324,47 @@ def _caste_favored(ruleset: RuleSet, character: Character) -> tuple[set, set] | 
     return set(caste_def.caste_abilities), set(character.favored_abilities)
 
 
+# --------------------------------------------------------------------------- #
+# Merit/Flaw mechanical effects (e.g. trait-rating caps)
+# --------------------------------------------------------------------------- #
+
+def _merit_flaw_type(ruleset: RuleSet, mf):
+    """Resolve a character's MeritFlaw to its catalog MeritFlawType (matched by
+    name; the editor autofills from the catalog), or None if not catalogued."""
+    for t in ruleset.merit_flaw_catalog.values():
+        if t.name == mf.name:
+            return t
+    return None
+
+
+def _target_matches(effect_target: str, trait_path: str) -> bool:
+    """A trait-cap target applies to a trait when it is that trait or its whole
+    domain — 'virtues' matches 'virtues.compassion'; 'attributes.appearance' matches
+    only itself."""
+    return trait_path == effect_target or trait_path.startswith(effect_target + ".")
+
+
+def trait_max(ruleset: RuleSet, character: Character, trait_path: str, default: int = 5) -> int:
+    """Effective maximum rating of a trait given the character's Merits/Flaws.
+    `trait_path` is like 'virtues.compassion' or 'attributes.appearance'. A
+    `trait_cap` effect whose target covers the path overrides `default`; a raising
+    Merit (e.g. True Paragon, Virtues to 6) lifts it, a lowering Flaw (e.g.
+    Disfigured, Appearance to 0/1) drops it, and a lowering effect always wins."""
+    effective = default
+    for mf in character.merits_flaws:
+        cat = _merit_flaw_type(ruleset, mf)
+        if cat is None:
+            continue
+        for eff in cat.effects:
+            if eff.kind != "trait_cap" or not _target_matches(eff.target, trait_path):
+                continue
+            cap = eff.max_by_points.get(mf.points, eff.max)
+            if cap is None:
+                continue
+            effective = min(effective, cap) if cap < default else max(effective, cap)
+    return effective
+
+
 def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[AbilityName]:
     """The character's Caste ∪ Favoured abilities — the set that earns the discount
     on Ability/Charm/spell costs. Falls back to just the Favoured set if the caste
@@ -407,10 +448,12 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
 
     # --- Attributes: three category spends matched to the 8/6/4 pools --------- #
     for name, attr in attributes.items():
-        if not (1 <= attr <= 5):
+        amax = trait_max(ruleset, character, f"attributes.{name.value}", default=5)
+        amin = min(b.attribute_base, amax)          # a cap below 1 (Disfigured 4pt) lowers the floor too
+        if not (amin <= attr <= amax):
             issues.append(Issue(
                 code="attribute-range", where=name.value,
-                message=f"Attribute {name.value} = {attr}; must be 1-5 at creation.",
+                message=f"Attribute {name.value} = {attr}; must be {amin}-{amax} at creation.",
             ))
     spends = sorted(
         (sum(attributes[a] - b.attribute_base for a in attrs)
@@ -462,10 +505,11 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # --- Virtues: 5 free dots over base 1, pre-BP cap 3 ----------------------- #
     v_within = v_above = 0
     for v, rating in virtues.items():
-        if not (1 <= rating <= 5):
+        vmax = trait_max(ruleset, character, f"virtues.{v.value}", default=5)
+        if not (b.virtue_base <= rating <= vmax):
             issues.append(Issue(
                 code="virtue-range", where=v.value,
-                message=f"Virtue {v.value} = {rating}; must be 1-5 at creation.",
+                message=f"Virtue {v.value} = {rating}; must be {b.virtue_base}-{vmax} at creation.",
             ))
         v_within += max(0, min(rating, b.virtue_cap_pre_bp) - b.virtue_base)
         v_above += max(0, rating - b.virtue_cap_pre_bp)

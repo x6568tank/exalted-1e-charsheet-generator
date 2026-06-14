@@ -229,6 +229,24 @@ class BackgroundType(BaseModel):
     description: str = ""
 
 
+class MeritFlawEffect(BaseModel):
+    """A machine-readable mechanical effect the engine applies whenever a character
+    holds the Merit/Flaw. Narrative conditions (Nature gating, codes of honour) are
+    deliberately NOT modelled — the effect always applies if the trait is held.
+
+    `kind`:
+      * "trait_cap" — overrides the maximum rating of `target` (a trait domain like
+        "virtues" or a single trait like "attributes.appearance"). The cap is `max`,
+        or, when severity-dependent, `max_by_points[chosen_points]`.
+    """
+    model_config = ConfigDict(frozen=True)
+
+    kind: str
+    target: str
+    max: Optional[int] = None
+    max_by_points: dict[int, int] = Field(default_factory=dict)
+
+
 class MeritFlawType(BaseModel):
     """A Merit or Flaw from the Player's Guide. Autofill catalog for the per-
     character character.MeritFlaw (which carries the chosen point value)."""
@@ -241,6 +259,7 @@ class MeritFlawType(BaseModel):
     category: str = ""                     # Physical / Mental / Social / Supernatural
     cost_text: str = ""                    # for variable costs, e.g. "1 or 3 per sense"
     description: str = ""
+    effects: list[MeritFlawEffect] = Field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #
