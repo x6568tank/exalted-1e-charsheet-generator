@@ -128,6 +128,7 @@ class ChargenSnapshot(BaseModel):
     backgrounds: list[BackgroundEntry]
     charms: list[str]
     spells: list[str]
+    combos: list[Combo] = Field(default_factory=list)
     essence_rating: int
     willpower_purchased: int
     wp_virtue_component: int               # two highest Virtues AT LOCK; never recomputed

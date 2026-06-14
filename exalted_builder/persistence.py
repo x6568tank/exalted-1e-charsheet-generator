@@ -14,6 +14,8 @@ truncate an existing save. JSON is indented for hand-editing. Enum-keyed dicts
 from __future__ import annotations
 
 import os
+import re
+import sys
 import tempfile
 from pathlib import Path
 
@@ -22,6 +24,30 @@ from .models.character import Character
 # Conventional extension for character saves (see .gitignore). Not enforced; any
 # path is accepted.
 SAVE_SUFFIX = ".character.json"
+
+
+def slugify_name(name: str) -> str:
+    """Filesystem-safe stem from a character name: lower-cased, runs of
+    non-alphanumerics collapsed to single hyphens, trimmed. A blank/symbol-only
+    name falls back to 'new-character' so a file always has a sensible stem."""
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    return slug or "new-character"
+
+
+def suggested_filename(character: Character) -> str:
+    """The save filename a character should use, derived from its name —
+    e.g. 'Ashes-of-Dawn' -> 'ashes-of-dawn.character.json'."""
+    return f"{slugify_name(character.name)}{SAVE_SUFFIX}"
+
+
+def default_save_dir() -> Path:
+    """Where new saves should land by default: next to the executable in a
+    packaged (PyInstaller) build, otherwise the current working directory. So a
+    double-clicked ExaltedBuilder writes its .character.json beside itself, in
+    whatever folder it was launched from."""
+    if getattr(sys, "frozen", False):          # PyInstaller bundle
+        return Path(sys.executable).resolve().parent
+    return Path.cwd()
 
 
 def character_to_json(character: Character) -> str:

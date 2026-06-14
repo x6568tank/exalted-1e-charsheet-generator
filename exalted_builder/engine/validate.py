@@ -27,7 +27,14 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 from ..models.character import Character
-from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
+from ..models.rules import (
+    AbilityName,
+    AttributeName,
+    CharmType,
+    RuleSet,
+    SpellCircle,
+    VirtueName,
+)
 from . import derive
 
 # Attribute categories and the order Strength/Dexterity/Stamina etc. (core p.104).
@@ -166,6 +173,26 @@ def charms_depending_on(ruleset: RuleSet, character: Character, charm_id: str) -
 # Spell-circle access
 # --------------------------------------------------------------------------- #
 
+def granted_sorcery_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
+    """The set of Sorcery circles the character can cast in, taken from the
+    `grants_sorcery_circle` of every known initiation Charm."""
+    return {
+        ruleset.charms[cid].grants_sorcery_circle
+        for cid in character.charms
+        if cid in ruleset.charms and ruleset.charms[cid].grants_sorcery_circle is not None
+    }
+
+
+def meets_spell_requirements(ruleset: RuleSet, character: Character, spell,
+                             *, chargen: bool = True) -> bool:
+    """Whether the character could learn `spell` right now: a known Charm must grant
+    its circle, and at chargen the Solar Circle is barred (core p.100). The
+    forward-looking counterpart to check_spell_access; used by the spell picker."""
+    if chargen and spell.circle == SpellCircle.SOLAR:
+        return False
+    return spell.circle in granted_sorcery_circles(ruleset, character)
+
+
 def check_spell_access(ruleset: RuleSet, character: Character) -> list[Issue]:
     """A known Spell requires a known Charm whose `grants_sorcery_circle` matches
     the Spell's circle.
@@ -177,11 +204,7 @@ def check_spell_access(ruleset: RuleSet, character: Character) -> list[Issue]:
     cast lower-circle spells through them. No separate circle-nesting rule is
     needed here; the prerequisite chain provides it.
     """
-    granted = {
-        ruleset.charms[cid].grants_sorcery_circle
-        for cid in character.charms
-        if cid in ruleset.charms and ruleset.charms[cid].grants_sorcery_circle is not None
-    }
+    granted = granted_sorcery_circles(ruleset, character)
     issues: list[Issue] = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
@@ -193,6 +216,98 @@ def check_spell_access(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=(f"{spell.name}: no known Charm grants the "
                          f"{spell.circle.value} circle."),
             ))
+    return issues
+
+
+# --------------------------------------------------------------------------- #
+# Combos
+# --------------------------------------------------------------------------- #
+
+# Only Charms of instant duration may be Comboed (core p.213). Compared against
+# Charm.duration, whose instant value is the model default "Instant".
+_COMBO_DURATION = "Instant"
+
+
+def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
+    """Legality findings for a single Combo (core pp.213-214): two or more *known*
+    Charms of instant duration, no Charm twice, at most one Simple and at most one
+    Extra Action Charm. `where` is the Combo's name. The picker uses this per-Combo;
+    validate_combos aggregates it over the character."""
+    issues: list[Issue] = []
+    known = set(character.charms)
+    where = combo.name or "(unnamed combo)"
+    if len(combo.charm_ids) < 2:
+        issues.append(Issue(
+            code="combo-too-small", where=where,
+            message=f"Combo {where!r} has {len(combo.charm_ids)} Charm(s); a Combo "
+                    "must combine at least two.",
+        ))
+    seen: set[str] = set()
+    simple = extra_action = 0
+    for cid in combo.charm_ids:
+        if cid in seen:
+            issues.append(Issue(
+                code="combo-duplicate-charm", where=where,
+                message=f"Combo {where!r} includes {cid!r} more than once; a Combo "
+                        "may not repeat a Charm.",
+            ))
+            continue
+        seen.add(cid)
+        if cid not in known:
+            issues.append(Issue(
+                code="combo-unknown-charm", where=where,
+                message=f"Combo {where!r} includes {cid!r}, which the character "
+                        "does not know.",
+            ))
+            continue
+        charm = ruleset.charms.get(cid)
+        if charm is None:                 # known id absent from the set: check_references reports it
+            continue
+        if charm.duration != _COMBO_DURATION:
+            issues.append(Issue(
+                code="combo-non-instant", where=where,
+                message=f"Combo {where!r}: {charm.name} has {charm.duration} duration; "
+                        "Combos may only contain instant-duration Charms.",
+            ))
+        if charm.type == CharmType.SIMPLE:
+            simple += 1
+        elif charm.type == CharmType.EXTRA_ACTION:
+            extra_action += 1
+    if simple > 1:
+        issues.append(Issue(
+            code="combo-multiple-simple", where=where,
+            message=f"Combo {where!r} has {simple} Simple Charms; a Combo may "
+                    "contain at most one.",
+        ))
+    if extra_action > 1:
+        issues.append(Issue(
+            code="combo-multiple-extra-action", where=where,
+            message=f"Combo {where!r} has {extra_action} Extra Action Charms; a "
+                    "Combo may contain at most one.",
+        ))
+    return issues
+
+
+def eligible_combo_charms(ruleset: RuleSet, character: Character) -> list[str]:
+    """Ids of the character's known Charms that may legally go in a Combo — i.e.
+    those of instant duration (core p.213). Order follows the character's Charm
+    list. The picker offers these when adding a Charm to a Combo."""
+    out: list[str] = []
+    for cid in character.charms:
+        charm = ruleset.charms.get(cid)
+        if charm is not None and charm.duration == _COMBO_DURATION:
+            out.append(cid)
+    return out
+
+
+def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """Legality of every Combo the character holds (core pp.213-214). The
+    Storyteller veto of specific Combos and the in-play activation rules are out of
+    scope here; the bonus-point cost is accounted in validate_chargen. Operates on
+    the character's current Charms/Combos (like the other reference checks)."""
+    issues: list[Issue] = []
+    for combo in character.combos:
+        issues += combo_issues(ruleset, character, combo)
     return issues
 
 
@@ -240,6 +355,8 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     backgrounds = snap.backgrounds if snap else character.backgrounds
     specialties = snap.specialties if snap else character.specialties
     charms = snap.charms if snap else character.charms
+    spells = snap.spells if snap else character.spells
+    combos = snap.combos if snap else character.combos
     essence = snap.essence_rating if snap else character.essence_rating
     wp_purchased = snap.willpower_purchased if snap else character.willpower_purchased
 
@@ -344,25 +461,49 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     v_overflow = max(0, v_within - b.virtue_dots)
     total_bp += (v_above + v_overflow) * bp_costs.virtue
 
-    # --- Charms: 10 free, >=5 Caste/Favoured; extras cost BP ------------------ #
-    cf_charm_count = 0
+    # --- Charms & Spells: one shared pool of 10, >=5 Caste/Favoured ----------- #
+    # p.100: a spell may be taken in place of a Charm pick (1:1), costs the same as
+    # a Charm in bonus points, and gets the Caste/Favoured discount when Occult is
+    # Caste/Favoured. So Charms and spells share the free pool and the BP rates; a
+    # spell counts as a Caste/Favoured pick iff Occult is Caste/Favoured. Solar
+    # Circle spells may not be taken at creation at all.
+    occult_cf = AbilityName.OCCULT in cf_set
+    cf_pick_count = 0          # Charms + spells that count as Caste/Favoured
     for cid in charms:
         charm = ruleset.charms.get(cid)
         if charm is None:
             continue
         ability = _category_ability(charm.category)   # resolves 'martial_arts:<style>' too
         if ability is not None and ability in cf_set:
-            cf_charm_count += 1
-    if cf_charm_count < b.charm_min_caste_favored:
+            cf_pick_count += 1
+    for sid in spells:
+        spell = ruleset.spells.get(sid)
+        if spell is None:
+            continue
+        if spell.circle == SpellCircle.SOLAR:
+            issues.append(Issue(
+                code="spell-solar-circle-chargen", where=sid,
+                message=f"{spell.name}: Solar Circle spells may not be taken at "
+                        "character creation.",
+            ))
+        if occult_cf:
+            cf_pick_count += 1
+    if cf_pick_count < b.charm_min_caste_favored:
         issues.append(Issue(
             code="charm-caste-favored-min",
             message=f"At least {b.charm_min_caste_favored} of the {b.charm_count} "
-                    f"Charms must be Caste/Favoured; only {cf_charm_count} resolve as such.",
+                    f"Charms/Spells must be Caste/Favoured; only {cf_pick_count} "
+                    "resolve as such.",
         ))
-    charm_extra = max(0, len(charms) - b.charm_count)
-    extra_cheap = min(charm_extra, cf_charm_count)
+    pick_extra = max(0, len(charms) + len(spells) - b.charm_count)
+    extra_cheap = min(pick_extra, cf_pick_count)         # cheapest picks paid first
     total_bp += (extra_cheap * bp_costs.charm_favored_caste
-                 + (charm_extra - extra_cheap) * bp_costs.charm)
+                 + (pick_extra - extra_cheap) * bp_costs.charm)
+
+    # --- Combos: starting with a Combo costs BP = its number of Charms (p.213) - #
+    # Legality (instant duration, one Simple/Extra Action, etc.) is checked in
+    # validate_combos; here we only account the bonus-point cost.
+    total_bp += sum(len(combo.charm_ids) for combo in combos)
 
     # --- Specialties: 1 BP/dot; Caste/Favoured get N dots per BP (p.105) ------ #
     # Caste/Favoured dots are pooled before the round-up, the player-favourable
@@ -433,4 +574,5 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_references(ruleset, character)
     issues += check_charm_prerequisites(ruleset, character)
     issues += check_spell_access(ruleset, character)
+    issues += validate_combos(ruleset, character)
     return issues

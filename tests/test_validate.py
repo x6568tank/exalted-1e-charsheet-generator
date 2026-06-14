@@ -3,7 +3,7 @@ spell-circle access. RuleSets are built inline from the models (no data files).
 """
 
 from exalted_builder.engine import validate
-from exalted_builder.models.character import Character
+from exalted_builder.models.character import Character, Combo
 from exalted_builder.models.rules import (
     AbilityName,
     Caste,
@@ -171,6 +171,107 @@ def test_spell_with_matching_initiation_is_clean():
     rs = _ruleset()
     c = _char(charms=["terrestrial-circle"], spells=["death-of-obsidian"])
     assert validate.check_spell_access(rs, c) == []
+
+
+def test_meets_spell_requirements_needs_granting_charm():
+    rs = _ruleset()
+    spell = rs.spells["death-of-obsidian"]
+    assert validate.meets_spell_requirements(rs, _char(), spell) is False
+    c = _char(charms=["terrestrial-circle"])
+    assert validate.meets_spell_requirements(rs, c, spell) is True
+
+
+def test_meets_spell_requirements_bars_solar_circle_at_chargen():
+    rs = _ruleset()
+    rs.spells["rain-of-doom"] = Spell(
+        id="rain-of-doom", name="Rain of Doom", circle=SpellCircle.SOLAR)
+    rs.charms["solar-circle"] = Charm(
+        id="solar-circle", name="Solar Circle Sorcery", category="occult",
+        type=CharmType.PERMANENT, min_ability=5, min_essence=5,
+        grants_sorcery_circle=SpellCircle.SOLAR)
+    c = _char(charms=["solar-circle"])
+    spell = rs.spells["rain-of-doom"]
+    assert validate.meets_spell_requirements(rs, c, spell) is False           # chargen
+    assert validate.meets_spell_requirements(rs, c, spell, chargen=False) is True
+
+
+# --------------------------------------------------------------------------- #
+# Combos (core pp.213-214)
+# --------------------------------------------------------------------------- #
+
+def _combo_ruleset() -> RuleSet:
+    """A set of instant-duration Charms of assorted types, plus one non-instant
+    Charm, for exercising Combo legality."""
+    def mk(cid, ctype, duration="Instant"):
+        return Charm(id=cid, name=cid.replace("-", " ").title(), category="melee",
+                     type=ctype, min_ability=1, min_essence=1, duration=duration)
+    charms = {
+        "simple-a": mk("simple-a", CharmType.SIMPLE),
+        "simple-b": mk("simple-b", CharmType.SIMPLE),
+        "supp-a": mk("supp-a", CharmType.SUPPLEMENTAL),
+        "reflex-a": mk("reflex-a", CharmType.REFLEXIVE),
+        "extra-a": mk("extra-a", CharmType.EXTRA_ACTION),
+        "extra-b": mk("extra-b", CharmType.EXTRA_ACTION),
+        "scene-buff": mk("scene-buff", CharmType.REFLEXIVE, duration="One scene"),
+    }
+    castes = {Caste.DAWN: CasteDefinition(caste=Caste.DAWN, caste_abilities=[AbilityName.MELEE])}
+    return RuleSet(castes=castes, charms=charms)
+
+
+def _combo_char(combo_ids, known=None) -> Character:
+    c = Character(id="char.combo")
+    c.charms = list(known if known is not None else combo_ids)
+    c.combos = [Combo(name="Test Combo", charm_ids=list(combo_ids))]
+    return c
+
+
+def test_legal_combo_is_clean():
+    rs = _combo_ruleset()
+    c = _combo_char(["simple-a", "supp-a", "reflex-a"])
+    assert validate.validate_combos(rs, c) == []
+
+
+def test_combo_needs_at_least_two_charms():
+    rs = _combo_ruleset()
+    c = _combo_char(["simple-a"])
+    codes = [i.code for i in validate.validate_combos(rs, c)]
+    assert codes == ["combo-too-small"]
+
+
+def test_combo_rejects_duplicate_charm():
+    rs = _combo_ruleset()
+    c = _combo_char(["simple-a", "simple-a"])
+    codes = {i.code for i in validate.validate_combos(rs, c)}
+    assert "combo-duplicate-charm" in codes
+
+
+def test_combo_charm_must_be_known():
+    rs = _combo_ruleset()
+    # Both Charms exist in the rule set, but the character only knows one.
+    c = _combo_char(["simple-a", "supp-a"], known=["simple-a"])
+    codes = {i.code for i in validate.validate_combos(rs, c)}
+    assert "combo-unknown-charm" in codes
+
+
+def test_combo_rejects_non_instant_charm():
+    rs = _combo_ruleset()
+    c = _combo_char(["simple-a", "scene-buff"])
+    codes = {i.code for i in validate.validate_combos(rs, c)}
+    assert "combo-non-instant" in codes
+
+
+def test_combo_allows_only_one_simple_charm():
+    rs = _combo_ruleset()
+    c = _combo_char(["simple-a", "simple-b"])
+    codes = {i.code for i in validate.validate_combos(rs, c)}
+    assert "combo-multiple-simple" in codes
+
+
+def test_combo_allows_only_one_extra_action_charm():
+    rs = _combo_ruleset()
+    c = _combo_char(["extra-a", "extra-b"])
+    codes = {i.code for i in validate.validate_combos(rs, c)}
+    assert "combo-multiple-extra-action" in codes
 
 
 # --------------------------------------------------------------------------- #

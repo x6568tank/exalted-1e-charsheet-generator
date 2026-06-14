@@ -33,3 +33,16 @@ def test_post_lock_virtue_gain_does_not_raise_willpower():
     c.virtues[V.VALOR] = 5
     assert derive.two_highest_virtues(c.virtues) == 8  # live value moved...
     assert derive.willpower(c) == 6                     # ...but Willpower did not
+
+
+def test_unlock_reverts_the_lock_and_relives_willpower():
+    c = _char()
+    lifecycle.lock_chargen(c)
+    c.virtues[V.VALOR] = 5                            # change while locked (Willpower stays 6)
+    assert derive.willpower(c) == 6
+    lifecycle.unlock_chargen(c)
+    assert c.chargen_locked is False
+    assert c.chargen_snapshot is None
+    assert c.wp_virtue_component is None
+    # Willpower now recomputes live from the two highest Virtues (3 + 5 = 8).
+    assert derive.willpower(c) == 8

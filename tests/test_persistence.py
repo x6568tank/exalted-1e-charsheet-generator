@@ -4,6 +4,7 @@ tmp_path; no committed fixtures.
 """
 
 import json
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
@@ -103,3 +104,41 @@ def test_malformed_data_raises_validation_error(tmp_path):
     path.write_text('{"id": "x", "essence_rating": "not-a-number"}')
     with pytest.raises(ValidationError):
         persistence.load_character(path)
+
+
+# --------------------------------------------------------------------------- #
+# Save-target naming (filename derived from the character's name)
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.parametrize("name,expected", [
+    ("Ashes-of-Dawn", "ashes-of-dawn"),
+    ("Harmonious Jade", "harmonious-jade"),
+    ("  Spaced  Out  ", "spaced-out"),
+    ("Né'phâr the 3rd!", "n-ph-r-the-3rd"),
+    ("", "new-character"),
+    ("***", "new-character"),
+])
+def test_slugify_name(name, expected):
+    assert persistence.slugify_name(name) == expected
+
+
+def test_suggested_filename_uses_the_name():
+    c = Character(id="char.x", name="Ashes-of-Dawn")
+    assert persistence.suggested_filename(c) == "ashes-of-dawn.character.json"
+
+
+def test_suggested_filename_falls_back_for_blank_name():
+    assert persistence.suggested_filename(Character(id="char.x")) == "new-character.character.json"
+
+
+def test_default_save_dir_is_cwd_when_not_frozen():
+    # Not running as a PyInstaller bundle under pytest, so it should be the CWD.
+    assert persistence.default_save_dir() == Path.cwd()
+
+
+def test_save_uses_suggested_filename_in_a_directory(tmp_path):
+    c = _rich_character()
+    target = tmp_path / persistence.suggested_filename(c)
+    persistence.save_character(c, target)
+    assert target.name == "harmonious-jade.character.json"
+    assert persistence.load_character(target).name == "Harmonious Jade"

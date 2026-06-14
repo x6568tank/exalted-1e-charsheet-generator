@@ -85,7 +85,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         view = viewmod.build_sheet_view(ruleset, character)
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
-        ui.label(f"Charms: {len(character.charms)}").classes("text-sm font-semibold").style(f"color:{_ACCENT}")
+        ui.label(f"Charms: {len(character.charms)} · Spells: {len(character.spells)}").classes(
+            "text-sm font-semibold").style(f"color:{_ACCENT}")
         ui.label(bp).classes("text-xs text-gray-600")
         ui.separator()
         ui.label("✓ Legal" if not errors else f"✗ {len(errors)} error(s)").classes("text-sm font-bold").style(
@@ -128,6 +129,63 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     def select(charm_id: str) -> None:
         selected["id"] = charm_id
         detail.refresh()
+
+    # ---- spell picker (spells share the Charm pool; core p.100) ----------- #
+    def toggle_spell(spell_id: str) -> None:
+        if spell_id in character.spells:
+            character.spells.remove(spell_id)
+            ui.notify(f"Dropped {ruleset.spells[spell_id].name}", type="info")
+        else:
+            spell = ruleset.spells.get(spell_id)
+            if spell is None:
+                return
+            if validate.meets_spell_requirements(ruleset, character, spell):
+                character.spells.append(spell_id)
+                ui.notify(f"Learned {spell.name}", type="positive")
+            else:
+                ui.notify(f"{spell.name}: not available", type="warning")
+                return
+        spells_panel.refresh()
+        readout.refresh()
+
+    def _spell_button(r) -> None:
+        if r.owned:
+            ui.button(icon="remove", on_click=lambda _=None, sid=r.id: toggle_spell(sid)).props(
+                "dense flat round size=sm color=negative")
+        elif r.available:
+            ui.button(icon="add", on_click=lambda _=None, sid=r.id: toggle_spell(sid)).props(
+                "dense flat round size=sm color=positive")
+        else:
+            ui.button(icon="lock").props("dense flat round size=sm disable").tooltip(r.reason)
+
+    @ui.refreshable
+    def spells_panel() -> None:
+        # Spells share the Charm pool (p.100) and are gated on the Occult Sorcery
+        # Charms, so they live under the Occult graph — one column per Circle —
+        # and only appear on that page. Rebuilt on every Charm change so learning
+        # a Circle Sorcery Charm immediately unlocks its spells.
+        if state["category"] != "occult":
+            return
+        rows = viewmod.build_spell_picker(ruleset, character)
+        if not rows:
+            return
+        by_circle: dict[str, list] = {}
+        for r in rows:
+            by_circle.setdefault(r.circle, []).append(r)
+        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
+            with ui.row().classes("w-full items-baseline gap-3"):
+                ui.label("Spells").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+                ui.label("A spell takes a Charm pick (p.100); learn the matching Circle "
+                         "Sorcery Charm to unlock it.").classes("text-xs text-gray-500")
+            with ui.row().classes("w-full gap-6 items-start no-wrap"):
+                for circle in ("Terrestrial", "Celestial", "Solar"):
+                    with ui.column().classes("flex-1 gap-1 min-w-0"):
+                        ui.label(f"{circle} Circle").classes(
+                            "text-xs font-semibold border-b border-amber-900/20 w-full").style(f"color:{_ACCENT}")
+                        for r in by_circle.get(circle, []):
+                            with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
+                                ui.label(r.name).classes("text-xs text-wrap").tooltip(r.description or r.name)
+                                _spell_button(r)
 
     # ---- graph (re)build / update ---------------------------------------- #
     def init_graph() -> None:
@@ -211,11 +269,13 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 return
         update_graph()
         detail.refresh()
+        spells_panel.refresh()        # a new/removed Sorcery Charm changes spell access
 
     def set_category(value: str) -> None:
         state["category"] = value
         init_graph()
         readout.refresh()
+        spells_panel.refresh()        # show/hide the Spells card with the Occult page
 
     def save() -> None:
         persistence.save_character(character, save_path)
@@ -251,6 +311,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             (ui.element("div").props("id=charm-graph")
              .style("height:720px;width:100%;border:1px solid rgba(138,90,26,0.3);"
                     "border-radius:8px;background:#fffdf7"))
+            # Spells live under the graph, but only render on the Occult page.
+            spells_panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")

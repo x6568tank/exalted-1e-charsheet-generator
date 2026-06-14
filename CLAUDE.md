@@ -118,7 +118,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (86 tests passing)
+## Status (132 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -129,13 +129,39 @@ Exalted-1E-Charsheet-Generator/      (project root)
     prereq chain gives higher-grants-lower), and `validate_chargen` (attribute
     8/6/4, ability/background/virtue budgets + pre-bonus caps, caste/favoured
     minimums, charm counts, Willpower start-cap, bonus-point accounting, pp.104-105).
-  - `engine/lifecycle.py` — `lock_chargen` freezes wp_virtue_component + snapshot.
+    **Spells at chargen (p.100):** Charms and spells share one pool of 10 — a spell
+    takes a Charm pick 1:1, costs the same in BP, gets the discount when Occult is
+    Caste/Favoured, and counts toward the ≥5 Caste/Favoured minimum on that basis
+    (rules-authority confirmed). Solar Circle spells are barred at creation.
+    `meets_spell_requirements`/`granted_sorcery_circles` give picker eligibility.
+    **Combos at chargen (pp.213-214):** `validate_combos`/`combo_issues` enforce the
+    RAW mechanical rules as hard errors — ≥2 *known* Charms, instant duration only,
+    no duplicate Charm, ≤1 Simple, ≤1 Extra Action (ST veto + in-play activation are
+    out of scope). `eligible_combo_charms` feeds the picker. Chargen BP cost folds
+    into `validate_chargen` as 1 BP per Charm in the Combo.
+  - `engine/lifecycle.py` — `lock_chargen` freezes wp_virtue_component + snapshot
+    (snapshot now includes `combos`, alongside charms/spells); `unlock_chargen`
+    reverses it (drops snapshot + pinned WP component so Willpower re-lives).
 - **Persistence:** `persistence.py` — atomic JSON load/save, enum-keyed dicts.
+  Save naming: `slugify_name`/`suggested_filename` name the file after the character
+  (`Ashes-of-Dawn` -> `ashes-of-dawn.character.json`); `default_save_dir` is next to
+  the executable when frozen (PyInstaller), else CWD — so a double-clicked build
+  writes saves beside itself, not into the temp extraction dir.
 - **UI (NiceGUI):** `ui/view.py` is the pure, toolkit-free presenter (sheet view +
-  charm-graph data). `ui/app.py` read-only sheet, `ui/editor.py` chargen editor
-  (live validation), `ui/picker.py` Cytoscape charm-tree picker. `ui/builder.py`
-  is the **unified tabbed app** (Edit / Charms / Sheet, one shared Character, with
-  Save / Load / Finish & Lock). Run the unified app:
+  charm-graph data + `build_spell_picker`). `ui/app.py` read-only sheet,
+  `ui/editor.py` chargen editor (live validation), `ui/picker.py` Cytoscape
+  charm-tree picker **with a Spells card** that appears under the graph **only on
+  the Occult page**, three columns (Terrestrial / Celestial / Solar), circle-gated
+  add/remove; it refreshes on every Charm change so learning a Circle Sorcery Charm
+  immediately unlocks its spells, and the shared-pool tally shows in the readout.
+  `ui/combos.py` is the **Combo builder** (`view.build_combo_view`): assemble named
+  Combos from known instant-duration Charms, with per-Combo legality + BP cost.
+  `ui/builder.py`
+  is the **unified tabbed app** (Edit / Charms / Combos / Sheet, one shared
+  Character, with New / Save / Load / Finish & Lock / Unlock). It **starts on a
+  blank character** (the example is no longer auto-loaded — open it via the path arg
+  or Load); Save writes `<dir>/<slug(name)>.character.json` so renaming the character
+  renames its file and Save never clobbers a differently-named source. Run the app:
   `.venv/bin/python -m exalted_builder.ui.builder [char.json] [--show] [--port N]`
   (the individual modules also run standalone). Example char:
   `examples/ashes-of-dawn.character.json`.
@@ -172,8 +198,11 @@ Exalted-1E-Charsheet-Generator/      (project root)
   bonus points (Merits cost, Flaws grant up to 10). `cost_text` carries variable
   costs. Health curses: `HealthLevel.removed` lets a character have fewer levels
   than the base 7.
-- **Deferred / not yet authored:** Merits & Flaws data catalog; `chargen_budgets.json`,
-  `costs_bonus.json`,
+- **Combos — done (chargen):** model, `validate_combos`, snapshot freeze, and the
+  Combos tab/builder. Deferred for Combos: the during-play **XP** cost (= sum of the
+  member Charms' minimum Ability values, p.213) waits on the XP-reconciliation
+  engine, which is not built yet.
+- **Deferred / not yet authored:** `chargen_budgets.json`, `costs_bonus.json`,
   `costs_xp.json` (optional — loader falls back to verified model defaults);
   combat/attack derivation (weapons are display-only); the Dire Lance mounted
   profile; Limit Break (play-state — add at sheet-export time, not chargen).

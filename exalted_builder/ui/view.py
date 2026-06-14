@@ -17,7 +17,7 @@ from typing import Optional
 
 from ..engine import derive, validate
 from ..models.character import Armor, Character, Weapon
-from ..models.rules import AbilityName, Caste, CharmCost, RuleSet, VirtueName
+from ..models.rules import AbilityName, Caste, CharmCost, RuleSet, SpellCircle, VirtueName
 
 
 @dataclass
@@ -40,6 +40,18 @@ class SpellRow:
     name: str
     circle: str
     cost: str
+
+
+@dataclass
+class SpellPickRow:
+    id: str
+    name: str
+    circle: str
+    cost: str
+    description: str
+    owned: bool
+    available: bool        # learnable right now (circle granted, not Solar at chargen)
+    reason: str            # why it is locked, when neither owned nor available
 
 
 @dataclass
@@ -122,6 +134,80 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> 
              for req in group if req in ids]
     roots = [c.id for c in charms if not c.prerequisites]
     return CharmGraph(category=category, nodes=nodes, edges=edges, roots=roots)
+
+
+@dataclass
+class ComboCharmRow:
+    id: str
+    name: str
+    type: str            # Simple / Supplemental / Reflexive / Extra Action
+    category: str
+
+
+@dataclass
+class ComboRow:
+    index: int           # position in character.combos (the edit handle)
+    name: str
+    members: list[ComboCharmRow]
+    cost: int            # bonus points = number of member Charms
+    issues: list[str]    # this Combo's legality messages (empty == legal)
+
+
+@dataclass
+class ComboView:
+    combos: list[ComboRow]
+    addable: list[ComboCharmRow]   # known, instant-duration Charms (Combo-eligible)
+    total_cost: int                # bonus points spent on all Combos
+
+
+def _combo_charm_row(ruleset: RuleSet, cid: str) -> ComboCharmRow:
+    charm = ruleset.charms.get(cid)
+    if charm is None:
+        return ComboCharmRow(id=cid, name=cid, type="?", category="?")
+    return ComboCharmRow(id=cid, name=charm.name, type=charm.type.value, category=charm.category)
+
+
+def build_combo_view(ruleset: RuleSet, character: Character) -> ComboView:
+    """Presenter for the Combos editor: each Combo with its member Charms, BP cost
+    (= number of Charms), and its own legality messages; plus the pool of known
+    instant-duration Charms eligible to add. Pure — legality from engine.validate."""
+    combos = []
+    for i, combo in enumerate(character.combos):
+        members = [_combo_charm_row(ruleset, cid) for cid in combo.charm_ids]
+        issues = [iss.message for iss in validate.combo_issues(ruleset, character, combo)]
+        combos.append(ComboRow(index=i, name=combo.name, members=members,
+                               cost=len(combo.charm_ids), issues=issues))
+    addable = [_combo_charm_row(ruleset, cid)
+               for cid in validate.eligible_combo_charms(ruleset, character)]
+    return ComboView(combos=combos, addable=addable,
+                     total_cost=sum(c.cost for c in combos))
+
+
+_CIRCLE_ORDER = {SpellCircle.TERRESTRIAL: 0, SpellCircle.CELESTIAL: 1, SpellCircle.SOLAR: 2}
+
+
+def build_spell_picker(ruleset: RuleSet, character: Character) -> list[SpellPickRow]:
+    """Every Spell in the RuleSet tagged by the character's relationship to it:
+    owned, available (a known Charm grants its circle and it isn't a chargen-barred
+    Solar spell), or locked with a one-line reason. Ordered by circle then name.
+    Pure — eligibility comes from engine.validate."""
+    rows: list[SpellPickRow] = []
+    for spell in sorted(ruleset.spells.values(),
+                        key=lambda s: (_CIRCLE_ORDER.get(s.circle, 9), s.name)):
+        owned = spell.id in character.spells
+        available = validate.meets_spell_requirements(ruleset, character, spell)
+        reason = ""
+        if not owned and not available:
+            if spell.circle == SpellCircle.SOLAR:
+                reason = "Solar Circle spells can't be taken at creation"
+            else:
+                reason = f"needs a Charm granting the {spell.circle.value} Circle"
+        rows.append(SpellPickRow(
+            id=spell.id, name=spell.name, circle=spell.circle.value,
+            cost=_cost_str(spell.cost), description=spell.description,
+            owned=owned, available=available, reason=reason,
+        ))
+    return rows
 
 
 @dataclass

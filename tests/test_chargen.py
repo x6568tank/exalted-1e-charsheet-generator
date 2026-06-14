@@ -12,6 +12,7 @@ from exalted_builder.models.character import (
     BackgroundEntry,
     Character,
     ChargenSnapshot,
+    Combo,
     MeritFlaw,
     Specialty,
 )
@@ -23,6 +24,8 @@ from exalted_builder.models.rules import (
     Charm,
     CharmType,
     RuleSet,
+    Spell,
+    SpellCircle,
     VirtueName,
 )
 
@@ -46,7 +49,12 @@ def _ruleset() -> RuleSet:
                           type=CharmType.SIMPLE, min_ability=1, min_essence=1)
         for cat in cats
     }
-    return RuleSet(castes=castes, charms=charms)
+    spells = {
+        "s-terr": Spell(id="s-terr", name="Terrestrial Spell", circle=SpellCircle.TERRESTRIAL),
+        "s-cele": Spell(id="s-cele", name="Celestial Spell", circle=SpellCircle.CELESTIAL),
+        "s-solar": Spell(id="s-solar", name="Solar Spell", circle=SpellCircle.SOLAR),
+    }
+    return RuleSet(castes=castes, charms=charms, spells=spells)
 
 
 def _legal_solar() -> Character:
@@ -149,6 +157,91 @@ def test_five_charms_must_be_caste_favored():
                                         type=CharmType.SIMPLE, min_ability=1, min_essence=1)
     codes = {i.code for i in _errors(validate.validate_chargen(rs, c))}
     assert "charm-caste-favored-min" in codes
+
+
+# --------------------------------------------------------------------------- #
+# Spells at chargen (core p.100): a spell takes a Charm pick (1:1), costs the
+# same as a Charm in BP, gets the in-caste discount when Occult is Caste/Favoured,
+# and no Solar Circle spells may be taken at creation.
+# --------------------------------------------------------------------------- #
+
+def test_spell_swapped_for_a_charm_stays_in_budget():
+    rs, c = _ruleset(), _legal_solar()
+    # Drop a (non-Caste/Favoured) Charm and take a spell in its place: 9 + 1 = 10.
+    c.charms = c.charms[:-1]
+    c.spells = ["s-terr"]
+    issues = validate.validate_chargen(rs, c)
+    assert _errors(issues) == []
+    assert "0 of 15" in _bp(issues)
+
+
+def test_eleventh_pick_as_spell_consumes_the_charm_pool():
+    rs, c = _ruleset(), _legal_solar()
+    # Ten Charms plus a spell = 11 picks; one extra is paid from the shared pool.
+    # Cheapest-first (as for Charms) charges it at the Caste/Favoured rate: 4 BP.
+    c.spells = ["s-terr"]
+    issues = validate.validate_chargen(rs, c)
+    assert _errors(issues) == []
+    assert "4 of 15" in _bp(issues)
+
+
+def test_solar_circle_spell_forbidden_at_chargen():
+    rs, c = _ruleset(), _legal_solar()
+    c.charms = c.charms[:-1]
+    c.spells = ["s-solar"]
+    codes = {i.code for i in _errors(validate.validate_chargen(rs, c))}
+    assert "spell-solar-circle-chargen" in codes
+
+
+def test_spell_counts_toward_caste_favored_minimum_when_occult_favored():
+    rs, c = _ruleset(), _legal_solar()
+    c.favored_abilities = [A.OCCULT, A.DODGE, A.ATHLETICS, A.RESISTANCE, A.ENDURANCE]
+    c.abilities[A.OCCULT] = 1             # favoured ability needs a dot
+    # Only 4 Caste/Favoured *Charms* (melee, archery, dodge, athletics), plus one
+    # Occult spell -> 5 Caste/Favoured picks, meeting the minimum.
+    c.charms = [f"c-{cat}" for cat in
+                ["melee", "archery", "dodge", "athletics",
+                 "lore", "survival", "medicine", "craft", "awareness"]]
+    c.spells = ["s-terr"]
+    codes = {i.code for i in _errors(validate.validate_chargen(rs, c))}
+    assert "charm-caste-favored-min" not in codes
+
+
+def test_spell_does_not_count_for_minimum_when_occult_not_favored():
+    rs, c = _ruleset(), _legal_solar()
+    # Four Caste/Favoured Charms + an Occult spell (Occult not Caste/Favoured here)
+    # -> only 4 Caste/Favoured picks, so the minimum is unmet.
+    c.charms = [f"c-{cat}" for cat in
+                ["melee", "archery", "dodge", "athletics",
+                 "lore", "survival", "medicine", "craft", "occult"]]
+    c.spells = ["s-terr"]
+    codes = {i.code for i in _errors(validate.validate_chargen(rs, c))}
+    assert "charm-caste-favored-min" in codes
+
+
+# --------------------------------------------------------------------------- #
+# Combos (core p.213): starting with a Combo costs BP = its number of Charms
+# --------------------------------------------------------------------------- #
+
+def test_combo_costs_one_bonus_point_per_charm():
+    rs, c = _ruleset(), _legal_solar()
+    c.combos = [Combo(name="Flurry", charm_ids=["c-melee", "c-archery", "c-awareness"])]
+    issues = validate.validate_chargen(rs, c)
+    assert "3 of 15" in _bp(issues)         # 3 Charms -> 3 BP
+
+
+def test_combos_from_snapshot_when_locked():
+    rs, c = _ruleset(), _legal_solar()
+    snap = ChargenSnapshot(
+        attributes=dict(c.attributes), abilities=dict(c.abilities),
+        virtues=dict(c.virtues), specialties=[], backgrounds=list(c.backgrounds),
+        charms=list(c.charms), spells=[],
+        combos=[Combo(name="Frozen", charm_ids=["c-melee", "c-archery"])],
+        essence_rating=2, willpower_purchased=0, wp_virtue_component=6,
+    )
+    c.chargen_snapshot = snap
+    c.combos = []                            # current is empty; the snapshot is the source
+    assert "2 of 15" in _bp(validate.validate_chargen(rs, c))
 
 
 # --------------------------------------------------------------------------- #

@@ -26,10 +26,22 @@ def lock_chargen(character: Character) -> Character:
         backgrounds=list(character.backgrounds),
         charms=list(character.charms),
         spells=list(character.spells),
+        combos=[c.model_copy(deep=True) for c in character.combos],
         essence_rating=character.essence_rating,
         willpower_purchased=character.willpower_purchased,
         wp_virtue_component=wp_component,
     )
     character.wp_virtue_component = wp_component
     character.chargen_locked = True
+    return character
+
+
+def unlock_chargen(character: Character) -> Character:
+    """Reverse lock_chargen so chargen is editable again: drop the snapshot and the
+    pinned Willpower virtue component (Willpower then recomputes live from the two
+    highest Virtues). No XP layer exists yet; if one is added, unlocking after XP
+    has been spent will need an explicit policy."""
+    character.chargen_snapshot = None
+    character.wp_virtue_component = None
+    character.chargen_locked = False
     return character
