@@ -147,13 +147,16 @@ Exalted-1E-Charsheet-Generator/      (project root)
     Martial Arts / Snake Style (10, category `martial_arts:snake`).
   - **Zenith — complete:** Endurance (8), Performance (10), Presence (6),
     Resistance (12), Survival (10).
-  - **Twilight / Night / Eclipse castes: not started** (the next charm work).
+  - **Twilight — complete:** Craft (7), Investigation (6), Lore (7), Medicine (10),
+    Occult (8 = 3 Circle Sorcery + 5 spirit charms).
+  - **Night / Eclipse castes: not started** (the next charm work).
 - **Charm convention:** category is the plain ability (`melee`) or
   `martial_arts:<style>`; ids `solar.<ability>.<kebab>`. Author one ability at a
   time from page PNGs; verify cut-off values, never guess. CharmType has a
   `Special` value (Ox-Body Technique).
-- **Next:** Twilight charms (Craft begins on p182, Flawless Handiwork Method),
-  then Night and Eclipse, toward corebook-complete. ~112 charms authored so far.
+- **Next:** Night caste charms (Athletics begins on p193, Graceful Crane Stance),
+  then Eclipse, toward corebook-complete. ~147 charms authored so far. Then the
+  Merits & Flaws data catalog (PG pp.16-41) to finish the catalogue.
 - **Merits & Flaws** (Player's Guide): `Character.merits_flaws` is free-entry
   (name/points/merit-or-flaw); `validate_chargen` folds them into bonus points
   (Merits cost, Flaws grant up to 10). The full catalog (PG pp.16-41) is NOT yet
