@@ -365,6 +365,42 @@ def trait_max(ruleset: RuleSet, character: Character, trait_path: str, default: 
     return effective
 
 
+def _charm_exempt_from(effect, charm) -> bool:
+    """Whether a cost_multiplier skips this Charm (Brigid's Heir spares Ox-Body and
+    the Circle-Sorcery initiation Charms)."""
+    if charm.type.value in effect.except_charm_types:
+        return True
+    if effect.except_sorcery_initiation and charm.grants_sorcery_circle is not None:
+        return True
+    return False
+
+
+def cost_multiplier(ruleset: RuleSet, character: Character, kind: str, charm=None) -> tuple[int, int]:
+    """Combined learn-cost multiplier (numerator, denominator) the character's
+    Merits/Flaws apply to `kind` ("charms" or "spells"). For Charms, pass the Charm
+    so per-Charm exemptions can be honoured. Multiple effects compose. Returns (1,1)
+    when nothing applies. Apply with apply_cost_multiplier (rounds up)."""
+    num, den = 1, 1
+    for mf in character.merits_flaws:
+        cat = _merit_flaw_type(ruleset, mf)
+        if cat is None:
+            continue
+        for eff in cat.effects:
+            if eff.kind != "cost_multiplier" or eff.target != kind:
+                continue
+            if kind == "charms" and charm is not None and _charm_exempt_from(eff, charm):
+                continue
+            num *= eff.factor_num
+            den *= eff.factor_den
+    return num, den
+
+
+def apply_cost_multiplier(base: int, num: int, den: int) -> int:
+    """Scale `base` by num/den, rounding up (you never get a cheaper-than-listed
+    fractional discount for free)."""
+    return (base * num + den - 1) // den
+
+
 def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[AbilityName]:
     """The character's Caste ∪ Favoured abilities — the set that earns the discount
     on Ability/Charm/spell costs. Falls back to just the Favoured set if the caste
@@ -522,15 +558,23 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # Caste/Favoured. So Charms and spells share the free pool and the BP rates; a
     # spell counts as a Caste/Favoured pick iff Occult is Caste/Favoured. Solar
     # Circle spells may not be taken at creation at all.
+    # Each pick gets its own BP cost (Caste/Favoured rate, scaled by any Merit/Flaw
+    # cost multiplier — Brigid's Heir doubles Charms, halves spells); the free pool
+    # covers the dearest picks and bonus points pay for the rest (player-favourable).
     occult_cf = AbilityName.OCCULT in cf_set
     cf_pick_count = 0          # Charms + spells that count as Caste/Favoured
+    pick_costs: list[int] = []
     for cid in charms:
         charm = ruleset.charms.get(cid)
         if charm is None:
             continue
         ability = _category_ability(charm.category)   # resolves 'martial_arts:<style>' too
-        if ability is not None and ability in cf_set:
+        is_cf = ability is not None and ability in cf_set
+        if is_cf:
             cf_pick_count += 1
+        base = bp_costs.charm_favored_caste if is_cf else bp_costs.charm
+        num, den = cost_multiplier(ruleset, character, "charms", charm)
+        pick_costs.append(apply_cost_multiplier(base, num, den))
     for sid in spells:
         spell = ruleset.spells.get(sid)
         if spell is None:
@@ -543,6 +587,9 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             ))
         if occult_cf:
             cf_pick_count += 1
+        base = bp_costs.charm_favored_caste if occult_cf else bp_costs.charm
+        num, den = cost_multiplier(ruleset, character, "spells")
+        pick_costs.append(apply_cost_multiplier(base, num, den))
     if cf_pick_count < b.charm_min_caste_favored:
         issues.append(Issue(
             code="charm-caste-favored-min",
@@ -550,10 +597,8 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                     f"Charms/Spells must be Caste/Favoured; only {cf_pick_count} "
                     "resolve as such.",
         ))
-    pick_extra = max(0, len(charms) + len(spells) - b.charm_count)
-    extra_cheap = min(pick_extra, cf_pick_count)         # cheapest picks paid first
-    total_bp += (extra_cheap * bp_costs.charm_favored_caste
-                 + (pick_extra - extra_cheap) * bp_costs.charm)
+    pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
+    total_bp += sum(pick_costs[b.charm_count:])
 
     # --- Combos: starting with a Combo costs BP = its number of Charms (p.213) - #
     # Legality (instant duration, one Simple/Extra Action, etc.) is checked in

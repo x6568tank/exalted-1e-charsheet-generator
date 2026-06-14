@@ -382,7 +382,25 @@
     "is_flaw": false,
     "category": "Supernatural",
     "cost_text": "5 (4 for Twilight Caste)",
-    "description": "Descended from Brigid; eases the learning of sorcery."
+    "description": "Descended from Brigid; eases the learning of sorcery.",
+    "effects": [
+      {
+        "kind": "cost_multiplier",
+        "target": "charms",
+        "factor_num": 2,
+        "factor_den": 1,
+        "except_charm_types": [
+          "Special"
+        ],
+        "except_sorcery_initiation": true
+      },
+      {
+        "kind": "cost_multiplier",
+        "target": "spells",
+        "factor_num": 1,
+        "factor_den": 2
+      }
+    ]
   },
   {
     "id": "flaw.unusual-appearance",

@@ -118,7 +118,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (166 tests passing)
+## Status (171 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -220,9 +220,12 @@ Exalted-1E-Charsheet-Generator/      (project root)
   honoured in BOTH chargen (range checks) and XP (`advancement` caps + the editor/XP
   dot widgets). Authored so far: True Paragon (Virtues→6), Disfigured (Appearance ≤1
   at 3pt / 0 at 4pt, `max_by_points`). Narrative conditions (Nature gating, code-of-
-  honour loss) are deliberately not enforced. Still to do: Brigid's Heir (Charm ×2 /
-  spell ×½ cost multiplier — a `cost_multiplier` effect kind) and the p17 in-play
-  Merit/Flaw change rule (gain/pay XP = 2× value). See the memory note.
+  honour loss) are deliberately not enforced. `kind:"cost_multiplier"` scales Charm/
+  spell learn cost via `validate.cost_multiplier`/`apply_cost_multiplier`, honoured in
+  `costs.py` (XP) and the chargen charm/spell BP block (now itemised per pick: free
+  pool covers the dearest, BP pays the rest). Authored: Brigid's Heir (Charms ×2 except
+  Ox-Body [Special] and the Circle-Sorcery initiation Charms; spells ×½). Still to do:
+  the p17 in-play Merit/Flaw change rule (gain/pay XP = 2× value). See the memory note.
 - **Combos — done** (chargen BP *and* during-play XP cost = Σ member `min_ability`,
   via `costs.combo_cost`/`advancement.add_combo`).
 - **XP advancement — done (post-lock):** `engine/costs.py` + `engine/advancement.py`

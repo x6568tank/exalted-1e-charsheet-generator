@@ -238,13 +238,23 @@ class MeritFlawEffect(BaseModel):
       * "trait_cap" — overrides the maximum rating of `target` (a trait domain like
         "virtues" or a single trait like "attributes.appearance"). The cap is `max`,
         or, when severity-dependent, `max_by_points[chosen_points]`.
+      * "cost_multiplier" — scales the learn cost of `target` ("charms" or "spells")
+        by `factor_num / factor_den` (rounded up). For Charms the multiplier skips
+        any Charm whose type is in `except_charm_types` (e.g. Ox-Body's "Special") or,
+        when `except_sorcery_initiation`, any Circle-Sorcery initiation Charm.
     """
     model_config = ConfigDict(frozen=True)
 
     kind: str
     target: str
+    # trait_cap
     max: Optional[int] = None
     max_by_points: dict[int, int] = Field(default_factory=dict)
+    # cost_multiplier
+    factor_num: int = 1
+    factor_den: int = 1
+    except_charm_types: list[str] = Field(default_factory=list)
+    except_sorcery_initiation: bool = False
 
 
 class MeritFlawType(BaseModel):

@@ -61,16 +61,23 @@ def specialty_cost(ruleset: RuleSet) -> int:
 
 
 def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
-    """XP to learn a Charm: discounted when its gating Ability is Caste/Favoured."""
+    """XP to learn a Charm: discounted when its gating Ability is Caste/Favoured,
+    then scaled by any Merit/Flaw cost multiplier (e.g. Brigid's Heir doubles Charms,
+    sparing Ox-Body and the sorcery-initiation Charms)."""
     ability = validate._category_ability(charm.category)
     favored = ability is not None and ability in validate.caste_favored_abilities(ruleset, character)
-    return ruleset.xp_costs.new_charm_favored_caste if favored else ruleset.xp_costs.new_charm
+    base = ruleset.xp_costs.new_charm_favored_caste if favored else ruleset.xp_costs.new_charm
+    num, den = validate.cost_multiplier(ruleset, character, "charms", charm)
+    return validate.apply_cost_multiplier(base, num, den)
 
 
 def spell_cost(ruleset: RuleSet, character: Character) -> int:
-    """XP to learn a spell: discounted when Occult is Caste/Favoured (core p.100/191)."""
+    """XP to learn a spell: discounted when Occult is Caste/Favoured (core p.100/191),
+    then scaled by any Merit/Flaw cost multiplier (e.g. Brigid's Heir halves spells)."""
     favored = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, character)
-    return ruleset.xp_costs.new_spell_occult_favored_caste if favored else ruleset.xp_costs.new_spell
+    base = ruleset.xp_costs.new_spell_occult_favored_caste if favored else ruleset.xp_costs.new_spell
+    num, den = validate.cost_multiplier(ruleset, character, "spells")
+    return validate.apply_cost_multiplier(base, num, den)
 
 
 def combo_cost(ruleset: RuleSet, charm_ids: list[str]) -> int:

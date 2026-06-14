@@ -23,6 +23,8 @@ from exalted_builder.models.rules import (
     CasteDefinition,
     Charm,
     CharmType,
+    MeritFlawEffect,
+    MeritFlawType,
     RuleSet,
     Spell,
     SpellCircle,
@@ -54,7 +56,15 @@ def _ruleset() -> RuleSet:
         "s-cele": Spell(id="s-cele", name="Celestial Spell", circle=SpellCircle.CELESTIAL),
         "s-solar": Spell(id="s-solar", name="Solar Spell", circle=SpellCircle.SOLAR),
     }
-    return RuleSet(castes=castes, charms=charms, spells=spells)
+    brigid = MeritFlawType(
+        id="merit.brigids-heir", name="Brigid's Heir", points=5,
+        effects=[
+            MeritFlawEffect(kind="cost_multiplier", target="charms", factor_num=2, factor_den=1,
+                            except_charm_types=["Special"], except_sorcery_initiation=True),
+            MeritFlawEffect(kind="cost_multiplier", target="spells", factor_num=1, factor_den=2),
+        ])
+    return RuleSet(castes=castes, charms=charms, spells=spells,
+                   merit_flaw_catalog={brigid.id: brigid})
 
 
 def _legal_solar() -> Character:
@@ -242,6 +252,21 @@ def test_combos_from_snapshot_when_locked():
     c.chargen_snapshot = snap
     c.combos = []                            # current is empty; the snapshot is the source
     assert "2 of 15" in _bp(validate.validate_chargen(rs, c))
+
+
+# --------------------------------------------------------------------------- #
+# Brigid's Heir cost multiplier at chargen (doubles over-pool Charm BP)
+# --------------------------------------------------------------------------- #
+
+def test_brigids_heir_doubles_extra_charm_at_chargen():
+    rs, c = _ruleset(), _legal_solar()
+    rs.charms["c-dawn2"] = Charm(id="c-dawn2", name="D2", category="melee",
+                                 type=CharmType.SIMPLE, min_ability=1, min_essence=1)
+    c.charms = c.charms + ["c-dawn2"]                  # 11 picks; the cheapest extra is Caste (4)
+    assert "4 of 15" in _bp(validate.validate_chargen(rs, c))
+    c.merits_flaws = [MeritFlaw(name="Brigid's Heir", points=5)]
+    # Charms doubled: the paid extra is now 8, plus the Merit's own 5 BP -> 13.
+    assert "13 of 15" in _bp(validate.validate_chargen(rs, c))
 
 
 # --------------------------------------------------------------------------- #
