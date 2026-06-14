@@ -157,7 +157,10 @@ Exalted-1E-Charsheet-Generator/      (project root)
   Save naming: `slugify_name`/`suggested_filename` name the file after the character
   (`Ashes-of-Dawn` -> `ashes-of-dawn.character.json`); `default_save_dir` is next to
   the executable when frozen (PyInstaller), else CWD — so a double-clicked build
-  writes saves beside itself, not into the temp extraction dir.
+  writes saves beside itself, not into the temp extraction dir. `normalize_save_filename`
+  turns free-text Save input into a filename (blank -> character-derived; bare stem ->
+  slug + `.character.json`; an explicit `.json` kept). `character_to_json`/`_from_json`
+  are the in-memory (de)serialisers the browser upload/download path reuses.
 - **UI (NiceGUI):** `ui/view.py` is the pure, toolkit-free presenter (sheet view +
   charm-graph data + `build_spell_picker`). `ui/app.py` read-only sheet,
   `ui/editor.py` chargen editor (live validation), `ui/picker.py` Cytoscape
@@ -178,9 +181,16 @@ Exalted-1E-Charsheet-Generator/      (project root)
   tabs (Edit/Charms/Combos) go read-only (a notice points to the XP tab or Unlock);
   the XP tab is where advancement happens. It **starts on a
   blank character** (the example is no longer auto-loaded — open it via the path arg
-  or Load); Save writes `<dir>/<slug(name)>.character.json` so renaming the character
-  renames its file and Save never clobbers a differently-named source. Run the app:
-  `.venv/bin/python -m exalted_builder.ui.builder [char.json] [--show] [--port N]`
+  or Load). **Save/Load are deployment-aware:** in a native desktop window (`--native`,
+  needs pywebview) Save/Load use the OS "Save As"/"Open" dialogs via
+  `app.native.main_window.create_file_dialog`; in plain browser mode (the default, and
+  what the shipped `pack/run_app.py` build uses — it opens the browser, not a native
+  window) Save prompts for a filename and `ui.download.content`s the JSON to the
+  browser's download folder, and Load is an `ui.upload` file picker (with a path field
+  as a fallback). NOTE: to make the native OS dialogs the *default* experience, the
+  packaging must switch to `ui.run(native=True)` and bundle pywebview — currently it
+  does not. Run the app:
+  `.venv/bin/python -m exalted_builder.ui.builder [char.json] [--show] [--port N] [--native]`
   (the individual modules also run standalone). Example char:
   `examples/ashes-of-dawn.character.json`.
 - **Data authored:** `castes.json`, `backgrounds.json` (10 core), `armor.json`

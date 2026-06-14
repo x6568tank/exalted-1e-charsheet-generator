@@ -40,6 +40,19 @@ def suggested_filename(character: Character) -> str:
     return f"{slugify_name(character.name)}{SAVE_SUFFIX}"
 
 
+def normalize_save_filename(text: str, character: Character) -> str:
+    """The save filename to use given free-text user input. Blank falls back to the
+    character-derived name; a name that already ends in '.json' is kept verbatim
+    (so 'hero.character.json' or 'hero.json' are honoured); anything else is treated
+    as a bare stem and slugified with the conventional suffix appended."""
+    text = (text or "").strip()
+    if not text:
+        return suggested_filename(character)
+    if text.endswith(".json"):
+        return text
+    return f"{slugify_name(text)}{SAVE_SUFFIX}"
+
+
 def default_save_dir() -> Path:
     """Where new saves should land by default: next to the executable in a
     packaged (PyInstaller) build, otherwise the current working directory. So a

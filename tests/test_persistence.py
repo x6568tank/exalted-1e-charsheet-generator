@@ -131,6 +131,18 @@ def test_suggested_filename_falls_back_for_blank_name():
     assert persistence.suggested_filename(Character(id="char.x")) == "new-character.character.json"
 
 
+@pytest.mark.parametrize("text, expected", [
+    ("", "ashes-of-dawn.character.json"),          # blank -> character-derived
+    ("   ", "ashes-of-dawn.character.json"),
+    ("My Hero", "my-hero.character.json"),          # bare stem -> slug + suffix
+    ("backup.json", "backup.json"),                 # explicit .json kept
+    ("hero.character.json", "hero.character.json"),  # full name kept verbatim
+])
+def test_normalize_save_filename(text, expected):
+    c = Character(id="char.x", name="Ashes-of-Dawn")
+    assert persistence.normalize_save_filename(text, c) == expected
+
+
 def test_default_save_dir_is_cwd_when_not_frozen():
     # Not running as a PyInstaller bundle under pytest, so it should be the CWD.
     assert persistence.default_save_dir() == Path.cwd()

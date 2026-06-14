@@ -19,7 +19,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from nicegui import ui
+from nicegui import app, ui
 
 from .. import persistence, rules_db
 from ..engine import lifecycle, validate
@@ -40,6 +40,19 @@ _ACCENT = "#8a5a1a"
 
 _TABS = ("Edit", "Charms", "Combos", "XP", "Sheet")
 _CHARGEN_TABS = ("Edit", "Charms", "Combos")     # editing these is disabled once locked
+
+
+def _native_window():
+    """The pywebview window when running as a native desktop app (``--native``),
+    else None — in which case the browser upload/download fallback is used."""
+    return getattr(app.native, "main_window", None)
+
+
+class _NullDialog:
+    """A no-op stand-in so the native Open path can reuse `do_load`, which closes a
+    dialog after loading; the native OS dialog has already closed itself."""
+    def close(self) -> None:
+        pass
 
 
 def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
@@ -89,14 +102,55 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         state["tab"] = name
         content.refresh()
 
-    def save() -> None:
-        # Always name the file after the character, in the working directory; this
-        # picks up renames and avoids saving over a file the character was loaded
-        # from under a different name.
-        target = ctx["dir"] / persistence.suggested_filename(ctx["char"])
-        persistence.save_character(ctx["char"], target)
-        ctx["path"] = target
-        ui.notify(f"Saved to {target}", type="positive")
+    async def save() -> None:
+        """Native desktop window -> the OS "Save As" dialog (choose folder + name);
+        plain browser -> a filename prompt, then a download to the browser's download
+        folder. Both default the name to the character (overridable)."""
+        win = _native_window()
+        default_name = persistence.suggested_filename(ctx["char"])
+        if win is not None:
+            import webview                              # only present in native mode
+            chosen = await win.create_file_dialog(
+                webview.SAVE_DIALOG, directory=str(ctx["dir"]), save_filename=default_name)
+            if not chosen:                              # cancelled
+                return
+            target = Path(chosen if isinstance(chosen, str) else chosen[0])
+            persistence.save_character(ctx["char"], target)
+            ctx["path"], ctx["dir"] = target, target.parent
+            ui.notify(f"Saved to {target}", type="positive")
+        else:
+            _open_browser_save_dialog(default_name)
+
+    def _open_browser_save_dialog(default_name: str) -> None:
+        with ui.dialog() as dialog, ui.card():
+            ui.label("Save character").classes("text-lg font-bold")
+            ui.label("Downloads to your browser's download folder.").classes("text-sm text-gray-600")
+            name_input = ui.input("File name", value=default_name).classes("w-96")
+            with ui.row():
+                ui.button("Cancel", on_click=dialog.close).props("flat")
+                ui.button("Download", icon="download",
+                          on_click=lambda: _browser_download(name_input.value, dialog)).props("color=brown")
+        dialog.open()
+
+    def _browser_download(name: str, dialog) -> None:
+        filename = persistence.normalize_save_filename(name, ctx["char"])
+        ui.download.content(persistence.character_to_json(ctx["char"]).encode("utf-8"), filename)
+        ctx["path"] = ctx["dir"] / filename
+        dialog.close()
+        ui.notify(f"Downloading {filename}", type="positive")
+
+    def _apply_loaded(loaded: Character, path: Path | None, source_label: str) -> None:
+        """Swap in a freshly loaded character. With a real path, future saves land
+        beside it; for an uploaded file (no path) they default to the save dir."""
+        ctx["char"] = loaded
+        if path is not None:
+            ctx["path"] = path
+            ctx["dir"] = path.resolve().parent
+        else:
+            ctx["dir"] = persistence.default_save_dir()
+            ctx["path"] = ctx["dir"] / persistence.suggested_filename(loaded)
+        ui.notify(f"Loaded {loaded.name or source_label}", type="positive")
+        select_tab("Sheet")
 
     def do_load(path_str: str, dialog) -> None:
         try:
@@ -104,11 +158,16 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         except Exception as ex:                       # noqa: BLE001 - surface any load error to the user
             ui.notify(f"Load failed: {ex}", type="negative")
             return
-        ctx["char"], ctx["path"] = loaded, Path(path_str)
-        ctx["dir"] = Path(path_str).resolve().parent  # future saves land beside the loaded file
         dialog.close()
-        ui.notify(f"Loaded {loaded.name or ctx['path'].stem}", type="positive")
-        select_tab("Sheet")
+        _apply_loaded(loaded, Path(path_str), Path(path_str).stem)
+
+    def _on_upload(e) -> None:
+        try:
+            loaded = persistence.character_from_json(e.content.read().decode("utf-8"))
+        except Exception as ex:                       # noqa: BLE001 - surface any parse/validation error
+            ui.notify(f"Load failed: {ex}", type="negative")
+            return
+        _apply_loaded(loaded, None, e.name)
 
     def new_character(dialog=None) -> None:
         ctx["char"] = Character(id="char.new")
@@ -136,13 +195,32 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         ui.notify("Chargen unlocked — editable again.", type="positive")
         select_tab("Edit")
 
-    def open_load_dialog() -> None:
-        with ui.dialog() as dialog, ui.card():
+    async def open_load() -> None:
+        """Native desktop window -> the OS "Open" dialog; plain browser -> a dialog
+        with a file picker (upload) plus a path field as a fallback."""
+        win = _native_window()
+        if win is not None:
+            import webview                              # only present in native mode
+            chosen = await win.create_file_dialog(
+                webview.OPEN_DIALOG, directory=str(ctx["dir"]), allow_multiple=False,
+                file_types=("Character files (*.json)", "All files (*.*)"))
+            if not chosen:                              # cancelled
+                return
+            path = chosen[0] if isinstance(chosen, (list, tuple)) else chosen
+            do_load(path, _NullDialog())
+        else:
+            _open_browser_load_dialog()
+
+    def _open_browser_load_dialog() -> None:
+        with ui.dialog() as dialog, ui.card().classes("gap-2"):
             ui.label("Load a character").classes("text-lg font-bold")
+            ui.upload(label="Choose a .character.json file", auto_upload=True,
+                      on_upload=lambda e: (_on_upload(e), dialog.close())).classes("w-96")
+            ui.label("…or load by path:").classes("text-xs text-gray-600 mt-2")
             path_input = ui.input("Path to .character.json", value=str(ctx["path"])).classes("w-96")
             with ui.row():
                 ui.button("Cancel", on_click=dialog.close).props("flat")
-                ui.button("Load", on_click=lambda: do_load(path_input.value, dialog)).props("color=brown")
+                ui.button("Load path", on_click=lambda: do_load(path_input.value, dialog)).props("color=brown")
         dialog.open()
 
     def finish() -> None:
@@ -160,7 +238,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         with ui.row().classes("items-center gap-2"):
             ui.button("New", icon="note_add", on_click=confirm_new).props("flat color=white")
             ui.button("Save", icon="save", on_click=save).props("flat color=white")
-            ui.button("Load", icon="folder_open", on_click=open_load_dialog).props("flat color=white")
+            ui.button("Load", icon="folder_open", on_click=open_load).props("flat color=white")
             ui.button("Finish & Lock", icon="lock", on_click=finish).props("flat color=white")
             ui.button("Unlock", icon="lock_open", on_click=unlock).props("flat color=white")
 
