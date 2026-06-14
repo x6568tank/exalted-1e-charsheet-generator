@@ -26,6 +26,14 @@ desktop = [
     "pywebview>=5",
     "pyinstaller>=6",
 ]
+# Linux ONLY: the Qt web backend the native window needs (Windows/macOS have one
+# built in). pywebview's Qt backend imports `qtpy`, so all three are required.
+# Install alongside desktop: pip install -e ".[ui,desktop,native-qt]"
+native-qt = [
+    "pyqt6",
+    "pyqt6-webengine",
+    "qtpy",
+]
 
 # Auto-discovers exalted_builder and any subpackages (models now; engine, ui
 # later once they have an __init__.py), so this doesn't break before they exist.

@@ -36,11 +36,13 @@ machine (or a Windows CI runner / VM) for the Windows build.
    ```
    On **Linux only**, also install a web backend (pick one):
    ```
-   # GTK (lightest, most "native" on a GTK desktop) — system packages, e.g. Arch:
+   # Qt (fully pip-installable, self-contained in the venv). The `native-qt` extra
+   # bundles all three pieces pywebview's Qt backend needs (pyqt6, pyqt6-webengine,
+   # and qtpy — pywebview imports qtpy, and omitting it makes the window fail to open):
+   python -m pip install -e ".[ui,desktop,native-qt]"
+   # OR GTK (lightest on a GTK desktop) — system packages, e.g. Arch:
    sudo pacman -S python-gobject webkit2gtk-4.1
    #   …then create the venv with --system-site-packages so it sees `gi`.
-   # OR Qt (fully pip-installable, self-contained in the venv):
-   python -m pip install pyqt6 pyqt6-webengine
    ```
 3. Build from the **repo root**:
    ```
@@ -69,9 +71,16 @@ WebView2 runtime is already part of Windows 10/11.
 ```
 python -m exalted_builder.ui.builder --native
 ```
-Same backend rule as above: Windows/macOS work out of the box; on Linux install GTK
-or Qt first (see step 2). Without `--native` the app still opens in the browser and
-uses the upload/download Save/Load fallback.
+Same backend rule as above: Windows/macOS work out of the box; on Linux install the
+backend first (see step 2 — easiest is `pip install -e ".[ui,desktop,native-qt]"`).
+Without `--native` the app still opens in the browser and uses the upload/download
+Save/Load fallback.
+
+If `--native` doesn't open a real window (you get a **browser tab**, or it exits
+asking you to "pip install pywebview"), the Linux web stack is incomplete. The full
+set is **pywebview + pyqt6 + pyqt6-webengine + qtpy** — exactly what
+`.[desktop,native-qt]` installs. (qtpy is the one most easily missed: pywebview's Qt
+backend imports it, and without it the window silently fails to load.)
 
 ## Notes
 - First launch of the one-file build may take a few seconds (it unpacks to a temp
