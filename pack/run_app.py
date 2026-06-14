@@ -6,9 +6,15 @@ server and opens the user's default browser to the app. No arguments, no
 terminal. Cytoscape is vendored locally, so it works fully offline.
 """
 
-from nicegui import ui
+import multiprocessing
 
-from exalted_builder.ui import builder
+# Must run before anything spawns a process, or PyInstaller's frozen child
+# re-executes this script (causing duplicate servers / import errors).
+multiprocessing.freeze_support()
+
+from nicegui import ui  # noqa: E402
+
+from exalted_builder.ui import builder  # noqa: E402
 
 
 def run() -> None:
