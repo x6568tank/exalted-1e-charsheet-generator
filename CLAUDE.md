@@ -158,13 +158,17 @@ Exalted-1E-Charsheet-Generator/      (project root)
   `martial_arts:<style>`; ids `solar.<ability>.<kebab>`. Author one ability at a
   time from page PNGs; verify cut-off values, never guess. CharmType has a
   `Special` value (Ox-Body Technique).
-- **Next:** the Merits & Flaws data catalog (PG pp.16-41) to finish the catalogue
-  (currently free-entry). Corebook Solar charms are 100% authored (220).
-- **Merits & Flaws** (Player's Guide): `Character.merits_flaws` is free-entry
-  (name/points/merit-or-flaw); `validate_chargen` folds them into bonus points
-  (Merits cost, Flaws grant up to 10). The full catalog (PG pp.16-41) is NOT yet
-  authored as rules data — author later like charms. Health curses: `HealthLevel.
-  removed` lets a character have fewer levels than the base 7.
+- **The data catalogue is complete:** 220 corebook charms + all spells, the M&F
+  catalog, backgrounds, weapons/armor. **Next: package as a desktop app** (see
+  the packaging-plan memory) — vendor Cytoscape locally, then NiceGUI native mode
+  + `nicegui-pack` to produce a double-click executable.
+- **Merits & Flaws** (Player's Guide): authored as a catalog —
+  `data/merits_flaws.json` (89: 44 merits + 45 flaws) via `MeritFlawType` +
+  `RuleSet.merit_flaw_catalog`. The editor M&F field is a catalog combobox that
+  autofills points/type (still free-entry). `validate_chargen` folds them into
+  bonus points (Merits cost, Flaws grant up to 10). `cost_text` carries variable
+  costs. Health curses: `HealthLevel.removed` lets a character have fewer levels
+  than the base 7.
 - **Deferred / not yet authored:** Merits & Flaws data catalog; `chargen_budgets.json`,
   `costs_bonus.json`,
   `costs_xp.json` (optional — loader falls back to verified model defaults);
