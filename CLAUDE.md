@@ -151,14 +151,15 @@ Exalted-1E-Charsheet-Generator/      (project root)
     Occult (8 = 3 Circle Sorcery + 5 spirit charms).
   - **Night — complete:** Athletics (11), Awareness (4), Dodge (5), Larceny (8),
     Stealth (6).
-  - **Eclipse caste: not started** (the last caste; Bureaucracy begins p203).
+  - **Eclipse — complete:** Bureaucracy (9), Linguistics (8), Ride (8), Sail (8),
+    Socialize (6).
+  - **ALL corebook Solar charms authored — 220 charms across every ability.**
 - **Charm convention:** category is the plain ability (`melee`) or
   `martial_arts:<style>`; ids `solar.<ability>.<kebab>`. Author one ability at a
   time from page PNGs; verify cut-off values, never guess. CharmType has a
   `Special` value (Ox-Body Technique).
-- **Next:** Eclipse caste charms (Bureaucracy begins on p203, Frugal Merchant
-  Method), the last caste, toward corebook-complete. ~181 charms authored so far.
-  Then the Merits & Flaws data catalog (PG pp.16-41) to finish the catalogue.
+- **Next:** the Merits & Flaws data catalog (PG pp.16-41) to finish the catalogue
+  (currently free-entry). Corebook Solar charms are 100% authored (220).
 - **Merits & Flaws** (Player's Guide): `Character.merits_flaws` is free-entry
   (name/points/merit-or-flaw); `validate_chargen` folds them into bonus points
   (Merits cost, Flaws grant up to 10). The full catalog (PG pp.16-41) is NOT yet
