@@ -18,15 +18,20 @@ dev = [
 ui = [
     "nicegui>=2",
 ]
+# Tools needed to build the standalone desktop executable (see pack/).
+desktop = [
+    "nicegui>=2",
+    "pyinstaller>=6",
+]
 
 # Auto-discovers exalted_builder and any subpackages (models now; engine, ui
 # later once they have an __init__.py), so this doesn't break before they exist.
 [tool.setuptools.packages.find]
 include = ["exalted_builder*"]
 
-# Ship the rules data with the package so it's found after an install.
+# Ship the rules data and vendored JS with the package so they're found after install.
 [tool.setuptools.package-data]
-exalted_builder = ["data/*.json", "data/charms/*.json"]
+exalted_builder = ["data/*.json", "data/charms/*.json", "ui/vendor/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -28,12 +28,12 @@ from ..engine import validate
 from ..models.character import Character
 from ..models.rules import RuleSet
 from . import view as viewmod
+from .assets import cytoscape_head_html
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
 _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 _ACCENT = "#8a5a1a"
-_CYTOSCAPE_CDN = "https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js"
 
 # Uniform size and font for every node; owned / available / locked differ only by
 # fill and border colour. Labels sit below the node on the parchment background,
@@ -226,7 +226,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- layout ----------------------------------------------------------- #
     if with_header:
-        ui.add_head_html(f'<script src="{_CYTOSCAPE_CDN}"></script>')
+        ui.add_head_html(cytoscape_head_html())
         ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
 
     with ui.row().classes("w-full max-w-7xl mx-auto gap-4 p-4 items-start no-wrap"):

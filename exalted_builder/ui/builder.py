@@ -28,12 +28,14 @@ from ..models.rules import RuleSet
 from . import app as sheet_app
 from . import editor, picker
 from . import view as viewmod
+from .assets import cytoscape_head_html
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
-_EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
+# Package-relative so it resolves in a dev checkout and a packaged (PyInstaller)
+# build alike: builder.py lives in exalted_builder/ui/, so data is one level up.
+_PKG = Path(__file__).resolve().parents[1]
+_DATA_DIR = _PKG / "data"
+_EXAMPLE = _PKG.parent / "examples" / "ashes-of-dawn.character.json"
 _ACCENT = "#8a5a1a"
-_CYTOSCAPE_CDN = "https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js"
 
 _TABS = ("Edit", "Charms", "Sheet")
 
@@ -43,7 +45,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
     ctx = {"char": character, "path": save_path}
     state: dict = {"tab": "Edit", "select": None}
 
-    ui.add_head_html(f'<script src="{_CYTOSCAPE_CDN}"></script>')
+    ui.add_head_html(cytoscape_head_html())
     ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
 
     # One charm_select handler for the whole app; dispatch to the picker's current
@@ -118,7 +120,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:
     ruleset = rules_db.load_ruleset(_DATA_DIR)
     path = Path(character_path) if character_path else _EXAMPLE
-    character = persistence.load_character(path)
+    if path.exists():
+        character = persistence.load_character(path)
+    else:                                          # packaged build without the example: start blank
+        character = Character(id="char.new", name="New Solar")
+        path = Path.cwd() / "new.character.json"
     return ruleset, character, path
 
 
@@ -127,6 +133,7 @@ def main() -> None:
     parser.add_argument("character", nargs="?", help="path to a .character.json (defaults to the example)")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--show", action="store_true")
+    parser.add_argument("--native", action="store_true", help="run in a native desktop window")
     args = parser.parse_args()
 
     ruleset, character, path = load(args.character)
@@ -135,7 +142,10 @@ def main() -> None:
     def index() -> None:
         build_app(ruleset, character, path)
 
-    ui.run(title="Exalted 1e — Solar Builder", reload=False, show=args.show, port=args.port)
+    if args.native:
+        ui.run(title="Exalted 1e — Solar Builder", reload=False, native=True, window_size=(1280, 900))
+    else:
+        ui.run(title="Exalted 1e — Solar Builder", reload=False, show=args.show, port=args.port)
 
 
 if __name__ in {"__main__", "__mp_main__"}:
