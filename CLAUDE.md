@@ -154,7 +154,13 @@ Exalted-1E-Charsheet-Generator/      (project root)
   `Special` value (Ox-Body Technique).
 - **Next:** Twilight charms (Craft begins on p182, Flawless Handiwork Method),
   then Night and Eclipse, toward corebook-complete. ~112 charms authored so far.
-- **Deferred / not yet authored:** `chargen_budgets.json`, `costs_bonus.json`,
+- **Merits & Flaws** (Player's Guide): `Character.merits_flaws` is free-entry
+  (name/points/merit-or-flaw); `validate_chargen` folds them into bonus points
+  (Merits cost, Flaws grant up to 10). The full catalog (PG pp.16-41) is NOT yet
+  authored as rules data — author later like charms. Health curses: `HealthLevel.
+  removed` lets a character have fewer levels than the base 7.
+- **Deferred / not yet authored:** Merits & Flaws data catalog; `chargen_budgets.json`,
+  `costs_bonus.json`,
   `costs_xp.json` (optional — loader falls back to verified model defaults);
   combat/attack derivation (weapons are display-only); the Dire Lance mounted
   profile; Limit Break (play-state — add at sheet-export time, not chargen).
