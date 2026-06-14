@@ -324,6 +324,17 @@ def _caste_favored(ruleset: RuleSet, character: Character) -> tuple[set, set] | 
     return set(caste_def.caste_abilities), set(character.favored_abilities)
 
 
+def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[AbilityName]:
+    """The character's Caste ∪ Favoured abilities — the set that earns the discount
+    on Ability/Charm/spell costs. Falls back to just the Favoured set if the caste
+    is unknown to the RuleSet. Shared by chargen and XP costing."""
+    cf = _caste_favored(ruleset, character)
+    if cf is None:
+        return set(character.favored_abilities)
+    caste_abilities, favored = cf
+    return caste_abilities | favored
+
+
 def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Chargen budget predicates and bonus-point accounting (Exalted 1e core,
     pp.104-105). Validates the creation allocation: current traits pre-lock, or

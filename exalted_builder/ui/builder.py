@@ -29,6 +29,7 @@ from . import app as sheet_app
 from . import combos as combos_mod
 from . import editor, picker
 from . import view as viewmod
+from . import xp as xp_mod
 from .assets import cytoscape_head_html
 
 # Package-relative so it resolves in a dev checkout and a packaged (PyInstaller)
@@ -37,7 +38,8 @@ _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 _ACCENT = "#8a5a1a"
 
-_TABS = ("Edit", "Charms", "Combos", "Sheet")
+_TABS = ("Edit", "Charms", "Combos", "XP", "Sheet")
+_CHARGEN_TABS = ("Edit", "Charms", "Combos")     # editing these is disabled once locked
 
 
 def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
@@ -57,6 +59,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
     @ui.refreshable
     def content() -> None:
         char, path = ctx["char"], ctx["path"]
+        # Once locked, the chargen tabs are read-only — advancement is the XP tab's
+        # job, and editing the baseline would desync the snapshot.
+        if state["tab"] in _CHARGEN_TABS and char.chargen_locked:
+            _locked_notice()
+            return
         if state["tab"] == "Edit":
             editor.build_editor(ruleset, char, path, with_header=False)
         elif state["tab"] == "Charms":
@@ -64,8 +71,19 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
                 ruleset, char, path, with_header=False, register_events=False)
         elif state["tab"] == "Combos":
             combos_mod.build_combos(ruleset, char, path, with_header=False)
+        elif state["tab"] == "XP":
+            xp_mod.build_xp(ruleset, char, path, with_header=False)
         else:
             sheet_app.render_sheet(viewmod.build_sheet_view(ruleset, char))
+
+    def _locked_notice() -> None:
+        with ui.card().classes("max-w-xl mx-auto mt-8 p-4 bg-amber-50/60 border border-amber-900/30 gap-2"):
+            ui.label("Chargen is locked").classes("text-lg font-bold").style(f"color:{_ACCENT}")
+            ui.label("Spend experience in the XP tab, or press Unlock to edit chargen "
+                     "again (that clears the XP baseline).").classes("text-sm")
+            with ui.row().classes("gap-2"):
+                ui.button("Go to XP", icon="bolt", on_click=lambda: select_tab("XP")).props("color=brown")
+                ui.button("Unlock", icon="lock_open", on_click=unlock).props("flat color=brown")
 
     def select_tab(name: str) -> None:
         state["tab"] = name
@@ -150,6 +168,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         ui.tab("Edit", icon="edit")
         ui.tab("Charms", icon="account_tree")
         ui.tab("Combos", icon="bolt")
+        ui.tab("XP", icon="trending_up")
         ui.tab("Sheet", icon="description")
     tab_bar.on_value_change(lambda e: select_tab(e.value))
 

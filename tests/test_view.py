@@ -7,7 +7,7 @@ from pathlib import Path
 
 import exalted_builder
 from exalted_builder import persistence, rules_db
-from exalted_builder.models.character import Character, Combo, HealthLevel
+from exalted_builder.models.character import Character, Combo, HealthLevel, XpEntry
 from exalted_builder.models.rules import AbilityName
 from exalted_builder.ui import view as viewmod
 
@@ -112,6 +112,35 @@ def test_combo_view_wires_members_cost_and_eligibility():
     assert [m.id for m in crow.members] == elig[:2]
     assert all(not m.name.startswith("solar.") for m in crow.members)   # resolved to names
     assert isinstance(crow.issues, list)
+
+
+def test_xp_log_presenter_labels_entries():
+    rs = _rs()
+    char = persistence.load_character(EXAMPLE)
+    cid = char.charms[0]
+    char.xp_log = [
+        XpEntry(target="abilities.melee", from_rating=2, to_rating=3, cost=4),
+        XpEntry(target="charms", detail=cid, cost=8),
+        XpEntry(target="willpower", from_rating=6, to_rating=7, cost=12),
+        XpEntry(target="specialties", detail="melee:Swords", cost=3),
+    ]
+    rows = viewmod.build_xp_log(rs, char)
+    assert rows[0].label == "Melee 2 → 3" and rows[0].cost == 4 and rows[0].detail == "abilities"
+    assert rows[1].label == f"Charm: {rs.charms[cid].name}"
+    assert rows[2].label == "Willpower 6 → 7"
+    assert rows[3].label == "Specialty: melee — Swords"
+
+
+def test_spell_detail_reflects_circle_access():
+    rs = _rs()
+    c = Character(id="char.sd")
+    sid = next(s.id for s in rs.spells.values() if s.circle.value == "Terrestrial")
+    d = viewmod.build_spell_detail(rs, c, sid)
+    assert d is not None and d.circle == "Terrestrial"
+    assert d.owned is False and d.available is False          # no Sorcery Charm yet
+    c.charms = ["solar.occult.terrestrial-circle-sorcery"]
+    assert viewmod.build_spell_detail(rs, c, sid).available is True
+    assert viewmod.build_spell_detail(rs, c, "nope") is None
 
 
 def test_unknown_charm_id_falls_back_to_the_id():

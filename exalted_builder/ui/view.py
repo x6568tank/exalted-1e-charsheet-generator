@@ -15,8 +15,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from ..engine import derive, validate
-from ..models.character import Armor, Character, Weapon
+from ..engine import advancement, derive, validate
+from ..models.character import Armor, Character, Weapon, XpEntry
 from ..models.rules import AbilityName, Caste, CharmCost, RuleSet, SpellCircle, VirtueName
 
 
@@ -111,6 +111,35 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
     )
 
 
+@dataclass
+class SpellDetail:
+    id: str
+    name: str
+    circle: str
+    cost: str
+    description: str
+    owned: bool
+    available: bool                        # a known Charm grants its Circle
+
+
+def build_spell_detail(ruleset: RuleSet, character: Character, spell_id: str) -> Optional[SpellDetail]:
+    """Display detail for a single spell: its Circle, casting cost, description, and
+    the character's relationship to it. Pure; eligibility comes from engine.validate
+    (post-chargen rules — the chargen Solar bar does not apply here)."""
+    spell = ruleset.spells.get(spell_id)
+    if spell is None:
+        return None
+    return SpellDetail(
+        id=spell.id,
+        name=spell.name,
+        circle=spell.circle.value,
+        cost=_cost_str(spell.cost),
+        description=spell.description,
+        owned=spell_id in character.spells,
+        available=validate.meets_spell_requirements(ruleset, character, spell, chargen=False),
+    )
+
+
 def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> CharmGraph:
     """Assemble the prerequisite graph for one Charm category, tagging each node
     by the character's relationship to it: owned, available (learnable now), or
@@ -181,6 +210,43 @@ def build_combo_view(ruleset: RuleSet, character: Character) -> ComboView:
                for cid in validate.eligible_combo_charms(ruleset, character)]
     return ComboView(combos=combos, addable=addable,
                      total_cost=sum(c.cost for c in combos))
+
+
+@dataclass
+class XpLogRow:
+    index: int           # position in character.xp_log
+    label: str           # human-readable purchase, e.g. "Melee 2 → 3"
+    detail: str          # ability/charm/etc. label without the rating arrows
+    cost: int
+
+
+def _xp_entry_label(ruleset: RuleSet, entry: XpEntry) -> str:
+    domain, _, key = entry.target.partition(".")
+    if domain in ("attributes", "abilities", "virtues"):
+        return f"{_label(key)} {entry.from_rating} → {entry.to_rating}"
+    if domain in ("willpower", "essence"):
+        return f"{domain.title()} {entry.from_rating} → {entry.to_rating}"
+    if domain == "charms":
+        charm = ruleset.charms.get(entry.detail)
+        return f"Charm: {charm.name if charm else entry.detail}"
+    if domain == "spells":
+        spell = ruleset.spells.get(entry.detail)
+        return f"Spell: {spell.name if spell else entry.detail}"
+    if domain == "combos":
+        return f"Combo: {entry.detail}"
+    if domain == "specialties":
+        return f"Specialty: {entry.detail.replace(':', ' — ', 1)}"
+    return entry.target
+
+
+def build_xp_log(ruleset: RuleSet, character: Character) -> list[XpLogRow]:
+    """The XP spend log as display rows, in spend order. Pure presentation; the
+    engine owns costs and legality. Only the last row is safe to undo (LIFO)."""
+    return [
+        XpLogRow(index=i, label=_xp_entry_label(ruleset, e),
+                 detail=e.target.split(".", 1)[0], cost=e.cost)
+        for i, e in enumerate(character.xp_log)
+    ]
 
 
 _CIRCLE_ORDER = {SpellCircle.TERRESTRIAL: 0, SpellCircle.CELESTIAL: 1, SpellCircle.SOLAR: 2}
@@ -278,9 +344,11 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     d = derive.derive(ruleset, character)
 
     issues = list(validate.validate(ruleset, character))
-    # Pre-lock, also surface chargen budget/legality findings.
+    # Pre-lock, surface chargen budget/legality findings; post-lock, the XP audit.
     if not character.chargen_locked:
         issues += validate.validate_chargen(ruleset, character)
+    else:
+        issues += advancement.validate_xp(ruleset, character)
 
     own_caste = ruleset.castes.get(character.caste)
     own_caste_abilities = set(own_caste.caste_abilities) if own_caste else set()
