@@ -217,7 +217,11 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - **The data catalogue is complete:** 220 corebook charms + all spells, the M&F
   catalog, backgrounds, weapons/armor.
 - **Desktop packaging:** Cytoscape vendored locally (offline-ready). `pack/` has the
-  PyInstaller one-file spec + **browser-launch entry** (`run_app.py` → `ui.run(show=True)`)
+  PyInstaller one-file spec + **browser-launch entry** (`run_app.py` → `ui.run(show=True)`,
+  which also registers `app.on_disconnect` → quits the server ~4s after the last tab
+  closes [grace > NiceGUI's 3s reconnect_timeout so a refresh survives; uses
+  `builder.any_tab_connected()`], so re-launching opens a fresh app instead of
+  orphaning a server)
   + BUILD.md. The spec `collect_all("nicegui")` and **excludes the native stack**
   (`webview`, `qtpy`, `PyQt*`, `PySide*`) so the build stays ~60MB even if those happen
   to be installed. **Linux browser build done & verified** (`pyinstaller

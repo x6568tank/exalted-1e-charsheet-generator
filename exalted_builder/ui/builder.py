@@ -48,6 +48,18 @@ def _native_window():
     return getattr(app.native, "main_window", None)
 
 
+def _any_socket_connected(clients) -> bool:
+    """True if any of `clients` holds a live browser socket. Pure (testable)."""
+    return any(getattr(c, "has_socket_connection", False) for c in clients)
+
+
+def any_tab_connected() -> bool:
+    """True while at least one browser tab still has a live socket to the server.
+    The packaged app uses this to decide whether to quit when a tab closes."""
+    from nicegui import Client
+    return _any_socket_connected(Client.instances.values())
+
+
 def _dialog_type(kind: str):
     """The pywebview file-dialog selector for ``kind`` ('save'/'open'). Use the
     `FileDialog` IntEnum (pywebview 5+): the legacy `webview.SAVE_DIALOG`/`OPEN_DIALOG`
