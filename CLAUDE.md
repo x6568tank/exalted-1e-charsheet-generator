@@ -277,3 +277,28 @@ Exalted-1E-Charsheet-Generator/      (project root)
   `costs_xp.json` (optional — loader falls back to verified model defaults);
   combat/attack derivation (weapons are display-only); the Dire Lance mounted
   profile; Limit Break (play-state — add at sheet-export time, not chargen).
+
+## TODO — planned next (do NOT start yet; queued 2026-06-14, user resumes 2026-06-15)
+1. **Remove Merits & Flaws entirely.** User decision after a closer read of the
+   Player's Guide: it bundles changes they dislike (senseless Charm rewrites that wreck
+   balance, etc.) and the whole M&F system is more headache than value. Rip out the
+   feature, not just the catalog: `data/merits_flaws.json`; the `MeritFlawType`/
+   `MeritFlawEffect` models + `RuleSet.merit_flaw_catalog`; the chargen BP folding in
+   `validate_chargen`; `validate.trait_max`/`cost_multiplier` machinery (and its use in
+   `costs.py`, `advancement.py`, the editor/XP dot caps); the editor M&F combobox; the
+   XP-tab M&F card + `advancement.gain/lose_merit_flaw`; `Character.merits_flaws`. Keep
+   the generic hooks only if something else needs them — otherwise delete. This reverses
+   several commits' worth of work, intentionally. See [[merit-flaw-xp-effects]].
+2. **Ox-Body Technique — repeatable with a variant menu.** Purchasable up to **Endurance
+   dots** times (cap = current Endurance). Each purchase the player picks ONE of three
+   health-level packages (per the user, who is rules authority — confirm exact wording
+   from a PNG before authoring): (a) one extra **-0** level; (b) two **-1** levels; (c)
+   one **-1** and two **-2** levels. Needs: the Charm to allow N copies (it's
+   `CharmType.Special`; today charms are a flat owned-list, so model the repeat +
+   per-copy chosen variant), a picker menu for the variant, and `derive.health` to add
+   the chosen levels (HealthLevel already supports bonus levels). Applies in BOTH chargen
+   and XP. See [[ox-body-repeatable-variant-menu]].
+3. **Nature dropdown.** `Character.nature` is free-text today; make the editor a dropdown
+   of the corebook Natures. User will send the full corebook Nature list (author it as
+   data, e.g. `data/natures.json`, then a `<select>` in the editor). Natures are still
+   narrative-only (no mechanical enforcement). See [[nature-dropdown]].
