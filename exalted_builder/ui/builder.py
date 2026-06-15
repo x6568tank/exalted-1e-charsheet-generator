@@ -48,6 +48,19 @@ def _native_window():
     return getattr(app.native, "main_window", None)
 
 
+def _dialog_type(kind: str):
+    """The pywebview file-dialog selector for ``kind`` ('save'/'open'). Use the
+    `FileDialog` IntEnum (pywebview 5+): the legacy `webview.SAVE_DIALOG`/`OPEN_DIALOG`
+    module attributes are non-picklable Proxy objects, and NiceGUI forwards the call
+    to its window subprocess through a multiprocessing queue — pickling a Proxy fails
+    silently (the dialog never opens). The enum members pickle cleanly."""
+    import webview
+    fd = getattr(webview, "FileDialog", None)
+    if fd is not None:
+        return fd.SAVE if kind == "save" else fd.OPEN
+    return 30 if kind == "save" else 10        # legacy pywebview int constants
+
+
 class _NullDialog:
     """A no-op stand-in so the native Open path can reuse `do_load`, which closes a
     dialog after loading; the native OS dialog has already closed itself."""
@@ -109,13 +122,16 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         win = _native_window()
         default_name = persistence.suggested_filename(ctx["char"])
         if win is not None:
-            import webview                              # only present in native mode
             chosen = await win.create_file_dialog(
-                webview.SAVE_DIALOG, directory=str(ctx["dir"]), save_filename=default_name)
+                _dialog_type("save"), directory=str(ctx["dir"]), save_filename=default_name)
             if not chosen:                              # cancelled
                 return
             target = Path(chosen if isinstance(chosen, str) else chosen[0])
-            persistence.save_character(ctx["char"], target)
+            try:
+                persistence.save_character(ctx["char"], target)
+            except Exception as ex:                     # noqa: BLE001 - surface write errors
+                ui.notify(f"Save failed: {ex}", type="negative")
+                return
             ctx["path"], ctx["dir"] = target, target.parent
             ui.notify(f"Saved to {target}", type="positive")
         else:
@@ -200,9 +216,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         with a file picker (upload) plus a path field as a fallback."""
         win = _native_window()
         if win is not None:
-            import webview                              # only present in native mode
             chosen = await win.create_file_dialog(
-                webview.OPEN_DIALOG, directory=str(ctx["dir"]), allow_multiple=False,
+                _dialog_type("open"), directory=str(ctx["dir"]), allow_multiple=False,
                 file_types=("Character files (*.json)", "All files (*.*)"))
             if not chosen:                              # cancelled
                 return
