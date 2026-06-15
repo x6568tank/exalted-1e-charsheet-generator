@@ -18,21 +18,11 @@ dev = [
 ui = [
     "nicegui>=2",
 ]
-# Tools needed to build the standalone desktop executable (see pack/).
-# pywebview backs NiceGUI's native window (the packaged app now opens a real
-# desktop window, not the browser); PyInstaller bundles everything.
+# Tools needed to build the standalone desktop executable (see pack/). The packaged
+# app opens in the browser, so no native-window (pywebview/Qt) dependencies.
 desktop = [
     "nicegui>=2",
-    "pywebview>=5",
     "pyinstaller>=6",
-]
-# Linux ONLY: the Qt web backend the native window needs (Windows/macOS have one
-# built in). pywebview's Qt backend imports `qtpy`, so all three are required.
-# Install alongside desktop: pip install -e ".[ui,desktop,native-qt]"
-native-qt = [
-    "pyqt6",
-    "pyqt6-webengine",
-    "qtpy",
 ]
 
 # Auto-discovers exalted_builder and any subpackages (models now; engine, ui

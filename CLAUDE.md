@@ -181,17 +181,17 @@ Exalted-1E-Charsheet-Generator/      (project root)
   tabs (Edit/Charms/Combos) go read-only (a notice points to the XP tab or Unlock);
   the XP tab is where advancement happens. It **starts on a
   blank character** (the example is no longer auto-loaded — open it via the path arg
-  or Load). **Save/Load are deployment-aware:** in a native desktop window (`--native`,
-  needs pywebview) Save/Load use the OS "Save As"/"Open" dialogs via
-  `app.native.main_window.create_file_dialog`; in plain browser mode (the default, and
-  what the shipped `pack/run_app.py` build uses — it opens the browser, not a native
-  window) Save prompts for a filename and `ui.download.content`s the JSON to the
-  browser's download folder, and Load is an `ui.upload` file picker (with a path field
-  as a fallback). The packaged build (`pack/run_app.py`) now runs `ui.run(native=True)`,
-  so the **shipped app opens a native window and gets the OS dialogs** by default;
-  pywebview is bundled (the `desktop` extra). The native window needs a platform web
-  backend: Windows (Edge WebView2) and macOS (WKWebView) have it built in; **Linux
-  needs WebKit2GTK or Qt WebEngine present** (see `pack/BUILD.md`). Run the app:
+  or Load). **Save/Load are deployment-aware:** the shipped build runs in the **browser**
+  (`pack/run_app.py` → `ui.run(show=True)`), where Save prompts for a filename and
+  `ui.download.content`s the JSON to the browser's download folder, and Load is an
+  `ui.upload` file picker (with a path field as a fallback). A native-window path also
+  exists (`--native`, needs pywebview + a Qt/GTK backend): there `_native_window()` is
+  truthy and Save/Load use the OS "Save As"/"Open" dialogs via
+  `app.native.main_window.create_file_dialog` (`builder._dialog_type` passes the
+  picklable `webview.FileDialog` enum — NOT the legacy `SAVE_DIALOG`/`OPEN_DIALOG`
+  Proxy objects, which can't cross NiceGUI's multiprocessing queue and silently no-op).
+  **Native was dropped from packaging** (bundling Qt → ~280MB and non-portable across
+  Linux distros); `--native` remains a dev/optional path only. Run the app:
   `.venv/bin/python -m exalted_builder.ui.builder [char.json] [--show] [--port N] [--native]`
   (the individual modules also run standalone). Example char:
   `examples/ashes-of-dawn.character.json`.
@@ -217,16 +217,15 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - **The data catalogue is complete:** 220 corebook charms + all spells, the M&F
   catalog, backgrounds, weapons/armor.
 - **Desktop packaging:** Cytoscape vendored locally (offline-ready). `pack/` has the
-  PyInstaller one-file spec + **native-window entry** (`run_app.py` → `ui.run(native=True)`)
-  + BUILD.md. The spec now `collect_all("webview")` too, and the `desktop` extra bundles
-  pywebview. The native window needs a platform web backend (Windows Edge WebView2 /
-  macOS WKWebView built-in; **Linux needs WebKit2GTK or Qt WebEngine** — GTK via system
-  `python-gobject`+`webkit2gtk`, or `pip install pyqt6 pyqt6-webengine`). The earlier
-  **Linux *browser* build was verified; the Linux *native* build has NOT been re-verified**
-  since the switch (needs a GTK/Qt backend on the build host — was absent here, so the
-  native window couldn't be launched; the `--native` wiring was verified up to
-  `webview.start()`). **Windows .exe still needs building ON Windows** (PyInstaller
-  can't cross-compile); same spec, and Windows native is self-contained (WebView2).
+  PyInstaller one-file spec + **browser-launch entry** (`run_app.py` → `ui.run(show=True)`)
+  + BUILD.md. The spec `collect_all("nicegui")` and **excludes the native stack**
+  (`webview`, `qtpy`, `PyQt*`, `PySide*`) so the build stays ~60MB even if those happen
+  to be installed. **Linux browser build done & verified** (`pyinstaller
+  pack/exalted-builder.spec` → `dist/ExaltedBuilder`, ~60MB). NOTE: a Linux PyInstaller
+  binary is NOT portable across distros (glibc/system-lib differences) — build on the
+  oldest target distro for sharing. **Windows .exe still needs building ON Windows**
+  (PyInstaller can't cross-compile); same spec. (A native-window packaging was tried and
+  reverted — Qt bundling made it ~280MB and non-portable; `--native` stays a dev option.)
 - **Merits & Flaws** (Player's Guide): authored as a catalog —
   `data/merits_flaws.json` (84: 42 merits + 42 flaws; non-Solar entries removed —
   Merits Legendary Breeding & Celestial Bloodline, and Flaws Limited Forms & Chimera
