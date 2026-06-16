@@ -55,8 +55,24 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         "combo_name": "",
         "ox_variant": None,
         "add_amount": 5,
+        "lower_target": f"attr:{AttributeName.STRENGTH.value}",   # what to reduce
+        "lower_reason": "",                                       # curse / charm-cost note
         "focus": None,          # ("charm"|"spell", id) — what the detail panel describes
     }
+
+    def _reduce() -> None:
+        tgt, reason = sel["lower_target"], sel["lower_reason"].strip()
+        kind, _, name = tgt.partition(":")
+        if kind == "attr":
+            advancement.lower_attribute(character, AttributeName(name), reason)
+        elif kind == "ability":
+            advancement.lower_ability(character, AbilityName(name), reason)
+        elif kind == "virtue":
+            advancement.lower_virtue(character, VirtueName(name), reason)
+        elif kind == "willpower":
+            advancement.lower_willpower(character, reason)
+        elif kind == "essence":
+            advancement.lower_essence(character, reason)
 
     def _do(action) -> None:
         try:
@@ -166,6 +182,32 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button(f"Essence {ess}→{ess + 1}  ·  {costs.essence_step(rs, character, ess)} XP",
                           on_click=lambda: _do(lambda: advancement.raise_essence(rs, character))).props(
                     "dense color=brown")
+
+        # --- reduce a trait (curse / Charm cost; free, refunds no XP) ------ #
+        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
+            ui.label("Reduce a Trait").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+            ui.label("For curses and permanent Charm costs — free, refunds no XP, "
+                     "logged and undoable.").classes("text-xs text-gray-600")
+            lower_opts: dict[str, str] = {}
+            for a in AttributeName:
+                lower_opts[f"attr:{a.value}"] = f"Attribute · {_label(a.value)} ({character.attributes[a]})"
+            for ab in AbilityName:
+                if ab == AbilityName.CRAFT:
+                    continue
+                lower_opts[f"ability:{ab.value}"] = f"Ability · {_label(ab.value)} ({character.abilities.get(ab, 0)})"
+            for vir in VirtueName:
+                lower_opts[f"virtue:{vir.value}"] = f"Virtue · {_label(vir.value)} ({character.virtues[vir]})"
+            lower_opts["willpower"] = f"Willpower ({derive.willpower(character)})"
+            lower_opts["essence"] = f"Essence ({character.essence_rating})"
+            with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                ui.select(lower_opts, value=sel["lower_target"],
+                          on_change=lambda e: (sel.__setitem__("lower_target", e.value), panel.refresh())
+                          ).props("dense").classes("flex-1")
+                ui.input(value=sel["lower_reason"], placeholder="reason (e.g. curse)",
+                         on_change=lambda e: sel.__setitem__("lower_reason", e.value)
+                         ).props("dense").classes("flex-1")
+                ui.button("Reduce", icon="arrow_downward",
+                          on_click=lambda: _do(_reduce)).props("dense color=negative")
 
         # --- learn Charm / spell ------------------------------------------ #
         with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):

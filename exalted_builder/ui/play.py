@@ -1,0 +1,225 @@
+"""
+ui/play.py — NiceGUI in-play tracker (the "Play" tab).
+
+A deliberately *dumb* play-state tracker for use at the table: marked health damage,
+motes spent, temporary Willpower, and Limit. It reads the capacities (health-track
+shape, Essence pools, permanent Willpower) from the engine via view.build_play_view
+and overlays the player's fill-state onto them, stored on Character.play. There is
+NO game logic here and none in the engine for this: no auto mote-accounting, no
+damage-wrapping rules, no auto-healing — the ST stays in control. This layer never
+feeds back into chargen validation, the XP audit, or the permanent derivations.
+
+Run:
+    python -m exalted_builder.ui.play [path/to/foo.character.json] [--show] [--port N]
+"""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from nicegui import ui
+
+from .. import persistence, rules_db
+from ..models.character import Character, Damage, PlayState
+from ..models.rules import RuleSet
+from . import view as viewmod
+
+_PKG = Path(__file__).resolve().parents[1]
+_DATA_DIR = _PKG / "data"
+_EXAMPLE = _PKG.parent / "examples" / "ashes-of-dawn.character.json"
+_ACCENT = "#8a5a1a"
+
+# The cycle a health box steps through on each click: empty → / → x → * → empty.
+_MARK_CYCLE: list[Damage | None] = [None, Damage.BASHING, Damage.LETHAL, Damage.AGGRAVATED]
+_MARK_COLOR = {
+    Damage.BASHING: "#6b7280",       # grey
+    Damage.LETHAL: "#b91c1c",        # red
+    Damage.AGGRAVATED: "#7e22ce",    # purple
+}
+_MARK_NAME = {Damage.BASHING: "bashing", Damage.LETHAL: "lethal", Damage.AGGRAVATED: "aggravated"}
+
+
+def build_play(ruleset: RuleSet, character: Character, save_path: Path,
+               *, with_header: bool = True) -> None:
+    """Render the in-play tracker for `character`. With `with_header=False` the
+    title/Save bar is omitted (the embedding app provides one). The tab is live
+    regardless of chargen lock — play happens after creation, but never blocks."""
+
+    def ps() -> PlayState:
+        """The play-state, created on first edit so a never-played character keeps
+        a clean save until the tab is actually used."""
+        if character.play is None:
+            character.play = PlayState()
+        return character.play
+
+    def _norm_health(n: int) -> list[Damage | None]:
+        """Pad/trim the stored marks to the current health-track length (Ox-Body or
+        a curse bought later changes the box count)."""
+        h = ps().health
+        if len(h) < n:
+            h += [None] * (n - len(h))
+        elif len(h) > n:
+            del h[n:]
+        return h
+
+    # ---- mutations -------------------------------------------------------- #
+    def cycle_health(i: int, n: int) -> None:
+        h = _norm_health(n)
+        nxt = _MARK_CYCLE[(_MARK_CYCLE.index(h[i]) + 1) % len(_MARK_CYCLE)]
+        h[i] = nxt
+        body.refresh()
+
+    def clear_damage() -> None:
+        ps().health = []
+        body.refresh()
+
+    def set_motes(field: str, value: int, cap: int) -> None:
+        setattr(ps(), field, max(0, min(cap, int(value or 0))))
+        body.refresh()
+
+    def set_count(field: str, clicked: int, cap: int) -> None:
+        """Dot-track click: clicking the top filled box clears it, else fill up to it."""
+        cur = getattr(ps(), field)
+        setattr(ps(), field, max(0, min(cap, clicked - 1 if clicked == cur else clicked)))
+        body.refresh()
+
+    def rest_refresh() -> None:
+        p = ps()
+        p.motes_personal_spent = 0
+        p.motes_peripheral_spent = 0
+        p.willpower_spent = 0          # NOT health, NOT limit — healing is ST discretion
+        body.refresh()
+        ui.notify("Motes and temporary Willpower refreshed.", type="positive")
+
+    # ---- box widgets ------------------------------------------------------ #
+    def _health_box(i: int, label: str, mark: Damage | None, n: int) -> None:
+        with ui.column().classes("items-center gap-0"):
+            ui.label(label).classes("text-2xs text-gray-500").style("font-size:0.6rem")
+            btn = ui.button(mark.value if mark else "",
+                            on_click=lambda i=i: cycle_health(i, n)).props("dense unelevated square")
+            btn.style("width:2rem;height:2rem;min-width:0;font-weight:700;"
+                      + (f"background:{_MARK_COLOR[mark]};color:white" if mark
+                         else "background:#fffbeb;color:#8a5a1a;border:1px solid #d6b98c"))
+
+    def _count_box(i: int, filled: bool, field: str, cap: int, color: str) -> None:
+        btn = ui.button("", on_click=lambda i=i: set_count(field, i + 1, cap)).props("dense unelevated square")
+        btn.style("width:1.5rem;height:1.5rem;min-width:0;"
+                  + (f"background:{color};border:1px solid {color}"
+                     if filled else "background:#fffbeb;border:1px solid #d6b98c"))
+
+    # ---- body ------------------------------------------------------------- #
+    @ui.refreshable
+    def body() -> None:
+        pv = viewmod.build_play_view(ruleset, character)
+        cur = character.play or PlayState()
+        marks = list(cur.health) + [None] * max(0, len(pv.health_boxes) - len(cur.health))
+
+        with ui.column().classes("w-full max-w-3xl mx-auto gap-3"):
+            # --- Health -------------------------------------------------- #
+            with _panel("Health  ·  / bashing   x lethal   * aggravated"):
+                with ui.row().classes("gap-1 flex-wrap items-end"):
+                    for i, box in enumerate(pv.health_boxes):
+                        _health_box(i, box.label, marks[i], len(pv.health_boxes))
+                counts = {d: sum(1 for m in marks if m == d) for d in Damage}
+                worst = _worst_penalty(pv, marks)
+                with ui.row().classes("items-center gap-4 mt-1"):
+                    ui.label(f"Marked: {counts[Damage.BASHING]}/ {counts[Damage.LETHAL]}x "
+                             f"{counts[Damage.AGGRAVATED]}*").classes("text-xs text-gray-600")
+                    ui.label(f"Wound penalty: {worst}").classes("text-xs font-semibold").style(
+                        f"color:{_ACCENT}")
+                    ui.button("Clear damage", icon="healing", on_click=clear_damage).props(
+                        "flat dense").classes("text-xs")
+
+            # --- Motes (numeric; capacities derived, spend is user input) - #
+            with _panel("Essence (motes spent — manual)"):
+                with ui.row().classes("gap-6 flex-wrap items-end"):
+                    _mote_input("Personal", "motes_personal_spent",
+                                cur.motes_personal_spent, pv.personal_max)
+                    _mote_input("Peripheral", "motes_peripheral_spent",
+                                cur.motes_peripheral_spent, pv.peripheral_max)
+
+            # --- Temporary Willpower ------------------------------------- #
+            with _panel(f"Temporary Willpower  ({pv.willpower_max - cur.willpower_spent} / "
+                        f"{pv.willpower_max} available)"):
+                with ui.row().classes("gap-1 flex-wrap"):
+                    for i in range(pv.willpower_max):
+                        _count_box(i, i < cur.willpower_spent, "willpower_spent",
+                                   pv.willpower_max, _ACCENT)
+
+            # --- Limit (bare 0..10 counter) ------------------------------ #
+            with _panel(f"Limit  ({cur.limit} / 10{'  — LIMIT BREAK' if cur.limit >= 10 else ''})"):
+                with ui.row().classes("gap-1 flex-wrap"):
+                    for i in range(10):
+                        _count_box(i, i < cur.limit, "limit", 10, "#b45309")
+
+            ui.button("Rest / refresh", icon="bedtime", on_click=rest_refresh).props(
+                "color=brown").tooltip("Clears motes spent and temporary Willpower. "
+                                       "Health and Limit are left to ST discretion.")
+
+    def _mote_input(label: str, field: str, value: int, cap: int) -> None:
+        with ui.column().classes("gap-0"):
+            ui.number(f"{label} spent", value=value, min=0, max=cap, format="%d",
+                      on_change=lambda e, f=field, c=cap: set_motes(f, e.value, c)).classes("w-32")
+            ui.label(f"{max(0, cap - value)} / {cap} available").classes("text-xs text-gray-600")
+
+    # ---- header / layout -------------------------------------------------- #
+    if with_header:
+        with ui.row().classes("w-full items-center justify-between"):
+            ui.label(f"In-play — {character.name or 'character'}").classes(
+                "text-lg font-bold").style(f"color:{_ACCENT}")
+            ui.button("Save", icon="save",
+                      on_click=lambda: _save(character, save_path)).props("color=brown")
+    body()
+
+
+def _panel(title: str):
+    card = ui.card().classes("w-full p-3 bg-amber-50/40 border border-amber-900/20 gap-2")
+    with card:
+        ui.label(title).classes("text-xs font-bold tracking-widest").style(f"color:{_ACCENT}")
+    return card
+
+
+def _worst_penalty(pv: "viewmod.PlayView", marks: list) -> str:
+    """The label of the deepest marked health box — a convenience read of the marks
+    (it does not enforce fill order). 'none' when undamaged."""
+    deepest = None
+    for box, mark in zip(pv.health_boxes, marks):
+        if mark is not None:
+            deepest = box
+    if deepest is None:
+        return "none"
+    return "Incapacitated" if deepest.incapacitated else deepest.label
+
+
+def _save(character: Character, save_path: Path) -> None:
+    persistence.save_character(character, save_path)
+    ui.notify(f"Saved {save_path.name}", type="positive")
+
+
+def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:
+    ruleset = rules_db.load_ruleset(_DATA_DIR)
+    path = Path(character_path) if character_path else _EXAMPLE
+    character = persistence.load_character(path)
+    return ruleset, character, path
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Exalted 1e in-play tracker")
+    parser.add_argument("character", nargs="?", help="path to a .character.json (defaults to the example)")
+    parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--show", action="store_true")
+    args = parser.parse_args()
+
+    ruleset, character, path = load(args.character)
+
+    @ui.page("/")
+    def index() -> None:
+        build_play(ruleset, character, path)
+
+    ui.run(title=f"Exalted 1e — play: {character.name or path.stem}",
+           reload=False, show=args.show, port=args.port)
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    main()

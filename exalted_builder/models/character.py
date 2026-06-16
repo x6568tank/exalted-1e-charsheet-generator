@@ -20,6 +20,7 @@ through JSON using the enum *string values* as keys, e.g. {"strength": 3}.
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -148,6 +149,34 @@ class ChargenSnapshot(BaseModel):
     wp_virtue_component: int               # two highest Virtues AT LOCK; never recomputed
 
 
+class Damage(str, Enum):
+    """A mark in a health-track box. The 1e shorthand: '/' bashing, 'x' lethal,
+    '*' aggravated. (Empty boxes are None.)"""
+    BASHING = "/"
+    LETHAL = "x"
+    AGGRAVATED = "*"
+
+
+class PlayState(BaseModel):
+    """Ephemeral *play-state* — current motes/Willpower spent, marked health damage,
+    and Limit. This is a deliberately separate layer from the permanent character:
+    it is NOT read by chargen validation, the XP audit, or the permanent-value
+    derivations (those only flow capacities OUT to here). It is a dumb manual
+    tracker — no auto mote-accounting, no damage-wrapping rules, no auto-healing —
+    so the ST stays in control. Old saves load with `Character.play` None.
+
+    `health` is a list of marks aligned positionally to engine.derive.health_track;
+    it is normalised to the track length at render time (Ox-Body bought later just
+    extends it). Motes are a simple spent count against the derived pool maxima;
+    `willpower_spent` counts spent boxes out of permanent Willpower; `limit` is a
+    bare 0..10 counter (Limit Break at 10)."""
+    health: list[Optional[Damage]] = Field(default_factory=list)
+    motes_personal_spent: int = Field(default=0, ge=0)
+    motes_peripheral_spent: int = Field(default=0, ge=0)
+    willpower_spent: int = Field(default=0, ge=0)
+    limit: int = Field(default=0, ge=0, le=10)
+
+
 # --------------------------------------------------------------------------- #
 # The character
 # --------------------------------------------------------------------------- #
@@ -183,7 +212,11 @@ class Character(BaseModel):
     )
     virtue_flaw: Optional[VirtueFlaw] = None
 
-    willpower_purchased: int = Field(default=0, ge=0)
+    # Purchased Willpower dots, net of permanent penalties. Non-negative in normal
+    # play, but may go negative post-lock when a curse reduces permanent Willpower
+    # below the pinned Virtue component (permanent WP = component + purchased; see
+    # engine.advancement.lower_willpower). The engine floors permanent WP at 1.
+    willpower_purchased: int = 0
     # Frozen at lock so post-creation Virtue gains can't raise Willpower; None pre-lock.
     wp_virtue_component: Optional[int] = None
 
@@ -204,3 +237,6 @@ class Character(BaseModel):
     chargen_snapshot: Optional[ChargenSnapshot] = None
     xp_earned: int = Field(default=0, ge=0)
     xp_log: list[XpEntry] = Field(default_factory=list)
+
+    # --- play-state (separate layer; never enters chargen/XP validation) ---
+    play: Optional[PlayState] = None

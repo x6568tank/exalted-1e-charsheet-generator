@@ -28,6 +28,7 @@ from ..models.rules import RuleSet
 from . import app as sheet_app
 from . import combos as combos_mod
 from . import editor, picker
+from . import play as play_mod
 from . import view as viewmod
 from . import xp as xp_mod
 from .assets import cytoscape_head_html
@@ -38,7 +39,7 @@ _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 _ACCENT = "#8a5a1a"
 
-_TABS = ("Edit", "Charms", "Combos", "XP", "Sheet")
+_TABS = ("Edit", "Charms", "Combos", "XP", "Play", "Sheet")
 _CHARGEN_TABS = ("Edit", "Charms", "Combos")     # editing these is disabled once locked
 
 
@@ -111,6 +112,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
             combos_mod.build_combos(ruleset, char, path, with_header=False)
         elif state["tab"] == "XP":
             xp_mod.build_xp(ruleset, char, path, with_header=False)
+        elif state["tab"] == "Play":
+            play_mod.build_play(ruleset, char, path, with_header=False)
         else:
             sheet_app.render_sheet(viewmod.build_sheet_view(ruleset, char))
 
@@ -277,6 +280,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         ui.tab("Charms", icon="account_tree")
         ui.tab("Combos", icon="bolt")
         ui.tab("XP", icon="trending_up")
+        ui.tab("Play", icon="casino")
         ui.tab("Sheet", icon="description")
     tab_bar.on_value_change(lambda e: select_tab(e.value))
 

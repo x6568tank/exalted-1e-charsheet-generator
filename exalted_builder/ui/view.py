@@ -228,12 +228,15 @@ class XpLogRow:
 
 def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> str:
     domain, _, key = entry.target.partition(".")
+    reduction = (entry.from_rating is not None and entry.to_rating is not None
+                 and entry.to_rating < entry.from_rating)
+    note = (f"  ↓ {entry.detail}" if entry.detail else "  ↓") if reduction else ""
     if domain in ("attributes", "abilities", "virtues"):
-        return f"{_label(key)} {entry.from_rating} → {entry.to_rating}"
+        return f"{_label(key)} {entry.from_rating} → {entry.to_rating}{note}"
     if domain == "crafts":
         return f"Craft ({entry.detail}) {entry.from_rating} → {entry.to_rating}"
     if domain in ("willpower", "essence"):
-        return f"{domain.title()} {entry.from_rating} → {entry.to_rating}"
+        return f"{domain.title()} {entry.from_rating} → {entry.to_rating}{note}"
     if domain == "charms":
         charm = ruleset.charms.get(entry.detail)
         return f"Charm: {charm.name if charm else entry.detail}"
@@ -449,4 +452,38 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         experience=character.xp_earned,
         issues=issues,
         chargen_locked=character.chargen_locked,
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Play-state capacities (the in-play tracker reads these; nothing flows back) #
+# --------------------------------------------------------------------------- #
+
+@dataclass
+class PlayHealthBox:
+    label: str            # "-0", "-1", "Incap", with " ★" for a bonus/charm level
+    incapacitated: bool
+
+
+@dataclass
+class PlayView:
+    """The capacities the Play tab overlays its fill-state onto, all derived from
+    the permanent character — the box count/labels of the health track and the
+    mote/Willpower maxima. The tracker stores only the fill marks (Character.play)."""
+    health_boxes: list[PlayHealthBox]
+    personal_max: int
+    peripheral_max: int
+    willpower_max: int
+
+
+def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
+    """Capacities for the in-play tracker. Pure read of the engine derivations —
+    the health track shape, the Essence pools, and permanent Willpower."""
+    d = derive.derive(ruleset, character)
+    return PlayView(
+        health_boxes=[PlayHealthBox(_health_label(hl), hl.incapacitated)
+                      for hl in d.health_levels],
+        personal_max=d.essence_personal,
+        peripheral_max=d.essence_peripheral,
+        willpower_max=d.willpower,
     )

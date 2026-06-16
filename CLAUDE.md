@@ -98,10 +98,15 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - `lock_chargen()` must compute and store `wp_virtue_component` (the two highest
   Virtues at lock). This is the mechanism by which post-creation Virtue gains do
   not raise Willpower.
-- **Play-state is out of scope:** current motes/Willpower, marked health damage,
-  Virtue channels, Limit accrual, and the Resources purchase transaction. The
-  builder stores permanent values only. If ever added, it is a separate layer and
-  must not enter chargen validation.
+- **Play-state is a SEPARATE, validation-isolated layer (added 2026-06-16).** It was
+  originally out of scope; the user has since added an in-play tracker (the Play tab):
+  marked health damage, motes spent, temporary Willpower, and Limit. It lives on
+  `Character.play` (`PlayState`, optional → old saves load with it `None`) and is a
+  deliberately dumb manual tracker — no auto mote-accounting, no damage-wrapping, no
+  auto-healing. The hard rule survives: **play-state must NOT enter chargen validation,
+  the XP audit, or the permanent-value derivations.** Capacities only flow OUT of the
+  engine (health track, Essence pools, permanent WP) into the tracker; nothing flows
+  back. Still out of scope: Virtue channels and the Resources purchase transaction.
 
 ## Stack
 - Python + pydantic v2 + pytest.
@@ -118,7 +123,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (199 tests passing)
+## Status (219 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -153,6 +158,18 @@ Exalted-1E-Charsheet-Generator/      (project root)
     an append-only `XpEntry`. `undo_last` reverses the most recent row (LIFO, so the
     log and traits never desync). `xp_spent`/`xp_available`/`add_xp`, plus `validate_xp`
     (overspend + per-row cost-tamper audit; `AdvancementError` carries the UI message).
+    **Permanent trait reductions (curses / Charm costs — done 2026-06-16):**
+    `lower_attribute/ability/virtue/willpower/essence` lower a permanent trait OUTSIDE
+    the XP economy — they refund no XP and log a `cost 0` row with `to_rating <
+    from_rating`, so `_expected_cost` prices any reduction at 0 (the audit never flags a
+    curse) and `undo_last` reverses it like any row. Engine enforces only the floor
+    (attr/virtue/WP/essence ≥ 1, ability ≥ 0), not a rules reason; the free-text reason
+    rides on the row's `detail`. **Willpower below the Virtue floor:** permanent WP =
+    pinned `wp_virtue_component` + `willpower_purchased`; a curse decrements purchased,
+    which may go **net-negative** (its `ge=0` guard was relaxed for exactly this), and
+    `undo_last` for willpower is symmetric (`-= to−from`) so it reverses raises AND
+    reductions. A reduction that drops an Ability below a known Charm's `min_ability` is
+    surfaced by the normal `validate()` — intended, not blocked.
 - **Persistence:** `persistence.py` — atomic JSON load/save, enum-keyed dicts.
   Save naming: `slugify_name`/`suggested_filename` name the file after the character
   (`Ashes-of-Dawn` -> `ashes-of-dawn.character.json`); `default_save_dir` is next to
@@ -174,12 +191,20 @@ Exalted-1E-Charsheet-Generator/      (project root)
   raise traits / learn Charms-spells / add Combos-specialties at the engine's price,
   with a running spend log and last-first undo; inert until locked. A right-hand
   Details panel (`view.build_charm_detail`/`build_spell_detail`) describes the
-  Charm/spell currently selected in the Learn dropdowns.
-  `ui/builder.py`
-  is the **unified tabbed app** (Edit / Charms / Combos / XP / Sheet, one shared
+  Charm/spell currently selected in the Learn dropdowns. It also has a **"Reduce a
+  Trait" card** (curse / Charm cost): a dropdown of every reducible trait with its
+  current value + a reason field → `advancement.lower_*` (free, logged, undoable).
+  `ui/play.py` is the **in-play tracker (the Play tab)** — `view.build_play_view`
+  supplies the capacities (health-track boxes, mote pools, permanent WP); the tab
+  overlays the fill-state stored on `Character.play`: clickable health boxes cycling
+  empty→`/`→`x`→`*`, numeric motes-spent (Personal/Peripheral), temp-WP dot boxes, a
+  bare 10-box Limit counter, and **Rest / refresh** (clears motes + temp WP only —
+  damage/Limit are ST discretion). Live regardless of lock; ZERO game logic, never
+  feeds back into validation. `ui/builder.py`
+  is the **unified tabbed app** (Edit / Charms / Combos / XP / Play / Sheet, one shared
   Character, with New / Save / Load / Finish & Lock / Unlock). Once locked the chargen
   tabs (Edit/Charms/Combos) go read-only (a notice points to the XP tab or Unlock);
-  the XP tab is where advancement happens. It **starts on a
+  the XP tab is where advancement happens; the Play tab is live throughout. It **starts on a
   blank character** (the example is no longer auto-loaded — open it via the path arg
   or Load). **Save/Load are deployment-aware:** the shipped build runs in the **browser**
   (`pack/run_app.py` → `ui.run(show=True)`), where Save prompts for a filename and
@@ -359,7 +384,12 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - **Deferred / not yet authored:** `chargen_budgets.json`, `costs_bonus.json`,
   `costs_xp.json` (optional — loader falls back to verified model defaults);
   combat/attack derivation (weapons are display-only); the Dire Lance mounted
-  profile; Limit Break (play-state — add at sheet-export time, not chargen).
+  profile. (Limit is now tracked in the Play tab — see the play-state layer above.)
+- **In-play tracker — done 2026-06-16.** `Character.play: Optional[PlayState]` (Damage
+  enum `/ x *`, health marks aligned to the derived track, motes spent, temp WP, Limit
+  0..10); the Play tab (`ui/play.py`) + `view.build_play_view`; permanent trait
+  reductions on the XP tab (`advancement.lower_*`). Tests in `tests/test_play.py` +
+  reduction tests in `tests/test_advancement.py` + render tests via the User-sim harness.
 
 ## TODO — planned next
 All prior TODOs DONE (2026-06-15): ~~remove M&F~~, ~~repeatable Ox-Body~~,
@@ -372,12 +402,21 @@ BP-spend log~~, ~~free background editing on the XP screen~~, ~~free equipment s
 the XP screen~~, ~~custom weapon/armor-name crash (NiceGUI 3.x select-value)~~. **All queued
 TODOs are now cleared.**
 
-**Stopping point — 2026-06-16.** Natural pause before the next big arc: the **castebook
-charms** and **other Exalt splats** (Lunar/Dragon-Blooded/Sidereal/Abyssal). Corebook
-Solar content + chargen + post-lock XP are complete and the Linux browser build is
-re-packaged and smoke-tested green. Pick up the splats / castebook charms from here.
+**In progress — multi-splat refactor (2026-06-16).** Generalizing Solar-only → all Exalt
+types, **all-splats-RuleSet + runtime-filtering** design, **Abyssal first**. Phases **0-1
+DONE** (on `main`): per-Exalt-keyed cost/budget tables (`RuleSet.{budgets,xp_costs,
+bonus_costs}: dict[str,…]` + `*_for(exalt_type)` accessors, "default" fallback);
+`ExaltDefinition`/`EssencePoolSpec` + `RuleSet.exalts` + `exalt_for`; `data/exalts.json`
+(Solar row); `derive.essence_pools(ruleset, character)` is now a data lookup;
+`OX_BODY_ID` → `validate.ox_body_charm(ruleset, character)`; `validate.check_exalt_type`.
+**Phases 2-5 PENDING** — Phase 2 caste-enum→string, Phase 3 splat filtering + UI, Phase 4
+sorcery/necromancy generalization, **Phase 5 Abyssal data authoring is PNG-GATED** (no
+Abyssal pages in `images/` yet). Full plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 
-Open future work (unscheduled): **castebook charms + other splats** (next big arc); the
-**Windows .exe** still needs a Windows host (PyInstaller can't cross-compile; same spec);
-combat/attack derivation (weapons are display-only); Limit Break at sheet-export time.
-See [[packaging-plan]], [[combat-engine-deferred]].
+Also landed 2026-06-16: the **in-play tracker** (Play tab + trait reductions — see the
+play-state layer above), which reversed the old "play-state out of scope" decision.
+
+Open future work (unscheduled): finish the **multi-splat refactor** (Phases 2-4) then
+**Abyssal + castebook charms** (needs PNGs); the **Windows .exe** still needs a Windows
+host (PyInstaller can't cross-compile; same spec); combat/attack derivation (weapons are
+display-only). See [[packaging-plan]], [[combat-engine-deferred]].

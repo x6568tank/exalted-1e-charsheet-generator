@@ -23,3 +23,21 @@ async def test_typing_custom_name_keeps_stats(user: User) -> None:
     wp = M.CHAR_BLANK.weapons[0]
     assert wp.name == "Homebrew Daiklave"
     assert (wp.accuracy, wp.damage) == (7, 9)   # typed stats preserved, not zeroed
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_play_tab_renders(user: User) -> None:
+    # the in-play tracker renders its sections without error
+    await user.open('/play')
+    await user.should_see("Health")
+    await user.should_see("Limit")
+    await user.should_see("Rest / refresh")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_xp_tab_shows_reduce_card(user: User) -> None:
+    # the post-lock XP tab renders the new trait-reduction card
+    await user.open('/xp')
+    await user.should_see("Reduce a Trait")

@@ -165,6 +165,73 @@ def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
 
 
 # --------------------------------------------------------------------------- #
+# Permanent reductions (curses, Charm costs, story effects)
+#
+# A reduction lowers a permanent trait *outside* the XP economy: it refunds NO XP
+# (cost 0) and is logged as an append-only row with to_rating < from_rating, so the
+# audit prices it at 0 and `undo_last` reverses it like any other row. These are
+# story-driven (a curse that saps Strength, a Charm with a permanent cost), so the
+# engine enforces only the floor — not any rules reason. The `reason` is free text
+# (stored on the row's detail) shown in the ledger. If a reduction drops an Ability
+# below a known Charm's requirement, the normal validate() surfaces that — by design.
+# --------------------------------------------------------------------------- #
+
+def _log_reduction(character: Character, target: str, frm: int, to: int, reason: str) -> XpEntry:
+    entry = XpEntry(target=target, detail=reason, from_rating=frm, to_rating=to, cost=0)
+    character.xp_log.append(entry)
+    return entry
+
+
+def lower_attribute(character: Character, attr: AttributeName, reason: str = "") -> XpEntry:
+    _ensure_locked(character)
+    frm = character.attributes[attr]
+    if frm <= 1:
+        raise AdvancementError(f"{attr.value} is already at 1 (the minimum).")
+    character.attributes[attr] = frm - 1
+    return _log_reduction(character, f"attributes.{attr.value}", frm, frm - 1, reason)
+
+
+def lower_ability(character: Character, ability: AbilityName, reason: str = "") -> XpEntry:
+    _ensure_locked(character)
+    frm = character.abilities.get(ability, 0)
+    if frm <= 0:
+        raise AdvancementError(f"{ability.value} is already at 0.")
+    character.abilities[ability] = frm - 1
+    return _log_reduction(character, f"abilities.{ability.value}", frm, frm - 1, reason)
+
+
+def lower_virtue(character: Character, virtue: VirtueName, reason: str = "") -> XpEntry:
+    _ensure_locked(character)
+    frm = character.virtues[virtue]
+    if frm <= 1:
+        raise AdvancementError(f"{virtue.value} is already at 1 (the minimum).")
+    character.virtues[virtue] = frm - 1
+    return _log_reduction(character, f"virtues.{virtue.value}", frm, frm - 1, reason)
+
+
+def lower_willpower(character: Character, reason: str = "") -> XpEntry:
+    """Reduce permanent Willpower one dot (a curse). Decrements the purchased
+    component, which may go negative — permanent Willpower = pinned Virtue component
+    + purchased, so a curse below the Virtue floor is represented as net-negative
+    purchased. Floored at a permanent Willpower of 1."""
+    _ensure_locked(character)
+    frm = derive.willpower(character)
+    if frm <= 1:
+        raise AdvancementError("Willpower is already at 1 (the minimum).")
+    character.willpower_purchased -= 1
+    return _log_reduction(character, "willpower", frm, frm - 1, reason)
+
+
+def lower_essence(character: Character, reason: str = "") -> XpEntry:
+    _ensure_locked(character)
+    frm = character.essence_rating
+    if frm <= 1:
+        raise AdvancementError("Essence is already at 1 (the minimum).")
+    character.essence_rating = frm - 1
+    return _log_reduction(character, "essence", frm, frm - 1, reason)
+
+
+# --------------------------------------------------------------------------- #
 # New traits
 # --------------------------------------------------------------------------- #
 
@@ -276,7 +343,8 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
     elif domain == "virtues":
         character.virtues[VirtueName(key)] = entry.from_rating
     elif domain == "willpower":
-        character.willpower_purchased = max(0, character.willpower_purchased - 1)
+        # Reverse exactly the delta this row applied: a raise (+1) or a reduction (-1).
+        character.willpower_purchased -= (entry.to_rating - entry.from_rating)
     elif domain == "essence":
         character.essence_rating = entry.from_rating
     elif domain == "charms":
@@ -317,6 +385,9 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
     cannot be priced (e.g. an id no longer in the rule set)."""
     domain, _, key = entry.target.partition(".")
     frm = entry.from_rating
+    # A permanent reduction (curse / Charm cost) is free and refunds no XP.
+    if frm is not None and entry.to_rating is not None and entry.to_rating < frm:
+        return 0
     if domain == "attributes" and frm is not None:
         return costs.attribute_step(ruleset, character, frm)
     if domain == "abilities" and frm is not None:

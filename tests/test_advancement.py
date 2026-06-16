@@ -277,3 +277,60 @@ def test_validate_xp_summary_reports_available():
     advancement.raise_attribute(rs, c, AT.DEXTERITY)       # 12
     summary = next(i for i in advancement.validate_xp(rs, c) if i.code == "xp-summary")
     assert "12 of 20" in summary.message and "8 available" in summary.message
+
+
+# --------------------------------------------------------------------------- #
+# Permanent reductions (curses / Charm costs) — free, logged, undoable
+# --------------------------------------------------------------------------- #
+
+def test_lower_attribute_is_free_and_logged():
+    rs, c = _ruleset(), _locked(xp=10)
+    advancement.lower_attribute(c, AT.DEXTERITY, "wasting curse")
+    assert c.attributes[AT.DEXTERITY] == 2                  # 3 -> 2
+    row = c.xp_log[-1]
+    assert (row.from_rating, row.to_rating, row.cost) == (3, 2, 0)
+    assert row.detail == "wasting curse"
+    assert advancement.xp_available(c) == 10               # no XP spent or refunded
+
+
+def test_reduction_passes_the_xp_audit():
+    rs, c = _ruleset(), _locked(xp=10)
+    advancement.lower_attribute(c, AT.DEXTERITY, "curse")
+    codes = {i.code for i in advancement.validate_xp(rs, c)}
+    assert "xp-cost-mismatch" not in codes                 # a 0-cost reduction is expected at 0
+
+
+def test_lower_floors_guard_the_minimum():
+    rs, c = _ruleset(), _locked()
+    c.attributes[AT.STRENGTH] = 1
+    with pytest.raises(advancement.AdvancementError):
+        advancement.lower_attribute(c, AT.STRENGTH)        # already at 1
+
+
+def test_lower_willpower_can_drop_below_virtue_component():
+    rs, c = _ruleset(), _locked()
+    start = derive.willpower(c)                             # = two highest Virtues (3+3 = 6)
+    for _ in range(start - 1):                              # curse it all the way down to 1
+        advancement.lower_willpower(c, "soul-eroding curse")
+    assert derive.willpower(c) == 1
+    assert c.willpower_purchased < 0                        # net-negative below the Virtue floor
+    with pytest.raises(advancement.AdvancementError):
+        advancement.lower_willpower(c)                      # floored at 1
+
+
+def test_undo_reverses_a_willpower_reduction():
+    rs, c = _ruleset(), _locked()
+    start = derive.willpower(c)
+    advancement.lower_willpower(c, "curse")
+    assert derive.willpower(c) == start - 1
+    advancement.undo_last(rs, c)
+    assert derive.willpower(c) == start                    # restored exactly
+    assert c.xp_log == []
+
+
+def test_undo_reverses_an_attribute_reduction():
+    rs, c = _ruleset(), _locked()
+    advancement.lower_attribute(c, AT.DEXTERITY, "curse")   # 3 -> 2
+    advancement.undo_last(rs, c)
+    assert c.attributes[AT.DEXTERITY] == 3
+    assert c.xp_log == []
