@@ -1,0 +1,325 @@
+{
+  "id": "char.new",
+  "name": "Yarak",
+  "player": "",
+  "edition": "1e",
+  "exalt_type": "Solar",
+  "caste": "Twilight",
+  "concept": "Barbarian Magi-technician",
+  "nature": "Bravo",
+  "anima": "Golden Cubes Endlessly Crashing Into Each Other",
+  "essence_rating": 3,
+  "attributes": {
+    "strength": 3,
+    "dexterity": 5,
+    "stamina": 3,
+    "charisma": 3,
+    "manipulation": 2,
+    "appearance": 2,
+    "perception": 2,
+    "intelligence": 5,
+    "wits": 2
+  },
+  "abilities": {
+    "archery": 0,
+    "brawl": 0,
+    "martial_arts": 0,
+    "melee": 2,
+    "thrown": 2,
+    "endurance": 2,
+    "performance": 0,
+    "presence": 0,
+    "resistance": 2,
+    "survival": 3,
+    "craft": 0,
+    "investigation": 0,
+    "lore": 3,
+    "medicine": 0,
+    "occult": 3,
+    "athletics": 2,
+    "awareness": 1,
+    "dodge": 0,
+    "larceny": 0,
+    "stealth": 0,
+    "bureaucracy": 0,
+    "linguistics": 0,
+    "ride": 0,
+    "sail": 0,
+    "socialize": 0
+  },
+  "crafts": [
+    {
+      "focus": "Devonian Artificing",
+      "rating": 5
+    },
+    {
+      "focus": "Metalworking",
+      "rating": 2
+    }
+  ],
+  "favored_abilities": [
+    "endurance",
+    "resistance",
+    "survival",
+    "melee",
+    "thrown"
+  ],
+  "specialties": [
+    {
+      "ability": "craft",
+      "name": "Making Do",
+      "rating": 3
+    }
+  ],
+  "virtues": {
+    "compassion": 1,
+    "conviction": 3,
+    "temperance": 2,
+    "valor": 3
+  },
+  "virtue_flaw": {
+    "virtue": "conviction",
+    "description": "Indulgence Of Genius (do mad science shit instead of anything productive. Gain Limit when "
+  },
+  "willpower_purchased": 1,
+  "wp_virtue_component": 6,
+  "backgrounds": [
+    {
+      "name": "Resources",
+      "rating": 3,
+      "note": "Stipend From The Bull of The North"
+    },
+    {
+      "name": "Artifact",
+      "rating": 1,
+      "note": "Hearthstone Amulet"
+    },
+    {
+      "name": "Artifact",
+      "rating": 2,
+      "note": "Daiklave"
+    },
+    {
+      "name": "Artifact",
+      "rating": 3,
+      "note": "Reinforced Breastplate"
+    }
+  ],
+  "charms": [
+    "solar.craft.flawless-handiwork-method",
+    "solar.craft.object-strengthening-touch",
+    "solar.craft.shattering-grasp",
+    "solar.melee.excellent-strike",
+    "solar.survival.hardship-surviving-mendicant-spirit",
+    "solar.occult.terrestrial-circle-sorcery"
+  ],
+  "combos": [],
+  "spells": [
+    "spell.terrestrial.emerald-countermagic"
+  ],
+  "ox_body": [
+    {
+      "variant": "one-one-two-two",
+      "health_levels": [
+        -1,
+        -2,
+        -2
+      ]
+    },
+    {
+      "variant": "one-one-two-two",
+      "health_levels": [
+        -1,
+        -2,
+        -2
+      ]
+    }
+  ],
+  "weapons": [
+    {
+      "name": "Daiklave",
+      "speed": 3,
+      "accuracy": 2,
+      "damage": 5,
+      "damage_type": "L",
+      "defense": 2,
+      "rate": 0,
+      "range": 0,
+      "max_strength": 0,
+      "min_strength": 2,
+      "min_dexterity": 0,
+      "min_martial_arts": 0,
+      "artifact_rating": 2,
+      "attunement": 5,
+      "resources_cost": 0,
+      "material": "orichalcum",
+      "notes": ""
+    }
+  ],
+  "armor": [
+    {
+      "name": "Reinforced Buff Jacket (Artifact)",
+      "soak_lethal": 7,
+      "soak_bashing": 10,
+      "mobility_penalty": -1,
+      "fatigue": 0,
+      "artifact_rating": 2,
+      "attunement": 3,
+      "resources_cost": 0,
+      "material": "orichalcum"
+    }
+  ],
+  "health_bonus_levels": [
+    {
+      "penalty": -1,
+      "source_charm": "Bonus",
+      "removed": false
+    },
+    {
+      "penalty": -1,
+      "source_charm": "Bonus",
+      "removed": false
+    },
+    {
+      "penalty": -2,
+      "source_charm": "Bonus",
+      "removed": false
+    },
+    {
+      "penalty": -2,
+      "source_charm": "Bonus",
+      "removed": false
+    },
+    {
+      "penalty": -2,
+      "source_charm": "Bonus",
+      "removed": false
+    },
+    {
+      "penalty": -2,
+      "source_charm": "Bonus",
+      "removed": false
+    }
+  ],
+  "chargen_locked": true,
+  "chargen_snapshot": {
+    "attributes": {
+      "strength": 3,
+      "dexterity": 5,
+      "stamina": 3,
+      "charisma": 3,
+      "manipulation": 2,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 5,
+      "wits": 2
+    },
+    "abilities": {
+      "archery": 0,
+      "brawl": 0,
+      "martial_arts": 0,
+      "melee": 2,
+      "thrown": 2,
+      "endurance": 2,
+      "performance": 0,
+      "presence": 0,
+      "resistance": 2,
+      "survival": 3,
+      "craft": 0,
+      "investigation": 0,
+      "lore": 3,
+      "medicine": 0,
+      "occult": 3,
+      "athletics": 2,
+      "awareness": 1,
+      "dodge": 0,
+      "larceny": 0,
+      "stealth": 0,
+      "bureaucracy": 0,
+      "linguistics": 0,
+      "ride": 0,
+      "sail": 0,
+      "socialize": 0
+    },
+    "crafts": [
+      {
+        "focus": "Devonian Artificing",
+        "rating": 5
+      },
+      {
+        "focus": "Metalworking",
+        "rating": 2
+      }
+    ],
+    "virtues": {
+      "compassion": 1,
+      "conviction": 3,
+      "temperance": 2,
+      "valor": 3
+    },
+    "specialties": [
+      {
+        "ability": "craft",
+        "name": "Making Do",
+        "rating": 3
+      }
+    ],
+    "backgrounds": [
+      {
+        "name": "Resources",
+        "rating": 3,
+        "note": "Stipend From The Bull of The North"
+      },
+      {
+        "name": "Artifact",
+        "rating": 1,
+        "note": "Hearthstone Amulet"
+      },
+      {
+        "name": "Artifact",
+        "rating": 2,
+        "note": "Daiklave"
+      },
+      {
+        "name": "Artifact",
+        "rating": 3,
+        "note": "Reinforced Breastplate"
+      }
+    ],
+    "charms": [
+      "solar.craft.flawless-handiwork-method",
+      "solar.craft.object-strengthening-touch",
+      "solar.craft.shattering-grasp",
+      "solar.melee.excellent-strike",
+      "solar.survival.hardship-surviving-mendicant-spirit",
+      "solar.occult.terrestrial-circle-sorcery"
+    ],
+    "spells": [
+      "spell.terrestrial.emerald-countermagic"
+    ],
+    "combos": [],
+    "ox_body": [
+      {
+        "variant": "one-one-two-two",
+        "health_levels": [
+          -1,
+          -2,
+          -2
+        ]
+      },
+      {
+        "variant": "one-one-two-two",
+        "health_levels": [
+          -1,
+          -2,
+          -2
+        ]
+      }
+    ],
+    "essence_rating": 3,
+    "willpower_purchased": 1,
+    "wp_virtue_component": 6
+  },
+  "xp_earned": 0,
+  "xp_log": []
+}

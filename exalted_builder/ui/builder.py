@@ -189,13 +189,16 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         dialog.close()
         _apply_loaded(loaded, Path(path_str), Path(path_str).stem)
 
-    def _on_upload(e) -> None:
+    async def _on_upload(e, dialog) -> None:
+        # NiceGUI 3.x: the event carries a FileUpload at e.file (was e.content/e.name
+        # in 2.x), and reading it is async.
         try:
-            loaded = persistence.character_from_json(e.content.read().decode("utf-8"))
+            loaded = persistence.character_from_json(await e.file.text())
         except Exception as ex:                       # noqa: BLE001 - surface any parse/validation error
             ui.notify(f"Load failed: {ex}", type="negative")
             return
-        _apply_loaded(loaded, None, e.name)
+        dialog.close()
+        _apply_loaded(loaded, None, e.file.name)
 
     def new_character(dialog=None) -> None:
         ctx["char"] = Character(id="char.new")
@@ -242,7 +245,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         with ui.dialog() as dialog, ui.card().classes("gap-2"):
             ui.label("Load a character").classes("text-lg font-bold")
             ui.upload(label="Choose a .character.json file", auto_upload=True,
-                      on_upload=lambda e: (_on_upload(e), dialog.close())).classes("w-96")
+                      on_upload=lambda e: _on_upload(e, dialog)).classes("w-96")
             ui.label("…or load by path:").classes("text-xs text-gray-600 mt-2")
             path_input = ui.input("Path to .character.json", value=str(ctx["path"])).classes("w-96")
             with ui.row():
