@@ -222,27 +222,78 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_spec(idx)).props("flat dense round")
             ui.button("Add specialty", icon="add", on_click=add_spec).props("flat dense")
 
-        # equipment (armour affects soak; weapons are display-only)
+        # equipment — inline copies; the catalog autofills, then every stat is
+        # editable per item (custom or tweaked artifact/masterwork). Each item's
+        # numbers live behind an "Edit stats" expander; the summary updates live.
         armor_names = [a.name for a in ruleset.armor_catalog.values()]
         weapon_names = [w.name for w in ruleset.weapon_catalog.values()]
+
+        def _weapon_summary(wp) -> str:
+            return f"Acc{wp.accuracy:+d} Dmg{wp.damage:+d}{wp.damage_type} Def{wp.defense:+d}"
+
+        def _armor_summary(ar) -> str:
+            return f"Soak {ar.soak_lethal}L/{ar.soak_bashing}B  Mob{ar.mobility_penalty:+d} Ftg{ar.fatigue}"
+
+        def stat_num(item, attr, label, sm_label, sm_fn, *, signed=False):
+            def _on(e, item=item, attr=attr, sm_label=sm_label, sm_fn=sm_fn):
+                setattr(item, attr, int(e.value or 0))
+                sm_label.set_text(sm_fn(item))
+                changed()
+            kwargs = {} if signed else {"min": 0}
+            ui.number(label=label, value=getattr(item, attr), format="%d",
+                      on_change=_on, **kwargs).classes("w-20").props("dense")
+
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
             with panel("Armor (sets soak)").classes("flex-1"):
                 for idx, ar in enumerate(character.armor):
-                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                        ui.select(armor_names, value=ar.name or None, with_input=True,
-                                  new_value_mode="add-unique", label="Armor",
-                                  on_change=lambda e, idx=idx: set_armor(idx, e.value)).classes("flex-1")
-                        ui.label(f"{ar.soak_lethal}L/{ar.soak_bashing}B").classes("text-xs w-16")
-                        ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("armor", idx)).props("flat dense round")
+                    with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
+                        with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                            ui.select(armor_names, value=ar.name or None, with_input=True,
+                                      new_value_mode="add-unique", label="Armor",
+                                      on_change=lambda e, idx=idx: set_armor(idx, e.value)).classes("flex-1")
+                            asm = ui.label(_armor_summary(ar)).classes("text-xs")
+                            ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("armor", idx)).props("flat dense round")
+                        with ui.expansion("Edit stats", icon="tune").classes("w-full"):
+                            with ui.row().classes("w-full gap-2 flex-wrap"):
+                                stat_num(ar, "soak_lethal", "Soak L", asm, _armor_summary)
+                                stat_num(ar, "soak_bashing", "Soak B", asm, _armor_summary)
+                                stat_num(ar, "mobility_penalty", "Mob", asm, _armor_summary, signed=True)
+                                stat_num(ar, "fatigue", "Ftg", asm, _armor_summary)
+                                stat_num(ar, "artifact_rating", "Art", asm, _armor_summary)
+                                stat_num(ar, "attunement", "Attune", asm, _armor_summary)
+                                stat_num(ar, "resources_cost", "Res", asm, _armor_summary)
                 ui.button("Add armor", icon="add", on_click=lambda: add_item("armor")).props("flat dense")
             with panel("Weapons").classes("flex-1"):
                 for idx, wp in enumerate(character.weapons):
-                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                        ui.select(weapon_names, value=wp.name or None, with_input=True,
-                                  new_value_mode="add-unique", label="Weapon",
-                                  on_change=lambda e, idx=idx: set_weapon(idx, e.value)).classes("flex-1")
-                        ui.label(f"Acc{wp.accuracy:+d} Dmg{wp.damage:+d}{wp.damage_type}").classes("text-xs w-24")
-                        ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("weapons", idx)).props("flat dense round")
+                    with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
+                        with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                            ui.select(weapon_names, value=wp.name or None, with_input=True,
+                                      new_value_mode="add-unique", label="Weapon",
+                                      on_change=lambda e, idx=idx: set_weapon(idx, e.value)).classes("flex-1")
+                            wsm = ui.label(_weapon_summary(wp)).classes("text-xs")
+                            ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("weapons", idx)).props("flat dense round")
+                        with ui.expansion("Edit stats", icon="tune").classes("w-full"):
+                            with ui.row().classes("w-full gap-2 flex-wrap"):
+                                stat_num(wp, "speed", "Spd", wsm, _weapon_summary, signed=True)
+                                stat_num(wp, "accuracy", "Acc", wsm, _weapon_summary, signed=True)
+                                stat_num(wp, "damage", "Dmg", wsm, _weapon_summary, signed=True)
+                                ui.select(["L", "B"], value=wp.damage_type or "L", label="Type",
+                                          on_change=lambda e, wp=wp, wsm=wsm: (setattr(wp, "damage_type", e.value or "L"),
+                                                                              wsm.set_text(_weapon_summary(wp)), changed())
+                                          ).classes("w-16").props("dense")
+                                stat_num(wp, "defense", "Def", wsm, _weapon_summary, signed=True)
+                                stat_num(wp, "rate", "Rate", wsm, _weapon_summary)
+                                stat_num(wp, "range", "Rng", wsm, _weapon_summary)
+                            with ui.row().classes("w-full gap-2 flex-wrap"):
+                                stat_num(wp, "min_strength", "Min Str", wsm, _weapon_summary)
+                                stat_num(wp, "min_dexterity", "Min Dex", wsm, _weapon_summary)
+                                stat_num(wp, "min_martial_arts", "Min MA", wsm, _weapon_summary)
+                                stat_num(wp, "max_strength", "Max Str", wsm, _weapon_summary)
+                                stat_num(wp, "artifact_rating", "Art", wsm, _weapon_summary)
+                                stat_num(wp, "attunement", "Attune", wsm, _weapon_summary)
+                                stat_num(wp, "resources_cost", "Res", wsm, _weapon_summary)
+                            ui.input("Notes", value=wp.notes,
+                                     on_change=lambda e, wp=wp: (setattr(wp, "notes", e.value), changed())).classes("w-full").props("dense")
                 ui.button("Add weapon", icon="add", on_click=lambda: add_item("weapons")).props("flat dense")
 
         # virtue flaw + bonus health levels (e.g. Ox-Body Technique)

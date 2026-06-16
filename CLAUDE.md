@@ -282,6 +282,14 @@ Exalted-1E-Charsheet-Generator/      (project root)
   immunity). The editor's Edit pane shows a caste-info box at the top-left (caste name,
   description, Caste Abilities, Anima Power) beside the Identity fields; it refreshes when the
   Caste dropdown changes.
+- **Editable custom equipment — done 2026-06-15.** The editor's Armor/Weapons panels now let
+  you fully edit each item's stats (not just pick a catalog name): every item has an "Edit
+  stats" expander (`ui.expansion`) with number inputs writing back to the inline `Weapon`/
+  `Armor` copy, and a live-updating summary line. Weapons expose Spd/Acc/Dmg/Type(L·B)/Def/
+  Rate/Range + min Str·Dex·MA, max Str, artifact/attunement/resources, notes; armor exposes
+  soak L·B, mobility, fatigue, artifact/attunement/resources. Non-negative fields are clamped;
+  picking a catalog name re-fills (overwrites) the stats. UI-only — the inline-copy model
+  already held every field; no engine change. (Weapons remain display-only in the engine.)
 - **XP advancement — done (post-lock):** `engine/costs.py` + `engine/advancement.py`
   + the XP tab. The chargen snapshot is the baseline; purchases mutate current
   traits and append to `xp_log`; `validate_xp` audits overspend/tampering. Trait
