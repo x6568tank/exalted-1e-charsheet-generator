@@ -171,13 +171,20 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.row().classes("w-full gap-2 no-wrap"):
                 for category, members in validate.ATTRIBUTE_CATEGORIES.items():
                     with ui.column().classes("flex-1 gap-1"):
-                        spent = sum(character.attributes[a] - 1 for a in members)
-                        ui.label(f"{category} — {spent} spent").classes("text-xs font-semibold")
+                        spent_label = ui.label().classes("text-xs font-semibold")
+
+                        def show_spent(label=spent_label, members=members, category=category):
+                            spent = sum(character.attributes[a] - 1 for a in members)
+                            label.set_text(f"{category} — {spent} spent")
+
+                        show_spent()
                         for a in members:
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
                                 ui.label(_label(a.value)).classes("text-sm w-28")
+                                # update this column's tally live as its dots change
                                 dots(lambda a=a: character.attributes[a],
-                                     lambda v, a=a: character.attributes.__setitem__(a, v),
+                                     lambda v, a=a, upd=show_spent: (
+                                         character.attributes.__setitem__(a, v), upd()),
                                      1, 5)
 
         # abilities (by ability-caste group)
