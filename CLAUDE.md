@@ -275,10 +275,13 @@ Exalted-1E-Charsheet-Generator/      (project root)
   the editor field is now a combobox of the catalog with `new_value_mode="add-unique"` so a
   custom Nature is still allowed.
 - **Caste info box — done 2026-06-15.** `CasteDefinition` gained a `description` field;
-  `castes.json` now carries each caste's quick description + Anima Power (both from the
-  p104-105 summary PNG; `anima_powers` was already populated). The editor's Edit pane shows
-  a caste-info box at the top-left (caste name, description, Caste Abilities, Anima Power)
-  beside the Identity fields; it refreshes when the Caste dropdown changes.
+  `castes.json` carries each caste's quick description (from the p104-105 summary PNG) and a
+  **detailed Anima Power write-up with mote costs** (read from the per-caste anima pages,
+  corebook p119-127: Dawn 10m terrify; Zenith 1m/body burn + 5m smite undead; Twilight 5m
+  cancel health levels; Night double-motes to mute + 10m veil; Eclipse 10m+1WP oath + spirit
+  immunity). The editor's Edit pane shows a caste-info box at the top-left (caste name,
+  description, Caste Abilities, Anima Power) beside the Identity fields; it refreshes when the
+  Caste dropdown changes.
 - **XP advancement — done (post-lock):** `engine/costs.py` + `engine/advancement.py`
   + the XP tab. The chargen snapshot is the baseline; purchases mutate current
   traits and append to `xp_log`; `validate_xp` audits overspend/tampering. Trait
@@ -294,9 +297,10 @@ Exalted-1E-Charsheet-Generator/      (project root)
 
 ## TODO — planned next
 Recent TODOs all DONE (2026-06-15): ~~remove M&F~~, ~~repeatable Ox-Body~~,
-~~Nature dropdown~~, ~~Caste info box (description + Anima Power)~~ (see status bullets).
+~~Nature dropdown~~, ~~Caste info box (description + Anima Power)~~, ~~re-package the Linux
+binary~~ (rebuilt 2026-06-15, `dist/ExaltedBuilder` ~60MB, smoke-tested: boots + serves 200).
 
-1. **Re-package the binary** (`pyinstaller pack/exalted-builder.spec` → `dist/ExaltedBuilder`).
-   The M&F removal + repeatable Ox-Body + Nature dropdown + Caste info box have all landed
-   since the last build and have NOT been re-packaged. One rebuild covers all four. (Linux
-   build only here; the Windows .exe still needs a Windows host.) See [[packaging-plan]].
+Nothing queued. Open future work: the **Windows .exe** still needs a Windows host
+(PyInstaller can't cross-compile; same spec); combat/attack derivation (weapons are
+display-only); Limit Break at sheet-export time. See [[packaging-plan]],
+[[combat-engine-deferred]].
