@@ -129,25 +129,23 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         caste_def = ruleset.castes.get(character.caste)
         caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
 
-        # caste-info box + BP-spend log (left) + identity fields (right)
+        # caste-info box (left) + identity fields (right). The BP-spend log lives in
+        # the right-hand sticky column under Live Validation, not here.
         with ui.row().classes("w-full gap-2 no-wrap items-stretch"):
-            with ui.column().classes("w-72 flex-none gap-2"):
-                with ui.card().classes("w-full p-3 bg-amber-50/40 border border-amber-900/20 gap-1"):
-                    if caste_def:
-                        ui.label(f"{character.caste.value} Caste").classes(
-                            "text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
-                        if caste_def.description:
-                            ui.label(caste_def.description).classes("text-xs")
-                        ui.label("Caste Abilities: " + ", ".join(
-                            _label(a.value) for a in caste_def.caste_abilities)).classes("text-xs italic")
-                        if caste_def.anima_powers:
-                            ui.separator()
-                            ui.label("Anima Power").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
-                            ui.label(caste_def.anima_powers).classes("text-xs")
-                    else:
-                        ui.label("Unknown caste").classes("text-xs text-gray-500")
-                with ui.card().classes("w-full p-3 bg-amber-50/40 border border-amber-900/20 gap-1"):
-                    bp_log()
+            with ui.card().classes("w-72 flex-none p-3 bg-amber-50/40 border border-amber-900/20 gap-1"):
+                if caste_def:
+                    ui.label(f"{character.caste.value} Caste").classes(
+                        "text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+                    if caste_def.description:
+                        ui.label(caste_def.description).classes("text-xs")
+                    ui.label("Caste Abilities: " + ", ".join(
+                        _label(a.value) for a in caste_def.caste_abilities)).classes("text-xs italic")
+                    if caste_def.anima_powers:
+                        ui.separator()
+                        ui.label("Anima Power").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                        ui.label(caste_def.anima_powers).classes("text-xs")
+                else:
+                    ui.label("Unknown caste").classes("text-xs text-gray-500")
             with ui.column().classes("flex-1 gap-2 min-w-0"):
                 with panel("Identity"):
                     with ui.row().classes("w-full gap-3 no-wrap"):
@@ -482,6 +480,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
                 readout()
+            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
+                bp_log()
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:
