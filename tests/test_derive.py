@@ -9,7 +9,12 @@ import pytest
 
 from exalted_builder.engine import derive
 from exalted_builder.models.character import Armor, Character, HealthLevel, OxBodyPurchase
-from exalted_builder.models.rules import AttributeName, VirtueName
+from exalted_builder.models.rules import (
+    AttributeName, EssencePoolSpec, ExaltDefinition, RuleSet, VirtueName)
+
+# A minimal RuleSet carries the Solar ExaltDefinition via its default factory, so
+# the pure derivations that need the essence formula can be exercised standalone.
+_RS = RuleSet(castes={}, charms={})
 
 
 def _char(**kw) -> Character:
@@ -81,15 +86,35 @@ def test_solar_essence_pools():
         },
     )
     # WP = 7, sum of virtues = 10
-    personal, peripheral = derive.essence_pools(c)
+    personal, peripheral = derive.essence_pools(_RS, c)
     assert personal == 2 * 3 + 7            # 13
     assert peripheral == 2 * 7 + 7 + 10     # 31
 
 
-def test_essence_pools_reject_non_solar():
-    c = _char(exalt_type="Lunar")
-    with pytest.raises(NotImplementedError):
-        derive.essence_pools(c)
+def test_essence_pools_use_per_splat_formula():
+    """Non-Solar splats read their own EssencePoolSpec coefficients (data-driven),
+    rather than the Solar 3/7 + Virtues formula."""
+    other = ExaltDefinition(
+        id="Testarossa", label="Test",
+        essence=EssencePoolSpec(personal_essence_coeff=5, peripheral_essence_coeff=9,
+                                peripheral_adds_virtues=False))
+    rs = RuleSet(castes={}, charms={}, exalts={"Testarossa": other})
+    c = _char(exalt_type="Testarossa", essence_rating=2, virtues={
+        VirtueName.COMPASSION: 3, VirtueName.CONVICTION: 2,
+        VirtueName.TEMPERANCE: 4, VirtueName.VALOR: 1,
+    })
+    # WP = 7; this splat's peripheral does NOT add Virtues.
+    personal, peripheral = derive.essence_pools(rs, c)
+    assert personal == 2 * 5 + 7            # 17
+    assert peripheral == 2 * 9 + 7          # 25
+
+
+def test_essence_pools_unknown_exalt_falls_back_to_solar():
+    """An unknown exalt_type does not crash derivation — it falls back to Solar
+    (engine.validate.check_exalt_type surfaces the bad value separately)."""
+    c = _char(exalt_type="Nonexistent", essence_rating=2)
+    personal, peripheral = derive.essence_pools(_RS, c)
+    assert personal == 2 * 3 + derive.willpower(c)
 
 
 # --------------------------------------------------------------------------- #
@@ -205,7 +230,7 @@ def test_derive_bundle():
             VirtueName.VALOR: 1,
         },
     ), 3)
-    d = derive.derive(ruleset=None, character=c)        # ruleset unused by these derivations
+    d = derive.derive(ruleset=_RS, character=c)          # _RS supplies the Solar essence formula
     assert d.willpower == 7
     assert d.essence_personal == 13
     assert d.essence_peripheral == 31

@@ -43,8 +43,10 @@ from .models.rules import (
     CasteDefinition,
     ChargenBudgets,
     Charm,
+    ExaltDefinition,
     ExperienceCosts,
     MagicalMaterial,
+    SOLAR_EXALT,
     NatureType,
     RuleSet,
     Spell,
@@ -106,6 +108,31 @@ def _load_single(path: Path, model: Type[M], problems: list[str]) -> M:
     return model()  # type: ignore[call-arg]
 
 
+def _load_keyed_table(path: Path, model: Type[M], problems: list[str]) -> dict[str, M]:
+    """Load a per-Exalt-type cost/budget table keyed by exalt_type, e.g.
+    ``{"default": {...}, "Abyssal": {...}}``. Absent -> ``{"default": model()}``.
+    A legacy bare single-object file (the old shape) is wrapped under "default" —
+    detected because every concrete table model has at least one non-dict scalar
+    field, so a real keyed map (all values are dicts) is distinguishable. A
+    "default" entry is always guaranteed (the accessors fall back to it)."""
+    if not path.exists():
+        return {"default": model()}  # type: ignore[call-arg]
+    try:
+        raw = _read_json(path)
+    except json.JSONDecodeError as exc:
+        problems.append(f"{path.name}: invalid JSON ({exc})")
+        return {"default": model()}  # type: ignore[call-arg]
+    keyed = isinstance(raw, dict) and bool(raw) and all(isinstance(v, dict) for v in raw.values())
+    try:
+        tables = ({k: model(**v) for k, v in raw.items()} if keyed
+                  else {"default": model(**raw)})
+    except ValidationError as exc:
+        problems.append(f"{path.name}: {exc.errors()[0]['msg']}")
+        return {"default": model()}  # type: ignore[call-arg]
+    tables.setdefault("default", model())  # type: ignore[call-arg]
+    return tables
+
+
 def _index(items: list[M], key: str, kind: str, problems: list[str]) -> dict:
     out: dict = {}
     for it in items:
@@ -165,9 +192,13 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
     materials = _index(_load_array(data_dir / "materials.json", MagicalMaterial, problems),
                        "id", "material", problems)
 
-    bonus_costs = _load_single(data_dir / "costs_bonus.json", BonusPointCosts, problems)
-    xp_costs = _load_single(data_dir / "costs_xp.json", ExperienceCosts, problems)
-    budgets = _load_single(data_dir / "chargen_budgets.json", ChargenBudgets, problems)
+    exalt_list = _load_array(data_dir / "exalts.json", ExaltDefinition, problems)
+    exalts = (_index(exalt_list, "id", "exalt", problems) if exalt_list
+              else {SOLAR_EXALT.id: SOLAR_EXALT})
+
+    bonus_costs = _load_keyed_table(data_dir / "costs_bonus.json", BonusPointCosts, problems)
+    xp_costs = _load_keyed_table(data_dir / "costs_xp.json", ExperienceCosts, problems)
+    budgets = _load_keyed_table(data_dir / "chargen_budgets.json", ChargenBudgets, problems)
 
     # referential integrity — only meaningful once the rows themselves parsed
     _check_prereqs(charms, problems)
@@ -177,6 +208,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         raise RuleDataError(problems)
 
     return RuleSet(
+        exalts=exalts,
         castes=castes,
         charms=charms,
         spells=spells,

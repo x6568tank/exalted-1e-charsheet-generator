@@ -30,6 +30,7 @@ from ..models.character import Character
 from ..models.rules import (
     AbilityName,
     AttributeName,
+    Charm,
     CharmType,
     RuleSet,
     SpellCircle,
@@ -46,10 +47,22 @@ ATTRIBUTE_CATEGORIES: dict[str, tuple[AttributeName, ...]] = {
     "Mental": (AttributeName.PERCEPTION, AttributeName.INTELLIGENCE, AttributeName.WITS),
 }
 
-# The one repeatable Charm in 1e core. Bought once per dot of Endurance, each
-# purchase choosing a health-level package; stored on Character.ox_body, not in
-# Character.charms (so the count is representable).
-OX_BODY_ID = "solar.endurance.ox-body-technique"
+# The repeatable Ox-Body-equivalent Charm is per-splat: each ExaltDefinition names
+# its own (Solar's is solar.endurance.ox-body-technique). It is bought once per dot
+# of its cap Ability (Endurance), each purchase choosing a health-level package;
+# stored on Character.ox_body, not in Character.charms (so the count is representable).
+
+
+def ox_body_charm_id(ruleset: RuleSet, character: Character) -> str:
+    """The id of this character's splat's repeatable Ox-Body-equivalent Charm (from
+    its ExaltDefinition), or '' if the splat defines none."""
+    return ruleset.exalt_for(character.exalt_type).ox_body_charm_id
+
+
+def ox_body_charm(ruleset: RuleSet, character: Character) -> Charm | None:
+    """The Ox-Body-equivalent Charm object for this character's splat, or None when
+    the splat names none or the id is absent from the RuleSet."""
+    return ruleset.charms.get(ox_body_charm_id(ruleset, character))
 
 
 class Issue(BaseModel):
@@ -352,7 +365,7 @@ def ox_body_cap(ruleset: RuleSet, character: Character) -> int:
     """Maximum number of Ox-Body Technique purchases: once per dot of the Charm's
     `repeatable_cap_ability` (Endurance). 0 if the Charm or its cap ability is
     absent. Used by both the engine and the picker to gate purchases."""
-    charm = ruleset.charms.get(OX_BODY_ID)
+    charm = ox_body_charm(ruleset, character)
     if charm is None or not charm.repeatable_cap_ability:
         return 0
     try:
@@ -371,23 +384,24 @@ def check_ox_body(ruleset: RuleSet, character: Character) -> list[Issue]:
     purchases = character.ox_body
     if not purchases:
         return issues
-    charm = ruleset.charms.get(OX_BODY_ID)
+    oid = ox_body_charm_id(ruleset, character)
+    charm = ox_body_charm(ruleset, character)
     if charm is None:
         issues.append(Issue(
-            code="ox-body-unknown", where=OX_BODY_ID,
+            code="ox-body-unknown", where=oid,
             message="Character has Ox-Body purchases but the Charm is not in the RuleSet.",
         ))
         return issues
     cap = ox_body_cap(ruleset, character)
     if len(purchases) > cap:
         issues.append(Issue(
-            code="ox-body-over-cap", where=OX_BODY_ID,
+            code="ox-body-over-cap", where=oid,
             message=(f"Ox-Body Technique bought {len(purchases)} times; it may be "
                      f"bought at most once per dot of Endurance ({cap})."),
         ))
     if character.essence_rating < charm.min_essence:
         issues.append(Issue(
-            code="ox-body-min-essence", where=OX_BODY_ID,
+            code="ox-body-min-essence", where=oid,
             message=(f"Ox-Body Technique requires Essence {charm.min_essence}, "
                      f"character has {character.essence_rating}."),
         ))
@@ -475,8 +489,8 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     of the BP totals; validate_chargen consumes it for the ceiling check, and the
     editor renders it as a spend log.
     """
-    b = ruleset.budgets
-    bp_costs = ruleset.bonus_costs
+    b = ruleset.budgets_for(character.exalt_type)
+    bp_costs = ruleset.bonus_costs_for(character.exalt_type)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased) = _chargen_source(character)
 
@@ -589,7 +603,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     over-spent builds.
     """
     issues: list[Issue] = []
-    b = ruleset.budgets
+    b = ruleset.budgets_for(character.exalt_type)
     (attributes, abilities, crafts, virtues, _backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased) = _chargen_source(character)
 
@@ -725,10 +739,23 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
 # Aggregate
 # --------------------------------------------------------------------------- #
 
+def check_exalt_type(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """The character's exalt_type must be a known ExaltDefinition. An unknown type
+    still derives (essence pools fall back to Solar) but is surfaced here so a
+    hand-edited or mis-migrated save is flagged rather than silently mis-priced."""
+    if character.exalt_type in ruleset.exalts:
+        return []
+    return [Issue(
+        code="exalt-type-unknown", where=character.exalt_type,
+        message=f"Exalt type {character.exalt_type!r} is not defined in the rule set.",
+    )]
+
+
 def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Run all *implemented* checks and return the combined issues. Chargen
     predicates are excluded until designed."""
     issues: list[Issue] = []
+    issues += check_exalt_type(ruleset, character)
     issues += check_references(ruleset, character)
     issues += check_charm_prerequisites(ruleset, character)
     issues += check_spell_access(ruleset, character)

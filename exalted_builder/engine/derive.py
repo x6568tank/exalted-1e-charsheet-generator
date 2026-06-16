@@ -95,22 +95,18 @@ def wp_virtue_component(character: Character) -> int:
     return two_highest_virtues(character.virtues)
 
 
-def essence_pools(character: Character) -> tuple[int, int]:
-    """(personal, peripheral) motes. Solar only — other Exalt types use different
-    coefficients and are not yet in scope.
-
-    Solar Personal    = Essence x 3 + Willpower
-    Solar Peripheral  = Essence x 7 + Willpower + sum of Virtues
-    """
-    if character.exalt_type != "Solar":
-        raise NotImplementedError(
-            f"Essence-pool formula for exalt_type={character.exalt_type!r} is not "
-            "yet defined; only Solar is in scope. Provide the rulebook page first."
-        )
+def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
+    """(personal, peripheral) motes, from the character's Exalt-type formula
+    (RuleSet.exalt_for → EssencePoolSpec). Solar: Personal = Essence×3 + Willpower;
+    Peripheral = Essence×7 + Willpower + ΣVirtues (core p.104). Other splats supply
+    their own coefficients as data, so this is a lookup, not a per-splat branch."""
+    spec = ruleset.exalt_for(character.exalt_type).essence
     essence = character.essence_rating
     wp = willpower(character)
-    personal = essence * 3 + wp
-    peripheral = essence * 7 + wp + sum(character.virtues.values())
+    personal = essence * spec.personal_essence_coeff + wp * spec.personal_willpower_coeff
+    peripheral = (essence * spec.peripheral_essence_coeff
+                  + wp * spec.peripheral_willpower_coeff
+                  + (sum(character.virtues.values()) if spec.peripheral_adds_virtues else 0))
     return personal, peripheral
 
 
@@ -218,7 +214,7 @@ def soak(character: Character, ruleset: Optional[RuleSet] = None) -> SoakView:
 
 def derive(ruleset: RuleSet, character: Character) -> DerivedTraits:
     """Bundle the implemented derivations."""
-    personal, peripheral = essence_pools(character)
+    personal, peripheral = essence_pools(ruleset, character)
     return DerivedTraits(
         willpower=willpower(character),
         wp_from_virtues=wp_virtue_component(character),

@@ -37,9 +37,32 @@ def test_clean_load(tmp_path):
     rs = load_ruleset(tmp_path)
     assert len(rs.charms) == 2
     assert len(rs.spells) == 1
-    # optional tables fall back to model defaults
-    assert rs.bonus_costs.attribute == 4
-    assert rs.budgets.attribute_pools == (8, 6, 4)
+    # optional tables fall back to model defaults under the "default" splat key
+    assert rs.bonus_costs_for("Solar").attribute == 4
+    assert rs.budgets_for("Solar").attribute_pools == (8, 6, 4)
+
+
+def test_keyed_budget_table_per_splat(tmp_path):
+    """A per-Exalt-type chargen_budgets.json map loads each splat's table; the
+    *_for accessor returns the splat's entry, else falls back to "default"."""
+    _write_clean_set(tmp_path)
+    (tmp_path / "chargen_budgets.json").write_text(json.dumps({
+        "default": {"bonus_points": 15},
+        "Abyssal": {"bonus_points": 21},
+    }))
+    rs = load_ruleset(tmp_path)
+    assert rs.budgets_for("Abyssal").bonus_points == 21      # splat-specific entry
+    assert rs.budgets_for("Solar").bonus_points == 15        # falls back to "default"
+
+
+def test_legacy_bare_budget_object_wraps_under_default(tmp_path):
+    """A legacy single-object chargen_budgets.json (the old shape) is wrapped under
+    the "default" key so every splat reads it."""
+    _write_clean_set(tmp_path)
+    (tmp_path / "chargen_budgets.json").write_text(json.dumps({"bonus_points": 18}))
+    rs = load_ruleset(tmp_path)
+    assert rs.budgets_for("Solar").bonus_points == 18
+    assert rs.budgets_for("Abyssal").bonus_points == 18      # fallback to default
 
 
 def test_dangling_prerequisite_is_caught(tmp_path):

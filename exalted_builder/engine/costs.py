@@ -23,60 +23,63 @@ from . import validate
 # always scaled.
 
 
-def attribute_step(ruleset: RuleSet, from_rating: int) -> int:
+def attribute_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
     """XP to raise an Attribute from `from_rating` to the next dot."""
-    return ruleset.xp_costs.attribute.at(from_rating)
+    return ruleset.xp_costs_for(character.exalt_type).attribute.at(from_rating)
 
 
 def ability_step(ruleset: RuleSet, character: Character, ability: AbilityName,
                  from_rating: int) -> int:
     """XP to raise an Ability one dot. Going 0 -> 1 is the flat 'new ability' cost;
     above that it scales, with the Caste/Favoured discount when applicable."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
     if from_rating <= 0:
-        return ruleset.xp_costs.new_ability
+        return xp.new_ability
     favored = ability in validate.caste_favored_abilities(ruleset, character)
-    cost = ruleset.xp_costs.ability_favored_caste if favored else ruleset.xp_costs.ability
+    cost = xp.ability_favored_caste if favored else xp.ability
     return cost.at(from_rating)
 
 
-def virtue_step(ruleset: RuleSet, from_rating: int) -> int:
+def virtue_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
     """XP to raise a Virtue one dot. (Does not raise Willpower — that is pinned at
     lock; see derive.willpower.)"""
-    return ruleset.xp_costs.virtue.at(from_rating)
+    return ruleset.xp_costs_for(character.exalt_type).virtue.at(from_rating)
 
 
-def willpower_step(ruleset: RuleSet, from_rating: int) -> int:
+def willpower_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
     """XP to raise permanent Willpower one dot, scaled on the current rating."""
-    return ruleset.xp_costs.willpower.at(from_rating)
+    return ruleset.xp_costs_for(character.exalt_type).willpower.at(from_rating)
 
 
-def essence_step(ruleset: RuleSet, from_rating: int) -> int:
+def essence_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
     """XP to raise Essence one dot, scaled on the current rating."""
-    return ruleset.xp_costs.essence.at(from_rating)
+    return ruleset.xp_costs_for(character.exalt_type).essence.at(from_rating)
 
 
-def specialty_cost(ruleset: RuleSet) -> int:
+def specialty_cost(ruleset: RuleSet, character: Character) -> int:
     """XP for one new specialty dot (flat)."""
-    return ruleset.xp_costs.new_specialty
+    return ruleset.xp_costs_for(character.exalt_type).new_specialty
 
 
 def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     """XP to learn a Charm: discounted when its gating Ability is Caste/Favoured."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
     ability = validate._category_ability(charm.category)
     favored = ability is not None and ability in validate.caste_favored_abilities(ruleset, character)
-    return ruleset.xp_costs.new_charm_favored_caste if favored else ruleset.xp_costs.new_charm
+    return xp.new_charm_favored_caste if favored else xp.new_charm
 
 
 def spell_cost(ruleset: RuleSet, character: Character) -> int:
     """XP to learn a spell: discounted when Occult is Caste/Favoured (core p.100/191)."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
     favored = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, character)
-    return ruleset.xp_costs.new_spell_occult_favored_caste if favored else ruleset.xp_costs.new_spell
+    return xp.new_spell_occult_favored_caste if favored else xp.new_spell
 
 
 def ox_body_cost(ruleset: RuleSet, character: Character) -> int:
     """XP to buy one more Ox-Body Technique: priced as a normal new Charm (the
     variant chosen does not change the cost). 0 if the Charm is absent."""
-    charm = ruleset.charms.get(validate.OX_BODY_ID)
+    charm = validate.ox_body_charm(ruleset, character)
     return charm_cost(ruleset, character, charm) if charm else 0
 
 

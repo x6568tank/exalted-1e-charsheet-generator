@@ -364,9 +364,60 @@ class ChargenBudgets(BaseModel):
     willpower_cap_exception_count: int = 2    # this many Virtues are >= 4
 
 
+class EssencePoolSpec(BaseModel):
+    """Per-splat motes formula as data, so derive.essence_pools is a lookup, not a
+    branch. personal = essence*personal_essence_coeff + willpower*personal_willpower_coeff;
+    peripheral = essence*peripheral_essence_coeff + willpower*peripheral_willpower_coeff
+    (+ ΣVirtues when peripheral_adds_virtues). Solar: 3 / 7 / +Virtues (core p.104).
+    If a splat needs a term these coefficients can't express, STOP and ask for the page."""
+    model_config = ConfigDict(frozen=True)
+    personal_essence_coeff: int
+    personal_willpower_coeff: int = 1
+    peripheral_essence_coeff: int
+    peripheral_willpower_coeff: int = 1
+    peripheral_adds_virtues: bool = True
+
+
+class ExaltDefinition(BaseModel):
+    """One Exalt type as data. `id` matches Character.exalt_type ("Solar","Abyssal").
+    Holds the splat's essence formula, its magic track (sorcery vs necromancy — see
+    SpellCircle), the circle barred at character creation, and the id of its
+    repeatable Ox-Body-equivalent Charm. Values come from the page, never memory."""
+    model_config = ConfigDict(frozen=True)
+    id: str
+    label: str
+    essence: EssencePoolSpec
+    magic_track: str = "sorcery"            # "sorcery" | "necromancy"
+    highest_magic_circle_id: str = ""       # circle barred at creation (e.g. "Solar")
+    ox_body_charm_id: str = ""              # the splat's repeatable health-level Charm
+
+
+# The canonical Solar definition — the existing hardcoded formula moved into data
+# (the values are the verified core-p.104 Solar pools, not new rules). Used as the
+# default when no exalts.json is loaded and as the fallback for an unknown exalt_type.
+SOLAR_EXALT = ExaltDefinition(
+    id="Solar",
+    label="Solar Exalted",
+    essence=EssencePoolSpec(personal_essence_coeff=3, peripheral_essence_coeff=7,
+                            peripheral_adds_virtues=True),
+    magic_track="sorcery",
+    highest_magic_circle_id="Solar",
+    ox_body_charm_id="solar.endurance.ox-body-technique",
+)
+
+
 class RuleSet(BaseModel):
     """The whole rulebook in memory. Charms and spells are indexed by id for
-    O(1) prerequisite resolution and load-time link-checking."""
+    O(1) prerequisite resolution and load-time link-checking.
+
+    The cost/budget tables are keyed by Exalt type so different splats can carry
+    different chargen budgets / XP costs. The shared baseline lives under the
+    "default" key; a splat that differs adds an entry under its own exalt_type and
+    the `*_for(exalt_type)` accessors fall back to "default" otherwise. (This module
+    knows nothing about Character, so the accessors take the exalt_type string, not
+    a Character.)"""
+    exalts: dict[str, ExaltDefinition] = Field(
+        default_factory=lambda: {SOLAR_EXALT.id: SOLAR_EXALT})
     castes: dict[Caste, CasteDefinition]
     charms: dict[str, Charm]
     spells: dict[str, Spell] = Field(default_factory=dict)
@@ -375,6 +426,24 @@ class RuleSet(BaseModel):
     background_catalog: dict[str, BackgroundType] = Field(default_factory=dict)
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
-    bonus_costs: BonusPointCosts = Field(default_factory=BonusPointCosts)
-    xp_costs: ExperienceCosts = Field(default_factory=ExperienceCosts)
-    budgets: ChargenBudgets = Field(default_factory=ChargenBudgets)
+    bonus_costs: dict[str, BonusPointCosts] = Field(
+        default_factory=lambda: {"default": BonusPointCosts()})
+    xp_costs: dict[str, ExperienceCosts] = Field(
+        default_factory=lambda: {"default": ExperienceCosts()})
+    budgets: dict[str, ChargenBudgets] = Field(
+        default_factory=lambda: {"default": ChargenBudgets()})
+
+    def exalt_for(self, exalt_type: str) -> ExaltDefinition:
+        """The ExaltDefinition for `exalt_type`, falling back to Solar if the type
+        is unknown (engine.validate.check_exalt_type surfaces the bad value as an
+        Issue separately, so derivation still produces a number instead of crashing)."""
+        return self.exalts.get(exalt_type) or self.exalts.get("Solar") or SOLAR_EXALT
+
+    def bonus_costs_for(self, exalt_type: str) -> BonusPointCosts:
+        return self.bonus_costs.get(exalt_type, self.bonus_costs["default"])
+
+    def xp_costs_for(self, exalt_type: str) -> ExperienceCosts:
+        return self.xp_costs.get(exalt_type, self.xp_costs["default"])
+
+    def budgets_for(self, exalt_type: str) -> ChargenBudgets:
+        return self.budgets.get(exalt_type, self.budgets["default"])

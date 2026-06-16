@@ -81,6 +81,22 @@ def test_clean_references_no_issues():
     assert validate.check_references(rs, c) == []
 
 
+def test_exalt_type_known_vs_unknown():
+    rs = _ruleset()                                  # default exalts = {"Solar"}
+    assert validate.check_exalt_type(rs, _char(exalt_type="Solar")) == []
+    issues = validate.check_exalt_type(rs, _char(exalt_type="Abyssal"))
+    assert [i.code for i in issues] == ["exalt-type-unknown"]
+
+
+def test_ox_body_charm_resolves_per_splat():
+    """The Ox-Body resolver returns the charm named by the character's splat's
+    ExaltDefinition; an unknown splat falls back to Solar's (absent here -> None)."""
+    rs = _ruleset()                                  # no ox-body charm in this set
+    assert validate.ox_body_charm_id(rs, _char(exalt_type="Solar")) == \
+        "solar.endurance.ox-body-technique"
+    assert validate.ox_body_charm(rs, _char(exalt_type="Solar")) is None
+
+
 # --------------------------------------------------------------------------- #
 # Charm prerequisites
 # --------------------------------------------------------------------------- #

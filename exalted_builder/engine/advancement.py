@@ -82,7 +82,7 @@ def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName)
     frm = character.attributes[attr]
     if frm >= _DOT_MAX:
         raise AdvancementError(f"{attr.value} is already at {_DOT_MAX}.")
-    cost = costs.attribute_step(ruleset, frm)
+    cost = costs.attribute_step(ruleset, character, frm)
     entry = _commit(character, f"attributes.{attr.value}", "", frm, frm + 1, cost)
     character.attributes[attr] = frm + 1
     return entry
@@ -134,7 +134,7 @@ def raise_virtue(ruleset: RuleSet, character: Character, virtue: VirtueName) -> 
     frm = character.virtues[virtue]
     if frm >= _DOT_MAX:
         raise AdvancementError(f"{virtue.value} is already at {_DOT_MAX}.")
-    cost = costs.virtue_step(ruleset, frm)
+    cost = costs.virtue_step(ruleset, character, frm)
     entry = _commit(character, f"virtues.{virtue.value}", "", frm, frm + 1, cost)
     character.virtues[virtue] = frm + 1
     return entry
@@ -147,7 +147,7 @@ def raise_willpower(ruleset: RuleSet, character: Character) -> XpEntry:
     frm = derive.willpower(character)
     if frm >= _WILLPOWER_MAX:
         raise AdvancementError(f"Willpower is already at {_WILLPOWER_MAX}.")
-    cost = costs.willpower_step(ruleset, frm)
+    cost = costs.willpower_step(ruleset, character, frm)
     entry = _commit(character, "willpower", "", frm, frm + 1, cost)
     character.willpower_purchased += 1
     return entry
@@ -158,7 +158,7 @@ def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
     frm = character.essence_rating
     if frm >= _DOT_MAX:
         raise AdvancementError(f"Essence is already at {_DOT_MAX}.")
-    cost = costs.essence_step(ruleset, frm)
+    cost = costs.essence_step(ruleset, character, frm)
     entry = _commit(character, "essence", "", frm, frm + 1, cost)
     character.essence_rating = frm + 1
     return entry
@@ -217,7 +217,7 @@ def learn_ox_body(ruleset: RuleSet, character: Character, variant_key: str) -> X
     """Buy one more Ox-Body Technique with the chosen health-level package (post-lock).
     Gated by the once-per-dot-of-Endurance cap and priced as a normal new Charm."""
     _ensure_locked(character)
-    charm = ruleset.charms.get(validate.OX_BODY_ID)
+    charm = validate.ox_body_charm(ruleset, character)
     if charm is None:
         raise AdvancementError("Ox-Body Technique is not in the RuleSet.")
     variant = next((v for v in charm.variants if v.key == variant_key), None)
@@ -242,7 +242,7 @@ def add_specialty(ruleset: RuleSet, character: Character, ability: AbilityName,
     _ensure_locked(character)
     if not name.strip():
         raise AdvancementError("A specialty needs a name.")
-    cost = costs.specialty_cost(ruleset)
+    cost = costs.specialty_cost(ruleset, character)
     entry = _commit(character, "specialties", f"{ability.value}:{name}", None, None, cost)
     character.specialties.append(Specialty(ability=ability, name=name, rating=1))
     return entry
@@ -318,24 +318,24 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
     domain, _, key = entry.target.partition(".")
     frm = entry.from_rating
     if domain == "attributes" and frm is not None:
-        return costs.attribute_step(ruleset, frm)
+        return costs.attribute_step(ruleset, character, frm)
     if domain == "abilities" and frm is not None:
         return costs.ability_step(ruleset, character, AbilityName(key), frm)
     if domain == "crafts" and frm is not None:
         return costs.ability_step(ruleset, character, AbilityName.CRAFT, frm)
     if domain == "virtues" and frm is not None:
-        return costs.virtue_step(ruleset, frm)
+        return costs.virtue_step(ruleset, character, frm)
     if domain == "willpower" and frm is not None:
-        return costs.willpower_step(ruleset, frm)
+        return costs.willpower_step(ruleset, character, frm)
     if domain == "essence" and frm is not None:
-        return costs.essence_step(ruleset, frm)
+        return costs.essence_step(ruleset, character, frm)
     if domain == "charms":
         charm = ruleset.charms.get(entry.detail)
         return costs.charm_cost(ruleset, character, charm) if charm else None
     if domain == "spells":
         return costs.spell_cost(ruleset, character) if entry.detail in ruleset.spells else None
     if domain == "specialties":
-        return costs.specialty_cost(ruleset)
+        return costs.specialty_cost(ruleset, character)
     if domain == "combos":
         combo = next((c for c in character.combos if c.name == entry.detail), None)
         return costs.combo_cost(ruleset, combo.charm_ids) if combo else None

@@ -41,7 +41,7 @@ def _char() -> Character:
 
 
 def test_attribute_scales_on_current_rating():
-    assert costs.attribute_step(_ruleset(), 3) == 12      # 3 x 4
+    assert costs.attribute_step(_ruleset(), _char(), 3) == 12      # 3 x 4
 
 
 def test_ability_uses_caste_favored_discount():
@@ -57,10 +57,10 @@ def test_new_ability_from_zero_is_flat():
 
 
 def test_virtue_willpower_essence_scale():
-    rs = _ruleset()
-    assert costs.virtue_step(rs, 3) == 9                   # 3 x 3
-    assert costs.willpower_step(rs, 5) == 10               # 5 x 2
-    assert costs.essence_step(rs, 2) == 16                 # 2 x 8
+    rs, c = _ruleset(), _char()
+    assert costs.virtue_step(rs, c, 3) == 9                # 3 x 3
+    assert costs.willpower_step(rs, c, 5) == 10            # 5 x 2
+    assert costs.essence_step(rs, c, 2) == 16              # 2 x 8
 
 
 def test_charm_cost_discounts_caste_favored_ability():
@@ -80,7 +80,7 @@ def test_spell_cost_discounts_when_occult_caste_favored():
 
 
 def test_specialty_is_flat():
-    assert costs.specialty_cost(_ruleset()) == 3
+    assert costs.specialty_cost(_ruleset(), _char()) == 3
 
 
 def test_combo_cost_sums_member_minimum_abilities():

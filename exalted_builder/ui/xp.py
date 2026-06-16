@@ -140,7 +140,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
 
             attr = sel["attr"]
             _raise_row("Attribute", {a: _label(a.value) for a in AttributeName}, "attr",
-                       character.attributes[attr], costs.attribute_step(rs, character.attributes[attr]),
+                       character.attributes[attr], costs.attribute_step(rs, character, character.attributes[attr]),
                        lambda: advancement.raise_attribute(rs, character, sel["attr"]),
                        cap=5)
 
@@ -153,17 +153,17 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
 
             v = sel["virtue"]
             _raise_row("Virtue", {x: _label(x.value) for x in VirtueName}, "virtue",
-                       character.virtues[v], costs.virtue_step(rs, character.virtues[v]),
+                       character.virtues[v], costs.virtue_step(rs, character, character.virtues[v]),
                        lambda: advancement.raise_virtue(rs, character, sel["virtue"]),
                        cap=5)
 
             wp = derive.willpower(character)
             ess = character.essence_rating
             with ui.row().classes("w-full items-center gap-4 no-wrap"):
-                ui.button(f"Willpower {wp}→{wp + 1}  ·  {costs.willpower_step(rs, wp)} XP",
+                ui.button(f"Willpower {wp}→{wp + 1}  ·  {costs.willpower_step(rs, character, wp)} XP",
                           on_click=lambda: _do(lambda: advancement.raise_willpower(rs, character))).props(
                     "dense color=brown")
-                ui.button(f"Essence {ess}→{ess + 1}  ·  {costs.essence_step(rs, ess)} XP",
+                ui.button(f"Essence {ess}→{ess + 1}  ·  {costs.essence_step(rs, character, ess)} XP",
                           on_click=lambda: _do(lambda: advancement.raise_essence(rs, character))).props(
                     "dense color=brown")
 
@@ -171,9 +171,10 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
             ui.label("Learn").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
 
+            ox_id = validate.ox_body_charm_id(rs, character)
             learnable = sorted(
                 (c for c in rs.charms.values()
-                 if c.id not in character.charms and c.id != validate.OX_BODY_ID
+                 if c.id not in character.charms and c.id != ox_id
                  and validate.meets_charm_requirements(rs, character, c)),
                 key=lambda c: c.name)
             charm_opts = {c.id: f"{c.name} · {costs.charm_cost(rs, character, c)} XP" for c in learnable}
@@ -209,7 +210,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                              sel.update({"spell": None, "focus": None})))).props("dense color=brown")
 
             # Ox-Body Technique: repeatable, pick a health-level package each time.
-            ox_charm = rs.charms.get(validate.OX_BODY_ID)
+            ox_charm = validate.ox_body_charm(rs, character)
             if ox_charm:
                 ox_cap = validate.ox_body_cap(rs, character)
                 ox_bought = len(character.ox_body)
@@ -235,7 +236,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                           on_change=lambda e: sel.__setitem__("spec_ability", e.value)).props("dense").classes("w-40")
                 ui.input(value=sel["spec_name"], placeholder="specialty name",
                          on_change=lambda e: sel.__setitem__("spec_name", e.value)).props("dense").classes("flex-1")
-                ui.label(f"{costs.specialty_cost(rs)} XP").classes("text-xs w-12")
+                ui.label(f"{costs.specialty_cost(rs, character)} XP").classes("text-xs w-12")
                 ui.button("Add Specialty", on_click=lambda: _do(
                     lambda: (advancement.add_specialty(rs, character, sel["spec_ability"], sel["spec_name"]),
                              sel.__setitem__("spec_name", "")))).props("dense color=brown")

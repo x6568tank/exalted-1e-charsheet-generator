@@ -148,11 +148,12 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> 
     charms = [c for c in ruleset.charms.values() if c.category == category]
     charms.sort(key=lambda c: c.id)
 
+    ox_id = validate.ox_body_charm_id(ruleset, character)
     nodes = []
     for c in charms:
         # Ox-Body is repeatable and lives on character.ox_body, not character.charms:
         # it is "owned" once at least one copy is bought, else available per its reqs.
-        if c.id == validate.OX_BODY_ID:
+        if c.id and c.id == ox_id:
             state = "owned" if character.ox_body else (
                 "available" if validate.meets_charm_requirements(ruleset, character, c) else "locked")
         elif c.id in owned:
@@ -225,7 +226,7 @@ class XpLogRow:
     cost: int
 
 
-def _xp_entry_label(ruleset: RuleSet, entry: XpEntry) -> str:
+def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> str:
     domain, _, key = entry.target.partition(".")
     if domain in ("attributes", "abilities", "virtues"):
         return f"{_label(key)} {entry.from_rating} → {entry.to_rating}"
@@ -244,7 +245,7 @@ def _xp_entry_label(ruleset: RuleSet, entry: XpEntry) -> str:
     if domain == "specialties":
         return f"Specialty: {entry.detail.replace(':', ' — ', 1)}"
     if domain == "ox_body":
-        charm = ruleset.charms.get(validate.OX_BODY_ID)
+        charm = validate.ox_body_charm(ruleset, character)
         label = next((v.label for v in (charm.variants if charm else []) if v.key == entry.detail),
                      entry.detail)
         return f"Ox-Body: {label}"
@@ -255,7 +256,7 @@ def build_xp_log(ruleset: RuleSet, character: Character) -> list[XpLogRow]:
     """The XP spend log as display rows, in spend order. Pure presentation; the
     engine owns costs and legality. Only the last row is safe to undo (LIFO)."""
     return [
-        XpLogRow(index=i, label=_xp_entry_label(ruleset, e),
+        XpLogRow(index=i, label=_xp_entry_label(ruleset, character, e),
                  detail=e.target.split(".", 1)[0], cost=e.cost)
         for i, e in enumerate(character.xp_log)
     ]
@@ -401,7 +402,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         else:
             charms.append(CharmRow(cid, "?", "—"))
     # Repeatable Ox-Body Technique: one row per purchase, labelled by its package.
-    ox_charm = ruleset.charms.get(validate.OX_BODY_ID)
+    ox_charm = validate.ox_body_charm(ruleset, character)
     if ox_charm:
         labels = {v.key: v.label for v in ox_charm.variants}
         for p in character.ox_body:

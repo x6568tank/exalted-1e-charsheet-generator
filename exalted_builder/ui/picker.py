@@ -104,7 +104,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     @ui.refreshable
     def detail() -> None:
-        if selected["id"] == validate.OX_BODY_ID:
+        if selected["id"] and selected["id"] == validate.ox_body_charm_id(ruleset, character):
             ox_body_detail()
             return
         d = viewmod.build_charm_detail(ruleset, character, selected["id"]) if selected["id"] else None
@@ -137,7 +137,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- Ox-Body Technique (repeatable, variant menu; chargen) ------------- #
     def add_ox_body(variant_key: str) -> None:
-        charm = ruleset.charms.get(validate.OX_BODY_ID)
+        charm = validate.ox_body_charm(ruleset, character)
         variant = next((v for v in charm.variants if v.key == variant_key), None) if charm else None
         if variant is None:
             return
@@ -155,7 +155,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             detail.refresh(); update_graph()
 
     def ox_body_detail() -> None:
-        charm = ruleset.charms.get(validate.OX_BODY_ID)
+        charm = validate.ox_body_charm(ruleset, character)
         if charm is None:
             ui.label("Ox-Body Technique is not in the rule set.").classes("text-xs text-red-600")
             return
