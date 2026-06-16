@@ -113,25 +113,41 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         caste_def = ruleset.castes.get(character.caste)
         caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
 
-        # identity
-        with panel("Identity"):
-            with ui.row().classes("w-full gap-3 no-wrap"):
-                ui.input("Name", value=character.name,
-                         on_change=lambda e: (setattr(character, "name", e.value), changed())).classes("flex-1")
-                ui.input("Concept", value=character.concept,
-                         on_change=lambda e: setattr(character, "concept", e.value)).classes("flex-1")
-            with ui.row().classes("w-full gap-3 no-wrap items-end"):
-                ui.select({c: c.value for c in Caste}, label="Caste", value=character.caste,
-                          on_change=lambda e: set_caste(e.value)).classes("flex-1")
-                nature_names = [n.name for n in ruleset.nature_catalog.values()]
-                ui.select(nature_names, label="Nature", value=character.nature or None,
-                          with_input=True, new_value_mode="add-unique",
-                          on_change=lambda e: setattr(character, "nature", e.value or "")).classes("flex-1")
-                ui.input("Anima", value=character.anima,
-                         on_change=lambda e: setattr(character, "anima", e.value)).classes("flex-1")
-            ui.select({a: _label(a.value) for a in AbilityName}, label="Favored abilities (pick 5)",
-                      value=list(character.favored_abilities), multiple=True,
-                      on_change=lambda e: set_favored(e.value)).classes("w-full").props("use-chips")
+        # caste-info box (left) + identity fields (right)
+        with ui.row().classes("w-full gap-2 no-wrap items-stretch"):
+            with ui.card().classes("w-72 flex-none p-3 bg-amber-50/40 border border-amber-900/20 gap-1"):
+                if caste_def:
+                    ui.label(f"{character.caste.value} Caste").classes(
+                        "text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+                    if caste_def.description:
+                        ui.label(caste_def.description).classes("text-xs")
+                    ui.label("Caste Abilities: " + ", ".join(
+                        _label(a.value) for a in caste_def.caste_abilities)).classes("text-xs italic")
+                    if caste_def.anima_powers:
+                        ui.separator()
+                        ui.label("Anima Power").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                        ui.label(caste_def.anima_powers).classes("text-xs")
+                else:
+                    ui.label("Unknown caste").classes("text-xs text-gray-500")
+            with ui.column().classes("flex-1 gap-2 min-w-0"):
+                with panel("Identity"):
+                    with ui.row().classes("w-full gap-3 no-wrap"):
+                        ui.input("Name", value=character.name,
+                                 on_change=lambda e: (setattr(character, "name", e.value), changed())).classes("flex-1")
+                        ui.input("Concept", value=character.concept,
+                                 on_change=lambda e: setattr(character, "concept", e.value)).classes("flex-1")
+                    with ui.row().classes("w-full gap-3 no-wrap items-end"):
+                        ui.select({c: c.value for c in Caste}, label="Caste", value=character.caste,
+                                  on_change=lambda e: set_caste(e.value)).classes("flex-1")
+                        nature_names = [n.name for n in ruleset.nature_catalog.values()]
+                        ui.select(nature_names, label="Nature", value=character.nature or None,
+                                  with_input=True, new_value_mode="add-unique",
+                                  on_change=lambda e: setattr(character, "nature", e.value or "")).classes("flex-1")
+                        ui.input("Anima", value=character.anima,
+                                 on_change=lambda e: setattr(character, "anima", e.value)).classes("flex-1")
+                    ui.select({a: _label(a.value) for a in AbilityName}, label="Favored abilities (pick 5)",
+                              value=list(character.favored_abilities), multiple=True,
+                              on_change=lambda e: set_favored(e.value)).classes("w-full").props("use-chips")
 
         # attributes
         with panel("Attributes (prioritise 8 / 6 / 4)"):

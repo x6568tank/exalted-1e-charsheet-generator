@@ -34,6 +34,14 @@ def test_each_caste_keyed_by_its_own_enum():
     assert all(caste == cd.caste for caste, cd in rs.castes.items())
 
 
+def test_every_caste_has_a_description_and_anima_power():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    assert len(rs.castes) == 5
+    for cd in rs.castes.values():
+        assert cd.description and cd.anima_powers
+    assert rs.castes[Caste.DAWN].description.startswith("Masters of war")
+
+
 def test_ox_body_technique_loads_repeatable_with_three_variants():
     rs = rules_db.load_ruleset(DATA_DIR)
     ox = rs.charms["solar.endurance.ox-body-technique"]

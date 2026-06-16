@@ -172,6 +172,7 @@ class CasteDefinition(BaseModel):
 
     caste: Caste
     caste_abilities: list[AbilityName]     # the five fixed caste abilities
+    description: str = ""                   # a quick flavour blurb for the caste
     anima_powers: str = ""
 
 

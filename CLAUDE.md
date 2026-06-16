@@ -118,7 +118,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (172 tests passing)
+## Status (173 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -274,6 +274,11 @@ Exalted-1E-Charsheet-Generator/      (project root)
   `Character.nature` stays **free-text** (Nature is narrative-only, no mechanical effect);
   the editor field is now a combobox of the catalog with `new_value_mode="add-unique"` so a
   custom Nature is still allowed.
+- **Caste info box — done 2026-06-15.** `CasteDefinition` gained a `description` field;
+  `castes.json` now carries each caste's quick description + Anima Power (both from the
+  p104-105 summary PNG; `anima_powers` was already populated). The editor's Edit pane shows
+  a caste-info box at the top-left (caste name, description, Caste Abilities, Anima Power)
+  beside the Identity fields; it refreshes when the Caste dropdown changes.
 - **XP advancement — done (post-lock):** `engine/costs.py` + `engine/advancement.py`
   + the XP tab. The chargen snapshot is the baseline; purchases mutate current
   traits and append to `xp_log`; `validate_xp` audits overspend/tampering. Trait
@@ -288,14 +293,10 @@ Exalted-1E-Charsheet-Generator/      (project root)
   profile; Limit Break (play-state — add at sheet-export time, not chargen).
 
 ## TODO — planned next
-The three TODOs queued 2026-06-14 are all DONE (2026-06-15): ~~remove M&F~~,
-~~repeatable Ox-Body~~, ~~Nature dropdown~~ (see the status bullets above).
+Recent TODOs all DONE (2026-06-15): ~~remove M&F~~, ~~repeatable Ox-Body~~,
+~~Nature dropdown~~, ~~Caste info box (description + Anima Power)~~ (see status bullets).
 
-1. **Caste descriptions + Anima Powers** (queued 2026-06-15). Add something that
-   describes each Caste, including its Anima Power, surfaced in the UI (sheet and/or a
-   Caste blurb when a Caste is chosen). `CasteDefinition` already has an `anima_powers`
-   field — check whether `castes.json` populates it and what's there; author the Caste
-   descriptions + Anima Powers from a corebook PNG (ASK for the page; do not guess).
-   The user will provide the source. **Then re-package the binary** (`pyinstaller
-   pack/exalted-builder.spec`) — the M&F/Ox-Body/Nature work since the last build has not
-   been re-packaged yet; do it after this Caste work lands so one rebuild covers all four.
+1. **Re-package the binary** (`pyinstaller pack/exalted-builder.spec` → `dist/ExaltedBuilder`).
+   The M&F removal + repeatable Ox-Body + Nature dropdown + Caste info box have all landed
+   since the last build and have NOT been re-packaged. One rebuild covers all four. (Linux
+   build only here; the Windows .exe still needs a Windows host.) See [[packaging-plan]].
