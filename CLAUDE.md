@@ -118,7 +118,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (197 tests passing)
+## Status (199 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -291,6 +291,19 @@ Exalted-1E-Charsheet-Generator/      (project root)
   soak L·B, mobility, fatigue, artifact/attunement/resources. Non-negative fields are clamped;
   picking a catalog name re-fills (overwrites) the stats. UI-only — the inline-copy model
   already held every field; no engine change. (Weapons remain display-only in the engine.)
+  **Custom-name crash fixed — 2026-06-16 (NiceGUI 3.x).** NiceGUI 3.13's `ui.select` raises
+  `ValueError: Invalid value` when constructed with a `value` not in its `options` (a v2→v3
+  change, same family as the `e.file` upload break). Typing a custom (off-catalog) weapon/
+  armor/nature/background name stored the name but left the select's options as the catalog
+  only, so the next render/reload threw — the equipment panel vanished and a page reload 500'd.
+  Fix: `editor._opts_with(names, current)` folds the current value into the option list (applied
+  to every `new_value_mode="add-unique"` select in `ui/editor.py` and `ui/xp.py`); and
+  `set_weapon`/`set_armor` now only overwrite stats on a **catalog** match — a custom name just
+  renames the inline item, preserving typed stats instead of zeroing them. Regression test:
+  `tests/test_custom_equipment_render.py` (NiceGUI User-sim; the suite now sets
+  `asyncio_mode="auto"` + registers `nicegui.testing.user_plugin` in `conftest.py`). **Rule of
+  thumb:** any `ui.select(options, value=…)` whose value can be off-list must include it in
+  `options`. See [[nicegui-3x-select-value-validation]].
 - **Artifact magical materials — done 2026-06-16 (core p341).** `data/materials.json` →
   `MagicalMaterial` model + `RuleSet.material_catalog` (loaded by `rules_db`). Each material
   resonates with ONE Exalt type and grants its bonus **only in the hands of that type**
@@ -356,9 +369,15 @@ binary~~, ~~editable custom weapons/armor in the editor~~.
 DONE 2026-06-16: ~~Craft as separate per-focus Abilities (RAW p136)~~, ~~artifact
 magical-material weapon AND armour bonus (Exalt-gated, p341/p345-346)~~, ~~chargen
 BP-spend log~~, ~~free background editing on the XP screen~~, ~~free equipment swap/edit on
-the XP screen~~. **All queued TODOs are now cleared.**
+the XP screen~~, ~~custom weapon/armor-name crash (NiceGUI 3.x select-value)~~. **All queued
+TODOs are now cleared.**
 
-Open future work (unscheduled): the **Windows .exe** still needs a Windows host
-(PyInstaller can't cross-compile; same spec); combat/attack derivation (weapons are
-display-only); Limit Break at sheet-export time. See [[packaging-plan]],
-[[combat-engine-deferred]].
+**Stopping point — 2026-06-16.** Natural pause before the next big arc: the **castebook
+charms** and **other Exalt splats** (Lunar/Dragon-Blooded/Sidereal/Abyssal). Corebook
+Solar content + chargen + post-lock XP are complete and the Linux browser build is
+re-packaged and smoke-tested green. Pick up the splats / castebook charms from here.
+
+Open future work (unscheduled): **castebook charms + other splats** (next big arc); the
+**Windows .exe** still needs a Windows host (PyInstaller can't cross-compile; same spec);
+combat/attack derivation (weapons are display-only); Limit Break at sheet-export time.
+See [[packaging-plan]], [[combat-engine-deferred]].
