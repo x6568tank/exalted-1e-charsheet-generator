@@ -49,6 +49,18 @@ def _label(value: str) -> str:
     return value.replace("_", " ").title()
 
 
+def _opts_with(names: list[str], current: str | None) -> list[str]:
+    """Options for an add-unique select that always contain the current value.
+
+    NiceGUI 3.x raises ``ValueError: Invalid value`` if a select is constructed
+    with a ``value`` not present in its options, so a custom (off-catalog) name
+    typed into one of these comboboxes would crash on the next render/reload.
+    Folding the current value into the option list keeps that custom entry legal."""
+    if current and current not in names:
+        return [*names, current]
+    return names
+
+
 def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                  *, with_header: bool = True) -> None:
     """Render the whole editor for `character`. Pure-ish wiring: every control
@@ -157,7 +169,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.select({c: c.value for c in Caste}, label="Caste", value=character.caste,
                                   on_change=lambda e: set_caste(e.value)).classes("flex-1")
                         nature_names = [n.name for n in ruleset.nature_catalog.values()]
-                        ui.select(nature_names, label="Nature", value=character.nature or None,
+                        ui.select(_opts_with(nature_names, character.nature), label="Nature",
+                                  value=character.nature or None,
                                   with_input=True, new_value_mode="add-unique",
                                   on_change=lambda e: setattr(character, "nature", e.value or "")).classes("flex-1")
                         ui.input("Anima", value=character.anima,
@@ -241,7 +254,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         with panel("Backgrounds (7 dots; ≤3 pre-bonus)"):
             for idx, bg in enumerate(character.backgrounds):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    (ui.select(bg_names, value=bg.name or None, label="Background",
+                    (ui.select(_opts_with(bg_names, bg.name), value=bg.name or None, label="Background",
                                with_input=True, new_value_mode="add-unique",
                                on_change=lambda e, bg=bg: setattr(bg, "name", e.value or ""))
                      .classes("flex-1"))
@@ -306,7 +319,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 for idx, ar in enumerate(character.armor):
                     with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
                         with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                            ui.select(armor_names, value=ar.name or None, with_input=True,
+                            ui.select(_opts_with(armor_names, ar.name), value=ar.name or None,
+                                      with_input=True,
                                       new_value_mode="add-unique", label="Armor",
                                       on_change=lambda e, idx=idx: set_armor(idx, e.value)).classes("flex-1")
                             asm = ui.label(_armor_summary(ar)).classes("text-xs")
@@ -326,7 +340,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 for idx, wp in enumerate(character.weapons):
                     with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
                         with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                            ui.select(weapon_names, value=wp.name or None, with_input=True,
+                            ui.select(_opts_with(weapon_names, wp.name), value=wp.name or None,
+                                      with_input=True,
                                       new_value_mode="add-unique", label="Weapon",
                                       on_change=lambda e, idx=idx: set_weapon(idx, e.value)).classes("flex-1")
                             wsm = ui.label(_weapon_summary(wp)).classes("text-xs")
@@ -437,25 +452,31 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         body.refresh(); changed()
 
     def set_armor(idx: int, name: str) -> None:
+        # A catalog match autofills (overwrites) the stats; a custom name just
+        # renames the item, preserving any stats already typed for it.
         entry = next((a for a in ruleset.armor_catalog.values() if a.name == name), None)
-        character.armor[idx] = (
-            Armor(name=entry.name, soak_lethal=entry.soak_lethal, soak_bashing=entry.soak_bashing,
-                  mobility_penalty=entry.mobility_penalty, fatigue=entry.fatigue,
-                  artifact_rating=entry.artifact_rating, attunement=entry.attunement,
-                  resources_cost=entry.resources_cost)
-            if entry else Armor(name=name or ""))
+        if entry:
+            character.armor[idx] = Armor(
+                name=entry.name, soak_lethal=entry.soak_lethal, soak_bashing=entry.soak_bashing,
+                mobility_penalty=entry.mobility_penalty, fatigue=entry.fatigue,
+                artifact_rating=entry.artifact_rating, attunement=entry.attunement,
+                resources_cost=entry.resources_cost)
+        else:
+            character.armor[idx].name = name or ""
         body.refresh(); changed()
 
     def set_weapon(idx: int, name: str) -> None:
         e = next((w for w in ruleset.weapon_catalog.values() if w.name == name), None)
-        character.weapons[idx] = (
-            Weapon(name=e.name, speed=e.speed, accuracy=e.accuracy, damage=e.damage,
-                   damage_type=e.damage_type, defense=e.defense, rate=e.rate, range=e.range,
-                   min_strength=e.min_strength, min_dexterity=e.min_dexterity,
-                   min_martial_arts=e.min_martial_arts, max_strength=e.max_strength,
-                   artifact_rating=e.artifact_rating, attunement=e.attunement,
-                   resources_cost=e.resources_cost, notes=e.notes)
-            if e else Weapon(name=name or ""))
+        if e:
+            character.weapons[idx] = Weapon(
+                name=e.name, speed=e.speed, accuracy=e.accuracy, damage=e.damage,
+                damage_type=e.damage_type, defense=e.defense, rate=e.rate, range=e.range,
+                min_strength=e.min_strength, min_dexterity=e.min_dexterity,
+                min_martial_arts=e.min_martial_arts, max_strength=e.max_strength,
+                artifact_rating=e.artifact_rating, attunement=e.attunement,
+                resources_cost=e.resources_cost, notes=e.notes)
+        else:
+            character.weapons[idx].name = name or ""
         body.refresh(); changed()
 
     def set_virtue_flaw_virtue(virtue: VirtueName) -> None:

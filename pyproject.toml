@@ -36,3 +36,9 @@ exalted_builder = ["data/*.json", "data/charms/*.json", "ui/vendor/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# "auto" so the NiceGUI User-simulation fixture's async tests are collected
+# without each needing an explicit @pytest.mark.asyncio.
+asyncio_mode = "auto"
+markers = [
+    "nicegui_main_file: path to the NiceGUI 'main file' for the User-simulation fixture",
+]

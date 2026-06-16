@@ -24,6 +24,7 @@ from ..engine import advancement, costs, derive, validate
 from ..models.character import Armor, BackgroundEntry, Character, Weapon
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import view as viewmod
+from .editor import _opts_with
 
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
@@ -84,25 +85,30 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         panel.refresh()
 
     def _set_armor(idx: int, name: str) -> None:
+        # Catalog match autofills; a custom name only renames (keeps typed stats).
         e = next((a for a in rs.armor_catalog.values() if a.name == name), None)
-        character.armor[idx] = (
-            Armor(name=e.name, soak_lethal=e.soak_lethal, soak_bashing=e.soak_bashing,
-                  mobility_penalty=e.mobility_penalty, fatigue=e.fatigue,
-                  artifact_rating=e.artifact_rating, attunement=e.attunement,
-                  resources_cost=e.resources_cost)
-            if e else Armor(name=name or ""))
+        if e:
+            character.armor[idx] = Armor(
+                name=e.name, soak_lethal=e.soak_lethal, soak_bashing=e.soak_bashing,
+                mobility_penalty=e.mobility_penalty, fatigue=e.fatigue,
+                artifact_rating=e.artifact_rating, attunement=e.attunement,
+                resources_cost=e.resources_cost)
+        else:
+            character.armor[idx].name = name or ""
         panel.refresh()
 
     def _set_weapon(idx: int, name: str) -> None:
         e = next((w for w in rs.weapon_catalog.values() if w.name == name), None)
-        character.weapons[idx] = (
-            Weapon(name=e.name, speed=e.speed, accuracy=e.accuracy, damage=e.damage,
-                   damage_type=e.damage_type, defense=e.defense, rate=e.rate, range=e.range,
-                   min_strength=e.min_strength, min_dexterity=e.min_dexterity,
-                   min_martial_arts=e.min_martial_arts, max_strength=e.max_strength,
-                   artifact_rating=e.artifact_rating, attunement=e.attunement,
-                   resources_cost=e.resources_cost, notes=e.notes)
-            if e else Weapon(name=name or ""))
+        if e:
+            character.weapons[idx] = Weapon(
+                name=e.name, speed=e.speed, accuracy=e.accuracy, damage=e.damage,
+                damage_type=e.damage_type, defense=e.defense, rate=e.rate, range=e.range,
+                min_strength=e.min_strength, min_dexterity=e.min_dexterity,
+                min_martial_arts=e.min_martial_arts, max_strength=e.max_strength,
+                artifact_rating=e.artifact_rating, attunement=e.attunement,
+                resources_cost=e.resources_cost, notes=e.notes)
+        else:
+            character.weapons[idx].name = name or ""
         panel.refresh()
 
     # ---- buy rows --------------------------------------------------------- #
@@ -285,7 +291,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             bg_names = [b.name for b in rs.background_catalog.values()]
             for idx, bg in enumerate(character.backgrounds):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    ui.select(bg_names, value=bg.name or None, label="Background",
+                    ui.select(_opts_with(bg_names, bg.name), value=bg.name or None, label="Background",
                               with_input=True, new_value_mode="add-unique",
                               on_change=lambda e, bg=bg: setattr(bg, "name", e.value or "")
                               ).props("dense").classes("flex-1")
@@ -343,7 +349,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                     for idx, ar in enumerate(character.armor):
                         with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                                ui.select(armor_names, value=ar.name or None, with_input=True,
+                                ui.select(_opts_with(armor_names, ar.name), value=ar.name or None,
+                                          with_input=True,
                                           new_value_mode="add-unique", label="Armor",
                                           on_change=lambda e, idx=idx: _set_armor(idx, e.value)
                                           ).props("dense").classes("flex-1")
@@ -366,7 +373,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                     for idx, wp in enumerate(character.weapons):
                         with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                                ui.select(weapon_names, value=wp.name or None, with_input=True,
+                                ui.select(_opts_with(weapon_names, wp.name), value=wp.name or None,
+                                          with_input=True,
                                           new_value_mode="add-unique", label="Weapon",
                                           on_change=lambda e, idx=idx: _set_weapon(idx, e.value)
                                           ).props("dense").classes("flex-1")
