@@ -85,7 +85,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         view = viewmod.build_sheet_view(ruleset, character)
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
-        ui.label(f"Charms: {len(character.charms)} · Spells: {len(character.spells)}").classes(
+        # Each Ox-Body purchase consumes a Charm pick from the shared pool of 10.
+        charm_picks = len(character.charms) + len(character.ox_body)
+        ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
             "text-sm font-semibold").style(f"color:{_ACCENT}")
         ui.label(bp).classes("text-xs text-gray-600")
         ui.separator()

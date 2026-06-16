@@ -373,7 +373,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                   on_change=lambda e, p=p: set_health_total(p, int(e.value or 0))).classes("w-16")
 
         # charms/spells (read-only here; the picker is the next slice)
-        with panel(f"Charms ({len(character.charms)}) & Spells ({len(character.spells)}) — edit via the picker"):
+        with panel(f"Charms ({len(character.charms) + len(character.ox_body)}) & Spells ({len(character.spells)}) — edit via the picker"):
             view = viewmod.build_sheet_view(ruleset, character)
             for c in view.charms:
                 ui.label(f"{c.name} · {c.category}").classes("text-xs")
