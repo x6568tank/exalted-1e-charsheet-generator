@@ -154,12 +154,14 @@ def render_sheet(view: viewmod.SheetView) -> None:
                 for w in view.weapons:
                     art = f" · A{w.artifact_rating}/{w.attunement}m" if w.artifact_rating else ""
                     rng = f" · rng {w.range}" if w.range else ""
+                    mat = f" · {w.material}" if w.material else ""
                     ui.label(f"⚔ {w.name}  Spd{w.speed:+d} Acc{w.accuracy:+d} "
-                             f"Dmg{w.damage:+d}{w.damage_type} Def{w.defense:+d}{rng}{art}").classes("text-xs")
+                             f"Dmg{w.damage:+d}{w.damage_type} Def{w.defense:+d}{rng}{art}{mat}").classes("text-xs")
                 for a in view.armor:
                     art = f" · A{a.artifact_rating}/{a.attunement}m" if a.artifact_rating else ""
+                    mat = f" · {a.material}" if a.material else ""
                     ui.label(f"🛡 {a.name}  Soak {a.soak_lethal}L/{a.soak_bashing}B "
-                             f"Mob{a.mobility_penalty:+d} Ftg{a.fatigue}{art}").classes("text-xs")
+                             f"Mob{a.mobility_penalty:+d} Ftg{a.fatigue}{art}{mat}").classes("text-xs")
                 if not view.weapons and not view.armor:
                     ui.label("—").classes("text-sm text-gray-400")
                 if view.anima:

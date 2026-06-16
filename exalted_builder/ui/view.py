@@ -229,6 +229,8 @@ def _xp_entry_label(ruleset: RuleSet, entry: XpEntry) -> str:
     domain, _, key = entry.target.partition(".")
     if domain in ("attributes", "abilities", "virtues"):
         return f"{_label(key)} {entry.from_rating} → {entry.to_rating}"
+    if domain == "crafts":
+        return f"Craft ({entry.detail}) {entry.from_rating} → {entry.to_rating}"
     if domain in ("willpower", "essence"):
         return f"{domain.title()} {entry.from_rating} → {entry.to_rating}"
     if domain == "charms":
@@ -369,16 +371,24 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     ]
 
     # Abilities grouped by their ability-caste (Dawn..Eclipse), matching the sheet.
+    # Craft is per-focus (core p.136): the single Craft slot expands into one row
+    # per craft instance ("Craft (Smithing)"), or a single 0-rated row if none.
     ability_groups: list[tuple[str, list[TraitRow]]] = []
     for caste in Caste:
         group_def = ruleset.castes.get(caste)
         if group_def is None:
             continue
-        rows = [
-            TraitRow(_label(a.value), character.abilities.get(a, 0),
-                     caste=a in own_caste_abilities, favored=a in favored)
-            for a in group_def.caste_abilities
-        ]
+        rows: list[TraitRow] = []
+        for a in group_def.caste_abilities:
+            cf_flags = dict(caste=a in own_caste_abilities, favored=a in favored)
+            if a == AbilityName.CRAFT:
+                if character.crafts:
+                    rows += [TraitRow(f"Craft ({c.focus})", c.rating, **cf_flags)
+                             for c in character.crafts]
+                else:
+                    rows.append(TraitRow("Craft", 0, **cf_flags))
+            else:
+                rows.append(TraitRow(_label(a.value), character.abilities.get(a, 0), **cf_flags))
         ability_groups.append((caste.value, rows))
 
     virtues = [TraitRow(_label(v.value), character.virtues[v]) for v in VirtueName]
@@ -431,8 +441,9 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         specialties=[(_label(s.ability.value), s.name, s.rating) for s in character.specialties],
         charms=charms,
         spells=spells,
-        weapons=list(character.weapons),
-        armor=list(character.armor),
+        # Effective stats: material bonuses folded in, Exalt-gated (core p.341).
+        weapons=[derive.effective_weapon(ruleset, character, w) for w in character.weapons],
+        armor=[derive.effective_armor(ruleset, character, a) for a in character.armor],
         virtue_flaw=virtue_flaw,
         experience=character.xp_earned,
         issues=issues,

@@ -44,6 +44,7 @@ from .models.rules import (
     ChargenBudgets,
     Charm,
     ExperienceCosts,
+    MagicalMaterial,
     NatureType,
     RuleSet,
     Spell,
@@ -161,6 +162,8 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
                          "id", "background", problems)
     natures = _index(_load_array(data_dir / "natures.json", NatureType, problems),
                      "id", "nature", problems)
+    materials = _index(_load_array(data_dir / "materials.json", MagicalMaterial, problems),
+                       "id", "material", problems)
 
     bonus_costs = _load_single(data_dir / "costs_bonus.json", BonusPointCosts, problems)
     xp_costs = _load_single(data_dir / "costs_xp.json", ExperienceCosts, problems)
@@ -181,6 +184,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         weapon_catalog=weapons,
         background_catalog=backgrounds,
         nature_catalog=natures,
+        material_catalog=materials,
         bonus_costs=bonus_costs,
         xp_costs=xp_costs,
         budgets=budgets,

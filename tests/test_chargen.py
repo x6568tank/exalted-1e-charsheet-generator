@@ -143,6 +143,43 @@ def test_favored_ability_needs_a_dot():
 
 
 # --------------------------------------------------------------------------- #
+# Bonus-point spend breakdown (the chargen BP-spend log)
+# --------------------------------------------------------------------------- #
+
+def _line(bd, domain):
+    return next(line.points for line in bd.lines if line.domain == domain)
+
+
+def test_breakdown_is_all_zero_for_the_legal_baseline():
+    rs, c = _ruleset(), _legal_solar()
+    bd = validate.bonus_point_breakdown(rs, c)
+    assert bd.total == 0 and not bd.over_budget
+    assert all(line.points == 0 for line in bd.lines)
+    assert {line.domain for line in bd.lines} == {
+        "Attributes", "Abilities", "Backgrounds", "Virtues", "Charms & Spells",
+        "Combos", "Specialties", "Willpower", "Essence",
+    }
+
+
+def test_breakdown_total_matches_validate_info_message():
+    rs, c = _ruleset(), _legal_solar()
+    c.attributes[AT.STAMINA] = 4          # Physical now +10 vs an 8 pool -> 2 over @4 BP
+    bd = validate.bonus_point_breakdown(rs, c)
+    assert _line(bd, "Attributes") == 8   # 2 dots over the pool, 4 BP each
+    assert bd.total == 8
+    assert "8 of 15" in _bp(validate.validate_chargen(rs, c))
+
+
+def test_breakdown_isolates_per_domain_spend():
+    rs, c = _ruleset(), _legal_solar()
+    c.essence_rating = 3                  # one dot of Essence over the start of 2 -> 7 BP
+    bd = validate.bonus_point_breakdown(rs, c)
+    assert _line(bd, "Essence") == 7
+    assert _line(bd, "Attributes") == 0
+    assert bd.total == 7
+
+
+# --------------------------------------------------------------------------- #
 # Ability / Charm Caste-Favoured minimums
 # --------------------------------------------------------------------------- #
 

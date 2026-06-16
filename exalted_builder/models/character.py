@@ -43,6 +43,16 @@ class BackgroundEntry(BaseModel):
     note: str = ""                         # the specific descriptor
 
 
+class CraftRating(BaseModel):
+    """One Craft Ability instance. In 1e (core p.136) Craft is taken per focus —
+    "characters who wish to master multiple crafts must take this Ability multiple
+    times" — so each craft (Smithing, Genesis, ...) is its own independently rated
+    Ability, NOT a specialty. The single AbilityName.CRAFT dot in `abilities` is
+    unused; the engine reads craft ratings from this list."""
+    focus: str                             # the specific craft, e.g. "Smithing"
+    rating: int = Field(ge=0, le=5)
+
+
 class Combo(BaseModel):
     name: str
     charm_ids: list[str] = Field(default_factory=list)
@@ -67,6 +77,9 @@ class Weapon(BaseModel):
     artifact_rating: int = Field(default=0, ge=0)
     attunement: int = Field(default=0, ge=0)
     resources_cost: int = Field(default=0, ge=0)
+    # Magical material (rules.MagicalMaterial id; "" = mundane). Its stat bonus is
+    # applied by engine.derive only when the wielder's Exalt type matches.
+    material: str = ""
     notes: str = ""
 
 
@@ -80,6 +93,7 @@ class Armor(BaseModel):
     artifact_rating: int = Field(default=0, ge=0)
     attunement: int = Field(default=0, ge=0)
     resources_cost: int = Field(default=0, ge=0)
+    material: str = ""                     # magical material id; "" = mundane
 
 
 class VirtueFlaw(BaseModel):
@@ -121,6 +135,7 @@ class ChargenSnapshot(BaseModel):
     """Frozen at lock; the baseline the XP log is measured against."""
     attributes: dict[AttributeName, int]
     abilities: dict[AbilityName, int]
+    crafts: list[CraftRating] = Field(default_factory=list)
     virtues: dict[VirtueName, int]
     specialties: list[Specialty]
     backgrounds: list[BackgroundEntry]
@@ -157,6 +172,9 @@ class Character(BaseModel):
     abilities: dict[AbilityName, int] = Field(
         default_factory=lambda: {a: 0 for a in AbilityName}
     )
+    # Craft is per-focus (core p.136): each entry is its own rated Ability. The
+    # AbilityName.CRAFT key in `abilities` is unused — read craft from here.
+    crafts: list[CraftRating] = Field(default_factory=list)
     favored_abilities: list[AbilityName] = Field(default_factory=list)
     specialties: list[Specialty] = Field(default_factory=list)
 

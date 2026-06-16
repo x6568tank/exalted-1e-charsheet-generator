@@ -118,7 +118,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (173 tests passing)
+## Status (197 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -197,8 +197,9 @@ Exalted-1E-Charsheet-Generator/      (project root)
   `examples/ashes-of-dawn.character.json`.
 - **Data authored:** `castes.json`, `backgrounds.json` (10 core), `armor.json`
   (mundane + 5 artifact), `weapons.json` (mundane + artifact), `spells.json` (all 3
-  circles), `natures.json` (16 — the p105 Archetype summary list), and the Circle
-  Sorcery charms (`solar_occult.json`, 3).
+  circles), `natures.json` (16 — the p105 Archetype summary list), `materials.json` (5
+  magical materials; weapon bonuses from p341, armour bonuses from p345-346), and the
+  Circle Sorcery charms (`solar_occult.json`, 3).
 - **Charms authored** (`data/charms/solar_<ability>.json`):
   - **Dawn — complete:** Melee (22), Archery (12), Brawl (10), Thrown (9),
     Martial Arts / Snake Style (10, category `martial_arts:snake`).
@@ -290,6 +291,50 @@ Exalted-1E-Charsheet-Generator/      (project root)
   soak L·B, mobility, fatigue, artifact/attunement/resources. Non-negative fields are clamped;
   picking a catalog name re-fills (overwrites) the stats. UI-only — the inline-copy model
   already held every field; no engine change. (Weapons remain display-only in the engine.)
+- **Artifact magical materials — done 2026-06-16 (core p341).** `data/materials.json` →
+  `MagicalMaterial` model + `RuleSet.material_catalog` (loaded by `rules_db`). Each material
+  resonates with ONE Exalt type and grants its bonus **only in the hands of that type**
+  (`exalt_type` matches `Character.exalt_type`): Orichalcum→Solar +1 spd/acc/def,
+  Moonsilver→Lunar +2 acc, Jade→Dragon-Blooded +3 spd, Starmetal→Sidereal +2 dmg,
+  Soulsteel→Abyssal +1 acc (+narrative mote drain). **Armour (p345-346):** Orichalcum &
+  Soulsteel +2 to both soaks; Moonsilver negates the mobility penalty; Jade negates fatigue;
+  Starmetal −1 to the attacker's damage successes (a damage-roll effect → `notes` only, since
+  combat derivation is deferred). The two negate effects are flags (`armor_negate_mobility_penalty`/
+  `armor_negate_fatigue`) not deltas, because they zero a base-dependent value. `Weapon`/`Armor`
+  gained a `material` field (id; "" = mundane). Pure engine `derive.effective_weapon`/`effective_armor`
+  fold the delta in, Exalt-gated via `derive.applied_material`; `derive.soak(character, ruleset)`
+  routes armour through `effective_armor`. UI: a **Material** dropdown in the editor's per-item
+  Edit-stats; summaries + the read-only sheet show **effective** stats with a `◈ <Material>` tag.
+  Only Solar exists today, so in practice only Orichalcum is mechanically active until other
+  splats are added — but all five materials are authored and Exalt-gated, ready for them.
+- **Chargen BP-spend log — done 2026-06-16.** `validate.bonus_point_breakdown(rs, char)` is the
+  pure per-domain BP accounting (Attributes/Abilities/Backgrounds/Virtues/Charms & Spells/
+  Combos/Specialties/Willpower/Essence), now the single source `validate_chargen` consumes for
+  the ceiling check (the arithmetic moved out of `validate_chargen`; `_chargen_source` is the
+  shared snapshot-vs-current selector). The editor renders it as a live "Bonus Points" card
+  **under the caste-info box** on the left column.
+- **Craft as separate per-focus Abilities — done 2026-06-16 (RAW p136).** "Master multiple
+  crafts → take the Ability multiple times," so each craft is its own rated Ability, NOT a
+  specialty. `Character.crafts: list[CraftRating]` (focus + rating); the `AbilityName.CRAFT`
+  dot in `abilities` is **unused** (read craft via `validate.craft_rating` = highest instance,
+  used for Craft-Charm `min_ability`). Chargen accounting expands craft into per-instance
+  Ability slots (`validate._ability_slots`) so each craft dot is budgeted/capped/discounted
+  like the Ability it is and counts toward the ≥10 Caste/Favoured min when Craft is C/F; snapshot
+  carries `crafts`. Costs reuse `ability_step(CRAFT, …)`; `advancement.learn_craft`/`raise_craft`
+  (+ undo + audit; XpEntry `target="crafts"`, `detail=focus`). UI: editor has a **Crafts panel**
+  (Craft row in the abilities grid is replaced by a "↓ per-focus" pointer); the XP tab has a
+  **Crafts card** (raise an existing focus / learn a new one); the sheet shows one "Craft (Focus)"
+  row per instance. Old saves' `abilities.craft` value is ignored (not migrated).
+- **Free background editing on the XP screen — done 2026-06-16.** The XP tab has a
+  "Backgrounds (free — no XP)" card editing `character.backgrounds` directly post-lock (add/
+  remove/name/note/rating); story-driven, so **no XP cost and no log entry** (like equipment,
+  not a dotted trait). Backgrounds aren't XP-audited, so this doesn't perturb `validate_xp`.
+- **Free equipment swap/edit on the XP screen — done 2026-06-16.** The XP tab also has an
+  "Equipment (free — no XP)" card mirroring the editor's Armor/Weapons panels (catalog autofill
+  + per-item Edit-stats expander + Material dropdown + add/remove), editing the inline
+  `character.weapons`/`armor` copies post-lock at **no XP cost / no ledger row** (equipment is an
+  inline copy, not an XP-priced trait). Summaries show material-effective stats. UI-only; the
+  shared autofill/stat-widget helpers are duplicated from the editor (small, render-bound closures).
 - **XP advancement — done (post-lock):** `engine/costs.py` + `engine/advancement.py`
   + the XP tab. The chargen snapshot is the baseline; purchases mutate current
   traits and append to `xp_log`; `validate_xp` audits overspend/tampering. Trait
@@ -304,11 +349,16 @@ Exalted-1E-Charsheet-Generator/      (project root)
   profile; Limit Break (play-state — add at sheet-export time, not chargen).
 
 ## TODO — planned next
-Recent TODOs all DONE (2026-06-15): ~~remove M&F~~, ~~repeatable Ox-Body~~,
+All prior TODOs DONE (2026-06-15): ~~remove M&F~~, ~~repeatable Ox-Body~~,
 ~~Nature dropdown~~, ~~Caste info box (description + Anima Power)~~, ~~re-package the Linux
-binary~~ (rebuilt 2026-06-15, `dist/ExaltedBuilder` ~60MB, smoke-tested: boots + serves 200).
+binary~~, ~~editable custom weapons/armor in the editor~~.
 
-Nothing queued. Open future work: the **Windows .exe** still needs a Windows host
+DONE 2026-06-16: ~~Craft as separate per-focus Abilities (RAW p136)~~, ~~artifact
+magical-material weapon AND armour bonus (Exalt-gated, p341/p345-346)~~, ~~chargen
+BP-spend log~~, ~~free background editing on the XP screen~~, ~~free equipment swap/edit on
+the XP screen~~. **All queued TODOs are now cleared.**
+
+Open future work (unscheduled): the **Windows .exe** still needs a Windows host
 (PyInstaller can't cross-compile; same spec); combat/attack derivation (weapons are
 display-only); Limit Break at sheet-export time. See [[packaging-plan]],
 [[combat-engine-deferred]].

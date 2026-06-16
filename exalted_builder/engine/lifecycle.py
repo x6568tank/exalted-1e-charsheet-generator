@@ -21,6 +21,7 @@ def lock_chargen(character: Character) -> Character:
     character.chargen_snapshot = ChargenSnapshot(
         attributes=dict(character.attributes),
         abilities=dict(character.abilities),
+        crafts=[c.model_copy() for c in character.crafts],
         virtues=dict(character.virtues),
         specialties=list(character.specialties),
         backgrounds=list(character.backgrounds),

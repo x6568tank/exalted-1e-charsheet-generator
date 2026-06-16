@@ -23,9 +23,10 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import validate
+from ..engine import derive, validate
 from ..models.character import (
-    Armor, BackgroundEntry, Character, HealthLevel, Specialty, VirtueFlaw, Weapon)
+    Armor, BackgroundEntry, Character, CraftRating, HealthLevel, Specialty,
+    VirtueFlaw, Weapon)
 
 _BASE_HEALTH = {0: 1, -1: 2, -2: 2, -4: 1}   # base levels per penalty tier
 
@@ -76,8 +77,23 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             color = {"error": "text-red-600", "warning": "text-amber-600"}.get(issue.severity, "text-gray-500")
             ui.label(f"• {issue.message}").classes(f"text-xs {color}")
 
+    # ---- bonus-point spend log (per-domain; lives under the caste box) ----- #
+    @ui.refreshable
+    def bp_log() -> None:
+        bd = validate.bonus_point_breakdown(ruleset, character)
+        ui.label("Bonus Points").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+        color = "#b91c1c" if bd.over_budget else "#15803d"
+        ui.label(f"{bd.total} / {bd.available} spent").classes("text-sm font-semibold").style(f"color:{color}")
+        ui.separator()
+        for line in bd.lines:
+            muted = "" if line.points else "text-gray-400"
+            with ui.row().classes("w-full justify-between no-wrap items-baseline"):
+                ui.label(line.domain).classes(f"text-xs {muted}")
+                ui.label(str(line.points)).classes(f"text-xs {muted}")
+
     def changed() -> None:
         readout.refresh()
+        bp_log.refresh()
 
     # ---- a clickable dot-track rating control ----------------------------- #
     def dots(get, setv, lo: int, hi: int):
@@ -113,22 +129,25 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         caste_def = ruleset.castes.get(character.caste)
         caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
 
-        # caste-info box (left) + identity fields (right)
+        # caste-info box + BP-spend log (left) + identity fields (right)
         with ui.row().classes("w-full gap-2 no-wrap items-stretch"):
-            with ui.card().classes("w-72 flex-none p-3 bg-amber-50/40 border border-amber-900/20 gap-1"):
-                if caste_def:
-                    ui.label(f"{character.caste.value} Caste").classes(
-                        "text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
-                    if caste_def.description:
-                        ui.label(caste_def.description).classes("text-xs")
-                    ui.label("Caste Abilities: " + ", ".join(
-                        _label(a.value) for a in caste_def.caste_abilities)).classes("text-xs italic")
-                    if caste_def.anima_powers:
-                        ui.separator()
-                        ui.label("Anima Power").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
-                        ui.label(caste_def.anima_powers).classes("text-xs")
-                else:
-                    ui.label("Unknown caste").classes("text-xs text-gray-500")
+            with ui.column().classes("w-72 flex-none gap-2"):
+                with ui.card().classes("w-full p-3 bg-amber-50/40 border border-amber-900/20 gap-1"):
+                    if caste_def:
+                        ui.label(f"{character.caste.value} Caste").classes(
+                            "text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+                        if caste_def.description:
+                            ui.label(caste_def.description).classes("text-xs")
+                        ui.label("Caste Abilities: " + ", ".join(
+                            _label(a.value) for a in caste_def.caste_abilities)).classes("text-xs italic")
+                        if caste_def.anima_powers:
+                            ui.separator()
+                            ui.label("Anima Power").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                            ui.label(caste_def.anima_powers).classes("text-xs")
+                    else:
+                        ui.label("Unknown caste").classes("text-xs text-gray-500")
+                with ui.card().classes("w-full p-3 bg-amber-50/40 border border-amber-900/20 gap-1"):
+                    bp_log()
             with ui.column().classes("flex-1 gap-2 min-w-0"):
                 with panel("Identity"):
                     with ui.row().classes("w-full gap-3 no-wrap"):
@@ -175,9 +194,26 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 mark = "●" if a in caste_abilities else ("✦" if a in character.favored_abilities else "")
                                 with ui.row().classes("w-full items-center gap-1 no-wrap"):
                                     ui.label(mark).classes("text-xs w-3").style(f"color:{_ACCENT}")
+                                    if a == AbilityName.CRAFT:
+                                        # Craft is per-focus (p.136) — edited in its own panel below.
+                                        ui.label("Craft").classes("text-sm flex-1 truncate")
+                                        ui.label("↓ per-focus").classes("text-xs text-gray-400")
+                                        continue
                                     ui.label(_label(a.value)).classes("text-sm flex-1 truncate")
                                     dots(lambda a=a: character.abilities[a],
                                          lambda v, a=a: character.abilities.__setitem__(a, v), 0, 5)
+
+        # crafts — each focus is its own rated Ability (core p.136)
+        craft_cf = AbilityName.CRAFT in caste_abilities or AbilityName.CRAFT in character.favored_abilities
+        cf_tag = " · Caste/Favoured" if craft_cf else ""
+        with panel(f"Crafts (each focus a separate Ability{cf_tag})"):
+            for idx, cr in enumerate(character.crafts):
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.input(value=cr.focus, placeholder="craft (e.g. Smithing)",
+                             on_change=lambda e, cr=cr: (setattr(cr, "focus", e.value), changed())).classes("flex-1")
+                    dots(lambda cr=cr: cr.rating, lambda v, cr=cr: setattr(cr, "rating", v), 0, 5)
+                    ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_craft(idx)).props("flat dense round")
+            ui.button("Add craft", icon="add", on_click=add_craft).props("flat dense")
 
         # virtues + essence + willpower
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
@@ -227,12 +263,29 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # numbers live behind an "Edit stats" expander; the summary updates live.
         armor_names = [a.name for a in ruleset.armor_catalog.values()]
         weapon_names = [w.name for w in ruleset.weapon_catalog.values()]
+        # "" = mundane; material bonuses apply only for the matching Exalt (p.341).
+        material_opts = {"": "— none —"} | {
+            m.id: m.name for m in ruleset.material_catalog.values()}
 
         def _weapon_summary(wp) -> str:
-            return f"Acc{wp.accuracy:+d} Dmg{wp.damage:+d}{wp.damage_type} Def{wp.defense:+d}"
+            eff = derive.effective_weapon(ruleset, character, wp)
+            mat = derive.applied_material(ruleset, character, wp)
+            tag = f"  ◈ {mat.name}" if mat else ""
+            return f"Acc{eff.accuracy:+d} Dmg{eff.damage:+d}{eff.damage_type} Def{eff.defense:+d} Spd{eff.speed:+d}{tag}"
 
         def _armor_summary(ar) -> str:
-            return f"Soak {ar.soak_lethal}L/{ar.soak_bashing}B  Mob{ar.mobility_penalty:+d} Ftg{ar.fatigue}"
+            eff = derive.effective_armor(ruleset, character, ar)
+            mat = derive.applied_material(ruleset, character, ar)
+            tag = f"  ◈ {mat.name}" if mat else ""
+            return f"Soak {eff.soak_lethal}L/{eff.soak_bashing}B  Mob{eff.mobility_penalty:+d} Ftg{eff.fatigue}{tag}"
+
+        def material_select(item, sm_label, sm_fn):
+            def _on(e, item=item, sm_label=sm_label, sm_fn=sm_fn):
+                setattr(item, "material", e.value or "")
+                sm_label.set_text(sm_fn(item))
+                changed()
+            ui.select(material_opts, value=item.material or "", label="Material",
+                      on_change=_on).classes("w-40").props("dense")
 
         def stat_num(item, attr, label, sm_label, sm_fn, *, signed=False):
             def _on(e, item=item, attr=attr, sm_label=sm_label, sm_fn=sm_fn):
@@ -262,6 +315,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 stat_num(ar, "artifact_rating", "Art", asm, _armor_summary)
                                 stat_num(ar, "attunement", "Attune", asm, _armor_summary)
                                 stat_num(ar, "resources_cost", "Res", asm, _armor_summary)
+                                material_select(ar, asm, _armor_summary)
                 ui.button("Add armor", icon="add", on_click=lambda: add_item("armor")).props("flat dense")
             with panel("Weapons").classes("flex-1"):
                 for idx, wp in enumerate(character.weapons):
@@ -292,6 +346,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 stat_num(wp, "artifact_rating", "Art", wsm, _weapon_summary)
                                 stat_num(wp, "attunement", "Attune", wsm, _weapon_summary)
                                 stat_num(wp, "resources_cost", "Res", wsm, _weapon_summary)
+                                material_select(wp, wsm, _weapon_summary)
                             ui.input("Notes", value=wp.notes,
                                      on_change=lambda e, wp=wp: (setattr(wp, "notes", e.value), changed())).classes("w-full").props("dense")
                 ui.button("Add weapon", icon="add", on_click=lambda: add_item("weapons")).props("flat dense")
@@ -335,6 +390,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     def remove_bg(idx: int) -> None:
         del character.backgrounds[idx]
+        body.refresh(); changed()
+
+    def add_craft() -> None:
+        character.crafts.append(CraftRating(focus="", rating=1))
+        body.refresh(); changed()
+
+    def remove_craft(idx: int) -> None:
+        del character.crafts[idx]
         body.refresh(); changed()
 
     def add_spec() -> None:

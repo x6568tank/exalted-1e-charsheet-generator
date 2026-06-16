@@ -32,8 +32,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from ..models.character import Character
-from ..models.rules import AttributeName, RuleSet, VirtueName
+from ..models.character import Armor, Character, Weapon
+from ..models.rules import AttributeName, MagicalMaterial, RuleSet, VirtueName
 
 # The fixed Exalted health track: -0/-1/-1/-2/-2/-4/Incapacitated. Penalties for
 # the wound-penalty levels; the Incapacitated level has no dice penalty and is
@@ -140,17 +140,66 @@ def health_track(character: Character) -> list[HealthLevelView]:
     return levels
 
 
-def soak(character: Character) -> SoakView:
+def applied_material(
+    ruleset: RuleSet, character: Character, item: Weapon | Armor
+) -> Optional[MagicalMaterial]:
+    """The magical material whose bonus applies to `item` for this character, or
+    None. A material's bonus applies only when the item names a known material AND
+    that material resonates with the character's Exalt type (core p.341): an
+    orichalcum daiklave aids a Solar, but a jade one does not."""
+    key = getattr(item, "material", "")
+    if not key:
+        return None
+    mat = ruleset.material_catalog.get(key)
+    if mat is None or mat.exalt_type != character.exalt_type:
+        return None
+    return mat
+
+
+def effective_weapon(ruleset: RuleSet, character: Character, weapon: Weapon) -> Weapon:
+    """A copy of `weapon` with its magical-material bonus folded into the stats —
+    applied only when the wielder's Exalt type matches the material (p.341).
+    Mundane weapons and non-matching wielders return an unmodified copy."""
+    mat = applied_material(ruleset, character, weapon)
+    if mat is None:
+        return weapon.model_copy()
+    return weapon.model_copy(update={
+        "speed": weapon.speed + mat.weapon_speed,
+        "accuracy": weapon.accuracy + mat.weapon_accuracy,
+        "damage": weapon.damage + mat.weapon_damage,
+        "defense": weapon.defense + mat.weapon_defense,
+    })
+
+
+def effective_armor(ruleset: RuleSet, character: Character, armor: Armor) -> Armor:
+    """A copy of `armor` with its magical-material bonus folded in, gated on the
+    wearer's Exalt type matching the material (p.341)."""
+    mat = applied_material(ruleset, character, armor)
+    if mat is None:
+        return armor.model_copy()
+    return armor.model_copy(update={
+        "soak_lethal": armor.soak_lethal + mat.armor_soak_lethal,
+        "soak_bashing": armor.soak_bashing + mat.armor_soak_bashing,
+        "mobility_penalty": 0 if mat.armor_negate_mobility_penalty else armor.mobility_penalty,
+        "fatigue": 0 if mat.armor_negate_fatigue else armor.fatigue,
+    })
+
+
+def soak(character: Character, ruleset: Optional[RuleSet] = None) -> SoakView:
     """Per-damage-type soak (bashing / lethal / aggravated), Exalted 1e pp.231-232.
 
     Armour soak is summed across all worn pieces (the model permits several; the
     common case is one suit). Only magical beings add half-Stamina to lethal soak;
     aggravated never benefits from Stamina. Mortals (exalt_type "Mortal") get no
-    Stamina contribution to lethal.
-    """
+    Stamina contribution to lethal. When `ruleset` is given, magical-material
+    bonuses are folded into the armour soak via effective_armor (Exalt-gated)."""
     stamina = character.attributes[AttributeName.STAMINA]
-    armor_bashing = sum(a.soak_bashing for a in character.armor)
-    armor_lethal = sum(a.soak_lethal for a in character.armor)
+    pieces = (
+        [effective_armor(ruleset, character, a) for a in character.armor]
+        if ruleset is not None else character.armor
+    )
+    armor_bashing = sum(a.soak_bashing for a in pieces)
+    armor_lethal = sum(a.soak_lethal for a in pieces)
 
     magical_being = character.exalt_type != "Mortal"
     natural_bashing = stamina
@@ -176,5 +225,5 @@ def derive(ruleset: RuleSet, character: Character) -> DerivedTraits:
         essence_personal=personal,
         essence_peripheral=peripheral,
         health_levels=health_track(character),
-        soak=soak(character),
+        soak=soak(character, ruleset),
     )

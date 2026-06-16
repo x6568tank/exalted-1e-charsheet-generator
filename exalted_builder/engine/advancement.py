@@ -15,7 +15,8 @@ engine.validate; the trait caps live here.
 
 from __future__ import annotations
 
-from ..models.character import Character, Combo, OxBodyPurchase, Specialty, XpEntry
+from ..models.character import (
+    Character, Combo, CraftRating, OxBodyPurchase, Specialty, XpEntry)
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import costs, derive, validate
 
@@ -95,6 +96,36 @@ def raise_ability(ruleset: RuleSet, character: Character, ability: AbilityName) 
     cost = costs.ability_step(ruleset, character, ability, frm)
     entry = _commit(character, f"abilities.{ability.value}", "", frm, frm + 1, cost)
     character.abilities[ability] = frm + 1
+    return entry
+
+
+def learn_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
+    """Begin a new per-focus Craft Ability at rating 1 (core p.136). Priced as a new
+    Ability (the flat 'new ability' cost, with the Caste/Favoured discount baked into
+    ability_step). Focus must be non-empty and not already owned."""
+    _ensure_locked(character)
+    focus = focus.strip()
+    if not focus:
+        raise AdvancementError("A craft needs a focus (e.g. Smithing).")
+    if any(c.focus.casefold() == focus.casefold() for c in character.crafts):
+        raise AdvancementError(f"Craft ({focus}) already exists; raise it instead.")
+    cost = costs.ability_step(ruleset, character, AbilityName.CRAFT, 0)
+    entry = _commit(character, "crafts", focus, 0, 1, cost)
+    character.crafts.append(CraftRating(focus=focus, rating=1))
+    return entry
+
+
+def raise_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
+    """Raise an existing per-focus Craft Ability one dot, scaled like any Ability."""
+    _ensure_locked(character)
+    cr = next((c for c in character.crafts if c.focus == focus), None)
+    if cr is None:
+        raise AdvancementError(f"No Craft ({focus}) to raise; learn it first.")
+    if cr.rating >= _DOT_MAX:
+        raise AdvancementError(f"Craft ({focus}) is already at {_DOT_MAX}.")
+    cost = costs.ability_step(ruleset, character, AbilityName.CRAFT, cr.rating)
+    entry = _commit(character, "crafts", focus, cr.rating, cr.rating + 1, cost)
+    cr.rating += 1
     return entry
 
 
@@ -234,6 +265,14 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
         character.attributes[AttributeName(key)] = entry.from_rating
     elif domain == "abilities":
         character.abilities[AbilityName(key)] = entry.from_rating
+    elif domain == "crafts":
+        for i in range(len(character.crafts) - 1, -1, -1):
+            if character.crafts[i].focus == entry.detail:
+                if entry.from_rating and entry.from_rating > 0:
+                    character.crafts[i].rating = entry.from_rating
+                else:                       # was a freshly-learned craft -> remove it
+                    del character.crafts[i]
+                break
     elif domain == "virtues":
         character.virtues[VirtueName(key)] = entry.from_rating
     elif domain == "willpower":
@@ -282,6 +321,8 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         return costs.attribute_step(ruleset, frm)
     if domain == "abilities" and frm is not None:
         return costs.ability_step(ruleset, character, AbilityName(key), frm)
+    if domain == "crafts" and frm is not None:
+        return costs.ability_step(ruleset, character, AbilityName.CRAFT, frm)
     if domain == "virtues" and frm is not None:
         return costs.virtue_step(ruleset, frm)
     if domain == "willpower" and frm is not None:

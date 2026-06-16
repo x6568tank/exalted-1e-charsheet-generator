@@ -100,6 +100,34 @@ def _category_ability(category: str) -> AbilityName | None:
         return None
 
 
+def craft_rating(character: Character) -> int:
+    """The effective Craft Ability rating: the highest of the character's per-focus
+    Craft instances (core p.136), or 0 if they have none. A Craft Charm's minimum
+    Ability is met by the best craft a character possesses."""
+    return max((c.rating for c in character.crafts), default=0)
+
+
+def ability_rating(character: Character, ability: AbilityName) -> int:
+    """A character's rating in `ability`, reading Craft from its per-focus instances
+    rather than the (unused) AbilityName.CRAFT dot."""
+    if ability == AbilityName.CRAFT:
+        return craft_rating(character)
+    return character.abilities.get(ability, 0)
+
+
+def _ability_slots(abilities: dict, crafts: list):
+    """Yield (ability, rating) pairs for chargen ability accounting. The single
+    AbilityName.CRAFT key is dropped and each Craft instance contributes its own
+    slot (keyed to CRAFT), so per-focus crafts are budgeted, capped and discounted
+    independently like the separate Abilities they are."""
+    for ab, rating in abilities.items():
+        if ab == AbilityName.CRAFT:
+            continue
+        yield ab, rating
+    for cr in crafts:
+        yield AbilityName.CRAFT, cr.rating
+
+
 def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Issue]:
     """For each *known* Charm, verify min essence, min ability, and the AND-of-OR
     Charm prerequisite graph against the Charms the character knows. Unknown ids
@@ -120,7 +148,7 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
 
         ability = _category_ability(charm.category)
         if ability is not None:
-            rating = character.abilities.get(ability, 0)
+            rating = ability_rating(character, ability)
             if rating < charm.min_ability:
                 issues.append(Issue(
                     code="charm-min-ability", where=cid,
@@ -149,7 +177,7 @@ def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> b
     if character.essence_rating < charm.min_essence:
         return False
     ability = _category_ability(charm.category)
-    if ability is not None and character.abilities.get(ability, 0) < charm.min_ability:
+    if ability is not None and ability_rating(character, ability) < charm.min_ability:
         return False
     known = set(character.charms)
     return all(any(req in known for req in group) for group in charm.prerequisites)
@@ -397,42 +425,173 @@ def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[Abili
     return caste_abilities | favored
 
 
+class BonusPointLine(BaseModel):
+    """One domain's bonus-point spend, for the chargen BP-spend log."""
+    domain: str
+    points: int
+
+
+class BonusPointBreakdown(BaseModel):
+    """Per-domain bonus-point accounting for the creation allocation. `lines` are
+    in display order (every domain present, even at 0); `total` is their sum;
+    `available` is the budget (15 by default)."""
+    lines: list[BonusPointLine]
+    total: int
+    available: int
+
+    @property
+    def over_budget(self) -> bool:
+        return self.total > self.available
+
+
+def _chargen_source(character: Character):
+    """The traits chargen accounting reads: the frozen snapshot once locked, else
+    the current (pre-lock) traits. Returned as a flat tuple in a fixed order."""
+    snap = character.chargen_snapshot
+    return (
+        snap.attributes if snap else character.attributes,
+        snap.abilities if snap else character.abilities,
+        snap.crafts if snap else character.crafts,
+        snap.virtues if snap else character.virtues,
+        snap.backgrounds if snap else character.backgrounds,
+        snap.specialties if snap else character.specialties,
+        snap.charms if snap else character.charms,
+        snap.spells if snap else character.spells,
+        snap.combos if snap else character.combos,
+        snap.ox_body if snap else character.ox_body,
+        snap.essence_rating if snap else character.essence_rating,
+        snap.willpower_purchased if snap else character.willpower_purchased,
+    )
+
+
+def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointBreakdown:
+    """Compute the bonus points spent in each chargen domain (Exalted 1e pp.104-105).
+
+    The engine computes the accounting; the player does not tag dots. For each
+    domain, dots beyond the free budget — or above the pre-bonus cap of 3 — are
+    paid from the 15 bonus points at the rates in RuleSet.bonus_costs. Where a
+    domain mixes cheap (Caste/Favoured) and dear dots, the *free* dots are assigned
+    to the dearest first, the player-favourable minimum. This is the single source
+    of the BP totals; validate_chargen consumes it for the ceiling check, and the
+    editor renders it as a spend log.
+    """
+    b = ruleset.budgets
+    bp_costs = ruleset.bonus_costs
+    (attributes, abilities, crafts, virtues, backgrounds, specialties,
+     charms, spells, combos, ox_body, essence, wp_purchased) = _chargen_source(character)
+
+    cf = _caste_favored(ruleset, character)
+    cf_set = (cf[0] | cf[1]) if cf is not None else set()
+
+    # --- Attributes: three category spends matched to the 8/6/4 pools --------- #
+    spends = sorted(
+        (sum(attributes[a] - b.attribute_base for a in attrs)
+         for attrs in ATTRIBUTE_CATEGORIES.values()),
+        reverse=True,
+    )
+    pools = sorted(b.attribute_pools, reverse=True)
+    attr_bp = sum(max(0, s - p) for s, p in zip(spends, pools)) * bp_costs.attribute
+
+    # --- Abilities: 25 free dots, pre-BP cap 3 -------------------------------- #
+    cap = b.ability_cap_pre_bp
+    cheap_within = dear_within = above_bp = 0
+    for ab, rating in _ability_slots(abilities, crafts):
+        within = min(rating, cap)
+        above = max(0, rating - cap)
+        rate = bp_costs.ability_favored_caste if ab in cf_set else bp_costs.ability
+        above_bp += above * rate
+        if ab in cf_set:
+            cheap_within += within
+        else:
+            dear_within += within
+    overflow = max(0, (cheap_within + dear_within) - b.ability_dots)
+    overflow_cheap = min(overflow, cheap_within)         # cheapest dots paid first
+    ability_bp = (above_bp
+                  + overflow_cheap * bp_costs.ability_favored_caste
+                  + (overflow - overflow_cheap) * bp_costs.ability)
+
+    # --- Backgrounds: 7 free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
+    bg_within = bg_above_bp = 0
+    for bg in backgrounds:
+        bg_within += min(bg.rating, b.background_cap_pre_bp)
+        bg_above_bp += max(0, bg.rating - b.background_cap_pre_bp) * bp_costs.background_above_3
+    bg_overflow = max(0, bg_within - b.background_dots)
+    bg_bp = bg_above_bp + bg_overflow * bp_costs.background
+
+    # --- Virtues: 5 free dots over base 1, pre-BP cap 3 ----------------------- #
+    v_within = v_above = 0
+    for v, rating in virtues.items():
+        v_within += max(0, min(rating, b.virtue_cap_pre_bp) - b.virtue_base)
+        v_above += max(0, rating - b.virtue_cap_pre_bp)
+    v_overflow = max(0, v_within - b.virtue_dots)
+    virtue_bp = (v_above + v_overflow) * bp_costs.virtue
+
+    # --- Charms & Spells: one shared pool of 10 (p.100) ----------------------- #
+    occult_cf = AbilityName.OCCULT in cf_set
+    pick_costs: list[int] = []
+    for cid in charms:
+        charm = ruleset.charms.get(cid)
+        if charm is None:
+            continue
+        ability = _category_ability(charm.category)
+        is_cf = ability is not None and ability in cf_set
+        pick_costs.append(bp_costs.charm_favored_caste if is_cf else bp_costs.charm)
+    for sid in spells:
+        if ruleset.spells.get(sid) is None:
+            continue
+        pick_costs.append(bp_costs.charm_favored_caste if occult_cf else bp_costs.charm)
+    ox_body_cf = AbilityName.ENDURANCE in cf_set
+    for _ in ox_body:
+        pick_costs.append(bp_costs.charm_favored_caste if ox_body_cf else bp_costs.charm)
+    pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
+    charm_bp = sum(pick_costs[b.charm_count:])
+
+    # --- Combos: BP = its number of Charms (p.213) --------------------------- #
+    combo_bp = sum(len(combo.charm_ids) for combo in combos)
+
+    # --- Specialties: 1 BP/dot; Caste/Favoured get N dots per BP (p.105) ------ #
+    cf_spec_dots = sum(s.rating for s in specialties if s.ability in cf_set)
+    other_spec_dots = sum(s.rating for s in specialties if s.ability not in cf_set)
+    per_point = bp_costs.specialty_favored_caste_dots_per_point
+    spec_bp = other_spec_dots * bp_costs.specialty + (cf_spec_dots + per_point - 1) // per_point
+
+    # --- Willpower / Essence -------------------------------------------------- #
+    wp_bp = wp_purchased * bp_costs.willpower
+    essence_bp = max(0, essence - b.essence_start) * bp_costs.essence
+
+    lines = [
+        BonusPointLine(domain="Attributes", points=attr_bp),
+        BonusPointLine(domain="Abilities", points=ability_bp),
+        BonusPointLine(domain="Backgrounds", points=bg_bp),
+        BonusPointLine(domain="Virtues", points=virtue_bp),
+        BonusPointLine(domain="Charms & Spells", points=charm_bp),
+        BonusPointLine(domain="Combos", points=combo_bp),
+        BonusPointLine(domain="Specialties", points=spec_bp),
+        BonusPointLine(domain="Willpower", points=wp_bp),
+        BonusPointLine(domain="Essence", points=essence_bp),
+    ]
+    total = sum(line.points for line in lines)
+    return BonusPointBreakdown(lines=lines, total=total, available=b.bonus_points)
+
+
 def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Chargen budget predicates and bonus-point accounting (Exalted 1e core,
+    """Chargen budget predicates and bonus-point reconciliation (Exalted 1e core,
     pp.104-105). Validates the creation allocation: current traits pre-lock, or
     the frozen ChargenSnapshot once locked.
 
-    Bonus-point accounting (the engine computes it; the player does not tag dots).
-    For each domain, dots beyond the free budget — or above the pre-bonus cap of 3
-    — are paid from the 15 bonus points at the rates in RuleSet.bonus_costs, and
-    the total must not exceed the budget. Where a domain has cheap (Caste/Favoured)
-    and dear dots, the *free* dots are assigned to the dearest first, i.e. the
-    player-favourable minimum. One known simplification, flagged for the rules
+    The per-domain bonus-point arithmetic lives in `bonus_point_breakdown`; this
+    function adds the legality predicates (ranges, Caste/Favoured minimums, the
+    Willpower start-cap, the Charm/Spell Caste-Favoured minimum) and the final
+    budget-ceiling check. One known simplification, flagged for the rules
     authority: the "10 of 25 Ability dots / 5 of 10 Charms must be Caste or
-    Favoured" rules are checked as necessary conditions (enough Caste/Favoured
-    dots exist) rather than jointly optimised with the free-dot assignment; the
-    two only interact in rare over-spent builds.
-
-    Specialties honour the p.105 Caste/Favoured discount (N dots per BP); see the
-    Specialties block for the one accounting choice it entails.
+    Favoured" rules are checked as necessary conditions rather than jointly
+    optimised with the free-dot assignment; the two only interact in rare
+    over-spent builds.
     """
     issues: list[Issue] = []
     b = ruleset.budgets
-    bp_costs = ruleset.bonus_costs
-
-    # Source of truth: the frozen snapshot once locked, else current traits.
-    snap = character.chargen_snapshot
-    attributes = snap.attributes if snap else character.attributes
-    abilities = snap.abilities if snap else character.abilities
-    virtues = snap.virtues if snap else character.virtues
-    backgrounds = snap.backgrounds if snap else character.backgrounds
-    specialties = snap.specialties if snap else character.specialties
-    charms = snap.charms if snap else character.charms
-    spells = snap.spells if snap else character.spells
-    combos = snap.combos if snap else character.combos
-    ox_body = snap.ox_body if snap else character.ox_body
-    essence = snap.essence_rating if snap else character.essence_rating
-    wp_purchased = snap.willpower_purchased if snap else character.willpower_purchased
+    (attributes, abilities, crafts, virtues, _backgrounds, _specialties,
+     charms, spells, _combos, ox_body, essence, wp_purchased) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:
@@ -466,95 +625,46 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 ))
 
     cf_set = caste_abilities | favored
-    total_bp = 0
 
-    # --- Attributes: three category spends matched to the 8/6/4 pools --------- #
+    # --- Range checks --------------------------------------------------------- #
     for name, attr in attributes.items():
         if not (b.attribute_base <= attr <= 5):
             issues.append(Issue(
                 code="attribute-range", where=name.value,
                 message=f"Attribute {name.value} = {attr}; must be {b.attribute_base}-5 at creation.",
             ))
-    spends = sorted(
-        (sum(attributes[a] - b.attribute_base for a in attrs)
-         for attrs in ATTRIBUTE_CATEGORIES.values()),
-        reverse=True,
-    )
-    pools = sorted(b.attribute_pools, reverse=True)
-    attr_overflow = sum(max(0, s - p) for s, p in zip(spends, pools))
-    total_bp += attr_overflow * bp_costs.attribute
-
-    # --- Abilities: 25 free dots, pre-BP cap 3, >=10 Caste/Favoured ----------- #
-    cap = b.ability_cap_pre_bp
-    cheap_within = dear_within = above_bp = 0
-    for ab, rating in abilities.items():
+    cheap_within = 0
+    for ab, rating in _ability_slots(abilities, crafts):
         if not (0 <= rating <= 5):
             issues.append(Issue(
                 code="ability-range", where=ab.value,
                 message=f"Ability {ab.value} = {rating}; must be 0-5 at creation.",
             ))
-        within = min(rating, cap)
-        above = max(0, rating - cap)
-        rate = bp_costs.ability_favored_caste if ab in cf_set else bp_costs.ability
-        above_bp += above * rate
         if ab in cf_set:
-            cheap_within += within
-        else:
-            dear_within += within
+            cheap_within += min(rating, b.ability_cap_pre_bp)
     if cheap_within < b.ability_min_caste_favored:
         issues.append(Issue(
             code="ability-caste-favored-min",
             message=f"At least {b.ability_min_caste_favored} of the {b.ability_dots} "
                     f"Ability dots must be Caste/Favoured; only {cheap_within} are.",
         ))
-    overflow = max(0, (cheap_within + dear_within) - b.ability_dots)
-    overflow_cheap = min(overflow, cheap_within)         # cheapest dots paid first
-    ability_bp = (above_bp
-                  + overflow_cheap * bp_costs.ability_favored_caste
-                  + (overflow - overflow_cheap) * bp_costs.ability)
-    total_bp += ability_bp
-
-    # --- Backgrounds: 7 free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
-    bg_within = bg_above_bp = 0
-    for bg in backgrounds:
-        bg_within += min(bg.rating, b.background_cap_pre_bp)
-        bg_above_bp += max(0, bg.rating - b.background_cap_pre_bp) * bp_costs.background_above_3
-    bg_overflow = max(0, bg_within - b.background_dots)
-    total_bp += bg_above_bp + bg_overflow * bp_costs.background
-
-    # --- Virtues: 5 free dots over base 1, pre-BP cap 3 ----------------------- #
-    v_within = v_above = 0
     for v, rating in virtues.items():
         if not (b.virtue_base <= rating <= 5):
             issues.append(Issue(
                 code="virtue-range", where=v.value,
                 message=f"Virtue {v.value} = {rating}; must be {b.virtue_base}-5 at creation.",
             ))
-        v_within += max(0, min(rating, b.virtue_cap_pre_bp) - b.virtue_base)
-        v_above += max(0, rating - b.virtue_cap_pre_bp)
-    v_overflow = max(0, v_within - b.virtue_dots)
-    total_bp += (v_above + v_overflow) * bp_costs.virtue
 
-    # --- Charms & Spells: one shared pool of 10, >=5 Caste/Favoured ----------- #
-    # p.100: a spell may be taken in place of a Charm pick (1:1), costs the same as
-    # a Charm in bonus points, and gets the Caste/Favoured discount when Occult is
-    # Caste/Favoured. So Charms and spells share the free pool and the BP rates; a
-    # spell counts as a Caste/Favoured pick iff Occult is Caste/Favoured. Solar
-    # Circle spells may not be taken at creation at all.
-    # Each pick gets its own BP cost (Caste/Favoured rate); the free pool covers the
-    # dearest picks and bonus points pay for the rest (player-favourable).
+    # --- Charms & Spells: >=5 Caste/Favoured; Solar Circle barred at creation - #
     occult_cf = AbilityName.OCCULT in cf_set
-    cf_pick_count = 0          # Charms + spells that count as Caste/Favoured
-    pick_costs: list[int] = []
+    cf_pick_count = 0
     for cid in charms:
         charm = ruleset.charms.get(cid)
         if charm is None:
             continue
-        ability = _category_ability(charm.category)   # resolves 'martial_arts:<style>' too
-        is_cf = ability is not None and ability in cf_set
-        if is_cf:
+        ability = _category_ability(charm.category)
+        if ability is not None and ability in cf_set:
             cf_pick_count += 1
-        pick_costs.append(bp_costs.charm_favored_caste if is_cf else bp_costs.charm)
     for sid in spells:
         spell = ruleset.spells.get(sid)
         if spell is None:
@@ -567,13 +677,8 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             ))
         if occult_cf:
             cf_pick_count += 1
-        pick_costs.append(bp_costs.charm_favored_caste if occult_cf else bp_costs.charm)
-    # Ox-Body Technique: each purchase is a Charm pick gated on Endurance.
-    ox_body_cf = AbilityName.ENDURANCE in cf_set
-    for _ in ox_body:
-        if ox_body_cf:
-            cf_pick_count += 1
-        pick_costs.append(bp_costs.charm_favored_caste if ox_body_cf else bp_costs.charm)
+    if AbilityName.ENDURANCE in cf_set:
+        cf_pick_count += len(ox_body)
     if cf_pick_count < b.charm_min_caste_favored:
         issues.append(Issue(
             code="charm-caste-favored-min",
@@ -581,26 +686,8 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                     f"Charms/Spells must be Caste/Favoured; only {cf_pick_count} "
                     "resolve as such.",
         ))
-    pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
-    total_bp += sum(pick_costs[b.charm_count:])
 
-    # --- Combos: starting with a Combo costs BP = its number of Charms (p.213) - #
-    # Legality (instant duration, one Simple/Extra Action, etc.) is checked in
-    # validate_combos; here we only account the bonus-point cost.
-    total_bp += sum(len(combo.charm_ids) for combo in combos)
-
-    # --- Specialties: 1 BP/dot; Caste/Favoured get N dots per BP (p.105) ------ #
-    # Caste/Favoured dots are pooled before the round-up, the player-favourable
-    # reading of "2 per 1" (two separate 1-dot specialties cost 1 BP together, not
-    # 1 each). This pooling is the one accounting choice here worth confirming.
-    cf_spec_dots = sum(s.rating for s in specialties if s.ability in cf_set)
-    other_spec_dots = sum(s.rating for s in specialties if s.ability not in cf_set)
-    per_point = bp_costs.specialty_favored_caste_dots_per_point
-    cf_spec_bp = (cf_spec_dots + per_point - 1) // per_point   # round up
-    total_bp += other_spec_dots * bp_costs.specialty + cf_spec_bp
-
-    # --- Willpower: purchased dots, plus the start-cap rule -------------------- #
-    total_bp += wp_purchased * bp_costs.willpower
+    # --- Willpower start-cap -------------------------------------------------- #
     wp_total = derive.two_highest_virtues(virtues) + wp_purchased
     if wp_total > b.willpower_start_cap:
         high_virtues = sum(1 for r in virtues.values() if r >= b.willpower_cap_exception_virtue)
@@ -619,18 +706,17 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             code="essence-below-start",
             message=f"Essence {essence} is below the starting {b.essence_start}.",
         ))
-    total_bp += max(0, essence - b.essence_start) * bp_costs.essence
 
-    # --- Bonus-point ceiling -------------------------------------------------- #
-    available = b.bonus_points
-    if total_bp > available:
+    # --- Bonus-point ceiling (numbers from bonus_point_breakdown) ------------- #
+    breakdown = bonus_point_breakdown(ruleset, character)
+    if breakdown.over_budget:
         issues.append(Issue(
             code="bonus-points-exceeded",
-            message=f"Spends {total_bp} bonus points; only {available} available.",
+            message=f"Spends {breakdown.total} bonus points; only {breakdown.available} available.",
         ))
     issues.append(Issue(
         code="bonus-points", severity="info",
-        message=f"{total_bp} of {available} bonus points spent.",
+        message=f"{breakdown.total} of {breakdown.available} bonus points spent.",
     ))
     return issues
 

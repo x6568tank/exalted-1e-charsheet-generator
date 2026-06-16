@@ -257,6 +257,33 @@ class NatureType(BaseModel):
     description: str = ""
 
 
+class MagicalMaterial(BaseModel):
+    """One of the five magical materials an artifact weapon/armour can be forged
+    from (core p.341). Each material resonates with exactly one Exalt type and
+    grants its bonus ONLY in the hands of that type — `exalt_type` matches
+    Character.exalt_type ("Solar", "Lunar", "Dragon-Blooded", ...). The weapon_*
+    deltas are added to the inline weapon's stats when the wielder matches; the
+    armor_* deltas do the same for armour (pending the core armour-material page —
+    they default to 0). Values come from page images, never from training data."""
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    name: str
+    exalt_type: str                        # the Exalt the bonus applies for
+    weapon_speed: int = 0
+    weapon_accuracy: int = 0
+    weapon_damage: int = 0
+    weapon_defense: int = 0
+    # Armour (core p.345-346). Soak deltas are additive; the two negate flags zero
+    # out a value rather than add to it (Moonsilver removes mobility penalty,
+    # Jade removes fatigue) — these depend on the base, so they can't be a delta.
+    armor_soak_lethal: int = 0
+    armor_soak_bashing: int = 0
+    armor_negate_mobility_penalty: bool = False
+    armor_negate_fatigue: bool = False
+    notes: str = ""                        # narrative riders (mote drain, damage-roll effects)
+
+
 # --------------------------------------------------------------------------- #
 # Cost tables
 # --------------------------------------------------------------------------- #
@@ -347,6 +374,7 @@ class RuleSet(BaseModel):
     weapon_catalog: dict[str, WeaponType] = Field(default_factory=dict)
     background_catalog: dict[str, BackgroundType] = Field(default_factory=dict)
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
+    material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
     bonus_costs: BonusPointCosts = Field(default_factory=BonusPointCosts)
     xp_costs: ExperienceCosts = Field(default_factory=ExperienceCosts)
     budgets: ChargenBudgets = Field(default_factory=ChargenBudgets)

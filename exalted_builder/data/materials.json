@@ -1,0 +1,46 @@
+[
+  {
+    "id": "orichalcum",
+    "name": "Orichalcum",
+    "exalt_type": "Solar",
+    "weapon_speed": 1,
+    "weapon_accuracy": 1,
+    "weapon_damage": 0,
+    "weapon_defense": 1,
+    "armor_soak_lethal": 2,
+    "armor_soak_bashing": 2,
+    "notes": "Weapon: +1 speed, accuracy and defense when wielded by a Solar. Armor: +2 to both lethal and bashing soak when worn by a Solar (core p.341, p.345)."
+  },
+  {
+    "id": "moonsilver",
+    "name": "Moonsilver",
+    "exalt_type": "Lunar",
+    "weapon_accuracy": 2,
+    "armor_negate_mobility_penalty": true,
+    "notes": "Weapon: +2 accuracy in the hands of a Lunar; can change shape. Armor: no mobility penalty no matter how heavy, when worn by a Lunar (core p.341, p.345)."
+  },
+  {
+    "id": "jade",
+    "name": "Jade",
+    "exalt_type": "Dragon-Blooded",
+    "weapon_speed": 3,
+    "armor_negate_fatigue": true,
+    "notes": "Weapon: +3 speed in the hands of a Dragon-Blooded. Armor: no fatigue value when worn by a Terrestrial (core p.341, p.345)."
+  },
+  {
+    "id": "starmetal",
+    "name": "Starmetal",
+    "exalt_type": "Sidereal",
+    "weapon_damage": 2,
+    "notes": "Weapon: +2 damage in the hands of a Sidereal. Armor: normal soak, but subtracts 1 from the attacker's damage successes (can reduce a blow to 0) when worn by a Sidereal — a damage-roll effect, applied at combat resolution, not a soak delta (core p.341, p.346)."
+  },
+  {
+    "id": "soulsteel",
+    "name": "Soulsteel",
+    "exalt_type": "Abyssal",
+    "weapon_accuracy": 1,
+    "armor_soak_lethal": 2,
+    "armor_soak_bashing": 2,
+    "notes": "Weapon: +1 accuracy in the hands of an Abyssal and drains motes of Essence equal to the wielder's permanent Essence on any strike dealing at least one health level. Armor: +2 to all soaks when worn by an Abyssal (core p.341, p.346)."
+  }
+]
