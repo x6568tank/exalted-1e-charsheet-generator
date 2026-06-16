@@ -32,7 +32,7 @@ async def test_play_tab_renders(user: User) -> None:
     await user.open('/play')
     await user.should_see("Health")
     await user.should_see("Limit")
-    await user.should_see("Rest / refresh")
+    await user.should_see("Clear motes spent")
 
 
 @pytest.mark.asyncio

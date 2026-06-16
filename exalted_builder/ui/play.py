@@ -32,12 +32,15 @@ _ACCENT = "#8a5a1a"
 
 # The cycle a health box steps through on each click: empty → / → x → * → empty.
 _MARK_CYCLE: list[Damage | None] = [None, Damage.BASHING, Damage.LETHAL, Damage.AGGRAVATED]
+# Filled boxes are gold; the damage type is read from the symbol, tinted per type.
+_GOLD = "#c9a227"
+_WHITE = "#ffffff"
+_BORDER = "#d6b98c"
 _MARK_COLOR = {
-    Damage.BASHING: "#6b7280",       # grey
+    Damage.BASHING: "#374151",       # dark grey
     Damage.LETHAL: "#b91c1c",        # red
-    Damage.AGGRAVATED: "#7e22ce",    # purple
+    Damage.AGGRAVATED: "#6b21a8",    # purple
 }
-_MARK_NAME = {Damage.BASHING: "bashing", Damage.LETHAL: "lethal", Damage.AGGRAVATED: "aggravated"}
 
 
 def build_play(ruleset: RuleSet, character: Character, save_path: Path,
@@ -84,29 +87,33 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
         setattr(ps(), field, max(0, min(cap, clicked - 1 if clicked == cur else clicked)))
         body.refresh()
 
-    def rest_refresh() -> None:
+    def clear_motes() -> None:
+        # Motes only — Willpower, health, and Limit recover on their own terms (ST
+        # discretion), so the tracker does not bulk-reset them.
         p = ps()
         p.motes_personal_spent = 0
         p.motes_peripheral_spent = 0
-        p.willpower_spent = 0          # NOT health, NOT limit — healing is ST discretion
         body.refresh()
-        ui.notify("Motes and temporary Willpower refreshed.", type="positive")
+        ui.notify("Motes spent cleared.", type="positive")
 
     # ---- box widgets ------------------------------------------------------ #
+    # Boxes are clickable <div>s (not q-btns) so the white/gold background applies
+    # cleanly — a q-btn's own background otherwise wins over an inline style.
     def _health_box(i: int, label: str, mark: Damage | None, n: int) -> None:
         with ui.column().classes("items-center gap-0"):
-            ui.label(label).classes("text-2xs text-gray-500").style("font-size:0.6rem")
-            btn = ui.button(mark.value if mark else "",
-                            on_click=lambda i=i: cycle_health(i, n)).props("dense unelevated square")
-            btn.style("width:2rem;height:2rem;min-width:0;font-weight:700;"
-                      + (f"background:{_MARK_COLOR[mark]};color:white" if mark
-                         else "background:#fffbeb;color:#8a5a1a;border:1px solid #d6b98c"))
+            ui.label(label).classes("text-gray-500").style("font-size:0.6rem")
+            sym_color = _MARK_COLOR[mark] if mark else "#8a5a1a"
+            box = ui.label(mark.value if mark else "").classes("cursor-pointer select-none")
+            box.style(f"width:2rem;height:2rem;line-height:2rem;text-align:center;"
+                      f"font-weight:700;border-radius:4px;border:1px solid {_BORDER};"
+                      f"background:{_GOLD if mark else _WHITE};color:{sym_color};")
+            box.on("click", lambda i=i: cycle_health(i, n))
 
-    def _count_box(i: int, filled: bool, field: str, cap: int, color: str) -> None:
-        btn = ui.button("", on_click=lambda i=i: set_count(field, i + 1, cap)).props("dense unelevated square")
-        btn.style("width:1.5rem;height:1.5rem;min-width:0;"
-                  + (f"background:{color};border:1px solid {color}"
-                     if filled else "background:#fffbeb;border:1px solid #d6b98c"))
+    def _count_box(i: int, filled: bool, field: str, cap: int) -> None:
+        box = ui.label("").classes("cursor-pointer select-none")
+        box.style(f"width:1.5rem;height:1.5rem;border-radius:4px;border:1px solid {_BORDER};"
+                  f"background:{_GOLD if filled else _WHITE};")
+        box.on("click", lambda i=i: set_count(field, i + 1, cap))
 
     # ---- body ------------------------------------------------------------- #
     @ui.refreshable
@@ -144,18 +151,17 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                         f"{pv.willpower_max} available)"):
                 with ui.row().classes("gap-1 flex-wrap"):
                     for i in range(pv.willpower_max):
-                        _count_box(i, i < cur.willpower_spent, "willpower_spent",
-                                   pv.willpower_max, _ACCENT)
+                        _count_box(i, i < cur.willpower_spent, "willpower_spent", pv.willpower_max)
 
             # --- Limit (bare 0..10 counter) ------------------------------ #
             with _panel(f"Limit  ({cur.limit} / 10{'  — LIMIT BREAK' if cur.limit >= 10 else ''})"):
                 with ui.row().classes("gap-1 flex-wrap"):
                     for i in range(10):
-                        _count_box(i, i < cur.limit, "limit", 10, "#b45309")
+                        _count_box(i, i < cur.limit, "limit", 10)
 
-            ui.button("Rest / refresh", icon="bedtime", on_click=rest_refresh).props(
-                "color=brown").tooltip("Clears motes spent and temporary Willpower. "
-                                       "Health and Limit are left to ST discretion.")
+            ui.button("Clear motes spent", icon="refresh", on_click=clear_motes).props(
+                "flat color=brown").tooltip("Resets Personal and Peripheral motes spent to 0. "
+                                            "Willpower, Health, and Limit are left to you / the ST.")
 
     def _mote_input(label: str, field: str, value: int, cap: int) -> None:
         with ui.column().classes("gap-0"):
