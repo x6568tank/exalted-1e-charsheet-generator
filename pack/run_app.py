@@ -12,6 +12,21 @@ Re-launch behaviour:
     double-click always lands on a working app, whether or not the old one closed.
 """
 
+import os
+import sys
+
+# In a windowed (console=False) PyInstaller build there is no console, so
+# sys.stdout / sys.stderr are None. uvicorn's log formatter calls
+# sys.stdout.isatty() while configuring logging, which then fails with
+# "'NoneType' object has no attribute 'isatty'" -> "Unable to configure formatter
+# 'default'", crashing before the server starts (seen on the Windows .exe; a
+# double-clicked Linux binary has the same gap). Give them real sinks first. This
+# MUST run before nicegui/uvicorn are imported below.
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
+
 import asyncio
 import multiprocessing
 import socket

@@ -47,6 +47,11 @@ py -m venv .venv
 Ship `dist\ExaltedBuilder.exe`.
 
 ## Notes
+- The spec builds **windowed** (`console=False`), so the running app has no console
+  and `sys.stdout`/`sys.stderr` are `None`. `run_app.py` redirects those to `os.devnull`
+  at startup — without it, uvicorn's log formatter calls `sys.stdout.isatty()` and the
+  app crashes with "Unable to configure formatter 'default'" before the server starts
+  (most visibly on the Windows `.exe`, which never has a console). Keep that guard.
 - First launch may take a few seconds (the one-file build unpacks to a temp dir).
 - The build is ~60 MB because it embeds a Python runtime; that is normal and
   expected for a PyInstaller one-file app. Don't commit `dist/` or `build/`.
