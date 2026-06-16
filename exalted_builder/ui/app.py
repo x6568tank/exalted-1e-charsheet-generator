@@ -181,7 +181,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
                 ui.label("Soak").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
                 s = view.soak
                 ui.label(f"Bashing {s.bashing}  ·  Lethal {s.lethal}  ·  Aggravated {s.aggravated}").classes("text-sm")
-                ui.label(f"(Stamina {s.natural_bashing}/½{s.natural_lethal} + armor {s.armor_bashing}/{s.armor_lethal})").classes("text-xs text-gray-500")
+                ui.label(f"(Stamina {s.natural_bashing}/{s.natural_lethal} + armor {s.armor_bashing}/{s.armor_lethal})").classes("text-xs text-gray-500")
                 ui.separator()
                 ui.label("Health").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
                 ui.label("  ".join(view.health)).classes("text-sm font-mono")
