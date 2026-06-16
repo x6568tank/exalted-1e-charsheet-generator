@@ -170,12 +170,6 @@ def render_sheet(view: viewmod.SheetView) -> None:
                     ui.separator()
                     ui.label("Virtue Flaw").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
                     ui.label(view.virtue_flaw).classes("text-xs")
-                if view.merits_flaws:
-                    ui.separator()
-                    ui.label("Merits & Flaws").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
-                    for name, points, is_flaw in view.merits_flaws:
-                        kind = "Flaw" if is_flaw else "Merit"
-                        ui.label(f"{name or '(unnamed)'} — {kind} {points}").classes("text-xs")
 
             # center: willpower + health + soak
             with _panel().classes("flex-1"):

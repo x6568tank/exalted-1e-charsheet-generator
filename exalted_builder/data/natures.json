@@ -1,0 +1,18 @@
+[
+  {"id": "architect", "name": "Architect", "description": "You want to leave a lasting legacy."},
+  {"id": "bravo", "name": "Bravo", "description": "Might makes right."},
+  {"id": "bureaucrat", "name": "Bureaucrat", "description": "Rules keep the world from collapsing into chaos."},
+  {"id": "caregiver", "name": "Caregiver", "description": "You are a wellspring of compassion."},
+  {"id": "conniver", "name": "Conniver", "description": "Brains over brawn."},
+  {"id": "critic", "name": "Critic", "description": "Pointing out flaws makes it possible to correct them."},
+  {"id": "explorer", "name": "Explorer", "description": "Life is a never ending adventure."},
+  {"id": "follower", "name": "Follower", "description": "You look for someone else to take charge."},
+  {"id": "gallant", "name": "Gallant", "description": "You seek to be the center of attention."},
+  {"id": "hedonist", "name": "Hedonist", "description": "Eat, drink and be merry, for tomorrow you may die."},
+  {"id": "jester", "name": "Jester", "description": "Laughter can heal and teach."},
+  {"id": "judge", "name": "Judge", "description": "Balance, truth and justice are your quest."},
+  {"id": "leader", "name": "Leader", "description": "You are the one others turn to in times of crisis."},
+  {"id": "martyr", "name": "Martyr", "description": "You are ready to give everything for what you believe."},
+  {"id": "paragon", "name": "Paragon", "description": "You strive to be the noble ideal of a hero."},
+  {"id": "rebel", "name": "Rebel", "description": "You constantly seek to challenge authority."}
+]

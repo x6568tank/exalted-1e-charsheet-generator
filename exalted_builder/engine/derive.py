@@ -123,6 +123,11 @@ def health_track(character: Character) -> list[HealthLevelView]:
         HealthLevelView(penalty=hl.penalty, source=hl.source_charm)
         for hl in character.health_bonus_levels if not hl.removed
     ]
+    # Ox-Body Technique purchases: each chosen package's levels (stored inline).
+    levels += [
+        HealthLevelView(penalty=p, source="Ox-Body Technique")
+        for purchase in character.ox_body for p in purchase.health_levels
+    ]
     # Curses remove a level of the given penalty (a base level first).
     for hl in character.health_bonus_levels:
         if hl.removed:

@@ -150,7 +150,12 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> 
 
     nodes = []
     for c in charms:
-        if c.id in owned:
+        # Ox-Body is repeatable and lives on character.ox_body, not character.charms:
+        # it is "owned" once at least one copy is bought, else available per its reqs.
+        if c.id == validate.OX_BODY_ID:
+            state = "owned" if character.ox_body else (
+                "available" if validate.meets_charm_requirements(ruleset, character, c) else "locked")
+        elif c.id in owned:
             state = "owned"
         elif validate.meets_charm_requirements(ruleset, character, c):
             state = "available"
@@ -236,10 +241,11 @@ def _xp_entry_label(ruleset: RuleSet, entry: XpEntry) -> str:
         return f"Combo: {entry.detail}"
     if domain == "specialties":
         return f"Specialty: {entry.detail.replace(':', ' — ', 1)}"
-    if domain == "merits_flaws":
-        kind = "Flaw" if (entry.mf and entry.mf.is_flaw) else "Merit"
-        verb = {"gain": "Gained", "lose": "Bought off" if kind == "Flaw" else "Dropped"}.get(key, key)
-        return f"{verb} {kind}: {entry.detail}"
+    if domain == "ox_body":
+        charm = ruleset.charms.get(validate.OX_BODY_ID)
+        label = next((v.label for v in (charm.variants if charm else []) if v.key == entry.detail),
+                     entry.detail)
+        return f"Ox-Body: {label}"
     return entry.target
 
 
@@ -310,7 +316,6 @@ class SheetView:
     armor: list[Armor]
     # status / misc
     virtue_flaw: Optional[str]
-    merits_flaws: list[tuple[str, int, bool]]   # (name, points, is_flaw)
     experience: int
     issues: list[validate.Issue]
     chargen_locked: bool
@@ -385,6 +390,13 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
             charms.append(CharmRow(charm.name, charm.category, _cost_str(charm.cost)))
         else:
             charms.append(CharmRow(cid, "?", "—"))
+    # Repeatable Ox-Body Technique: one row per purchase, labelled by its package.
+    ox_charm = ruleset.charms.get(validate.OX_BODY_ID)
+    if ox_charm:
+        labels = {v.key: v.label for v in ox_charm.variants}
+        for p in character.ox_body:
+            charms.append(CharmRow(f"{ox_charm.name} ({labels.get(p.variant, p.variant)})",
+                                   ox_charm.category, "—"))
     spells = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
@@ -422,7 +434,6 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         weapons=list(character.weapons),
         armor=list(character.armor),
         virtue_flaw=virtue_flaw,
-        merits_flaws=[(mf.name, mf.points, mf.is_flaw) for mf in character.merits_flaws],
         experience=character.xp_earned,
         issues=issues,
         chargen_locked=character.chargen_locked,

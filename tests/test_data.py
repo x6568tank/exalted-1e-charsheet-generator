@@ -34,17 +34,25 @@ def test_each_caste_keyed_by_its_own_enum():
     assert all(caste == cd.caste for caste, cd in rs.castes.items())
 
 
-def test_merit_flaw_catalog_loads_with_points_and_categories():
+def test_ox_body_technique_loads_repeatable_with_three_variants():
     rs = rules_db.load_ruleset(DATA_DIR)
-    cat = rs.merit_flaw_catalog
-    merits = [m for m in cat.values() if not m.is_flaw]
-    flaws = [m for m in cat.values() if m.is_flaw]
-    assert len(merits) >= 40 and len(flaws) >= 40
-    legendary = next(m for m in merits if m.name == "Legendary Artifact")
-    assert legendary.points == 10 and legendary.category == "Property"
-    dying = next(m for m in flaws if m.name == "Dying")
-    assert dying.is_flaw and dying.category == "Physical"
-    assert {m.category for m in cat.values()} >= {"Physical", "Mental", "Social", "Supernatural", "Property"}
+    ox = rs.charms["solar.endurance.ox-body-technique"]
+    assert ox.repeatable_cap_ability == "endurance"
+    by_key = {v.key: v.health_levels for v in ox.variants}
+    assert by_key == {
+        "one-zero": [0],
+        "two-one": [-1, -1],
+        "one-one-two-two": [-1, -2, -2],
+    }
+
+
+def test_nature_catalog_loads_the_p105_archetypes():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    cat = rs.nature_catalog
+    assert len(cat) == 16                                  # the p105 summary list
+    names = {n.name for n in cat.values()}
+    assert {"Architect", "Bravo", "Caregiver", "Judge", "Rebel"} <= names
+    assert cat["rebel"].description == "You constantly seek to challenge authority."
 
 
 def test_background_catalog_has_the_ten_core_backgrounds():

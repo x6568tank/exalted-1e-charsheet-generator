@@ -25,7 +25,7 @@ from nicegui import ui
 from .. import persistence, rules_db
 from ..engine import validate
 from ..models.character import (
-    Armor, BackgroundEntry, Character, HealthLevel, MeritFlaw, Specialty, VirtueFlaw, Weapon)
+    Armor, BackgroundEntry, Character, HealthLevel, Specialty, VirtueFlaw, Weapon)
 
 _BASE_HEALTH = {0: 1, -1: 2, -2: 2, -4: 1}   # base levels per penalty tier
 
@@ -123,8 +123,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.row().classes("w-full gap-3 no-wrap items-end"):
                 ui.select({c: c.value for c in Caste}, label="Caste", value=character.caste,
                           on_change=lambda e: set_caste(e.value)).classes("flex-1")
-                ui.input("Nature", value=character.nature,
-                         on_change=lambda e: setattr(character, "nature", e.value)).classes("flex-1")
+                nature_names = [n.name for n in ruleset.nature_catalog.values()]
+                ui.select(nature_names, label="Nature", value=character.nature or None,
+                          with_input=True, new_value_mode="add-unique",
+                          on_change=lambda e: setattr(character, "nature", e.value or "")).classes("flex-1")
                 ui.input("Anima", value=character.anima,
                          on_change=lambda e: setattr(character, "anima", e.value)).classes("flex-1")
             ui.select({a: _label(a.value) for a in AbilityName}, label="Favored abilities (pick 5)",
@@ -139,12 +141,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         spent = sum(character.attributes[a] - 1 for a in members)
                         ui.label(f"{category} — {spent} spent").classes("text-xs font-semibold")
                         for a in members:
-                            amax = validate.trait_max(ruleset, character, f"attributes.{a.value}", 5)
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
                                 ui.label(_label(a.value)).classes("text-sm w-28")
                                 dots(lambda a=a: character.attributes[a],
                                      lambda v, a=a: character.attributes.__setitem__(a, v),
-                                     min(1, amax), amax)
+                                     1, 5)
 
         # abilities (by ability-caste group)
         with panel("Abilities (25 dots; ≥10 caste/favoured; ≤3 each pre-bonus)"):
@@ -166,11 +167,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
             with panel("Virtues (5 dots; ≤3 pre-bonus)").classes("flex-1"):
                 for v in VirtueName:
-                    vmax = validate.trait_max(ruleset, character, f"virtues.{v.value}", 5)
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):
                         ui.label(_label(v.value)).classes("text-sm w-28")
                         dots(lambda v=v: character.virtues[v],
-                             lambda val, v=v: character.virtues.__setitem__(v, val), 1, vmax)
+                             lambda val, v=v: character.virtues.__setitem__(v, val), 1, 5)
             with panel("Essence & Willpower").classes("flex-1"):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.label("Essence").classes("text-sm w-28")
@@ -238,27 +238,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                           on_change=lambda e: set_virtue_flaw_virtue(e.value)).classes("w-full")
                 ui.input("Description", value=vf.description if vf else "",
                          on_change=lambda e: set_virtue_flaw_desc(e.value)).classes("w-full")
-            with panel("Health Levels per tier (Ox-Body raises, curses lower)").classes("flex-1"):
+            with panel("Bonus health levels per tier (charms raise, curses lower)").classes("flex-1"):
                 with ui.row().classes("w-full gap-3 no-wrap"):
                     for p in (0, -1, -2, -4):
                         total = _health_total(character, p)
                         ui.number(label=("-0" if p == 0 else str(p)), value=total, min=0, max=20, format="%d",
                                   on_change=lambda e, p=p: set_health_total(p, int(e.value or 0))).classes("w-16")
-
-        # merits & flaws (catalog dropdown autofills points/type; still free-entry)
-        mf_names = sorted(m.name for m in ruleset.merit_flaw_catalog.values())
-        with panel("Merits & Flaws (Merits cost BP; Flaws grant BP up to 10)"):
-            for idx, mf in enumerate(character.merits_flaws):
-                with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    ui.select({False: "Merit", True: "Flaw"}, value=mf.is_flaw,
-                              on_change=lambda e, idx=idx: (setattr(character.merits_flaws[idx], "is_flaw", e.value), changed())).classes("w-24")
-                    ui.select(mf_names, value=mf.name or None, with_input=True,
-                              new_value_mode="add-unique",
-                              on_change=lambda e, idx=idx: set_merit_flaw(idx, e.value)).classes("flex-1")
-                    ui.number(label="pts", value=mf.points, min=0, max=10, format="%d",
-                              on_change=lambda e, idx=idx: (setattr(character.merits_flaws[idx], "points", int(e.value or 0)), changed())).classes("w-16")
-                    ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("merits_flaws", idx)).props("flat dense round")
-            ui.button("Add merit/flaw", icon="add", on_click=add_merit_flaw).props("flat dense")
 
         # charms/spells (read-only here; the picker is the next slice)
         with panel(f"Charms ({len(character.charms)}) & Spells ({len(character.spells)}) — edit via the picker"):
@@ -304,27 +289,13 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         base_n = _BASE_HEALTH.get(penalty, 0)
         kept = [hl for hl in character.health_bonus_levels if hl.penalty != penalty]
         if total > base_n:
-            kept += [HealthLevel(penalty=penalty, source_charm="Ox-Body Technique")
+            kept += [HealthLevel(penalty=penalty, source_charm="Bonus")
                      for _ in range(total - base_n)]
         elif total < base_n:
             kept += [HealthLevel(penalty=penalty, source_charm="Curse", removed=True)
                      for _ in range(base_n - total)]
         character.health_bonus_levels = kept
         changed()
-
-    def set_merit_flaw(idx: int, name: str) -> None:
-        mf = character.merits_flaws[idx]
-        mf.name = name or ""
-        entry = next((m for m in ruleset.merit_flaw_catalog.values() if m.name == name), None)
-        if entry:                                    # autofill from the catalog
-            mf.points = entry.points
-            mf.is_flaw = entry.is_flaw
-            mf.description = entry.description
-        body.refresh(); changed()
-
-    def add_merit_flaw() -> None:
-        character.merits_flaws.append(MeritFlaw(name="", points=1, is_flaw=False))
-        body.refresh(); changed()
 
     def remove_item(field: str, idx: int) -> None:
         del getattr(character, field)[idx]

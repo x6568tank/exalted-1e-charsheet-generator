@@ -46,6 +46,11 @@ ATTRIBUTE_CATEGORIES: dict[str, tuple[AttributeName, ...]] = {
     "Mental": (AttributeName.PERCEPTION, AttributeName.INTELLIGENCE, AttributeName.WITS),
 }
 
+# The one repeatable Charm in 1e core. Bought once per dot of Endurance, each
+# purchase choosing a health-level package; stored on Character.ox_body, not in
+# Character.charms (so the count is representable).
+OX_BODY_ID = "solar.endurance.ox-body-technique"
+
 
 class Issue(BaseModel):
     """One legality finding. `code` is a stable machine tag; `where` locates the
@@ -312,6 +317,63 @@ def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
 
 
 # --------------------------------------------------------------------------- #
+# Ox-Body Technique (repeatable Charm)
+# --------------------------------------------------------------------------- #
+
+def ox_body_cap(ruleset: RuleSet, character: Character) -> int:
+    """Maximum number of Ox-Body Technique purchases: once per dot of the Charm's
+    `repeatable_cap_ability` (Endurance). 0 if the Charm or its cap ability is
+    absent. Used by both the engine and the picker to gate purchases."""
+    charm = ruleset.charms.get(OX_BODY_ID)
+    if charm is None or not charm.repeatable_cap_ability:
+        return 0
+    try:
+        cap_ability = AbilityName(charm.repeatable_cap_ability)
+    except ValueError:
+        return 0
+    return character.abilities.get(cap_ability, 0)
+
+
+def check_ox_body(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """Legality of the character's Ox-Body purchases: at most one per dot of
+    Endurance (core p.170), every chosen package a real variant, and the Charm's
+    min essence met. The per-purchase bonus-point/XP cost is accounted elsewhere
+    (validate_chargen / costs). Empty when no purchases."""
+    issues: list[Issue] = []
+    purchases = character.ox_body
+    if not purchases:
+        return issues
+    charm = ruleset.charms.get(OX_BODY_ID)
+    if charm is None:
+        issues.append(Issue(
+            code="ox-body-unknown", where=OX_BODY_ID,
+            message="Character has Ox-Body purchases but the Charm is not in the RuleSet.",
+        ))
+        return issues
+    cap = ox_body_cap(ruleset, character)
+    if len(purchases) > cap:
+        issues.append(Issue(
+            code="ox-body-over-cap", where=OX_BODY_ID,
+            message=(f"Ox-Body Technique bought {len(purchases)} times; it may be "
+                     f"bought at most once per dot of Endurance ({cap})."),
+        ))
+    if character.essence_rating < charm.min_essence:
+        issues.append(Issue(
+            code="ox-body-min-essence", where=OX_BODY_ID,
+            message=(f"Ox-Body Technique requires Essence {charm.min_essence}, "
+                     f"character has {character.essence_rating}."),
+        ))
+    valid_keys = {v.key for v in charm.variants}
+    for p in purchases:
+        if p.variant not in valid_keys:
+            issues.append(Issue(
+                code="ox-body-bad-variant", where=p.variant,
+                message=f"Ox-Body Technique: unknown health-level package {p.variant!r}.",
+            ))
+    return issues
+
+
+# --------------------------------------------------------------------------- #
 # Chargen (not yet implemented — see module docstring)
 # --------------------------------------------------------------------------- #
 
@@ -322,83 +384,6 @@ def _caste_favored(ruleset: RuleSet, character: Character) -> tuple[set, set] | 
     if caste_def is None:
         return None
     return set(caste_def.caste_abilities), set(character.favored_abilities)
-
-
-# --------------------------------------------------------------------------- #
-# Merit/Flaw mechanical effects (e.g. trait-rating caps)
-# --------------------------------------------------------------------------- #
-
-def _merit_flaw_type(ruleset: RuleSet, mf):
-    """Resolve a character's MeritFlaw to its catalog MeritFlawType (matched by
-    name; the editor autofills from the catalog), or None if not catalogued."""
-    for t in ruleset.merit_flaw_catalog.values():
-        if t.name == mf.name:
-            return t
-    return None
-
-
-def _target_matches(effect_target: str, trait_path: str) -> bool:
-    """A trait-cap target applies to a trait when it is that trait or its whole
-    domain — 'virtues' matches 'virtues.compassion'; 'attributes.appearance' matches
-    only itself."""
-    return trait_path == effect_target or trait_path.startswith(effect_target + ".")
-
-
-def trait_max(ruleset: RuleSet, character: Character, trait_path: str, default: int = 5) -> int:
-    """Effective maximum rating of a trait given the character's Merits/Flaws.
-    `trait_path` is like 'virtues.compassion' or 'attributes.appearance'. A
-    `trait_cap` effect whose target covers the path overrides `default`; a raising
-    Merit (e.g. True Paragon, Virtues to 6) lifts it, a lowering Flaw (e.g.
-    Disfigured, Appearance to 0/1) drops it, and a lowering effect always wins."""
-    effective = default
-    for mf in character.merits_flaws:
-        cat = _merit_flaw_type(ruleset, mf)
-        if cat is None:
-            continue
-        for eff in cat.effects:
-            if eff.kind != "trait_cap" or not _target_matches(eff.target, trait_path):
-                continue
-            cap = eff.max_by_points.get(mf.points, eff.max)
-            if cap is None:
-                continue
-            effective = min(effective, cap) if cap < default else max(effective, cap)
-    return effective
-
-
-def _charm_exempt_from(effect, charm) -> bool:
-    """Whether a cost_multiplier skips this Charm (Brigid's Heir spares Ox-Body and
-    the Circle-Sorcery initiation Charms)."""
-    if charm.type.value in effect.except_charm_types:
-        return True
-    if effect.except_sorcery_initiation and charm.grants_sorcery_circle is not None:
-        return True
-    return False
-
-
-def cost_multiplier(ruleset: RuleSet, character: Character, kind: str, charm=None) -> tuple[int, int]:
-    """Combined learn-cost multiplier (numerator, denominator) the character's
-    Merits/Flaws apply to `kind` ("charms" or "spells"). For Charms, pass the Charm
-    so per-Charm exemptions can be honoured. Multiple effects compose. Returns (1,1)
-    when nothing applies. Apply with apply_cost_multiplier (rounds up)."""
-    num, den = 1, 1
-    for mf in character.merits_flaws:
-        cat = _merit_flaw_type(ruleset, mf)
-        if cat is None:
-            continue
-        for eff in cat.effects:
-            if eff.kind != "cost_multiplier" or eff.target != kind:
-                continue
-            if kind == "charms" and charm is not None and _charm_exempt_from(eff, charm):
-                continue
-            num *= eff.factor_num
-            den *= eff.factor_den
-    return num, den
-
-
-def apply_cost_multiplier(base: int, num: int, den: int) -> int:
-    """Scale `base` by num/den, rounding up (you never get a cheaper-than-listed
-    fractional discount for free)."""
-    return (base * num + den - 1) // den
 
 
 def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[AbilityName]:
@@ -445,6 +430,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     charms = snap.charms if snap else character.charms
     spells = snap.spells if snap else character.spells
     combos = snap.combos if snap else character.combos
+    ox_body = snap.ox_body if snap else character.ox_body
     essence = snap.essence_rating if snap else character.essence_rating
     wp_purchased = snap.willpower_purchased if snap else character.willpower_purchased
 
@@ -484,12 +470,10 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
 
     # --- Attributes: three category spends matched to the 8/6/4 pools --------- #
     for name, attr in attributes.items():
-        amax = trait_max(ruleset, character, f"attributes.{name.value}", default=5)
-        amin = min(b.attribute_base, amax)          # a cap below 1 (Disfigured 4pt) lowers the floor too
-        if not (amin <= attr <= amax):
+        if not (b.attribute_base <= attr <= 5):
             issues.append(Issue(
                 code="attribute-range", where=name.value,
-                message=f"Attribute {name.value} = {attr}; must be {amin}-{amax} at creation.",
+                message=f"Attribute {name.value} = {attr}; must be {b.attribute_base}-5 at creation.",
             ))
     spends = sorted(
         (sum(attributes[a] - b.attribute_base for a in attrs)
@@ -541,11 +525,10 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # --- Virtues: 5 free dots over base 1, pre-BP cap 3 ----------------------- #
     v_within = v_above = 0
     for v, rating in virtues.items():
-        vmax = trait_max(ruleset, character, f"virtues.{v.value}", default=5)
-        if not (b.virtue_base <= rating <= vmax):
+        if not (b.virtue_base <= rating <= 5):
             issues.append(Issue(
                 code="virtue-range", where=v.value,
-                message=f"Virtue {v.value} = {rating}; must be {b.virtue_base}-{vmax} at creation.",
+                message=f"Virtue {v.value} = {rating}; must be {b.virtue_base}-5 at creation.",
             ))
         v_within += max(0, min(rating, b.virtue_cap_pre_bp) - b.virtue_base)
         v_above += max(0, rating - b.virtue_cap_pre_bp)
@@ -558,9 +541,8 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # Caste/Favoured. So Charms and spells share the free pool and the BP rates; a
     # spell counts as a Caste/Favoured pick iff Occult is Caste/Favoured. Solar
     # Circle spells may not be taken at creation at all.
-    # Each pick gets its own BP cost (Caste/Favoured rate, scaled by any Merit/Flaw
-    # cost multiplier — Brigid's Heir doubles Charms, halves spells); the free pool
-    # covers the dearest picks and bonus points pay for the rest (player-favourable).
+    # Each pick gets its own BP cost (Caste/Favoured rate); the free pool covers the
+    # dearest picks and bonus points pay for the rest (player-favourable).
     occult_cf = AbilityName.OCCULT in cf_set
     cf_pick_count = 0          # Charms + spells that count as Caste/Favoured
     pick_costs: list[int] = []
@@ -572,9 +554,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         is_cf = ability is not None and ability in cf_set
         if is_cf:
             cf_pick_count += 1
-        base = bp_costs.charm_favored_caste if is_cf else bp_costs.charm
-        num, den = cost_multiplier(ruleset, character, "charms", charm)
-        pick_costs.append(apply_cost_multiplier(base, num, den))
+        pick_costs.append(bp_costs.charm_favored_caste if is_cf else bp_costs.charm)
     for sid in spells:
         spell = ruleset.spells.get(sid)
         if spell is None:
@@ -587,9 +567,13 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             ))
         if occult_cf:
             cf_pick_count += 1
-        base = bp_costs.charm_favored_caste if occult_cf else bp_costs.charm
-        num, den = cost_multiplier(ruleset, character, "spells")
-        pick_costs.append(apply_cost_multiplier(base, num, den))
+        pick_costs.append(bp_costs.charm_favored_caste if occult_cf else bp_costs.charm)
+    # Ox-Body Technique: each purchase is a Charm pick gated on Endurance.
+    ox_body_cf = AbilityName.ENDURANCE in cf_set
+    for _ in ox_body:
+        if ox_body_cf:
+            cf_pick_count += 1
+        pick_costs.append(bp_costs.charm_favored_caste if ox_body_cf else bp_costs.charm)
     if cf_pick_count < b.charm_min_caste_favored:
         issues.append(Issue(
             code="charm-caste-favored-min",
@@ -637,28 +621,16 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         ))
     total_bp += max(0, essence - b.essence_start) * bp_costs.essence
 
-    # --- Merits & Flaws: Merits cost BP; Flaws grant BP (capped) -------------- #
-    total_bp += sum(mf.points for mf in character.merits_flaws if not mf.is_flaw)
-    flaw_points = sum(mf.points for mf in character.merits_flaws if mf.is_flaw)
-    flaw_credit = min(flaw_points, b.bonus_points_flaw_cap)
-    available = b.bonus_points + flaw_credit
-    if flaw_points > b.bonus_points_flaw_cap:
-        issues.append(Issue(
-            code="flaw-credit-capped", severity="warning",
-            message=(f"Flaws are worth {flaw_points} points but only "
-                     f"{b.bonus_points_flaw_cap} extra bonus points may be gained from Flaws."),
-        ))
-
     # --- Bonus-point ceiling -------------------------------------------------- #
+    available = b.bonus_points
     if total_bp > available:
         issues.append(Issue(
             code="bonus-points-exceeded",
             message=f"Spends {total_bp} bonus points; only {available} available.",
         ))
-    flaw_note = f" (15 + {flaw_credit} from Flaws)" if flaw_credit else ""
     issues.append(Issue(
         code="bonus-points", severity="info",
-        message=f"{total_bp} of {available} bonus points spent{flaw_note}.",
+        message=f"{total_bp} of {available} bonus points spent.",
     ))
     return issues
 
@@ -675,4 +647,5 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_charm_prerequisites(ruleset, character)
     issues += check_spell_access(ruleset, character)
     issues += validate_combos(ruleset, character)
+    issues += check_ox_body(ruleset, character)
     return issues

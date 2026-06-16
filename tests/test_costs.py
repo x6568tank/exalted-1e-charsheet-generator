@@ -2,15 +2,13 @@
 default ExperienceCosts table (current rating x N for scaled traits)."""
 
 from exalted_builder.engine import costs
-from exalted_builder.models.character import Character, MeritFlaw
+from exalted_builder.models.character import Character
 from exalted_builder.models.rules import (
     AbilityName,
     Caste,
     CasteDefinition,
     Charm,
     CharmType,
-    MeritFlawEffect,
-    MeritFlawType,
     RuleSet,
     SpellCircle,
 )
@@ -33,14 +31,7 @@ def _ruleset() -> RuleSet:
                          type=CharmType.SIMPLE, min_ability=1, min_essence=1,
                          grants_sorcery_circle=SpellCircle.TERRESTRIAL),
     }
-    brigid = MeritFlawType(
-        id="merit.brigids-heir", name="Brigid's Heir", points=5,
-        effects=[
-            MeritFlawEffect(kind="cost_multiplier", target="charms", factor_num=2, factor_den=1,
-                            except_charm_types=["Special"], except_sorcery_initiation=True),
-            MeritFlawEffect(kind="cost_multiplier", target="spells", factor_num=1, factor_den=2),
-        ])
-    return RuleSet(castes=castes, charms=charms, merit_flaw_catalog={brigid.id: brigid})
+    return RuleSet(castes=castes, charms=charms)
 
 
 def _char() -> Character:
@@ -96,40 +87,3 @@ def test_combo_cost_sums_member_minimum_abilities():
     rs = _ruleset()
     assert costs.combo_cost(rs, ["melee-charm", "occult-charm"]) == 5    # 3 + 2
     assert costs.combo_cost(rs, ["melee-charm", "missing"]) == 3         # unknown id ignored
-
-
-# --------------------------------------------------------------------------- #
-# Brigid's Heir cost multiplier (Charms x2 except Ox-Body/sorcery; spells x1/2)
-# --------------------------------------------------------------------------- #
-
-def _brigid_char() -> Character:
-    c = _char()
-    c.merits_flaws = [MeritFlaw(name="Brigid's Heir", points=5)]
-    return c
-
-
-def test_brigids_heir_doubles_charm_cost():
-    rs, c = _ruleset(), _brigid_char()
-    assert costs.charm_cost(rs, c, rs.charms["melee-charm"]) == 16       # Caste base 8 x2
-    rs.charms["lore-charm"] = Charm(id="lore-charm", name="L", category="lore",
-                                    type=CharmType.SIMPLE, min_ability=1, min_essence=1)
-    assert costs.charm_cost(rs, c, rs.charms["lore-charm"]) == 20        # non-c/f base 10 x2
-
-
-def test_brigids_heir_exempts_ox_body_and_sorcery_initiation():
-    rs, c = _ruleset(), _brigid_char()
-    assert costs.charm_cost(rs, c, rs.charms["ox-body"]) == 8            # Special, favoured base 8, not doubled
-    assert costs.charm_cost(rs, c, rs.charms["sorcery"]) == 8            # grants a Circle, not doubled
-
-
-def test_brigids_heir_halves_spell_cost():
-    rs, c = _ruleset(), _brigid_char()
-    assert costs.spell_cost(rs, c) == 4                                  # Occult favoured base 8, halved
-    c.favored_abilities = [A.LORE, A.DODGE, A.ATHLETICS, A.RESISTANCE, A.ENDURANCE]
-    assert costs.spell_cost(rs, c) == 5                                  # base 10, halved (round up)
-
-
-def test_no_multiplier_without_the_merit():
-    rs, c = _ruleset(), _char()
-    assert costs.charm_cost(rs, c, rs.charms["melee-charm"]) == 8        # plain Caste cost
-    assert costs.spell_cost(rs, c) == 8

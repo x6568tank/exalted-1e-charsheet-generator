@@ -35,13 +35,6 @@ def _label(value: str) -> str:
     return value.replace("_", " ").title()
 
 
-def _signed_xp(cost: int) -> str:
-    """Present a signed XP delta: a negative engine cost is a grant."""
-    if cost < 0:
-        return f"grants {-cost} XP"
-    return f"costs {cost} XP"
-
-
 def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
              *, with_header: bool = True) -> None:
     """Render the XP advancement tab. Inert until chargen is locked."""
@@ -57,10 +50,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         "spec_name": "",
         "combo_ids": [],
         "combo_name": "",
-        "mf_name": "",
-        "mf_points": 1,
-        "mf_is_flaw": False,
-        "mf_remove": None,
+        "ox_variant": None,
         "add_amount": 5,
         "focus": None,          # ("charm"|"spell", id) — what the detail panel describes
     }
@@ -104,7 +94,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             _raise_row("Attribute", {a: _label(a.value) for a in AttributeName}, "attr",
                        character.attributes[attr], costs.attribute_step(rs, character.attributes[attr]),
                        lambda: advancement.raise_attribute(rs, character, sel["attr"]),
-                       cap=validate.trait_max(rs, character, f"attributes.{attr.value}", 5))
+                       cap=5)
 
             ab = sel["ability"]
             ab_cur = character.abilities.get(ab, 0)
@@ -116,7 +106,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             _raise_row("Virtue", {x: _label(x.value) for x in VirtueName}, "virtue",
                        character.virtues[v], costs.virtue_step(rs, character.virtues[v]),
                        lambda: advancement.raise_virtue(rs, character, sel["virtue"]),
-                       cap=validate.trait_max(rs, character, f"virtues.{v.value}", 5))
+                       cap=5)
 
             wp = derive.willpower(character)
             ess = character.essence_rating
@@ -134,7 +124,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
 
             learnable = sorted(
                 (c for c in rs.charms.values()
-                 if c.id not in character.charms and validate.meets_charm_requirements(rs, character, c)),
+                 if c.id not in character.charms and c.id != validate.OX_BODY_ID
+                 and validate.meets_charm_requirements(rs, character, c)),
                 key=lambda c: c.name)
             charm_opts = {c.id: f"{c.name} · {costs.charm_cost(rs, character, c)} XP" for c in learnable}
             # Clamp to a valid option: a just-learned id leaves the list, and a stale
@@ -168,6 +159,24 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                     lambda: (advancement.learn_spell(rs, character, sel["spell"]),
                              sel.update({"spell": None, "focus": None})))).props("dense color=brown")
 
+            # Ox-Body Technique: repeatable, pick a health-level package each time.
+            ox_charm = rs.charms.get(validate.OX_BODY_ID)
+            if ox_charm:
+                ox_cap = validate.ox_body_cap(rs, character)
+                ox_bought = len(character.ox_body)
+                ox_opts = {v.key: v.label for v in ox_charm.variants}
+                ox_value = sel["ox_variant"] if sel["ox_variant"] in ox_opts else None
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.select(ox_opts, value=ox_value, label=f"Ox-Body package  ({ox_bought}/{ox_cap})",
+                              on_change=lambda e: (sel.__setitem__("ox_variant", e.value), panel.refresh())
+                              ).props("dense").classes("flex-1")
+                    ui.label(f"{costs.ox_body_cost(rs, character)} XP").classes("text-xs w-12")
+                    btn = ui.button("Buy Ox-Body", on_click=lambda: _do(
+                        lambda: (advancement.learn_ox_body(rs, character, sel["ox_variant"]),
+                                 sel.__setitem__("ox_variant", None)))).props("dense color=brown")
+                    if ox_bought >= ox_cap or ox_value is None:
+                        btn.props("disable")
+
         # --- specialty + combo -------------------------------------------- #
         with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
             ui.label("Add").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
@@ -195,63 +204,6 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button("Add Combo", on_click=lambda: _do(
                     lambda: (advancement.add_combo(rs, character, sel["combo_name"], sel["combo_ids"]),
                              sel.update({"combo_ids": [], "combo_name": ""})))).props("dense color=brown")
-
-        # --- change a Merit / Flaw in play (p.17) ------------------------- #
-        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
-            ui.label("Merits & Flaws").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
-            ui.label("Gaining a Flaw or dropping a Merit grants XP; gaining a Merit or "
-                     "buying off a Flaw costs it.").classes("text-xs text-gray-500")
-
-            # Gain
-            mf_names = sorted(m.name for m in rs.merit_flaw_catalog.values())
-
-            def _pick_mf(name: str) -> None:
-                sel["mf_name"] = name
-                entry = next((m for m in rs.merit_flaw_catalog.values() if m.name == name), None)
-                if entry:                                  # autofill points/type from catalog
-                    sel["mf_points"] = entry.points
-                    sel["mf_is_flaw"] = entry.is_flaw
-                panel.refresh()
-
-            gain_cost = costs.merit_flaw_change_cost(
-                rs, character, points=int(sel["mf_points"] or 0),
-                is_flaw=sel["mf_is_flaw"], removing=False)
-            with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                ui.select(mf_names, value=sel["mf_name"] or None, with_input=True, new_value_mode="add-unique",
-                          label="Gain", on_change=lambda e: _pick_mf(e.value or "")
-                          ).props("dense").classes("flex-1")
-                ui.select({False: "Merit", True: "Flaw"}, value=sel["mf_is_flaw"],
-                          on_change=lambda e: (sel.__setitem__("mf_is_flaw", e.value), panel.refresh())
-                          ).props("dense").classes("w-24")
-                ui.number(value=sel["mf_points"], min=0, format="%d",
-                          on_change=lambda e: (sel.__setitem__("mf_points", int(e.value or 0)), panel.refresh())
-                          ).props("dense").classes("w-16")
-                ui.label(_signed_xp(gain_cost)).classes("text-xs w-24")
-                ui.button("Gain", on_click=lambda: _do(
-                    lambda: (advancement.gain_merit_flaw(
-                        rs, character, sel["mf_name"], int(sel["mf_points"] or 0), sel["mf_is_flaw"]),
-                        sel.update({"mf_name": "", "mf_points": 1, "mf_is_flaw": False})))
-                    ).props("dense color=brown")
-
-            # Remove / buy off
-            held = {m.name: f"{m.name} ({'Flaw' if m.is_flaw else 'Merit'}, {m.points})"
-                    for m in character.merits_flaws}
-            if held:
-                remove_value = sel["mf_remove"] if sel["mf_remove"] in held else None
-                held_mf = next((m for m in character.merits_flaws if m.name == remove_value), None)
-                remove_cost = (costs.merit_flaw_change_cost(
-                    rs, character, points=held_mf.points, is_flaw=held_mf.is_flaw, removing=True)
-                    if held_mf else 0)
-                with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    ui.select(held, value=remove_value, label="Remove / buy off",
-                              on_change=lambda e: (sel.__setitem__("mf_remove", e.value), panel.refresh())
-                              ).props("dense").classes("flex-1")
-                    ui.label(_signed_xp(remove_cost) if held_mf else "").classes("text-xs w-24")
-                    btn = ui.button("Remove", on_click=lambda: _do(
-                        lambda: (advancement.lose_merit_flaw(rs, character, sel["mf_remove"]),
-                                 sel.__setitem__("mf_remove", None)))).props("dense color=brown")
-                    if not held_mf:
-                        btn.props("disable")
 
     # ---- ledger (XP totals + log) ----------------------------------------- #
     @ui.refreshable

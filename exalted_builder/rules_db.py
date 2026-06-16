@@ -21,6 +21,7 @@ Expected layout:
       spells.json            array of Spell           (optional)
       armor.json             array of ArmorType       (optional)
       weapons.json           array of WeaponType      (optional)
+      natures.json           array of NatureType      (optional)
       costs_bonus.json       BonusPointCosts object   (optional -> defaults)
       costs_xp.json          ExperienceCosts object   (optional -> defaults)
       chargen_budgets.json   ChargenBudgets object    (optional -> defaults)
@@ -43,7 +44,7 @@ from .models.rules import (
     ChargenBudgets,
     Charm,
     ExperienceCosts,
-    MeritFlawType,
+    NatureType,
     RuleSet,
     Spell,
     WeaponType,
@@ -158,8 +159,8 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
     weapons = _index(_load_array(data_dir / "weapons.json", WeaponType, problems), "id", "weapon", problems)
     backgrounds = _index(_load_array(data_dir / "backgrounds.json", BackgroundType, problems),
                          "id", "background", problems)
-    merits_flaws = _index(_load_array(data_dir / "merits_flaws.json", MeritFlawType, problems),
-                          "id", "merit/flaw", problems)
+    natures = _index(_load_array(data_dir / "natures.json", NatureType, problems),
+                     "id", "nature", problems)
 
     bonus_costs = _load_single(data_dir / "costs_bonus.json", BonusPointCosts, problems)
     xp_costs = _load_single(data_dir / "costs_xp.json", ExperienceCosts, problems)
@@ -179,7 +180,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         armor_catalog=armor,
         weapon_catalog=weapons,
         background_catalog=backgrounds,
-        merit_flaw_catalog=merits_flaws,
+        nature_catalog=natures,
         bonus_costs=bonus_costs,
         xp_costs=xp_costs,
         budgets=budgets,

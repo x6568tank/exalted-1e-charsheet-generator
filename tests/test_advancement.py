@@ -7,7 +7,7 @@ and the running available-XP must all stay consistent, and undo must reverse the
 import pytest
 
 from exalted_builder.engine import advancement, derive, lifecycle
-from exalted_builder.models.character import Character, MeritFlaw
+from exalted_builder.models.character import Character
 from exalted_builder.models.rules import (
     AbilityName,
     AttributeName,
@@ -15,6 +15,7 @@ from exalted_builder.models.rules import (
     CasteDefinition,
     Charm,
     CharmType,
+    CharmVariant,
     RuleSet,
     Spell,
     SpellCircle,
@@ -37,6 +38,14 @@ def _ruleset() -> RuleSet:
         "sorcery": Charm(id="sorcery", name="Terrestrial Circle Sorcery", category="occult",
                          type=CharmType.PERMANENT, min_ability=1, min_essence=1,
                          grants_sorcery_circle=SpellCircle.TERRESTRIAL),
+        "solar.endurance.ox-body-technique": Charm(
+            id="solar.endurance.ox-body-technique", name="Ox-Body Technique",
+            category="endurance", type=CharmType.SPECIAL, min_ability=1, min_essence=1,
+            repeatable_cap_ability="endurance",
+            variants=[
+                CharmVariant(key="one-zero", label="One -0", health_levels=[0]),
+                CharmVariant(key="two-one", label="Two -1", health_levels=[-1, -1]),
+            ]),
     }
     spells = {"frost": Spell(id="frost", name="Frost", circle=SpellCircle.TERRESTRIAL)}
     return RuleSet(castes=castes, charms=charms, spells=spells)
@@ -145,94 +154,68 @@ def test_add_combo_must_be_legal_and_costs_min_abilities():
 
 
 # --------------------------------------------------------------------------- #
-# In-play Merit/Flaw change (p.17)
+# Ox-Body Technique (repeatable, variant menu)
 # --------------------------------------------------------------------------- #
 
-def test_gain_flaw_grants_xp():
-    rs, c = _ruleset(), _locked(xp=10)
-    entry = advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
-    assert entry.cost == -6                                 # 2 x 3, granted
-    assert any(mf.name == "Nightmares" for mf in c.merits_flaws)
-    assert advancement.xp_available(c) == 16                # 10 + 6 granted
+OX = "solar.endurance.ox-body-technique"
 
 
-def test_gain_merit_costs_xp():
-    rs, c = _ruleset(), _locked(xp=10)
-    entry = advancement.gain_merit_flaw(rs, c, "Iron Will", 3, is_flaw=False)
-    assert entry.cost == 6
-    assert advancement.xp_available(c) == 4
+def test_learn_ox_body_adds_purchase_levels_and_costs_charm_xp():
+    rs, c = _ruleset(), _locked(xp=20)
+    c.abilities[A.ENDURANCE] = 2
+    entry = advancement.learn_ox_body(rs, c, "two-one")
+    assert entry.cost == 8                                  # Endurance favoured -> new_charm_favored_caste
+    assert len(c.ox_body) == 1 and c.ox_body[0].variant == "two-one"
+    assert c.ox_body[0].health_levels == [-1, -1]
+    # the two -1 levels show up on the derived health track
+    assert sum(1 for h in derive.health_track(c) if h.penalty == -1 and h.source) == 2
 
 
-def test_gain_merit_unaffordable_is_blocked():
-    rs, c = _ruleset(), _locked(xp=5)
+def test_ox_body_capped_at_endurance_dots():
+    rs, c = _ruleset(), _locked(xp=99)
+    c.abilities[A.ENDURANCE] = 2
+    advancement.learn_ox_body(rs, c, "one-zero")
+    advancement.learn_ox_body(rs, c, "one-zero")
     with pytest.raises(advancement.AdvancementError):
-        advancement.gain_merit_flaw(rs, c, "Iron Will", 3, is_flaw=False)  # needs 6
-    assert c.merits_flaws == [] and c.xp_log == []
+        advancement.learn_ox_body(rs, c, "one-zero")       # 3rd exceeds Endurance 2
+    assert len(c.ox_body) == 2
 
 
-def test_gain_flaw_credit_capped_at_ten_points():
+def test_ox_body_unknown_variant_raises():
     rs, c = _ruleset(), _locked()
-    c.merits_flaws.append(MeritFlaw(name="Old Flaw", points=8, is_flaw=True))
-    entry = advancement.gain_merit_flaw(rs, c, "New Flaw", 4, is_flaw=True)
-    assert entry.cost == -4                                 # only 2 of 4 points credit -> 2x2
-    # a further Flaw past the 10-point total grants nothing
-    entry2 = advancement.gain_merit_flaw(rs, c, "Excess Flaw", 3, is_flaw=True)
-    assert entry2.cost == 0
-    assert any(mf.name == "Excess Flaw" for mf in c.merits_flaws)
-
-
-def test_buy_off_flaw_costs_xp():
-    rs, c = _ruleset(), _locked(xp=10)
-    c.merits_flaws.append(MeritFlaw(name="Debt", points=2, is_flaw=True))
-    entry = advancement.lose_merit_flaw(rs, c, "Debt")
-    assert entry.cost == 4                                  # 2 x 2, paid
-    assert not any(mf.name == "Debt" for mf in c.merits_flaws)
-
-
-def test_drop_merit_grants_xp():
-    rs, c = _ruleset(), _locked(xp=10)
-    c.merits_flaws.append(MeritFlaw(name="Ally", points=3, is_flaw=False))
-    entry = advancement.lose_merit_flaw(rs, c, "Ally")
-    assert entry.cost == -6
-    assert advancement.xp_available(c) == 16
-
-
-def test_lose_unknown_merit_flaw_raises():
-    rs, c = _ruleset(), _locked()
+    c.abilities[A.ENDURANCE] = 1
     with pytest.raises(advancement.AdvancementError):
-        advancement.lose_merit_flaw(rs, c, "Nope")
+        advancement.learn_ox_body(rs, c, "nope")
+    assert c.ox_body == []
 
 
-def test_gain_duplicate_merit_flaw_raises():
-    rs, c = _ruleset(), _locked()
-    advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
-    with pytest.raises(advancement.AdvancementError):
-        advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
-
-
-def test_undo_gain_flaw_removes_it_and_reclaims_grant():
-    rs, c = _ruleset(), _locked(xp=10)
-    advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
-    assert advancement.xp_available(c) == 16
+def test_undo_ox_body_removes_last_purchase_and_refunds():
+    rs, c = _ruleset(), _locked(xp=20)
+    c.abilities[A.ENDURANCE] = 2
+    advancement.learn_ox_body(rs, c, "one-zero")
+    advancement.learn_ox_body(rs, c, "two-one")
     advancement.undo_last(rs, c)
-    assert not any(mf.name == "Nightmares" for mf in c.merits_flaws)
-    assert advancement.xp_available(c) == 10 and c.xp_log == []
+    assert [p.variant for p in c.ox_body] == ["one-zero"]
+    assert advancement.xp_available(c) == 12               # 20 - 8 (one purchase left)
 
 
-def test_undo_buy_off_flaw_restores_it():
-    rs, c = _ruleset(), _locked(xp=10)
-    c.merits_flaws.append(MeritFlaw(name="Debt", points=2, is_flaw=True))
-    advancement.lose_merit_flaw(rs, c, "Debt")
-    advancement.undo_last(rs, c)
-    restored = [mf for mf in c.merits_flaws if mf.name == "Debt"]
-    assert len(restored) == 1 and restored[0].points == 2 and restored[0].is_flaw
-
-
-def test_merit_flaw_grant_is_not_flagged_by_audit():
-    rs, c = _ruleset(), _locked(xp=10)
-    advancement.gain_merit_flaw(rs, c, "Nightmares", 3, is_flaw=True)
+def test_ox_body_purchases_pass_the_xp_audit():
+    rs, c = _ruleset(), _locked(xp=20)
+    c.abilities[A.ENDURANCE] = 1
+    advancement.learn_ox_body(rs, c, "one-zero")
     codes = {i.code for i in advancement.validate_xp(rs, c)}
     assert "xp-cost-mismatch" not in codes and "xp-overspent" not in codes
+
+
+def test_check_ox_body_flags_over_cap_and_bad_variant():
+    from exalted_builder.engine import validate
+    from exalted_builder.models.character import OxBodyPurchase
+    rs, c = _ruleset(), _locked()
+    c.abilities[A.ENDURANCE] = 1
+    c.ox_body = [OxBodyPurchase(variant="one-zero", health_levels=[0]),
+                 OxBodyPurchase(variant="ghost", health_levels=[0])]   # 2 > cap 1, + bad key
+    codes = {i.code for i in validate.check_ox_body(rs, c)}
+    assert "ox-body-over-cap" in codes and "ox-body-bad-variant" in codes
 
 
 # --------------------------------------------------------------------------- #

@@ -87,6 +87,14 @@ class VirtueFlaw(BaseModel):
     description: str = ""
 
 
+class OxBodyPurchase(BaseModel):
+    """One purchase of the repeatable Ox-Body Technique. `variant` is the chosen
+    package's key (rules.CharmVariant.key); `health_levels` is that package's wound
+    levels copied inline (like equipment) so engine.derive needs no RuleSet."""
+    variant: str
+    health_levels: list[int] = Field(default_factory=list)
+
+
 class HealthLevel(BaseModel):
     """An adjustment to the health track. Normally a *bonus* level granted by a
     Charm (e.g. Ox-Body Technique); with `removed=True` it instead *removes* a
@@ -98,28 +106,14 @@ class HealthLevel(BaseModel):
     removed: bool = False                  # True = a curse removing a level of this penalty
 
 
-class MeritFlaw(BaseModel):
-    """An optional Merit (advantage, costs bonus points) or Flaw (disadvantage,
-    grants bonus points up to a cap) from the Player's Guide. Free-entry: the
-    full catalog is not yet authored as rules data."""
-    name: str
-    points: int = Field(default=1, ge=0)
-    is_flaw: bool = False
-    description: str = ""
-
-
 class XpEntry(BaseModel):
     """One post-lock purchase. The engine verifies `cost` against the XP table and
-    that the implied delta is reflected in current state. `cost` may be NEGATIVE: an
-    in-play Merit/Flaw change that *grants* experience (gaining a Flaw / dropping a
-    Merit, p.17) records a negative cost, which reduces total spend (raising
-    available XP)."""
-    target: str                            # "abilities.melee", "essence", "charms", "merits_flaws.gain", ...
-    detail: str = ""                       # charm/spell id for 'new' purchases; M&F name for merits_flaws.*
+    that the implied delta is reflected in current state."""
+    target: str                            # "abilities.melee", "essence", "charms", ...
+    detail: str = ""                       # charm/spell id for 'new' purchases
     from_rating: Optional[int] = None
     to_rating: Optional[int] = None
     cost: int
-    mf: Optional[MeritFlaw] = None         # the Merit/Flaw added or removed, for merits_flaws.* entries
     training_complete: bool = True         # dormant hook for the parked training-time rule
 
 
@@ -133,6 +127,7 @@ class ChargenSnapshot(BaseModel):
     charms: list[str]
     spells: list[str]
     combos: list[Combo] = Field(default_factory=list)
+    ox_body: list[OxBodyPurchase] = Field(default_factory=list)
     essence_rating: int
     willpower_purchased: int
     wp_virtue_component: int               # two highest Virtues AT LOCK; never recomputed
@@ -169,7 +164,6 @@ class Character(BaseModel):
         default_factory=lambda: {v: 1 for v in VirtueName}
     )
     virtue_flaw: Optional[VirtueFlaw] = None
-    merits_flaws: list[MeritFlaw] = Field(default_factory=list)
 
     willpower_purchased: int = Field(default=0, ge=0)
     # Frozen at lock so post-creation Virtue gains can't raise Willpower; None pre-lock.
@@ -179,6 +173,9 @@ class Character(BaseModel):
     charms: list[str] = Field(default_factory=list)           # Charm ids into the RuleSet
     combos: list[Combo] = Field(default_factory=list)
     spells: list[str] = Field(default_factory=list)           # Spell ids into the RuleSet
+    # Repeatable Ox-Body Technique: one record per purchase (it is therefore NOT in
+    # `charms`). Each carries the chosen variant + its inline health levels.
+    ox_body: list[OxBodyPurchase] = Field(default_factory=list)
 
     weapons: list[Weapon] = Field(default_factory=list)
     armor: list[Armor] = Field(default_factory=list)

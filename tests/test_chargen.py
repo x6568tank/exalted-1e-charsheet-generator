@@ -13,7 +13,6 @@ from exalted_builder.models.character import (
     Character,
     ChargenSnapshot,
     Combo,
-    MeritFlaw,
     Specialty,
 )
 from exalted_builder.models.rules import (
@@ -23,8 +22,6 @@ from exalted_builder.models.rules import (
     CasteDefinition,
     Charm,
     CharmType,
-    MeritFlawEffect,
-    MeritFlawType,
     RuleSet,
     Spell,
     SpellCircle,
@@ -56,15 +53,7 @@ def _ruleset() -> RuleSet:
         "s-cele": Spell(id="s-cele", name="Celestial Spell", circle=SpellCircle.CELESTIAL),
         "s-solar": Spell(id="s-solar", name="Solar Spell", circle=SpellCircle.SOLAR),
     }
-    brigid = MeritFlawType(
-        id="merit.brigids-heir", name="Brigid's Heir", points=5,
-        effects=[
-            MeritFlawEffect(kind="cost_multiplier", target="charms", factor_num=2, factor_den=1,
-                            except_charm_types=["Special"], except_sorcery_initiation=True),
-            MeritFlawEffect(kind="cost_multiplier", target="spells", factor_num=1, factor_den=2),
-        ])
-    return RuleSet(castes=castes, charms=charms, spells=spells,
-                   merit_flaw_catalog={brigid.id: brigid})
+    return RuleSet(castes=castes, charms=charms, spells=spells)
 
 
 def _legal_solar() -> Character:
@@ -117,6 +106,15 @@ def test_legal_solar_spends_no_bonus_points():
     issues = validate.validate_chargen(rs, c)
     assert _errors(issues) == []
     assert "0 of 15" in _bp(issues)
+
+
+def test_ox_body_purchase_counts_as_an_extra_charm_pick():
+    rs, c = _ruleset(), _legal_solar()
+    # 10 Charm picks already fill the free pool; an Ox-Body purchase is an 11th pick
+    # gated on Endurance (Favoured here) -> the cheapest extra costs 4 BP.
+    from exalted_builder.models.character import OxBodyPurchase
+    c.ox_body = [OxBodyPurchase(variant="one-zero", health_levels=[0])]
+    assert "4 of 15" in _bp(validate.validate_chargen(rs, c))
 
 
 # --------------------------------------------------------------------------- #
@@ -255,21 +253,6 @@ def test_combos_from_snapshot_when_locked():
 
 
 # --------------------------------------------------------------------------- #
-# Brigid's Heir cost multiplier at chargen (doubles over-pool Charm BP)
-# --------------------------------------------------------------------------- #
-
-def test_brigids_heir_doubles_extra_charm_at_chargen():
-    rs, c = _ruleset(), _legal_solar()
-    rs.charms["c-dawn2"] = Charm(id="c-dawn2", name="D2", category="melee",
-                                 type=CharmType.SIMPLE, min_ability=1, min_essence=1)
-    c.charms = c.charms + ["c-dawn2"]                  # 11 picks; the cheapest extra is Caste (4)
-    assert "4 of 15" in _bp(validate.validate_chargen(rs, c))
-    c.merits_flaws = [MeritFlaw(name="Brigid's Heir", points=5)]
-    # Charms doubled: the paid extra is now 8, plus the Merit's own 5 BP -> 13.
-    assert "13 of 15" in _bp(validate.validate_chargen(rs, c))
-
-
-# --------------------------------------------------------------------------- #
 # Bonus-point accounting
 # --------------------------------------------------------------------------- #
 
@@ -318,30 +301,6 @@ def test_caste_favored_specialty_dots_pool_before_rounding():
         Specialty(ability=A.AWARENESS, name="Ambush", rating=1),
     ]
     assert "1 of 15" in _bp(validate.validate_chargen(rs, c))
-
-
-# --------------------------------------------------------------------------- #
-# Merits & Flaws (Player's Guide): Merits cost BP, Flaws grant BP up to 10
-# --------------------------------------------------------------------------- #
-
-def test_merit_costs_bonus_points():
-    rs, c = _ruleset(), _legal_solar()
-    c.merits_flaws = [MeritFlaw(name="Quick", points=3, is_flaw=False)]
-    assert "3 of 15" in _bp(validate.validate_chargen(rs, c))
-
-
-def test_flaw_grants_bonus_points():
-    rs, c = _ruleset(), _legal_solar()
-    c.merits_flaws = [MeritFlaw(name="Nightmares", points=4, is_flaw=True)]
-    assert "0 of 19" in _bp(validate.validate_chargen(rs, c))   # 15 + 4 from the flaw
-
-
-def test_flaw_credit_is_capped_at_ten():
-    rs, c = _ruleset(), _legal_solar()
-    c.merits_flaws = [MeritFlaw(name="Cursed", points=15, is_flaw=True)]
-    issues = validate.validate_chargen(rs, c)
-    assert any(i.code == "flaw-credit-capped" for i in issues)
-    assert "0 of 25" in _bp(issues)                             # 15 + capped 10
 
 
 # --------------------------------------------------------------------------- #

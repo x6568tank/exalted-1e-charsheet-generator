@@ -9,7 +9,13 @@
     "prerequisites": [],
     "cost": {"raw": "None"},
     "duration": "Permanent",
-    "description": "Grants extra health levels. Repeatable (once per dot of Endurance); the levels granted vary with the purchase. Minimum Endurance varies.",
+    "repeatable_cap_ability": "endurance",
+    "variants": [
+      {"key": "one-zero", "label": "One -0 level", "health_levels": [0], "description": "Gain one extra -0 health level."},
+      {"key": "two-one", "label": "Two -1 levels", "health_levels": [-1, -1], "description": "Gain two extra -1 health levels."},
+      {"key": "one-one-two-two", "label": "One -1 and two -2 levels", "health_levels": [-1, -2, -2], "description": "Gain one extra -1 and two extra -2 health levels."}
+    ],
+    "description": "Grants extra health levels. Repeatable once per dot of Endurance; each purchase grants one of three health-level packages.",
     "source": {"book": "Exalted 1e Core", "page": 170}
   },
   {

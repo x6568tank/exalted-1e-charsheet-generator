@@ -61,46 +61,26 @@ def specialty_cost(ruleset: RuleSet) -> int:
 
 
 def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
-    """XP to learn a Charm: discounted when its gating Ability is Caste/Favoured,
-    then scaled by any Merit/Flaw cost multiplier (e.g. Brigid's Heir doubles Charms,
-    sparing Ox-Body and the sorcery-initiation Charms)."""
+    """XP to learn a Charm: discounted when its gating Ability is Caste/Favoured."""
     ability = validate._category_ability(charm.category)
     favored = ability is not None and ability in validate.caste_favored_abilities(ruleset, character)
-    base = ruleset.xp_costs.new_charm_favored_caste if favored else ruleset.xp_costs.new_charm
-    num, den = validate.cost_multiplier(ruleset, character, "charms", charm)
-    return validate.apply_cost_multiplier(base, num, den)
+    return ruleset.xp_costs.new_charm_favored_caste if favored else ruleset.xp_costs.new_charm
 
 
 def spell_cost(ruleset: RuleSet, character: Character) -> int:
-    """XP to learn a spell: discounted when Occult is Caste/Favoured (core p.100/191),
-    then scaled by any Merit/Flaw cost multiplier (e.g. Brigid's Heir halves spells)."""
+    """XP to learn a spell: discounted when Occult is Caste/Favoured (core p.100/191)."""
     favored = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, character)
-    base = ruleset.xp_costs.new_spell_occult_favored_caste if favored else ruleset.xp_costs.new_spell
-    num, den = validate.cost_multiplier(ruleset, character, "spells")
-    return validate.apply_cost_multiplier(base, num, den)
+    return ruleset.xp_costs.new_spell_occult_favored_caste if favored else ruleset.xp_costs.new_spell
+
+
+def ox_body_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP to buy one more Ox-Body Technique: priced as a normal new Charm (the
+    variant chosen does not change the cost). 0 if the Charm is absent."""
+    charm = ruleset.charms.get(validate.OX_BODY_ID)
+    return charm_cost(ruleset, character, charm) if charm else 0
 
 
 def combo_cost(ruleset: RuleSet, charm_ids: list[str]) -> int:
     """XP for a new Combo: the sum of its member Charms' minimum Ability values
     (core p.213). Unknown ids contribute nothing (reference checks flag them)."""
     return sum(ruleset.charms[cid].min_ability for cid in charm_ids if cid in ruleset.charms)
-
-
-def merit_flaw_change_cost(ruleset: RuleSet, character: Character, *,
-                           points: int, is_flaw: bool, removing: bool) -> int:
-    """Signed XP for changing a Merit/Flaw in play (Player's Guide p.17). Positive
-    = the character PAYS; negative = the character GAINS (it lowers total spend).
-
-    Gaining a Flaw or dropping a Merit grants XP; gaining a Merit or buying off a
-    Flaw costs XP — each `merit_flaw_change_multiplier` × the bonus-point value. The
-    one exception is a *gained* Flaw: only the points that fit under the running
-    10-point Flaw total grant XP ("more than 10 points of Flaws receive no
-    experience for the excess"). Buy-offs are never capped."""
-    mult = ruleset.xp_costs.merit_flaw_change_multiplier
-    if is_flaw and not removing:                       # gain a Flaw -> grant, capped
-        cap = ruleset.budgets.bonus_points_flaw_cap
-        existing = sum(mf.points for mf in character.merits_flaws if mf.is_flaw)
-        creditable = max(0, min(points, cap - existing))
-        return -mult * creditable
-    pays = (not is_flaw and not removing) or (is_flaw and removing)  # gain Merit / lose Flaw
-    return mult * points if pays else -mult * points

@@ -27,6 +27,7 @@ def lock_chargen(character: Character) -> Character:
         charms=list(character.charms),
         spells=list(character.spells),
         combos=[c.model_copy(deep=True) for c in character.combos],
+        ox_body=[p.model_copy(deep=True) for p in character.ox_body],
         essence_rating=character.essence_rating,
         willpower_purchased=character.willpower_purchased,
         wp_virtue_component=wp_component,

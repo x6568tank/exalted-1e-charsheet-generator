@@ -25,7 +25,7 @@ from nicegui import ui
 
 from .. import persistence, rules_db
 from ..engine import validate
-from ..models.character import Character
+from ..models.character import Character, OxBodyPurchase
 from ..models.rules import RuleSet
 from . import view as viewmod
 from .assets import cytoscape_head_html
@@ -102,6 +102,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     @ui.refreshable
     def detail() -> None:
+        if selected["id"] == validate.OX_BODY_ID:
+            ox_body_detail()
+            return
         d = viewmod.build_charm_detail(ruleset, character, selected["id"]) if selected["id"] else None
         if d is None:
             ui.label("Tap a charm to see its details.").classes("text-xs text-gray-400")
@@ -129,6 +132,55 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     def select(charm_id: str) -> None:
         selected["id"] = charm_id
         detail.refresh()
+
+    # ---- Ox-Body Technique (repeatable, variant menu; chargen) ------------- #
+    def add_ox_body(variant_key: str) -> None:
+        charm = ruleset.charms.get(validate.OX_BODY_ID)
+        variant = next((v for v in charm.variants if v.key == variant_key), None) if charm else None
+        if variant is None:
+            return
+        if len(character.ox_body) >= validate.ox_body_cap(ruleset, character):
+            ui.notify("Ox-Body: already bought once per dot of Endurance.", type="warning")
+            return
+        character.ox_body.append(
+            OxBodyPurchase(variant=variant_key, health_levels=list(variant.health_levels)))
+        ui.notify(f"Added Ox-Body Technique ({variant.label})", type="positive")
+        detail.refresh(); update_graph()
+
+    def remove_ox_body(index: int) -> None:
+        if 0 <= index < len(character.ox_body):
+            del character.ox_body[index]
+            detail.refresh(); update_graph()
+
+    def ox_body_detail() -> None:
+        charm = ruleset.charms.get(validate.OX_BODY_ID)
+        if charm is None:
+            ui.label("Ox-Body Technique is not in the rule set.").classes("text-xs text-red-600")
+            return
+        cap = validate.ox_body_cap(ruleset, character)
+        bought = len(character.ox_body)
+        labels = {v.key: v.label for v in charm.variants}
+        ui.label(charm.name).classes("text-sm font-bold").style(f"color:{_ACCENT}")
+        ui.label(charm.description).classes("text-xs")
+        ui.separator()
+        ui.label(f"Bought {bought} / {cap}  ·  once per dot of Endurance").classes(
+            "text-xs font-semibold")
+        if bought:
+            for i, p in enumerate(character.ox_body):
+                with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
+                    ui.label(f"• {labels.get(p.variant, p.variant)}").classes("text-xs")
+                    ui.button(icon="remove", on_click=lambda _=None, i=i: remove_ox_body(i)).props(
+                        "dense flat round size=sm color=negative")
+        ui.separator()
+        ui.label("Add a package:").classes("text-xs font-semibold")
+        for v in charm.variants:
+            btn = ui.button(v.label, icon="add",
+                            on_click=lambda _=None, k=v.key: add_ox_body(k)).props("dense color=positive")
+            if bought >= cap:
+                btn.props("disable")
+        if bought >= cap:
+            ui.label("Raise Endurance to buy more." if cap else
+                     "Needs at least 1 dot of Endurance.").classes("text-xs text-gray-500")
 
     # ---- spell picker (spells share the Charm pool; core p.100) ----------- #
     def toggle_spell(spell_id: str) -> None:

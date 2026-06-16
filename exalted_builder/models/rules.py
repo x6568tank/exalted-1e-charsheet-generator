@@ -117,6 +117,18 @@ class CharmCost(BaseModel):
     raw: str = ""                          # display string; authoritative for variable costs
 
 
+class CharmVariant(BaseModel):
+    """One selectable package for a repeatable Charm (currently only Ox-Body
+    Technique). Each purchase of the Charm picks one variant; `health_levels` are
+    the wound-penalty levels it grants (e.g. [0] or [-1, -2, -2])."""
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    label: str
+    health_levels: list[int] = Field(default_factory=list)
+    description: str = ""
+
+
 class Charm(BaseModel):
     model_config = ConfigDict(frozen=True)  # rules data is immutable at runtime
 
@@ -126,6 +138,10 @@ class Charm(BaseModel):
     type: CharmType
     min_ability: int = Field(default=0, ge=0)
     min_essence: int = Field(default=1, ge=1)
+    # Repeatable Charms (Ox-Body Technique): may be bought once per dot of this
+    # Ability (the cap), each purchase choosing one of `variants`. None = not repeatable.
+    repeatable_cap_ability: Optional[str] = None
+    variants: list[CharmVariant] = Field(default_factory=list)
     # AND-of-ORs: the character must satisfy every inner group; a group is
     # satisfied if ANY of its ids is known. A flat list of single-id groups is
     # the common "all of these required" case.
@@ -229,47 +245,15 @@ class BackgroundType(BaseModel):
     description: str = ""
 
 
-class MeritFlawEffect(BaseModel):
-    """A machine-readable mechanical effect the engine applies whenever a character
-    holds the Merit/Flaw. Narrative conditions (Nature gating, codes of honour) are
-    deliberately NOT modelled — the effect always applies if the trait is held.
-
-    `kind`:
-      * "trait_cap" — overrides the maximum rating of `target` (a trait domain like
-        "virtues" or a single trait like "attributes.appearance"). The cap is `max`,
-        or, when severity-dependent, `max_by_points[chosen_points]`.
-      * "cost_multiplier" — scales the learn cost of `target` ("charms" or "spells")
-        by `factor_num / factor_den` (rounded up). For Charms the multiplier skips
-        any Charm whose type is in `except_charm_types` (e.g. Ox-Body's "Special") or,
-        when `except_sorcery_initiation`, any Circle-Sorcery initiation Charm.
-    """
-    model_config = ConfigDict(frozen=True)
-
-    kind: str
-    target: str
-    # trait_cap
-    max: Optional[int] = None
-    max_by_points: dict[int, int] = Field(default_factory=dict)
-    # cost_multiplier
-    factor_num: int = 1
-    factor_den: int = 1
-    except_charm_types: list[str] = Field(default_factory=list)
-    except_sorcery_initiation: bool = False
-
-
-class MeritFlawType(BaseModel):
-    """A Merit or Flaw from the Player's Guide. Autofill catalog for the per-
-    character character.MeritFlaw (which carries the chosen point value)."""
+class NatureType(BaseModel):
+    """A character Nature (Archetype). Narrative only — no mechanical enforcement;
+    this is the catalog the editor's Nature dropdown is populated from. The chosen
+    value is stored as free text on Character.nature."""
     model_config = ConfigDict(frozen=True)
 
     id: str
     name: str
-    points: int                            # the listed (or lowest) bonus-point value
-    is_flaw: bool = False
-    category: str = ""                     # Physical / Mental / Social / Supernatural
-    cost_text: str = ""                    # for variable costs, e.g. "1 or 3 per sense"
     description: str = ""
-    effects: list[MeritFlawEffect] = Field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #
@@ -321,8 +305,6 @@ class ExperienceCosts(BaseModel):
     new_spell: int = 10
     new_spell_occult_favored_caste: int = 8
     foreign_charm: int = 20                # spirit Charms / other Exalt types; Eclipse only (gated in engine)
-    # p.17 in-play Merit/Flaw change: XP gained/paid = this multiple of the bonus-point value.
-    merit_flaw_change_multiplier: int = 2
 
 
 class ChargenBudgets(BaseModel):
@@ -348,7 +330,6 @@ class ChargenBudgets(BaseModel):
 
     essence_start: int = 2
     bonus_points: int = 15
-    bonus_points_flaw_cap: int = 10        # max extra bonus points gained from Flaws
 
     willpower_start_cap: int = 8           # may not start above this...
     willpower_cap_exception_virtue: int = 4   # ...unless at least
@@ -364,7 +345,7 @@ class RuleSet(BaseModel):
     armor_catalog: dict[str, ArmorType] = Field(default_factory=dict)
     weapon_catalog: dict[str, WeaponType] = Field(default_factory=dict)
     background_catalog: dict[str, BackgroundType] = Field(default_factory=dict)
-    merit_flaw_catalog: dict[str, MeritFlawType] = Field(default_factory=dict)
+    nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
     bonus_costs: BonusPointCosts = Field(default_factory=BonusPointCosts)
     xp_costs: ExperienceCosts = Field(default_factory=ExperienceCosts)
     budgets: ChargenBudgets = Field(default_factory=ChargenBudgets)

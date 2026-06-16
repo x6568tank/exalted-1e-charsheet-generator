@@ -8,7 +8,7 @@ unimplemented pending its 1e rule, and that contract is tested too.
 import pytest
 
 from exalted_builder.engine import derive
-from exalted_builder.models.character import Armor, Character, HealthLevel
+from exalted_builder.models.character import Armor, Character, HealthLevel, OxBodyPurchase
 from exalted_builder.models.rules import AttributeName, VirtueName
 
 
@@ -125,6 +125,17 @@ def test_ox_body_bonus_levels_merge_by_severity():
     # The bonus -1 follows the two base -1 levels (stable order within a tier).
     ones = [lv for lv in track if lv.penalty == -1]
     assert [lv.source for lv in ones] == ["", "", "solar.resistance.ox-body"]
+
+
+def test_ox_body_purchases_add_their_package_levels():
+    # one "two-one" package (-1, -1) plus one "one-one-two-two" (-1, -2, -2)
+    c = _char(ox_body=[
+        OxBodyPurchase(variant="two-one", health_levels=[-1, -1]),
+        OxBodyPurchase(variant="one-one-two-two", health_levels=[-1, -2, -2]),
+    ])
+    track = derive.health_track(c)
+    assert [lv.penalty for lv in track] == [0, -1, -1, -1, -1, -1, -2, -2, -2, -2, -4, None]
+    assert sum(1 for lv in track if lv.source == "Ox-Body Technique") == 5
 
 
 # --------------------------------------------------------------------------- #

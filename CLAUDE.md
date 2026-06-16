@@ -118,7 +118,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (171 tests passing)
+## Status (172 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -197,7 +197,8 @@ Exalted-1E-Charsheet-Generator/      (project root)
   `examples/ashes-of-dawn.character.json`.
 - **Data authored:** `castes.json`, `backgrounds.json` (10 core), `armor.json`
   (mundane + 5 artifact), `weapons.json` (mundane + artifact), `spells.json` (all 3
-  circles), and the Circle Sorcery charms (`solar_occult.json`, 3).
+  circles), `natures.json` (16 — the p105 Archetype summary list), and the Circle
+  Sorcery charms (`solar_occult.json`, 3).
 - **Charms authored** (`data/charms/solar_<ability>.json`):
   - **Dawn — complete:** Melee (22), Archery (12), Brawl (10), Thrown (9),
     Martial Arts / Snake Style (10, category `martial_arts:snake`).
@@ -233,38 +234,46 @@ Exalted-1E-Charsheet-Generator/      (project root)
   oldest target distro for sharing. **Windows .exe still needs building ON Windows**
   (PyInstaller can't cross-compile); same spec. (A native-window packaging was tried and
   reverted — Qt bundling made it ~280MB and non-portable; `--native` stays a dev option.)
-- **Merits & Flaws** (Player's Guide): authored as a catalog —
-  `data/merits_flaws.json` (84: 42 merits + 42 flaws; non-Solar entries removed —
-  Merits Legendary Breeding & Celestial Bloodline, and Flaws Limited Forms & Chimera
-  (Lunars only) & Death-Taint (Abyssals/Ghosts only); each bars Solars per its own
-  text. "Celestial Exalted only" entries are kept — Solars are Celestial) via `MeritFlawType` +
-  `RuleSet.merit_flaw_catalog`. The editor M&F field is a catalog combobox that
-  autofills points/type (still free-entry). `validate_chargen` folds them into
-  bonus points (Merits cost, Flaws grant up to 10). `cost_text` carries variable
-  costs. Health curses: `HealthLevel.removed` lets a character have fewer levels
-  than the base 7. **Mechanical effects (data-driven):** `MeritFlawEffect` on a
-  catalog entry; `kind:"trait_cap"` overrides a trait's max via `validate.trait_max`,
-  honoured in BOTH chargen (range checks) and XP (`advancement` caps + the editor/XP
-  dot widgets). Authored so far: True Paragon (Virtues→6), Disfigured (Appearance ≤1
-  at 3pt / 0 at 4pt, `max_by_points`). Narrative conditions (Nature gating, code-of-
-  honour loss) are deliberately not enforced. `kind:"cost_multiplier"` scales Charm/
-  spell learn cost via `validate.cost_multiplier`/`apply_cost_multiplier`, honoured in
-  `costs.py` (XP) and the chargen charm/spell BP block (now itemised per pick: free
-  pool covers the dearest, BP pays the rest). Authored: Brigid's Heir (Charms ×2 except
-  Ox-Body [Special] and the Circle-Sorcery initiation Charms; spells ×½).
-  **In-play Merit/Flaw change — done (p.17):** `advancement.gain_merit_flaw`/
-  `lose_merit_flaw` append an `XpEntry` whose `cost` is SIGNED — gaining a Flaw or
-  dropping a Merit GRANTS xp (negative cost, raising available); gaining a Merit or
-  buying off a Flaw COSTS xp. Magnitude = `xp_costs.merit_flaw_change_multiplier` (=2)
-  × the bonus-point value, except a *gained* Flaw is credited only up to the running
-  10-pt Flaw total (`budgets.bonus_points_flaw_cap`). `costs.merit_flaw_change_cost`
-  is the pure signed price; the entry carries the full `mf` so `undo_last` can restore
-  it; these rows are skipped by the cost-tamper audit (the gain-Flaw credit is
-  state-dependent). UI: a **Merits & Flaws card** in the XP tab (catalog-autofill Gain
-  + buy-off/drop of held entries, signed-XP preview). The p.17 partial-payment "debt"
-  installment rule is out of scope (purchases require full affordability, as elsewhere).
+- **Merits & Flaws — REMOVED** (was: a Player's Guide catalog + mechanical-effect
+  hooks). Ripped out entirely on 2026-06-15 per the user's decision (the M&F system
+  bundles balance-wrecking Charm rewrites they dislike). Gone: `data/merits_flaws.json`,
+  `MeritFlawType`/`MeritFlawEffect`/`Character.merits_flaws`/`MeritFlaw`,
+  `RuleSet.merit_flaw_catalog`, the chargen BP folding, the `validate.trait_max`/
+  `cost_multiplier` machinery and its use in `costs.py`/`advancement.py`/the editor & XP
+  dot caps (all dot caps are now the flat 5 / WP 10), the editor M&F combobox, the XP-tab
+  M&F card, `advancement.gain/lose_merit_flaw`, and `XpEntry.mf`. `XpEntry.cost` is no
+  longer signed (no XP-granting rows). `HealthLevel.removed` (curses → fewer levels)
+  stays — it's independent of M&F. Old saves with a stray `merits_flaws` field still load
+  (the field is just dropped). Do NOT reintroduce M&F.
 - **Combos — done** (chargen BP *and* during-play XP cost = Σ member `min_ability`,
   via `costs.combo_cost`/`advancement.add_combo`).
+- **Ox-Body Technique — repeatable with a variant menu — done 2026-06-15** (core p170).
+  Buyable **once per dot of Endurance** (cap), each purchase picking ONE health-level
+  package (confirmed from the p170 PNG + user as rules authority): **(a)** one -0;
+  **(b)** two -1; **(c)** one -1 + two -2. The minimum Endurance is the *cap itself*
+  (Nth copy needs Endurance ≥ N) — it does NOT vary per package. **Data-driven:** the
+  `Charm` model gained `repeatable_cap_ability` + `variants: list[CharmVariant]`
+  (key/label/health_levels); authored in `data/charms/solar_endurance.json`. **Model:**
+  Ox-Body lives on `Character.ox_body: list[OxBodyPurchase]` (one record per purchase,
+  each carrying the chosen variant + its health levels copied inline) — it is NOT in
+  `character.charms`, so N copies are representable. **Engine:** `derive.health_track`
+  folds in the purchases' levels; `validate.ox_body_cap`/`check_ox_body` (cap + valid
+  variant + min essence, wired into `validate()`); `validate_chargen` counts each
+  purchase as a Charm pick (toward the 10-pool + ≥5 caste/favoured, Endurance-gated);
+  `costs.ox_body_cost` (= a normal new Charm, 8 caste / 10 else); `advancement.learn_ox_body`
+  (+ undo + audit). `validate.OX_BODY_ID` is the shared id constant; `lock_chargen`
+  snapshots `ox_body`. **UI:** the picker's detail panel special-cases the Ox-Body node
+  (count `n/Endurance` + a 3-package add menu + per-purchase remove) for chargen; the XP
+  tab has a "Buy Ox-Body" package select (Ox-Body is excluded from the normal Learn-Charm
+  dropdown); the sheet lists one row per purchase. The editor's manual per-tier health
+  widget stays for other bonuses/curses (source relabelled "Bonus", no longer "Ox-Body").
+- **Nature dropdown — done 2026-06-15.** `data/natures.json` (16 Archetypes from the p105
+  summary: Architect/Bravo/Bureaucrat/Caregiver/Conniver/Critic/Explorer/Follower/Gallant/
+  Hedonist/Jester/Judge/Leader/Martyr/Paragon/Rebel, each with its one-line description) →
+  `NatureType` model + `RuleSet.nature_catalog` (loaded by `rules_db` like backgrounds).
+  `Character.nature` stays **free-text** (Nature is narrative-only, no mechanical effect);
+  the editor field is now a combobox of the catalog with `new_value_mode="add-unique"` so a
+  custom Nature is still allowed.
 - **XP advancement — done (post-lock):** `engine/costs.py` + `engine/advancement.py`
   + the XP tab. The chargen snapshot is the baseline; purchases mutate current
   traits and append to `xp_log`; `validate_xp` audits overspend/tampering. Trait
@@ -278,27 +287,15 @@ Exalted-1E-Charsheet-Generator/      (project root)
   combat/attack derivation (weapons are display-only); the Dire Lance mounted
   profile; Limit Break (play-state — add at sheet-export time, not chargen).
 
-## TODO — planned next (do NOT start yet; queued 2026-06-14, user resumes 2026-06-15)
-1. **Remove Merits & Flaws entirely.** User decision after a closer read of the
-   Player's Guide: it bundles changes they dislike (senseless Charm rewrites that wreck
-   balance, etc.) and the whole M&F system is more headache than value. Rip out the
-   feature, not just the catalog: `data/merits_flaws.json`; the `MeritFlawType`/
-   `MeritFlawEffect` models + `RuleSet.merit_flaw_catalog`; the chargen BP folding in
-   `validate_chargen`; `validate.trait_max`/`cost_multiplier` machinery (and its use in
-   `costs.py`, `advancement.py`, the editor/XP dot caps); the editor M&F combobox; the
-   XP-tab M&F card + `advancement.gain/lose_merit_flaw`; `Character.merits_flaws`. Keep
-   the generic hooks only if something else needs them — otherwise delete. This reverses
-   several commits' worth of work, intentionally. See [[merit-flaw-xp-effects]].
-2. **Ox-Body Technique — repeatable with a variant menu.** Purchasable up to **Endurance
-   dots** times (cap = current Endurance). Each purchase the player picks ONE of three
-   health-level packages (per the user, who is rules authority — confirm exact wording
-   from a PNG before authoring): (a) one extra **-0** level; (b) two **-1** levels; (c)
-   one **-1** and two **-2** levels. Needs: the Charm to allow N copies (it's
-   `CharmType.Special`; today charms are a flat owned-list, so model the repeat +
-   per-copy chosen variant), a picker menu for the variant, and `derive.health` to add
-   the chosen levels (HealthLevel already supports bonus levels). Applies in BOTH chargen
-   and XP. See [[ox-body-repeatable-variant-menu]].
-3. **Nature dropdown.** `Character.nature` is free-text today; make the editor a dropdown
-   of the corebook Natures. User will send the full corebook Nature list (author it as
-   data, e.g. `data/natures.json`, then a `<select>` in the editor). Natures are still
-   narrative-only (no mechanical enforcement). See [[nature-dropdown]].
+## TODO — planned next
+The three TODOs queued 2026-06-14 are all DONE (2026-06-15): ~~remove M&F~~,
+~~repeatable Ox-Body~~, ~~Nature dropdown~~ (see the status bullets above).
+
+1. **Caste descriptions + Anima Powers** (queued 2026-06-15). Add something that
+   describes each Caste, including its Anima Power, surfaced in the UI (sheet and/or a
+   Caste blurb when a Caste is chosen). `CasteDefinition` already has an `anima_powers`
+   field — check whether `castes.json` populates it and what's there; author the Caste
+   descriptions + Anima Powers from a corebook PNG (ASK for the page; do not guess).
+   The user will provide the source. **Then re-package the binary** (`pyinstaller
+   pack/exalted-builder.spec`) — the M&F/Ox-Body/Nature work since the last build has not
+   been re-packaged yet; do it after this Caste work lands so one rebuild covers all four.
