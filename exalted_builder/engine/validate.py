@@ -765,12 +765,42 @@ def check_caste_splat(ruleset: RuleSet, character: Character) -> list[Issue]:
     )]
 
 
+def splat_of(charm: Charm) -> str:
+    """The Exalt type that can learn `charm` (charm.exalt_type). A tiny accessor so
+    the UI/engine don't reach into the field directly and can grow smarter later
+    (e.g. cross-splat Martial Arts / sorcery) without a churn of call sites."""
+    return charm.exalt_type
+
+
+def charm_matches_splat(character: Character, charm: Charm) -> bool:
+    """Whether `charm` belongs to the character's Exalt type — the picker/graph
+    filter so a Dragon-Blooded sees only DB Charms and a Solar only Solar Charms."""
+    return splat_of(charm) == character.exalt_type
+
+
+def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """Every Charm the character holds must belong to the character's own Exalt
+    type. Spells are cross-splat (gated by circle, not splat) and are not checked;
+    unknown Charm ids are left to check_references."""
+    issues: list[Issue] = []
+    for cid in character.charms:
+        charm = ruleset.charms.get(cid)
+        if charm is not None and not charm_matches_splat(character, charm):
+            issues.append(Issue(
+                code="charm-wrong-splat", where=cid,
+                message=f"Charm {charm.name!r} is {splat_of(charm)}, not the "
+                        f"character's Exalt type {character.exalt_type!r}.",
+            ))
+    return issues
+
+
 def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Run all *implemented* checks and return the combined issues. Chargen
     predicates are excluded until designed."""
     issues: list[Issue] = []
     issues += check_exalt_type(ruleset, character)
     issues += check_caste_splat(ruleset, character)
+    issues += check_splat_consistency(ruleset, character)
     issues += check_references(ruleset, character)
     issues += check_charm_prerequisites(ruleset, character)
     issues += check_spell_access(ruleset, character)

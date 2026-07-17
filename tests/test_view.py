@@ -8,7 +8,8 @@ from pathlib import Path
 import exalted_builder
 from exalted_builder import persistence, rules_db
 from exalted_builder.models.character import Character, Combo, HealthLevel, XpEntry
-from exalted_builder.models.rules import AbilityName
+from exalted_builder.models.rules import (
+    AbilityName, CasteDefinition, Charm, CharmType, RuleSet)
 from exalted_builder.ui import view as viewmod
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
@@ -150,3 +151,24 @@ def test_unknown_charm_id_falls_back_to_the_id():
     v = viewmod.build_sheet_view(rs, c)
     assert len(v.charms) == 1
     assert v.charms[0].name == "solar.melee.does-not-exist" and v.charms[0].category == "?"
+
+
+def test_charm_graph_shows_only_the_characters_splat():
+    """build_charm_graph filters a category's nodes to the character's Exalt type,
+    so a Solar sees Solar Melee Charms and a Dragon-Blooded sees DB Melee Charms."""
+    rs = RuleSet(
+        castes={"dawn": CasteDefinition(id="dawn", label="Dawn",
+                                        caste_abilities=[AbilityName.MELEE])},
+        charms={
+            "s": Charm(id="s", name="Solar Strike", category="melee",
+                       type=CharmType.SIMPLE, min_ability=1, min_essence=1),
+            "d": Charm(id="d", name="Terrestrial Strike", category="melee",
+                       exalt_type="Dragon-Blooded",
+                       type=CharmType.SIMPLE, min_ability=1, min_essence=1),
+        },
+    )
+    solar_ids = {n.id for n in viewmod.build_charm_graph(rs, Character(id="s"), "melee").nodes}
+    assert solar_ids == {"s"}
+    db = Character(id="d", exalt_type="Dragon-Blooded")
+    db_ids = {n.id for n in viewmod.build_charm_graph(rs, db, "melee").nodes}
+    assert db_ids == {"d"}

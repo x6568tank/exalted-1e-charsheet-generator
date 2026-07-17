@@ -96,6 +96,33 @@ def test_unknown_caste_not_double_reported_by_splat_check():
     assert validate.check_caste_splat(rs, _char(caste="not-a-caste")) == []
 
 
+def test_charm_matches_splat_by_exalt_type():
+    rs = _ruleset()
+    solar_charm = rs.charms["fire-and-stones"]      # exalt_type defaults to "Solar"
+    assert validate.charm_matches_splat(_char(), solar_charm)
+    assert not validate.charm_matches_splat(_char(exalt_type="Dragon-Blooded"), solar_charm)
+
+
+def test_own_splat_charms_are_consistent():
+    rs = _ruleset()
+    c = _char(charms=["fire-and-stones"])           # a Solar holding a Solar Charm
+    assert validate.check_splat_consistency(rs, c) == []
+
+
+def test_charm_from_another_splat_is_flagged():
+    rs = _ruleset()
+    c = _char(exalt_type="Dragon-Blooded", charms=["fire-and-stones"])
+    codes = [i.code for i in validate.check_splat_consistency(rs, c)]
+    assert codes == ["charm-wrong-splat"]
+
+
+def test_unknown_charm_id_left_to_reference_check():
+    """A held Charm id that doesn't resolve is check_references' job, not the
+    splat check's — so check_splat_consistency stays silent on it."""
+    rs = _ruleset()
+    assert validate.check_splat_consistency(rs, _char(charms=["ghost"])) == []
+
+
 def test_clean_references_no_issues():
     rs = _ruleset()
     c = _char(charms=["fire-and-stones"], spells=[])

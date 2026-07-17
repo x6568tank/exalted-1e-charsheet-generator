@@ -75,7 +75,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return f"{base.replace('_', ' ').title()}: {style.replace('_', ' ').title()}"
         return cat.replace("_", " ").title()
 
-    categories = sorted({c.category for c in ruleset.charms.values()})
+    categories = sorted({c.category for c in ruleset.charms.values()
+                         if validate.charm_matches_splat(character, c)})
     category_options = {c: _pretty(c) for c in categories}
     state = {"category": "melee" if "melee" in categories else (categories[0] if categories else "")}
 

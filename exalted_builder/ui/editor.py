@@ -166,6 +166,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.input("Concept", value=character.concept,
                                  on_change=lambda e: setattr(character, "concept", e.value)).classes("flex-1")
                     with ui.row().classes("w-full gap-3 no-wrap items-end"):
+                        exalt_opts = {ex.id: ex.label for ex in ruleset.exalts.values()}
+                        exalt_opts.setdefault(character.exalt_type, character.exalt_type)
+                        ui.select(exalt_opts, label="Exalt type", value=character.exalt_type,
+                                  on_change=lambda e: set_exalt_type(e.value)).classes("flex-1")
                         caste_opts = {cd.id: cd.label for cd in ruleset.castes.values()
                                       if cd.exalt_type == character.exalt_type}
                         # keep the current caste selectable even if off-splat (NiceGUI 3.x
@@ -402,6 +406,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label(f"{s.name} · {s.circle}").classes("text-xs")
 
     # ---- structural mutators (refresh body + readout) --------------------- #
+    def set_exalt_type(value: str) -> None:
+        character.exalt_type = value
+        # keep the caste coherent with the new splat: if the current caste doesn't
+        # belong to it, switch to that splat's first caste (if the splat has any).
+        valid = [cd.id for cd in ruleset.castes.values() if cd.exalt_type == value]
+        if character.caste not in valid and valid:
+            character.caste = valid[0]
+        body.refresh(); changed()
+
     def set_caste(value: str) -> None:
         character.caste = value
         body.refresh(); changed()
