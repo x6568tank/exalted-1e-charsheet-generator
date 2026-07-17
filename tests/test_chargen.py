@@ -234,7 +234,7 @@ def test_solar_circle_spell_forbidden_at_chargen():
     c.charms = c.charms[:-1]
     c.spells = ["s-solar"]
     codes = {i.code for i in _errors(validate.validate_chargen(rs, c))}
-    assert "spell-solar-circle-chargen" in codes
+    assert "spell-top-circle-chargen" in codes
 
 
 def test_spell_counts_toward_caste_favored_minimum_when_occult_favored():

@@ -274,6 +274,7 @@ def build_spell_picker(ruleset: RuleSet, character: Character) -> list[SpellPick
     owned, available (a known Charm grants its circle and it isn't a chargen-barred
     Solar spell), or locked with a one-line reason. Ordered by circle then name.
     Pure — eligibility comes from engine.validate."""
+    barred = validate.chargen_barred_circle(ruleset, character)
     rows: list[SpellPickRow] = []
     for spell in sorted(ruleset.spells.values(),
                         key=lambda s: (_CIRCLE_ORDER.get(s.circle, 9), s.name)):
@@ -281,8 +282,8 @@ def build_spell_picker(ruleset: RuleSet, character: Character) -> list[SpellPick
         available = validate.meets_spell_requirements(ruleset, character, spell)
         reason = ""
         if not owned and not available:
-            if spell.circle == SpellCircle.SOLAR:
-                reason = "Solar Circle spells can't be taken at creation"
+            if spell.circle == barred:
+                reason = f"{spell.circle.value} Circle spells can't be taken at creation"
             else:
                 reason = f"needs a Charm granting the {spell.circle.value} Circle"
         rows.append(SpellPickRow(

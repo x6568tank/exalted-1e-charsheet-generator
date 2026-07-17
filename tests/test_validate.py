@@ -35,7 +35,7 @@ def _ruleset() -> RuleSet:
         "terrestrial-circle": Charm(
             id="terrestrial-circle", name="Terrestrial Circle Sorcery",
             category="occult", type=CharmType.PERMANENT, min_ability=3, min_essence=1,
-            grants_sorcery_circle=SpellCircle.TERRESTRIAL,
+            grants_circle=SpellCircle.TERRESTRIAL,
         ),
     }
     spells = {
@@ -94,6 +94,26 @@ def test_unknown_caste_not_double_reported_by_splat_check():
     splat check stays silent so it isn't reported twice."""
     rs = _ruleset()
     assert validate.check_caste_splat(rs, _char(caste="not-a-caste")) == []
+
+
+def test_chargen_barred_circle_is_data_driven():
+    """The circle barred at creation comes from ExaltDefinition.highest_magic_circle_id,
+    not a hardcoded Solar Circle — so a differently-capped splat bars a different circle."""
+    from exalted_builder.models.rules import EssencePoolSpec, ExaltDefinition
+
+    rs = _ruleset()
+    assert validate.chargen_barred_circle(rs, _char()) == SpellCircle.SOLAR  # Solar default
+
+    def _with_exalt(**kw):
+        ex = ExaltDefinition(essence=EssencePoolSpec(personal_essence_coeff=1,
+                                                     peripheral_essence_coeff=1), **kw)
+        return rs.model_copy(update={"exalts": {**rs.exalts, ex.id: ex}})
+
+    celestial = _with_exalt(id="Cel", label="Cel", highest_magic_circle_id="Celestial")
+    assert validate.chargen_barred_circle(celestial, _char(exalt_type="Cel")) == SpellCircle.CELESTIAL
+
+    none_barred = _with_exalt(id="Free", label="Free", highest_magic_circle_id="")
+    assert validate.chargen_barred_circle(none_barred, _char(exalt_type="Free")) is None
 
 
 def test_charm_matches_splat_by_exalt_type():
@@ -252,7 +272,7 @@ def test_meets_spell_requirements_bars_solar_circle_at_chargen():
     rs.charms["solar-circle"] = Charm(
         id="solar-circle", name="Solar Circle Sorcery", category="occult",
         type=CharmType.PERMANENT, min_ability=5, min_essence=5,
-        grants_sorcery_circle=SpellCircle.SOLAR)
+        grants_circle=SpellCircle.SOLAR)
     c = _char(charms=["solar-circle"])
     spell = rs.spells["rain-of-doom"]
     assert validate.meets_spell_requirements(rs, c, spell) is False           # chargen

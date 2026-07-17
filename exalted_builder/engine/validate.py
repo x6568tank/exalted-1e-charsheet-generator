@@ -219,28 +219,40 @@ def charms_depending_on(ruleset: RuleSet, character: Character, charm_id: str) -
 # Spell-circle access
 # --------------------------------------------------------------------------- #
 
-def granted_sorcery_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
-    """The set of Sorcery circles the character can cast in, taken from the
-    `grants_sorcery_circle` of every known initiation Charm."""
+def granted_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
+    """The set of magic circles the character can cast in, taken from the
+    `grants_circle` of every known initiation Charm. Track-agnostic (sorcery or,
+    later, necromancy) — the circle enum carries the distinction."""
     return {
-        ruleset.charms[cid].grants_sorcery_circle
+        ruleset.charms[cid].grants_circle
         for cid in character.charms
-        if cid in ruleset.charms and ruleset.charms[cid].grants_sorcery_circle is not None
+        if cid in ruleset.charms and ruleset.charms[cid].grants_circle is not None
     }
+
+
+def chargen_barred_circle(ruleset: RuleSet, character: Character) -> SpellCircle | None:
+    """The magic circle barred at character creation for this Exalt type, resolved
+    from ExaltDefinition.highest_magic_circle_id (Solars: the Solar Circle, core
+    p.100). Empty or unrecognised -> None (nothing barred at creation)."""
+    cid = ruleset.exalt_for(character.exalt_type).highest_magic_circle_id
+    try:
+        return SpellCircle(cid) if cid else None
+    except ValueError:
+        return None
 
 
 def meets_spell_requirements(ruleset: RuleSet, character: Character, spell,
                              *, chargen: bool = True) -> bool:
     """Whether the character could learn `spell` right now: a known Charm must grant
-    its circle, and at chargen the Solar Circle is barred (core p.100). The
-    forward-looking counterpart to check_spell_access; used by the spell picker."""
-    if chargen and spell.circle == SpellCircle.SOLAR:
+    its circle, and at chargen the Exalt type's highest circle is barred (Solars:
+    Solar Circle, core p.100). Forward-looking counterpart to check_spell_access."""
+    if chargen and spell.circle == chargen_barred_circle(ruleset, character):
         return False
-    return spell.circle in granted_sorcery_circles(ruleset, character)
+    return spell.circle in granted_circles(ruleset, character)
 
 
 def check_spell_access(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """A known Spell requires a known Charm whose `grants_sorcery_circle` matches
+    """A known Spell requires a known Charm whose `grants_circle` matches
     the Spell's circle.
 
     Exact-circle match is correct for 1e (core pp.191): the three initiation
@@ -250,7 +262,7 @@ def check_spell_access(ruleset: RuleSet, character: Character) -> list[Issue]:
     cast lower-circle spells through them. No separate circle-nesting rule is
     needed here; the prerequisite chain provides it.
     """
-    granted = granted_sorcery_circles(ruleset, character)
+    granted = granted_circles(ruleset, character)
     issues: list[Issue] = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
@@ -669,8 +681,9 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"Virtue {v.value} = {rating}; must be {b.virtue_base}-5 at creation.",
             ))
 
-    # --- Charms & Spells: >=5 Caste/Favoured; Solar Circle barred at creation - #
+    # --- Charms & Spells: >=5 Caste/Favoured; top circle barred at creation ---- #
     occult_cf = AbilityName.OCCULT in cf_set
+    barred = chargen_barred_circle(ruleset, character)
     cf_pick_count = 0
     for cid in charms:
         charm = ruleset.charms.get(cid)
@@ -683,11 +696,11 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         spell = ruleset.spells.get(sid)
         if spell is None:
             continue
-        if spell.circle == SpellCircle.SOLAR:
+        if barred is not None and spell.circle == barred:
             issues.append(Issue(
-                code="spell-solar-circle-chargen", where=sid,
-                message=f"{spell.name}: Solar Circle spells may not be taken at "
-                        "character creation.",
+                code="spell-top-circle-chargen", where=sid,
+                message=f"{spell.name}: {spell.circle.value} Circle spells may not "
+                        "be taken at character creation.",
             ))
         if occult_cf:
             cf_pick_count += 1

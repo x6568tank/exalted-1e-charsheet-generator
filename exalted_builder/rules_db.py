@@ -155,7 +155,7 @@ def _check_sorcery_reachable(
 ) -> None:
     """Every spell's circle must be granted by at least one Charm, or no
     character could ever legally learn it."""
-    granted = {ch.grants_sorcery_circle for ch in charms.values() if ch.grants_sorcery_circle}
+    granted = {ch.grants_circle for ch in charms.values() if ch.grants_circle}
     for sp in spells.values():
         if sp.circle not in granted:
             problems.append(
