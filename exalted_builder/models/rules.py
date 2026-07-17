@@ -142,9 +142,10 @@ class Charm(BaseModel):
     cost: CharmCost = Field(default_factory=CharmCost)
     duration: str = "Instant"
     keywords: list[str] = Field(default_factory=list)
-    # Set on the circle-initiation Charms (Terrestrial/Celestial/Solar Circle Sorcery).
-    # Lets engine.validate gate known spells on a known initiation Charm of their circle.
-    grants_sorcery_circle: Optional[SpellCircle] = None
+    # Set on the circle-initiation Charms (e.g. Terrestrial/Celestial/Solar Circle
+    # Sorcery). Lets engine.validate gate known spells on a known initiation Charm of
+    # their circle. Track-agnostic: a necromancy initiation Charm sets it the same way.
+    grants_circle: Optional[SpellCircle] = None
     description: str = ""
     source: Source = Field(default_factory=Source)
 

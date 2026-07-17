@@ -37,9 +37,9 @@
     "prerequisites": [],
     "cost": {"raw": ""},
     "duration": "Permanent",
-    "grants_sorcery_circle": "Terrestrial",
+    "grants_circle": "Terrestrial",
     "keywords": [],
-    "description": "Initiation Charm. grants_sorcery_circle is what lets a character legally learn spells of that circle; set it ONLY on the three Circle Sorcery Charms.",
+    "description": "Initiation Charm. grants_circle is what lets a character legally learn spells of that circle; set it ONLY on the Circle Sorcery (or Necromancy) initiation Charms.",
     "source": {"book": "Exalted 1e Core", "page": null}
   }
 ]

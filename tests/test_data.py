@@ -174,8 +174,8 @@ def test_each_circle_is_granted_by_its_sorcery_charm():
     # load_ruleset would raise if any spell's circle were ungranted; assert the
     # mapping explicitly too.
     rs = rules_db.load_ruleset(DATA_DIR)
-    grants = {c.grants_sorcery_circle for c in rs.charms.values()
-              if c.grants_sorcery_circle is not None}
+    grants = {c.grants_circle for c in rs.charms.values()
+              if c.grants_circle is not None}
     assert grants == set(SpellCircle)
 
 

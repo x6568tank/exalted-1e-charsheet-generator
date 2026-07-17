@@ -36,7 +36,7 @@ def _ruleset() -> RuleSet:
                         prerequisites=[["base"]]),
         "sorcery": Charm(id="sorcery", name="Terrestrial Circle Sorcery", category="occult",
                          type=CharmType.PERMANENT, min_ability=1, min_essence=1,
-                         grants_sorcery_circle=SpellCircle.TERRESTRIAL),
+                         grants_circle=SpellCircle.TERRESTRIAL),
         "solar.endurance.ox-body-technique": Charm(
             id="solar.endurance.ox-body-technique", name="Ox-Body Technique",
             category="endurance", type=CharmType.SPECIAL, min_ability=1, min_essence=1,

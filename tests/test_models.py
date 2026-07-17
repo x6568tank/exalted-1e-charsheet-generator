@@ -54,11 +54,11 @@ def test_charm_prerequisites_are_and_of_or_groups():
     assert ch.prerequisites == [["a", "b"], ["c"]]
 
 
-def test_grants_sorcery_circle_field():
+def test_grants_circle_field():  # (renamed from grants_sorcery_circle)
     ch = Charm(id="t", name="Terrestrial Circle Sorcery", category="occult",
                type=CharmType.PERMANENT, min_ability=3, min_essence=1,
-               grants_sorcery_circle=SpellCircle.TERRESTRIAL)
-    assert ch.grants_sorcery_circle is SpellCircle.TERRESTRIAL
+               grants_circle=SpellCircle.TERRESTRIAL)
+    assert ch.grants_circle is SpellCircle.TERRESTRIAL
 
 
 @pytest.mark.parametrize("rating, ok", [(1, True), (3, True), (0, False), (4, False)])

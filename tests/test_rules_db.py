@@ -22,10 +22,10 @@ def _write_clean_set(d: Path) -> None:
     (d / "charms" / "occult.json").write_text(json.dumps([
         {"id": "t", "name": "Terrestrial Circle Sorcery", "category": "occult",
          "type": "Permanent", "min_ability": 3, "min_essence": 1,
-         "grants_sorcery_circle": "Terrestrial"},
+         "grants_circle": "Terrestrial"},
         {"id": "c", "name": "Celestial Circle Sorcery", "category": "occult",
          "type": "Permanent", "min_ability": 4, "min_essence": 3,
-         "prerequisites": [["t"]], "grants_sorcery_circle": "Celestial"},
+         "prerequisites": [["t"]], "grants_circle": "Celestial"},
     ]))
     (d / "spells.json").write_text(json.dumps([
         {"id": "s1", "name": "A Terrestrial Spell", "circle": "Terrestrial"},
@@ -91,7 +91,7 @@ def test_duplicate_charm_id_is_caught(tmp_path):
     _write_clean_set(tmp_path)
     (tmp_path / "charms" / "dup.json").write_text(json.dumps([
         {"id": "t", "name": "Duplicate", "category": "occult", "type": "Permanent",
-         "min_ability": 1, "min_essence": 1, "grants_sorcery_circle": "Terrestrial"},
+         "min_ability": 1, "min_essence": 1, "grants_circle": "Terrestrial"},
     ]))
     with pytest.raises(RuleDataError) as ei:
         load_ruleset(tmp_path)

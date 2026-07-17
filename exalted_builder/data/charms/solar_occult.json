@@ -9,7 +9,7 @@
     "prerequisites": [],
     "cost": {"willpower": 1, "raw": "1 Willpower (per spell; each spell also has an Essence cost)"},
     "duration": "Instant",
-    "grants_sorcery_circle": "Terrestrial",
+    "grants_circle": "Terrestrial",
     "description": "Lets the character learn and cast spells of the Terrestrial (First) Circle. Each spell also has its own Essence cost, listed in the spell. Cannot be placed in a Combo.",
     "source": {"book": "Exalted 1e Core", "page": 191}
   },
@@ -23,7 +23,7 @@
     "prerequisites": [["solar.occult.terrestrial-circle-sorcery"]],
     "cost": {"willpower": 1, "raw": "1 Willpower (per spell; each spell also has an Essence cost)"},
     "duration": "Instant",
-    "grants_sorcery_circle": "Celestial",
+    "grants_circle": "Celestial",
     "description": "Lets the character learn and cast spells of the Celestial (Second) Circle, the magic of the Celestial Exalted. Cannot be placed in a Combo.",
     "source": {"book": "Exalted 1e Core", "page": 191}
   },
@@ -37,7 +37,7 @@
     "prerequisites": [["solar.occult.celestial-circle-sorcery"]],
     "cost": {"willpower": 3, "raw": "3 Willpower (per spell; each spell also has an Essence cost)"},
     "duration": "Instant",
-    "grants_sorcery_circle": "Solar",
+    "grants_circle": "Solar",
     "description": "Lets the character learn and cast spells of the Solar (Third) Circle, the most powerful sorcery, available only to the Solar Exalted. Cannot be placed in a Combo.",
     "source": {"book": "Exalted 1e Core", "page": 191}
   },

@@ -28,7 +28,7 @@ def _ruleset() -> RuleSet:
                          type=CharmType.SPECIAL, min_ability=1, min_essence=1),
         "sorcery": Charm(id="sorcery", name="Terrestrial Circle Sorcery", category="occult",
                          type=CharmType.SIMPLE, min_ability=1, min_essence=1,
-                         grants_sorcery_circle=SpellCircle.TERRESTRIAL),
+                         grants_circle=SpellCircle.TERRESTRIAL),
     }
     return RuleSet(castes=castes, charms=charms)
 
