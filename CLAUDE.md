@@ -404,28 +404,45 @@ TODOs are now cleared.**
 
 **In progress — multi-splat refactor.** Generalizing Solar-only → all Exalt
 types, **all-splats-RuleSet + runtime-filtering** design, **Dragon-Blooded first** (switched
-from Abyssal 2026-07-17). Phases **0-1 DONE** (on `main`): per-Exalt-keyed cost/budget tables
-(`RuleSet.{budgets,xp_costs,bonus_costs}: dict[str,…]` + `*_for(exalt_type)` accessors,
-"default" fallback); `ExaltDefinition`/`EssencePoolSpec` + `RuleSet.exalts` + `exalt_for`;
-`data/exalts.json` (Solar row); `derive.essence_pools(ruleset, character)` is now a data lookup;
-`OX_BODY_ID` → `validate.ox_body_charm(ruleset, character)`; `validate.check_exalt_type`.
-**Phases 2-5 PENDING** — Phase 2 caste-enum→string, Phase 3 splat filtering + UI, Phase 4
-circle/magic-track generalization, **Phase 5 Dragon-Blooded data authoring is PNG-GATED** (no
-DB pages in `images/` yet). Full plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
+from Abyssal 2026-07-17). **Phases 0-4 DONE (on `main`); Phase 5 authoring is next and now
+UNBLOCKED** (DB pages are in `images/Dragonblooded/`). Full plan:
+`~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
+- **P0-1:** per-Exalt-keyed cost/budget tables (`RuleSet.{budgets,xp_costs,bonus_costs}:
+  dict[str,…]` + `*_for(exalt_type)`, "default" fallback); `ExaltDefinition`/`EssencePoolSpec`
+  + `RuleSet.exalts` + `exalt_for`; `data/exalts.json`; data-driven `derive.essence_pools`;
+  `validate.ox_body_charm`; `validate.check_exalt_type`.
+- **P2:** `Caste` enum dropped → `Character.caste: str` keyed to `ruleset.castes: dict[str,
+  CasteDefinition]` (gained `id`/`exalt_type`/`label`); legacy `"Dawn"→"dawn"` save-migration;
+  `validate.check_caste_splat` (`caste-wrong-splat`).
+- **P3:** `Charm.exalt_type` (default "Solar"); `validate.splat_of`/`charm_matches_splat`/
+  `check_splat_consistency` (`charm-wrong-splat`); picker/graph/editor filter by exalt_type;
+  editor Exalt-type dropdown.
+- **P4:** `grants_sorcery_circle`→`grants_circle`, `granted_sorcery_circles`→`granted_circles`;
+  `validate.chargen_barred_circle` reads `ExaltDefinition.highest_magic_circle_id` (issue code
+  `spell-solar-circle-chargen`→`spell-top-circle-chargen`). **Deferred with necromancy** (no DB
+  payoff): Necromancy circles + `CircleKind`, and the picker's render-by-present-circles columns.
 
-**Why DB-first changes Phases 4-5:** Dragon-Blooded do **not** use Necromancy (their sorcery is
-capped at the Terrestrial Circle), so the sorcery→necromancy generalization Abyssal was picked to
-prove is **deferred** — Phase 4 keeps only the general rename (`grants_sorcery_circle`→`grants_circle`)
-+ data-driven barred circle (`ExaltDefinition.highest_magic_circle_id`, DB = Terrestrial). DB also
-use **Aspects (Air/Earth/Fire/Water/Wood), not Castes** ("Aspect" is a label over the same caste
-slot), weaker chargen budgets, and a different Essence formula — all already handled by the
-per-splat tables + the Phase-2 `caste: str` reshape. DON'T assume Solar's 8/6/4 attrs or 25/10/15
-abilities/charms for DB — those come from the DB page.
+**Why DB-first changes Phases 4-5:** Dragon-Blooded do **not** use Necromancy (sorcery capped at
+Terrestrial) — the sorcery→necromancy generalization is deferred. DB use **Aspects (Air/Earth/
+Fire/Water/Wood), not Castes** ("Aspect" is a label over the same caste slot).
+
+**DB chargen review (read from `images/Dragonblooded/Character Creation/` p150-151, 2026-07-17
+— see [[db-chargen-findings]]):** Nearly all DB chargen differences are **data-only** — one
+`"Dragon-Blooded"` row in the Phase-0 budgets table covers **7/6/4** attrs, **3** favored, **35
+dots / ≥13** abilities (Dynastic: **25/≥10**), **12** backgrounds, **7** charms (or 5 Immaculate)
+/ **≥4**, **5** virtues. **Genuinely NEW structure** to build before/with Phase 5: (1) **Dynastic
+vs Outcaste** origin (intra-splat budget variant + free minimum abilities — the budgets table
+keys by exalt_type only, so this needs a Character origin field + selection); (2) **Immaculate
+Order charm package** (7-DB-OR-5-Immaculate + one-elemental-tree constraint); (3) confirm **Aspect
+ability shape** from the Traits pages. Essence formula / bonus points are in the Traits chapter
+(p156-173), not yet read — **don't guess them.**
 
 Also landed 2026-06-16: the **in-play tracker** (Play tab + trait reductions — see the
 play-state layer above), which reversed the old "play-state out of scope" decision.
 
-Open future work (unscheduled): finish the **multi-splat refactor** (Phases 2-4) then
-**Dragon-Blooded + castebook charms** (needs PNGs); the **Windows .exe** still needs a Windows
-host (PyInstaller can't cross-compile; same spec); combat/attack derivation (weapons are
-display-only). See [[packaging-plan]], [[combat-engine-deferred]].
+Open future work (unscheduled): **Phase 5 — author Dragon-Blooded data** (budgets row +
+exalts row + Aspects + charm trees, from `images/Dragonblooded/`), preceded by the new
+structure the DB review surfaced (Dynastic/Outcaste origin, Immaculate Order charms); the
+**Windows .exe** still needs a Windows host (PyInstaller can't cross-compile; same spec);
+combat/attack derivation (weapons are display-only). See [[db-chargen-findings]],
+[[packaging-plan]], [[combat-engine-deferred]].
