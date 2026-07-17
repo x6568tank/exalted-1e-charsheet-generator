@@ -23,14 +23,6 @@ from pydantic import BaseModel, ConfigDict, Field
 # Fixed vocabularies
 # --------------------------------------------------------------------------- #
 
-class Caste(str, Enum):
-    DAWN = "Dawn"
-    ZENITH = "Zenith"
-    TWILIGHT = "Twilight"
-    NIGHT = "Night"
-    ECLIPSE = "Eclipse"
-
-
 class AttributeName(str, Enum):
     STRENGTH = "strength"
     DEXTERITY = "dexterity"
@@ -168,9 +160,15 @@ class Spell(BaseModel):
 
 
 class CasteDefinition(BaseModel):
+    """One caste (Solar) / aspect (Dragon-Blooded) / etc. `id` is the stable
+    lowercase key it is stored under in RuleSet.castes and on Character.caste
+    (e.g. "dawn"); `label` is the display name ("Dawn"); `exalt_type` names the
+    splat it belongs to, so a caste can be matched to a character's Exalt type."""
     model_config = ConfigDict(frozen=True)
 
-    caste: Caste
+    id: str                                # stable lowercase key, e.g. "dawn"
+    exalt_type: str = "Solar"              # the splat this caste belongs to
+    label: str                             # display name, e.g. "Dawn"
     caste_abilities: list[AbilityName]     # the five fixed caste abilities
     description: str = ""                   # a quick flavour blurb for the caste
     anima_powers: str = ""
@@ -418,7 +416,7 @@ class RuleSet(BaseModel):
     a Character.)"""
     exalts: dict[str, ExaltDefinition] = Field(
         default_factory=lambda: {SOLAR_EXALT.id: SOLAR_EXALT})
-    castes: dict[Caste, CasteDefinition]
+    castes: dict[str, CasteDefinition]     # keyed by CasteDefinition.id
     charms: dict[str, Charm]
     spells: dict[str, Spell] = Field(default_factory=dict)
     armor_catalog: dict[str, ArmorType] = Field(default_factory=dict)

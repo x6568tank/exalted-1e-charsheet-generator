@@ -6,7 +6,6 @@ from exalted_builder.engine import validate
 from exalted_builder.models.character import Character, Combo
 from exalted_builder.models.rules import (
     AbilityName,
-    Caste,
     CasteDefinition,
     Charm,
     CharmType,
@@ -46,8 +45,8 @@ def _ruleset() -> RuleSet:
         ),
     }
     castes = {
-        Caste.DAWN: CasteDefinition(
-            caste=Caste.DAWN,
+        "dawn": CasteDefinition(
+            id="dawn", label="Dawn",
             caste_abilities=[AbilityName.ARCHERY, AbilityName.BRAWL,
                              AbilityName.MARTIAL_ARTS, AbilityName.MELEE,
                              AbilityName.THROWN],
@@ -73,6 +72,28 @@ def test_unknown_charm_and_spell_ids_flagged():
     issues = validate.check_references(rs, c)
     codes = {i.code for i in issues}
     assert codes == {"unknown-charm", "unknown-spell"}
+
+
+def test_caste_matching_splat_is_clean():
+    """A Solar with a Solar caste raises no caste-splat issue."""
+    rs = _ruleset()
+    assert validate.check_caste_splat(rs, _char()) == []
+
+
+def test_caste_wrong_splat_flagged():
+    """A caste belonging to a different Exalt type than the character is flagged
+    (a Solar 'dawn' caste on a non-Solar character)."""
+    rs = _ruleset()
+    c = _char(exalt_type="Lunar")
+    codes = [i.code for i in validate.check_caste_splat(rs, c)]
+    assert codes == ["caste-wrong-splat"]
+
+
+def test_unknown_caste_not_double_reported_by_splat_check():
+    """An unknown caste id is left to validate_chargen's 'unknown-caste'; the
+    splat check stays silent so it isn't reported twice."""
+    rs = _ruleset()
+    assert validate.check_caste_splat(rs, _char(caste="not-a-caste")) == []
 
 
 def test_clean_references_no_issues():
@@ -230,7 +251,7 @@ def _combo_ruleset() -> RuleSet:
         "extra-b": mk("extra-b", CharmType.EXTRA_ACTION),
         "scene-buff": mk("scene-buff", CharmType.REFLEXIVE, duration="One scene"),
     }
-    castes = {Caste.DAWN: CasteDefinition(caste=Caste.DAWN, caste_abilities=[AbilityName.MELEE])}
+    castes = {"dawn": CasteDefinition(id="dawn", label="Dawn", caste_abilities=[AbilityName.MELEE])}
     return RuleSet(castes=castes, charms=charms)
 
 

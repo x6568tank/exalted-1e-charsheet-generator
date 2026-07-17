@@ -9,14 +9,15 @@ import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import validate
 from exalted_builder.models.character import Character
-from exalted_builder.models.rules import AbilityName, Caste, SpellCircle
+from exalted_builder.models.rules import AbilityName, SpellCircle
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
 
 def test_shipped_ruleset_loads():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert set(rs.castes) == set(Caste)        # all five castes present
+    # all five Solar castes present, keyed by their lowercase id
+    assert set(rs.castes) == {"dawn", "zenith", "twilight", "night", "eclipse"}
 
 
 def test_caste_abilities_partition_the_roster():
@@ -29,9 +30,9 @@ def test_caste_abilities_partition_the_roster():
     assert all(len(cd.caste_abilities) == 5 for cd in rs.castes.values())
 
 
-def test_each_caste_keyed_by_its_own_enum():
+def test_each_caste_keyed_by_its_own_id():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert all(caste == cd.caste for caste, cd in rs.castes.items())
+    assert all(key == cd.id for key, cd in rs.castes.items())
 
 
 def test_every_caste_has_a_description_and_anima_power():
@@ -39,7 +40,7 @@ def test_every_caste_has_a_description_and_anima_power():
     assert len(rs.castes) == 5
     for cd in rs.castes.values():
         assert cd.description and cd.anima_powers
-    assert rs.castes[Caste.DAWN].description.startswith("Masters of war")
+    assert rs.castes["dawn"].description.startswith("Masters of war")
 
 
 def test_ox_body_technique_loads_repeatable_with_three_variants():

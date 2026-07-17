@@ -1,30 +1,40 @@
 [
   {
-    "caste": "Dawn",
+    "id": "dawn",
+    "exalt_type": "Solar",
+    "label": "Dawn",
     "caste_abilities": ["archery", "brawl", "martial_arts", "melee", "thrown"],
     "description": "Masters of war in all its forms, the Children of the Dawn were once the leaders and champions of the Celestial Armies. The Unconquered Sun chooses the Dawn Caste from those with a talent for the arts of combat and war.",
     "anima_powers": "By spending 10 motes, the character appears huge and terrifying for the rest of the scene (or until she lets the effect dissipate). Mortals trying to face her must make a Valor check or suffer -2 dice on all attacks against her; those who botch the roll (and most natural animals) flee in terror. Golems, automata, demons, the undead and others that know no fear are immune."
   },
   {
-    "caste": "Zenith",
+    "id": "zenith",
+    "exalt_type": "Solar",
+    "label": "Zenith",
     "caste_abilities": ["endurance", "performance", "presence", "resistance", "survival"],
     "description": "Once the leaders of the Solar Exalted, the Lightbringers are priest-kings, prophets and mystics. The Unconquered Sun chooses the Zenith Caste from those most fit for righteousness and justice, as well as from among the leaders of men.",
     "anima_powers": "With a touch, the character burns the body of a fallen creature for 1 mote per body, sending the smoke and soul to Heaven and preventing it from rising as a zombie or hungry ghost. As her action for a turn, she may channel 5 motes to strike a demon, undead or other creature of darkness within 10 yards, rolling her Essence as dice of unsoakable aggravated damage."
   },
   {
-    "caste": "Twilight",
+    "id": "twilight",
+    "exalt_type": "Solar",
+    "label": "Twilight",
     "caste_abilities": ["craft", "investigation", "lore", "medicine", "occult"],
     "description": "Scholars and craftsmen of the Solar Exalted, the Children of Twilight are thinkers and doers. The Unconquered Sun chooses the Twilight Caste from those most able to take knowledge and apply it to create concrete results.",
     "anima_powers": "As a last-ditch protective act, after damage is rolled but before health levels are lost, the character may spend 5 motes and roll her Essence; each success subtracts one health level from the incoming damage, potentially turning a deadly blow harmless."
   },
   {
-    "caste": "Night",
+    "id": "night",
+    "exalt_type": "Solar",
+    "label": "Night",
     "caste_abilities": ["athletics", "awareness", "dodge", "larceny", "stealth"],
     "description": "Lords of stealth and trickery, the Concealing Shadows once served as the security of the Celestial Empire. The Unconquered Sun chooses the Night Caste from those who excel in entering places where they are not wanted or in finding unconventional solutions to problems.",
     "anima_powers": "The character may mute her anima: when spending peripheral Essence she pays twice as many motes to keep the expenditure from adding to her anima banner (this does not mute displays caused by sorcery). She may also spend 10 motes to extend the muting as a veil around her for a scene, increasing the difficulty of all rolls to detect or track her by 1."
   },
   {
-    "caste": "Eclipse",
+    "id": "eclipse",
+    "exalt_type": "Solar",
+    "label": "Eclipse",
     "caste_abilities": ["bureaucracy", "linguistics", "ride", "sail", "socialize"],
     "description": "Diplomats and bureaucrats, the Crowned Suns were the force that kept the Celestial Empire running smoothly. The Unconquered Sun chooses the Eclipse Caste from those who master the art of communication in all its forms.",
     "anima_powers": "By spending 10 motes and 1 Willpower and touching hands to seal an agreement, the character sanctifies an oath. Anyone who breaks it (including the Exalted) is cursed: a number of times equal to the Exalted's Essence at the time of the oath, the oathbreaker horribly botches a critical roll at the worst possible moment. Eclipses are also protected by ancient pacts, granting diplomatic immunity when dealing with spirits, demons and the Fair Folk."

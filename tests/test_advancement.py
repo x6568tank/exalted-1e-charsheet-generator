@@ -11,7 +11,6 @@ from exalted_builder.models.character import Character
 from exalted_builder.models.rules import (
     AbilityName,
     AttributeName,
-    Caste,
     CasteDefinition,
     Charm,
     CharmType,
@@ -26,8 +25,8 @@ A, AT, V = AbilityName, AttributeName, VirtueName
 
 
 def _ruleset() -> RuleSet:
-    castes = {Caste.DAWN: CasteDefinition(
-        caste=Caste.DAWN,
+    castes = {"dawn": CasteDefinition(
+        id="dawn", label="Dawn",
         caste_abilities=[A.ARCHERY, A.BRAWL, A.MARTIAL_ARTS, A.MELEE, A.THROWN])}
     charms = {
         "base": Charm(id="base", name="Base Charm", category="melee",
@@ -52,7 +51,7 @@ def _ruleset() -> RuleSet:
 
 
 def _locked(xp: int = 50) -> Character:
-    c = Character(id="char.xp", caste=Caste.DAWN)
+    c = Character(id="char.xp", caste="dawn")
     c.favored_abilities = [A.OCCULT, A.DODGE, A.ATHLETICS, A.RESISTANCE, A.ENDURANCE]
     c.attributes[AT.DEXTERITY] = 3
     c.abilities[A.MELEE] = 2
@@ -69,7 +68,7 @@ def _locked(xp: int = 50) -> Character:
 
 def test_cannot_spend_before_lock():
     rs = _ruleset()
-    c = Character(id="char.x", caste=Caste.DAWN)
+    c = Character(id="char.x", caste="dawn")
     with pytest.raises(advancement.AdvancementError):
         advancement.raise_attribute(rs, c, AT.DEXTERITY)
 
@@ -251,7 +250,7 @@ def test_undo_on_empty_log_raises():
 
 def test_validate_xp_is_silent_before_lock():
     rs = _ruleset()
-    c = Character(id="char.x", caste=Caste.DAWN)
+    c = Character(id="char.x", caste="dawn")
     assert advancement.validate_xp(rs, c) == []
 
 

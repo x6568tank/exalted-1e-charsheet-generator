@@ -751,11 +751,26 @@ def check_exalt_type(ruleset: RuleSet, character: Character) -> list[Issue]:
     )]
 
 
+def check_caste_splat(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """The character's caste must belong to the character's own Exalt type — a
+    Solar can't be a Dragon-Blooded Aspect and vice versa. An unknown caste is left
+    to validate_chargen's 'unknown-caste' finding, so this doesn't double-report."""
+    caste_def = ruleset.castes.get(character.caste)
+    if caste_def is None or caste_def.exalt_type == character.exalt_type:
+        return []
+    return [Issue(
+        code="caste-wrong-splat", where=character.caste,
+        message=f"Caste {caste_def.label!r} belongs to {caste_def.exalt_type}, "
+                f"not the character's Exalt type {character.exalt_type!r}.",
+    )]
+
+
 def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Run all *implemented* checks and return the combined issues. Chargen
     predicates are excluded until designed."""
     issues: list[Issue] = []
     issues += check_exalt_type(ruleset, character)
+    issues += check_caste_splat(ruleset, character)
     issues += check_references(ruleset, character)
     issues += check_charm_prerequisites(ruleset, character)
     issues += check_spell_access(ruleset, character)

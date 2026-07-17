@@ -17,7 +17,7 @@ from typing import Optional
 
 from ..engine import advancement, derive, validate
 from ..models.character import Armor, Character, Weapon, XpEntry
-from ..models.rules import AbilityName, Caste, CharmCost, RuleSet, SpellCircle, VirtueName
+from ..models.rules import AbilityName, CharmCost, RuleSet, SpellCircle, VirtueName
 
 
 @dataclass
@@ -378,9 +378,8 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     # Craft is per-focus (core p.136): the single Craft slot expands into one row
     # per craft instance ("Craft (Smithing)"), or a single 0-rated row if none.
     ability_groups: list[tuple[str, list[TraitRow]]] = []
-    for caste in Caste:
-        group_def = ruleset.castes.get(caste)
-        if group_def is None:
+    for group_def in ruleset.castes.values():
+        if group_def.exalt_type != character.exalt_type:
             continue
         rows: list[TraitRow] = []
         for a in group_def.caste_abilities:
@@ -393,7 +392,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
                     rows.append(TraitRow("Craft", 0, **cf_flags))
             else:
                 rows.append(TraitRow(_label(a.value), character.abilities.get(a, 0), **cf_flags))
-        ability_groups.append((caste.value, rows))
+        ability_groups.append((group_def.label, rows))
 
     virtues = [TraitRow(_label(v.value), character.virtues[v]) for v in VirtueName]
 
@@ -427,7 +426,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     return SheetView(
         name=character.name or "(unnamed)",
         player=character.player,
-        caste=character.caste.value,
+        caste=own_caste.label if own_caste else character.caste,
         exalt_type=character.exalt_type,
         concept=character.concept,
         nature=character.nature,

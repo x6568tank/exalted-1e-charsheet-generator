@@ -16,7 +16,7 @@ def _write_clean_set(d: Path) -> None:
     Terrestrial circle) and a Terrestrial spell that is therefore reachable."""
     (d / "charms").mkdir(parents=True)
     (d / "castes.json").write_text(json.dumps([
-        {"caste": "Twilight",
+        {"id": "twilight", "exalt_type": "Solar", "label": "Twilight",
          "caste_abilities": ["craft", "investigation", "lore", "medicine", "occult"]},
     ]))
     (d / "charms" / "occult.json").write_text(json.dumps([

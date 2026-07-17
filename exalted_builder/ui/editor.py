@@ -36,7 +36,7 @@ def _health_total(character: Character, penalty: int) -> int:
     delta = sum((-1 if hl.removed else 1)
                 for hl in character.health_bonus_levels if hl.penalty == penalty)
     return max(0, _BASE_HEALTH.get(penalty, 0) + delta)
-from ..models.rules import AbilityName, Caste, RuleSet, VirtueName
+from ..models.rules import AbilityName, RuleSet, VirtueName
 from . import view as viewmod
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -146,7 +146,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.row().classes("w-full gap-2 no-wrap items-stretch"):
             with ui.card().classes("w-72 flex-none p-3 bg-amber-50/40 border border-amber-900/20 gap-1"):
                 if caste_def:
-                    ui.label(f"{character.caste.value} Caste").classes(
+                    ui.label(f"{caste_def.label} Caste").classes(
                         "text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
                     if caste_def.description:
                         ui.label(caste_def.description).classes("text-xs")
@@ -166,7 +166,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.input("Concept", value=character.concept,
                                  on_change=lambda e: setattr(character, "concept", e.value)).classes("flex-1")
                     with ui.row().classes("w-full gap-3 no-wrap items-end"):
-                        ui.select({c: c.value for c in Caste}, label="Caste", value=character.caste,
+                        caste_opts = {cd.id: cd.label for cd in ruleset.castes.values()
+                                      if cd.exalt_type == character.exalt_type}
+                        # keep the current caste selectable even if off-splat (NiceGUI 3.x
+                        # ui.select raises if value ∉ options — see the select-value gotcha)
+                        caste_opts.setdefault(character.caste, character.caste)
+                        ui.select(caste_opts, label="Caste", value=character.caste,
                                   on_change=lambda e: set_caste(e.value)).classes("flex-1")
                         nature_names = [n.name for n in ruleset.nature_catalog.values()]
                         ui.select(_opts_with(nature_names, character.nature), label="Nature",
@@ -202,12 +207,13 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
         # abilities (by ability-caste group)
         with panel("Abilities (25 dots; ≥10 caste/favoured; ≤3 each pre-bonus)"):
-            groups = [(c, ruleset.castes[c].caste_abilities) for c in Caste if c in ruleset.castes]
+            groups = [(cd.label, cd.caste_abilities) for cd in ruleset.castes.values()
+                      if cd.exalt_type == character.exalt_type]
             for start in range(0, len(groups), 3):
                 with ui.row().classes("w-full gap-2 no-wrap"):
-                    for caste, abilities in groups[start:start + 3]:
+                    for group_label, abilities in groups[start:start + 3]:
                         with ui.column().classes("flex-1 gap-1"):
-                            ui.label(caste.value).classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                            ui.label(group_label).classes("text-xs font-semibold").style(f"color:{_ACCENT}")
                             for a in abilities:
                                 mark = "●" if a in caste_abilities else ("✦" if a in character.favored_abilities else "")
                                 with ui.row().classes("w-full items-center gap-1 no-wrap"):
@@ -396,7 +402,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label(f"{s.name} · {s.circle}").classes("text-xs")
 
     # ---- structural mutators (refresh body + readout) --------------------- #
-    def set_caste(value: Caste) -> None:
+    def set_caste(value: str) -> None:
         character.caste = value
         body.refresh(); changed()
 

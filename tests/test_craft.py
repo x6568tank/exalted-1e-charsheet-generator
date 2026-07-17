@@ -11,7 +11,7 @@ import pytest
 from exalted_builder.engine import advancement, costs, lifecycle, validate
 from exalted_builder.models.character import Character, CraftRating
 from exalted_builder.models.rules import (
-    AbilityName, Caste, CasteDefinition, Charm, CharmType, RuleSet,
+    AbilityName, CasteDefinition, Charm, CharmType, RuleSet,
 )
 
 A = AbilityName
@@ -22,7 +22,7 @@ def _ruleset(craft_is_caste: bool = False) -> RuleSet:
         [A.CRAFT, A.LORE, A.MEDICINE, A.OCCULT, A.INVESTIGATION] if craft_is_caste
         else [A.MELEE, A.ARCHERY, A.BRAWL, A.MARTIAL_ARTS, A.THROWN]
     )
-    castes = {Caste.DAWN: CasteDefinition(caste=Caste.DAWN, caste_abilities=caste_abilities)}
+    castes = {"dawn": CasteDefinition(id="dawn", label="Dawn", caste_abilities=caste_abilities)}
     charms = {
         "c-craft": Charm(id="c-craft", name="Crafty", category="craft",
                          type=CharmType.SIMPLE, min_ability=3, min_essence=1),
@@ -67,7 +67,7 @@ def test_craft_charm_needs_a_craft_at_its_minimum():
 def _base_solar(rs: RuleSet) -> Character:
     """A Dawn Solar with all non-craft chargen requirements satisfied and exactly
     25 free Ability dots used, BEFORE any craft. Favoured = five non-caste."""
-    c = Character(id="c", caste=Caste.DAWN)
+    c = Character(id="c", caste="dawn")
     c.favored_abilities = [A.AWARENESS, A.DODGE, A.ATHLETICS, A.RESISTANCE, A.ENDURANCE]
     from exalted_builder.models.rules import AttributeName as AT, VirtueName as V
     c.attributes.update({AT.STRENGTH: 5, AT.DEXTERITY: 4, AT.STAMINA: 2,
@@ -96,7 +96,7 @@ def test_craft_dot_costs_bonus_points_when_over_the_25():
 
 def test_craft_dots_count_toward_caste_favoured_minimum():
     rs = _ruleset(craft_is_caste=True)     # Craft is a Caste ability
-    c = Character(id="c", caste=Caste.DAWN)
+    c = Character(id="c", caste="dawn")
     c.favored_abilities = [A.MELEE, A.ARCHERY, A.BRAWL, A.THROWN, A.DODGE]
     # Only 4 caste/favoured ability dots in the dict; the craft adds the rest.
     from exalted_builder.models.rules import VirtueName as V
@@ -113,7 +113,7 @@ def test_craft_dots_count_toward_caste_favoured_minimum():
 
 def _locked() -> tuple[RuleSet, Character]:
     rs = _ruleset(craft_is_caste=True)
-    c = Character(id="c", caste=Caste.DAWN)
+    c = Character(id="c", caste="dawn")
     lifecycle.lock_chargen(c)
     c.xp_earned = 100
     return rs, c

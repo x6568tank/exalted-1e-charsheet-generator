@@ -39,7 +39,6 @@ from .models.rules import (
     ArmorType,
     BackgroundType,
     BonusPointCosts,
-    Caste,
     CasteDefinition,
     ChargenBudgets,
     Charm,
@@ -172,7 +171,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
 
     castes = _index(
         _load_array(data_dir / "castes.json", CasteDefinition, problems),
-        "caste", "caste", problems,
+        "id", "caste", problems,
     )
 
     charm_list: list[Charm] = []
