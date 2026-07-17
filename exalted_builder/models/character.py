@@ -23,9 +23,18 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
-from .rules import AbilityName, AttributeName, Caste, VirtueName
+from .rules import AbilityName, AttributeName, VirtueName
+
+
+# Legacy saves stored the caste as its capitalised display name ("Dawn"); the
+# caste is now referenced by its stable lowercase id ("dawn"). Map the old Solar
+# values forward on load so pre-Phase-2 saves keep working.
+_LEGACY_CASTE_IDS = {
+    "Dawn": "dawn", "Zenith": "zenith", "Twilight": "twilight",
+    "Night": "night", "Eclipse": "eclipse",
+}
 
 
 # --------------------------------------------------------------------------- #
@@ -188,7 +197,7 @@ class Character(BaseModel):
     player: str = ""
     edition: str = "1e"
     exalt_type: str = "Solar"
-    caste: Caste = Caste.DAWN
+    caste: str = "dawn"                     # CasteDefinition.id into ruleset.castes
     concept: str = ""
     nature: str = ""
     anima: str = ""
@@ -240,3 +249,10 @@ class Character(BaseModel):
 
     # --- play-state (separate layer; never enters chargen/XP validation) ---
     play: Optional[PlayState] = None
+
+    @field_validator("caste", mode="before")
+    @classmethod
+    def _migrate_legacy_caste(cls, v: object) -> object:
+        """Map a pre-Phase-2 capitalised Solar caste ("Dawn") to its id ("dawn").
+        Any other value passes through untouched."""
+        return _LEGACY_CASTE_IDS.get(v, v) if isinstance(v, str) else v

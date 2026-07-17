@@ -18,7 +18,6 @@ from exalted_builder.models.character import (
 from exalted_builder.models.rules import (
     AbilityName,
     AttributeName,
-    Caste,
     CasteDefinition,
     Charm,
     CharmType,
@@ -35,8 +34,8 @@ V = VirtueName
 
 def _ruleset() -> RuleSet:
     castes = {
-        Caste.DAWN: CasteDefinition(
-            caste=Caste.DAWN,
+        "dawn": CasteDefinition(
+            id="dawn", label="Dawn",
             caste_abilities=[A.ARCHERY, A.BRAWL, A.MARTIAL_ARTS, A.MELEE, A.THROWN],
         ),
     }
@@ -57,7 +56,7 @@ def _ruleset() -> RuleSet:
 
 
 def _legal_solar() -> Character:
-    c = Character(id="char.legal", caste=Caste.DAWN)
+    c = Character(id="char.legal", caste="dawn")
     c.favored_abilities = [A.AWARENESS, A.DODGE, A.ATHLETICS, A.RESISTANCE, A.ENDURANCE]
 
     # Attributes: Physical +8, Social +6, Mental +4 (all over a base of 1).

@@ -402,21 +402,30 @@ BP-spend log~~, ~~free background editing on the XP screen~~, ~~free equipment s
 the XP screen~~, ~~custom weapon/armor-name crash (NiceGUI 3.x select-value)~~. **All queued
 TODOs are now cleared.**
 
-**In progress — multi-splat refactor (2026-06-16).** Generalizing Solar-only → all Exalt
-types, **all-splats-RuleSet + runtime-filtering** design, **Abyssal first**. Phases **0-1
-DONE** (on `main`): per-Exalt-keyed cost/budget tables (`RuleSet.{budgets,xp_costs,
-bonus_costs}: dict[str,…]` + `*_for(exalt_type)` accessors, "default" fallback);
-`ExaltDefinition`/`EssencePoolSpec` + `RuleSet.exalts` + `exalt_for`; `data/exalts.json`
-(Solar row); `derive.essence_pools(ruleset, character)` is now a data lookup;
+**In progress — multi-splat refactor.** Generalizing Solar-only → all Exalt
+types, **all-splats-RuleSet + runtime-filtering** design, **Dragon-Blooded first** (switched
+from Abyssal 2026-07-17). Phases **0-1 DONE** (on `main`): per-Exalt-keyed cost/budget tables
+(`RuleSet.{budgets,xp_costs,bonus_costs}: dict[str,…]` + `*_for(exalt_type)` accessors,
+"default" fallback); `ExaltDefinition`/`EssencePoolSpec` + `RuleSet.exalts` + `exalt_for`;
+`data/exalts.json` (Solar row); `derive.essence_pools(ruleset, character)` is now a data lookup;
 `OX_BODY_ID` → `validate.ox_body_charm(ruleset, character)`; `validate.check_exalt_type`.
 **Phases 2-5 PENDING** — Phase 2 caste-enum→string, Phase 3 splat filtering + UI, Phase 4
-sorcery/necromancy generalization, **Phase 5 Abyssal data authoring is PNG-GATED** (no
-Abyssal pages in `images/` yet). Full plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
+circle/magic-track generalization, **Phase 5 Dragon-Blooded data authoring is PNG-GATED** (no
+DB pages in `images/` yet). Full plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
+
+**Why DB-first changes Phases 4-5:** Dragon-Blooded do **not** use Necromancy (their sorcery is
+capped at the Terrestrial Circle), so the sorcery→necromancy generalization Abyssal was picked to
+prove is **deferred** — Phase 4 keeps only the general rename (`grants_sorcery_circle`→`grants_circle`)
++ data-driven barred circle (`ExaltDefinition.highest_magic_circle_id`, DB = Terrestrial). DB also
+use **Aspects (Air/Earth/Fire/Water/Wood), not Castes** ("Aspect" is a label over the same caste
+slot), weaker chargen budgets, and a different Essence formula — all already handled by the
+per-splat tables + the Phase-2 `caste: str` reshape. DON'T assume Solar's 8/6/4 attrs or 25/10/15
+abilities/charms for DB — those come from the DB page.
 
 Also landed 2026-06-16: the **in-play tracker** (Play tab + trait reductions — see the
 play-state layer above), which reversed the old "play-state out of scope" decision.
 
 Open future work (unscheduled): finish the **multi-splat refactor** (Phases 2-4) then
-**Abyssal + castebook charms** (needs PNGs); the **Windows .exe** still needs a Windows
+**Dragon-Blooded + castebook charms** (needs PNGs); the **Windows .exe** still needs a Windows
 host (PyInstaller can't cross-compile; same spec); combat/attack derivation (weapons are
 display-only). See [[packaging-plan]], [[combat-engine-deferred]].

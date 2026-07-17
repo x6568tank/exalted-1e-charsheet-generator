@@ -6,13 +6,13 @@ from exalted_builder import persistence
 from exalted_builder.engine import validate
 from exalted_builder.models.character import Character, Damage, PlayState
 from exalted_builder.models.rules import (
-    AbilityName, Caste, CasteDefinition, Charm, CharmType, RuleSet)
+    AbilityName, CasteDefinition, Charm, CharmType, RuleSet)
 from exalted_builder.ui import view as viewmod
 
 
 def _ruleset() -> RuleSet:
-    castes = {Caste.DAWN: CasteDefinition(
-        caste=Caste.DAWN,
+    castes = {"dawn": CasteDefinition(
+        id="dawn", label="Dawn",
         caste_abilities=[AbilityName.ARCHERY, AbilityName.BRAWL,
                          AbilityName.MARTIAL_ARTS, AbilityName.MELEE, AbilityName.THROWN])}
     charms = {"melee": Charm(id="melee", name="M", category="melee",
@@ -59,7 +59,7 @@ def test_limit_is_capped_at_ten():
 def test_play_state_does_not_affect_validation():
     """Play-state is a separate layer — setting damage/motes/limit must not change
     any validation issue (chargen or the always-on checks)."""
-    rs, c = _ruleset(), Character(id="c", caste=Caste.DAWN)
+    rs, c = _ruleset(), Character(id="c", caste="dawn")
     before = [i.code for i in validate.validate(rs, c)]
     before_chargen = [i.code for i in validate.validate_chargen(rs, c)]
     c.play = PlayState(health=[Damage.LETHAL] * 7, motes_personal_spent=99,
@@ -70,7 +70,7 @@ def test_play_state_does_not_affect_validation():
 
 def test_build_play_view_capacities_match_engine():
     rs = _ruleset()
-    c = Character(id="c", caste=Caste.DAWN, essence_rating=3)
+    c = Character(id="c", caste="dawn", essence_rating=3)
     pv = viewmod.build_play_view(rs, c)
     # base health track is 7 levels (-0/-1/-1/-2/-2/-4/Incap) with no bonuses
     assert len(pv.health_boxes) == 7

@@ -21,7 +21,6 @@ from exalted_builder.models.character import (
 from exalted_builder.models.rules import (
     AbilityName,
     AttributeName,
-    Caste,
     VirtueName,
 )
 
@@ -29,7 +28,7 @@ from exalted_builder.models.rules import (
 def _rich_character() -> Character:
     """A character touching the non-default corners: nested sub-records, enum-keyed
     dicts with non-default values, lists, and an Optional that is set."""
-    c = Character(id="char.persist", name="Harmonious Jade", caste=Caste.TWILIGHT)
+    c = Character(id="char.persist", name="Harmonious Jade", caste="twilight")
     c.attributes[AttributeName.STRENGTH] = 4
     c.abilities[AbilityName.OCCULT] = 5
     c.virtues[VirtueName.CONVICTION] = 3
@@ -59,6 +58,18 @@ def test_round_trip_preserves_everything(tmp_path):
 def test_string_round_trip():
     c = _rich_character()
     assert persistence.character_from_json(persistence.character_to_json(c)) == c
+
+
+def test_legacy_capitalised_caste_migrates_to_id():
+    """A pre-Phase-2 save stored the caste as its display name ("Dawn"); it now
+    loads as the lowercase id ("dawn") so old saves keep working."""
+    c = persistence.character_from_json('{"id": "legacy", "caste": "Twilight"}')
+    assert c.caste == "twilight"
+
+
+def test_current_caste_id_passes_through_unchanged():
+    c = persistence.character_from_json('{"id": "new", "caste": "eclipse"}')
+    assert c.caste == "eclipse"
 
 
 def test_enum_keyed_dicts_serialise_as_value_strings(tmp_path):

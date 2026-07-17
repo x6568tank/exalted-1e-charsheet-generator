@@ -5,7 +5,6 @@ from exalted_builder.engine import costs
 from exalted_builder.models.character import Character
 from exalted_builder.models.rules import (
     AbilityName,
-    Caste,
     CasteDefinition,
     Charm,
     CharmType,
@@ -17,8 +16,8 @@ A = AbilityName
 
 
 def _ruleset() -> RuleSet:
-    castes = {Caste.DAWN: CasteDefinition(
-        caste=Caste.DAWN,
+    castes = {"dawn": CasteDefinition(
+        id="dawn", label="Dawn",
         caste_abilities=[A.ARCHERY, A.BRAWL, A.MARTIAL_ARTS, A.MELEE, A.THROWN])}
     charms = {
         "melee-charm": Charm(id="melee-charm", name="Melee Charm", category="melee",
@@ -35,7 +34,7 @@ def _ruleset() -> RuleSet:
 
 
 def _char() -> Character:
-    c = Character(id="char.cost", caste=Caste.DAWN)
+    c = Character(id="char.cost", caste="dawn")
     c.favored_abilities = [A.OCCULT, A.DODGE, A.ATHLETICS, A.RESISTANCE, A.ENDURANCE]
     return c
 
