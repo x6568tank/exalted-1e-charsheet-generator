@@ -127,6 +127,7 @@ class Charm(BaseModel):
     id: str
     name: str
     category: str                          # an AbilityName value, a Martial Arts style, or "sorcery"
+    exalt_type: str = "Solar"              # the splat that can learn it; filters the picker
     type: CharmType
     min_ability: int = Field(default=0, ge=0)
     min_essence: int = Field(default=1, ge=1)
