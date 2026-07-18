@@ -418,9 +418,13 @@ Method martial-arts styles (ch.6), NOT a separate ability-charm flavour — mark
 `Charm.immaculate`. `validate` now branches the chargen Charm rules on whether any Immaculate Charm
 is chosen: standard path = charm_count Charms, ≥charm_min_caste_favored Caste/Favored; Immaculate
 path = `immaculate_charm_count` (5) Charms all one elemental tree (`immaculate-single-tree`), the
-Caste/Favored min waived, Immaculate BP row (10/7). **STILL TODO: author the five Immaculate style
-charm trees** from `images/Dragonblooded/Martial Arts/` (the content grind) and the DB ability charm
-trees + DB Ox-Body. Full plan:
+Caste/Favored min waived, Immaculate BP row (10/7). **The five Immaculate style trees are NOW
+AUTHORED (2026-07-18)** from `images/Dragonblooded/Martial Arts/` (p243-263), 59 charms in
+`data/charms/dragonblooded_<element>_dragon.json` (Air 12, Earth 12, Fire 11, Water 12, Wood 12),
+each `exalt_type:"Dragon-Blooded"`, `element:"<Element>"`, `immaculate:true`,
+`category:"martial_arts:<element>-dragon"`; prereqs are single-tree + link-checked. **STILL TODO:
+the DB *ability* charm trees** (Charms chapter, p176-233 — element→ability, the bigger grind) and
+DB Ox-Body. Full plan:
 `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 - **P0-1:** per-Exalt-keyed cost/budget tables (`RuleSet.{budgets,xp_costs,bonus_costs}:
   dict[str,…]` + `*_for(exalt_type)`, "default" fallback); `ExaltDefinition`/`EssencePoolSpec`

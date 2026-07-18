@@ -193,3 +193,39 @@ def test_standard_db_path_still_uses_ordinary_charm_rules(rs):
     codes = {i.code for i in validate.validate_chargen(rs2, c)}
     assert "charm-caste-favored-min" in codes
     assert "immaculate-single-tree" not in codes
+
+
+# --- shipped Immaculate style trees (real data, not synthetic) ------------- #
+
+def test_shipped_immaculate_trees_counts(rs):
+    from collections import Counter
+    by_el = Counter(c.element for c in rs.charms.values() if c.immaculate)
+    assert by_el == Counter({"Air": 12, "Earth": 12, "Fire": 11, "Water": 12, "Wood": 12})
+    for c in (x for x in rs.charms.values() if x.immaculate):
+        assert c.exalt_type == "Dragon-Blooded"
+        assert c.category == "martial_arts:" + c.element.lower() + "-dragon"
+
+
+def test_shipped_air_dragon_immaculate_build_is_one_tree(rs):
+    c = _db_fire()
+    c.charms = [
+        "dragonblooded.air-dragon.air-dragons-sight",
+        "dragonblooded.air-dragon.wind-dragon-speed",
+        "dragonblooded.air-dragon.breath-seizing-technique",
+        "dragonblooded.air-dragon.shrouding-the-body-and-mind",
+        "dragonblooded.air-dragon.air-dragon-form",
+    ]
+    assert validate.immaculate_martial_artist(rs, c)
+    codes = {i.code for i in validate.validate_chargen(rs, c)}
+    assert "immaculate-single-tree" not in codes
+    assert "charm-caste-favored-min" not in codes      # waived on the Immaculate path
+
+
+def test_shipped_cross_tree_immaculate_flagged(rs):
+    c = _db_fire()
+    c.charms = [
+        "dragonblooded.air-dragon.air-dragons-sight",
+        "dragonblooded.fire-dragon.flash-fire-technique",
+    ]
+    codes = {i.code for i in validate.validate_chargen(rs, c)}
+    assert "immaculate-single-tree" in codes
