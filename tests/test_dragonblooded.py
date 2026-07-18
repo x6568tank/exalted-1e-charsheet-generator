@@ -290,6 +290,16 @@ def test_shipped_db_water_ability_charm_counts(rs):
         assert ":" not in c.category and c.immaculate is False
 
 
+def test_shipped_db_wood_ability_charm_counts(rs):
+    from collections import Counter
+    wood = [c for c in rs.charms.values()
+            if c.exalt_type == "Dragon-Blooded" and c.element == "Wood" and not c.immaculate]
+    assert Counter(c.category for c in wood) == Counter(
+        {"archery": 7, "medicine": 7, "performance": 5, "ride": 7, "survival": 7})
+    for c in wood:
+        assert ":" not in c.category and c.immaculate is False
+
+
 def test_shipped_db_terrestrial_sorcery_grants_circle(rs):
     from exalted_builder.models.rules import SpellCircle
     c = Character(id="db.sorc", exalt_type="Dragon-Blooded", caste="air", essence_rating=3)
