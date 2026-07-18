@@ -263,6 +263,15 @@ def test_shipped_db_air_ability_charm_counts(rs):
         assert ":" not in c.category and c.immaculate is False
 
 
+def test_shipped_db_earth_ability_charm_counts(rs):
+    from collections import Counter
+    earth = [c for c in rs.charms.values()
+             if c.exalt_type == "Dragon-Blooded" and c.element == "Earth" and not c.immaculate]
+    assert Counter(c.category for c in earth) == Counter(
+        {"awareness": 7, "craft": 6, "endurance": 7,
+         "martial_arts:five-dragon": 8, "resistance": 6})
+
+
 def test_shipped_db_terrestrial_sorcery_grants_circle(rs):
     from exalted_builder.models.rules import SpellCircle
     c = Character(id="db.sorc", exalt_type="Dragon-Blooded", caste="air", essence_rating=3)
