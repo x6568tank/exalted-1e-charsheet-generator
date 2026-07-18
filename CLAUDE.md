@@ -425,9 +425,13 @@ each `exalt_type:"Dragon-Blooded"`, `element:"<Element>"`, `immaculate:true`,
 `category:"martial_arts:<element>-dragon"`; prereqs are single-tree + link-checked. **DB Ox-Body
 Technique AUTHORED (2026-07-18):** `data/charms/dragonblooded_endurance.json` (Earth/Endurance,
 p195) — one fixed variant `[-1,-2]` per purchase (NO 3-package menu like Solar), cap = Endurance,
-resolving the `ox_body_charm_id` the DB exalt row already named. **STILL TODO:
-the DB *ability* charm trees** (Charms chapter, p176-233 — element→ability, the bigger grind; the
-Charms chapter opens each element then its 5 Aspect abilities: Air p177…, Earth p189…). Full plan:
+resolving the `ox_body_charm_id` the DB exalt row already named. **DB *ability* charm trees IN
+PROGRESS (Charms chapter, p176-233, element→ability, full descriptions):** ✅ **AIR done
+(2026-07-18)** — `dragonblooded_{linguistics,lore,occult,stealth,thrown}.json`, 34 charms
+(Linguistics 7, Lore 6, Occult 6, Stealth 7, Thrown 8); includes `dragonblooded.occult.terrestrial-circle-sorcery`
+(`grants_circle:"Terrestrial"`, the DB sorcery initiation, prereq None, no Combo). category = plain
+ability, `element:"Air"`, `immaculate:false`. STILL TODO: Earth (p189…), Fire, Water, Wood ability
+trees. Full plan:
 `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 - **P0-1:** per-Exalt-keyed cost/budget tables (`RuleSet.{budgets,xp_costs,bonus_costs}:
   dict[str,…]` + `*_for(exalt_type)`, "default" fallback); `ExaltDefinition`/`EssencePoolSpec`

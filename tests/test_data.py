@@ -88,7 +88,8 @@ def test_melee_charm_tree_loads_with_intact_prerequisites():
     # load_ruleset itself link-checks prerequisites; reaching here means the whole
     # tree resolves. Confirm the expected shape.
     rs = rules_db.load_ruleset(DATA_DIR)
-    melee = [c for c in rs.charms.values() if c.category == "melee"]
+    melee = [c for c in rs.charms.values()
+             if c.category == "melee" and c.exalt_type == "Solar"]
     assert len(melee) == 22
     roots = {c.name for c in melee if not c.prerequisites}
     assert roots == {"Excellent Strike", "Retrieve the Fallen Weapon",
@@ -98,7 +99,8 @@ def test_melee_charm_tree_loads_with_intact_prerequisites():
 def test_dawn_caste_charm_trees_load_with_expected_counts():
     from collections import Counter
     rs = rules_db.load_ruleset(DATA_DIR)
-    cats = Counter(c.category for c in rs.charms.values())
+    # Solar-only counts (DB and other splats share ability categories like "thrown").
+    cats = Counter(c.category for c in rs.charms.values() if c.exalt_type == "Solar")
     assert cats["archery"] == 12
     assert cats["brawl"] == 10
     assert cats["thrown"] == 9

@@ -248,3 +248,24 @@ def test_shipped_db_ox_body_resolves_caps_and_folds_in(rs):
     assert validate.check_ox_body(rs, c) == []
     c.ox_body.append(OxBodyPurchase(variant="db-standard", health_levels=[-1, -2]))
     assert any(i.code == "ox-body-over-cap" for i in validate.check_ox_body(rs, c))
+
+
+# --- shipped DB ability charm trees (Charms chapter, element->ability) ------ #
+
+def test_shipped_db_air_ability_charm_counts(rs):
+    from collections import Counter
+    air = [c for c in rs.charms.values()
+           if c.exalt_type == "Dragon-Blooded" and c.element == "Air" and not c.immaculate]
+    assert Counter(c.category for c in air) == Counter(
+        {"linguistics": 7, "lore": 6, "occult": 6, "stealth": 7, "thrown": 8})
+    # all ability charms carry element but are not Immaculate MA
+    for c in air:
+        assert ":" not in c.category and c.immaculate is False
+
+
+def test_shipped_db_terrestrial_sorcery_grants_circle(rs):
+    from exalted_builder.models.rules import SpellCircle
+    c = Character(id="db.sorc", exalt_type="Dragon-Blooded", caste="air", essence_rating=3)
+    c.abilities[A.OCCULT] = 3
+    c.charms = ["dragonblooded.occult.terrestrial-circle-sorcery"]
+    assert SpellCircle.TERRESTRIAL in validate.granted_circles(rs, c)
