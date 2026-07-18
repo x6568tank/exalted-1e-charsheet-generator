@@ -1,0 +1,36 @@
+{
+  "Dragon-Blooded": {
+    "attribute_pools": [7, 6, 4],
+    "ability_dots": 35,
+    "ability_min_caste_favored": 13,
+    "favored_count": 3,
+    "background_dots": 12,
+    "charm_count": 7,
+    "charm_min_caste_favored": 4,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 15,
+    "required_min_abilities": [
+      {"abilities": ["archery"], "rating": 1},
+      {"abilities": ["brawl", "martial_arts"], "rating": 1},
+      {"abilities": ["melee"], "rating": 1},
+      {"abilities": ["performance"], "rating": 1},
+      {"abilities": ["presence"], "rating": 1},
+      {"abilities": ["ride"], "rating": 1},
+      {"abilities": ["lore"], "rating": 2},
+      {"abilities": ["socialize"], "rating": 2}
+    ]
+  },
+  "Dragon-Blooded:outcaste": {
+    "attribute_pools": [7, 6, 4],
+    "ability_dots": 25,
+    "ability_min_caste_favored": 10,
+    "favored_count": 3,
+    "background_dots": 12,
+    "charm_count": 7,
+    "charm_min_caste_favored": 4,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 15
+  }
+}

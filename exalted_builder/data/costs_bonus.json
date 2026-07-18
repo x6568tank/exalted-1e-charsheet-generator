@@ -1,0 +1,18 @@
+{
+  "Dragon-Blooded": {
+    "attribute": 4,
+    "ability": 2,
+    "ability_favored_caste": 1,
+    "background": 1,
+    "background_above_3": 2,
+    "specialty": 1,
+    "specialty_favored_caste_dots_per_point": 2,
+    "virtue": 3,
+    "willpower": 2,
+    "essence": 10,
+    "charm": 7,
+    "charm_favored_caste": 5,
+    "immaculate_charm": 10,
+    "immaculate_charm_favored_caste": 7
+  }
+}

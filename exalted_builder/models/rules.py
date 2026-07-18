@@ -16,7 +16,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # --------------------------------------------------------------------------- #
@@ -315,6 +315,11 @@ class BonusPointCosts(BaseModel):
     essence: int = 7
     charm: int = 5
     charm_favored_caste: int = 4
+    # Immaculate Order Charms (Dragon-Blooded, p.153) cost more than ordinary DB
+    # Charms. Unused by splats without an Immaculate package (Solar); the discount
+    # applies when the Charm's Ability is Favoured/Caste, same as `charm`.
+    immaculate_charm: int = 10
+    immaculate_charm_favored_caste: int = 7
 
 
 class ExperienceCosts(BaseModel):
@@ -335,11 +340,26 @@ class ExperienceCosts(BaseModel):
     foreign_charm: int = 20                # spirit Charms / other Exalt types; Eclipse only (gated in engine)
 
 
+class AbilityMinimum(BaseModel):
+    """A required minimum in one of a set of Abilities (OR semantics): the character
+    must have at least `rating` in AT LEAST ONE of `abilities`. A single-element list
+    is a specific-ability floor. Used for the Dragon-Blooded Dynastic schooling
+    minimums (p.151) — these are a floor spent from the pool, NOT free extra dots."""
+    model_config = ConfigDict(frozen=True)
+    abilities: list[AbilityName]
+    rating: int = Field(ge=1)
+
+
 class ChargenBudgets(BaseModel):
     # attributes: 8/6/4 across the three prioritized categories; all start at 1.
     # Which category gets which pool is derived from the per-category spend, not stored.
     attribute_pools: tuple[int, int, int] = (8, 6, 4)
     attribute_base: int = 1
+
+    # Required minimum Abilities the character must meet (a floor spent from the
+    # pool, not free extras). Dragon-Blooded Dynastic schooling (p.151); empty for
+    # splats/origins with no such floor (Solar, DB Outcaste).
+    required_min_abilities: list[AbilityMinimum] = Field(default_factory=list)
 
     ability_dots: int = 25
     ability_min_caste_favored: int = 10    # >= 10 of the 25 on caste/favored abilities
@@ -368,14 +388,38 @@ class EssencePoolSpec(BaseModel):
     """Per-splat motes formula as data, so derive.essence_pools is a lookup, not a
     branch. personal = essence*personal_essence_coeff + willpower*personal_willpower_coeff;
     peripheral = essence*peripheral_essence_coeff + willpower*peripheral_willpower_coeff
-    (+ ΣVirtues when peripheral_adds_virtues). Solar: 3 / 7 / +Virtues (core p.104).
-    If a splat needs a term these coefficients can't express, STOP and ask for the page."""
+    + the Virtue term selected by `peripheral_virtue_mode`.
+
+      * Solar (core p.104):      3 / 7, virtue_mode "all"          (Ess×3+WP; Ess×7+WP+ΣVirtues)
+      * Dragon-Blooded (p.150-152): 1 / 4, virtue_mode "two_highest",
+        plus a Breeding-Background term added to BOTH pools (see below).
+
+    `peripheral_virtue_mode`: "all" adds ΣVirtues (all four), "two_highest" adds only
+    the sum of the two highest Virtues (the DB rule), "none" adds nothing.
+
+    Some splats add a flat, Background-derived bonus to both pools that plain
+    coefficients can't express — the Dragon-Blooded Breeding Background (p.158-159).
+    `breeding_background` names that Background; `breeding_personal`/`breeding_peripheral`
+    are per-rating bonus tables indexed by the Background's rating (0..5). Empty tables
+    (Solar) mean no such term. If a splat needs a term none of this can express, STOP
+    and ask for the page."""
     model_config = ConfigDict(frozen=True)
     personal_essence_coeff: int
     personal_willpower_coeff: int = 1
     peripheral_essence_coeff: int
     peripheral_willpower_coeff: int = 1
-    peripheral_adds_virtues: bool = True
+    peripheral_virtue_mode: str = "all"     # "all" | "two_highest" | "none"
+    # Optional Background-derived additive term (DB Breeding, p.158-159).
+    breeding_background: str = ""            # Background name whose rating indexes the tables
+    breeding_personal: list[int] = Field(default_factory=list)     # index by rating 0..5
+    breeding_peripheral: list[int] = Field(default_factory=list)
+
+    @field_validator("peripheral_virtue_mode")
+    @classmethod
+    def _check_virtue_mode(cls, v: str) -> str:
+        if v not in ("all", "two_highest", "none"):
+            raise ValueError(f"peripheral_virtue_mode must be all/two_highest/none, got {v!r}")
+        return v
 
 
 class ExaltDefinition(BaseModel):
@@ -399,7 +443,7 @@ SOLAR_EXALT = ExaltDefinition(
     id="Solar",
     label="Solar Exalted",
     essence=EssencePoolSpec(personal_essence_coeff=3, peripheral_essence_coeff=7,
-                            peripheral_adds_virtues=True),
+                            peripheral_virtue_mode="all"),
     magic_track="sorcery",
     highest_magic_circle_id="Solar",
     ox_body_charm_id="solar.endurance.ox-body-technique",
@@ -445,5 +489,14 @@ class RuleSet(BaseModel):
     def xp_costs_for(self, exalt_type: str) -> ExperienceCosts:
         return self.xp_costs.get(exalt_type, self.xp_costs["default"])
 
-    def budgets_for(self, exalt_type: str) -> ChargenBudgets:
+    def budgets_for(self, exalt_type: str, origin: str = "") -> ChargenBudgets:
+        """The chargen budget for `exalt_type`, optionally specialised by `origin`
+        (an intra-splat variant such as Dragon-Blooded Dynastic vs Outcaste). Tries
+        the origin-keyed row `"<exalt_type>:<origin>"` first, then the plain
+        exalt_type row, then "default". (Character-free: takes strings, not a
+        Character, so this module never imports the character model.)"""
+        if origin:
+            keyed = self.budgets.get(f"{exalt_type}:{origin}")
+            if keyed is not None:
+                return keyed
         return self.budgets.get(exalt_type, self.budgets["default"])

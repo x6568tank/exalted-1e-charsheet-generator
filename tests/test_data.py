@@ -5,6 +5,8 @@ guard the real authored content against drift.
 
 from pathlib import Path
 
+import pytest
+
 import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import validate
@@ -17,17 +19,23 @@ DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 def test_shipped_ruleset_loads():
     rs = rules_db.load_ruleset(DATA_DIR)
     # all five Solar castes present, keyed by their lowercase id
-    assert set(rs.castes) == {"dawn", "zenith", "twilight", "night", "eclipse"}
+    solar = {cid for cid, cd in rs.castes.items() if cd.exalt_type == "Solar"}
+    assert solar == {"dawn", "zenith", "twilight", "night", "eclipse"}
+    # ...and the five Dragon-Blooded Aspects
+    db = {cid for cid, cd in rs.castes.items() if cd.exalt_type == "Dragon-Blooded"}
+    assert db == {"air", "earth", "fire", "water", "wood"}
 
 
-def test_caste_abilities_partition_the_roster():
-    """Every one of the 25 abilities belongs to exactly one caste (no gaps, no
+@pytest.mark.parametrize("exalt_type", ["Solar", "Dragon-Blooded"])
+def test_caste_abilities_partition_the_roster(exalt_type):
+    """Each splat's castes/aspects partition the 25 abilities exactly (no gaps, no
     overlaps) — the 1e caste-grouped roster."""
     rs = rules_db.load_ruleset(DATA_DIR)
-    all_caste_abilities = [a for cd in rs.castes.values() for a in cd.caste_abilities]
+    castes = [cd for cd in rs.castes.values() if cd.exalt_type == exalt_type]
+    all_caste_abilities = [a for cd in castes for a in cd.caste_abilities]
     assert len(all_caste_abilities) == 25
     assert set(all_caste_abilities) == set(AbilityName)   # exact partition
-    assert all(len(cd.caste_abilities) == 5 for cd in rs.castes.values())
+    assert all(len(cd.caste_abilities) == 5 for cd in castes)
 
 
 def test_each_caste_keyed_by_its_own_id():
@@ -37,10 +45,11 @@ def test_each_caste_keyed_by_its_own_id():
 
 def test_every_caste_has_a_description_and_anima_power():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.castes) == 5
+    assert len(rs.castes) == 10          # 5 Solar castes + 5 Dragon-Blooded Aspects
     for cd in rs.castes.values():
         assert cd.description and cd.anima_powers
     assert rs.castes["dawn"].description.startswith("Masters of war")
+    assert rs.castes["fire"].exalt_type == "Dragon-Blooded"
 
 
 def test_ox_body_technique_loads_repeatable_with_three_variants():

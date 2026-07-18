@@ -198,6 +198,11 @@ class Character(BaseModel):
     edition: str = "1e"
     exalt_type: str = "Solar"
     caste: str = "dawn"                     # CasteDefinition.id into ruleset.castes
+    # Intra-splat origin variant, when a splat's chargen budget depends on more than
+    # its Exalt type. Dragon-Blooded: "dynastic" (Realm-raised: 35 ability dots + the
+    # schooling minimums) vs "outcaste" (25 dots, no minimums), p.150-151. "" = the
+    # splat's default budget (Solar ignores this).
+    origin: str = ""
     concept: str = ""
     nature: str = ""
     anima: str = ""

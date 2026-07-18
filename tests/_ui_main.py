@@ -27,6 +27,10 @@ CHAR_XP = Character(id="x", name="Veteran", caste="dawn")
 lifecycle.lock_chargen(CHAR_XP)
 CHAR_XP.xp_earned = 30
 
+# (e) a Dragon-Blooded (Fire aspect, Dynastic) — the Origin dropdown + DB budget headers
+CHAR_DB = Character(id="d", name="Cathak", exalt_type="Dragon-Blooded", caste="fire",
+                    origin="dynastic")
+
 @ui.page('/custom')
 def page_custom():
     editor.build_editor(RS, CHAR_CUSTOM, Path("x.json"), with_header=False)
@@ -42,6 +46,10 @@ def page_play():
 @ui.page('/xp')
 def page_xp():
     xp.build_xp(RS, CHAR_XP, Path("x.json"), with_header=False)
+
+@ui.page('/db')
+def page_db():
+    editor.build_editor(RS, CHAR_DB, Path("x.json"), with_header=False)
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()

@@ -5,10 +5,25 @@
     "essence": {
       "personal_essence_coeff": 3,
       "peripheral_essence_coeff": 7,
-      "peripheral_adds_virtues": true
+      "peripheral_virtue_mode": "all"
     },
     "magic_track": "sorcery",
     "highest_magic_circle_id": "Solar",
     "ox_body_charm_id": "solar.endurance.ox-body-technique"
+  },
+  {
+    "id": "Dragon-Blooded",
+    "label": "Dragon-Blooded",
+    "essence": {
+      "personal_essence_coeff": 1,
+      "peripheral_essence_coeff": 4,
+      "peripheral_virtue_mode": "two_highest",
+      "breeding_background": "Breeding",
+      "breeding_personal": [0, 1, 2, 3, 4, 5],
+      "breeding_peripheral": [0, 2, 3, 5, 7, 9]
+    },
+    "magic_track": "sorcery",
+    "highest_magic_circle_id": "Terrestrial",
+    "ox_body_charm_id": "dragonblooded.endurance.ox-body-technique"
   }
 ]

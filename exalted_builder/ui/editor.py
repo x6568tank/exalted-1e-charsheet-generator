@@ -44,6 +44,14 @@ _DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
 _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 _ACCENT = "#8a5a1a"
 
+# Presentation-only: intra-splat chargen origins to offer per Exalt type, and their
+# display labels. The origin *value* drives ruleset.budgets_for (keyed "<exalt>" for
+# the first/default origin and "<exalt>:<origin>" for the rest); all the budget
+# numbers live in chargen_budgets.json — this map is just which choices to show.
+_SPLAT_ORIGINS: dict[str, dict[str, str]] = {
+    "Dragon-Blooded": {"dynastic": "Dynastic", "outcaste": "Outcaste"},
+}
+
 
 def _label(value: str) -> str:
     return value.replace("_", " ").title()
@@ -140,6 +148,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     def body() -> None:
         caste_def = ruleset.castes.get(character.caste)
         caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
+        # chargen budget for THIS character (splat + origin), so panel headers show
+        # the right numbers (Solar 8/6/4·25; DB Dynastic 7/6/4·35, Outcaste ·25).
+        b = ruleset.budgets_for(character.exalt_type, character.origin)
+        ap = "/".join(str(p) for p in b.attribute_pools)
 
         # caste-info box (left) + identity fields (right). The BP-spend log lives in
         # the right-hand sticky column under Live Validation, not here.
@@ -177,6 +189,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         caste_opts.setdefault(character.caste, character.caste)
                         ui.select(caste_opts, label="Caste", value=character.caste,
                                   on_change=lambda e: set_caste(e.value)).classes("flex-1")
+                        origins = _SPLAT_ORIGINS.get(character.exalt_type)
+                        if origins:
+                            ui.select(origins, label="Origin",
+                                      value=character.origin or next(iter(origins)),
+                                      on_change=lambda e: set_origin(e.value)).classes("flex-1")
                         nature_names = [n.name for n in ruleset.nature_catalog.values()]
                         ui.select(_opts_with(nature_names, character.nature), label="Nature",
                                   value=character.nature or None,
@@ -184,12 +201,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                   on_change=lambda e: setattr(character, "nature", e.value or "")).classes("flex-1")
                         ui.input("Anima", value=character.anima,
                                  on_change=lambda e: setattr(character, "anima", e.value)).classes("flex-1")
-                    ui.select({a: _label(a.value) for a in AbilityName}, label="Favored abilities (pick 5)",
+                    ui.select({a: _label(a.value) for a in AbilityName}, label=f"Favored abilities (pick {b.favored_count})",
                               value=list(character.favored_abilities), multiple=True,
                               on_change=lambda e: set_favored(e.value)).classes("w-full").props("use-chips")
 
         # attributes
-        with panel("Attributes (prioritise 8 / 6 / 4)"):
+        with panel(f"Attributes (prioritise {ap})"):
             with ui.row().classes("w-full gap-2 no-wrap"):
                 for category, members in validate.ATTRIBUTE_CATEGORIES.items():
                     with ui.column().classes("flex-1 gap-1"):
@@ -210,7 +227,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                      1, 5)
 
         # abilities (by ability-caste group)
-        with panel("Abilities (25 dots; ≥10 caste/favoured; ≤3 each pre-bonus)"):
+        with panel(f"Abilities ({b.ability_dots} dots; ≥{b.ability_min_caste_favored} caste/favoured; ≤{b.ability_cap_pre_bp} each pre-bonus)"):
             groups = [(cd.label, cd.caste_abilities) for cd in ruleset.castes.values()
                       if cd.exalt_type == character.exalt_type]
             for start in range(0, len(groups), 3):
@@ -245,7 +262,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
         # virtues + essence + willpower
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
-            with panel("Virtues (5 dots; ≤3 pre-bonus)").classes("flex-1"):
+            with panel(f"Virtues ({b.virtue_dots} dots; ≤{b.virtue_cap_pre_bp} pre-bonus)").classes("flex-1"):
                 for v in VirtueName:
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):
                         ui.label(_label(v.value)).classes("text-sm w-28")
@@ -261,7 +278,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
         # backgrounds
         bg_names = [b.name for b in ruleset.background_catalog.values()]
-        with panel("Backgrounds (7 dots; ≤3 pre-bonus)"):
+        with panel(f"Backgrounds ({b.background_dots} dots; ≤{b.background_cap_pre_bp} pre-bonus)"):
             for idx, bg in enumerate(character.backgrounds):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     (ui.select(_opts_with(bg_names, bg.name), value=bg.name or None, label="Background",
@@ -413,10 +430,18 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         valid = [cd.id for cd in ruleset.castes.values() if cd.exalt_type == value]
         if character.caste not in valid and valid:
             character.caste = valid[0]
+        # keep the origin coherent: default to the splat's first origin, or clear it
+        # for splats that have no intra-splat origin variants.
+        origins = _SPLAT_ORIGINS.get(value)
+        character.origin = next(iter(origins)) if origins else ""
         body.refresh(); changed()
 
     def set_caste(value: str) -> None:
         character.caste = value
+        body.refresh(); changed()
+
+    def set_origin(value: str) -> None:
+        character.origin = value
         body.refresh(); changed()
 
     def set_favored(values: list[AbilityName]) -> None:

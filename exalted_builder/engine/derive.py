@@ -95,18 +95,53 @@ def wp_virtue_component(character: Character) -> int:
     return two_highest_virtues(character.virtues)
 
 
+def _peripheral_virtue_term(mode: str, virtues: dict[VirtueName, int]) -> int:
+    """The Virtue contribution to the Peripheral pool for a splat: all four Virtues
+    (Solar), the two highest only (Dragon-Blooded, p.152), or none."""
+    if mode == "all":
+        return sum(virtues.values())
+    if mode == "two_highest":
+        return two_highest_virtues(virtues)
+    return 0
+
+
+def _breeding_bonus(character: Character, name: str, table: list[int]) -> int:
+    """The additive pool bonus from a Background-derived term (DB Breeding): look up
+    the character's rating in `name` and index `table` (clamped to its length). Returns
+    0 when the Background is absent or the table is empty."""
+    if not name or not table:
+        return 0
+    rating = max((b.rating for b in character.backgrounds
+                  if b.name.strip().lower() == name.strip().lower()), default=0)
+    return table[min(rating, len(table) - 1)]
+
+
 def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
     """(personal, peripheral) motes, from the character's Exalt-type formula
-    (RuleSet.exalt_for → EssencePoolSpec). Solar: Personal = Essence×3 + Willpower;
-    Peripheral = Essence×7 + Willpower + ΣVirtues (core p.104). Other splats supply
-    their own coefficients as data, so this is a lookup, not a per-splat branch."""
+    (RuleSet.exalt_for → EssencePoolSpec), a pure data lookup rather than a per-splat
+    branch.
+
+      * Solar (core p.104):    Personal = Essence×3 + Willpower;
+                               Peripheral = Essence×7 + Willpower + ΣVirtues.
+      * Dragon-Blooded (p.152): Personal = Essence + Willpower (+Breeding);
+                               Peripheral = Essence×4 + Willpower + (two highest
+                               Virtues) (+Breeding).
+
+    The Breeding term (p.158-159) is a flat per-rating bonus added to BOTH pools,
+    keyed off the character's Breeding Background rating; splats without it carry
+    empty tables."""
     spec = ruleset.exalt_for(character.exalt_type).essence
     essence = character.essence_rating
     wp = willpower(character)
-    personal = essence * spec.personal_essence_coeff + wp * spec.personal_willpower_coeff
+    breeding_p = _breeding_bonus(character, spec.breeding_background, spec.breeding_personal)
+    breeding_pp = _breeding_bonus(character, spec.breeding_background, spec.breeding_peripheral)
+    personal = (essence * spec.personal_essence_coeff
+                + wp * spec.personal_willpower_coeff
+                + breeding_p)
     peripheral = (essence * spec.peripheral_essence_coeff
                   + wp * spec.peripheral_willpower_coeff
-                  + (sum(character.virtues.values()) if spec.peripheral_adds_virtues else 0))
+                  + _peripheral_virtue_term(spec.peripheral_virtue_mode, character.virtues)
+                  + breeding_pp)
     return personal, peripheral
 
 

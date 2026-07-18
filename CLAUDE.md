@@ -123,7 +123,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (219 tests passing)
+## Status (230 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -404,8 +404,15 @@ TODOs are now cleared.**
 
 **In progress — multi-splat refactor.** Generalizing Solar-only → all Exalt
 types, **all-splats-RuleSet + runtime-filtering** design, **Dragon-Blooded first** (switched
-from Abyssal 2026-07-17). **Phases 0-4 DONE (on `main`); Phase 5 authoring is next and now
-UNBLOCKED** (DB pages are in `images/Dragonblooded/`). Full plan:
+from Abyssal 2026-07-17). **Phases 0-4 DONE (on `main`). Phase 5 (DB) IN PROGRESS: the chargen
+FOUNDATION is done + tested (243 tests)** — Breeding term + `EssencePoolSpec.peripheral_virtue_mode`
++ `breeding_*` tables in `derive.essence_pools`; `exalts.json` DB row (Personal=Ess+WP,
+Peripheral=Ess×4+WP+two-highest-Virtues, cap Terrestrial); `chargen_budgets.json` + `costs_bonus.json`
+DB rows; the 5 Aspects in `castes.json`; **Dynastic/Outcaste origin** (`Character.origin`,
+`RuleSet.budgets_for(exalt_type, origin)`, `ChargenBudgets.required_min_abilities`, editor Origin
+dropdown + budget-driven panel headers). **STILL TODO: DB charm trees + DB Ox-Body (the huge
+content grind — DB charms are organized by ELEMENT→ability, needs a `Charm.element` field) and the
+Immaculate Order charm package.** Full plan:
 `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 - **P0-1:** per-Exalt-keyed cost/budget tables (`RuleSet.{budgets,xp_costs,bonus_costs}:
   dict[str,…]` + `*_for(exalt_type)`, "default" fallback); `ExaltDefinition`/`EssencePoolSpec`
@@ -426,16 +433,23 @@ UNBLOCKED** (DB pages are in `images/Dragonblooded/`). Full plan:
 Terrestrial) — the sorcery→necromancy generalization is deferred. DB use **Aspects (Air/Earth/
 Fire/Water/Wood), not Castes** ("Aspect" is a label over the same caste slot).
 
-**DB chargen review (read from `images/Dragonblooded/Character Creation/` p150-151, 2026-07-17
-— see [[db-chargen-findings]]):** Nearly all DB chargen differences are **data-only** — one
-`"Dragon-Blooded"` row in the Phase-0 budgets table covers **7/6/4** attrs, **3** favored, **35
-dots / ≥13** abilities (Dynastic: **25/≥10**), **12** backgrounds, **7** charms (or 5 Immaculate)
-/ **≥4**, **5** virtues. **Genuinely NEW structure** to build before/with Phase 5: (1) **Dynastic
-vs Outcaste** origin (intra-splat budget variant + free minimum abilities — the budgets table
-keys by exalt_type only, so this needs a Character origin field + selection); (2) **Immaculate
-Order charm package** (7-DB-OR-5-Immaculate + one-elemental-tree constraint); (3) confirm **Aspect
-ability shape** from the Traits pages. Essence formula / bonus points are in the Traits chapter
-(p156-173), not yet read — **don't guess them.**
+**DB chargen review (read from `images/Dragonblooded/Character Creation/` p150-153, 2026-07-17
+— all values VERIFIED from the pages and recorded in [[db-chargen-findings]]):** Nearly all DB
+chargen differences are **data-only** — one `"Dragon-Blooded"` row in the Phase-0 budgets table
+covers **7/6/4** attrs, **3** favored, **35 dots / ≥13** abilities (Dynastic: **25/≥10** + free
+minimums), **12** backgrounds, **7** charms (or 5 Immaculate) / **≥4**, **5** virtues, Essence
+start **2**, **15** bonus points. **Essence formula & bonus-point cost table are read and
+recorded** — they are in the **Character Creation Summary (p151-153)**, NOT the Traits chapter:
+Personal = **Essence + WP**, Peripheral = **(Essence×3) + WP + ΣVirtues**, both +a Breeding-Background
+term (per-dot table verified); BP costs match Solar except **Charm 7/5** and a new **Immaculate
+Charm 10/7** row. See [[db-chargen-findings]] for the full numbers — do NOT re-guess them.
+**Genuinely NEW structure** to build before/with Phase 5: (1) **Dynastic vs Outcaste** origin
+(intra-splat budget variant + free minimum abilities — the budgets table keys by exalt_type only,
+so this needs a Character origin field + selection); (2) **Immaculate Order charm package**
+(7-DB-OR-5-Immaculate + one-elemental-tree constraint + the Immaculate-Charm BP row); (3) the
+**Breeding term in `derive.essence_pools`** (EssencePoolSpec has no Background-derived coefficient
+today). The **5 Aspects each have 5 fixed Aspect abilities** (verified) → CasteDefinition fits,
+NOT new structure.
 
 Also landed 2026-06-16: the **in-play tracker** (Play tab + trait reductions — see the
 play-state layer above), which reversed the old "play-state out of scope" decision.

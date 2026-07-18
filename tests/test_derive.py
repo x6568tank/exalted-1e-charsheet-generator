@@ -8,7 +8,8 @@ unimplemented pending its 1e rule, and that contract is tested too.
 import pytest
 
 from exalted_builder.engine import derive
-from exalted_builder.models.character import Armor, Character, HealthLevel, OxBodyPurchase
+from exalted_builder.models.character import (
+    Armor, BackgroundEntry, Character, HealthLevel, OxBodyPurchase)
 from exalted_builder.models.rules import (
     AttributeName, EssencePoolSpec, ExaltDefinition, RuleSet, VirtueName)
 
@@ -97,7 +98,7 @@ def test_essence_pools_use_per_splat_formula():
     other = ExaltDefinition(
         id="Testarossa", label="Test",
         essence=EssencePoolSpec(personal_essence_coeff=5, peripheral_essence_coeff=9,
-                                peripheral_adds_virtues=False))
+                                peripheral_virtue_mode="none"))
     rs = RuleSet(castes={}, charms={}, exalts={"Testarossa": other})
     c = _char(exalt_type="Testarossa", essence_rating=2, virtues={
         VirtueName.COMPASSION: 3, VirtueName.CONVICTION: 2,
@@ -115,6 +116,64 @@ def test_essence_pools_unknown_exalt_falls_back_to_solar():
     c = _char(exalt_type="Nonexistent", essence_rating=2)
     personal, peripheral = derive.essence_pools(_RS, c)
     assert personal == 2 * 3 + derive.willpower(c)
+
+
+# --- Dragon-Blooded: weaker pools, two-highest-Virtues, Breeding term (p.150-152, 158-159)
+
+def _db_spec(**kw) -> "EssencePoolSpec":
+    """The shipped Dragon-Blooded EssencePoolSpec (exalts.json), overridable."""
+    base = dict(personal_essence_coeff=1, peripheral_essence_coeff=4,
+                peripheral_virtue_mode="two_highest",
+                breeding_background="Breeding",
+                breeding_personal=[0, 1, 2, 3, 4, 5],
+                breeding_peripheral=[0, 2, 3, 5, 7, 9])
+    base.update(kw)
+    return EssencePoolSpec(**base)
+
+
+def _db_ruleset(**kw) -> RuleSet:
+    ex = ExaltDefinition(id="Dragon-Blooded", label="Dragon-Blooded", essence=_db_spec(**kw))
+    return RuleSet(castes={}, charms={}, exalts={"Dragon-Blooded": ex})
+
+
+def test_db_essence_pools_two_highest_virtues():
+    """DB (p.152): Personal = Essence + WP; Peripheral = Essence×4 + WP + the two
+    highest Virtues (NOT all four)."""
+    rs = _db_ruleset()
+    c = _char(exalt_type="Dragon-Blooded", essence_rating=2, virtues={
+        VirtueName.COMPASSION: 3, VirtueName.CONVICTION: 2,
+        VirtueName.TEMPERANCE: 4, VirtueName.VALOR: 1,
+    })
+    # WP = 7 (4+3); two highest Virtues = 7 (4+3); ΣVirtues would be 10 (unused).
+    personal, peripheral = derive.essence_pools(rs, c)
+    assert personal == 2 + 7            # 9
+    assert peripheral == 2 * 4 + 7 + 7  # 22
+
+
+def test_db_breeding_adds_to_both_pools():
+    """The Breeding Background (p.158-159) adds a flat per-rating bonus to BOTH
+    pools: Personal += rating, Peripheral += 0/2/3/5/7/9."""
+    rs = _db_ruleset()
+    virtues = {VirtueName.COMPASSION: 3, VirtueName.CONVICTION: 2,
+               VirtueName.TEMPERANCE: 4, VirtueName.VALOR: 1}
+    c = _char(exalt_type="Dragon-Blooded", essence_rating=2, virtues=virtues,
+              backgrounds=[BackgroundEntry(name="Breeding", rating=3)])
+    personal, peripheral = derive.essence_pools(rs, c)
+    assert personal == 9 + 3            # +3 at Breeding 3
+    assert peripheral == 22 + 5         # +5 at Breeding 3
+
+
+def test_db_breeding_absent_is_zero():
+    """No Breeding Background -> no bonus (and a Solar with a 'Breeding' entry is
+    unaffected, since the Solar spec carries no Breeding table)."""
+    rs = _db_ruleset()
+    virtues = {VirtueName.COMPASSION: 3, VirtueName.CONVICTION: 2,
+               VirtueName.TEMPERANCE: 4, VirtueName.VALOR: 1}
+    c = _char(exalt_type="Dragon-Blooded", essence_rating=2, virtues=virtues)
+    assert derive.essence_pools(rs, c) == (9, 22)
+    solar = _char(essence_rating=2, virtues=virtues,
+                  backgrounds=[BackgroundEntry(name="Breeding", rating=5)])
+    assert derive.essence_pools(_RS, solar) == (2 * 3 + 7, 2 * 7 + 7 + 10)
 
 
 # --------------------------------------------------------------------------- #

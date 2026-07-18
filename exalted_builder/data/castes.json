@@ -38,5 +38,45 @@
     "caste_abilities": ["bureaucracy", "linguistics", "ride", "sail", "socialize"],
     "description": "Diplomats and bureaucrats, the Crowned Suns were the force that kept the Celestial Empire running smoothly. The Unconquered Sun chooses the Eclipse Caste from those who master the art of communication in all its forms.",
     "anima_powers": "By spending 10 motes and 1 Willpower and touching hands to seal an agreement, the character sanctifies an oath. Anyone who breaks it (including the Exalted) is cursed: a number of times equal to the Exalted's Essence at the time of the oath, the oathbreaker horribly botches a critical roll at the worst possible moment. Eclipses are also protected by ancient pacts, granting diplomatic immunity when dealing with spirits, demons and the Fair Folk."
+  },
+  {
+    "id": "air",
+    "exalt_type": "Dragon-Blooded",
+    "label": "Air",
+    "caste_abilities": ["linguistics", "lore", "occult", "stealth", "thrown"],
+    "description": "Creatures of thought and dreams, the Children of Mela are as subtle as a gentle breeze and as dynamic as a thunderstorm. Air Exalted excel at scholarship and subtle motion.",
+    "anima_powers": "An Aspect of Air can spend 5 motes to attune his anima to the nearby winds, allowing them to bear him aloft. For the rest of the scene, he may triple his leaping distance and takes no damage from falls."
+  },
+  {
+    "id": "earth",
+    "exalt_type": "Dragon-Blooded",
+    "label": "Earth",
+    "caste_abilities": ["awareness", "craft", "endurance", "martial_arts", "resistance"],
+    "description": "Embodiments of endurance and stability, the Children of Pasiap are the bedrock upon which the Realm sits — durable as a mountain and as unstoppable as an avalanche.",
+    "anima_powers": "An Aspect of Earth can spend 5 motes to attune her anima to the nearby stone, taking on the durability of the earth itself. For the rest of the scene, she can soak lethal damage with her entire Stamina."
+  },
+  {
+    "id": "fire",
+    "exalt_type": "Dragon-Blooded",
+    "label": "Fire",
+    "caste_abilities": ["athletics", "dodge", "melee", "presence", "socialize"],
+    "description": "Passion and energy incarnate, the Children of Hesiesh are as brilliant as a bonfire and as dangerous as a wildfire, brimming with physical and emotional energy.",
+    "anima_powers": "A Fire-aspected Dragon-Blooded can spend 5 motes to ignite her anima. For the rest of the scene she is immune to fire damage, and anyone striking her without a weapon or wrestling with her takes a number of dice of lethal damage every turn equal to the Chosen's Essence (applied separately from any damage she deals; armour applies to it)."
+  },
+  {
+    "id": "water",
+    "exalt_type": "Dragon-Blooded",
+    "label": "Water",
+    "caste_abilities": ["brawl", "bureaucracy", "investigation", "larceny", "sail"],
+    "description": "Mercurial and fluid-minded masters of adaptation, the Children of Daana'd are as deep as the ocean and as relentless as a flood, filling and exploiting any circumstance.",
+    "anima_powers": "An Aspect of Water can spend 5 motes to attune his anima with the surrounding water. For the rest of the day he can breathe underwater and operate as freely as if he were in air, including firing bows and the like."
+  },
+  {
+    "id": "wood",
+    "exalt_type": "Dragon-Blooded",
+    "label": "Wood",
+    "caste_abilities": ["archery", "medicine", "performance", "ride", "survival"],
+    "description": "Attuned to the cycles of life and nature, the Children of Sextes Jylis are as solid as oaks, as beautiful as orchids and as deadly as hemlock.",
+    "anima_powers": "A Wood-aspected Dragon-Blooded may spend 5 motes to attune her anima to the local flora, becoming as flexible as a sapling in the wind. For the rest of the scene she may add her Essence in dice to a single Dodge or Athletics action once per turn (reflexive, not supplemental — she may instead take a free Dodge or Athletics action with a dice pool equal to her Essence)."
   }
 ]

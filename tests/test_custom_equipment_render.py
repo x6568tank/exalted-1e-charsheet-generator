@@ -41,3 +41,15 @@ async def test_xp_tab_shows_reduce_card(user: User) -> None:
     # the post-lock XP tab renders the new trait-reduction card
     await user.open('/xp')
     await user.should_see("Reduce a Trait")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_dragonblooded_editor_renders(user: User) -> None:
+    # a Dragon-Blooded character renders the editor with the Origin dropdown and
+    # DB-specific budget headers (35 ability dots, 7/6/4 attributes, pick 3 favored)
+    await user.open('/db')
+    await user.should_see("Origin")
+    await user.should_see("Fire Caste")            # the Aspect info box
+    await user.should_see("35 dots")               # DB Dynastic ability budget
+    await user.should_see("prioritise 7/6/4")

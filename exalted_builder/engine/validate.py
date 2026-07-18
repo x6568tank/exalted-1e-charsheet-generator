@@ -501,7 +501,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     of the BP totals; validate_chargen consumes it for the ceiling check, and the
     editor renders it as a spend log.
     """
-    b = ruleset.budgets_for(character.exalt_type)
+    b = ruleset.budgets_for(character.exalt_type, character.origin)
     bp_costs = ruleset.bonus_costs_for(character.exalt_type)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased) = _chargen_source(character)
@@ -615,7 +615,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     over-spent builds.
     """
     issues: list[Issue] = []
-    b = ruleset.budgets_for(character.exalt_type)
+    b = ruleset.budgets_for(character.exalt_type, character.origin)
     (attributes, abilities, crafts, virtues, _backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased) = _chargen_source(character)
 
@@ -674,6 +674,17 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             message=f"At least {b.ability_min_caste_favored} of the {b.ability_dots} "
                     f"Ability dots must be Caste/Favoured; only {cheap_within} are.",
         ))
+    # Required minimum Abilities — the Dragon-Blooded Dynastic schooling floor
+    # (p.151). Each requirement is satisfied by any one of its listed Abilities.
+    for req in b.required_min_abilities:
+        best = max((abilities.get(ab, 0) for ab in req.abilities), default=0)
+        if best < req.rating:
+            names = " or ".join(a.value for a in req.abilities)
+            issues.append(Issue(
+                code="required-min-ability", where=names,
+                message=f"This origin requires at least {req.rating} dot(s) in {names}; "
+                        f"has {best}.",
+            ))
     for v, rating in virtues.items():
         if not (b.virtue_base <= rating <= 5):
             issues.append(Issue(
