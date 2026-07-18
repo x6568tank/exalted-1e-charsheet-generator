@@ -27,7 +27,7 @@ from ..models.character import Character
 from ..models.rules import RuleSet
 from . import app as sheet_app
 from . import combos as combos_mod
-from . import editor, picker
+from . import editor, picker, theme
 from . import play as play_mod
 from . import view as viewmod
 from . import xp as xp_mod
@@ -37,7 +37,6 @@ from .assets import cytoscape_head_html
 # build alike: builder.py lives in exalted_builder/ui/, so data is one level up.
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
-_ACCENT = "#8a5a1a"
 
 _TABS = ("Edit", "Charms", "Combos", "XP", "Play", "Sheet")
 _CHARGEN_TABS = ("Edit", "Charms", "Combos")     # editing these is disabled once locked
@@ -88,8 +87,14 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
     ctx = {"char": character, "path": save_path, "dir": Path(save_path).parent}
     state: dict = {"tab": "Edit", "select": None}
 
+    def _pal():
+        """The palette for the current character's splat (red for Dragon-Blooded,
+        gold for Solar). Re-derived on demand so loading/creating a character of a
+        different splat re-themes the whole app."""
+        return theme.palette(ctx["char"].exalt_type)
+
     ui.add_head_html(cytoscape_head_html())
-    ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
+    ui.add_head_html(_pal().head_style())
 
     # One charm_select handler for the whole app; dispatch to the picker's current
     # select (set whenever the Charms tab builds).
@@ -98,6 +103,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
     @ui.refreshable
     def content() -> None:
         char, path = ctx["char"], ctx["path"]
+        _apply_chrome()          # keep the header/background in sync with the splat
         # Once locked, the chargen tabs are read-only — advancement is the XP tab's
         # job, and editing the baseline would desync the snapshot.
         if state["tab"] in _CHARGEN_TABS and char.chargen_locked:
@@ -118,13 +124,14 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
             sheet_app.render_sheet(viewmod.build_sheet_view(ruleset, char))
 
     def _locked_notice() -> None:
-        with ui.card().classes("max-w-xl mx-auto mt-8 p-4 bg-amber-50/60 border border-amber-900/30 gap-2"):
-            ui.label("Chargen is locked").classes("text-lg font-bold").style(f"color:{_ACCENT}")
+        pal = _pal()
+        with ui.card().classes(f"max-w-xl mx-auto mt-8 p-4 {pal.card} gap-2"):
+            ui.label("Chargen is locked").classes("text-lg font-bold").style(f"color:{pal.accent}")
             ui.label("Spend experience in the XP tab, or press Unlock to edit chargen "
                      "again (that clears the XP baseline).").classes("text-sm")
             with ui.row().classes("gap-2"):
-                ui.button("Go to XP", icon="bolt", on_click=lambda: select_tab("XP")).props("color=brown")
-                ui.button("Unlock", icon="lock_open", on_click=unlock).props("flat color=brown")
+                ui.button("Go to XP", icon="bolt", on_click=lambda: select_tab("XP")).props(f"color={pal.button}")
+                ui.button("Unlock", icon="lock_open", on_click=unlock).props(f"flat color={pal.button}")
 
     def select_tab(name: str) -> None:
         state["tab"] = name
@@ -160,7 +167,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
             with ui.row():
                 ui.button("Cancel", on_click=dialog.close).props("flat")
                 ui.button("Download", icon="download",
-                          on_click=lambda: _browser_download(name_input.value, dialog)).props("color=brown")
+                          on_click=lambda: _browser_download(name_input.value, dialog)).props(f"color={_pal().button}")
         dialog.open()
 
     def _browser_download(name: str, dialog) -> None:
@@ -218,7 +225,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
             ui.label("Any unsaved changes to the current character will be lost.").classes("text-sm")
             with ui.row():
                 ui.button("Cancel", on_click=dialog.close).props("flat")
-                ui.button("New character", on_click=lambda: new_character(dialog)).props("color=brown")
+                ui.button("New character", on_click=lambda: new_character(dialog)).props(f"color={_pal().button}")
         dialog.open()
 
     def unlock() -> None:
@@ -253,7 +260,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
             path_input = ui.input("Path to .character.json", value=str(ctx["path"])).classes("w-96")
             with ui.row():
                 ui.button("Cancel", on_click=dialog.close).props("flat")
-                ui.button("Load path", on_click=lambda: do_load(path_input.value, dialog)).props("color=brown")
+                ui.button("Load path", on_click=lambda: do_load(path_input.value, dialog)).props(f"color={_pal().button}")
         dialog.open()
 
     def finish() -> None:
@@ -266,14 +273,23 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         select_tab("Sheet")
 
     # ---- top bar + tabs --------------------------------------------------- #
-    with ui.header().classes("items-center justify-between px-4").style(f"background:{_ACCENT}"):
-        ui.label("Exalted 1e — Solar Builder").classes("text-lg font-bold text-white")
+    with ui.header().classes("items-center justify-between px-4") as header_el:
+        title_label = ui.label("Exalted 1e — Builder").classes("text-lg font-bold text-white")
         with ui.row().classes("items-center gap-2"):
             ui.button("New", icon="note_add", on_click=confirm_new).props("flat color=white")
             ui.button("Save", icon="save", on_click=save).props("flat color=white")
             ui.button("Load", icon="folder_open", on_click=open_load).props("flat color=white")
             ui.button("Finish & Lock", icon="lock", on_click=finish).props("flat color=white")
             ui.button("Unlock", icon="lock_open", on_click=unlock).props("flat color=white")
+
+    def _apply_chrome() -> None:
+        """Paint the header bar, title and page background from the current
+        character's splat palette. Called on every content refresh, so switching
+        tabs after changing the Exalt type re-themes the whole app."""
+        pal = _pal()
+        header_el.style(f"background:{pal.accent}")
+        title_label.set_text(f"Exalted 1e — {pal.splat_label} Builder")
+        ui.query("body").style(f"background:{pal.bg};color:{pal.ink}")
 
     with ui.tabs(value="Edit").classes("w-full") as tab_bar:
         ui.tab("Edit", icon="edit")
@@ -317,9 +333,9 @@ def main() -> None:
         build_app(ruleset, character, path)
 
     if args.native:
-        ui.run(title="Exalted 1e — Solar Builder", reload=False, native=True, window_size=(1280, 900))
+        ui.run(title="Exalted 1e — Builder", reload=False, native=True, window_size=(1280, 900))
     else:
-        ui.run(title="Exalted 1e — Solar Builder", reload=False, show=args.show, port=args.port)
+        ui.run(title="Exalted 1e — Builder", reload=False, show=args.show, port=args.port)
 
 
 if __name__ in {"__main__", "__mp_main__"}:

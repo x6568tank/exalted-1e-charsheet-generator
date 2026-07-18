@@ -4,7 +4,8 @@ from nicegui import ui
 from exalted_builder import rules_db
 from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import Character, PlayState, Damage, Weapon, Armor
-from exalted_builder.ui import editor, play, xp
+from exalted_builder.ui import app as sheet_app
+from exalted_builder.ui import editor, picker, play, view, xp
 
 RS = rules_db.load_ruleset(Path("exalted_builder/data"))
 
@@ -50,6 +51,16 @@ def page_xp():
 @ui.page('/db')
 def page_db():
     editor.build_editor(RS, CHAR_DB, Path("x.json"), with_header=False)
+
+@ui.page('/dbpicker')
+def page_dbpicker():
+    # the charm-tree picker themed for a Dragon-Blooded character (red palette)
+    picker.build_picker(RS, CHAR_DB, Path("x.json"), with_header=True)
+
+@ui.page('/dbsheet')
+def page_dbsheet():
+    # the read-only sheet, themed by the SheetView's exalt type
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_DB))
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()

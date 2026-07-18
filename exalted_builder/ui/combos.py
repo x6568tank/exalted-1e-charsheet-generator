@@ -21,18 +21,19 @@ from nicegui import ui
 from .. import persistence, rules_db
 from ..models.character import Character, Combo
 from ..models.rules import RuleSet
+from . import theme
 from . import view as viewmod
 
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 _EXAMPLE = _PKG.parent / "examples" / "ashes-of-dawn.character.json"
-_ACCENT = "#8a5a1a"
 
 
 def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
                  *, with_header: bool = True) -> None:
     """Render the Combo builder for `character`. With `with_header=False` the
     title/Save bar is omitted (the embedding app provides one)."""
+    pal = theme.palette(character.exalt_type)
 
     # ---- live readout ----------------------------------------------------- #
     @ui.refreshable
@@ -40,7 +41,7 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
         view = viewmod.build_sheet_view(ruleset, character)
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
-        ui.label(bp).classes("text-sm font-semibold").style(f"color:{_ACCENT}")
+        ui.label(bp).classes("text-sm font-semibold").style(f"color:{pal.accent}")
         ui.label("✓ Legal" if not errors else f"✗ {len(errors)} error(s)").classes(
             "text-sm font-bold").style("color:#15803d" if not errors else "color:#b91c1c")
 
@@ -87,7 +88,7 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.row().classes("items-end gap-2"):
             new_name = ui.input("New Combo name").classes("w-64")
             ui.button("Add Combo", icon="add",
-                      on_click=lambda: add_combo(new_name.value)).props("color=brown")
+                      on_click=lambda: add_combo(new_name.value)).props(f"color={pal.button}")
         ui.label(f"Combos cost {v.total_cost} bonus point(s) "
                  "(1 per Charm).").classes("text-xs text-gray-600")
 
@@ -98,11 +99,11 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
         for crow in v.combos:
             in_combo = {m.id for m in crow.members}
             options = {m.id: f"{m.name} · {m.type}" for m in v.addable if m.id not in in_combo}
-            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
+            with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
                 with ui.row().classes("w-full items-center justify-between no-wrap"):
                     ui.input(value=crow.name,
                              on_change=lambda e, i=crow.index: rename(i, e.value)).props(
-                        "dense").classes("text-sm font-bold").style(f"color:{_ACCENT}")
+                        "dense").classes("text-sm font-bold").style(f"color:{pal.accent}")
                     with ui.row().classes("items-center gap-2 no-wrap"):
                         ui.label(f"{crow.cost} BP").classes("text-xs text-gray-600")
                         ui.button(icon="delete", on_click=lambda _=None, i=crow.index: remove_combo(i)).props(
@@ -133,7 +134,7 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- layout ----------------------------------------------------------- #
     if with_header:
-        ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
+        ui.add_head_html(pal.head_style())
 
     with ui.row().classes("w-full max-w-5xl mx-auto gap-4 p-4 items-start no-wrap"):
         with ui.column().classes("flex-1 gap-2"):
@@ -144,11 +145,11 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
                          "(at most one Simple, at most one Extra Action).").classes(
                     "text-xs text-gray-500")
                 if with_header:
-                    ui.button("Save", icon="save", on_click=save).props("color=brown")
+                    ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
             combos_panel()
         with ui.column().classes("w-64 gap-2 sticky top-4"):
-            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
-                ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+            with ui.card().classes(f"w-full p-3 {pal.card}"):
+                ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 readout()
 
 

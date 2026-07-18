@@ -23,12 +23,12 @@ from nicegui import ui
 from .. import persistence, rules_db
 from ..models.character import Character, Damage, PlayState
 from ..models.rules import RuleSet
+from . import theme
 from . import view as viewmod
 
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 _EXAMPLE = _PKG.parent / "examples" / "ashes-of-dawn.character.json"
-_ACCENT = "#8a5a1a"
 
 # The cycle a health box steps through on each click: empty → / → x → * → empty.
 _MARK_CYCLE: list[Damage | None] = [None, Damage.BASHING, Damage.LETHAL, Damage.AGGRAVATED]
@@ -48,6 +48,7 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
     """Render the in-play tracker for `character`. With `with_header=False` the
     title/Save bar is omitted (the embedding app provides one). The tab is live
     regardless of chargen lock — play happens after creation, but never blocks."""
+    pal = theme.palette(character.exalt_type)
 
     def ps() -> PlayState:
         """The play-state, created on first edit so a never-played character keeps
@@ -102,7 +103,7 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
     def _health_box(i: int, label: str, mark: Damage | None, n: int) -> None:
         with ui.column().classes("items-center gap-0"):
             ui.label(label).classes("text-gray-500").style("font-size:0.6rem")
-            sym_color = _MARK_COLOR[mark] if mark else "#8a5a1a"
+            sym_color = _MARK_COLOR[mark] if mark else pal.accent
             box = ui.label(mark.value if mark else "").classes("cursor-pointer select-none")
             box.style(f"width:2rem;height:2rem;line-height:2rem;text-align:center;"
                       f"font-weight:700;border-radius:4px;border:1px solid {_BORDER};"
@@ -124,7 +125,7 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
 
         with ui.column().classes("w-full max-w-3xl mx-auto gap-3"):
             # --- Health -------------------------------------------------- #
-            with _panel("Health  ·  / bashing   x lethal   * aggravated"):
+            with _panel("Health  ·  / bashing   x lethal   * aggravated", pal):
                 with ui.row().classes("gap-1 flex-wrap items-end"):
                     for i, box in enumerate(pv.health_boxes):
                         _health_box(i, box.label, marks[i], len(pv.health_boxes))
@@ -134,12 +135,12 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.label(f"Marked: {counts[Damage.BASHING]}/ {counts[Damage.LETHAL]}x "
                              f"{counts[Damage.AGGRAVATED]}*").classes("text-xs text-gray-600")
                     ui.label(f"Wound penalty: {worst}").classes("text-xs font-semibold").style(
-                        f"color:{_ACCENT}")
+                        f"color:{pal.accent}")
                     ui.button("Clear damage", icon="healing", on_click=clear_damage).props(
                         "flat dense").classes("text-xs")
 
             # --- Motes (numeric; capacities derived, spend is user input) - #
-            with _panel("Essence (motes spent — manual)"):
+            with _panel("Essence (motes spent — manual)", pal):
                 with ui.row().classes("gap-6 flex-wrap items-end"):
                     _mote_input("Personal", "motes_personal_spent",
                                 cur.motes_personal_spent, pv.personal_max)
@@ -148,19 +149,19 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
 
             # --- Temporary Willpower ------------------------------------- #
             with _panel(f"Temporary Willpower  ({pv.willpower_max - cur.willpower_spent} / "
-                        f"{pv.willpower_max} available)"):
+                        f"{pv.willpower_max} available)", pal):
                 with ui.row().classes("gap-1 flex-wrap"):
                     for i in range(pv.willpower_max):
                         _count_box(i, i < cur.willpower_spent, "willpower_spent", pv.willpower_max)
 
             # --- Limit (bare 0..10 counter) ------------------------------ #
-            with _panel(f"Limit  ({cur.limit} / 10{'  — LIMIT BREAK' if cur.limit >= 10 else ''})"):
+            with _panel(f"Limit  ({cur.limit} / 10{'  — LIMIT BREAK' if cur.limit >= 10 else ''})", pal):
                 with ui.row().classes("gap-1 flex-wrap"):
                     for i in range(10):
                         _count_box(i, i < cur.limit, "limit", 10)
 
             ui.button("Clear motes spent", icon="refresh", on_click=clear_motes).props(
-                "flat color=brown").tooltip("Resets Personal and Peripheral motes spent to 0. "
+                f"flat color={pal.button}").tooltip("Resets Personal and Peripheral motes spent to 0. "
                                             "Willpower, Health, and Limit are left to you / the ST.")
 
     def _mote_input(label: str, field: str, value: int, cap: int) -> None:
@@ -173,16 +174,16 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
     if with_header:
         with ui.row().classes("w-full items-center justify-between"):
             ui.label(f"In-play — {character.name or 'character'}").classes(
-                "text-lg font-bold").style(f"color:{_ACCENT}")
+                "text-lg font-bold").style(f"color:{pal.accent}")
             ui.button("Save", icon="save",
-                      on_click=lambda: _save(character, save_path)).props("color=brown")
+                      on_click=lambda: _save(character, save_path)).props(f"color={pal.button}")
     body()
 
 
-def _panel(title: str):
-    card = ui.card().classes("w-full p-3 bg-amber-50/40 border border-amber-900/20 gap-2")
+def _panel(title: str, pal: theme.Palette):
+    card = ui.card().classes(f"w-full p-3 {pal.card_soft} gap-2")
     with card:
-        ui.label(title).classes("text-xs font-bold tracking-widest").style(f"color:{_ACCENT}")
+        ui.label(title).classes("text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
     return card
 
 

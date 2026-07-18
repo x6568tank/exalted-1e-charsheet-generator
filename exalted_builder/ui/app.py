@@ -22,14 +22,17 @@ from nicegui import ui
 from .. import persistence, rules_db
 from ..models.character import Character
 from ..models.rules import RuleSet
+from . import theme
 from . import view as viewmod
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
 _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 
-_INK = "#3a2e1f"
-_ACCENT = "#8a5a1a"
+# Module-scoped palette so the module-level render helpers (_heading, _trait_row,
+# _panel …) can theme by splat. render_sheet sets it from the SheetView's exalt
+# type before drawing anything, so it always reflects the character on screen.
+pal = theme.palette(None)
 
 
 def _dots(value: int, total: int = 5) -> str:
@@ -43,19 +46,19 @@ def _dots(value: int, total: int = 5) -> str:
 
 def _heading(text: str) -> None:
     with ui.row().classes("w-full items-center gap-2 mt-1"):
-        ui.element("div").classes("flex-1 border-t border-amber-900/40")
-        ui.label(text.upper()).classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
-        ui.element("div").classes("flex-1 border-t border-amber-900/40")
+        ui.element("div").classes(f"flex-1 border-t border-{pal.fam}-900/40")
+        ui.label(text.upper()).classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+        ui.element("div").classes(f"flex-1 border-t border-{pal.fam}-900/40")
 
 
 def _panel():
-    return ui.card().classes("w-full p-3 bg-amber-50/40 border border-amber-900/20")
+    return ui.card().classes(f"w-full p-3 {pal.card_soft}")
 
 
 def _trait_row(r: viewmod.TraitRow, dot_total: int = 5) -> None:
     with ui.row().classes("w-full items-center gap-1 no-wrap"):
         if r.caste:
-            ui.label("●").classes("text-xs").style(f"color:{_ACCENT}").tooltip("Caste")
+            ui.label("●").classes("text-xs").style(f"color:{pal.accent}").tooltip("Caste")
         elif r.favored:
             ui.label("✦").classes("text-xs text-sky-700").tooltip("Favored")
         else:
@@ -71,14 +74,16 @@ def _named_value(label: str, value: int, dot_total: int = 5) -> None:
 
 
 def render_sheet(view: viewmod.SheetView) -> None:
-    ui.add_head_html(f"<style>body{{background:#f7f1e3;color:{_INK};}}</style>")
+    global pal
+    pal = theme.palette(view.exalt_type)
+    ui.add_head_html(pal.head_style())
     with ui.column().classes("w-full max-w-6xl mx-auto gap-2 p-4"):
         # --- header ------------------------------------------------------- #
         with _panel():
             with ui.row().classes("w-full justify-between items-start"):
                 with ui.column().classes("gap-0"):
                     ui.label(view.name).classes("text-2xl font-bold")
-                    ui.label(f"{view.caste} Caste {view.exalt_type}").style(f"color:{_ACCENT}")
+                    ui.label(f"{view.caste} Caste {view.exalt_type}").style(f"color:{pal.accent}")
                 with ui.column().classes("gap-0 text-right text-sm text-gray-600"):
                     if view.concept:
                         ui.label(f"Concept: {view.concept}")
@@ -91,7 +96,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
         with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
             for category, rows in view.attributes:
                 with _panel().classes("flex-1"):
-                    ui.label(category).classes("text-xs font-semibold text-center w-full").style(f"color:{_ACCENT}")
+                    ui.label(category).classes("text-xs font-semibold text-center w-full").style(f"color:{pal.accent}")
                     for r in rows:
                         _trait_row(r)
 
@@ -103,14 +108,14 @@ def render_sheet(view: viewmod.SheetView) -> None:
             with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
                 for group_label, rows in groups[chunk_start:chunk_start + 3]:
                     with _panel().classes("flex-1"):
-                        ui.label(group_label).classes("text-xs font-semibold text-center w-full").style(f"color:{_ACCENT}")
+                        ui.label(group_label).classes("text-xs font-semibold text-center w-full").style(f"color:{pal.accent}")
                         for r in rows:
                             _trait_row(r)
 
         # --- specialties + backgrounds ------------------------------------ #
         with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
             with _panel().classes("flex-1"):
-                ui.label("Backgrounds").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label("Backgrounds").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 if not view.backgrounds:
                     ui.label("—").classes("text-sm text-gray-400")
                 for name, rating, note in view.backgrounds:
@@ -118,7 +123,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
                         ui.label(f"{name}{' · ' + note if note else ''}").classes("text-sm flex-1 truncate")
                         ui.label(_dots(rating)).classes("text-sm font-mono")
             with _panel().classes("flex-1"):
-                ui.label("Specialties").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label("Specialties").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 if not view.specialties:
                     ui.label("—").classes("text-sm text-gray-400")
                 for ability, name, rating in view.specialties:
@@ -128,7 +133,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
         _heading("Charms & Sorcery")
         with ui.row().classes("w-full gap-2 items-start no-wrap"):
             with _panel().classes("flex-1"):
-                ui.label(f"Charms ({len(view.charms)})").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label(f"Charms ({len(view.charms)})").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 if not view.charms:
                     ui.label("—").classes("text-sm text-gray-400")
                 for c in view.charms:
@@ -137,7 +142,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
                         ui.label(c.category).classes("text-xs text-gray-500")
                         ui.label(c.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
             with _panel().classes("flex-1"):
-                ui.label(f"Spells ({len(view.spells)})").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label(f"Spells ({len(view.spells)})").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 if not view.spells:
                     ui.label("—").classes("text-sm text-gray-400")
                 for s in view.spells:
@@ -150,7 +155,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
         with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
             # left: equipment + anima + virtue flaw
             with _panel().classes("flex-1"):
-                ui.label("Equipment").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label("Equipment").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 for w in view.weapons:
                     art = f" · A{w.artifact_rating}/{w.attunement}m" if w.artifact_rating else ""
                     rng = f" · rng {w.range}" if w.range else ""
@@ -166,33 +171,33 @@ def render_sheet(view: viewmod.SheetView) -> None:
                     ui.label("—").classes("text-sm text-gray-400")
                 if view.anima:
                     ui.separator()
-                    ui.label("Anima").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                    ui.label("Anima").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                     ui.label(view.anima).classes("text-xs")
                 if view.virtue_flaw:
                     ui.separator()
-                    ui.label("Virtue Flaw").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                    ui.label("Virtue Flaw").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                     ui.label(view.virtue_flaw).classes("text-xs")
 
             # center: willpower + health + soak
             with _panel().classes("flex-1"):
-                ui.label("Willpower").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label("Willpower").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 ui.label(_dots(view.willpower, 10)).classes("text-sm font-mono")
                 ui.separator()
-                ui.label("Soak").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label("Soak").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 s = view.soak
                 ui.label(f"Bashing {s.bashing}  ·  Lethal {s.lethal}  ·  Aggravated {s.aggravated}").classes("text-sm")
                 ui.label(f"(Stamina {s.natural_bashing}/{s.natural_lethal} + armor {s.armor_bashing}/{s.armor_lethal})").classes("text-xs text-gray-500")
                 ui.separator()
-                ui.label("Health").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label("Health").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 ui.label("  ".join(view.health)).classes("text-sm font-mono")
 
             # right: virtues + essence + experience
             with _panel().classes("flex-1"):
-                ui.label("Virtues").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label("Virtues").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 for r in view.virtues:
                     _named_value(r.label, r.value)
                 ui.separator()
-                ui.label("Essence").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                ui.label("Essence").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 _named_value("Rating", view.essence_rating)
                 ui.label(f"Personal {view.essence_personal}  ·  Peripheral {view.essence_peripheral}").classes("text-sm")
                 ui.separator()

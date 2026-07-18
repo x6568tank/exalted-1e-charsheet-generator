@@ -1,0 +1,43 @@
+"""Unit tests for the per-splat UI palette (ui/theme.py) — pure, no NiceGUI."""
+
+from exalted_builder.ui import theme
+
+
+def test_solar_palette_is_the_gold_default():
+    pal = theme.palette("Solar")
+    assert pal.splat_label == "Solar"
+    assert pal.accent == "#8a5a1a"          # the historical gold accent
+    assert pal.fam == "amber"
+    assert pal.button == "brown"
+
+
+def test_dragonblooded_palette_is_red():
+    pal = theme.palette("Dragon-Blooded")
+    assert pal.splat_label == "Dragon-Blooded"
+    assert pal.fam == "red"                  # card tints/borders swap family
+    assert pal.accent.startswith("#8a") and pal.accent != "#8a5a1a"
+    # red-dominant: red channel far exceeds green/blue in the accent
+    r, g, b = (int(pal.accent[i:i + 2], 16) for i in (1, 3, 5))
+    assert r > g and r > b
+
+
+def test_unknown_or_missing_splat_falls_back_to_solar():
+    assert theme.palette(None).accent == theme.palette("Solar").accent
+    assert theme.palette("Lunar").accent == theme.palette("Solar").accent
+
+
+def test_card_class_helpers_track_the_family():
+    solar, db = theme.palette("Solar"), theme.palette("Dragon-Blooded")
+    assert "amber" in solar.card and "amber" in solar.card_soft
+    assert "red" in db.card and "red" in db.card_soft
+    assert db.rule == "border-red-900/20"
+
+
+def test_graph_border_is_the_accent_as_rgba():
+    # Dragon-Blooded accent #8a1a1a -> rgba(138,26,26,0.3)
+    assert theme.palette("Dragon-Blooded").graph_border == "rgba(138,26,26,0.3)"
+
+
+def test_head_style_sets_background_and_ink():
+    style = theme.palette("Dragon-Blooded").head_style()
+    assert style.startswith("<style>body{") and "background:#f7ece3" in style

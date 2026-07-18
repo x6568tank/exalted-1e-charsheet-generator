@@ -23,13 +23,13 @@ from .. import persistence, rules_db
 from ..engine import advancement, costs, derive, validate
 from ..models.character import Armor, BackgroundEntry, Character, Weapon
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
+from . import theme
 from . import view as viewmod
 from .editor import _opts_with
 
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 _EXAMPLE = _PKG.parent / "examples" / "ashes-of-dawn.character.json"
-_ACCENT = "#8a5a1a"
 
 
 def _label(value: str) -> str:
@@ -40,6 +40,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
              *, with_header: bool = True) -> None:
     """Render the XP advancement tab. Inert until chargen is locked."""
     rs = ruleset
+    pal = theme.palette(character.exalt_type)
     # Selection + free-text state, kept in dicts so a panel refresh preserves it.
     sel: dict = {
         "attr": AttributeName.STRENGTH,
@@ -139,7 +140,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label("max").classes("text-xs text-gray-400 w-24")
             else:
                 ui.label(f"{current}→{current + 1}: {cost} XP").classes("text-xs w-24")
-            btn = ui.button("Raise", on_click=lambda: _do(action)).props("dense color=brown")
+            btn = ui.button("Raise", on_click=lambda: _do(action)).props(f"dense color={pal.button}")
             if current >= cap:
                 btn.props("disable")
 
@@ -151,8 +152,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             return
 
         # --- raise dotted traits ------------------------------------------ #
-        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
-            ui.label("Raise a Trait").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+            ui.label("Raise a Trait").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
 
             attr = sel["attr"]
             _raise_row("Attribute", {a: _label(a.value) for a in AttributeName}, "attr",
@@ -178,14 +179,14 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.row().classes("w-full items-center gap-4 no-wrap"):
                 ui.button(f"Willpower {wp}→{wp + 1}  ·  {costs.willpower_step(rs, character, wp)} XP",
                           on_click=lambda: _do(lambda: advancement.raise_willpower(rs, character))).props(
-                    "dense color=brown")
+                    f"dense color={pal.button}")
                 ui.button(f"Essence {ess}→{ess + 1}  ·  {costs.essence_step(rs, character, ess)} XP",
                           on_click=lambda: _do(lambda: advancement.raise_essence(rs, character))).props(
-                    "dense color=brown")
+                    f"dense color={pal.button}")
 
         # --- reduce a trait (curse / Charm cost; free, refunds no XP) ------ #
-        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
-            ui.label("Reduce a Trait").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+            ui.label("Reduce a Trait").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
             ui.label("For curses and permanent Charm costs — free, refunds no XP, "
                      "logged and undoable.").classes("text-xs text-gray-600")
             lower_opts: dict[str, str] = {}
@@ -210,8 +211,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                           on_click=lambda: _do(_reduce)).props("dense color=negative")
 
         # --- learn Charm / spell ------------------------------------------ #
-        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
-            ui.label("Learn").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+            ui.label("Learn").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
 
             ox_id = validate.ox_body_charm_id(rs, character)
             learnable = sorted(
@@ -231,7 +232,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                           ).props("dense").classes("flex-1")
                 ui.button("Learn Charm", on_click=lambda: _do(
                     lambda: (advancement.learn_charm(rs, character, sel["charm"]),
-                             sel.update({"charm": None, "focus": None})))).props("dense color=brown")
+                             sel.update({"charm": None, "focus": None})))).props(f"dense color={pal.button}")
 
             castable = sorted(
                 (s for s in rs.spells.values()
@@ -249,7 +250,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                           ).props("dense").classes("flex-1")
                 ui.button("Learn Spell", on_click=lambda: _do(
                     lambda: (advancement.learn_spell(rs, character, sel["spell"]),
-                             sel.update({"spell": None, "focus": None})))).props("dense color=brown")
+                             sel.update({"spell": None, "focus": None})))).props(f"dense color={pal.button}")
 
             # Ox-Body Technique: repeatable, pick a health-level package each time.
             ox_charm = validate.ox_body_charm(rs, character)
@@ -265,13 +266,13 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.label(f"{costs.ox_body_cost(rs, character)} XP").classes("text-xs w-12")
                     btn = ui.button("Buy Ox-Body", on_click=lambda: _do(
                         lambda: (advancement.learn_ox_body(rs, character, sel["ox_variant"]),
-                                 sel.__setitem__("ox_variant", None)))).props("dense color=brown")
+                                 sel.__setitem__("ox_variant", None)))).props(f"dense color={pal.button}")
                     if ox_bought >= ox_cap or ox_value is None:
                         btn.props("disable")
 
         # --- specialty + combo -------------------------------------------- #
-        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
-            ui.label("Add").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+            ui.label("Add").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
             with ui.row().classes("w-full items-center gap-2 no-wrap"):
                 ui.select({a: _label(a.value) for a in AbilityName}, value=sel["spec_ability"],
                           label="Specialty in",
@@ -281,7 +282,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label(f"{costs.specialty_cost(rs, character)} XP").classes("text-xs w-12")
                 ui.button("Add Specialty", on_click=lambda: _do(
                     lambda: (advancement.add_specialty(rs, character, sel["spec_ability"], sel["spec_name"]),
-                             sel.__setitem__("spec_name", "")))).props("dense color=brown")
+                             sel.__setitem__("spec_name", "")))).props(f"dense color={pal.button}")
 
             combo_charms = {cid: rs.charms[cid].name for cid in validate.eligible_combo_charms(rs, character)}
             combo_value = [cid for cid in sel["combo_ids"] if cid in combo_charms]
@@ -295,11 +296,11 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label(f"{combo_cost} XP").classes("text-xs w-12")
                 ui.button("Add Combo", on_click=lambda: _do(
                     lambda: (advancement.add_combo(rs, character, sel["combo_name"], sel["combo_ids"]),
-                             sel.update({"combo_ids": [], "combo_name": ""})))).props("dense color=brown")
+                             sel.update({"combo_ids": [], "combo_name": ""})))).props(f"dense color={pal.button}")
 
         # --- crafts: each focus is its own rated Ability (core p.136) ----- #
-        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
-            ui.label("Crafts").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+            ui.label("Crafts").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
             craft_opts = {c.focus: f"{c.focus} {c.rating}" for c in character.crafts}
             craft_value = sel["craft_focus"] if sel["craft_focus"] in craft_opts else None
             craft_cur = next((c.rating for c in character.crafts if c.focus == craft_value), None)
@@ -311,7 +312,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                     cost = costs.ability_step(rs, character, AbilityName.CRAFT, craft_cur)
                     ui.label(f"{craft_cur}→{craft_cur + 1}: {cost} XP").classes("text-xs w-24")
                     ui.button("Raise", on_click=lambda: _do(
-                        lambda: advancement.raise_craft(rs, character, sel["craft_focus"]))).props("dense color=brown")
+                        lambda: advancement.raise_craft(rs, character, sel["craft_focus"]))).props(f"dense color={pal.button}")
                 elif craft_cur is not None:
                     ui.label("max").classes("text-xs text-gray-400 w-24")
             new_cost = costs.ability_step(rs, character, AbilityName.CRAFT, 0)
@@ -321,15 +322,15 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label(f"{new_cost} XP").classes("text-xs w-12")
                 ui.button("Learn Craft", on_click=lambda: _do(
                     lambda: (advancement.learn_craft(rs, character, sel["craft_new"]),
-                             sel.__setitem__("craft_new", "")))).props("dense color=brown")
+                             sel.__setitem__("craft_new", "")))).props(f"dense color={pal.button}")
 
         # --- backgrounds (free; story-driven, not an XP-priced trait) ------ #
         # Backgrounds change in play through the story (a Manse falls, an Ally is
         # made), not by spending XP. They are an editable current value here with
         # no XP cost and no log entry — like equipment, not like dotted traits.
-        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
             with ui.row().classes("w-full items-baseline gap-2"):
-                ui.label("Backgrounds").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+                ui.label("Backgrounds").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label("free — no XP").classes("text-xs text-gray-500")
             bg_names = [b.name for b in rs.background_catalog.values()]
             for idx, bg in enumerate(character.backgrounds):
@@ -382,15 +383,15 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             ui.select(material_opts, value=item.material or "", label="Material",
                       on_change=_on).classes("w-40").props("dense")
 
-        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30 gap-1"):
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
             with ui.row().classes("w-full items-baseline gap-2"):
-                ui.label("Equipment").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+                ui.label("Equipment").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label("free — no XP").classes("text-xs text-gray-500")
             with ui.row().classes("w-full gap-2 no-wrap items-start"):
                 with ui.column().classes("flex-1 gap-1"):
                     ui.label("Armor").classes("text-xs font-semibold")
                     for idx, ar in enumerate(character.armor):
-                        with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
+                        with ui.column().classes(f"w-full gap-1 border-b border-{pal.fam}-900/10 pb-1"):
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
                                 ui.select(_opts_with(armor_names, ar.name), value=ar.name or None,
                                           with_input=True,
@@ -414,7 +415,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 with ui.column().classes("flex-1 gap-1"):
                     ui.label("Weapons").classes("text-xs font-semibold")
                     for idx, wp in enumerate(character.weapons):
-                        with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
+                        with ui.column().classes(f"w-full gap-1 border-b border-{pal.fam}-900/10 pb-1"):
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
                                 ui.select(_opts_with(weapon_names, wp.name), value=wp.name or None,
                                           with_input=True,
@@ -455,7 +456,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.row().classes("w-full items-center gap-1 no-wrap"):
             amount = ui.number(value=sel["add_amount"], min=1, format="%d").props("dense").classes("w-20")
             ui.button("Add XP", icon="add", on_click=lambda: (
-                advancement.add_xp(character, int(amount.value or 0)), refresh_all())).props("dense color=brown")
+                advancement.add_xp(character, int(amount.value or 0)), refresh_all())).props(f"dense color={pal.button}")
         ui.separator()
         rows = viewmod.build_xp_log(rs, character)
         if not rows:
@@ -491,7 +492,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             if d is None:
                 ui.label("Unknown Charm.").classes("text-xs text-gray-400")
                 return
-            ui.label(d.name).classes("text-sm font-bold").style(f"color:{_ACCENT}")
+            ui.label(d.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
             ui.label(f"{d.type} · {d.cost}").classes("text-xs text-gray-600")
             if d.description:
                 ui.label(d.description).classes("text-xs")
@@ -514,7 +515,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             if d is None:
                 ui.label("Unknown spell.").classes("text-xs text-gray-400")
                 return
-            ui.label(d.name).classes("text-sm font-bold").style(f"color:{_ACCENT}")
+            ui.label(d.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
             ui.label(f"{d.circle} Circle · {d.cost}").classes("text-xs text-gray-600")
             if d.description:
                 ui.label(d.description).classes("text-xs")
@@ -535,21 +536,21 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- layout ----------------------------------------------------------- #
     if with_header:
-        ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
+        ui.add_head_html(pal.head_style())
 
     with ui.row().classes("w-full max-w-6xl mx-auto gap-4 p-4 items-start no-wrap"):
         with ui.column().classes("flex-1 gap-2"):
             if with_header:
                 with ui.row().classes("w-full items-center justify-between"):
                     ui.label("Experience").classes("text-xl font-bold")
-                    ui.button("Save", icon="save", on_click=save).props("color=brown")
+                    ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
             panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
-            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
-                ui.label("Experience").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+            with ui.card().classes(f"w-full p-3 {pal.card}"):
+                ui.label("Experience").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ledger()
-            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
-                ui.label("Details").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+            with ui.card().classes(f"w-full p-3 {pal.card}"):
+                ui.label("Details").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 detail()
 
 

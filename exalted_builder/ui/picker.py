@@ -27,34 +27,37 @@ from .. import persistence, rules_db
 from ..engine import validate
 from ..models.character import Character, OxBodyPurchase
 from ..models.rules import RuleSet
+from . import theme
 from . import view as viewmod
 from .assets import cytoscape_head_html
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
 _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
-_ACCENT = "#8a5a1a"
 
-# Uniform size and font for every node; owned / available / locked differ only by
-# fill and border colour. Labels sit below the node on the parchment background,
-# so label colour is the same everywhere (no font weight/size change between states).
-_STYLE = [
-    {"selector": "node", "style": {
-        "label": "data(label)", "font-size": "14px", "font-weight": 600, "text-wrap": "wrap",
-        "text-max-width": "130px", "text-valign": "bottom", "text-margin-y": 6,
-        "text-outline-color": "#f7f1e3", "text-outline-width": 3,
-        "color": "#3a2e1f", "width": 40, "height": 40,
-        "background-color": "#cbd5e1", "border-width": 2, "border-color": "#94a3b8"}},
-    {"selector": "node.owned", "style": {
-        "background-color": _ACCENT, "border-color": "#5b3a10"}},
-    {"selector": "node.available", "style": {
-        "background-color": "#86efac", "border-color": "#15803d", "border-width": 3}},
-    {"selector": "node.locked", "style": {
-        "background-color": "#e5e7eb", "border-color": "#cbd5e1"}},
-    {"selector": "edge", "style": {
-        "width": 2, "line-color": "#9ca3af", "target-arrow-color": "#9ca3af",
-        "target-arrow-shape": "triangle", "curve-style": "bezier", "arrow-scale": 1.1}},
-]
+
+def _style(pal: theme.Palette) -> list[dict]:
+    """Cytoscape stylesheet themed to `pal`. Uniform size/font for every node;
+    owned / available / locked differ only by fill and border colour. Labels sit
+    below the node on the parchment background, so the label outline is the page
+    background and the owned fill is the splat accent (gold Solar / red DB)."""
+    return [
+        {"selector": "node", "style": {
+            "label": "data(label)", "font-size": "14px", "font-weight": 600, "text-wrap": "wrap",
+            "text-max-width": "130px", "text-valign": "bottom", "text-margin-y": 6,
+            "text-outline-color": pal.bg, "text-outline-width": 3,
+            "color": pal.ink, "width": 40, "height": 40,
+            "background-color": "#cbd5e1", "border-width": 2, "border-color": "#94a3b8"}},
+        {"selector": "node.owned", "style": {
+            "background-color": pal.accent, "border-color": pal.accent_dark}},
+        {"selector": "node.available", "style": {
+            "background-color": "#86efac", "border-color": "#15803d", "border-width": 3}},
+        {"selector": "node.locked", "style": {
+            "background-color": "#e5e7eb", "border-color": "#cbd5e1"}},
+        {"selector": "edge", "style": {
+            "width": 2, "line-color": "#9ca3af", "target-arrow-color": "#9ca3af",
+            "target-arrow-shape": "triangle", "curve-style": "bezier", "arrow-scale": 1.1}},
+    ]
 
 
 def _elements(graph: viewmod.CharmGraph) -> list[dict]:
@@ -69,6 +72,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     own a single charm_toggle event handler (set register_events=False then).
     with_header=False omits the title/Save bar and the head <script> (the host
     app supplies Cytoscape)."""
+    pal = theme.palette(character.exalt_type)
+
     def _pretty(cat: str) -> str:
         if ":" in cat:                          # 'martial_arts:snake' -> 'Martial Arts: Snake'
             base, style = cat.split(":", 1)
@@ -89,7 +94,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         # Each Ox-Body purchase consumes a Charm pick from the shared pool of 10.
         charm_picks = len(character.charms) + len(character.ox_body)
         ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
-            "text-sm font-semibold").style(f"color:{_ACCENT}")
+            "text-sm font-semibold").style(f"color:{pal.accent}")
         ui.label(bp).classes("text-xs text-gray-600")
         ui.separator()
         ui.label("✓ Legal" if not errors else f"✗ {len(errors)} error(s)").classes("text-sm font-bold").style(
@@ -112,7 +117,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if d is None:
             ui.label("Tap a charm to see its details.").classes("text-xs text-gray-400")
             return
-        ui.label(d.name).classes("text-sm font-bold").style(f"color:{_ACCENT}")
+        ui.label(d.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
         ui.label(f"{d.type} · {d.cost}").classes("text-xs text-gray-600")
         if d.description:
             ui.label(d.description).classes("text-xs")
@@ -163,7 +168,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         cap = validate.ox_body_cap(ruleset, character)
         bought = len(character.ox_body)
         labels = {v.key: v.label for v in charm.variants}
-        ui.label(charm.name).classes("text-sm font-bold").style(f"color:{_ACCENT}")
+        ui.label(charm.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
         ui.label(charm.description).classes("text-xs")
         ui.separator()
         ui.label(f"Bought {bought} / {cap}  ·  once per dot of Endurance").classes(
@@ -227,16 +232,16 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         by_circle: dict[str, list] = {}
         for r in rows:
             by_circle.setdefault(r.circle, []).append(r)
-        with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
+        with ui.card().classes(f"w-full p-3 {pal.card}"):
             with ui.row().classes("w-full items-baseline gap-3"):
-                ui.label("Spells").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+                ui.label("Spells").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label("A spell takes a Charm pick (p.100); learn the matching Circle "
                          "Sorcery Charm to unlock it.").classes("text-xs text-gray-500")
             with ui.row().classes("w-full gap-6 items-start no-wrap"):
                 for circle in ("Terrestrial", "Celestial", "Solar"):
                     with ui.column().classes("flex-1 gap-1 min-w-0"):
                         ui.label(f"{circle} Circle").classes(
-                            "text-xs font-semibold border-b border-amber-900/20 w-full").style(f"color:{_ACCENT}")
+                            f"text-xs font-semibold border-b {pal.rule} w-full").style(f"color:{pal.accent}")
                         for r in by_circle.get(circle, []):
                             with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
                                 ui.label(r.name).classes("text-xs text-wrap").tooltip(r.description or r.name)
@@ -269,7 +274,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             window.cy = cytoscape({{
               container: el,
               elements: {json.dumps(_elements(graph))},
-              style: {json.dumps(_STYLE)},
+              style: {json.dumps(_style(pal))},
               pixelRatio: Math.max(2, window.devicePixelRatio || 1),
               wheelSensitivity: 0.25, minZoom: 0.3, maxZoom: 3, textureOnViewport: false,
             }});
@@ -342,7 +347,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     # ---- layout ----------------------------------------------------------- #
     if with_header:
         ui.add_head_html(cytoscape_head_html())
-        ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
+        ui.add_head_html(pal.head_style())
 
     with ui.row().classes("w-full max-w-7xl mx-auto gap-4 p-4 items-start no-wrap"):
         with ui.column().classes("flex-1 gap-2"):
@@ -352,10 +357,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.select(category_options, value=state["category"], label="Category",
                           on_change=lambda e: set_category(e.value)).classes("w-48")
                 if with_header:
-                    ui.button("Save", icon="save", on_click=save).props("color=brown")
+                    ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
             with ui.row().classes("w-full gap-4 text-xs items-center justify-between"):
                 with ui.row().classes("gap-4 items-center"):
-                    for color, text in [(_ACCENT, "owned"), ("#15803d", "available"),
+                    for color, text in [(pal.accent, "owned"), ("#15803d", "available"),
                                         ("#9ca3af", "locked (tap to see why)")]:
                         with ui.row().classes("items-center gap-1"):
                             ui.icon("circle", size="0.7rem").style(f"color:{color}")
@@ -364,16 +369,16 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             # A real element (not ui.html, whose inline style gets sanitised away),
             # with an explicit DOM id for Cytoscape to mount into.
             (ui.element("div").props("id=charm-graph")
-             .style("height:720px;width:100%;border:1px solid rgba(138,90,26,0.3);"
-                    "border-radius:8px;background:#fffdf7"))
+             .style(f"height:720px;width:100%;border:1px solid {pal.graph_border};"
+                    f"border-radius:8px;background:{pal.node_bg}"))
             # Spells live under the graph, but only render on the Occult page.
             spells_panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
-            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
-                ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+            with ui.card().classes(f"w-full p-3 {pal.card}"):
+                ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 readout()
-            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
-                ui.label("Charm Details").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+            with ui.card().classes(f"w-full p-3 {pal.card}"):
+                ui.label("Charm Details").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 detail()
 
     # defer the first graph build until the client is connected and the div exists

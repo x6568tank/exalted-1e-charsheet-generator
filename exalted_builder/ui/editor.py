@@ -37,12 +37,12 @@ def _health_total(character: Character, penalty: int) -> int:
                 for hl in character.health_bonus_levels if hl.penalty == penalty)
     return max(0, _BASE_HEALTH.get(penalty, 0) + delta)
 from ..models.rules import AbilityName, RuleSet, VirtueName
+from . import theme
 from . import view as viewmod
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
 _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
-_ACCENT = "#8a5a1a"
 
 # Presentation-only: intra-splat chargen origins to offer per Exalt type, and their
 # display labels. The origin *value* drives ruleset.budgets_for (keyed "<exalt>" for
@@ -74,6 +74,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     """Render the whole editor for `character`. Pure-ish wiring: every control
     mutates the Character and refreshes the live readout. With `with_header=False`
     the title/Save bar is omitted (the embedding app provides one)."""
+    pal = theme.palette(character.exalt_type)
 
     # ---- live readout (recomputes the engine each refresh) ---------------- #
     @ui.refreshable
@@ -81,7 +82,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         view = viewmod.build_sheet_view(ruleset, character)
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
-        ui.label(bp).classes("text-sm font-semibold").style(f"color:{_ACCENT}")
+        ui.label(bp).classes("text-sm font-semibold").style(f"color:{pal.accent}")
         with ui.row().classes("gap-4 text-sm"):
             ui.label(f"Willpower {view.willpower}")
             ui.label(f"Personal {view.essence_personal}")
@@ -101,7 +102,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     @ui.refreshable
     def bp_log() -> None:
         bd = validate.bonus_point_breakdown(ruleset, character)
-        ui.label("Bonus Points").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+        ui.label("Bonus Points").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
         color = "#b91c1c" if bd.over_budget else "#15803d"
         ui.label(f"{bd.total} / {bd.available} spent").classes("text-sm font-semibold").style(f"color:{color}")
         ui.separator()
@@ -125,7 +126,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 for i in range(1, top + 1):
                     icon = "circle" if i <= v else "radio_button_unchecked"
                     (ui.icon(icon, size="1rem")
-                       .classes("cursor-pointer").style(f"color:{_ACCENT}")
+                       .classes("cursor-pointer").style(f"color:{pal.accent}")
                        .on("click", lambda e, i=i: click(i)))
 
         def click(i: int) -> None:
@@ -138,9 +139,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         show()
 
     def panel(title: str):
-        card = ui.card().classes("w-full p-3 bg-amber-50/40 border border-amber-900/20")
+        card = ui.card().classes(f"w-full p-3 {pal.card_soft}")
         with card:
-            ui.label(title).classes("text-xs font-bold tracking-widest").style(f"color:{_ACCENT}")
+            ui.label(title).classes("text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
         return card
 
     # ---- the editor body (refreshes on structural changes) ---------------- #
@@ -156,17 +157,17 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # caste-info box (left) + identity fields (right). The BP-spend log lives in
         # the right-hand sticky column under Live Validation, not here.
         with ui.row().classes("w-full gap-2 no-wrap items-stretch"):
-            with ui.card().classes("w-72 flex-none p-3 bg-amber-50/40 border border-amber-900/20 gap-1"):
+            with ui.card().classes(f"w-72 flex-none p-3 {pal.card_soft} gap-1"):
                 if caste_def:
                     ui.label(f"{caste_def.label} Caste").classes(
-                        "text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+                        "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                     if caste_def.description:
                         ui.label(caste_def.description).classes("text-xs")
                     ui.label("Caste Abilities: " + ", ".join(
                         _label(a.value) for a in caste_def.caste_abilities)).classes("text-xs italic")
                     if caste_def.anima_powers:
                         ui.separator()
-                        ui.label("Anima Power").classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                        ui.label("Anima Power").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                         ui.label(caste_def.anima_powers).classes("text-xs")
                 else:
                     ui.label("Unknown caste").classes("text-xs text-gray-500")
@@ -234,11 +235,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 with ui.row().classes("w-full gap-2 no-wrap"):
                     for group_label, abilities in groups[start:start + 3]:
                         with ui.column().classes("flex-1 gap-1"):
-                            ui.label(group_label).classes("text-xs font-semibold").style(f"color:{_ACCENT}")
+                            ui.label(group_label).classes("text-xs font-semibold").style(f"color:{pal.accent}")
                             for a in abilities:
                                 mark = "●" if a in caste_abilities else ("✦" if a in character.favored_abilities else "")
                                 with ui.row().classes("w-full items-center gap-1 no-wrap"):
-                                    ui.label(mark).classes("text-xs w-3").style(f"color:{_ACCENT}")
+                                    ui.label(mark).classes("text-xs w-3").style(f"color:{pal.accent}")
                                     if a == AbilityName.CRAFT:
                                         # Craft is per-focus (p.136) — edited in its own panel below.
                                         ui.label("Craft").classes("text-sm flex-1 truncate")
@@ -344,7 +345,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
             with panel("Armor (sets soak)").classes("flex-1"):
                 for idx, ar in enumerate(character.armor):
-                    with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
+                    with ui.column().classes(f"w-full gap-1 border-b border-{pal.fam}-900/10 pb-1"):
                         with ui.row().classes("w-full items-center gap-2 no-wrap"):
                             ui.select(_opts_with(armor_names, ar.name), value=ar.name or None,
                                       with_input=True,
@@ -365,7 +366,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button("Add armor", icon="add", on_click=lambda: add_item("armor")).props("flat dense")
             with panel("Weapons").classes("flex-1"):
                 for idx, wp in enumerate(character.weapons):
-                    with ui.column().classes("w-full gap-1 border-b border-amber-900/10 pb-1"):
+                    with ui.column().classes(f"w-full gap-1 border-b border-{pal.fam}-900/10 pb-1"):
                         with ui.row().classes("w-full items-center gap-2 no-wrap"):
                             ui.select(_opts_with(weapon_names, wp.name), value=wp.name or None,
                                       with_input=True,
@@ -424,7 +425,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- structural mutators (refresh body + readout) --------------------- #
     def set_exalt_type(value: str) -> None:
+        nonlocal pal
         character.exalt_type = value
+        pal = theme.palette(value)          # re-theme the editor body for the new splat
         # keep the caste coherent with the new splat: if the current caste doesn't
         # belong to it, switch to that splat's first caste (if the splat has any).
         valid = [cd.id for cd in ruleset.castes.values() if cd.exalt_type == value]
@@ -540,19 +543,19 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- layout: editor on the left, sticky readout on the right ---------- #
     if with_header:
-        ui.add_head_html("<style>body{background:#f7f1e3;color:#3a2e1f;}</style>")
+        ui.add_head_html(pal.head_style())
     with ui.row().classes("w-full max-w-7xl mx-auto gap-4 p-4 items-start no-wrap"):
         with ui.column().classes("flex-1 gap-2"):
             if with_header:
                 with ui.row().classes("w-full items-center justify-between"):
                     ui.label("Chargen Editor").classes("text-xl font-bold")
-                    ui.button("Save", icon="save", on_click=save).props("color=brown")
+                    ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
             body()
         with ui.column().classes("w-80 gap-2 sticky top-4"):
-            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
-                ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{_ACCENT}")
+            with ui.card().classes(f"w-full p-3 {pal.card}"):
+                ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 readout()
-            with ui.card().classes("w-full p-3 bg-amber-50/60 border border-amber-900/30"):
+            with ui.card().classes(f"w-full p-3 {pal.card}"):
                 bp_log()
 
 

@@ -53,3 +53,33 @@ async def test_dragonblooded_editor_renders(user: User) -> None:
     await user.should_see("Fire Caste")            # the Aspect info box
     await user.should_see("35 dots")               # DB Dynastic ability budget
     await user.should_see("prioritise 7/6/4")
+
+
+def _has_accent(user: User, color: str) -> bool:
+    """True if any rendered element carries `color` in its inline style — how the
+    per-splat accent (headings, owned nodes) reaches the DOM."""
+    for e in user.client.elements.values():
+        style = getattr(e, "_style", {}) or {}
+        if any(color in str(v) for v in style.values()):
+            return True
+    return False
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_dragonblooded_picker_renders_red(user: User) -> None:
+    # the charm-tree picker builds for a Dragon-Blooded character (red palette),
+    # applying the DB red accent rather than the Solar gold.
+    await user.open('/dbpicker')
+    await user.should_see("Live Validation")
+    assert _has_accent(user, "#8a1a1a")             # DB red accent
+    assert not _has_accent(user, "#8a5a1a")         # not the Solar gold
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_dragonblooded_sheet_renders_red(user: User) -> None:
+    # the read-only sheet themes from the SheetView's exalt type
+    await user.open('/dbsheet')
+    await user.should_see("Cathak")
+    assert _has_accent(user, "#8a1a1a")             # DB red accent, not Solar gold
