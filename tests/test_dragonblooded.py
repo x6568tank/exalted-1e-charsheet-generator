@@ -280,6 +280,16 @@ def test_shipped_db_fire_ability_charm_counts(rs):
         {"athletics": 8, "dodge": 8, "melee": 8, "presence": 7, "socialize": 8})
 
 
+def test_shipped_db_water_ability_charm_counts(rs):
+    from collections import Counter
+    water = [c for c in rs.charms.values()
+             if c.exalt_type == "Dragon-Blooded" and c.element == "Water" and not c.immaculate]
+    assert Counter(c.category for c in water) == Counter(
+        {"brawl": 7, "bureaucracy": 7, "investigation": 6, "larceny": 7, "sail": 5})
+    for c in water:
+        assert ":" not in c.category and c.immaculate is False
+
+
 def test_shipped_db_terrestrial_sorcery_grants_circle(rs):
     from exalted_builder.models.rules import SpellCircle
     c = Character(id="db.sorc", exalt_type="Dragon-Blooded", caste="air", essence_rating=3)
