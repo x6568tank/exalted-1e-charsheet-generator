@@ -272,6 +272,14 @@ def test_shipped_db_earth_ability_charm_counts(rs):
          "martial_arts:five-dragon": 8, "resistance": 6})
 
 
+def test_shipped_db_fire_ability_charm_counts(rs):
+    from collections import Counter
+    fire = [c for c in rs.charms.values()
+            if c.exalt_type == "Dragon-Blooded" and c.element == "Fire" and not c.immaculate]
+    assert Counter(c.category for c in fire) == Counter(
+        {"athletics": 8, "dodge": 8, "melee": 8, "presence": 7, "socialize": 8})
+
+
 def test_shipped_db_terrestrial_sorcery_grants_circle(rs):
     from exalted_builder.models.rules import SpellCircle
     c = Character(id="db.sorc", exalt_type="Dragon-Blooded", caste="air", essence_rating=3)
