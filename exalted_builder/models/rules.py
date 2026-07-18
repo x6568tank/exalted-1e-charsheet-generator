@@ -128,6 +128,18 @@ class Charm(BaseModel):
     name: str
     category: str                          # an AbilityName value, a Martial Arts style, or "sorcery"
     exalt_type: str = "Solar"              # the splat that can learn it; filters the picker
+    # The elemental tree a Charm belongs to, for splats that organise Charms by
+    # element (Dragon-Blooded: "Air"/"Earth"/"Fire"/"Water"/"Wood"). "" for splats
+    # with no elemental axis (Solar). Authored from the page's element headings; it
+    # groups the DB picker and drives the Immaculate "one elemental tree" constraint.
+    element: str = ""
+    # An Immaculate Order Charm — a Fivefold Dragon Method martial-arts Charm
+    # (Dragon-Blooded splatbook, ch.6). These are the Charms a DB may take the
+    # *Immaculate* chargen path with (5 from one elemental tree, p.151) instead of
+    # the standard 7 Dragon-Blooded Charms; they also cost the Immaculate BP row.
+    # False for ordinary ability Charms (all Solar Charms). Set together with
+    # `element` on each Immaculate martial-arts Charm.
+    immaculate: bool = False
     type: CharmType
     min_ability: int = Field(default=0, ge=0)
     min_essence: int = Field(default=1, ge=1)
@@ -375,6 +387,12 @@ class ChargenBudgets(BaseModel):
 
     charm_count: int = 10
     charm_min_caste_favored: int = 5
+    # The alternative Immaculate chargen path (Dragon-Blooded, p.151): a character
+    # learning Immaculate martial arts takes this many Charms instead of charm_count,
+    # all from a single elemental tree, and the charm_min_caste_favored rule is
+    # waived. Only reachable when the character selects Immaculate Order Charms, so it
+    # never affects splats without them (Solar).
+    immaculate_charm_count: int = 5
 
     essence_start: int = 2
     bonus_points: int = 15

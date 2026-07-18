@@ -113,6 +113,31 @@ def _category_ability(category: str) -> AbilityName | None:
         return None
 
 
+def is_immaculate_charm(charm: Charm) -> bool:
+    """True for an Immaculate Order Charm — a Fivefold Dragon Method martial-arts
+    Charm (Dragon-Blooded splatbook, ch.6). These are what a DB may take the
+    *Immaculate* chargen path with (5 from one elemental tree) in place of the
+    standard 7 Dragon-Blooded Charms (p.151). Marked by the data flag Charm.immaculate."""
+    return charm.immaculate
+
+
+def _immaculate_path(ruleset: RuleSet, charm_ids) -> bool:
+    """Whether a chargen Charm selection puts the character on the Immaculate
+    martial-arts path — true as soon as ANY chosen Charm is an Immaculate Order
+    Charm. On this path the Charm rules change (single elemental tree, 5-Charm
+    free pool, Immaculate BP row, no Caste/Favoured minimum)."""
+    return any((c := ruleset.charms.get(cid)) is not None and c.immaculate
+               for cid in charm_ids)
+
+
+def immaculate_martial_artist(ruleset: RuleSet, character: Character) -> bool:
+    """Public form of `_immaculate_path` over the character's chargen Charm source
+    (current pre-lock, or the frozen snapshot). Lets the UI show/gate the Immaculate
+    path without re-deriving the snapshot selection."""
+    charms = _chargen_source(character)[6]     # (…, charms, …) — see _chargen_source
+    return _immaculate_path(ruleset, charms)
+
+
 def craft_rating(character: Character) -> int:
     """The effective Craft Ability rating: the highest of the character's per-focus
     Craft instances (core p.136), or 0 if they have none. A Craft Charm's minimum
@@ -552,7 +577,12 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     v_overflow = max(0, v_within - b.virtue_dots)
     virtue_bp = (v_above + v_overflow) * bp_costs.virtue
 
-    # --- Charms & Spells: one shared pool of 10 (p.100) ----------------------- #
+    # --- Charms & Spells: one shared pool (p.100) ----------------------------- #
+    # The Immaculate martial-arts path (DB, p.151) swaps the free pool size and the
+    # per-Charm BP row: 5 Immaculate Charms free (vs charm_count), each Immaculate
+    # Charm priced from the Immaculate BP row (10/7) rather than the ordinary one.
+    immaculate = _immaculate_path(ruleset, charms)
+    free_charm_pool = b.immaculate_charm_count if immaculate else b.charm_count
     occult_cf = AbilityName.OCCULT in cf_set
     pick_costs: list[int] = []
     for cid in charms:
@@ -561,7 +591,11 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
             continue
         ability = _category_ability(charm.category)
         is_cf = ability is not None and ability in cf_set
-        pick_costs.append(bp_costs.charm_favored_caste if is_cf else bp_costs.charm)
+        if charm.immaculate:
+            pick_costs.append(bp_costs.immaculate_charm_favored_caste if is_cf
+                              else bp_costs.immaculate_charm)
+        else:
+            pick_costs.append(bp_costs.charm_favored_caste if is_cf else bp_costs.charm)
     for sid in spells:
         if ruleset.spells.get(sid) is None:
             continue
@@ -570,7 +604,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     for _ in ox_body:
         pick_costs.append(bp_costs.charm_favored_caste if ox_body_cf else bp_costs.charm)
     pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
-    charm_bp = sum(pick_costs[b.charm_count:])
+    charm_bp = sum(pick_costs[free_charm_pool:])
 
     # --- Combos: BP = its number of Charms (p.213) --------------------------- #
     combo_bp = sum(len(combo.charm_ids) for combo in combos)
@@ -692,7 +726,12 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"Virtue {v.value} = {rating}; must be {b.virtue_base}-5 at creation.",
             ))
 
-    # --- Charms & Spells: >=5 Caste/Favoured; top circle barred at creation ---- #
+    # --- Charms & Spells: top circle barred at creation, plus one of two paths -- #
+    # Standard path: >=charm_min_caste_favored of the picks are Caste/Favoured.
+    # Immaculate path (DB, p.151, triggered by any Immaculate Order Charm): all
+    # chargen Charms must instead be a single elemental tree, and the Caste/Favoured
+    # minimum is waived.
+    immaculate = _immaculate_path(ruleset, charms)
     occult_cf = AbilityName.OCCULT in cf_set
     barred = chargen_barred_circle(ruleset, character)
     cf_pick_count = 0
@@ -717,7 +756,30 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             cf_pick_count += 1
     if AbilityName.ENDURANCE in cf_set:
         cf_pick_count += len(ox_body)
-    if cf_pick_count < b.charm_min_caste_favored:
+
+    if immaculate:
+        # Every chargen Charm must be an Immaculate Charm of one shared element;
+        # spells, Ox-Body, and ordinary ability Charms are not part of any tree.
+        trees: set[str] = set()
+        impure = bool(spells) or bool(ox_body)
+        for cid in charms:
+            charm = ruleset.charms.get(cid)
+            if charm is None:
+                continue
+            if charm.immaculate and charm.element:
+                trees.add(charm.element)
+            else:
+                impure = True
+        if impure or len(trees) > 1:
+            detail = f" ({'/'.join(sorted(trees))})" if len(trees) > 1 else ""
+            issues.append(Issue(
+                code="immaculate-single-tree",
+                message=("An Immaculate martial artist must take all chargen Charms "
+                         f"from a single elemental tree{detail}; mixing trees, spells, "
+                         "Ox-Body, or non-Immaculate Charms is not allowed on the "
+                         "Immaculate path (p.151)."),
+            ))
+    elif cf_pick_count < b.charm_min_caste_favored:
         issues.append(Issue(
             code="charm-caste-favored-min",
             message=f"At least {b.charm_min_caste_favored} of the {b.charm_count} "

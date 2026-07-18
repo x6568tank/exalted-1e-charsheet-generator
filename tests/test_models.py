@@ -54,6 +54,18 @@ def test_charm_prerequisites_are_and_of_or_groups():
     assert ch.prerequisites == [["a", "b"], ["c"]]
 
 
+def test_charm_element_defaults_empty_and_roundtrips():
+    # Solar Charms have no elemental axis...
+    solar = Charm(id="s", name="S", category="melee", type=CharmType.SIMPLE)
+    assert solar.element == ""
+    # ...Dragon-Blooded Charms are organised by element.
+    db = Charm(id="d", name="D", category="melee", exalt_type="Dragon-Blooded",
+               element="Fire", type=CharmType.SIMPLE)
+    assert db.element == "Fire"
+    restored = Charm.model_validate(json.loads(db.model_dump_json()))
+    assert restored.element == "Fire"
+
+
 def test_grants_circle_field():  # (renamed from grants_sorcery_circle)
     ch = Charm(id="t", name="Terrestrial Circle Sorcery", category="occult",
                type=CharmType.PERMANENT, min_ability=3, min_essence=1,

@@ -411,8 +411,16 @@ Peripheral=Ess×4+WP+two-highest-Virtues, cap Terrestrial); `chargen_budgets.jso
 DB rows; the 5 Aspects in `castes.json`; **Dynastic/Outcaste origin** (`Character.origin`,
 `RuleSet.budgets_for(exalt_type, origin)`, `ChargenBudgets.required_min_abilities`, editor Origin
 dropdown + budget-driven panel headers). **STILL TODO: DB charm trees + DB Ox-Body (the huge
-content grind — DB charms are organized by ELEMENT→ability, needs a `Charm.element` field) and the
-Immaculate Order charm package.** Full plan:
+content grind — DB charms are organized by ELEMENT→ability; the `Charm.element` field now exists,
+default `""`, "Air"/"Earth"/"Fire"/"Water"/"Wood" for DB). The **Immaculate Order charm package
+ENGINE is DONE (2026-07-18):** "Immaculate Order Charms" turned out to be the Fivefold Dragon
+Method martial-arts styles (ch.6), NOT a separate ability-charm flavour — marked by the data flag
+`Charm.immaculate`. `validate` now branches the chargen Charm rules on whether any Immaculate Charm
+is chosen: standard path = charm_count Charms, ≥charm_min_caste_favored Caste/Favored; Immaculate
+path = `immaculate_charm_count` (5) Charms all one elemental tree (`immaculate-single-tree`), the
+Caste/Favored min waived, Immaculate BP row (10/7). **STILL TODO: author the five Immaculate style
+charm trees** from `images/Dragonblooded/Martial Arts/` (the content grind) and the DB ability charm
+trees + DB Ox-Body. Full plan:
 `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 - **P0-1:** per-Exalt-keyed cost/budget tables (`RuleSet.{budgets,xp_costs,bonus_costs}:
   dict[str,…]` + `*_for(exalt_type)`, "default" fallback); `ExaltDefinition`/`EssencePoolSpec`

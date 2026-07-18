@@ -15,6 +15,7 @@ from exalted_builder.models.character import BackgroundEntry, Character
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
+from exalted_builder.models.rules import Charm, CharmType
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
@@ -116,3 +117,79 @@ def test_db_breeding_background_boosts_pools(rs):
     c.backgrounds = [BackgroundEntry(name="Breeding", rating=4)]
     # Breeding 4: +4 Personal, +7 Peripheral.
     assert derive.essence_pools(rs, c) == (9 + 4, 22 + 7)
+
+
+# --- Immaculate Order charm package (p.151) -------------------------------- #
+#
+# "Immaculate Order Charms" are the Fivefold Dragon Method martial-arts styles
+# (DB splatbook ch.6) — one elemental tree per element. A DB may take the
+# Immaculate chargen path (5 Charms, all one tree) instead of 7 DB Charms; the
+# real trees aren't authored yet, so these tests layer synthetic ones on `rs`.
+
+def _immaculate(cid: str, element: str) -> Charm:
+    return Charm(id=cid, name=cid, category=f"martial_arts:immaculate-{element.lower()}-dragon",
+                 exalt_type="Dragon-Blooded", element=element, immaculate=True,
+                 type=CharmType.SIMPLE, min_ability=1, min_essence=1)
+
+
+def _rs_with_immaculate(rs):
+    """`rs` plus a Fire and a Water Immaculate tree and one ordinary DB Charm."""
+    extra = {c.id: c for c in (
+        [_immaculate(f"imm.fire.{i}", "Fire") for i in range(6)]
+        + [_immaculate(f"imm.water.{i}", "Water") for i in range(2)]
+    )}
+    extra["db.melee.plain"] = Charm(
+        id="db.melee.plain", name="Plain DB Melee", category="melee",
+        exalt_type="Dragon-Blooded", type=CharmType.SIMPLE, min_ability=1, min_essence=1)
+    return rs.model_copy(update={"charms": {**rs.charms, **extra}})
+
+
+def _charm_bp(rs, c) -> int:
+    line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                if l.domain == "Charms & Spells")
+    return line.points
+
+
+def test_immaculate_five_one_tree_is_legal(rs):
+    rs2 = _rs_with_immaculate(rs)
+    c = _db_fire()
+    c.charms = [f"imm.fire.{i}" for i in range(5)]
+    codes = {i.code for i in validate.validate_chargen(rs2, c)}
+    assert "immaculate-single-tree" not in codes
+    assert "charm-caste-favored-min" not in codes      # waived on the Immaculate path
+    assert _charm_bp(rs2, c) == 0                       # 5 free Immaculate Charms
+
+
+def test_immaculate_mixed_trees_flagged(rs):
+    rs2 = _rs_with_immaculate(rs)
+    c = _db_fire()
+    c.charms = [f"imm.fire.{i}" for i in range(4)] + ["imm.water.0"]
+    codes = {i.code for i in validate.validate_chargen(rs2, c)}
+    assert "immaculate-single-tree" in codes
+
+
+def test_immaculate_mixing_ordinary_charm_flagged(rs):
+    rs2 = _rs_with_immaculate(rs)
+    c = _db_fire()
+    c.charms = [f"imm.fire.{i}" for i in range(4)] + ["db.melee.plain"]
+    codes = {i.code for i in validate.validate_chargen(rs2, c)}
+    assert "immaculate-single-tree" in codes
+
+
+def test_immaculate_extra_charm_uses_immaculate_bp_row(rs):
+    rs2 = _rs_with_immaculate(rs)
+    c = _db_fire()
+    # 6 Fire Immaculate Charms: 5 free, the 6th is an extra. Martial Arts is not a
+    # Fire-aspect/favored Ability here, so it prices from the full Immaculate row (10).
+    c.charms = [f"imm.fire.{i}" for i in range(6)]
+    assert _charm_bp(rs2, c) == 10
+
+
+def test_standard_db_path_still_uses_ordinary_charm_rules(rs):
+    # No Immaculate Charm chosen -> ordinary path: the >=4 Caste/Favored rule applies.
+    rs2 = _rs_with_immaculate(rs)
+    c = _db_fire()
+    c.charms = ["db.melee.plain"]                       # 0 Caste/Favored Charms
+    codes = {i.code for i in validate.validate_chargen(rs2, c)}
+    assert "charm-caste-favored-min" in codes
+    assert "immaculate-single-tree" not in codes
