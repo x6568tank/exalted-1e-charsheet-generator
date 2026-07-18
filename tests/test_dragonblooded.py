@@ -11,7 +11,7 @@ import pytest
 import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import derive, validate
-from exalted_builder.models.character import BackgroundEntry, Character
+from exalted_builder.models.character import BackgroundEntry, Character, OxBodyPurchase
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
@@ -229,3 +229,22 @@ def test_shipped_cross_tree_immaculate_flagged(rs):
     ]
     codes = {i.code for i in validate.validate_chargen(rs, c)}
     assert "immaculate-single-tree" in codes
+
+
+# --- Dragon-Blooded Ox-Body Technique (Earth/Endurance, p195) -------------- #
+#
+# DB Ox-Body has no variant menu: each purchase is a fixed one -1 + one -2, and
+# it may be bought once per dot of Endurance. The Phase-5 exalt row already names
+# it as the DB ox_body_charm_id; this data resolves that reference.
+
+def test_shipped_db_ox_body_resolves_caps_and_folds_in(rs):
+    c = Character(id="db.ox", exalt_type="Dragon-Blooded", caste="earth", essence_rating=2)
+    c.abilities[A.ENDURANCE] = 2
+    assert validate.ox_body_charm(rs, c).id == "dragonblooded.endurance.ox-body-technique"
+    assert validate.ox_body_cap(rs, c) == 2                 # once per Endurance dot
+    base = len(derive.health_track(c))
+    c.ox_body = [OxBodyPurchase(variant="db-standard", health_levels=[-1, -2])] * 2
+    assert len(derive.health_track(c)) == base + 4          # each purchase adds -1 and -2
+    assert validate.check_ox_body(rs, c) == []
+    c.ox_body.append(OxBodyPurchase(variant="db-standard", health_levels=[-1, -2]))
+    assert any(i.code == "ox-body-over-cap" for i in validate.check_ox_body(rs, c))

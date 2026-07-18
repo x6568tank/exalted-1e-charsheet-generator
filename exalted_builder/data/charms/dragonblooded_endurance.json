@@ -1,0 +1,26 @@
+[
+  {
+    "id": "dragonblooded.endurance.ox-body-technique",
+    "name": "Ox-Body Technique",
+    "category": "endurance",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Earth",
+    "type": "Special",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {"raw": "None"},
+    "duration": "Permanent",
+    "repeatable_cap_ability": "endurance",
+    "variants": [
+      {
+        "key": "db-standard",
+        "label": "One -1 and one -2 level",
+        "health_levels": [-1, -2],
+        "description": "Gain one extra -1 and one extra -2 health level."
+      }
+    ],
+    "description": "The Dragon-Blooded may buy extra health levels as if they were a Charm. Each level (purchase) grants one -1 and one -2 health level. May be bought at most once per dot of Endurance.",
+    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 195}
+  }
+]

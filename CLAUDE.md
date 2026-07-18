@@ -422,9 +422,12 @@ Caste/Favored min waived, Immaculate BP row (10/7). **The five Immaculate style 
 AUTHORED (2026-07-18)** from `images/Dragonblooded/Martial Arts/` (p243-263), 59 charms in
 `data/charms/dragonblooded_<element>_dragon.json` (Air 12, Earth 12, Fire 11, Water 12, Wood 12),
 each `exalt_type:"Dragon-Blooded"`, `element:"<Element>"`, `immaculate:true`,
-`category:"martial_arts:<element>-dragon"`; prereqs are single-tree + link-checked. **STILL TODO:
-the DB *ability* charm trees** (Charms chapter, p176-233 — element→ability, the bigger grind) and
-DB Ox-Body. Full plan:
+`category:"martial_arts:<element>-dragon"`; prereqs are single-tree + link-checked. **DB Ox-Body
+Technique AUTHORED (2026-07-18):** `data/charms/dragonblooded_endurance.json` (Earth/Endurance,
+p195) — one fixed variant `[-1,-2]` per purchase (NO 3-package menu like Solar), cap = Endurance,
+resolving the `ox_body_charm_id` the DB exalt row already named. **STILL TODO:
+the DB *ability* charm trees** (Charms chapter, p176-233 — element→ability, the bigger grind; the
+Charms chapter opens each element then its 5 Aspect abilities: Air p177…, Earth p189…). Full plan:
 `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 - **P0-1:** per-Exalt-keyed cost/budget tables (`RuleSet.{budgets,xp_costs,bonus_costs}:
   dict[str,…]` + `*_for(exalt_type)`, "default" fallback); `ExaltDefinition`/`EssencePoolSpec`
