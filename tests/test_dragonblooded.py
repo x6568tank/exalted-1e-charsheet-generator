@@ -65,6 +65,12 @@ def test_db_budget_dynastic_vs_outcaste(rs):
     assert rs.budgets_for("Dragon-Blooded").ability_dots == 35
 
 
+def test_db_calls_its_caste_slot_aspect(rs):
+    # the UI labels the caste slot per splat: Dragon-Blooded say "Aspect", Solar "Caste"
+    assert rs.exalt_for("Dragon-Blooded").caste_noun == "Aspect"
+    assert rs.exalt_for("Solar").caste_noun == "Caste"
+
+
 def test_db_bonus_costs(rs):
     bc = rs.bonus_costs_for("Dragon-Blooded")
     assert (bc.charm, bc.charm_favored_caste) == (7, 5)

@@ -155,17 +155,19 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # the right numbers (Solar 8/6/4·25; DB Dynastic 7/6/4·35, Outcaste ·25).
         b = ruleset.budgets_for(character.exalt_type, character.origin)
         ap = "/".join(str(p) for p in b.attribute_pools)
+        # splats name the caste slot differently: Solar "Caste", Dragon-Blooded "Aspect"
+        caste_noun = ruleset.exalt_for(character.exalt_type).caste_noun
 
         # caste-info box (left) + identity fields (right). The BP-spend log lives in
         # the right-hand sticky column under Live Validation, not here.
         with ui.row().classes("w-full gap-2 no-wrap items-stretch"):
             with ui.card().classes(f"w-72 flex-none p-3 {pal.card_soft} gap-1"):
                 if caste_def:
-                    ui.label(f"{caste_def.label} Caste").classes(
+                    ui.label(f"{caste_def.label} {caste_noun}").classes(
                         "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                     if caste_def.description:
                         ui.label(caste_def.description).classes("text-xs")
-                    ui.label("Caste Abilities: " + ", ".join(
+                    ui.label(f"{caste_noun} Abilities: " + ", ".join(
                         _label(a.value) for a in caste_def.caste_abilities)).classes("text-xs italic")
                     if caste_def.anima_powers:
                         ui.separator()
@@ -180,30 +182,34 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                  on_change=lambda e: (setattr(character, "name", e.value), changed())).classes("flex-1")
                         ui.input("Concept", value=character.concept,
                                  on_change=lambda e: setattr(character, "concept", e.value)).classes("flex-1")
-                    with ui.row().classes("w-full gap-3 no-wrap items-end"):
+                    # Wraps (no `no-wrap`) so the identity controls flow onto a second
+                    # line rather than squashing to truncated labels ("C…"); each gets
+                    # a min width so its label always shows in full.
+                    _field = "flex-1 min-w-[10rem]"
+                    with ui.row().classes("w-full gap-3 items-end"):
                         exalt_opts = {ex.id: ex.label for ex in ruleset.exalts.values()}
                         exalt_opts.setdefault(character.exalt_type, character.exalt_type)
                         ui.select(exalt_opts, label="Exalt type", value=character.exalt_type,
-                                  on_change=lambda e: set_exalt_type(e.value)).classes("flex-1")
+                                  on_change=lambda e: set_exalt_type(e.value)).classes(_field)
                         caste_opts = {cd.id: cd.label for cd in ruleset.castes.values()
                                       if cd.exalt_type == character.exalt_type}
                         # keep the current caste selectable even if off-splat (NiceGUI 3.x
                         # ui.select raises if value ∉ options — see the select-value gotcha)
                         caste_opts.setdefault(character.caste, character.caste)
-                        ui.select(caste_opts, label="Caste", value=character.caste,
-                                  on_change=lambda e: set_caste(e.value)).classes("flex-1")
+                        ui.select(caste_opts, label=caste_noun, value=character.caste,
+                                  on_change=lambda e: set_caste(e.value)).classes(_field)
                         origins = _SPLAT_ORIGINS.get(character.exalt_type)
                         if origins:
                             ui.select(origins, label="Origin",
                                       value=character.origin or next(iter(origins)),
-                                      on_change=lambda e: set_origin(e.value)).classes("flex-1")
+                                      on_change=lambda e: set_origin(e.value)).classes(_field)
                         nature_names = [n.name for n in ruleset.nature_catalog.values()]
                         ui.select(_opts_with(nature_names, character.nature), label="Nature",
                                   value=character.nature or None,
                                   with_input=True, new_value_mode="add-unique",
-                                  on_change=lambda e: setattr(character, "nature", e.value or "")).classes("flex-1")
+                                  on_change=lambda e: setattr(character, "nature", e.value or "")).classes(_field)
                         ui.input("Anima", value=character.anima,
-                                 on_change=lambda e: setattr(character, "anima", e.value)).classes("flex-1")
+                                 on_change=lambda e: setattr(character, "anima", e.value)).classes(_field)
                     ui.select({a: _label(a.value) for a in AbilityName}, label=f"Favored abilities (pick {b.favored_count})",
                               value=list(character.favored_abilities), multiple=True,
                               on_change=lambda e: set_favored(e.value)).classes("w-full").props("use-chips")

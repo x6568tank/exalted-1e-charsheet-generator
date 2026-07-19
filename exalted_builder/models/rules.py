@@ -467,6 +467,10 @@ class ExaltDefinition(BaseModel):
     magic_track: str = "sorcery"            # "sorcery" | "necromancy"
     highest_magic_circle_id: str = ""       # circle barred at creation (e.g. "Solar")
     ox_body_charm_id: str = ""              # the splat's repeatable health-level Charm
+    # What this splat calls its caste slot in the UI: Solars have "Caste", the
+    # Dragon-Blooded have "Aspect". Presentation only — the underlying field is
+    # still Character.caste keyed to RuleSet.castes.
+    caste_noun: str = "Caste"
 
 
 # The canonical Solar definition — the existing hardcoded formula moved into data

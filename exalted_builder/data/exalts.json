@@ -24,6 +24,7 @@
     },
     "magic_track": "sorcery",
     "highest_magic_circle_id": "Terrestrial",
-    "ox_body_charm_id": "dragonblooded.endurance.ox-body-technique"
+    "ox_body_charm_id": "dragonblooded.endurance.ox-body-technique",
+    "caste_noun": "Aspect"
   }
 ]

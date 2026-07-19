@@ -50,7 +50,7 @@ async def test_dragonblooded_editor_renders(user: User) -> None:
     # DB-specific budget headers (35 ability dots, 7/6/4 attributes, pick 3 favored)
     await user.open('/db')
     await user.should_see("Origin")
-    await user.should_see("Fire Caste")            # the Aspect info box
+    await user.should_see("Fire Aspect")           # DB caste slot is labelled "Aspect"
     await user.should_see("35 dots")               # DB Dynastic ability budget
     await user.should_see("prioritise 7/6/4")
 
