@@ -140,6 +140,13 @@ class Charm(BaseModel):
     # False for ordinary ability Charms (all Solar Charms). Set together with
     # `element` on each Immaculate martial-arts Charm.
     immaculate: bool = False
+    # A Charm learnable by ANY splat, not just `exalt_type`'s owners. Set on the
+    # Terrestrial (Immaculate Dragon) martial-arts styles: nothing in 1e bars a
+    # Solar from learning Terrestrial Martial Arts (it just needs a trainer). For a
+    # non-DB learner such a Charm is priced/counted as an ordinary Martial Arts
+    # Charm — the Immaculate chargen *package* stays Dragon-Blooded-only (see
+    # engine.validate._immaculate_path, which also gates on exalt_type).
+    open_to_all: bool = False
     type: CharmType
     min_ability: int = Field(default=0, ge=0)
     min_essence: int = Field(default=1, ge=1)
@@ -250,12 +257,20 @@ class WeaponType(BaseModel):
 
 class BackgroundType(BaseModel):
     """A purchasable Background. The catalog of names a character may pick from;
-    the per-character rating/descriptor lives on character.BackgroundEntry."""
+    the per-character rating/descriptor lives on character.BackgroundEntry.
+
+    Availability is a UI autofill hint (backgrounds are free text, never hard-
+    validated): `exalt_type`, when set, restricts the Background to that one splat
+    (Dragon-Blooded Breeding/Connections); `excluded_exalt_types` lists splats that
+    may NOT take an otherwise-universal Background (the DB splatbook, oddly, bars
+    Dragon-Blooded from Contacts/Influence/Followers, p.156-157)."""
     model_config = ConfigDict(frozen=True)
 
     id: str
     name: str
     description: str = ""
+    exalt_type: str = ""                          # "" = all splats; else only this one
+    excluded_exalt_types: list[str] = Field(default_factory=list)
 
 
 class NatureType(BaseModel):
@@ -506,6 +521,21 @@ class RuleSet(BaseModel):
 
     def xp_costs_for(self, exalt_type: str) -> ExperienceCosts:
         return self.xp_costs.get(exalt_type, self.xp_costs["default"])
+
+    def backgrounds_for(self, exalt_type: str) -> list[BackgroundType]:
+        """The Backgrounds a character of `exalt_type` may pick from (the editor's
+        autofill list). A splat-restricted Background (`exalt_type` set) shows only
+        for that splat; a Background listing `exalt_type` in `excluded_exalt_types`
+        is hidden from it (DB bar Contacts/Influence/Followers). Universal ones (no
+        restriction) show for everyone. Order follows the catalog's insertion order."""
+        out: list[BackgroundType] = []
+        for bg in self.background_catalog.values():
+            if bg.exalt_type and bg.exalt_type != exalt_type:
+                continue
+            if exalt_type in bg.excluded_exalt_types:
+                continue
+            out.append(bg)
+        return out
 
     def budgets_for(self, exalt_type: str, origin: str = "") -> ChargenBudgets:
         """The chargen budget for `exalt_type`, optionally specialised by `origin`

@@ -70,10 +70,12 @@ def _opts_with(names: list[str], current: str | None) -> list[str]:
 
 
 def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
-                 *, with_header: bool = True) -> None:
+                 *, with_header: bool = True, on_theme_change=None) -> None:
     """Render the whole editor for `character`. Pure-ish wiring: every control
     mutates the Character and refreshes the live readout. With `with_header=False`
-    the title/Save bar is omitted (the embedding app provides one)."""
+    the title/Save bar is omitted (the embedding app provides one). `on_theme_change`
+    (if given) is called after the Exalt type changes so an embedding app can re-paint
+    its own chrome (header bar / page background) to the new splat's palette."""
     pal = theme.palette(character.exalt_type)
 
     # ---- live readout (recomputes the engine each refresh) ---------------- #
@@ -277,8 +279,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.number("Willpower purchased", value=character.willpower_purchased, min=0, max=10, format="%d",
                           on_change=lambda e: (setattr(character, "willpower_purchased", int(e.value or 0)), changed())).classes("w-full")
 
-        # backgrounds
-        bg_names = [b.name for b in ruleset.background_catalog.values()]
+        # backgrounds — autofill list is splat-aware (DB gain Breeding/Connections,
+        # lose Contacts/Influence/Followers; see RuleSet.backgrounds_for).
+        bg_names = [b.name for b in ruleset.backgrounds_for(character.exalt_type)]
         with panel(f"Backgrounds ({b.background_dots} dots; ≤{b.background_cap_pre_bp} pre-bonus)"):
             for idx, bg in enumerate(character.backgrounds):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
@@ -438,6 +441,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         origins = _SPLAT_ORIGINS.get(value)
         character.origin = next(iter(origins)) if origins else ""
         body.refresh(); changed()
+        if on_theme_change is not None:     # let the embedding app re-theme its chrome
+            on_theme_change()
 
     def set_caste(value: str) -> None:
         character.caste = value

@@ -85,6 +85,25 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     category_options = {c: _pretty(c) for c in categories}
     state = {"category": "melee" if "melee" in categories else (categories[0] if categories else "")}
 
+    # ---- Immaculate-vs-standard chargen path banner (Dragon-Blooded) ------- #
+    def _immaculate_path_banner() -> None:
+        """For a Dragon-Blooded, spell out which chargen Charm path they are on.
+        The Immaculate path is triggered by any *Immaculate* Charm — the five
+        Dragon-style trees (Air/Earth/Fire/Water/Wood Dragon), NOT Martial Arts in
+        general: Five-Dragon Style is Martial Arts but a normal Charm and does not
+        switch paths. Counts come from the budget, never hardcoded."""
+        if character.exalt_type != "Dragon-Blooded":
+            return
+        b = ruleset.budgets_for(character.exalt_type, character.origin)
+        if validate.immaculate_martial_artist(ruleset, character):
+            msg = (f"Immaculate path — {b.immaculate_charm_count} Charms from one "
+                   f"Dragon style; Aspect/Favored minimum waived.")
+        else:
+            msg = (f"Standard path — {b.charm_count} Charms, ≥{b.charm_min_caste_favored} "
+                   f"Aspect/Favored. Pick a Dragon-style (Immaculate) Charm to switch "
+                   f"to the Immaculate path.")
+        ui.label(msg).classes("text-xs italic").style(f"color:{pal.accent}")
+
     # ---- live readout ----------------------------------------------------- #
     @ui.refreshable
     def readout() -> None:
@@ -95,6 +114,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         charm_picks = len(character.charms) + len(character.ox_body)
         ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
             "text-sm font-semibold").style(f"color:{pal.accent}")
+        _immaculate_path_banner()
         ui.label(bp).classes("text-xs text-gray-600")
         ui.separator()
         ui.label("✓ Legal" if not errors else f"✗ {len(errors)} error(s)").classes("text-sm font-bold").style(
@@ -119,6 +139,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return
         ui.label(d.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
         ui.label(f"{d.type} · {d.cost}").classes("text-xs text-gray-600")
+        _charm = ruleset.charms.get(d.id)
+        if _charm is not None and validate.is_immaculate_charm(_charm):
+            ui.label("Immaculate Order Charm (Fivefold Dragon Method)").classes(
+                "text-xs font-semibold").style(f"color:{pal.accent}")
         if d.description:
             ui.label(d.description).classes("text-xs")
         ui.separator()

@@ -55,6 +55,34 @@ async def test_dragonblooded_editor_renders(user: User) -> None:
     await user.should_see("prioritise 7/6/4")
 
 
+def _background_options(user: User) -> set:
+    """All option labels offered by the editor's Background selects."""
+    opts: set = set()
+    for e in user.client.elements.values():
+        if isinstance(e, Select) and e._props.get('label') == 'Background':
+            options = e._props.get('options') or []
+            for o in options:
+                opts.add(o.get('label') if isinstance(o, dict) else o)
+    return opts
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_db_editor_offers_breeding_not_solar(user: User) -> None:
+    # a Dragon-Blooded editor autofills Breeding/Connections and drops Contacts;
+    # a Solar editor does the opposite. (The harness characters carry a Background
+    # row so the autofill Select renders.)
+    await user.open('/db')
+    db_opts = _background_options(user)
+    assert "Breeding" in db_opts and "Connections" in db_opts
+    assert "Contacts" not in db_opts
+
+    await user.open('/custom')
+    solar_opts = _background_options(user)
+    assert "Contacts" in solar_opts
+    assert "Breeding" not in solar_opts
+
+
 def _has_accent(user: User, color: str) -> bool:
     """True if any rendered element carries `color` in its inline style — how the
     per-splat accent (headings, owned nodes) reaches the DOM."""
@@ -78,8 +106,37 @@ async def test_dragonblooded_picker_renders_red(user: User) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_db_picker_shows_standard_path_banner(user: User) -> None:
+    # a Dragon-Blooded with no Immaculate Charm is on the standard 7-Charm path
+    await user.open('/dbpicker')
+    await user.should_see("Standard path")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_db_picker_shows_immaculate_path_banner(user: User) -> None:
+    # holding a Dragon-style (Immaculate) Charm flips the banner to the Immaculate path
+    await user.open('/dbpicker-immaculate')
+    await user.should_see("Immaculate path")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_dragonblooded_sheet_renders_red(user: User) -> None:
     # the read-only sheet themes from the SheetView's exalt type
     await user.open('/dbsheet')
     await user.should_see("Cathak")
     assert _has_accent(user, "#8a1a1a")             # DB red accent, not Solar gold
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_changing_exalt_type_rethemes_chrome_live(user: User) -> None:
+    # changing the Exalt-type dropdown in the full builder must re-paint the header
+    # chrome (red for Dragon-Blooded) live, without a tab switch or reload.
+    await user.open('/builder')
+    assert _has_accent(user, "#8a5a1a")             # starts on the Solar gold header
+    sels = [e for e in user.client.elements.values() if isinstance(e, Select)]
+    esel = next(s for s in sels if s._props.get('label') == 'Exalt type')
+    esel.set_value("Dragon-Blooded")
+    assert _has_accent(user, "#8a1a1a")             # header now the DB red, live

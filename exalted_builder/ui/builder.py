@@ -110,7 +110,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
             _locked_notice()
             return
         if state["tab"] == "Edit":
-            editor.build_editor(ruleset, char, path, with_header=False)
+            editor.build_editor(ruleset, char, path, with_header=False,
+                                on_theme_change=_apply_chrome)
         elif state["tab"] == "Charms":
             state["select"] = picker.build_picker(
                 ruleset, char, path, with_header=False, register_events=False)

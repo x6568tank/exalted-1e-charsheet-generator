@@ -121,13 +121,17 @@ def is_immaculate_charm(charm: Charm) -> bool:
     return charm.immaculate
 
 
-def _immaculate_path(ruleset: RuleSet, charm_ids) -> bool:
+def _immaculate_path(ruleset: RuleSet, charm_ids, exalt_type: str) -> bool:
     """Whether a chargen Charm selection puts the character on the Immaculate
-    martial-arts path — true as soon as ANY chosen Charm is an Immaculate Order
+    martial-arts path — true when a Dragon-Blooded chooses ANY Immaculate Order
     Charm. On this path the Charm rules change (single elemental tree, 5-Charm
-    free pool, Immaculate BP row, no Caste/Favoured minimum)."""
-    return any((c := ruleset.charms.get(cid)) is not None and c.immaculate
-               for cid in charm_ids)
+    free pool, Immaculate BP row, no Caste/Favoured minimum). The Immaculate
+    *package* is Dragon-Blooded-only: a non-DB learner (e.g. a Solar taking a
+    Terrestrial style, which is `open_to_all`) is priced/counted as ordinary
+    Martial Arts and never trips this path, so it gates on `exalt_type`."""
+    return exalt_type == "Dragon-Blooded" and any(
+        (c := ruleset.charms.get(cid)) is not None and c.immaculate
+        for cid in charm_ids)
 
 
 def immaculate_martial_artist(ruleset: RuleSet, character: Character) -> bool:
@@ -135,7 +139,7 @@ def immaculate_martial_artist(ruleset: RuleSet, character: Character) -> bool:
     (current pre-lock, or the frozen snapshot). Lets the UI show/gate the Immaculate
     path without re-deriving the snapshot selection."""
     charms = _chargen_source(character)[6]     # (…, charms, …) — see _chargen_source
-    return _immaculate_path(ruleset, charms)
+    return _immaculate_path(ruleset, charms, character.exalt_type)
 
 
 def craft_rating(character: Character) -> int:
@@ -581,7 +585,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     # The Immaculate martial-arts path (DB, p.151) swaps the free pool size and the
     # per-Charm BP row: 5 Immaculate Charms free (vs charm_count), each Immaculate
     # Charm priced from the Immaculate BP row (10/7) rather than the ordinary one.
-    immaculate = _immaculate_path(ruleset, charms)
+    immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
     free_charm_pool = b.immaculate_charm_count if immaculate else b.charm_count
     occult_cf = AbilityName.OCCULT in cf_set
     pick_costs: list[int] = []
@@ -731,7 +735,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # Immaculate path (DB, p.151, triggered by any Immaculate Order Charm): all
     # chargen Charms must instead be a single elemental tree, and the Caste/Favoured
     # minimum is waived.
-    immaculate = _immaculate_path(ruleset, charms)
+    immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
     occult_cf = AbilityName.OCCULT in cf_set
     barred = chargen_barred_circle(ruleset, character)
     cf_pick_count = 0
@@ -859,9 +863,11 @@ def splat_of(charm: Charm) -> str:
 
 
 def charm_matches_splat(character: Character, charm: Charm) -> bool:
-    """Whether `charm` belongs to the character's Exalt type — the picker/graph
-    filter so a Dragon-Blooded sees only DB Charms and a Solar only Solar Charms."""
-    return splat_of(charm) == character.exalt_type
+    """Whether `charm` is available to the character — the picker/graph filter and
+    the `charm-wrong-splat` check. A Charm matches when it belongs to the character's
+    own Exalt type, OR it is flagged `open_to_all` (cross-splat Charms such as the
+    Terrestrial Immaculate Dragon martial-arts styles, which any splat may learn)."""
+    return charm.open_to_all or splat_of(charm) == character.exalt_type
 
 
 def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issue]:

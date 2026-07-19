@@ -76,8 +76,11 @@ def test_nature_catalog_loads_the_p105_archetypes():
 def test_background_catalog_has_the_ten_core_backgrounds():
     rs = rules_db.load_ruleset(DATA_DIR)
     names = {b.name for b in rs.background_catalog.values()}
-    assert names == {"Allies", "Artifact", "Backing", "Contacts", "Familiar",
-                     "Followers", "Influence", "Manse", "Mentor", "Resources"}
+    # the ten core Backgrounds are always present…
+    assert {"Allies", "Artifact", "Backing", "Contacts", "Familiar",
+            "Followers", "Influence", "Manse", "Mentor", "Resources"} <= names
+    # …alongside the Dragon-Blooded splatbook additions (Traits chapter, p156-160)
+    assert {"Breeding", "Connections", "Command", "Henchmen", "Reputation"} <= names
 
 
 # --------------------------------------------------------------------------- #

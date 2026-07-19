@@ -332,7 +332,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.row().classes("w-full items-baseline gap-2"):
                 ui.label("Backgrounds").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label("free — no XP").classes("text-xs text-gray-500")
-            bg_names = [b.name for b in rs.background_catalog.values()]
+            bg_names = [b.name for b in rs.backgrounds_for(character.exalt_type)]
             for idx, bg in enumerate(character.backgrounds):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.select(_opts_with(bg_names, bg.name), value=bg.name or None, label="Background",
