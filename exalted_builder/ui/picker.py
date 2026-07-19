@@ -80,10 +80,21 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return f"{base.replace('_', ' ').title()}: {style.replace('_', ' ').title()}"
         return cat.replace("_", " ").title()
 
-    categories = sorted({c.category for c in ruleset.charms.values()
-                         if validate.charm_matches_splat(character, c)})
-    category_options = {c: _pretty(c) for c in categories}
-    state = {"category": "melee" if "melee" in categories else (categories[0] if categories else "")}
+    def _visible_category_options() -> dict[str, str]:
+        """Style-dropdown options for the CURRENT character state: their splat's
+        categories, minus any a rule hides right now. The only such rule today is the
+        Dragon-Blooded Dragon-Path gate (DB p241) — the elemental Dragon styles appear
+        only once both enlightenment Charms (Spirit Sight + Spirit Walking) are known."""
+        cats = sorted({c.category for c in ruleset.charms.values()
+                       if validate.charm_matches_splat(character, c)
+                       and validate.category_available(ruleset, character, c.category)})
+        return {c: _pretty(c) for c in cats}
+
+    _all_categories = sorted({c.category for c in ruleset.charms.values()
+                              if validate.charm_matches_splat(character, c)})
+    state = {"category": "melee" if "melee" in _all_categories
+             else (_all_categories[0] if _all_categories else "")}
+    widgets: dict = {}                          # holds the live category <select>
 
     # ---- Immaculate-vs-standard chargen path banner (Dragon-Blooded) ------- #
     def _immaculate_path_banner() -> None:
@@ -365,12 +376,28 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         update_graph()
         detail.refresh()
         spells_panel.refresh()        # a new/removed Sorcery Charm changes spell access
+        _refresh_categories()         # learning/dropping DB enlightenment reveals/hides Dragon styles
 
     def set_category(value: str) -> None:
         state["category"] = value
         init_graph()
         readout.refresh()
         spells_panel.refresh()        # show/hide the Spells card with the Occult page
+
+    def _refresh_categories() -> None:
+        """Re-evaluate the visible style dropdown after a Charm change. Learning both
+        Dragon-Blooded enlightenment Charms reveals the elemental Dragon styles;
+        dropping one hides them again (falling back to a still-visible style)."""
+        sel = widgets.get("category")
+        if sel is None:
+            return
+        opts = _visible_category_options()
+        if state["category"] in opts:
+            sel.set_options(opts, value=state["category"])
+        else:                          # current style just got hidden — fall back
+            fallback = next(iter(opts), "")
+            sel.set_options(opts, value=fallback)
+            set_category(fallback)
 
     def save() -> None:
         persistence.save_character(character, save_path)
@@ -389,8 +416,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.row().classes("w-full items-center justify-between"):
                 if with_header:
                     ui.label("Charm-Tree Picker").classes("text-xl font-bold")
-                ui.select(category_options, value=state["category"], label="Category",
-                          on_change=lambda e: set_category(e.value)).classes("w-48")
+                widgets["category"] = ui.select(
+                    _visible_category_options(), value=state["category"], label="Category",
+                    on_change=lambda e: set_category(e.value)).classes("w-48")
                 if with_header:
                     ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
             with ui.row().classes("w-full gap-4 text-xs items-center justify-between"):

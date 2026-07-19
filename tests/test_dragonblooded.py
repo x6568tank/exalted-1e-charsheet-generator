@@ -250,6 +250,41 @@ def test_shipped_cross_tree_immaculate_flagged(rs):
     assert "immaculate-single-tree" in codes
 
 
+def test_immaculate_path_allows_enlightenment_charms(rs):
+    # The Enlightenment Charms (Spirit Sight / Spirit Walking) are part of Immaculate
+    # martial arts — the required entry to any Dragon Path (p241-242) — so they do NOT
+    # trip the single-tree rule alongside one elemental tree.
+    c = _db_fire()
+    c.charms = [
+        "dragonblooded.martial-arts.spirit-sight",
+        "dragonblooded.martial-arts.spirit-walking",
+        "dragonblooded.air-dragon.air-dragons-sight",
+        "dragonblooded.air-dragon.wind-dragon-speed",
+        "dragonblooded.air-dragon.breath-seizing-technique",
+        "dragonblooded.air-dragon.shrouding-the-body-and-mind",
+        "dragonblooded.air-dragon.air-dragon-form",
+    ]
+    assert validate.immaculate_martial_artist(rs, c)
+    codes = {i.code for i in validate.validate_chargen(rs, c)}
+    assert "immaculate-single-tree" not in codes
+    # NOT free/exempt: the two enlightenment Charms still consume Charm picks, so with
+    # 7 picks against the 5-Immaculate free pool the overflow costs bonus points.
+    assert _charm_bp(rs, c) > 0
+
+
+def test_enlightenment_charms_do_not_rescue_a_mixed_tree(rs):
+    # Adding enlightenment must not mask a genuine cross-tree violation.
+    c = _db_fire()
+    c.charms = [
+        "dragonblooded.martial-arts.spirit-sight",
+        "dragonblooded.martial-arts.spirit-walking",
+        "dragonblooded.air-dragon.air-dragons-sight",
+        "dragonblooded.fire-dragon.flash-fire-technique",
+    ]
+    codes = {i.code for i in validate.validate_chargen(rs, c)}
+    assert "immaculate-single-tree" in codes
+
+
 # --- Dragon-Blooded Ox-Body Technique (Earth/Endurance, p195) -------------- #
 #
 # DB Ox-Body has no variant menu: each purchase is a fixed one -1 + one -2, and

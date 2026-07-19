@@ -124,5 +124,35 @@
     "duration": "Instant",
     "description": "Suffused with the energy of the Five Elemental Dragons, the Exalted explodes into a flurry of action, hands and legs a blur. After invoking it he may make an extra attack per mote spent, all against a single target; all are rolled as normal, and if the target dodges or parries she makes one roll compared to all the attacks. The maximum number of extra attacks equals his Essence.",
     "source": {"book": "Exalted 1e Dragon-Blooded", "page": 199}
+  },
+  {
+    "id": "dragonblooded.martial-arts.spirit-sight",
+    "name": "Spirit Sight",
+    "category": "martial_arts:enlightenment",
+    "exalt_type": "Dragon-Blooded",
+    "element": "",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {"motes": 5},
+    "duration": "One scene",
+    "description": "The first step of Immaculate training: comprehending the spirit world. Possessing this Charm is a requirement for a Dragon-Blooded to learn the Charms of any Dragon Path. By spending its cost, the character perceives normally-invisible spirits and incorporeal beings for the scene (or until she reattunes to the normal world, a dice action). While it is active, tuning to the spirit world distracts her: all activity relating to the corporeal world suffers +1 difficulty.",
+    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 241}
+  },
+  {
+    "id": "dragonblooded.martial-arts.spirit-walking",
+    "name": "Spirit Walking",
+    "category": "martial_arts:enlightenment",
+    "exalt_type": "Dragon-Blooded",
+    "element": "",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [["dragonblooded.martial-arts.spirit-sight"]],
+    "cost": {"motes": 3, "willpower": 1},
+    "duration": "One scene",
+    "description": "The second step of Immaculate training: mystically attuning to the spirit world on a physical level. Before a Dragon-Blooded may walk any Dragon Path, she must master this skill. For the scene, she interacts with spirits as if they were corporeal — her blows, weapons, Charms and abilities affect a spirit's immaterial form as though it were flesh, and spirit attacks likewise reach her. She remains bound by physical limitations and, unless Spirit Sight is also active, cannot see dematerialized spirits; when used together with Spirit Sight, that Charm's +1 difficulty penalty to physical action is negated.",
+    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 242}
   }
 ]

@@ -210,12 +210,54 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
     return issues
 
 
+# Dragon-Blooded martial-arts "Enlightenment" gate (DB p241-242). A Terrestrial
+# must master both Immaculate enlightenment Charms — Spirit Sight, then Spirit
+# Walking — before she may learn the Charms of any Dragon Path. Celestial Exalted
+# and Abyssals need no such initiation (the p241 box: Exalted of any type can learn
+# the Dragon Paths given a tutor), so the gate is Dragon-Blooded-only; and Five-
+# Dragon Style — a mundane DB style, not a Dragon Path — is exempt.
+DB_MA_ENLIGHTENMENT_IDS = ("dragonblooded.martial-arts.spirit-sight",
+                           "dragonblooded.martial-arts.spirit-walking")
+_UNGATED_MA_STYLES = frozenset({"five-dragon", "enlightenment"})
+
+
+def _is_dragon_path_style(category: str) -> bool:
+    """A martial-arts style category that counts as a 'Dragon Path' for the DB
+    enlightenment gate — any ``martial_arts:<style>`` except the exempt styles
+    (Five-Dragon and the Enlightenment tree itself)."""
+    if not category.startswith("martial_arts:"):
+        return False
+    return category.split(":", 1)[1] not in _UNGATED_MA_STYLES
+
+
+def db_enlightenment_met(character: Character) -> bool:
+    """Whether the Dragon-Blooded Dragon-Path gate is OPEN for this character: always
+    True for non-Dragon-Blooded (they need no initiation); for a Dragon-Blooded, True
+    only once BOTH Immaculate enlightenment Charms (Spirit Sight + Spirit Walking)
+    are known."""
+    if character.exalt_type != "Dragon-Blooded":
+        return True
+    known = set(character.charms)
+    return all(cid in known for cid in DB_MA_ENLIGHTENMENT_IDS)
+
+
+def category_available(ruleset: RuleSet, character: Character, category: str) -> bool:
+    """Whether a Charm `category` is open to the character right now — the picker's
+    style-dropdown filter. Currently the only gate is the Dragon-Blooded Dragon-Path
+    rule (p241): a DB reaches the elemental Dragon styles only after learning both
+    enlightenment Charms. Every other category is always available."""
+    return not (_is_dragon_path_style(category) and not db_enlightenment_met(character))
+
+
 def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> bool:
     """Whether the character could legally learn `charm` *right now*: min essence,
-    min ability (when the category resolves to an ability), and every AND-of-OR
-    prerequisite group satisfied by an already-known Charm. The forward-looking
+    min ability (when the category resolves to an ability), every AND-of-OR
+    prerequisite group satisfied by an already-known Charm, and — for a Dragon-
+    Blooded — the Dragon-Path enlightenment gate (p241). The forward-looking
     counterpart to check_charm_prerequisites; used by the charm-tree picker to
     decide which Charms are currently selectable."""
+    if _is_dragon_path_style(charm.category) and not db_enlightenment_met(character):
+        return False
     if character.essence_rating < charm.min_essence:
         return False
     ability = _category_ability(charm.category)
@@ -781,11 +823,18 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     if immaculate:
         # Every chargen Charm must be an Immaculate Charm of one shared element;
         # spells, Ox-Body, and ordinary ability Charms are not part of any tree.
+        # The Immaculate "Enlightenment" Charms (Spirit Sight / Spirit Walking) ARE
+        # part of Immaculate martial arts — the required entry to ANY Dragon Path
+        # (DB p241-242) — so they're permitted alongside the single elemental tree.
+        # They are NOT exempt from the budget: each still costs a normal Charm pick
+        # (priced above), only the single-tree check tolerates them.
         trees: set[str] = set()
         impure = bool(spells) or bool(ox_body)
         for cid in charms:
             charm = ruleset.charms.get(cid)
             if charm is None:
+                continue
+            if charm.category == "martial_arts:enlightenment":
                 continue
             if charm.immaculate and charm.element:
                 trees.add(charm.element)

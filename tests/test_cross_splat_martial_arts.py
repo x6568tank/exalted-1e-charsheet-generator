@@ -13,6 +13,7 @@ import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import validate
 from exalted_builder.models.character import Character
+from exalted_builder.models.rules import AbilityName
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
@@ -23,6 +24,10 @@ _DRAGON_STYLE = [
     "dragonblooded.air-dragon.shrouding-the-body-and-mind",
     "dragonblooded.air-dragon.air-dragon-form",
 ]
+_ENLIGHTENMENT = [
+    "dragonblooded.martial-arts.spirit-sight",
+    "dragonblooded.martial-arts.spirit-walking",
+]
 
 
 @pytest.fixture(scope="module")
@@ -32,6 +37,12 @@ def rs():
 
 def _solar() -> Character:
     return Character(id="s", exalt_type="Solar", caste="dawn")
+
+
+def _ma_char(splat: str, caste: str) -> Character:
+    c = Character(id="x", exalt_type=splat, caste=caste, essence_rating=3)
+    c.abilities = {AbilityName.MARTIAL_ARTS: 5}
+    return c
 
 
 def test_dragon_styles_are_open_to_all(rs):
@@ -79,3 +90,51 @@ def test_db_immaculate_path_still_fires(rs):
     c = Character(id="d", exalt_type="Dragon-Blooded", caste="air", origin="dynastic")
     c.charms = list(_DRAGON_STYLE)
     assert validate.immaculate_martial_artist(rs, c) is True
+
+
+# --- Dragon-Blooded Dragon-Path enlightenment gate (DB p241-242) ------------- #
+
+def test_enlightenment_charms_authored(rs):
+    ss = rs.charms["dragonblooded.martial-arts.spirit-sight"]
+    sw = rs.charms["dragonblooded.martial-arts.spirit-walking"]
+    assert ss.category == "martial_arts:enlightenment"
+    assert sw.category == "martial_arts:enlightenment"
+    # NOT Immaculate Charms — they are enlightenment prerequisites, not a Dragon
+    # style, so they must not trip the Immaculate chargen package.
+    assert ss.immaculate is False and sw.immaculate is False
+    # Spirit Walking chains off Spirit Sight
+    assert sw.prerequisites == [["dragonblooded.martial-arts.spirit-sight"]]
+
+
+def test_db_needs_both_enlightenment_charms_before_dragon_paths(rs):
+    c = _ma_char("Dragon-Blooded", "air")
+    air = rs.charms[_DRAGON_STYLE[0]]
+    assert validate.meets_charm_requirements(rs, c, air) is False        # neither
+    c.charms = ["dragonblooded.martial-arts.spirit-sight"]
+    assert validate.meets_charm_requirements(rs, c, air) is False        # only Sight
+    c.charms = list(_ENLIGHTENMENT)
+    assert validate.meets_charm_requirements(rs, c, air) is True         # both
+
+
+def test_five_dragon_style_is_exempt_from_the_gate(rs):
+    c = _ma_char("Dragon-Blooded", "earth")
+    fd = rs.charms["dragonblooded.martial-arts.five-dragon-fortitude"]
+    assert validate.meets_charm_requirements(rs, c, fd) is True          # no enlightenment needed
+
+
+def test_enlightenment_gate_is_dragon_blooded_only(rs):
+    air = rs.charms[_DRAGON_STYLE[0]]
+    # Celestial Exalted and Abyssals need no initiation — they learn Dragon styles freely
+    assert validate.meets_charm_requirements(rs, _ma_char("Solar", "dawn"), air) is True
+    assert validate.meets_charm_requirements(rs, _ma_char("Abyssal", "dusk"), air) is True
+
+
+def test_category_available_hides_dragon_paths_until_enlightened(rs):
+    c = _ma_char("Dragon-Blooded", "air")
+    assert validate.category_available(rs, c, "martial_arts:air-dragon") is False
+    assert validate.category_available(rs, c, "martial_arts:five-dragon") is True
+    assert validate.category_available(rs, c, "martial_arts:enlightenment") is True
+    c.charms = list(_ENLIGHTENMENT)
+    assert validate.category_available(rs, c, "martial_arts:air-dragon") is True
+    # non-Dragon-Blooded: the gate never applies
+    assert validate.category_available(rs, _solar(), "martial_arts:air-dragon") is True
