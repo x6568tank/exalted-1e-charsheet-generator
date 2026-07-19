@@ -86,12 +86,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         Dragon-Blooded Dragon-Path gate (DB p241) — the elemental Dragon styles appear
         only once both enlightenment Charms (Spirit Sight + Spirit Walking) are known."""
         cats = sorted({c.category for c in ruleset.charms.values()
-                       if validate.charm_matches_splat(character, c)
+                       if validate.charm_matches_splat(character, c, ruleset)
                        and validate.category_available(ruleset, character, c.category)})
         return {c: _pretty(c) for c in cats}
 
     _all_categories = sorted({c.category for c in ruleset.charms.values()
-                              if validate.charm_matches_splat(character, c)})
+                              if validate.charm_matches_splat(character, c, ruleset)})
     state = {"category": "melee" if "melee" in _all_categories
              else (_all_categories[0] if _all_categories else "")}
     widgets: dict = {}                          # holds the live category <select>

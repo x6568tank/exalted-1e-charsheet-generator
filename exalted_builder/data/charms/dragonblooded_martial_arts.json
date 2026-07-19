@@ -9,10 +9,18 @@
     "min_ability": 3,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"raw": "1 mote per 2B or 1L soaked"},
+    "cost": {
+      "raw": "1 mote per 2B or 1L soaked"
+    },
     "duration": "Instant",
     "description": "The armored scales of the Elemental Dragons afford great protection. Invoking the colossal stamina of the Dragons, the character soaks the damage from one particular attack by paying Essence: soaking bashing costs 1 mote per two health levels of raw damage reduced, lethal costs 1 mote per health level of raw damage. This soak is applied before damage is rolled and is compatible with the use of armor.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 197}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 197
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-blocking-technique",
@@ -23,11 +31,24 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.martial-arts.five-dragon-fortitude"]],
-    "cost": {"motes": 4, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.martial-arts.five-dragon-fortitude"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "The powerful claws of the Elemental Dragons bat away attacks; this Charm lets a Dragon-Blood emulate that, boosting parry with a weapon or turning attacks aside bare-handed. For the rest of the scene she adds her permanent Essence to all parry rolls, even those made with Abilities other than Martial Arts; the bonus is applied to split-pool parries after the multiple-action penalty, and she may make reflexive parries at her permanent Essence if she has no other way to parry. If unarmed, she may parry lethal damage without a stunt.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 197}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 197
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-claw",
@@ -39,10 +60,18 @@
     "min_ability": 3,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"motes": 1},
+    "cost": {
+      "motes": 1
+    },
     "duration": "Instant",
     "description": "The power of the Five Elemental Dragons empowers a Dragon-Blooded's blows with deadly force: the character does lethal rather than bashing damage on an unarmed attack.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 198}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 198
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-force-blow",
@@ -53,11 +82,23 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.martial-arts.five-dragon-claw"]],
-    "cost": {"motes": 2},
+    "prerequisites": [
+      [
+        "dragonblooded.martial-arts.five-dragon-claw"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
     "duration": "Instant",
     "description": "The character makes a normal martial arts attack but does double the normal base damage (extra successes do not double). In addition, the player rolls Strength + Martial Arts in a reflexive opposed roll against the target's Strength + Resistance; if the character wins, the target is knocked down and must spend an action clearing her head and getting back to her feet.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 198}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 198
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-form",
@@ -69,13 +110,25 @@
     "min_ability": 4,
     "min_essence": 3,
     "prerequisites": [
-      ["dragonblooded.martial-arts.five-dragon-blocking-technique"],
-      ["dragonblooded.martial-arts.five-dragon-force-blow"]
+      [
+        "dragonblooded.martial-arts.five-dragon-blocking-technique"
+      ],
+      [
+        "dragonblooded.martial-arts.five-dragon-force-blow"
+      ]
     ],
-    "cost": {"motes": 5},
+    "cost": {
+      "motes": 5
+    },
     "duration": "One scene",
     "description": "The physical emulation of the Five Dragons: the Dynast takes on the aspect and attitude of the Elemental Dragons — haughty and arrogant, her movements swift, graceful, and lethal. For the rest of the scene she may do lethal damage with her martial arts attacks instead of bashing, may soak lethal damage with her bashing soak, and adds her permanent Essence to Dexterity or Strength when determining running speed, jumping distance, or how much she can lift or carry. Only one martial arts Form-type Charm may be used at a time; invoking one ends any other Form previously active.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 199}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 199
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-fist",
@@ -86,11 +139,26 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 4,
-    "prerequisites": [["dragonblooded.martial-arts.five-dragon-form"]],
-    "cost": {"motes": 6, "willpower": 1, "health": 1, "raw": "6 motes, 1 Willpower, 1 health level"},
+    "prerequisites": [
+      [
+        "dragonblooded.martial-arts.five-dragon-form"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1,
+      "health": 1,
+      "raw": "6 motes, 1 Willpower, 1 health level"
+    },
     "duration": "Instant",
     "description": "With a mighty effort the martial artist channels the raw fury of the Five Elemental Dragons: a punch or kick attacking with Dexterity + Martial Arts, as usual, that does aggravated damage. The Five-Dragon Fist cannot be placed in a Combo or used while wielding a weapon — the energy of the Five Elemental Dragons must be channeled purely.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 199}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 199
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-invulnerability",
@@ -101,11 +169,24 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.martial-arts.five-dragon-form"]],
-    "cost": {"motes": 5, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.martial-arts.five-dragon-form"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "The Exalt completely ignores damage from any single non-magical attack. If the attack is made with a weapon of the Five Magical Materials, caused by sorcery, or boosted with Charms, the character instead only receives a soak bonus to his lethal and bashing soaks equal to his permanent Essence.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 199}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 199
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-wrath",
@@ -117,13 +198,26 @@
     "min_ability": 5,
     "min_essence": 4,
     "prerequisites": [
-      ["dragonblooded.martial-arts.five-dragon-invulnerability"],
-      ["dragonblooded.martial-arts.five-dragon-fist"]
+      [
+        "dragonblooded.martial-arts.five-dragon-invulnerability"
+      ],
+      [
+        "dragonblooded.martial-arts.five-dragon-fist"
+      ]
     ],
-    "cost": {"health": 1, "raw": "1 mote per attack, 1 health level"},
+    "cost": {
+      "health": 1,
+      "raw": "1 mote per attack, 1 health level"
+    },
     "duration": "Instant",
     "description": "Suffused with the energy of the Five Elemental Dragons, the Exalted explodes into a flurry of action, hands and legs a blur. After invoking it he may make an extra attack per mote spent, all against a single target; all are rolled as normal, and if the target dodges or parries she makes one roll compared to all the attacks. The maximum number of extra attacks equals his Essence.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 199}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 199
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.martial-arts.spirit-sight",
@@ -135,10 +229,15 @@
     "min_ability": 3,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 5},
+    "cost": {
+      "motes": 5
+    },
     "duration": "One scene",
     "description": "The first step of Immaculate training: comprehending the spirit world. Possessing this Charm is a requirement for a Dragon-Blooded to learn the Charms of any Dragon Path. By spending its cost, the character perceives normally-invisible spirits and incorporeal beings for the scene (or until she reattunes to the normal world, a dice action). While it is active, tuning to the spirit world distracts her: all activity relating to the corporeal world suffers +1 difficulty.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 241}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 241
+    }
   },
   {
     "id": "dragonblooded.martial-arts.spirit-walking",
@@ -149,10 +248,20 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.martial-arts.spirit-sight"]],
-    "cost": {"motes": 3, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.martial-arts.spirit-sight"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "The second step of Immaculate training: mystically attuning to the spirit world on a physical level. Before a Dragon-Blooded may walk any Dragon Path, she must master this skill. For the scene, she interacts with spirits as if they were corporeal — her blows, weapons, Charms and abilities affect a spirit's immaterial form as though it were flesh, and spirit attacks likewise reach her. She remains bound by physical limitations and, unless Spirit Sight is also active, cannot see dematerialized spirits; when used together with Spirit Sight, that Charm's +1 difficulty penalty to physical action is negated.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 242}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 242
+    }
   }
 ]

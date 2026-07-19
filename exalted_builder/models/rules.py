@@ -181,6 +181,14 @@ class Charm(BaseModel):
     # Charm — the Immaculate chargen *package* stays Dragon-Blooded-only (see
     # engine.validate._immaculate_path, which also gates on exalt_type).
     open_to_all: bool = False
+    # Exalt *tiers* that may learn this Charm on top of `exalt_type` — the middle
+    # ground between one splat and `open_to_all`. Matched against
+    # ExaltDefinition.tier ("Terrestrial"/"Celestial"). Set ["Celestial"] on the
+    # Hungry Ghost Style (Abyssal) and Five-Dragon Style (Dragon-Blooded), which any
+    # Celestial Exalt may learn; adding Lunars/Sidereals as Celestial splats grants
+    # them these styles with no data or code change. Like `open_to_all`, a Charm
+    # learned this way is an ordinary Martial Arts Charm for the learner.
+    open_to_tiers: list[str] = Field(default_factory=list)
     type: CharmType
     min_ability: int = Field(default=0, ge=0)
     min_essence: int = Field(default=1, ge=1)
@@ -510,6 +518,11 @@ class ExaltDefinition(BaseModel):
     # Dragon-Blooded have "Aspect". Presentation only — the underlying field is
     # still Character.caste keyed to RuleSet.castes.
     caste_noun: str = "Caste"
+    # Which tier of Exalt this splat is: "Celestial" (Solar, Lunar, Sidereal,
+    # Abyssal) or "Terrestrial" (Dragon-Blooded). Read only by
+    # validate.charm_matches_splat, against Charm.open_to_tiers, to open a
+    # tier-wide Martial Arts style to splats other than the one that authored it.
+    tier: str = "Celestial"
 
 
 # The canonical Solar definition — the existing hardcoded formula moved into data

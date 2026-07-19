@@ -24,6 +24,8 @@ correcting the data corrects the engine.
 
 from __future__ import annotations
 
+from typing import Optional
+
 from pydantic import BaseModel
 
 from ..models.character import Character
@@ -313,7 +315,7 @@ def accessible_circles(ruleset: RuleSet, character: Character) -> set[SpellCircl
     display-ordering hint, not an access gate — the gate is the granting Charm."""
     out = granted_circles(ruleset, character)
     for charm in ruleset.charms.values():
-        if charm.grants_circle is not None and charm_matches_splat(character, charm):
+        if charm.grants_circle is not None and charm_matches_splat(character, charm, ruleset):
             out.add(charm.grants_circle)
     return out
 
@@ -928,12 +930,24 @@ def splat_of(charm: Charm) -> str:
     return charm.exalt_type
 
 
-def charm_matches_splat(character: Character, charm: Charm) -> bool:
+def charm_matches_splat(character: Character, charm: Charm,
+                        ruleset: Optional[RuleSet] = None) -> bool:
     """Whether `charm` is available to the character — the picker/graph filter and
-    the `charm-wrong-splat` check. A Charm matches when it belongs to the character's
-    own Exalt type, OR it is flagged `open_to_all` (cross-splat Charms such as the
-    Terrestrial Immaculate Dragon martial-arts styles, which any splat may learn)."""
-    return charm.open_to_all or splat_of(charm) == character.exalt_type
+    the `charm-wrong-splat` check. A Charm matches when
+
+      * it belongs to the character's own Exalt type, OR
+      * it is flagged `open_to_all` (cross-splat Charms such as the Terrestrial
+        Immaculate Dragon martial-arts styles, which any splat may learn), OR
+      * the character's Exalt *tier* is listed in `charm.open_to_tiers` — the
+        Celestial-only styles (Hungry Ghost, Five-Dragon).
+
+    The tier test needs the splat table, so it only applies when `ruleset` is
+    given; without one the call degrades to the splat/`open_to_all` answer."""
+    if charm.open_to_all or splat_of(charm) == character.exalt_type:
+        return True
+    if ruleset is not None and charm.open_to_tiers:
+        return ruleset.exalt_for(character.exalt_type).tier in charm.open_to_tiers
+    return False
 
 
 def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -943,7 +957,7 @@ def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issu
     issues: list[Issue] = []
     for cid in character.charms:
         charm = ruleset.charms.get(cid)
-        if charm is not None and not charm_matches_splat(character, charm):
+        if charm is not None and not charm_matches_splat(character, charm, ruleset):
             issues.append(Issue(
                 code="charm-wrong-splat", where=cid,
                 message=f"Charm {charm.name!r} is {splat_of(charm)}, not the "

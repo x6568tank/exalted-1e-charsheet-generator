@@ -149,7 +149,7 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> 
     locked. Pure — eligibility comes from engine.validate."""
     owned = set(character.charms)
     charms = [c for c in ruleset.charms.values()
-              if c.category == category and validate.charm_matches_splat(character, c)]
+              if c.category == category and validate.charm_matches_splat(character, c, ruleset)]
     charms.sort(key=lambda c: c.id)
 
     ox_id = validate.ox_body_charm_id(ruleset, character)

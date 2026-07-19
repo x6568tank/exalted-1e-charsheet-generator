@@ -8,10 +8,18 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 6},
+    "cost": {
+      "motes": 6
+    },
     "duration": "One scene",
     "description": "Attunes vision to the flow of Essence: beings with a permanent Essence rating appear traced with red veins glowing in proportion to their life force, and incorporeal spirits become visible to the character. Spending 1 mote and rolling Perception + Martial Arts as a simple action gauges one Trait of a target (health levels, permanent Essence, or current Essence pool) per success, though only overall power, not type or caste.",
-    "source": {"book": "Exalted 1e Core", "page": 162}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 162
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "abyssal.martial-arts.shrouded-claw-attack",
@@ -21,11 +29,23 @@
     "type": "Supplemental",
     "min_ability": 2,
     "min_essence": 2,
-    "prerequisites": [["abyssal.martial-arts.essence-discerning-glance"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "abyssal.martial-arts.essence-discerning-glance"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "The character's hands flicker like ghost-corpus: enemies attempting to dodge or parry the enhanced attack roll only half their normal pool (round down), and the attack makes no noise even on impact. Essence must be spent before the attack roll; incompatible with weapons.",
-    "source": {"book": "Exalted 1e Core", "page": 163}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 163
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "abyssal.martial-arts.hungry-ghost-form",
@@ -35,11 +55,23 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.martial-arts.shrouded-claw-attack"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "abyssal.martial-arts.shrouded-claw-attack"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "One scene",
     "description": "Takes on the visage of a ravening shade: all hand-to-hand attacks inflict lethal damage and he regains 1 mote of Essence per health level of damage inflicted on animate targets. He may reflexively spend 3 motes per attack to strike dematerialized spirits (though this grants no ability to see them); spirits slain regenerate slowly. Only one Martial Arts Form-type Charm at a time; incompatible with armor.",
-    "source": {"book": "Exalted 1e Core", "page": 163}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 163
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "abyssal.martial-arts.power-reaping-prana",
@@ -49,11 +81,23 @@
     "type": "Reflexive",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["abyssal.martial-arts.hungry-ghost-form"]],
-    "cost": {"willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.martial-arts.hungry-ghost-form"
+      ]
+    ],
+    "cost": {
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Reaches forth her anima to siphon Essence expended by enemies within 10 yards (Essence Discerning Glance must be active). Rolls Perception + Martial Arts; each success regains 2 motes, never more than the effect's total cost. Excess motes over permanent Essence dissipate at turn's end. May be Comboed with Charms of other Abilities.",
-    "source": {"book": "Exalted 1e Core", "page": 163}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 163
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "abyssal.martial-arts.charm-smothering-technique",
@@ -63,11 +107,23 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 4,
-    "prerequisites": [["abyssal.martial-arts.power-reaping-prana"]],
-    "cost": {"raw": "1+ motes"},
+    "prerequisites": [
+      [
+        "abyssal.martial-arts.power-reaping-prana"
+      ]
+    ],
+    "cost": {
+      "raw": "1+ motes"
+    },
     "duration": "Instant",
     "description": "Stifles an enemy's magic before it takes form: counters Charms activated within 10 yards (only singular Charms — not Combos, spells, or Fair Folk glamour). The target may pay a surcharge equal to the Essence the Abyssal invested; if unable or unwilling, the Charm fails and its costs are lost. Cannot spend more motes than Wits + Martial Arts, and Power Reaping Prana cannot draw energy from Charms smothered this way.",
-    "source": {"book": "Exalted 1e Core", "page": 164}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 164
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "abyssal.martial-arts.consuming-entropy-strike",
@@ -77,11 +133,23 @@
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.martial-arts.hungry-ghost-form"]],
-    "cost": {"raw": "1 mote per 2L"},
+    "prerequisites": [
+      [
+        "abyssal.martial-arts.hungry-ghost-form"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per 2L"
+    },
     "duration": "Instant",
     "description": "Brings the ravaging power of Oblivion to bear in a crackling nimbus: the attack inflicts lethal damage and reduces the victim's soak by 2L per mote spent (never below zero, for this attack only). Weakening non-magical armor leaves a fine layer of rust or rot.",
-    "source": {"book": "Exalted 1e Core", "page": 164}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 164
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "abyssal.martial-arts.unnatural-shambling-deftness",
@@ -91,11 +159,24 @@
     "type": "Extra Action",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.martial-arts.hungry-ghost-form"]],
-    "cost": {"motes": 5, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.martial-arts.hungry-ghost-form"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "The character's motions take on the jerking unsteadiness of the walking dead, granting a number of extra actions equal to her permanent Essence, usable for any combat-related task. She cannot split her dice pool the same turn; incompatible with armor.",
-    "source": {"book": "Exalted 1e Core", "page": 165}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 165
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "abyssal.martial-arts.blood-freezing-technique",
@@ -105,11 +186,24 @@
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.martial-arts.consuming-entropy-strike"]],
-    "cost": {"motes": 6, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.martial-arts.consuming-entropy-strike"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "The attack drains warmth on impact: if it inflicts damage the target loses one dot of Dexterity (recalculate initiative immediately), regained at scene's end. Characters reduced to zero Dexterity are paralyzed. No effect on beings immune to cold, including most undead and automata.",
-    "source": {"book": "Exalted 1e Core", "page": 165}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 165
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "abyssal.martial-arts.lunging-phantom-method",
@@ -119,11 +213,23 @@
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.martial-arts.unnatural-shambling-deftness"]],
-    "cost": {"motes": 4},
+    "prerequisites": [
+      [
+        "abyssal.martial-arts.unnatural-shambling-deftness"
+      ]
+    ],
+    "cost": {
+      "motes": 4
+    },
     "duration": "Instant",
     "description": "The Abyssal rushes forward, twisting and dematerializing to pass through his enemy and rematerialize behind her; the attack does no extra damage but gains all the benefits of attacking from behind. Incompatible with armor.",
-    "source": {"book": "Exalted 1e Core", "page": 165}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 165
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "abyssal.martial-arts.soul-flaying-strike",
@@ -134,13 +240,29 @@
     "min_ability": 5,
     "min_essence": 4,
     "prerequisites": [
-      ["abyssal.martial-arts.charm-smothering-technique"],
-      ["abyssal.martial-arts.blood-freezing-technique"],
-      ["abyssal.martial-arts.lunging-phantom-method"]
+      [
+        "abyssal.martial-arts.charm-smothering-technique"
+      ],
+      [
+        "abyssal.martial-arts.blood-freezing-technique"
+      ],
+      [
+        "abyssal.martial-arts.lunging-phantom-method"
+      ]
     ],
-    "cost": {"motes": 10, "willpower": 1, "health": 1},
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1
+    },
     "duration": "Instant",
     "description": "A powerful open-handed blow wreathed in moaning Essence: if it hits, roll the Abyssal's permanent Essence vs the victim's; if the Exalt wins, the victim takes unsoakable aggravated damage equal to the deathknight's Martial Arts score (in addition to the blow). Victims slain arise as obedient hungry ghosts; spirits and Fair Folk are annihilated. Incompatible with armor.",
-    "source": {"book": "Exalted 1e Core", "page": 165}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 165
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   }
 ]
