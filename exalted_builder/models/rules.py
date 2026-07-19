@@ -465,7 +465,12 @@ class ExaltDefinition(BaseModel):
     label: str
     essence: EssencePoolSpec
     magic_track: str = "sorcery"            # "sorcery" | "necromancy"
-    highest_magic_circle_id: str = ""       # circle barred at creation (e.g. "Solar")
+    # The circle this splat may NOT begin play knowing — withheld at chargen (Solars:
+    # "Solar", core p.100). This is the chargen bar, NOT the splat's reachable ceiling:
+    # set it "" (nothing barred) for a splat whose entry circle is also its cap, e.g.
+    # Dragon-Blooded (Terrestrial only) — barring their one circle would bar all their
+    # sorcery at creation. Read only by validate.chargen_barred_circle.
+    highest_magic_circle_id: str = ""       # e.g. "Solar"; "" = nothing barred at chargen
     ox_body_charm_id: str = ""              # the splat's repeatable health-level Charm
     # What this splat calls its caste slot in the UI: Solars have "Caste", the
     # Dragon-Blooded have "Aspect". Presentation only — the underlying field is

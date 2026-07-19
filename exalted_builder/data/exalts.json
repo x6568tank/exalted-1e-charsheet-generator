@@ -23,7 +23,7 @@
       "breeding_peripheral": [0, 2, 3, 5, 7, 9]
     },
     "magic_track": "sorcery",
-    "highest_magic_circle_id": "Terrestrial",
+    "highest_magic_circle_id": "",
     "ox_body_charm_id": "dragonblooded.endurance.ox-body-technique",
     "caste_noun": "Aspect"
   }

@@ -71,6 +71,19 @@ def test_db_calls_its_caste_slot_aspect(rs):
     assert rs.exalt_for("Solar").caste_noun == "Caste"
 
 
+def test_db_may_learn_terrestrial_spells_at_chargen(rs):
+    # Terrestrial is the DB's only circle, so nothing is barred at creation: a DB who
+    # takes the Terrestrial Circle Sorcery initiation Charm CAN learn its spells at
+    # chargen. (Regression: the old "bar the top circle" default barred their only one.)
+    c = _db_fire()
+    c.charms = ["dragonblooded.occult.terrestrial-circle-sorcery"]
+    assert validate.chargen_barred_circle(rs, c) is None
+    spell = rs.spells["spell.terrestrial.death-of-obsidian-butterflies"]
+    assert validate.meets_spell_requirements(rs, c, spell) is True
+    # and the Solar top-circle bar is unaffected
+    assert rs.exalt_for("Solar").highest_magic_circle_id == "Solar"
+
+
 def test_db_bonus_costs(rs):
     bc = rs.bonus_costs_for("Dragon-Blooded")
     assert (bc.charm, bc.charm_favored_caste) == (7, 5)
