@@ -175,13 +175,24 @@ def test_full_melee_chain_is_legal_on_real_data():
 
 def test_spells_load_with_expected_circle_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.spells) == 19
+    assert len(rs.spells) == 20
     by_circle = {circle: 0 for circle in SpellCircle}
     for s in rs.spells.values():
         by_circle[s.circle] += 1
-    assert by_circle == {SpellCircle.TERRESTRIAL: 9,
+    # Terrestrial gained the Dragon-Blooded Sworn Brothers' Oath (p161)
+    assert by_circle == {SpellCircle.TERRESTRIAL: 10,
                          SpellCircle.CELESTIAL: 6,
                          SpellCircle.SOLAR: 4}
+
+
+def test_sworn_brothers_oath_loads(rs=None):
+    rs = rules_db.load_ruleset(DATA_DIR)
+    s = rs.spells["spell.terrestrial.sworn-brothers-oath"]
+    assert s.name == "Sworn Brothers' Oath"
+    assert s.circle == SpellCircle.TERRESTRIAL       # any sorcerer of this circle may learn it
+    assert s.cost.motes == 10                         # base; the +1/Exalt is in the raw string
+    assert "1 mote" in s.cost.raw
+    assert s.source.page == 161
 
 
 def test_each_circle_is_granted_by_its_sorcery_charm():

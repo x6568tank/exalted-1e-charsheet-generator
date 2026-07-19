@@ -64,6 +64,14 @@
     "source": {"book": "Exalted 1e Core", "page": 219}
   },
   {
+    "id": "spell.terrestrial.sworn-brothers-oath",
+    "name": "Sworn Brothers' Oath",
+    "circle": "Terrestrial",
+    "cost": {"motes": 10, "raw": "10 motes + 1 mote from each Exalted bound by the spell"},
+    "description": "Binds the Essence of two or more Exalted (of any type) into a sworn brotherhood over an hour-long ritual (one additional hour per Exalt beyond the first two); the sorcerer need not be one of the bound. The caster's Intelligence + Occult successes set the brotherhood's level, which drives three linked effects: Loyalty (a Conviction roll beating that level is needed to act to harm a sworn sibling), Devotion (a once-per-story bonus dice pool equal to the oathbond rating when aiding a sworn sibling), and Familiarity (each knows a sworn sibling's location within rating x 10 yards, or its direction on an Essence roll beyond that).",
+    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 161}
+  },
+  {
     "id": "spell.terrestrial.wood-dragons-claw",
     "name": "Wood Dragon's Claw",
     "circle": "Terrestrial",
