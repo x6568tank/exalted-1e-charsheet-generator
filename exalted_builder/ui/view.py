@@ -33,6 +33,7 @@ class CharmRow:
     name: str
     category: str
     cost: str
+    description: str = ""
 
 
 @dataclass
@@ -40,6 +41,7 @@ class SpellRow:
     name: str
     circle: str
     cost: str
+    description: str = ""
 
 
 @dataclass
@@ -403,7 +405,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     for cid in character.charms:
         charm = ruleset.charms.get(cid)
         if charm:
-            charms.append(CharmRow(charm.name, charm.category, _cost_str(charm.cost)))
+            charms.append(CharmRow(charm.name, charm.category, _cost_str(charm.cost), charm.description))
         else:
             charms.append(CharmRow(cid, "?", "—"))
     # Repeatable Ox-Body Technique: one row per purchase, labelled by its package.
@@ -412,12 +414,12 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         labels = {v.key: v.label for v in ox_charm.variants}
         for p in character.ox_body:
             charms.append(CharmRow(f"{ox_charm.name} ({labels.get(p.variant, p.variant)})",
-                                   ox_charm.category, "—"))
+                                   ox_charm.category, "—", ox_charm.description))
     spells = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
         if spell:
-            spells.append(SpellRow(spell.name, spell.circle.value, _cost_str(spell.cost)))
+            spells.append(SpellRow(spell.name, spell.circle.value, _cost_str(spell.cost), spell.description))
         else:
             spells.append(SpellRow(sid, "?", "—"))
 

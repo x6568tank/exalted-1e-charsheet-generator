@@ -122,6 +122,17 @@ async def test_db_picker_shows_immaculate_path_banner(user: User) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_sheet_shows_charm_and_spell_descriptions(user: User) -> None:
+    # the read-only sheet lists each Charm/spell with its description sub-line
+    await user.open('/sheet-desc')
+    await user.should_see("Fire and Stones Strike")
+    await user.should_see("Adds an extra die of damage")     # the Charm's description
+    await user.should_see("Death of Obsidian Butterflies")
+    await user.should_see("razor-sharp obsidian")            # the spell's description
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_dragonblooded_sheet_renders_red(user: User) -> None:
     # the read-only sheet themes from the SheetView's exalt type
     await user.open('/dbsheet')

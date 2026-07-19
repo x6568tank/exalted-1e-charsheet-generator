@@ -83,5 +83,14 @@ CHAR_BUILDER = Character(id="bld", name="Fresh", caste="dawn")
 def page_builder():
     builder.build_app(RS, CHAR_BUILDER, Path("x.json"))
 
+# (g) a Solar holding a described Charm + spell — the sheet shows their descriptions
+CHAR_SHEET = Character(id="sh", name="Described", caste="dawn")
+CHAR_SHEET.charms = ["solar.melee.fire-and-stones-strike"]
+CHAR_SHEET.spells = ["spell.terrestrial.death-of-obsidian-butterflies"]
+
+@ui.page('/sheet-desc')
+def page_sheet_desc():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_SHEET))
+
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()

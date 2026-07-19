@@ -142,19 +142,25 @@ def render_sheet(view: viewmod.SheetView) -> None:
                 if not view.charms:
                     ui.label("—").classes("text-sm text-gray-400")
                 for c in view.charms:
-                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                        ui.label(c.name).classes("text-sm flex-1 truncate")
-                        ui.label(c.category).classes("text-xs text-gray-500")
-                        ui.label(c.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
+                    with ui.column().classes("w-full gap-0"):
+                        with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                            ui.label(c.name).classes("text-sm flex-1 truncate")
+                            ui.label(c.category).classes("text-xs text-gray-500")
+                            ui.label(c.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
+                        if c.description:
+                            ui.label(c.description).classes("text-xs text-gray-600 mb-1")
             with _panel().classes("flex-1"):
                 ui.label(f"Spells ({len(view.spells)})").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 if not view.spells:
                     ui.label("—").classes("text-sm text-gray-400")
                 for s in view.spells:
-                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                        ui.label(s.name).classes("text-sm flex-1 truncate")
-                        ui.label(s.circle).classes("text-xs text-gray-500")
-                        ui.label(s.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
+                    with ui.column().classes("w-full gap-0"):
+                        with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                            ui.label(s.name).classes("text-sm flex-1 truncate")
+                            ui.label(s.circle).classes("text-xs text-gray-500")
+                            ui.label(s.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
+                        if s.description:
+                            ui.label(s.description).classes("text-xs text-gray-600 mb-1")
 
         # --- bottom band: gear | willpower+health | virtues+essence ------- #
         with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
