@@ -32,5 +32,29 @@
     "virtue_dots": 5,
     "essence_start": 2,
     "bonus_points": 15
+  },
+  "Abyssal": {
+    "attribute_pools": [8, 6, 4],
+    "ability_dots": 25,
+    "ability_min_caste_favored": 10,
+    "favored_count": 5,
+    "background_dots": 13,
+    "charm_count": 10,
+    "charm_min_caste_favored": 5,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 15
+  },
+  "Abyssal:fugitive": {
+    "attribute_pools": [8, 6, 4],
+    "ability_dots": 25,
+    "ability_min_caste_favored": 10,
+    "favored_count": 5,
+    "background_dots": 5,
+    "charm_count": 10,
+    "charm_min_caste_favored": 5,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 15
   }
 }

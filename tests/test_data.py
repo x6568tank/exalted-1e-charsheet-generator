@@ -11,7 +11,7 @@ import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import validate
 from exalted_builder.models.character import Character
-from exalted_builder.models.rules import AbilityName, SpellCircle
+from exalted_builder.models.rules import AbilityName, SpellCircle, TRACK_CIRCLES
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
@@ -45,11 +45,12 @@ def test_each_caste_keyed_by_its_own_id():
 
 def test_every_caste_has_a_description_and_anima_power():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.castes) == 10          # 5 Solar castes + 5 Dragon-Blooded Aspects
+    assert len(rs.castes) == 15          # 5 Solar + 5 Dragon-Blooded Aspects + 5 Abyssal
     for cd in rs.castes.values():
         assert cd.description and cd.anima_powers
     assert rs.castes["dawn"].description.startswith("Masters of war")
     assert rs.castes["fire"].exalt_type == "Dragon-Blooded"
+    assert rs.castes["dusk"].exalt_type == "Abyssal"
 
 
 def test_ox_body_technique_loads_repeatable_with_three_variants():
@@ -175,14 +176,19 @@ def test_full_melee_chain_is_legal_on_real_data():
 
 def test_spells_load_with_expected_circle_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.spells) == 20
-    by_circle = {circle: 0 for circle in SpellCircle}
+    assert len(rs.spells) == 43
+    by_circle: dict = {}
     for s in rs.spells.values():
-        by_circle[s.circle] += 1
-    # Terrestrial gained the Dragon-Blooded Sworn Brothers' Oath (p161)
+        by_circle[s.circle] = by_circle.get(s.circle, 0) + 1
+    # Three Sorcery circles (Terrestrial gained the Dragon-Blooded Sworn Brothers'
+    # Oath, p161) plus the three Necromancy circles authored in the Abyssal phase
+    # (Abyssal p224-229).
     assert by_circle == {SpellCircle.TERRESTRIAL: 10,
                          SpellCircle.CELESTIAL: 6,
-                         SpellCircle.SOLAR: 4}
+                         SpellCircle.SOLAR: 4,
+                         SpellCircle.SHADOWLANDS: 9,
+                         SpellCircle.LABYRINTH: 7,
+                         SpellCircle.VOID: 7}
 
 
 def test_sworn_brothers_oath_loads(rs=None):
@@ -201,7 +207,9 @@ def test_each_circle_is_granted_by_its_sorcery_charm():
     rs = rules_db.load_ruleset(DATA_DIR)
     grants = {c.grants_circle for c in rs.charms.values()
               if c.grants_circle is not None}
-    assert grants == set(SpellCircle)
+    # Every circle of both tracks now has an initiation Charm: the three Sorcery
+    # circles (Solar/DB Occult) and the three Necromancy circles (Abyssal Occult).
+    assert grants == set(TRACK_CIRCLES["sorcery"]) | set(TRACK_CIRCLES["necromancy"])
 
 
 def _sorcerer(charms) -> Character:

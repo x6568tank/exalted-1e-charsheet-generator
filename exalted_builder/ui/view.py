@@ -17,7 +17,8 @@ from typing import Optional
 
 from ..engine import advancement, derive, validate
 from ..models.character import Armor, Character, Weapon, XpEntry
-from ..models.rules import AbilityName, CharmCost, RuleSet, SpellCircle, VirtueName
+from ..models.rules import (AbilityName, CharmCost, RuleSet, SpellCircle,
+                            TRACK_CIRCLES, VirtueName, circle_kind)
 
 
 @dataclass
@@ -268,18 +269,29 @@ def build_xp_log(ruleset: RuleSet, character: Character) -> list[XpLogRow]:
     ]
 
 
-_CIRCLE_ORDER = {SpellCircle.TERRESTRIAL: 0, SpellCircle.CELESTIAL: 1, SpellCircle.SOLAR: 2}
+# Global circle order for display: the two tracks laid end to end in TRACK_CIRCLES
+# order (sorcery Terrestrial→Solar, then necromancy Shadowlands→Void). A picker may
+# now show circles from BOTH tracks (Abyssals reach sorcery and necromancy), so the
+# index must be global rather than per-track.
+CIRCLE_DISPLAY_ORDER = tuple(c for circles in TRACK_CIRCLES.values() for c in circles)
+_CIRCLE_ORDER = {c: i for i, c in enumerate(CIRCLE_DISPLAY_ORDER)}
 
 
 def build_spell_picker(ruleset: RuleSet, character: Character) -> list[SpellPickRow]:
-    """Every Spell in the RuleSet tagged by the character's relationship to it:
-    owned, available (a known Charm grants its circle and it isn't a chargen-barred
-    Solar spell), or locked with a one-line reason. Ordered by circle then name.
-    Pure — eligibility comes from engine.validate."""
+    """Every Spell of a circle the character can reach, tagged by the character's
+    relationship to it: owned, available (a known Charm grants its circle and it
+    isn't a chargen-barred top-circle spell), or locked with a one-line reason.
+    Circles the character cannot reach at all (no learnable initiation Charm grants
+    them) are omitted, so a plain Solar sees only Sorcery while an Abyssal — whose
+    Occult tree holds both sorcery and necromancy initiations — sees both. Ordered
+    by circle then name. Pure — eligibility comes from engine.validate."""
+    reachable = validate.accessible_circles(ruleset, character)
     barred = validate.chargen_barred_circle(ruleset, character)
     rows: list[SpellPickRow] = []
     for spell in sorted(ruleset.spells.values(),
                         key=lambda s: (_CIRCLE_ORDER.get(s.circle, 9), s.name)):
+        if spell.circle not in reachable:
+            continue
         owned = spell.id in character.spells
         available = validate.meets_spell_requirements(ruleset, character, spell)
         reason = ""
@@ -337,25 +349,28 @@ def _label(value: str) -> str:
     return value.replace("_", " ").title()
 
 
-# Sorcery casting time by circle (core p.216): the turns spent shaping Essence before
-# a spell of that circle takes effect — Terrestrial 1, Celestial 2, Solar 3. Shown as
-# descriptive flavour on the circle-granting Sorcery Charm (which is what unlocks that
-# circle's spells), NOT on each spell — some spells (rituals, summonings) state their
-# own longer casting time. This is flavour text, NOT a play mechanic (actual play is
-# out of scope; the Play tab is a manual tracker).
-_SHAPING_TURNS = {SpellCircle.TERRESTRIAL: 1, SpellCircle.CELESTIAL: 2, SpellCircle.SOLAR: 3}
+# Casting time by circle: the turns spent shaping Essence before a spell of that
+# circle takes effect — 1/2/3 for the low/mid/top circle of each track. Sorcery is
+# core p.216 (Terrestrial 1, Celestial 2, Solar 3); necromancy casting times "parallel
+# sorcery" (Abyssal p.223), so Shadowlands 1, Labyrinth 2, Void 3. Shown as descriptive
+# flavour on the circle-granting initiation Charm (which unlocks that circle's spells),
+# NOT on each spell — some spells (rituals, summonings) state their own longer casting
+# time. Flavour text, NOT a play mechanic (actual play is out of scope).
+_SHAPING_TURNS = {SpellCircle.TERRESTRIAL: 1, SpellCircle.CELESTIAL: 2, SpellCircle.SOLAR: 3,
+                  SpellCircle.SHADOWLANDS: 1, SpellCircle.LABYRINTH: 2, SpellCircle.VOID: 3}
 
 
 def _charm_description(charm) -> str:
     """The Charm's description, with the per-circle casting time appended when the
-    Charm grants a Sorcery circle (the Terrestrial/Celestial/Solar Circle Sorcery
-    Charms). Other Charms are returned unchanged."""
+    Charm grants a magic circle (the Sorcery or Necromancy Circle initiation Charms).
+    Other Charms are returned unchanged."""
     turns = _SHAPING_TURNS.get(charm.grants_circle) if charm.grants_circle else None
     if not turns:
         return charm.description
+    page = "p.216" if circle_kind(charm.grants_circle) == "sorcery" else "p.223"
     note = (f"{charm.grants_circle.value} Circle spells require {turns} "
             f"turn{'s' if turns > 1 else ''} of shaping the Essence before taking "
-            f"effect (p.216).")
+            f"effect ({page}).")
     return f"{charm.description} {note}".strip()
 
 

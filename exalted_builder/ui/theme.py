@@ -71,9 +71,19 @@ _DRAGON_BLOODED = Palette(
     bg="#f7ece3", node_bg="#fff8f4", button="red-10", fam="red",
 )
 
+# Abyssal / deathknight: near-black ink in place of the Solar gold, on an ashen
+# grey parchment — the black-and-bone palette of the Underworld. `fam` is the
+# neutral (grayscale) Tailwind family so card tints and borders read as ash.
+_ABYSSAL = Palette(
+    splat_label="Abyssal",
+    accent="#1c1c1c", accent_dark="#000000", ink="#1a1a1a",
+    bg="#ededed", node_bg="#f7f7f7", button="dark", fam="neutral",
+)
+
 _BY_SPLAT: dict[str, Palette] = {
     "Solar": _SOLAR,
     "Dragon-Blooded": _DRAGON_BLOODED,
+    "Abyssal": _ABYSSAL,
 }
 
 

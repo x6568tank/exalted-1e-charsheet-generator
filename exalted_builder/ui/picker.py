@@ -26,7 +26,7 @@ from nicegui import ui
 from .. import persistence, rules_db
 from ..engine import validate
 from ..models.character import Character, OxBodyPurchase
-from ..models.rules import RuleSet
+from ..models.rules import RuleSet, circle_kind
 from . import theme
 from . import view as viewmod
 from .assets import cytoscape_head_html
@@ -256,13 +256,24 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         by_circle: dict[str, list] = {}
         for r in rows:
             by_circle.setdefault(r.circle, []).append(r)
+        # One column per circle actually present in the rows, in global track order
+        # (sorcery Terrestrial→Solar, then necromancy Shadowlands→Void). A character
+        # reaches whatever circles a learnable initiation Charm grants, so an Abyssal
+        # whose Occult tree holds both sorcery and necromancy initiations shows both
+        # (p.223); a plain Solar shows only Sorcery.
+        present = [ce for ce in viewmod.CIRCLE_DISPLAY_ORDER if by_circle.get(ce.value)]
+        kinds = {circle_kind(ce) for ce in present}
+        magic_noun = ("Necromancy" if kinds == {"necromancy"}
+                      else "Sorcery" if kinds == {"sorcery"}
+                      else "Sorcery/Necromancy")
         with ui.card().classes(f"w-full p-3 {pal.card}"):
             with ui.row().classes("w-full items-baseline gap-3"):
                 ui.label("Spells").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
-                ui.label("A spell takes a Charm pick (p.100); learn the matching Circle "
-                         "Sorcery Charm to unlock it.").classes("text-xs text-gray-500")
+                ui.label(f"A spell takes a Charm pick (p.100); learn the matching Circle "
+                         f"{magic_noun} Charm to unlock it.").classes("text-xs text-gray-500")
             with ui.row().classes("w-full gap-6 items-start no-wrap"):
-                for circle in ("Terrestrial", "Celestial", "Solar"):
+                for circle_enum in present:
+                    circle = circle_enum.value
                     with ui.column().classes("flex-1 gap-1 min-w-0"):
                         ui.label(f"{circle} Circle").classes(
                             f"text-xs font-semibold border-b {pal.rule} w-full").style(f"color:{pal.accent}")

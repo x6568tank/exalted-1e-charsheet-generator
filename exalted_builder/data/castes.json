@@ -78,5 +78,45 @@
     "caste_abilities": ["archery", "medicine", "performance", "ride", "survival"],
     "description": "Attuned to the cycles of life and nature, the Children of Sextes Jylis are as solid as oaks, as beautiful as orchids and as deadly as hemlock.",
     "anima_powers": "A Wood-aspected Dragon-Blooded may spend 5 motes to attune her anima to the local flora, becoming as flexible as a sapling in the wind. For the rest of the scene she may add her Essence in dice to a single Dodge or Athletics action once per turn (reflexive, not supplemental — she may instead take a free Dodge or Athletics action with a dice pool equal to her Essence)."
+  },
+  {
+    "id": "dusk",
+    "exalt_type": "Abyssal",
+    "label": "Dusk",
+    "caste_abilities": ["archery", "brawl", "martial_arts", "melee", "thrown"],
+    "description": "Masters of bringing death through war, the Peacebringers are the leaders and champions of the Underworld's armies. The Deathlords choose the Dusk Caste from those with a talent for the arts of combat and weaponry.",
+    "anima_powers": "By spending 10 motes of Essence, the deathknight appears dark and terrible for the rest of the scene (or until he lets the effect dissipate). Mortals attempting to face him must make a Valor check or be unable to look directly at him or strongly oppose him, taking -2 dice on all attempts to attack him. Those who botch the Valor roll — and most natural animals — flee in terror."
+  },
+  {
+    "id": "midnight",
+    "exalt_type": "Abyssal",
+    "label": "Midnight",
+    "caste_abilities": ["endurance", "performance", "presence", "resistance", "survival"],
+    "description": "The Echoes of the Abyss are high priests and evangelists of death. The Deathlords choose the Midnight Caste from those who crave the end of all life and wish to awaken that craving in others.",
+    "anima_powers": "With a touch, the deathknight raises the fallen: she spends 5 motes of Essence and touches a corpse, which rises as a zombie (permanent duration, always an extra) by the end of the scene. She may also strike down the living with an icy glance — as her action she channels 5 motes of Essence through her anima and indicates a normal mortal within 10 yards, inflicting her Essence in dice of unsoakable aggravated damage. This glance has no effect on the Fair Folk, the Exalted or other magical beings."
+  },
+  {
+    "id": "daybreak",
+    "exalt_type": "Abyssal",
+    "label": "Daybreak",
+    "caste_abilities": ["craft", "investigation", "lore", "medicine", "occult"],
+    "description": "Necromancers and craftsmen of the Abyssal Exalted, the Children of Bone are dark and morbid artisans. The Deathlords choose the Daybreak Caste from those who seek the darkest forms of knowledge and apply it to create horrifying results.",
+    "anima_powers": "After an enemy has rolled damage that would cost the deathknight health levels, he may spend 5 motes of Essence to fill his anima with the power of the Underworld and blunt the blow. Roll his Essence: each success subtracts one health level from the damage — enough to reduce a weak attack to harmlessness or survive an otherwise-deadly strike."
+  },
+  {
+    "id": "day",
+    "exalt_type": "Abyssal",
+    "label": "Day",
+    "caste_abilities": ["athletics", "awareness", "dodge", "larceny", "stealth"],
+    "description": "Lords of stealth and trickery, the Daywalkers walk unseen among the living. The Deathlords choose the Day Caste from those who excel in entering places where they are not wanted or in finding unconventional ways of bringing death.",
+    "anima_powers": "The Day Caste can mute their animas. By doubling the motes spent, the deathknight prevents an expenditure of Peripheral Essence from adding to her anima banner (this cannot mute the Essence display of sorcery). She may also spend 5 motes of Essence to extend her muted anima like a choking cloak for the scene, dulling the senses of those who would perceive her or follow her trail — increasing the difficulty of all rolls to detect or track her by 1."
+  },
+  {
+    "id": "moonshadow",
+    "exalt_type": "Abyssal",
+    "label": "Moonshadow",
+    "caste_abilities": ["bureaucracy", "linguistics", "ride", "sail", "socialize"],
+    "description": "Diplomats and bureaucrats, the Hollow Darkness is the force that keeps the empires of the dead running smoothly. The Deathlords chose the Moonshadow Caste from those who master the arts of negotiation, travel and treachery.",
+    "anima_powers": "When party or witness to an oath, the deathknight may sanctify it: touching the hands of those sworn, he spends 10 motes of Essence and 1 Willpower. An oathbreaker suffers terrible luck, horribly botching a critical roll a number of times equal to the deathknight's Essence when he witnessed the oath. Moonshadows are also gifted generalists — with a willing tutor they may learn the Charms of other Exalted and even spirits (including ghosts), though such Charms cost double the experience to learn and use."
   }
 ]

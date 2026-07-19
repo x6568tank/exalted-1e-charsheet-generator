@@ -1,0 +1,89 @@
+[
+  {
+    "id": "abyssal.dodge.flitting-shadow-form",
+    "name": "Flitting Shadow Form",
+    "category": "dodge",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {"raw": "1 mote per 2 dice"},
+    "duration": "Instant",
+    "description": "Channels Essence through his movements to become extremely hard to strike: per mote spent, reduce the dice pool of a single attack aimed at him by two dice (can reduce it to zero, ensuring a miss). Activatable any time after an attack is declared but before dice are rolled; only affects attacks he is aware of.",
+    "source": {"book": "Exalted 1e Core", "page": 205}
+  },
+  {
+    "id": "abyssal.dodge.uncanny-impulse-evasion",
+    "name": "Uncanny Impulse Evasion",
+    "category": "dodge",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.dodge.flitting-shadow-form"]],
+    "cost": {"motes": 2},
+    "duration": "Instant",
+    "description": "Feels impending dread and sidesteps an unseen blow on impulse: dodge pool for such an attack equals her unmodified Dexterity. Cannot be Comboed with other Dodge Charms. If she does not activate it in response to an unseen blow, she does not sense it until it lands. Activated before the attack roll.",
+    "source": {"book": "Exalted 1e Core", "page": 206}
+  },
+  {
+    "id": "abyssal.dodge.fivefold-shadow-form",
+    "name": "Fivefold Shadow Form",
+    "category": "dodge",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.dodge.flitting-shadow-form"]],
+    "cost": {"motes": 2},
+    "duration": "Instant",
+    "description": "The attacker loses a number of dice from a single attack roll equal to the deathknight's Dodge + Essence; if this reduces the attack pool to zero, the blow automatically misses. Activated before the attack roll.",
+    "source": {"book": "Exalted 1e Core", "page": 206}
+  },
+  {
+    "id": "abyssal.dodge.flickering-wisp-technique",
+    "name": "Flickering Wisp Technique",
+    "category": "dodge",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.dodge.fivefold-shadow-form"]],
+    "cost": {"motes": 6},
+    "duration": "Instant",
+    "description": "Ripples and vanishes like smoke, coalescing a split second later a short distance away: perfectly dodges any one attack he can perceive without a roll, including area effects. Cannot dodge magical effects that explicitly prohibit dodging. May move no more yards than permanent Essence, and cannot teleport through solid barriers. Activated before the attack roll.",
+    "source": {"book": "Exalted 1e Core", "page": 206}
+  },
+  {
+    "id": "abyssal.dodge.flowing-evasion-assault",
+    "name": "Flowing Evasion Assault",
+    "category": "dodge",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [["abyssal.dodge.flickering-wisp-technique"]],
+    "cost": {"motes": 6},
+    "duration": "Instant",
+    "description": "Follows Flickering Wisp Technique's teleport-dodge with two exceptions: she may reappear as far as Dodge yards away, and if the attacker is within range she may automatically reappear behind him. With any actions remaining she may attack with the full benefits of attacking from behind.",
+    "source": {"book": "Exalted 1e Core", "page": 206}
+  },
+  {
+    "id": "abyssal.dodge.incomparable-phantom-form",
+    "name": "Incomparable Phantom Form",
+    "category": "dodge",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      ["abyssal.dodge.uncanny-impulse-evasion"],
+      ["abyssal.dodge.flickering-wisp-technique"]
+    ],
+    "cost": {"motes": 5, "willpower": 1},
+    "duration": "One scene",
+    "description": "Suffuses his body with spectral Essence, becoming translucent and partially dematerialized: unnerves opponents and lets him dodge all incoming attacks, perceived or otherwise, with his full Dexterity + Dodge pool.",
+    "source": {"book": "Exalted 1e Core", "page": 206}
+  }
+]

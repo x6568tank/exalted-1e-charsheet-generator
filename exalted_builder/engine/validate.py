@@ -259,6 +259,23 @@ def granted_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
     }
 
 
+def accessible_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
+    """Every magic circle this character can reach — the circle granted by any
+    initiation Charm they may learn (their own Exalt type, or an `open_to_all`
+    Charm), unioned with circles already granted by known Charms.
+
+    This is what the spell picker should show, and it is deliberately NOT the same
+    as the Exalt's nominal `magic_track`: a splat whose Charm trees hold BOTH sorcery
+    and necromancy initiations (Abyssals carry Terrestrial/Celestial Sorcery AND the
+    three Necromancy circles) reaches both tracks, so its picker must too. Track is a
+    display-ordering hint, not an access gate — the gate is the granting Charm."""
+    out = granted_circles(ruleset, character)
+    for charm in ruleset.charms.values():
+        if charm.grants_circle is not None and charm_matches_splat(character, charm):
+            out.add(charm.grants_circle)
+    return out
+
+
 def chargen_barred_circle(ruleset: RuleSet, character: Character) -> SpellCircle | None:
     """The magic circle barred at character creation for this Exalt type, resolved
     from ExaltDefinition.highest_magic_circle_id (Solars: the Solar Circle, core

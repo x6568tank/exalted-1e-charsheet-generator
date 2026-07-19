@@ -1,0 +1,103 @@
+[
+  {
+    "id": "abyssal.bureaucracy.authority-eroding-technique",
+    "name": "Authority-Eroding Technique",
+    "category": "bureaucracy",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {"raw": "1 mote per die"},
+    "duration": "Instant",
+    "description": "Momentarily confuses a target at a critical moment: per mote spent, the target loses one die from a single Bureaucracy roll (not below her Essence). Invoked any time after an appropriate action is declared but before dice are rolled; he may even set up the targeted roll (e.g. a pointed question in a meeting).",
+    "source": {"book": "Exalted 1e Core", "page": 211}
+  },
+  {
+    "id": "abyssal.bureaucracy.argument-slaying-remark",
+    "name": "Argument-Slaying Remark",
+    "category": "bureaucracy",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.bureaucracy.authority-eroding-technique"]],
+    "cost": {"motes": 3},
+    "duration": "Instant",
+    "description": "By speaking brusquely and projecting menace, cuts through drawn-out debate: the targeted argument ends within moments with the best resolution he could have reached with continued discussion (e.g. the best price from a merchant). Not a perfect 'final word' — if the answer would be no regardless, it remains no; it just concludes the matter instantly.",
+    "source": {"book": "Exalted 1e Core", "page": 211}
+  },
+  {
+    "id": "abyssal.bureaucracy.alluring-eloquence-method",
+    "name": "Alluring Eloquence Method",
+    "category": "bureaucracy",
+    "exalt_type": "Abyssal",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.bureaucracy.argument-slaying-remark"]],
+    "cost": {"motes": 4},
+    "duration": "Instant",
+    "description": "Vocalizes a course of action or point of view with such eloquence and grace that opponents find it difficult or impossible to argue: make the Bureaucracy or Performance roll normally, but all rivals add the deathknight's Essence to the difficulty of their counterarguments.",
+    "source": {"book": "Exalted 1e Core", "page": 212}
+  },
+  {
+    "id": "abyssal.bureaucracy.corruption-sensing-scrutiny",
+    "name": "Corruption-Sensing Scrutiny",
+    "category": "bureaucracy",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {"motes": 2},
+    "duration": "Instant",
+    "description": "Perceives corrupt officials by an oily stain on their aura, or gauges a 'clean' official's susceptibility to corruption: roll Perception + Bureaucracy vs the target's Essence. One success reveals whether the target has ever engaged in corruption; three measures its depth/vulnerability; five gives a sense of the specific offenses. Lets him exploit a hidden weakness or know whom best to bribe.",
+    "source": {"book": "Exalted 1e Core", "page": 212}
+  },
+  {
+    "id": "abyssal.bureaucracy.cunning-subversion-style",
+    "name": "Cunning Subversion Style",
+    "category": "bureaucracy",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [["abyssal.bureaucracy.corruption-sensing-scrutiny"]],
+    "cost": {"motes": 10, "willpower": 1},
+    "duration": "One week",
+    "description": "With artful rumors and whispers, sows discord and mistrust within a bureau (up to Essence×20 members): tempers flare, factionalism and hostility grow, and the bureau grinds to a halt. Larger organizations need multiple uses or accept a slower, lesser effect. Overall corruption/rivalry and leadership quality modify the result (Storyteller adjudication).",
+    "source": {"book": "Exalted 1e Core", "page": 212}
+  },
+  {
+    "id": "abyssal.bureaucracy.regime-toppling-insinuation",
+    "name": "Regime-Toppling Insinuation",
+    "category": "bureaucracy",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [["abyssal.bureaucracy.cunning-subversion-style"]],
+    "cost": {"motes": 10, "willpower": 1},
+    "duration": "One week",
+    "description": "Parallels Cunning Subversion Style but focuses the havoc against a specific leader: even without an actual coup, treachery and distrust make all but the most tyrannical despot ineffective — orders are twisted or ignored and morale drops. Affects up to Essence×20 people per use. True tyrants have little to fear, as they already retain authority against negative opinion.",
+    "source": {"book": "Exalted 1e Core", "page": 213}
+  },
+  {
+    "id": "abyssal.bureaucracy.iron-tyrant-mien",
+    "name": "Iron Tyrant Mien",
+    "category": "bureaucracy",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      ["abyssal.bureaucracy.alluring-eloquence-method"],
+      ["abyssal.bureaucracy.regime-toppling-insinuation"]
+    ],
+    "cost": {"motes": 12, "willpower": 1},
+    "duration": "One week",
+    "description": "Enchants his authority to sow fear and discourage rebellion (he must hold some recognized leadership position). While active, no one with Willpower below his permanent Essence can consider disobedience, let alone rebel; those with equal Willpower may act against him but at +permanent-Essence difficulty on all Social rolls to rally others. No effect on higher-Willpower characters, magical beings, or those outside his hierarchy.",
+    "source": {"book": "Exalted 1e Core", "page": 213}
+  }
+]

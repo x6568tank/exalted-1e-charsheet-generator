@@ -103,9 +103,12 @@ def test_spell_picker_states_track_circle_access():
     # No Sorcery Charm yet: every spell is locked with a reason.
     rows = viewmod.build_spell_picker(rs, c)
     assert rows and all(not r.available and not r.owned and r.reason for r in rows)
-    # ordered Terrestrial -> Celestial -> Solar
+    # Solars reach Sorcery plus Shadowlands/Labyrinth Necromancy (never the Void
+    # Circle); circles are ordered by the global display order.
     circles = [r.circle for r in rows]
-    assert circles == sorted(circles, key=["Terrestrial", "Celestial", "Solar"].index)
+    order = [ce.value for ce in viewmod.CIRCLE_DISPLAY_ORDER]
+    assert circles == sorted(circles, key=order.index)
+    assert "Void" not in circles
 
     # Learn Terrestrial Circle Sorcery: Terrestrial spells become available,
     # higher circles stay locked, Solar is always barred at chargen.

@@ -26,5 +26,18 @@
     "highest_magic_circle_id": "",
     "ox_body_charm_id": "dragonblooded.endurance.ox-body-technique",
     "caste_noun": "Aspect"
+  },
+  {
+    "id": "Abyssal",
+    "label": "Abyssal Exalted",
+    "essence": {
+      "personal_essence_coeff": 3,
+      "peripheral_essence_coeff": 7,
+      "peripheral_virtue_mode": "all"
+    },
+    "magic_track": "necromancy",
+    "highest_magic_circle_id": "",
+    "ox_body_charm_id": "abyssal.endurance.ox-body-technique",
+    "caste_noun": "Caste"
   }
 ]

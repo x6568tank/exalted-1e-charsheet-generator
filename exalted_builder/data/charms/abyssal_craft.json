@@ -1,0 +1,108 @@
+[
+  {
+    "id": "abyssal.craft.fault-finding-scrutiny",
+    "name": "Fault-Finding Scrutiny",
+    "category": "craft",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {"motes": 4},
+    "duration": "Instant",
+    "description": "Attunes her gaze to the seeds of entropy, perceiving the weak points of any inanimate object (fracture lines stained oily black, rot glowing brown and red). She may exploit or repair the flaws with greater facility: repairs of identified faults may double any Craft pool (same effort/time/tools), and attacks on a scrutinized object's weak points count extra successes twice for damage on the first strike (later strikes only if re-evaluated). Range permanent Essence×10 yards, once per turn.",
+    "source": {"book": "Exalted 1e Core", "page": 187}
+  },
+  {
+    "id": "abyssal.craft.wood-withering-method",
+    "name": "Wood-Withering Method",
+    "category": "craft",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.craft.fault-finding-scrutiny"]],
+    "cost": {"motes": 5},
+    "duration": "Instant",
+    "description": "The Wood version of (Material) Withering Method: channels corrosive Essence into a wooden object to rot it to nothing within seconds. Only affects objects up to the size of a large weapon or a single suit of armor; no effect on enchanted items or those made from/reinforced by the Five Magical Materials.",
+    "source": {"book": "Exalted 1e Core", "page": 187}
+  },
+  {
+    "id": "abyssal.craft.metal-withering-method",
+    "name": "Metal-Withering Method",
+    "category": "craft",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.craft.fault-finding-scrutiny"]],
+    "cost": {"motes": 5},
+    "duration": "Instant",
+    "description": "The Metal version of (Material) Withering Method: channels corrosive Essence into a metal object to rust it to nothing within seconds. Only affects objects up to the size of a large weapon or a single suit of armor; no effect on enchanted items or those made from/reinforced by the Five Magical Materials.",
+    "source": {"book": "Exalted 1e Core", "page": 187}
+  },
+  {
+    "id": "abyssal.craft.stone-withering-method",
+    "name": "Stone-Withering Method",
+    "category": "craft",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.craft.fault-finding-scrutiny"]],
+    "cost": {"motes": 5},
+    "duration": "Instant",
+    "description": "The Stone version of (Material) Withering Method: channels corrosive Essence into a stone object to crumble it to nothing within seconds. Only affects objects up to the size of a large weapon or a single suit of armor; no effect on enchanted items or those made from/reinforced by the Five Magical Materials.",
+    "source": {"book": "Exalted 1e Core", "page": 187}
+  },
+  {
+    "id": "abyssal.craft.decay-resistance-preparation",
+    "name": "Decay Resistance Preparation",
+    "category": "craft",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.craft.fault-finding-scrutiny"]],
+    "cost": {"motes": 10, "willpower": 1},
+    "duration": "Instant",
+    "description": "Makes an object highly resistant to natural and unnatural decay (corrosion, rust, rot, weathering): treated objects endure at least 10 times as long, and against aggressive decay (acid, raw entropy) have double the usual soak or resistance pool. Permanent, but only protects against decay — not cutting, burning or breaking. Does not work on living beings.",
+    "source": {"book": "Exalted 1e Core", "page": 188}
+  },
+  {
+    "id": "abyssal.craft.bone-graft-technique",
+    "name": "Bone Graft Technique",
+    "category": "craft",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      ["abyssal.craft.decay-resistance-preparation"],
+      ["abyssal.medicine.flesh-mending-discipline"]
+    ],
+    "cost": {"motes": 10},
+    "duration": "Instant",
+    "description": "Fashions prosthetics of iron and carved bone and affixes them to living flesh (requires Medicine 2). Build the prosthesis first (Craft/Necrosurgery, core pp.245-246), then join it to its host, who commits Essence (or Willpower for mortals) to attune it: a hand costs 3 motes or 1 Willpower, an arm 5 motes or 2 Willpower, a leg up to 8 motes or 3 Willpower. Attuned prosthetics behave as organic counterparts and have +2L/2B soak.",
+    "source": {"book": "Exalted 1e Core", "page": 188}
+  },
+  {
+    "id": "abyssal.craft.form-restoring-touch",
+    "name": "Form-Restoring Touch",
+    "category": "craft",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      ["abyssal.craft.wood-withering-method"],
+      ["abyssal.craft.metal-withering-method"],
+      ["abyssal.craft.stone-withering-method"],
+      ["abyssal.craft.decay-resistance-preparation"]
+    ],
+    "cost": {"motes": 10, "willpower": 1, "health": 1},
+    "duration": "Instant",
+    "description": "Repairs any broken object so long as some fragment remains: spend (10 - permanent Essence) hours painstakingly joining shards with wisps of memory dredged from the Underworld. Cannot remake intangible items (broken promises) or restore objects more yards in radius than permanent Essence. Can repair First Age items, but nothing whose magic has fled or been exhausted.",
+    "source": {"book": "Exalted 1e Core", "page": 188}
+  }
+]

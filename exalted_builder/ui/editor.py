@@ -50,6 +50,10 @@ _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 # numbers live in chargen_budgets.json — this map is just which choices to show.
 _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     "Dragon-Blooded": {"dynastic": "Dynastic", "outcaste": "Outcaste"},
+    # Abyssal Backgrounds depend on standing with the Deathlord: 13 dots for a loyal
+    # deathknight, 5 for a fugitive/renegade (p.122). First key is the default
+    # (plain "Abyssal" budget row); "fugitive" maps to "Abyssal:fugitive".
+    "Abyssal": {"loyal": "Loyal Deathknight", "fugitive": "Fugitive"},
 }
 
 

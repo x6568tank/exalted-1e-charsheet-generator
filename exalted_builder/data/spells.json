@@ -158,5 +158,192 @@
     "cost": {"motes": 10},
     "description": "A single spoken word of pure malice that strips dots from every Ability, Attribute, and Virtue of its target; the sorcerer also permanently loses one dot from each of her own.",
     "source": {"book": "Exalted 1e Core", "page": 223}
+  },
+
+  {
+    "id": "spell.shadowlands.hungry-creeping-shadow",
+    "name": "Hungry Creeping Shadow",
+    "circle": "Shadowlands",
+    "cost": {"motes": 15},
+    "description": "Vomits forth a creature of liquid shadow that pursues one target in sight; it has Physical Attributes and Brawl equal to the caster's Essence and Stamina+Essence health levels, ignores kinetic damage, and clinches to crush its prey. Lasts one hour.",
+    "source": {"book": "Exalted 1e Core", "page": 224}
+  },
+  {
+    "id": "spell.shadowlands.iron-countermagic",
+    "name": "Iron Countermagic",
+    "circle": "Shadowlands",
+    "cost": {"raw": "10 or 20 motes"},
+    "description": "Necromantic countermagic: 10 motes raises a personal shield negating hostile Shadowlands spells until the next turn's end (−2 to Physical actions while it persists); 20 motes extinguishes one Shadowlands spell within Essence×50 feet. May also oppose sorcery one circle higher.",
+    "source": {"book": "Exalted 1e Core", "page": 224}
+  },
+  {
+    "id": "spell.shadowlands.piercing-the-shroud",
+    "name": "Piercing the Shroud",
+    "circle": "Shadowlands",
+    "cost": {"motes": 10},
+    "description": "A ten-minute chant (minus the caster's Occult) ends with a blade-cut in the air that tears open a rift to the Labyrinth for Essence turns. Only lets a necromancer enter — she must find her own way out.",
+    "source": {"book": "Exalted 1e Core", "page": 225}
+  },
+  {
+    "id": "spell.shadowlands.raise-the-skeletal-horde",
+    "name": "Raise the Skeletal Horde",
+    "circle": "Shadowlands",
+    "cost": {"raw": "Varies"},
+    "description": "Jagged Essence-lightning animates nearby corpses within 100 yards as common zombies (extras): one per 5 motes (permanent), or one per 3 motes for temporary zombies that fall at scene's end. Cannot mix permanent and temporary in one casting.",
+    "source": {"book": "Exalted 1e Core", "page": 225}
+  },
+  {
+    "id": "spell.shadowlands.rune-of-sweet-passing",
+    "name": "Rune of Sweet Passing",
+    "circle": "Shadowlands",
+    "cost": {"motes": 15},
+    "description": "An hour-long ritual paints a mortal's skin with blood-and-grave-soil glyphs that ensure she becomes a ghost upon death and alert the necromancer the instant she dies. Creates ghosts only; no control over them. No effect on Exalted or magical beings.",
+    "source": {"book": "Exalted 1e Core", "page": 225}
+  },
+  {
+    "id": "spell.shadowlands.shade-prison-amulet",
+    "name": "Shade Prison Amulet",
+    "circle": "Shadowlands",
+    "cost": {"motes": 10},
+    "description": "Enchants a piece of bone jewelry to trap one hungry ghost it touches, holding it so long as the talisman is intact; breaking the prison frees the ghost (destroyed if broken by daylight). The Labyrinth version, Bauble of the Captive Soul, catches any ghost for 15 motes.",
+    "source": {"book": "Exalted 1e Core", "page": 225}
+  },
+  {
+    "id": "spell.shadowlands.soul-brand",
+    "name": "Soul Brand",
+    "circle": "Shadowlands",
+    "cost": {"motes": 15},
+    "description": "Tattoos an unExalted mortal with a permanent rune granting the protection of a Ghost-Warding Glyph; removing it burns the mortal for the necromancer's Essence in lethal dice. Vanishes harmlessly if the bearer ever Exalts.",
+    "source": {"book": "Exalted 1e Core", "page": 225}
+  },
+  {
+    "id": "spell.shadowlands.summon-ghost",
+    "name": "Summon Ghost",
+    "circle": "Shadowlands",
+    "cost": {"raw": "15+ motes"},
+    "description": "An hour-long night/Underworld ritual (needs the ghost's name or a piece of her corpse) tears a portal for 10 motes; each extra 5 motes weakens the ghost by a die. An opposed Willpower+Essence contest binds her to a year-and-a-day of service, or she escapes for a year.",
+    "source": {"book": "Exalted 1e Core", "page": 226}
+  },
+  {
+    "id": "spell.shadowlands.walking-war-machine",
+    "name": "Walking War Machine",
+    "circle": "Shadowlands",
+    "cost": {"raw": "Varies"},
+    "description": "Animates a pre-built undead siege engine (extended Intelligence+Craft (Necrosurgery) to construct): touching it and investing 5 motes per assembly success sets it serving its master. Spine-chain statistics on Exalted p300.",
+    "source": {"book": "Exalted 1e Core", "page": 226}
+  },
+
+  {
+    "id": "spell.labyrinth.exquisite-undead-aide",
+    "name": "Exquisite Undead Aide",
+    "circle": "Labyrinth",
+    "cost": {"motes": 20},
+    "description": "Raises a single capable servant instead of a horde: a common zombie whose non-Appearance Attributes are at least 2, with Intelligence+Occult in Ability dots (none above the caster's own). Never decays, can speak in clipped phrases, and has full health levels.",
+    "source": {"book": "Exalted 1e Core", "page": 226}
+  },
+  {
+    "id": "spell.labyrinth.hundred-shade-breath",
+    "name": "Hundred Shade Breath",
+    "circle": "Labyrinth",
+    "cost": {"raw": "Varies"},
+    "description": "Exhales a blue fog that coalesces into hungry ghosts (extras), one per 2 motes, over the next turn. Useless by day (sunlight burns them to ash); survivors dissolve back into the caster at scene's end, freeing 2 committed motes per ghost lost.",
+    "source": {"book": "Exalted 1e Core", "page": 226}
+  },
+  {
+    "id": "spell.labyrinth.ivory-razor-forest",
+    "name": "Ivory Razor Forest",
+    "circle": "Labyrinth",
+    "cost": {"motes": 25},
+    "description": "A shockwave of Essence raises dense spines of bone (max height Essence yards) over (Charisma+Occult)×10 square yards of any shape, inflicting unblockable 8L (dodge only) to all within and to anything hurled against them. The spikes last for Essence days.",
+    "source": {"book": "Exalted 1e Core", "page": 227}
+  },
+  {
+    "id": "spell.labyrinth.reaping-the-fallen",
+    "name": "Reaping the Fallen",
+    "circle": "Labyrinth",
+    "cost": {"motes": 25},
+    "description": "Flares the caster's anima to full and, for the rest of the scene, grants 1 mote for every sentient being that dies within a league (up to her maximum). The Void version, Blood from the Slaughter (35 motes), instead regenerates a health level per kill.",
+    "source": {"book": "Exalted 1e Core", "page": 227}
+  },
+  {
+    "id": "spell.labyrinth.spiteful-passing",
+    "name": "Spiteful Passing",
+    "circle": "Labyrinth",
+    "cost": {"raw": "Special"},
+    "description": "A dying necromancer's final blast: after a turn concentrating, he expires as searing light, dealing everyone within Stamina yards his Essence in lethal dice plus one per remaining mote, bypassing armor (natural soak only). All plants within range wither; his corpse crumbles to dust.",
+    "source": {"book": "Exalted 1e Core", "page": 227}
+  },
+  {
+    "id": "spell.labyrinth.stealing-the-gathered-breath",
+    "name": "Stealing the Gathered Breath",
+    "circle": "Labyrinth",
+    "cost": {"motes": 15},
+    "description": "Inhales the life energy of every sentient being within Essence×5 yards, inflicting one lethal die (Stamina soak only) on each; every level actually dealt restores 1 mote to the necromancer.",
+    "source": {"book": "Exalted 1e Core", "page": 228}
+  },
+  {
+    "id": "spell.labyrinth.striking-spectre-lash",
+    "name": "Striking Spectre Lash",
+    "circle": "Labyrinth",
+    "cost": {"raw": "15 motes + 2 motes per attack"},
+    "description": "Grows a whip of solidified darkness with Speed/Accuracy/Defense equal to Essence, reach four times that, and Strength+Essence base damage that can grapple and kill at range. Reflexively spending 2 motes on a hit forces an Essence roll or the mortal victim drops dead.",
+    "source": {"book": "Exalted 1e Core", "page": 228}
+  },
+
+  {
+    "id": "spell.void.abyssal-aegis",
+    "name": "Abyssal Aegis",
+    "circle": "Void",
+    "cost": {"motes": 20},
+    "description": "Until next sunrise, grants bashing and lethal soak equal to permanent Essence and negates any magic designed to deal extra damage or trauma to Abyssals, Deathlords, or Underworld denizens — the bonus effect vanishes, though the base attack still lands.",
+    "source": {"book": "Exalted 1e Core", "page": 228}
+  },
+  {
+    "id": "spell.void.anguished-shade-harvest",
+    "name": "Anguished Shade Harvest",
+    "circle": "Void",
+    "cost": {"motes": 60},
+    "description": "Pacing a boundary on foot from sunset to before midnight consecrates that land to the Underworld: black clouds shroud it, and any mortal who dies violently there afterward rises at dusk as an uncontrolled hungry ghost (extra).",
+    "source": {"book": "Exalted 1e Core", "page": 228}
+  },
+  {
+    "id": "spell.void.blood-monsoon",
+    "name": "Blood Monsoon",
+    "circle": "Void",
+    "cost": {"raw": "50 motes (committed) + one lethal health level"},
+    "description": "A geyser of the caster's blood builds over an hour into a mile-high cloud covering Essence miles in radius, then rains gore for Stamina hours — killing plants and small animals, sickening others (hourly Stamina+Endurance check), and drawing malevolent creatures for miles.",
+    "source": {"book": "Exalted 1e Core", "page": 228}
+  },
+  {
+    "id": "spell.void.dimming-of-the-light",
+    "name": "Dimming of the Light",
+    "circle": "Void",
+    "cost": {"motes": 80},
+    "description": "A sunset-to-midnight ritual transforms a willing Solar into an Abyssal: she renounces her god, Caste Mark, Charms, and name, and at midnight her anima is swallowed by shadow. She gains matching Abyssal Charms and caste (Dawn→Dusk, etc.) and is thereafter a deathknight.",
+    "source": {"book": "Exalted 1e Core", "page": 229}
+  },
+  {
+    "id": "spell.void.inauspicious-citadel",
+    "name": "Inauspicious Citadel",
+    "circle": "Void",
+    "cost": {"motes": 60},
+    "description": "After sacrificing at least 100 mortals into a pit dug in a shadowland and bleeding a health level into it, the earth falls away to the Labyrinth and a unique defensible fortress of obsidian and black basalt grinds up, its lowest chapel opening onto the dead gods below.",
+    "source": {"book": "Exalted 1e Core", "page": 229}
+  },
+  {
+    "id": "spell.void.lord-of-the-dead",
+    "name": "Lord of the Dead",
+    "circle": "Void",
+    "cost": {"motes": 25},
+    "description": "For a full day the caster's Caste Mark glows red, letting her command any ghost, walking dead, or creature of death of lower permanent Essence, and barring any such creature from attacking her. No power over Abyssal Exalted or Deathlords.",
+    "source": {"book": "Exalted 1e Core", "page": 229}
+  },
+  {
+    "id": "spell.void.poisoning-the-well",
+    "name": "Poisoning the Well",
+    "circle": "Void",
+    "cost": {"raw": "50 motes (committed)"},
+    "description": "Fasting at a Demesne's heart for days equal to its rating dooms it to lose a rating point each month until, at zero, it shifts to an Abyssal aspect and slowly regains strength. Only Adamant Countermagic (at double cost) or an Incarna can arrest the decay.",
+    "source": {"book": "Exalted 1e Core", "page": 229}
   }
 ]

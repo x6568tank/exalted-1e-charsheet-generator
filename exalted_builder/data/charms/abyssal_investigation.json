@@ -1,0 +1,103 @@
+[
+  {
+    "id": "abyssal.investigation.excellent-inquisitor-attitude",
+    "name": "Excellent Inquisitor Attitude",
+    "category": "investigation",
+    "exalt_type": "Abyssal",
+    "type": "Supplemental",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {"raw": "1 mote per die"},
+    "duration": "Until relaxed",
+    "description": "Grows cold and detached, studying the world with heartless scrutiny: adds one die per mote to an Investigation roll (not more than double the base Attribute + Ability pool). May be maintained across an extended investigation, research or interrogation, but only for one specific task lasting no longer than a scene, one task at a time.",
+    "source": {"book": "Exalted 1e Core", "page": 189}
+  },
+  {
+    "id": "abyssal.investigation.deception-piercing-stare",
+    "name": "Deception-Piercing Stare",
+    "category": "investigation",
+    "exalt_type": "Abyssal",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [["abyssal.investigation.excellent-inquisitor-attitude"]],
+    "cost": {"motes": 6},
+    "duration": "One scene",
+    "description": "Perceives the slight taint of unrighteousness left by deliberate lies: infallible within its limits, but only detects deliberate falsehoods — sincere believers, unclear answers, and those who withhold or refuse to answer do not register. Cannot compel or discern truth. Roughly one question per turn.",
+    "source": {"book": "Exalted 1e Core", "page": 189}
+  },
+  {
+    "id": "abyssal.investigation.unsurpassed-interrogation-method",
+    "name": "Unsurpassed Interrogation Method",
+    "category": "investigation",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [["abyssal.investigation.deception-piercing-stare"]],
+    "cost": {"motes": 5, "willpower": 1},
+    "duration": "One scene",
+    "description": "Inflicts terrible pain on anyone who disrespectfully answers with lies or silence during the extended interrogation of one individual whose Willpower + Essence is less than her Manipulation + Investigation. The victim reflexively rolls Willpower vs her permanent Essence each time she attempts to lie/withhold; success lets him answer or stay silent (she may repeat the question next turn), failure inflicts one unsoakable bashing level and costs him the turn in agony. Victims can kill themselves with repeated lies.",
+    "source": {"book": "Exalted 1e Core", "page": 189}
+  },
+  {
+    "id": "abyssal.investigation.incomparable-agony-technique",
+    "name": "Incomparable Agony Technique",
+    "category": "investigation",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [["abyssal.investigation.unsurpassed-interrogation-method"]],
+    "cost": {"motes": 6},
+    "duration": "Instant",
+    "description": "Tortures with the force of her preternatural will: roll Conviction + Essence vs the victim's Willpower + Essence; each success beyond the victim's inflicts one unsoakable bashing OR lethal level, or removes one temporary Willpower (she may apply fewer). Victims driven below zero Willpower gain a derangement and fall catatonic for the scene. Only affects a single restrained/motionless victim within 5 yards; no effect on higher-Essence beings.",
+    "source": {"book": "Exalted 1e Core", "page": 190}
+  },
+  {
+    "id": "abyssal.investigation.cunning-scrutiny-style",
+    "name": "Cunning Scrutiny Style",
+    "category": "investigation",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [["abyssal.investigation.excellent-inquisitor-attitude"]],
+    "cost": {"motes": 5},
+    "duration": "Instant",
+    "description": "Through careful examination of undisturbed physical evidence, mentally reconstructs the process that produced it (wounds on a body, an abandoned campsite). Functions automatically only where physical evidence is abundant; where it is lacking or disturbed, roll Perception + Investigation at a difficulty set by the tampering.",
+    "source": {"book": "Exalted 1e Core", "page": 190}
+  },
+  {
+    "id": "abyssal.investigation.corpse-questioning-technique",
+    "name": "Corpse Questioning Technique",
+    "category": "investigation",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      ["abyssal.investigation.unsurpassed-interrogation-method"],
+      ["abyssal.investigation.cunning-scrutiny-style"]
+    ],
+    "cost": {"motes": 6, "willpower": 1},
+    "duration": "One scene",
+    "description": "Extracts memories from a corpse or disembodied head, partially animating it to answer questions. Corpses cannot lie but their memories rot with their flesh (Intelligence drops one dot per week dead, min 1); they only understand and speak languages known in life. Unearthed skulls whisper yes/no; freshly slain cadavers answer almost anything. Magic that forestalls rot preserves the memory.",
+    "source": {"book": "Exalted 1e Core", "page": 190}
+  },
+  {
+    "id": "abyssal.investigation.lingering-echo-meditation",
+    "name": "Lingering Echo Meditation",
+    "category": "investigation",
+    "exalt_type": "Abyssal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [["abyssal.investigation.corpse-questioning-technique"]],
+    "cost": {"motes": 10, "willpower": 1},
+    "duration": "Instant",
+    "description": "By touching a place or object marked by an emotionally charged event and attuning to its passion, induces a vivid all-senses flashback of the events leading to the imprint (strongest passion prevails if multiple). Visions may seem to last minutes or hours though only seconds pass, and are colored by their dominant passion. The character cannot act within a vision or choose his vantage.",
+    "source": {"book": "Exalted 1e Core", "page": 190}
+  }
+]

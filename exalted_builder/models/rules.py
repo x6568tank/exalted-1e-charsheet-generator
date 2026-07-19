@@ -85,9 +85,43 @@ class CharmType(str, Enum):
 
 
 class SpellCircle(str, Enum):
+    # Sorcery circles — ascend earth->Heaven (core p.191).
     TERRESTRIAL = "Terrestrial"
     CELESTIAL = "Celestial"
     SOLAR = "Solar"
+    # Necromancy circles — the death-magic mirror of sorcery (Abyssal p.223). They
+    # DESCEND in the fiction (toward Oblivion) but grow in power Shadowlands->
+    # Labyrinth->Void, so they are ordered low-to-high power like the sorcery ones.
+    SHADOWLANDS = "Shadowlands"
+    LABYRINTH = "Labyrinth"
+    VOID = "Void"
+
+
+class CircleKind(str, Enum):
+    """Which of the two magic disciplines a circle belongs to. Matches
+    ExaltDefinition.magic_track. Sorcery and necromancy never cross-grant: a known
+    Sorcery Charm unlocks only sorcery circles, and vice versa (Abyssal p.223)."""
+    SORCERY = "sorcery"
+    NECROMANCY = "necromancy"
+
+
+# The three circles of each magic track, ordered ascending in power. Keyed by the
+# magic_track string on ExaltDefinition, so a splat's picker shows the right columns
+# (Solars: Sorcery; Abyssals: Necromancy). The engine's circle-access logic is
+# track-agnostic (exact-match + the initiation-Charm prerequisite chain) — this table
+# is for presentation and track membership, not access.
+TRACK_CIRCLES: dict[str, tuple["SpellCircle", ...]] = {
+    CircleKind.SORCERY.value: (SpellCircle.TERRESTRIAL, SpellCircle.CELESTIAL, SpellCircle.SOLAR),
+    CircleKind.NECROMANCY.value: (SpellCircle.SHADOWLANDS, SpellCircle.LABYRINTH, SpellCircle.VOID),
+}
+
+
+def circle_kind(circle: "SpellCircle") -> str:
+    """The magic track ('sorcery' | 'necromancy') a circle belongs to."""
+    for kind, circles in TRACK_CIRCLES.items():
+        if circle in circles:
+            return kind
+    return CircleKind.SORCERY.value
 
 
 # --------------------------------------------------------------------------- #
