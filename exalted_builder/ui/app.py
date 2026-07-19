@@ -34,6 +34,10 @@ _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 # type before drawing anything, so it always reflects the character on screen.
 pal = theme.palette(None)
 
+# Likewise module-scoped: what this splat calls the caste slot ("Caste" / "Aspect").
+# render_sheet sets it from the SheetView so _trait_row's marker tooltip matches.
+caste_noun = "Caste"
+
 
 def _dots(value: int, total: int = 5) -> str:
     """Filled/empty pips, e.g. 3 -> '●●●○○'. Values above `total` get a '+N'."""
@@ -58,7 +62,7 @@ def _panel():
 def _trait_row(r: viewmod.TraitRow, dot_total: int = 5) -> None:
     with ui.row().classes("w-full items-center gap-1 no-wrap"):
         if r.caste:
-            ui.label("●").classes("text-xs").style(f"color:{pal.accent}").tooltip("Caste")
+            ui.label("●").classes("text-xs").style(f"color:{pal.accent}").tooltip(caste_noun)
         elif r.favored:
             ui.label("✦").classes("text-xs text-sky-700").tooltip("Favored")
         else:
@@ -74,8 +78,9 @@ def _named_value(label: str, value: int, dot_total: int = 5) -> None:
 
 
 def render_sheet(view: viewmod.SheetView) -> None:
-    global pal
+    global pal, caste_noun
     pal = theme.palette(view.exalt_type)
+    caste_noun = view.caste_noun
     ui.add_head_html(pal.head_style())
     with ui.column().classes("w-full max-w-6xl mx-auto gap-2 p-4"):
         # --- header ------------------------------------------------------- #
@@ -83,7 +88,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
             with ui.row().classes("w-full justify-between items-start"):
                 with ui.column().classes("gap-0"):
                     ui.label(view.name).classes("text-2xl font-bold")
-                    ui.label(f"{view.caste} Caste {view.exalt_type}").style(f"color:{pal.accent}")
+                    ui.label(f"{view.caste} {view.caste_noun} {view.exalt_type}").style(f"color:{pal.accent}")
                 with ui.column().classes("gap-0 text-right text-sm text-gray-600"):
                     if view.concept:
                         ui.label(f"Concept: {view.concept}")
@@ -102,7 +107,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
 
         # --- abilities (grouped by ability-caste) ------------------------- #
         _heading("Abilities")
-        ui.label("● caste · ✦ favored").classes("text-xs text-gray-400 -mt-1")
+        ui.label(f"● {view.caste_noun.lower()} · ✦ favored").classes("text-xs text-gray-400 -mt-1")
         groups = view.ability_groups
         for chunk_start in range(0, len(groups), 3):
             with ui.row().classes("w-full gap-2 items-stretch no-wrap"):

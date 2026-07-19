@@ -300,6 +300,7 @@ class SheetView:
     name: str
     player: str
     caste: str
+    caste_noun: str          # what this splat calls the caste slot ("Caste"/"Aspect")
     exalt_type: str
     concept: str
     nature: str
@@ -429,6 +430,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         name=character.name or "(unnamed)",
         player=character.player,
         caste=own_caste.label if own_caste else character.caste,
+        caste_noun=ruleset.exalt_for(character.exalt_type).caste_noun,
         exalt_type=character.exalt_type,
         concept=character.concept,
         nature=character.nature,

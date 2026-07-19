@@ -126,6 +126,7 @@ async def test_dragonblooded_sheet_renders_red(user: User) -> None:
     # the read-only sheet themes from the SheetView's exalt type
     await user.open('/dbsheet')
     await user.should_see("Cathak")
+    await user.should_see("Fire Aspect")            # DB sheet labels the slot "Aspect"
     assert _has_accent(user, "#8a1a1a")             # DB red accent, not Solar gold
 
 
