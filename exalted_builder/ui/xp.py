@@ -454,8 +454,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             ui.label("XP available").classes("text-xs text-gray-600")
         ui.label(f"earned {character.xp_earned} · spent {spent}").classes("text-xs text-gray-600")
         with ui.row().classes("w-full items-center gap-1 no-wrap"):
-            amount = ui.number(value=sel["add_amount"], min=1, format="%d").props("dense").classes("w-20")
-            ui.button("Add XP", icon="add", on_click=lambda: (
+            amount = ui.number(value=sel["add_amount"], format="%d").props("dense").classes("w-20")
+            ui.button("Adjust XP", icon="add", on_click=lambda: (
                 advancement.add_xp(character, int(amount.value or 0)), refresh_all())).props(f"dense color={pal.button}")
         ui.separator()
         rows = viewmod.build_xp_log(rs, character)
