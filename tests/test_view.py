@@ -34,6 +34,35 @@ def test_example_character_builds_a_clean_sheet():
     assert any(i.code == "bonus-points" for i in v.issues)
 
 
+def test_sorcery_charms_carry_per_circle_casting_time():
+    # p.216 casting time rides on the circle-granting Sorcery CHARM (which unlocks that
+    # circle's spells), not on each spell: Terrestrial 1 / Celestial 2 / Solar 3 turns.
+    rs = _rs()
+    cases = {
+        "solar.occult.terrestrial-circle-sorcery": "1 turn of shaping",
+        "solar.occult.celestial-circle-sorcery": "2 turns of shaping",
+        "solar.occult.solar-circle-sorcery": "3 turns of shaping",
+    }
+    for cid, expected in cases.items():
+        c = Character(id="x", caste="twilight")
+        c.charms = [cid]
+        row = next(r for r in viewmod.build_sheet_view(rs, c).charms
+                   if r.name == rs.charms[cid].name)
+        assert expected in row.description
+        assert row.description.startswith(rs.charms[cid].description)
+
+
+def test_non_sorcery_charms_and_spells_get_no_casting_time_note():
+    # ordinary Charms and spells are untouched — the note is only on circle-granters.
+    rs = _rs()
+    c = Character(id="x", caste="dawn")
+    c.charms = ["solar.melee.fire-and-stones-strike"]
+    c.spells = ["spell.terrestrial.death-of-obsidian-butterflies"]
+    v = viewmod.build_sheet_view(rs, c)
+    assert "shaping" not in v.charms[0].description
+    assert "shaping" not in v.spells[0].description        # spells keep their own text
+
+
 def test_charms_resolve_to_names_with_costs():
     rs = _rs()
     char = persistence.load_character(EXAMPLE)

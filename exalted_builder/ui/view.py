@@ -103,7 +103,7 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
     return CharmDetail(
         id=charm.id,
         name=charm.name,
-        description=charm.description,
+        description=_charm_description(charm),
         type=charm.type.value,
         cost=_cost_str(charm.cost),
         requirement=", ".join(reqs),
@@ -337,6 +337,28 @@ def _label(value: str) -> str:
     return value.replace("_", " ").title()
 
 
+# Sorcery casting time by circle (core p.216): the turns spent shaping Essence before
+# a spell of that circle takes effect — Terrestrial 1, Celestial 2, Solar 3. Shown as
+# descriptive flavour on the circle-granting Sorcery Charm (which is what unlocks that
+# circle's spells), NOT on each spell — some spells (rituals, summonings) state their
+# own longer casting time. This is flavour text, NOT a play mechanic (actual play is
+# out of scope; the Play tab is a manual tracker).
+_SHAPING_TURNS = {SpellCircle.TERRESTRIAL: 1, SpellCircle.CELESTIAL: 2, SpellCircle.SOLAR: 3}
+
+
+def _charm_description(charm) -> str:
+    """The Charm's description, with the per-circle casting time appended when the
+    Charm grants a Sorcery circle (the Terrestrial/Celestial/Solar Circle Sorcery
+    Charms). Other Charms are returned unchanged."""
+    turns = _SHAPING_TURNS.get(charm.grants_circle) if charm.grants_circle else None
+    if not turns:
+        return charm.description
+    note = (f"{charm.grants_circle.value} Circle spells require {turns} "
+            f"turn{'s' if turns > 1 else ''} of shaping the Essence before taking "
+            f"effect (p.216).")
+    return f"{charm.description} {note}".strip()
+
+
 def _cost_str(cost: CharmCost) -> str:
     if cost.raw:
         return cost.raw
@@ -405,7 +427,8 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     for cid in character.charms:
         charm = ruleset.charms.get(cid)
         if charm:
-            charms.append(CharmRow(charm.name, charm.category, _cost_str(charm.cost), charm.description))
+            charms.append(CharmRow(charm.name, charm.category, _cost_str(charm.cost),
+                                   _charm_description(charm)))
         else:
             charms.append(CharmRow(cid, "?", "—"))
     # Repeatable Ox-Body Technique: one row per purchase, labelled by its package.
@@ -419,7 +442,8 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
         if spell:
-            spells.append(SpellRow(spell.name, spell.circle.value, _cost_str(spell.cost), spell.description))
+            spells.append(SpellRow(spell.name, spell.circle.value, _cost_str(spell.cost),
+                                   spell.description))
         else:
             spells.append(SpellRow(sid, "?", "—"))
 
