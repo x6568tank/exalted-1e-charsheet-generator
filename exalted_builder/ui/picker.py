@@ -80,21 +80,38 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return f"{base.replace('_', ' ').title()}: {style.replace('_', ' ').title()}"
         return cat.replace("_", " ").title()
 
-    def _visible_category_options() -> dict[str, str]:
-        """Style-dropdown options for the CURRENT character state: their splat's
-        categories, minus any a rule hides right now. The only such rule today is the
-        Dragon-Blooded Dragon-Path gate (DB p241) — the elemental Dragon styles appear
-        only once both enlightenment Charms (Spirit Sight + Spirit Walking) are known."""
+    # The dropdown is split in two by a toggle: the ability pages, and the
+    # martial-arts *style* pages. The Dragon-Blooded enlightenment tree
+    # ('martial_arts:enlightenment') is a prerequisite gate rather than a style —
+    # it is what you learn BEFORE any Dragon Path opens — so it stays on the
+    # Abilities side, where you go looking for it.
+    GROUPS = {"abilities": "Abilities", "styles": "Martial Arts"}
+    _MA_NON_STYLE = frozenset({"enlightenment"})
+
+    def _group_of(cat: str) -> str:
+        style = cat.startswith("martial_arts:") and cat.split(":", 1)[1] not in _MA_NON_STYLE
+        return "styles" if style else "abilities"
+
+    def _visible_category_options(group: str | None = None) -> dict[str, str]:
+        """Category-dropdown options for the CURRENT character state: their splat's
+        categories in the selected group, minus any a rule hides right now. The only
+        such rule today is the Dragon-Blooded Dragon-Path gate (DB p241) — the elemental
+        Dragon styles appear only once both enlightenment Charms (Spirit Sight + Spirit
+        Walking) are known."""
+        want = state["group"] if group is None else group
         cats = sorted({c.category for c in ruleset.charms.values()
                        if validate.charm_matches_splat(character, c, ruleset)
-                       and validate.category_available(ruleset, character, c.category)})
+                       and validate.category_available(ruleset, character, c.category)
+                       and _group_of(c.category) == want})
         return {c: _pretty(c) for c in cats}
 
     _all_categories = sorted({c.category for c in ruleset.charms.values()
                               if validate.charm_matches_splat(character, c, ruleset)})
-    state = {"category": "melee" if "melee" in _all_categories
-             else (_all_categories[0] if _all_categories else "")}
-    widgets: dict = {}                          # holds the live category <select>
+    _start = ("melee" if "melee" in _all_categories
+              else (_all_categories[0] if _all_categories else ""))
+    state = {"category": _start, "group": _group_of(_start) if _start else "abilities"}
+    _has_styles = any(_group_of(c) == "styles" for c in _all_categories)
+    widgets: dict = {}                          # holds the live group toggle + category <select>
 
     # ---- Immaculate-vs-standard chargen path banner (Dragon-Blooded) ------- #
     def _immaculate_path_banner() -> None:
@@ -384,14 +401,35 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         readout.refresh()
         spells_panel.refresh()        # show/hide the Spells card with the Occult page
 
+    def set_group(value: str) -> None:
+        """Switch the dropdown between the ability pages and the martial-arts styles,
+        landing on the first category of the group."""
+        if value == state["group"]:
+            return
+        state["group"] = value
+        toggle = widgets.get("group")
+        if toggle is not None:
+            toggle.set_value(value)   # re-entrant call returns early (value == state)
+        opts = _visible_category_options()
+        first = next(iter(opts), "")
+        sel = widgets.get("category")
+        if sel is not None:
+            sel.set_options(opts, value=first)
+        if first:
+            set_category(first)
+
     def _refresh_categories() -> None:
-        """Re-evaluate the visible style dropdown after a Charm change. Learning both
+        """Re-evaluate the visible category dropdown after a Charm change. Learning both
         Dragon-Blooded enlightenment Charms reveals the elemental Dragon styles;
-        dropping one hides them again (falling back to a still-visible style)."""
+        dropping one hides them again (falling back to a still-visible style, or to the
+        Abilities group if the whole styles group just vanished)."""
         sel = widgets.get("category")
         if sel is None:
             return
         opts = _visible_category_options()
+        if not opts:                   # every category in this group just got hidden
+            set_group("abilities" if state["group"] == "styles" else "styles")
+            return
         if state["category"] in opts:
             sel.set_options(opts, value=state["category"])
         else:                          # current style just got hidden — fall back
@@ -416,9 +454,15 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.row().classes("w-full items-center justify-between"):
                 if with_header:
                     ui.label("Charm-Tree Picker").classes("text-xl font-bold")
-                widgets["category"] = ui.select(
-                    _visible_category_options(), value=state["category"], label="Category",
-                    on_change=lambda e: set_category(e.value)).classes("w-48")
+                with ui.row().classes("items-center gap-2"):
+                    if _has_styles:
+                        widgets["group"] = ui.toggle(
+                            GROUPS, value=state["group"],
+                            on_change=lambda e: set_group(e.value)
+                        ).props(f"no-caps dense unelevated toggle-color={pal.button}")
+                    widgets["category"] = ui.select(
+                        _visible_category_options(), value=state["category"], label="Category",
+                        on_change=lambda e: set_category(e.value)).classes("w-48")
                 if with_header:
                     ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
             with ui.row().classes("w-full gap-4 text-xs items-center justify-between"):
