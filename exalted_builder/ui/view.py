@@ -535,3 +535,44 @@ def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
         peripheral_max=d.essence_peripheral,
         willpower_max=d.willpower,
     )
+
+
+@dataclass
+class PartyCardView:
+    """One character as the GM's party page shows them: the same play capacities
+    the Play tab uses, plus the few permanent numbers worth having on the table
+    at a glance. `dodge` is the stored Ability rating, NOT a dice pool — combat
+    derivation is deliberately not implemented, so the card must not invent one."""
+    name: str
+    exalt_type: str
+    caste_label: str
+    caste_noun: str          # what this splat calls the caste slot ("Caste"/"Aspect")
+    essence_rating: int
+    dodge: int
+    soak: derive.SoakView
+    play: PlayView
+    chargen_locked: bool
+
+    @property
+    def identity_line(self) -> str:
+        """'Fire Aspect · Dragon-Blooded' — the sub-heading under the name. A
+        party is often mixed, so each card states its own splat vocabulary."""
+        return f"{self.caste_label} {self.caste_noun} · {self.exalt_type}"
+
+
+def build_party_card_view(ruleset: RuleSet, character: Character) -> PartyCardView:
+    """The compact card for one party member. Composes build_play_view rather
+    than re-deriving the capacities, so a card and the Play tab can never
+    disagree about the same character."""
+    caste = ruleset.castes.get(character.caste)
+    return PartyCardView(
+        name=character.name or "(unnamed)",
+        exalt_type=character.exalt_type,
+        caste_label=caste.label if caste else character.caste,
+        caste_noun=ruleset.exalt_for(character.exalt_type).caste_noun,
+        essence_rating=character.essence_rating,
+        dodge=character.abilities.get(AbilityName.DODGE, 0),
+        soak=derive.derive(ruleset, character).soak,
+        play=build_play_view(ruleset, character),
+        chargen_locked=character.chargen_locked,
+    )

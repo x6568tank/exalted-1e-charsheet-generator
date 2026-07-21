@@ -5,9 +5,10 @@ from exalted_builder import rules_db
 from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
     Armor, BackgroundEntry, Character, Damage, PlayState, Weapon)
+from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.models.rules import AbilityName
 from exalted_builder.ui import app as sheet_app
-from exalted_builder.ui import builder, combos, editor, picker, play, view, xp
+from exalted_builder.ui import builder, combos, editor, gm, picker, play, view, xp
 
 RS = rules_db.load_ruleset(Path("exalted_builder/data"))
 
@@ -135,6 +136,51 @@ def page_builder_lock():
 @ui.page('/inplay-combos')
 def page_inplay_combos():
     combos.build_combos(RS, CHAR_INPLAY, Path("x.json"), with_header=False)
+
+# (k) the GM party page. A @ui.page route builds once per session, so each GM test
+# gets its OWN party and context — never a shared one — or one test's clicks leak
+# into the next test's assertions.
+def _gm_ctx(*members):
+    ctx = builder.make_context(Character(id="solo", name="Solo"), Path("x.json"))
+    ctx["party"] = Party(id="p", name="Tuesday Game",
+                         members=[PartyMember(character=c) for c in members])
+    return ctx
+
+# a mixed-splat party: the cards must show each member's own splat vocabulary
+GM_MIXED = _gm_ctx(
+    Character(id="g1", name="Ashes of Dawn", caste="dawn"),
+    Character(id="g2", name="Cathak Jade", exalt_type="Dragon-Blooded", caste="fire"))
+
+@ui.page('/gm')
+def page_gm():
+    gm.build_gm(RS, GM_MIXED, with_header=False)
+
+# an empty party — the page must say so rather than render a bare grid
+GM_EMPTY = _gm_ctx()
+
+@ui.page('/gm-empty')
+def page_gm_empty():
+    gm.build_gm(RS, GM_EMPTY, with_header=False)
+
+# its own party for the click test, so the marks it makes are its alone
+GM_CLICK = _gm_ctx(Character(id="c1", name="First", caste="dawn"),
+                   Character(id="c2", name="Second", caste="dawn"))
+
+@ui.page('/gm-click')
+def page_gm_click():
+    gm.build_gm(RS, GM_CLICK, with_header=False)
+
+GM_CYCLE = _gm_ctx(Character(id="cy", name="Cycler", caste="dawn"))
+
+@ui.page('/gm-cycle')
+def page_gm_cycle():
+    gm.build_gm(RS, GM_CYCLE, with_header=False)
+
+GM_PENALTY = _gm_ctx(Character(id="pn", name="Wounded", caste="dawn"))
+
+@ui.page('/gm-penalty')
+def page_gm_penalty():
+    gm.build_gm(RS, GM_PENALTY, with_header=False)
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()

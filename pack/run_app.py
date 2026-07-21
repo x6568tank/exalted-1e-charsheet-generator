@@ -76,10 +76,8 @@ def run() -> None:
         return
 
     ruleset, character, path = builder.load(None)
-
-    @ui.page("/")
-    def index() -> None:
-        builder.build_app(ruleset, character, path)
+    # Registers both '/' (the builder) and '/gm' (the party page) over one context.
+    builder.register_pages(ruleset, builder.make_context(character, path))
 
     app.on_disconnect(_quit_if_no_tabs)
 

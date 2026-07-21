@@ -123,7 +123,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (341 tests passing)
+## Status (375 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -402,6 +402,58 @@ Exalted-1E-Charsheet-Generator/      (project root)
   0..10); the Play tab (`ui/play.py`) + `view.build_play_view`; permanent trait
   reductions on the XP tab (`advancement.lower_*`). Tests in `tests/test_play.py` +
   reduction tests in `tests/test_advancement.py` + render tests via the User-sim harness.
+- **GM mode — done 2026-07-21.** A Storyteller's **party page at `/gm`**: several
+  characters on screen at once as compact cards, each a live play-state tracker, with
+  per-character GM notes and session notes, saved as ONE `.party.json` bundle.
+  **Model:** `models/party.py` — `Party` (id/name/session_notes/members) +
+  `PartyMember` (notes + an **embedded full `Character` copy**). Copies, not path
+  references, because the shipped build runs in the browser where Load is an upload and
+  there are no filesystem paths — one file loads/saves in one action. The consequence is
+  deliberate: **the GM's copy is the table copy and may drift from the player's own file.**
+  **Persistence:** `persistence.py` gained `PARTY_SUFFIX`/`party_to_json`/`party_from_json`/
+  `save_party`/`load_party`/`suggested_party_filename`/`normalize_party_filename`, mirroring
+  the character helpers; the tempfile+`os.replace` dance was factored out into
+  `_atomic_write`, shared by `save_character` and `save_party`.
+  **Presenter:** `view.build_party_card_view` → `PartyCardView` (name, caste_label +
+  `caste_noun`, `identity_line`, essence, **Dodge as the stored Ability rating — NOT a
+  dice pool**, soak, `chargen_locked`, and a nested `PlayView`). It *composes*
+  `build_play_view` rather than re-deriving, so a card and the Play tab can never disagree.
+  **Shared widgets:** the tracker boxes were hoisted out of `ui/play.py`'s closures to
+  module level (`play_state`, `normalize_health`, `cycle_mark`, `set_motes`, `set_count`,
+  `health_box`, `count_box`, `worst_penalty`), each taking the character + an `on_change`
+  callback, so the Play tab and the GM cards render the SAME widgets.
+  **UI:** `ui/gm.py` (`build_gm(ruleset, ctx)`) — a responsive `auto-fit` card grid, each
+  card tinted by its own splat (`party_palette` themes the page chrome only when the party
+  is homogeneous); party bar with Add character / Save party / Load party / New party
+  (deployment-aware exactly like the builder's character Save/Load: native OS dialogs vs
+  browser download/upload); per card a Sheet dialog, a Builder button, and Remove.
+  **EDIT SCOPE IS DELIBERATE — cards edit play-state and notes ONLY.** Permanent traits go
+  through "Builder", which points the existing builder at that member; the roster holds the
+  **same `Character` object**, so builder edits land back in the party with no syncing code
+  and there is never a second Cytoscape charm picker on the page (which cannot be
+  multi-instanced). Play-state stays isolated: nothing here enters chargen validation, the
+  XP audit, or the permanent derivations, and there is ZERO game logic in `gm.py`.
+  **Navigation is two-way and unconditional:** the builder header always carries a **Party**
+  button (`groups` icon) and the party header a **Builder** button. The Party button must NOT
+  be gated on a non-empty party — the party page is the only place characters are *added* to
+  one, so gating it made an empty party reachable only by typing the URL. The Add-character
+  dialog offers four sources — upload / path (browser) or an OS Browse (native), **the
+  character currently open in the builder** (added by reference, then `open_member`s it), and
+  a blank one. It is one dialog in both deployments; it used to jump straight to the OS picker
+  when native, which made the other sources unreachable there.
+  **Wiring:** `builder.make_context` hoists the app context out of `build_app` (which now
+  takes `ctx=None` and falls back, so standalone runs and old tests still work); it carries
+  `party` + `member`. `builder.open_member`/`close_member` are pure and unit-tested.
+  `builder.register_pages(ruleset, ctx)` declares BOTH routes over one context and is called
+  by `builder.main()` **and** `pack/run_app.py` — the `@ui.page("/")` duplication between the
+  two entry points is gone. `gm` is imported lazily inside `register_pages` (gm imports
+  builder, so a module-level import would be circular).
+  **Accepted limitation:** the context lives at `main()` scope, so the roster is
+  process-global — the app serves one user. Already true before this (main() closed over a
+  single character) and the packaged build binds loopback only.
+  Tests: `tests/test_party.py` (model, round-trip, filenames, presenter), `tests/test_gm.py`
+  (render + click-through via the User sim), context helpers in `tests/test_builder.py`.
+  **v1 scope stops here** — no initiative/turn order, no NPC stat blocks, no party-wide Rest.
 
 ## TODO — planned next
 All prior TODOs DONE (2026-06-15): ~~remove M&F~~, ~~repeatable Ox-Body~~,

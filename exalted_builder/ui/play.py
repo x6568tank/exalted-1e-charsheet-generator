@@ -43,6 +43,88 @@ _MARK_COLOR = {
 }
 
 
+# --------------------------------------------------------------------------- #
+# Shared tracker widgets and mutations
+#
+# These are module-level (rather than closures over one character) so the GM
+# party page can render the same boxes for several characters at once. Each takes
+# the character to act on and an `on_change` callback for the caller's refresh —
+# nothing here knows which page it is drawing on, and none of it is game logic.
+# --------------------------------------------------------------------------- #
+
+def play_state(character: Character) -> PlayState:
+    """The character's play-state, created on first edit so a never-played
+    character keeps a clean save until the tracker is actually used."""
+    if character.play is None:
+        character.play = PlayState()
+    return character.play
+
+
+def normalize_health(character: Character, n: int) -> list[Damage | None]:
+    """Pad/trim the stored marks to the current health-track length (Ox-Body or a
+    curse bought later changes the box count). Returns the live list."""
+    h = play_state(character).health
+    if len(h) < n:
+        h += [None] * (n - len(h))
+    elif len(h) > n:
+        del h[n:]
+    return h
+
+
+def cycle_mark(character: Character, i: int, n: int) -> None:
+    """Step health box `i` to the next mark: empty → / → x → * → empty."""
+    h = normalize_health(character, n)
+    h[i] = _MARK_CYCLE[(_MARK_CYCLE.index(h[i]) + 1) % len(_MARK_CYCLE)]
+
+
+def set_motes(character: Character, field: str, value, cap: int) -> None:
+    """Set a motes-spent field, clamped to 0..cap."""
+    setattr(play_state(character), field, max(0, min(cap, int(value or 0))))
+
+
+def set_count(character: Character, field: str, clicked: int, cap: int) -> None:
+    """Dot-track click: clicking the top filled box clears it, else fill up to it."""
+    cur = getattr(play_state(character), field)
+    setattr(play_state(character), field,
+            max(0, min(cap, clicked - 1 if clicked == cur else clicked)))
+
+
+# Boxes are clickable <div>s (not q-btns) so the white/gold background applies
+# cleanly — a q-btn's own background otherwise wins over an inline style.
+def health_box(character: Character, i: int, label: str, mark: Damage | None,
+               n: int, pal: theme.Palette, on_change) -> None:
+    """One clickable health box, labelled with its wound penalty."""
+    with ui.column().classes("items-center gap-0"):
+        ui.label(label).classes("text-gray-500").style("font-size:0.6rem")
+        sym_color = _MARK_COLOR[mark] if mark else pal.accent
+        box = ui.label(mark.value if mark else "").classes("cursor-pointer select-none")
+        box.style(f"width:2rem;height:2rem;line-height:2rem;text-align:center;"
+                  f"font-weight:700;border-radius:4px;border:1px solid {_BORDER};"
+                  f"background:{_GOLD if mark else _WHITE};color:{sym_color};")
+        box.on("click", lambda: (cycle_mark(character, i, n), on_change()))
+
+
+def count_box(character: Character, i: int, filled: bool, field: str, cap: int,
+              on_change) -> None:
+    """One box of a plain dot track (temporary Willpower, Limit)."""
+    box = ui.label("").classes("cursor-pointer select-none")
+    box.style(f"width:1.5rem;height:1.5rem;border-radius:4px;border:1px solid {_BORDER};"
+              f"background:{_GOLD if filled else _WHITE};")
+    box.on("click", lambda: (set_count(character, field, i + 1, cap), on_change()))
+
+
+def worst_penalty(pv: "viewmod.PlayView", marks: list) -> str:
+    """The label of the deepest marked health box — a convenience read of the marks
+    (it does not enforce fill order). 'none' when undamaged."""
+    deepest = None
+    for box, mark in zip(pv.health_boxes, marks):
+        if mark is not None:
+            deepest = box
+    if deepest is None:
+        return "none"
+    return "Incapacitated" if deepest.incapacitated else deepest.label
+
+
 def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                *, with_header: bool = True) -> None:
     """Render the in-play tracker for `character`. With `with_header=False` the
@@ -50,71 +132,19 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
     regardless of chargen lock — play happens after creation, but never blocks."""
     pal = theme.palette(character.exalt_type)
 
-    def ps() -> PlayState:
-        """The play-state, created on first edit so a never-played character keeps
-        a clean save until the tab is actually used."""
-        if character.play is None:
-            character.play = PlayState()
-        return character.play
-
-    def _norm_health(n: int) -> list[Damage | None]:
-        """Pad/trim the stored marks to the current health-track length (Ox-Body or
-        a curse bought later changes the box count)."""
-        h = ps().health
-        if len(h) < n:
-            h += [None] * (n - len(h))
-        elif len(h) > n:
-            del h[n:]
-        return h
-
     # ---- mutations -------------------------------------------------------- #
-    def cycle_health(i: int, n: int) -> None:
-        h = _norm_health(n)
-        nxt = _MARK_CYCLE[(_MARK_CYCLE.index(h[i]) + 1) % len(_MARK_CYCLE)]
-        h[i] = nxt
-        body.refresh()
-
     def clear_damage() -> None:
-        ps().health = []
-        body.refresh()
-
-    def set_motes(field: str, value: int, cap: int) -> None:
-        setattr(ps(), field, max(0, min(cap, int(value or 0))))
-        body.refresh()
-
-    def set_count(field: str, clicked: int, cap: int) -> None:
-        """Dot-track click: clicking the top filled box clears it, else fill up to it."""
-        cur = getattr(ps(), field)
-        setattr(ps(), field, max(0, min(cap, clicked - 1 if clicked == cur else clicked)))
+        play_state(character).health = []
         body.refresh()
 
     def clear_motes() -> None:
         # Motes only — Willpower, health, and Limit recover on their own terms (ST
         # discretion), so the tracker does not bulk-reset them.
-        p = ps()
+        p = play_state(character)
         p.motes_personal_spent = 0
         p.motes_peripheral_spent = 0
         body.refresh()
         ui.notify("Motes spent cleared.", type="positive")
-
-    # ---- box widgets ------------------------------------------------------ #
-    # Boxes are clickable <div>s (not q-btns) so the white/gold background applies
-    # cleanly — a q-btn's own background otherwise wins over an inline style.
-    def _health_box(i: int, label: str, mark: Damage | None, n: int) -> None:
-        with ui.column().classes("items-center gap-0"):
-            ui.label(label).classes("text-gray-500").style("font-size:0.6rem")
-            sym_color = _MARK_COLOR[mark] if mark else pal.accent
-            box = ui.label(mark.value if mark else "").classes("cursor-pointer select-none")
-            box.style(f"width:2rem;height:2rem;line-height:2rem;text-align:center;"
-                      f"font-weight:700;border-radius:4px;border:1px solid {_BORDER};"
-                      f"background:{_GOLD if mark else _WHITE};color:{sym_color};")
-            box.on("click", lambda i=i: cycle_health(i, n))
-
-    def _count_box(i: int, filled: bool, field: str, cap: int) -> None:
-        box = ui.label("").classes("cursor-pointer select-none")
-        box.style(f"width:1.5rem;height:1.5rem;border-radius:4px;border:1px solid {_BORDER};"
-                  f"background:{_GOLD if filled else _WHITE};")
-        box.on("click", lambda i=i: set_count(field, i + 1, cap))
 
     # ---- body ------------------------------------------------------------- #
     @ui.refreshable
@@ -128,9 +158,10 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
             with _panel("Health  ·  / bashing   x lethal   * aggravated", pal):
                 with ui.row().classes("gap-1 flex-wrap items-end"):
                     for i, box in enumerate(pv.health_boxes):
-                        _health_box(i, box.label, marks[i], len(pv.health_boxes))
+                        health_box(character, i, box.label, marks[i],
+                                   len(pv.health_boxes), pal, body.refresh)
                 counts = {d: sum(1 for m in marks if m == d) for d in Damage}
-                worst = _worst_penalty(pv, marks)
+                worst = worst_penalty(pv, marks)
                 with ui.row().classes("items-center gap-4 mt-1"):
                     ui.label(f"Marked: {counts[Damage.BASHING]}/ {counts[Damage.LETHAL]}x "
                              f"{counts[Damage.AGGRAVATED]}*").classes("text-xs text-gray-600")
@@ -152,13 +183,14 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                         f"{pv.willpower_max} available)", pal):
                 with ui.row().classes("gap-1 flex-wrap"):
                     for i in range(pv.willpower_max):
-                        _count_box(i, i < cur.willpower_spent, "willpower_spent", pv.willpower_max)
+                        count_box(character, i, i < cur.willpower_spent,
+                                  "willpower_spent", pv.willpower_max, body.refresh)
 
             # --- Limit (bare 0..10 counter) ------------------------------ #
             with _panel(f"Limit  ({cur.limit} / 10{'  — LIMIT BREAK' if cur.limit >= 10 else ''})", pal):
                 with ui.row().classes("gap-1 flex-wrap"):
                     for i in range(10):
-                        _count_box(i, i < cur.limit, "limit", 10)
+                        count_box(character, i, i < cur.limit, "limit", 10, body.refresh)
 
             ui.button("Clear motes spent", icon="refresh", on_click=clear_motes).props(
                 f"flat color={pal.button}").tooltip("Resets Personal and Peripheral motes spent to 0. "
@@ -167,7 +199,8 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
     def _mote_input(label: str, field: str, value: int, cap: int) -> None:
         with ui.column().classes("gap-0"):
             ui.number(f"{label} spent", value=value, min=0, max=cap, format="%d",
-                      on_change=lambda e, f=field, c=cap: set_motes(f, e.value, c)).classes("w-32")
+                      on_change=lambda e, f=field, c=cap: (
+                          set_motes(character, f, e.value, c), body.refresh())).classes("w-32")
             ui.label(f"{max(0, cap - value)} / {cap} available").classes("text-xs text-gray-600")
 
     # ---- header / layout -------------------------------------------------- #
@@ -185,18 +218,6 @@ def _panel(title: str, pal: theme.Palette):
     with card:
         ui.label(title).classes("text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
     return card
-
-
-def _worst_penalty(pv: "viewmod.PlayView", marks: list) -> str:
-    """The label of the deepest marked health box — a convenience read of the marks
-    (it does not enforce fill order). 'none' when undamaged."""
-    deepest = None
-    for box, mark in zip(pv.health_boxes, marks):
-        if mark is not None:
-            deepest = box
-    if deepest is None:
-        return "none"
-    return "Incapacitated" if deepest.incapacitated else deepest.label
 
 
 def _save(character: Character, save_path: Path) -> None:

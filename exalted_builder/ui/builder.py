@@ -29,6 +29,7 @@ from nicegui import app, ui
 from .. import persistence, rules_db
 from ..engine import lifecycle, validate
 from ..models.character import Character
+from ..models.party import Party
 from ..models.rules import RuleSet
 from . import app as sheet_app
 from . import combos as combos_mod
@@ -100,11 +101,44 @@ class _NullDialog:
         pass
 
 
-def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
-    # Mutable context so Load/New can swap the character without losing closures.
-    # `dir` is the folder saves land in; the filename is derived from the
-    # character's name at save time, so renaming the character renames its file.
-    ctx = {"char": character, "path": save_path, "dir": Path(save_path).parent}
+def make_context(character: Character, save_path: Path) -> dict:
+    """The app's shared, mutable context. Held outside any one page so the builder
+    ('/') and the GM party page ('/gm') work on the same objects — see
+    `register_pages`.
+
+    `char` is whichever character the builder is currently pointed at; `dir` is the
+    folder saves land in (the filename is derived from the character's name at save
+    time, so renaming the character renames its file). `party` is the GM roster and
+    `member` the index within it that `char` came from, or None when editing a
+    standalone character that is not in the party.
+    """
+    return {"char": character, "path": save_path, "dir": Path(save_path).parent,
+            "party": Party(id="party.new"), "party_path": None, "member": None}
+
+
+def open_member(ctx: dict, index: int) -> None:
+    """Point the builder at party member `index`. The Character is shared by
+    reference, not copied, so anything the builder edits mutates the party member
+    in place and the card reflects it without any syncing code."""
+    member = ctx["party"].members[index]
+    ctx["char"] = member.character
+    ctx["member"] = index
+    ctx["path"] = ctx["dir"] / persistence.suggested_filename(member.character)
+
+
+def close_member(ctx: dict) -> None:
+    """Forget which party member the builder is pointed at. The character object
+    itself is left alone — it is still in the party."""
+    ctx["member"] = None
+
+
+def build_app(ruleset: RuleSet, character: Character, save_path: Path,
+              *, ctx: dict | None = None) -> None:
+    """Render the single-character builder. `ctx` is the shared app context; when
+    omitted (running this module standalone) a private one is created, so the
+    builder still works with no party involved."""
+    if ctx is None:
+        ctx = make_context(character, save_path)
     state: dict = {"tab": "Edit", "select": None, "syncing": False}
 
     def _pal():
@@ -286,9 +320,20 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         select_tab("Sheet")
 
     # ---- top bar + tabs --------------------------------------------------- #
+    def go_to_party() -> None:
+        # Leaving the builder for the roster: stop pointing at a member, so a later
+        # save/edit here isn't silently attributed to one.
+        close_member(ctx)
+        ui.navigate.to("/gm")
+
     with ui.header().classes("items-center justify-between px-4") as header_el:
         title_label = ui.label("Exalted 1e — Builder").classes("text-lg font-bold text-white")
         with ui.row().classes("items-center gap-2"):
+            # Always present: the party page is where characters are ADDED to a
+            # party, so gating this on a non-empty party would make an empty one
+            # unreachable — the only way in would be typing the URL.
+            ui.button("Party", icon="groups", on_click=go_to_party).props(
+                "flat color=white").tooltip("Storyteller view — track the whole party at once")
             ui.button("New", icon="note_add", on_click=confirm_new).props("flat color=white")
             ui.button("Save", icon="save", on_click=save).props("flat color=white")
             ui.button("Load", icon="folder_open", on_click=open_load).props("flat color=white")
@@ -326,6 +371,29 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
     content()
 
 
+def register_pages(ruleset: RuleSet, ctx: dict) -> None:
+    """Register the app's routes over one shared context: '/' the single-character
+    builder, '/gm' the Storyteller's party page. Both close over the same ctx, so
+    "Open in builder" and "back to Party" move between them without re-loading
+    anything — the party member and the builder's character are one object.
+
+    Both entry points (this module's main() and pack/run_app.py) call this, so the
+    route set is declared exactly once.
+    """
+    # Imported here, not at module scope: ui/gm.py imports this module for the
+    # shared context and the file-dialog helpers, so a top-level import would be
+    # circular.
+    from . import gm as gm_mod
+
+    @ui.page("/")
+    def index() -> None:
+        build_app(ruleset, ctx["char"], ctx["path"], ctx=ctx)
+
+    @ui.page("/gm")
+    def party_page() -> None:
+        gm_mod.build_gm(ruleset, ctx)
+
+
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:
     """Load the rule set and the starting character. With a path, open that file;
     with none, start on a blank new character whose save lands next to the
@@ -350,10 +418,7 @@ def main() -> None:
     args = parser.parse_args()
 
     ruleset, character, path = load(args.character)
-
-    @ui.page("/")
-    def index() -> None:
-        build_app(ruleset, character, path)
+    register_pages(ruleset, make_context(character, path))
 
     if args.native:
         ui.run(title="Exalted 1e — Builder", reload=False, native=True, window_size=(1280, 900))

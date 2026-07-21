@@ -1,5 +1,5 @@
 """
-persistence.py — load and save a Character to/from JSON.
+persistence.py — load and save a Character (or a GM's Party) to/from JSON.
 
 An edge module: pure I/O plus pydantic (de)serialisation, no game logic. It does
 NOT validate legality — that is engine.validate's job — only structural validity,
@@ -9,6 +9,9 @@ Saves are written atomically (temp file + os.replace) so a crash mid-write canno
 truncate an existing save. JSON is indented for hand-editing. Enum-keyed dicts
 (attributes/abilities/virtues) round-trip through their string values, e.g.
 {"strength": 3} — see models.character.
+
+A Party save embeds full Character copies, so it round-trips through exactly the
+same machinery; the party helpers below mirror the character ones one for one.
 """
 
 from __future__ import annotations
@@ -20,10 +23,14 @@ import tempfile
 from pathlib import Path
 
 from .models.character import Character
+from .models.party import Party
 
 # Conventional extension for character saves (see .gitignore). Not enforced; any
 # path is accepted.
 SAVE_SUFFIX = ".character.json"
+
+# Conventional extension for a GM party bundle.
+PARTY_SUFFIX = ".party.json"
 
 
 def slugify_name(name: str) -> str:
@@ -74,15 +81,16 @@ def character_from_json(data: str) -> Character:
     return Character.model_validate_json(data)
 
 
-def save_character(character: Character, path: str | os.PathLike) -> Path:
-    """Write `character` to `path` as JSON, atomically. Creates parent directories
-    if needed. Returns the path written."""
+def _atomic_write(path: str | os.PathLike, payload: str) -> Path:
+    """Write `payload` to `path`, atomically. Creates parent directories if needed.
+    Returns the path written.
+
+    Writes to a temp file in the same directory then os.replace()s it, so the
+    destination is never observed as a partially written file.
+    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = character_to_json(character)
 
-    # Write to a temp file in the same directory, then atomically replace, so the
-    # destination is never a partially written file.
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name, suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -98,8 +106,60 @@ def save_character(character: Character, path: str | os.PathLike) -> Path:
     return path
 
 
+def save_character(character: Character, path: str | os.PathLike) -> Path:
+    """Write `character` to `path` as JSON, atomically. Creates parent directories
+    if needed. Returns the path written."""
+    return _atomic_write(path, character_to_json(character))
+
+
 def load_character(path: str | os.PathLike) -> Character:
     """Read and parse a Character from `path`. Propagates FileNotFoundError and
     pydantic.ValidationError unchanged so callers can distinguish them."""
     text = Path(path).read_text(encoding="utf-8")
     return character_from_json(text)
+
+
+# --------------------------------------------------------------------------- #
+# Party bundles (the GM's table copy — see models.party)
+# --------------------------------------------------------------------------- #
+
+def suggested_party_filename(party: Party) -> str:
+    """The save filename a party should use, derived from its name — e.g.
+    'Tuesday Game' -> 'tuesday-game.party.json'. An unnamed party falls back to
+    'party.party.json' rather than the character-flavoured 'new-character'."""
+    slug = slugify_name(party.name) if party.name.strip() else "party"
+    return f"{slug}{PARTY_SUFFIX}"
+
+
+def normalize_party_filename(text: str, party: Party) -> str:
+    """The party filename to use given free-text user input. Mirrors
+    normalize_save_filename: blank falls back to the party-derived name, an
+    explicit '.json' is kept verbatim, anything else is a bare stem to slugify."""
+    text = (text or "").strip()
+    if not text:
+        return suggested_party_filename(party)
+    if text.endswith(".json"):
+        return text
+    return f"{slugify_name(text)}{PARTY_SUFFIX}"
+
+
+def party_to_json(party: Party) -> str:
+    """Serialise a Party to an indented JSON string."""
+    return party.model_dump_json(indent=2)
+
+
+def party_from_json(data: str) -> Party:
+    """Parse a Party from a JSON string. Raises pydantic.ValidationError if the
+    data is structurally invalid."""
+    return Party.model_validate_json(data)
+
+
+def save_party(party: Party, path: str | os.PathLike) -> Path:
+    """Write `party` to `path` as JSON, atomically. Returns the path written."""
+    return _atomic_write(path, party_to_json(party))
+
+
+def load_party(path: str | os.PathLike) -> Party:
+    """Read and parse a Party from `path`. Propagates FileNotFoundError and
+    pydantic.ValidationError unchanged so callers can distinguish them."""
+    return party_from_json(Path(path).read_text(encoding="utf-8"))
