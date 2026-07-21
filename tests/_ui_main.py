@@ -92,5 +92,13 @@ CHAR_SHEET.spells = ["spell.terrestrial.death-of-obsidian-butterflies"]
 def page_sheet_desc():
     sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_SHEET))
 
+# (h) an Abyssal — reaches BOTH tracks (sorcery + necromancy), so the picker's
+# Spells page offers five Circles in its dropdown
+CHAR_AB = Character(id="ab", name="Ash", exalt_type="Abyssal", caste="dusk", origin="loyal")
+
+@ui.page('/abpicker')
+def page_abpicker():
+    picker.build_picker(RS, CHAR_AB, Path("x.json"), with_header=True)
+
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()

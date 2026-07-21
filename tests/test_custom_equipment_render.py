@@ -175,3 +175,36 @@ async def test_picker_splits_abilities_from_martial_arts_styles(user: User) -> N
     assert "martial_arts:five-dragon" in opts
     assert "melee" not in opts
     assert "martial_arts:enlightenment" not in opts
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_picker_spells_page_lists_descriptions_inline(user: User) -> None:
+    # the Spells page is its own toggle group (not a card under the Occult graph) and
+    # prints each spell's description on the row, rather than only on hover
+    from nicegui.elements.toggle import Toggle
+    await user.open('/dbpicker')
+    toggle = next(t for t in user.client.elements.values() if isinstance(t, Toggle))
+    assert "spells" in toggle.options
+    toggle.set_value("spells")
+    await user.should_see("Terrestrial Circle")
+    await user.should_see("Death of Obsidian Butterflies")
+    await user.should_see("razor-sharp obsidian")        # description, inline
+    await user.should_see("needs a Charm granting the Terrestrial Circle")   # locked reason
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_picker_circle_dropdown_swaps_the_spell_list(user: User) -> None:
+    # an Abyssal reaches both tracks; the Circle dropdown picks which one circle's
+    # spells are listed (sorcery Terrestrial→Celestial, then necromancy)
+    from nicegui.elements.toggle import Toggle
+    await user.open('/abpicker')
+    next(t for t in user.client.elements.values() if isinstance(t, Toggle)).set_value("spells")
+    circle = next(s for s in user.client.elements.values()
+                  if isinstance(s, Select) and s._props.get('label') == 'Circle')
+    assert list(circle.options) == ["Terrestrial", "Celestial", "Shadowlands", "Labyrinth", "Void"]
+    await user.should_see("Death of Obsidian Butterflies")      # a Terrestrial spell
+    circle.set_value("Shadowlands")
+    await user.should_see("Hungry Creeping Shadow")             # a Shadowlands spell
+    await user.should_not_see("Death of Obsidian Butterflies")

@@ -80,12 +80,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return f"{base.replace('_', ' ').title()}: {style.replace('_', ' ').title()}"
         return cat.replace("_", " ").title()
 
-    # The dropdown is split in two by a toggle: the ability pages, and the
-    # martial-arts *style* pages. The Dragon-Blooded enlightenment tree
-    # ('martial_arts:enlightenment') is a prerequisite gate rather than a style —
-    # it is what you learn BEFORE any Dragon Path opens — so it stays on the
-    # Abilities side, where you go looking for it.
-    GROUPS = {"abilities": "Abilities", "styles": "Martial Arts"}
+    # A toggle splits the picker into three pages: the ability Charm trees, the
+    # martial-arts *style* trees, and the spell list. The Dragon-Blooded
+    # enlightenment tree ('martial_arts:enlightenment') is a prerequisite gate
+    # rather than a style — it is what you learn BEFORE any Dragon Path opens —
+    # so it stays on the Abilities side, where you go looking for it.
     _MA_NON_STYLE = frozenset({"enlightenment"})
 
     def _group_of(cat: str) -> str:
@@ -109,8 +108,22 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                               if validate.charm_matches_splat(character, c, ruleset)})
     _start = ("melee" if "melee" in _all_categories
               else (_all_categories[0] if _all_categories else ""))
-    state = {"category": _start, "group": _group_of(_start) if _start else "abilities"}
+    state = {"category": _start, "group": _group_of(_start) if _start else "abilities",
+             "circle": ""}
     _has_styles = any(_group_of(c) == "styles" for c in _all_categories)
+    # Which circles this character could ever reach is fixed by their splat's Occult
+    # tree, so the Spells page — and its Circle dropdown — either exists for them or
+    # never does. Ordered globally (sorcery Terrestrial→Solar, then necromancy
+    # Shadowlands→Void); an Abyssal reaches both tracks, a plain Solar only sorcery.
+    _spell_circles = [ce for ce in viewmod.CIRCLE_DISPLAY_ORDER
+                      if ce.value in {r.circle for r in viewmod.build_spell_picker(ruleset, character)}]
+    _has_spells = bool(_spell_circles)
+    GROUPS = {"abilities": "Abilities"}
+    if _has_styles:
+        GROUPS["styles"] = "Martial Arts"
+    if _has_spells:
+        GROUPS["spells"] = "Spells"
+        state["circle"] = _spell_circles[0].value
     widgets: dict = {}                          # holds the live group toggle + category <select>
 
     # ---- Immaculate-vs-standard chargen path banner (Dragon-Blooded) ------- #
@@ -272,43 +285,51 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     @ui.refreshable
     def spells_panel() -> None:
-        # Spells share the Charm pool (p.100) and are gated on the Occult Sorcery
-        # Charms, so they live under the Occult graph — one column per Circle —
-        # and only appear on that page. Rebuilt on every Charm change so learning
-        # a Circle Sorcery Charm immediately unlocks its spells.
-        if state["category"] != "occult":
+        # Spells share the Charm pool (p.100) and are gated on the Occult Sorcery /
+        # Necromancy Charms, so they get their own page of the picker rather than a
+        # cramped card under the Occult graph: the Circle dropdown chooses a circle,
+        # and each spell is a full-width row — its name, its description on the line
+        # below, and the add/remove/locked button. Rebuilt on every Charm change so
+        # learning a Circle Charm immediately unlocks its spells.
+        if state["group"] != "spells":
             return
-        rows = viewmod.build_spell_picker(ruleset, character)
+        rows = [r for r in viewmod.build_spell_picker(ruleset, character)
+                if r.circle == state["circle"]]
         if not rows:
             return
-        by_circle: dict[str, list] = {}
-        for r in rows:
-            by_circle.setdefault(r.circle, []).append(r)
-        # One column per circle actually present in the rows, in global track order
-        # (sorcery Terrestrial→Solar, then necromancy Shadowlands→Void). A character
-        # reaches whatever circles a learnable initiation Charm grants, so an Abyssal
-        # whose Occult tree holds both sorcery and necromancy initiations shows both
-        # (p.223); a plain Solar shows only Sorcery.
-        present = [ce for ce in viewmod.CIRCLE_DISPLAY_ORDER if by_circle.get(ce.value)]
-        kinds = {circle_kind(ce) for ce in present}
-        magic_noun = ("Necromancy" if kinds == {"necromancy"}
-                      else "Sorcery" if kinds == {"sorcery"}
-                      else "Sorcery/Necromancy")
-        with ui.card().classes(f"w-full p-3 {pal.card}"):
+        # The Circle dropdown picks which one shows; the header names its track, since
+        # an Abyssal's list spans sorcery AND necromancy circles (p.223).
+        selected = next(ce for ce in viewmod.CIRCLE_DISPLAY_ORDER if ce.value == state["circle"])
+        magic_noun = "Necromancy" if circle_kind(selected) == "necromancy" else "Sorcery"
+        with ui.card().classes(f"w-full p-3 gap-3 {pal.card}"):
             with ui.row().classes("w-full items-baseline gap-3"):
-                ui.label("Spells").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                ui.label(magic_noun).classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label(f"A spell takes a Charm pick (p.100); learn the matching Circle "
                          f"{magic_noun} Charm to unlock it.").classes("text-xs text-gray-500")
-            with ui.row().classes("w-full gap-6 items-start no-wrap"):
-                for circle_enum in present:
-                    circle = circle_enum.value
-                    with ui.column().classes("flex-1 gap-1 min-w-0"):
-                        ui.label(f"{circle} Circle").classes(
-                            f"text-xs font-semibold border-b {pal.rule} w-full").style(f"color:{pal.accent}")
-                        for r in by_circle.get(circle, []):
-                            with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
-                                ui.label(r.name).classes("text-xs text-wrap").tooltip(r.description or r.name)
-                                _spell_button(r)
+            owned = sum(1 for r in rows if r.owned)
+            with ui.column().classes("w-full gap-0"):
+                with ui.row().classes(f"w-full items-baseline gap-2 border-b {pal.rule}"):
+                    ui.label(f"{state['circle']} Circle").classes(
+                        "text-xs font-semibold").style(f"color:{pal.accent}")
+                    ui.label(f"{owned}/{len(rows)} known").classes("text-xs text-gray-400")
+                for r in rows:
+                    locked = not r.owned and not r.available
+                    with ui.row().classes("w-full items-start no-wrap gap-2 py-1"):
+                        _spell_button(r)
+                        with ui.column().classes("flex-1 min-w-0 gap-0"):
+                            with ui.row().classes("items-baseline gap-2 no-wrap"):
+                                ui.label(r.name).classes(
+                                    "text-sm " + ("text-gray-400" if locked else "font-medium"))
+                                if r.cost:
+                                    ui.label(r.cost).classes("text-xs text-gray-400")
+                            # Description inline, never on hover — and the lock reason
+                            # ADDS a line rather than replacing it, since on a fresh
+                            # character every spell is locked and would otherwise be
+                            # undescribed.
+                            if r.description:
+                                ui.label(r.description).classes("text-xs text-gray-500")
+                            if locked:
+                                ui.label(r.reason).classes("text-xs text-amber-700 italic")
 
     # ---- graph (re)build / update ---------------------------------------- #
     def init_graph() -> None:
@@ -399,24 +420,45 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         state["category"] = value
         init_graph()
         readout.refresh()
-        spells_panel.refresh()        # show/hide the Spells card with the Occult page
+        spells_panel.refresh()        # inert off the Spells page, cheap enough to always call
+
+    def set_circle(value: str) -> None:
+        state["circle"] = value
+        spells_panel.refresh()
+
+    def _apply_group() -> None:
+        """Show the graph furniture (category dropdown, legend, canvas, detail card)
+        on the two Charm-tree pages and hide it on the Spells page, which is a plain
+        list and has no selected node to describe. The Circle dropdown swaps in for
+        the Category one."""
+        graph_page = state["group"] != "spells"
+        for key in ("category", "legend", "graph", "detail_card"):
+            widget = widgets.get(key)
+            if widget is not None:
+                widget.set_visibility(graph_page)
+        if widgets.get("circle") is not None:
+            widgets["circle"].set_visibility(not graph_page)
+        spells_panel.refresh()
 
     def set_group(value: str) -> None:
-        """Switch the dropdown between the ability pages and the martial-arts styles,
-        landing on the first category of the group."""
+        """Switch between the ability pages, the martial-arts styles and the spell
+        list, landing on the first category of the group."""
         if value == state["group"]:
             return
         state["group"] = value
         toggle = widgets.get("group")
         if toggle is not None:
             toggle.set_value(value)   # re-entrant call returns early (value == state)
+        _apply_group()
+        if value == "spells":
+            return
         opts = _visible_category_options()
         first = next(iter(opts), "")
         sel = widgets.get("category")
         if sel is not None:
             sel.set_options(opts, value=first)
         if first:
-            set_category(first)
+            set_category(first)      # rebuilds the graph into the now-visible canvas
 
     def _refresh_categories() -> None:
         """Re-evaluate the visible category dropdown after a Charm change. Learning both
@@ -424,8 +466,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         dropping one hides them again (falling back to a still-visible style, or to the
         Abilities group if the whole styles group just vanished)."""
         sel = widgets.get("category")
-        if sel is None:
-            return
+        if sel is None or state["group"] == "spells":
+            return                     # the Spells page owns no category dropdown
         opts = _visible_category_options()
         if not opts:                   # every category in this group just got hidden
             set_group("abilities" if state["group"] == "styles" else "styles")
@@ -455,7 +497,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 if with_header:
                     ui.label("Charm-Tree Picker").classes("text-xl font-bold")
                 with ui.row().classes("items-center gap-2"):
-                    if _has_styles:
+                    if len(GROUPS) > 1:
                         widgets["group"] = ui.toggle(
                             GROUPS, value=state["group"],
                             on_change=lambda e: set_group(e.value)
@@ -463,9 +505,16 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                     widgets["category"] = ui.select(
                         _visible_category_options(), value=state["category"], label="Category",
                         on_change=lambda e: set_category(e.value)).classes("w-48")
+                    if _has_spells:
+                        widgets["circle"] = ui.select(
+                            {ce.value: f"{ce.value} Circle" for ce in _spell_circles},
+                            value=state["circle"], label="Circle",
+                            on_change=lambda e: set_circle(e.value)).classes("w-48")
+                        widgets["circle"].set_visibility(state["group"] == "spells")
                 if with_header:
                     ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
-            with ui.row().classes("w-full gap-4 text-xs items-center justify-between"):
+            widgets["legend"] = ui.row().classes("w-full gap-4 text-xs items-center justify-between")
+            with widgets["legend"]:
                 with ui.row().classes("gap-4 items-center"):
                     for color, text in [(pal.accent, "owned"), ("#15803d", "available"),
                                         ("#9ca3af", "locked (tap to see why)")]:
@@ -475,16 +524,17 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label("scroll to zoom · drag to pan").classes("text-gray-400 italic")
             # A real element (not ui.html, whose inline style gets sanitised away),
             # with an explicit DOM id for Cytoscape to mount into.
-            (ui.element("div").props("id=charm-graph")
-             .style(f"height:720px;width:100%;border:1px solid {pal.graph_border};"
-                    f"border-radius:8px;background:{pal.node_bg}"))
-            # Spells live under the graph, but only render on the Occult page.
+            widgets["graph"] = (ui.element("div").props("id=charm-graph")
+                                .style(f"height:720px;width:100%;border:1px solid {pal.graph_border};"
+                                       f"border-radius:8px;background:{pal.node_bg}"))
+            # The Spells page renders here, in place of the graph.
             spells_panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes(f"w-full p-3 {pal.card}"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 readout()
-            with ui.card().classes(f"w-full p-3 {pal.card}"):
+            widgets["detail_card"] = ui.card().classes(f"w-full p-3 {pal.card}")
+            with widgets["detail_card"]:
                 ui.label("Charm Details").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 detail()
 
