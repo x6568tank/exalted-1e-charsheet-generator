@@ -90,10 +90,12 @@ def test_dragon_blooded_keep_their_own_five_dragon(rs):
     assert validate.charm_matches_splat(_char("Dragon-Blooded", "earth"), charm, rs) is True
 
 
-def test_enlightenment_charms_stay_dragon_blooded_only(rs):
-    # the Dragon-Path initiation gate is not a style and is not opened up
+def test_enlightenment_charms_are_open_to_every_exalt(rs):
+    # the Dragon-Path initiation tree is `open_to_all`: any Exalt may learn it, the
+    # same way the Dragon Paths it initiates are open to all
     charm = rs.charms[_ENLIGHTENMENT]
-    assert validate.charm_matches_splat(_char("Solar", "dawn"), charm, rs) is False
+    assert validate.charm_matches_splat(_char("Solar", "dawn"), charm, rs) is True
+    assert validate.charm_matches_splat(_char("Abyssal", "dusk"), charm, rs) is True
 
 
 def test_tier_opening_needs_the_ruleset(rs):

@@ -107,15 +107,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         return cat.replace("_", " ").title()
 
     # A toggle splits the picker into three pages: the ability Charm trees, the
-    # martial-arts *style* trees, and the spell list. The Dragon-Blooded
-    # enlightenment tree ('martial_arts:enlightenment') is a prerequisite gate
-    # rather than a style — it is what you learn BEFORE any Dragon Path opens —
-    # so it stays on the Abilities side, where you go looking for it.
-    _MA_NON_STYLE = frozenset({"enlightenment"})
-
+    # martial-arts trees, and the spell list. Every `martial_arts:*` category goes
+    # on the Martial Arts page — including the enlightenment tree
+    # ('martial_arts:enlightenment'), which is the Dragon-Path initiation rather
+    # than a style, but is martial arts and is looked for among them.
     def _group_of(cat: str) -> str:
-        style = cat.startswith("martial_arts:") and cat.split(":", 1)[1] not in _MA_NON_STYLE
-        return "styles" if style else "abilities"
+        return "styles" if cat.startswith("martial_arts:") else "abilities"
 
     def _visible_category_options(group: str | None = None) -> dict[str, str]:
         """Category-dropdown options for the CURRENT character state: their splat's

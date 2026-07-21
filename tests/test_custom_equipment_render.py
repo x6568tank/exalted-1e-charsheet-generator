@@ -158,23 +158,23 @@ async def test_changing_exalt_type_rethemes_chrome_live(user: User) -> None:
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_picker_splits_abilities_from_martial_arts_styles(user: User) -> None:
     # the picker's Category dropdown is split by a toggle: ability pages vs martial-arts
-    # STYLE pages. The Dragon-Blooded enlightenment tree is a prerequisite gate, not a
-    # style, so it stays on the Abilities side.
+    # pages. Every martial_arts:* category — including the enlightenment tree, which
+    # initiates the Dragon Paths — belongs on the Martial Arts side.
     from nicegui.elements.toggle import Toggle
     await user.open('/dbpicker')
     sel = next(s for s in user.client.elements.values()
                if isinstance(s, Select) and s._props.get('label') == 'Category')
     opts = list(sel.options)
     assert "melee" in opts
-    assert "martial_arts:enlightenment" in opts      # the gate lives with the abilities
-    assert "martial_arts:five-dragon" not in opts    # a style — on the other side
+    assert "martial_arts:five-dragon" not in opts    # martial arts — on the other side
+    assert "martial_arts:enlightenment" not in opts
 
     toggle = next(t for t in user.client.elements.values() if isinstance(t, Toggle))
     toggle.set_value("styles")
     opts = list(sel.options)
     assert "martial_arts:five-dragon" in opts
+    assert "martial_arts:enlightenment" in opts
     assert "melee" not in opts
-    assert "martial_arts:enlightenment" not in opts
 
 
 @pytest.mark.asyncio
