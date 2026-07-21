@@ -113,6 +113,11 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Frontend: **NiceGUI** (chosen over Reflex). Installed as the optional `[ui]`
   extra. A JS graph library (Cytoscape/d3) is still planned ONLY for the
   charm-tree picker. Run the venv as `.venv/`; tests: `.venv/bin/python -m pytest`.
+- **Git remote (added 2026-07-21):** `origin` →
+  `github.com/x6568tank/exalted-1e-charsheet-generator`, tracking `main`. Note that
+  `images/` and `sources/` are gitignored and therefore do NOT travel with a clone —
+  they are the only authoritative source of game values, so authoring new rules data
+  on a second machine needs those PNGs synced out-of-band.
 
 ## Workflow expectations
 - **Test-first on the engine.** That's where bugs hide.
@@ -123,7 +128,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (375 tests passing)
+## Status (377 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -179,7 +184,12 @@ Exalted-1E-Charsheet-Generator/      (project root)
   slug + `.character.json`; an explicit `.json` kept). `character_to_json`/`_from_json`
   are the in-memory (de)serialisers the browser upload/download path reuses.
 - **UI (NiceGUI):** `ui/view.py` is the pure, toolkit-free presenter (sheet view +
-  charm-graph data + `build_spell_picker`). `ui/app.py` read-only sheet,
+  charm-graph data + `build_spell_picker`). **Charm duration is displayed** (added
+  2026-07-21): `CharmDetail.duration`/`CharmRow.duration` read straight off
+  `Charm.duration` — the picker prints it under Requires, the sheet puts it just left
+  of cost. The field was always authored and read by the Combo rules, just never shown.
+  Spells have NO duration field on the model, so the matching spell row would need new
+  data, not new plumbing. `ui/app.py` read-only sheet,
   `ui/editor.py` chargen editor (live validation), `ui/picker.py` Cytoscape
   charm-tree picker **with a Spells card** that appears under the graph **only on
   the Occult page**, three columns (Terrestrial / Celestial / Solar), circle-gated
@@ -270,7 +280,10 @@ Exalted-1E-Charsheet-Generator/      (project root)
   pack/exalted-builder.spec` → `dist/ExaltedBuilder`, ~60MB). NOTE: a Linux PyInstaller
   binary is NOT portable across distros (glibc/system-lib differences) — build on the
   oldest target distro for sharing. **Windows .exe still needs building ON Windows**
-  (PyInstaller can't cross-compile); same spec. (A native-window packaging was tried and
+  (PyInstaller can't cross-compile); same spec. **One-command builds:** `./linux.sh`
+  and `windows.bat` at the repo root are line-for-line equivalents (create `.venv` →
+  `pip install -e ".[ui,desktop]"` → run the spec); keep them in step when either
+  changes. (A native-window packaging was tried and
   reverted — Qt bundling made it ~280MB and non-portable; `--native` stays a dev option.)
 - **Merits & Flaws — REMOVED** (was: a Player's Guide catalog + mechanical-effect
   hooks). Ripped out entirely on 2026-06-15 per the user's decision (the M&F system

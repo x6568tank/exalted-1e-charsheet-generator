@@ -18,6 +18,20 @@ Note also that a Linux PyInstaller binary is **not reliably portable between Lin
 distributions** (glibc and system-library differences). For broad Linux sharing,
 build on the **oldest** distro you need to support.
 
+## Quickest path: the build scripts
+
+The repo root has one script per platform. Each creates `.venv`, installs the app
+with its build extras, and runs PyInstaller — a fresh clone to a finished binary
+in one command:
+
+```
+./linux.sh        # Linux/macOS
+windows.bat       # Windows
+```
+
+They are line-for-line equivalents; keep them in step when either changes. The
+manual steps below are the same thing spelled out, for when a build misbehaves.
+
 ## Build steps (same on every OS)
 
 1. Get the repo and a Python 3.11+ environment.
@@ -38,7 +52,8 @@ Double-click it (or run it) — it opens the builder in the default browser.
 Distribute that single file; recipients need nothing else installed.
 
 ## Windows quick recipe
-On a Windows machine with Python installed, from a terminal in the repo root:
+On a Windows machine with Python installed, run `windows.bat` from the repo root —
+or, by hand, from a terminal there:
 ```
 py -m venv .venv
 .venv\Scripts\python -m pip install -e ".[ui,desktop]"
