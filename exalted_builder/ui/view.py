@@ -286,14 +286,18 @@ def build_spell_picker(ruleset: RuleSet, character: Character) -> list[SpellPick
     Occult tree holds both sorcery and necromancy initiations — sees both. Ordered
     by circle then name. Pure — eligibility comes from engine.validate."""
     reachable = validate.accessible_circles(ruleset, character)
-    barred = validate.chargen_barred_circle(ruleset, character)
+    # The top circle is barred at *creation* only (core p.100). Once chargen is
+    # locked the character is in play and may buy it with experience.
+    chargen = not character.chargen_locked
+    barred = validate.chargen_barred_circle(ruleset, character) if chargen else None
     rows: list[SpellPickRow] = []
     for spell in sorted(ruleset.spells.values(),
                         key=lambda s: (_CIRCLE_ORDER.get(s.circle, 9), s.name)):
         if spell.circle not in reachable:
             continue
         owned = spell.id in character.spells
-        available = validate.meets_spell_requirements(ruleset, character, spell)
+        available = validate.meets_spell_requirements(ruleset, character, spell,
+                                                      chargen=chargen)
         reason = ""
         if not owned and not available:
             if spell.circle == barred:

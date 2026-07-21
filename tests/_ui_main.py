@@ -5,8 +5,9 @@ from exalted_builder import rules_db
 from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
     Armor, BackgroundEntry, Character, Damage, PlayState, Weapon)
+from exalted_builder.models.rules import AbilityName
 from exalted_builder.ui import app as sheet_app
-from exalted_builder.ui import builder, editor, picker, play, view, xp
+from exalted_builder.ui import builder, combos, editor, picker, play, view, xp
 
 RS = rules_db.load_ruleset(Path("exalted_builder/data"))
 
@@ -99,6 +100,41 @@ CHAR_AB = Character(id="ab", name="Ash", exalt_type="Abyssal", caste="dusk", ori
 @ui.page('/abpicker')
 def page_abpicker():
     picker.build_picker(RS, CHAR_AB, Path("x.json"), with_header=True)
+
+# (i) an in-play (locked) Solar with XP in hand — the Charms and Combos tabs switch
+# from picking to BUYING once chargen locks, so these pages exercise that mode.
+CHAR_INPLAY = Character(id="ip", name="Veteran Solar", caste="dawn")
+CHAR_INPLAY.abilities[AbilityName.MELEE] = 3
+CHAR_INPLAY.charms = ["solar.melee.excellent-strike", "solar.melee.one-weapon-two-blows"]
+lifecycle.lock_chargen(CHAR_INPLAY)
+CHAR_INPLAY.xp_earned = 50
+# build_picker returns its select(); calling it here opens the detail card on a
+# given Charm, which is the only way to reach the buy button without a real tap.
+# One route per Charm, so a test never has to reach back into this module.
+@ui.page('/inplay-picker')
+def page_inplay_picker():
+    picker.build_picker(RS, CHAR_INPLAY, Path("x.json"), with_header=True)
+
+@ui.page('/inplay-picker-buy')       # an available Charm — shows its XP price
+def page_inplay_picker_buy():
+    picker.build_picker(RS, CHAR_INPLAY, Path("x.json"),
+                        with_header=True)("solar.melee.hungry-tiger-technique")
+
+@ui.page('/inplay-picker-known')     # a Charm already known — no Remove in play
+def page_inplay_picker_known():
+    picker.build_picker(RS, CHAR_INPLAY, Path("x.json"),
+                        with_header=True)("solar.melee.excellent-strike")
+
+# (j) its own fresh character for the lock-swaps-the-tab-bar test
+CHAR_LOCKME = Character(id="lk", name="Locks", caste="dawn")
+
+@ui.page('/builder-lock')
+def page_builder_lock():
+    builder.build_app(RS, CHAR_LOCKME, Path("x.json"))
+
+@ui.page('/inplay-combos')
+def page_inplay_combos():
+    combos.build_combos(RS, CHAR_INPLAY, Path("x.json"), with_header=False)
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()

@@ -1,12 +1,18 @@
 """
 ui/xp.py — NiceGUI post-lock XP advancement tab.
 
-Spend experience after Finish & Lock: raise Attributes/Abilities/Virtues/Willpower/
-Essence, learn Charms/spells, build Combos, add specialties — each priced by
-engine.costs, applied by engine.advancement, and recorded in the append-only XP
-log (undo is last-first). The chargen sheet stays the baseline (the snapshot);
-this tab only adds to it. Zero game logic here: costs, legality and the log all
-come from the engine.
+Spend experience after Finish & Lock: raise (or curse-reduce) Attributes/Abilities/
+Crafts/Virtues/Willpower/Essence, add specialties, and keep the ledger — each priced
+by engine.costs, applied by engine.advancement, and recorded in the append-only XP
+log (undo is last-first, and undo of ANY purchase happens here, wherever it was
+bought). The chargen sheet stays the baseline (the snapshot); this tab only adds to
+it. Zero game logic here: costs, legality and the log all come from the engine.
+
+This tab takes the Edit tab's place on the bar once chargen locks. Charms, spells,
+Ox-Body packages and Combos are deliberately NOT bought here — they are bought on
+the Charms and Combos tabs, which switch from picking to buying at the same moment,
+so a trait is always bought where it is browsed. Backgrounds and equipment are
+free (story-driven, not XP-priced) and edited here directly.
 
 Run:
     python -m exalted_builder.ui.xp [path/to/foo.character.json] [--show] [--port N]
@@ -20,7 +26,7 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import advancement, costs, derive, validate
+from ..engine import advancement, costs, derive
 from ..models.character import Armor, BackgroundEntry, Character, Weapon
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import theme
@@ -46,19 +52,13 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         "attr": AttributeName.STRENGTH,
         "ability": AbilityName.MELEE,
         "virtue": VirtueName.COMPASSION,
-        "charm": None,
-        "spell": None,
         "spec_ability": AbilityName.MELEE,
         "spec_name": "",
         "craft_focus": None,
         "craft_new": "",
-        "combo_ids": [],
-        "combo_name": "",
-        "ox_variant": None,
         "add_amount": 5,
         "lower_target": f"attr:{AttributeName.STRENGTH.value}",   # what to reduce
         "lower_reason": "",                                       # curse / charm-cost note
-        "focus": None,          # ("charm"|"spell", id) — what the detail panel describes
     }
 
     def _reduce() -> None:
@@ -210,67 +210,10 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button("Reduce", icon="arrow_downward",
                           on_click=lambda: _do(_reduce)).props("dense color=negative")
 
-        # --- learn Charm / spell ------------------------------------------ #
-        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
-            ui.label("Learn").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
-
-            ox_id = validate.ox_body_charm_id(rs, character)
-            learnable = sorted(
-                (c for c in rs.charms.values()
-                 if c.id not in character.charms and c.id != ox_id
-                 and validate.meets_charm_requirements(rs, character, c)),
-                key=lambda c: c.name)
-            charm_opts = {c.id: f"{c.name} · {costs.charm_cost(rs, character, c)} XP" for c in learnable}
-            # Clamp to a valid option: a just-learned id leaves the list, and a stale
-            # value would crash the select on the next render.
-            charm_value = sel["charm"] if sel["charm"] in charm_opts else None
-            with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                ui.select(charm_opts, value=charm_value, with_input=True, label="Charm",
-                          on_change=lambda e: (sel.__setitem__("charm", e.value),
-                                               sel.__setitem__("focus", ("charm", e.value) if e.value else None),
-                                               panel.refresh(), detail.refresh())
-                          ).props("dense").classes("flex-1")
-                ui.button("Learn Charm", on_click=lambda: _do(
-                    lambda: (advancement.learn_charm(rs, character, sel["charm"]),
-                             sel.update({"charm": None, "focus": None})))).props(f"dense color={pal.button}")
-
-            castable = sorted(
-                (s for s in rs.spells.values()
-                 if s.id not in character.spells
-                 and validate.meets_spell_requirements(rs, character, s, chargen=False)),
-                key=lambda s: s.name)
-            spell_cost = costs.spell_cost(rs, character)
-            spell_opts = {s.id: f"{s.name} · {spell_cost} XP" for s in castable}
-            spell_value = sel["spell"] if sel["spell"] in spell_opts else None
-            with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                ui.select(spell_opts, value=spell_value, with_input=True, label="Spell",
-                          on_change=lambda e: (sel.__setitem__("spell", e.value),
-                                               sel.__setitem__("focus", ("spell", e.value) if e.value else None),
-                                               panel.refresh(), detail.refresh())
-                          ).props("dense").classes("flex-1")
-                ui.button("Learn Spell", on_click=lambda: _do(
-                    lambda: (advancement.learn_spell(rs, character, sel["spell"]),
-                             sel.update({"spell": None, "focus": None})))).props(f"dense color={pal.button}")
-
-            # Ox-Body Technique: repeatable, pick a health-level package each time.
-            ox_charm = validate.ox_body_charm(rs, character)
-            if ox_charm:
-                ox_cap = validate.ox_body_cap(rs, character)
-                ox_bought = len(character.ox_body)
-                ox_opts = {v.key: v.label for v in ox_charm.variants}
-                ox_value = sel["ox_variant"] if sel["ox_variant"] in ox_opts else None
-                with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    ui.select(ox_opts, value=ox_value, label=f"Ox-Body package  ({ox_bought}/{ox_cap})",
-                              on_change=lambda e: (sel.__setitem__("ox_variant", e.value), panel.refresh())
-                              ).props("dense").classes("flex-1")
-                    ui.label(f"{costs.ox_body_cost(rs, character)} XP").classes("text-xs w-12")
-                    btn = ui.button("Buy Ox-Body", on_click=lambda: _do(
-                        lambda: (advancement.learn_ox_body(rs, character, sel["ox_variant"]),
-                                 sel.__setitem__("ox_variant", None)))).props(f"dense color={pal.button}")
-                    if ox_bought >= ox_cap or ox_value is None:
-                        btn.props("disable")
-
-        # --- specialty + combo -------------------------------------------- #
+        # --- specialty ----------------------------------------------------- #
+        # Charms, spells, Ox-Body packages and Combos are NOT bought here: they are
+        # bought in place, on the Charms and Combos tabs, which switch from picking to
+        # buying once chargen locks. A specialty has no home tab of its own.
         with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
             ui.label("Add").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
             with ui.row().classes("w-full items-center gap-2 no-wrap"):
@@ -283,20 +226,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button("Add Specialty", on_click=lambda: _do(
                     lambda: (advancement.add_specialty(rs, character, sel["spec_ability"], sel["spec_name"]),
                              sel.__setitem__("spec_name", "")))).props(f"dense color={pal.button}")
-
-            combo_charms = {cid: rs.charms[cid].name for cid in validate.eligible_combo_charms(rs, character)}
-            combo_value = [cid for cid in sel["combo_ids"] if cid in combo_charms]
-            combo_cost = costs.combo_cost(rs, combo_value)
-            with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                ui.select(combo_charms, value=combo_value, multiple=True, label="Combo Charms",
-                          on_change=lambda e: (sel.__setitem__("combo_ids", e.value), panel.refresh())
-                          ).props("dense").classes("flex-1")
-                ui.input(value=sel["combo_name"], placeholder="combo name",
-                         on_change=lambda e: sel.__setitem__("combo_name", e.value)).props("dense").classes("w-40")
-                ui.label(f"{combo_cost} XP").classes("text-xs w-12")
-                ui.button("Add Combo", on_click=lambda: _do(
-                    lambda: (advancement.add_combo(rs, character, sel["combo_name"], sel["combo_ids"]),
-                             sel.update({"combo_ids": [], "combo_name": ""})))).props(f"dense color={pal.button}")
+            ui.label("Charms, spells and Ox-Body are bought on the Charms tab; "
+                     "Combos on the Combos tab.").classes("text-xs text-gray-500")
 
         # --- crafts: each focus is its own rated Ability (core p.136) ----- #
         with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
@@ -479,56 +410,9 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             return
         refresh_all()
 
-    # ---- detail panel (describes the selected Charm / spell) -------------- #
-    @ui.refreshable
-    def detail() -> None:
-        focus = sel.get("focus")
-        if not focus:
-            ui.label("Select a Charm or spell to see its details.").classes("text-xs text-gray-400")
-            return
-        kind, ident = focus
-        if kind == "charm":
-            d = viewmod.build_charm_detail(rs, character, ident)
-            if d is None:
-                ui.label("Unknown Charm.").classes("text-xs text-gray-400")
-                return
-            ui.label(d.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
-            ui.label(f"{d.type} · {d.cost}").classes("text-xs text-gray-600")
-            if d.description:
-                ui.label(d.description).classes("text-xs")
-            ui.separator()
-            ui.label(f"Requires: {d.requirement}").classes("text-xs font-semibold")
-            if d.prerequisite_groups:
-                ui.label("Prerequisite Charms:").classes("text-xs font-semibold")
-                for group in d.prerequisite_groups:
-                    ui.label("• " + " or ".join(group)).classes("text-xs ml-2")
-            else:
-                ui.label("No prerequisite Charms.").classes("text-xs text-gray-500")
-            ui.separator()
-            if d.owned:
-                ui.label("Already known.").classes("text-xs text-gray-500")
-            else:
-                ui.label(f"XP to learn: {costs.charm_cost(rs, character, rs.charms[ident])}").classes(
-                    "text-xs font-semibold")
-        else:
-            d = viewmod.build_spell_detail(rs, character, ident)
-            if d is None:
-                ui.label("Unknown spell.").classes("text-xs text-gray-400")
-                return
-            ui.label(d.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
-            ui.label(f"{d.circle} Circle · {d.cost}").classes("text-xs text-gray-600")
-            if d.description:
-                ui.label(d.description).classes("text-xs")
-            ui.separator()
-            if d.owned:
-                ui.label("Already known.").classes("text-xs text-gray-500")
-            else:
-                ui.label(f"XP to learn: {costs.spell_cost(rs, character)}").classes("text-xs font-semibold")
-
     def refresh_all() -> None:
         panel.refresh()
         ledger.refresh()
-        detail.refresh()
 
     def save() -> None:
         persistence.save_character(character, save_path)
@@ -549,9 +433,6 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.card().classes(f"w-full p-3 {pal.card}"):
                 ui.label("Experience").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ledger()
-            with ui.card().classes(f"w-full p-3 {pal.card}"):
-                ui.label("Details").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
-                detail()
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:

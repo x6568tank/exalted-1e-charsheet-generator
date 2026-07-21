@@ -123,7 +123,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (230 tests passing)
+## Status (341 tests passing)
 - **Models + loader:** `models/rules.py`, `models/character.py`, `rules_db.py` — done.
 - **Engine (done, test-first):**
   - `engine/derive.py` — Willpower, Solar Essence pools, health track, and per-type
@@ -188,10 +188,10 @@ Exalted-1E-Charsheet-Generator/      (project root)
   `ui/combos.py` is the **Combo builder** (`view.build_combo_view`): assemble named
   Combos from known instant-duration Charms, with per-Combo legality + BP cost.
   `ui/xp.py` is the **post-lock XP tab** (`view.build_xp_log` for the ledger): add XP,
-  raise traits / learn Charms-spells / add Combos-specialties at the engine's price,
-  with a running spend log and last-first undo; inert until locked. A right-hand
-  Details panel (`view.build_charm_detail`/`build_spell_detail`) describes the
-  Charm/spell currently selected in the Learn dropdowns. It also has a **"Reduce a
+  raise traits / add specialties / learn-raise crafts at the engine's price, with a
+  running spend log and last-first undo (undo of ANY purchase, wherever bought);
+  inert until locked. Free (unpriced, unlogged) post-lock editing of Backgrounds and
+  equipment lives here too. It also has a **"Reduce a
   Trait" card** (curse / Charm cost): a dropdown of every reducible trait with its
   current value + a reason field → `advancement.lower_*` (free, logged, undoable).
   `ui/play.py` is the **in-play tracker (the Play tab)** — `view.build_play_view`
@@ -202,9 +202,21 @@ Exalted-1E-Charsheet-Generator/      (project root)
   damage/Limit are ST discretion). Live regardless of lock; ZERO game logic, never
   feeds back into validation. `ui/builder.py`
   is the **unified tabbed app** (Edit / Charms / Combos / XP / Play / Sheet, one shared
-  Character, with New / Save / Load / Finish & Lock / Unlock). Once locked the chargen
-  tabs (Edit/Charms/Combos) go read-only (a notice points to the XP tab or Unlock);
-  the XP tab is where advancement happens; the Play tab is live throughout. It **starts on a
+  Character, with New / Save / Load / Finish & Lock / Unlock).
+  **Chargen-vs-play is a MODE, not a set of disabled tabs (reworked 2026-07-21).**
+  `builder.visible_tabs(locked)`/`resolve_tab` put **Edit and XP in one slot** — Edit
+  while building, XP once locked (`_sync_tabs` toggles tab visibility on every content
+  refresh and bounces the selected tab to its counterpart). **Charms and Combos stay on
+  the bar in both stages and switch behaviour instead of going read-only:** pre-lock they
+  pick freely against the chargen budget; post-lock they BUY through `engine.advancement`
+  (`picker.in_play()`/`combos.in_play()` = `character.chargen_locked`). In the picker that
+  means priced "Buy · N XP" buttons on the detail card / spell rows / Ox-Body packages, an
+  XP-available readout instead of the chargen tally, and **no removal** (the only refund is
+  last-first undo on the XP tab); in Combos it means the whole Combo is composed then bought
+  with one `advancement.add_combo` call, and bought Combos are fixed. The XP tab therefore
+  no longer has a Charm/spell/Ox-Body/Combo dropdown at all — a trait is bought where it is
+  browsed. `view.build_spell_picker` passes `chargen=not character.chargen_locked`, so the
+  top-circle chargen bar (p.100) lifts in play. The Play tab is live throughout. It **starts on a
   blank character** (the example is no longer auto-loaded — open it via the path arg
   or Load). **Save/Load are deployment-aware:** the shipped build runs in the **browser**
   (`pack/run_app.py` → `ui.run(show=True)`), where Save prompts for a filename and

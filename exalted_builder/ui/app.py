@@ -135,7 +135,10 @@ def render_sheet(view: viewmod.SheetView) -> None:
                     ui.label(f"{ability} — {name} ({rating})").classes("text-sm")
 
         # --- charms / spells ---------------------------------------------- #
-        _heading("Charms & Sorcery")
+        # Most characters are not sorcerers, so an empty Spells panel would sit there
+        # taking half the band to say "—". Drop it entirely when there are no spells
+        # and let Charms (already flex-1) have the width.
+        _heading("Charms & Sorcery" if view.spells else "Charms")
         with ui.row().classes("w-full gap-2 items-start no-wrap"):
             with _panel().classes("flex-1"):
                 ui.label(f"Charms ({len(view.charms)})").classes("text-xs font-semibold").style(f"color:{pal.accent}")
@@ -149,18 +152,17 @@ def render_sheet(view: viewmod.SheetView) -> None:
                             ui.label(c.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
                         if c.description:
                             ui.label(c.description).classes("text-xs text-gray-600 mb-1")
-            with _panel().classes("flex-1"):
-                ui.label(f"Spells ({len(view.spells)})").classes("text-xs font-semibold").style(f"color:{pal.accent}")
-                if not view.spells:
-                    ui.label("—").classes("text-sm text-gray-400")
-                for s in view.spells:
-                    with ui.column().classes("w-full gap-0"):
-                        with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                            ui.label(s.name).classes("text-sm flex-1 truncate")
-                            ui.label(s.circle).classes("text-xs text-gray-500")
-                            ui.label(s.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
-                        if s.description:
-                            ui.label(s.description).classes("text-xs text-gray-600 mb-1")
+            if view.spells:
+                with _panel().classes("flex-1"):
+                    ui.label(f"Spells ({len(view.spells)})").classes("text-xs font-semibold").style(f"color:{pal.accent}")
+                    for s in view.spells:
+                        with ui.column().classes("w-full gap-0"):
+                            with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                                ui.label(s.name).classes("text-sm flex-1 truncate")
+                                ui.label(s.circle).classes("text-xs text-gray-500")
+                                ui.label(s.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
+                            if s.description:
+                                ui.label(s.description).classes("text-xs text-gray-600 mb-1")
 
         # --- bottom band: gear | willpower+health | virtues+essence ------- #
         with ui.row().classes("w-full gap-2 items-stretch no-wrap"):

@@ -7,9 +7,16 @@ the engine). Tapping a node toggles ownership: an available Charm is learned, an
 owned one is dropped; locked Charms refuse with a notice. A live readout re-runs
 validation on each change. Save writes JSON via persistence.
 
-No game logic here: the toggle asks engine.validate.meets_charm_requirements, and
-node states come from the engine. Cytoscape is loaded from a CDN, so the browser
-needs network access.
+**Two modes, one picker.** Before Finish & Lock this is a chargen sheet: picks are
+free and reversible, and the readout tallies them against the chargen pool. After the
+lock it is a shop — Charms, spells and Ox-Body packages are bought through
+engine.advancement (priced, legality-checked, appended to the XP log), the price
+rides on the button, and nothing can be dropped: the only refund is undoing the most
+recent purchase from the XP tab's ledger.
+
+No game logic here: the toggle asks engine.validate.meets_charm_requirements, prices
+come from engine.costs, and node states come from the engine. Cytoscape is loaded
+from a CDN, so the browser needs network access.
 
 Run:
     python -m exalted_builder.ui.picker [path/to/foo.character.json] [--show] [--port N]
@@ -24,7 +31,7 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import validate
+from ..engine import advancement, costs, validate
 from ..models.character import Character, OxBodyPurchase
 from ..models.rules import RuleSet, circle_kind
 from . import theme
@@ -73,6 +80,25 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     with_header=False omits the title/Save bar and the head <script> (the host
     app supplies Cytoscape)."""
     pal = theme.palette(character.exalt_type)
+
+    def in_play() -> bool:
+        """True once chargen is locked: picks become XP purchases (see the module
+        docstring). Read live rather than captured, so the same picker is correct
+        either side of a lock."""
+        return character.chargen_locked
+
+    def _buy(action) -> bool:
+        """Run an engine.advancement purchase; surface its refusal (unaffordable,
+        prerequisites, cap) as a notice. True when the character changed."""
+        try:
+            action()
+        except advancement.AdvancementError as ex:
+            ui.notify(str(ex), type="warning")
+            return False
+        return True
+
+    def _afford(cost: int) -> bool:
+        return cost <= advancement.xp_available(character)
 
     def _pretty(cat: str) -> str:
         if ":" in cat:                          # 'martial_arts:snake' -> 'Martial Arts: Snake'
@@ -151,12 +177,22 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         view = viewmod.build_sheet_view(ruleset, character)
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
-        # Each Ox-Body purchase consumes a Charm pick from the shared pool of 10.
-        charm_picks = len(character.charms) + len(character.ox_body)
-        ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
-            "text-sm font-semibold").style(f"color:{pal.accent}")
-        _immaculate_path_banner()
-        ui.label(bp).classes("text-xs text-gray-600")
+        if in_play():
+            # In play the budget that matters is experience, not the chargen pool
+            # (which the snapshot has frozen anyway).
+            available = advancement.xp_available(character)
+            ui.label(f"{available} XP available").classes("text-sm font-bold").style(
+                f"color:{'#15803d' if available >= 0 else '#b91c1c'}")
+            ui.label(f"earned {character.xp_earned} · spent {advancement.xp_spent(character)}"
+                     ).classes("text-xs text-gray-600")
+            ui.label("Undo a purchase on the XP tab.").classes("text-xs text-gray-500")
+        else:
+            # Each Ox-Body purchase consumes a Charm pick from the shared pool of 10.
+            charm_picks = len(character.charms) + len(character.ox_body)
+            ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
+                "text-sm font-semibold").style(f"color:{pal.accent}")
+            _immaculate_path_banner()
+            ui.label(bp).classes("text-xs text-gray-600")
         ui.separator()
         ui.label("✓ Legal" if not errors else f"✗ {len(errors)} error(s)").classes("text-sm font-bold").style(
             "color:#15803d" if not errors else "color:#b91c1c")
@@ -195,12 +231,35 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         else:
             ui.label("No prerequisite Charms.").classes("text-xs text-gray-500")
         ui.separator()
-        if d.owned:
+        if in_play():
+            _charm_buy_button(d)
+        elif d.owned:
             ui.button("Remove", icon="remove", on_click=lambda: toggle(d.id)).props("dense color=negative")
         elif d.available:
             ui.button("Add", icon="add", on_click=lambda: toggle(d.id)).props("dense color=positive")
         else:
             ui.button("Add", icon="lock").props("dense disable").tooltip("Prerequisites not met")
+
+    def _charm_buy_button(d) -> None:
+        """The in-play detail-card action: buy at the engine's price. A known Charm
+        offers no Remove — undo lives in the XP ledger, which owns the log."""
+        if d.owned:
+            ui.label("Known.").classes("text-xs text-gray-500")
+            return
+        charm = ruleset.charms.get(d.id)
+        if charm is None:
+            return
+        cost = costs.charm_cost(ruleset, character, charm)
+        if not d.available:
+            ui.button(f"Buy · {cost} XP", icon="lock").props("dense disable").tooltip(
+                "Prerequisites not met")
+            return
+        btn = ui.button(f"Buy · {cost} XP", icon="shopping_cart",
+                        on_click=lambda: toggle(d.id)).props("dense color=positive")
+        if not _afford(cost):
+            btn.props("disable")
+            ui.label(f"Only {advancement.xp_available(character)} XP available.").classes(
+                "text-xs text-gray-500")
 
     def select(charm_id: str) -> None:
         selected["id"] = charm_id
@@ -212,15 +271,23 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         variant = next((v for v in charm.variants if v.key == variant_key), None) if charm else None
         if variant is None:
             return
-        if len(character.ox_body) >= validate.ox_body_cap(ruleset, character):
-            ui.notify("Ox-Body: already bought once per dot of Endurance.", type="warning")
-            return
-        character.ox_body.append(
-            OxBodyPurchase(variant=variant_key, health_levels=list(variant.health_levels)))
-        ui.notify(f"Added Ox-Body Technique ({variant.label})", type="positive")
+        if in_play():
+            cost = costs.ox_body_cost(ruleset, character)
+            if not _buy(lambda: advancement.learn_ox_body(ruleset, character, variant_key)):
+                return
+            ui.notify(f"Bought Ox-Body Technique ({variant.label}) — {cost} XP", type="positive")
+        else:
+            if len(character.ox_body) >= validate.ox_body_cap(ruleset, character):
+                ui.notify("Ox-Body: already bought once per dot of Endurance.", type="warning")
+                return
+            character.ox_body.append(
+                OxBodyPurchase(variant=variant_key, health_levels=list(variant.health_levels)))
+            ui.notify(f"Added Ox-Body Technique ({variant.label})", type="positive")
         detail.refresh(); update_graph()
 
     def remove_ox_body(index: int) -> None:
+        if in_play():                     # bought with XP: undo it from the ledger
+            return
         if 0 <= index < len(character.ox_body):
             del character.ox_body[index]
             detail.refresh(); update_graph()
@@ -242,22 +309,32 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             for i, p in enumerate(character.ox_body):
                 with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
                     ui.label(f"• {labels.get(p.variant, p.variant)}").classes("text-xs")
-                    ui.button(icon="remove", on_click=lambda _=None, i=i: remove_ox_body(i)).props(
-                        "dense flat round size=sm color=negative")
+                    if not in_play():     # in play, undo the purchase from the XP ledger
+                        ui.button(icon="remove", on_click=lambda _=None, i=i: remove_ox_body(i)).props(
+                            "dense flat round size=sm color=negative")
         ui.separator()
-        ui.label("Add a package:").classes("text-xs font-semibold")
+        ox_cost = costs.ox_body_cost(ruleset, character) if in_play() else 0
+        ui.label(f"Buy a package  ·  {ox_cost} XP each:" if in_play()
+                 else "Add a package:").classes("text-xs font-semibold")
         for v in charm.variants:
-            btn = ui.button(v.label, icon="add",
+            label = f"{v.label}" if not in_play() else f"{v.label} · {ox_cost} XP"
+            btn = ui.button(label, icon="add" if not in_play() else "shopping_cart",
                             on_click=lambda _=None, k=v.key: add_ox_body(k)).props("dense color=positive")
-            if bought >= cap:
+            if bought >= cap or (in_play() and not _afford(ox_cost)):
                 btn.props("disable")
+        if in_play() and bought < cap and not _afford(ox_cost):
+            ui.label(f"Only {advancement.xp_available(character)} XP available.").classes(
+                "text-xs text-gray-500")
         if bought >= cap:
             ui.label("Raise Endurance to buy more." if cap else
                      "Needs at least 1 dot of Endurance.").classes("text-xs text-gray-500")
 
     # ---- spell picker (spells share the Charm pool; core p.100) ----------- #
     def toggle_spell(spell_id: str) -> None:
-        if spell_id in character.spells:
+        if in_play():
+            if not buy_spell(spell_id):
+                return
+        elif spell_id in character.spells:
             character.spells.remove(spell_id)
             ui.notify(f"Dropped {ruleset.spells[spell_id].name}", type="info")
         else:
@@ -273,7 +350,25 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         spells_panel.refresh()
         readout.refresh()
 
+    def buy_spell(spell_id: str) -> bool:
+        """Post-lock half of `toggle_spell`: spend XP on a spell."""
+        spell = ruleset.spells.get(spell_id)
+        if spell is None:
+            return False
+        if spell_id in character.spells:
+            ui.notify(f"{spell.name} is already known — undo the purchase on the "
+                      "XP tab to give it back.", type="info")
+            return False
+        cost = costs.spell_cost(ruleset, character)
+        if not _buy(lambda: advancement.learn_spell(ruleset, character, spell_id)):
+            return False
+        ui.notify(f"Learned {spell.name} — {cost} XP", type="positive")
+        return True
+
     def _spell_button(r) -> None:
+        if in_play():
+            _spell_buy_button(r)
+            return
         if r.owned:
             ui.button(icon="remove", on_click=lambda _=None, sid=r.id: toggle_spell(sid)).props(
                 "dense flat round size=sm color=negative")
@@ -282,6 +377,25 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 "dense flat round size=sm color=positive")
         else:
             ui.button(icon="lock").props("dense flat round size=sm disable").tooltip(r.reason)
+
+    def _spell_buy_button(r) -> None:
+        """The in-play spell button: buy at the engine's price, or say why not."""
+        if r.owned:
+            ui.button(icon="check").props(
+                "dense flat round size=sm disable").tooltip("Known")
+            return
+        if not r.available:
+            ui.button(icon="lock").props("dense flat round size=sm disable").tooltip(r.reason)
+            return
+        cost = costs.spell_cost(ruleset, character)
+        btn = ui.button(icon="shopping_cart",
+                        on_click=lambda _=None, sid=r.id: toggle_spell(sid)).props(
+            "dense flat round size=sm color=positive")
+        if _afford(cost):
+            btn.tooltip(f"Buy · {cost} XP")
+        else:
+            btn.props("disable").tooltip(
+                f"{cost} XP — only {advancement.xp_available(character)} available")
 
     @ui.refreshable
     def spells_panel() -> None:
@@ -304,8 +418,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.card().classes(f"w-full p-3 gap-3 {pal.card}"):
             with ui.row().classes("w-full items-baseline gap-3"):
                 ui.label(magic_noun).classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
-                ui.label(f"A spell takes a Charm pick (p.100); learn the matching Circle "
-                         f"{magic_noun} Charm to unlock it.").classes("text-xs text-gray-500")
+                caption = (f"{costs.spell_cost(ruleset, character)} XP each; learn the matching "
+                           f"Circle {magic_noun} Charm to unlock it." if in_play() else
+                           f"A spell takes a Charm pick (p.100); learn the matching Circle "
+                           f"{magic_noun} Charm to unlock it.")
+                ui.label(caption).classes("text-xs text-gray-500")
             owned = sum(1 for r in rows if r.owned)
             with ui.column().classes("w-full gap-0"):
                 with ui.row().classes(f"w-full items-baseline gap-2 border-b {pal.rule}"):
@@ -393,7 +510,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         readout.refresh()
 
     def toggle(charm_id: str) -> None:
-        if charm_id in character.charms:
+        if in_play():
+            if not buy_charm(charm_id):
+                return
+        elif charm_id in character.charms:
             blockers = validate.charms_depending_on(ruleset, character, charm_id)
             if blockers:
                 ui.notify(f"{ruleset.charms[charm_id].name}: can't remove — needed by "
@@ -415,6 +535,23 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         detail.refresh()
         spells_panel.refresh()        # a new/removed Sorcery Charm changes spell access
         _refresh_categories()         # learning/dropping DB enlightenment reveals/hides Dragon styles
+
+    def buy_charm(charm_id: str) -> bool:
+        """Post-lock half of `toggle`: spend XP on a Charm. Known Charms are not
+        droppable here — a purchase is undone from the XP ledger, which keeps the
+        append-only log and the traits in step."""
+        charm = ruleset.charms.get(charm_id)
+        if charm is None:
+            return False
+        if charm_id in character.charms:
+            ui.notify(f"{charm.name} is already known — undo the purchase on the "
+                      "XP tab to give it back.", type="info")
+            return False
+        cost = costs.charm_cost(ruleset, character, charm)
+        if not _buy(lambda: advancement.learn_charm(ruleset, character, charm_id)):
+            return False
+        ui.notify(f"Learned {charm.name} — {cost} XP", type="positive")
+        return True
 
     def set_category(value: str) -> None:
         state["category"] = value

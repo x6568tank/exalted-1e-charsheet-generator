@@ -1,9 +1,14 @@
 """
 ui/builder.py — the unified Exalted 1e builder app.
 
-Stitches the three views over one in-memory Character: an Edit tab (the editable
-sheet), a Charms tab (the Cytoscape charm-tree picker), and a Sheet tab (the
-read-only / locked viewer). A top bar provides Save, Load, and Finish & Lock.
+Stitches the views over one in-memory Character: an Edit tab (the editable sheet),
+a Charms tab (the Cytoscape charm-tree picker), a Combos tab, a Play tab and a
+Sheet tab (the read-only viewer). A top bar provides Save, Load, and Finish & Lock.
+
+The tab bar tracks the character's stage. Edit and XP occupy one slot: Edit while
+chargen is open, XP once it is locked (see `visible_tabs`). Charms and Combos are on
+the bar throughout and change mode instead of going read-only — before the lock they
+pick against the chargen budget, after it they buy with experience.
 
 Only the active tab's content is mounted (a single refreshable area), which keeps
 the Cytoscape container visible when it builds and avoids stale hidden canvases.
@@ -39,7 +44,22 @@ _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 
 _TABS = ("Edit", "Charms", "Combos", "XP", "Play", "Sheet")
-_CHARGEN_TABS = ("Edit", "Charms", "Combos")     # editing these is disabled once locked
+
+
+def visible_tabs(locked: bool) -> tuple[str, ...]:
+    """The tabs for a character at this stage of its life. Edit and XP are the same
+    slot seen from two sides — chargen builds the baseline, XP spends against it —
+    so exactly one of them is ever on the bar. Charms and Combos stay on both sides:
+    they switch from picking (free, within the chargen budget) to buying (with XP)."""
+    hidden = "XP" if not locked else "Edit"
+    return tuple(t for t in _TABS if t != hidden)
+
+
+def resolve_tab(name: str, locked: bool) -> str:
+    """`name`, or its counterpart when locking/unlocking just hid it."""
+    if name in visible_tabs(locked):
+        return name
+    return "XP" if locked else "Edit"
 
 
 def _native_window():
@@ -85,7 +105,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
     # `dir` is the folder saves land in; the filename is derived from the
     # character's name at save time, so renaming the character renames its file.
     ctx = {"char": character, "path": save_path, "dir": Path(save_path).parent}
-    state: dict = {"tab": "Edit", "select": None}
+    state: dict = {"tab": "Edit", "select": None, "syncing": False}
 
     def _pal():
         """The palette for the current character's splat (red for Dragon-Blooded,
@@ -104,11 +124,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
     def content() -> None:
         char, path = ctx["char"], ctx["path"]
         _apply_chrome()          # keep the header/background in sync with the splat
-        # Once locked, the chargen tabs are read-only — advancement is the XP tab's
-        # job, and editing the baseline would desync the snapshot.
-        if state["tab"] in _CHARGEN_TABS and char.chargen_locked:
-            _locked_notice()
-            return
+        _sync_tabs()             # Edit ⇄ XP swap follows the lock
         if state["tab"] == "Edit":
             editor.build_editor(ruleset, char, path, with_header=False,
                                 on_theme_change=_apply_chrome)
@@ -124,19 +140,15 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         else:
             sheet_app.render_sheet(viewmod.build_sheet_view(ruleset, char))
 
-    def _locked_notice() -> None:
-        pal = _pal()
-        with ui.card().classes(f"max-w-xl mx-auto mt-8 p-4 {pal.card} gap-2"):
-            ui.label("Chargen is locked").classes("text-lg font-bold").style(f"color:{pal.accent}")
-            ui.label("Spend experience in the XP tab, or press Unlock to edit chargen "
-                     "again (that clears the XP baseline).").classes("text-sm")
-            with ui.row().classes("gap-2"):
-                ui.button("Go to XP", icon="bolt", on_click=lambda: select_tab("XP")).props(f"color={pal.button}")
-                ui.button("Unlock", icon="lock_open", on_click=unlock).props(f"flat color={pal.button}")
-
     def select_tab(name: str) -> None:
         state["tab"] = name
         content.refresh()
+
+    def _on_tab_change(name: str) -> None:
+        # _sync_tabs writes the bar's value itself, which fires this handler back at
+        # us; that echo must not re-enter the refresh it came from.
+        if not state["syncing"]:
+            select_tab(name)
 
     async def save() -> None:
         """Native desktop window -> the OS "Save As" dialog (choose folder + name);
@@ -292,14 +304,24 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path) -> None:
         title_label.set_text(f"Exalted 1e — {pal.splat_label} Builder")
         ui.query("body").style(f"background:{pal.bg};color:{pal.ink}")
 
+    _ICONS = {"Edit": "edit", "Charms": "account_tree", "Combos": "bolt",
+              "XP": "trending_up", "Play": "casino", "Sheet": "description"}
     with ui.tabs(value="Edit").classes("w-full") as tab_bar:
-        ui.tab("Edit", icon="edit")
-        ui.tab("Charms", icon="account_tree")
-        ui.tab("Combos", icon="bolt")
-        ui.tab("XP", icon="trending_up")
-        ui.tab("Play", icon="casino")
-        ui.tab("Sheet", icon="description")
-    tab_bar.on_value_change(lambda e: select_tab(e.value))
+        tabs = {name: ui.tab(name, icon=_ICONS[name]) for name in _TABS}
+    tab_bar.on_value_change(lambda e: _on_tab_change(e.value))
+
+    def _sync_tabs() -> None:
+        """Show the tab bar for the character's stage: Edit while building, XP once
+        locked. If the tab we are on is the one that just disappeared, land on its
+        counterpart instead of rendering a tab that is no longer on the bar."""
+        locked = ctx["char"].chargen_locked
+        for name in _TABS:
+            tabs[name].set_visibility(name in visible_tabs(locked))
+        state["tab"] = resolve_tab(state["tab"], locked)
+        if tab_bar.value != state["tab"]:
+            state["syncing"] = True
+            tab_bar.set_value(state["tab"])
+            state["syncing"] = False
 
     content()
 

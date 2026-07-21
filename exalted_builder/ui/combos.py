@@ -7,6 +7,13 @@ with one costs bonus points equal to its number of Charms. Zero game logic here:
 the eligible-Charm pool and the per-Combo legality come from engine.validate via
 view.build_combo_view; this module only mutates the Character and renders.
 
+**Two modes, like the Charms tab.** At chargen a Combo is assembled in place —
+created empty, members added and removed, priced in bonus points. Once chargen is
+locked a Combo is *bought whole*: engine.advancement.add_combo prices it (Σ member
+min_ability, p.213), checks its legality and logs it in one go, so the in-play form
+composes the whole Combo first and buys it with one button. Bought Combos are then
+fixed — undo the purchase on the XP tab to take one back.
+
 Run:
     python -m exalted_builder.ui.combos [path/to/foo.character.json] [--show] [--port N]
 """
@@ -19,6 +26,7 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
+from ..engine import advancement, costs, validate
 from ..models.character import Character, Combo
 from ..models.rules import RuleSet
 from . import theme
@@ -34,6 +42,12 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
     """Render the Combo builder for `character`. With `with_header=False` the
     title/Save bar is omitted (the embedding app provides one)."""
     pal = theme.palette(character.exalt_type)
+    # In-play composition state: the Combo being assembled before it is bought.
+    draft: dict = {"ids": [], "name": ""}
+
+    def in_play() -> bool:
+        """True once chargen is locked: Combos are bought whole with XP."""
+        return character.chargen_locked
 
     # ---- live readout ----------------------------------------------------- #
     @ui.refreshable
@@ -41,7 +55,15 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
         view = viewmod.build_sheet_view(ruleset, character)
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
-        ui.label(bp).classes("text-sm font-semibold").style(f"color:{pal.accent}")
+        if in_play():
+            available = advancement.xp_available(character)
+            ui.label(f"{available} XP available").classes("text-sm font-bold").style(
+                f"color:{'#15803d' if available >= 0 else '#b91c1c'}")
+            ui.label(f"earned {character.xp_earned} · spent {advancement.xp_spent(character)}"
+                     ).classes("text-xs text-gray-600")
+            ui.label("Undo a purchase on the XP tab.").classes("text-xs text-gray-500")
+        else:
+            ui.label(bp).classes("text-sm font-semibold").style(f"color:{pal.accent}")
         ui.label("✓ Legal" if not errors else f"✗ {len(errors)} error(s)").classes(
             "text-sm font-bold").style("color:#15803d" if not errors else "color:#b91c1c")
 
@@ -73,24 +95,70 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
             character.combos[index].name = value
             readout.refresh()
 
+    def buy_combo() -> None:
+        """Buy the drafted Combo with XP (in play). engine.advancement prices it,
+        rejects an illegal set, and logs it — all or nothing."""
+        try:
+            advancement.add_combo(ruleset, character, draft["name"], list(draft["ids"]))
+        except advancement.AdvancementError as ex:
+            ui.notify(str(ex), type="warning")
+            return
+        ui.notify(f"Bought {draft['name'] or 'Combo'} — "
+                  f"{costs.combo_cost(ruleset, draft['ids'])} XP", type="positive")
+        draft.update({"ids": [], "name": ""})
+        refresh()
+
     def refresh() -> None:
         combos_panel.refresh()
         readout.refresh()
+
+    # ---- buy form (in play) ----------------------------------------------- #
+    def buy_form() -> None:
+        """Compose a whole Combo, then buy it. Unlike the chargen builder there is no
+        empty-Combo state: the engine prices and validates the finished set."""
+        eligible = {cid: ruleset.charms[cid].name
+                    for cid in validate.eligible_combo_charms(ruleset, character)}
+        draft["ids"] = [cid for cid in draft["ids"] if cid in eligible]
+        cost = costs.combo_cost(ruleset, draft["ids"])
+        if not eligible:
+            ui.label("No instant-duration Charms known yet — buy Charms on the "
+                     "Charms tab before building Combos.").classes("text-sm text-amber-700")
+            return
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+            ui.label("Buy a Combo").classes("text-sm font-bold tracking-widest").style(
+                f"color:{pal.accent}")
+            with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                ui.select(eligible, value=draft["ids"], multiple=True, label="Charms",
+                          on_change=lambda e: (draft.__setitem__("ids", e.value), refresh())
+                          ).props("dense").classes("flex-1")
+                ui.input(value=draft["name"], placeholder="combo name",
+                         on_change=lambda e: draft.__setitem__("name", e.value)
+                         ).props("dense").classes("w-40")
+                ui.label(f"{cost} XP").classes("text-xs w-12")
+                btn = ui.button("Buy Combo", icon="shopping_cart",
+                                on_click=buy_combo).props(f"dense color={pal.button}")
+                if cost > advancement.xp_available(character):
+                    btn.props("disable")
+            ui.label("A Combo costs the sum of its Charms' minimum Ability ratings "
+                     "(p.213).").classes("text-xs text-gray-500")
 
     # ---- the combo list --------------------------------------------------- #
     @ui.refreshable
     def combos_panel() -> None:
         v = viewmod.build_combo_view(ruleset, character)
-        if not v.addable:
-            ui.label("No instant-duration Charms known yet — learn Charms on the "
-                     "Charms tab before building Combos.").classes("text-sm text-amber-700")
+        if in_play():
+            buy_form()
+        else:
+            if not v.addable:
+                ui.label("No instant-duration Charms known yet — learn Charms on the "
+                         "Charms tab before building Combos.").classes("text-sm text-amber-700")
 
-        with ui.row().classes("items-end gap-2"):
-            new_name = ui.input("New Combo name").classes("w-64")
-            ui.button("Add Combo", icon="add",
-                      on_click=lambda: add_combo(new_name.value)).props(f"color={pal.button}")
-        ui.label(f"Combos cost {v.total_cost} bonus point(s) "
-                 "(1 per Charm).").classes("text-xs text-gray-600")
+            with ui.row().classes("items-end gap-2"):
+                new_name = ui.input("New Combo name").classes("w-64")
+                ui.button("Add Combo", icon="add",
+                          on_click=lambda: add_combo(new_name.value)).props(f"color={pal.button}")
+            ui.label(f"Combos cost {v.total_cost} bonus point(s) "
+                     "(1 per Charm).").classes("text-xs text-gray-600")
 
         if not v.combos:
             ui.label("No Combos yet.").classes("text-sm text-gray-400 mt-2")
@@ -101,13 +169,20 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
             options = {m.id: f"{m.name} · {m.type}" for m in v.addable if m.id not in in_combo}
             with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
                 with ui.row().classes("w-full items-center justify-between no-wrap"):
-                    ui.input(value=crow.name,
-                             on_change=lambda e, i=crow.index: rename(i, e.value)).props(
-                        "dense").classes("text-sm font-bold").style(f"color:{pal.accent}")
+                    if in_play():        # a bought Combo is fixed; undo it on the XP tab
+                        ui.label(crow.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
+                    else:
+                        ui.input(value=crow.name,
+                                 on_change=lambda e, i=crow.index: rename(i, e.value)).props(
+                            "dense").classes("text-sm font-bold").style(f"color:{pal.accent}")
                     with ui.row().classes("items-center gap-2 no-wrap"):
-                        ui.label(f"{crow.cost} BP").classes("text-xs text-gray-600")
-                        ui.button(icon="delete", on_click=lambda _=None, i=crow.index: remove_combo(i)).props(
-                            "dense flat round size=sm color=negative").tooltip("Delete Combo")
+                        # The bonus-point price is a chargen fact; in play the Combo has
+                        # already been paid for (its XP price is on the ledger).
+                        ui.label(f"{len(crow.members)} Charms" if in_play()
+                                 else f"{crow.cost} BP").classes("text-xs text-gray-600")
+                        if not in_play():
+                            ui.button(icon="delete", on_click=lambda _=None, i=crow.index: remove_combo(i)).props(
+                                "dense flat round size=sm color=negative").tooltip("Delete Combo")
 
                 if crow.members:
                     for m in crow.members:
@@ -115,15 +190,17 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
                             ui.label(f"{m.name}").classes("text-xs")
                             with ui.row().classes("items-center gap-2 no-wrap"):
                                 ui.label(m.type).classes("text-xs text-gray-500")
-                                ui.button(icon="remove",
-                                          on_click=lambda _=None, i=crow.index, cid=m.id: remove_member(i, cid)).props(
-                                    "dense flat round size=sm color=negative")
-                else:
+                                if not in_play():
+                                    ui.button(icon="remove",
+                                              on_click=lambda _=None, i=crow.index, cid=m.id: remove_member(i, cid)).props(
+                                        "dense flat round size=sm color=negative")
+                elif not in_play():
                     ui.label("(empty — add Charms below)").classes("text-xs text-gray-400 pl-2")
 
-                ui.select(options, label="Add Charm", with_input=True,
-                          on_change=lambda e, i=crow.index: add_member(i, e.value)).props(
-                    "dense").classes("w-full")
+                if not in_play():
+                    ui.select(options, label="Add Charm", with_input=True,
+                              on_change=lambda e, i=crow.index: add_member(i, e.value)).props(
+                        "dense").classes("w-full")
 
                 for msg in crow.issues:
                     ui.label(f"• {msg}").classes("text-xs text-red-600")

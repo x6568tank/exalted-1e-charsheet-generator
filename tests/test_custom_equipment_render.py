@@ -208,3 +208,21 @@ async def test_picker_circle_dropdown_swaps_the_spell_list(user: User) -> None:
     circle.set_value("Shadowlands")
     await user.should_see("Hungry Creeping Shadow")             # a Shadowlands spell
     await user.should_not_see("Death of Obsidian Butterflies")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_sheet_hides_the_spells_panel_for_a_non_sorcerer(user: User) -> None:
+    # no spells → no half-width panel saying "—"; the Charms panel takes the row
+    await user.open('/dbsheet')
+    await user.should_not_see("Spells (0)")
+    await user.should_not_see("CHARMS & SORCERY")     # heading drops the sorcery half
+    await user.should_see("Charms (0)")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_sheet_still_shows_the_spells_panel_for_a_sorcerer(user: User) -> None:
+    await user.open('/sheet-desc')
+    await user.should_see("Spells (1)")
+    await user.should_see("CHARMS & SORCERY")   # _heading upper-cases
