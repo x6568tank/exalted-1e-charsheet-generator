@@ -34,6 +34,7 @@ class CharmRow:
     name: str
     category: str
     cost: str
+    duration: str = ""
     description: str = ""
 
 
@@ -81,6 +82,7 @@ class CharmDetail:
     description: str
     type: str
     cost: str
+    duration: str
     requirement: str                       # e.g. "Martial Arts 4, Essence 2"
     prerequisite_groups: list[list[str]]   # charm names; inner list = an OR group
     owned: bool
@@ -107,6 +109,7 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
         description=_charm_description(charm),
         type=charm.type.value,
         cost=_cost_str(charm.cost),
+        duration=charm.duration,
         requirement=", ".join(reqs),
         prerequisite_groups=groups,
         owned=charm_id in character.charms,
@@ -447,16 +450,17 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         charm = ruleset.charms.get(cid)
         if charm:
             charms.append(CharmRow(charm.name, charm.category, _cost_str(charm.cost),
-                                   _charm_description(charm)))
+                                   charm.duration, _charm_description(charm)))
         else:
-            charms.append(CharmRow(cid, "?", "—"))
+            charms.append(CharmRow(cid, "?", "—", "—"))
     # Repeatable Ox-Body Technique: one row per purchase, labelled by its package.
     ox_charm = validate.ox_body_charm(ruleset, character)
     if ox_charm:
         labels = {v.key: v.label for v in ox_charm.variants}
         for p in character.ox_body:
             charms.append(CharmRow(f"{ox_charm.name} ({labels.get(p.variant, p.variant)})",
-                                   ox_charm.category, "—", ox_charm.description))
+                                   ox_charm.category, "—", ox_charm.duration,
+                                   ox_charm.description))
     spells = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)

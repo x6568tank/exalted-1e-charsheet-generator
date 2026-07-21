@@ -221,6 +221,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             ui.label(d.description).classes("text-xs")
         ui.separator()
         ui.label(f"Requires: {d.requirement}").classes("text-xs font-semibold")
+        if d.duration:
+            ui.label(f"Duration: {d.duration}").classes("text-xs font-semibold")
         if d.prerequisite_groups:
             ui.label("Prerequisite Charms:").classes("text-xs font-semibold")
             for group in d.prerequisite_groups:

@@ -138,7 +138,20 @@ def test_build_charm_detail_shows_requirements_and_named_prereqs():
     assert d.requirement == "Melee 5, Essence 3"
     assert d.prerequisite_groups == [["Corona of Radiance"], ["Sandstorm-Wind Attack"]]
     assert d.available is True and d.owned is False
+    assert d.duration == rs.charms["solar.melee.blazing-solar-bolt"].duration
     assert viewmod.build_charm_detail(rs, c, "nope") is None
+
+
+def test_sheet_charm_rows_carry_duration():
+    """Duration is on the Charm data but was never surfaced; the sheet's Charm
+    rows must expose it alongside cost."""
+    from exalted_builder.ui import view as viewmod
+    rs = rules_db.load_ruleset(DATA_DIR)
+    c = Character(id="c.duration")
+    c.charms = ["solar.melee.excellent-strike", "not-a-real-charm"]
+    rows = {r.name: r for r in viewmod.build_sheet_view(rs, c).charms}
+    assert rows["Excellent Strike"].duration == "Instant"
+    assert rows["not-a-real-charm"].duration == "—"
 
 
 def test_blazing_solar_bolt_requires_both_branches():

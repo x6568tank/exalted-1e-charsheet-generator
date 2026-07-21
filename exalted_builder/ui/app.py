@@ -149,6 +149,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
                         with ui.row().classes("w-full items-center gap-2 no-wrap"):
                             ui.label(c.name).classes("text-sm flex-1 truncate")
                             ui.label(c.category).classes("text-xs text-gray-500")
+                            ui.label(c.duration).classes("text-xs text-gray-500 w-24 text-right")
                             ui.label(c.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
                         if c.description:
                             ui.label(c.description).classes("text-xs text-gray-600 mb-1")
