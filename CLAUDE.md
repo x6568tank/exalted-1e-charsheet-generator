@@ -453,7 +453,9 @@ Exalted-1E-Charsheet-Generator/      (project root)
   single character) and the packaged build binds loopback only.
   Tests: `tests/test_party.py` (model, round-trip, filenames, presenter), `tests/test_gm.py`
   (render + click-through via the User sim), context helpers in `tests/test_builder.py`.
-  **v1 scope stops here** — no initiative/turn order, no NPC stat blocks, no party-wide Rest.
+  **v1 scope stops here** — no initiative/turn order, no NPC stat blocks, no party-wide Rest;
+  these were deferred until the page had been used at a real table, so ask before adding them.
+  Verified in the app by the user; the Linux binary was rebuilt and serves both routes.
 
 ## TODO — planned next
 All prior TODOs DONE (2026-06-15): ~~remove M&F~~, ~~repeatable Ox-Body~~,
