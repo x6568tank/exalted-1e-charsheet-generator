@@ -115,6 +115,28 @@ def _category_ability(category: str) -> AbilityName | None:
         return None
 
 
+def _min_trait_rating(character: Character, charm: Charm) -> tuple[str, int] | None:
+    """The (trait name, character's rating) `charm.min_ability` is checked
+    against — an Attribute for Lunar's Attribute-keyed Charms (`min_attribute`
+    set, p.122), otherwise the Ability `category` resolves to. None if the Charm
+    gates on neither (e.g. a `category` like 'sorcery' with no `min_attribute`).
+
+    `min_attribute` takes priority: some categories (e.g. 'melee') are ALSO
+    valid AbilityName values, and a Lunar Melee Charm must gate on the Dexterity/
+    Strength/etc. `min_attribute` names, never on the character's Melee Ability
+    rating — the two happen to collide by name, not by meaning."""
+    if charm.min_attribute:
+        try:
+            attr = AttributeName(charm.min_attribute)
+        except ValueError:
+            return None
+        return attr.value, character.attributes.get(attr, 0)
+    ability = _category_ability(charm.category)
+    if ability is None:
+        return None
+    return ability.value, ability_rating(character, ability)
+
+
 def is_immaculate_charm(charm: Charm) -> bool:
     """True for an Immaculate Order Charm — a Fivefold Dragon Method martial-arts
     Charm (Dragon-Blooded splatbook, ch.6). These are what a DB may take the
@@ -190,13 +212,13 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
                          f"character has {character.essence_rating}."),
             ))
 
-        ability = _category_ability(charm.category)
-        if ability is not None:
-            rating = ability_rating(character, ability)
+        trait = _min_trait_rating(character, charm)
+        if trait is not None:
+            trait_name, rating = trait
             if rating < charm.min_ability:
                 issues.append(Issue(
                     code="charm-min-ability", where=cid,
-                    message=(f"{charm.name}: requires {ability.value} "
+                    message=(f"{charm.name}: requires {trait_name} "
                              f"{charm.min_ability}, character has {rating}."),
                 ))
 
@@ -262,8 +284,8 @@ def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> b
         return False
     if character.essence_rating < charm.min_essence:
         return False
-    ability = _category_ability(charm.category)
-    if ability is not None and ability_rating(character, ability) < charm.min_ability:
+    trait = _min_trait_rating(character, charm)
+    if trait is not None and trait[1] < charm.min_ability:
         return False
     known = set(character.charms)
     return all(any(req in known for req in group) for group in charm.prerequisites)
@@ -465,16 +487,20 @@ def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
 
 def ox_body_cap(ruleset: RuleSet, character: Character) -> int:
     """Maximum number of Ox-Body Technique purchases: once per dot of the Charm's
-    `repeatable_cap_ability` (Endurance). 0 if the Charm or its cap ability is
-    absent. Used by both the engine and the picker to gate purchases."""
+    `repeatable_cap_ability` (Endurance for Solar/DB/Abyssal; Stamina — an
+    Attribute, not an Ability — for Lunar, p.132). 0 if the Charm or its cap
+    trait is absent. Used by both the engine and the picker to gate purchases."""
     charm = ox_body_charm(ruleset, character)
     if charm is None or not charm.repeatable_cap_ability:
         return 0
     try:
-        cap_ability = AbilityName(charm.repeatable_cap_ability)
+        return character.abilities[AbilityName(charm.repeatable_cap_ability)]
+    except ValueError:
+        pass
+    try:
+        return character.attributes[AttributeName(charm.repeatable_cap_ability)]
     except ValueError:
         return 0
-    return character.abilities.get(cap_ability, 0)
 
 
 def check_ox_body(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -523,11 +549,64 @@ def check_ox_body(ruleset: RuleSet, character: Character) -> list[Issue]:
 
 def _caste_favored(ruleset: RuleSet, character: Character) -> tuple[set, set] | None:
     """(caste_abilities, favored_abilities) as sets, or None if the caste is not
-    in the RuleSet (caller emits an issue and skips caste-dependent checks)."""
+    in the RuleSet (caller emits an issue and skips caste-dependent checks). For a
+    Lunar caste (caste_attributes set, caste_abilities empty — p.90), the caste
+    contributes no Ability discount here; its discount is Attribute-keyed and
+    handled separately by `_caste_favored_attribute_category`."""
     caste_def = ruleset.castes.get(character.caste)
     if caste_def is None:
         return None
     return set(caste_def.caste_abilities), set(character.favored_abilities)
+
+
+def _attribute_category(attr: AttributeName) -> str | None:
+    """Which of Physical/Social/Mental `attr` belongs to (the reverse lookup of
+    ATTRIBUTE_CATEGORIES)."""
+    for cat, attrs in ATTRIBUTE_CATEGORIES.items():
+        if attr in attrs:
+            return cat
+    return None
+
+
+def _caste_favored_attribute_category(ruleset: RuleSet, character: Character) -> str | None:
+    """The Attribute category (Physical/Social/Mental) a Lunar's caste favors, or
+    None for a caste with no Caste Attributes (every non-Lunar caste, and the
+    Lunar Casteless caste, p.108). Full Moon/Changing Moon/No Moon's three Caste
+    Attributes are always exactly one whole ATTRIBUTE_CATEGORIES group (p.90-91),
+    so the category of any one of them is the caste's favored category."""
+    caste_def = ruleset.castes.get(character.caste)
+    if caste_def is None or not caste_def.caste_attributes:
+        return None
+    return _attribute_category(caste_def.caste_attributes[0])
+
+
+def _ox_body_caste_favored(ruleset: RuleSet, character: Character,
+                            cf_set: set, caste_attr_category: str | None) -> bool:
+    """Whether the character's splat's Ox-Body-equivalent Charm counts as
+    Caste/Favoured — same rule as any other Charm (category-Ability membership
+    for Solar/DB/Abyssal's Endurance-keyed Charm, Attribute-category match for
+    Lunar's Stamina-keyed one), just resolved once here instead of re-deriving
+    `ox_body_charm` at each call site."""
+    charm = ox_body_charm(ruleset, character)
+    if charm is None:
+        return False
+    ability = _category_ability(charm.category)
+    if ability is not None and ability in cf_set:
+        return True
+    return _charm_attribute_caste_favored(charm, caste_attr_category)
+
+
+def _charm_attribute_caste_favored(charm: Charm, caste_attr_category: str | None) -> bool:
+    """Whether an Attribute-keyed Charm (Lunar) counts as Caste-favored: its
+    `min_attribute`'s category matches the caste's favored category (p.122).
+    False for a Charm with no `min_attribute` or for a non-Lunar/Casteless caste."""
+    if not charm.min_attribute or caste_attr_category is None:
+        return False
+    try:
+        attr = AttributeName(charm.min_attribute)
+    except ValueError:
+        return False
+    return _attribute_category(attr) == caste_attr_category
 
 
 def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[AbilityName]:
@@ -598,15 +677,26 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
+    caste_attr_category = _caste_favored_attribute_category(ruleset, character)
 
     # --- Attributes: three category spends matched to the 8/6/4 pools --------- #
-    spends = sorted(
-        (sum(attributes[a] - b.attribute_base for a in attrs)
-         for attrs in ATTRIBUTE_CATEGORIES.values()),
-        reverse=True,
+    # The pool assignment (which category gets which of the sorted pools) is by
+    # spend alone, same as before; the per-category RATE additionally depends on
+    # whether that category is the caste's favored one (Lunar Caste Attributes,
+    # p.93 — "4, 3 if a Caste Attribute"). Ability-caste splats have no favored
+    # category (caste_attr_category is None), so every category costs the same
+    # flat `attribute` rate, unchanged from before this was added.
+    cat_spends = sorted(
+        ((cat, sum(attributes[a] - b.attribute_base for a in attrs))
+         for cat, attrs in ATTRIBUTE_CATEGORIES.items()),
+        key=lambda cs: cs[1], reverse=True,
     )
     pools = sorted(b.attribute_pools, reverse=True)
-    attr_bp = sum(max(0, s - p) for s, p in zip(spends, pools)) * bp_costs.attribute
+    attr_bp = sum(
+        max(0, spend - pool) * (bp_costs.attribute_caste_favored if cat == caste_attr_category
+                                 else bp_costs.attribute)
+        for (cat, spend), pool in zip(cat_spends, pools)
+    )
 
     # --- Abilities: 25 free dots, pre-BP cap 3 -------------------------------- #
     cap = b.ability_cap_pre_bp
@@ -655,7 +745,8 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         if charm is None:
             continue
         ability = _category_ability(charm.category)
-        is_cf = ability is not None and ability in cf_set
+        is_cf = ((ability is not None and ability in cf_set)
+                 or _charm_attribute_caste_favored(charm, caste_attr_category))
         if charm.immaculate:
             pick_costs.append(bp_costs.immaculate_charm_favored_caste if is_cf
                               else bp_costs.immaculate_charm)
@@ -665,7 +756,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         if ruleset.spells.get(sid) is None:
             continue
         pick_costs.append(bp_costs.charm_favored_caste if occult_cf else bp_costs.charm)
-    ox_body_cf = AbilityName.ENDURANCE in cf_set
+    ox_body_cf = _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category)
     for _ in ox_body:
         pick_costs.append(bp_costs.charm_favored_caste if ox_body_cf else bp_costs.charm)
     pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
@@ -748,8 +839,17 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                     code="favored-needs-dot", where=ab.value,
                     message=f"Favoured ability {ab.value} must have at least 1 dot.",
                 ))
+        # Abilities the origin/splat forces into the Favored set — Lunar Survival
+        # (p.90); empty for splats with no such rule.
+        for ab in b.required_favored:
+            if ab not in favored:
+                issues.append(Issue(
+                    code="required-favored-ability", where=ab.value,
+                    message=f"{ab.value} must be a Favored Ability for this splat.",
+                ))
 
     cf_set = caste_abilities | favored
+    caste_attr_category = _caste_favored_attribute_category(ruleset, character)
 
     # --- Range checks --------------------------------------------------------- #
     for name, attr in attributes.items():
@@ -805,7 +905,8 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         if charm is None:
             continue
         ability = _category_ability(charm.category)
-        if ability is not None and ability in cf_set:
+        if ((ability is not None and ability in cf_set)
+                or _charm_attribute_caste_favored(charm, caste_attr_category)):
             cf_pick_count += 1
     for sid in spells:
         spell = ruleset.spells.get(sid)
@@ -819,7 +920,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             ))
         if occult_cf:
             cf_pick_count += 1
-    if AbilityName.ENDURANCE in cf_set:
+    if _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category):
         cf_pick_count += len(ox_body)
 
     if immaculate:
@@ -923,6 +1024,31 @@ def check_caste_splat(ruleset: RuleSet, character: Character) -> list[Issue]:
     )]
 
 
+# Lunar Casteless (p.90-91, p.108): unlike Dragon-Blooded Dynastic/Outcaste — an
+# origin variant orthogonal to caste — Lunar Casteless is a single condition
+# expressed on BOTH fields at once (no Caste Attributes, only 6 Charms, no
+# Ability minimums, no Renown). The two must move together: Casteless origin iff
+# the Casteless caste, never one without the other.
+LUNAR_CASTELESS_CASTE_ID = "casteless"
+LUNAR_CASTELESS_ORIGIN = "casteless"
+
+
+def check_lunar_casteless_consistency(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """A Lunar's origin and caste must agree on Casteless-ness. Not gated on caste
+    lookup succeeding — an unrecognised caste is `check_caste_splat`'s concern."""
+    if character.exalt_type != "Lunar":
+        return []
+    is_casteless_caste = character.caste == LUNAR_CASTELESS_CASTE_ID
+    is_casteless_origin = character.origin == LUNAR_CASTELESS_ORIGIN
+    if is_casteless_caste == is_casteless_origin:
+        return []
+    return [Issue(
+        code="lunar-casteless-mismatch", where=character.caste,
+        message=("A Lunar's Casteless origin and Casteless caste must match: "
+                 f"caste={character.caste!r}, origin={character.origin!r}."),
+    )]
+
+
 def splat_of(charm: Charm) -> str:
     """The Exalt type that can learn `charm` (charm.exalt_type). A tiny accessor so
     the UI/engine don't reach into the field directly and can grow smarter later
@@ -972,6 +1098,7 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues: list[Issue] = []
     issues += check_exalt_type(ruleset, character)
     issues += check_caste_splat(ruleset, character)
+    issues += check_lunar_casteless_consistency(ruleset, character)
     issues += check_splat_consistency(ruleset, character)
     issues += check_references(ruleset, character)
     issues += check_charm_prerequisites(ruleset, character)

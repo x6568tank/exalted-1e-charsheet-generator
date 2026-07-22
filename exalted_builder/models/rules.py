@@ -191,6 +191,11 @@ class Charm(BaseModel):
     open_to_tiers: list[str] = Field(default_factory=list)
     type: CharmType
     min_ability: int = Field(default=0, ge=0)
+    # For splats whose Charms are Attribute-keyed rather than Ability-keyed (Lunar,
+    # p.122): the AttributeName value `min_ability` is the required rating in. ""
+    # (default) means the Charm gates on `category`'s Ability as usual. A Charm
+    # should set at most one of min_attribute / an Ability-resolving category.
+    min_attribute: str = ""
     min_essence: int = Field(default=1, ge=1)
     # Repeatable Charms (Ox-Body Technique): may be bought once per dot of this
     # Ability (the cap), each purchase choosing one of `variants`. None = not repeatable.
@@ -232,7 +237,14 @@ class CasteDefinition(BaseModel):
     id: str                                # stable lowercase key, e.g. "dawn"
     exalt_type: str = "Solar"              # the splat this caste belongs to
     label: str                             # display name, e.g. "Dawn"
-    caste_abilities: list[AbilityName]     # the five fixed caste abilities
+    caste_abilities: list[AbilityName] = Field(default_factory=list)  # the fixed caste abilities
+    # Lunar castes have Caste ATTRIBUTES instead of Caste Abilities (p.90-91): Full
+    # Moon = Strength/Dexterity/Stamina, Changing Moon = Charisma/Manipulation/
+    # Appearance, No Moon = Perception/Intelligence/Wits — each set is exactly one
+    # of engine.validate.ATTRIBUTE_CATEGORIES. Empty for Ability-caste splats
+    # (Solar, Dragon-Blooded, Abyssal). A caste sets caste_abilities OR
+    # caste_attributes, never both.
+    caste_attributes: list[AttributeName] = Field(default_factory=list)
     description: str = ""                   # a quick flavour blurb for the caste
     anima_powers: str = ""
 
@@ -371,6 +383,11 @@ class BonusPointCosts(BaseModel):
     """Flat per-purchase BP costs (chargen). background_above_3 applies when the
     dot being bought raises the Background above 3."""
     attribute: int = 4
+    # Discount for a Caste ATTRIBUTE (Lunar, p.93 — "4 (3 if a Caste Attribute)").
+    # Unused by Ability-caste splats, whose CasteDefinition.caste_attributes is
+    # empty so no attribute ever qualifies; defaults equal to `attribute` so it's
+    # a no-op until a splat's data row overrides it.
+    attribute_caste_favored: int = 4
     ability: int = 2
     ability_favored_caste: int = 1
     background: int = 1
@@ -430,6 +447,11 @@ class ChargenBudgets(BaseModel):
     # splats/origins with no such floor (Solar, DB Outcaste).
     required_min_abilities: list[AbilityMinimum] = Field(default_factory=list)
 
+    # Abilities that MUST be among the character's Favored set (not just dotted) —
+    # the Lunar rule that Survival is always Favored (p.90). Empty for splats with
+    # no such forced inclusion (Solar, Dragon-Blooded, Abyssal).
+    required_favored: list[AbilityName] = Field(default_factory=list)
+
     ability_dots: int = 25
     ability_min_caste_favored: int = 10    # >= 10 of the 25 on caste/favored abilities
     ability_cap_pre_bp: int = 3
@@ -468,9 +490,14 @@ class EssencePoolSpec(BaseModel):
       * Solar (core p.104):      3 / 7, virtue_mode "all"          (Ess×3+WP; Ess×7+WP+ΣVirtues)
       * Dragon-Blooded (p.150-152): 1 / 4, virtue_mode "two_highest",
         plus a Breeding-Background term added to BOTH pools (see below).
+      * Lunar (p.91):            1 / 4, personal_willpower_coeff 2, virtue_mode
+        "highest" with peripheral_virtue_coeff 4 (Ess+WP×2; Ess×4+WP×2+highestVirtue×4).
 
-    `peripheral_virtue_mode`: "all" adds ΣVirtues (all four), "two_highest" adds only
-    the sum of the two highest Virtues (the DB rule), "none" adds nothing.
+    `peripheral_virtue_mode`: "all" adds ΣVirtues (all four, Solar), "two_highest"
+    adds the sum of the two highest Virtues (Dragon-Blooded), "highest" adds only
+    the single highest Virtue (Lunar — scaled by `peripheral_virtue_coeff`, since
+    Lunar's term is ×4 rather than the ×1 every other splat uses), "none" adds
+    nothing.
 
     Some splats add a flat, Background-derived bonus to both pools that plain
     coefficients can't express — the Dragon-Blooded Breeding Background (p.158-159).
@@ -483,7 +510,8 @@ class EssencePoolSpec(BaseModel):
     personal_willpower_coeff: int = 1
     peripheral_essence_coeff: int
     peripheral_willpower_coeff: int = 1
-    peripheral_virtue_mode: str = "all"     # "all" | "two_highest" | "none"
+    peripheral_virtue_mode: str = "all"     # "all" | "two_highest" | "highest" | "none"
+    peripheral_virtue_coeff: int = 1        # multiplies the selected Virtue term (Lunar: 4)
     # Optional Background-derived additive term (DB Breeding, p.158-159).
     breeding_background: str = ""            # Background name whose rating indexes the tables
     breeding_personal: list[int] = Field(default_factory=list)     # index by rating 0..5
@@ -492,8 +520,9 @@ class EssencePoolSpec(BaseModel):
     @field_validator("peripheral_virtue_mode")
     @classmethod
     def _check_virtue_mode(cls, v: str) -> str:
-        if v not in ("all", "two_highest", "none"):
-            raise ValueError(f"peripheral_virtue_mode must be all/two_highest/none, got {v!r}")
+        if v not in ("all", "two_highest", "highest", "none"):
+            raise ValueError(
+                f"peripheral_virtue_mode must be all/two_highest/highest/none, got {v!r}")
         return v
 
 

@@ -45,12 +45,13 @@ def test_each_caste_keyed_by_its_own_id():
 
 def test_every_caste_has_a_description_and_anima_power():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.castes) == 15          # 5 Solar + 5 Dragon-Blooded Aspects + 5 Abyssal
+    assert len(rs.castes) == 19          # 5 Solar + 5 DB Aspects + 5 Abyssal + 4 Lunar
     for cd in rs.castes.values():
         assert cd.description and cd.anima_powers
     assert rs.castes["dawn"].description.startswith("Masters of war")
     assert rs.castes["fire"].exalt_type == "Dragon-Blooded"
     assert rs.castes["dusk"].exalt_type == "Abyssal"
+    assert rs.castes["full-moon"].exalt_type == "Lunar"
 
 
 def test_ox_body_technique_loads_repeatable_with_three_variants():
@@ -68,9 +69,10 @@ def test_ox_body_technique_loads_repeatable_with_three_variants():
 def test_nature_catalog_loads_the_p105_archetypes():
     rs = rules_db.load_ruleset(DATA_DIR)
     cat = rs.nature_catalog
-    assert len(cat) == 16                                  # the p105 summary list
+    assert len(cat) == 20                                  # p105 (Solar) + 4 Lunar-only (p91)
     names = {n.name for n in cat.values()}
     assert {"Architect", "Bravo", "Caregiver", "Judge", "Rebel"} <= names
+    assert {"Savant", "Survivor", "Thrillseeker", "Visionary"} <= names
     assert cat["rebel"].description == "You constantly seek to challenge authority."
 
 

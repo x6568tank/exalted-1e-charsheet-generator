@@ -54,6 +54,11 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     # deathknight, 5 for a fugitive/renegade (p.122). First key is the default
     # (plain "Abyssal" budget row); "fugitive" maps to "Abyssal:fugitive".
     "Abyssal": {"loyal": "Loyal Deathknight", "fugitive": "Fugitive"},
+    # Unlike the above two, Lunar "casteless" is coupled to the Caste field itself,
+    # not independent of it (engine.validate.check_lunar_casteless_consistency) — the
+    # editor doesn't yet auto-sync the Caste dropdown when this is picked, so choosing
+    # "Casteless" here also requires setting Caste to Casteless, or validation flags it.
+    "Lunar": {"society": "Society (Silver Pact)", "casteless": "Casteless"},
 }
 
 

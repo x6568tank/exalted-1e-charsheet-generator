@@ -178,12 +178,33 @@ class PlayState(BaseModel):
     it is normalised to the track length at render time (Ox-Body bought later just
     extends it). Motes are a simple spent count against the derived pool maxima;
     `willpower_spent` counts spent boxes out of permanent Willpower; `limit` is a
-    bare 0..10 counter (Limit Break at 10)."""
+    bare 0..10 counter (Limit Break at 10).
+
+    `renown` is Lunar-only (p.112-115): four Storyteller-adjudicated 0-100 scores
+    (Succor/Mettle/Cunning/Glory, one per Virtue), gained and lost through GM-called
+    Virtue checks during play — nothing like a dotted/XP-priced trait, so it lives
+    here rather than in chargen/advancement. `face` (0-10, "Urrach-ya" to
+    "Shahan-ya") is likewise entirely Storyteller-adjudicated: total Renown sets a
+    floor, but rank also requires freeform GM-judged feats (p.113) this tracker
+    does not and should not try to check. Both are meaningless (left at their
+    defaults) for non-Lunar characters and for Casteless Lunars, who may not
+    possess Renown (p.108) — this is not enforced here; it's the ST's call."""
     health: list[Optional[Damage]] = Field(default_factory=list)
     motes_personal_spent: int = Field(default=0, ge=0)
     motes_peripheral_spent: int = Field(default=0, ge=0)
     willpower_spent: int = Field(default=0, ge=0)
     limit: int = Field(default=0, ge=0, le=10)
+    renown: dict[str, int] = Field(
+        default_factory=lambda: {"succor": 0, "mettle": 0, "cunning": 0, "glory": 0})
+    face: int = Field(default=0, ge=0, le=10)
+
+    @field_validator("renown")
+    @classmethod
+    def _check_renown_range(cls, v: dict[str, int]) -> dict[str, int]:
+        for k, rating in v.items():
+            if not (0 <= rating <= 100):
+                raise ValueError(f"renown[{k!r}] = {rating}; must be 0-100.")
+        return v
 
 
 # --------------------------------------------------------------------------- #
@@ -201,7 +222,9 @@ class Character(BaseModel):
     # Intra-splat origin variant, when a splat's chargen budget depends on more than
     # its Exalt type. Dragon-Blooded: "dynastic" (Realm-raised: 35 ability dots + the
     # schooling minimums) vs "outcaste" (25 dots, no minimums), p.150-151. "" = the
-    # splat's default budget (Solar ignores this).
+    # splat's default budget (Solar ignores this). Lunar: "casteless" is a coupled
+    # pair with `caste` (see engine.validate.check_lunar_casteless_consistency) —
+    # unlike Dragon-Blooded, it's one condition on two fields, not an independent axis.
     origin: str = ""
     concept: str = ""
     nature: str = ""

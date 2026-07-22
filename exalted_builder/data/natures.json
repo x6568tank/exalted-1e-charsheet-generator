@@ -14,5 +14,9 @@
   {"id": "leader", "name": "Leader", "description": "You are the one others turn to in times of crisis."},
   {"id": "martyr", "name": "Martyr", "description": "You are ready to give everything for what you believe."},
   {"id": "paragon", "name": "Paragon", "description": "You strive to be the noble ideal of a hero."},
-  {"id": "rebel", "name": "Rebel", "description": "You constantly seek to challenge authority."}
+  {"id": "rebel", "name": "Rebel", "description": "You constantly seek to challenge authority."},
+  {"id": "savant", "name": "Savant", "description": "Any problem can be solved with logic and deduction."},
+  {"id": "survivor", "name": "Survivor", "description": "You withstand anything that the universe throws at you."},
+  {"id": "thrillseeker", "name": "Thrillseeker", "description": "Life is not worth living unless it's on the edge."},
+  {"id": "visionary", "name": "Visionary", "description": "You see the world for what it could be, rather than what it is."}
 ]

@@ -56,5 +56,35 @@
     "virtue_dots": 5,
     "essence_start": 2,
     "bonus_points": 15
+  },
+  "Lunar": {
+    "attribute_pools": [9, 7, 5],
+    "ability_dots": 25,
+    "ability_min_caste_favored": 10,
+    "favored_count": 5,
+    "background_dots": 7,
+    "charm_count": 8,
+    "charm_min_caste_favored": 4,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 15,
+    "required_min_abilities": [
+      {"abilities": ["survival"], "rating": 2},
+      {"abilities": ["archery", "brawl", "martial_arts", "melee", "thrown"], "rating": 1}
+    ],
+    "required_favored": ["survival"]
+  },
+  "Lunar:casteless": {
+    "attribute_pools": [8, 6, 4],
+    "ability_dots": 25,
+    "ability_min_caste_favored": 10,
+    "favored_count": 5,
+    "background_dots": 7,
+    "charm_count": 6,
+    "charm_min_caste_favored": 0,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 15,
+    "required_favored": ["survival"]
   }
 }

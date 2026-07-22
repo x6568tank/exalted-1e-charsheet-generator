@@ -40,10 +40,12 @@ Solar values. If unsure, ask human.
   separate ability from Brawl, and there is no "War" ability in 1e core.**
 
 ## Next Exalt Types
-Dragon-Blooded and Abyssal are done (see Status). **Sidereal, Lunar, and
-Alchemical are next** — no build order or plan has been chosen yet as of
-2026-07-22; ask the user before starting one. **Mortals** (Godblooded/Ghosts/
-Heroic Mortals/etc.) are planned after the Exalt types.
+Dragon-Blooded and Abyssal are done (see Status). **Lunar chargen foundation is
+in progress** (started 2026-07-22) — see the Status entry below; Charms are
+deliberately last, so no Lunar Charm data exists yet. **Sidereal and Alchemical
+are next after Lunar** — no build order chosen for them yet; ask the user
+before starting. **Mortals** (Godblooded/Ghosts/Heroic Mortals/etc.) are
+planned after the Exalt types.
 
 Work on a given splat starts only once its rulebook images land in
 `images/<ExaltName>/` — never author data from memory, per the Workflow rule below.
@@ -55,7 +57,7 @@ Work on a given splat starts only once its rulebook images land in
 | Solar | Amber/Gold (default) | DONE |
 | Abyssal | Black on ash | DONE |
 | Dragon-Blooded | Vermillion | DONE |
-| Lunar | Silverish-blue | waiting on Lunar chargen work |
+| Lunar | Silverish-blue | chargen foundation in progress, Charms not authored |
 | Sidereal | Purple | waiting on Sidereal chargen work |
 | Alchemical | Brass | waiting on Alchemical chargen work |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
@@ -164,7 +166,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (377 tests passing)
+## Status (396 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -283,6 +285,82 @@ picker), `ui/combos.py` (Combo builder), `ui/xp.py` (post-lock XP tab),
 - **Cross-splat Martial Arts:** Hungry Ghost Style and Five-Dragon Style are
   `open_to_tiers: [Celestial]` — ready for Lunar/Sidereal with zero data change
   once those splats exist.
+
+### Lunar chargen foundation — in progress (started 2026-07-22)
+Read from `images/Lunar/Character Creation 88-93` and `Traits 96-115` (core
+"The Lunars" splatbook). **Charms are deliberately last** — see Next Exalt
+Types — so no Lunar Charm data or Charm-picker wiring exists yet; this is the
+foundation only, same staging as Dragon-Blooded's Phase 5.
+
+- **Lunar Charms are Attribute-keyed, not Ability-keyed (p.90-93, p.122)** — the
+  single biggest structural difference from every other splat. `Charm.min_attribute`
+  (an `AttributeName` value) is the new parallel to `min_ability`; a Charm sets
+  one or the other. `CasteDefinition.caste_attributes` is the Lunar parallel to
+  `caste_abilities` (empty for Ability-caste splats, and vice versa). A Charm's
+  Caste-favored-ness is derived, not flagged: its `min_attribute`'s category
+  (Physical/Social/Mental, `engine.validate.ATTRIBUTE_CATEGORIES`) must match the
+  caste's favored category — Full Moon→Physical, Changing Moon→Social, No
+  Moon→Mental (`validate._caste_favored_attribute_category`/
+  `_charm_attribute_caste_favored`). The **Charm min_attribute *requirement*
+  check** (gating `meets_charm_requirements`/`check_charm_prerequisites` the way
+  `min_ability` does) is NOT yet wired — deferred to the Charms phase, since
+  nothing exercises it without real Charm data.
+- **Attributes are 9/7/5** (Casteless: 8/6/4, not a typo of Solar's 8/6/4 — same
+  numbers, different reason). The Caste Attribute BP discount
+  (`BonusPointCosts.attribute_caste_favored`, e.g. Lunar "4, 3 if a Caste
+  Attribute") is a genuinely new per-category rate in `bonus_point_breakdown`'s
+  Attribute accounting — every prior splat priced all three categories flatly.
+- **Essence is a third distinct formula (p.91):** Personal = Essence + Willpower×2;
+  Peripheral = Essence×4 + Willpower×2 + (highest Virtue × 4) — the *single*
+  highest Virtue, not ΣVirtues (Solar/Abyssal) or the two highest (Dragon-Blooded).
+  `EssencePoolSpec` gained `peripheral_virtue_mode: "highest"` and a
+  `peripheral_virtue_coeff` (Lunar's is 4; every other splat's implicit ×1 is now
+  explicit as the default).
+- **Casteless is ONE condition on TWO fields, not an independent origin axis**
+  like Dragon-Blooded's Dynastic/Outcaste. `character.origin == "casteless"` and
+  `character.caste == "casteless"` must always agree — enforced by the new
+  `validate.check_lunar_casteless_consistency` (`lunar-casteless-mismatch`),
+  wired into `validate()`. Casteless: 8/6/4 attributes, 6 Charms (no free
+  Finding-the-Spirit's-Shape, no Caste-favored minimum), no Ability minimums, no
+  Renown Background. `ChargenBudgets.required_favored` is new (Lunar: Survival
+  must always be a Favored Ability, p.90 — even for Casteless); the Survival-≥2
+  /one-combat-Ability-≥1 floor (Casteless-exempt) reuses the existing
+  `required_min_abilities` mechanism as-is.
+- **Renown and Face are Storyteller-adjudicated, NOT dotted/XP-priced traits**
+  (p.112-115) — each of 4 Renown scores (Succor/Mettle/Cunning/Glory, one per
+  Virtue) runs 0-100 and is gained/lost via GM-called Virtue checks; Face (0-10)
+  derives from total Renown plus freeform GM-judged feats this tracker doesn't
+  and shouldn't try to check. Modeled on `PlayState.renown`/`.face` — the same
+  ST-discretion, no-auto-accounting precedent as Limit — so it never touches
+  chargen validation, the XP audit, or permanent derivations.
+- **Data authored:** `castes.json` (Full Moon/Changing Moon/No Moon/Casteless,
+  with anima powers), `exalts.json` Lunar row, `chargen_budgets.json` `"Lunar"`
+  + `"Lunar:casteless"` rows, `costs_bonus.json` Lunar row (Charm BP 7/5, Attribute
+  4/3), `costs_xp.json` (**new file** — previously unauthored for any splat) with
+  a Lunar row (Charm XP 12/15, p.122 — a third distinct rate alongside Solar's
+  10/8 and Dragon-Blooded's un-costed default), 4 new Nature archetypes (Savant/
+  Survivor/Thrillseeker/Visionary, p.91 — Lunars' list is Solar's 16 plus these),
+  and 2 new Backgrounds (Heart's Blood, Renown — both Lunar-only via `exalt_type`).
+  Editor's `_SPLAT_ORIGINS` gained a `"Lunar"` entry (Society/Casteless) so the
+  origin is reachable in the UI; the Caste dropdown does NOT yet auto-sync with
+  it, so picking one without the other trips the new consistency check.
+- **Magic-track ceiling (rules-authority confirmed, 2026-07-22):** Lunars and
+  Sidereals, as Celestial Exalted (not native sorcerers or necromancers, unlike
+  Solar/Abyssal), reach **sorcery up to Celestial Circle** and **necromancy up
+  to Shadowlands Circle** only. `exalts.json`'s Lunar row sets
+  `highest_magic_circle_id: "Celestial"` — two circles below the bar
+  (Terrestrial, Celestial), so barring the top one still leaves chargen sorcery
+  reachable, the same shape as Solar's own bar. The Shadowlands-only necromancy
+  cap has no separate field to set (see Solar's Shadowlands/Labyrinth necromancy
+  access above, p.223) — it's enforced purely by NOT authoring a Labyrinth or
+  Void Circle Necromancy initiation Charm in Lunar's (or, later, Sidereal's)
+  Occult charm file. **Flag for whoever authors Lunar/Sidereal Occult Charms:**
+  stop at a Shadowlands Circle Necromancy initiation; do not add Labyrinth/Void.
+  Lunar Combos additionally relax the same-Charm-type restriction (any
+  Attribute-based Charms combo freely) and let Eclipse Solars/Moonshadow
+  Abyssals mix Ability- and Attribute-based Charms in one Combo (p.122) — not
+  yet touched, scope it separately when Combos meets Lunar. Tests:
+  `tests/test_lunar.py`.
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled

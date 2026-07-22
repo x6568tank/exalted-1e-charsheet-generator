@@ -118,5 +118,37 @@
     "caste_abilities": ["bureaucracy", "linguistics", "ride", "sail", "socialize"],
     "description": "Diplomats and bureaucrats, the Hollow Darkness is the force that keeps the empires of the dead running smoothly. The Deathlords chose the Moonshadow Caste from those who master the arts of negotiation, travel and treachery.",
     "anima_powers": "When party or witness to an oath, the deathknight may sanctify it: touching the hands of those sworn, he spends 10 motes of Essence and 1 Willpower. An oathbreaker suffers terrible luck, horribly botching a critical roll a number of times equal to the deathknight's Essence when he witnessed the oath. Moonshadows are also gifted generalists — with a willing tutor they may learn the Charms of other Exalted and even spirits (including ghosts), though such Charms cost double the experience to learn and use."
+  },
+  {
+    "id": "full-moon",
+    "exalt_type": "Lunar",
+    "label": "Full Moon",
+    "caste_attributes": ["strength", "dexterity", "stamina"],
+    "description": "Engines of fury who survive via speed and strength. Full Moon Lunars are the Silver Pact's greatest warriors, unparalleled in physical prowess and terrifying in single combat.",
+    "anima_powers": "A Full Moon Lunar can spend 5 motes to attune her anima to her body, honing her physical prowess. For the rest of the scene, she can double her running and leaping distances. As more Essence is spent, the light grows in strength and intensity."
+  },
+  {
+    "id": "changing-moon",
+    "exalt_type": "Lunar",
+    "label": "Changing Moon",
+    "caste_attributes": ["manipulation", "charisma", "appearance"],
+    "description": "Cunning tricksters who survive via cunning and guile. Changing Moon Lunars are the Silver Pact's premier spies, assassins and leaders, masters of misdirection and illusion.",
+    "anima_powers": "A Changing Moon Lunar may spend 10 motes to cloak himself in a veil of illusion for a scene, appearing to be someone else. This effect ends if the character's anima banner activates at any level or if he has significant physical interaction (such as combat or sex) with another intelligent creature; it does not change the character's scent or voice, and creatures of deception (the Fair Folk) are immune."
+  },
+  {
+    "id": "no-moon",
+    "exalt_type": "Lunar",
+    "label": "No Moon",
+    "caste_attributes": ["perception", "intelligence", "wits"],
+    "description": "Subtle mystics who survive via intelligence and sorcerous skill. No Moon Lunars are the Silver Pact's master sorcerers and the keepers of the Lunars' entire history and culture.",
+    "anima_powers": "A No Moon Lunar may attune her anima to work sorcery, reducing the Essence needed to cast spells: for each mote she spends to attune her anima this way, the Essence cost of all spells cast for the rest of the scene is lowered by 1 (may not spend more than twice her Essence this way in a scene; a spell's cost cannot be reduced by more than half, rounded down). Spending Essence this way is reflexive and does not count as a Charm for the purposes of how many Charms the character can use in a turn, but it cannot be done while casting a spell."
+  },
+  {
+    "id": "casteless",
+    "exalt_type": "Lunar",
+    "label": "Casteless",
+    "caste_attributes": [],
+    "description": "Lunar Exalted who, for one reason or another, are not adopted into the Society of the Moon. With no elders to supervise his rite of passage and mark him with the ritual scars and tattoos, a Casteless Lunar has no caste. As a result, a Casteless character does not possess any Caste Attributes, and must pay full cost for all Charms and Attribute increases; in addition, his lack of tutelage means he starts with fewer Attributes, fewer Charms, and no Ability minimums or Renown.",
+    "anima_powers": "Varies: for three days a month a Casteless Lunar has the Full Moon anima power, for three days the No Moon power, and for the other twenty-two days the Changing Moon power."
   }
 ]

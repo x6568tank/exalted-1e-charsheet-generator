@@ -97,11 +97,15 @@ def wp_virtue_component(character: Character) -> int:
 
 def _peripheral_virtue_term(mode: str, virtues: dict[VirtueName, int]) -> int:
     """The Virtue contribution to the Peripheral pool for a splat: all four Virtues
-    (Solar), the two highest only (Dragon-Blooded, p.152), or none."""
+    (Solar), the two highest only (Dragon-Blooded, p.152), the single highest only
+    (Lunar, p.91 — scaled separately by EssencePoolSpec.peripheral_virtue_coeff), or
+    none."""
     if mode == "all":
         return sum(virtues.values())
     if mode == "two_highest":
         return two_highest_virtues(virtues)
+    if mode == "highest":
+        return max(virtues.values(), default=0)
     return 0
 
 
@@ -126,6 +130,9 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
       * Dragon-Blooded (p.152): Personal = Essence + Willpower (+Breeding);
                                Peripheral = Essence×4 + Willpower + (two highest
                                Virtues) (+Breeding).
+      * Lunar (p.91):          Personal = Essence + Willpower×2;
+                               Peripheral = Essence×4 + Willpower×2 + (highest
+                               Virtue × 4).
 
     The Breeding term (p.158-159) is a flat per-rating bonus added to BOTH pools,
     keyed off the character's Breeding Background rating; splats without it carry
@@ -140,7 +147,8 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
                 + breeding_p)
     peripheral = (essence * spec.peripheral_essence_coeff
                   + wp * spec.peripheral_willpower_coeff
-                  + _peripheral_virtue_term(spec.peripheral_virtue_mode, character.virtues)
+                  + (_peripheral_virtue_term(spec.peripheral_virtue_mode, character.virtues)
+                     * spec.peripheral_virtue_coeff)
                   + breeding_pp)
     return personal, peripheral
 

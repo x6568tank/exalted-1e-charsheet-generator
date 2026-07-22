@@ -56,5 +56,22 @@
     "ox_body_charm_id": "abyssal.endurance.ox-body-technique",
     "caste_noun": "Caste",
     "tier": "Celestial"
+  },
+  {
+    "id": "Lunar",
+    "label": "Lunar Exalted",
+    "essence": {
+      "personal_essence_coeff": 1,
+      "personal_willpower_coeff": 2,
+      "peripheral_essence_coeff": 4,
+      "peripheral_willpower_coeff": 2,
+      "peripheral_virtue_mode": "highest",
+      "peripheral_virtue_coeff": 4
+    },
+    "magic_track": "sorcery",
+    "highest_magic_circle_id": "Celestial",
+    "ox_body_charm_id": "lunar.endurance.ox-body-technique",
+    "caste_noun": "Caste",
+    "tier": "Celestial"
   }
 ]
