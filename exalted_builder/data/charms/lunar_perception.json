@@ -15,6 +15,24 @@
     "source": {"book": "Exalted 1e The Lunars", "page": 174}
   },
   {
+    "id": "lunar.perception.sense-borrowing-method",
+    "name": "Sense-Borrowing Method",
+    "category": "perception",
+    "exalt_type": "Lunar",
+    "type": "Simple",
+    "min_attribute": "perception",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      ["lunar.perception.sense-sharpening-change"],
+      ["lunar.interaction-and-knowledge.pack-forming-presence"]
+    ],
+    "cost": {"motes": 5, "raw": "5 motes"},
+    "duration": "Sustained",
+    "description": "Using this Charm, a Lunar can attach his perceptions to the senses of another human or an animal. The Lunar must touch the target when activating the Charm, but once it is functioning, the subject may travel up to a mile from the Lunar per point of the Exalt's permanent Essence and still serve as a source of sensory information. If the subject is willing, no roll is required to activate the Charm. Otherwise, the Lunar's player must make a Wits + Awareness roll, with a difficulty equal to the target's Essence. Animals of the Lunar's totem species are automatically willing, while other animals are not unless charmed or befriended. To succeed, the Lunar's player must roll a number of successes equal to or exceeding the target's Essence. Otherwise, the Charm fails, and if the target is an Exalt or other supernatural creature, he knows the Lunar attempted to use a Charm on him. Mortals and mortal beasts cannot detect the Charm. While the Charm is active, the Lunar senses everything that his subject does. For all intents and purposes, the subject becomes the Lunar's eyes and ears. The Lunar has some semblance of his own senses, but borrowed senses dominate his perceptions. Any actions taken by the Lunar while the Sense-Borrowing Method is being used — including reflexive actions — are at +2 difficulty. As a consequence, most Lunars simply meditate while using the Charm. If either the Lunar or his subject sustain an injury (at least one health level of damage), the Charm ends. This Charm gives the Lunar no control over the creature, he simply shares its senses.",
+    "source": {"book": "Exalted 1e The Lunars", "page": 175}
+  },
+  {
     "id": "lunar.perception.heightened-sight-method",
     "name": "Heightened Sight Method",
     "category": "perception",

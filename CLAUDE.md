@@ -165,7 +165,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (439 tests passing)
+## Status (442 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -307,9 +307,13 @@ unimplemented — see the Combos note below.
   check** (gating `meets_charm_requirements`/`check_charm_prerequisites` the way
   `min_ability` does) IS wired (`validate.py` ~line 120) and exercised by the
   per-category cascade tests below.
-- **Charm catalogue (216 Charms, `data/charms/lunar_*.json`), by category/page
+- **Charm catalogue (217 Charms, `data/charms/lunar_*.json`), by category/page
   range:** `body_enhancement`/Ox-Body (11, p.170-ish), `defensive` (21),
-  `melee` (26), `perception` (26, p.174-181), `ranged_combat` (17),
+  `melee` (26), `perception` (27, p.174-181 — includes Sense-Borrowing Method,
+  a cross-tree pull requiring BOTH Sense-Sharpening Change AND Pack-Forming
+  Presence (Interaction and Knowledge, p.189) as separate AND groups; it was
+  initially missed on a first pass through the p.174-175 diagram and had to be
+  added back in), `ranged_combat` (17),
   `shapeshifting` (17, p.123-132 — the totem-form/beastman tree),
   `survival_and_healing` (22), `unarmed_combat` (37), `stealth` (6, p.182-183),
   `interaction_and_knowledge` (24, p.183-191 — storytelling, crowd/Virtue

@@ -752,6 +752,76 @@ def test_survival_and_healing_prerequisite_chain_resolves(rs):
     assert validate.check_charm_prerequisites(rs, c) == []
 
 
+# --- shipped Perception cascade (real data, Charms p.174-181) ------------- #
+
+def test_shipped_perception_cascade_counts(rs):
+    charms = [c for c in rs.charms.values()
+              if c.exalt_type == "Lunar" and c.category == "perception"]
+    assert len(charms) == 27
+    for c in charms:
+        assert c.min_attribute
+    roots = {c.id for c in charms if c.prerequisites == []}
+    assert roots == {"lunar.perception.sense-sharpening-change"}
+
+
+def test_sense_borrowing_method_requires_both_prerequisites(rs):
+    # Cross-tree: needs its own root (Sense-Sharpening Change) AND a charm from
+    # the Interaction and Knowledge tree (Pack-Forming Presence, p.189) — two
+    # separate AND groups, same shape as Harmony With Reality Technique's
+    # cross-tree pull from Shapeshifting.
+    charm = rs.charms["lunar.perception.sense-borrowing-method"]
+    assert charm.prerequisites == [
+        ["lunar.perception.sense-sharpening-change"],
+        ["lunar.interaction-and-knowledge.pack-forming-presence"],
+    ]
+
+
+def test_perception_cascade_prerequisite_chain_resolves(rs):
+    c = _maxed_lunar(caste="full-moon")
+    c.essence_rating = 4
+    c.charms = [
+        "lunar.perception.sense-sharpening-change",
+        "lunar.interaction-and-knowledge.unspeaking-aura-of-dread",
+        "lunar.interaction-and-knowledge.beast-calming-method",
+        "lunar.interaction-and-knowledge.pack-forming-presence",
+        "lunar.perception.sense-borrowing-method",
+        "lunar.perception.heightened-sight-method",
+        "lunar.perception.heightened-hearing-and-touch-method",
+        "lunar.perception.heightened-smell-and-taste-method",
+        "lunar.perception.ever-wary-fox-technique",
+        "lunar.perception.observed-prey-instinct",
+        "lunar.perception.weather-scenting-method",
+        "lunar.perception.unerring-earth-direction-sense",
+        "lunar.perception.moonsilver-scenting-sense",
+        "lunar.perception.wyld-sensing-instincts",
+        "lunar.perception.resisting-the-lure-of-madness",
+        "lunar.perception.wyld-object-appraisal-method",
+        "lunar.shapeshifting.finding-the-spirits-shape",
+        "lunar.shapeshifting.towering-beast-form",
+        "lunar.shapeshifting.humble-mouse-shape",
+        "lunar.shapeshifting.shaping-the-ideal-form",
+        "lunar.shapeshifting.many-faced-moon-transformation",
+        "lunar.shapeshifting.preys-skin-disguise",
+        "lunar.shapeshifting.lunar-blood-reshaping-technique",
+        "lunar.shapeshifting.wondrous-lunar-transformation",
+        "lunar.perception.harmony-with-reality-technique",
+        "lunar.perception.ritual-of-lunar-stability",
+        "lunar.perception.fish-eye-technique",
+        "lunar.perception.night-is-day",
+        "lunar.perception.perceiving-the-hidden-world",
+        "lunar.perception.rabbit-ear-method",
+        "lunar.perception.comprehending-ears-meditation",
+        "lunar.perception.seeing-without-looking",
+        "lunar.perception.calls-of-the-human-prey",
+        "lunar.perception.feral-ears-metamorphosis",
+        "lunar.perception.blood-kin-sense",
+        "lunar.perception.blood-on-the-wind",
+        "lunar.perception.emotion-revealing-scent",
+        "lunar.perception.truth-scenting-method",
+    ]
+    assert validate.check_charm_prerequisites(rs, c) == []
+
+
 # --- shipped Stealth cascade (real data, Charms p.182-183) ---------------- #
 
 def test_shipped_stealth_cascade_counts(rs):
