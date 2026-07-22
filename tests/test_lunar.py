@@ -750,3 +750,142 @@ def test_survival_and_healing_prerequisite_chain_resolves(rs):
         "lunar.survival-and-healing.mothers-touch",
     ]
     assert validate.check_charm_prerequisites(rs, c) == []
+
+
+# --- shipped Stealth cascade (real data, Charms p.182-183) ---------------- #
+
+def test_shipped_stealth_cascade_counts(rs):
+    charms = [c for c in rs.charms.values()
+              if c.exalt_type == "Lunar" and c.category == "stealth"]
+    assert len(charms) == 6
+    for c in charms:
+        assert c.min_attribute
+    roots = {c.id for c in charms if c.prerequisites == []}
+    assert roots == {"lunar.stealth.stealthy-fox-method"}
+
+
+def test_stealth_cascade_prerequisite_chain_resolves(rs):
+    c = _maxed_lunar(caste="full-moon")
+    c.essence_rating = 4
+    c.charms = [
+        "lunar.stealth.stealthy-fox-method",
+        "lunar.stealth.chameleon-skin-disguise",
+        "lunar.stealth.object-concealing-method",
+        "lunar.stealth.ally-concealing-method",
+        "lunar.stealth.traceless-passage-technique",
+        "lunar.stealth.track-sweeping-essence",
+    ]
+    assert validate.check_charm_prerequisites(rs, c) == []
+
+
+# --- shipped Interaction and Knowledge cascade (real data, p.183-191) ----- #
+
+def test_shipped_interaction_and_knowledge_cascade_counts(rs):
+    charms = [c for c in rs.charms.values()
+              if c.exalt_type == "Lunar" and c.category == "interaction_and_knowledge"]
+    assert len(charms) == 24
+    for c in charms:
+        assert c.min_attribute
+    roots = {c.id for c in charms if c.prerequisites == []}
+    assert roots == {
+        "lunar.interaction-and-knowledge.tale-spinning-mastery",
+        "lunar.interaction-and-knowledge.unspeaking-aura-of-dread",
+        "lunar.interaction-and-knowledge.brotherhood-of-lake-and-river",
+    }
+
+
+def test_interaction_and_knowledge_cascade_prerequisite_chain_resolves(rs):
+    c = _maxed_lunar(caste="full-moon")
+    c.essence_rating = 4
+    c.charms = [
+        "lunar.interaction-and-knowledge.tale-spinning-mastery",
+        "lunar.interaction-and-knowledge.lore-speaking-method",
+        "lunar.interaction-and-knowledge.divining-the-hidden-truth",
+        "lunar.interaction-and-knowledge.lion-roar-method",
+        "lunar.interaction-and-knowledge.wind-speaking-method",
+        "lunar.interaction-and-knowledge.river-of-words",
+        "lunar.interaction-and-knowledge.emotion-shaping-technique",
+        "lunar.interaction-and-knowledge.crowd-inciting-method",
+        "lunar.interaction-and-knowledge.crowd-calming-pronouncement",
+        "lunar.interaction-and-knowledge.courage-building-address",
+        "lunar.interaction-and-knowledge.glorious-battle-presence",
+        "lunar.interaction-and-knowledge.foe-taunting-utterance",
+        "lunar.interaction-and-knowledge.glib-tongue-technique",
+        "lunar.interaction-and-knowledge.imposing-presence-attitude",
+        "lunar.interaction-and-knowledge.fearful-lunar-form",
+        "lunar.interaction-and-knowledge.mind-blanking-fear-technique",
+        "lunar.interaction-and-knowledge.unspeaking-aura-of-dread",
+        "lunar.interaction-and-knowledge.beast-calming-method",
+        "lunar.interaction-and-knowledge.pack-forming-presence",
+        "lunar.interaction-and-knowledge.attention-demanding-presence",
+        "lunar.interaction-and-knowledge.animal-magnetism",
+        "lunar.interaction-and-knowledge.brotherhood-of-lake-and-river",
+        "lunar.interaction-and-knowledge.blood-singing-instincts",
+        "lunar.interaction-and-knowledge.pack-calling-cry",
+    ]
+    assert validate.check_charm_prerequisites(rs, c) == []
+
+
+# --- shipped Spirit cascade (real data, Charms p.191-192) ----------------- #
+
+def test_shipped_spirit_cascade_counts(rs):
+    charms = [c for c in rs.charms.values()
+              if c.exalt_type == "Lunar" and c.category == "spirit"]
+    assert len(charms) == 4
+    for c in charms:
+        assert c.min_attribute
+    roots = {c.id for c in charms if c.prerequisites == []}
+    assert roots == {"lunar.spirit.spirit-scenting-technique"}
+
+
+def test_spirit_cascade_prerequisite_chain_resolves(rs):
+    c = _maxed_lunar(caste="full-moon")
+    c.essence_rating = 4
+    c.charms = [
+        "lunar.spirit.spirit-scenting-technique",
+        "lunar.spirit.pulse-of-the-invisible",
+        "lunar.spirit.devil-restraining-grip",
+        "lunar.spirit.spirit-maiming-essence-attack",
+    ]
+    assert validate.check_charm_prerequisites(rs, c) == []
+
+
+# --- shipped Sorcery cascade (real data, Charms p.192-193) ---------------- #
+
+def test_shipped_sorcery_cascade_counts(rs):
+    charms = [c for c in rs.charms.values()
+              if c.exalt_type == "Lunar" and c.category == "sorcery"]
+    assert len(charms) == 5
+    for c in charms:
+        assert c.min_attribute
+    roots = {c.id for c in charms if c.prerequisites == []}
+    assert roots == {
+        "lunar.sorcery.form-fixing-method",
+        "lunar.sorcery.terrestrial-circle-sorcery",
+    }
+
+
+def test_celestial_circle_sorcery_requires_both_prerequisites(rs):
+    charm = rs.charms["lunar.sorcery.celestial-circle-sorcery"]
+    assert charm.prerequisites == [
+        ["lunar.sorcery.terrestrial-circle-sorcery"],
+        ["lunar.sorcery.moonsilver-shaping-rite"],
+    ]
+
+
+def test_sorcery_cascade_prerequisite_chain_resolves(rs):
+    c = _maxed_lunar(caste="full-moon")
+    c.essence_rating = 4
+    c.charms = [
+        "lunar.sorcery.form-fixing-method",
+        "lunar.sorcery.tattoo-cutting-wisdom",
+        "lunar.sorcery.moonsilver-shaping-rite",
+        "lunar.sorcery.terrestrial-circle-sorcery",
+        "lunar.sorcery.celestial-circle-sorcery",
+    ]
+    assert validate.check_charm_prerequisites(rs, c) == []
+
+
+def test_sorcery_charms_grant_expected_circles(rs):
+    assert rs.charms["lunar.sorcery.terrestrial-circle-sorcery"].grants_circle == SpellCircle.TERRESTRIAL
+    assert rs.charms["lunar.sorcery.celestial-circle-sorcery"].grants_circle == SpellCircle.CELESTIAL

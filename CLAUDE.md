@@ -40,12 +40,11 @@ Solar values. If unsure, ask human.
   separate ability from Brawl, and there is no "War" ability in 1e core.**
 
 ## Next Exalt Types
-Dragon-Blooded and Abyssal are done (see Status). **Lunar chargen foundation is
-in progress** (started 2026-07-22) — see the Status entry below; Charms are
-deliberately last, so no Lunar Charm data exists yet. **Sidereal and Alchemical
-are next after Lunar** — no build order chosen for them yet; ask the user
-before starting. **Mortals** (Godblooded/Ghosts/Heroic Mortals/etc.) are
-planned after the Exalt types.
+Dragon-Blooded and Abyssal are done (see Status). **Lunar is functionally
+complete** (chargen foundation + full Charm catalogue, started 2026-07-22) —
+see the Status entry below. **Sidereal and Alchemical are next** — no build
+order chosen for them yet; ask the user before starting. **Mortals**
+(Godblooded/Ghosts/Heroic Mortals/etc.) are planned after the Exalt types.
 
 Work on a given splat starts only once its rulebook images land in
 `images/<ExaltName>/` — never author data from memory, per the Workflow rule below.
@@ -57,7 +56,7 @@ Work on a given splat starts only once its rulebook images land in
 | Solar | Amber/Gold (default) | DONE |
 | Abyssal | Black on ash | DONE |
 | Dragon-Blooded | Vermillion | DONE |
-| Lunar | Silverish-blue | chargen foundation in progress, Charms not authored |
+| Lunar | Silverish-blue | DONE (chargen + full Charm catalogue; picker UI not yet exercised) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
 | Alchemical | Brass | waiting on Alchemical chargen work |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
@@ -166,7 +165,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (396 tests passing)
+## Status (439 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -286,11 +285,14 @@ picker), `ui/combos.py` (Combo builder), `ui/xp.py` (post-lock XP tab),
   `open_to_tiers: [Celestial]` — ready for Lunar/Sidereal with zero data change
   once those splats exist.
 
-### Lunar chargen foundation — in progress (started 2026-07-22)
-Read from `images/Lunar/Character Creation 88-93` and `Traits 96-115` (core
-"The Lunars" splatbook). **Charms are deliberately last** — see Next Exalt
-Types — so no Lunar Charm data or Charm-picker wiring exists yet; this is the
-foundation only, same staging as Dragon-Blooded's Phase 5.
+### Lunar — chargen + full Charm catalogue done (started 2026-07-22)
+Read from `images/Lunar/Character Creation 88-93`, `Traits 96-115`, and
+`Charms 118-193` (core "The Lunars" splatbook). Chargen foundation, Attribute-
+keyed Charm machinery, and every Charm in the Charms chapter (p.118-193) are
+now authored and tested. **Not yet done:** the picker UI has not been
+exercised against real Lunar Charm data (Solar/DB/Abyssal only so far), and
+Lunar Combos' relaxed same-type/mixed Ability+Attribute rules (p.122) are
+unimplemented — see the Combos note below.
 
 - **Lunar Charms are Attribute-keyed, not Ability-keyed (p.90-93, p.122)** — the
   single biggest structural difference from every other splat. `Charm.min_attribute`
@@ -303,8 +305,33 @@ foundation only, same staging as Dragon-Blooded's Phase 5.
   Moon→Mental (`validate._caste_favored_attribute_category`/
   `_charm_attribute_caste_favored`). The **Charm min_attribute *requirement*
   check** (gating `meets_charm_requirements`/`check_charm_prerequisites` the way
-  `min_ability` does) is NOT yet wired — deferred to the Charms phase, since
-  nothing exercises it without real Charm data.
+  `min_ability` does) IS wired (`validate.py` ~line 120) and exercised by the
+  per-category cascade tests below.
+- **Charm catalogue (216 Charms, `data/charms/lunar_*.json`), by category/page
+  range:** `body_enhancement`/Ox-Body (11, p.170-ish), `defensive` (21),
+  `melee` (26), `perception` (26, p.174-181), `ranged_combat` (17),
+  `shapeshifting` (17, p.123-132 — the totem-form/beastman tree),
+  `survival_and_healing` (22), `unarmed_combat` (37), `stealth` (6, p.182-183),
+  `interaction_and_knowledge` (24, p.183-191 — storytelling, crowd/Virtue
+  manipulation, intimidation, beast-command, and the wolf-sibling
+  Brotherhood-of-Lake-and-River charms), `spirit` (4, p.191-192), `sorcery` (5,
+  p.192-193 — Form-Fixing Method/Tattoo-Cutting Wisdom/Moonsilver-Shaping Rite
+  chain into Terrestrial/Celestial Circle Sorcery; Celestial requires BOTH
+  Terrestrial Circle Sorcery AND Moonsilver-Shaping Rite as separate AND
+  groups, not an OR — a real gotcha since the sourcebook draws it as one
+  converging diagram). `id` namespace segments for multi-word categories use
+  hyphens (`lunar.survival-and-healing.*`, `lunar.interaction-and-knowledge.*`)
+  while the JSON `category` field uses underscores — mismatched separators are
+  intentional, follow the existing files' convention exactly when adding more.
+  Every category's root Charms and full prerequisite-chain resolution are
+  covered in `tests/test_lunar.py` (one cascade block per category).
+- **NOT authored (deliberately out of scope, not an oversight):** the
+  "Beastman Transformation Gifts" on p.126-127 — a menu of purchasable
+  modifiers/upgrades to the Deadly Beastman Transformation Charm (Horrifying
+  Might, Bestial Reflexes, Rugged Hide, Poison Bite, etc.), not standalone
+  picker Charms. This is a distinct sub-system (a Charm with configurable
+  add-ons) that doesn't fit the flat Charm-picker model as-is — ask the human
+  how they want it modeled before touching it.
 - **Attributes are 9/7/5** (Casteless: 8/6/4, not a typo of Solar's 8/6/4 — same
   numbers, different reason). The Caste Attribute BP discount
   (`BonusPointCosts.attribute_caste_favored`, e.g. Lunar "4, 3 if a Caste

@@ -1,0 +1,117 @@
+[
+  {
+    "id": "lunar.sorcery.form-fixing-method",
+    "name": "Form-Fixing Method",
+    "category": "sorcery",
+    "exalt_type": "Lunar",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "raw": "5 motes, 1 Willpower, 3 experience points"
+    },
+    "duration": "Instant",
+    "description": "Knowledge of this Charm allows a Lunar to tattoo a newly Exalted Lunar, fixing his caste and allowing him to resist the physical (but not mental) warping properties of the Wyld. The Lunar can fix the newly tattooed Exalt's caste as whichever he chooses, even the tests of initiation are used to determined the Lunar's caste. The experience points spent are gone forever. This Charm is generally practiced only by Lunars of the No Moon Caste, but other Lunars know it. The use of this Charm requires a ceremony of several hours, during which occult instruments are used to draw the moonsilver tattoos into the Lunar's skin.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 193
+    }
+  },
+  {
+    "id": "lunar.sorcery.tattoo-cutting-wisdom",
+    "name": "Tattoo-Cutting Wisdom",
+    "category": "sorcery",
+    "exalt_type": "Lunar",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      ["lunar.sorcery.form-fixing-method"]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1,
+      "raw": "3 motes, 1 Willpower, 1 experience point"
+    },
+    "duration": "Instant",
+    "description": "Using this Charm, a Lunar can engrave or otherwise mark an item so that it is immune to the chaotic effects of the Wyld, an untamed Demesne or another source of shapechanging.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 193
+    }
+  },
+  {
+    "id": "lunar.sorcery.moonsilver-shaping-rite",
+    "name": "Moonsilver-Shaping Rite",
+    "category": "sorcery",
+    "exalt_type": "Lunar",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      ["lunar.sorcery.tattoo-cutting-wisdom"]
+    ],
+    "cost": {
+      "raw": "Special"
+    },
+    "duration": "Indefinite",
+    "description": "Only a Lunar Exalted has the knowledge and spiritual connection to the Magical Material to shape moonsilver and use it effectively. Enacting this Charm forges a bond between the Lunar and the moonsilver being worked. Moonsilver is essentially impossible to work with without the use of this Charm, and the technique is a jealously guarded secret of the Lunars. This bond must be maintained — and the Essence committed — for the duration of the item-crafting effort, even when the object is not in the Lunar's immediate presence. Failing to maintain the Charm results in the immediate failure of the creation effort, though the moonsilver can be reused in a later project. The Essence cost of the Charm is twice the rating of the artifact the Lunar seeks to create. This is in addition to the basic Essence cost for creating the item (see Chapter Five of The Book of Three Circles for the specifics and rules of item creation).",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 193
+    }
+  },
+  {
+    "id": "lunar.sorcery.terrestrial-circle-sorcery",
+    "name": "Terrestrial Circle Sorcery",
+    "category": "sorcery",
+    "exalt_type": "Lunar",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [],
+    "cost": {
+      "willpower": 1,
+      "raw": "1 Willpower (per spell; each spell also has an Essence cost)"
+    },
+    "duration": "Instant",
+    "grants_circle": "Terrestrial",
+    "description": "Terrestrial sorcery is the simplest magic wielded by Lunars, and the No Moons will initiate members of any caste provided an Exalt shows the appropriate intelligence and aptitude. Note that invoking this Charm only enables the character to cast a single Terrestrial Circle Sorcery spell. The actual spell itself has an Essence cost, often very high, that the character must pay to actualize the spell. This cost is listed in the spell's description. Terrestrial Circle Sorcery can never be part of a Combo.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 193
+    }
+  },
+  {
+    "id": "lunar.sorcery.celestial-circle-sorcery",
+    "name": "Celestial Circle Sorcery",
+    "category": "sorcery",
+    "exalt_type": "Lunar",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      ["lunar.sorcery.terrestrial-circle-sorcery"],
+      ["lunar.sorcery.moonsilver-shaping-rite"]
+    ],
+    "cost": {
+      "willpower": 2,
+      "raw": "2 Willpower (per spell; each spell also has an Essence cost)"
+    },
+    "duration": "Instant",
+    "grants_circle": "Celestial",
+    "description": "Celestial sorcery is much harder to learn and master than Terrestrial magics, and its practice among the No Moon Exalted is restricted to those who must undergo a rigorous (and often deadly) training regime before they are entrusted with its secrets. Note that invoking this Charm only enables the character to cast a single Celestial Circle Sorcery spell. The actual spell itself has an Essence cost, often very high, that the character must pay to actualize the spell. This cost is listed in the spell's description. Celestial Circle Sorcery can never be part of a Combo.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 193
+    }
+  }
+]
