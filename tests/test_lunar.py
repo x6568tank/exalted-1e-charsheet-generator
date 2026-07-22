@@ -12,7 +12,7 @@ import pytest
 import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import derive, validate
-from exalted_builder.models.character import Character
+from exalted_builder.models.character import Character, Combo
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
@@ -983,3 +983,35 @@ def test_charm_detail_still_shows_ability_requirement_for_ability_keyed_charm(rs
     detail = view.build_charm_detail(rs, c, "solar.occult.terrestrial-circle-sorcery")
     assert detail is not None
     assert "Occult 3" in detail.requirement
+
+
+# --- Lunar Combos (p.122) --------------------------------------------------- #
+
+def test_two_native_attribute_charms_combo_freely(rs):
+    # "A Lunar can place Charms associated with any of the different Attributes
+    # into Combos without restriction" — no caste needed, just two Attribute
+    # Charms of compatible type/duration.
+    c = _lunar(caste="full-moon")
+    c.charms = [
+        "lunar.melee.sensing-the-deadly-flow",              # Supplemental, Dexterity
+        "lunar.interaction-and-knowledge.imposing-presence-attitude",  # Supplemental, Charisma
+    ]
+    c.combos = [Combo(name="Test", charm_ids=list(c.charms))]
+    codes = {i.code for i in validate.validate_combos(rs, c)}
+    assert "combo-mixed-attribute-ability" not in codes
+
+
+def test_lunar_cannot_mix_native_attribute_charm_with_a_celestial_martial_art(rs):
+    # A No Moon can learn Five-Dragon Style (open_to_tiers: [Celestial], and
+    # Lunar is a Celestial-tier splat) same as any other Celestial Exalt, but
+    # that Charm is Ability-keyed (Martial Arts) — mixing it with a native
+    # Attribute Charm in one Combo is the case p.122 reserves for Solar Eclipse
+    # / Abyssal Moonshadow only, and Lunar castes aren't in that set.
+    c = _lunar(caste="no-moon")
+    c.charms = [
+        "lunar.melee.sensing-the-deadly-flow",
+        "dragonblooded.martial-arts.five-dragon-claw",
+    ]
+    c.combos = [Combo(name="Test", charm_ids=list(c.charms))]
+    codes = {i.code for i in validate.validate_combos(rs, c)}
+    assert "combo-mixed-attribute-ability" in codes

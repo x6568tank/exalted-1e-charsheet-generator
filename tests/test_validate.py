@@ -358,6 +358,55 @@ def test_combo_allows_only_one_extra_action_charm():
     assert "combo-multiple-extra-action" in codes
 
 
+# --- mixed Attribute-based / Ability-based Combos (Lunars p.122) ------------ #
+
+def _mixed_combo_ruleset() -> RuleSet:
+    """One Attribute-keyed (Lunar-style) Charm and one ordinary Ability-keyed
+    Charm, both instant/Supplemental so only the mixing rule can fire."""
+    attr_charm = Charm(id="attr-a", name="Attr A", category="melee",
+                        type=CharmType.SUPPLEMENTAL, min_attribute="dexterity",
+                        min_ability=1, min_essence=1)
+    ability_charm = Charm(id="ability-a", name="Ability A", category="melee",
+                           type=CharmType.SUPPLEMENTAL, min_ability=1, min_essence=1)
+    castes = {
+        "dawn": CasteDefinition(id="dawn", label="Dawn", caste_abilities=[AbilityName.MELEE]),
+        "eclipse": CasteDefinition(id="eclipse", label="Eclipse", caste_abilities=[AbilityName.MELEE]),
+        "moonshadow": CasteDefinition(id="moonshadow", label="Moonshadow",
+                                       caste_abilities=[AbilityName.MELEE]),
+    }
+    return RuleSet(castes=castes, charms={"attr-a": attr_charm, "ability-a": ability_charm})
+
+
+def test_combo_rejects_mixed_attribute_and_ability_charms_by_default():
+    rs = _mixed_combo_ruleset()
+    c = _combo_char(["attr-a", "ability-a"])
+    c.caste = "dawn"
+    codes = {i.code for i in validate.validate_combos(rs, c)}
+    assert "combo-mixed-attribute-ability" in codes
+
+
+def test_combo_allows_mixed_charms_for_eclipse_and_moonshadow():
+    rs = _mixed_combo_ruleset()
+    for caste in ("eclipse", "moonshadow"):
+        c = _combo_char(["attr-a", "ability-a"])
+        c.caste = caste
+        codes = {i.code for i in validate.validate_combos(rs, c)}
+        assert "combo-mixed-attribute-ability" not in codes
+
+
+def test_combo_allows_same_type_charms_regardless_of_caste():
+    # Two Attribute-based Charms together never trip the mixing rule, even for
+    # an ordinary caste — p.122's "any Attribute Charms combo freely."
+    rs = _mixed_combo_ruleset()
+    rs.charms["attr-b"] = Charm(id="attr-b", name="Attr B", category="melee",
+                                 type=CharmType.REFLEXIVE, min_attribute="wits",
+                                 min_ability=1, min_essence=1)
+    c = _combo_char(["attr-a", "attr-b"])
+    c.caste = "dawn"
+    codes = {i.code for i in validate.validate_combos(rs, c)}
+    assert "combo-mixed-attribute-ability" not in codes
+
+
 # --------------------------------------------------------------------------- #
 # Aggregate + chargen placeholder
 # --------------------------------------------------------------------------- #

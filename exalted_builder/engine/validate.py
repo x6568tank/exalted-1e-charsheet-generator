@@ -397,6 +397,20 @@ def check_spell_access(ruleset: RuleSet, character: Character) -> list[Issue]:
 # Charm.duration, whose instant value is the model default "Instant".
 _COMBO_DURATION = "Instant"
 
+# Castes allowed to mix Ability-based and Attribute-based Charms in one Combo
+# (Lunars p.122): Solar Eclipse and Abyssal Moonshadow are "gifted generalists"
+# who may cross the two Charm systems; every other caste (including every
+# Lunar caste, whose native Charms are ALL Attribute-based already, and any
+# other splat's caste) may not. A Lunar combining native Attribute Charms with
+# an open_to_tiers Ability-keyed Martial Arts style (e.g. Five-Dragon Style, a
+# Celestial-tier style a Lunar can learn) hits this the same as anyone else —
+# the sourcebook names only Eclipse/Moonshadow for the crossover, not "any
+# Lunar." This checks Combo COMPOSITION legality only; the p.122 dice-pool cap
+# for a mixed Combo (2x Essence) is a play-time numeric limit with no home in
+# this engine, same as the rest of attack/damage math (see the Combat/attack
+# derivation out-of-scope decision).
+_MIXED_COMBO_CASTES = {"eclipse", "moonshadow"}
+
 
 def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
     """Legality findings for a single Combo (core pp.213-214): two or more *known*
@@ -414,6 +428,7 @@ def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
         ))
     seen: set[str] = set()
     simple = extra_action = 0
+    has_attribute_charm = has_ability_charm = False
     for cid in combo.charm_ids:
         if cid in seen:
             issues.append(Issue(
@@ -443,6 +458,10 @@ def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
             simple += 1
         elif charm.type == CharmType.EXTRA_ACTION:
             extra_action += 1
+        if charm.min_attribute:
+            has_attribute_charm = True
+        else:
+            has_ability_charm = True
     if simple > 1:
         issues.append(Issue(
             code="combo-multiple-simple", where=where,
@@ -454,6 +473,14 @@ def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
             code="combo-multiple-extra-action", where=where,
             message=f"Combo {where!r} has {extra_action} Extra Action Charms; a "
                     "Combo may contain at most one.",
+        ))
+    if (has_attribute_charm and has_ability_charm
+            and character.caste not in _MIXED_COMBO_CASTES):
+        issues.append(Issue(
+            code="combo-mixed-attribute-ability", where=where,
+            message=f"Combo {where!r} mixes an Attribute-based Charm with an "
+                    "Ability-based Charm; only Solar Eclipse and Abyssal "
+                    "Moonshadow Charms may cross the two systems in one Combo.",
         ))
     return issues
 
