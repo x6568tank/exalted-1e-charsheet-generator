@@ -119,6 +119,18 @@ class OxBodyPurchase(BaseModel):
     health_levels: list[int] = Field(default_factory=list)
 
 
+class BeastmanGiftPurchase(BaseModel):
+    """One purchase of the repeatable Deadly Beastman Transformation Charm
+    (Lunar, p.124-127). `gifts` are the Gift variant keys (rules.CharmVariant.key
+    on that Charm) chosen with this purchase — 2 on the first purchase, 1 on each
+    purchase after (rules.Charm.variant_picks_first_purchase/
+    variant_picks_per_purchase). The +Attribute points each purchase also grants
+    are intentionally NOT tracked here: they only apply while the Lunar is
+    actually in hybrid form, the same transient, play-time-only territory as
+    combat/attack derivation, which this engine deliberately does not model."""
+    gifts: list[str] = Field(default_factory=list)
+
+
 class HealthLevel(BaseModel):
     """An adjustment to the health track. Normally a *bonus* level granted by a
     Charm (e.g. Ox-Body Technique); with `removed=True` it instead *removes* a
@@ -153,6 +165,7 @@ class ChargenSnapshot(BaseModel):
     spells: list[str]
     combos: list[Combo] = Field(default_factory=list)
     ox_body: list[OxBodyPurchase] = Field(default_factory=list)
+    beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
     essence_rating: int
     willpower_purchased: int
     wp_virtue_component: int               # two highest Virtues AT LOCK; never recomputed
@@ -264,6 +277,10 @@ class Character(BaseModel):
     # Repeatable Ox-Body Technique: one record per purchase (it is therefore NOT in
     # `charms`). Each carries the chosen variant + its inline health levels.
     ox_body: list[OxBodyPurchase] = Field(default_factory=list)
+    # Repeatable Deadly Beastman Transformation (Lunar only, p.124-127): one record
+    # per purchase, each carrying the Gift(s) chosen with that purchase. Also NOT
+    # in `charms`, same reasoning as ox_body.
+    beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
 
     weapons: list[Weapon] = Field(default_factory=list)
     armor: list[Armor] = Field(default_factory=list)

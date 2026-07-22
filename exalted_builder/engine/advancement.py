@@ -16,7 +16,7 @@ engine.validate; the trait caps live here.
 from __future__ import annotations
 
 from ..models.character import (
-    Character, Combo, CraftRating, OxBodyPurchase, Specialty, XpEntry)
+    BeastmanGiftPurchase, Character, Combo, CraftRating, OxBodyPurchase, Specialty, XpEntry)
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import costs, derive, validate
 
@@ -304,6 +304,54 @@ def learn_ox_body(ruleset: RuleSet, character: Character, variant_key: str) -> X
     return entry
 
 
+def learn_gift(ruleset: RuleSet, character: Character, gift_keys: list[str]) -> XpEntry:
+    """Buy one more purchase of the Gift-granting Charm (Deadly Beastman
+    Transformation, p.124-127) with the chosen Gift(s), post-lock. Gated by the
+    once-per-point-of-Essence cap; `gift_keys` must match what this purchase
+    grants (2 on the first purchase, 1 on each after); each Gift's own
+    prerequisites (among the character's already-known Gifts and the rest of
+    this same purchase, taken as one atomic set — the rulebook applies a
+    purchase's Gifts together, p.124) and repeat cap must hold. Priced as a
+    normal new Charm regardless of how many Gifts are chosen."""
+    _ensure_locked(character)
+    charm = validate.gift_charm(ruleset, character)
+    if charm is None:
+        raise AdvancementError("Deadly Beastman Transformation is not in the RuleSet.")
+    if character.essence_rating < charm.min_essence:
+        raise AdvancementError(f"{charm.name} requires Essence {charm.min_essence}.")
+    cap = validate.gift_purchase_cap(ruleset, character)
+    if len(character.beastman_gifts) >= cap:
+        raise AdvancementError(
+            f"{charm.name} may be bought at most once per point of Essence ({cap}).")
+    expected = validate.gifts_per_purchase(charm, len(character.beastman_gifts))
+    if len(gift_keys) != expected:
+        raise AdvancementError(
+            f"This purchase of {charm.name} grants {expected} Gift(s); "
+            f"{len(gift_keys)} were chosen.")
+    variants_by_key = {v.key: v for v in charm.variants}
+    known = validate.known_gift_keys(character)
+    available = set(known) | set(gift_keys)
+    counts: dict[str, int] = {}
+    for key in known:
+        counts[key] = counts.get(key, 0) + 1
+    for key in gift_keys:
+        variant = variants_by_key.get(key)
+        if variant is None:
+            raise AdvancementError(f"Unknown Gift {key!r}.")
+        if variant.prerequisites and not all(
+                any(pid in available for pid in group) for group in variant.prerequisites):
+            raise AdvancementError(f"Gift {variant.label!r} needs its prerequisite Gift first.")
+        counts[key] = counts.get(key, 0) + 1
+        if counts[key] > variant.max_purchases:
+            raise AdvancementError(
+                f"Gift {variant.label!r} may be taken at most "
+                f"{variant.max_purchases} time(s).")
+    cost = costs.gift_cost(ruleset, character)
+    entry = _commit(character, "beastman_gifts", "|".join(gift_keys), None, None, cost)
+    character.beastman_gifts.append(BeastmanGiftPurchase(gifts=list(gift_keys)))
+    return entry
+
+
 def add_specialty(ruleset: RuleSet, character: Character, ability: AbilityName,
                   name: str) -> XpEntry:
     _ensure_locked(character)
@@ -371,6 +419,12 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
             if character.ox_body[i].variant == entry.detail:
                 del character.ox_body[i]
                 break
+    elif domain == "beastman_gifts":
+        # LIFO: drop the most recent purchase with this exact Gift set.
+        for i in range(len(character.beastman_gifts) - 1, -1, -1):
+            if "|".join(character.beastman_gifts[i].gifts) == entry.detail:
+                del character.beastman_gifts[i]
+                break
 
     character.xp_log.pop()
     return entry
@@ -412,6 +466,8 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         return costs.combo_cost(ruleset, combo.charm_ids) if combo else None
     if domain == "ox_body":
         return costs.ox_body_cost(ruleset, character)
+    if domain == "beastman_gifts":
+        return costs.gift_cost(ruleset, character)
     return None
 
 

@@ -56,7 +56,7 @@ Work on a given splat starts only once its rulebook images land in
 | Solar | Amber/Gold (default) | DONE |
 | Abyssal | Black on ash | DONE |
 | Dragon-Blooded | Vermillion | DONE |
-| Lunar | Silverish-blue | DONE (chargen + full Charm catalogue; picker UI not yet exercised) |
+| Lunar | Silverish-blue | DONE (chargen, full Charm catalogue, Combos, Gifts; picker UI not yet clicked through by a human) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
 | Alchemical | Brass | waiting on Alchemical chargen work |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
@@ -165,7 +165,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (442 tests passing)
+## Status (466 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -285,14 +285,15 @@ picker), `ui/combos.py` (Combo builder), `ui/xp.py` (post-lock XP tab),
   `open_to_tiers: [Celestial]` — ready for Lunar/Sidereal with zero data change
   once those splats exist.
 
-### Lunar — chargen + full Charm catalogue done (started 2026-07-22)
+### Lunar — chargen, full Charm catalogue, Combos, Gifts done (started 2026-07-22)
 Read from `images/Lunar/Character Creation 88-93`, `Traits 96-115`, and
 `Charms 118-193` (core "The Lunars" splatbook). Chargen foundation, Attribute-
-keyed Charm machinery, and every Charm in the Charms chapter (p.118-193) are
-now authored and tested. **Not yet done:** the picker UI has not been
-exercised against real Lunar Charm data (Solar/DB/Abyssal only so far), and
-Lunar Combos' relaxed same-type/mixed Ability+Attribute rules (p.122) are
-unimplemented — see the Combos note below.
+keyed Charm machinery, every Charm in the Charms chapter (p.118-193, including
+Deadly Beastman Transformation's Gifts), the p.122 Combo mixing rule, and a
+picker/view bugfix that only surfaced once real Lunar data existed are all
+authored and tested (466 tests). **Not yet done:** a human has not clicked
+through the picker UI in a browser — see the caveats on the Gift-picker widget
+below, which is the least-exercised piece of this whole batch.
 
 - **Lunar Charms are Attribute-keyed, not Ability-keyed (p.90-93, p.122)** — the
   single biggest structural difference from every other splat. `Charm.min_attribute`
@@ -307,6 +308,18 @@ unimplemented — see the Combos note below.
   check** (gating `meets_charm_requirements`/`check_charm_prerequisites` the way
   `min_ability` does) IS wired (`validate.py` ~line 120) and exercised by the
   per-category cascade tests below.
+- **Two picker/costs bugs found and fixed only once real Lunar Charm data
+  existed to trip them** (neither was reachable with zero Attribute-keyed
+  Charms in the game): `ui/view.build_charm_detail` resolved every Charm's
+  requirement label from category-as-Ability, silently mislabeling every Lunar
+  Charm ("Melee 2" instead of "Dexterity 2", since 'melee' is coincidentally
+  also a valid AbilityName) — fixed to check `min_attribute` first, same as
+  `validate._min_trait_rating` already did internally. `engine.costs.charm_cost`
+  had the identical blind spot for the Caste/Favored XP discount — every Lunar
+  Charm bought post-lock was silently charged the full (non-favored) rate. Both
+  are exactly the kind of bug that's invisible until real cross-cutting data
+  exists; if a future splat introduces another new gating axis, budget time to
+  re-audit `_category_ability`/`min_ability` call sites the same way.
 - **Charm catalogue (217 Charms, `data/charms/lunar_*.json`), by category/page
   range:** `body_enhancement`/Ox-Body (11, p.170-ish), `defensive` (21),
   `melee` (26), `perception` (27, p.174-181 — includes Sense-Borrowing Method,
@@ -329,13 +342,40 @@ unimplemented — see the Combos note below.
   intentional, follow the existing files' convention exactly when adding more.
   Every category's root Charms and full prerequisite-chain resolution are
   covered in `tests/test_lunar.py` (one cascade block per category).
-- **NOT authored (deliberately out of scope, not an oversight):** the
-  "Beastman Transformation Gifts" on p.126-127 — a menu of purchasable
-  modifiers/upgrades to the Deadly Beastman Transformation Charm (Horrifying
-  Might, Bestial Reflexes, Rugged Hide, Poison Bite, etc.), not standalone
-  picker Charms. This is a distinct sub-system (a Charm with configurable
-  add-ons) that doesn't fit the flat Charm-picker model as-is — ask the human
-  how they want it modeled before touching it.
+- **Beastman Transformation Gifts (p.126-127) — modeled on Ox-Body, done.** 19
+  Gifts (not 17 — Terrible Beast Claws and Savage Moonsilver Talons were
+  missed on the first read of the page and had to be added back) live as
+  `variants` on `lunar.shapeshifting.deadly-beastman-transformation`, the same
+  repeatable-Charm shape Ox-Body uses but generalized two ways: `CharmVariant`
+  gained `prerequisites` (AND-of-OR over OTHER variant keys of the SAME Charm —
+  e.g. Glue-Foot Climbing needs Spider-Foot Climbing needs Bestial
+  Reflexes-or-Lightning Speed) and `max_purchases` (2 for Bestial Reflexes and
+  Enhanced Senses only — an earlier draft description wrongly claimed Lightning
+  Speed also repeats; it doesn't, per the actual page text). `Charm` gained
+  `variant_picks_first_purchase`/`variant_picks_per_purchase` (2 Gifts on the
+  first purchase of Deadly Beastman Transformation, 1 on each after) and
+  `repeatable_cap_ability` now accepts the special value `"essence"` (Deadly
+  Beastman Transformation caps on Essence, p.124 — not an Ability or Attribute,
+  so the existing Ability→Attribute fallback chain needed a third branch).
+  `ExaltDefinition.gift_charm_id` names the splat's Gift-granting Charm
+  (Lunar-only today, `""` elsewhere), mirroring `ox_body_charm_id`.
+  `Character.beastman_gifts: list[BeastmanGiftPurchase]` holds one record per
+  purchase (its `gifts` list, NOT `character.charms` — same reasoning as
+  `ox_body`); `models/rules.py`/`validate.py`/`costs.py`/`advancement.py`/
+  `lifecycle.py` all got the same treatment ox_body already has (cap/prereq/
+  repeat-cap checks, BP/XP pricing as an ordinary Charm pick per purchase,
+  snapshot copy, undo). The +Attribute points each purchase also grants
+  (war-form Strength/Dexterity/Stamina) are deliberately NOT tracked — per the
+  human's call, they only apply while the Lunar is actually in hybrid form,
+  the same transient territory as the existing combat/attack-derivation
+  out-of-scope decision. Picker UI: `ui/picker.py` got a `gift_detail()` panel
+  (checkbox multi-select respecting prerequisites/repeat caps, wired the same
+  way as `ox_body_detail()`) and `ui/view.build_charm_graph` got the same
+  owned/available/locked special case ox_body's node already has. **This
+  picker widget has not been clicked through in a browser** — no browser
+  tooling was available this session, so it's verified only by code review
+  against the existing Ox-Body panel's patterns and the NiceGUI checkbox API
+  signature, not by hand. Test it first when Lunar UI testing starts.
 - **Attributes are 9/7/5** (Casteless: 8/6/4, not a typo of Solar's 8/6/4 — same
   numbers, different reason). The Caste Attribute BP discount
   (`BonusPointCosts.attribute_caste_favored`, e.g. Lunar "4, 3 if a Caste
@@ -387,11 +427,21 @@ unimplemented — see the Combos note below.
   Void Circle Necromancy initiation Charm in Lunar's (or, later, Sidereal's)
   Occult charm file. **Flag for whoever authors Lunar/Sidereal Occult Charms:**
   stop at a Shadowlands Circle Necromancy initiation; do not add Labyrinth/Void.
-  Lunar Combos additionally relax the same-Charm-type restriction (any
-  Attribute-based Charms combo freely) and let Eclipse Solars/Moonshadow
-  Abyssals mix Ability- and Attribute-based Charms in one Combo (p.122) — not
-  yet touched, scope it separately when Combos meets Lunar. Tests:
-  `tests/test_lunar.py`.
+  **Lunar Combo mixing rule (p.122) — done.** Any Attribute-based Charms combo
+  freely already, unchanged (no restriction existed to relax). What p.122 adds:
+  only Solar Eclipse and Abyssal Moonshadow may combine an Ability-based Charm
+  with an Attribute-based one in the same Combo — every other caste, including
+  every Lunar caste (whose native Charms are all Attribute-based anyway), may
+  not. This matters once a Lunar (a Celestial-tier splat) learns an
+  `open_to_tiers` Ability-keyed style like Five-Dragon Style alongside their
+  native Charms. `engine.validate.combo_issues` flags
+  `"combo-mixed-attribute-ability"` when a Combo mixes both kinds and the
+  character's caste isn't `eclipse`/`moonshadow`. The p.122 dice-pool cap (2x
+  Essence) for a legally-mixed Combo is NOT enforced — it's play-time numeric
+  math with no home in this engine, same as the rest of attack/damage
+  derivation; only Combo *composition* legality is checked. Tests:
+  `tests/test_validate.py` (synthetic ruleset) and `tests/test_lunar.py` (real
+  data, incl. the Five-Dragon Style crossover case).
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled

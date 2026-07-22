@@ -159,12 +159,16 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> 
     charms.sort(key=lambda c: c.id)
 
     ox_id = validate.ox_body_charm_id(ruleset, character)
+    gift_id = validate.gift_charm_id(ruleset, character)
     nodes = []
     for c in charms:
         # Ox-Body is repeatable and lives on character.ox_body, not character.charms:
         # it is "owned" once at least one copy is bought, else available per its reqs.
-        if c.id and c.id == ox_id:
-            state = "owned" if character.ox_body else (
+        # The Gift-granting Charm (Deadly Beastman Transformation) is the same shape,
+        # tracked on character.beastman_gifts.
+        if c.id and c.id in (ox_id, gift_id):
+            purchases = character.ox_body if c.id == ox_id else character.beastman_gifts
+            state = "owned" if purchases else (
                 "available" if validate.meets_charm_requirements(ruleset, character, c) else "locked")
         elif c.id in owned:
             state = "owned"

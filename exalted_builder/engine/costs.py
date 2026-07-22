@@ -62,10 +62,19 @@ def specialty_cost(ruleset: RuleSet, character: Character) -> int:
 
 
 def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
-    """XP to learn a Charm: discounted when its gating Ability is Caste/Favoured."""
+    """XP to learn a Charm: discounted when its gating Ability is Caste/Favoured
+    (Ability-keyed Charms), or when its gating Attribute's category matches the
+    caste's favored Attribute category (Lunar's Attribute-keyed Charms, p.122 —
+    the same collision `validate._min_trait_rating` warns about: 'melee' is both
+    a category string and a valid AbilityName, so a Lunar Melee Charm's discount
+    must come from `min_attribute`, never from category-as-Ability)."""
     xp = ruleset.xp_costs_for(character.exalt_type)
-    ability = validate._category_ability(charm.category)
-    favored = ability is not None and ability in validate.caste_favored_abilities(ruleset, character)
+    if charm.min_attribute:
+        caste_attr_category = validate._caste_favored_attribute_category(ruleset, character)
+        favored = validate._charm_attribute_caste_favored(charm, caste_attr_category)
+    else:
+        ability = validate._category_ability(charm.category)
+        favored = ability is not None and ability in validate.caste_favored_abilities(ruleset, character)
     return xp.new_charm_favored_caste if favored else xp.new_charm
 
 
@@ -80,6 +89,15 @@ def ox_body_cost(ruleset: RuleSet, character: Character) -> int:
     """XP to buy one more Ox-Body Technique: priced as a normal new Charm (the
     variant chosen does not change the cost). 0 if the Charm is absent."""
     charm = validate.ox_body_charm(ruleset, character)
+    return charm_cost(ruleset, character, charm) if charm else 0
+
+
+def gift_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP to buy one more purchase of the Gift-granting Charm (Deadly Beastman
+    Transformation): priced as a normal new Charm, regardless of how many Gifts
+    this purchase grants — they come bundled with the purchase, not priced
+    individually (p.124). 0 if the Charm is absent."""
+    charm = validate.gift_charm(ruleset, character)
     return charm_cost(ruleset, character, charm) if charm else 0
 
 

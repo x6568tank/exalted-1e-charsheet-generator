@@ -67,6 +67,38 @@ def ox_body_charm(ruleset: RuleSet, character: Character) -> Charm | None:
     return ruleset.charms.get(ox_body_charm_id(ruleset, character))
 
 
+def gift_charm_id(ruleset: RuleSet, character: Character) -> str:
+    """The id of this character's splat's repeatable Gift-granting Charm (Deadly
+    Beastman Transformation for Lunar, p.124-127), or '' if the splat defines none."""
+    return ruleset.exalt_for(character.exalt_type).gift_charm_id
+
+
+def gift_charm(ruleset: RuleSet, character: Character) -> Charm | None:
+    """The Gift-granting Charm object for this character's splat, or None when the
+    splat names none or the id is absent from the RuleSet."""
+    return ruleset.charms.get(gift_charm_id(ruleset, character))
+
+
+def _repeatable_purchase_cap(charm: Charm, character: Character) -> int:
+    """Resolve a repeatable Charm's `repeatable_cap_ability` against the character:
+    an Ability, an Attribute, or the special value 'essence' (Deadly Beastman
+    Transformation, p.124 — "no more times than he has points of Essence"; Essence
+    isn't an Ability or Attribute, so it can't come through the normal lookups).
+    0 if the Charm isn't repeatable or the trait name resolves to none of these."""
+    if not charm.repeatable_cap_ability:
+        return 0
+    if charm.repeatable_cap_ability == "essence":
+        return character.essence_rating
+    try:
+        return character.abilities[AbilityName(charm.repeatable_cap_ability)]
+    except ValueError:
+        pass
+    try:
+        return character.attributes[AttributeName(charm.repeatable_cap_ability)]
+    except ValueError:
+        return 0
+
+
 class Issue(BaseModel):
     """One legality finding. `code` is a stable machine tag; `where` locates the
     offending trait (a Charm/Spell id, an ability name, etc.)."""
@@ -518,16 +550,9 @@ def ox_body_cap(ruleset: RuleSet, character: Character) -> int:
     Attribute, not an Ability — for Lunar, p.132). 0 if the Charm or its cap
     trait is absent. Used by both the engine and the picker to gate purchases."""
     charm = ox_body_charm(ruleset, character)
-    if charm is None or not charm.repeatable_cap_ability:
+    if charm is None:
         return 0
-    try:
-        return character.abilities[AbilityName(charm.repeatable_cap_ability)]
-    except ValueError:
-        pass
-    try:
-        return character.attributes[AttributeName(charm.repeatable_cap_ability)]
-    except ValueError:
-        return 0
+    return _repeatable_purchase_cap(charm, character)
 
 
 def check_ox_body(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -567,6 +592,124 @@ def check_ox_body(ruleset: RuleSet, character: Character) -> list[Issue]:
                 code="ox-body-bad-variant", where=p.variant,
                 message=f"Ox-Body Technique: unknown health-level package {p.variant!r}.",
             ))
+    return issues
+
+
+# --------------------------------------------------------------------------- #
+# Deadly Beastman Transformation Gifts (repeatable, multi-pick-per-purchase Charm)
+# --------------------------------------------------------------------------- #
+
+def gift_purchase_cap(ruleset: RuleSet, character: Character) -> int:
+    """Max purchases of the splat's Gift-granting Charm: Character.essence_rating
+    for Deadly Beastman Transformation ("no more times than he has points of
+    Essence", p.124). 0 if the splat has no such Charm."""
+    charm = gift_charm(ruleset, character)
+    if charm is None:
+        return 0
+    return _repeatable_purchase_cap(charm, character)
+
+
+def gifts_per_purchase(charm: Charm, purchase_index: int) -> int:
+    """How many Gifts the purchase at `purchase_index` (0-based) grants:
+    `variant_picks_first_purchase` for index 0, `variant_picks_per_purchase` for
+    every purchase after (p.124: Deadly Beastman Transformation's first purchase
+    grants 2 Gifts, each purchase after grants 1)."""
+    return (charm.variant_picks_first_purchase if purchase_index == 0
+            else charm.variant_picks_per_purchase)
+
+
+def known_gift_keys(character: Character) -> list[str]:
+    """Every Gift key the character has purchased, across all purchases of the
+    Gift-granting Charm, flattened (a Gift bought twice appears twice)."""
+    return [g for p in character.beastman_gifts for g in p.gifts]
+
+
+def check_gift_prerequisites(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """AND-of-OR prerequisite legality for known Gifts — the same shape as
+    check_charm_prerequisites, but CharmVariant.prerequisites references OTHER
+    variant keys of the SAME Charm (p.126-127's own Gift-to-Gift chain, e.g.
+    Glue-Foot Climbing needs Spider-Foot Climbing needs Bestial Reflexes-or-
+    Lightning Speed), not Charm ids."""
+    issues: list[Issue] = []
+    charm = gift_charm(ruleset, character)
+    if charm is None:
+        return issues
+    variants_by_key = {v.key: v for v in charm.variants}
+    known = set(known_gift_keys(character))
+    for key in known:
+        variant = variants_by_key.get(key)
+        if variant is None:
+            continue          # reported separately as beastman-gift-bad-variant
+        for group in variant.prerequisites:
+            if not any(pid in known for pid in group):
+                issues.append(Issue(
+                    code="gift-prerequisite-missing", where=key,
+                    message=f"Gift {key!r} requires one of {sorted(group)!r}, "
+                            "none of which is known.",
+                ))
+    return issues
+
+
+def check_beastman_gifts(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """Legality of the character's Gift-granting Charm purchases: purchases <=
+    Essence cap (p.124), each purchase's Gift count matches what that purchase
+    grants, every chosen Gift a real variant, no Gift taken past its own
+    max_purchases, and Gift prerequisites satisfied. The per-purchase BP/XP cost
+    is accounted elsewhere (validate_chargen / costs), same as Ox-Body. Empty
+    when no purchases."""
+    issues: list[Issue] = []
+    purchases = character.beastman_gifts
+    if not purchases:
+        return issues
+    gid = gift_charm_id(ruleset, character)
+    charm = gift_charm(ruleset, character)
+    if charm is None:
+        issues.append(Issue(
+            code="beastman-gift-unknown-charm", where=gid,
+            message="Character has Beastman Gift purchases but the Charm is not "
+                    "in the RuleSet.",
+        ))
+        return issues
+    cap = gift_purchase_cap(ruleset, character)
+    if len(purchases) > cap:
+        issues.append(Issue(
+            code="beastman-gift-over-cap", where=gid,
+            message=(f"{charm.name} bought {len(purchases)} times; it may be "
+                     f"bought at most once per point of Essence ({cap})."),
+        ))
+    if character.essence_rating < charm.min_essence:
+        issues.append(Issue(
+            code="beastman-gift-min-essence", where=gid,
+            message=(f"{charm.name} requires Essence {charm.min_essence}, "
+                     f"character has {character.essence_rating}."),
+        ))
+    valid_keys = {v.key for v in charm.variants}
+    for i, p in enumerate(purchases):
+        expected = gifts_per_purchase(charm, i)
+        if len(p.gifts) != expected:
+            issues.append(Issue(
+                code="beastman-gift-wrong-count", where=gid,
+                message=(f"Purchase {i + 1} of {charm.name} grants {expected} "
+                         f"Gift(s), but {len(p.gifts)} were chosen."),
+            ))
+        for key in p.gifts:
+            if key not in valid_keys:
+                issues.append(Issue(
+                    code="beastman-gift-bad-variant", where=key,
+                    message=f"{charm.name}: unknown Gift {key!r}.",
+                ))
+    counts: dict[str, int] = {}
+    for key in known_gift_keys(character):
+        counts[key] = counts.get(key, 0) + 1
+    for key, n in counts.items():
+        variant = next((v for v in charm.variants if v.key == key), None)
+        if variant is not None and n > variant.max_purchases:
+            issues.append(Issue(
+                code="beastman-gift-over-repeat-cap", where=key,
+                message=(f"Gift {key!r} taken {n} times; it may be taken at most "
+                         f"{variant.max_purchases} time(s)."),
+            ))
+    issues += check_gift_prerequisites(ruleset, character)
     return issues
 
 
@@ -615,6 +758,19 @@ def _ox_body_caste_favored(ruleset: RuleSet, character: Character,
     Lunar's Stamina-keyed one), just resolved once here instead of re-deriving
     `ox_body_charm` at each call site."""
     charm = ox_body_charm(ruleset, character)
+    if charm is None:
+        return False
+    ability = _category_ability(charm.category)
+    if ability is not None and ability in cf_set:
+        return True
+    return _charm_attribute_caste_favored(charm, caste_attr_category)
+
+
+def _gift_caste_favored(ruleset: RuleSet, character: Character,
+                         cf_set: set, caste_attr_category: str | None) -> bool:
+    """Whether the character's splat's Gift-granting Charm counts as Caste/
+    Favoured — same rule as _ox_body_caste_favored, just against gift_charm."""
+    charm = gift_charm(ruleset, character)
     if charm is None:
         return False
     ability = _category_ability(charm.category)
@@ -683,6 +839,7 @@ def _chargen_source(character: Character):
         snap.ox_body if snap else character.ox_body,
         snap.essence_rating if snap else character.essence_rating,
         snap.willpower_purchased if snap else character.willpower_purchased,
+        snap.beastman_gifts if snap else character.beastman_gifts,
     )
 
 
@@ -700,7 +857,8 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     b = ruleset.budgets_for(character.exalt_type, character.origin)
     bp_costs = ruleset.bonus_costs_for(character.exalt_type)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
-     charms, spells, combos, ox_body, essence, wp_purchased) = _chargen_source(character)
+     charms, spells, combos, ox_body, essence, wp_purchased,
+     beastman_gifts) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
@@ -786,6 +944,9 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     ox_body_cf = _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category)
     for _ in ox_body:
         pick_costs.append(bp_costs.charm_favored_caste if ox_body_cf else bp_costs.charm)
+    gift_cf = _gift_caste_favored(ruleset, character, cf_set, caste_attr_category)
+    for _ in beastman_gifts:
+        pick_costs.append(bp_costs.charm_favored_caste if gift_cf else bp_costs.charm)
     pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
     charm_bp = sum(pick_costs[free_charm_pool:])
 
@@ -834,7 +995,8 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues: list[Issue] = []
     b = ruleset.budgets_for(character.exalt_type, character.origin)
     (attributes, abilities, crafts, virtues, _backgrounds, _specialties,
-     charms, spells, _combos, ox_body, essence, wp_purchased) = _chargen_source(character)
+     charms, spells, _combos, ox_body, essence, wp_purchased,
+     beastman_gifts) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:
@@ -949,6 +1111,8 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             cf_pick_count += 1
     if _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category):
         cf_pick_count += len(ox_body)
+    if _gift_caste_favored(ruleset, character, cf_set, caste_attr_category):
+        cf_pick_count += len(beastman_gifts)
 
     if immaculate:
         # Every chargen Charm must be an Immaculate Charm of one shared element;
@@ -959,7 +1123,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         # They are NOT exempt from the budget: each still costs a normal Charm pick
         # (priced above), only the single-tree check tolerates them.
         trees: set[str] = set()
-        impure = bool(spells) or bool(ox_body)
+        impure = bool(spells) or bool(ox_body) or bool(beastman_gifts)
         for cid in charms:
             charm = ruleset.charms.get(cid)
             if charm is None:
@@ -1132,4 +1296,5 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_spell_access(ruleset, character)
     issues += validate_combos(ruleset, character)
     issues += check_ox_body(ruleset, character)
+    issues += check_beastman_gifts(ruleset, character)
     return issues

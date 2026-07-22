@@ -144,14 +144,24 @@ class CharmCost(BaseModel):
 
 
 class CharmVariant(BaseModel):
-    """One selectable package for a repeatable Charm (currently only Ox-Body
-    Technique). Each purchase of the Charm picks one variant; `health_levels` are
-    the wound-penalty levels it grants (e.g. [0] or [-1, -2, -2])."""
+    """One selectable package for a repeatable Charm. Ox-Body Technique: each
+    purchase picks exactly one variant, `health_levels` are the wound-penalty
+    levels it grants (e.g. [0] or [-1, -2, -2]), no prerequisites, `max_purchases`
+    is always 1 (repeat purchases just pick a variant again, whether same or
+    different). Deadly Beastman Transformation's Gifts (Lunar, p.126-127) are the
+    second use of this shape: `health_levels` stays empty, `prerequisites` is an
+    AND-of-OR over OTHER variant `key`s of the SAME Charm (mirrors Charm.
+    prerequisites but scoped to this Charm's own variant menu, e.g. Glue-Foot
+    Climbing needs Spider-Foot Climbing needs Bestial Reflexes-or-Lightning
+    Speed), and `max_purchases` is 2 for the handful of Gifts that explicitly
+    permit taking them twice (Bestial Reflexes, Enhanced Senses)."""
     model_config = ConfigDict(frozen=True)
 
     key: str
     label: str
     health_levels: list[int] = Field(default_factory=list)
+    prerequisites: list[list[str]] = Field(default_factory=list)
+    max_purchases: int = 1
     description: str = ""
 
 
@@ -197,10 +207,20 @@ class Charm(BaseModel):
     # should set at most one of min_attribute / an Ability-resolving category.
     min_attribute: str = ""
     min_essence: int = Field(default=1, ge=1)
-    # Repeatable Charms (Ox-Body Technique): may be bought once per dot of this
-    # Ability (the cap), each purchase choosing one of `variants`. None = not repeatable.
+    # Repeatable Charms (Ox-Body Technique; Deadly Beastman Transformation, Lunar
+    # p.124-127): may be bought once per dot of this Ability/Attribute (the cap),
+    # each purchase choosing from `variants`. The special value "essence" caps on
+    # Character.essence_rating instead (Deadly Beastman Transformation: "no more
+    # times than he has points of Essence", p.124 — Essence isn't an Ability or
+    # Attribute, so it can't resolve through the normal AbilityName/AttributeName
+    # lookup validate.py otherwise uses). None = not repeatable.
     repeatable_cap_ability: Optional[str] = None
     variants: list[CharmVariant] = Field(default_factory=list)
+    # How many variants a single purchase selects. Ox-Body: always 1 (the default
+    # for both fields below). Deadly Beastman Transformation (p.124): the FIRST
+    # purchase grants 2 Gifts, every purchase after grants 1.
+    variant_picks_first_purchase: int = 1
+    variant_picks_per_purchase: int = 1
     # AND-of-ORs: the character must satisfy every inner group; a group is
     # satisfied if ANY of its ids is known. A flat list of single-id groups is
     # the common "all of these required" case.
@@ -543,6 +563,10 @@ class ExaltDefinition(BaseModel):
     # sorcery at creation. Read only by validate.chargen_barred_circle.
     highest_magic_circle_id: str = ""       # e.g. "Solar"; "" = nothing barred at chargen
     ox_body_charm_id: str = ""              # the splat's repeatable health-level Charm
+    # The splat's repeatable multi-variant-pick Charm, if it has one (Lunar:
+    # Deadly Beastman Transformation, p.124-127 — see Charm.variant_picks_*).
+    # "" for every splat without one (everyone but Lunar today).
+    gift_charm_id: str = ""
     # What this splat calls its caste slot in the UI: Solars have "Caste", the
     # Dragon-Blooded have "Aspect". Presentation only — the underlying field is
     # still Character.caste keyed to RuleSet.castes.

@@ -32,7 +32,7 @@ from nicegui import ui
 
 from .. import persistence, rules_db
 from ..engine import advancement, costs, validate
-from ..models.character import Character, OxBodyPurchase
+from ..models.character import BeastmanGiftPurchase, Character, OxBodyPurchase
 from ..models.rules import RuleSet, circle_kind
 from . import theme
 from . import view as viewmod
@@ -207,6 +207,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if selected["id"] and selected["id"] == validate.ox_body_charm_id(ruleset, character):
             ox_body_detail()
             return
+        if selected["id"] and selected["id"] == validate.gift_charm_id(ruleset, character):
+            gift_detail()
+            return
         d = viewmod.build_charm_detail(ruleset, character, selected["id"]) if selected["id"] else None
         if d is None:
             ui.label("Tap a charm to see its details.").classes("text-xs text-gray-400")
@@ -327,6 +330,97 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if bought >= cap:
             ui.label("Raise Endurance to buy more." if cap else
                      "Needs at least 1 dot of Endurance.").classes("text-xs text-gray-500")
+
+    # ---- Deadly Beastman Transformation Gifts (repeatable, multi-pick; Lunar) -- #
+    # Each purchase grants a fixed number of Gift picks (2 first, 1 after, p.124);
+    # `_gift_selection` holds the in-progress checkbox state for the NEXT purchase
+    # only (cleared once that purchase is added/bought or the character changes).
+    _gift_selection: set[str] = set()
+
+    def remove_gift_purchase(index: int) -> None:
+        if in_play():                     # bought with XP: undo it from the ledger
+            return
+        if 0 <= index < len(character.beastman_gifts):
+            del character.beastman_gifts[index]
+            detail.refresh(); update_graph()
+
+    def confirm_gift_purchase() -> None:
+        keys = sorted(_gift_selection)
+        if in_play():
+            cost = costs.gift_cost(ruleset, character)
+            if not _buy(lambda: advancement.learn_gift(ruleset, character, keys)):
+                return
+            ui.notify(f"Bought Deadly Beastman Transformation ({', '.join(keys)}) — "
+                      f"{cost} XP", type="positive")
+        else:
+            charm = validate.gift_charm(ruleset, character)
+            cap = validate.gift_purchase_cap(ruleset, character)
+            if charm is None or len(character.beastman_gifts) >= cap:
+                ui.notify("Deadly Beastman Transformation: already bought once per "
+                          "point of Essence.", type="warning")
+                return
+            character.beastman_gifts.append(BeastmanGiftPurchase(gifts=keys))
+            ui.notify(f"Added Deadly Beastman Transformation ({', '.join(keys)})",
+                      type="positive")
+        _gift_selection.clear()
+        detail.refresh(); update_graph()
+
+    def gift_detail() -> None:
+        charm = validate.gift_charm(ruleset, character)
+        if charm is None:
+            ui.label("Deadly Beastman Transformation is not in the rule set.").classes(
+                "text-xs text-red-600")
+            return
+        cap = validate.gift_purchase_cap(ruleset, character)
+        bought = len(character.beastman_gifts)
+        labels = {v.key: v.label for v in charm.variants}
+        ui.label(charm.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
+        ui.label(charm.description).classes("text-xs")
+        ui.separator()
+        ui.label(f"Bought {bought} / {cap}  ·  once per point of Essence").classes(
+            "text-xs font-semibold")
+        for i, p in enumerate(character.beastman_gifts):
+            with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
+                ui.label("• " + ", ".join(labels.get(k, k) for k in p.gifts)).classes("text-xs")
+                if not in_play():
+                    ui.button(icon="remove", on_click=lambda _=None, i=i: remove_gift_purchase(i)).props(
+                        "dense flat round size=sm color=negative")
+        ui.separator()
+        if bought >= cap:
+            ui.label("Raise Essence to buy more." if cap else
+                     "Needs at least 1 point of Essence.").classes("text-xs text-gray-500")
+            return
+        needed = validate.gifts_per_purchase(charm, bought)
+        known = validate.known_gift_keys(character)
+        counts: dict[str, int] = {}
+        for k in known:
+            counts[k] = counts.get(k, 0) + 1
+        available_now = set(known) | _gift_selection
+        ui.label(f"Choose {needed} Gift(s) for this purchase "
+                 f"({len(_gift_selection)}/{needed} selected):").classes("text-xs font-semibold")
+        for v in charm.variants:
+            remaining = v.max_purchases - counts.get(v.key, 0)
+            prereq_ok = not v.prerequisites or all(
+                any(pid in available_now for pid in group) for group in v.prerequisites)
+            checked = v.key in _gift_selection
+
+            def _flip(e, k=v.key) -> None:
+                if e.value:
+                    _gift_selection.add(k)
+                else:
+                    _gift_selection.discard(k)
+                detail.refresh()
+
+            cb = ui.checkbox(v.label, value=checked, on_change=_flip).classes("text-xs")
+            if not checked and (remaining <= 0 or not prereq_ok or len(_gift_selection) >= needed):
+                cb.props("disable")
+        gift_cost = costs.gift_cost(ruleset, character) if in_play() else 0
+        confirm = ui.button(
+            f"Buy purchase · {gift_cost} XP" if in_play() else "Add purchase",
+            icon="shopping_cart" if in_play() else "add",
+            on_click=confirm_gift_purchase).props("dense color=positive")
+        if len(_gift_selection) != needed or (in_play() and not _afford(gift_cost)):
+            confirm.props("disable")
 
     # ---- spell picker (spells share the Charm pool; core p.100) ----------- #
     def toggle_spell(spell_id: str) -> None:

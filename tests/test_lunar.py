@@ -11,8 +11,8 @@ import pytest
 
 import exalted_builder
 from exalted_builder import rules_db
-from exalted_builder.engine import derive, validate
-from exalted_builder.models.character import Character, Combo
+from exalted_builder.engine import advancement, derive, lifecycle, validate
+from exalted_builder.models.character import BeastmanGiftPurchase, Character, Combo
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
@@ -1015,3 +1015,182 @@ def test_lunar_cannot_mix_native_attribute_charm_with_a_celestial_martial_art(rs
     c.combos = [Combo(name="Test", charm_ids=list(c.charms))]
     codes = {i.code for i in validate.validate_combos(rs, c)}
     assert "combo-mixed-attribute-ability" in codes
+
+
+# --- Deadly Beastman Transformation Gifts (p.124-127) ----------------------- #
+
+def _locked_lunar(caste="full-moon", xp=200, essence=2) -> Character:
+    c = _lunar(caste=caste)
+    c.essence_rating = essence
+    lifecycle.lock_chargen(c)
+    c.xp_earned = xp
+    return c
+
+
+def test_gift_charm_shape(rs):
+    charm = rs.charms["lunar.shapeshifting.deadly-beastman-transformation"]
+    assert charm.repeatable_cap_ability == "essence"
+    assert charm.variant_picks_first_purchase == 2
+    assert charm.variant_picks_per_purchase == 1
+    assert len(charm.variants) == 19
+    assert validate.gift_charm_id(rs, _lunar()) == charm.id
+    assert validate.gift_charm(rs, _lunar()).id == charm.id
+
+
+def test_gift_repeat_caps(rs):
+    charm = rs.charms["lunar.shapeshifting.deadly-beastman-transformation"]
+    by_key = {v.key: v.max_purchases for v in charm.variants}
+    assert by_key["bestial-reflexes"] == 2
+    assert by_key["enhanced-senses"] == 2
+    # Lightning Speed does NOT repeat, unlike an earlier (wrong) draft claimed.
+    assert by_key["lightning-speed"] == 1
+    assert by_key["horrifying-might"] == 1
+
+
+def test_gift_prerequisite_chain(rs):
+    charm = rs.charms["lunar.shapeshifting.deadly-beastman-transformation"]
+    by_key = {v.key: v.prerequisites for v in charm.variants}
+    assert by_key["spider-foot-climbing"] == [["bestial-reflexes", "lightning-speed"]]
+    assert by_key["glue-foot-climbing"] == [["spider-foot-climbing"]]
+    assert by_key["arm-array"] == [["gift-of-hands"]]
+    assert by_key["wound-knitting-power"] == [["resilience-of-nature"]]
+    assert by_key["terrifying-bestial-visage"] == [["fearsome-appearance"]]
+    assert by_key["impenetrable-beast-armor"] == [["rugged-hide"]]
+    assert by_key["deadly-breath"] == [["poison-bite"]]
+    assert by_key["ghost-sight"] == [["enhanced-senses"]]
+    assert by_key["savage-moonsilver-talons"] == [["terrible-beast-claws"]]
+    roots = {k for k, p in by_key.items() if not p}
+    assert roots == {
+        "horrifying-might", "bestial-reflexes", "lightning-speed", "gift-of-hands",
+        "terrible-beast-claws", "resilience-of-nature", "fearsome-appearance",
+        "rugged-hide", "poison-bite", "enhanced-senses",
+    }
+
+
+def test_gift_purchase_cap_reads_essence(rs):
+    c = _lunar()
+    c.essence_rating = 3
+    assert validate.gift_purchase_cap(rs, c) == 3
+
+
+def test_gifts_per_purchase_first_then_steady(rs):
+    charm = rs.charms["lunar.shapeshifting.deadly-beastman-transformation"]
+    assert validate.gifts_per_purchase(charm, 0) == 2
+    assert validate.gifts_per_purchase(charm, 1) == 1
+    assert validate.gifts_per_purchase(charm, 4) == 1
+
+
+def test_learn_gift_first_purchase_grants_two_and_costs_charm_xp(rs):
+    c = _locked_lunar()
+    entry = advancement.learn_gift(rs, c, ["bestial-reflexes", "gift-of-hands"])
+    assert len(c.beastman_gifts) == 1
+    assert c.beastman_gifts[0].gifts == ["bestial-reflexes", "gift-of-hands"]
+    # Charisma (Deadly Beastman Transformation's min_attribute) is Physical for
+    # Full Moon -> NOT Caste-favored (Full Moon favors Physical, Charisma is
+    # Social) -> full new_charm rate.
+    assert entry.cost == rs.xp_costs_for("Lunar").new_charm
+
+
+def test_learn_gift_wrong_count_raises(rs):
+    c = _locked_lunar()
+    with pytest.raises(advancement.AdvancementError):
+        advancement.learn_gift(rs, c, ["bestial-reflexes"])   # first purchase needs 2
+
+
+def test_learn_gift_missing_prerequisite_raises(rs):
+    c = _locked_lunar()
+    with pytest.raises(advancement.AdvancementError):
+        advancement.learn_gift(rs, c, ["glue-foot-climbing", "gift-of-hands"])
+
+
+def test_learn_gift_prerequisite_satisfied_within_same_purchase(rs):
+    # p.124: a purchase's Gifts are all applied together, so a Gift may satisfy
+    # another Gift's prerequisite from within the SAME purchase.
+    c = _locked_lunar()
+    entry = advancement.learn_gift(rs, c, ["bestial-reflexes", "spider-foot-climbing"])
+    assert c.beastman_gifts[0].gifts == ["bestial-reflexes", "spider-foot-climbing"]
+    assert entry.cost > 0
+
+
+def test_learn_gift_over_repeat_cap_raises(rs):
+    c = _locked_lunar(essence=4)
+    advancement.learn_gift(rs, c, ["bestial-reflexes", "gift-of-hands"])
+    advancement.learn_gift(rs, c, ["bestial-reflexes"])       # 2nd Bestial Reflexes: OK
+    with pytest.raises(advancement.AdvancementError):
+        advancement.learn_gift(rs, c, ["bestial-reflexes"])   # 3rd: over max_purchases
+
+
+def test_learn_gift_over_essence_cap_raises(rs):
+    c = _locked_lunar(essence=2)
+    advancement.learn_gift(rs, c, ["bestial-reflexes", "gift-of-hands"])
+    advancement.learn_gift(rs, c, ["resilience-of-nature"])
+    with pytest.raises(advancement.AdvancementError):
+        advancement.learn_gift(rs, c, ["rugged-hide"])        # 3rd exceeds Essence 2
+
+
+def test_undo_gift_removes_last_purchase_and_refunds(rs):
+    c = _locked_lunar()
+    advancement.learn_gift(rs, c, ["bestial-reflexes", "gift-of-hands"])
+    before = advancement.xp_available(c)
+    advancement.learn_gift(rs, c, ["resilience-of-nature"])
+    advancement.undo_last(rs, c)
+    assert [p.gifts for p in c.beastman_gifts] == [["bestial-reflexes", "gift-of-hands"]]
+    assert advancement.xp_available(c) == before
+
+
+def test_gift_purchases_pass_the_xp_audit(rs):
+    c = _locked_lunar()
+    advancement.learn_gift(rs, c, ["bestial-reflexes", "gift-of-hands"])
+    codes = {i.code for i in advancement.validate_xp(rs, c)}
+    assert "xp-cost-mismatch" not in codes and "xp-overspent" not in codes
+
+
+def test_check_beastman_gifts_flags_over_cap_wrong_count_and_bad_variant(rs):
+    c = _lunar()
+    c.essence_rating = 1
+    c.beastman_gifts = [
+        BeastmanGiftPurchase(gifts=["bestial-reflexes", "gift-of-hands"]),
+        BeastmanGiftPurchase(gifts=["nope"]),                 # over cap AND bad variant
+    ]
+    codes = {i.code for i in validate.check_beastman_gifts(rs, c)}
+    assert "beastman-gift-over-cap" in codes
+    assert "beastman-gift-bad-variant" in codes
+
+
+def test_check_beastman_gifts_flags_wrong_pick_count(rs):
+    c = _lunar()
+    c.essence_rating = 3
+    c.beastman_gifts = [BeastmanGiftPurchase(gifts=["bestial-reflexes"])]  # needs 2
+    codes = {i.code for i in validate.check_beastman_gifts(rs, c)}
+    assert "beastman-gift-wrong-count" in codes
+
+
+def test_lunar_attribute_charm_gets_favored_caste_xp_discount(rs):
+    # Regression for the costs.charm_cost bug found while wiring Gifts: it only
+    # checked category-as-Ability, so every Lunar Charm was always charged the
+    # full (non-favored) rate. A Full Moon's Caste Attributes are Physical, and
+    # lunar.melee.sensing-the-deadly-flow gates on Dexterity (Physical) -> should
+    # get the favored-caste discount.
+    from exalted_builder.engine import costs
+    c = _locked_lunar(caste="full-moon")
+    charm = rs.charms["lunar.melee.sensing-the-deadly-flow"]
+    assert costs.charm_cost(rs, c, charm) == rs.xp_costs_for("Lunar").new_charm_favored_caste
+    c2 = _locked_lunar(caste="no-moon")
+    assert costs.charm_cost(rs, c2, charm) == rs.xp_costs_for("Lunar").new_charm
+
+
+def test_gift_charm_graph_node_state_tracks_beastman_gifts_not_charms(rs):
+    # Mirrors ox_body's graph-node special case (view.build_charm_graph): the
+    # Gift-granting Charm's node state must read character.beastman_gifts, not
+    # character.charms, since a purchase never lands in the latter.
+    c = _lunar(caste="full-moon")
+    c.attributes[AT.CHARISMA] = 2           # Deadly Beastman Transformation needs Charisma 2
+    c.charms = ["lunar.shapeshifting.finding-the-spirits-shape"]
+    gift_id = "lunar.shapeshifting.deadly-beastman-transformation"
+    graph = view.build_charm_graph(rs, c, "shapeshifting")
+    node = next(n for n in graph.nodes if n.id == gift_id)
+    assert node.state == "available"
+    c.beastman_gifts = [BeastmanGiftPurchase(gifts=["bestial-reflexes", "gift-of-hands"])]
+    graph = view.build_charm_graph(rs, c, "shapeshifting")
+    node = next(n for n in graph.nodes if n.id == gift_id)
+    assert node.state == "owned"
