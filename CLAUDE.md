@@ -29,6 +29,8 @@ the gap with a 2e value.
   Health: 7 base levels + Charm bonuses.
 - The ability roster is the 25 caste-grouped abilities. **Martial Arts is a
   separate ability from Brawl, and there is no "War" ability in 1e core.**
+  
+  Note from human in the mix; the above is for SOLAR EXALTED ONLY, and does not hold for other types of character (Dragonblooded, Abyssal, Lunar, Sidereal, etc)
 
 ## Architecture — keep these boundaries
 - **Pure engine, disposable UI.** All validation and derivation are pure functions
@@ -362,7 +364,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
   Soulsteel→Abyssal +1 acc (+narrative mote drain). **Armour (p345-346):** Orichalcum &
   Soulsteel +2 to both soaks; Moonsilver negates the mobility penalty; Jade negates fatigue;
   Starmetal −1 to the attacker's damage successes (a damage-roll effect → `notes` only, since
-  combat derivation is deferred). The two negate effects are flags (`armor_negate_mobility_penalty`/
+  combat derivation is out of scope). The two negate effects are flags (`armor_negate_mobility_penalty`/
   `armor_negate_fatigue`) not deltas, because they zero a base-dependent value. `Weapon`/`Armor`
   gained a `material` field (id; "" = mundane). Pure engine `derive.effective_weapon`/`effective_armor`
   fold the delta in, Exalt-gated via `derive.applied_material`; `derive.soak(character, ruleset)`
@@ -407,9 +409,11 @@ Exalted-1E-Charsheet-Generator/      (project root)
   is a dormant hook); state-reconciliation of hand-edited current-vs-snapshot drift
   (the read-only lock guards normal use).
 - **Deferred / not yet authored:** `chargen_budgets.json`, `costs_bonus.json`,
-  `costs_xp.json` (optional — loader falls back to verified model defaults);
-  combat/attack derivation (weapons are display-only); the Dire Lance mounted
-  profile. (Limit is now tracked in the Play tab — see the play-state layer above.)
+  `costs_xp.json` (optional — loader falls back to verified model defaults).
+  (Limit is now tracked in the Play tab — see the play-state layer above.) **Combat/attack
+  derivation is OUT OF SCOPE, not deferred (user decision, 2026-07-22)** — weapons stay
+  display-only; no attack-roll engine, no Dire Lance mounted profile. Do not build this
+  without the user re-opening it.
 - **In-play tracker — done 2026-06-16.** `Character.play: Optional[PlayState]` (Damage
   enum `/ x *`, health marks aligned to the derived track, motes spent, temp WP, Limit
   0..10); the Play tab (`ui/play.py`) + `view.build_play_view`; permanent trait
@@ -483,15 +487,16 @@ TODOs are now cleared.**
 
 **In progress — multi-splat refactor.** Generalizing Solar-only → all Exalt
 types, **all-splats-RuleSet + runtime-filtering** design, **Dragon-Blooded first** (switched
-from Abyssal 2026-07-17). **Phases 0-4 DONE (on `main`). Phase 5 (DB) IN PROGRESS: the chargen
-FOUNDATION is done + tested (243 tests)** — Breeding term + `EssencePoolSpec.peripheral_virtue_mode`
+from Abyssal 2026-07-17). **Phases 0-4 DONE (on `main`). Phase 5 (DB) DONE 2026-07-18** — the
+chargen foundation was done + tested first (243 tests at that point; 377 now) — Breeding term
++ `EssencePoolSpec.peripheral_virtue_mode`
 + `breeding_*` tables in `derive.essence_pools`; `exalts.json` DB row (Personal=Ess+WP,
 Peripheral=Ess×4+WP+two-highest-Virtues, cap Terrestrial); `chargen_budgets.json` + `costs_bonus.json`
 DB rows; the 5 Aspects in `castes.json`; **Dynastic/Outcaste origin** (`Character.origin`,
 `RuleSet.budgets_for(exalt_type, origin)`, `ChargenBudgets.required_min_abilities`, editor Origin
-dropdown + budget-driven panel headers). **STILL TODO: DB charm trees + DB Ox-Body (the huge
-content grind — DB charms are organized by ELEMENT→ability; the `Charm.element` field now exists,
-default `""`, "Air"/"Earth"/"Fire"/"Water"/"Wood" for DB). The **Immaculate Order charm package
+dropdown + budget-driven panel headers). DB charms are organized by ELEMENT→ability (the
+`Charm.element` field, default `""`, "Air"/"Earth"/"Fire"/"Water"/"Wood" for DB — the content
+grind that followed the foundation is all DONE below). The **Immaculate Order charm package
 ENGINE is DONE (2026-07-18):** "Immaculate Order Charms" turned out to be the Fivefold Dragon
 Method martial-arts styles (ch.6), NOT a separate ability-charm flavour — marked by the data flag
 `Charm.immaculate`. `validate` now branches the chargen Charm rules on whether any Immaculate Charm
@@ -558,9 +563,22 @@ NOT new structure.
 Also landed 2026-06-16: the **in-play tracker** (Play tab + trait reductions — see the
 play-state layer above), which reversed the old "play-state out of scope" decision.
 
-Open future work (unscheduled): **Phase 5 — author Dragon-Blooded data** (budgets row +
-exalts row + Aspects + charm trees, from `images/Dragonblooded/`), preceded by the new
-structure the DB review surfaced (Dynastic/Outcaste origin, Immaculate Order charms); the
-**Windows .exe** still needs a Windows host (PyInstaller can't cross-compile; same spec);
-combat/attack derivation (weapons are display-only). See [[db-chargen-findings]],
-[[packaging-plan]], [[combat-engine-deferred]].
+DONE: **Phase 5 (Dragon-Blooded) is fully DONE** — budgets row,
+exalts row, Aspects, origin, Immaculate Order charms, and all charm trees are authored and
+tested; nothing DB-shaped is outstanding here. What's actually still open: the **Windows
+.exe** still needs a Windows host (PyInstaller can't cross-compile; same spec); **Sidereals,
+Lunars, and Alchemicals are the next three Exalt types** (no plan authored yet as of
+2026-07-22 — ask the user for their intended order/approach before starting). **Combat/attack
+derivation is OUT OF SCOPE**, not deferred — see the Status entry above; do not reopen it
+without the user asking. See [[db-chargen-findings]], [[packaging-plan]].
+
+OPEN FUTURE WORK: Alchemical, Sidereal, and Lunar Exalted need to be done. When images are in `images/{ExaltName}`, work can begin. COLOR SCHEMES FOR CHARACTER TYPES BELOW 
+Solar - Default, Amber/Gold - DONE
+Abyssal - Black on ash - DONE
+Dragon-Blooded - Vermillion - DONE
+Lunar - Silverish-blue - WAIT FOR LUNAR CHARACTER CREATION WORK
+Sidereal - Purple - WAIT FOR SIDEREAL CHARACTER CREATION WORK
+Alchemical - Brass - WAIT FOR ALCHEMICAL CHARACTER CREATION WORK
+Mortals (Godblooded/Ghosts/Heroic Mortals/Etc) - Muddy Brpwn - WAIT FOR MORTAL CHARACTER CREATION WORK
+
+Once all above character types are implemented, M&F will be readded into a central M&F calculation function, so the mechanical effects of certain merits and flaws aren't invasive across a number of different files (like the previous implementation.)
