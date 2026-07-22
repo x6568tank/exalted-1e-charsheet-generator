@@ -17,6 +17,7 @@ from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
 from exalted_builder.models.rules import Charm, CharmType, SpellCircle
+from exalted_builder.ui import view
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
@@ -959,3 +960,26 @@ def test_sorcery_cascade_prerequisite_chain_resolves(rs):
 def test_sorcery_charms_grant_expected_circles(rs):
     assert rs.charms["lunar.sorcery.terrestrial-circle-sorcery"].grants_circle == SpellCircle.TERRESTRIAL
     assert rs.charms["lunar.sorcery.celestial-circle-sorcery"].grants_circle == SpellCircle.CELESTIAL
+
+
+# --- picker/view display of Attribute-keyed requirements -------------------- #
+
+def test_charm_detail_shows_attribute_not_colliding_ability_name(rs):
+    # lunar.melee.sensing-the-deadly-flow gates on Dexterity 2 (min_attribute),
+    # not Melee 2 — its `category` ("melee") happens to also be a valid
+    # AbilityName, which is exactly the collision build_charm_detail must not
+    # fall into (see validate._min_trait_rating's docstring for the same trap).
+    c = _lunar(caste="full-moon")
+    detail = view.build_charm_detail(rs, c, "lunar.melee.sensing-the-deadly-flow")
+    assert detail is not None
+    assert "Dexterity 2" in detail.requirement
+    assert "Melee" not in detail.requirement
+
+
+def test_charm_detail_still_shows_ability_requirement_for_ability_keyed_charm(rs):
+    # Sanity check the fix didn't break the ordinary Ability-keyed path (Solar
+    # Charms have no min_attribute at all).
+    c = _lunar(caste="full-moon")
+    detail = view.build_charm_detail(rs, c, "solar.occult.terrestrial-circle-sorcery")
+    assert detail is not None
+    assert "Occult 3" in detail.requirement

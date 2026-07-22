@@ -96,10 +96,13 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
     charm = ruleset.charms.get(charm_id)
     if charm is None:
         return None
-    ability = validate._category_ability(charm.category)
     reqs = []
-    if ability is not None and charm.min_ability:
-        reqs.append(f"{_label(ability.value)} {charm.min_ability}")
+    if charm.min_attribute:
+        reqs.append(f"{_label(charm.min_attribute)} {charm.min_ability}")
+    else:
+        ability = validate._category_ability(charm.category)
+        if ability is not None and charm.min_ability:
+            reqs.append(f"{_label(ability.value)} {charm.min_ability}")
     reqs.append(f"Essence {charm.min_essence}")
     groups = [[ruleset.charms[r].name if r in ruleset.charms else r for r in group]
               for group in charm.prerequisites]
