@@ -539,7 +539,7 @@ def test_melee_cascade_prerequisite_chain_resolves(rs):
         "lunar.melee.thunderclap-method",
         "lunar.melee.limb-maiming-flourish",
         "lunar.melee.weapon-fusion-method",
-        "lunar.melee.weapon-sharing-prana",
+        "lunar.melee.weapon-shaping-prana",
         "lunar.melee.stunning-moonsilver-blow",
         "lunar.melee.surprising-moonsilver-deformation",
         "lunar.melee.deadly-moonsilver-affinity",

@@ -315,8 +315,8 @@
     "source": {"book": "Exalted 1e The Lunars", "page": 155}
   },
   {
-    "id": "lunar.melee.weapon-sharing-prana",
-    "name": "Weapon-Sharing Prana",
+    "id": "lunar.melee.weapon-shaping-prana",
+    "name": "Weapon-Shaping Prana",
     "category": "melee",
     "exalt_type": "Lunar",
     "type": "Simple",
