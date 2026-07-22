@@ -51,7 +51,8 @@ ATTRIBUTE_CATEGORIES: dict[str, tuple[AttributeName, ...]] = {
 
 # The repeatable Ox-Body-equivalent Charm is per-splat: each ExaltDefinition names
 # its own (Solar's is solar.endurance.ox-body-technique). It is bought once per dot
-# of its cap Ability (Endurance), each purchase choosing a health-level package;
+# of its cap trait (Endurance; Stamina for Lunar), each purchase choosing a
+# health-level package;
 # stored on Character.ox_body, not in Character.charms (so the count is representable).
 
 
@@ -544,6 +545,17 @@ def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
 # Ox-Body Technique (repeatable Charm)
 # --------------------------------------------------------------------------- #
 
+def repeatable_cap_trait_name(charm: Optional[Charm]) -> str:
+    """Human name of the trait limiting a repeatable Charm's purchases, for use in
+    messages: "Endurance", "Stamina", "Essence". "" if the Charm is absent or not
+    repeatable. The trait is per-splat DATA (`repeatable_cap_ability`) — Lunar
+    Ox-Body counts Stamina where every other splat counts Endurance (p.132) — so no
+    message may hardcode it. Pairs with `_repeatable_purchase_cap`, which resolves
+    the same field to a number."""
+    name = charm.repeatable_cap_ability if charm else ""
+    return name.replace("_", " ").title() if name else ""
+
+
 def ox_body_cap(ruleset: RuleSet, character: Character) -> int:
     """Maximum number of Ox-Body Technique purchases: once per dot of the Charm's
     `repeatable_cap_ability` (Endurance for Solar/DB/Abyssal; Stamina — an
@@ -556,8 +568,8 @@ def ox_body_cap(ruleset: RuleSet, character: Character) -> int:
 
 
 def check_ox_body(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Legality of the character's Ox-Body purchases: at most one per dot of
-    Endurance (core p.170), every chosen package a real variant, and the Charm's
+    """Legality of the character's Ox-Body purchases: at most one per dot of the
+    splat's cap trait (core p.170), every chosen package a real variant, and the Charm's
     min essence met. The per-purchase bonus-point/XP cost is accounted elsewhere
     (validate_chargen / costs). Empty when no purchases."""
     issues: list[Issue] = []
@@ -577,7 +589,8 @@ def check_ox_body(ruleset: RuleSet, character: Character) -> list[Issue]:
         issues.append(Issue(
             code="ox-body-over-cap", where=oid,
             message=(f"Ox-Body Technique bought {len(purchases)} times; it may be "
-                     f"bought at most once per dot of Endurance ({cap})."),
+                     f"bought at most once per dot of "
+                     f"{repeatable_cap_trait_name(charm)} ({cap})."),
         ))
     if character.essence_rating < charm.min_essence:
         issues.append(Issue(

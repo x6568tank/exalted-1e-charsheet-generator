@@ -300,7 +300,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             ui.notify(f"Bought Ox-Body Technique ({variant.label}) — {cost} XP", type="positive")
         else:
             if len(character.ox_body) >= validate.ox_body_cap(ruleset, character):
-                ui.notify("Ox-Body: already bought once per dot of Endurance.", type="warning")
+                trait, unit = viewmod.repeatable_cap_trait(charm)
+                ui.notify(f"Ox-Body: already bought once per {unit} of {trait}.",
+                          type="warning")
                 return
             character.ox_body.append(
                 OxBodyPurchase(variant=variant_key, health_levels=list(variant.health_levels)))
@@ -325,7 +327,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         ui.label(charm.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
         ui.label(charm.description).classes("text-xs")
         ui.separator()
-        ui.label(f"Bought {bought} / {cap}  ·  once per dot of Endurance").classes(
+        # Which trait caps the purchases is per-splat data, never a literal: Lunar
+        # Ox-Body counts Stamina where every other splat counts Endurance (p.132).
+        cap_trait, cap_unit = viewmod.repeatable_cap_trait(charm)
+        ui.label(f"Bought {bought} / {cap}  ·  once per {cap_unit} of {cap_trait}").classes(
             "text-xs font-semibold")
         if bought:
             for i, p in enumerate(character.ox_body):
@@ -348,8 +353,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             ui.label(f"Only {advancement.xp_available(character)} XP available.").classes(
                 "text-xs text-gray-500")
         if bought >= cap:
-            ui.label("Raise Endurance to buy more." if cap else
-                     "Needs at least 1 dot of Endurance.").classes("text-xs text-gray-500")
+            ui.label(f"Raise {cap_trait} to buy more." if cap else
+                     f"Needs at least 1 {cap_unit} of {cap_trait}.").classes(
+                "text-xs text-gray-500")
 
     # ---- Deadly Beastman Transformation Gifts (repeatable, multi-pick; Lunar) -- #
     # Each purchase grants a fixed number of Gift picks (2 first, 1 after, p.124).
@@ -377,8 +383,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             charm = validate.gift_charm(ruleset, character)
             cap = validate.gift_purchase_cap(ruleset, character)
             if charm is None or len(character.beastman_gifts) >= cap:
-                ui.notify("Deadly Beastman Transformation: already bought once per "
-                          "point of Essence.", type="warning")
+                trait, unit = viewmod.repeatable_cap_trait(charm)
+                ui.notify(f"Deadly Beastman Transformation: already bought once per "
+                          f"{unit} of {trait}.", type="warning")
                 return False
             character.beastman_gifts.append(BeastmanGiftPurchase(gifts=keys))
             ui.notify(f"Added Deadly Beastman Transformation ({', '.join(keys)})",
@@ -506,7 +513,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         ui.label(charm.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
         ui.label(charm.description).classes("text-xs")
         ui.separator()
-        ui.label(f"Bought {bought} / {cap}  ·  once per point of Essence").classes(
+        cap_trait, cap_unit = viewmod.repeatable_cap_trait(charm)
+        ui.label(f"Bought {bought} / {cap}  ·  once per {cap_unit} of {cap_trait}").classes(
             "text-xs font-semibold")
         if not character.beastman_gifts:
             ui.label("No Gifts yet.").classes("text-xs text-gray-400")
@@ -518,8 +526,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                         "dense flat round size=sm color=negative")
         ui.separator()
         if bought >= cap:
-            ui.label("Raise Essence to buy more." if cap else
-                     "Needs at least 1 point of Essence.").classes("text-xs text-gray-500")
+            ui.label(f"Raise {cap_trait} to buy more." if cap else
+                     f"Needs at least 1 {cap_unit} of {cap_trait}.").classes(
+                "text-xs text-gray-500")
             return
         needed = validate.gifts_per_purchase(charm, bought)
         gift_xp = costs.gift_cost(ruleset, character) if in_play() else 0

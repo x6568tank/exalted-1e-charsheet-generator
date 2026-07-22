@@ -165,7 +165,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (478 tests passing)
+## Status (480 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -212,7 +212,11 @@ the in-memory (de)serialisers the browser upload/download path reuses.
     C/F minimum waived, a separate BP row (10/7) — the two Dragon-Path enlightenment
     Charms count as ordinary Charms within this package, not exempt.
   - **Ox-Body Technique (p170):** repeatable once per dot of the splat's cap
-    ability (Endurance); each purchase picks ONE health-level-package variant;
+    trait — Endurance for Solar/DB/Abyssal, **Stamina for Lunar** (p.132), and
+    Essence for Deadly Beastman Transformation. Never write that trait as a literal
+    in UI copy or an engine message: use `view.repeatable_cap_trait` (label + "dot"/
+    "point" unit) or `validate.repeatable_cap_trait_name`, both of which read the
+    same `repeatable_cap_ability` field the cap arithmetic does; each purchase picks ONE health-level-package variant;
     lives on `Character.ox_body` (not `character.charms`) so N copies are
     representable.
   - **Craft (p136):** per-focus Abilities on `Character.crafts`, each budgeted/

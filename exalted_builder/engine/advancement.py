@@ -282,7 +282,8 @@ def add_combo(ruleset: RuleSet, character: Character, name: str,
 
 def learn_ox_body(ruleset: RuleSet, character: Character, variant_key: str) -> XpEntry:
     """Buy one more Ox-Body Technique with the chosen health-level package (post-lock).
-    Gated by the once-per-dot-of-Endurance cap and priced as a normal new Charm."""
+    Gated by the splat's once-per-dot-of-cap-trait limit (Endurance, or Stamina for
+    Lunar) and priced as a normal new Charm."""
     _ensure_locked(character)
     charm = validate.ox_body_charm(ruleset, character)
     if charm is None:
@@ -296,7 +297,8 @@ def learn_ox_body(ruleset: RuleSet, character: Character, variant_key: str) -> X
     cap = validate.ox_body_cap(ruleset, character)
     if len(character.ox_body) >= cap:
         raise AdvancementError(
-            f"Ox-Body Technique may be bought at most once per dot of Endurance ({cap}).")
+            f"Ox-Body Technique may be bought at most once per dot of "
+            f"{validate.repeatable_cap_trait_name(charm)} ({cap}).")
     cost = costs.ox_body_cost(ruleset, character)
     entry = _commit(character, "ox_body", variant_key, None, None, cost)
     character.ox_body.append(

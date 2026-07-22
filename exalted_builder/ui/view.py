@@ -419,6 +419,23 @@ DEFAULT_ABILITY_GROUPS: tuple[tuple[str, tuple[AbilityName, ...]], ...] = (
 )
 
 
+def repeatable_cap_trait(charm) -> tuple[str, str]:
+    """`(trait label, unit noun)` naming what limits a repeatable Charm's purchases,
+    e.g. ("Endurance", "dot") or ("Essence", "point"). ("", "") if not repeatable.
+
+    Never hardcode the trait in UI copy: it varies by splat even for the SAME Charm.
+    Ox-Body caps on Endurance for Solar/Dragon-Blooded/Abyssal but on **Stamina** for
+    Lunar (The Lunars p.132, "once per dot of human-form Stamina"), and Deadly
+    Beastman Transformation caps on Essence (p.124), which is neither an Ability nor
+    an Attribute. This mirrors engine.validate._repeatable_purchase_cap, which
+    resolves the same field to the actual number."""
+    name = getattr(charm, "repeatable_cap_ability", "") if charm else ""
+    if not name:
+        return ("", "")
+    # Essence is rated in points; Abilities and Attributes in dots.
+    return ("Essence", "point") if name == "essence" else (_label(name), "dot")
+
+
 def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, list[AbilityName]]]:
     """How to lay the Ability roster out in columns, for the sheet and the editor.
 
