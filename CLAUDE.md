@@ -56,7 +56,7 @@ Work on a given splat starts only once its rulebook images land in
 | Solar | Amber/Gold (default) | DONE |
 | Abyssal | Black on ash | DONE |
 | Dragon-Blooded | Vermillion | DONE |
-| Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; picker UI not yet clicked through by a human) |
+| Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
 | Alchemical | Brass | waiting on Alchemical chargen work |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
@@ -410,10 +410,12 @@ below, which is the least-exercised piece of this whole batch.
   unchecking a Gift cascades away anything selected that depended on it, and the
   dialog says the p.126 list is "Sample Gifts", not exhaustive. `ui/view.build_charm_graph`
   got the same owned/available/locked special case ox_body's node already has.
-  **Verified by server-render smoke test, NOT clicked through** — the dialog was
-  served and its HTML checked for all 19 Gifts, their descriptions, the repeat
-  markers and the prerequisite lock reasons, with a clean log; but no human has
-  driven the checkboxes or the Confirm path. Test that first.
+  The human clicked through this UI on 2026-07-22 and it found two things no
+  server-render check could: the dialog was translucent (it used `pal.card`, whose
+  50/60 tint lets the page show through — dialogs now use `pal.card_solid`), and a
+  bought DBT never appeared on the sheet. **Serve-and-grep proves a page renders and
+  nothing throws; it says nothing about whether the result is right.** Budget a
+  browser pass regardless.
 - **Attributes are 9/7/5** (Casteless: 8/6/4, not a typo of Solar's 8/6/4 — same
   numbers, different reason). The Caste Attribute BP discount
   (`BonusPointCosts.attribute_caste_favored`, e.g. Lunar "4, 3 if a Caste
@@ -508,6 +510,19 @@ Abyssal data catalogues, tier-gated cross-splat Martial Arts, the picker's
 three-page Abilities/Martial Arts/Spells split, GM mode.
 
 **Next:**
+- **Refactor: one canonical Charm-pick enumeration.** A repeatable Charm lives on
+  its own `Character` list (`ox_body`, `beastman_gifts`), NOT in `character.charms`,
+  so every consumer that walks `character.charms` has to special-case each of them —
+  and four separately did not when Gifts landed (2026-07-22): the sheet's Charm rows
+  and the XP-log label in `ui/view.py`, and the chargen Charm-pick counters in
+  `ui/picker.py` and `ui/editor.py`. All four are fixed and pinned by tests, but the
+  shape guarantees a fifth miss the moment a splat adds a third repeatable Charm.
+  Fix: an engine-side enumeration (e.g. `charm_picks(ruleset, character)`) yielding
+  every pick — plain Charms plus one entry per repeatable purchase, already labelled
+  — that the sheet, both counters, and the XP log all consume, so the UI never
+  enumerates these lists itself. `engine.validate.bonus_point_breakdown` already
+  builds this list internally to price picks; that is the model to extract.
+  **Refactor of working code — no behaviour change intended.**
 - **Sidereal, Lunar, and Alchemical** Exalt types, then **Mortals** — see
   **Next Exalt Types** above for the color scheme and the M&F-return plan. No
   build order chosen yet; ask the user before starting.
