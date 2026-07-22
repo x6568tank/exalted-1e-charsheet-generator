@@ -301,6 +301,12 @@ class Character(BaseModel):
     armor: list[Armor] = Field(default_factory=list)
     health_bonus_levels: list[HealthLevel] = Field(default_factory=list)
 
+    # Storyteller permission to START play knowing another splat's Charms — the
+    # chargen half of the Eclipse generalist rule (core p.127). Post-lock the rule
+    # needs only a willing tutor, which is narrative, so this gates chargen picks
+    # only. Meaningless unless the caste sets CasteDefinition.foreign_charms.
+    st_foreign_charms: bool = False
+
     # --- lifecycle / accounting ---
     chargen_locked: bool = False
     chargen_snapshot: Optional[ChargenSnapshot] = None

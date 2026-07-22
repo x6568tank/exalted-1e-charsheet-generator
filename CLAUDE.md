@@ -165,7 +165,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (480 tests passing)
+## Status (497 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -183,6 +183,35 @@ the in-memory (de)serialisers the browser upload/download path reuses.
 - `validate.py`:
   - Reference integrity; Charm prereqs (AND-of-OR + min ability/essence);
     `meets_charm_requirements`/`charms_depending_on` (picker eligibility + safe removal).
+  - **Eclipse generalist rule (core p.127, `images/Solar/Traits/126-127.png`):**
+    "Provided they have a willing tutor, they may learn the Charms of other types
+    of Exalted... Such Charms cost double the normal experience to learn (usually
+    20 points) and use. Eclipse Caste characters may not start the game knowing
+    the Charms of other such beings without Storyteller permission." Modeled as
+    DATA, not a caste check in code: `CasteDefinition.foreign_charms` +
+    `foreign_charm_xp_multiplier` (2), set on `eclipse` only so far. The chargen
+    permission is `Character.st_foreign_charms`; post-lock it falls away (a willing
+    tutor is narrative). Engine surface: `validate.foreign_charms_caste` /
+    `foreign_charms_open` / `is_foreign_charm` / `charm_learnable_by_splat`;
+    `check_splat_consistency` raises `charm-foreign-no-st-permission` (not
+    `charm-wrong-splat`) for a permitted caste that lacks ST sign-off.
+    Rules-authority calls, 2026-07-22 — **not printed on the page, do not
+    relitigate as if they were**: (1) chargen pricing is UNCHANGED — a foreign
+    Charm takes a Charm pick, or normal BP; only the XP economy doubles;
+    (2) **full Caste/Favored treatment** — the discount applies FIRST and the ×2
+    LAST (`costs.charm_cost`), and a foreign Charm counts toward the C/F chargen
+    minimum; (3) **prereqs only** — the other splat's *internal* gates do not
+    follow the Charm, so the DB Dragon-Path enlightenment pair does not bind an
+    Eclipse (this already fell out of `db_enlightenment_met` returning True for
+    non-DB; it is now pinned by a test); (4) **sorcery/necromancy access is NOT
+    widened** — `accessible_circles` still asks `charm_matches_splat`, so a foreign
+    initiation Charm does not grant its Circle and an Eclipse cannot route around
+    their own splat's magic-track ceiling through someone else's initiation.
+    `is_foreign_charm` takes the RuleSet on purpose: the `open_to_tiers` styles a
+    Celestial learns natively (Hungry Ghost, Five-Dragon) are NOT foreign and must
+    never double. **Deliberately not modelled:** the doubled cost "to use" (motes —
+    play-time math, same bucket as combat derivation), and spirit Charms (no
+    catalogue exists).
   - **Splat consistency:** `Charm.exalt_type` gates a Charm to one splat;
     `Charm.open_to_tiers` gates it to an Exalt *tier* instead (e.g. Hungry Ghost
     Style and Five-Dragon Style are `[Celestial]` — any Celestial Exalt can learn
@@ -247,6 +276,18 @@ picker), `ui/combos.py` (Combo builder), `ui/xp.py` (post-lock XP tab),
   `martial_arts:*` style category. Spells has a Circle dropdown offering every 
   circle the character can reach across BOTH tracks, one full-width row per spell 
   (add/remove/locked, cost, description, lock reason).
+- **Splat dropdown on the Charms tab (Eclipse generalist rule).** Rendered only for
+  a caste with `foreign_charms`, and only on the two Charm-tree pages (spells are
+  gated by circle, the Form Library is the character's own). Beside it, pre-lock
+  only, an "ST permission" checkbox bound to `Character.st_foreign_charms` —
+  without it the dropdown has one option and hides itself. `view.charm_on_splat_page`
+  is the filter: `""`/own splat is EXACTLY `charm_matches_splat` (so every existing
+  splat's picker is byte-identical), and a foreign page is that splat's own Charms
+  minus anything already native, so a Celestial's Hungry Ghost Style doesn't appear
+  twice. Category names collide across splats ("melee" belongs to three), so
+  `build_charm_graph` now takes `(category, splat)` — the pair identifies a tree, the
+  category alone does not. The detail card labels a foreign Charm and its doubled
+  price. **Not yet clicked through in a browser.**
 - **Form Library page (Lunar).** A fourth group on the Charms tab's toggle, beside
   Abilities / Martial Arts / Spells: the character's Totem plus every animal shape
   they have taken. Deliberately FREE — narrative bookkeeping the Storyteller
@@ -514,6 +555,12 @@ Abyssal data catalogues, tier-gated cross-splat Martial Arts, the picker's
 three-page Abilities/Martial Arts/Spells split, GM mode.
 
 **Next:**
+- **Abyssal Moonshadow's half of the Eclipse generalist rule.** The engine, pricing
+  and Splat dropdown are all data-driven off `CasteDefinition.foreign_charms`, so
+  this is a one-line change to the `moonshadow` row of `castes.json` — but the page
+  image has not landed yet (the human is dropping it in `images/Abyssal/`). Author it
+  from that page, not from the Eclipse text: confirm the multiplier and the chargen
+  permission clause actually read the same before copying them across.
 - **Refactor: one canonical Charm-pick enumeration.** A repeatable Charm lives on
   its own `Character` list (`ox_body`, `beastman_gifts`), NOT in `character.charms`,
   so every consumer that walks `character.charms` has to special-case each of them —

@@ -123,24 +123,46 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         return "styles" if cat.startswith("martial_arts:") else "abilities"
 
     def _visible_category_options(group: str | None = None) -> dict[str, str]:
-        """Category-dropdown options for the CURRENT character state: their splat's
-        categories in the selected group, minus any a rule hides right now. The only
-        such rule today is the Dragon-Blooded Dragon-Path gate (DB p241) — the elemental
-        Dragon styles appear only once both enlightenment Charms (Spirit Sight + Spirit
-        Walking) are known."""
+        """Category-dropdown options for the CURRENT character state: the categories
+        of the SELECTED splat's page in the selected group, minus any a rule hides
+        right now. The only such rule today is the Dragon-Blooded Dragon-Path gate
+        (DB p241) — the elemental Dragon styles appear only once both enlightenment
+        Charms (Spirit Sight + Spirit Walking) are known. That gate is the *character's*
+        own, so it does not follow them onto a foreign splat's page: an Eclipse
+        learning Dragon-style Charms needs a tutor, not the Immaculate initiation."""
         want = state["group"] if group is None else group
         cats = sorted({c.category for c in ruleset.charms.values()
-                       if validate.charm_matches_splat(character, c, ruleset)
+                       if viewmod.charm_on_splat_page(ruleset, character, c, state["splat"])
                        and validate.category_available(ruleset, character, c.category)
                        and _group_of(c.category) == want})
         return {c: _pretty(c) for c in cats}
+
+    # ---- Splat page (Eclipse generalist rule, core p.127) ------------------- #
+    def _foreign_open() -> bool:
+        return validate.foreign_charms_open(ruleset, character)
+
+    def _splat_options() -> dict[str, str]:
+        """The Splat dropdown's options: the character's own Exalt type always, plus —
+        while the caste privilege is open — every other Exalt type with Charms to
+        show. One entry means the dropdown is pointless and it stays hidden."""
+        opts = {character.exalt_type: character.exalt_type}
+        if _foreign_open():
+            others = {c.exalt_type for c in ruleset.charms.values()
+                      if c.exalt_type and c.exalt_type != character.exalt_type}
+            opts.update({s: s for s in sorted(others)})
+        return opts
+
+    # The caste privilege is a property of the caste, so whether the Splat control
+    # exists at all is fixed for this render; whether it OFFERS anything depends on
+    # the Storyteller-permission flag, which is live pre-lock.
+    _foreign_caste = validate.foreign_charms_caste(ruleset, character) is not None
 
     _all_categories = sorted({c.category for c in ruleset.charms.values()
                               if validate.charm_matches_splat(character, c, ruleset)})
     _start = ("melee" if "melee" in _all_categories
               else (_all_categories[0] if _all_categories else ""))
     state = {"category": _start, "group": _group_of(_start) if _start else "abilities",
-             "circle": ""}
+             "circle": "", "splat": character.exalt_type}
     _has_styles = any(_group_of(c) == "styles" for c in _all_categories)
     # Which circles this character could ever reach is fixed by their splat's Occult
     # tree, so the Spells page — and its Circle dropdown — either exists for them or
@@ -237,6 +259,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         ui.label(d.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
         ui.label(f"{d.type} · {d.cost}").classes("text-xs text-gray-600")
         _charm = ruleset.charms.get(d.id)
+        if d.foreign_splat:
+            ui.label(f"{d.foreign_splat} Charm — needs a willing tutor; costs double "
+                     "to learn and to use (p.127)").classes("text-xs font-semibold") \
+                .style(f"color:{pal.accent}")
         if _charm is not None and validate.is_immaculate_charm(_charm):
             ui.label("Immaculate Order Charm (Fivefold Dragon Method)").classes(
                 "text-xs font-semibold").style(f"color:{pal.accent}")
@@ -704,7 +730,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- graph (re)build / update ---------------------------------------- #
     def init_graph() -> None:
-        graph = viewmod.build_charm_graph(ruleset, character, state["category"])
+        graph = viewmod.build_charm_graph(ruleset, character, state["category"], state["splat"])
         ui.run_javascript(f"""
         (function() {{
           var tries = 0;
@@ -750,7 +776,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         """)
 
     def update_graph() -> None:
-        graph = viewmod.build_charm_graph(ruleset, character, state["category"])
+        graph = viewmod.build_charm_graph(ruleset, character, state["category"], state["splat"])
         # `classes()` replaces the whole class list, so carry `external` along with
         # the state or a foreign prerequisite loses its dashed styling on any repaint.
         states = {n.id: f"{n.state} external" if n.external else n.state
@@ -820,6 +846,44 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         state["circle"] = value
         spells_panel.refresh()
 
+    def set_splat(value: str) -> None:
+        """Switch the Charm pages to another Exalt type's trees (p.127). Category
+        names collide across splats, so the current category is almost never valid on
+        the new page — land on the new page's first category. A splat with no
+        martial-arts trees (Lunar) would leave the Martial Arts page empty, so fall
+        back to Abilities when the current group has nothing to show."""
+        if value == state["splat"]:
+            return
+        state["splat"] = value
+        if _is_graph_page() and not _visible_category_options() and state["group"] == "styles":
+            set_group("abilities")      # re-enters here for the categories below
+            return
+        opts = _visible_category_options()
+        first = next(iter(opts), "")
+        sel = widgets.get("category")
+        if sel is not None:
+            sel.set_options(opts, value=first)
+        if first:
+            set_category(first)
+        _apply_group()                  # the Martial Arts page may have just vanished
+
+    def set_st_permission(value: bool) -> None:
+        """The Storyteller-permission half of the p.127 rule, editable pre-lock only:
+        without it a foreign Charm may not be known at the start of play, so the Splat
+        dropdown offers nothing. Withdrawing permission snaps the picker back to the
+        character's own splat — any foreign Charm already picked then shows up in the
+        readout as a `charm-foreign-no-st-permission` issue rather than silently
+        disappearing with the page it was picked on."""
+        character.st_foreign_charms = bool(value)
+        sel = widgets.get("splat")
+        if sel is not None:
+            opts = _splat_options()
+            keep = state["splat"] if state["splat"] in opts else character.exalt_type
+            sel.set_options(opts, value=keep)
+            sel.set_visibility(len(opts) > 1 and _is_graph_page())
+            set_splat(keep)
+        readout.refresh()
+
     def _apply_group() -> None:
         """Show the graph furniture (category dropdown, legend, canvas, detail card)
         on the two Charm-tree pages and hide it on the Spells and Form Library pages,
@@ -830,6 +894,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             widget = widgets.get(key)
             if widget is not None:
                 widget.set_visibility(graph_page)
+        # The Splat dropdown pages the Charm trees only — spells are gated by circle
+        # and the Form Library is the character's own, so neither is splat-paged.
+        if widgets.get("splat") is not None:
+            widgets["splat"].set_visibility(graph_page and len(_splat_options()) > 1)
         if widgets.get("circle") is not None:
             widgets["circle"].set_visibility(state["group"] == "spells")
         spells_panel.refresh()
@@ -897,6 +965,20 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                             GROUPS, value=state["group"],
                             on_change=lambda e: set_group(e.value)
                         ).props(f"no-caps dense unelevated toggle-color={pal.button}")
+                    if _foreign_caste:
+                        # Eclipse/Moonshadow only (CasteDefinition.foreign_charms).
+                        # The checkbox is the chargen Storyteller permission and is
+                        # meaningless post-lock, where a tutor is the only gate.
+                        if not in_play():
+                            ui.checkbox("ST permission", value=character.st_foreign_charms,
+                                        on_change=lambda e: set_st_permission(e.value)) \
+                                .props(f"dense color={pal.button}") \
+                                .tooltip("Storyteller permission to START play knowing "
+                                         "another Exalt type's Charms (p.127).")
+                        widgets["splat"] = ui.select(
+                            _splat_options(), value=state["splat"], label="Splat",
+                            on_change=lambda e: set_splat(e.value)).classes("w-40")
+                        widgets["splat"].set_visibility(len(_splat_options()) > 1)
                     widgets["category"] = ui.select(
                         _visible_category_options(), value=state["category"], label="Category",
                         on_change=lambda e: set_category(e.value)).classes("w-48")

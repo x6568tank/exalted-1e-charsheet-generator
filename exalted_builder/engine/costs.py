@@ -67,7 +67,12 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     caste's favored Attribute category (Lunar's Attribute-keyed Charms, p.122 —
     the same collision `validate._min_trait_rating` warns about: 'melee' is both
     a category string and a valid AbilityName, so a Lunar Melee Charm's discount
-    must come from `min_attribute`, never from category-as-Ability)."""
+    must come from `min_attribute`, never from category-as-Ability).
+
+    A Charm belonging to ANOTHER splat — reachable only through the Eclipse-style
+    caste privilege (p.127) — then costs double ("usually 20 points"). The Caste/
+    Favoured discount is applied FIRST and the multiplier last, per the rules
+    authority's call: a foreign Charm gets full C/F treatment, then doubles."""
     xp = ruleset.xp_costs_for(character.exalt_type)
     if charm.min_attribute:
         caste_attr_category = validate._caste_favored_attribute_category(ruleset, character)
@@ -75,7 +80,11 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     else:
         ability = validate._category_ability(charm.category)
         favored = ability is not None and ability in validate.caste_favored_abilities(ruleset, character)
-    return xp.new_charm_favored_caste if favored else xp.new_charm
+    cost = xp.new_charm_favored_caste if favored else xp.new_charm
+    caste = validate.foreign_charms_caste(ruleset, character)
+    if caste is not None and validate.is_foreign_charm(ruleset, character, charm):
+        cost *= caste.foreign_charm_xp_multiplier
+    return cost
 
 
 def spell_cost(ruleset: RuleSet, character: Character) -> int:

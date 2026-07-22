@@ -88,6 +88,10 @@ class CharmDetail:
     prerequisite_groups: list[list[str]]   # charm names; inner list = an OR group
     owned: bool
     available: bool                        # learnable right now
+    # Another Exalt type's Charm, reachable only through the Eclipse-style caste
+    # privilege (p.127) and priced at double. "" for an ordinary native Charm — the
+    # cross-tier styles a Celestial may learn natively are NOT foreign.
+    foreign_splat: str = ""
 
 
 def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) -> Optional[CharmDetail]:
@@ -118,6 +122,8 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
         prerequisite_groups=groups,
         owned=charm_id in character.charms,
         available=validate.meets_charm_requirements(ruleset, character, charm),
+        foreign_splat=(validate.splat_of(charm)
+                       if validate.is_foreign_charm(ruleset, character, charm) else ""),
     )
 
 
@@ -150,7 +156,27 @@ def build_spell_detail(ruleset: RuleSet, character: Character, spell_id: str) ->
     )
 
 
-def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> CharmGraph:
+def charm_on_splat_page(ruleset: RuleSet, character: Character, charm,
+                        splat: str = "") -> bool:
+    """Whether `charm` belongs on the picker page for `splat` — the filter behind the
+    picker's Splat dropdown (core p.127, the Eclipse generalist rule).
+
+    `""` or the character's own Exalt type means the NATIVE page: exactly what
+    validate.charm_matches_splat allows, cross-tier styles included, so every splat's
+    existing pages are untouched. Any other value is a foreign page, which exists only
+    while the caste privilege is open and lists that splat's own Charms minus anything
+    already on the native page — otherwise a Celestial's Hungry Ghost Style, which is
+    nominally Abyssal, would appear on two pages at once."""
+    native = validate.charm_matches_splat(character, charm, ruleset)
+    if not splat or splat == character.exalt_type:
+        return native
+    if not validate.foreign_charms_open(ruleset, character):
+        return False
+    return charm.exalt_type == splat and not native
+
+
+def build_charm_graph(ruleset: RuleSet, character: Character, category: str,
+                      splat: str = "") -> CharmGraph:
     """Assemble the prerequisite graph for one Charm category, tagging each node
     by the character's relationship to it: owned, available (learnable now), or
     locked. Pure — eligibility comes from engine.validate.
@@ -160,10 +186,16 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> 
     branches fall apart into disconnected nodes — Lunar Body Enhancement is three
     separate trees all hanging off Shapeshifting's Shaping the Ideal Form, and the
     sourcebook's own diagrams draw those foreign prerequisites inside the box for
-    exactly this reason."""
+    exactly this reason.
+
+    `splat` selects which Exalt type's page the category belongs to; "" is the
+    character's own. Category names collide across splats ("melee" exists for three
+    of them), so the pair (category, splat) — not the category alone — identifies a
+    tree. External prerequisites are pulled in by id and are NOT re-filtered: a
+    foreign tree's prerequisites are its own splat's Charms by construction."""
     owned = set(character.charms)
     in_category = [c for c in ruleset.charms.values()
-                   if c.category == category and validate.charm_matches_splat(character, c, ruleset)]
+                   if c.category == category and charm_on_splat_page(ruleset, character, c, splat)]
     category_ids = {c.id for c in in_category}
 
     external_ids: set[str] = set()

@@ -242,6 +242,11 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
         raise AdvancementError(f"Unknown Charm {charm_id!r}.")
     if charm_id in character.charms:
         raise AdvancementError(f"{charm.name} is already known.")
+    # Another splat's Charm is buyable only by an Eclipse-style caste (p.127), and
+    # then at the doubled price costs.charm_cost applies.
+    if not validate.charm_learnable_by_splat(ruleset, character, charm):
+        raise AdvancementError(
+            f"{charm.name} belongs to another Exalt type ({validate.splat_of(charm)}).")
     if not validate.meets_charm_requirements(ruleset, character, charm):
         raise AdvancementError(f"{charm.name}: requirements not met.")
     cost = costs.charm_cost(ruleset, character, charm)

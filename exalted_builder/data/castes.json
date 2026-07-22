@@ -36,6 +36,8 @@
     "exalt_type": "Solar",
     "label": "Eclipse",
     "caste_abilities": ["bureaucracy", "linguistics", "ride", "sail", "socialize"],
+    "foreign_charms": true,
+    "foreign_charm_xp_multiplier": 2,
     "description": "Diplomats and bureaucrats, the Crowned Suns were the force that kept the Celestial Empire running smoothly. The Unconquered Sun chooses the Eclipse Caste from those who master the art of communication in all its forms.",
     "anima_powers": "By spending 10 motes and 1 Willpower and touching hands to seal an agreement, the character sanctifies an oath. Anyone who breaks it (including the Exalted) is cursed: a number of times equal to the Exalted's Essence at the time of the oath, the oathbreaker horribly botches a critical roll at the worst possible moment. Eclipses are also protected by ancient pacts, granting diplomatic immunity when dealing with spirits, demons and the Fair Folk."
   },

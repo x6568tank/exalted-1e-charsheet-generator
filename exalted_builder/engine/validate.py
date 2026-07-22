@@ -1280,19 +1280,71 @@ def charm_matches_splat(character: Character, charm: Charm,
     return False
 
 
+def foreign_charms_caste(ruleset: RuleSet, character: Character):
+    """The character's CasteDefinition when that caste may learn other splats'
+    Charms (the Eclipse generalist rule, core p.127), else None. Data-driven via
+    `CasteDefinition.foreign_charms` — no caste or splat is named in code."""
+    caste = ruleset.castes.get(character.caste)
+    return caste if caste is not None and caste.foreign_charms else None
+
+
+def foreign_charms_open(ruleset: RuleSet, character: Character) -> bool:
+    """Whether the character may learn other splats' Charms *right now*. The caste
+    must allow it (p.127), and — before the sheet is locked — the Storyteller must
+    have permitted it: "Eclipse Caste characters may not start the game knowing the
+    Charms of other such beings without Storyteller permission." After lock the rule
+    asks only for a willing tutor, which is narrative, so the gate falls away."""
+    if foreign_charms_caste(ruleset, character) is None:
+        return False
+    return character.chargen_locked or character.st_foreign_charms
+
+
+def is_foreign_charm(ruleset: RuleSet, character: Character, charm: Charm) -> bool:
+    """Whether `charm` is another splat's Charm for this character — i.e. it is only
+    reachable via the p.127 generalist rule, not by the ordinary splat/tier match.
+    This is what the doubled XP price keys off, so the `open_to_tiers` styles a
+    Celestial may learn natively (Hungry Ghost, Five-Dragon) are NOT foreign and
+    must not double — hence the ruleset argument."""
+    return not charm_matches_splat(character, charm, ruleset)
+
+
+def charm_learnable_by_splat(ruleset: RuleSet, character: Character, charm: Charm) -> bool:
+    """The picker/graph filter and the `charm-wrong-splat` check: `charm` is either
+    natively available (charm_matches_splat) or reachable through the caste's
+    foreign-Charm privilege. Kept separate from charm_matches_splat so that
+    accessible_circles — which asks what the character's OWN splat can initiate —
+    keeps its narrower question."""
+    return (charm_matches_splat(character, charm, ruleset)
+            or foreign_charms_open(ruleset, character))
+
+
 def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Every Charm the character holds must belong to the character's own Exalt
-    type. Spells are cross-splat (gated by circle, not splat) and are not checked;
-    unknown Charm ids are left to check_references."""
+    type, unless their caste may learn other splats' Charms (p.127). Spells are
+    cross-splat (gated by circle, not splat) and are not checked; unknown Charm ids
+    are left to check_references."""
     issues: list[Issue] = []
+    permissive = foreign_charms_open(ruleset, character)
+    gated = foreign_charms_caste(ruleset, character) is not None and not permissive
     for cid in character.charms:
         charm = ruleset.charms.get(cid)
-        if charm is not None and not charm_matches_splat(character, charm, ruleset):
+        if charm is None or charm_matches_splat(character, charm, ruleset):
+            continue
+        if permissive:
+            continue
+        if gated:
             issues.append(Issue(
-                code="charm-wrong-splat", where=cid,
-                message=f"Charm {charm.name!r} is {splat_of(charm)}, not the "
-                        f"character's Exalt type {character.exalt_type!r}.",
+                code="charm-foreign-no-st-permission", where=cid,
+                message=f"Charm {charm.name!r} belongs to another Exalt type "
+                        f"({splat_of(charm)}). An Eclipse-style caste may only start "
+                        f"play knowing it with Storyteller permission (p.127).",
             ))
+            continue
+        issues.append(Issue(
+            code="charm-wrong-splat", where=cid,
+            message=f"Charm {charm.name!r} is {splat_of(charm)}, not the "
+                    f"character's Exalt type {character.exalt_type!r}.",
+        ))
     return issues
 
 

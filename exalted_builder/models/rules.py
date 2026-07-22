@@ -265,6 +265,17 @@ class CasteDefinition(BaseModel):
     # (Solar, Dragon-Blooded, Abyssal). A caste sets caste_abilities OR
     # caste_attributes, never both.
     caste_attributes: list[AttributeName] = Field(default_factory=list)
+    # The Eclipse Caste generalist rule (core p.127): with a willing tutor, this
+    # caste may learn OTHER splats' Charms, at `foreign_charm_xp_multiplier` times
+    # the normal experience. False for every other caste, so the ability is data,
+    # not a splat check — the Abyssal Moonshadow parallel is a one-line data change.
+    # The chargen half of the rule ("may not start the game knowing" them without
+    # Storyteller permission) is Character.st_foreign_charms.
+    foreign_charms: bool = False
+    # Only meaningful when foreign_charms is True. p.127: "Such Charms cost double
+    # the normal experience to learn (usually 20 points) and use." The *use* half
+    # (mote costs) is play-time math and deliberately not modelled.
+    foreign_charm_xp_multiplier: int = Field(default=2, ge=1)
     description: str = ""                   # a quick flavour blurb for the caste
     anima_powers: str = ""
 
