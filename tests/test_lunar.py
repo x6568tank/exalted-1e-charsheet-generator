@@ -12,7 +12,8 @@ import pytest
 import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import advancement, derive, lifecycle, validate
-from exalted_builder.models.character import BeastmanGiftPurchase, Character, Combo
+from exalted_builder.models.character import (AnimalForm, BeastmanGiftPurchase,
+                                             Character, Combo)
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
@@ -1194,3 +1195,154 @@ def test_gift_charm_graph_node_state_tracks_beastman_gifts_not_charms(rs):
     graph = view.build_charm_graph(rs, c, "shapeshifting")
     node = next(n for n in graph.nodes if n.id == gift_id)
     assert node.state == "owned"
+
+
+def test_body_enhancement_graph_pulls_in_cross_category_prerequisites(rs):
+    # The Lunars p.132/p.135 draw Body Enhancement as three separate trees, all
+    # rooted in Shapeshifting's Finding the Spirit's Shape -> Shaping the Ideal
+    # Form, and the sourcebook's own diagram boxes include those two foreign
+    # Charms. Before this, build_charm_graph dropped every out-of-category
+    # prerequisite edge, so the three branch roots had no parent AND no
+    # prerequisite-free status either: Cytoscape got a pile of disconnected
+    # nodes and laid the whole category out as one long line.
+    c = _lunar(caste="full-moon")
+    graph = view.build_charm_graph(rs, c, "body_enhancement")
+
+    external = {n.id for n in graph.nodes if n.external}
+    assert external == {"lunar.shapeshifting.finding-the-spirits-shape",
+                        "lunar.shapeshifting.shaping-the-ideal-form"}
+
+    edges = set(graph.edges)
+    shaping = "lunar.shapeshifting.shaping-the-ideal-form"
+    assert ("lunar.shapeshifting.finding-the-spirits-shape", shaping) in edges
+    # the three branch roots hanging off Shaping the Ideal Form (p.132, p.135)
+    for branch in ("crouching-tiger-exercise", "moonsilver-monkey-exercise",
+                   "predator-grace-method", "tree-dwelling-jaguar-claws"):
+        assert (shaping, f"lunar.body-enhancement.{branch}") in edges
+
+    # Only genuinely parentless nodes are layout roots now; every in-category
+    # Charm except Ox-Body (which has no prerequisite at all) hangs off something.
+    assert set(graph.roots) == {"lunar.endurance.ox-body-technique",
+                                "lunar.shapeshifting.finding-the-spirits-shape"}
+
+
+def test_charm_graph_marks_only_foreign_charms_external(rs):
+    # A category with no cross-tree prerequisites must be unchanged: no external
+    # nodes, and its roots are exactly its prerequisite-free Charms.
+    graph = view.build_charm_graph(rs, _lunar(caste="full-moon"), "unarmed_combat")
+    assert not [n for n in graph.nodes if n.external]
+    assert set(graph.roots) == {c.id for c in rs.charms.values()
+                                if c.category == "unarmed_combat" and not c.prerequisites}
+
+
+def test_lunar_ability_roster_is_not_grouped_by_caste(rs):
+    # The Lunars p.90: "Lunars have no Caste Abilities, and Abilities are not
+    # divided along caste lines" — their castes carry caste_attributes instead.
+    # Grouping the Ability roster by caste therefore produced NOTHING for a Lunar,
+    # leaving the editor's Abilities panel and the sheet's Abilities block blank.
+    # They fall back to the default War / Life / Wisdom grouping printed on the
+    # canonical 1e Lunar sheet (images/Lunar/character sheet.png).
+    groups = view.ability_group_defs(rs, "Lunar")
+    assert [label for label, _ in groups] == ["War", "Life", "Wisdom"]
+    assert [len(abilities) for _, abilities in groups] == [10, 10, 5]
+    listed = [a for _, abilities in groups for a in abilities]
+    assert sorted(listed, key=lambda a: a.value) == sorted(A, key=lambda a: a.value)
+    assert A.MARTIAL_ARTS in dict(groups)["War"]
+    assert A.CRAFT in dict(groups)["Life"]
+    assert A.OCCULT in dict(groups)["Wisdom"]
+
+    rows = view.build_sheet_view(rs, _lunar(caste="full-moon")).ability_groups
+    assert [label for label, _ in rows] == ["War", "Life", "Wisdom"]
+    assert sum(len(r) for _, r in rows) >= len(list(A))
+
+
+def test_ability_caste_splats_still_group_by_caste(rs):
+    groups = view.ability_group_defs(rs, "Solar")
+    assert [label for label, _ in groups] == ["Dawn", "Zenith", "Twilight", "Night", "Eclipse"]
+    assert all(len(abilities) == 5 for _, abilities in groups)
+
+
+def test_form_library_is_free_form_and_never_validated(rs):
+    # The Form Library is a narrative record (Totem + the animal shapes taken), not
+    # a rated trait: no cost, no cap, no reference into the RuleSet. It must not
+    # affect chargen legality or the XP audit at all.
+    c = _lunar(caste="full-moon")
+    before = [i.code for i in validate.validate(rs, c)]
+    before_chargen = [i.code for i in validate.validate_chargen(rs, c)]
+
+    c.totem = "Grey Wolf"
+    c.animal_forms = [AnimalForm(name="Grey Wolf", notes="totem; taken at the Silver Pact"),
+                      AnimalForm(name="Hawk"), AnimalForm(name="River Otter")]
+
+    assert [i.code for i in validate.validate(rs, c)] == before
+    assert [i.code for i in validate.validate_chargen(rs, c)] == before_chargen
+
+    locked = _locked_lunar(caste="full-moon")
+    locked.totem = "Tiger"
+    locked.animal_forms = [AnimalForm(name="Tiger")]
+    assert not [i for i in advancement.validate_xp(rs, locked) if i.code == "xp-overspend"]
+
+
+def test_form_library_round_trips_and_old_saves_default_it(tmp_path):
+    from exalted_builder import persistence
+    c = _lunar(caste="changing-moon")
+    c.totem = "Raven"
+    c.animal_forms = [AnimalForm(name="Raven", notes="messenger form")]
+    path = tmp_path / "f.character.json"
+    persistence.save_character(c, path)
+    back = persistence.load_character(path)
+    assert back.totem == "Raven"
+    assert [(f.name, f.notes) for f in back.animal_forms] == [("Raven", "messenger form")]
+
+    # a save written before the Form Library existed still loads
+    legacy = Character(id="old", name="Old", exalt_type="Lunar", caste="no-moon")
+    assert legacy.totem == "" and legacy.animal_forms == []
+
+
+def test_form_library_is_data_gated_to_splats_that_have_one(rs):
+    # ui/picker offers the Form Library page off ExaltDefinition.form_library, so a
+    # later shapeshifting splat opts in as data rather than by a code change.
+    assert rs.exalt_for("Lunar").form_library is True
+    for other in ("Solar", "Dragon-Blooded", "Abyssal"):
+        assert rs.exalt_for(other).form_library is False
+
+
+def test_sheet_view_exposes_the_form_library(rs):
+    c = _lunar(caste="full-moon")
+    c.totem = "Snow Leopard"
+    c.animal_forms = [AnimalForm(name="Snow Leopard"), AnimalForm(name="Ibex", notes="mountain")]
+    sv = view.build_sheet_view(rs, c)
+    assert sv.totem == "Snow Leopard"
+    assert sv.animal_forms == [("Snow Leopard", ""), ("Ibex", "mountain")]
+
+
+def test_sheet_lists_beastman_gift_purchases_as_charm_rows(rs):
+    # Regression: Deadly Beastman Transformation lives on character.beastman_gifts,
+    # not character.charms, so the sheet's `for cid in character.charms` loop skipped
+    # it entirely — a bought DBT simply did not appear. Ox-Body already had this
+    # special case; the Gift Charm needs the identical one.
+    c = _lunar(caste="full-moon")
+    c.attributes[AT.CHARISMA] = 2
+    c.charms = ["lunar.shapeshifting.finding-the-spirits-shape"]
+    assert not [r for r in view.build_sheet_view(rs, c).charms
+                if "Beastman" in r.name]
+
+    c.beastman_gifts = [BeastmanGiftPurchase(gifts=["bestial-reflexes", "gift-of-hands"]),
+                        BeastmanGiftPurchase(gifts=["lightning-speed"])]
+    rows = [r for r in view.build_sheet_view(rs, c).charms if "Beastman" in r.name]
+    assert len(rows) == 2                      # one row per PURCHASE, not per Gift
+    assert "Bestial Reflexes" in rows[0].name and "Gift of Hands" in rows[0].name
+    assert "Lightning Speed" in rows[1].name
+
+
+def test_xp_log_labels_a_gift_purchase_by_its_gifts(rs):
+    # The XP-log presenter had no beastman_gifts branch, so a bought DBT showed the
+    # raw target string ("beastman_gifts") instead of a readable label.
+    c = _locked_lunar(caste="full-moon")
+    c.attributes[AT.CHARISMA] = 2
+    c.charms = ["lunar.shapeshifting.finding-the-spirits-shape"]
+    c.xp_earned = 100
+    advancement.learn_gift(rs, c, ["bestial-reflexes", "gift-of-hands"])
+    label = view.build_xp_log(rs, c)[-1].label
+    assert label != "beastman_gifts"
+    assert "Bestial Reflexes" in label and "Gift of Hands" in label

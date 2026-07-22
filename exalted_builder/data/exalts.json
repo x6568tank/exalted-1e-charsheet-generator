@@ -72,6 +72,7 @@
     "highest_magic_circle_id": "Celestial",
     "ox_body_charm_id": "lunar.endurance.ox-body-technique",
     "gift_charm_id": "lunar.shapeshifting.deadly-beastman-transformation",
+    "form_library": true,
     "caste_noun": "Caste",
     "tier": "Celestial"
   }

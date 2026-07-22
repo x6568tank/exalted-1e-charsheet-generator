@@ -160,6 +160,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     def body() -> None:
         caste_def = ruleset.castes.get(character.caste)
         caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
+        caste_attributes = set(caste_def.caste_attributes) if caste_def else set()
         # chargen budget for THIS character (splat + origin), so panel headers show
         # the right numbers (Solar 8/6/4·25; DB Dynastic 7/6/4·35, Outcaste ·25).
         b = ruleset.budgets_for(character.exalt_type, character.origin)
@@ -176,8 +177,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                     if caste_def.description:
                         ui.label(caste_def.description).classes("text-xs")
-                    ui.label(f"{caste_noun} Abilities: " + ", ".join(
-                        _label(a.value) for a in caste_def.caste_abilities)).classes("text-xs italic")
+                    # A caste sets caste_abilities OR caste_attributes, never both —
+                    # Lunars have no Caste Abilities at all (The Lunars p.90).
+                    if caste_def.caste_attributes:
+                        ui.label(f"{caste_noun} Attributes: " + ", ".join(
+                            _label(a.value) for a in caste_def.caste_attributes)).classes("text-xs italic")
+                    elif caste_def.caste_abilities:
+                        ui.label(f"{caste_noun} Abilities: " + ", ".join(
+                            _label(a.value) for a in caste_def.caste_abilities)).classes("text-xs italic")
                     if caste_def.anima_powers:
                         ui.separator()
                         ui.label("Anima Power").classes("text-xs font-semibold").style(f"color:{pal.accent}")
@@ -237,6 +244,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         show_spent()
                         for a in members:
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                                # Lunar Caste Attributes are the parallel to other
+                                # splats' Caste Abilities (p.90) — mark them the same way.
+                                ui.label("●" if a in caste_attributes else "").classes(
+                                    "text-xs w-3").style(f"color:{pal.accent}")
                                 ui.label(_label(a.value)).classes("text-sm w-28")
                                 # update this column's tally live as its dots change
                                 dots(lambda a=a: character.attributes[a],
@@ -246,13 +257,13 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
         # abilities (by ability-caste group)
         with panel(f"Abilities ({b.ability_dots} dots; ≥{b.ability_min_caste_favored} caste/favoured; ≤{b.ability_cap_pre_bp} each pre-bonus)"):
-            groups = [(cd.label, cd.caste_abilities) for cd in ruleset.castes.values()
-                      if cd.exalt_type == character.exalt_type]
+            groups = viewmod.ability_group_defs(ruleset, character.exalt_type)
             for start in range(0, len(groups), 3):
                 with ui.row().classes("w-full gap-2 no-wrap"):
                     for group_label, abilities in groups[start:start + 3]:
                         with ui.column().classes("flex-1 gap-1"):
-                            ui.label(group_label).classes("text-xs font-semibold").style(f"color:{pal.accent}")
+                            if group_label:
+                                ui.label(group_label).classes("text-xs font-semibold").style(f"color:{pal.accent}")
                             for a in abilities:
                                 mark = "●" if a in caste_abilities else ("✦" if a in character.favored_abilities else "")
                                 with ui.row().classes("w-full items-center gap-1 no-wrap"):
@@ -434,7 +445,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                   on_change=lambda e, p=p: set_health_total(p, int(e.value or 0))).classes("w-16")
 
         # charms/spells (read-only here; the picker is the next slice)
-        with panel(f"Charms ({len(character.charms) + len(character.ox_body)}) & Spells ({len(character.spells)}) — edit via the picker"):
+        # Ox-Body and Deadly Beastman Transformation purchases are Charm picks too,
+        # and live outside character.charms — count them or the header undercounts.
+        _charm_picks = (len(character.charms) + len(character.ox_body)
+                        + len(character.beastman_gifts))
+        with panel(f"Charms ({_charm_picks}) & Spells ({len(character.spells)}) — edit via the picker"):
             view = viewmod.build_sheet_view(ruleset, character)
             for c in view.charms:
                 ui.label(f"{c.name} · {c.category}").classes("text-xs")

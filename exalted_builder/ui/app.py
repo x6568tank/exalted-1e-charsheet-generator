@@ -113,7 +113,8 @@ def render_sheet(view: viewmod.SheetView) -> None:
             with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
                 for group_label, rows in groups[chunk_start:chunk_start + 3]:
                     with _panel().classes("flex-1"):
-                        ui.label(group_label).classes("text-xs font-semibold text-center w-full").style(f"color:{pal.accent}")
+                        if group_label:
+                            ui.label(group_label).classes("text-xs font-semibold text-center w-full").style(f"color:{pal.accent}")
                         for r in rows:
                             _trait_row(r)
 
@@ -183,6 +184,13 @@ def render_sheet(view: viewmod.SheetView) -> None:
                              f"Mob{a.mobility_penalty:+d} Ftg{a.fatigue}{art}{mat}").classes("text-xs")
                 if not view.weapons and not view.armor:
                     ui.label("—").classes("text-sm text-gray-400")
+                if view.totem or view.animal_forms:
+                    ui.separator()
+                    ui.label("Forms").classes("text-xs font-semibold").style(f"color:{pal.accent}")
+                    if view.totem:
+                        ui.label(f"Totem: {view.totem}").classes("text-xs")
+                    for animal, note in view.animal_forms:
+                        ui.label(f"{animal}{' · ' + note if note else ''}").classes("text-xs")
                 if view.anima:
                     ui.separator()
                     ui.label("Anima").classes("text-xs font-semibold").style(f"color:{pal.accent}")

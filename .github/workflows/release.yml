@@ -1,0 +1,54 @@
+name: build-release
+
+on:
+  push:
+    tags: ["v*"]          # a tag like v0.4.2 triggers a real release
+  workflow_dispatch: {}   # ...and you can run it by hand to test the build
+
+permissions:
+  contents: write         # GITHUB_TOKEN is read-only by default; releases need write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false    # a Windows failure shouldn't discard the Linux artifact
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            asset: ExaltedBuilder-linux-x86_64
+            binary: dist/ExaltedBuilder
+          - os: windows-latest
+            asset: ExaltedBuilder-windows-x86_64.exe
+            binary: dist/ExaltedBuilder.exe
+          # - os: macos-latest          # arm64; unsigned -> Gatekeeper quarantines it
+          #   asset: ExaltedBuilder-macos-arm64
+          #   binary: dist/ExaltedBuilder
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"        # build on your requires-python floor
+
+      - name: Install app + build tools
+        run: python -m pip install ".[desktop]"   # non-editable: matches what ships
+
+      - name: Build
+        run: pyinstaller pack/exalted-builder.spec
+
+      - name: Rename artifact
+        shell: bash                     # git-bash exists on the Windows runner too
+        run: mv "${{ matrix.binary }}" "${{ matrix.asset }}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset }}

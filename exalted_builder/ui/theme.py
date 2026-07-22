@@ -36,6 +36,13 @@ class Palette:
         return f"bg-{self.fam}-50/60 border border-{self.fam}-900/30"
 
     @property
+    def card_solid(self) -> str:
+        """Card classes with an OPAQUE fill. For dialogs and anything else that
+        floats over the page: the 50/60 tint `card` uses lets the content behind it
+        show through, which reads as a rendering fault rather than a design."""
+        return f"bg-{self.fam}-50 border border-{self.fam}-900/30"
+
+    @property
     def card_soft(self) -> str:
         """A lighter 40/20 card tint (info boxes)."""
         return f"bg-{self.fam}-50/40 border border-{self.fam}-900/20"
@@ -80,10 +87,20 @@ _ABYSSAL = Palette(
     bg="#ededed", node_bg="#f7f7f7", button="dark", fam="neutral",
 )
 
+# Lunar / Children of the Moon: moonsilver — a cool silver-blue in place of the
+# Solar gold, on a pale silvered parchment. `fam` is the Tailwind slate family so
+# card tints and borders read as brushed metal rather than sky blue.
+_LUNAR = Palette(
+    splat_label="Lunar",
+    accent="#3f5f80", accent_dark="#27405a", ink="#1f2a35",
+    bg="#eef2f6", node_bg="#f9fbfd", button="blue-grey-8", fam="slate",
+)
+
 _BY_SPLAT: dict[str, Palette] = {
     "Solar": _SOLAR,
     "Dragon-Blooded": _DRAGON_BLOODED,
     "Abyssal": _ABYSSAL,
+    "Lunar": _LUNAR,
 }
 
 

@@ -56,7 +56,7 @@ Work on a given splat starts only once its rulebook images land in
 | Solar | Amber/Gold (default) | DONE |
 | Abyssal | Black on ash | DONE |
 | Dragon-Blooded | Vermillion | DONE |
-| Lunar | Silverish-blue | DONE (chargen, full Charm catalogue, Combos, Gifts; picker UI not yet clicked through by a human) |
+| Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; picker UI not yet clicked through by a human) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
 | Alchemical | Brass | waiting on Alchemical chargen work |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
@@ -165,7 +165,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (466 tests passing)
+## Status (478 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -243,6 +243,22 @@ picker), `ui/combos.py` (Combo builder), `ui/xp.py` (post-lock XP tab),
   `martial_arts:*` style category. Spells has a Circle dropdown offering every 
   circle the character can reach across BOTH tracks, one full-width row per spell 
   (add/remove/locked, cost, description, lock reason).
+- **Form Library page (Lunar).** A fourth group on the Charms tab's toggle, beside
+  Abilities / Martial Arts / Spells: the character's Totem plus every animal shape
+  they have taken. Deliberately FREE — narrative bookkeeping the Storyteller
+  adjudicates, so `Character.totem` / `Character.animal_forms` (`AnimalForm`) carry
+  no cost, no cap and no reference into the RuleSet, and never enter chargen
+  validation, the XP audit or any derivation. Same isolation as play-state, for the
+  same reason. Gated on `ExaltDefinition.form_library` (data, not a splat check), so
+  a later shapeshifting splat opts in without a code change.
+- **The charm graph draws cross-category prerequisites.** `build_charm_graph`
+  pulls a category's out-of-category prerequisites in transitively and flags them
+  `external` (dashed, smaller node); `roots` means "nothing in the graph points at
+  it", not "has no prerequisites". Without this a cross-tree category has no
+  visible root and Cytoscape's breadthfirst layout strings its orphaned branches
+  into one long line — how the bug was spotted, on Lunar Body Enhancement, which
+  is three separate trees all hanging off Shapeshifting's Shaping the Ideal Form.
+  The sourcebook's own diagram boxes draw those foreign Charms too (p.132, p.135).
 - **Chargen-vs-play is a MODE, not disabled tabs.** Edit and XP share one tab
   slot (Edit pre-lock, XP post-lock). Charms and Combos stay on the bar both
   stages and switch behaviour: pre-lock they pick freely against the chargen
@@ -295,6 +311,18 @@ authored and tested (466 tests). **Not yet done:** a human has not clicked
 through the picker UI in a browser — see the caveats on the Gift-picker widget
 below, which is the least-exercised piece of this whole batch.
 
+- **No Caste Abilities at all (p.90)** — "Abilities are not divided along caste
+  lines," so `CasteDefinition.caste_abilities` is empty for every Lunar caste.
+  Anything that laid out the Ability roster by caste therefore rendered BLANK for
+  a Lunar (the editor's Abilities panel and the sheet's Abilities block both did).
+  `ui/view.ability_group_defs` is the one place that decides the grouping now: by
+  caste when the splat has ability-castes, otherwise `view.DEFAULT_ABILITY_GROUPS`
+  — **War / Life / Wisdom**, as printed on the canonical 1e Lunar sheet
+  (`images/Lunar/character sheet.png`). That is the DEFAULT for any splat without
+  ability-castes; caste grouping is the override. It is a sheet-layout convention
+  with nothing mechanical keyed off it, so it lives in the presenter, not `data/`.
+  The editor's caste-info box and Attribute panel show `caste_attributes` in the
+  slot where other splats show Caste Abilities.
 - **Lunar Charms are Attribute-keyed, not Ability-keyed (p.90-93, p.122)** — the
   single biggest structural difference from every other splat. `Charm.min_attribute`
   (an `AttributeName` value) is the new parallel to `min_ability`; a Charm sets
@@ -361,21 +389,31 @@ below, which is the least-exercised piece of this whole batch.
   (Lunar-only today, `""` elsewhere), mirroring `ox_body_charm_id`.
   `Character.beastman_gifts: list[BeastmanGiftPurchase]` holds one record per
   purchase (its `gifts` list, NOT `character.charms` — same reasoning as
-  `ox_body`); `models/rules.py`/`validate.py`/`costs.py`/`advancement.py`/
+  `ox_body`). **Anything that enumerates `character.charms` must special-case BOTH
+  repeatable lists**: the sheet's Charm rows, the XP-log label, and the chargen
+  Charm-pick counters in `ui/picker.py` and `ui/editor.py` each had an ox_body
+  branch and no gift branch, so a bought DBT was invisible on the sheet, logged as
+  the raw string "beastman_gifts", and uncounted against the Charm pool. Grep
+  `ox_body` across the UI when adding a third such Charm. `models/rules.py`/`validate.py`/`costs.py`/`advancement.py`/
   `lifecycle.py` all got the same treatment ox_body already has (cap/prereq/
   repeat-cap checks, BP/XP pricing as an ordinary Charm pick per purchase,
   snapshot copy, undo). The +Attribute points each purchase also grants
   (war-form Strength/Dexterity/Stamina) are deliberately NOT tracked — per the
   human's call, they only apply while the Lunar is actually in hybrid form,
   the same transient territory as the existing combat/attack-derivation
-  out-of-scope decision. Picker UI: `ui/picker.py` got a `gift_detail()` panel
-  (checkbox multi-select respecting prerequisites/repeat caps, wired the same
-  way as `ox_body_detail()`) and `ui/view.build_charm_graph` got the same
-  owned/available/locked special case ox_body's node already has. **This
-  picker widget has not been clicked through in a browser** — no browser
-  tooling was available this session, so it's verified only by code review
-  against the existing Ox-Body panel's patterns and the NiceGUI checkbox API
-  signature, not by hand. Test it first when Lunar UI testing starts.
+  out-of-scope decision. Picker UI: `ui/picker.py`'s `gift_detail()` panel
+  shows what has been bought plus an **Add Gifts** button; the choosing happens in
+  a dialog (`open_gift_dialog()`) with one row per Gift — name, repeat marker,
+  full description, and the reason it is unpickable. 19 Gifts do NOT fit in the
+  sticky detail card the way Ox-Body's two variants do, which is why this diverges
+  from `ox_body_detail()`. Selection is dialog-local so Cancel is a true cancel,
+  unchecking a Gift cascades away anything selected that depended on it, and the
+  dialog says the p.126 list is "Sample Gifts", not exhaustive. `ui/view.build_charm_graph`
+  got the same owned/available/locked special case ox_body's node already has.
+  **Verified by server-render smoke test, NOT clicked through** — the dialog was
+  served and its HTML checked for all 19 Gifts, their descriptions, the repeat
+  markers and the prerequisite lock reasons, with a clean log; but no human has
+  driven the checkboxes or the Confirm path. Test that first.
 - **Attributes are 9/7/5** (Casteless: 8/6/4, not a typo of Solar's 8/6/4 — same
   numbers, different reason). The Caste Attribute BP discount
   (`BonusPointCosts.attribute_caste_favored`, e.g. Lunar "4, 3 if a Caste
@@ -404,6 +442,9 @@ below, which is the least-exercised piece of this whole batch.
   and shouldn't try to check. Modeled on `PlayState.renown`/`.face` — the same
   ST-discretion, no-auto-accounting precedent as Limit — so it never touches
   chargen validation, the XP audit, or permanent derivations.
+- **Theme:** `theme._LUNAR` — moonsilver, a cool silver-blue accent (`#3f5f80`) on
+  a pale silvered parchment, `fam="slate"` so card tints read as brushed metal
+  rather than sky blue.
 - **Data authored:** `castes.json` (Full Moon/Changing Moon/No Moon/Casteless,
   with anima powers), `exalts.json` Lunar row, `chargen_budgets.json` `"Lunar"`
   + `"Lunar:casteless"` rows, `costs_bonus.json` Lunar row (Charm BP 7/5, Attribute

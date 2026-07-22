@@ -32,7 +32,7 @@ from nicegui import ui
 
 from .. import persistence, rules_db
 from ..engine import advancement, costs, validate
-from ..models.character import BeastmanGiftPurchase, Character, OxBodyPurchase
+from ..models.character import AnimalForm, BeastmanGiftPurchase, Character, OxBodyPurchase
 from ..models.rules import RuleSet, circle_kind
 from . import theme
 from . import view as viewmod
@@ -61,6 +61,12 @@ def _style(pal: theme.Palette) -> list[dict]:
             "background-color": "#86efac", "border-color": "#15803d", "border-width": 3}},
         {"selector": "node.locked", "style": {
             "background-color": "#e5e7eb", "border-color": "#cbd5e1"}},
+        # Prerequisites pulled in from another category: same owned/available/locked
+        # fill, but drawn smaller with a dashed border so it is obvious they are
+        # context for this tree rather than members of it.
+        {"selector": "node.external", "style": {
+            "width": 30, "height": 30, "border-style": "dashed",
+            "font-style": "italic", "font-weight": 400}},
         {"selector": "edge", "style": {
             "width": 2, "line-color": "#9ca3af", "target-arrow-color": "#9ca3af",
             "target-arrow-shape": "triangle", "curve-style": "bezier", "arrow-scale": 1.1}},
@@ -68,7 +74,9 @@ def _style(pal: theme.Palette) -> list[dict]:
 
 
 def _elements(graph: viewmod.CharmGraph) -> list[dict]:
-    nodes = [{"data": {"id": n.id, "label": n.label}, "classes": n.state} for n in graph.nodes]
+    nodes = [{"data": {"id": n.id, "label": n.label},
+              "classes": f"{n.state} external" if n.external else n.state}
+             for n in graph.nodes]
     edges = [{"data": {"id": f"{s}__{t}", "source": s, "target": t}} for s, t in graph.edges]
     return nodes + edges
 
@@ -141,12 +149,21 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     _spell_circles = [ce for ce in viewmod.CIRCLE_DISPLAY_ORDER
                       if ce.value in {r.circle for r in viewmod.build_spell_picker(ruleset, character)}]
     _has_spells = bool(_spell_circles)
+    _exalt_def = ruleset.exalt_for(character.exalt_type)
+    _has_forms = bool(_exalt_def and _exalt_def.form_library)
     GROUPS = {"abilities": "Abilities"}
     if _has_styles:
         GROUPS["styles"] = "Martial Arts"
     if _has_spells:
         GROUPS["spells"] = "Spells"
         state["circle"] = _spell_circles[0].value
+    if _has_forms:
+        GROUPS["forms"] = "Form Library"
+
+    def _is_graph_page() -> bool:
+        """The two Charm-tree pages own the Cytoscape canvas and its furniture; the
+        Spells and Form Library pages render a plain panel in its place."""
+        return state["group"] in ("abilities", "styles")
     widgets: dict = {}                          # holds the live group toggle + category <select>
 
     # ---- Immaculate-vs-standard chargen path banner (Dragon-Blooded) ------- #
@@ -184,8 +201,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                      ).classes("text-xs text-gray-600")
             ui.label("Undo a purchase on the XP tab.").classes("text-xs text-gray-500")
         else:
-            # Each Ox-Body purchase consumes a Charm pick from the shared pool of 10.
-            charm_picks = len(character.charms) + len(character.ox_body)
+            # Each Ox-Body and each Deadly Beastman Transformation purchase consumes a
+            # Charm pick from the shared pool, exactly as engine.validate prices them —
+            # both live on their own lists, so neither is inside character.charms.
+            charm_picks = (len(character.charms) + len(character.ox_body)
+                           + len(character.beastman_gifts))
             ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
                 "text-sm font-semibold").style(f"color:{pal.accent}")
             _immaculate_path_banner()
@@ -332,10 +352,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                      "Needs at least 1 dot of Endurance.").classes("text-xs text-gray-500")
 
     # ---- Deadly Beastman Transformation Gifts (repeatable, multi-pick; Lunar) -- #
-    # Each purchase grants a fixed number of Gift picks (2 first, 1 after, p.124);
-    # `_gift_selection` holds the in-progress checkbox state for the NEXT purchase
-    # only (cleared once that purchase is added/bought or the character changes).
-    _gift_selection: set[str] = set()
+    # Each purchase grants a fixed number of Gift picks (2 first, 1 after, p.124).
+    # There are 19 Gifts (p.126-127) with their own prerequisite chains, which is far
+    # too much to cram into the sticky detail card the way Ox-Body's two variants fit:
+    # the detail card just shows what has been bought and an Add button, and the
+    # choosing happens in a dialog with room for every Gift's description.
 
     def remove_gift_purchase(index: int) -> None:
         if in_play():                     # bought with XP: undo it from the ledger
@@ -344,12 +365,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             del character.beastman_gifts[index]
             detail.refresh(); update_graph()
 
-    def confirm_gift_purchase() -> None:
-        keys = sorted(_gift_selection)
+    def commit_gift_purchase(keys: list[str]) -> bool:
+        """Apply one purchase of the Gift Charm. True when the character changed."""
         if in_play():
             cost = costs.gift_cost(ruleset, character)
             if not _buy(lambda: advancement.learn_gift(ruleset, character, keys)):
-                return
+                return False
             ui.notify(f"Bought Deadly Beastman Transformation ({', '.join(keys)}) — "
                       f"{cost} XP", type="positive")
         else:
@@ -358,12 +379,120 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             if charm is None or len(character.beastman_gifts) >= cap:
                 ui.notify("Deadly Beastman Transformation: already bought once per "
                           "point of Essence.", type="warning")
-                return
+                return False
             character.beastman_gifts.append(BeastmanGiftPurchase(gifts=keys))
             ui.notify(f"Added Deadly Beastman Transformation ({', '.join(keys)})",
                       type="positive")
-        _gift_selection.clear()
         detail.refresh(); update_graph()
+        return True
+
+    def open_gift_dialog() -> None:
+        """The Gift chooser: every Gift on p.126-127 as its own row — name, whether it
+        repeats, its description, and (when it cannot be picked) the reason why. The
+        selection is local to the dialog and only lands on the character on Confirm,
+        so Cancel is a true cancel."""
+        charm = validate.gift_charm(ruleset, character)
+        if charm is None:
+            return
+        bought = len(character.beastman_gifts)
+        needed = validate.gifts_per_purchase(charm, bought)
+        known = validate.known_gift_keys(character)
+        taken: dict[str, int] = {}
+        for k in known:
+            taken[k] = taken.get(k, 0) + 1
+        labels = {v.key: v.label for v in charm.variants}
+        selection: list[str] = []          # ordered, so the cascade prune is stable
+        gift_xp = costs.gift_cost(ruleset, character) if in_play() else 0
+
+        def _blocked(key_set: set[str], v) -> str:
+            """Why Gift `v` cannot be picked, given `key_set` as the Gifts held; ''
+            when it can. A Gift chosen in the SAME purchase satisfies a prerequisite
+            (p.124), so key_set includes the pending selection."""
+            if v.max_purchases - taken.get(v.key, 0) <= 0:
+                return ("Already taken" if v.max_purchases == 1
+                        else f"Taken {taken.get(v.key, 0)}/{v.max_purchases}")
+            for group in v.prerequisites:
+                if not any(g in key_set for g in group):
+                    return "Requires " + " or ".join(labels.get(g, g) for g in group)
+            return ""
+
+        def _prune() -> None:
+            """Unchecking a Gift must drop anything selected that depended on it —
+            otherwise the dialog could confirm a chain whose root is gone."""
+            changed = True
+            while changed:
+                changed = False
+                for key in list(selection):
+                    v = next(x for x in charm.variants if x.key == key)
+                    held = set(known) | {k for k in selection if k != key}
+                    if _blocked(held, v):
+                        selection.remove(key)
+                        changed = True
+
+        def _flip(key: str, on: bool) -> None:
+            if on:
+                if key not in selection:
+                    selection.append(key)
+            else:
+                if key in selection:
+                    selection.remove(key)
+                _prune()
+            body.refresh()
+
+        with ui.dialog() as dialog, ui.card().classes(
+                f"w-[46rem] max-w-full p-4 gap-2 {pal.card_solid}"):
+            ui.label(charm.name).classes("text-base font-bold tracking-widest").style(
+                f"color:{pal.accent}")
+            # p.126 heads the list "Sample Gifts … these are not the only possible
+            # gifts": the roster is illustrative, and anything else is an ST call, so
+            # say so rather than implying these 19 are the whole rule.
+            ui.label("Sample Gifts (p.126-127) — the book's list is not exhaustive; "
+                     "anything else is a Storyteller call.").classes("text-xs text-gray-500")
+
+            @ui.refreshable
+            def body() -> None:
+                held = set(known) | set(selection)
+                ui.label(f"Choose {needed} Gift{'s' if needed != 1 else ''} for this "
+                         f"purchase — {len(selection)}/{needed} selected.").classes(
+                    "text-xs font-semibold")
+                with ui.column().classes("w-full gap-0 max-h-[55vh] overflow-y-auto pr-2"):
+                    for v in charm.variants:
+                        picked = v.key in selection
+                        # A pending pick is judged WITHOUT itself, or it would read as
+                        # its own prerequisite; unpicked ones see the full held set.
+                        reason = _blocked(held - ({v.key} if picked else set()), v)
+                        full = len(selection) >= needed
+                        disabled = not picked and bool(reason or full)
+                        with ui.row().classes("w-full items-start no-wrap gap-2 py-1"):
+                            cb = ui.checkbox(
+                                value=picked,
+                                on_change=lambda e, k=v.key: _flip(k, e.value)).props("dense")
+                            if disabled:
+                                cb.props("disable")
+                            with ui.column().classes("flex-1 min-w-0 gap-0"):
+                                with ui.row().classes("items-baseline gap-2 no-wrap"):
+                                    ui.label(v.label).classes(
+                                        "text-sm " + ("text-gray-400" if disabled else "font-medium"))
+                                    if v.max_purchases > 1:
+                                        ui.label(f"repeatable ×{v.max_purchases}").classes(
+                                            "text-xs text-gray-400")
+                                    if reason:
+                                        ui.label(reason).classes("text-xs text-amber-700 italic")
+                                if v.description:
+                                    ui.label(v.description).classes("text-xs text-gray-500")
+                ui.separator()
+                with ui.row().classes("w-full items-center justify-end gap-2 no-wrap"):
+                    ui.button("Cancel", on_click=dialog.close).props("flat dense no-caps")
+                    confirm = ui.button(
+                        f"Buy · {gift_xp} XP" if in_play() else "Add",
+                        icon="shopping_cart" if in_play() else "add",
+                        on_click=lambda: (commit_gift_purchase(sorted(selection))
+                                          and dialog.close())).props("dense no-caps color=positive")
+                    if len(selection) != needed or (in_play() and not _afford(gift_xp)):
+                        confirm.props("disable")
+
+            body()
+        dialog.open()
 
     def gift_detail() -> None:
         charm = validate.gift_charm(ruleset, character)
@@ -379,6 +508,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         ui.separator()
         ui.label(f"Bought {bought} / {cap}  ·  once per point of Essence").classes(
             "text-xs font-semibold")
+        if not character.beastman_gifts:
+            ui.label("No Gifts yet.").classes("text-xs text-gray-400")
         for i, p in enumerate(character.beastman_gifts):
             with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
                 ui.label("• " + ", ".join(labels.get(k, k) for k in p.gifts)).classes("text-xs")
@@ -391,36 +522,16 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                      "Needs at least 1 point of Essence.").classes("text-xs text-gray-500")
             return
         needed = validate.gifts_per_purchase(charm, bought)
-        known = validate.known_gift_keys(character)
-        counts: dict[str, int] = {}
-        for k in known:
-            counts[k] = counts.get(k, 0) + 1
-        available_now = set(known) | _gift_selection
-        ui.label(f"Choose {needed} Gift(s) for this purchase "
-                 f"({len(_gift_selection)}/{needed} selected):").classes("text-xs font-semibold")
-        for v in charm.variants:
-            remaining = v.max_purchases - counts.get(v.key, 0)
-            prereq_ok = not v.prerequisites or all(
-                any(pid in available_now for pid in group) for group in v.prerequisites)
-            checked = v.key in _gift_selection
-
-            def _flip(e, k=v.key) -> None:
-                if e.value:
-                    _gift_selection.add(k)
-                else:
-                    _gift_selection.discard(k)
-                detail.refresh()
-
-            cb = ui.checkbox(v.label, value=checked, on_change=_flip).classes("text-xs")
-            if not checked and (remaining <= 0 or not prereq_ok or len(_gift_selection) >= needed):
-                cb.props("disable")
-        gift_cost = costs.gift_cost(ruleset, character) if in_play() else 0
-        confirm = ui.button(
-            f"Buy purchase · {gift_cost} XP" if in_play() else "Add purchase",
-            icon="shopping_cart" if in_play() else "add",
-            on_click=confirm_gift_purchase).props("dense color=positive")
-        if len(_gift_selection) != needed or (in_play() and not _afford(gift_cost)):
-            confirm.props("disable")
+        gift_xp = costs.gift_cost(ruleset, character) if in_play() else 0
+        add = ui.button(f"Add Gifts · {gift_xp} XP" if in_play() else "Add Gifts",
+                        icon="add", on_click=open_gift_dialog).props("dense no-caps color=positive")
+        if in_play() and not _afford(gift_xp):
+            add.props("disable")
+            ui.label(f"Only {advancement.xp_available(character)} XP available.").classes(
+                "text-xs text-gray-500")
+        ui.label(f"{needed} Gift{'s' if needed != 1 else ''} with this purchase "
+                 f"({len(charm.variants)} to choose from, p.126-127).").classes(
+            "text-xs text-gray-500")
 
     # ---- spell picker (spells share the Charm pool; core p.100) ----------- #
     def toggle_spell(spell_id: str) -> None:
@@ -541,6 +652,47 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                             if locked:
                                 ui.label(r.reason).classes("text-xs text-amber-700 italic")
 
+    # ---- Form Library ----------------------------------------------------- #
+    def add_form() -> None:
+        character.animal_forms.append(AnimalForm())
+        forms_panel.refresh()
+
+    def remove_form(index: int) -> None:
+        del character.animal_forms[index]
+        forms_panel.refresh()
+
+    @ui.refreshable
+    def forms_panel() -> None:
+        """The Lunar Form Library: the character's Totem plus every animal shape they
+        have taken. Entirely free-form — no cost, no cap, no validation, and it is
+        never touched by the chargen budget or the XP audit. Which animals a Lunar
+        has heart's blood for is a narrative record the Storyteller adjudicates, so
+        this is a notepad, not a picker. Available pre- and post-lock alike, since
+        forms are gained in play, not bought."""
+        if state["group"] != "forms":
+            return
+        with ui.card().classes(f"w-full p-3 gap-3 {pal.card}"):
+            with ui.row().classes("w-full items-baseline gap-3"):
+                ui.label("Form Library").classes(
+                    "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                ui.label("Narrative record — no cost, no limit checked here.").classes(
+                    "text-xs text-gray-500")
+            ui.input("Totem", value=character.totem,
+                     on_change=lambda e: setattr(character, "totem", e.value)).classes("w-full")
+            ui.separator()
+            if not character.animal_forms:
+                ui.label("No forms recorded yet.").classes("text-sm text-gray-400")
+            for i, form in enumerate(character.animal_forms):
+                with ui.row().classes("w-full items-center no-wrap gap-2"):
+                    ui.input("Animal", value=form.name,
+                             on_change=lambda e, f=form: setattr(f, "name", e.value)).classes("w-56")
+                    ui.input("Notes", value=form.notes,
+                             on_change=lambda e, f=form: setattr(f, "notes", e.value)).classes("flex-1")
+                    ui.button(icon="delete", on_click=lambda _=None, i=i: remove_form(i)).props(
+                        "dense flat round size=sm color=negative")
+            ui.button("Add form", icon="add", on_click=add_form).props(
+                f"dense flat no-caps color={pal.button}")
+
     # ---- graph (re)build / update ---------------------------------------- #
     def init_graph() -> None:
         graph = viewmod.build_charm_graph(ruleset, character, state["category"])
@@ -590,7 +742,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     def update_graph() -> None:
         graph = viewmod.build_charm_graph(ruleset, character, state["category"])
-        states = {n.id: n.state for n in graph.nodes}
+        # `classes()` replaces the whole class list, so carry `external` along with
+        # the state or a foreign prerequisite loses its dashed styling on any repaint.
+        states = {n.id: f"{n.state} external" if n.external else n.state
+                  for n in graph.nodes}
         ui.run_javascript(f"""
         if (window.cy) {{
           var s = {json.dumps(states)};
@@ -658,17 +813,18 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     def _apply_group() -> None:
         """Show the graph furniture (category dropdown, legend, canvas, detail card)
-        on the two Charm-tree pages and hide it on the Spells page, which is a plain
-        list and has no selected node to describe. The Circle dropdown swaps in for
-        the Category one."""
-        graph_page = state["group"] != "spells"
+        on the two Charm-tree pages and hide it on the Spells and Form Library pages,
+        which are plain panels with no selected node to describe. The Circle dropdown
+        swaps in for the Category one on the Spells page only."""
+        graph_page = _is_graph_page()
         for key in ("category", "legend", "graph", "detail_card"):
             widget = widgets.get(key)
             if widget is not None:
                 widget.set_visibility(graph_page)
         if widgets.get("circle") is not None:
-            widgets["circle"].set_visibility(not graph_page)
+            widgets["circle"].set_visibility(state["group"] == "spells")
         spells_panel.refresh()
+        forms_panel.refresh()
 
     def set_group(value: str) -> None:
         """Switch between the ability pages, the martial-arts styles and the spell
@@ -680,7 +836,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if toggle is not None:
             toggle.set_value(value)   # re-entrant call returns early (value == state)
         _apply_group()
-        if value == "spells":
+        if not _is_graph_page():
             return
         opts = _visible_category_options()
         first = next(iter(opts), "")
@@ -696,8 +852,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         dropping one hides them again (falling back to a still-visible style, or to the
         Abilities group if the whole styles group just vanished)."""
         sel = widgets.get("category")
-        if sel is None or state["group"] == "spells":
-            return                     # the Spells page owns no category dropdown
+        if sel is None or not _is_graph_page():
+            return                     # only the graph pages own a category dropdown
         opts = _visible_category_options()
         if not opts:                   # every category in this group just got hidden
             set_group("abilities" if state["group"] == "styles" else "styles")
@@ -757,8 +913,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             widgets["graph"] = (ui.element("div").props("id=charm-graph")
                                 .style(f"height:720px;width:100%;border:1px solid {pal.graph_border};"
                                        f"border-radius:8px;background:{pal.node_bg}"))
-            # The Spells page renders here, in place of the graph.
+            # The Spells and Form Library pages render here, in place of the graph.
             spells_panel()
+            forms_panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes(f"w-full p-3 {pal.card}"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")

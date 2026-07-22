@@ -131,6 +131,16 @@ class BeastmanGiftPurchase(BaseModel):
     gifts: list[str] = Field(default_factory=list)
 
 
+class AnimalForm(BaseModel):
+    """One shape in a Lunar's Form Library — an animal whose heart's blood they have
+    taken and can wear. Deliberately FREE-FORM and unvalidated: it is a narrative
+    record, not a rated trait. There is no catalogue of animals to reference, no
+    cost, no cap checked here, and it never enters chargen validation or the XP
+    audit — same isolation as the play-state tracker, for the same reason."""
+    name: str = ""
+    notes: str = ""       # habitat, stats the ST assigned, when/where it was taken
+
+
 class HealthLevel(BaseModel):
     """An adjustment to the health track. Normally a *bonus* level granted by a
     Charm (e.g. Ox-Body Technique); with `removed=True` it instead *removes* a
@@ -242,6 +252,11 @@ class Character(BaseModel):
     concept: str = ""
     nature: str = ""
     anima: str = ""
+    # Lunar Form Library (the "Totem" field on the 1e Lunar sheet). Narrative only —
+    # see AnimalForm. Empty/unused for every other splat; old saves load with both
+    # at their defaults.
+    totem: str = ""
+    animal_forms: list[AnimalForm] = Field(default_factory=list)
 
     # --- current, canonical traits ---
     essence_rating: int = Field(default=2, ge=1)

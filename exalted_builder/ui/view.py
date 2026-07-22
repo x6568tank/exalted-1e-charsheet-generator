@@ -65,6 +65,7 @@ class CharmNode:
     state: str          # 'owned' | 'available' | 'locked'
     min_ability: int
     min_essence: int
+    external: bool = False   # a prerequisite drawn in from ANOTHER category
 
 
 @dataclass
@@ -72,7 +73,7 @@ class CharmGraph:
     category: str
     nodes: list[CharmNode]
     edges: list[tuple[str, str]]   # (prerequisite_id, charm_id)
-    roots: list[str]               # charm ids with no prerequisites
+    roots: list[str]               # charm ids with no prerequisite inside the graph
 
 
 @dataclass
@@ -152,10 +153,32 @@ def build_spell_detail(ruleset: RuleSet, character: Character, spell_id: str) ->
 def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> CharmGraph:
     """Assemble the prerequisite graph for one Charm category, tagging each node
     by the character's relationship to it: owned, available (learnable now), or
-    locked. Pure — eligibility comes from engine.validate."""
+    locked. Pure — eligibility comes from engine.validate.
+
+    Prerequisites that live in OTHER categories are drawn in too, transitively, and
+    flagged `external`. Without them a cross-tree tree has no visible root and its
+    branches fall apart into disconnected nodes — Lunar Body Enhancement is three
+    separate trees all hanging off Shapeshifting's Shaping the Ideal Form, and the
+    sourcebook's own diagrams draw those foreign prerequisites inside the box for
+    exactly this reason."""
     owned = set(character.charms)
-    charms = [c for c in ruleset.charms.values()
-              if c.category == category and validate.charm_matches_splat(character, c, ruleset)]
+    in_category = [c for c in ruleset.charms.values()
+                   if c.category == category and validate.charm_matches_splat(character, c, ruleset)]
+    category_ids = {c.id for c in in_category}
+
+    external_ids: set[str] = set()
+    frontier = [req for c in in_category for group in c.prerequisites for req in group]
+    while frontier:
+        req = frontier.pop()
+        if req in category_ids or req in external_ids:
+            continue
+        prereq = ruleset.charms.get(req)
+        if prereq is None:
+            continue
+        external_ids.add(req)
+        frontier.extend(r for group in prereq.prerequisites for r in group)
+
+    charms = in_category + [ruleset.charms[i] for i in external_ids]
     charms.sort(key=lambda c: c.id)
 
     ox_id = validate.ox_body_charm_id(ruleset, character)
@@ -176,12 +199,16 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str) -> 
             state = "available"
         else:
             state = "locked"
-        nodes.append(CharmNode(c.id, c.name, state, c.min_ability, c.min_essence))
+        nodes.append(CharmNode(c.id, c.name, state, c.min_ability, c.min_essence,
+                               external=c.id in external_ids))
 
     ids = {c.id for c in charms}
     edges = [(req, c.id) for c in charms for group in c.prerequisites
              for req in group if req in ids]
-    roots = [c.id for c in charms if not c.prerequisites]
+    # A node is a layout root when nothing inside the graph points at it — not merely
+    # when it has no prerequisites at all, which would orphan every cross-tree branch.
+    has_parent = {t for _, t in edges}
+    roots = [c.id for c in charms if c.id not in has_parent]
     return CharmGraph(category=category, nodes=nodes, edges=edges, roots=roots)
 
 
@@ -266,6 +293,12 @@ def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> s
         label = next((v.label for v in (charm.variants if charm else []) if v.key == entry.detail),
                      entry.detail)
         return f"Ox-Body: {label}"
+    if domain == "beastman_gifts":
+        charm = validate.gift_charm(ruleset, character)
+        labels = {v.key: v.label for v in (charm.variants if charm else [])}
+        # advancement.learn_gift logs the purchase's Gift keys joined by '|'
+        gifts = ", ".join(labels.get(k, k) for k in entry.detail.split("|") if k)
+        return f"{charm.name if charm else 'Beastman Gifts'}: {gifts}"
     return entry.target
 
 
@@ -333,6 +366,9 @@ class SheetView:
     concept: str
     nature: str
     anima: str
+    # Lunar Form Library (narrative only — see models.character.AnimalForm)
+    totem: str
+    animal_forms: list[tuple[str, str]]               # (animal, notes)
     essence_rating: int
     # traits
     attributes: list[tuple[str, list[TraitRow]]]      # (category, rows), ordered
@@ -361,6 +397,41 @@ class SheetView:
 def _label(value: str) -> str:
     """'martial_arts' -> 'Martial Arts'."""
     return value.replace("_", " ").title()
+
+
+# The DEFAULT Ability grouping, for splats whose Abilities are not divided along
+# caste lines: War / Life / Wisdom, as printed on the canonical 1e Lunar character
+# sheet (images/Lunar/character sheet.png). This is a sheet-layout convention, not
+# a rule — nothing mechanical keys off which of the three an Ability sits in, so it
+# lives here in the presenter rather than in data/. Splats that DO have ability
+# castes (Solar, Dragon-Blooded, Abyssal) override it with their caste grouping.
+DEFAULT_ABILITY_GROUPS: tuple[tuple[str, tuple[AbilityName, ...]], ...] = (
+    ("War", (AbilityName.ARCHERY, AbilityName.ATHLETICS, AbilityName.AWARENESS,
+             AbilityName.BRAWL, AbilityName.DODGE, AbilityName.ENDURANCE,
+             AbilityName.MARTIAL_ARTS, AbilityName.MELEE, AbilityName.RESISTANCE,
+             AbilityName.THROWN)),
+    ("Life", (AbilityName.CRAFT, AbilityName.LARCENY, AbilityName.LINGUISTICS,
+              AbilityName.PERFORMANCE, AbilityName.PRESENCE, AbilityName.RIDE,
+              AbilityName.SAIL, AbilityName.SOCIALIZE, AbilityName.STEALTH,
+              AbilityName.SURVIVAL)),
+    ("Wisdom", (AbilityName.BUREAUCRACY, AbilityName.INVESTIGATION, AbilityName.LORE,
+                AbilityName.MEDICINE, AbilityName.OCCULT)),
+)
+
+
+def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, list[AbilityName]]]:
+    """How to lay the Ability roster out in columns, for the sheet and the editor.
+
+    Ability-caste splats (Solar, Dragon-Blooded, Abyssal) group by caste, which is
+    how their character sheets print. Lunars have no Caste Abilities at all and
+    "Abilities are not divided along caste lines" (The Lunars p.90), so their
+    castes carry `caste_attributes` instead and grouping by caste yields NOTHING.
+    Those splats fall back to `DEFAULT_ABILITY_GROUPS` (War / Life / Wisdom)."""
+    groups = [(cd.label, list(cd.caste_abilities)) for cd in ruleset.castes.values()
+              if cd.exalt_type == exalt_type and cd.caste_abilities]
+    if groups:
+        return groups
+    return [(label, list(abilities)) for label, abilities in DEFAULT_ABILITY_GROUPS]
 
 
 # Casting time by circle: the turns spent shaping Essence before a spell of that
@@ -434,11 +505,9 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     # Craft is per-focus (core p.136): the single Craft slot expands into one row
     # per craft instance ("Craft (Smithing)"), or a single 0-rated row if none.
     ability_groups: list[tuple[str, list[TraitRow]]] = []
-    for group_def in ruleset.castes.values():
-        if group_def.exalt_type != character.exalt_type:
-            continue
+    for group_label, group_abilities in ability_group_defs(ruleset, character.exalt_type):
         rows: list[TraitRow] = []
-        for a in group_def.caste_abilities:
+        for a in group_abilities:
             cf_flags = dict(caste=a in own_caste_abilities, favored=a in favored)
             if a == AbilityName.CRAFT:
                 if character.crafts:
@@ -448,7 +517,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
                     rows.append(TraitRow("Craft", 0, **cf_flags))
             else:
                 rows.append(TraitRow(_label(a.value), character.abilities.get(a, 0), **cf_flags))
-        ability_groups.append((group_def.label, rows))
+        ability_groups.append((group_label, rows))
 
     virtues = [TraitRow(_label(v.value), character.virtues[v]) for v in VirtueName]
 
@@ -468,6 +537,17 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
             charms.append(CharmRow(f"{ox_charm.name} ({labels.get(p.variant, p.variant)})",
                                    ox_charm.category, "—", ox_charm.duration,
                                    ox_charm.description))
+    # Deadly Beastman Transformation is the same shape — repeatable, held on its own
+    # list, and so invisible to the `character.charms` loop above. One row per
+    # purchase, labelled by the Gifts taken with it.
+    gift_charm = validate.gift_charm(ruleset, character)
+    if gift_charm:
+        gift_labels = {v.key: v.label for v in gift_charm.variants}
+        for p in character.beastman_gifts:
+            taken = ", ".join(gift_labels.get(k, k) for k in p.gifts)
+            charms.append(CharmRow(f"{gift_charm.name} ({taken})", gift_charm.category,
+                                   _cost_str(gift_charm.cost), gift_charm.duration,
+                                   gift_charm.description))
     spells = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
@@ -491,6 +571,8 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         concept=character.concept,
         nature=character.nature,
         anima=character.anima,
+        totem=character.totem,
+        animal_forms=[(f.name, f.notes) for f in character.animal_forms],
         essence_rating=character.essence_rating,
         attributes=attributes,
         ability_groups=ability_groups,

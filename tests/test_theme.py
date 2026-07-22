@@ -21,9 +21,18 @@ def test_dragonblooded_palette_is_red():
     assert r > g and r > b
 
 
+def test_lunar_palette_is_moonsilver_blue():
+    pal = theme.palette("Lunar")
+    assert pal.splat_label == "Lunar"
+    assert pal.fam == "slate"
+    # blue-dominant, and cool: the blue channel leads and red trails
+    r, g, b = (int(pal.accent[i:i + 2], 16) for i in (1, 3, 5))
+    assert b > g > r
+
+
 def test_unknown_or_missing_splat_falls_back_to_solar():
     assert theme.palette(None).accent == theme.palette("Solar").accent
-    assert theme.palette("Lunar").accent == theme.palette("Solar").accent
+    assert theme.palette("Sidereal").accent == theme.palette("Solar").accent
 
 
 def test_card_class_helpers_track_the_family():
@@ -41,3 +50,12 @@ def test_graph_border_is_the_accent_as_rgba():
 def test_head_style_sets_background_and_ink():
     style = theme.palette("Dragon-Blooded").head_style()
     assert style.startswith("<style>body{") and "background:#f7ece3" in style
+
+
+def test_card_solid_is_opaque_unlike_card():
+    # Dialogs float over the page, so their fill must not be the 50/60 tint that
+    # `card` uses — the content behind shows through and reads as a bug.
+    pal = theme.palette("Lunar")
+    assert pal.card_solid.startswith("bg-slate-50 ")
+    assert "/60" not in pal.card_solid
+    assert "/60" in pal.card            # the in-page card tint is still translucent

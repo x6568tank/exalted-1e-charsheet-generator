@@ -567,6 +567,11 @@ class ExaltDefinition(BaseModel):
     # Deadly Beastman Transformation, p.124-127 — see Charm.variant_picks_*).
     # "" for every splat without one (everyone but Lunar today).
     gift_charm_id: str = ""
+    # Does this splat keep a Form Library — a Totem plus the animal shapes it can
+    # wear (the "Totem" field on the 1e Lunar sheet)? Purely narrative bookkeeping,
+    # never validated or priced; this flag only decides whether the UI offers the
+    # page at all. True for Lunar; a later shapeshifting splat can opt in as data.
+    form_library: bool = False
     # What this splat calls its caste slot in the UI: Solars have "Caste", the
     # Dragon-Blooded have "Aspect". Presentation only — the underlying field is
     # still Character.caste keyed to RuleSet.castes.
