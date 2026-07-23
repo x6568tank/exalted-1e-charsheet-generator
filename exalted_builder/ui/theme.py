@@ -96,11 +96,21 @@ _LUNAR = Palette(
     bg="#eef2f6", node_bg="#f9fbfd", button="blue-grey-8", fam="slate",
 )
 
+# Alchemical / Chosen of Autochthon: brass — a muted antique gold with a yellow-olive
+# cast, distinct from the Solar's warm orange-gold so the two metals do not read alike.
+# `fam` is the Tailwind yellow family, giving brassy card tints rather than Solar amber.
+_ALCHEMICAL = Palette(
+    splat_label="Alchemical",
+    accent="#9a7b1f", accent_dark="#6b5413", ink="#2e2713",
+    bg="#f4efdb", node_bg="#fffef4", button="amber-9", fam="yellow",
+)
+
 _BY_SPLAT: dict[str, Palette] = {
     "Solar": _SOLAR,
     "Dragon-Blooded": _DRAGON_BLOODED,
     "Abyssal": _ABYSSAL,
     "Lunar": _LUNAR,
+    "Alchemical": _ALCHEMICAL,
 }
 
 

@@ -58,7 +58,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols); remaining — theme, UI |
+| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + brass theme + UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page); remaining UI — Arrays/Submodules widgets, Vat-Refit Slot/Panoply manager, browser click-through |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -166,7 +166,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (562 tests passing)
+## Status (567 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -736,11 +736,50 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     isolated from chargen/XP validation. This is where the `charms` ↔ `retainer_charms`
     move operation lives; it also surfaces an Eclipse's crossover Slots. Build in the UI
     pass.
-  - **STILL TO BUILD:** `brass` theme, editor `_SPLAT_ORIGINS`/UI wiring, Clarity
-    (→ `PlayState`/Limit precedent when built). **UI is intentionally LAST** (user,
-    2026-07-23) — the Charm-Slot counters, favored-Attribute grouping, Arrays/Submodules
-    widgets, retainer/Panoply display, and the new weaving Spells page all land in that
-    final pass.
+  - **⏸ RESUME HERE (paused 2026-07-23, session at cap).** UI pass is mid-flight; engine
+    is complete. Next up when resuming: **Arrays + Submodules widgets** (task #5), then the
+    **Vat-Refit Slot/Panoply manager** (task #7), Clarity, and a **browser click-through**
+    of the whole Alchemical flow (serve-and-grep has verified no crashes, NOT layout).
+    **Also queued: rework the brass theme colour** — `theme._ALCHEMICAL` accent `#9a7b1f`
+    "doesn't feel quite right" (user); pick a different brass-like tone (warmer/less
+    olive, or a truer metallic brass) and re-check it reads distinct from Solar amber.
+  - **UI pass — IN PROGRESS 2026-07-23.** Done: `theme._ALCHEMICAL` (brass, `fam="yellow"`,
+    accent `#9a7b1f` — distinct from Solar amber, but the exact tone is FLAGGED FOR
+    REWORK, see Resume note above); a legal example
+    (`examples/gearheart.character.json`, Orichalcum, fills all 8 Slots); the editor
+    Attribute panel now handles caste_favored mode (`view.uses_caste_favored_attributes`/
+    `attribute_budget_summary` — a Favored-Attributes multi-select, ● Caste / ✦ Favored
+    marks, the set-based "Caste 9 (min 2 each) · Favored 6 · Other 4" header, and the
+    Favored-Abilities picker hides itself when `favored_count==0`); the picker + editor
+    Charm readouts show Slot occupancy for slot-splats (`view.charm_slot_budget` →
+    `SlotBudget`, backed by the new engine `validate.charm_slot_usage`, which the chargen
+    Slot check now also consumes so they can't disagree); the weaving Spells page works
+    for free (accessible_circles surfaces Man-/God-Machine) with the track labelled
+    "Weaving Protocols" and per-circle pricing (12/14, `spell_cost` now takes the spell).
+    Alchemical has no origin sub-types, so `_SPLAT_ORIGINS` needs no entry.
+    **Augmentation grouping (user request 2026-07-23):** the 18 "Transitory/Sustained
+    Augmentation of (Attribute)" Charms STAY 18 distinct ids in the data — 82 other
+    Charms name a SPECIFIC one as a prerequisite, so a literal merge to 2 Charms would
+    break all of them (confirmed: `grep augmentation-of- ... | wc` = 82). Instead the
+    picker COLLAPSES the Alchemical `general` category from an 18-node Cytoscape graph
+    into two per-type pop-up cards (Transitory / Sustained), each opening a DBT-style
+    dialog with a checkbox per Attribute that installs/removes that specific id.
+    Presenters: `view.augmentation_category` (the category is detected by "all its
+    Charms are '<Type> Augmentation of <Attr>'", data-driven, not hardcoded) +
+    `build_augmentation_view` → `AugmentGroup`/`AugmentEntry`. Picker: `_is_augment_page`
+    swaps the canvas for `augment_panel` (the category dropdown STAYS so you can leave;
+    `init_graph`/`update_graph` no-op there); `toggle_augment` is an immediate pre-lock
+    add/remove with the usual `charms_depending_on` removal guard. In-play buying still
+    routes through the (unbuilt) post-lock Slot flow — the dialog is pre-lock only.
+    **Verified by serve-and-grep + unit tests only — NOT yet clicked through in a
+    browser** (that proves no crash, not correct layout; the Augmentation page-swap +
+    dialog especially want a human pass, like the DBT dialog did).
+    **STILL TO BUILD (UI):** (1) **Arrays + Submodules** widgets (build/price Arrays,
+    buy Submodules, pre- and post-lock). (2) **Vat-Refit Slot/Panoply manager** on the
+    Charms/Play tab — list installed(Slot) vs Panoply(`retainer_charms`) Charms + swap
+    (the `charms`↔`retainer_charms` move op; affects committed Personal Essence); also
+    surfaces an Eclipse's crossover Slots. (3) Clarity (→ `PlayState`/Limit precedent).
+    (4) a real browser click-through of the whole Alchemical flow.
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled

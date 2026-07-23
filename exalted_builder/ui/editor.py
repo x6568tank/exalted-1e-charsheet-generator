@@ -36,7 +36,7 @@ def _health_total(character: Character, penalty: int) -> int:
     delta = sum((-1 if hl.removed else 1)
                 for hl in character.health_bonus_levels if hl.penalty == penalty)
     return max(0, _BASE_HEALTH.get(penalty, 0) + delta)
-from ..models.rules import AbilityName, RuleSet, VirtueName
+from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import theme
 from . import view as viewmod
 
@@ -161,6 +161,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         caste_def = ruleset.castes.get(character.caste)
         caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
         caste_attributes = set(caste_def.caste_attributes) if caste_def else set()
+        # Alchemical allocates Attributes to Caste/Favored/remaining SETS, not to
+        # prioritised categories, and its Favored slot is Attributes, not Abilities.
+        cf_attr_mode = viewmod.uses_caste_favored_attributes(ruleset, character)
+        favored_attrs = set(character.favored_attributes)
         # chargen budget for THIS character (splat + origin), so panel headers show
         # the right numbers (Solar 8/6/4·25; DB Dynastic 7/6/4·35, Outcaste ·25).
         b = ruleset.budgets_for(character.exalt_type, character.origin)
@@ -226,12 +230,23 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                   on_change=lambda e: setattr(character, "nature", e.value or "")).classes(_field)
                         ui.input("Anima", value=character.anima,
                                  on_change=lambda e: setattr(character, "anima", e.value)).classes(_field)
-                    ui.select({a: _label(a.value) for a in AbilityName}, label=f"Favored abilities (pick {b.favored_count})",
-                              value=list(character.favored_abilities), multiple=True,
-                              on_change=lambda e: set_favored(e.value)).classes("w-full").props("use-chips")
+                    # Favored ABILITIES (most splats) or Favored ATTRIBUTES (Alchemical,
+                    # p.60) — a splat has one or the other. `favored_count` is 0 for a
+                    # caste_favored splat, so the abilities picker hides itself there.
+                    if b.favored_count:
+                        ui.select({a: _label(a.value) for a in AbilityName},
+                                  label=f"Favored abilities (pick {b.favored_count})",
+                                  value=list(character.favored_abilities), multiple=True,
+                                  on_change=lambda e: set_favored(e.value)).classes("w-full").props("use-chips")
+                    if cf_attr_mode:
+                        ui.select({a: _label(a.value) for a in AttributeName},
+                                  label=f"Favored Attributes (pick {b.attribute_favored_count})",
+                                  value=list(character.favored_attributes), multiple=True,
+                                  on_change=lambda e: set_favored_attributes(e.value)).classes("w-full").props("use-chips")
 
         # attributes
-        with panel(f"Attributes (prioritise {ap})"):
+        attr_header = viewmod.attribute_budget_summary(ruleset, character) or f"prioritise {ap}"
+        with panel(f"Attributes ({attr_header})"):
             with ui.row().classes("w-full gap-2 no-wrap"):
                 for category, members in validate.ATTRIBUTE_CATEGORIES.items():
                     with ui.column().classes("flex-1 gap-1"):
@@ -244,10 +259,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         show_spent()
                         for a in members:
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                                # Lunar Caste Attributes are the parallel to other
-                                # splats' Caste Abilities (p.90) — mark them the same way.
-                                ui.label("●" if a in caste_attributes else "").classes(
-                                    "text-xs w-3").style(f"color:{pal.accent}")
+                                # Caste Attributes (●) are the parallel to other splats'
+                                # Caste Abilities (Lunar p.90); an Alchemical also marks
+                                # its player-chosen Favored Attributes (✦, p.60).
+                                mark = "●" if a in caste_attributes else ("✦" if a in favored_attrs else "")
+                                ui.label(mark).classes("text-xs w-3").style(f"color:{pal.accent}")
                                 ui.label(_label(a.value)).classes("text-sm w-28")
                                 # update this column's tally live as its dots change
                                 dots(lambda a=a: character.attributes[a],
@@ -444,12 +460,19 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.number(label=("-0" if p == 0 else str(p)), value=total, min=0, max=20, format="%d",
                                   on_change=lambda e, p=p: set_health_total(p, int(e.value or 0))).classes("w-16")
 
-        # charms/spells (read-only here; the picker is the next slice)
-        # Ox-Body and Deadly Beastman Transformation purchases are Charm picks too,
-        # and live outside character.charms — count them or the header undercounts.
-        _charm_picks = (len(character.charms) + len(character.ox_body)
-                        + len(character.beastman_gifts))
-        with panel(f"Charms ({_charm_picks}) & Spells ({len(character.spells)}) — edit via the picker"):
+        # charms/spells (read-only here; the picker is the next slice).
+        # Alchemical pays for Slots, not picks — show occupancy; every other splat
+        # counts picks (Ox-Body / Beastman purchases live outside character.charms, so
+        # count them or the header undercounts).
+        _slots = viewmod.charm_slot_budget(ruleset, character)
+        if _slots is not None:
+            _charm_hdr = (f"Charm Slots {_slots.installed}/{_slots.general + _slots.dedicated} "
+                          f"(G {_slots.general} · D {_slots.dedicated})")
+        else:
+            _charm_picks = (len(character.charms) + len(character.ox_body)
+                            + len(character.beastman_gifts))
+            _charm_hdr = f"Charms ({_charm_picks})"
+        with panel(f"{_charm_hdr} & Spells ({len(character.spells)}) — edit via the picker"):
             view = viewmod.build_sheet_view(ruleset, character)
             for c in view.charms:
                 ui.label(f"{c.name} · {c.category}").classes("text-xs")
@@ -484,6 +507,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     def set_favored(values: list[AbilityName]) -> None:
         character.favored_abilities = list(values)
+        body.refresh(); changed()
+
+    def set_favored_attributes(values: list[AttributeName]) -> None:
+        character.favored_attributes = list(values)
         body.refresh(); changed()
 
     def add_bg() -> None:

@@ -182,9 +182,21 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     if _has_forms:
         GROUPS["forms"] = "Form Library"
 
+    # The Alchemical "general" category (the 18 Augmentation templates) renders as two
+    # per-type pop-ups instead of an 18-node graph. None for every other splat.
+    _augment_category = viewmod.augmentation_category(ruleset, character)
+
+    def _is_augment_page() -> bool:
+        """True when the current page is the collapsed Augmentation view (Alchemical
+        'general'), which replaces the Cytoscape canvas with two pop-up cards."""
+        return (_augment_category is not None and state["group"] == "abilities"
+                and state["category"] == _augment_category)
+
     def _is_graph_page() -> bool:
-        """The two Charm-tree pages own the Cytoscape canvas and its furniture; the
-        Spells and Form Library pages render a plain panel in its place."""
+        """The Charm-tree groups (Abilities / Martial Arts) own the category dropdown;
+        the Spells and Form Library groups render a plain panel in its place. The
+        Augmentation category is still an Abilities page (so it keeps the dropdown) but
+        swaps the CANVAS for pop-up cards — see _is_augment_page."""
         return state["group"] in ("abilities", "styles")
     widgets: dict = {}                          # holds the live group toggle + category <select>
 
@@ -223,13 +235,30 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                      ).classes("text-xs text-gray-600")
             ui.label("Undo a purchase on the XP tab.").classes("text-xs text-gray-500")
         else:
-            # Each Ox-Body and each Deadly Beastman Transformation purchase consumes a
-            # Charm pick from the shared pool, exactly as engine.validate prices them —
-            # both live on their own lists, so neither is inside character.charms.
-            charm_picks = (len(character.charms) + len(character.ox_body)
-                           + len(character.beastman_gifts))
-            ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
-                "text-sm font-semibold").style(f"color:{pal.accent}")
+            slots = viewmod.charm_slot_budget(ruleset, character)
+            if slots is not None:
+                # Alchemical: you pay for SLOTS, not picks. Show occupancy + the two
+                # ceilings the chargen check enforces (General-slot fit, install motes).
+                over = slots.over_slots or slots.over_general
+                ui.label(
+                    f"Slots: {slots.installed}/{slots.general + slots.dedicated} used "
+                    f"(General {slots.general} · Dedicated {slots.dedicated}) · "
+                    f"Spells: {len(character.spells)}"
+                ).classes("text-sm font-semibold").style(
+                    f"color:{'#b91c1c' if over else pal.accent}")
+                ui.label(
+                    f"non-Caste/Favored {slots.noncf}/{slots.general} (General only) · "
+                    f"install {slots.motes}/{slots.personal} Personal motes"
+                ).classes("text-xs").style(
+                    f"color:{'#b91c1c' if slots.over_personal else pal.accent}")
+            else:
+                # Each Ox-Body and each Deadly Beastman Transformation purchase consumes a
+                # Charm pick from the shared pool, exactly as engine.validate prices them —
+                # both live on their own lists, so neither is inside character.charms.
+                charm_picks = (len(character.charms) + len(character.ox_body)
+                               + len(character.beastman_gifts))
+                ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
+                    "text-sm font-semibold").style(f"color:{pal.accent}")
             _immaculate_path_banner()
             ui.label(bp).classes("text-xs text-gray-600")
         ui.separator()
@@ -626,7 +655,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if not r.available:
             ui.button(icon="lock").props("dense flat round size=sm disable").tooltip(r.reason)
             return
-        cost = costs.spell_cost(ruleset, character)
+        cost = costs.spell_cost(ruleset, character, ruleset.spells.get(r.id))
         btn = ui.button(icon="shopping_cart",
                         on_click=lambda _=None, sid=r.id: toggle_spell(sid)).props(
             "dense flat round size=sm color=positive")
@@ -653,14 +682,26 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         # The Circle dropdown picks which one shows; the header names its track, since
         # an Abyssal's list spans sorcery AND necromancy circles (p.223).
         selected = next(ce for ce in viewmod.CIRCLE_DISPLAY_ORDER if ce.value == state["circle"])
-        magic_noun = "Necromancy" if circle_kind(selected) == "necromancy" else "Sorcery"
+        kind = circle_kind(selected)
+        # Track name for the header, and the thing you learn to unlock it: sorcery/
+        # necromancy have Circle-initiation Charms; Alchemical weaving has Weaving Engines.
+        magic_noun = {"necromancy": "Necromancy", "weaving": "Weaving Protocols"}.get(kind, "Sorcery")
+        unlock_noun = ("the matching Weaving Engine" if kind == "weaving"
+                       else f"the matching Circle {magic_noun} Charm")
+        # Per-circle cost: weaving protocols differ by circle (Man-Machine 12, God-Machine
+        # 14), so price from a spell of the shown circle rather than the flat rate.
+        circle_cost = costs.spell_cost(ruleset, character, ruleset.spells.get(rows[0].id))
         with ui.card().classes(f"w-full p-3 gap-3 {pal.card}"):
             with ui.row().classes("w-full items-baseline gap-3"):
                 ui.label(magic_noun).classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
-                caption = (f"{costs.spell_cost(ruleset, character)} XP each; learn the matching "
-                           f"Circle {magic_noun} Charm to unlock it." if in_play() else
-                           f"A spell takes a Charm pick (p.100); learn the matching Circle "
-                           f"{magic_noun} Charm to unlock it.")
+                if in_play():
+                    caption = f"{circle_cost} XP each; install {unlock_noun} to unlock it."
+                elif kind == "weaving":
+                    # Protocols don't take up Charm Slots (CH4); they are gated purely by
+                    # having the Weaving Engine installed.
+                    caption = f"Install {unlock_noun} to unlock these protocols."
+                else:
+                    caption = f"A spell takes a Charm pick (p.100); install {unlock_noun} to unlock it."
                 ui.label(caption).classes("text-xs text-gray-500")
             owned = sum(1 for r in rows if r.owned)
             with ui.column().classes("w-full gap-0"):
@@ -728,8 +769,92 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             ui.button("Add form", icon="add", on_click=add_form).props(
                 f"dense flat no-caps color={pal.button}")
 
+    # ---- Augmentation pop-ups (Alchemical 'general') ---------------------- #
+    # The 18 Augmentation Charms stay distinct ids (82 other Charms name a specific one
+    # as a prerequisite); the picker just collapses them into two per-type cards, each
+    # opening a dialog to install/remove per Attribute — like the Deadly Beastman dialog.
+
+    def toggle_augment(charm_id: str) -> None:
+        """Install/remove one Augmentation (pre-lock only). Each is an independent Slot
+        install, so this is an immediate add/remove, not a bundled purchase."""
+        if in_play():
+            return
+        if charm_id in character.charms:
+            blockers = validate.charms_depending_on(ruleset, character, charm_id)
+            if blockers:
+                ui.notify(f"{ruleset.charms[charm_id].name}: can't remove — needed by "
+                          f"{', '.join(blockers)}", type="warning")
+                return
+            character.charms.remove(charm_id)
+        else:
+            character.charms.append(charm_id)
+        augment_panel.refresh(); readout.refresh()
+
+    def open_augment_dialog(group) -> None:
+        """A checkbox per Attribute for one Augmentation type; toggling installs/removes
+        it immediately (with the same removal-blocker guard the graph uses)."""
+        with ui.dialog() as dialog, ui.card().classes(
+                f"w-[34rem] max-w-full p-4 gap-2 {pal.card_solid}"):
+            ui.label(group.title).classes("text-base font-bold tracking-widest").style(
+                f"color:{pal.accent}")
+            ui.label("Each installed Augmentation occupies a Charm Slot.").classes(
+                "text-xs text-gray-500")
+
+            @ui.refreshable
+            def body() -> None:
+                # Re-read the group each paint so install state and Slot budget update.
+                grp = next((g for g in viewmod.build_augmentation_view(ruleset, character)
+                            if g.title == group.title), group)
+                with ui.column().classes("w-full gap-0 max-h-[55vh] overflow-y-auto pr-2"):
+                    for e in grp.entries:
+                        disabled = not e.owned and not e.available
+                        with ui.row().classes("w-full items-start no-wrap gap-2 py-1"):
+                            cb = ui.checkbox(
+                                value=e.owned,
+                                on_change=lambda _e, cid=e.charm_id: (
+                                    toggle_augment(cid), body.refresh())).props("dense")
+                            if disabled:
+                                cb.props("disable")
+                            with ui.column().classes("flex-1 min-w-0 gap-0"):
+                                ui.label(e.attribute).classes(
+                                    "text-sm " + ("text-gray-400" if disabled else "font-medium"))
+                                if e.reason:
+                                    ui.label(e.reason).classes("text-xs text-amber-700 italic")
+                ui.separator()
+                ui.button("Done", on_click=dialog.close).props("flat dense no-caps")
+
+            body()
+        dialog.open()
+
+    @ui.refreshable
+    def augment_panel() -> None:
+        if not _is_augment_page():
+            return
+        groups = viewmod.build_augmentation_view(ruleset, character)
+        with ui.column().classes("w-full gap-3"):
+            ui.label("Two Augmentation templates, one per Attribute — each installed "
+                     "copy takes a Charm Slot.").classes("text-xs text-gray-500")
+            for g in groups:
+                with ui.card().classes(f"w-full p-3 gap-1 {pal.card}"):
+                    installed = [e.attribute for e in g.entries if e.owned]
+                    with ui.row().classes("w-full items-center justify-between no-wrap"):
+                        ui.label(g.title).classes("text-sm font-bold tracking-widest").style(
+                            f"color:{pal.accent}")
+                        if not in_play():
+                            ui.button("Pick Attributes", icon="tune",
+                                      on_click=lambda _=None, grp=g: open_augment_dialog(grp)).props(
+                                f"dense no-caps color={pal.button}")
+                    ui.label("Installed: " + ", ".join(installed) if installed
+                             else "None installed.").classes(
+                        "text-xs" + ("" if installed else " text-gray-400"))
+            if in_play():
+                ui.label("Buy Augmentations post-lock via the Charm-Slot flow (an "
+                         "Augmentation occupies a Slot).").classes("text-xs text-gray-500")
+
     # ---- graph (re)build / update ---------------------------------------- #
     def init_graph() -> None:
+        if _is_augment_page():
+            return                      # the Augmentation page has no Cytoscape canvas
         graph = viewmod.build_charm_graph(ruleset, character, state["category"], state["splat"])
         ui.run_javascript(f"""
         (function() {{
@@ -776,6 +901,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         """)
 
     def update_graph() -> None:
+        if _is_augment_page():
+            augment_panel.refresh(); readout.refresh()
+            return
         graph = viewmod.build_charm_graph(ruleset, character, state["category"], state["splat"])
         # `classes()` replaces the whole class list, so carry `external` along with
         # the state or a foreign prerequisite loses its dashed styling on any repaint.
@@ -838,9 +966,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     def set_category(value: str) -> None:
         state["category"] = value
-        init_graph()
+        _apply_group()                # sync canvas-vs-Augmentation-cards for the new category
+        if not _is_augment_page():
+            init_graph()
         readout.refresh()
-        spells_panel.refresh()        # inert off the Spells page, cheap enough to always call
 
     def set_circle(value: str) -> None:
         state["circle"] = value
@@ -890,18 +1019,25 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         which are plain panels with no selected node to describe. The Circle dropdown
         swaps in for the Category one on the Spells page only."""
         graph_page = _is_graph_page()
-        for key in ("category", "legend", "graph", "detail_card"):
+        augment = _is_augment_page()
+        # The category dropdown stays on any Charm-tree page (you navigate away from the
+        # Augmentation view with it); the canvas/legend/detail hide on the Augmentation
+        # page, which shows its own pop-up cards instead.
+        if widgets.get("category") is not None:
+            widgets["category"].set_visibility(graph_page)
+        for key in ("legend", "graph", "detail_card"):
             widget = widgets.get(key)
             if widget is not None:
-                widget.set_visibility(graph_page)
+                widget.set_visibility(graph_page and not augment)
         # The Splat dropdown pages the Charm trees only — spells are gated by circle
         # and the Form Library is the character's own, so neither is splat-paged.
         if widgets.get("splat") is not None:
-            widgets["splat"].set_visibility(graph_page and len(_splat_options()) > 1)
+            widgets["splat"].set_visibility(graph_page and not augment and len(_splat_options()) > 1)
         if widgets.get("circle") is not None:
             widgets["circle"].set_visibility(state["group"] == "spells")
         spells_panel.refresh()
         forms_panel.refresh()
+        augment_panel.refresh()
 
     def set_group(value: str) -> None:
         """Switch between the ability pages, the martial-arts styles and the spell
@@ -1004,9 +1140,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             widgets["graph"] = (ui.element("div").props("id=charm-graph")
                                 .style(f"height:720px;width:100%;border:1px solid {pal.graph_border};"
                                        f"border-radius:8px;background:{pal.node_bg}"))
-            # The Spells and Form Library pages render here, in place of the graph.
+            # The Spells, Form Library and Augmentation pages render here, in place of
+            # the graph.
             spells_panel()
             forms_panel()
+            augment_panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes(f"w-full p-3 {pal.card}"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
@@ -1016,7 +1154,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label("Charm Details").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 detail()
 
-    # defer the first graph build until the client is connected and the div exists
+    # Sync initial canvas-vs-panel visibility (in case the character opens on the
+    # Augmentation category or a Spells/Forms group), then defer the first graph build
+    # until the client is connected and the div exists.
+    _apply_group()
     ui.timer(0.1, init_graph, once=True)
     return select
 

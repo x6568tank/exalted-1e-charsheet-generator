@@ -14,6 +14,7 @@ from exalted_builder.ui import view as viewmod
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 EXAMPLE = Path(exalted_builder.__file__).parent.parent / "examples" / "ashes-of-dawn.character.json"
+ALCH_EXAMPLE = Path(exalted_builder.__file__).parent.parent / "examples" / "gearheart.character.json"
 
 
 def _rs():
@@ -204,3 +205,54 @@ def test_charm_graph_shows_only_the_characters_splat():
     db = Character(id="d", exalt_type="Dragon-Blooded")
     db_ids = {n.id for n in viewmod.build_charm_graph(rs, db, "melee").nodes}
     assert db_ids == {"d"}
+
+
+# --- Alchemical UI presenters (caste_favored attributes + Charm Slots) ------- #
+
+def test_caste_favored_attribute_presenters():
+    rs = _rs()
+    alch = persistence.load_character(ALCH_EXAMPLE)
+    assert viewmod.uses_caste_favored_attributes(rs, alch)
+    assert viewmod.attribute_budget_summary(rs, alch) == \
+        "Caste 9 (min 2 each) · Favored 6 · Other 4"
+    # A category-mode Solar has neither.
+    solar = persistence.load_character(EXAMPLE)
+    assert not viewmod.uses_caste_favored_attributes(rs, solar)
+    assert viewmod.attribute_budget_summary(rs, solar) is None
+
+
+def test_charm_slot_budget_presenter():
+    rs = _rs()
+    alch = persistence.load_character(ALCH_EXAMPLE)
+    sb = viewmod.charm_slot_budget(rs, alch)
+    assert sb is not None
+    assert (sb.general, sb.dedicated) == (4, 4)   # base Alchemical Slots
+    assert sb.installed == 8                        # the example fills all eight
+    assert not sb.over_slots and not sb.over_general and not sb.over_personal
+    # Per-pick splats have no Slot budget.
+    assert viewmod.charm_slot_budget(rs, persistence.load_character(EXAMPLE)) is None
+
+
+# --- Augmentation grouping (Alchemical picker collapses 18 -> 2 pop-ups) ----- #
+
+def test_augmentation_view_groups_18_into_two():
+    rs = _rs()
+    alch = persistence.load_character(ALCH_EXAMPLE)
+    assert viewmod.augmentation_category(rs, alch) == "general"
+    groups = viewmod.build_augmentation_view(rs, alch)
+    assert [g.title for g in groups] == ["Transitory Augmentation", "Sustained Augmentation"]
+    assert all(len(g.entries) == 9 for g in groups)                 # one row per Attribute
+    # The example installed all nine Transitory... actually eight; check owned tracks charms.
+    trans = next(g for g in groups if g.title == "Transitory Augmentation")
+    owned_attrs = {e.attribute for e in trans.entries if e.owned}
+    assert "Strength" in owned_attrs and "Dexterity" in owned_attrs
+    # Every entry maps to a real distinct Charm id that still exists (prereqs intact).
+    ids = {e.charm_id for g in groups for e in g.entries}
+    assert len(ids) == 18 and all(cid in rs.charms for cid in ids)
+
+
+def test_augmentation_view_empty_for_non_alchemical():
+    rs = _rs()
+    solar = persistence.load_character(EXAMPLE)
+    assert viewmod.augmentation_category(rs, solar) is None
+    assert viewmod.build_augmentation_view(rs, solar) == []

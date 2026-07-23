@@ -1109,6 +1109,39 @@ def charm_slot_counts(ruleset: RuleSet, character: Character) -> tuple[int, int,
     return g, d, bg, bd
 
 
+def charm_slot_usage(ruleset: RuleSet, character: Character) -> tuple[int, int, int]:
+    """(installed, noncf, install_motes) for a Charm-Slot splat: how many Slots the
+    installed Charms occupy, how many of those are non-Caste/Favored (and so need a
+    General Slot), and the committed installation motes. Reads the chargen source
+    (the frozen snapshot once locked), so it matches the chargen Slot check exactly,
+    and is the single computation both that check and the UI readout consume.
+
+    PLM Martial Arts Charms occupy no Slot; each Ox-Body purchase occupies one (it is
+    stored on `ox_body`, not `charms`, so it is added explicitly)."""
+    src = _chargen_source(character)
+    charms, ox_body, arrays = src[6], src[9], src[13]
+    cf_set = caste_favored_abilities(ruleset, character)
+    caste_attr_category = _caste_favored_attribute_category(ruleset, character)
+    caste_fav_attrs = _caste_favored_attr_names(ruleset, character)
+    installed = noncf = 0
+    for cid in charms:
+        charm = ruleset.charms.get(cid)
+        if charm is None or not charm_occupies_slot(ruleset, character, charm):
+            continue
+        installed += 1
+        if not _charm_is_caste_favored(charm, cf_set, caste_attr_category, caste_fav_attrs):
+            noncf += 1
+    ob_charm = ox_body_charm(ruleset, character)
+    if ob_charm is not None and ox_body:
+        installed += len(ox_body)
+        if not _charm_is_caste_favored(ob_charm, cf_set, caste_attr_category, caste_fav_attrs):
+            noncf += len(ox_body)
+    install_motes = _installation_motes(ruleset, charms, arrays)
+    if ob_charm is not None:
+        install_motes += ob_charm.installation_cost * len(ox_body)
+    return installed, noncf, install_motes
+
+
 def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[AbilityName]:
     """The character's Caste ∪ Favoured abilities — the set that earns the discount
     on Ability/Charm/spell costs. Falls back to just the Favoured set if the caste
@@ -1483,27 +1516,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         # can't exceed the total Slots; and the committed installation motes can't
         # exceed the Personal Essence pool (p.62 — the Charms must all fit).
         g, d, _bg, _bd = charm_slot_counts(ruleset, character)
-        installed = noncf = 0
-        for cid in charms:
-            charm = ruleset.charms.get(cid)
-            if charm is None or not charm_occupies_slot(ruleset, character, charm):
-                continue                       # PLM Martial Arts Charms use no Slot
-            installed += 1
-            if not _charm_is_caste_favored(charm, cf_set, caste_attr_category, caste_fav_attrs):
-                noncf += 1
-        # Ox-Body (Strain Resistant Chassis): every purchase installs the Charm in its
-        # own Slot (user ruling — all Alchemical Charms take a Slot). It is stored on
-        # `ox_body`, not `charms`, so it is counted here explicitly.
-        ob_charm = ox_body_charm(ruleset, character)
-        if ob_charm is not None and ox_body:
-            installed += len(ox_body)
-            if not _charm_is_caste_favored(ob_charm, cf_set, caste_attr_category, caste_fav_attrs):
-                noncf += len(ox_body)
-        # Installation motes apply the Array three-fourths discount (p.89); each
-        # Ox-Body purchase commits its own installation cost on top.
-        install_motes = _installation_motes(ruleset, charms, arrays)
-        if ob_charm is not None:
-            install_motes += ob_charm.installation_cost * len(ox_body)
+        installed, noncf, install_motes = charm_slot_usage(ruleset, character)
         if installed > g + d:
             issues.append(Issue(
                 code="charm-exceeds-slots",

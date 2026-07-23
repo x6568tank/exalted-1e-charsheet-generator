@@ -30,6 +30,16 @@ def test_lunar_palette_is_moonsilver_blue():
     assert b > g > r
 
 
+def test_alchemical_palette_is_brass():
+    pal = theme.palette("Alchemical")
+    assert pal.splat_label == "Alchemical"
+    assert pal.fam == "yellow"
+    # brass is a warm metallic gold, distinct from the Solar amber accent.
+    assert pal.accent != theme.palette("Solar").accent
+    r, g, b = (int(pal.accent[i:i + 2], 16) for i in (1, 3, 5))
+    assert r > g > b                              # warm gold: red leads, blue trails
+
+
 def test_unknown_or_missing_splat_falls_back_to_solar():
     assert theme.palette(None).accent == theme.palette("Solar").accent
     assert theme.palette("Sidereal").accent == theme.palette("Solar").accent

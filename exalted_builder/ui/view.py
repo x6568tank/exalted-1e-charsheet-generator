@@ -483,6 +483,129 @@ def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, lis
     return [(label, list(abilities)) for label, abilities in DEFAULT_ABILITY_GROUPS]
 
 
+def uses_caste_favored_attributes(ruleset: RuleSet, character: Character) -> bool:
+    """Whether this splat allocates Attributes to Caste/Favored/remaining SETS
+    (Alchemical, p.60) rather than prioritising Physical/Social/Mental categories.
+    The editor uses it to switch the Attribute panel between the two layouts."""
+    return ruleset.budgets_for(character.exalt_type, character.origin).attribute_mode == "caste_favored"
+
+
+def attribute_budget_summary(ruleset: RuleSet, character: Character) -> Optional[str]:
+    """A one-line set-based Attribute budget readout for a caste_favored-mode splat
+    ('Caste 9 (min 2 each) · Favored 6 · Other 4'), or None for category-mode splats
+    (whose panel header shows the prioritised pools instead)."""
+    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    if b.attribute_mode != "caste_favored":
+        return None
+    caste, favored, other = b.attribute_pools
+    return (f"Caste {caste} (min {b.attribute_caste_min} each) · "
+            f"Favored {favored} · Other {other}")
+
+
+@dataclass
+class SlotBudget:
+    """Alchemical Charm-Slot occupancy, for the picker/sheet readout. `installed`
+    Charms occupy Slots (each Ox-Body purchase counts; PLM Martial Arts Charms do
+    not); `noncf` of them are non-Caste/Favored and so need a General Slot; committed
+    installation `motes` must fit the `personal` Essence pool (p.62)."""
+    general: int
+    dedicated: int
+    installed: int
+    noncf: int
+    motes: int
+    personal: int
+
+    @property
+    def over_slots(self) -> bool:
+        return self.installed > self.general + self.dedicated
+
+    @property
+    def over_general(self) -> bool:
+        return self.noncf > self.general
+
+    @property
+    def over_personal(self) -> bool:
+        return self.motes > self.personal
+
+
+def charm_slot_budget(ruleset: RuleSet, character: Character) -> Optional[SlotBudget]:
+    """The Charm-Slot occupancy for a slot-splat (Alchemical), or None for the per-pick
+    splats. Everything comes from the engine — the same `charm_slot_usage` the chargen
+    check consumes — so the readout can never disagree with validation."""
+    if not validate.uses_charm_slots(ruleset, character):
+        return None
+    g, d, _bg, _bd = validate.charm_slot_counts(ruleset, character)
+    installed, noncf, motes = validate.charm_slot_usage(ruleset, character)
+    personal, _peripheral = derive.essence_pools(ruleset, character)
+    return SlotBudget(g, d, installed, noncf, motes, personal)
+
+
+# --- Augmentation grouping (Alchemical) ------------------------------------- #
+# The Alchemical "general" category is 9 Transitory + 9 Sustained "Augmentation of
+# (Attribute)" Charms — one template keyed per Attribute. They stay 18 distinct ids in
+# the data (82 other Charms name a SPECIFIC one as a prerequisite), but the picker
+# collapses them into two per-type pop-ups so the page isn't 18 disconnected nodes.
+
+_AUGMENT_SPLIT = " Augmentation of "
+
+
+@dataclass
+class AugmentEntry:
+    """One Attribute row inside an Augmentation pop-up."""
+    attribute: str          # display name, e.g. "Strength"
+    charm_id: str
+    owned: bool
+    available: bool         # requirements met (can install now)
+    reason: str             # why it is locked, when not owned and not available
+
+
+@dataclass
+class AugmentGroup:
+    title: str              # e.g. "Transitory Augmentation"
+    entries: list[AugmentEntry]
+
+
+def augmentation_category(ruleset: RuleSet, character: Character) -> Optional[str]:
+    """The Charm category whose Charms (for this character's splat) are ALL
+    '<Type> Augmentation of <Attribute>' templates the picker collapses into
+    per-type pop-ups — Alchemical 'general'. None when the splat has no such category,
+    so every other splat's picker is untouched."""
+    by_cat: dict[str, list] = {}
+    for ch in ruleset.charms.values():
+        if validate.charm_matches_splat(character, ch, ruleset):
+            by_cat.setdefault(ch.category, []).append(ch)
+    for cat, charms in by_cat.items():
+        if charms and all(_AUGMENT_SPLIT in c.name for c in charms):
+            return cat
+    return None
+
+
+def build_augmentation_view(ruleset: RuleSet, character: Character) -> list[AugmentGroup]:
+    """The two Augmentation groups (Transitory / Sustained), each with one row per
+    Attribute — its install state and, when locked, why. Empty for a non-Alchemical."""
+    cat = augmentation_category(ruleset, character)
+    if cat is None:
+        return []
+    groups: dict[str, list[AugmentEntry]] = {}
+    order: list[str] = []
+    for ch in ruleset.charms.values():
+        if ch.category != cat or not validate.charm_matches_splat(character, ch, ruleset):
+            continue
+        prefix, _, attr = ch.name.partition(_AUGMENT_SPLIT)
+        title = f"{prefix} Augmentation"
+        detail = build_charm_detail(ruleset, character, ch.id)
+        owned = ch.id in character.charms
+        available = detail.available if detail else False
+        entry = AugmentEntry(
+            attribute=attr, charm_id=ch.id, owned=owned, available=available,
+            reason="" if owned or available else f"Needs {detail.requirement}" if detail else "Locked")
+        if title not in groups:
+            groups[title] = []
+            order.append(title)
+        groups[title].append(entry)
+    return [AugmentGroup(title, groups[title]) for title in order]
+
+
 # Casting time by circle: the turns spent shaping Essence before a spell of that
 # circle takes effect — 1/2/3 for the low/mid/top circle of each track. Sorcery is
 # core p.216 (Terrestrial 1, Celestial 2, Solar 3); necromancy casting times "parallel
