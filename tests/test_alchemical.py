@@ -565,3 +565,261 @@ def test_non_alchemical_cannot_learn_weaving_engine(rs):
     fresh = Character(id="e2", exalt_type="Solar", caste="eclipse")
     fresh.chargen_locked = True
     assert rs.charms[_MAN_ENGINE].grants_circle not in validate.accessible_circles(rs, fresh)
+
+
+# --------------------------------------------------------------------------- #
+# XP / advancement — trait costs (Autochthonians p.64)
+# --------------------------------------------------------------------------- #
+
+def test_attribute_xp_caste_favored_discount(rs):
+    from exalted_builder.engine import costs
+    c = _alchemical()   # Orichalcum: Caste Str/Cha/Int; Favored Dex/Sta/Per
+    # Caste or Favored Attribute: (rating x 4) - 1; anything else: rating x 4.
+    assert costs.attribute_step(rs, c, 3, AT.STRENGTH) == 3 * 4 - 1      # Caste
+    assert costs.attribute_step(rs, c, 3, AT.DEXTERITY) == 3 * 4 - 1     # Favored
+    assert costs.attribute_step(rs, c, 3, AT.MANIPULATION) == 3 * 4      # neither
+    # A category-mode splat has no Caste/Favored Attributes, so none discount.
+    solar = Character(id="s", exalt_type="Solar", caste="dawn")
+    assert costs.attribute_step(rs, solar, 3, AT.STRENGTH) == 3 * 4
+
+
+def test_essence_xp_is_rating_times_nine(rs):
+    from exalted_builder.engine import costs
+    c = _alchemical()
+    assert costs.essence_step(rs, c, 2) == 2 * 9
+    assert costs.essence_step(rs, c, 4) == 4 * 9
+
+
+def test_raise_caste_attribute_logs_discounted_and_audits_clean(rs):
+    c = _alchemical()
+    lifecycle.lock_chargen(c)
+    c.xp_earned = 100
+    entry = advancement.raise_attribute(rs, c, AT.DEXTERITY)  # Favored, from 3
+    assert entry.cost == 3 * 4 - 1
+    e2 = advancement.raise_attribute(rs, c, AT.MANIPULATION)  # neither, from 3
+    assert e2.cost == 3 * 4
+    assert not [i for i in advancement.validate_xp(rs, c) if i.code == "xp-cost-mismatch"]
+
+
+# --- Charm-Slot economy (p.64) --------------------------------------------- #
+
+# Root Augmentations (no prereqs, Essence 2) keyed to specific Attributes: Dexterity
+# is Favored in the fixture (fits a Dedicated Slot), Wits is neither (General only).
+_DEX_ROOT = "alchemical.general.transitory-augmentation-of-dexterity"      # Favored
+_WITS_ROOT = "alchemical.general.transitory-augmentation-of-wits"          # non-C/F
+_STR_ROOT = "alchemical.general.transitory-augmentation-of-strength"       # Caste
+
+
+def _locked_alch(rs, xp=100):
+    c = _alchemical()
+    lifecycle.lock_chargen(c)
+    c.xp_earned = xp
+    return c
+
+
+def test_alchemical_learn_charm_directed_to_slots(rs):
+    c = _locked_alch(rs)
+    with pytest.raises(advancement.AdvancementError, match="Charm Slot"):
+        advancement.learn_charm(rs, c, _DEX_ROOT)
+
+
+def test_buy_general_slot_installs_charm_and_counts(rs):
+    c = _locked_alch(rs)
+    g0, d0, _, _ = validate.charm_slot_counts(rs, c)
+    entry = advancement.buy_charm_slot(rs, c, dedicated=False, charm_id=_DEX_ROOT)
+    assert entry.cost == 12
+    assert _DEX_ROOT in c.charms
+    g1, d1, _, _ = validate.charm_slot_counts(rs, c)
+    assert (g1, d1) == (g0 + 1, d0)
+    advancement.undo_last(rs, c)
+    assert _DEX_ROOT not in c.charms
+    assert validate.charm_slot_counts(rs, c)[:2] == (g0, d0)
+
+
+def test_buy_dedicated_slot_requires_caste_favored_charm(rs):
+    c = _locked_alch(rs)
+    # A Wits-keyed Charm (Wits is neither Caste nor Favored here) can't fill a
+    # Dedicated Slot.
+    with pytest.raises(advancement.AdvancementError, match="Dedicated"):
+        advancement.buy_charm_slot(rs, c, dedicated=True, charm_id=_WITS_ROOT)
+    # The Dexterity-keyed root fits (Dexterity is Favored).
+    entry = advancement.buy_charm_slot(rs, c, dedicated=True, charm_id=_DEX_ROOT)
+    assert entry.cost == 10 and _DEX_ROOT in c.charms
+
+
+def test_upgrade_dedicated_to_general(rs):
+    c = _locked_alch(rs)
+    g0, d0, _, _ = validate.charm_slot_counts(rs, c)
+    entry = advancement.upgrade_charm_slot(rs, c)
+    assert entry.cost == 2
+    assert validate.charm_slot_counts(rs, c)[:2] == (g0 + 1, d0 - 1)
+    advancement.undo_last(rs, c)
+    assert validate.charm_slot_counts(rs, c)[:2] == (g0, d0)
+
+
+def test_retainer_charm_is_owned_not_installed(rs):
+    c = _locked_alch(rs)
+    entry = advancement.learn_retainer_charm(rs, c, _DEX_ROOT)
+    assert entry.cost == 6
+    assert _DEX_ROOT in c.retainer_charms
+    assert _DEX_ROOT not in c.charms            # Panoply, not a Slot
+    # Can't also buy the same Charm into a Slot (already owned).
+    with pytest.raises(advancement.AdvancementError, match="already owned"):
+        advancement.buy_charm_slot(rs, c, dedicated=False, charm_id=_DEX_ROOT)
+    advancement.undo_last(rs, c)
+    assert _DEX_ROOT not in c.retainer_charms
+
+
+def test_weaving_protocol_priced_by_circle_and_audits_clean(rs):
+    c = _locked_alch(rs)
+    # Install the Man-Machine Weaving Engine via a General Slot (Intelligence-keyed,
+    # a Caste Attribute -> could be Dedicated too, but General is simplest here).
+    c.attributes[AT.INTELLIGENCE] = 4          # engine needs Intelligence 4 / Essence 4
+    c.essence_rating = 4
+    advancement.buy_charm_slot(rs, c, dedicated=False, charm_id=_MAN_ENGINE)
+    mm = advancement.learn_spell(rs, c, _MM_PROTOCOL)
+    assert mm.cost == 12
+    assert not [i for i in advancement.validate_xp(rs, c) if i.code == "xp-cost-mismatch"]
+
+
+def test_slot_economy_full_audit_clean(rs):
+    c = _locked_alch(rs, xp=200)
+    advancement.buy_charm_slot(rs, c, dedicated=True, charm_id=_DEX_ROOT)
+    advancement.learn_retainer_charm(rs, c, _STR_ROOT)
+    advancement.upgrade_charm_slot(rs, c)
+    mismatches = [i for i in advancement.validate_xp(rs, c) if i.code == "xp-cost-mismatch"]
+    assert not mismatches, [i.message for i in mismatches]
+
+
+# --- Ox-Body takes a Slot (user ruling: every Alchemical Charm occupies a Slot) --- #
+
+def test_alchemical_ox_body_purchase_takes_a_slot(rs):
+    c = _locked_alch(rs)                      # Essence 2 -> ox-body cap 2
+    g0, d0, _, _ = validate.charm_slot_counts(rs, c)
+    entry = advancement.learn_ox_body(rs, c, "two-minus-one")          # General Slot
+    assert entry.cost == 12
+    assert validate.charm_slot_counts(rs, c)[:2] == (g0 + 1, d0)
+    assert len(c.ox_body) == 1
+    assert not [i for i in advancement.validate_xp(rs, c) if i.code == "xp-cost-mismatch"]
+    advancement.undo_last(rs, c)
+    assert validate.charm_slot_counts(rs, c)[:2] == (g0, d0)
+    assert not c.ox_body
+
+
+def test_alchemical_ox_body_dedicated_slot_when_caste_favored(rs):
+    c = _locked_alch(rs)
+    # Strain Resistant Chassis is Stamina-keyed; Stamina is Favored -> fits Dedicated.
+    entry = advancement.learn_ox_body(rs, c, "two-minus-one", dedicated=True)
+    assert entry.cost == 10
+
+
+def test_chargen_ox_body_counts_against_slots(rs):
+    from exalted_builder.models.character import OxBodyPurchase
+    c = _alchemical()                         # Essence 2 -> cap 2 Ox-Body purchases
+    c.general_charm_slots = 0
+    c.dedicated_charm_slots = 1               # exactly one Slot
+    pkg = dict(variant="three-minus-two", health_levels=[-2, -2, -2])
+    c.ox_body = [OxBodyPurchase(**pkg)]       # one purchase fills the one Dedicated Slot
+    assert not [i for i in validate.validate_chargen(rs, c) if i.code == "charm-exceeds-slots"]
+    c.ox_body.append(OxBodyPurchase(**pkg))   # a second has no Slot to occupy
+    assert [i for i in validate.validate_chargen(rs, c) if i.code == "charm-exceeds-slots"]
+
+
+# --- Martial Arts via Perfected Lotus Matrix (CH3 p.100) -------------------- #
+
+_PLM = "alchemical.close-combat.perfected-lotus-matrix"
+_MA_ROOT = "abyssal.martial-arts.essence-discerning-glance"   # Hungry Ghost root, Celestial
+
+
+def test_martial_arts_needs_perfected_lotus_matrix(rs):
+    c = _locked_alch(rs)
+    c.abilities[A.MARTIAL_ARTS] = 3
+    with pytest.raises(advancement.AdvancementError, match="Perfected Lotus Matrix"):
+        advancement.learn_martial_arts_charm(rs, c, _MA_ROOT)
+
+
+def test_martial_arts_via_plm_costs_11_and_uses_no_slot(rs):
+    c = _locked_alch(rs)
+    c.abilities[A.MARTIAL_ARTS] = 3
+    c.charms = [_PLM]                          # Perfected Lotus Matrix installed
+    entry = advancement.learn_martial_arts_charm(rs, c, _MA_ROOT)
+    assert entry.cost == 11
+    assert _MA_ROOT in c.charms
+    ma = rs.charms[_MA_ROOT]
+    assert not validate.charm_occupies_slot(rs, c, ma)          # stored in the Matrix
+    assert validate.charm_matches_splat(c, ma, rs)              # not flagged wrong-splat
+    assert not [i for i in validate.check_splat_consistency(rs, c)
+                if i.code == "charm-wrong-splat"]
+    assert not [i for i in advancement.validate_xp(rs, c) if i.code == "xp-cost-mismatch"]
+    advancement.undo_last(rs, c)
+    assert _MA_ROOT not in c.charms
+
+
+def test_no_perfected_lotus_matrix_no_ma_access(rs):
+    # Removing PLM revokes the tier match, so the MA style is no longer the char's splat.
+    c = _locked_alch(rs)
+    ma = rs.charms[_MA_ROOT]
+    assert not validate.charm_matches_splat(c, ma, rs)          # no PLM -> no access
+
+
+# --- Eclipse/Moonshadow <-> Alchemical crossover (p.90) --------------------- #
+
+_ALCH_STR = "alchemical.general.transitory-augmentation-of-strength"   # Alchemical, root
+
+
+def _eclipse(xp=100):
+    """A locked Solar Eclipse (post-lock -> the generalist rule is fully open) able to
+    meet a Strength-keyed root Alchemical Charm's requirements."""
+    c = Character(id="ecl", exalt_type="Solar", caste="eclipse")
+    c.attributes[AT.STRENGTH] = 3
+    c.abilities[A.ATHLETICS] = 2
+    c.essence_rating = 2
+    lifecycle.lock_chargen(c)
+    c.xp_earned = xp
+    return c
+
+
+def test_eclipse_learning_alchemical_charm_grants_general_slot(rs):
+    c = _eclipse()
+    g0 = c.general_charm_slots or 0
+    entry = advancement.learn_charm(rs, c, _ALCH_STR)
+    assert entry.cost == 20                              # foreign: Solar new_charm 10 x2
+    assert _ALCH_STR in c.charms
+    assert (c.general_charm_slots or 0) == g0 + 1        # gained a General Slot (p.90)
+    assert not [i for i in advancement.validate_xp(rs, c) if i.code == "xp-cost-mismatch"]
+    advancement.undo_last(rs, c)
+    assert _ALCH_STR not in c.charms
+    assert (c.general_charm_slots or 0) == g0            # Slot given back
+
+
+def test_eclipse_panoply_costs_8_and_uses_no_slot(rs):
+    c = _eclipse()
+    g0 = c.general_charm_slots or 0
+    entry = advancement.learn_retainer_charm(rs, c, _ALCH_STR)
+    assert entry.cost == 8                               # crossover Panoply rate (p.90)
+    assert _ALCH_STR in c.retainer_charms and _ALCH_STR not in c.charms
+    assert (c.general_charm_slots or 0) == g0            # no Slot gained
+    assert not [i for i in advancement.validate_xp(rs, c) if i.code == "xp-cost-mismatch"]
+
+
+def test_eclipse_panoply_rejects_non_alchemical_charm(rs):
+    c = _eclipse()
+    with pytest.raises(advancement.AdvancementError, match="Alchemical Charm"):
+        advancement.learn_retainer_charm(rs, c, "solar.athletics.graceful-crane-stance")
+
+
+def test_eclipse_still_cannot_learn_weaving_engine(rs):
+    # The crossover does not widen the no_foreign_learning bar (weaving stays Alchemical).
+    c = _eclipse()
+    with pytest.raises(advancement.AdvancementError):
+        advancement.learn_charm(rs, c, _MAN_ENGINE)
+
+
+def test_non_crossover_splat_cannot_use_panoply(rs):
+    # A plain Dawn Solar has no Panoply mechanic at all.
+    c = Character(id="dawn", exalt_type="Solar", caste="dawn")
+    c.essence_rating = 2
+    lifecycle.lock_chargen(c)
+    c.xp_earned = 100
+    with pytest.raises(advancement.AdvancementError, match="Alchemical mechanic"):
+        advancement.learn_retainer_charm(rs, c, _ALCH_STR)

@@ -1051,12 +1051,51 @@ def _charm_is_caste_favored(charm: Charm, cf_set: set, caste_attr_category: str 
     return False
 
 
+def charm_fits_dedicated_slot(ruleset: RuleSet, character: Character, charm: Charm) -> bool:
+    """Whether `charm` may occupy a Dedicated Charm Slot (p.88): it must be keyed to a
+    Caste or Favored Attribute. General Slots hold any Charm, so this is only the
+    Dedicated restriction. Bundles the same decision the chargen slot check makes so
+    the advancement layer and the UI share one answer."""
+    cf_set = caste_favored_abilities(ruleset, character)
+    caste_attr_category = _caste_favored_attribute_category(ruleset, character)
+    caste_fav_attrs = _caste_favored_attr_names(ruleset, character)
+    return _charm_is_caste_favored(charm, cf_set, caste_attr_category, caste_fav_attrs)
+
+
 def uses_charm_slots(ruleset: RuleSet, character: Character) -> bool:
     """Whether this splat uses the Alchemical Charm Slot system (p.88-89) — has any
     free General/Dedicated Slots in its budget — rather than the per-pick Charm
     economy every other splat uses."""
     b = ruleset.budgets_for(character.exalt_type, character.origin)
     return (b.charm_slots_general + b.charm_slots_dedicated) > 0
+
+
+def splat_uses_charm_slots(ruleset: RuleSet, splat: str) -> bool:
+    """Whether the named splat is a Charm-Slot splat (Alchemical). Splat-level (no
+    character), so it can classify OTHER splats' Charms — used to spot an Alchemical
+    Charm being learned by a non-Alchemical via the crossover rule."""
+    b = ruleset.budgets_for(splat)
+    return (b.charm_slots_general + b.charm_slots_dedicated) > 0
+
+
+def crossover_alchemical_charm(ruleset: RuleSet, character: Character, charm: Charm) -> bool:
+    """Whether `character` is a non-Alchemical learning an Alchemical (Slot-splat)
+    Charm through the Eclipse/Moonshadow generalist rule — the p.90 crossover, which
+    grants a General Charm Slot along with the Charm."""
+    return (not uses_charm_slots(ruleset, character)
+            and foreign_charms_open(ruleset, character)
+            and is_foreign_charm(ruleset, character, charm)
+            and splat_uses_charm_slots(ruleset, splat_of(charm)))
+
+
+def crossover_panoply_xp(ruleset: RuleSet, character: Character) -> Optional[int]:
+    """The flat XP an Eclipse-style caste pays to add an Alchemical Charm to its Panoply
+    instead of buying a Slot (p.90, 8), or None if the caste has no such crossover
+    rate. Requires the generalist rule to be open to this character."""
+    if not foreign_charms_open(ruleset, character):
+        return None
+    caste = ruleset.castes.get(character.caste)
+    return caste.foreign_panoply_charm_xp if caste is not None else None
 
 
 def charm_slot_counts(ruleset: RuleSet, character: Character) -> tuple[int, int, int, int]:
@@ -1447,13 +1486,24 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         installed = noncf = 0
         for cid in charms:
             charm = ruleset.charms.get(cid)
-            if charm is None:
-                continue
+            if charm is None or not charm_occupies_slot(ruleset, character, charm):
+                continue                       # PLM Martial Arts Charms use no Slot
             installed += 1
             if not _charm_is_caste_favored(charm, cf_set, caste_attr_category, caste_fav_attrs):
                 noncf += 1
-        # Installation motes apply the Array three-fourths discount (p.89).
+        # Ox-Body (Strain Resistant Chassis): every purchase installs the Charm in its
+        # own Slot (user ruling — all Alchemical Charms take a Slot). It is stored on
+        # `ox_body`, not `charms`, so it is counted here explicitly.
+        ob_charm = ox_body_charm(ruleset, character)
+        if ob_charm is not None and ox_body:
+            installed += len(ox_body)
+            if not _charm_is_caste_favored(ob_charm, cf_set, caste_attr_category, caste_fav_attrs):
+                noncf += len(ox_body)
+        # Installation motes apply the Array three-fourths discount (p.89); each
+        # Ox-Body purchase commits its own installation cost on top.
         install_motes = _installation_motes(ruleset, charms, arrays)
+        if ob_charm is not None:
+            install_motes += ob_charm.installation_cost * len(ox_body)
         if installed > g + d:
             issues.append(Issue(
                 code="charm-exceeds-slots",
@@ -1642,8 +1692,39 @@ def charm_matches_splat(character: Character, charm: Charm,
     if charm.open_to_all or splat_of(charm) == character.exalt_type:
         return True
     if ruleset is not None and charm.open_to_tiers:
-        return ruleset.exalt_for(character.exalt_type).tier in charm.open_to_tiers
+        if ruleset.exalt_for(character.exalt_type).tier in charm.open_to_tiers:
+            return True
+        # Perfected Lotus Matrix (CH3 p.100): an Alchemical with it installed learns
+        # Terrestrial/Celestial Martial Arts Charms "in the same manner as any other
+        # Celestial Exalted type", so a Celestial-tier MA style becomes available.
+        if (is_martial_arts_charm(charm) and "Celestial" in charm.open_to_tiers
+                and has_perfected_lotus_matrix(character)):
+            return True
     return False
+
+
+PERFECTED_LOTUS_MATRIX_ID = "alchemical.close-combat.perfected-lotus-matrix"
+
+
+def is_martial_arts_charm(charm: Charm) -> bool:
+    """Whether `charm` is a Martial Arts style Charm (its category is a
+    `martial_arts:*` tree), as opposed to an ordinary Ability/Attribute Charm."""
+    return charm.category.startswith("martial_arts")
+
+
+def has_perfected_lotus_matrix(character: Character) -> bool:
+    """Whether the Alchemical has Perfected Lotus Matrix installed (CH3 p.100) — the
+    Charm that lets her learn Terrestrial/Celestial Martial Arts Charms. Removing it
+    revokes access to the MA Charms stored inside it."""
+    return PERFECTED_LOTUS_MATRIX_ID in character.charms
+
+
+def charm_occupies_slot(ruleset: RuleSet, character: Character, charm: Charm) -> bool:
+    """Whether an installed Charm consumes a Charm Slot. Every Alchemical Charm does
+    (user ruling: including each Ox-Body / Strain Resistant Chassis purchase) EXCEPT
+    the Martial Arts Charms learned through Perfected Lotus Matrix, which are stored
+    inside that Charm rather than in a Slot (CH3 p.100)."""
+    return not (is_martial_arts_charm(charm) and splat_of(charm) != character.exalt_type)
 
 
 def foreign_charms_caste(ruleset: RuleSet, character: Character):

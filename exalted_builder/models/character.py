@@ -321,6 +321,12 @@ class Character(BaseModel):
 
     backgrounds: list[BackgroundEntry] = Field(default_factory=list)
     charms: list[str] = Field(default_factory=list)           # Charm ids into the RuleSet
+    # Alchemical Panoply (p.89): Charms the character OWNS but has NOT installed in a
+    # Charm Slot — bought post-lock for the flat "New Charm" XP cost, or via the Vats
+    # Background. They occupy no Slot and are not installed; a Vat refit swaps them in
+    # and out (refit itself is play-time, not modelled). Empty for every non-slot
+    # splat. Kept OUT of `charms` (which is the installed set the Slot rules count).
+    retainer_charms: list[str] = Field(default_factory=list)
     combos: list[Combo] = Field(default_factory=list)
     # Alchemical Arrays (p.89) — see the Array model. Empty for every other splat.
     arrays: list[Array] = Field(default_factory=list)

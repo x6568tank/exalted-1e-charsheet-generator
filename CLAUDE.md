@@ -58,7 +58,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen foundation + Charm Slot system + Arrays + Submodules + full CH3 Charm catalogue (121 Charms) + CH4 weaving (38 protocols, weaving magic track); remaining — XP/advancement, theme, UI |
+| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols); remaining — theme, UI |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -166,7 +166,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (541 tests passing)
+## Status (562 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -672,12 +672,75 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     otherwise permitted. Pinned in `tests/test_alchemical.py` (weaving section).
     NOTE for later data: any other splat's magic that must never cross via the
     generalist rule should set the same flag.
-  - **NOT YET BUILT:** Alchemical XP/advancement (`costs_xp.json` + the
-    `attribute_favored_caste` XP discount — see the `costs_xp.json` bullet above),
-    `brass` theme, editor `_SPLAT_ORIGINS`/UI wiring, Clarity (→ `PlayState`/Limit
-    precedent when built). **UI is intentionally LAST** (user, 2026-07-23) — the
-    Charm-Slot counters, favored-Attribute grouping, Arrays/Submodules widgets, and
-    the new weaving Spells page all land in that final pass.
+  - **XP / advancement — DONE 2026-07-23** (verified against the CH2 p.64 EXPERIENCE
+    COSTS table — the real numbers, not the plan's paraphrase). Trait costs:
+    `ExperienceCosts.attribute_favored_caste` = (rating×4)−1 (new field, model default,
+    inert for category-mode splats whose caste-favored attribute SET is empty), Essence
+    ×9 (`costs_xp.json` Alchemical row). **Charm-Slot economy** (user chose "build
+    retainer now too", 2026-07-23): new `Character.retainer_charms` (the Panoply —
+    OWNED-but-not-installed Charms, kept OUT of `charms` which the Slot rules count);
+    `advancement.buy_charm_slot(dedicated=…, charm_id=…)` (General 12 / Dedicated 10,
+    installs the bundled free Charm, Dedicated requires
+    `validate.charm_fits_dedicated_slot`), `upgrade_charm_slot` (Dedicated→General, 2),
+    `learn_retainer_charm` (flat 6, no Slot). Per-circle protocol XP via new
+    `ExperienceCosts.spell_cost_by_circle` (`{Man-Machine:12, God-Machine:14}`; wins
+    over the flat rate and ignores the Occult discount) — `spell_cost` now takes the
+    spell. `learn_charm` now RAISES for a `uses_charm_slots` splat (routes to the Slot/
+    Panoply calls) so a Slot is never silently skipped — the exact silent-undercharge
+    the "don't half-author" warning is about. Undo + `_expected_cost` audit cover every
+    new domain (`charm_slots.general/dedicated`, `charm_slot_upgrade`,
+    `retainer_charms`). Tests: `tests/test_alchemical.py` XP section.
+    **Martial Arts via Perfected Lotus Matrix — DONE 2026-07-23** (CH3 p.100). PLM
+    installed lets an Alchemical learn Terrestrial/Celestial MA Charms "as any Celestial
+    Exalt": `validate.charm_matches_splat` now grants a `Celestial`-tier MA style when
+    `has_perfected_lotus_matrix` (PLM id in `charms`); `advancement.learn_martial_arts_
+    charm` costs the flat 11 (`new_martial_arts_charm`); the Charm is stored IN the
+    Matrix, so `validate.charm_occupies_slot` returns False for it and the Slot count
+    skips it (it still lives in `charms`, so its style-tree prereqs resolve normally).
+    Remove PLM → `charm_matches_splat` stops granting the style (access revoked, p.100).
+    Only Hungry Ghost + Five-Dragon MA data exist today, so those are what an Alchemical
+    can currently learn; more styles = pure data. **Ox-Body takes a Slot — DONE
+    2026-07-23** (user ruling: every Alchemical Charm occupies a Slot). Each Strain
+    Resistant Chassis purchase counts against Slots at chargen (the slot block adds
+    `len(ox_body)` + its install motes) and, post-lock, `learn_ox_body(..., dedicated=)`
+    costs a Slot (12/10) and raises the Slot count for a `uses_charm_slots` splat (flat
+    new-charm rate still applies to Solar/DB/Abyssal/Lunar Ox-Body). New undo/audit
+    domains `ox_body_slot.*` and `martial_arts`.
+    **Eclipse/Moonshadow ↔ Alchemical crossover — DONE 2026-07-23** (p.90). A
+    non-Alchemical learning an Alchemical (Slot-splat) Charm through the generalist rule
+    now gains a **General Charm Slot** with it: `advancement.learn_charm` detects
+    `validate.crossover_alchemical_charm` and, alongside the 20-XP foreign price
+    (Solar `new_charm` 10 × the caste's ×2), increments `general_charm_slots`, logging
+    under a distinct `crossover_charms` domain so undo gives the Slot back too. The
+    cheaper **Panoply** alternative (add the Alchemical Charm to `retainer_charms`, NO
+    Slot) is `learn_retainer_charm` at the caste's flat crossover rate — new
+    `CasteDefinition.foreign_panoply_charm_xp` (**8** on `eclipse`; set it on
+    `moonshadow` too when that caste's `foreign_charms` lands). A crossover Panoply
+    holds only Alchemical Charms (guarded via `splat_uses_charm_slots`). Arrays stay
+    barred (already gated on `uses_charm_slots`, False for an Eclipse) and weaving stays
+    barred (`no_foreign_learning`). NOTE: `uses_charm_slots` stays budget-based (False
+    for an Eclipse) — their Slots are self-balancing (1 General Slot per Alchemical
+    Charm), so the chargen 4/4 Slot-budget validation deliberately does NOT apply; the
+    Slot count is tracked purely so the Vat-Refit UI can show/swap them.
+    **Chargen Panoply (answered from source, CH2 p.68-69):** an Alchemical CAN take
+    retainer/Panoply Charms at creation — via the **Vats Background** (1 retained Charm
+    per dot) and the **Artifact Background** (Charms as artifacts, rating = min Essence),
+    both "on retainer... do not increase installable Charms". The flat 6-XP buy is
+    post-lock only. Backgrounds here are soft free-text, so a chargen retainer count is
+    NOT validated against Vats rating (consistent with every other Background) — the UI
+    may still let you list them.
+    **Still open (UI pass):** **Vat refit** — the user wants the Charms tab to carry a
+    general **Slot / Retainer (Panoply) management system** for Alchemicals: list
+    installed (Slot) Charms vs Panoply Charms and swap between them (like the Lunar Form
+    Library but with mechanical weight — affects committed Personal Essence). Play-state,
+    isolated from chargen/XP validation. This is where the `charms` ↔ `retainer_charms`
+    move operation lives; it also surfaces an Eclipse's crossover Slots. Build in the UI
+    pass.
+  - **STILL TO BUILD:** `brass` theme, editor `_SPLAT_ORIGINS`/UI wiring, Clarity
+    (→ `PlayState`/Limit precedent when built). **UI is intentionally LAST** (user,
+    2026-07-23) — the Charm-Slot counters, favored-Attribute grouping, Arrays/Submodules
+    widgets, retainer/Panoply display, and the new weaving Spells page all land in that
+    final pass.
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled
@@ -708,7 +771,9 @@ three-page Abilities/Martial Arts/Spells split, GM mode.
   this is a one-line change to the `moonshadow` row of `castes.json` — but the page
   image has not landed yet (the human is dropping it in `images/Abyssal/`). Author it
   from that page, not from the Eclipse text: confirm the multiplier and the chargen
-  permission clause actually read the same before copying them across.
+  permission clause actually read the same before copying them across. Also set
+  `foreign_panoply_charm_xp: 8` on the `moonshadow` row (the Alchemical-crossover
+  Panoply rate, p.90 — it names both castes), so the crossover works for Moonshadows too.
 - **Refactor: one canonical Charm-pick enumeration.** A repeatable Charm lives on
   its own `Character` list (`ox_body`, `beastman_gifts`), NOT in `character.charms`,
   so every consumer that walks `character.charms` has to special-case each of them —

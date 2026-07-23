@@ -323,6 +323,12 @@ class CasteDefinition(BaseModel):
     # the normal experience to learn (usually 20 points) and use." The *use* half
     # (mote costs) is play-time math and deliberately not modelled.
     foreign_charm_xp_multiplier: int = Field(default=2, ge=1)
+    # Alchemical crossover (Autochthonians p.90): an Eclipse/Moonshadow learning an
+    # Alchemical Charm gains a General Charm Slot with it (the 20-XP path, priced via
+    # foreign_charm_xp_multiplier), but may instead add the Charm to their Panoply
+    # (no Slot) for this flat rate. None = the caste has no Alchemical-crossover Panoply
+    # rate. Only meaningful alongside foreign_charms.
+    foreign_panoply_charm_xp: Optional[int] = None
     description: str = ""                   # a quick flavour blurb for the caste
     anima_powers: str = ""
 
@@ -489,6 +495,11 @@ class BonusPointCosts(BaseModel):
 class ExperienceCosts(BaseModel):
     # rating-scaled increases
     attribute: LinearCost = Field(default_factory=lambda: LinearCost(coeff=4))
+    # Alchemical (Autochthonians p.64): a Caste- or Favored-Attribute costs
+    # (current rating x 4) - 1. Only caste_favored-mode splats have Caste/Favored
+    # ATTRIBUTES, so this rate is inert for every category-mode splat (their
+    # caste-favored attribute SET is empty — validate._caste_favored_attr_names).
+    attribute_favored_caste: LinearCost = Field(default_factory=lambda: LinearCost(coeff=4, offset=-1))
     ability: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2))
     ability_favored_caste: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2, offset=-1))
     essence: LinearCost = Field(default_factory=lambda: LinearCost(coeff=8))
@@ -502,6 +513,18 @@ class ExperienceCosts(BaseModel):
     new_spell: int = 10
     new_spell_occult_favored_caste: int = 8
     foreign_charm: int = 20                # spirit Charms / other Exalt types; Eclipse only (gated in engine)
+    # Per-circle spell-cost override, keyed by SpellCircle value. When a spell's
+    # circle is present, it wins over the flat new_spell rate (and ignores the Occult
+    # discount). Alchemical weaving protocols price this way — Man-Machine 12,
+    # God-Machine 14 (Autochthonians p.64). Empty for every sorcery/necromancy splat.
+    spell_cost_by_circle: dict[str, int] = Field(default_factory=dict)
+    # Alchemical Charm-Slot economy (p.64). A bought Slot comes with one free Charm;
+    # you pay for the SLOT, not the Charm. `new_charm` here is the flat Panoply
+    # (retainer) Charm cost (6) — a Charm bought WITHOUT a Slot.
+    new_charm_slot_general: int = 12
+    new_charm_slot_dedicated: int = 10
+    charm_slot_upgrade: int = 2            # upgrade one Dedicated Slot to General
+    new_martial_arts_charm: int = 11       # gated on Perfected Lotus Matrix (transition deferred)
 
 
 class AbilityMinimum(BaseModel):

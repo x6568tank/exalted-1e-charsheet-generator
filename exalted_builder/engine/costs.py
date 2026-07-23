@@ -15,7 +15,7 @@ engine.advancement call them, and the UI shows them as a price before buying.
 from __future__ import annotations
 
 from ..models.character import Character
-from ..models.rules import AbilityName, Charm, RuleSet
+from ..models.rules import AbilityName, AttributeName, Charm, RuleSet
 from . import validate
 
 # A trait's first dot (an Ability bought from 0) has no `from_rating` to scale; it
@@ -23,9 +23,17 @@ from . import validate
 # always scaled.
 
 
-def attribute_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
-    """XP to raise an Attribute from `from_rating` to the next dot."""
-    return ruleset.xp_costs_for(character.exalt_type).attribute.at(from_rating)
+def attribute_step(ruleset: RuleSet, character: Character, from_rating: int,
+                   attr: AttributeName | None = None) -> int:
+    """XP to raise an Attribute one dot. For a splat with Caste/Favored Attributes
+    (Alchemical, p.64) a Caste- or Favored-Attribute takes the discounted
+    (rating x 4) - 1 rate; every other splat (and every non-favored Attribute) pays
+    the flat rate. `attr` is optional so the discount can be applied; omitted, the
+    flat rate is used (byte-identical to the old behaviour for category-mode splats)."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    if attr is not None and attr in validate._caste_favored_attr_names(ruleset, character):
+        return xp.attribute_favored_caste.at(from_rating)
+    return xp.attribute.at(from_rating)
 
 
 def ability_step(ruleset: RuleSet, character: Character, ability: AbilityName,
@@ -87,11 +95,49 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     return cost
 
 
-def spell_cost(ruleset: RuleSet, character: Character) -> int:
-    """XP to learn a spell: discounted when Occult is Caste/Favoured (core p.100/191)."""
+def spell_cost(ruleset: RuleSet, character: Character, spell=None) -> int:
+    """XP to learn a spell. A circle listed in `spell_cost_by_circle` prices at that
+    flat rate (Alchemical weaving protocols — Man-Machine 12, God-Machine 14, p.64,
+    no Occult discount); otherwise the sorcery/necromancy rate, discounted when Occult
+    is Caste/Favoured (core p.100/191)."""
     xp = ruleset.xp_costs_for(character.exalt_type)
+    if spell is not None:
+        by_circle = xp.spell_cost_by_circle.get(spell.circle.value)
+        if by_circle is not None:
+            return by_circle
     favored = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, character)
     return xp.new_spell_occult_favored_caste if favored else xp.new_spell
+
+
+def charm_slot_cost(ruleset: RuleSet, character: Character, *, dedicated: bool) -> int:
+    """XP to buy one more Alchemical Charm Slot (p.64) — Dedicated is cheaper (10)
+    than General (12). The Slot comes with one free Charm; you pay only for the Slot."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    return xp.new_charm_slot_dedicated if dedicated else xp.new_charm_slot_general
+
+
+def charm_slot_upgrade_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP to upgrade one Dedicated Charm Slot to a General one (p.64)."""
+    return ruleset.xp_costs_for(character.exalt_type).charm_slot_upgrade
+
+
+def retainer_charm_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP for one Panoply (retainer) Charm bought WITHOUT a Slot. A native Alchemical
+    pays the flat table rate (p.64, 6); an Eclipse/Moonshadow adding an Alchemical Charm
+    to their Panoply through the crossover pays their caste's flat rate (p.90, 8). No
+    Caste/Favored discount applies either way."""
+    if validate.uses_charm_slots(ruleset, character):
+        return ruleset.xp_costs_for(character.exalt_type).new_charm
+    crossover = validate.crossover_panoply_xp(ruleset, character)
+    if crossover is not None:
+        return crossover
+    return ruleset.xp_costs_for(character.exalt_type).new_charm
+
+
+def martial_arts_charm_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP for one Martial Arts Charm learned through Perfected Lotus Matrix (p.100,
+    flat 11). MA Charms are stored inside the Matrix and use no Charm Slot."""
+    return ruleset.xp_costs_for(character.exalt_type).new_martial_arts_charm
 
 
 def ox_body_cost(ruleset: RuleSet, character: Character) -> int:
