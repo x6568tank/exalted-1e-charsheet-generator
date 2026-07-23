@@ -29,6 +29,7 @@ def lock_chargen(character: Character) -> Character:
         spells=list(character.spells),
         combos=[c.model_copy(deep=True) for c in character.combos],
         arrays=[a.model_copy(deep=True) for a in character.arrays],
+        submodules=[s.model_copy(deep=True) for s in character.submodules],
         ox_body=[p.model_copy(deep=True) for p in character.ox_body],
         beastman_gifts=[p.model_copy(deep=True) for p in character.beastman_gifts],
         essence_rating=character.essence_rating,

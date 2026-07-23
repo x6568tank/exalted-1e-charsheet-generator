@@ -16,7 +16,8 @@ engine.validate; the trait caps live here.
 from __future__ import annotations
 
 from ..models.character import (
-    BeastmanGiftPurchase, Character, Combo, CraftRating, OxBodyPurchase, Specialty, XpEntry)
+    BeastmanGiftPurchase, Character, Combo, CraftRating, OxBodyPurchase, Specialty,
+    SubmodulePurchase, XpEntry)
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import costs, derive, validate
 
@@ -271,6 +272,33 @@ def learn_spell(ruleset: RuleSet, character: Character, spell_id: str) -> XpEntr
     return entry
 
 
+def learn_submodule(ruleset: RuleSet, character: Character,
+                    charm_id: str, key: str) -> XpEntry:
+    """Buy an Alchemical submodule (p.89) post-lock for its `xp_cost`. The parent
+    Charm must be known and the submodule's own Essence/Attribute minimums met."""
+    _ensure_locked(character)
+    definition = validate.submodule_def(ruleset, charm_id, key)
+    if definition is None:
+        raise AdvancementError(f"No submodule {key!r} on Charm {charm_id!r}.")
+    if charm_id not in character.charms:
+        raise AdvancementError(f"Charm {charm_id!r} is not known; install it first.")
+    if any(s.charm_id == charm_id and s.key == key for s in character.submodules):
+        raise AdvancementError(f"Submodule {definition.name} is already owned.")
+    if character.essence_rating < definition.min_essence:
+        raise AdvancementError(
+            f"{definition.name} requires Essence {definition.min_essence}.")
+    if definition.min_attribute:
+        attr = AttributeName(definition.min_attribute)
+        if character.attributes.get(attr, 0) < definition.min_attribute_rating:
+            raise AdvancementError(
+                f"{definition.name} requires {definition.min_attribute} "
+                f"{definition.min_attribute_rating}.")
+    entry = _commit(character, "submodules", f"{charm_id}:{key}", None, None,
+                    definition.xp_cost)
+    character.submodules.append(SubmodulePurchase(charm_id=charm_id, key=key))
+    return entry
+
+
 def add_combo(ruleset: RuleSet, character: Character, name: str,
               charm_ids: list[str]) -> XpEntry:
     _ensure_locked(character)
@@ -432,6 +460,12 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
             if "|".join(character.beastman_gifts[i].gifts) == entry.detail:
                 del character.beastman_gifts[i]
                 break
+    elif domain == "submodules":
+        for i in range(len(character.submodules) - 1, -1, -1):
+            s = character.submodules[i]
+            if f"{s.charm_id}:{s.key}" == entry.detail:
+                del character.submodules[i]
+                break
 
     character.xp_log.pop()
     return entry
@@ -475,6 +509,10 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         return costs.ox_body_cost(ruleset, character)
     if domain == "beastman_gifts":
         return costs.gift_cost(ruleset, character)
+    if domain == "submodules":
+        cid, _, k = entry.detail.partition(":")
+        definition = validate.submodule_def(ruleset, cid, k)
+        return definition.xp_cost if definition is not None else None
     return None
 
 

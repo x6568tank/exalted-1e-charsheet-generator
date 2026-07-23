@@ -165,6 +165,24 @@ class CharmVariant(BaseModel):
     description: str = ""
 
 
+class Submodule(BaseModel):
+    """One purchasable upgrade to a single Alchemical Charm (p.89). A submodule
+    permanently improves its parent Charm; the character has access to it whenever
+    that Charm is installed. Dual cost: `bp_cost` bonus points at chargen OR
+    `xp_cost` experience post-lock (the page prints both, e.g. "2 bonus points or 6
+    experience points"). May carry its own minimum Essence and/or a minimum
+    Attribute gate (e.g. the omnidextrous submodule "requires Wits 3+")."""
+    model_config = ConfigDict(frozen=True)
+    key: str                               # stable within the parent Charm
+    name: str
+    bp_cost: int = Field(default=0, ge=0)
+    xp_cost: int = Field(default=0, ge=0)
+    min_essence: int = Field(default=1, ge=1)
+    min_attribute: str = ""                # optional extra Attribute gate (AttributeName value)
+    min_attribute_rating: int = Field(default=0, ge=0)
+    description: str = ""
+
+
 class Charm(BaseModel):
     model_config = ConfigDict(frozen=True)  # rules data is immutable at runtime
 
@@ -238,6 +256,10 @@ class Charm(BaseModel):
     # Sorcery). Lets engine.validate gate known spells on a known initiation Charm of
     # their circle. Track-agnostic: a necromancy initiation Charm sets it the same way.
     grants_circle: Optional[SpellCircle] = None
+    # Alchemical Charms only (p.89): the upgrades available for this Charm. Empty
+    # for every other splat's Charms and for Alchemical Charms with no listed
+    # submodule (most of them, per the book).
+    submodules: list[Submodule] = Field(default_factory=list)
     description: str = ""
     source: Source = Field(default_factory=Source)
 

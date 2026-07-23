@@ -43,5 +43,31 @@
     "duration": "Instant",
     "description": "A mechanical assembly in the spine. Activated before initiative, it slows the Exalt's perception of the turn, adding +2 initiative per mote spent, to a maximum bonus of Dexterity x 2.",
     "source": {"book": "Exalted 1e The Autochthonians", "page": 93}
+  },
+  {
+    "id": "alchemical.close-combat.polymodal-joint-bearings",
+    "name": "Polymodal Joint Bearings",
+    "category": "close_combat",
+    "exalt_type": "Alchemical",
+    "type": "Simple",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [["alchemical.general.transitory-augmentation-of-dexterity", "alchemical.general.sustained-augmentation-of-dexterity"]],
+    "cost": {"motes": 2, "raw": "2m"},
+    "duration": "Indefinite",
+    "submodules": [
+      {
+        "key": "omnidextrous",
+        "name": "Omnidextrous",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "min_attribute": "wits",
+        "min_attribute_rating": 3,
+        "description": "The Alchemical ignores the usual off-hand action penalty and may use his feet as hands for gripping tools or fine dexterity without penalty (foot-fist strikes still count as kicks)."
+      }
+    ],
+    "description": "Ball-bearing races and mechanical assemblies grant superhuman flexibility: while active, add three dice (an artificial specialty, cumulative with real specialties) to escape bindings, control/escape a clinch, dodge by contortion, or any feat where preternatural flexibility helps.",
+    "source": {"book": "Exalted 1e The Autochthonians", "page": 94}
   }
 ]

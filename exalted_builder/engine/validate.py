@@ -617,6 +617,76 @@ def validate_arrays(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def submodule_def(ruleset: RuleSet, charm_id: str, key: str):
+    """The rules.Submodule with `key` on Charm `charm_id`, or None if either the
+    Charm or the key is absent."""
+    charm = ruleset.charms.get(charm_id)
+    if charm is None:
+        return None
+    return next((s for s in charm.submodules if s.key == key), None)
+
+
+def validate_submodules(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """Legality of every purchased submodule (p.89): its parent Charm must exist and
+    be known, the key must be a real submodule of that Charm, no submodule bought
+    twice, and the character must meet the submodule's own Essence / Attribute
+    minimums. Used for both chargen (BP) and post-lock (XP) purchases."""
+    issues: list[Issue] = []
+    seen: set[tuple[str, str]] = set()
+    known = set(character.charms)
+    for sub in character.submodules:
+        where = f"{sub.charm_id}:{sub.key}"
+        pair = (sub.charm_id, sub.key)
+        if pair in seen:
+            issues.append(Issue(
+                code="submodule-duplicate", where=where,
+                message=f"Submodule {where!r} is purchased more than once.",
+            ))
+            continue
+        seen.add(pair)
+        charm = ruleset.charms.get(sub.charm_id)
+        if charm is None:
+            issues.append(Issue(
+                code="submodule-unknown-charm", where=where,
+                message=f"Submodule {where!r} names Charm {sub.charm_id!r}, which is "
+                        "not in the rule set.",
+            ))
+            continue
+        definition = submodule_def(ruleset, sub.charm_id, sub.key)
+        if definition is None:
+            issues.append(Issue(
+                code="submodule-unknown", where=where,
+                message=f"{charm.name} has no submodule {sub.key!r}.",
+            ))
+            continue
+        if sub.charm_id not in known:
+            issues.append(Issue(
+                code="submodule-charm-not-known", where=where,
+                message=f"Submodule {definition.name}: its Charm {charm.name} is not "
+                        "known/installed.",
+            ))
+        if character.essence_rating < definition.min_essence:
+            issues.append(Issue(
+                code="submodule-essence", where=where,
+                message=f"Submodule {definition.name} requires Essence "
+                        f"{definition.min_essence}; has {character.essence_rating}.",
+            ))
+        if definition.min_attribute:
+            try:
+                attr = AttributeName(definition.min_attribute)
+            except ValueError:
+                attr = None
+            have = character.attributes.get(attr, 0) if attr is not None else 0
+            if have < definition.min_attribute_rating:
+                issues.append(Issue(
+                    code="submodule-attribute", where=where,
+                    message=f"Submodule {definition.name} requires "
+                            f"{definition.min_attribute} {definition.min_attribute_rating}; "
+                            f"has {have}.",
+                ))
+    return issues
+
+
 def _installation_motes(ruleset: RuleSet, charm_ids, arrays) -> int:
     """Total Personal Essence committed to install `charm_ids`, applying the Array
     discount (p.89): a Charm inside an Array contributes to that Array's combined
@@ -1044,6 +1114,7 @@ def _chargen_source(character: Character):
         snap.willpower_purchased if snap else character.willpower_purchased,
         snap.beastman_gifts if snap else character.beastman_gifts,
         snap.arrays if snap else character.arrays,
+        snap.submodules if snap else character.submodules,
     )
 
 
@@ -1062,7 +1133,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     bp_costs = ruleset.bonus_costs_for(character.exalt_type)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased,
-     beastman_gifts, arrays) = _chargen_source(character)
+     beastman_gifts, arrays, submodules) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
@@ -1175,6 +1246,11 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     # --- Arrays: BP = its number of Charms (Alchemical, p.89) ---------------- #
     array_bp = sum(len(array.charm_ids) for array in arrays)
 
+    # --- Submodules: each priced at its own bp_cost (Alchemical, p.89) ------- #
+    submodule_bp = sum(
+        (d.bp_cost for d in (submodule_def(ruleset, s.charm_id, s.key) for s in submodules)
+         if d is not None), 0)
+
     # --- Specialties: 1 BP/dot; Caste/Favoured get N dots per BP (p.105) ------ #
     cf_spec_dots = sum(s.rating for s in specialties if s.ability in cf_set)
     other_spec_dots = sum(s.rating for s in specialties if s.ability not in cf_set)
@@ -1196,8 +1272,9 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     # Arrays are an Alchemical-only domain (p.89); show the line only for splats
     # that build them, so every other splat's breakdown is unchanged. array_bp is 0
     # whenever the line is omitted (no arrays), so the total is unaffected either way.
-    if array_bp or uses_charm_slots(ruleset, character):
+    if array_bp or submodule_bp or uses_charm_slots(ruleset, character):
         lines.append(BonusPointLine(domain="Arrays", points=array_bp))
+        lines.append(BonusPointLine(domain="Submodules", points=submodule_bp))
     lines += [
         BonusPointLine(domain="Specialties", points=spec_bp),
         BonusPointLine(domain="Willpower", points=wp_bp),
@@ -1225,7 +1302,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     b = ruleset.budgets_for(character.exalt_type, character.origin)
     (attributes, abilities, crafts, virtues, _backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
-     beastman_gifts, arrays) = _chargen_source(character)
+     beastman_gifts, arrays, _submodules) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:
@@ -1645,6 +1722,7 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_spell_access(ruleset, character)
     issues += validate_combos(ruleset, character)
     issues += validate_arrays(ruleset, character)
+    issues += validate_submodules(ruleset, character)
     issues += check_ox_body(ruleset, character)
     issues += check_beastman_gifts(ruleset, character)
     return issues

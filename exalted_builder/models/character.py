@@ -147,6 +147,15 @@ class BeastmanGiftPurchase(BaseModel):
     gifts: list[str] = Field(default_factory=list)
 
 
+class SubmodulePurchase(BaseModel):
+    """One purchased Alchemical submodule (p.89) — the `key` of a rules.Submodule on
+    the Charm named by `charm_id`. Bought with bonus points at chargen or experience
+    post-lock; the parent Charm must be known. There is no rating — a submodule is
+    owned or not."""
+    charm_id: str
+    key: str
+
+
 class AnimalForm(BaseModel):
     """One shape in a Lunar's Form Library — an animal whose heart's blood they have
     taken and can wear. Deliberately FREE-FORM and unvalidated: it is a narrative
@@ -191,6 +200,7 @@ class ChargenSnapshot(BaseModel):
     spells: list[str]
     combos: list[Combo] = Field(default_factory=list)
     arrays: list[Array] = Field(default_factory=list)
+    submodules: list[SubmodulePurchase] = Field(default_factory=list)
     ox_body: list[OxBodyPurchase] = Field(default_factory=list)
     beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
     essence_rating: int
@@ -314,6 +324,8 @@ class Character(BaseModel):
     combos: list[Combo] = Field(default_factory=list)
     # Alchemical Arrays (p.89) — see the Array model. Empty for every other splat.
     arrays: list[Array] = Field(default_factory=list)
+    # Alchemical submodules (p.89) — per-Charm upgrades. Empty for every other splat.
+    submodules: list[SubmodulePurchase] = Field(default_factory=list)
     spells: list[str] = Field(default_factory=list)           # Spell ids into the RuleSet
     # Repeatable Ox-Body Technique: one record per purchase (it is therefore NOT in
     # `charms`). Each carries the chosen variant + its inline health levels.

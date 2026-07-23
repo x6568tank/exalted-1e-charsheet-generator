@@ -58,7 +58,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen foundation + Charm Slot system + Arrays done (21 starter Charms); remaining — Submodules, full CH3/CH4 catalogue, XP/advancement, theme, UI |
+| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen foundation + Charm Slot system + Arrays + Submodules done (22 starter Charms); remaining — full CH3/CH4 catalogue, XP/advancement, theme, UI |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -166,7 +166,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (522 tests passing)
+## Status (531 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -613,8 +613,18 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
   chargen install-cost check now uses. Integrated Combos are a play-time grant, not
   modelled. Codes: `array-too-small`/`-unknown-charm`/`-duplicate-charm`/
   `-non-attribute-charm`/`-not-supported`/`-charm-reused`.
+- **Submodules DONE (p.89).** `rules.Submodule` (list on `Charm.submodules`) +
+  `character.SubmodulePurchase` (+ `Character.submodules`, snapshot, lock copy).
+  **Dual-cost — NOT post-lock-only as first assumed:** the page prints "2 bonus
+  points OR 6 experience", so `Submodule` carries both `bp_cost` and `xp_cost`; they
+  can be bought at chargen (BP, a "Submodules" breakdown line beside "Arrays", slot-
+  splats only) or post-lock (`advancement.learn_submodule`, priced from `xp_cost`,
+  with undo + `_expected_cost` audit). May gate on their own `min_essence` and/or an
+  Attribute (`min_attribute`/`min_attribute_rating`, e.g. omnidextrous needs Wits 3).
+  `validate.validate_submodules`/`submodule_def`: parent Charm known, key real, no
+  dup, minima met. Real datum: Polymodal Joint Bearings' omnidextrous submodule
+  (the 22nd starter Charm).
 - **NOT YET BUILT (next increments in this push):**
-  - **Submodules** — per-Charm XP upgrades (post-lock); see the subsystems note.
   - **`costs_xp.json` + Alchemical advancement (post-lock).** Slot-based: new Slots
     12/10, upgrade Dedicated→General 2, Weaving Protocols 12/14, MA 11 (Perfected
     Lotus Matrix gate), retainer Charm 6, Essence ×9. ALSO needs a new

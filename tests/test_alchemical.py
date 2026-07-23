@@ -16,8 +16,8 @@ import pytest
 
 import exalted_builder
 from exalted_builder import rules_db
-from exalted_builder.engine import derive, validate
-from exalted_builder.models.character import Array, Character
+from exalted_builder.engine import advancement, derive, lifecycle, validate
+from exalted_builder.models.character import Array, Character, SubmodulePurchase
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
@@ -320,3 +320,89 @@ def test_array_reduces_installation_cost_to_three_quarters(rs):
     assert validate._installation_motes(rs, four, []) == 4
     arr = [Array(name="Quad", charm_ids=four)]
     assert validate._installation_motes(rs, four, arr) == 3   # ceil(3/4 * 4) = 3
+
+
+# --------------------------------------------------------------------------- #
+# Submodules (p.89)
+# --------------------------------------------------------------------------- #
+_POLYMODAL = "alchemical.close-combat.polymodal-joint-bearings"
+_DEX_AUG = "alchemical.general.transitory-augmentation-of-dexterity"
+
+
+def _with_submodule(rs) -> Character:
+    """A valid Alchemical who knows Polymodal Joint Bearings (+ its prereq) with
+    Wits 3 (the omnidextrous submodule needs Wits 3+), owning that submodule."""
+    c = _alchemical()
+    c.attributes[AT.WITS] = 3
+    c.charms = [_DEX_AUG, _POLYMODAL]
+    c.submodules = [SubmodulePurchase(charm_id=_POLYMODAL, key="omnidextrous")]
+    return c
+
+
+def test_submodule_data_loads(rs):
+    charm = rs.charms[_POLYMODAL]
+    assert len(charm.submodules) == 1
+    sub = charm.submodules[0]
+    assert (sub.key, sub.bp_cost, sub.xp_cost) == ("omnidextrous", 2, 6)
+    assert (sub.min_attribute, sub.min_attribute_rating) == ("wits", 3)
+
+
+def test_valid_submodule_costs_its_bp(rs):
+    c = _with_submodule(rs)
+    assert not [i for i in validate.validate_submodules(rs, c) if i.severity == "error"]
+    sub_line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                    if l.domain == "Submodules")
+    assert sub_line.points == 2
+
+
+def test_submodule_line_absent_for_non_slot_splats(rs):
+    solar = Character(id="s", exalt_type="Solar", caste="dawn")
+    domains = {l.domain for l in validate.bonus_point_breakdown(rs, solar).lines}
+    assert "Submodules" not in domains and "Arrays" not in domains
+
+
+def test_submodule_requires_known_parent_charm(rs):
+    c = _with_submodule(rs)
+    c.charms = [_DEX_AUG]                          # Polymodal no longer known
+    assert _codes(validate.validate_submodules(rs, c), "submodule-charm-not-known")
+
+
+def test_submodule_unknown_key_flagged(rs):
+    c = _with_submodule(rs)
+    c.submodules = [SubmodulePurchase(charm_id=_POLYMODAL, key="nonexistent")]
+    assert _codes(validate.validate_submodules(rs, c), "submodule-unknown")
+
+
+def test_submodule_attribute_gate_enforced(rs):
+    c = _with_submodule(rs)
+    c.attributes[AT.WITS] = 2                      # below the omnidextrous Wits 3 gate
+    assert _codes(validate.validate_submodules(rs, c), "submodule-attribute")
+
+
+def test_submodule_duplicate_flagged(rs):
+    c = _with_submodule(rs)
+    c.submodules = c.submodules + [SubmodulePurchase(charm_id=_POLYMODAL, key="omnidextrous")]
+    assert _codes(validate.validate_submodules(rs, c), "submodule-duplicate")
+
+
+def test_learn_submodule_post_lock_then_undo(rs):
+    c = _with_submodule(rs)
+    c.submodules = []                              # buy it post-lock instead
+    lifecycle.lock_chargen(c)
+    c.xp_earned = 20
+    entry = advancement.learn_submodule(rs, c, _POLYMODAL, "omnidextrous")
+    assert entry.cost == 6                         # the submodule's xp_cost
+    assert c.submodules and c.submodules[0].key == "omnidextrous"
+    assert not [i for i in advancement.validate_xp(rs, c) if i.severity == "error"]
+    advancement.undo_last(rs, c)
+    assert not c.submodules and not c.xp_log
+
+
+def test_learn_submodule_needs_known_charm(rs):
+    c = _alchemical()
+    c.charms = [_DEX_AUG]                          # Polymodal not known
+    c.attributes[AT.WITS] = 3
+    lifecycle.lock_chargen(c)
+    c.xp_earned = 20
+    with pytest.raises(advancement.AdvancementError):
+        advancement.learn_submodule(rs, c, _POLYMODAL, "omnidextrous")
