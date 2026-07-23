@@ -45,7 +45,7 @@ def test_each_caste_keyed_by_its_own_id():
 
 def test_every_caste_has_a_description_and_anima_power():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.castes) == 19          # 5 Solar + 5 DB Aspects + 5 Abyssal + 4 Lunar
+    assert len(rs.castes) == 24          # 5 Solar + 5 DB Aspects + 5 Abyssal + 4 Lunar + 5 Sidereal
     for cd in rs.castes.values():
         assert cd.description and cd.anima_powers
     assert rs.castes["dawn"].description.startswith("Masters of war")

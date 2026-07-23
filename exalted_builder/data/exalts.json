@@ -75,5 +75,19 @@
     "form_library": true,
     "caste_noun": "Caste",
     "tier": "Celestial"
+  },
+  {
+    "id": "Sidereal",
+    "label": "Sidereal Exalted",
+    "essence": {
+      "personal_essence_coeff": 2,
+      "peripheral_essence_coeff": 6,
+      "peripheral_virtue_mode": "all"
+    },
+    "magic_track": "sorcery",
+    "highest_magic_circle_id": "Celestial",
+    "ox_body_charm_id": "",
+    "caste_noun": "Caste",
+    "tier": "Celestial"
   }
 ]

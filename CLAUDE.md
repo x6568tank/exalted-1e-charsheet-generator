@@ -164,7 +164,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (487 tests passing)
+## Status (495 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -513,6 +513,43 @@ the Gift-picker dialog caveats noted below are cleared.
   derivation; only Combo *composition* legality is checked. Tests:
   `tests/test_validate.py` (synthetic ruleset) and `tests/test_lunar.py` (real
   data, incl. the Five-Dragon Style crossover case).
+
+### Sidereal — chargen foundation IN PROGRESS (started 2026-07-22)
+Read from `images/Sidereals/96 - 101 Character Creation`. Budgets/structure in
+[[sidereal-chargen-findings]]. **Phase 1 (foundation) DONE** — reuses the existing
+ability-caste + required-minimums + essence-spec machinery with ZERO new engine code:
+- **Data authored:** `castes.json` 5 Maiden castes (Journeys/Serenity/Battles/Secrets/
+  Endings — ability-caste splat, the 5 **Auspicious Abilities** ARE `caste_abilities`,
+  each with its anima power); `exalts.json` Sidereal row (Essence 2/6 virtue-all —
+  Personal E×2+WP, Peripheral E×6+WP+ΣVirtues; sorcery, `highest_magic_circle_id`
+  "Celestial", tier Celestial, `ox_body_charm_id` "" until Charms land);
+  `chargen_budgets.json` Sidereal row (8/6/4 attrs, 35 abilities ≥15 C/F, 4 favored,
+  12 charms ≥5, 15 backgrounds, 5 virtues, 18 BP + the 9 universal Celestial Hierarchy
+  ability minimums); `costs_bonus.json` + `costs_xp.json` Sidereal rows (Essence XP ×9
+  per the user rule since p265 omits base rows; new Charm 11/9 per p265). Theme
+  `theme._SIDEREAL` = purple, `fam="purple"`. Editor picks the splat up with no code
+  change (it iterates `ruleset.exalts`). Tests: `tests/test_sidereal.py`.
+- **STILL TODO (later phases), in rough order:**
+  1. **Per-house ability minimums** (each caste adds its own floor, p.98) — needs a
+     `CasteDefinition.required_min_abilities` field unioned into validation, since the
+     existing floor is exalt-type-keyed, not caste-keyed. Only the *universal* minimums
+     are wired so far.
+  2. **Astrological Colleges** — 25 Colleges in 5 houses as budgeted rated traits
+     (Craft-style per-instance pattern): 7 dots, ≥4 own-Maiden, cap 3, BP 8/6, XP 5 new
+     / ×3 raise. Astrology EFFECTS stay out of scope (like combat derivation); their
+     reference tables (Pattern Bite / Effect Scope-Duration-Power, p.214-219) go into the
+     GM Storyteller reference screen instead. Needs Colleges data + model + budget +
+     validation + UI + XP.
+  3. **Charms catalogue** — `data/charms/sidereal_*.json`, incl. **Sidereal Martial
+     Arts** (own Charm category, ≤3 at chargen, BP 8/6 + XP 12/10 — a distinct rate).
+     Then set `ox_body_charm_id` to the authored Sidereal Ox-Body, and un-defer the
+     full `validate_chargen` (the 12-Charm pool the tests currently can't assert).
+  4. **Ronin variant** (`Sidereal:ronin`, like DB Outcaste / Lunar Casteless): 25
+     abilities ≥10 C/F, 7 backgrounds (limited list), 8 Charms (no Sidereal MA; Violet
+     Bier Style still allowed), 0 Colleges, no minimums. Add to `chargen_budgets.json` +
+     editor `_SPLAT_ORIGINS`.
+  5. **Paradox = Limit rename** in the play-state tracker for Sidereals (no new mechanic
+     — the Sidereal Curse is roleplay-only, p.253).
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled

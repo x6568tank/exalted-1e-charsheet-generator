@@ -86,5 +86,28 @@
     "essence_start": 2,
     "bonus_points": 15,
     "required_favored": ["survival"]
+  },
+  "Sidereal": {
+    "attribute_pools": [8, 6, 4],
+    "ability_dots": 35,
+    "ability_min_caste_favored": 15,
+    "favored_count": 4,
+    "background_dots": 15,
+    "charm_count": 12,
+    "charm_min_caste_favored": 5,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 18,
+    "required_min_abilities": [
+      {"abilities": ["awareness"], "rating": 2},
+      {"abilities": ["bureaucracy"], "rating": 2},
+      {"abilities": ["linguistics"], "rating": 1},
+      {"abilities": ["lore"], "rating": 3},
+      {"abilities": ["martial_arts"], "rating": 2},
+      {"abilities": ["occult"], "rating": 2},
+      {"abilities": ["socialize"], "rating": 1},
+      {"abilities": ["stealth"], "rating": 1},
+      {"abilities": ["archery", "melee", "thrown"], "rating": 1}
+    ]
   }
 }

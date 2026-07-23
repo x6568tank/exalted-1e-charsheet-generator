@@ -96,11 +96,21 @@ _LUNAR = Palette(
     bg="#eef2f6", node_bg="#f9fbfd", button="blue-grey-8", fam="slate",
 )
 
+# Sidereal / Chosen of the Maidens: the purple of the Bureau of Destiny in place of
+# the Solar gold, on a faintly violet-tinted parchment. `fam` is the Tailwind purple
+# family so card tints and borders read as twilight rather than grey.
+_SIDEREAL = Palette(
+    splat_label="Sidereal",
+    accent="#5b3a80", accent_dark="#3c265a", ink="#291f38",
+    bg="#f1eef7", node_bg="#faf8fd", button="purple-10", fam="purple",
+)
+
 _BY_SPLAT: dict[str, Palette] = {
     "Solar": _SOLAR,
     "Dragon-Blooded": _DRAGON_BLOODED,
     "Abyssal": _ABYSSAL,
     "Lunar": _LUNAR,
+    "Sidereal": _SIDEREAL,
 }
 
 

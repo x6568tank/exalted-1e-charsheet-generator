@@ -30,9 +30,18 @@ def test_lunar_palette_is_moonsilver_blue():
     assert b > g > r
 
 
+def test_sidereal_palette_is_purple():
+    pal = theme.palette("Sidereal")
+    assert pal.splat_label == "Sidereal"
+    assert pal.fam == "purple"
+    # purple: red and blue lead, green trails
+    r, g, b = (int(pal.accent[i:i + 2], 16) for i in (1, 3, 5))
+    assert r > g and b > g
+
+
 def test_unknown_or_missing_splat_falls_back_to_solar():
     assert theme.palette(None).accent == theme.palette("Solar").accent
-    assert theme.palette("Sidereal").accent == theme.palette("Solar").accent
+    assert theme.palette("Alchemical").accent == theme.palette("Solar").accent
 
 
 def test_card_class_helpers_track_the_family():

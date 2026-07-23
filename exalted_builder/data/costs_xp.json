@@ -14,5 +14,10 @@
     "new_charm": 15,
     "new_charm_favored_caste": 12,
     "new_spell_by_circle": {"Terrestrial": 12, "Celestial": 15}
+  },
+  "Sidereal": {
+    "essence": {"coeff": 9},
+    "new_charm": 11,
+    "new_charm_favored_caste": 9
   }
 }
