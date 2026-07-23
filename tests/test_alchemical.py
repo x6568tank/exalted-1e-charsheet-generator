@@ -481,3 +481,87 @@ def test_learn_submodule_needs_known_charm(rs):
     c.xp_earned = 20
     with pytest.raises(advancement.AdvancementError):
         advancement.learn_submodule(rs, c, _POLYMODAL, "omnidextrous")
+
+
+# --------------------------------------------------------------------------- #
+# Weaving protocols (Miracles of the Machine God, CH4)
+# --------------------------------------------------------------------------- #
+
+_MAN_ENGINE = "alchemical.essence-and-weaving.man-machine-weaving-engine"
+_GOD_ENGINE = "alchemical.essence-and-weaving.god-machine-weaving-engine"
+_MM_PROTOCOL = "spell.man-machine.binding-filament-system"
+_GM_PROTOCOL = "spell.god-machine.destiny-optimizing-meditation"
+
+
+def test_weaving_circles_loaded(rs):
+    from exalted_builder.models.rules import SpellCircle, TRACK_CIRCLES
+    mm = [s for s in rs.spells.values() if s.circle == SpellCircle.MAN_MACHINE]
+    gm = [s for s in rs.spells.values() if s.circle == SpellCircle.GOD_MACHINE]
+    assert len(mm) == 23 and len(gm) == 15                       # the 38 protocols
+    assert TRACK_CIRCLES["weaving"] == (SpellCircle.MAN_MACHINE, SpellCircle.GOD_MACHINE)
+
+
+def test_alchemical_magic_track_is_weaving(rs):
+    ed = rs.exalt_for("Alchemical")
+    assert ed.magic_track == "weaving"
+    assert ed.highest_magic_circle_id == "God-Machine"           # barred at chargen
+
+
+def test_weaving_circle_access_follows_installed_engine(rs):
+    from exalted_builder.models.rules import SpellCircle
+    # granted_circles = what the ACTUALLY installed engine(s) unlock.
+    c = _alchemical()
+    assert validate.granted_circles(rs, c) == set()              # no engine, no circle
+    c.charms = [_MAN_ENGINE]
+    assert validate.granted_circles(rs, c) == {SpellCircle.MAN_MACHINE}
+    c.charms = [_MAN_ENGINE, _GOD_ENGINE]
+    assert validate.granted_circles(rs, c) == {
+        SpellCircle.MAN_MACHINE, SpellCircle.GOD_MACHINE}
+    # accessible_circles is forward-looking (what the picker offers): an Alchemical
+    # can always reach both weaving circles, since both engines are learnable natively.
+    assert validate.accessible_circles(rs, _alchemical()) == {
+        SpellCircle.MAN_MACHINE, SpellCircle.GOD_MACHINE}
+
+
+def test_god_machine_barred_at_chargen(rs):
+    from exalted_builder.models.rules import SpellCircle
+    c = _alchemical()
+    assert validate.chargen_barred_circle(rs, c) == SpellCircle.GOD_MACHINE
+    c.charms = [_MAN_ENGINE, _GOD_ENGINE]
+    gm = rs.spells[_GM_PROTOCOL]
+    mm = rs.spells[_MM_PROTOCOL]
+    assert not validate.meets_spell_requirements(rs, c, gm, chargen=True)   # top circle barred
+    assert validate.meets_spell_requirements(rs, c, mm, chargen=True)       # lower circle open
+    assert validate.meets_spell_requirements(rs, c, gm, chargen=False)      # post-lock reachable
+
+
+def test_known_protocol_passes_spell_access(rs):
+    c = _alchemical()
+    c.charms = [_MAN_ENGINE]
+    c.spells = [_MM_PROTOCOL]
+    assert not [i for i in validate.check_spell_access(rs, c) if i.severity == "error"]
+    # Without the engine the protocol has no granting Charm and is illegal.
+    c.charms = []
+    assert [i for i in validate.check_spell_access(rs, c) if i.severity == "error"]
+
+
+def test_non_alchemical_cannot_learn_weaving_engine(rs):
+    """CH4: 'Non-Alchemicals cannot learn weaving Charms.' Even a locked Eclipse
+    (whose caste opens the p.127 generalist rule) is barred from the engines, so a
+    foreign learner can never reach the weaving circles."""
+    eclipse = Character(id="e", exalt_type="Solar", caste="eclipse")
+    eclipse.chargen_locked = True                    # generalist rule fully open post-lock
+    engine = rs.charms[_MAN_ENGINE]
+    assert validate.foreign_charms_open(rs, eclipse)             # rule is otherwise open
+    assert not validate.charm_learnable_by_splat(rs, eclipse, engine)
+    # And if forced into their sheet it is flagged, never silently granting the circle.
+    eclipse.charms = [_MAN_ENGINE]
+    codes = [i.code for i in validate.check_splat_consistency(rs, eclipse)]
+    assert "charm-wrong-splat" in codes
+    assert validate.granted_circles(rs, eclipse) == {rs.charms[_MAN_ENGINE].grants_circle}
+    # But an Eclipse who does NOT hold the engine can never reach it: accessible_circles
+    # (forward-looking) excludes a weaving circle for a non-Alchemical, since the engine
+    # is unlearnable for them.
+    fresh = Character(id="e2", exalt_type="Solar", caste="eclipse")
+    fresh.chargen_locked = True
+    assert rs.charms[_MAN_ENGINE].grants_circle not in validate.accessible_circles(rs, fresh)

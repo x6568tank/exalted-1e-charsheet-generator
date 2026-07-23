@@ -192,19 +192,22 @@ def test_full_melee_chain_is_legal_on_real_data():
 
 def test_spells_load_with_expected_circle_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.spells) == 43
+    assert len(rs.spells) == 81
     by_circle: dict = {}
     for s in rs.spells.values():
         by_circle[s.circle] = by_circle.get(s.circle, 0) + 1
     # Three Sorcery circles (Terrestrial gained the Dragon-Blooded Sworn Brothers'
     # Oath, p161) plus the three Necromancy circles authored in the Abyssal phase
-    # (Abyssal p224-229).
+    # (Abyssal p224-229), plus the two Alchemical weaving circles — 23 Man-Machine
+    # and 15 God-Machine protocols (Autochthonians CH4).
     assert by_circle == {SpellCircle.TERRESTRIAL: 10,
                          SpellCircle.CELESTIAL: 6,
                          SpellCircle.SOLAR: 4,
                          SpellCircle.SHADOWLANDS: 9,
                          SpellCircle.LABYRINTH: 7,
-                         SpellCircle.VOID: 7}
+                         SpellCircle.VOID: 7,
+                         SpellCircle.MAN_MACHINE: 23,
+                         SpellCircle.GOD_MACHINE: 15}
 
 
 def test_sworn_brothers_oath_loads(rs=None):
@@ -223,9 +226,11 @@ def test_each_circle_is_granted_by_its_sorcery_charm():
     rs = rules_db.load_ruleset(DATA_DIR)
     grants = {c.grants_circle for c in rs.charms.values()
               if c.grants_circle is not None}
-    # Every circle of both tracks now has an initiation Charm: the three Sorcery
-    # circles (Solar/DB Occult) and the three Necromancy circles (Abyssal Occult).
-    assert grants == set(TRACK_CIRCLES["sorcery"]) | set(TRACK_CIRCLES["necromancy"])
+    # Every circle of every track now has an initiation Charm: the three Sorcery
+    # circles (Solar/DB Occult), the three Necromancy circles (Abyssal Occult), and
+    # the two Alchemical weaving circles (the Man-/God-Machine Weaving Engines).
+    assert grants == (set(TRACK_CIRCLES["sorcery"]) | set(TRACK_CIRCLES["necromancy"])
+                      | set(TRACK_CIRCLES["weaving"]))
 
 
 def _sorcerer(charms) -> Character:

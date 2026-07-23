@@ -87,8 +87,8 @@
       "peripheral_virtue_mode": "highest",
       "peripheral_virtue_coeff": 2
     },
-    "magic_track": "sorcery",
-    "highest_magic_circle_id": "",
+    "magic_track": "weaving",
+    "highest_magic_circle_id": "God-Machine",
     "ox_body_charm_id": "alchemical.might-and-mobility.strain-resistant-chassis-modification",
     "caste_noun": "Caste",
     "tier": "Alchemical"

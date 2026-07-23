@@ -1680,8 +1680,12 @@ def charm_learnable_by_splat(ruleset: RuleSet, character: Character, charm: Char
     foreign-Charm privilege. Kept separate from charm_matches_splat so that
     accessible_circles — which asks what the character's OWN splat can initiate —
     keeps its narrower question."""
-    return (charm_matches_splat(character, charm, ruleset)
-            or foreign_charms_open(ruleset, character))
+    if charm_matches_splat(character, charm, ruleset):
+        return True
+    # A Charm flagged no_foreign_learning is never reachable through the generalist
+    # rule (the Alchemical Weaving Engines — CH4, "Non-Alchemicals cannot learn
+    # weaving Charms"): only its own splat, caught by the match above, may hold it.
+    return foreign_charms_open(ruleset, character) and not charm.no_foreign_learning
 
 
 def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -1695,6 +1699,16 @@ def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issu
     for cid in character.charms:
         charm = ruleset.charms.get(cid)
         if charm is None or charm_matches_splat(character, charm, ruleset):
+            continue
+        if charm.no_foreign_learning:
+            # Barred from the generalist rule entirely (Weaving Engines, CH4) — the
+            # foreign-charm privilege never reaches it, permission or not.
+            issues.append(Issue(
+                code="charm-wrong-splat", where=cid,
+                message=f"Charm {charm.name!r} is {splat_of(charm)} and cannot be "
+                        f"learned by another Exalt type even under the generalist "
+                        f"rule (CH4: non-Alchemicals cannot learn weaving Charms).",
+            ))
             continue
         if permissive:
             continue

@@ -58,7 +58,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen foundation + Charm Slot system + Arrays + Submodules + full CH3 Charm catalogue (121 Charms, all 10 categories); remaining — CH4 weaving protocols, XP/advancement, theme, UI |
+| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen foundation + Charm Slot system + Arrays + Submodules + full CH3 Charm catalogue (121 Charms) + CH4 weaving (38 protocols, weaving magic track); remaining — XP/advancement, theme, UI |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -166,7 +166,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (535 tests passing)
+## Status (541 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -644,27 +644,40 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     submodules (Essence Pulse Cannon 11, Multifunction Hypodermic 14 drugs, etc.).
     `Charm.arrayable` (False on the 3 Essence/Weaving Charms) is a new flag
     `validate.array_issues` checks.
-  - **NEXT — CH4 weaving protocols (RESUME HERE, planned for 2026-07-23 PM).** CH4
-    (`images/Alchemical/CH 4 Miracles of the Machine God.md`) has **44 protocols =
-    32 Man-Machine (lines 195-1075) + 12 God-Machine (from line 1076)** — the
-    sorcery-analogues. Each protocol has a mote Cost, Target, Duration, and sometimes
-    a "Minimum Clarity"; **NO prerequisites and NO Attribute/Essence minimums**, so
-    they're gated ONLY by which Weaving Engine is installed — exactly how spells are
-    gated by circle-initiation Charms here. **Agreed plan (model protocols as
-    `Spell`s):** (1) add two `SpellCircle` values `"Man-Machine"`/`"God-Machine"`
-    and a new `CircleKind.WEAVING` with `TRACK_CIRCLES["weaving"]=(Man-Machine,
-    God-Machine)` — additive, no behaviour change for other splats; (2) Alchemical
-    `exalts.json`: `magic_track:"weaving"`, `highest_magic_circle_id:"God-Machine"`
-    (bar the top circle at chargen, like Solar bars Solar); (3) the Man-/God-Machine
-    Weaving Engine Charms set `grants_circle` to their circle; (4) author all 44
-    protocols as `Spell` entries (circle = its tier); (5) "Minimum Clarity" is a
-    play-time ACTIVATION gate — record it in the description, do NOT enforce (same
-    bucket as mote costs). Foreign learners are auto-barred: `accessible_circles`
-    asks `charm_matches_splat`, so an Eclipse who learned a Weaving Engine still
-    can't reach the weaving circles (p.90 "Non-Alchemicals cannot learn weaving").
-    This gives Alchemicals a Spells picker page for free.
-  - `brass` theme, editor `_SPLAT_ORIGINS`/UI wiring, Clarity (→ `PlayState`/Limit
-    precedent when built).
+  - **CH4 weaving protocols — DONE 2026-07-23.** The actual page holds **38
+    protocols = 23 Man-Machine (p.147-156) + 15 God-Machine (p.156-159)**, NOT the
+    "44 = 32+12" the earlier plan estimated: that count was a line-range guess whose
+    Man-Machine range swept in the 6 summoned-golem stat blocks and their 12 innate
+    Charms (which are the golems' abilities, not protocols). Modeled exactly as the
+    agreed plan (protocols as `Spell`s): (1) `SpellCircle.MAN_MACHINE`/`.GOD_MACHINE`
+    + `CircleKind.WEAVING` + `TRACK_CIRCLES["weaving"]` — additive, every other splat
+    byte-identical; (2) Alchemical `exalts.json` `magic_track:"weaving"`,
+    `highest_magic_circle_id:"God-Machine"` (top circle barred at chargen, like Solar
+    bars Solar); (3) the two Weaving Engine Charms set `grants_circle`; (4) all 38
+    protocols authored in `data/spells.json` as `spell.man-machine.*`/
+    `spell.god-machine.*` (the "identical to <spell>" ones carry a reference note in
+    `cost.raw` rather than an invented number); (5) "Minimum Clarity" (and the one
+    Maximum Clarity, Incarnation of Bestial Malice) recorded in the description,
+    NOT enforced — play-time activation gate, same bucket as mote costs. Alchemicals
+    now get a Spells picker page for free.
+    **Foreign-learner bar — the plan's stated auto-bar had a hole, now closed.** The
+    plan claimed `accessible_circles` (which asks `charm_matches_splat`) blocks a
+    foreign Eclipse — but the LEARN/CAST gate is `granted_circles`, which is NOT
+    splat-gated, and `foreign_charms: True` on Eclipse is an unrestricted boolean, so
+    a locked Eclipse could foreign-learn a Weaving Engine and reach the circle. CH4
+    states outright "Non-Alchemicals cannot learn weaving Charms", so this is barred
+    at the Charm level: new `Charm.no_foreign_learning` (True on both engines);
+    `charm_learnable_by_splat` refuses it via the generalist rule, and
+    `check_splat_consistency` raises `charm-wrong-splat` even when foreign learning is
+    otherwise permitted. Pinned in `tests/test_alchemical.py` (weaving section).
+    NOTE for later data: any other splat's magic that must never cross via the
+    generalist rule should set the same flag.
+  - **NOT YET BUILT:** Alchemical XP/advancement (`costs_xp.json` + the
+    `attribute_favored_caste` XP discount — see the `costs_xp.json` bullet above),
+    `brass` theme, editor `_SPLAT_ORIGINS`/UI wiring, Clarity (→ `PlayState`/Limit
+    precedent when built). **UI is intentionally LAST** (user, 2026-07-23) — the
+    Charm-Slot counters, favored-Attribute grouping, Arrays/Submodules widgets, and
+    the new weaving Spells page all land in that final pass.
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled

@@ -95,14 +95,22 @@ class SpellCircle(str, Enum):
     SHADOWLANDS = "Shadowlands"
     LABYRINTH = "Labyrinth"
     VOID = "Void"
+    # Alchemical weaving protocols — the Machine God's sorcery-analogue (Autochthonians
+    # CH4). Man-Machine ~ Terrestrial Circle, God-Machine ~ Celestial Circle in power.
+    # Gated ONLY by which Weaving Engine Charm is installed, exactly as the sorcery/
+    # necromancy circles are gated by their initiation Charms.
+    MAN_MACHINE = "Man-Machine"
+    GOD_MACHINE = "God-Machine"
 
 
 class CircleKind(str, Enum):
-    """Which of the two magic disciplines a circle belongs to. Matches
-    ExaltDefinition.magic_track. Sorcery and necromancy never cross-grant: a known
-    Sorcery Charm unlocks only sorcery circles, and vice versa (Abyssal p.223)."""
+    """Which of the magic disciplines a circle belongs to. Matches
+    ExaltDefinition.magic_track. The tracks never cross-grant: a known Sorcery Charm
+    unlocks only sorcery circles, a Weaving Engine only weaving circles, etc.
+    (Abyssal p.223; Autochthonians CH4 — "Non-Alchemicals cannot learn weaving")."""
     SORCERY = "sorcery"
     NECROMANCY = "necromancy"
+    WEAVING = "weaving"
 
 
 # The three circles of each magic track, ordered ascending in power. Keyed by the
@@ -113,6 +121,7 @@ class CircleKind(str, Enum):
 TRACK_CIRCLES: dict[str, tuple["SpellCircle", ...]] = {
     CircleKind.SORCERY.value: (SpellCircle.TERRESTRIAL, SpellCircle.CELESTIAL, SpellCircle.SOLAR),
     CircleKind.NECROMANCY.value: (SpellCircle.SHADOWLANDS, SpellCircle.LABYRINTH, SpellCircle.VOID),
+    CircleKind.WEAVING.value: (SpellCircle.MAN_MACHINE, SpellCircle.GOD_MACHINE),
 }
 
 
@@ -256,6 +265,12 @@ class Charm(BaseModel):
     # Sorcery). Lets engine.validate gate known spells on a known initiation Charm of
     # their circle. Track-agnostic: a necromancy initiation Charm sets it the same way.
     grants_circle: Optional[SpellCircle] = None
+    # Charms that even the Eclipse/Moonshadow generalist rule (p.127) may NOT reach.
+    # The Alchemical Weaving Engines set this: Autochthonians CH4 states outright that
+    # "Non-Alchemicals cannot learn weaving Charms", so a foreign learner must never
+    # acquire an engine (and thereby its Man-/God-Machine circle). Default False —
+    # ordinary foreign-learnable Charms are unaffected.
+    no_foreign_learning: bool = False
     # Alchemical Charms only (p.89): the upgrades available for this Charm. Empty
     # for every other splat's Charms and for Alchemical Charms with no listed
     # submodule (most of them, per the book).
