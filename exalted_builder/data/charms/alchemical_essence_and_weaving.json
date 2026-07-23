@@ -1,0 +1,74 @@
+[
+  {
+    "id": "alchemical.essence-and-weaving.auxiliary-essence-storage-unit",
+    "name": "Auxiliary Essence Storage Unit",
+    "type": "Permanent",
+    "min_attribute": "stamina",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [],
+    "arrayable": false,
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "N/A",
+    "description": "Adds 10 Peripheral Essence per installation. Installable up to permanent Essence times (Essence x 5 at Essence 8+). Cannot be placed in an Array.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 141
+    },
+    "exalt_type": "Alchemical",
+    "category": "essence_and_weaving"
+  },
+  {
+    "id": "alchemical.essence-and-weaving.man-machine-weaving-engine",
+    "name": "Man-Machine Weaving Engine",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_essence": 4,
+    "installation_cost": 1,
+    "prerequisites": [],
+    "arrayable": false,
+    "cost": {
+      "willpower": 1,
+      "raw": "1wp + protocol cost"
+    },
+    "duration": "Instant",
+    "description": "An adamant ring around the soulgem that initiates a known Man-Machine weaving protocol (the Alchemical analogue of Emerald/Terrestrial Circle Sorcery), shaping Essence over a few seconds. Grants 1 permanent Clarity; can never be removed and can never be placed in an Array. See the Man-Machine protocols (CH4).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 141
+    },
+    "exalt_type": "Alchemical",
+    "category": "essence_and_weaving"
+  },
+  {
+    "id": "alchemical.essence-and-weaving.god-machine-weaving-engine",
+    "name": "God-Machine Weaving Engine",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_essence": 5,
+    "installation_cost": 2,
+    "prerequisites": [
+      [
+        "alchemical.essence-and-weaving.auxiliary-essence-storage-unit"
+      ],
+      [
+        "alchemical.essence-and-weaving.man-machine-weaving-engine"
+      ]
+    ],
+    "arrayable": false,
+    "cost": {
+      "willpower": 2,
+      "raw": "2wp + protocol cost"
+    },
+    "duration": "Instant",
+    "description": "A larger adamant ring concentric to the Man-Machine Weaving Engine that initiates a known God-Machine weaving protocol (the analogue of Sapphire/Celestial Circle Sorcery), shaping Essence over two turns. Grants 1 permanent Clarity; can never be removed and can never be placed in an Array. See the God-Machine protocols (CH4).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 141
+    },
+    "exalt_type": "Alchemical",
+    "category": "essence_and_weaving"
+  }
+]

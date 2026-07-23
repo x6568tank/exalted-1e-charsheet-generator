@@ -260,6 +260,10 @@ class Charm(BaseModel):
     # for every other splat's Charms and for Alchemical Charms with no listed
     # submodule (most of them, per the book).
     submodules: list[Submodule] = Field(default_factory=list)
+    # False bars this Charm from Alchemical Arrays (p.159) — the Auxiliary Essence
+    # Storage Unit and the Man-/God-Machine Weaving Engines say so explicitly. True
+    # for every ordinary Charm (Arrays otherwise accept any Attribute-based Charm).
+    arrayable: bool = True
     description: str = ""
     source: Source = Field(default_factory=Source)
 

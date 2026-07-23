@@ -583,6 +583,11 @@ def array_issues(ruleset: RuleSet, character: Character, array) -> list[Issue]:
                         "Attribute-based Charms may be linked into an Array (this "
                         "excludes supernatural martial arts).",
             ))
+        elif not charm.arrayable:
+            issues.append(Issue(
+                code="array-charm-not-arrayable", where=where,
+                message=f"Array {where!r}: {charm.name} may not be placed in an Array.",
+            ))
     return issues
 
 

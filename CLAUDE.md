@@ -58,7 +58,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen foundation + Charm Slot system + Arrays + Submodules done (22 starter Charms); remaining — full CH3/CH4 catalogue, XP/advancement, theme, UI |
+| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen foundation + Charm Slot system + Arrays + Submodules + full CH3 Charm catalogue (121 Charms, all 10 categories); remaining — CH4 weaving protocols, XP/advancement, theme, UI |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -166,7 +166,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (531 tests passing)
+## Status (535 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -632,8 +632,37 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     Favored-Attribute XP discount (model doesn't have it yet). Don't half-author —
     the missing discount would silently over-charge, the invisible-bug class the
     Lunar charm-discount fix warned about.
-  - **Full CH3/CH4 Charm catalogue** (only the 21-Charm starter batch exists).
-    CH4 "weaving" Charms are the sorcery-analogues; bar them from foreign learners.
+  - The full **CH3** Charm catalogue is DONE: **121 Alchemical Charms** across all
+    10 categories — `general` (18 Augmentations), `close_combat` (20, incl. Perfected
+    Lotus Matrix, the Ability-keyed MA gate), `ranged_combat` (11), `might_and_mobility`
+    (18, incl. Strain Resistant Chassis Modification = the Alchemical Ox-Body, now
+    `ox_body_charm_id`), `social` (12), `stealth_and_disguise` (9),
+    `sensory_and_spiritual` (10), `medical` (11), `cognitive` (9),
+    `essence_and_weaving` (3, the Weaving Engines). `data/charms/alchemical_*.json`;
+    cascades pinned per-category in `tests/test_alchemical.py`
+    (`_EXPECTED_CATEGORY_COUNTS` + one maxed-cascade test). Many Charms carry
+    submodules (Essence Pulse Cannon 11, Multifunction Hypodermic 14 drugs, etc.).
+    `Charm.arrayable` (False on the 3 Essence/Weaving Charms) is a new flag
+    `validate.array_issues` checks.
+  - **NEXT — CH4 weaving protocols (RESUME HERE, planned for 2026-07-23 PM).** CH4
+    (`images/Alchemical/CH 4 Miracles of the Machine God.md`) has **44 protocols =
+    32 Man-Machine (lines 195-1075) + 12 God-Machine (from line 1076)** — the
+    sorcery-analogues. Each protocol has a mote Cost, Target, Duration, and sometimes
+    a "Minimum Clarity"; **NO prerequisites and NO Attribute/Essence minimums**, so
+    they're gated ONLY by which Weaving Engine is installed — exactly how spells are
+    gated by circle-initiation Charms here. **Agreed plan (model protocols as
+    `Spell`s):** (1) add two `SpellCircle` values `"Man-Machine"`/`"God-Machine"`
+    and a new `CircleKind.WEAVING` with `TRACK_CIRCLES["weaving"]=(Man-Machine,
+    God-Machine)` — additive, no behaviour change for other splats; (2) Alchemical
+    `exalts.json`: `magic_track:"weaving"`, `highest_magic_circle_id:"God-Machine"`
+    (bar the top circle at chargen, like Solar bars Solar); (3) the Man-/God-Machine
+    Weaving Engine Charms set `grants_circle` to their circle; (4) author all 44
+    protocols as `Spell` entries (circle = its tier); (5) "Minimum Clarity" is a
+    play-time ACTIVATION gate — record it in the description, do NOT enforce (same
+    bucket as mote costs). Foreign learners are auto-barred: `accessible_circles`
+    asks `charm_matches_splat`, so an Eclipse who learned a Weaving Engine still
+    can't reach the weaving circles (p.90 "Non-Alchemicals cannot learn weaving").
+    This gives Alchemicals a Spells picker page for free.
   - `brass` theme, editor `_SPLAT_ORIGINS`/UI wiring, Clarity (→ `PlayState`/Limit
     precedent when built).
 

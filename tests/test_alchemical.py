@@ -314,6 +314,15 @@ def test_charm_reused_across_arrays_flagged(rs):
     assert _codes(validate.validate_arrays(rs, c), "array-charm-reused")
 
 
+def test_weaving_engine_cannot_be_arrayed(rs):
+    c = _alchemical()
+    weave = ["alchemical.essence-and-weaving.man-machine-weaving-engine",
+             "alchemical.essence-and-weaving.auxiliary-essence-storage-unit"]
+    c.charms = weave
+    c.arrays = [Array(name="Forbidden", charm_ids=weave)]
+    assert _codes(validate.validate_arrays(rs, c), "array-charm-not-arrayable")
+
+
 def test_array_reduces_installation_cost_to_three_quarters(rs):
     c = _valid_alchemical_with_charms(rs)
     four = CF_CHARMS[:4]                              # 4 Charms, 1 mote install each = 4
@@ -396,6 +405,72 @@ def test_learn_submodule_post_lock_then_undo(rs):
     assert not [i for i in advancement.validate_xp(rs, c) if i.severity == "error"]
     advancement.undo_last(rs, c)
     assert not c.submodules and not c.xp_log
+
+
+def _maxed_alchemical(rs) -> Character:
+    """An Alchemical with every Attribute at 5, high Essence, Martial Arts 2, who
+    knows every Alchemical Charm — for prerequisite-CHAIN sanity (does the whole
+    cascade resolve?), not chargen-budget realism. Essence 10 clears even municipal
+    (Essence 8+) Charm minimums."""
+    c = _alchemical()
+    c.attributes.update({a: 5 for a in AT})
+    c.essence_rating = 10
+    c.abilities[A.MARTIAL_ARTS] = 2                 # Perfected Lotus Matrix gate
+    c.charms = [cid for cid, ch in rs.charms.items() if ch.exalt_type == "Alchemical"]
+    return c
+
+
+# As categories are authored, their counts land here so the cascade test tracks growth.
+_EXPECTED_CATEGORY_COUNTS = {
+    "general": 18,
+    "close_combat": 20,
+    "ranged_combat": 11,
+    "might_and_mobility": 18,
+    "social": 12,
+    "stealth_and_disguise": 9,
+    "sensory_and_spiritual": 10,
+    "medical": 11,
+    "cognitive": 9,
+    "essence_and_weaving": 3,
+}
+
+
+def test_alchemical_charm_cascade_resolves(rs):
+    """Every Alchemical Charm's requirements (prereqs + min traits) resolve on a
+    maxed Alchemical, and the aggregate prerequisite check finds no missing links.
+    Grows as each category is authored."""
+    by_cat: dict[str, int] = {}
+    for ch in rs.charms.values():
+        if ch.exalt_type == "Alchemical":
+            by_cat[ch.category] = by_cat.get(ch.category, 0) + 1
+    for cat, n in _EXPECTED_CATEGORY_COUNTS.items():
+        assert by_cat.get(cat) == n, (cat, by_cat.get(cat))
+
+    c = _maxed_alchemical(rs)
+    for cid, ch in rs.charms.items():
+        if ch.exalt_type == "Alchemical":
+            assert validate.meets_charm_requirements(rs, c, ch), cid
+    prereq_errs = [i for i in validate.check_charm_prerequisites(rs, c)
+                   if i.severity == "error"]
+    assert not prereq_errs, [(i.code, i.where) for i in prereq_errs]
+
+
+def test_alchemical_ox_body_is_strain_resistant_chassis(rs):
+    from exalted_builder.models.character import OxBodyPurchase
+    c = _alchemical()
+    ob = validate.ox_body_charm(rs, c)
+    assert ob is not None and ob.id.endswith("strain-resistant-chassis-modification")
+    base = len(derive.health_track(c))
+    c.ox_body = [OxBodyPurchase(variant="three-minus-two", health_levels=[-2, -2, -2])]
+    assert len(derive.health_track(c)) == base + 3   # the health-level package applied
+
+
+def test_perfected_lotus_matrix_needs_general_slot(rs):
+    # It has no min_attribute, so it can never be Caste/Favored -> not a Dedicated fit.
+    c = _alchemical()
+    plm = rs.charms["alchemical.close-combat.perfected-lotus-matrix"]
+    caste_fav = validate._caste_favored_attr_names(rs, c)
+    assert not validate._charm_is_caste_favored(plm, set(), None, caste_fav)
 
 
 def test_learn_submodule_needs_known_charm(rs):
