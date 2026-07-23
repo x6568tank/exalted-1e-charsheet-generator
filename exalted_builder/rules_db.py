@@ -49,6 +49,7 @@ from .models.rules import (
     NatureType,
     RuleSet,
     Spell,
+    StScreen,
     WeaponType,
 )
 
@@ -68,6 +69,24 @@ class RuleDataError(Exception):
 def _read_json(path: Path) -> Any:
     with path.open(encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def _load_object(path: Path, model: Type[M], problems: list[str]) -> M | None:
+    """Load a single optional JSON object into `model`. Missing file -> None; a
+    parse/validation error is recorded and returns None (the feature it powers is
+    optional, so a bad file degrades gracefully rather than sinking the load)."""
+    if not path.exists():
+        return None
+    try:
+        raw = _read_json(path)
+    except json.JSONDecodeError as exc:
+        problems.append(f"{path.name}: invalid JSON ({exc})")
+        return None
+    try:
+        return model(**raw)
+    except ValidationError as exc:
+        problems.append(f"{path.name}: {exc.errors()[0]['msg']}")
+        return None
 
 
 def _load_array(path: Path, model: Type[M], problems: list[str]) -> list[M]:
@@ -198,6 +217,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
     bonus_costs = _load_keyed_table(data_dir / "costs_bonus.json", BonusPointCosts, problems)
     xp_costs = _load_keyed_table(data_dir / "costs_xp.json", ExperienceCosts, problems)
     budgets = _load_keyed_table(data_dir / "chargen_budgets.json", ChargenBudgets, problems)
+    st_screen = _load_object(data_dir / "st_screen.json", StScreen, problems)
 
     # referential integrity — only meaningful once the rows themselves parsed
     _check_prereqs(charms, problems)
@@ -219,4 +239,5 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         bonus_costs=bonus_costs,
         xp_costs=xp_costs,
         budgets=budgets,
+        st_screen=st_screen,
     )

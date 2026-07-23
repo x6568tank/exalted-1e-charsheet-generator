@@ -792,6 +792,17 @@ def _charm_attribute_caste_favored(charm: Charm, caste_attr_category: str | None
     return _attribute_category(attr) == caste_attr_category
 
 
+def caste_attributes(ruleset: RuleSet, character: Character) -> set[AttributeName]:
+    """The character's Caste Attributes (Lunar, p.90-91), or an empty set for a
+    caste with none (every non-Lunar caste and the Lunar Casteless caste). This is
+    the set that earns the Caste-Attribute XP/BP discount, the Attribute parallel
+    to `caste_favored_abilities`."""
+    caste_def = ruleset.castes.get(character.caste)
+    if caste_def is None:
+        return set()
+    return set(caste_def.caste_attributes)
+
+
 def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[AbilityName]:
     """The character's Caste ∪ Favoured abilities — the set that earns the discount
     on Ability/Charm/spell costs. Falls back to just the Favoured set if the caste

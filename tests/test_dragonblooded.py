@@ -10,7 +10,7 @@ import pytest
 
 import exalted_builder
 from exalted_builder import rules_db
-from exalted_builder.engine import derive, validate
+from exalted_builder.engine import costs, derive, validate
 from exalted_builder.models.character import BackgroundEntry, Character, OxBodyPurchase
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
@@ -136,6 +136,24 @@ def test_db_breeding_background_boosts_pools(rs):
     c.backgrounds = [BackgroundEntry(name="Breeding", rating=4)]
     # Breeding 4: +4 Personal, +7 Peripheral.
     assert derive.essence_pools(rs, c) == (9 + 4, 22 + 7)
+
+
+def test_db_xp_costs_from_shipped_table(rs):
+    """DB XP costs (splatbook p.292): Essence x10, new Charm/Spell 12 (10 favored),
+    Immaculate Charm 15 (12 favored) — not the Solar defaults (x8, 10/8)."""
+    c = _db_fire()
+    assert costs.essence_step(rs, c, 2) == 20                       # 2 x 10
+    plain = Charm(id="t.lore", name="Plain", category="lore",
+                  exalt_type="Dragon-Blooded", type=CharmType.SIMPLE,
+                  min_ability=1, min_essence=1)
+    imm = Charm(id="t.imm", name="Imm", category="martial_arts:immaculate-fire-dragon",
+                exalt_type="Dragon-Blooded", element="Fire", immaculate=True,
+                type=CharmType.SIMPLE, min_ability=1, min_essence=1)
+    c.favored_abilities = []                                        # Lore/MA/Occult not favored (nor Fire-caste)
+    rs2 = rs.model_copy(update={"charms": {**rs.charms, plain.id: plain, imm.id: imm}})
+    assert costs.charm_cost(rs2, c, plain) == 12                    # ordinary new Charm
+    assert costs.charm_cost(rs2, c, imm) == 15                      # Immaculate full rate
+    assert costs.spell_cost(rs2, c) == 12                           # new spell, Occult not favored
 
 
 # --- Immaculate Order charm package (p.151) -------------------------------- #

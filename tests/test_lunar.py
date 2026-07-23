@@ -1180,6 +1180,36 @@ def test_lunar_attribute_charm_gets_favored_caste_xp_discount(rs):
     assert costs.charm_cost(rs, c2, charm) == rs.xp_costs_for("Lunar").new_charm
 
 
+def test_lunar_xp_essence_and_caste_attribute_from_shipped_table(rs):
+    """Lunar XP costs (splatbook p.251): Essence current x9 (not the x8 default),
+    and a Caste Attribute costs (current x4) - 1 while a non-Caste Attribute is the
+    flat x4. A Full Moon's Caste Attributes are Physical (Str/Dex/Sta)."""
+    from exalted_builder.engine import costs
+    c = _locked_lunar(caste="full-moon")
+    assert costs.essence_step(rs, c, 3) == 27                     # 3 x 9
+    assert costs.attribute_step(rs, c, 3, AT.STRENGTH) == 11      # Caste Attribute: 3 x 4 - 1
+    assert costs.attribute_step(rs, c, 3, AT.CHARISMA) == 12      # non-Caste: 3 x 4
+    # Casteless has no Caste Attributes, so nothing gets the discount.
+    cl = _lunar(caste="casteless", origin="casteless")
+    assert costs.attribute_step(rs, cl, 3, AT.STRENGTH) == 12
+
+
+def test_lunar_spell_xp_is_per_circle_with_no_moon_discount(rs):
+    """Lunar spell XP (p.251): Terrestrial 12, Celestial 15, each −2 for a No Moon
+    caste. The discount is caste-based, NOT the Occult-Caste/Favoured axis, so a
+    non-No-Moon Lunar pays full even with Occult favoured."""
+    from exalted_builder.engine import costs
+    terr = next(s for s in rs.spells.values() if s.circle == SpellCircle.TERRESTRIAL)
+    cel = next(s for s in rs.spells.values() if s.circle == SpellCircle.CELESTIAL)
+    no_moon = _lunar(caste="no-moon")
+    assert costs.spell_cost(rs, no_moon, terr) == 10        # 12 − 2
+    assert costs.spell_cost(rs, no_moon, cel) == 13         # 15 − 2
+    full_moon = _lunar(caste="full-moon")
+    full_moon.favored_abilities = [A.OCCULT, A.SURVIVAL, A.ATHLETICS, A.AWARENESS, A.DODGE]
+    assert costs.spell_cost(rs, full_moon, terr) == 12      # no No-Moon discount despite Occult favoured
+    assert costs.spell_cost(rs, full_moon, cel) == 15
+
+
 def test_gift_charm_graph_node_state_tracks_beastman_gifts_not_charms(rs):
     # Mirrors ox_body's graph-node special case (view.build_charm_graph): the
     # Gift-granting Charm's node state must read character.beastman_gifts, not

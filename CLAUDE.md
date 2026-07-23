@@ -5,8 +5,8 @@ A character creator / validator for **Exalted First Edition (1e)** — character
 generation, point validation, and XP advancement, with a character-sheet view.
 Scope is deliberately smaller than EdExalted (which is 2e/2.5e only); **1e is
 unserved, which is the entire point of building this.** Initial target was
-**Solar** Exalted from the core rulebook; **Dragon-Blooded and Abyssal are now
-also fully supported.** Sidereal, Lunar, Alchemical, and Mortal splats are next
+**Solar** Exalted from the core rulebook; **Dragon-Blooded, Abyssal, and Lunar
+are now also fully supported.** Sidereal, Alchemical, and Mortal splats are next
 — see **Next Exalt Types** below.
 
 ## ⚠️ EDITION: 1e ONLY — never substitute 2e/2.5e rules
@@ -40,11 +40,10 @@ Solar values. If unsure, ask human.
   separate ability from Brawl, and there is no "War" ability in 1e core.**
 
 ## Next Exalt Types
-Dragon-Blooded and Abyssal are done (see Status). **Lunar is functionally
-complete** (chargen foundation + full Charm catalogue, started 2026-07-22) —
-see the Status entry below. **Sidereal and Alchemical are next** — no build
-order chosen for them yet; ask the user before starting. **Mortals**
-(Godblooded/Ghosts/Heroic Mortals/etc.) are planned after the Exalt types.
+Dragon-Blooded, Abyssal, and Lunar are done (see Status). **Sidereal and
+Alchemical are next** — no build order chosen for them yet; ask the user before
+starting. **Mortals** (Godblooded/Ghosts/Heroic Mortals/etc.) are planned after
+the Exalt types.
 
 Work on a given splat starts only once its rulebook images land in
 `images/<ExaltName>/` — never author data from memory, per the Workflow rule below.
@@ -56,7 +55,7 @@ Work on a given splat starts only once its rulebook images land in
 | Solar | Amber/Gold (default) | DONE |
 | Abyssal | Black on ash | DONE |
 | Dragon-Blooded | Vermillion | DONE |
-| Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; picker UI not yet clicked through by a human) |
+| Lunar | Moonsilver blue (`slate`) | DONE |
 | Sidereal | Purple | waiting on Sidereal chargen work |
 | Alchemical | Brass | waiting on Alchemical chargen work |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
@@ -165,7 +164,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (478 tests passing)
+## Status (487 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -222,6 +221,19 @@ the in-memory (de)serialisers the browser upload/download path reuses.
   (charms/spells/combos/ox_body/crafts); `unlock_chargen` reverses it.
 - `costs.py` — pure per-advance XP price from `RuleSet.xp_costs`, per-exalt-type:
   scaled traits cost `current rating × N`; new Charm/spell/specialty/Combo pricing.
+  Two per-splat discount axes beyond the Ability Caste/Favoured one: a **Caste-
+  Attribute** rating discount (`ExperienceCosts.attribute_caste_favored`, threaded
+  through `attribute_step(…, attr)` — Lunar's `(×4)−1`, p.251) and an **Immaculate
+  Charm** rate (`new_immaculate_charm`, keyed on `Charm.immaculate` in `charm_cost`
+  — Dragon-Blooded's 15/12, p.292). Combo XP sums member `min_ability`, which also
+  captures Lunar Attribute-keyed Charms since their required rating lives in
+  `min_ability` (only `min_attribute` names which Attribute). **Spell XP has two
+  data-selected policies:** the flat `new_spell` (discounted when Occult is Caste/
+  Favoured — Solar/DB/Abyssal), OR per-circle via `ExperienceCosts.new_spell_by_circle`
+  (Lunar's Terrestrial 12 / Celestial 15, p.251), in which case the discount switches
+  to the learner's `CasteDefinition.spell_cost_discount` (No Moon's −2) and the
+  Occult-favoured axis does NOT apply. `spell_cost(rs, char, spell)` takes the spell so
+  it can read its circle; a `None` spell falls back to the flat price.
 - `advancement.py` — post-lock XP transitions: `raise_attribute/ability/virtue/
   willpower/essence`, `learn_charm/spell/craft/ox_body`, `add_combo/specialty` —
   each priced, legality-checked, applied, and logged as an append-only `XpEntry`;
@@ -280,6 +292,22 @@ picker), `ui/combos.py` (Combo builder), `ui/xp.py` (post-lock XP tab),
   back with no sync code, and there's never a second Cytoscape instance on the
   page). **v1 scope stops here** — no initiative/turn order, no NPC stat blocks,
   no party-wide Rest; ask before adding them.
+- **Storyteller reference screen (`/gm`).** A default-collapsed expansion at the
+  top of the party page holding the rules tables off the tri-fold GM screen PDF
+  (`images/exaltedscreen-20050917.pdf`, all 4 pages): Combat Resolution (attack
+  sequence + Initiative/Movement/pools/Feats/Object Strengths/Success Modifiers/
+  Cover), Actions (~68 with dice pools + page refs), the six-splat Anima Banner,
+  Health/Wounds/Recovery, Environment & Hazards, and Traits & Core Rules. **Pure
+  static display** — generic `RefTable`/`RefGroup`/`StScreen` models
+  (`models/rules.py`), data in `data/st_screen.json` (optional → `RuleSet.st_screen`
+  is `None` when absent), rendered by `gm._render_ref_table`/`_reference_panel`.
+  Zero game logic: it never enters validation or derivation, the same isolation as
+  play-state. Two Player's-Guide-flagged (`pg`) rows were deliberately CUT per the
+  user (Combat-Pool "Delaying offensive action", Defense-Pool "Dodging (PC only)");
+  the Initiative wound-penalty and Clinch/Hold `pg` items were KEPT. Values are
+  transcribed from a low-res community PDF — the Feats-of-Strength lift column and
+  the Anima Banner cells are the least-legible and were user-spot-checked (Feats
+  row 6 corrected 650→550); re-verify against the PDF before trusting an exact cell.
 - **Gotcha:** NiceGUI 3.x's `ui.select` raises `ValueError` if constructed with a
   `value` not in its `options`. Any select whose value can be a free-text/custom
   entry must fold that value into `options` first (`editor._opts_with`) —
@@ -301,15 +329,14 @@ picker), `ui/combos.py` (Combo builder), `ui/xp.py` (post-lock XP tab),
   `open_to_tiers: [Celestial]` — ready for Lunar/Sidereal with zero data change
   once those splats exist.
 
-### Lunar — chargen, full Charm catalogue, Combos, Gifts done (started 2026-07-22)
+### Lunar — DONE (started 2026-07-22)
 Read from `images/Lunar/Character Creation 88-93`, `Traits 96-115`, and
 `Charms 118-193` (core "The Lunars" splatbook). Chargen foundation, Attribute-
 keyed Charm machinery, every Charm in the Charms chapter (p.118-193, including
 Deadly Beastman Transformation's Gifts), the p.122 Combo mixing rule, and a
 picker/view bugfix that only surfaced once real Lunar data existed are all
-authored and tested (466 tests). **Not yet done:** a human has not clicked
-through the picker UI in a browser — see the caveats on the Gift-picker widget
-below, which is the least-exercised piece of this whole batch.
+authored and tested. The picker UI has been driven by a human in a browser —
+the Gift-picker dialog caveats noted below are cleared.
 
 - **No Caste Abilities at all (p.90)** — "Abilities are not divided along caste
   lines," so `CasteDefinition.caste_abilities` is empty for every Lunar caste.
@@ -410,10 +437,10 @@ below, which is the least-exercised piece of this whole batch.
   unchecking a Gift cascades away anything selected that depended on it, and the
   dialog says the p.126 list is "Sample Gifts", not exhaustive. `ui/view.build_charm_graph`
   got the same owned/available/locked special case ox_body's node already has.
-  **Verified by server-render smoke test, NOT clicked through** — the dialog was
-  served and its HTML checked for all 19 Gifts, their descriptions, the repeat
-  markers and the prerequisite lock reasons, with a clean log; but no human has
-  driven the checkboxes or the Confirm path. Test that first.
+  **Verified end-to-end** — a human has driven the dialog's checkboxes, the
+  cascade-uncheck, Cancel, and the Confirm path in a browser; the earlier
+  server-render smoke test (all 19 Gifts, descriptions, repeat markers, lock
+  reasons) is now backed by real click-through.
 - **Attributes are 9/7/5** (Casteless: 8/6/4, not a typo of Solar's 8/6/4 — same
   numbers, different reason). The Caste Attribute BP discount
   (`BonusPointCosts.attribute_caste_favored`, e.g. Lunar "4, 3 if a Caste
@@ -448,9 +475,12 @@ below, which is the least-exercised piece of this whole batch.
 - **Data authored:** `castes.json` (Full Moon/Changing Moon/No Moon/Casteless,
   with anima powers), `exalts.json` Lunar row, `chargen_budgets.json` `"Lunar"`
   + `"Lunar:casteless"` rows, `costs_bonus.json` Lunar row (Charm BP 7/5, Attribute
-  4/3), `costs_xp.json` (**new file** — previously unauthored for any splat) with
-  a Lunar row (Charm XP 12/15, p.122 — a third distinct rate alongside Solar's
-  10/8 and Dragon-Blooded's un-costed default), 4 new Nature archetypes (Savant/
+  4/3), `costs_xp.json` (Lunar row: new Charm 15/12, Essence `×9`, Caste-Attribute
+  `(×4)−1`, per-circle spell `{Terrestrial:12, Celestial:15}` with No Moon's `−2` via
+  `castes.json`'s `spell_cost_discount` — all from the Storytelling-chapter XP table,
+  p.251; a Dragon-Blooded row was added the same pass: Essence `×10`, new Charm/Spell
+  12/10, Immaculate Charm 15/12, p.292. Abyssal is intentionally absent — p.282 says
+  its XP costs are the Solar default. See [[xp-costs-by-splat]]), 4 new Nature archetypes (Savant/
   Survivor/Thrillseeker/Visionary, p.91 — Lunars' list is Solar's 16 plus these),
   and 2 new Backgrounds (Heart's Blood, Renown — both Lunar-only via `exalt_type`).
   Editor's `_SPLAT_ORIGINS` gained a `"Lunar"` entry (Society/Casteless) so the
@@ -508,7 +538,7 @@ Abyssal data catalogues, tier-gated cross-splat Martial Arts, the picker's
 three-page Abilities/Martial Arts/Spells split, GM mode.
 
 **Next:**
-- **Sidereal, Lunar, and Alchemical** Exalt types, then **Mortals** — see
+- **Sidereal and Alchemical** Exalt types, then **Mortals** — see
   **Next Exalt Types** above for the color scheme and the M&F-return plan. No
   build order chosen yet; ask the user before starting.
 - **Windows .exe** — needs building on an actual Windows host (PyInstaller

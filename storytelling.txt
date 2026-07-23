@@ -1,0 +1,5 @@
+Since the builder has GM tools now I thought it'd be smart to
+add the Storytelling chapter (or, well, pertinent parts of it)
+to `images/{Splat}` so we can add a sort of ST's sheet to the
+side of the display. We could also add a simplifcation of the
+official tri-fold sheet PDF, which I do have around if you want it.

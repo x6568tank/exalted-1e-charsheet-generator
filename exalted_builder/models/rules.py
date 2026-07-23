@@ -265,6 +265,12 @@ class CasteDefinition(BaseModel):
     # (Solar, Dragon-Blooded, Abyssal). A caste sets caste_abilities OR
     # caste_attributes, never both.
     caste_attributes: list[AttributeName] = Field(default_factory=list)
+    # Flat XP discount this caste gets on a new spell whose circle is priced via
+    # ExperienceCosts.new_spell_by_circle (Lunar No Moon: 2, p.251 — "12/15, minus 2
+    # for a No Moon"). 0 (the default) for every caste that gets no such discount,
+    # including the other Lunar castes. Ignored entirely by splats that price spells
+    # flatly (they use the Occult-Caste/Favoured discount instead).
+    spell_cost_discount: int = 0
     description: str = ""                   # a quick flavour blurb for the caste
     anima_powers: str = ""
 
@@ -431,6 +437,11 @@ class BonusPointCosts(BaseModel):
 class ExperienceCosts(BaseModel):
     # rating-scaled increases
     attribute: LinearCost = Field(default_factory=lambda: LinearCost(coeff=4))
+    # Discount for raising a Caste ATTRIBUTE (Lunar, p.251 — "current rating x 4,
+    # minus 1 if a Caste Attribute"). Defaults equal to `attribute` so it's a no-op
+    # until a splat's data row overrides it; only splats with Caste Attributes
+    # (Lunar) ever have an Attribute qualify. Mirrors BonusPointCosts.attribute_caste_favored.
+    attribute_caste_favored: LinearCost = Field(default_factory=lambda: LinearCost(coeff=4))
     ability: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2))
     ability_favored_caste: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2, offset=-1))
     essence: LinearCost = Field(default_factory=lambda: LinearCost(coeff=8))
@@ -441,8 +452,21 @@ class ExperienceCosts(BaseModel):
     new_specialty: int = 3
     new_charm: int = 10
     new_charm_favored_caste: int = 8
+    # Immaculate Order Charms (Dragon-Blooded, p.292 — "15, 12 if Favored"). Only
+    # consulted for a Charm whose `immaculate` flag is set (Dragon-Blooded only);
+    # defaults equal to the ordinary new_charm costs so it's a no-op for every splat
+    # without an Immaculate package. Mirrors BonusPointCosts.immaculate_charm.
+    new_immaculate_charm: int = 10
+    new_immaculate_charm_favored_caste: int = 8
     new_spell: int = 10
     new_spell_occult_favored_caste: int = 8
+    # Per-circle spell costs (Lunar, p.251 — Terrestrial 12, Celestial 15). When a
+    # spell's circle is in this map the map wins and the discount becomes the
+    # learner's CASTE discount (CasteDefinition.spell_cost_discount), NOT the
+    # Occult-Caste/Favoured discount above — that is the whole point of a splat that
+    # prices spells this way (a No Moon Lunar's −2, p.251; Occult-favoured has no
+    # effect for such a splat). Empty (every other splat) => the flat new_spell path.
+    new_spell_by_circle: dict[SpellCircle, int] = Field(default_factory=dict)
     foreign_charm: int = 20                # spirit Charms / other Exalt types; Eclipse only (gated in engine)
 
 
@@ -597,6 +621,38 @@ SOLAR_EXALT = ExaltDefinition(
 )
 
 
+# --------------------------------------------------------------------------- #
+# Storyteller reference screen
+#
+# A purely presentational block of rules tables (the tri-fold GM screen, p.2-3 of
+# `images/exaltedscreen-20050917.pdf`), rendered read-only in the GM party page.
+# It carries NO game logic and is never referenced by id, keyed, or consumed by the
+# engine — it is display text, the digital equivalent of a printed screen. Modeled
+# as generic tables so any rules table drops in without a bespoke shape.
+# --------------------------------------------------------------------------- #
+
+class RefTable(BaseModel):
+    """One titled reference table: a header row (`columns`) over `rows`, each row a
+    list of cells matching the columns. `note` is an optional footnote below it.
+    A `columns`-less table renders as a bare list of rows (e.g. a step sequence)."""
+    title: str
+    columns: list[str] = Field(default_factory=list)
+    rows: list[list[str]] = Field(default_factory=list)
+    note: str = ""
+
+
+class RefGroup(BaseModel):
+    """A named panel of related tables (e.g. "Combat")."""
+    title: str
+    tables: list[RefTable] = Field(default_factory=list)
+
+
+class StScreen(BaseModel):
+    """The whole Storyteller reference screen: named groups of tables."""
+    title: str = "Storyteller Reference"
+    groups: list[RefGroup] = Field(default_factory=list)
+
+
 class RuleSet(BaseModel):
     """The whole rulebook in memory. Charms and spells are indexed by id for
     O(1) prerequisite resolution and load-time link-checking.
@@ -623,6 +679,8 @@ class RuleSet(BaseModel):
         default_factory=lambda: {"default": ExperienceCosts()})
     budgets: dict[str, ChargenBudgets] = Field(
         default_factory=lambda: {"default": ChargenBudgets()})
+    # Optional read-only GM reference screen (data/st_screen.json). None when absent.
+    st_screen: Optional[StScreen] = None
 
     def exalt_for(self, exalt_type: str) -> ExaltDefinition:
         """The ExaltDefinition for `exalt_type`, falling back to Solar if the type

@@ -82,7 +82,7 @@ def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName)
     frm = character.attributes[attr]
     if frm >= _DOT_MAX:
         raise AdvancementError(f"{attr.value} is already at {_DOT_MAX}.")
-    cost = costs.attribute_step(ruleset, character, frm)
+    cost = costs.attribute_step(ruleset, character, frm, attr)
     entry = _commit(character, f"attributes.{attr.value}", "", frm, frm + 1, cost)
     character.attributes[attr] = frm + 1
     return entry
@@ -260,7 +260,7 @@ def learn_spell(ruleset: RuleSet, character: Character, spell_id: str) -> XpEntr
     # Post-lock the chargen Solar-Circle bar lifts; only circle access is required.
     if not validate.meets_spell_requirements(ruleset, character, spell, chargen=False):
         raise AdvancementError(f"{spell.name}: no known Charm grants its Circle.")
-    cost = costs.spell_cost(ruleset, character)
+    cost = costs.spell_cost(ruleset, character, spell)
     entry = _commit(character, "spells", spell_id, None, None, cost)
     character.spells.append(spell_id)
     return entry
@@ -443,7 +443,8 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
     if frm is not None and entry.to_rating is not None and entry.to_rating < frm:
         return 0
     if domain == "attributes" and frm is not None:
-        return costs.attribute_step(ruleset, character, frm)
+        attr = AttributeName(key) if key else None
+        return costs.attribute_step(ruleset, character, frm, attr)
     if domain == "abilities" and frm is not None:
         return costs.ability_step(ruleset, character, AbilityName(key), frm)
     if domain == "crafts" and frm is not None:
@@ -458,7 +459,7 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         charm = ruleset.charms.get(entry.detail)
         return costs.charm_cost(ruleset, character, charm) if charm else None
     if domain == "spells":
-        return costs.spell_cost(ruleset, character) if entry.detail in ruleset.spells else None
+        return costs.spell_cost(ruleset, character, ruleset.spells[entry.detail]) if entry.detail in ruleset.spells else None
     if domain == "specialties":
         return costs.specialty_cost(ruleset, character)
     if domain == "combos":

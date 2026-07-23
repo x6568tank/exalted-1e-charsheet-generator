@@ -1,0 +1,439 @@
+{
+  "title": "Storyteller Reference",
+  "groups": [
+    {
+      "title": "Combat Resolution",
+      "tables": [
+        {
+          "title": "Attack Sequence",
+          "columns": ["Step", "What happens"],
+          "rows": [
+            ["Initial Pool", "Dex + ability"],
+            ["Apply bonuses / penalties", "See Combat Pool Adjustments"],
+            ["Charm Mods", "Apply pool-altering Charms and effects; check dice limits"],
+            ["Attack Roll", "Roll pool, count successes (A); reduce by situation. If A ≤ 0, done"],
+            ["Defense", "Target reduces A (see Defense Pool Adjustments). If A ≤ 0, done"],
+            ["Raw Damage", "R = A + Str + Weapon Damage"],
+            ["Knockdown", "If R > target's Sta+Resist, target rolls Sta+Resist (diff 1) or is knocked down"],
+            ["Soak", "Bashing = Sta + Armor; Lethal = ½ Sta + Armor; Aggravated = Armor"],
+            ["Damage", "D = R − soak (min 1). Roll D dice; 10s are single success, no botch. Count successes (H)"],
+            ["Stun", "If H > target's Sta, target rolls Sta+Resist (H − Sta) or is stunned (−2 dice) for 6 − Sta turns"],
+            ["Wounds", "Mark H health levels on the target"]
+          ]
+        },
+        {
+          "title": "Initiative",
+          "columns": ["Rule", "Ref"],
+          "rows": [
+            ["Base initiative = d10 + Dexterity + Wits", "227"],
+            ["Ties: highest Dex + Wits, then roll off", "227"],
+            ["Apply wound penalties to the roll", "pg203"]
+          ]
+        },
+        {
+          "title": "Movement",
+          "columns": ["Situation", "Move", "Ref"],
+          "rows": [
+            ["Base move, unwounded", "Dex+12 or 100%", "233"],
+            ["Base move, −1 wound", "Dex+8 or 70%", "233"],
+            ["Base move, −2 wound", "Dex+4 or 40%", "233"],
+            ["Base move, −4 wound", "Dex or 10%", "233"],
+            ["Move and still act", "Base move ÷ 2", "227"],
+            ["Vertical leap", "Str+Athletics", "252"],
+            ["Horizontal leap", "(Str+Athletics) × 2", "252"]
+          ]
+        },
+        {
+          "title": "Combat Pool Adjustments",
+          "columns": ["Situation", "Dice Change", "Ref"],
+          "rows": [
+            ["Specialty", "+level", "133"],
+            ["Weapon Accuracy", "±Accuracy", "331"],
+            ["Stunts", "+1 to +3", "267"],
+            ["Wounds", "−level", "232"],
+            ["First of n multiple actions (weapon can't exceed its Rate)", "−n", "331"],
+            ["Subsequent multiple actions", "−1 (cumulative)", "235"],
+            ["Using off hand", "−1", "234"],
+            ["Prone", "−2", "235"],
+            ["Stunned", "−2", "234"],
+            ["Distance up to Range", "−0", "229"],
+            ["Distance up to twice range", "−2", "229"],
+            ["Distance up to 3× range", "−4", "229"],
+            ["In water above ankles", "−1", "237"],
+            ["In water above waist", "−2", "237"],
+            ["In mud above mid-calf", "−1", "237"],
+            ["In mud above knee", "−2", "237"],
+            ["Attacking up steps", "−1", "236"],
+            ["Attacking up spiral steps", "−2", "236"],
+            ["Attacking up gentle slope", "−2", "236"],
+            ["Attacking up steep slope", "−2", "236"],
+            ["Attacking up very steep slope or ladder", "−3", "236"],
+            ["On treacherous ground (scree)", "−1", "236"],
+            ["Attacking mounted foe w/o spear", "−2", "236"],
+            ["Attacking howdah foe w/o spear", "−4", "236"],
+            ["Attacking howdah foe w/ spear", "−2", "236"],
+            ["Attacking from howdah w/o Ride", "−2", "236"],
+            ["Fatigue (per missed Endurance roll)", "−1", "332"]
+          ],
+          "note": "Penalties from range cannot reduce the pool below 1; apply wounds last."
+        },
+        {
+          "title": "Feats of Strength",
+          "columns": ["Str+Ath", "Lift (lbs)", "Feat"],
+          "rows": [
+            ["1", "80", "Lift an anvil or a suit of heavy armor."],
+            ["2", "160", "Lift a full-grown man. Break a pine board with a kick."],
+            ["3", "250", "Lift a mule. Punch through a pine door."],
+            ["4", "350", "Tote a bale of cotton on one shoulder. Break a sword over a knee."],
+            ["5", "450", "Lift a grown warhorse. Kick a pine tree to splinters."],
+            ["6", "550", "Punch through an oak door. Carry a log on one shoulder."],
+            ["7", "650", "Lift an ox. Bend an iron bar with both hands."],
+            ["8", "800", "Throw a mule. Bend a horseshoe into a pretzel."],
+            ["9", "1,000", "Pull a fully laden wagon. Snap an axe haft over a knee."],
+            ["10", "1,200", "Lift a yeddim. Throw a full-grown warhorse."],
+            ["11", "1,500", "Lift an unlocked portcullis. Slowly kick down a brick wall."],
+            ["12", "1,600", "Kick a door to splinters. Pull down a wooden bridge."],
+            ["13", "1,800", "Lift an elephant. Throw an ox. Punch through an iron-shod door."],
+            ["14", "2,000", "Snap iron manacles. Tear apart a castle wall, stone by stone."],
+            ["15", "2,200", "Punch through a stone wall. Kick an iron-shod door to flinders."],
+            ["16", "2,500", "Lift a locked portcullis; snap the sturdiest lock with a single kick."],
+            ["17", "3,000", "Punch through an iron door. Pull down temple pillars."],
+            ["18", "3,500", "Rip iron bars out of a stone wall with one hand."],
+            ["19", "4,000", "Throw a yeddim; tear apart the welded iron bars of a portcullis."],
+            ["20", "4,500", "Kick down the iron-shod and barred gates of a mighty fortress."]
+          ],
+          "note": "Each 10% beyond the listed lift adds −1 Mobility. Ref 251."
+        },
+        {
+          "title": "Object Strengths",
+          "columns": ["Material", "Soak (B/L)", "To Damage", "To Destroy"],
+          "rows": [
+            ["House door", "3/1", "3", "10"],
+            ["Oak door", "5/3", "10", "20"],
+            ["Fortress gate", "10/8", "20", "40"],
+            ["Wood statue", "4/2", "3", "16"],
+            ["Stone statue", "8/4", "4", "28"],
+            ["Iron statue", "12/6", "6", "50"],
+            ["Wood wall*", "5/3", "8", "12"],
+            ["Brick wall*", "10/6", "24", "40"],
+            ["Stone wall*", "18/12", "40", "80"]
+          ],
+          "note": "*For a section large enough for a single character. Ref 239."
+        },
+        {
+          "title": "Situational Success Modifiers",
+          "columns": ["Situation", "Success Change", "Ref"],
+          "rows": [
+            ["Murky vision", "−1", "237"],
+            ["Attacking blind", "−2", "237"],
+            ["Pulling a blow (lethal → bashing)", "−1", "237"],
+            ["Called shot or marking", "−(Difficulty − 1)", "238"],
+            ["Disarming with a melee weapon", "−3", "238"],
+            ["Disarming with a ranged weapon", "−5", "238"],
+            ["Making a sweep attack", "−1", "240"],
+            ["Attempting to tackle a target", "−1", "240"],
+            ["Attempting to throw a target", "−1", "240"],
+            ["Each dodge success", "−1", "231"],
+            ["Each parry success", "−1", "230"]
+          ]
+        },
+        {
+          "title": "Cover",
+          "columns": ["Cover", "Melee / Ranged", "Ref"],
+          "rows": [
+            ["Buckler", "−1 / −0", "335"],
+            ["Target shield", "−1 / −1", "335"],
+            ["Tower shield", "−1 / −2", "335"],
+            ["25% hard cover", "−0 / −1", "229"],
+            ["50% hard cover", "−1 / −2", "229"],
+            ["75% hard cover", "−1 / −3", "229"],
+            ["90% hard cover", "−2 / −4", "229"]
+          ]
+        },
+        {
+          "title": "Defense Pool Adjustments",
+          "columns": ["Situation", "Dice Change", "Ref"],
+          "rows": [
+            ["Weapon Defence (parry only)", "±Defense", "331"],
+            ["Encumbrance (dodge only)", "Mobility", "332"],
+            ["Being attacked from behind", "0 base pool", "238"],
+            ["Parrying a weapon w/o a weapon", "0 base pool", "230"],
+            ["Parrying a ranged weapon", "needs stunt", "230"],
+            ["Fully ambushed", "0 base pool", "238"],
+            ["Partially ambushed", "normal", "238"]
+          ],
+          "note": "Combat Pool Adjustments also apply to defense, except Accuracy, delaying action and range."
+        }
+      ]
+    },
+    {
+      "title": "Actions",
+      "tables": [
+        {
+          "title": "Common Actions",
+          "columns": ["Action", "Ref", "Resolution"],
+          "rows": [
+            ["Teamwork", "92", "Players may combine dice pools."],
+            ["Fighting mounted", "236", "Combat abilities limited by Ride. Wits + Ride (control) dice action per turn to stay mounted."],
+            ["Narrow / unstable action", "236", "Dex + Athletics (condition) dice action at start of turn to maintain balance."],
+            ["Multiple opponents", "238", "Up to five may attack one target."],
+            ["Ambush", "238", "Perception + Awareness vs. Dex + Stealth to detect. If sprung: Wits + Awareness to act — fail = no action; 1–2 = move/dodge/parry only; ≥3 = no effect."],
+            ["Marking targets", "238", "Diff. 3 (simple) or 4 (complex)."],
+            ["Disarming", "238", "Diff. 3 (melee) or 5 (ranged). Target holds on with Wits + combat (attack successes)."],
+            ["Attacking objects", "239", "All damage penetrating soak treated as a success. No ping damage."],
+            ["Clinch / Hold", "pg205", "Str or Dex + Brawl or Martial Arts attack. Attacker may do bashing damage of Str+2. Defender uses standard defenses or own clinch test. On later turns, opposed test on highest tick; winner controls clinch to damage, escape or hold."],
+            ["Sweep", "240", "−1 attack success; (Str)B damage. Target rolls Dex + Athletics (2) to avoid knockdown."],
+            ["Tackle", "240", "−1 attack success; (Str)B damage. Target at −2 dice next turn. Both roll Stamina + Athletics (3) or suffer knockdown."],
+            ["Throw", "240", "Attacker may do (Str)B damage. Target flies Str yards, taking (Str + extra successes − 1)B, and must roll Wits + Athletics (2) or be knocked down."],
+            ["Disease", "241, 243, 250, 319", "Sta + Resistance (virulence) to avoid contracting. Intelligence + Medicine to treat. Sta + Endurance (morbidity) to survive."],
+            ["Staying awake", "241", "Stamina + Endurance, −1 die per day."],
+            ["Fatigue", "241", "Stamina + Endurance hours of labor without penalty, then −1 die per hour. Negate with Stamina + Endurance for up to Sta + Endurance days."],
+            ["Treading water", "241", "Stamina + Endurance (temperature)."],
+            ["Composing music", "242", "Extended Int + Performance (quality); total successes set by length of the piece."],
+            ["Performing", "242", "Charisma + Performance (conditions). +1 die performing one's own compositions."],
+            ["Seduction", "242", "Charisma or Manipulation + Presence."],
+            ["Persuasion", "242", "Appropriate Attribute + Presence."],
+            ["Intimidation", "242", "Attribute + Presence or Performance."],
+            ["Leadership", "242", "Appropriate Attribute + Presence."],
+            ["Drinking", "243", "Stamina drinks before drunk; Stamina + Resistance for extra drinks. A \"drink\" is a glass of wine, tankard of beer, or dram of liquor."],
+            ["Poison", "243", "Stamina + Resistance (poison strength). Success suffers lesser effect. Damage applied, not rolled. Dice penalty applies for the duration."],
+            ["Holding breath", "243", "Stamina + Resistance × 30 seconds; each success on Stamina + Resistance adds +30 seconds."],
+            ["Environmental damage", "243", "As poison, applied at intervals."],
+            ["Finding shelter", "244", "Attribute + Survival."],
+            ["Foraging", "244", "Perception + Survival."],
+            ["Tracking & evasion", "245", "Wits + Survival vs. Perception + Survival, twice daily. Depends on relative speed, terrain, etc."],
+            ["Taming animals", "245", "Extended Charisma + Survival."],
+            ["Predicting weather", "245", "Perception + Survival or Sail."],
+            ["Creating items", "245", "Plan: extended Int + Craft. Assess materials: Perception + Craft. Work: extended Dexterity + Craft."],
+            ["Searching", "248", "Intelligence + Investigation for a specific object; Perception + Investigation to search generally; Wits + Investigation to conceal the search."],
+            ["Remember fact", "248", "Intelligence + Lore (obscurity)."],
+            ["Solve math", "248", "Intelligence + Lore (complexity)."],
+            ["Snap answer", "248", "Wits + Lore (obscurity +1 or +2)."],
+            ["First Age magic", "249", "Int + Lore (complexity) to discern purpose; Wits + Lore to operate."],
+            ["Recognizing spirits", "249", "Perception + Lore (rarity / power)."],
+            ["Summoning prep", "249", "Intelligence + Lore provides extra dice for summoning or banishment."],
+            ["Attuning demesne or manse", "249", "Int + Lore (1)."],
+            ["Break manse attunement", "249", "Wits + Lore (1)."],
+            ["Attuning item of wrong material", "338", "Wits + Lore (3)."],
+            ["Sense magic", "250", "Perception + Occult (11 − Essence)."],
+            ["Geomancy", "250", "Automatically know when inside a manse or demesne; more detail with Perception + Occult."],
+            ["Sense spirits", "251", "Perception + Occult (10 − Essence)."],
+            ["Astrology", "251", "Intelligence + Occult (detail and target)."],
+            ["Falling", "249", "1B per two feet over 50 feet. Falls over 50 feet, or onto dangerous ground, become lethal. Wits + Athletics may improve the situation."],
+            ["Climbing", "252", "Athletics test depending on surface."],
+            ["Notice details", "253", "Perception + Awareness."],
+            ["Stealth", "253, 255", "Dex + Stealth vs. Perception + Awareness."],
+            ["Notice ambush", "238", "Perception + Awareness to notice; if unnoticed, Wits + Awareness to avoid surprise."],
+            ["Pick locks", "253", "Dexterity + Larceny (complexity)."],
+            ["Pick pocket", "253", "Dexterity + Larceny (location). Notice attempt: Wits + Awareness (extra Larceny successes)."],
+            ["Underworld contact", "254", "Charisma + Larceny."],
+            ["Casing a target", "254", "Perception + Larceny."],
+            ["Disguise", "254", "Intelligence + Larceny (complexity). To penetrate: Perception + Awareness (extra Larceny successes)."],
+            ["Evaluating goods", "255", "Perception + Bureaucracy. A fast-talker opposes with Charisma + Bureaucracy; a fraud opposes with Wits + Larceny."],
+            ["Haggling", "255", "Extended opposed Wits + Bureaucracy until one party buys. Every five accumulated successes halves or doubles the price."],
+            ["Bribes", "256", "Manipulation + Bureaucracy to bribe an unwilling target; no roll for a willing one."],
+            ["Bureaucratic maneuvering", "256", "Move something ±20% per success on Int + Bureaucracy. Contend for control with extended opposed Int + Bureaucracy."],
+            ["Composing words", "256", "Extended Int + Performance."],
+            ["Deciphering", "256", "Extended Int + Linguistics, difficulty equal to the strength of the code or obscurity of the language."],
+            ["Evaluate mount", "257", "As evaluating goods, using Ride."],
+            ["Training mount", "257", "Charisma + Ride (fierceness)."],
+            ["Stress riding", "257", "Charisma + Ride. See fighting mounted."],
+            ["Pushing horses", "257", "Charisma + Ride."],
+            ["Navigation", "258", "Intelligence + Sail. Handling in tight waters is Wits + Sail to track correctly, then Dex + Sail."],
+            ["Shipboard movement", "258", "If Sail doesn't meet a minimum (sea roughness), roll Dex + Sail each turn to avoid +1 difficulty on coordination / agility tasks."],
+            ["Seasickness", "258", "Stamina + Sail each day to avoid."],
+            ["Social pulse", "259", "Perception + Socialize (situation). Extra successes give a clearer picture."],
+            ["Making friends", "259", "Perception + Socialize to find good allies; extended Charisma + Presence to become friends."],
+            ["Manipulating opinion", "259", "Extended Manipulation + Socialize."]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Anima Banner",
+      "tables": [
+        {
+          "title": "Anima Banner by splat",
+          "columns": ["Level", "Abyssal (ab150)", "Alchemical (at75)", "Lunar (lu110)", "Sidereal (si121)", "Solar (149)", "Terrestrial (db161)"],
+          "rows": [
+            ["1–3", "Black brand. Per. + Awareness (1) to see.", "Sparks. Per. + Awareness (1) to see.", "Per. + Awareness (1) to see uncovered mark or Tell.", "Per. + Awareness (3) to see uncovered mark.", "Caste mark. Per. + Awareness (1) to see.", "Caste mark. Per. + Awareness (1) to see."],
+            ["4–7", "Blood soaks through anything placed over it.", "Arcs. Cloaks or disguises deactivate. Hiding +2 diff.", "Tattoos and Tell cannot be concealed. Hide +2 diff.", "Per. + Awareness (1) to see uncovered mark. ● Paradox.", "Mark shines through. Stealth magic fails. +2 stealth diff.", "1L per minute."],
+            ["8–10", "Bright enough to read by. No stealth.", "Body and footprints glow as torchlight. No stealth.", "Forced into true form. No stealth.", "Bare mark seen. +2 stealth diff. ●●● Paradox. Destiny recedes.", "Bright aura. No stealth.", "1L per minute."],
+            ["11–15", "Chilling bonfire, visible for miles. Objects decay.", "As previous. Traces linger for an hour.", "Bonfire visible for miles. Warps objects.", "Mark shines through. No stealth. ●●● Paradox. Destiny recedes.", "Bonfire, visible for miles. May bleach objects.", "1L per three turns."],
+            ["16+", "Totemic; may turn w/o spending Essence. May derange mortals.", "Multi-sensory industrial iconic display.", "Totemic until turn w/o spending Essence.", "Bright halo until end of scene. ●●● Paradox. Destiny recedes.", "Totemic; may turn w/o spending Essence.", "1L per turn."]
+          ],
+          "note": "Book refs in column headers: ab = The Abyssals, at = The Autochthonians, lu = The Lunars, si = The Sidereals, db = Dragon-Blooded, bare = core."
+        }
+      ]
+    },
+    {
+      "title": "Health, Wounds & Recovery",
+      "tables": [
+        {
+          "title": "Regaining Health",
+          "columns": ["Health level regained", "Active", "Resting", "×10 Active", "×10 Resting"],
+          "rows": [
+            ["Bashing, exalt", "6 hours", "3 hours", "36 minutes", "18 minutes"],
+            ["−0 lethal, exalt", "12 hours", "6 hours", "72 minutes", "36 minutes"],
+            ["−1 lethal, exalt", "4 days", "2 days", "9.6 hours", "4.8 hours"],
+            ["−2 lethal, exalt", "8 days", "4 days", "19.2 hours", "9.6 hours"],
+            ["−4 lethal, exalt", "2 weeks", "1 week", "1.4 days", "16.9 hours"],
+            ["Incap. lethal, exalt", "2 weeks", "1 week", "1.4 days", "16.9 hours"],
+            ["Bashing, mortal", "24 hours", "12 hours", "144 minutes", "72 minutes"],
+            ["−0 lethal, mortal", "2 days", "1 day", "4.8 hours", "144 minutes"],
+            ["−1 lethal, mortal", "2 weeks", "1 week", "1.4 days", "16.9 hours"],
+            ["−2 lethal, mortal", "n/a", "2 weeks", "n/a", "1.4 days"],
+            ["−4 lethal, mortal", "n/a", "1 month", "n/a", "2.8 days"],
+            ["Incap. lethal, mortal", "n/a", "1 month", "n/a", "2.8 days"]
+          ],
+          "note": "Aggravated levels heal as lethal but may not be healed magically. Ref 234 & 149."
+        },
+        {
+          "title": "Essence Recovery",
+          "columns": ["Activity", "Per day", "Per 8 hours", "Per hour", "Per 15 min"],
+          "rows": [
+            ["Normal", "0", "0", "0", "0"],
+            ["At ease", "96", "32", "4", "1"],
+            ["Relaxing", "192", "64", "8", "2"],
+            ["Within a manse", "+Rating × 96", "+Rating × 32", "+Rating × 4", "+Rating"],
+            ["From a hearthstone", "+Rating × 48", "+Rating × 16", "+Rating × 2", "+Rating ÷ 2"]
+          ]
+        },
+        {
+          "title": "Wounds",
+          "columns": ["Condition", "Ref", "Effect"],
+          "rows": [
+            ["Unconscious", "233", "Bashing damage filling the Incapacitated level."],
+            ["Dying", "233", "Lethal or aggravated damage filling Incapacitated. Dies in Stamina turns (minus extra health levels). Healed only by magic; cannot act unless immune to wound penalties."],
+            ["Bleeding", "233", "Wounds over one HL bleed, losing an additional HL every several minutes. Exalts stop the flow with Stamina (1) or by tending; mortals stop if treated with Wits + Medicine (HL of largest wound), and wounds may reopen with activity."],
+            ["Infection", "233", "Stamina + Resistance (3+) to avoid when taking lethal damage or exposing a wound (wound penalties don't apply); Exalts −2 diff. An infected exalt rolls Sta + Endurance (1) each morning or suffers −2 dice all day. Mortals' difficulty rises by one each day; on a botch or when diff exceeds Sta + Endurance, the mortal dies in Stamina days unless magically healed."],
+            ["Mortal wounds", "234", "Mortals taking wounds over 3HL must be treated surgically or the penalty becomes permanent. Reduced to −4 or incapacitated, a mortal may lose a limb."],
+            ["Missing limb", "234", "Useless arm: −2 dice for Athletics. Useless leg: half movement and −3 Athletics."]
+          ]
+        },
+        {
+          "title": "Diseases",
+          "columns": ["Condition", "Virulence", "Morbidity", "Diff"],
+          "rows": [
+            ["Smallpox", "4", "3/2", "4"],
+            ["Cholera", "3", "3/2", "4"],
+            ["Leprosy", "1", "4/3", "5"],
+            ["Yellow Fever", "2", "4/2", "4"],
+            ["Typhus", "4", "4/3", "4"],
+            ["Malaria", "3", "3/2", "2"],
+            ["Bubonic Plague", "5", "5/5", "4"],
+            ["Dysentery", "2", "2/1", "3"]
+          ],
+          "note": "Dysentery is from Ruins of Rathess (rr24). Ref 237."
+        }
+      ]
+    },
+    {
+      "title": "Environment & Hazards",
+      "tables": [
+        {
+          "title": "Visibility",
+          "columns": ["Condition", "Clear to", "Murky to"],
+          "rows": [
+            ["Fog, day", "10 yards", "30 yards"],
+            ["Fog, night", "0 yards", "3 yards"],
+            ["Heavy snow, day", "0 yards", "20 yards"],
+            ["Heavy snow, night", "0 yards", "0 yards"],
+            ["Torchlight", "3 yards", "5 yards"],
+            ["No moon · snowy ground, desert", "5 yards", "25 yards"],
+            ["No moon · grass, leafless forest", "0 yards", "3 yards"],
+            ["No moon · city, forest", "0 yards", "0 yards"],
+            ["Full moon · snowy ground, desert", "50 yards", "100 yards"],
+            ["Full moon · grass, leafless forest", "25 yards", "50 yards"],
+            ["Full moon · city, forest", "0 yards", "3 yards"]
+          ],
+          "note": "Ref 237."
+        },
+        {
+          "title": "Poisons",
+          "columns": ["Toxin", "Diff", "Succ", "Fail", "Dur", "Penalty"],
+          "rows": [
+            ["Coral snake", "3", "1L", "4L", "1 min", "−6"],
+            ["Arrow frog", "3", "2L", "6L", "6 hrs", "−4"],
+            ["Poison snake", "2", "1L", "4L", "4 hrs", "−2"],
+            ["Court poison", "2", "1L", "6L", "6 hrs", "−3"]
+          ],
+          "note": "Ref 243."
+        },
+        {
+          "title": "Hazards",
+          "columns": ["Hazard", "Diff", "Succ", "Fail", "Interval"],
+          "rows": [
+            ["Hearth", "1", "—", "1B", "5 min"],
+            ["Severe sandstorm", "2", "0", "1L", "1 min"],
+            ["Magic ice storm", "2", "1L", "3L", "1 min"],
+            ["Bonfire", "3", "2L", "5L", "1 turn"],
+            ["Acid bath", "5", "2L", "8L", "1 turn"]
+          ],
+          "note": "Ref 243."
+        }
+      ]
+    },
+    {
+      "title": "Traits & Core Rules",
+      "tables": [
+        {
+          "title": "Virtues",
+          "columns": ["Virtue", "Aids in", "Fail a check to…"],
+          "rows": [
+            ["Compassion", "Protecting the sick, innocent or oppressed; fighting for justice; aiding the needy; defending romantic love.", "Allow an enemy to perish miserably; ignore pleas of the oppressed or impoverished; abandon the diseased or a lover."],
+            ["Conviction", "Withstanding hardship, disease and oppression; commanding in times of woe; fighting hopeless situations.", "Abandon a cause committed to; give up in the face of hardship or disease; abandon companions."],
+            ["Temperance", "Withstanding temptation, taunting or baiting; holding one's tongue while drunk; fighting befuddlement, drugs or mind control.", "Act dishonestly or show bias in an important matter; enter a situation without deliberation; break oaths or trusts."],
+            ["Valor", "Heroism in battle and single combat; withstanding magical fear; feats of daring.", "Flee a duel of honor or a call to single combat; flee a battle; swallow an insult; turn down a dare or challenge."]
+          ],
+          "note": "Ref 130."
+        },
+        {
+          "title": "Willpower",
+          "columns": ["Spend a temporary Willpower to…", "Recover Willpower"],
+          "rows": [
+            ["Buy an automatic success (roll cannot botch)", "Each day with a Conviction roll"],
+            ["Channel a Virtue (if applicable) to gain dice", "Affirming your Nature (1 to 3 points)"],
+            ["Resist an instinctual response", "Significant story progress"],
+            ["Resist mental powers", "In place of Essence from a 2- or 3-die stunt"],
+            ["", "At the end of a story"],
+            ["", "When Limit breaks"]
+          ],
+          "note": "Losing all Willpower results in compulsion. Ref 147."
+        },
+        {
+          "title": "Stunts",
+          "columns": ["Stunt", "What earns it"],
+          "rows": [
+            ["+1", "Action described in an interesting fashion"],
+            ["+2", "Interesting and uses the environment"],
+            ["+3", "Wow. Brilliant."]
+          ],
+          "note": "If a stunt succeeds, the player gains Essence equal to the stunt die; on a +2 or +3, may instead gain Willpower. Ref 90 & 267."
+        },
+        {
+          "title": "Extras",
+          "columns": ["Type", "Init", "Pool", "Valor", "Will"],
+          "rows": [
+            ["Weak (militia, hired thugs, city watch)", "4", "4", "2", "3"],
+            ["Troops / legbreakers (trained troops, city guard)", "5", "5", "3", "4"],
+            ["Elite (crack troops, assassins, praetorian guard)", "6", "6", "4", "6"]
+          ],
+          "note": "Three health levels only. PCs don't roll damage against extras — each three damage dice deals one HL. Extras don't count 10s as two successes. Ref 240."
+        },
+        {
+          "title": "Charms",
+          "columns": ["Type", "Rule"],
+          "rows": [
+            ["General", "No more than one different Charm per turn unless in a Combo. Essence stays committed until the Charm ends."],
+            ["Simple", "Once per turn; may not split the pool."],
+            ["Supplemental", "Must supplement a die action (usually of the same ability). If the pool is split, may be used multiple times."],
+            ["Reflexive", "Use any time, including before initiative. May be used multiple times."],
+            ["Extra Action", "Once per turn; may not split."]
+          ],
+          "note": "Ref 153."
+        }
+      ]
+    }
+  ]
+}

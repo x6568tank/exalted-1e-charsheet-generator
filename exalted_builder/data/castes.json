@@ -140,6 +140,7 @@
     "exalt_type": "Lunar",
     "label": "No Moon",
     "caste_attributes": ["perception", "intelligence", "wits"],
+    "spell_cost_discount": 2,
     "description": "Subtle mystics who survive via intelligence and sorcerous skill. No Moon Lunars are the Silver Pact's master sorcerers and the keepers of the Lunars' entire history and culture.",
     "anima_powers": "A No Moon Lunar may attune her anima to work sorcery, reducing the Essence needed to cast spells: for each mote she spends to attune her anima this way, the Essence cost of all spells cast for the rest of the scene is lowered by 1 (may not spend more than twice her Essence this way in a scene; a spell's cost cannot be reduced by more than half, rounded down). Spending Essence this way is reflexive and does not count as a Charm for the purposes of how many Charms the character can use in a turn, but it cannot be done while casting a spell."
   },

@@ -563,7 +563,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             ui.notify(f"{spell.name} is already known — undo the purchase on the "
                       "XP tab to give it back.", type="info")
             return False
-        cost = costs.spell_cost(ruleset, character)
+        cost = costs.spell_cost(ruleset, character, spell)
         if not _buy(lambda: advancement.learn_spell(ruleset, character, spell_id)):
             return False
         ui.notify(f"Learned {spell.name} — {cost} XP", type="positive")
@@ -591,7 +591,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if not r.available:
             ui.button(icon="lock").props("dense flat round size=sm disable").tooltip(r.reason)
             return
-        cost = costs.spell_cost(ruleset, character)
+        cost = costs.spell_cost(ruleset, character, ruleset.spells.get(r.id))
         btn = ui.button(icon="shopping_cart",
                         on_click=lambda _=None, sid=r.id: toggle_spell(sid)).props(
             "dense flat round size=sm color=positive")
@@ -622,7 +622,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.card().classes(f"w-full p-3 gap-3 {pal.card}"):
             with ui.row().classes("w-full items-baseline gap-3"):
                 ui.label(magic_noun).classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
-                caption = (f"{costs.spell_cost(ruleset, character)} XP each; learn the matching "
+                caption = (f"{costs.spell_cost(ruleset, character, ruleset.spells.get(rows[0].id))} "
+                           f"XP each; learn the matching "
                            f"Circle {magic_noun} Charm to unlock it." if in_play() else
                            f"A spell takes a Charm pick (p.100); learn the matching Circle "
                            f"{magic_noun} Charm to unlock it.")

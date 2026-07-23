@@ -15,7 +15,7 @@ engine.advancement call them, and the UI shows them as a price before buying.
 from __future__ import annotations
 
 from ..models.character import Character
-from ..models.rules import AbilityName, Charm, RuleSet
+from ..models.rules import AbilityName, AttributeName, Charm, RuleSet
 from . import validate
 
 # A trait's first dot (an Ability bought from 0) has no `from_rating` to scale; it
@@ -23,9 +23,17 @@ from . import validate
 # always scaled.
 
 
-def attribute_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
-    """XP to raise an Attribute from `from_rating` to the next dot."""
-    return ruleset.xp_costs_for(character.exalt_type).attribute.at(from_rating)
+def attribute_step(ruleset: RuleSet, character: Character, from_rating: int,
+                   attr: AttributeName | None = None) -> int:
+    """XP to raise an Attribute from `from_rating` to the next dot. Discounted when
+    `attr` is one of the character's Caste Attributes (Lunar, p.251 — `(x4)-1`); the
+    default cost equals the ordinary rate for every splat without Caste Attributes.
+    `attr` is optional so pre-Lunar call sites that didn't pass it keep the flat rate
+    (correct for them, since only Lunar has an attribute_caste_favored override)."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    if attr is not None and attr in validate.caste_attributes(ruleset, character):
+        return xp.attribute_caste_favored.at(from_rating)
+    return xp.attribute.at(from_rating)
 
 
 def ability_step(ruleset: RuleSet, character: Character, ability: AbilityName,
@@ -75,12 +83,30 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     else:
         ability = validate._category_ability(charm.category)
         favored = ability is not None and ability in validate.caste_favored_abilities(ruleset, character)
+    # Immaculate Order Charms (Dragon-Blooded) have their own, higher rate (p.292).
+    if validate.is_immaculate_charm(charm):
+        return xp.new_immaculate_charm_favored_caste if favored else xp.new_immaculate_charm
     return xp.new_charm_favored_caste if favored else xp.new_charm
 
 
-def spell_cost(ruleset: RuleSet, character: Character) -> int:
-    """XP to learn a spell: discounted when Occult is Caste/Favoured (core p.100/191)."""
+def spell_cost(ruleset: RuleSet, character: Character, spell=None) -> int:
+    """XP to learn a spell. Two pricing policies, chosen by the splat's data:
+
+    - **Per-circle** (Lunar, p.251): when the splat's `new_spell_by_circle` maps the
+      spell's circle, that base applies, discounted by the learner's *caste* discount
+      (`CasteDefinition.spell_cost_discount` — a No Moon's −2). The Occult-Caste/
+      Favoured discount does NOT apply to such a splat.
+    - **Flat** (Solar/DB/Abyssal, core p.100/191): the flat `new_spell`, discounted to
+      `new_spell_occult_favored_caste` when Occult is Caste/Favoured.
+
+    `spell` is optional only so a caller with no spell in hand still gets the flat
+    price; per-circle pricing needs the spell to read its circle."""
     xp = ruleset.xp_costs_for(character.exalt_type)
+    if xp.new_spell_by_circle and spell is not None and spell.circle in xp.new_spell_by_circle:
+        base = xp.new_spell_by_circle[spell.circle]
+        caste_def = ruleset.castes.get(character.caste)
+        discount = caste_def.spell_cost_discount if caste_def else 0
+        return base - discount
     favored = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, character)
     return xp.new_spell_occult_favored_caste if favored else xp.new_spell
 

@@ -48,6 +48,40 @@ def _member_label(member: PartyMember) -> str:
     return member.character.name or "(unnamed)"
 
 
+def _render_ref_table(table, pal: theme.Palette) -> None:
+    """Draw one static reference table (models.rules.RefTable). Pure display — the
+    data is already render-ready, so there is no logic here, only NiceGUI calls."""
+    ui.label(table.title).classes("text-xs font-bold tracking-widest mt-2").style(
+        f"color:{pal.accent}")
+    if table.columns:
+        cols = [{"name": f"c{i}", "label": c, "field": f"c{i}", "align": "left"}
+                for i, c in enumerate(table.columns)]
+        rows = [{"id": str(i), **{f"c{j}": cell for j, cell in enumerate(r)}}
+                for i, r in enumerate(table.rows)]
+        ui.table(columns=cols, rows=rows, row_key="id").props(
+            "dense flat bordered wrap-cells").classes("w-full text-sm")
+    else:
+        for r in table.rows:
+            ui.label("  ·  ".join(r)).classes("text-sm")
+    if table.note:
+        ui.label(table.note).classes("text-xs text-gray-500 italic")
+
+
+def _reference_panel(ruleset: RuleSet, pal: theme.Palette) -> None:
+    """The Storyteller reference screen as one default-collapsed expansion. Absent
+    when no st_screen.json is loaded (the RuleSet field is None)."""
+    screen = ruleset.st_screen
+    if screen is None:
+        return
+    with ui.expansion(screen.title, icon="menu_book").classes(
+            f"w-full {pal.card_soft}").props("dense"):
+        for group in screen.groups:
+            ui.label(group.title).classes("text-sm font-bold tracking-wide mt-3 mb-1").style(
+                f"color:{pal.accent}")
+            for table in group.tables:
+                _render_ref_table(table, pal)
+
+
 def party_palette(party: Party) -> theme.Palette:
     """The page chrome for a party: the shared splat when every member is the same
     Exalt type, else the default. A mixed party carries its splat identity on the
@@ -390,6 +424,8 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
                 ui.button("Save party", icon="save", on_click=save_party).props("flat")
                 ui.button("Load party", icon="folder_open", on_click=load_party).props("flat")
                 ui.button("New party", icon="group_add", on_click=confirm_new_party).props("flat")
+
+            _reference_panel(ruleset, pal)
 
             if not p.members:
                 with ui.card().classes("w-full p-6 items-center"):

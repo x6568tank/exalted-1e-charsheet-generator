@@ -71,6 +71,21 @@ async def test_empty_party_explains_itself(user: User) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_party_page_shows_the_storyteller_reference(user: User) -> None:
+    # The static ST reference screen renders as an expansion with its combat tables,
+    # even on an empty party (it's rules reference, not per-character).
+    await user.open('/gm-empty')
+    await user.should_see("Storyteller Reference")
+    await user.should_see("Combat Resolution")     # page 2
+    await user.should_see("Feats of Strength")
+    await user.should_see("Common Actions")        # page 3
+    await user.should_see("Anima Banner")
+    await user.should_see("Virtues")               # page 4
+    await user.should_see("Diseases")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_builder_always_offers_a_way_to_the_party_page(user: User) -> None:
     """The party page is the ONLY place characters are added to a party, so the
     builder must link to it even when the party is still empty — gating the button

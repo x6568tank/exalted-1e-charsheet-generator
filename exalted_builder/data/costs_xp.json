@@ -1,6 +1,18 @@
 {
+  "Dragon-Blooded": {
+    "essence": {"coeff": 10},
+    "new_charm": 12,
+    "new_charm_favored_caste": 10,
+    "new_spell": 12,
+    "new_spell_occult_favored_caste": 10,
+    "new_immaculate_charm": 15,
+    "new_immaculate_charm_favored_caste": 12
+  },
   "Lunar": {
+    "essence": {"coeff": 9},
+    "attribute_caste_favored": {"coeff": 4, "offset": -1},
     "new_charm": 15,
-    "new_charm_favored_caste": 12
+    "new_charm_favored_caste": 12,
+    "new_spell_by_circle": {"Terrestrial": 12, "Celestial": 15}
   }
 }
