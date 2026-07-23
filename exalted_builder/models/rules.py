@@ -207,6 +207,12 @@ class Charm(BaseModel):
     # should set at most one of min_attribute / an Ability-resolving category.
     min_attribute: str = ""
     min_essence: int = Field(default=1, ge=1)
+    # Alchemical Charms only (p.88-91): the Personal Essence committed to *install*
+    # the Charm in a Charm Slot (distinct from `cost`, the activation cost paid in
+    # play). Committed for as long as the Charm is installed, so the sum over a
+    # character's installed Charms is capped by the Personal pool — enforced at
+    # chargen for Alchemicals. 0 for every non-Alchemical Charm.
+    installation_cost: int = Field(default=0, ge=0)
     # Repeatable Charms (Ox-Body Technique; Deadly Beastman Transformation, Lunar
     # p.124-127): may be bought once per dot of this Ability/Attribute (the cap),
     # each purchase choosing from `variants`. The special value "essence" caps on
@@ -472,6 +478,23 @@ class ChargenBudgets(BaseModel):
     # Which category gets which pool is derived from the per-category spend, not stored.
     attribute_pools: tuple[int, int, int] = (8, 6, 4)
     attribute_base: int = 1
+    # How the three attribute_pools are allocated:
+    #   "category"      — the default for every prior splat: the pools are matched to
+    #                     the three prioritized categories (Physical/Social/Mental) by
+    #                     spend, and each category's caste-favoredness (Lunar) only
+    #                     affects the over-spend RATE.
+    #   "caste_favored" — Alchemical (p.60): the pools are NOT category pools. They are
+    #                     assigned in FIXED order to three disjoint attribute SETS —
+    #                     the caste's Caste Attributes (pools[0]), the player's chosen
+    #                     Favored Attributes (pools[1]), and the remaining attributes
+    #                     (pools[2]). Caste and Favored attributes share the discounted
+    #                     over-spend rate (bonus_costs.attribute_caste_favored).
+    attribute_mode: str = "category"
+    # caste_favored mode only: how many Favored Attributes the player selects (3 for
+    # Alchemical), and the minimum rating each Caste Attribute must reach ("none may
+    # have a rating lower than 2", p.60). 0 = not applicable (every category-mode splat).
+    attribute_favored_count: int = 0
+    attribute_caste_min: int = 0
 
     # Required minimum Abilities the character must meet (a floor spent from the
     # pool, not free extras). Dragon-Blooded Dynastic schooling (p.151); empty for
@@ -497,6 +520,16 @@ class ChargenBudgets(BaseModel):
 
     charm_count: int = 10
     charm_min_caste_favored: int = 5
+    # Charm Slot system (Alchemical, p.88-89): instead of pricing Charms per pick,
+    # the character has a fixed number of General Slots (hold any Charm) and
+    # Dedicated Slots (hold only a Caste/Favored-Attribute Charm); every Slot comes
+    # with one free Charm. These are the FREE (chargen) slot counts. When either is
+    # > 0 the splat is slot-based: charm accounting switches from per-pick to
+    # per-slot (extra General/Dedicated slots cost bonus_costs.charm/charm_favored_caste),
+    # and the caste-favored charm rule becomes "non-Caste/Favored Charms must fit
+    # the General Slots". 0/0 (every other splat) keeps the per-pick model.
+    charm_slots_general: int = 0
+    charm_slots_dedicated: int = 0
     # The alternative Immaculate chargen path (Dragon-Blooded, p.151): a character
     # learning Immaculate martial arts takes this many Charms instead of charm_count,
     # all from a single elemental tree, and the charm_min_caste_favored rule is
@@ -510,6 +543,14 @@ class ChargenBudgets(BaseModel):
     willpower_start_cap: int = 8           # may not start above this...
     willpower_cap_exception_virtue: int = 4   # ...unless at least
     willpower_cap_exception_count: int = 2    # this many Virtues are >= 4
+
+    @field_validator("attribute_mode")
+    @classmethod
+    def _check_attribute_mode(cls, v: str) -> str:
+        if v not in ("category", "caste_favored"):
+            raise ValueError(
+                f"attribute_mode must be category/caste_favored, got {v!r}")
+        return v
 
 
 class EssencePoolSpec(BaseModel):

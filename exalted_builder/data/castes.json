@@ -152,5 +152,45 @@
     "caste_attributes": [],
     "description": "Lunar Exalted who, for one reason or another, are not adopted into the Society of the Moon. With no elders to supervise his rite of passage and mark him with the ritual scars and tattoos, a Casteless Lunar has no caste. As a result, a Casteless character does not possess any Caste Attributes, and must pay full cost for all Charms and Attribute increases; in addition, his lack of tutelage means he starts with fewer Attributes, fewer Charms, and no Ability minimums or Renown.",
     "anima_powers": "Varies: for three days a month a Casteless Lunar has the Full Moon anima power, for three days the No Moon power, and for the other twenty-two days the Changing Moon power."
+  },
+  {
+    "id": "orichalcum",
+    "exalt_type": "Alchemical",
+    "label": "Orichalcum",
+    "caste_attributes": ["strength", "charisma", "intelligence"],
+    "description": "The Shining Ones (Archons): brilliant, personable leaders and sages, the brightest examples of the Great Maker's inspiration and the Tripartite's foremost experts on dogma and abstract policy.",
+    "anima_powers": "For a reflexive cost of 5 motes, an Orichalcum Caste may charge their body with golden lightning for a scene. Whenever they strike in close combat this energy surges at the point of contact, and all projectiles crackle with a destructive nimbus as they leave the Exalt's hand or weapon. This power adds the character's Essence to the damage of all attacks."
+  },
+  {
+    "id": "moonsilver",
+    "exalt_type": "Alchemical",
+    "label": "Moonsilver",
+    "caste_attributes": ["dexterity", "appearance", "wits"],
+    "description": "The Mirrorblades (Proteans): the hidden spies, assassins, scouts and secret police of Autochthonian society, renowned for the quickness and flexibility of their minds and bodies alike.",
+    "anima_powers": "For a reflexive cost of 5 motes, a Moonsilver Caste may suffuse her being with the flowing grace of quicksilver for a scene, her quickened senses perceiving the world in slow motion. This power adds (the character's Essence rating x 2) to her base initiative for the scene."
+  },
+  {
+    "id": "jade",
+    "exalt_type": "Alchemical",
+    "label": "Jade",
+    "caste_attributes": ["stamina", "charisma", "wits"],
+    "description": "The Stone Hands (Executives): the approachable middle management and frontline officers of the Great Maker, and the public face of the Alchemical Exalted as a whole.",
+    "anima_powers": "By reflexively spending 5 motes, a Jade Caste can fortify their flesh against injury for a scene, transmuting their claylike flesh into a sheath of flexible stone. This power adds the character's Essence to their natural bashing and lethal soak for the scene."
+  },
+  {
+    "id": "starmetal",
+    "exalt_type": "Alchemical",
+    "label": "Starmetal",
+    "caste_attributes": ["dexterity", "manipulation", "intelligence"],
+    "description": "The Plot Weavers (Viziers): social engineers, motivational theorists, psychological operatives and subtle backroom plotters who manage the Autochthonian intelligence services and counsel the Tripartite from the shadows.",
+    "anima_powers": "For a reflexive cost of 5 motes, a Starmetal Caste can align their soul and Essence with the Design of the Great Maker for a scene, a prismatic halo trailing slightly ahead of them. This power adds (the Exalt's Essence / 2, rounded up) to all attack, damage and base initiative rolls for the scene."
+  },
+  {
+    "id": "soulsteel",
+    "exalt_type": "Alchemical",
+    "label": "Soulsteel",
+    "caste_attributes": ["stamina", "manipulation", "perception"],
+    "description": "The Grim Watch (Sentinels): the fearsome, all-seeing enforcers of law and dogma, tasked with hunting down and eliminating Autochthonian dissidents and gremlins.",
+    "anima_powers": "By reflexively spending 5 motes, a Soulsteel Caste may stir the souls trapped in their frame, generating an aura of numbing dread for a scene. This power adds (the Exalt's Essence / 2, rounded up) to the difficulty of all attacks targeting the Alchemical. Even automatons and the walking dead suffer this penalty; only living beings with perfect immunity to fear may ignore it."
   }
 ]

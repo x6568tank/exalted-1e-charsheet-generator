@@ -45,13 +45,14 @@ def test_each_caste_keyed_by_its_own_id():
 
 def test_every_caste_has_a_description_and_anima_power():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.castes) == 19          # 5 Solar + 5 DB Aspects + 5 Abyssal + 4 Lunar
+    assert len(rs.castes) == 24          # 5 Solar + 5 DB Aspects + 5 Abyssal + 4 Lunar + 5 Alchemical
     for cd in rs.castes.values():
         assert cd.description and cd.anima_powers
     assert rs.castes["dawn"].description.startswith("Masters of war")
     assert rs.castes["fire"].exalt_type == "Dragon-Blooded"
     assert rs.castes["dusk"].exalt_type == "Abyssal"
     assert rs.castes["full-moon"].exalt_type == "Lunar"
+    assert rs.castes["orichalcum"].exalt_type == "Alchemical"
 
 
 def test_ox_body_technique_loads_repeatable_with_three_variants():

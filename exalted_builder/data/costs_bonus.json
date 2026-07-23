@@ -29,5 +29,20 @@
     "essence": 10,
     "charm": 7,
     "charm_favored_caste": 5
+  },
+  "Alchemical": {
+    "attribute": 4,
+    "attribute_caste_favored": 3,
+    "ability": 2,
+    "ability_favored_caste": 2,
+    "background": 1,
+    "background_above_3": 2,
+    "specialty": 1,
+    "specialty_favored_caste_dots_per_point": 2,
+    "virtue": 3,
+    "willpower": 2,
+    "essence": 10,
+    "charm": 6,
+    "charm_favored_caste": 5
   }
 }

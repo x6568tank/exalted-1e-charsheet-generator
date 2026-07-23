@@ -75,5 +75,22 @@
     "form_library": true,
     "caste_noun": "Caste",
     "tier": "Celestial"
+  },
+  {
+    "id": "Alchemical",
+    "label": "Alchemical Exalted",
+    "essence": {
+      "personal_essence_coeff": 3,
+      "personal_willpower_coeff": 1,
+      "peripheral_essence_coeff": 5,
+      "peripheral_willpower_coeff": 3,
+      "peripheral_virtue_mode": "highest",
+      "peripheral_virtue_coeff": 2
+    },
+    "magic_track": "sorcery",
+    "highest_magic_circle_id": "",
+    "ox_body_charm_id": "",
+    "caste_noun": "Caste",
+    "tier": "Alchemical"
   }
 ]

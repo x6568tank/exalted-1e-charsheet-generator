@@ -1,0 +1,47 @@
+[
+  {
+    "id": "alchemical.close-combat.tactical-analysis-engrams",
+    "name": "Tactical Analysis Engrams",
+    "category": "close_combat",
+    "exalt_type": "Alchemical",
+    "type": "Reflexive",
+    "min_attribute": "wits",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [["alchemical.general.transitory-augmentation-of-wits", "alchemical.general.sustained-augmentation-of-wits"]],
+    "cost": {"motes": 2, "raw": "2m"},
+    "duration": "Instant",
+    "description": "Crystalline engrams that read an opponent. Roll Wits + Awareness (difficulty 2); each success reveals one datum about a target (a Physical Attribute or combat Ability rating, its specialties, base initiative, current wound penalty, a weapon or armor's core stats, or the function of a visible combative Charm).",
+    "source": {"book": "Exalted 1e The Autochthonians", "page": 92}
+  },
+  {
+    "id": "alchemical.close-combat.accelerated-response-system",
+    "name": "Accelerated Response System",
+    "category": "close_combat",
+    "exalt_type": "Alchemical",
+    "type": "Reflexive",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [["alchemical.general.transitory-augmentation-of-dexterity", "alchemical.general.sustained-augmentation-of-dexterity"]],
+    "cost": {"motes": 2, "raw": "2m"},
+    "duration": "Instant",
+    "description": "Two permutations, purchased and installed separately. The first parries one attack at full Dexterity + (Brawl, Martial Arts or Melee); the second dodges one attack at full Dexterity + Dodge without giving ground. Both require awareness of the attack; a character with both may use both against the same attack.",
+    "source": {"book": "Exalted 1e The Autochthonians", "page": 93}
+  },
+  {
+    "id": "alchemical.close-combat.dynamic-reaction-enhancement-system",
+    "name": "Dynamic Reaction Enhancement System",
+    "category": "close_combat",
+    "exalt_type": "Alchemical",
+    "type": "Reflexive",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [["alchemical.general.transitory-augmentation-of-dexterity", "alchemical.general.sustained-augmentation-of-dexterity"]],
+    "cost": {"raw": "1 mote per +2 initiative"},
+    "duration": "Instant",
+    "description": "A mechanical assembly in the spine. Activated before initiative, it slows the Exalt's perception of the turn, adding +2 initiative per mote spent, to a maximum bonus of Dexterity x 2.",
+    "source": {"book": "Exalted 1e The Autochthonians", "page": 93}
+  }
+]

@@ -58,7 +58,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | waiting on Alchemical chargen work |
+| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen foundation + Charm Slot system + Arrays done (21 starter Charms); remaining — Submodules, full CH3/CH4 catalogue, XP/advancement, theme, UI |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -161,11 +161,12 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - **The human is the rules authority.** 1e has ambiguous and errata'd corners
   (Combo legality, the specialty cap, Charm interactions). Flag them and ask; do
   not silently choose an interpretation.
-- **Game data comes from the page, never from your own knowledge.** Any concrete value — a cost, minimum, prerequisite, rating, or rules detail — that you write into `data/` or code must come from a page image the human gave you, or from an existing `data/` file. Do not supply one from your own knowledge of Exalted even when you are confident — 2e values will feel right and be wrong for 1e. If you need a value and have no page for it, stop and ask for a PNG. Never choose an interpretation, invent a number, or read the PDFs in `sources/` yourself. PNGs will be dropped in `images/`.
+- **Game data comes from the page, never from your own knowledge.** Any concrete value — a cost, minimum, prerequisite, rating, or rules detail — that you write into `data/` or code must come from source material the human gave you, or from an existing `data/` file. Do not supply one from your own knowledge of Exalted even when you are confident — 2e values will feel right and be wrong for 1e. If you need a value and have no source for it, stop and ask. Never choose an interpretation, invent a number, or read the PDFs in `sources/` yourself.
+- **Source material lives in `images/<Splat>/` and is human-vetted.** Two forms, both authoritative: **PNG page images** (diagrams — especially Charm-tree boxes-and-arrows — and any page not cleanly copyable), and **pasted `.md` text** the human copies out of a text-selectable book (prose + cost/prereq tables, page-marked with `<!--PAGE n-->`). Pasted text is preferred where it's clean: cheaper (no image rasterization) and exact for numbers, and the copy step is the human's vetting checkpoint. Reading the `sources/` PDFs yourself is still forbidden — the point is the human curates what you see. When pasted text looks column-scrambled or garbled (multi-column PDFs interleave), flag it rather than guess; screenshot the diagram instead.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (497 tests passing)
+## Status (522 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -530,6 +531,101 @@ below, which is the least-exercised piece of this whole batch.
   derivation; only Combo *composition* legality is checked. Tests:
   `tests/test_validate.py` (synthetic ruleset) and `tests/test_lunar.py` (real
   data, incl. the Five-Dragon Style crossover case).
+
+### Alchemical — chargen foundation + Charm Slot system (in progress, started 2026-07-23)
+Read from `images/Alchemical/` — pasted text from the Autochthonians book (1e
+conventions — WP = two highest Virtues, health 7+Ess; it supersedes *Time of
+Tumult*): `CH 2 Character Creation and Traits.md` (p.58-85), `CH 3 Charms.md`
+(p.88-193, the Charm mechanics + catalogue), `CH 4 Miracles of the Machine God.md`
+(the Alchemical sorcery-analogues / "weaving"). **Done so far: the chargen
+foundation AND the Charm Slot system.** Per user decisions 2026-07-23, still to
+build in THIS push: **Arrays, Submodules, the full CH3/CH4 Charm catalogue, and
+Alchemical XP/advancement** — build order is slot-engine-first (done), then the rest.
+
+- **Charm Slot system DONE (p.88-89).** Alchemical Charms are **Attribute-keyed**
+  (`Charm.min_attribute`, same field Lunar uses — NOT a new axis). New
+  `Charm.installation_cost` (Personal Essence committed to install). The character
+  has **4 General + 4 Dedicated Slots** (`ChargenBudgets.charm_slots_general/
+  _dedicated`; `Character.general_charm_slots/dedicated_charm_slots`, None=base):
+  Dedicated holds only a Charm keyed to a **Caste OR Favored Attribute** (a
+  SPECIFIC-attribute match — `validate._charm_is_caste_favored` +
+  `_caste_favored_attr_names`, unlike Lunar's category match), General holds any.
+  **You pay for SLOTS, not Charm picks** — each Slot comes with a free Charm; extra
+  General slots cost `bonus_costs.charm` (6), Dedicated `charm_favored_caste` (5).
+  So charm BP/legality is slot-based for any splat with `charm_slots_* > 0`
+  (`validate.uses_charm_slots`/`charm_slot_counts`), per-pick for everyone else —
+  the non-slot path was refactored through `_charm_is_caste_favored` with NO
+  behaviour change (all prior splats byte-identical). Chargen legality:
+  `charm-exceeds-slots`, `charm-noncf-exceeds-general-slots`,
+  `charm-installation-over-personal` (installed motes ≤ Personal pool — enforced
+  per the user's call, the one bit of mote math that IS in chargen). `charm_min_
+  caste_favored` is now 0/moot for Alchemical (the slot rule replaces it).
+- **Starter Charm batch (21):** `data/charms/alchemical_general.json` (9 Transitory
+  + 9 Sustained Augmentation of (Attribute)) and `alchemical_close_combat.json`
+  (Tactical Analysis Engrams, Accelerated Response System, Dynamic Reaction
+  Enhancement System). This is the slot-engine test bed — the FULL catalogue
+  (CH3 ~4459 lines + CH4 ~1732) is the next grind, Lunar-sized.
+- **Confirmed from the mechanics preamble** (resolving earlier provisional calls):
+  `tier:"Alchemical"` is RIGHT — p.90 says Eclipse/Moonshadow learn Alchemical
+  Charms via the existing 20-XP foreign-charm rule, and MA needs the Perfected
+  Lotus Matrix Charm, so nothing should auto-grant Celestial styles. "Non-
+  Alchemicals cannot learn weaving Charms" (CH4) → those must be barred from
+  foreign learners when authored.
+- **New subsystems still to model (user chose "both now"):** **Arrays** (Alchemical
+  Combos — 1 BP/Charm or XP = Σ min-Attributes; reduce install cost to ¾; integrated
+  Combos; Attribute-Charms only) and **Submodules** (per-Charm XP upgrades, post-lock).
+- **Original chargen-foundation notes (still current):**
+- **Attributes are a NEW budget shape (`attribute_mode: "caste_favored"`, p.60):**
+  9/6/4 dots go to disjoint Attribute *sets* — the caste's 3 Caste Attributes
+  (min 2 each), 3 player-chosen Favored Attributes, and the remaining 3 — NOT to
+  prioritized Physical/Social/Mental categories the way every prior splat does.
+  New `ChargenBudgets` fields `attribute_mode`/`attribute_favored_count`/
+  `attribute_caste_min`; new `Character.favored_attributes` (empty for every
+  category-mode splat). Engine: `validate._attr_bp_caste_favored` +
+  `_caste_favored_attribute_sets` do the BP accounting (caste & favored over-spend
+  charged the discounted `attribute_caste_favored` rate, remaining the flat rate);
+  `validate_chargen` adds `favored-attribute-count` / `favored-attribute-overlaps-
+  caste` / `caste-attribute-min`. Category-mode splats are byte-identical (the
+  branch only fires on `caste_favored`). Tests: `tests/test_alchemical.py`.
+- **No Caste OR Favored Abilities (p.60):** 23 Ability dots, `favored_count: 0`,
+  `ability_min_caste_favored: 0`, no ability minimums. (Contrast Lunar, which has
+  no Caste Abilities but keeps Favored ones.)
+- **Essence is a fourth distinct formula (p.61)** and fits existing fields: Personal
+  = Essence×3 + WP; Peripheral = Essence×5 + WP×3 + (highest Virtue × 2). Encoded as
+  `peripheral_willpower_coeff: 3` + `peripheral_virtue_mode: "highest"` +
+  `peripheral_virtue_coeff: 2`. Essence starts at 2.
+- **Five castes** (Orichalcum/Moonsilver/Jade/Starmetal/Soulsteel) with Caste
+  Attributes + anima powers, in `castes.json`. No `foreign_charms`.
+  - `charm_count: 8` (informational); `charm_min_caste_favored: 0` — the slot-fit
+    rules replace the per-pick caste/favored minimum for Alchemical (see the Charm
+    Slot system entry above), so this stays 0 on purpose.
+- **Provisional data decision still open:**
+  - `background_dots: 13` approximates the auto **Class ••• grant + 10 free dots**
+    (p.61). Backgrounds are soft/unvalidated free text, so the "3 must be Class",
+    the Artifact-only above-3 exception, and "3 Artifact dots per dot bought" are
+    NOT modeled — noted, not enforced.
+- **Arrays DONE (p.89).** `models.character.Array` (+ `Character.arrays`, snapshot,
+  lock copy). `validate.array_issues`/`validate_arrays`: ≥2 known Charms, all
+  Attribute-based (no supernatural MA), no duplicate/cross-Array reuse, and only a
+  Charm-Slot splat may build them (Eclipse/Moonshadow may not, p.90). BP = 1/Charm
+  (an "Arrays" breakdown line shown only for slot splats). The ¾-rounded-up Array
+  installation discount is applied by `validate._installation_motes`, which the
+  chargen install-cost check now uses. Integrated Combos are a play-time grant, not
+  modelled. Codes: `array-too-small`/`-unknown-charm`/`-duplicate-charm`/
+  `-non-attribute-charm`/`-not-supported`/`-charm-reused`.
+- **NOT YET BUILT (next increments in this push):**
+  - **Submodules** — per-Charm XP upgrades (post-lock); see the subsystems note.
+  - **`costs_xp.json` + Alchemical advancement (post-lock).** Slot-based: new Slots
+    12/10, upgrade Dedicated→General 2, Weaving Protocols 12/14, MA 11 (Perfected
+    Lotus Matrix gate), retainer Charm 6, Essence ×9. ALSO needs a new
+    `ExperienceCosts.attribute_favored_caste` field for the (rating×4)−1 Caste/
+    Favored-Attribute XP discount (model doesn't have it yet). Don't half-author —
+    the missing discount would silently over-charge, the invisible-bug class the
+    Lunar charm-discount fix warned about.
+  - **Full CH3/CH4 Charm catalogue** (only the 21-Charm starter batch exists).
+    CH4 "weaving" Charms are the sorcery-analogues; bar them from foreign learners.
+  - `brass` theme, editor `_SPLAT_ORIGINS`/UI wiring, Clarity (→ `PlayState`/Limit
+    precedent when built).
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled

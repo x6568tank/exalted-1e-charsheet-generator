@@ -541,6 +541,108 @@ def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def array_issues(ruleset: RuleSet, character: Character, array) -> list[Issue]:
+    """Legality findings for a single Alchemical Array (p.89): two or more *known*
+    Charms, no Charm twice, and every member Attribute-based (supernatural martial
+    arts, which are Ability-based, may not join). The instant-duration / one-Simple
+    limits are NOT checked here — they bound the integrated Combos an Array grants,
+    not the Array itself. `where` is the Array's name."""
+    issues: list[Issue] = []
+    known = set(character.charms)
+    where = array.name or "(unnamed array)"
+    if len(array.charm_ids) < 2:
+        issues.append(Issue(
+            code="array-too-small", where=where,
+            message=f"Array {where!r} has {len(array.charm_ids)} Charm(s); an Array "
+                    "must link at least two.",
+        ))
+    seen: set[str] = set()
+    for cid in array.charm_ids:
+        if cid in seen:
+            issues.append(Issue(
+                code="array-duplicate-charm", where=where,
+                message=f"Array {where!r} includes {cid!r} more than once; link a "
+                        "second copy of the Charm into a separate Array instead.",
+            ))
+            continue
+        seen.add(cid)
+        if cid not in known:
+            issues.append(Issue(
+                code="array-unknown-charm", where=where,
+                message=f"Array {where!r} includes {cid!r}, which the character "
+                        "does not know.",
+            ))
+            continue
+        charm = ruleset.charms.get(cid)
+        if charm is None:                 # known id absent from the set: check_references reports it
+            continue
+        if not charm.min_attribute:
+            issues.append(Issue(
+                code="array-non-attribute-charm", where=where,
+                message=f"Array {where!r}: {charm.name} is not Attribute-based; only "
+                        "Attribute-based Charms may be linked into an Array (this "
+                        "excludes supernatural martial arts).",
+            ))
+    return issues
+
+
+def validate_arrays(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """Legality of every Array the character holds (p.89). Adds two cross-Array
+    rules to the per-Array checks: only a Charm-Slot splat may build Arrays (p.90 —
+    Eclipse/Moonshadow may not), and a Charm may sit in at most one Array unless
+    bought again (there is only one copy of each id on the character)."""
+    issues: list[Issue] = []
+    if not character.arrays:
+        return issues
+    slots = uses_charm_slots(ruleset, character)
+    seen_charms: set[str] = set()
+    for array in character.arrays:
+        where = array.name or "(unnamed array)"
+        if not slots:
+            issues.append(Issue(
+                code="array-not-supported", where=where,
+                message=f"Array {where!r}: only Alchemical Exalted build Arrays "
+                        "(Eclipse and Moonshadow Caste may not, p.90).",
+            ))
+        issues += array_issues(ruleset, character, array)
+        for cid in set(array.charm_ids):
+            if cid in seen_charms:
+                issues.append(Issue(
+                    code="array-charm-reused", where=where,
+                    message=f"Array {where!r} reuses {cid!r}, already linked into "
+                            "another Array; a Charm may join only one Array unless "
+                            "purchased again.",
+                ))
+            seen_charms.add(cid)
+    return issues
+
+
+def _installation_motes(ruleset: RuleSet, charm_ids, arrays) -> int:
+    """Total Personal Essence committed to install `charm_ids`, applying the Array
+    discount (p.89): a Charm inside an Array contributes to that Array's combined
+    installation cost, which is three-fourths of the sum, rounded up; a Charm in no
+    Array contributes its own full installation cost."""
+    array_of: dict[str, int] = {}
+    for i, arr in enumerate(arrays):
+        for cid in arr.charm_ids:
+            array_of.setdefault(cid, i)      # first Array wins (reuse is flagged elsewhere)
+    loose = 0
+    array_sums: dict[int, int] = {}
+    for cid in charm_ids:
+        charm = ruleset.charms.get(cid)
+        if charm is None:
+            continue
+        if cid in array_of:
+            idx = array_of[cid]
+            array_sums[idx] = array_sums.get(idx, 0) + charm.installation_cost
+        else:
+            loose += charm.installation_cost
+    total = loose
+    for s in array_sums.values():
+        total += (3 * s + 3) // 4            # ceil(3/4 * s)
+    return total
+
+
 # --------------------------------------------------------------------------- #
 # Ox-Body Technique (repeatable Charm)
 # --------------------------------------------------------------------------- #
@@ -763,6 +865,39 @@ def _caste_favored_attribute_category(ruleset: RuleSet, character: Character) ->
     return _attribute_category(caste_def.caste_attributes[0])
 
 
+def _caste_favored_attribute_sets(ruleset: RuleSet, character: Character
+                                   ) -> tuple[set, set, set]:
+    """(caste, favored, remaining) Attribute sets for a caste_favored-mode splat
+    (Alchemical, p.60), partitioning all nine Attributes disjointly. Caste
+    Attributes come from the caste; Favored are the player's chosen ones with any
+    that also happen to be Caste removed (that overlap is illegal and flagged
+    separately, but the accounting must not double-count); remaining is everything
+    else. An unknown caste yields an empty caste set (validate emits unknown-caste)."""
+    caste_def = ruleset.castes.get(character.caste)
+    caste = set(caste_def.caste_attributes) if caste_def else set()
+    favored = set(character.favored_attributes) - caste
+    remaining = set(AttributeName) - caste - favored
+    return caste, favored, remaining
+
+
+def _attr_bp_caste_favored(ruleset: RuleSet, character: Character, b, bp_costs,
+                            attributes: dict) -> int:
+    """Bonus points spent on Attributes under caste_favored mode: the three pools
+    are assigned in FIXED order to the caste / favored / remaining sets, over-spend
+    on the caste and favored sets is charged the discounted
+    `attribute_caste_favored` rate, and the remaining set the flat `attribute` rate."""
+    caste, favored, remaining = _caste_favored_attribute_sets(ruleset, character)
+    pools = list(b.attribute_pools)
+
+    def spend(group: set) -> int:
+        return sum(attributes.get(a, b.attribute_base) - b.attribute_base for a in group)
+
+    cf_rate = bp_costs.attribute_caste_favored
+    return (max(0, spend(caste) - pools[0]) * cf_rate
+            + max(0, spend(favored) - pools[1]) * cf_rate
+            + max(0, spend(remaining) - pools[2]) * bp_costs.attribute)
+
+
 def _ox_body_caste_favored(ruleset: RuleSet, character: Character,
                             cf_set: set, caste_attr_category: str | None) -> bool:
     """Whether the character's splat's Ox-Body-equivalent Charm counts as
@@ -803,6 +938,61 @@ def _charm_attribute_caste_favored(charm: Charm, caste_attr_category: str | None
     except ValueError:
         return False
     return _attribute_category(attr) == caste_attr_category
+
+
+def _caste_favored_attr_names(ruleset: RuleSet, character: Character) -> set:
+    """The set of AttributeName a caste_favored-mode splat (Alchemical) counts as
+    Caste-or-Favored for the purpose of Charm keying — the caste's Caste Attributes
+    plus the player's Favored Attributes. Empty for category-mode splats (Lunar/
+    Solar/...), which is also the discriminator: a non-empty set means caste_favored
+    mode, so a Charm's Caste/Favored-ness is a SPECIFIC-attribute match rather than
+    the category match category-mode splats use."""
+    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    if b.attribute_mode != "caste_favored":
+        return set()
+    caste_def = ruleset.castes.get(character.caste)
+    caste = set(caste_def.caste_attributes) if caste_def else set()
+    return caste | set(character.favored_attributes)
+
+
+def _charm_is_caste_favored(charm: Charm, cf_set: set, caste_attr_category: str | None,
+                             caste_fav_attrs: set) -> bool:
+    """Whether `charm` counts as Caste/Favoured for its owner — the single decision
+    the BP pricing, the chargen minimum, and the slot rule all share. Ability-keyed:
+    its category-Ability is in the Caste∪Favoured Ability set. Attribute-keyed: in
+    caste_favored mode (Alchemical, `caste_fav_attrs` non-empty) its `min_attribute`
+    is literally one of the Caste/Favored Attributes; otherwise (Lunar) its
+    Attribute's CATEGORY matches the caste's favored category."""
+    ability = _category_ability(charm.category)
+    if ability is not None and ability in cf_set:
+        return True
+    if charm.min_attribute:
+        if caste_fav_attrs:
+            try:
+                return AttributeName(charm.min_attribute) in caste_fav_attrs
+            except ValueError:
+                return False
+        return _charm_attribute_caste_favored(charm, caste_attr_category)
+    return False
+
+
+def uses_charm_slots(ruleset: RuleSet, character: Character) -> bool:
+    """Whether this splat uses the Alchemical Charm Slot system (p.88-89) — has any
+    free General/Dedicated Slots in its budget — rather than the per-pick Charm
+    economy every other splat uses."""
+    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    return (b.charm_slots_general + b.charm_slots_dedicated) > 0
+
+
+def charm_slot_counts(ruleset: RuleSet, character: Character) -> tuple[int, int, int, int]:
+    """(general, dedicated, base_general, base_dedicated) Charm Slot counts. The
+    effective counts fall back to the budget's free base when the character hasn't
+    initialised them (None); the base pair is what BP accounting charges *beyond*."""
+    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    bg, bd = b.charm_slots_general, b.charm_slots_dedicated
+    g = character.general_charm_slots if character.general_charm_slots is not None else bg
+    d = character.dedicated_charm_slots if character.dedicated_charm_slots is not None else bd
+    return g, d, bg, bd
 
 
 def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[AbilityName]:
@@ -853,6 +1043,7 @@ def _chargen_source(character: Character):
         snap.essence_rating if snap else character.essence_rating,
         snap.willpower_purchased if snap else character.willpower_purchased,
         snap.beastman_gifts if snap else character.beastman_gifts,
+        snap.arrays if snap else character.arrays,
     )
 
 
@@ -871,30 +1062,36 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     bp_costs = ruleset.bonus_costs_for(character.exalt_type)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased,
-     beastman_gifts) = _chargen_source(character)
+     beastman_gifts, arrays) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
     caste_attr_category = _caste_favored_attribute_category(ruleset, character)
 
-    # --- Attributes: three category spends matched to the 8/6/4 pools --------- #
-    # The pool assignment (which category gets which of the sorted pools) is by
-    # spend alone, same as before; the per-category RATE additionally depends on
-    # whether that category is the caste's favored one (Lunar Caste Attributes,
-    # p.93 — "4, 3 if a Caste Attribute"). Ability-caste splats have no favored
-    # category (caste_attr_category is None), so every category costs the same
-    # flat `attribute` rate, unchanged from before this was added.
-    cat_spends = sorted(
-        ((cat, sum(attributes[a] - b.attribute_base for a in attrs))
-         for cat, attrs in ATTRIBUTE_CATEGORIES.items()),
-        key=lambda cs: cs[1], reverse=True,
-    )
-    pools = sorted(b.attribute_pools, reverse=True)
-    attr_bp = sum(
-        max(0, spend - pool) * (bp_costs.attribute_caste_favored if cat == caste_attr_category
-                                 else bp_costs.attribute)
-        for (cat, spend), pool in zip(cat_spends, pools)
-    )
+    # --- Attributes ----------------------------------------------------------- #
+    # caste_favored mode (Alchemical, p.60): pools go to the caste / favored /
+    # remaining Attribute SETS, not to categories — see _attr_bp_caste_favored.
+    if b.attribute_mode == "caste_favored":
+        attr_bp = _attr_bp_caste_favored(ruleset, character, b, bp_costs, attributes)
+    else:
+        # category mode (every other splat): three category spends matched to the
+        # 8/6/4 pools. The pool assignment (which category gets which of the sorted
+        # pools) is by spend alone; the per-category RATE additionally depends on
+        # whether that category is the caste's favored one (Lunar Caste Attributes,
+        # p.93 — "4, 3 if a Caste Attribute"). Ability-caste splats have no favored
+        # category (caste_attr_category is None), so every category costs the same
+        # flat `attribute` rate.
+        cat_spends = sorted(
+            ((cat, sum(attributes[a] - b.attribute_base for a in attrs))
+             for cat, attrs in ATTRIBUTE_CATEGORIES.items()),
+            key=lambda cs: cs[1], reverse=True,
+        )
+        pools = sorted(b.attribute_pools, reverse=True)
+        attr_bp = sum(
+            max(0, spend - pool) * (bp_costs.attribute_caste_favored if cat == caste_attr_category
+                                     else bp_costs.attribute)
+            for (cat, spend), pool in zip(cat_spends, pools)
+        )
 
     # --- Abilities: 25 free dots, pre-BP cap 3 -------------------------------- #
     cap = b.ability_cap_pre_bp
@@ -930,41 +1127,53 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     v_overflow = max(0, v_within - b.virtue_dots)
     virtue_bp = (v_above + v_overflow) * bp_costs.virtue
 
-    # --- Charms & Spells: one shared pool (p.100) ----------------------------- #
-    # The Immaculate martial-arts path (DB, p.151) swaps the free pool size and the
-    # per-Charm BP row: 5 Immaculate Charms free (vs charm_count), each Immaculate
-    # Charm priced from the Immaculate BP row (10/7) rather than the ordinary one.
-    immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
-    free_charm_pool = b.immaculate_charm_count if immaculate else b.charm_count
-    occult_cf = AbilityName.OCCULT in cf_set
-    pick_costs: list[int] = []
-    for cid in charms:
-        charm = ruleset.charms.get(cid)
-        if charm is None:
-            continue
-        ability = _category_ability(charm.category)
-        is_cf = ((ability is not None and ability in cf_set)
-                 or _charm_attribute_caste_favored(charm, caste_attr_category))
-        if charm.immaculate:
-            pick_costs.append(bp_costs.immaculate_charm_favored_caste if is_cf
-                              else bp_costs.immaculate_charm)
-        else:
-            pick_costs.append(bp_costs.charm_favored_caste if is_cf else bp_costs.charm)
-    for sid in spells:
-        if ruleset.spells.get(sid) is None:
-            continue
-        pick_costs.append(bp_costs.charm_favored_caste if occult_cf else bp_costs.charm)
-    ox_body_cf = _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category)
-    for _ in ox_body:
-        pick_costs.append(bp_costs.charm_favored_caste if ox_body_cf else bp_costs.charm)
-    gift_cf = _gift_caste_favored(ruleset, character, cf_set, caste_attr_category)
-    for _ in beastman_gifts:
-        pick_costs.append(bp_costs.charm_favored_caste if gift_cf else bp_costs.charm)
-    pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
-    charm_bp = sum(pick_costs[free_charm_pool:])
+    # --- Charms & Spells ------------------------------------------------------ #
+    if uses_charm_slots(ruleset, character):
+        # Slot economy (Alchemical, p.88-89): you buy SLOTS, not Charm picks — each
+        # Slot comes with a free Charm. BP is the cost of slots beyond the free base:
+        # extra General slots at bp_costs.charm (6), extra Dedicated at
+        # charm_favored_caste (5). The Charms themselves are free.
+        g, d, bg, bd = charm_slot_counts(ruleset, character)
+        charm_bp = (max(0, g - bg) * bp_costs.charm
+                    + max(0, d - bd) * bp_costs.charm_favored_caste)
+    else:
+        # Per-pick economy (every other splat): one shared Charm/Spell pool (p.100).
+        # The Immaculate martial-arts path (DB, p.151) swaps the free pool size and
+        # the per-Charm BP row: 5 Immaculate Charms free (vs charm_count), each
+        # Immaculate Charm priced from the Immaculate BP row (10/7).
+        immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
+        free_charm_pool = b.immaculate_charm_count if immaculate else b.charm_count
+        occult_cf = AbilityName.OCCULT in cf_set
+        caste_fav_attrs = _caste_favored_attr_names(ruleset, character)
+        pick_costs: list[int] = []
+        for cid in charms:
+            charm = ruleset.charms.get(cid)
+            if charm is None:
+                continue
+            is_cf = _charm_is_caste_favored(charm, cf_set, caste_attr_category, caste_fav_attrs)
+            if charm.immaculate:
+                pick_costs.append(bp_costs.immaculate_charm_favored_caste if is_cf
+                                  else bp_costs.immaculate_charm)
+            else:
+                pick_costs.append(bp_costs.charm_favored_caste if is_cf else bp_costs.charm)
+        for sid in spells:
+            if ruleset.spells.get(sid) is None:
+                continue
+            pick_costs.append(bp_costs.charm_favored_caste if occult_cf else bp_costs.charm)
+        ox_body_cf = _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category)
+        for _ in ox_body:
+            pick_costs.append(bp_costs.charm_favored_caste if ox_body_cf else bp_costs.charm)
+        gift_cf = _gift_caste_favored(ruleset, character, cf_set, caste_attr_category)
+        for _ in beastman_gifts:
+            pick_costs.append(bp_costs.charm_favored_caste if gift_cf else bp_costs.charm)
+        pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
+        charm_bp = sum(pick_costs[free_charm_pool:])
 
     # --- Combos: BP = its number of Charms (p.213) --------------------------- #
     combo_bp = sum(len(combo.charm_ids) for combo in combos)
+
+    # --- Arrays: BP = its number of Charms (Alchemical, p.89) ---------------- #
+    array_bp = sum(len(array.charm_ids) for array in arrays)
 
     # --- Specialties: 1 BP/dot; Caste/Favoured get N dots per BP (p.105) ------ #
     cf_spec_dots = sum(s.rating for s in specialties if s.ability in cf_set)
@@ -983,6 +1192,13 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         BonusPointLine(domain="Virtues", points=virtue_bp),
         BonusPointLine(domain="Charms & Spells", points=charm_bp),
         BonusPointLine(domain="Combos", points=combo_bp),
+    ]
+    # Arrays are an Alchemical-only domain (p.89); show the line only for splats
+    # that build them, so every other splat's breakdown is unchanged. array_bp is 0
+    # whenever the line is omitted (no arrays), so the total is unaffected either way.
+    if array_bp or uses_charm_slots(ruleset, character):
+        lines.append(BonusPointLine(domain="Arrays", points=array_bp))
+    lines += [
         BonusPointLine(domain="Specialties", points=spec_bp),
         BonusPointLine(domain="Willpower", points=wp_bp),
         BonusPointLine(domain="Essence", points=essence_bp),
@@ -1009,7 +1225,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     b = ruleset.budgets_for(character.exalt_type, character.origin)
     (attributes, abilities, crafts, virtues, _backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
-     beastman_gifts) = _chargen_source(character)
+     beastman_gifts, arrays) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:
@@ -1060,6 +1276,35 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 code="attribute-range", where=name.value,
                 message=f"Attribute {name.value} = {attr}; must be {b.attribute_base}-5 at creation.",
             ))
+
+    # --- caste_favored attribute legality (Alchemical, p.60) ------------------ #
+    # The three attribute pools go to disjoint SETS: 3 Caste Attributes, 3 chosen
+    # Favored Attributes (distinct from Caste), and the rest. Each Caste Attribute
+    # must reach attribute_caste_min ("none may have a rating lower than 2").
+    if b.attribute_mode == "caste_favored":
+        caste_def = ruleset.castes.get(character.caste)
+        caste_attrs = set(caste_def.caste_attributes) if caste_def else set()
+        fav_attrs = character.favored_attributes
+        if len(set(fav_attrs)) != b.attribute_favored_count:
+            issues.append(Issue(
+                code="favored-attribute-count",
+                message=f"Expected {b.attribute_favored_count} Favored Attributes, "
+                        f"found {len(set(fav_attrs))}.",
+            ))
+        overlap = set(fav_attrs) & caste_attrs
+        if overlap:
+            issues.append(Issue(
+                code="favored-attribute-overlaps-caste",
+                message="Favored Attributes may not be Caste Attributes: "
+                        f"{sorted(a.value for a in overlap)}.",
+            ))
+        for a in sorted(caste_attrs, key=lambda x: x.value):
+            if attributes.get(a, 0) < b.attribute_caste_min:
+                issues.append(Issue(
+                    code="caste-attribute-min", where=a.value,
+                    message=f"Caste Attribute {a.value} = {attributes.get(a, 0)}; "
+                            f"must be at least {b.attribute_caste_min} at creation.",
+                ))
     cheap_within = 0
     for ab, rating in _ability_slots(abilities, crafts):
         if not (0 <= rating <= 5):
@@ -1093,23 +1338,12 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"Virtue {v.value} = {rating}; must be {b.virtue_base}-5 at creation.",
             ))
 
-    # --- Charms & Spells: top circle barred at creation, plus one of two paths -- #
-    # Standard path: >=charm_min_caste_favored of the picks are Caste/Favoured.
-    # Immaculate path (DB, p.151, triggered by any Immaculate Order Charm): all
-    # chargen Charms must instead be a single elemental tree, and the Caste/Favoured
-    # minimum is waived.
-    immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
-    occult_cf = AbilityName.OCCULT in cf_set
+    # --- Charms & Spells ------------------------------------------------------ #
+    # The top spell circle is barred at creation for every splat; the Charm legality
+    # then splits by economy — the Alchemical Charm Slot rules (p.88-89) or the
+    # per-pick Caste/Favoured minimum / Immaculate single-tree rule (every other
+    # splat).
     barred = chargen_barred_circle(ruleset, character)
-    cf_pick_count = 0
-    for cid in charms:
-        charm = ruleset.charms.get(cid)
-        if charm is None:
-            continue
-        ability = _category_ability(charm.category)
-        if ((ability is not None and ability in cf_set)
-                or _charm_attribute_caste_favored(charm, caste_attr_category)):
-            cf_pick_count += 1
     for sid in spells:
         spell = ruleset.spells.get(sid)
         if spell is None:
@@ -1120,49 +1354,99 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"{spell.name}: {spell.circle.value} Circle spells may not "
                         "be taken at character creation.",
             ))
-        if occult_cf:
-            cf_pick_count += 1
-    if _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category):
-        cf_pick_count += len(ox_body)
-    if _gift_caste_favored(ruleset, character, cf_set, caste_attr_category):
-        cf_pick_count += len(beastman_gifts)
 
-    if immaculate:
-        # Every chargen Charm must be an Immaculate Charm of one shared element;
-        # spells, Ox-Body, and ordinary ability Charms are not part of any tree.
-        # The Immaculate "Enlightenment" Charms (Spirit Sight / Spirit Walking) ARE
-        # part of Immaculate martial arts — the required entry to ANY Dragon Path
-        # (DB p241-242) — so they're permitted alongside the single elemental tree.
-        # They are NOT exempt from the budget: each still costs a normal Charm pick
-        # (priced above), only the single-tree check tolerates them.
-        trees: set[str] = set()
-        impure = bool(spells) or bool(ox_body) or bool(beastman_gifts)
+    caste_fav_attrs = _caste_favored_attr_names(ruleset, character)
+    if uses_charm_slots(ruleset, character):
+        # Alchemical Charm Slots (p.88-89): every installed Charm occupies a Slot.
+        # non-Caste/Favored Charms may only sit in General Slots; the total installed
+        # can't exceed the total Slots; and the committed installation motes can't
+        # exceed the Personal Essence pool (p.62 — the Charms must all fit).
+        g, d, _bg, _bd = charm_slot_counts(ruleset, character)
+        installed = noncf = 0
         for cid in charms:
             charm = ruleset.charms.get(cid)
             if charm is None:
                 continue
-            if charm.category == "martial_arts:enlightenment":
-                continue
-            if charm.immaculate and charm.element:
-                trees.add(charm.element)
-            else:
-                impure = True
-        if impure or len(trees) > 1:
-            detail = f" ({'/'.join(sorted(trees))})" if len(trees) > 1 else ""
+            installed += 1
+            if not _charm_is_caste_favored(charm, cf_set, caste_attr_category, caste_fav_attrs):
+                noncf += 1
+        # Installation motes apply the Array three-fourths discount (p.89).
+        install_motes = _installation_motes(ruleset, charms, arrays)
+        if installed > g + d:
             issues.append(Issue(
-                code="immaculate-single-tree",
-                message=("An Immaculate martial artist must take all chargen Charms "
-                         f"from a single elemental tree{detail}; mixing trees, spells, "
-                         "Ox-Body, or non-Immaculate Charms is not allowed on the "
-                         "Immaculate path (p.151)."),
+                code="charm-exceeds-slots",
+                message=f"{installed} Charms installed but only {g + d} Charm Slots "
+                        f"({g} General + {d} Dedicated); buy more Slots or install fewer.",
             ))
-    elif cf_pick_count < b.charm_min_caste_favored:
-        issues.append(Issue(
-            code="charm-caste-favored-min",
-            message=f"At least {b.charm_min_caste_favored} of the {b.charm_count} "
-                    f"Charms/Spells must be Caste/Favoured; only {cf_pick_count} "
-                    "resolve as such.",
-        ))
+        if noncf > g:
+            issues.append(Issue(
+                code="charm-noncf-exceeds-general-slots",
+                message=f"{noncf} non-Caste/Favored Charms need General Slots, but only "
+                        f"{g} exist; Dedicated Slots hold only Caste/Favored-Attribute Charms.",
+            ))
+        personal, _peripheral = derive.essence_pools(ruleset, character)
+        if install_motes > personal:
+            issues.append(Issue(
+                code="charm-installation-over-personal",
+                message=f"Installed Charms commit {install_motes} motes, but Personal "
+                        f"Essence is only {personal}; they will not all fit.",
+            ))
+    else:
+        # Per-pick path. Standard: >=charm_min_caste_favored of the picks are
+        # Caste/Favoured. Immaculate (DB, p.151, triggered by any Immaculate Order
+        # Charm): all chargen Charms must instead be one elemental tree, minimum waived.
+        immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
+        occult_cf = AbilityName.OCCULT in cf_set
+        cf_pick_count = 0
+        for cid in charms:
+            charm = ruleset.charms.get(cid)
+            if charm is None:
+                continue
+            if _charm_is_caste_favored(charm, cf_set, caste_attr_category, caste_fav_attrs):
+                cf_pick_count += 1
+        if occult_cf:
+            cf_pick_count += sum(1 for sid in spells if ruleset.spells.get(sid) is not None)
+        if _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category):
+            cf_pick_count += len(ox_body)
+        if _gift_caste_favored(ruleset, character, cf_set, caste_attr_category):
+            cf_pick_count += len(beastman_gifts)
+
+        if immaculate:
+            # Every chargen Charm must be an Immaculate Charm of one shared element;
+            # spells, Ox-Body, and ordinary ability Charms are not part of any tree.
+            # The Immaculate "Enlightenment" Charms (Spirit Sight / Spirit Walking) ARE
+            # part of Immaculate martial arts — the required entry to ANY Dragon Path
+            # (DB p241-242) — so they're permitted alongside the single elemental tree.
+            # They are NOT exempt from the budget: each still costs a normal Charm pick
+            # (priced above), only the single-tree check tolerates them.
+            trees: set[str] = set()
+            impure = bool(spells) or bool(ox_body) or bool(beastman_gifts)
+            for cid in charms:
+                charm = ruleset.charms.get(cid)
+                if charm is None:
+                    continue
+                if charm.category == "martial_arts:enlightenment":
+                    continue
+                if charm.immaculate and charm.element:
+                    trees.add(charm.element)
+                else:
+                    impure = True
+            if impure or len(trees) > 1:
+                detail = f" ({'/'.join(sorted(trees))})" if len(trees) > 1 else ""
+                issues.append(Issue(
+                    code="immaculate-single-tree",
+                    message=("An Immaculate martial artist must take all chargen Charms "
+                             f"from a single elemental tree{detail}; mixing trees, spells, "
+                             "Ox-Body, or non-Immaculate Charms is not allowed on the "
+                             "Immaculate path (p.151)."),
+                ))
+        elif cf_pick_count < b.charm_min_caste_favored:
+            issues.append(Issue(
+                code="charm-caste-favored-min",
+                message=f"At least {b.charm_min_caste_favored} of the {b.charm_count} "
+                        f"Charms/Spells must be Caste/Favoured; only {cf_pick_count} "
+                        "resolve as such.",
+            ))
 
     # --- Willpower start-cap -------------------------------------------------- #
     wp_total = derive.two_highest_virtues(virtues) + wp_purchased
@@ -1360,6 +1644,7 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_charm_prerequisites(ruleset, character)
     issues += check_spell_access(ruleset, character)
     issues += validate_combos(ruleset, character)
+    issues += validate_arrays(ruleset, character)
     issues += check_ox_body(ruleset, character)
     issues += check_beastman_gifts(ruleset, character)
     return issues
