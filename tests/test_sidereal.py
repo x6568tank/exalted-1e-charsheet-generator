@@ -245,3 +245,63 @@ def test_college_xp_log_label_names_the_college(rs):
     advancement.learn_college(rs, c, "sidereal.endings.crow")
     label = view.build_xp_log(rs, c)[-1].label
     assert "Crow" in label and "colleges" not in label
+
+
+# --------------------------------------------------------------------------- #
+# Ronin (p.100) — the Sidereal who evaded the Celestial Hierarchy
+# --------------------------------------------------------------------------- #
+
+def test_ronin_budget_row(rs):
+    b = rs.budgets_for("Sidereal", "ronin")
+    assert (b.ability_dots, b.ability_min_caste_favored) == (25, 10)   # "only 25 ... at least ten"
+    assert b.background_dots == 7                                       # "only seven (7) dots"
+    assert (b.charm_count, b.charm_min_caste_favored) == (8, 5)         # 8 Charms; >=5 C/F carries over
+    assert (b.college_dots, b.college_min_own_house) == (0, 0)          # "no access to the colleges"
+    assert b.attribute_pools == (8, 6, 4) and b.bonus_points == 18      # unchanged from the standard row
+    # A ronin still HAS a Caste, so the per-house floor must be suppressed explicitly.
+    assert b.ignore_caste_min_abilities is True
+    assert b.required_min_abilities == []
+
+
+def test_ronin_has_no_ability_minimums(rs):
+    """p.100: "They have no minimum required Ability scores." — including the caste's
+    own per-house floor, which a ronin would otherwise still inherit from its Caste."""
+    c = _sidereal()
+    c.origin = "ronin"
+    c.abilities[A.LORE] = 0        # breaks the universal Celestial Hierarchy floor
+    c.abilities[A.DODGE] = 0       # breaks the Battles per-house floor
+    assert _codes(validate.validate_chargen(rs, c), "required-min-ability") == []
+    # …while the same sheet as a Hierarchy Sidereal flags both.
+    c.origin = "hierarchy"
+    assert _codes(validate.validate_chargen(rs, c), "required-min-ability") != []
+
+
+def test_ronin_background_allow_list(rs):
+    from exalted_builder.models.character import BackgroundEntry
+    c = _sidereal()
+    c.origin = "ronin"
+    c.backgrounds = [BackgroundEntry(name="Allies", rating=2),
+                     BackgroundEntry(name="Manse", rating=1)]
+    assert _codes(validate.validate_chargen(rs, c), "background-not-allowed") == []
+    c.backgrounds.append(BackgroundEntry(name="Salary", rating=2))   # Hierarchy-only
+    flagged = _codes(validate.validate_chargen(rs, c), "background-not-allowed")
+    assert len(flagged) == 1 and flagged[0].where == "Salary"
+    # A blank row is the editor's "fill me in" placeholder, not an illegal Background.
+    c.backgrounds = [BackgroundEntry(name="", rating=0)]
+    assert _codes(validate.validate_chargen(rs, c), "background-not-allowed") == []
+
+
+def test_non_ronin_backgrounds_stay_unrestricted(rs):
+    """The allow-list is opt-in per origin; every other splat keeps Backgrounds soft."""
+    from exalted_builder.models.character import BackgroundEntry
+    c = _sidereal()                                    # standard Hierarchy Sidereal
+    c.backgrounds = [BackgroundEntry(name="Anything At All", rating=1)]
+    assert _codes(validate.validate_chargen(rs, c), "background-not-allowed") == []
+    assert rs.budgets_for("Solar").allowed_backgrounds == []
+
+
+def test_sidereal_limit_track_is_called_paradox(rs):
+    """p.253 — a rename of the same 0-10 Limit track, not a new mechanic."""
+    c = _sidereal()
+    assert derive.limit_label(rs, c) == "Paradox"
+    assert derive.limit_label(rs, Character(id="s", exalt_type="Solar", caste="dawn")) == "Limit"

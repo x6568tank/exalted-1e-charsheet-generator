@@ -572,8 +572,23 @@ def background_issues(budgets, backgrounds) -> list[Issue]:
 
     Two checks: a Background the splat receives automatically may not be below that
     rating (Alchemicals "automatically receive Class ••• during character creation"),
-    and a Background gated on another must have it (Backing "requires Class •••+")."""
+    and a Background gated on another must have it (Backing "requires Class •••+").
+
+    Plus, when the origin restricts WHICH Backgrounds it may take at all
+    (`allowed_backgrounds` — the Sidereal ronin, p.100), anything outside that list is
+    flagged. Blank rows are skipped: the editor adds an empty row for the player to
+    fill in, and an unnamed row is not yet an illegal Background."""
     issues: list[Issue] = []
+    allowed = {n.strip().lower() for n in budgets.allowed_backgrounds}
+    if allowed:
+        for bg in backgrounds:
+            name = bg.name.strip()
+            if name and name.lower() not in allowed:
+                issues.append(Issue(
+                    code="background-not-allowed", where=name,
+                    message=f"{name} is not available to this origin; allowed: "
+                            f"{', '.join(sorted(n.title() for n in allowed))}.",
+                ))
     for name, rule in budgets.background_rules.items():
         rating = background_rating(backgrounds, name)
         if rule.min_rating and rating < rule.min_rating:
@@ -1630,8 +1645,11 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # by any one of its listed Abilities; the budget's (exalt-type-keyed) list is
     # unioned with the caste's own (the Sidereal per-house minimums live on the caste
     # because they differ per house, unlike the DB floor which is aspect-agnostic).
+    # A ronin Sidereal keeps a Caste but "has no minimum required Ability scores"
+    # (p.100), so that origin suppresses the caste half outright.
     caste_def = ruleset.castes.get(character.caste)
-    caste_min = caste_def.required_min_abilities if caste_def else []
+    caste_min = ([] if b.ignore_caste_min_abilities
+                 else (caste_def.required_min_abilities if caste_def else []))
     for req in list(b.required_min_abilities) + list(caste_min):
         best = max((abilities.get(ab, 0) for ab in req.abilities), default=0)
         if best < req.rating:

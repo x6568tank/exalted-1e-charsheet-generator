@@ -150,6 +150,15 @@ def uses_clarity(ruleset: RuleSet, character: Character) -> bool:
     return bool(exalt and exalt.clarity)
 
 
+def limit_label(ruleset: RuleSet, character: Character) -> str:
+    """What this character's splat calls its Limit track — "Paradox" for a Sidereal
+    (p.253), "Limit" for everyone else. A rename only: the mechanic, the 0-10 range
+    and the break threshold are identical, which is why this is one string on the
+    ExaltDefinition rather than a second track."""
+    exalt = ruleset.exalt_for(character.exalt_type)
+    return (exalt.limit_label if exalt and exalt.limit_label else "Limit")
+
+
 def permanent_clarity(ruleset: RuleSet, character: Character) -> list[tuple[str, int]]:
     """The itemised sources of permanent Clarity (p.69): one dot per dot of Essence
     above 5, plus one per installed Charm that grants it. Reads the character's LIVE

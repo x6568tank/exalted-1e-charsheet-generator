@@ -674,6 +674,20 @@ class ChargenBudgets(BaseModel):
     # universal Backgrounds: Artifact is ordinary for a Solar and heavily reworked for
     # an Alchemical, so the mechanics cannot live on the shared BackgroundType.
     background_rules: dict[str, BackgroundRule] = Field(default_factory=dict)
+    # Backgrounds this origin may take AT ALL, as lowercased NAMEs (matching
+    # background_rules' keying). Empty = unrestricted, which is every splat except the
+    # Sidereal ronin, who are "limited to the Backgrounds of Acquaintances, Allies,
+    # Artifact, Backing, Connections, Familiar, Manse and Resources" (p.100). This is
+    # the ONLY hard Background validation in the project — Backgrounds are otherwise
+    # deliberately soft free text — so it is opt-in per origin and checked by name.
+    # The same paragraph's "no Backing from or Connections with any of the Sidereal
+    # factions or Celestial Bureaus" is narrative and is NOT modelled.
+    allowed_backgrounds: list[str] = Field(default_factory=list)
+    # Suppress the CASTE's own required_min_abilities for this origin. The ronin
+    # "have no minimum required Ability scores" (p.100), but a ronin still HAS a
+    # Caste, so the per-house floor on CasteDefinition would otherwise still apply.
+    # The budget's own required_min_abilities list is simply empty for such a row.
+    ignore_caste_min_abilities: bool = False
 
     # Astrological Colleges (Sidereal, p.98) — a rated Advantage with its OWN point
     # pool, separate from Abilities and Backgrounds. `college_dots` 0 (the default)
@@ -798,6 +812,11 @@ class ExaltDefinition(BaseModel):
     # the tracker shows Clarity or Limit; the permanent half is derived in
     # engine.derive.clarity, the temporary half tracked on PlayState.
     clarity: bool = False
+    # What this splat calls its Limit track. Sidereals call the Great Curse's meter
+    # "Paradox" (p.253) — a pure RENAME, identical 0-10 mechanic, so it is a label and
+    # not a second code path. Ignored entirely when `clarity` is True (the Alchemical
+    # has no Limit at all to rename). Presentation only.
+    limit_label: str = "Limit"
     # What this splat calls its caste slot in the UI: Solars have "Caste", the
     # Dragon-Blooded have "Aspect". Presentation only — the underlying field is
     # still Character.caste keyed to RuleSet.castes.

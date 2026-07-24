@@ -59,6 +59,11 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     # editor doesn't yet auto-sync the Caste dropdown when this is picked, so choosing
     # "Casteless" here also requires setting Caste to Casteless, or validation flags it.
     "Lunar": {"society": "Society (Silver Pact)", "casteless": "Casteless"},
+    # A ronin Sidereal evaded the Celestial Hierarchy entirely (p.100): 25 abilities,
+    # 7 backgrounds from a fixed list, 8 Charms with no Sidereal Martial Arts, no
+    # Colleges and no Ability minimums. Independent of the Caste field (a ronin still
+    # has a Caste), unlike Lunar's casteless.
+    "Sidereal": {"hierarchy": "Celestial Hierarchy", "ronin": "Ronin"},
 }
 
 

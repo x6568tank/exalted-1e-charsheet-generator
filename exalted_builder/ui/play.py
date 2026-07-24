@@ -218,13 +218,17 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.label("Clarity never breaks or resets at 10, unlike Limit "
                              "(p.70).").classes("text-xs text-gray-500")
             else:
-                with _panel(f"Limit  ({cur.limit} / 10"
-                            f"{'  — LIMIT BREAK' if cur.limit >= 10 else ''})", pal):
+                # Sidereals call the same 0-10 track "Paradox" (p.253) — a rename
+                # carried on ExaltDefinition.limit_label, not a second mechanic.
+                lim = derive.limit_label(ruleset, character)
+                with _panel(f"{lim}  ({cur.limit} / 10"
+                            f"{f'  — {lim.upper()} BREAK' if cur.limit >= 10 else ''})", pal):
                     with ui.row().classes("gap-1 flex-wrap"):
                         for i in range(10):
                             count_box(character, i, i < cur.limit, "limit", 10, body.refresh)
 
-            _curse = "Clarity" if derive.uses_clarity(ruleset, character) else "Limit"
+            _curse = ("Clarity" if derive.uses_clarity(ruleset, character)
+                      else derive.limit_label(ruleset, character))
             ui.button("Clear motes spent", icon="refresh", on_click=clear_motes).props(
                 f"flat color={pal.button}").tooltip(
                 "Resets Personal and Peripheral motes spent to 0. "

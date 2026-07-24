@@ -46,8 +46,8 @@ see the Status entry below. **Alchemical is feature-complete** (2026-07-23:
 chargen, Charm Slots, Arrays, Submodules, the CH3 catalogue, CH4 weaving,
 XP/advancement, Clarity, Backgrounds and the full UI; UI clicked through
 2026-07-23). **Sidereal is IN PROGRESS** (chargen foundation, per-house minimums and the
-Astrological Colleges are complete, engine + data + UI; the Charm catalogue is
-not — see Status). **Mortals**
+Colleges, the Ronin variant and Paradox are all complete; only the Charm
+catalogue remains — see Status). **Mortals**
 (Godblooded/Ghosts/Heroic Mortals/etc.) are planned after the Exalt types.
 
 Work on a given splat starts only once its rulebook images land in
@@ -175,7 +175,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (637 tests passing)
+## Status (642 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -646,17 +646,43 @@ ability-caste + required-minimums + essence-spec machinery with ZERO new engine 
   Scope-Duration-Power, p.214-219) belong in the GM reference screen, not here.
   Data source: `images/Sidereals/Storytelling/220-235`. Tests: the College block in
   `tests/test_sidereal.py` + `tests/test_sidereal_ui.py` (render).
-- **STILL TODO (later phases), in rough order:**
+- **Ronin variant DONE 2026-07-23** (`Sidereal:ronin`, p.100 — read from
+  `images/Sidereals/96 - 101 Character Creation/100-101.png`). 25 Ability dots ≥10
+  Auspicious/Favored, 7 Backgrounds, 8 Charms, 0 Colleges, and no Ability minimums;
+  attributes/virtues/essence/BP are unchanged from the standard row. Two rulings and
+  two new fields came out of it:
+  - **The ≥5 Caste/Favoured Charm minimum CARRIES OVER to the ronin's 8 Charms**
+    (rules-authority call, 2026-07-23). The page overrides only the TOTAL and never
+    restates the minimum; do not "helpfully" scale it to 4.
+  - **`ChargenBudgets.allowed_backgrounds`** — the ronin is "limited to the
+    Backgrounds of Acquaintances, Allies, Artifact, Backing, Connections, Familiar,
+    Manse and Resources". This is the **only hard Background validation in the
+    project** (code `background-not-allowed`); Backgrounds are otherwise deliberately
+    soft free text, so the list is empty (= unrestricted) for every other origin and
+    blank editor rows are skipped. The same paragraph's "no Backing from or
+    Connections with Sidereal factions or the Celestial Bureaus" is narrative and is
+    NOT modelled.
+  - **`ChargenBudgets.ignore_caste_min_abilities`** — "They have no minimum required
+    Ability scores." A ronin still HAS a Caste, so the per-house floor on
+    `CasteDefinition.required_min_abilities` would otherwise still apply; this
+    suppresses the caste half (the budget's own list is just empty).
+  - Editor `_SPLAT_ORIGINS` gained `"Sidereal": hierarchy/ronin`. Unlike Lunar's
+    casteless, this is independent of the Caste field — no consistency check needed.
+- **Paradox DONE 2026-07-23** — `ExaltDefinition.limit_label` ("Paradox" on the
+  Sidereal row, "Limit" everywhere else), read via `derive.limit_label` by both the
+  Play tab and the GM card. A pure rename of the same 0-10 track with the same break
+  threshold, per p.253; it is a label, not a second code path, and is ignored when
+  `clarity` is True (the Alchemical has no Limit to rename).
+- **STILL TODO:**
   1. **Charms catalogue** — `data/charms/sidereal_*.json`, incl. **Sidereal Martial
-     Arts** (own Charm category, ≤3 at chargen, BP 8/6 + XP 12/10 — a distinct rate).
+     Arts** (own Charm category, ≤3 at chargen, XP 12/10 — a distinct rate; the BP
+     rate **8/6** is confirmed on the p.101 summary table and still needs a
+     `BonusPointCosts` field, since it differs from the ordinary Charm 7/5).
      Then set `ox_body_charm_id` to the authored Sidereal Ox-Body, and un-defer the
      full `validate_chargen` (the 12-Charm pool the tests currently can't assert).
-  2. **Ronin variant** (`Sidereal:ronin`, like DB Outcaste / Lunar Casteless): 25
-     abilities ≥10 C/F, 7 backgrounds (limited list), 8 Charms (no Sidereal MA; Violet
-     Bier Style still allowed), 0 Colleges, no minimums. Add to `chargen_budgets.json` +
-     editor `_SPLAT_ORIGINS`.
-  3. **Paradox = Limit rename** in the play-state tracker for Sidereals (no new mechanic
-     — the Sidereal Curse is roleplay-only, p.253).
+     **A ronin may take NO Sidereal Martial Arts Charms at all** (Violet Bier of
+     Sorrows Style is still open to them) — nothing enforces that yet because no
+     Sidereal MA Charm exists to enforce it against; wire it when the data lands.
 
 ### Alchemical — chargen foundation + Charm Slot system (in progress, started 2026-07-23)
 Read from `images/Alchemical/` — pasted text from the Autochthonians book (1e
@@ -1059,7 +1085,7 @@ three-page Abilities/Martial Arts/Spells split, GM mode.
   enumerates these lists itself. `engine.validate.bonus_point_breakdown` already
   builds this list internally to price picks; that is the model to extract.
   **Refactor of working code — no behaviour change intended.**
-- **Sidereal** Exalt type (in flight — Charms, Ronin and Paradox remain), then **Mortals** —
+- **Sidereal** Exalt type (in flight — only the Charm catalogue remains), then **Mortals** —
   see **Next Exalt Types** above for the color scheme and the M&F-return plan.
   (Lunar and Alchemical are done.)
 - **Windows .exe** — needs building on an actual Windows host (PyInstaller

@@ -1,6 +1,10 @@
 {
   "Dragon-Blooded": {
-    "attribute_pools": [7, 6, 4],
+    "attribute_pools": [
+      7,
+      6,
+      4
+    ],
     "ability_dots": 35,
     "ability_min_caste_favored": 13,
     "favored_count": 3,
@@ -11,18 +15,63 @@
     "essence_start": 2,
     "bonus_points": 15,
     "required_min_abilities": [
-      {"abilities": ["archery"], "rating": 1},
-      {"abilities": ["brawl", "martial_arts"], "rating": 1},
-      {"abilities": ["melee"], "rating": 1},
-      {"abilities": ["performance"], "rating": 1},
-      {"abilities": ["presence"], "rating": 1},
-      {"abilities": ["ride"], "rating": 1},
-      {"abilities": ["lore"], "rating": 2},
-      {"abilities": ["socialize"], "rating": 2}
+      {
+        "abilities": [
+          "archery"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "brawl",
+          "martial_arts"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "melee"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "performance"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "presence"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "ride"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "lore"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "socialize"
+        ],
+        "rating": 2
+      }
     ]
   },
   "Dragon-Blooded:outcaste": {
-    "attribute_pools": [7, 6, 4],
+    "attribute_pools": [
+      7,
+      6,
+      4
+    ],
     "ability_dots": 25,
     "ability_min_caste_favored": 10,
     "favored_count": 3,
@@ -34,7 +83,11 @@
     "bonus_points": 15
   },
   "Abyssal": {
-    "attribute_pools": [8, 6, 4],
+    "attribute_pools": [
+      8,
+      6,
+      4
+    ],
     "ability_dots": 25,
     "ability_min_caste_favored": 10,
     "favored_count": 5,
@@ -46,7 +99,11 @@
     "bonus_points": 15
   },
   "Abyssal:fugitive": {
-    "attribute_pools": [8, 6, 4],
+    "attribute_pools": [
+      8,
+      6,
+      4
+    ],
     "ability_dots": 25,
     "ability_min_caste_favored": 10,
     "favored_count": 5,
@@ -58,7 +115,11 @@
     "bonus_points": 15
   },
   "Lunar": {
-    "attribute_pools": [9, 7, 5],
+    "attribute_pools": [
+      9,
+      7,
+      5
+    ],
     "ability_dots": 25,
     "ability_min_caste_favored": 10,
     "favored_count": 5,
@@ -69,13 +130,33 @@
     "essence_start": 2,
     "bonus_points": 15,
     "required_min_abilities": [
-      {"abilities": ["survival"], "rating": 2},
-      {"abilities": ["archery", "brawl", "martial_arts", "melee", "thrown"], "rating": 1}
+      {
+        "abilities": [
+          "survival"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "archery",
+          "brawl",
+          "martial_arts",
+          "melee",
+          "thrown"
+        ],
+        "rating": 1
+      }
     ],
-    "required_favored": ["survival"]
+    "required_favored": [
+      "survival"
+    ]
   },
   "Lunar:casteless": {
-    "attribute_pools": [8, 6, 4],
+    "attribute_pools": [
+      8,
+      6,
+      4
+    ],
     "ability_dots": 25,
     "ability_min_caste_favored": 10,
     "favored_count": 5,
@@ -85,10 +166,16 @@
     "virtue_dots": 5,
     "essence_start": 2,
     "bonus_points": 15,
-    "required_favored": ["survival"]
+    "required_favored": [
+      "survival"
+    ]
   },
   "Sidereal": {
-    "attribute_pools": [8, 6, 4],
+    "attribute_pools": [
+      8,
+      6,
+      4
+    ],
     "ability_dots": 35,
     "ability_min_caste_favored": 15,
     "favored_count": 4,
@@ -102,20 +189,100 @@
     "college_min_own_house": 4,
     "college_cap_pre_bp": 3,
     "required_min_abilities": [
-      {"abilities": ["awareness"], "rating": 2},
-      {"abilities": ["bureaucracy"], "rating": 2},
-      {"abilities": ["linguistics"], "rating": 1},
-      {"abilities": ["lore"], "rating": 3},
-      {"abilities": ["martial_arts"], "rating": 2},
-      {"abilities": ["occult"], "rating": 2},
-      {"abilities": ["socialize"], "rating": 1},
-      {"abilities": ["stealth"], "rating": 1},
-      {"abilities": ["archery", "melee", "thrown"], "rating": 1}
+      {
+        "abilities": [
+          "awareness"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "bureaucracy"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "linguistics"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "lore"
+        ],
+        "rating": 3
+      },
+      {
+        "abilities": [
+          "martial_arts"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "occult"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "socialize"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "stealth"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "archery",
+          "melee",
+          "thrown"
+        ],
+        "rating": 1
+      }
     ]
   },
-    "Alchemical": {
+  "Sidereal:ronin": {
+    "attribute_pools": [
+      8,
+      6,
+      4
+    ],
+    "ability_dots": 25,
+    "ability_min_caste_favored": 10,
+    "favored_count": 4,
+    "background_dots": 7,
+    "allowed_backgrounds": [
+      "acquaintances",
+      "allies",
+      "artifact",
+      "backing",
+      "connections",
+      "familiar",
+      "manse",
+      "resources"
+    ],
+    "charm_count": 8,
+    "charm_min_caste_favored": 5,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 18,
+    "college_dots": 0,
+    "college_min_own_house": 0,
+    "ignore_caste_min_abilities": true
+  },
+  "Alchemical": {
     "attribute_mode": "caste_favored",
-    "attribute_pools": [9, 6, 4],
+    "attribute_pools": [
+      9,
+      6,
+      4
+    ],
     "attribute_favored_count": 3,
     "attribute_caste_min": 2,
     "ability_dots": 23,
@@ -130,9 +297,18 @@
     "essence_start": 2,
     "bonus_points": 15,
     "background_rules": {
-      "class":    {"min_rating": 3},
-      "backing":  {"requires": "class", "requires_rating": 3},
-      "artifact": {"cap_pre_bp_exempt": true, "expensive_above": 3, "expensive_dot_cost": 2}
+      "class": {
+        "min_rating": 3
+      },
+      "backing": {
+        "requires": "class",
+        "requires_rating": 3
+      },
+      "artifact": {
+        "cap_pre_bp_exempt": true,
+        "expensive_above": 3,
+        "expensive_dot_cost": 2
+      }
     }
   }
 }

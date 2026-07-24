@@ -389,8 +389,9 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
                                            "clarity_temporary", derive.CLARITY_MAX,
                                            body.refresh)
             else:
-                ui.label(f"LIMIT  ({cur.limit}/10"
-                         f"{'  — LIMIT BREAK' if cur.limit >= 10 else ''})").classes(
+                lim = derive.limit_label(ruleset, character).upper()   # "PARADOX" for a Sidereal
+                ui.label(f"{lim}  ({cur.limit}/10"
+                         f"{f'  — {lim} BREAK' if cur.limit >= 10 else ''})").classes(
                     "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
                 with ui.row().classes("gap-1 flex-wrap"):
                     for i in range(10):
