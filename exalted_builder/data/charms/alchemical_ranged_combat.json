@@ -1,0 +1,373 @@
+[
+  {
+    "id": "alchemical.ranged-combat.aim-calibrating-sensors",
+    "name": "Aim-Calibrating Sensors",
+    "type": "Supplemental",
+    "min_attribute": "perception",
+    "min_essence": 2,
+    "installation_cost": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1+ motes"
+    },
+    "duration": "Instant",
+    "description": "A forehead sensor compensating for range, wind, cover, shields and poor light. Each mote removes one die of environmental/situational penalty from a ranged attack; every 2 motes cancel one point of difficulty or negate one subtracted success. Does not offset wound, fear, or multiple-action penalties.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 100
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.paramagnetic-tether-beam",
+    "name": "Paramagnetic Tether Beam",
+    "type": "Reflexive",
+    "min_attribute": "strength",
+    "min_essence": 2,
+    "installation_cost": 2,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.aim-calibrating-sensors"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "raw": "3m"
+    },
+    "duration": "Instant",
+    "description": "A shaped force ray (range Strength x 10 yards) that crudely manipulates objects with telekinesis, substituting Essence for Dexterity and Strength (finesse Abilities still apply). Can grab or recall weapons, disarm (Essence + Brawl/Martial Arts, not attuned artifacts), suspend or winch the Exalt. One beam at a time.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 100
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.essence-pulse-cannon",
+    "name": "Essence Pulse Cannon",
+    "type": "Supplemental",
+    "min_attribute": "strength",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.aim-calibrating-sensors"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Indefinite",
+    "submodules": [
+      {
+        "key": "discreet",
+        "name": "Discreet",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "Cannon hidden in eye or palm; magical detection while inactive is at +1 difficulty, and when active it betrays itself only like a 1-3 mote anima."
+      },
+      {
+        "key": "guidance-ray",
+        "name": "Guidance Ray",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "A tracer beam aiming exactly where the cannon will fire: +3 accuracy, but targets who see the beam gain one die to dodge/parry the shot. Toggle reflexively for free."
+      },
+      {
+        "key": "internal-battery",
+        "name": "Internal Battery",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "An 8-mote Personal Essence reserve usable only to fire the cannon; restoring one mote is a simple action costing 2 motes from the reservoir. Only one battery."
+      },
+      {
+        "key": "precision-beam",
+        "name": "Precision Beam",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "Fire a piercing ray: -2 raw damage but piercing. Not with detonation or shockwave."
+      },
+      {
+        "key": "shockwave",
+        "name": "Shockwave",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "Spread the pulse: max one level of damage, but the target is hurled one yard per raw-damage die and suffers knockdown unless a Dexterity + Athletics or Stamina + Resistance roll (difficulty 2) succeeds."
+      },
+      {
+        "key": "stunning-bolt",
+        "name": "Stunning Bolt",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "Fire a non-lethal pulse for 3B per mote; a target reduced to Incapacitated ignores further damage (no lethal spillover)."
+      },
+      {
+        "key": "detonation",
+        "name": "Detonation",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "1L per mote (2B with Stunning Bolt) to the struck target, plus a one-yard-radius blast dealing the base damage, losing one die per further yard. Requires Essence 3.",
+        "min_essence": 3
+      },
+      {
+        "key": "essence-dampening-bolt",
+        "name": "Essence Dampening Bolt",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "No physical injury; magical beings hemorrhage 1 mote per level of 'damage' (lethal roll + Essence, soak only permanent Essence); drained motes flare the victim's anima. Requires Essence 3.",
+        "min_essence": 3
+      },
+      {
+        "key": "energy-drain",
+        "name": "Energy Drain",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "Variant of Essence Dampening Bolt whose bled motes fly back to the Exalt's own pool. Requires Essence 4.",
+        "min_essence": 4
+      },
+      {
+        "key": "pattern-disruptor",
+        "name": "Pattern Disruptor",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "1A per mote (other base-damage bonuses halved); anything slain disintegrates, spirits are annihilated, mortal souls obliterated unless soulgemmed. Not with detonation/shockwave/stunning bolt. Requires Essence 4.",
+        "min_essence": 4
+      },
+      {
+        "key": "siege-devastator",
+        "name": "Siege Devastator",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "Unfolds over the forearm (rate 1, -2 mobility, stealth impossible) to add one die to the base damage per mote (so 3L per mote unmodified). Requires Essence 5.",
+        "min_essence": 5
+      }
+    ],
+    "description": "A torso reactor firing energy bolts the color of the Exalt's anima: range (Essence x 50) yards, accuracy +1, rate (Essence x installations), damage 2L per mote (max Strength + Essence motes). Each shot is a supplemental Charm use; bolts may be dodged or parried.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 100
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.interceptor-spark-emitter",
+    "name": "Interceptor Spark Emitter",
+    "type": "Reflexive",
+    "min_attribute": "wits",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.essence-pulse-cannon"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes or 3 motes"
+    },
+    "duration": "Instant",
+    "description": "Shoot down projectiles. Mode one (2m): parry one missile within (Essence x 50) yards at Dexterity + Archery + Essence (+1 die with Guidance Ray; +3 difficulty to defend others). Mode two (3m): a full-parry trance against every perceived ranged attack, usable only if the Exalt has not yet acted. Size-limited to javelins below Essence 6.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 103
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.pulseweb-entanglement-burst",
+    "name": "Pulseweb Entanglement Burst",
+    "type": "Simple",
+    "min_attribute": "strength",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.essence-pulse-cannon"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1,
+      "raw": "6m, 1wp"
+    },
+    "duration": "Instant",
+    "description": "The cannon fires an Essence net (Dexterity + Archery, range Essence x 20). On a hit, contest Strength + Essence; winning paralyzes the target in a crystalline aura (as a clinch), re-contested each turn for one unsoakable bashing per turn held. The aura reduces attacks against the victim by Essence and shocks melee attackers for Essence dice of piercing bashing.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 104
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.protosynthetic-ammunition-replicator",
+    "name": "Protosynthetic Ammunition Replicator",
+    "type": "Reflexive",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.aim-calibrating-sensors"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "raw": "1m"
+    },
+    "duration": "Instant",
+    "description": "A forearm compartment extrudes a missile of raw Essence (arrow, throwing dagger, throwing baton or chakram) that dissipates after (Essence) turns. Arrows auto-nock into a carried bow. Essence 6+ Exalts make warstrider-scaled ammunition.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 104
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.repeating-pneumatic-bow",
+    "name": "Repeating Pneumatic Bow",
+    "type": "Reflexive",
+    "min_attribute": "strength",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.protosynthetic-ammunition-replicator"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Indefinite",
+    "submodules": [
+      {
+        "key": "guidance-ray",
+        "name": "Guidance Ray",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "Duplicates the Guidance Ray submodule of Essence Pulse Cannon for this weapon."
+      },
+      {
+        "key": "internal-magazine",
+        "name": "Internal Magazine",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "A helical magazine storing up to 6 replicator arrows in stasis (they don't disintegrate until the turn they're fired); feed from replicator or magazine."
+      }
+    ],
+    "description": "A forearm-mounted steam bow: base damage Strength (plus ammunition), accuracy Essence, range (100 x Essence) yards, unlimited rate, fed by the Protosynthetic Ammunition Replicator. Firing it is not a Charm activation. Loudly obvious when active.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 105
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.subluminous-onslaught-missile",
+    "name": "Subluminous Onslaught Missile",
+    "type": "Simple",
+    "min_attribute": "strength",
+    "min_essence": 4,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.repeating-pneumatic-bow"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "raw": "10m, 1wp"
+    },
+    "duration": "Instant",
+    "description": "The bow fires a crystal spike: accuracy Essence, range one mile, base damage [Strength + (Essence x 2)]L, piercing, unparryable without a stunt/Charm. It bores through a struck target (losing one die) and continues in a line; a concussive wave knocks human-sized victims back one foot per post-soak die.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 105
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.hundredfold-strafing-methodology",
+    "name": "Hundredfold Strafing Methodology",
+    "type": "Extra Action",
+    "min_attribute": "dexterity",
+    "min_essence": 4,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.repeating-pneumatic-bow"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1,
+      "raw": "8m, 1wp"
+    },
+    "duration": "Instant",
+    "description": "The deployed bow sprays Essence darts across an arc up to 90 degrees. Roll Dexterity + Archery once, applied to every target in the swath (friend or foe); darts have range increment 100 yards and base lethal damage Essence, persisting to end of turn.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 105
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.transmodal-rapid-targeting-system",
+    "name": "Transmodal Rapid Targeting System",
+    "type": "Extra Action",
+    "min_attribute": "dexterity",
+    "min_essence": 3,
+    "installation_cost": 2,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.aim-calibrating-sensors"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes per target"
+    },
+    "duration": "Instant",
+    "description": "Neural vector-modulators let one projectile strike multiple targets, or a near-simultaneous volley of separate missiles. Mode one (3m): a single missile attacks up to (Essence + 1) targets in succession (full pool each, no target twice), optionally returning to hand for 1 mote. Mode two: release several different missiles under the same rules, each needing its own ammunition.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 106
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  },
+  {
+    "id": "alchemical.ranged-combat.dedicated-harmonic-targeting",
+    "name": "Dedicated Harmonic Targeting",
+    "type": "Supplemental",
+    "min_attribute": "perception",
+    "min_essence": 3,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.ranged-combat.transmodal-rapid-targeting-system"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "raw": "3m"
+    },
+    "duration": "Instant",
+    "description": "Imprints a target's Essence signature on a fired projectile, which dematerializes to ignore all intervening cover and cannot hit bystanders, rematerializing to strike only the intended target (armor still applies). Can attack through a wall if the Exalt can sense the victim beyond it.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 107
+    },
+    "exalt_type": "Alchemical",
+    "category": "ranged_combat"
+  }
+]

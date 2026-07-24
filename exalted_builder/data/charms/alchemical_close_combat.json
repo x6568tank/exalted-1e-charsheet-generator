@@ -1,0 +1,567 @@
+[
+  {
+    "id": "alchemical.close-combat.tactical-analysis-engrams",
+    "name": "Tactical Analysis Engrams",
+    "type": "Reflexive",
+    "min_attribute": "wits",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-wits",
+        "alchemical.general.sustained-augmentation-of-wits"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Instant",
+    "description": "Crystalline engrams read an opponent. Roll Wits + Awareness (difficulty 2); each success reveals one datum about a target (a Physical Attribute or combat Ability rating, its specialties, base initiative, current wound penalty, a weapon or armor's core stats, or the function of a visible combative Charm). A full minute observing the same target grants one free activation.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 92
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.accelerated-response-system",
+    "name": "Accelerated Response System",
+    "type": "Reflexive",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-dexterity",
+        "alchemical.general.sustained-augmentation-of-dexterity"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Instant",
+    "description": "Two permutations, purchased and installed separately. The first parries one attack at full Dexterity + (Brawl, Martial Arts or Melee); the second dodges one attack at full Dexterity + Dodge without giving ground. Both require awareness of the attack; a character with both may use both against the same attack.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 93
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.dynamic-reaction-enhancement-system",
+    "name": "Dynamic Reaction Enhancement System",
+    "type": "Reflexive",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-dexterity",
+        "alchemical.general.sustained-augmentation-of-dexterity"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per +2 initiative"
+    },
+    "duration": "Instant",
+    "description": "A mechanical assembly in the spine. Activated before initiative, it slows the Exalt's perception of the turn, adding +2 initiative per mote spent, to a maximum bonus of Dexterity x 2.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 93
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.celerity-enabling-module",
+    "name": "Celerity Enabling Module",
+    "type": "Extra Action",
+    "min_attribute": "dexterity",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.close-combat.dynamic-reaction-enhancement-system"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "raw": "5m, 1wp"
+    },
+    "duration": "Instant",
+    "description": "Two modes (not simultaneous). Primary (Extra Action): grants extra actions equal to permanent Essence, usable for any physical task or to refresh a full dodge/parry. Secondary (Reflexive, one scene): pick one target and dodge or parry its every attack at full pool without needing awareness, the Charm auto-selecting an applicable defense.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 93
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.anticipatory-simulation-processor",
+    "name": "Anticipatory Simulation Processor",
+    "type": "Reflexive",
+    "min_attribute": "wits",
+    "min_essence": 4,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-wits",
+        "alchemical.general.sustained-augmentation-of-wits"
+      ],
+      [
+        "alchemical.close-combat.accelerated-response-system"
+      ],
+      [
+        "alchemical.close-combat.celerity-enabling-module"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies (5m; +5m, 1wp to rewind)"
+    },
+    "duration": "Instant",
+    "description": "Starmetal monofilaments let the Exalt simulate the next several seconds. Spend 5 motes (gain 1 temporary Clarity) to begin; before the turn ends, spend 5 motes and 1 Willpower to 'rewind' to the initiative count of activation, replaying the turn as predicted until the Exalt deviates. Cannot be used when Primordials, Malfeans or unshaped raksha have acted.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 93
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.polymodal-joint-bearings",
+    "name": "Polymodal Joint Bearings",
+    "type": "Simple",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-dexterity",
+        "alchemical.general.sustained-augmentation-of-dexterity"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Indefinite",
+    "submodules": [
+      {
+        "key": "omnidextrous",
+        "name": "Omnidextrous",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "min_attribute": "wits",
+        "min_attribute_rating": 3,
+        "description": "Ignore the usual off-hand action penalty and use the feet as hands for gripping tools or fine dexterity without penalty (foot-fist strikes still count as kicks)."
+      }
+    ],
+    "description": "Ball-bearing joints grant superhuman flexibility: while active, add three dice (an artificial specialty, cumulative with real specialties) to escape bindings, control/escape a clinch, dodge by contortion, or any feat where preternatural flexibility helps.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 94
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.limb-extension-armatures",
+    "name": "Limb Extension Armatures",
+    "type": "Simple",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-dexterity",
+        "alchemical.general.sustained-augmentation-of-dexterity"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Indefinite",
+    "description": "Telescoping or moonsilver limbs reach (Essence x 2) extra yards at Essence 2-5, or (Essence x 4) at Essence 6+. Extend/retract reflexively at will. For every two yards of extra reach at full extension, add 1 to the speed of all hand-to-hand attacks; may also attack mounted targets without penalty.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 95
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.multi-limb-frame",
+    "name": "Multi-Limb Frame",
+    "type": "Simple",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.general.sustained-augmentation-of-dexterity"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote / None"
+    },
+    "duration": "Indefinite",
+    "description": "Extra limbs at skeletal hardpoints. Simple type: one or two extra limbs per installation; when active they work as normal arms and reduce multiple-action penalties by one die for physical actions using any arm. Cannot install more times than the lower of Dexterity or Wits. Alternatively install as Permanent (installation 1 mote) to replace the arms (not counting against the max), adding 1 damage to hand-to-hand attacks. With Sustained Augmentation of Wits installed, no off-hand penalty applies to any limb.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 95
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.hyperdextrous-tentacle-apparatus",
+    "name": "Hyperdextrous Tentacle Apparatus",
+    "type": "Simple",
+    "min_attribute": "dexterity",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.sustained-augmentation-of-strength"
+      ],
+      [
+        "alchemical.general.sustained-augmentation-of-wits"
+      ],
+      [
+        "alchemical.close-combat.multi-limb-frame"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1,
+      "raw": "8m, 1wp"
+    },
+    "duration": "One scene",
+    "description": "A pair of metal tentacles (Essence yards long, or twice at Essence 6+) usable as extra arms, reducing multiple-action penalties like Multi-Limb Frame. As weapons: speed +(Essence x2), accuracy +Essence, damage +(Dexterity)L, defense +Essence; can sweep or clinch. Install up to Essence times. Spending 8m+1wp empowers all tentacles for independent multiple actions at full pool. The first installation grants 1 permanent Clarity.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 95
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.integrated-arsenal-upgrade",
+    "name": "Integrated Arsenal Upgrade",
+    "type": "Permanent",
+    "min_attribute": "dexterity",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.close-combat.multi-limb-frame"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "N/A",
+    "submodules": [
+      {
+        "key": "exceptional-weapon",
+        "name": "Exceptional Weapon",
+        "bp_cost": 1,
+        "xp_cost": 2,
+        "description": "An hour of refitting makes one built-in weapon exceptional; may be further refitted to a perfect weapon for the same cost."
+      }
+    ],
+    "description": "Hand-to-hand weapons (two per installation) built into the Multi-Limb Frame appendages, folded away or deployed reflexively (one weapon per limb at a time). Any weapon type; normal but near-indestructible. Cannot be disarmed; a destroyed weapon regrows over a week.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 96
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.material-synthesis-wave-emitter-orichalcum",
+    "name": "Orichalcum Synthesis Wave Emitter",
+    "type": "Supplemental",
+    "min_attribute": "strength",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-strength"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Instant",
+    "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 97
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.material-synthesis-wave-emitter-moonsilver",
+    "name": "Moonsilver Synthesis Wave Emitter",
+    "type": "Supplemental",
+    "min_attribute": "strength",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-strength"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Instant",
+    "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 97
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.material-synthesis-wave-emitter-jade",
+    "name": "Jade Synthesis Wave Emitter",
+    "type": "Supplemental",
+    "min_attribute": "strength",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-strength"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Instant",
+    "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 97
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.material-synthesis-wave-emitter-starmetal",
+    "name": "Starmetal Synthesis Wave Emitter",
+    "type": "Supplemental",
+    "min_attribute": "strength",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-strength"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Instant",
+    "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 97
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.material-synthesis-wave-emitter-soulsteel",
+    "name": "Soulsteel Synthesis Wave Emitter",
+    "type": "Supplemental",
+    "min_attribute": "strength",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-strength"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Instant",
+    "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 97
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.material-synthesis-wave-emitter-adamant",
+    "name": "Adamant Synthesis Wave Emitter",
+    "type": "Supplemental",
+    "min_attribute": "strength",
+    "min_essence": 2,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-strength"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Instant",
+    "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. The adamant version reduces the target's armored soak by 4 on a hit.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 97
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.transcendent-multimodal-weapon-matrix",
+    "name": "Transcendent Multimodal Weapon Matrix",
+    "type": "Simple",
+    "min_attribute": "dexterity",
+    "min_essence": 3,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-dexterity",
+        "alchemical.general.sustained-augmentation-of-dexterity"
+      ],
+      [
+        "alchemical.close-combat.material-synthesis-wave-emitter-orichalcum",
+        "alchemical.close-combat.material-synthesis-wave-emitter-moonsilver",
+        "alchemical.close-combat.material-synthesis-wave-emitter-jade",
+        "alchemical.close-combat.material-synthesis-wave-emitter-starmetal",
+        "alchemical.close-combat.material-synthesis-wave-emitter-soulsteel",
+        "alchemical.close-combat.material-synthesis-wave-emitter-adamant"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies (weapon attunement)"
+    },
+    "duration": "Indefinite",
+    "description": "Caste-Material assemblies in the hands grow close-combat artifact weapons on demand (weapon templates equal to installations, none above Artifact 3, only simple expansions of mundane weapons). Activating a weapon costs its attunement; it is always the caste Material. Cannot be disarmed without amputation, after which the weapon shatters. The wielding hand can do nothing else.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 98
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.electrification-onslaught-dynamo",
+    "name": "Electrification Onslaught Dynamo",
+    "type": "Reflexive",
+    "min_attribute": "strength",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-strength"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies (1L or 2B per mote)"
+    },
+    "duration": "Instant",
+    "description": "Chakra conductor nodes deliver a jolt: on a successful hand-to-hand hit, 1L or 2B per mote (max Strength motes), soaked separately by natural soak only. Also usable as a retaliatory jolt when struck/parrying with metal (half-Strength cap, an unblockable counterattack), after a clinch roll, or through any casual contact.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 97
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.chemical-fog-generator",
+    "name": "Chemical Fog Generator",
+    "type": "Reflexive",
+    "min_attribute": "manipulation",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "Varies (1 mote per (Essence)-yard radius, max Manipulation/turn)"
+    },
+    "duration": "Instant",
+    "submodules": [
+      {
+        "key": "knockout-gas",
+        "name": "Knockout Gas",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "Purple fog; failed Stamina + Resistance (difficulty 2) knocks a breather out for 30 - (Sta+Res) minutes. Filters give full protection."
+      },
+      {
+        "key": "tear-gas",
+        "name": "Tear Gas",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "Yellowish smoke, a poison (Difficulty 2 / Success No Damage / Failure 1B / one-hour -3 penalty), checked per turn. Filters reduce difficulty by 1."
+      },
+      {
+        "key": "nerve-gas",
+        "name": "Nerve Gas",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "min_essence": 3,
+        "description": "Green toxin, arrow-frog-venom statistics, checked per five minutes; mortals convulse and die in Stamina turns unless they make Sta+Res difficulty 6. Requires Essence 3."
+      },
+      {
+        "key": "soul-gas",
+        "name": "Soul Gas",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "min_essence": 3,
+        "description": "Bloody vapor inducing soul-numbing horror; a failed resistance strips a dot from every Virtue but Compassion and may drive the victim to flee in fear. Requires Essence 3."
+      }
+    ],
+    "description": "Torso vents pour thick black smoke filling an (Essence)-yard-radius sphere per mote (max Manipulation motes/turn). Obscures vision (murky to 10 yards, blind beyond; 3 yards in dim light) and chokes air-breathers (one unsoakable bashing per minute). Lingers ~20 minutes in still enclosed air. Only one submodule formula may be deployed per use.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 98
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  },
+  {
+    "id": "alchemical.close-combat.perfected-lotus-matrix",
+    "name": "Perfected Lotus Matrix",
+    "type": "Permanent",
+    "min_ability": 2,
+    "min_essence": 2,
+    "installation_cost": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "N/A",
+    "description": "Not Attribute-based, so never Caste/Favored — must sit in a General Slot. Lets an Alchemical learn Terrestrial and Celestial Martial Arts Charms like any Celestial Exalt; such Charms cost 6 bonus points or 11 experience and are stored in the Matrix rather than in Charm Slots. Removing the Matrix suspends access to those Martial Arts Charms. Available styles include Snake, Tiger, Mantis, Ebon Shadow, Celestial Monkey, Righteous Devil, Violet Bier of Sorrows, Five Dragon and Jade Mountain.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 99
+    },
+    "exalt_type": "Alchemical",
+    "category": "close_combat"
+  }
+]

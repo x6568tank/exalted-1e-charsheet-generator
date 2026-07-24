@@ -1,0 +1,243 @@
+[
+  {
+    "id": "alchemical.cognitive.imprinted-data-cluster",
+    "name": "Imprinted Data Cluster",
+    "type": "Reflexive",
+    "min_attribute": "intelligence",
+    "min_essence": 2,
+    "installation_cost": 2,
+    "prerequisites": [
+      [
+        "alchemical.general.sustained-augmentation-of-intelligence"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per dot"
+    },
+    "duration": "Indefinite",
+    "description": "Memory crystals download Ability specialties from the Vats (1 mote each, done while resting at a Vat Complex), held while Essence is committed (any number of different specialties per Ability, capped at three natural-specialty dice per roll). Withdrawing the mote erases the specialty; 3 XP makes one permanent.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 137
+    },
+    "exalt_type": "Alchemical",
+    "category": "cognitive"
+  },
+  {
+    "id": "alchemical.cognitive.clarified-data-assimilator",
+    "name": "Clarified Data Assimilator",
+    "type": "Supplemental",
+    "min_attribute": "intelligence",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-intelligence",
+        "alchemical.general.sustained-augmentation-of-intelligence"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes (+1 cumulative per reuse)"
+    },
+    "duration": "Instant",
+    "description": "Replace one Ability's rating with total Clarity for one roll (specialties still apply; no Virtue channeling). Cost rises a cumulative mote per use, decaying 1/day. Grants 1 permanent Clarity on install and 1 temporary Clarity per use.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 137
+    },
+    "exalt_type": "Alchemical",
+    "category": "cognitive"
+  },
+  {
+    "id": "alchemical.cognitive.abstract-abacus-implant",
+    "name": "Abstract Abacus Implant",
+    "type": "Supplemental",
+    "min_attribute": "intelligence",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-intelligence",
+        "alchemical.general.sustained-augmentation-of-intelligence"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes per success/difficulty point"
+    },
+    "duration": "Instant",
+    "submodules": [
+      {
+        "key": "interpolative-syntax-emulator",
+        "name": "Interpolative Syntax Emulator",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "min_essence": 3,
+        "description": "After an hour studying a language (or a turn via Mind-Ripping Probe), spend 3 motes and 3 XP (1 XP for a tribal tongue) to learn it, without raising Linguistics."
+      }
+    ],
+    "description": "Reduce a Mental Attribute roll's difficulty by 1 per 2 motes; once at difficulty 1, 2 motes add an automatic success (max Essence). Only for logical/deductive tasks (math, navigation, enigmas). Also a perfect mental clock.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 138
+    },
+    "exalt_type": "Alchemical",
+    "category": "cognitive"
+  },
+  {
+    "id": "alchemical.cognitive.technological-analysis-engrams",
+    "name": "Technological Analysis Engrams",
+    "type": "Simple",
+    "min_attribute": "perception",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-perception",
+        "alchemical.general.sustained-augmentation-of-perception"
+      ],
+      [
+        "alchemical.cognitive.abstract-abacus-implant"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "raw": "3m"
+    },
+    "duration": "Instant",
+    "description": "Spend a turn analyzing a machine or artifact, then roll Perception + Lore (difficulty 1-2 mundane, or the artifact's rating): successes reveal function (1), condition (2), and full capabilities/condition (3). Two+ successes bank one automatic success to repair it, or double raw damage on the next attack to demolish it.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 138
+    },
+    "exalt_type": "Alchemical",
+    "category": "cognitive"
+  },
+  {
+    "id": "alchemical.cognitive.omnitool-implant",
+    "name": "Omnitool Implant",
+    "type": "Simple",
+    "min_attribute": "wits",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-wits",
+        "alchemical.general.sustained-augmentation-of-wits"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "raw": "4m"
+    },
+    "duration": "One hour",
+    "description": "Fingers unfold into any simple tool, or any tool needed for an Ability the Exalt has at least one dot in (lockpicks need Larceny or Craft). Provides all needed tools for the scene, each adding one die (artificial specialty) to its use. Only crude weapons (clubs, -1 daggers).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 138
+    },
+    "exalt_type": "Alchemical",
+    "category": "cognitive"
+  },
+  {
+    "id": "alchemical.cognitive.synaptic-acceleration-node",
+    "name": "Synaptic Acceleration Node",
+    "type": "Reflexive",
+    "min_attribute": "wits",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-wits",
+        "alchemical.general.sustained-augmentation-of-wits"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes per hour"
+    },
+    "duration": "Varies",
+    "description": "Multiply cognition by permanent Essence for (motes) hours: divide the time for Mental-Attribute actions (and extended-action intervals) by Essence. For quick mental tasks, do up to Wits per turn, reducing each multiple-action penalty by Essence.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 139
+    },
+    "exalt_type": "Alchemical",
+    "category": "cognitive"
+  },
+  {
+    "id": "alchemical.cognitive.incomparable-efficiency-upgrade",
+    "name": "Incomparable Efficiency Upgrade",
+    "type": "Simple",
+    "min_attribute": "wits",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.cognitive.synaptic-acceleration-node"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "raw": "6m"
+    },
+    "duration": "Indefinite",
+    "description": "Declare a non-combat physical extended action (writing, digging, crafting, reading): while committing Essence and working without breaks over five minutes per hour, multiply the speed by permanent Essence. Cannot shorten learning/advancement time.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 139
+    },
+    "exalt_type": "Alchemical",
+    "category": "cognitive"
+  },
+  {
+    "id": "alchemical.cognitive.logic-engineering-lobe",
+    "name": "Logic Engineering Lobe",
+    "type": "Reflexive",
+    "min_attribute": "wits",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.cognitive.abstract-abacus-implant"
+      ],
+      [
+        "alchemical.cognitive.synaptic-acceleration-node"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes per difficulty point"
+    },
+    "duration": "Instant",
+    "description": "Declare next turn's action; the Storyteller gives its likely difficulty. Spend 3 motes per -1 difficulty (once per turn); if the Exalt follows through next turn, the roll's difficulty drops accordingly (excess motes wasted if not).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 140
+    },
+    "exalt_type": "Alchemical",
+    "category": "cognitive"
+  },
+  {
+    "id": "alchemical.cognitive.eidetic-processing-core",
+    "name": "Eidetic Processing Core",
+    "type": "Permanent",
+    "min_attribute": "wits",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-wits",
+        "alchemical.general.sustained-augmentation-of-wits"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "N/A",
+    "description": "Perfectly recall anything experienced while the Core was installed; earlier memories need a reflexive Wits + Awareness (difficulty 1). Against memory-tampering magic, contest Wits + Awareness vs the aggressor's Manipulation + Performance to detect the truth.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 140
+    },
+    "exalt_type": "Alchemical",
+    "category": "cognitive"
+  }
+]

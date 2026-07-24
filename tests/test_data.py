@@ -45,13 +45,14 @@ def test_each_caste_keyed_by_its_own_id():
 
 def test_every_caste_has_a_description_and_anima_power():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.castes) == 24          # 5 Solar + 5 DB Aspects + 5 Abyssal + 4 Lunar + 5 Sidereal
+    assert len(rs.castes) == 29          # 5 Solar + 5 DB Aspects + 5 Abyssal + 4 Lunar + 5 Sidereal + 5 Alchemical
     for cd in rs.castes.values():
         assert cd.description and cd.anima_powers
     assert rs.castes["dawn"].description.startswith("Masters of war")
     assert rs.castes["fire"].exalt_type == "Dragon-Blooded"
     assert rs.castes["dusk"].exalt_type == "Abyssal"
     assert rs.castes["full-moon"].exalt_type == "Lunar"
+    assert rs.castes["orichalcum"].exalt_type == "Alchemical"
 
 
 def test_ox_body_technique_loads_repeatable_with_three_variants():
@@ -191,19 +192,22 @@ def test_full_melee_chain_is_legal_on_real_data():
 
 def test_spells_load_with_expected_circle_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.spells) == 43
+    assert len(rs.spells) == 81
     by_circle: dict = {}
     for s in rs.spells.values():
         by_circle[s.circle] = by_circle.get(s.circle, 0) + 1
     # Three Sorcery circles (Terrestrial gained the Dragon-Blooded Sworn Brothers'
     # Oath, p161) plus the three Necromancy circles authored in the Abyssal phase
-    # (Abyssal p224-229).
+    # (Abyssal p224-229), plus the two Alchemical weaving circles — 23 Man-Machine
+    # and 15 God-Machine protocols (Autochthonians CH4).
     assert by_circle == {SpellCircle.TERRESTRIAL: 10,
                          SpellCircle.CELESTIAL: 6,
                          SpellCircle.SOLAR: 4,
                          SpellCircle.SHADOWLANDS: 9,
                          SpellCircle.LABYRINTH: 7,
-                         SpellCircle.VOID: 7}
+                         SpellCircle.VOID: 7,
+                         SpellCircle.MAN_MACHINE: 23,
+                         SpellCircle.GOD_MACHINE: 15}
 
 
 def test_sworn_brothers_oath_loads(rs=None):
@@ -222,9 +226,11 @@ def test_each_circle_is_granted_by_its_sorcery_charm():
     rs = rules_db.load_ruleset(DATA_DIR)
     grants = {c.grants_circle for c in rs.charms.values()
               if c.grants_circle is not None}
-    # Every circle of both tracks now has an initiation Charm: the three Sorcery
-    # circles (Solar/DB Occult) and the three Necromancy circles (Abyssal Occult).
-    assert grants == set(TRACK_CIRCLES["sorcery"]) | set(TRACK_CIRCLES["necromancy"])
+    # Every circle of every track now has an initiation Charm: the three Sorcery
+    # circles (Solar/DB Occult), the three Necromancy circles (Abyssal Occult), and
+    # the two Alchemical weaving circles (the Man-/God-Machine Weaving Engines).
+    assert grants == (set(TRACK_CIRCLES["sorcery"]) | set(TRACK_CIRCLES["necromancy"])
+                      | set(TRACK_CIRCLES["weaving"]))
 
 
 def _sorcerer(charms) -> Character:

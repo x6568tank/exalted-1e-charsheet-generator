@@ -25,14 +25,22 @@ from . import validate
 
 def attribute_step(ruleset: RuleSet, character: Character, from_rating: int,
                    attr: AttributeName | None = None) -> int:
-    """XP to raise an Attribute from `from_rating` to the next dot. Discounted when
-    `attr` is one of the character's Caste Attributes (Lunar, p.251 — `(x4)-1`); the
-    default cost equals the ordinary rate for every splat without Caste Attributes.
-    `attr` is optional so pre-Lunar call sites that didn't pass it keep the flat rate
-    (correct for them, since only Lunar has an attribute_caste_favored override)."""
+    """XP to raise an Attribute one dot. Two independent discount axes, checked in
+    order because a caste_favored-mode splat also has `caste_attributes` populated:
+
+    * caste_favored mode (Alchemical, p.64) — a Caste- or Favored-Attribute takes the
+      `attribute_favored_caste` rate, matching a SPECIFIC Attribute.
+    * Caste Attributes (Lunar, p.251 — `(x4)-1`) — the `attribute_caste_favored` rate.
+
+    Every other splat (and every non-favored Attribute) pays the flat rate. `attr` is
+    optional so call sites that don't pass it keep the flat rate — correct for them,
+    since only these two splats override the Attribute rate at all."""
     xp = ruleset.xp_costs_for(character.exalt_type)
-    if attr is not None and attr in validate.caste_attributes(ruleset, character):
-        return xp.attribute_caste_favored.at(from_rating)
+    if attr is not None:
+        if attr in validate._caste_favored_attr_names(ruleset, character):
+            return xp.attribute_favored_caste.at(from_rating)
+        if attr in validate.caste_attributes(ruleset, character):
+            return xp.attribute_caste_favored.at(from_rating)
     return xp.attribute.at(from_rating)
 
 
@@ -85,7 +93,12 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     caste's favored Attribute category (Lunar's Attribute-keyed Charms, p.122 —
     the same collision `validate._min_trait_rating` warns about: 'melee' is both
     a category string and a valid AbilityName, so a Lunar Melee Charm's discount
-    must come from `min_attribute`, never from category-as-Ability)."""
+    must come from `min_attribute`, never from category-as-Ability).
+
+    A Charm belonging to ANOTHER splat — reachable only through the Eclipse-style
+    caste privilege (p.127) — then costs double ("usually 20 points"). The Caste/
+    Favoured discount is applied FIRST and the multiplier last, per the rules
+    authority's call: a foreign Charm gets full C/F treatment, then doubles."""
     xp = ruleset.xp_costs_for(character.exalt_type)
     if charm.min_attribute:
         caste_attr_category = validate._caste_favored_attribute_category(ruleset, character)
@@ -95,30 +108,73 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
         favored = ability is not None and ability in validate.caste_favored_abilities(ruleset, character)
     # Immaculate Order Charms (Dragon-Blooded) have their own, higher rate (p.292).
     if validate.is_immaculate_charm(charm):
-        return xp.new_immaculate_charm_favored_caste if favored else xp.new_immaculate_charm
-    return xp.new_charm_favored_caste if favored else xp.new_charm
+        cost = xp.new_immaculate_charm_favored_caste if favored else xp.new_immaculate_charm
+    else:
+        cost = xp.new_charm_favored_caste if favored else xp.new_charm
+    # An Eclipse/Moonshadow learning another splat's Charm pays a multiple (p.90).
+    caste = validate.foreign_charms_caste(ruleset, character)
+    if caste is not None and validate.is_foreign_charm(ruleset, character, charm):
+        cost *= caste.foreign_charm_xp_multiplier
+    return cost
 
 
 def spell_cost(ruleset: RuleSet, character: Character, spell=None) -> int:
-    """XP to learn a spell. Two pricing policies, chosen by the splat's data:
+    """XP to learn a spell. Three pricing policies, chosen by the splat's data:
 
-    - **Per-circle** (Lunar, p.251): when the splat's `new_spell_by_circle` maps the
-      spell's circle, that base applies, discounted by the learner's *caste* discount
-      (`CasteDefinition.spell_cost_discount` — a No Moon's −2). The Occult-Caste/
-      Favoured discount does NOT apply to such a splat.
+    - **Flat per-circle** (Alchemical, p.64): a circle listed in `spell_cost_by_circle`
+      prices at that rate — Man-Machine 12, God-Machine 14 — with no Occult discount.
+    - **Discounted per-circle** (Lunar, p.251): when the splat's `new_spell_by_circle`
+      maps the spell's circle, that base applies, reduced by the learner's *caste*
+      discount (`CasteDefinition.spell_cost_discount` — a No Moon's −2). The
+      Occult-Caste/Favoured discount does NOT apply to such a splat.
     - **Flat** (Solar/DB/Abyssal, core p.100/191): the flat `new_spell`, discounted to
       `new_spell_occult_favored_caste` when Occult is Caste/Favoured.
 
     `spell` is optional only so a caller with no spell in hand still gets the flat
-    price; per-circle pricing needs the spell to read its circle."""
+    price; both per-circle policies need the spell to read its circle."""
     xp = ruleset.xp_costs_for(character.exalt_type)
-    if xp.new_spell_by_circle and spell is not None and spell.circle in xp.new_spell_by_circle:
-        base = xp.new_spell_by_circle[spell.circle]
-        caste_def = ruleset.castes.get(character.caste)
-        discount = caste_def.spell_cost_discount if caste_def else 0
-        return base - discount
+    if spell is not None:
+        by_circle = xp.spell_cost_by_circle.get(spell.circle.value)
+        if by_circle is not None:
+            return by_circle
+        if spell.circle in xp.new_spell_by_circle:
+            base = xp.new_spell_by_circle[spell.circle]
+            caste_def = ruleset.castes.get(character.caste)
+            discount = caste_def.spell_cost_discount if caste_def else 0
+            return base - discount
     favored = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, character)
     return xp.new_spell_occult_favored_caste if favored else xp.new_spell
+
+
+def charm_slot_cost(ruleset: RuleSet, character: Character, *, dedicated: bool) -> int:
+    """XP to buy one more Alchemical Charm Slot (p.64) — Dedicated is cheaper (10)
+    than General (12). The Slot comes with one free Charm; you pay only for the Slot."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    return xp.new_charm_slot_dedicated if dedicated else xp.new_charm_slot_general
+
+
+def charm_slot_upgrade_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP to upgrade one Dedicated Charm Slot to a General one (p.64)."""
+    return ruleset.xp_costs_for(character.exalt_type).charm_slot_upgrade
+
+
+def retainer_charm_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP for one Panoply (retainer) Charm bought WITHOUT a Slot. A native Alchemical
+    pays the flat table rate (p.64, 6); an Eclipse/Moonshadow adding an Alchemical Charm
+    to their Panoply through the crossover pays their caste's flat rate (p.90, 8). No
+    Caste/Favored discount applies either way."""
+    if validate.uses_charm_slots(ruleset, character):
+        return ruleset.xp_costs_for(character.exalt_type).new_charm
+    crossover = validate.crossover_panoply_xp(ruleset, character)
+    if crossover is not None:
+        return crossover
+    return ruleset.xp_costs_for(character.exalt_type).new_charm
+
+
+def martial_arts_charm_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP for one Martial Arts Charm learned through Perfected Lotus Matrix (p.100,
+    flat 11). MA Charms are stored inside the Matrix and use no Charm Slot."""
+    return ruleset.xp_costs_for(character.exalt_type).new_martial_arts_charm
 
 
 def ox_body_cost(ruleset: RuleSet, character: Character) -> int:

@@ -36,6 +36,9 @@
     "exalt_type": "Solar",
     "label": "Eclipse",
     "caste_abilities": ["bureaucracy", "linguistics", "ride", "sail", "socialize"],
+    "foreign_charms": true,
+    "foreign_charm_xp_multiplier": 2,
+    "foreign_panoply_charm_xp": 8,
     "description": "Diplomats and bureaucrats, the Crowned Suns were the force that kept the Celestial Empire running smoothly. The Unconquered Sun chooses the Eclipse Caste from those who master the art of communication in all its forms.",
     "anima_powers": "By spending 10 motes and 1 Willpower and touching hands to seal an agreement, the character sanctifies an oath. Anyone who breaks it (including the Exalted) is cursed: a number of times equal to the Exalted's Essence at the time of the oath, the oathbreaker horribly botches a critical roll at the worst possible moment. Eclipses are also protected by ancient pacts, granting diplomatic immunity when dealing with spirits, demons and the Fair Folk."
   },
@@ -227,5 +230,45 @@
     ],
     "description": "Heaven's Gardeners, the Chosen of Endings serve the Maiden of Endings and the Violet Bier of Sorrows. They oversee and instigate the Celestially mandated ending of all things.",
     "anima_powers": "By spending 10 motes, the character adds one health level of damage to all attacks made by herself and her allies for the rest of the scene."
+  },
+  {
+    "id": "orichalcum",
+    "exalt_type": "Alchemical",
+    "label": "Orichalcum",
+    "caste_attributes": ["strength", "charisma", "intelligence"],
+    "description": "The Shining Ones (Archons): brilliant, personable leaders and sages, the brightest examples of the Great Maker's inspiration and the Tripartite's foremost experts on dogma and abstract policy.",
+    "anima_powers": "For a reflexive cost of 5 motes, an Orichalcum Caste may charge their body with golden lightning for a scene. Whenever they strike in close combat this energy surges at the point of contact, and all projectiles crackle with a destructive nimbus as they leave the Exalt's hand or weapon. This power adds the character's Essence to the damage of all attacks."
+  },
+  {
+    "id": "moonsilver",
+    "exalt_type": "Alchemical",
+    "label": "Moonsilver",
+    "caste_attributes": ["dexterity", "appearance", "wits"],
+    "description": "The Mirrorblades (Proteans): the hidden spies, assassins, scouts and secret police of Autochthonian society, renowned for the quickness and flexibility of their minds and bodies alike.",
+    "anima_powers": "For a reflexive cost of 5 motes, a Moonsilver Caste may suffuse her being with the flowing grace of quicksilver for a scene, her quickened senses perceiving the world in slow motion. This power adds (the character's Essence rating x 2) to her base initiative for the scene."
+  },
+  {
+    "id": "jade",
+    "exalt_type": "Alchemical",
+    "label": "Jade",
+    "caste_attributes": ["stamina", "charisma", "wits"],
+    "description": "The Stone Hands (Executives): the approachable middle management and frontline officers of the Great Maker, and the public face of the Alchemical Exalted as a whole.",
+    "anima_powers": "By reflexively spending 5 motes, a Jade Caste can fortify their flesh against injury for a scene, transmuting their claylike flesh into a sheath of flexible stone. This power adds the character's Essence to their natural bashing and lethal soak for the scene."
+  },
+  {
+    "id": "starmetal",
+    "exalt_type": "Alchemical",
+    "label": "Starmetal",
+    "caste_attributes": ["dexterity", "manipulation", "intelligence"],
+    "description": "The Plot Weavers (Viziers): social engineers, motivational theorists, psychological operatives and subtle backroom plotters who manage the Autochthonian intelligence services and counsel the Tripartite from the shadows.",
+    "anima_powers": "For a reflexive cost of 5 motes, a Starmetal Caste can align their soul and Essence with the Design of the Great Maker for a scene, a prismatic halo trailing slightly ahead of them. This power adds (the Exalt's Essence / 2, rounded up) to all attack, damage and base initiative rolls for the scene."
+  },
+  {
+    "id": "soulsteel",
+    "exalt_type": "Alchemical",
+    "label": "Soulsteel",
+    "caste_attributes": ["stamina", "manipulation", "perception"],
+    "description": "The Grim Watch (Sentinels): the fearsome, all-seeing enforcers of law and dogma, tasked with hunting down and eliminating Autochthonian dissidents and gremlins.",
+    "anima_powers": "By reflexively spending 5 motes, a Soulsteel Caste may stir the souls trapped in their frame, generating an aura of numbing dread for a scene. This power adds (the Exalt's Essence / 2, rounded up) to the difficulty of all attacks targeting the Alchemical. Even automatons and the walking dead suffer this penalty; only living beings with perfect immunity to fear may ignore it."
   }
 ]

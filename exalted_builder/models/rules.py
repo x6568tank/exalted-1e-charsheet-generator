@@ -95,14 +95,22 @@ class SpellCircle(str, Enum):
     SHADOWLANDS = "Shadowlands"
     LABYRINTH = "Labyrinth"
     VOID = "Void"
+    # Alchemical weaving protocols — the Machine God's sorcery-analogue (Autochthonians
+    # CH4). Man-Machine ~ Terrestrial Circle, God-Machine ~ Celestial Circle in power.
+    # Gated ONLY by which Weaving Engine Charm is installed, exactly as the sorcery/
+    # necromancy circles are gated by their initiation Charms.
+    MAN_MACHINE = "Man-Machine"
+    GOD_MACHINE = "God-Machine"
 
 
 class CircleKind(str, Enum):
-    """Which of the two magic disciplines a circle belongs to. Matches
-    ExaltDefinition.magic_track. Sorcery and necromancy never cross-grant: a known
-    Sorcery Charm unlocks only sorcery circles, and vice versa (Abyssal p.223)."""
+    """Which of the magic disciplines a circle belongs to. Matches
+    ExaltDefinition.magic_track. The tracks never cross-grant: a known Sorcery Charm
+    unlocks only sorcery circles, a Weaving Engine only weaving circles, etc.
+    (Abyssal p.223; Autochthonians CH4 — "Non-Alchemicals cannot learn weaving")."""
     SORCERY = "sorcery"
     NECROMANCY = "necromancy"
+    WEAVING = "weaving"
 
 
 # The three circles of each magic track, ordered ascending in power. Keyed by the
@@ -113,6 +121,7 @@ class CircleKind(str, Enum):
 TRACK_CIRCLES: dict[str, tuple["SpellCircle", ...]] = {
     CircleKind.SORCERY.value: (SpellCircle.TERRESTRIAL, SpellCircle.CELESTIAL, SpellCircle.SOLAR),
     CircleKind.NECROMANCY.value: (SpellCircle.SHADOWLANDS, SpellCircle.LABYRINTH, SpellCircle.VOID),
+    CircleKind.WEAVING.value: (SpellCircle.MAN_MACHINE, SpellCircle.GOD_MACHINE),
 }
 
 
@@ -165,6 +174,24 @@ class CharmVariant(BaseModel):
     description: str = ""
 
 
+class Submodule(BaseModel):
+    """One purchasable upgrade to a single Alchemical Charm (p.89). A submodule
+    permanently improves its parent Charm; the character has access to it whenever
+    that Charm is installed. Dual cost: `bp_cost` bonus points at chargen OR
+    `xp_cost` experience post-lock (the page prints both, e.g. "2 bonus points or 6
+    experience points"). May carry its own minimum Essence and/or a minimum
+    Attribute gate (e.g. the omnidextrous submodule "requires Wits 3+")."""
+    model_config = ConfigDict(frozen=True)
+    key: str                               # stable within the parent Charm
+    name: str
+    bp_cost: int = Field(default=0, ge=0)
+    xp_cost: int = Field(default=0, ge=0)
+    min_essence: int = Field(default=1, ge=1)
+    min_attribute: str = ""                # optional extra Attribute gate (AttributeName value)
+    min_attribute_rating: int = Field(default=0, ge=0)
+    description: str = ""
+
+
 class Charm(BaseModel):
     model_config = ConfigDict(frozen=True)  # rules data is immutable at runtime
 
@@ -207,6 +234,12 @@ class Charm(BaseModel):
     # should set at most one of min_attribute / an Ability-resolving category.
     min_attribute: str = ""
     min_essence: int = Field(default=1, ge=1)
+    # Alchemical Charms only (p.88-91): the Personal Essence committed to *install*
+    # the Charm in a Charm Slot (distinct from `cost`, the activation cost paid in
+    # play). Committed for as long as the Charm is installed, so the sum over a
+    # character's installed Charms is capped by the Personal pool — enforced at
+    # chargen for Alchemicals. 0 for every non-Alchemical Charm.
+    installation_cost: int = Field(default=0, ge=0)
     # Repeatable Charms (Ox-Body Technique; Deadly Beastman Transformation, Lunar
     # p.124-127): may be bought once per dot of this Ability/Attribute (the cap),
     # each purchase choosing from `variants`. The special value "essence" caps on
@@ -232,6 +265,20 @@ class Charm(BaseModel):
     # Sorcery). Lets engine.validate gate known spells on a known initiation Charm of
     # their circle. Track-agnostic: a necromancy initiation Charm sets it the same way.
     grants_circle: Optional[SpellCircle] = None
+    # Charms that even the Eclipse/Moonshadow generalist rule (p.127) may NOT reach.
+    # The Alchemical Weaving Engines set this: Autochthonians CH4 states outright that
+    # "Non-Alchemicals cannot learn weaving Charms", so a foreign learner must never
+    # acquire an engine (and thereby its Man-/God-Machine circle). Default False —
+    # ordinary foreign-learnable Charms are unaffected.
+    no_foreign_learning: bool = False
+    # Alchemical Charms only (p.89): the upgrades available for this Charm. Empty
+    # for every other splat's Charms and for Alchemical Charms with no listed
+    # submodule (most of them, per the book).
+    submodules: list[Submodule] = Field(default_factory=list)
+    # False bars this Charm from Alchemical Arrays (p.159) — the Auxiliary Essence
+    # Storage Unit and the Man-/God-Machine Weaving Engines say so explicitly. True
+    # for every ordinary Charm (Arrays otherwise accept any Attribute-based Charm).
+    arrayable: bool = True
     description: str = ""
     source: Source = Field(default_factory=Source)
 
@@ -287,6 +334,23 @@ class CasteDefinition(BaseModel):
     # floor which is the same for every aspect, so they live here rather than on
     # ChargenBudgets. Empty for every caste with no house-specific floor.
     required_min_abilities: list[AbilityMinimum] = Field(default_factory=list)
+    # The Eclipse Caste generalist rule (core p.127): with a willing tutor, this
+    # caste may learn OTHER splats' Charms, at `foreign_charm_xp_multiplier` times
+    # the normal experience. False for every other caste, so the ability is data,
+    # not a splat check — the Abyssal Moonshadow parallel is a one-line data change.
+    # The chargen half of the rule ("may not start the game knowing" them without
+    # Storyteller permission) is Character.st_foreign_charms.
+    foreign_charms: bool = False
+    # Only meaningful when foreign_charms is True. p.127: "Such Charms cost double
+    # the normal experience to learn (usually 20 points) and use." The *use* half
+    # (mote costs) is play-time math and deliberately not modelled.
+    foreign_charm_xp_multiplier: int = Field(default=2, ge=1)
+    # Alchemical crossover (Autochthonians p.90): an Eclipse/Moonshadow learning an
+    # Alchemical Charm gains a General Charm Slot with it (the 20-XP path, priced via
+    # foreign_charm_xp_multiplier), but may instead add the Charm to their Panoply
+    # (no Slot) for this flat rate. None = the caste has no Alchemical-crossover Panoply
+    # rate. Only meaningful alongside foreign_charms.
+    foreign_panoply_charm_xp: Optional[int] = None
     description: str = ""                   # a quick flavour blurb for the caste
     anima_powers: str = ""
 
@@ -477,6 +541,11 @@ class ExperienceCosts(BaseModel):
     # until a splat's data row overrides it; only splats with Caste Attributes
     # (Lunar) ever have an Attribute qualify. Mirrors BonusPointCosts.attribute_caste_favored.
     attribute_caste_favored: LinearCost = Field(default_factory=lambda: LinearCost(coeff=4))
+    # Alchemical (Autochthonians p.64): a Caste- or Favored-Attribute costs
+    # (current rating x 4) - 1. Only caste_favored-mode splats have Caste/Favored
+    # ATTRIBUTES, so this rate is inert for every category-mode splat (their
+    # caste-favored attribute SET is empty — validate._caste_favored_attr_names).
+    attribute_favored_caste: LinearCost = Field(default_factory=lambda: LinearCost(coeff=4, offset=-1))
     ability: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2))
     ability_favored_caste: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2, offset=-1))
     essence: LinearCost = Field(default_factory=lambda: LinearCost(coeff=8))
@@ -507,6 +576,18 @@ class ExperienceCosts(BaseModel):
     # effect for such a splat). Empty (every other splat) => the flat new_spell path.
     new_spell_by_circle: dict[SpellCircle, int] = Field(default_factory=dict)
     foreign_charm: int = 20                # spirit Charms / other Exalt types; Eclipse only (gated in engine)
+    # Per-circle spell-cost override, keyed by SpellCircle value. When a spell's
+    # circle is present, it wins over the flat new_spell rate (and ignores the Occult
+    # discount). Alchemical weaving protocols price this way — Man-Machine 12,
+    # God-Machine 14 (Autochthonians p.64). Empty for every sorcery/necromancy splat.
+    spell_cost_by_circle: dict[str, int] = Field(default_factory=dict)
+    # Alchemical Charm-Slot economy (p.64). A bought Slot comes with one free Charm;
+    # you pay for the SLOT, not the Charm. `new_charm` here is the flat Panoply
+    # (retainer) Charm cost (6) — a Charm bought WITHOUT a Slot.
+    new_charm_slot_general: int = 12
+    new_charm_slot_dedicated: int = 10
+    charm_slot_upgrade: int = 2            # upgrade one Dedicated Slot to General
+    new_martial_arts_charm: int = 11       # gated on Perfected Lotus Matrix (transition deferred)
 
 
 class ChargenBudgets(BaseModel):
@@ -514,6 +595,23 @@ class ChargenBudgets(BaseModel):
     # Which category gets which pool is derived from the per-category spend, not stored.
     attribute_pools: tuple[int, int, int] = (8, 6, 4)
     attribute_base: int = 1
+    # How the three attribute_pools are allocated:
+    #   "category"      — the default for every prior splat: the pools are matched to
+    #                     the three prioritized categories (Physical/Social/Mental) by
+    #                     spend, and each category's caste-favoredness (Lunar) only
+    #                     affects the over-spend RATE.
+    #   "caste_favored" — Alchemical (p.60): the pools are NOT category pools. They are
+    #                     assigned in FIXED order to three disjoint attribute SETS —
+    #                     the caste's Caste Attributes (pools[0]), the player's chosen
+    #                     Favored Attributes (pools[1]), and the remaining attributes
+    #                     (pools[2]). Caste and Favored attributes share the discounted
+    #                     over-spend rate (bonus_costs.attribute_caste_favored).
+    attribute_mode: str = "category"
+    # caste_favored mode only: how many Favored Attributes the player selects (3 for
+    # Alchemical), and the minimum rating each Caste Attribute must reach ("none may
+    # have a rating lower than 2", p.60). 0 = not applicable (every category-mode splat).
+    attribute_favored_count: int = 0
+    attribute_caste_min: int = 0
 
     # Required minimum Abilities the character must meet (a floor spent from the
     # pool, not free extras). Dragon-Blooded Dynastic schooling (p.151); empty for
@@ -547,6 +645,16 @@ class ChargenBudgets(BaseModel):
 
     charm_count: int = 10
     charm_min_caste_favored: int = 5
+    # Charm Slot system (Alchemical, p.88-89): instead of pricing Charms per pick,
+    # the character has a fixed number of General Slots (hold any Charm) and
+    # Dedicated Slots (hold only a Caste/Favored-Attribute Charm); every Slot comes
+    # with one free Charm. These are the FREE (chargen) slot counts. When either is
+    # > 0 the splat is slot-based: charm accounting switches from per-pick to
+    # per-slot (extra General/Dedicated slots cost bonus_costs.charm/charm_favored_caste),
+    # and the caste-favored charm rule becomes "non-Caste/Favored Charms must fit
+    # the General Slots". 0/0 (every other splat) keeps the per-pick model.
+    charm_slots_general: int = 0
+    charm_slots_dedicated: int = 0
     # The alternative Immaculate chargen path (Dragon-Blooded, p.151): a character
     # learning Immaculate martial arts takes this many Charms instead of charm_count,
     # all from a single elemental tree, and the charm_min_caste_favored rule is
@@ -560,6 +668,14 @@ class ChargenBudgets(BaseModel):
     willpower_start_cap: int = 8           # may not start above this...
     willpower_cap_exception_virtue: int = 4   # ...unless at least
     willpower_cap_exception_count: int = 2    # this many Virtues are >= 4
+
+    @field_validator("attribute_mode")
+    @classmethod
+    def _check_attribute_mode(cls, v: str) -> str:
+        if v not in ("category", "caste_favored"):
+            raise ValueError(
+                f"attribute_mode must be category/caste_favored, got {v!r}")
+        return v
 
 
 class EssencePoolSpec(BaseModel):

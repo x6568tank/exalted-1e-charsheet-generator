@@ -21,5 +21,14 @@
     "new_charm_favored_caste": 9,
     "new_college": 5,
     "college": {"coeff": 3}
+  },
+  "Alchemical": {
+    "essence": {"coeff": 9},
+    "new_charm": 6,
+    "new_charm_slot_general": 12,
+    "new_charm_slot_dedicated": 10,
+    "charm_slot_upgrade": 2,
+    "new_martial_arts_charm": 11,
+    "spell_cost_by_circle": {"Man-Machine": 12, "God-Machine": 14}
   }
 }

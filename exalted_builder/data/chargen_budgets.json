@@ -112,5 +112,22 @@
       {"abilities": ["stealth"], "rating": 1},
       {"abilities": ["archery", "melee", "thrown"], "rating": 1}
     ]
+  },
+    "Alchemical": {
+    "attribute_mode": "caste_favored",
+    "attribute_pools": [9, 6, 4],
+    "attribute_favored_count": 3,
+    "attribute_caste_min": 2,
+    "ability_dots": 23,
+    "ability_min_caste_favored": 0,
+    "favored_count": 0,
+    "background_dots": 13,
+    "charm_count": 8,
+    "charm_min_caste_favored": 0,
+    "charm_slots_general": 4,
+    "charm_slots_dedicated": 4,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 15
   }
 }

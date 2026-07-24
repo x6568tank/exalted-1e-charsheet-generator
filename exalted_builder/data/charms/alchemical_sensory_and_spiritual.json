@@ -1,0 +1,366 @@
+[
+  {
+    "id": "alchemical.sensory-and-spiritual.optical-enhancement",
+    "name": "Optical Enhancement",
+    "type": "Permanent",
+    "min_attribute": "perception",
+    "min_essence": 2,
+    "installation_cost": 2,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-perception",
+        "alchemical.general.sustained-augmentation-of-perception"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "N/A",
+    "submodules": [
+      {
+        "key": "flash-shutters",
+        "name": "Flash Shutters",
+        "bp_cost": 3,
+        "xp_cost": 6,
+        "description": "Auto-deploying lids block visual overstimulation (and negate thermal-vision heat penalties)."
+      },
+      {
+        "key": "light-intensification-filters",
+        "name": "Light-Intensification Filters",
+        "bp_cost": 3,
+        "xp_cost": 6,
+        "description": "See clearly in all but absolute darkness; but bright light imposes murky-vision penalties and -1 to wound penalties (negated by Flash Shutters)."
+      },
+      {
+        "key": "microscopic-lens",
+        "name": "Microscopic Lens",
+        "bp_cost": 3,
+        "xp_cost": 6,
+        "description": "Magnify small objects up to (Perception x 10) times; diceless refocus. Not simultaneous with Telescopic Lens."
+      },
+      {
+        "key": "telescopic-lens",
+        "name": "Telescopic Lens",
+        "bp_cost": 3,
+        "xp_cost": 6,
+        "description": "Focus on distant objects up to (Perception x 25) times; diceless refocus, narrowing peripheral vision accordingly."
+      },
+      {
+        "key": "ultraperipheral-awareness",
+        "name": "Ultraperipheral Awareness",
+        "bp_cost": 3,
+        "xp_cost": 6,
+        "description": "Jeweled receptors give 360-degree motion-sensitive sight; a reflexive Perception + Awareness lets the Exalt defend against rear attacks he could see."
+      },
+      {
+        "key": "thermal-vision",
+        "name": "Thermal Vision",
+        "bp_cost": 3,
+        "xp_cost": 6,
+        "description": "Switch to heat vision (3 motes, no color/detail): navigate darkness to (Perception x 10)-yard clear radius, spot warm beings (+1 die), blinded within 2 yards of intense heat. Requires Essence 3.",
+        "min_essence": 3
+      },
+      {
+        "key": "mass-penetrating-scan",
+        "name": "Mass-Penetrating Scan",
+        "bp_cost": 3,
+        "xp_cost": 6,
+        "description": "Spend 3 motes to see through solid matter for a turn along a one-yard tunnel of vision (pan with Perception + Awareness). Requires Essence 4.",
+        "min_essence": 4
+      }
+    ],
+    "description": "Ocular implants. Purchasing awards TWO of the listed modifications free; each further modification costs 3 bonus points or 6 experience points. (The 'two free with the Charm' allotment is not auto-tracked here; a build that takes only two need not pay for them.)",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 124
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  },
+  {
+    "id": "alchemical.sensory-and-spiritual.mobile-sensory-drone",
+    "name": "Mobile Sensory Drone",
+    "type": "Simple",
+    "min_attribute": "perception",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-perception",
+        "alchemical.general.sustained-augmentation-of-perception"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "raw": "5m"
+    },
+    "duration": "Indefinite",
+    "submodules": [
+      {
+        "key": "autonomous",
+        "name": "Autonomous",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "The drone follows simple standing orders on its own (Intelligence 1, one dot in an Ability the Exalt has); flees if attacked unless ordered otherwise."
+      },
+      {
+        "key": "communication",
+        "name": "Communication",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "The drone can transmit and receive the Alchemical's voice (with distortion)."
+      },
+      {
+        "key": "hovering",
+        "name": "Hovering",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "The drone floats/flies on Essence at running speed instead of scuttling."
+      },
+      {
+        "key": "injection-needle",
+        "name": "Injection Needle",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "A retractable needle stores one drug dose (requires Multifunction Hypodermic Apparatus); injects via the drone's Dexterity + the Exalt's Medicine."
+      },
+      {
+        "key": "playback",
+        "name": "Playback",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "The drone records all it experiences to a memory crystal, added to the Exalt's mind when it returns to its socket."
+      },
+      {
+        "key": "stealth",
+        "name": "Stealth",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "While still a full turn, the drone gains Optical Shroud concealment; anchored, it stays hidden even if its perch moves."
+      },
+      {
+        "key": "flesh-burrowing",
+        "name": "Flesh-Burrowing",
+        "bp_cost": 2,
+        "xp_cost": 6,
+        "description": "The drone can slice into a victim (drone's Dexterity + Exalt's Medicine, difficulty 2) to ride their senses; surgical removal deals a lethal level. Requires Essence 3.",
+        "min_essence": 3
+      }
+    ],
+    "description": "An eye replaced by a detachable eight-legged sensory orb, telepathically controlled, relaying all the Exalt's senses (each drone action costs an action, with cumulative multiple-action penalties). Drone: Dexterity = Exalt's Dex + Essence; Perception/Abilities = Exalt's; Stamina/soak/health = Essence; twice the Exalt's speed; range Essence miles; serves as an arcane link. Extra installations (past the number of eyes) need no installation cost.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 125
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  },
+  {
+    "id": "alchemical.sensory-and-spiritual.chemical-analysis-system",
+    "name": "Chemical Analysis System",
+    "type": "Simple",
+    "min_attribute": "perception",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-perception",
+        "alchemical.general.sustained-augmentation-of-perception"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "raw": "1m"
+    },
+    "duration": "One hour",
+    "description": "Superhuman taste and smell (roughly (Perception x 10) times normal sensitivity/range): detect trace chemicals, poison in food, subtle pheromones and the like. Largely narrative.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 127
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  },
+  {
+    "id": "alchemical.sensory-and-spiritual.tympanal-receptor-upgrade",
+    "name": "Tympanal Receptor Upgrade",
+    "type": "Simple",
+    "min_attribute": "perception",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-perception",
+        "alchemical.general.sustained-augmentation-of-perception"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "raw": "3m"
+    },
+    "duration": "One hour",
+    "description": "Cochlear implants extend hearing to ultrasonic/subsonic ranges, adding permanent Essence (an artificial specialty, may exceed +3, not cumulative with other specialties) to all sound-based Perception rolls. Spatial awareness is so keen the Exalt suffers only low-light-vision penalties while blind. Cannot be deafened by sensitivity.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 127
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  },
+  {
+    "id": "alchemical.sensory-and-spiritual.deception-recognition-module",
+    "name": "Deception Recognition Module",
+    "type": "Reflexive",
+    "min_attribute": "perception",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.sensory-and-spiritual.chemical-analysis-system",
+        "alchemical.sensory-and-spiritual.tympanal-receptor-upgrade"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Instant",
+    "description": "Hear the vibrations or scent the biochemistry of a lie: roll Perception + (Awareness or Investigation) vs the target's Essence to know whether they believe a statement true or false (deceptive half-truths and any partly-false statement register as false). With the microscopic-lens upgrade, can scrutinize written text (vs the author's Manipulation).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 128
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  },
+  {
+    "id": "alchemical.sensory-and-spiritual.interpolative-situational-analysis-processor",
+    "name": "Interpolative Situational Analysis Processor",
+    "type": "Simple",
+    "min_attribute": "wits",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-wits"
+      ],
+      [
+        "alchemical.general.sustained-augmentation-of-wits"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "raw": "4m"
+    },
+    "duration": "Instant",
+    "description": "A cognitive cluster filters all sensory data: roll Wits + (Awareness or Investigation); each success reveals or recalls one pertinent detail (including from earlier scenes) plus speculative connective hints. Deals in plausibility, so heavy misdirection can yield false suppositions.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 128
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  },
+  {
+    "id": "alchemical.sensory-and-spiritual.soulgem-detector",
+    "name": "Soulgem Detector",
+    "type": "Simple",
+    "min_attribute": "perception",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-perception",
+        "alchemical.general.sustained-augmentation-of-perception"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "raw": "3m"
+    },
+    "duration": "One scene",
+    "description": "Sense every soulgem within (Perception x 10) yards, whether it holds a soul and whether it is set in a mortal, an Exalt, or no one (focus on one gem, diceless, to read its Essence pattern). Lead-capped gems are hidden. Higher variants extend range to (Perception x 100) yards (Perception 3/Essence 5) or (Perception) miles (Perception 6/Essence 8).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 128
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  },
+  {
+    "id": "alchemical.sensory-and-spiritual.cross-phase-scanner",
+    "name": "Cross-Phase Scanner",
+    "type": "Simple",
+    "min_attribute": "perception",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-perception",
+        "alchemical.general.sustained-augmentation-of-perception"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes per sense"
+    },
+    "duration": "One scene",
+    "description": "For every 2 motes, perceive spirits, sanctum entrances and other incorporeal beings/effects as if solid with one sense; the Exalt never confuses immaterial for material.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 129
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  },
+  {
+    "id": "alchemical.sensory-and-spiritual.transphase-engine",
+    "name": "Transphase Engine",
+    "type": "Supplemental",
+    "min_attribute": "wits",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.sensory-and-spiritual.cross-phase-scanner"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "raw": "4m"
+    },
+    "duration": "Instant",
+    "description": "Briefly dematerialize during an instant dice action: strike a dematerialized being, dodge a material attack as a limited perfect defense, parry immaterial attacks, or phase through a door/floor. Integrated mass sensors abort the shift if the Exalt couldn't fully cross an obstruction in the instant.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 129
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  },
+  {
+    "id": "alchemical.sensory-and-spiritual.god-ward-projector",
+    "name": "God-Ward Projector",
+    "type": "Simple",
+    "min_attribute": "charisma",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.sensory-and-spiritual.cross-phase-scanner"
+      ]
+    ],
+    "cost": {
+      "motes": 30,
+      "willpower": 2,
+      "raw": "30m, 2wp"
+    },
+    "duration": "Instant",
+    "description": "Emit a spherical ward up to (Charisma x 5) yards radius, impenetrable to dematerialized spirits and blocking outside spirits from affecting those within (unless their Essence exceeds the Exalt's Charisma). Spirits inside when it hardens may act but cannot re-enter if they leave; materialized or possessing spirits pass freely. Persists until the Alchemical dies or leaves it.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 129
+    },
+    "exalt_type": "Alchemical",
+    "category": "sensory_and_spiritual"
+  }
+]

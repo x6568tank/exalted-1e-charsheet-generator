@@ -1,0 +1,210 @@
+[
+  {
+    "id": "alchemical.stealth-and-disguise.integrated-artifact-transmogrifier",
+    "name": "Integrated Artifact Transmogrifier",
+    "type": "Reflexive",
+    "min_attribute": "appearance",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote per Charm or 5 motes"
+    },
+    "duration": "Indefinite",
+    "description": "Retracts visible Charms under the skin (1 mote each or 5 motes for all), deactivating non-permanent ones and freeing their commitment. Hidden Charms evade Essence sight unless the observer's Essence is 2+ higher. Essence 2-5 Alchemicals may also suppress all visible Charms and spend 1 Willpower to appear fully human (bleeding blood-like fluid) for a day. May be Comboed despite its duration.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 120
+    },
+    "exalt_type": "Alchemical",
+    "category": "stealth_and_disguise"
+  },
+  {
+    "id": "alchemical.stealth-and-disguise.essence-dormancy-mode",
+    "name": "Essence Dormancy Mode",
+    "type": "Reflexive",
+    "min_attribute": "appearance",
+    "min_essence": 3,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.stealth-and-disguise.integrated-artifact-transmogrifier"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "raw": "3m"
+    },
+    "duration": "Indefinite",
+    "description": "Shields the Essence reservoir, lowering permanent Essence by any amount (min 1) for the duration, hiding the Exalt's nature from Essence sight. Charms above the dampened Essence shut off (disguise/medical concealment Charms exempt); at Essence 1 all Essence and the anima go dark and undetectable. May be Comboed despite its duration.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 120
+    },
+    "exalt_type": "Alchemical",
+    "category": "stealth_and_disguise"
+  },
+  {
+    "id": "alchemical.stealth-and-disguise.husk-sculpting-apparatus",
+    "name": "Husk-Sculpting Apparatus",
+    "type": "Simple",
+    "min_attribute": "appearance",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.stealth-and-disguise.integrated-artifact-transmogrifier"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "raw": "10m, 1wp"
+    },
+    "duration": "Instant",
+    "description": "Recalibrate physical appearance (real and permanent): approximate someone (+3 dice to mundane impersonation, not an exact copy), set temporary Appearance 0-permanent (Appearance 0 horrors add +2 intimidation dice), change height by six inches, alter pigment/texture/scars, or (Essence 3+) swap or remove gender. Roll Appearance + Craft (Body); successes set how many separate changes; a botch forces Appearance 0 for a day.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 121
+    },
+    "exalt_type": "Alchemical",
+    "category": "stealth_and_disguise"
+  },
+  {
+    "id": "alchemical.stealth-and-disguise.voice-distortion-field",
+    "name": "Voice Distortion Field",
+    "type": "Reflexive",
+    "min_attribute": "manipulation",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "raw": "1m"
+    },
+    "duration": "Varies",
+    "description": "Adjust pitch and modulation: duplicate a heard voice (Manipulation + Performance, difficulty 2-4), adopt an anonymous voice (no roll), mimic or play back any heard sound (1 mote per cluster), layer one subliminal emotional tone (+1 die, artificial specialty, to matching voice-based Social rolls), or amplify the voice to carry (Manipulation x 100) yards for a turn.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 122
+    },
+    "exalt_type": "Alchemical",
+    "category": "stealth_and_disguise"
+  },
+  {
+    "id": "alchemical.stealth-and-disguise.pheromone-regulation-systems",
+    "name": "Pheromone Regulation Systems",
+    "type": "Simple",
+    "min_attribute": "charisma",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "raw": "1m"
+    },
+    "duration": "Indefinite",
+    "description": "Exude a psychoactive scent tuned to one emotion, adding +1 die (artificial specialty) to matching Social rolls against targets within Charisma yards (detecting it needs Perception + Awareness difficulty 6). Alternatively mask all scent: mundane scent-tracking fails and supernatural tracking is at +Essence difficulty. One or the other, not both.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 122
+    },
+    "exalt_type": "Alchemical",
+    "category": "stealth_and_disguise"
+  },
+  {
+    "id": "alchemical.stealth-and-disguise.optical-shroud",
+    "name": "Optical Shroud",
+    "type": "Reflexive",
+    "min_attribute": "appearance",
+    "min_essence": 2,
+    "installation_cost": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "Indefinite",
+    "description": "A crystal lattice renders the Exalt invisible while she stays still (small movements like drawing a weapon are fine; moving or striking breaks it). Spotting the mirage needs Perception + Awareness (standard to difficulty 5). Attackers/defenders vs an invisible character lose two successes. No concealment from direct Essence sight, but blocks Measure the Wind from pinpointing her.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 122
+    },
+    "exalt_type": "Alchemical",
+    "category": "stealth_and_disguise"
+  },
+  {
+    "id": "alchemical.stealth-and-disguise.aura-dampening-component",
+    "name": "Aura-Dampening Component",
+    "type": "Permanent",
+    "min_attribute": "appearance",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.stealth-and-disguise.optical-shroud"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "N/A",
+    "description": "White-jade baffles let the Exalt spend one extra mote on any Transitory Augmentation, anima power, or disguise/concealment Charm to treat all Peripheral Essence spent on it as Personal, so the expenditure never flares the anima and gives her away.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 122
+    },
+    "exalt_type": "Alchemical",
+    "category": "stealth_and_disguise"
+  },
+  {
+    "id": "alchemical.stealth-and-disguise.dynamic-cloaking-module",
+    "name": "Dynamic Cloaking Module",
+    "type": "Simple",
+    "min_attribute": "appearance",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.stealth-and-disguise.optical-shroud"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "raw": "5m, 1wp"
+    },
+    "duration": "One hour",
+    "description": "Adaptive camouflage that moves with the Exalt (a faint heat-wave silhouette). Noticing him needs Perception + Awareness at difficulty of his Essence (+2 if he stays nearly motionless a full turn). Ranged attackers lose Essence successes and cannot target him past 100 yards without a Charm or strong stunt. No concealment from direct Essence sight; blocks Measure the Wind pinpointing.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 123
+    },
+    "exalt_type": "Alchemical",
+    "category": "stealth_and_disguise"
+  },
+  {
+    "id": "alchemical.stealth-and-disguise.essence-veil",
+    "name": "Essence Veil",
+    "type": "Permanent",
+    "min_attribute": "appearance",
+    "min_essence": 4,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.stealth-and-disguise.dynamic-cloaking-module"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "N/A",
+    "description": "Improves Optical Shroud and Dynamic Cloaking Module so the Exalt is as hard to detect by Essence sight and magic as by sight, and quiets his sounds, raising the difficulty to notice him by hearing by his Essence.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 123
+    },
+    "exalt_type": "Alchemical",
+    "category": "stealth_and_disguise"
+  }
+]

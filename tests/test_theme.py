@@ -39,9 +39,21 @@ def test_sidereal_palette_is_purple():
     assert r > g and b > g
 
 
+def test_alchemical_palette_is_brass():
+    pal = theme.palette("Alchemical")
+    assert pal.splat_label == "Alchemical"
+    assert pal.fam == "yellow"
+    # brass is a warm metallic gold, distinct from the Solar amber accent.
+    assert pal.accent != theme.palette("Solar").accent
+    r, g, b = (int(pal.accent[i:i + 2], 16) for i in (1, 3, 5))
+    assert r > g > b                              # warm gold: red leads, blue trails
+
+
 def test_unknown_or_missing_splat_falls_back_to_solar():
     assert theme.palette(None).accent == theme.palette("Solar").accent
-    assert theme.palette("Alchemical").accent == theme.palette("Solar").accent
+    # Mortals are the next splat with no palette of their own (see CLAUDE.md's
+    # colour table); Sidereal and Alchemical are both themed now.
+    assert theme.palette("Mortal").accent == theme.palette("Solar").accent
 
 
 def test_card_class_helpers_track_the_family():

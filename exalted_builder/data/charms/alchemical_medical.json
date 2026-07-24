@@ -1,0 +1,394 @@
+[
+  {
+    "id": "alchemical.medical.sustenance-replication-engine",
+    "name": "Sustenance Replication Engine",
+    "type": "Permanent",
+    "min_attribute": "stamina",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.sustained-augmentation-of-stamina"
+      ]
+    ],
+    "cost": {
+      "raw": "None / 5 motes"
+    },
+    "duration": "Permanent / One minute",
+    "description": "An optimized digestion: no waste, and required food divided by Essence. Essence 5+ can forgo food entirely, synthesizing nutrients for 5 motes/day upkeep. Secondary mode bleeds a bland nutrient paste (5 motes + a minute per mortal meal) that carries little Essence.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 130
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.biofunction-inhibitor",
+    "name": "Biofunction Inhibitor",
+    "type": "Simple",
+    "min_attribute": "stamina",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-stamina",
+        "alchemical.general.sustained-augmentation-of-stamina"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "raw": "5m"
+    },
+    "duration": "Indefinite",
+    "description": "Power down into a death-like regenerative torpor (a Perception + Medicine difficulty 4 detects faint life). Specify a wake time; the Exalt wakes early only if threatened with damage. Torpor rests by a factor of Essence (an Essence 4 Exalt compresses a night into two hours) and speeds Willpower recovery (one Conviction roll per 25 hours).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 130
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.toxicity-filtration-subsystems",
+    "name": "Toxicity Filtration Subsystems",
+    "type": "Reflexive",
+    "min_attribute": "stamina",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-stamina",
+        "alchemical.general.sustained-augmentation-of-stamina"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2m"
+    },
+    "duration": "One hour",
+    "description": "Chemical filters add Essence automatic successes to all Stamina rolls/soak against toxins and purge alcohol and recreational drugs; rolling over twice the needed successes negates a poison entirely. Auto-activates against toxins (can be suppressed), otherwise preventing the Exalt from getting drunk or high.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 130
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.restorative-fusion-transponder",
+    "name": "Restorative Fusion Transponder",
+    "type": "Simple",
+    "min_attribute": "stamina",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.medical.biofunction-inhibitor"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "raw": "5m"
+    },
+    "duration": "Instant",
+    "description": "On a natural surface in Autochthonia, Primordial capillaries weave a cocoon (soak 10L/15B, 10 health levels) that heals and restores Essence as if resting in a Vat Complex, even under starvation. The Exalt can track recovery while unconscious and dismiss the cocoon at will.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 130
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.body-reweaving-matrix",
+    "name": "Body-Reweaving Matrix",
+    "type": "Reflexive",
+    "min_attribute": "stamina",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.medical.restorative-fusion-transponder"
+      ]
+    ],
+    "cost": {
+      "motes": 12,
+      "willpower": 1,
+      "raw": "12m, 1wp"
+    },
+    "duration": "Indefinite",
+    "description": "Spider automatons swarm wounds, regenerating Essence bashing levels per turn, one lethal per turn, one aggravated per 10 hours. Amputated organs regrow (a limb = three aggravated levels), and Charms in the lost area regrow if they were installed at the time of injury.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 131
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.diagnostic-sensor-apparatus",
+    "name": "Diagnostic Sensor Apparatus",
+    "type": "Simple",
+    "min_attribute": "perception",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-perception",
+        "alchemical.general.sustained-augmentation-of-perception"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "raw": "1m"
+    },
+    "duration": "Until analysis completed",
+    "description": "Fingertip sensors scan a living target within Essence yards (one turn), the data held while Essence is committed. Interpreting it (Intelligence + Medicine, five minutes per roll, extended) reveals from alive/well (1 success) up to full disease profiling and magical/mundane nature (5 successes).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 132
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.biosight-reticle",
+    "name": "Biosight Reticle",
+    "type": "Simple",
+    "min_attribute": "perception",
+    "min_essence": 3,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.medical.diagnostic-sensor-apparatus"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1,
+      "raw": "6m, 1wp"
+    },
+    "duration": "One hour",
+    "description": "Diagnostic lenses show animating Essence glowing: add each target's Essence to Perception rolls to spot hidden beings, negate darkness/fog penalties, scan through a yard of matter, and pierce concealment Charms of equal/lesser Essence (opposed roll). Study a being (Perception + Medicine) to read health levels, wound/fatigue penalties, Essence, Stamina/Endurance/Resistance, injuries, pregnancy, parasites or disease.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 133
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.biostasis-field-projector",
+    "name": "Biostasis Field Projector",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.medical.biofunction-inhibitor"
+      ],
+      [
+        "alchemical.medical.diagnostic-sensor-apparatus"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "raw": "3m"
+    },
+    "duration": "One day or indefinite",
+    "description": "A touch (or won clinch) induces a stabilizing coma (Stamina + Resistance vs Essence to resist): infections/poisons halt, bleeding stops, the mortally wounded hold at Incapacitated for a day. Reflexively (3 motes + a Stamina dot), an Exalt taking lethal past Incapacitated survives at Incapacitated in coma for at least an hour, repeatable until Stamina 1 or out of Essence.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 133
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.multifunction-hypodermic-apparatus",
+    "name": "Multifunction Hypodermic Apparatus",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_essence": 2,
+    "installation_cost": 1,
+    "prerequisites": [
+      [
+        "alchemical.general.transitory-augmentation-of-intelligence",
+        "alchemical.general.sustained-augmentation-of-intelligence"
+      ],
+      [
+        "alchemical.medical.diagnostic-sensor-apparatus"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "raw": "4m"
+    },
+    "duration": "Instant",
+    "submodules": [
+      {
+        "key": "paralytic-toxin",
+        "name": "Paralytic Toxin",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "Numbing bashing damage (Intelligence + Medicine, natural soak) and an Essence dice penalty for Intelligence hours; success halves it."
+      },
+      {
+        "key": "lethal-toxin",
+        "name": "Lethal Toxin",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "As Paralytic Toxin but lethal; mortals die after convulsing for Stamina turns."
+      },
+      {
+        "key": "acid",
+        "name": "Acid",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "6L (natural soak only, no resistance roll); three+ levels from one dose permanently reduces Appearance by 1."
+      },
+      {
+        "key": "antivenin",
+        "name": "Antivenin",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "Cancels one poison in the system (most potent first), removing effects and healing same-scene poison damage; also cleanses alcohol/drugs, and preemptively inoculates for an hour."
+      },
+      {
+        "key": "anesthetic",
+        "name": "Anesthetic",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "Subtract Essence from all wound penalties; suppressed dice return one per hour (reinjection resets, not stacks)."
+      },
+      {
+        "key": "immune-booster",
+        "name": "Immune Booster",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "+1 die to Stamina rolls against disease for Intelligence days."
+      },
+      {
+        "key": "antiseptic",
+        "name": "Antiseptic",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "Injected into a wound, prevents infection and nullifies existing infection."
+      },
+      {
+        "key": "healing-agent",
+        "name": "Healing Agent",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "With an hour of rest, heal two bashing levels."
+      },
+      {
+        "key": "coagulant",
+        "name": "Coagulant",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "Blood thickens; all bleeding stops immediately."
+      },
+      {
+        "key": "hallucinogen",
+        "name": "Hallucinogen",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "Synesthesia and pleasure; failure gives an (Intelligence + Essence) dice penalty (fading hourly) and month-long addiction (Temperance difficulty 2)."
+      },
+      {
+        "key": "stimulant",
+        "name": "Stimulant",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "Reduce fatigue penalty by Essence for Intelligence hours; each dose past the first without rest deals two unsoakable bashing."
+      },
+      {
+        "key": "time-release-drug",
+        "name": "Time Release Drug",
+        "bp_cost": 2,
+        "xp_cost": 4,
+        "description": "Designate a delay when injecting any other drug; it stays inert until the time passes, then resolves."
+      },
+      {
+        "key": "memory-eraser",
+        "name": "Memory Eraser",
+        "bp_cost": 3,
+        "xp_cost": 6,
+        "description": "A neurotoxin: failure knocks the target out for a minute and erases the past hour/scene; success scrambles memory (reflexive Wits per event). Not a starting formula.",
+        "min_essence": 3
+      },
+      {
+        "key": "triggered-activation-drug",
+        "name": "Triggered Activation Drug",
+        "bp_cost": 3,
+        "xp_cost": 6,
+        "description": "Commit 1 mote to hold any injected drug inert for a month; the Exalt can trigger or disarm it at will. Not a starting formula.",
+        "min_essence": 3
+      }
+    ],
+    "description": "A two-yard needle-tentacle injecting drugs synthesized from Essence (Dexterity + Medicine as an attack vs the unwilling; harmful drugs allow a Stamina + Resistance roll vs Essence). Comes with any TWO formulas free; each additional costs 2 bonus points or 4 experience. (The 'two free' allotment is not auto-tracked here.)",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 134
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.regenerative-essence-transfusion",
+    "name": "Regenerative Essence Transfusion",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_essence": 3,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.medical.biostasis-field-projector"
+      ],
+      [
+        "alchemical.medical.multifunction-hypodermic-apparatus"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes or Varies"
+    },
+    "duration": "Indefinite or instant",
+    "description": "Inject a mortal (via the Hypodermic) so they heal and resist poison/disease as an Exalt while the Exalt commits 10 motes. Secondary: transfer motes through the needle - donate up to (Stamina + Essence) motes, or siphon (2 motes; Intelligence + Medicine; 2 motes per success, Peripheral first).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 136
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  },
+  {
+    "id": "alchemical.medical.metabolic-augmentation-injection",
+    "name": "Metabolic Augmentation Injection",
+    "type": "Simple",
+    "min_attribute": "intelligence",
+    "min_essence": 3,
+    "installation_cost": 0,
+    "prerequisites": [
+      [
+        "alchemical.medical.biostasis-field-projector"
+      ],
+      [
+        "alchemical.medical.multifunction-hypodermic-apparatus"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies"
+    },
+    "duration": "Indefinite",
+    "description": "Inject a physical-enhancement drug (no resistance): 3 motes raises a Physical Attribute, Appearance, Perception or Wits by a dot; 1 mote per dot raises Athletics/Awareness/Endurance/Resistance. No trait past (Exalt's Essence - patient's Essence) dots, doubled original, or Ability 5. Lasts while Essence is committed; week-long carriers may pay XP to keep gains. Highly addictive to mortals.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 136
+    },
+    "exalt_type": "Alchemical",
+    "category": "medical"
+  }
+]

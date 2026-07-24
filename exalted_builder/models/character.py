@@ -78,6 +78,22 @@ class Combo(BaseModel):
     willpower_cost: int = Field(default=1, ge=0)
 
 
+class Array(BaseModel):
+    """An Alchemical Array (p.89) — the Chosen of Autochthon's analogue of a Combo.
+    Links Attribute-based Charms into a permanent pattern. Cost: 1 bonus point per
+    Charm at chargen, or experience equal to the sum of the Charms' minimum Attribute
+    ratings. Unlike a Combo, ANY Attribute-based Charms may be linked (the instant-
+    duration / one-Simple / one-Extra-Action limits constrain the *integrated
+    Combos* an Array grants, not the Array itself); supernatural martial arts
+    (Ability-based) may NOT join. An Array reduces its Charms' combined installation
+    cost to three-fourths, rounded up (engine.validate applies this), and it grants
+    every legal integrated Combo of its member Charms for 1 Willpower. Only splats
+    that use the Charm Slot system build Arrays (Eclipse/Moonshadow may not, p.90)."""
+    name: str
+    charm_ids: list[str] = Field(default_factory=list)
+    willpower_cost: int = Field(default=1, ge=0)
+
+
 class Weapon(BaseModel):
     """Inline copy of a weapon the character owns. Mirrors rules.WeaponType so the
     catalog can autofill it; artifact/ranged fields default to mundane-melee."""
@@ -140,6 +156,15 @@ class BeastmanGiftPurchase(BaseModel):
     gifts: list[str] = Field(default_factory=list)
 
 
+class SubmodulePurchase(BaseModel):
+    """One purchased Alchemical submodule (p.89) — the `key` of a rules.Submodule on
+    the Charm named by `charm_id`. Bought with bonus points at chargen or experience
+    post-lock; the parent Charm must be known. There is no rating — a submodule is
+    owned or not."""
+    charm_id: str
+    key: str
+
+
 class AnimalForm(BaseModel):
     """One shape in a Lunar's Form Library — an animal whose heart's blood they have
     taken and can wear. Deliberately FREE-FORM and unvalidated: it is a narrative
@@ -184,6 +209,8 @@ class ChargenSnapshot(BaseModel):
     charms: list[str]
     spells: list[str]
     combos: list[Combo] = Field(default_factory=list)
+    arrays: list[Array] = Field(default_factory=list)
+    submodules: list[SubmodulePurchase] = Field(default_factory=list)
     ox_body: list[OxBodyPurchase] = Field(default_factory=list)
     beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
     essence_rating: int
@@ -283,6 +310,13 @@ class Character(BaseModel):
     # pool; each entry references a RuleSet College by id. Empty for non-Sidereals.
     colleges: list[CollegeRating] = Field(default_factory=list)
     favored_abilities: list[AbilityName] = Field(default_factory=list)
+    # The player-chosen Favored ATTRIBUTES — used only by splats whose attribute
+    # budget is partitioned by caste/favored attribute set rather than by category
+    # (Alchemical, p.60: 3 Favored Attributes drawing on the 6-dot secondary pool,
+    # distinct from the caste's Caste Attributes). Empty for every category-budget
+    # splat (Solar, Dragon-Blooded, Abyssal, Lunar), whose attributes are budgeted
+    # by prioritized category and never read this field.
+    favored_attributes: list[AttributeName] = Field(default_factory=list)
     specialties: list[Specialty] = Field(default_factory=list)
 
     virtues: dict[VirtueName, int] = Field(
@@ -300,11 +334,29 @@ class Character(BaseModel):
 
     backgrounds: list[BackgroundEntry] = Field(default_factory=list)
     charms: list[str] = Field(default_factory=list)           # Charm ids into the RuleSet
+    # Alchemical Panoply (p.89): Charms the character OWNS but has NOT installed in a
+    # Charm Slot — bought post-lock for the flat "New Charm" XP cost, or via the Vats
+    # Background. They occupy no Slot and are not installed; a Vat refit swaps them in
+    # and out (refit itself is play-time, not modelled). Empty for every non-slot
+    # splat. Kept OUT of `charms` (which is the installed set the Slot rules count).
+    retainer_charms: list[str] = Field(default_factory=list)
     combos: list[Combo] = Field(default_factory=list)
+    # Alchemical Arrays (p.89) — see the Array model. Empty for every other splat.
+    arrays: list[Array] = Field(default_factory=list)
+    # Alchemical submodules (p.89) — per-Charm upgrades. Empty for every other splat.
+    submodules: list[SubmodulePurchase] = Field(default_factory=list)
     spells: list[str] = Field(default_factory=list)           # Spell ids into the RuleSet
     # Repeatable Ox-Body Technique: one record per purchase (it is therefore NOT in
     # `charms`). Each carries the chosen variant + its inline health levels.
     ox_body: list[OxBodyPurchase] = Field(default_factory=list)
+    # Alchemical Charm Slots (p.88-89): the character's TOTAL General / Dedicated
+    # slot counts, base free slots plus any bought with BP/XP (each bought slot
+    # comes with a free Charm). None = uninitialised, treated as the splat's free
+    # base from ChargenBudgets — so an untouched Alchemical has the base 4/4 and a
+    # non-slot splat simply never reads these. Dedicated slots may hold only a
+    # Charm keyed to a Caste or Favored Attribute; General slots hold any.
+    general_charm_slots: Optional[int] = None
+    dedicated_charm_slots: Optional[int] = None
     # Repeatable Deadly Beastman Transformation (Lunar only, p.124-127): one record
     # per purchase, each carrying the Gift(s) chosen with that purchase. Also NOT
     # in `charms`, same reasoning as ox_body.
@@ -313,6 +365,12 @@ class Character(BaseModel):
     weapons: list[Weapon] = Field(default_factory=list)
     armor: list[Armor] = Field(default_factory=list)
     health_bonus_levels: list[HealthLevel] = Field(default_factory=list)
+
+    # Storyteller permission to START play knowing another splat's Charms — the
+    # chargen half of the Eclipse generalist rule (core p.127). Post-lock the rule
+    # needs only a willing tutor, which is narrative, so this gates chargen picks
+    # only. Meaningless unless the caste sets CasteDefinition.foreign_charms.
+    st_foreign_charms: bool = False
 
     # --- lifecycle / accounting ---
     chargen_locked: bool = False

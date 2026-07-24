@@ -1376,3 +1376,29 @@ def test_xp_log_labels_a_gift_purchase_by_its_gifts(rs):
     label = view.build_xp_log(rs, c)[-1].label
     assert label != "beastman_gifts"
     assert "Bestial Reflexes" in label and "Gift of Hands" in label
+
+
+def test_ox_body_cap_trait_label_follows_the_splat_not_a_literal(rs):
+    # Rendering regression: the picker hardcoded "Endurance" in its Ox-Body copy, but
+    # repeatable_cap_ability is per-splat DATA — Lunar Ox-Body caps on Stamina
+    # (The Lunars p.132), and Deadly Beastman Transformation on Essence (p.124).
+    # The cap CALCULATION was always right; only the label lied.
+    assert view.repeatable_cap_trait(rs.charms["solar.endurance.ox-body-technique"]) == ("Endurance", "dot")
+    assert view.repeatable_cap_trait(rs.charms["lunar.endurance.ox-body-technique"]) == ("Stamina", "dot")
+    assert view.repeatable_cap_trait(
+        rs.charms["lunar.shapeshifting.deadly-beastman-transformation"]) == ("Essence", "point")
+    # a non-repeatable Charm has no cap trait at all
+    assert view.repeatable_cap_trait(rs.charms["solar.melee.fire-and-stones-strike"]) == ("", "")
+    assert view.repeatable_cap_trait(None) == ("", "")
+
+
+def test_ox_body_over_cap_message_names_the_right_trait(rs):
+    # Same bug in the engine's user-facing messages: a Lunar told to raise Endurance
+    # would be raising the wrong trait entirely.
+    from exalted_builder.models.character import OxBodyPurchase
+    c = _lunar(caste="full-moon")
+    c.attributes[AT.STAMINA] = 1
+    c.ox_body = [OxBodyPurchase(variant="two-minus-one", health_levels=[]),
+                 OxBodyPurchase(variant="two-minus-one", health_levels=[])]
+    msg = next(i.message for i in validate.check_ox_body(rs, c) if i.code == "ox-body-over-cap")
+    assert "Stamina" in msg and "Endurance" not in msg

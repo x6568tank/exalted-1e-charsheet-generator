@@ -345,5 +345,499 @@
     "cost": {"raw": "50 motes (committed)"},
     "description": "Fasting at a Demesne's heart for days equal to its rating dooms it to lose a rating point each month until, at zero, it shifts to an Abyssal aspect and slowly regains strength. Only Adamant Countermagic (at double cost) or an Incarna can arrest the decay.",
     "source": {"book": "Exalted 1e Core", "page": 229}
+  },
+  {
+    "id": "spell.man-machine.automaton-override-protocol",
+    "name": "Automaton Override Protocol",
+    "circle": "Man-Machine",
+    "cost": {
+      "raw": "5 or 15 motes"
+    },
+    "description": "Seizes control of animated creatures, soulless intelligences and minor machine spirits (golems, zombies, automata, First Age devices) for one scene, overriding their programming. 5 motes takes one automaton; 15 motes takes (Essence x 2) automata or devices in a 10-yard radius. No effect on natural creatures, elementals, or machine spirits of Essence 3+. Countered by Emerald Countermagic, Essence Draining Defense, or an Alchemical whose permanent Essence exceeds the weaver's by 2+. Target: one nearby automaton, or all automata in a 30-foot radius. Minimum Clarity 3.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 147
+    }
+  },
+  {
+    "id": "spell.man-machine.binding-filament-system",
+    "name": "Binding Filament System",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 10
+    },
+    "description": "Wraps the target instantly in extraordinarily tough silvery filaments (also known as Her Glistening Silvery Strands). Breaking free is a Strength + Athletics feat of strength totalling 10, but doing so makes the strands act as garrotes, inflicting soakable lethal damage equal to the weaver's Essence. Target: one person. Duration: indefinite. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 147
+    }
+  },
+  {
+    "id": "spell.man-machine.crystal-lotus-of-repose",
+    "name": "Crystal Lotus of Repose",
+    "circle": "Man-Machine",
+    "cost": {
+      "raw": "As Sleep of Stony Safety"
+    },
+    "description": "Identical to the sorcery spell Sleep of Stony Safety (Savant and Sorcerer p.117), except the protective containment is a crystal resembling a lotus flower. Minimum Clarity 2.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 147
+    }
+  },
+  {
+    "id": "spell.man-machine.docility-assurance-field",
+    "name": "Docility Assurance Field",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 25
+    },
+    "description": "Binds one individual in a mesh of luminous filaments that does not impair movement but injures them whenever they spend Essence — the weaver fixes the type at weaving: one bashing level per mote spent, or one lethal level per 2 motes. This damage is soaked only with the target's Essence rating; committed Essence and non-Essence activity are unaffected. Cannot target a being of greater Essence than the weaver. Duration: one scene or one hour, whichever is longer. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 147
+    }
+  },
+  {
+    "id": "spell.man-machine.driving-the-shadow-machine",
+    "name": "Driving the Shadow Machine",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Conjures a silent floating pocket of roiling shadow — a tenebrapede — that the weaver and companions ride, carrying 200 lbs of cargo/passengers per point of the weaver's Essence. Flies at 200 mph (~600 yards/turn), 25 health levels, soak 25L/35B, 90% hard cover; only one attack may be made against it or its occupants unless matched in flight. Target: weaver. Duration: (Essence x 4) hours, or until it reaches its destination, lands, or is dispelled. Minimum Clarity 2.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 148
+    }
+  },
+  {
+    "id": "spell.man-machine.elsewhere-evoking-asana",
+    "name": "Elsewhere-Evoking Asana",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 20
+    },
+    "description": "From a seated meditative posture the weaver manifests a sphere of cold, airless, aphotic void of radius (Essence x 5) feet. It snuffs all fire, suffocates air-breathers, cuts visibility to heavy-snow-at-night, inflicts bonfire-level cold damage, and has no gravity; items entering lose all momentum. The weaver floats serenely at the center, immune to all effects but the visibility penalty, and regains Essence as if meditating. Breaking the posture ends it instantly. Target: area of effect. Duration: the longer of one hour or one scene. Minimum Clarity 5.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 148
+    }
+  },
+  {
+    "id": "spell.man-machine.entropy-manipulation-protocol",
+    "name": "Entropy Manipulation Protocol",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 25
+    },
+    "description": "Knocks all automata within (Essence x 10) yards offline: gremlins, golems, zombies and the like take the weaver's Essence in bashing damage and fall inert until the next scene, when they resume (often confused). Does not shut down warstriders/powered armor but deadens unshielded limbs — Artifact ••• armor takes -2 mobility, each further dot reduces it by 1 (Artifact ••••• unaffected). Target: all automata within range. Duration: one scene. Minimum Clarity 4.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 149
+    }
+  },
+  {
+    "id": "spell.man-machine.essence-reallocation-protocol",
+    "name": "Essence Reallocation Protocol",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 25
+    },
+    "description": "A reflexive counter (like Emerald Countermagic) that cancels Terrestrial Circle Sorcery, Man-Machine Protocols, and Shadowlands Circle Necromancy, absorbing the cancelled spell's Essence into the weaver's reservoir; excess above maximum is harmlessly vented as sparks. Target: special. Duration: instant. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 149
+    }
+  },
+  {
+    "id": "spell.man-machine.lightning-elemental-concatenation-protocol",
+    "name": "Lightning Elemental Concatenation Protocol",
+    "circle": "Man-Machine",
+    "cost": {
+      "raw": "As Lightning Spider"
+    },
+    "description": "Identical to the sorcery spell Lightning Spider known to Creation's sorcerers; it is suspected Autochthon himself gave that spell to the Exalted. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 150
+    }
+  },
+  {
+    "id": "spell.man-machine.the-makers-basic-defense-array",
+    "name": "The Maker's Basic Defense Array",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Surrounds the weaver with hundreds of whirling polished metal spheres acting as armor: effective hardness 5 and +10L/10B soak. Intercepted non-magical-material weapons risk shattering (Storyteller rolls 1d: normal weapon shatters on 7 or less, exceptional on 5 or less; perfect weapons immune), and even undamaged weapons need a Dexterity + Melee roll (difficulty 2) to keep hold. Unarmed attackers suffer 10 dice of soakable bashing damage. Target: weaver. Duration: 12 hours. Minimum Clarity 3.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 150
+    }
+  },
+  {
+    "id": "spell.man-machine.the-makers-instantaneous-forge",
+    "name": "The Maker's Instantaneous Forge",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Raises a golem shell from the ground and binds an Autochthonian elemental into it to serve the weaver, with Traits/appearance by element (engine/glass/magnet/oil/smudge/steel golem) and two element-unique Charms that no foreign learner can acquire. Serves for (Essence) weeks before merging back into the Maker; the weaver may have as many active at once as points of Essence. Target: one conjured automaton. Duration: (Essence) weeks. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 150
+    }
+  },
+  {
+    "id": "spell.man-machine.optimized-component-integration-protocol",
+    "name": "Optimized Component Integration Protocol",
+    "circle": "Man-Machine",
+    "cost": {
+      "raw": "5 motes per target"
+    },
+    "description": "The weaver and all willing participants become perfectly cooperative on one shared task (usually an extended action): each benefiting member gains one die per additional member of the group, up to (Wits + Essence) individuals. Ends when the task is accomplished. Target: the weaver and all willing targets in a 10-foot radius. Duration: the longer of one hour or one scene. Minimum Clarity 5.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 153
+    }
+  },
+  {
+    "id": "spell.man-machine.phlogiston-web",
+    "name": "Phlogiston Web",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Expels an enormous net of phlogiston (sticky solid fire) covering 100 square feet per point of permanent Essence in a shape the weaver chooses. The net inflicts (Essence + 4) lethal health levels every turn. Cutting it needs a magical-material weapon and four successes on Strength + Melee, or a Strength + Athletics roll (difficulty 5) to break by force. Fire-immune characters take no damage. Target: area of effect. Duration: (Essence) turns. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 153
+    }
+  },
+  {
+    "id": "spell.man-machine.plague-of-bronze-snakes",
+    "name": "Plague of Bronze Snakes",
+    "circle": "Man-Machine",
+    "cost": {
+      "raw": "As Plague of Bronze Snakes (Savant & Sorcerer)"
+    },
+    "description": "Identical to the spell Plague of Bronze Snakes (Savant and Sorcerer p.112), except the snakes wriggle out of the Alchemical weaver's own body at the protocol's commencement. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 153
+    }
+  },
+  {
+    "id": "spell.man-machine.probability-degradation-matrix",
+    "name": "Probability Degradation Matrix",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Turns fate against the weaver's enemies: familiars rated under 3 flee, and hostile spirits of Essence under 2 must pass a Valor roll or flee for two turns per point of the weaver's Essence. For the duration, every afflicted enemy suffers +1 to all target numbers, 10s count as a single success, and each 1 negates a success. No effect on the weaver's allies. Target: enemies in a 10-yard radius. Duration: one hour or one scene, whichever is longer. Minimum Clarity 5.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 154
+    }
+  },
+  {
+    "id": "spell.man-machine.sonic-hammer-vocalization",
+    "name": "Sonic Hammer Vocalization",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 12
+    },
+    "description": "A devastating shriek that shakes bone, rattles teeth, makes hearing impossible, and deals glass/crystal objects 10 levels of bashing damage. In all other regards identical to the spell Thunder Wolf's Howl (Savant & Sorcerer p.122). Target: area of effect. Duration: (Essence) turns. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 154
+    }
+  },
+  {
+    "id": "spell.man-machine.soul-archiving-protocol",
+    "name": "Soul Archiving Protocol",
+    "circle": "Man-Machine",
+    "cost": {
+      "raw": "10+ motes"
+    },
+    "description": "Recaptures a loose ghost into a soulgem via a contested Willpower + Essence roll (5 motes per extra die). Souls so captured cannot escape until the death of their next incarnation. A classified protocol; learning it requires Backing 4 or more with the Luminors. Target: ghost. Duration: permanent. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 154
+    }
+  },
+  {
+    "id": "spell.man-machine.static-essence-absorption-protocol",
+    "name": "Static Essence Absorption Protocol",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 5
+    },
+    "description": "Drains (Essence x 2) motes from one Essence-gathering/storing device or item with committed Essence (Hearthstone, Essence gem, attuned weapon) into the weaver's tanks. Drained Hearthstones stop for (6 - Manse rating) hours; gems must be recharged and weapons reattuned. Cannot drain from an Essence-user's own pools. Target: one item. Duration: instant. Minimum Clarity 2.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 154
+    }
+  },
+  {
+    "id": "spell.man-machine.summon-autochthonian-elemental",
+    "name": "Summon Autochthonian Elemental",
+    "circle": "Man-Machine",
+    "cost": {
+      "raw": "10+ motes"
+    },
+    "description": "Exactly like the Terrestrial Circle spell Summon Elemental (Exalted p.219), but calls only the elementals common to Autochthonia — crystal, lightning, metal, oil, smoke and steam. Target: elemental. Duration: up to one month. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 154
+    }
+  },
+  {
+    "id": "spell.man-machine.summon-machine-spirit",
+    "name": "Summon Machine Spirit",
+    "circle": "Man-Machine",
+    "cost": {
+      "raw": "15+ motes"
+    },
+    "description": "Very similar to Summon Elemental (Exalted p.219) but captures a machine spirit chosen by any criteria via the same Willpower contest. Larger spirits, disliking multitasking, often send subroutine spirits to serve in their stead. Target: one machine spirit. Duration: instant. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 155
+    }
+  },
+  {
+    "id": "spell.man-machine.theoplastic-engineering-protocol",
+    "name": "Theoplastic Engineering Protocol",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Reshapes the local techno-organic landscape at the weaver's gesture — sealing tunnels, raising room, pulling veins to the surface — moving 500 cubic feet of material per turn. In Creation it sculpts up to (Essence x 100) square feet of stone (trenches, mounds, tunnels, bridges) and can raise ore veins up to (Essence x 100) feet deep. Immuring an enemy is slow (5 turns) and resistable (Strength + Athletics, difficulty 2, +1 per shaping turn). Target: terrain. Duration: one scene. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 155
+    }
+  },
+  {
+    "id": "spell.man-machine.vat-surrogate-reweaving-technique",
+    "name": "Vat Surrogate Reweaving Technique",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 10
+    },
+    "description": "If the weaver has Charms on retainer at the Vats (Vats Background), this instantly swaps one currently installed Charm for one stored there, bypassing the usual need to return to the Vats. Target: one Alchemical Exalt. Duration: instant. Minimum Clarity 4.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 155
+    }
+  },
+  {
+    "id": "spell.man-machine.vision-transmitting-protocol",
+    "name": "Vision Transmitting Protocol",
+    "circle": "Man-Machine",
+    "cost": {
+      "motes": 10
+    },
+    "description": "Spits forth a head-sized crystal dodecahedron into which the weaver speaks a message; functions exactly like the Terrestrial spell Infallible Messenger (Exalted p.218) except the recipient sees the speaker's image and background events in the crystal as well as hearing him. Target: one creature. Duration: one message. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 156
+    }
+  },
+  {
+    "id": "spell.god-machine.auspicious-reformatting-mudra",
+    "name": "Auspicious Reformatting Mudra",
+    "circle": "God-Machine",
+    "cost": {
+      "raw": "(Rating affected x 10) motes"
+    },
+    "description": "Reweaves an automaton or machine's pattern to a new destiny — mending, reactivating, or transforming it (gremlin to custodian, warstrider to airship, or into inert parts). Automatic if the weaver's Essence >= the target's, else a contested Essence roll. Can reconfigure a machine spirit of up to half the weaver's Essence (round up) into an Artifact of half the weaver's Essence (round up) or a familiar rated at the weaver's Essence; equal-power artifact conversions need (Artifact rating) successes on Intelligence + Lore. At Essence 7 the weaver alters multiple targets in line of sight (+5 motes each), but only their programming/behavior, and none may exceed permanent Essence 3. Target: one automaton. Duration: permanent. Minimum Clarity 6.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 156
+    }
+  },
+  {
+    "id": "spell.god-machine.destiny-optimizing-meditation",
+    "name": "Destiny-Optimizing Meditation",
+    "circle": "God-Machine",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Communing with the Core of the Machine God, the weaver prognosticates the optimal path to his goal and enacts it in perfect mechanized grace, adding (Essence) successes to every roll for the duration. Target: weaver. Duration: (Essence) turns. Minimum Clarity 6.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 156
+    }
+  },
+  {
+    "id": "spell.god-machine.essence-matrix-inversion-procedure",
+    "name": "Essence Matrix Inversion Procedure",
+    "circle": "God-Machine",
+    "cost": {
+      "motes": 10
+    },
+    "description": "Prepared up to a day ahead, this makes the weaver's Essence matrix highly reflective: all incoming protocols, sorcery spells and necromancy effects (except Solar Circle Sorcery and Void Circle Necromancy) targeting her or any area including her are turned back on their source, as are Essence weapon effects (implosion bows, Essence cannons). Target: weaver. Duration: one day. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 156
+    }
+  },
+  {
+    "id": "spell.god-machine.executive-filature-protocol",
+    "name": "Executive Filature Protocol",
+    "circle": "God-Machine",
+    "cost": {
+      "raw": "5 motes + 1 mote per turn"
+    },
+    "description": "Grasping the strands of a being's pattern, the weaver unravels it Trait by Trait (she must stay within (Essence) feet and do nothing else, or it terminates). After a first turn of dawning panic, the target loses one Attribute dot per turn from highest down; once all Attributes reach 1 she loses health levels, growing transparent, and at the last level fades from the pattern entirely, her soulgem dropping empty. Unwoven Traits do not return on their own, though the weaver may reweave them at 5 motes per dot within one day. Weavers usually obtain this from the Divine Ministers or design weavers. Target: one individual. Duration: varies. Minimum Clarity 6.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 157
+    }
+  },
+  {
+    "id": "spell.god-machine.homuncular-drone-deployment",
+    "name": "Homuncular Drone Deployment",
+    "circle": "God-Machine",
+    "cost": {
+      "raw": "5 motes and one health level per drone (committed)"
+    },
+    "description": "Separates the weaver's forearms into hovering attack drones (down one health level per drone until they refuse). Drones use the weaver's Traits, gain the weaver's Essence in Brawl, keep brawling-aid benefits, and hover at twice her movement rate; each can take three health levels, and a destroyed drone leaves the weaver permanently down one health level until the limb is replaced at the Vats or healed as aggravated damage. Target: weaver. Duration: one scene. Minimum Clarity 2.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 157
+    }
+  },
+  {
+    "id": "spell.god-machine.incarnation-of-bestial-malice",
+    "name": "Incarnation of Bestial Malice",
+    "circle": "God-Machine",
+    "cost": {
+      "raw": "30 or 35 motes"
+    },
+    "description": "The weaver metamorphoses into a living nightmare war form comparable to a Lunar's, combining aspects of any beasts or plants; the mechanical nature vanishes. Grants hardness 10 and +10 soak vs bashing and lethal, +2 Strength and +2 Stamina (even above 5), bestial weapons as Artifact •• magical-material weapons (no material bonus) with +3 speed/+1 accuracy and Strength + 6 lethal (Strength + 8 in a clinch), and reach out to (Essence) yards. Incompatible with armor and weapons. For 5 extra motes the form also gains wings, flying at three times land speed. Target: weaver. Duration: (Essence) hours. Minimum Clarity 2 (Maximum Clarity 7).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 157
+    }
+  },
+  {
+    "id": "spell.god-machine.instantaneous-transfer-protocol",
+    "name": "Instantaneous Transfer Protocol",
+    "circle": "God-Machine",
+    "cost": {
+      "raw": "As Travel Without Distance"
+    },
+    "description": "Identical to the spell Travel Without Distance (Exalted p.221), except the Alchemical sinks into the substance of the Great Maker in one place and emerges from the ground at the destination the next instant. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 157
+    }
+  },
+  {
+    "id": "spell.god-machine.machine-soul-essence-baffle",
+    "name": "Machine-Soul Essence Baffle",
+    "circle": "God-Machine",
+    "cost": {
+      "motes": 30
+    },
+    "description": "From an asana at the center of the area, the weaver attunes a spherical space to his own Essence flow to the exclusion of all others, making it proof against sorcery and protocols. In all other respects equivalent to Mercury's Deliverance (Savant and Sorcerer p.131). Target: area of effect. Duration: five shifts. Minimum Clarity 2.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 157
+    }
+  },
+  {
+    "id": "spell.god-machine.the-makers-advanced-defense-array",
+    "name": "The Maker's Advanced Defense Array",
+    "circle": "God-Machine",
+    "cost": {
+      "motes": 25
+    },
+    "description": "Like the Maker's Basic Defense Array but with a sphere of whirling adamant shuriken: effective hardness 10 and +20L/20B soak. Weapons that strike it shatter — non-magical-material on 1-9, magical-material only on 1 (Storyteller rolls 1d) — and even undamaged weapons need a Dexterity + Melee roll (difficulty 3) to keep hold. Unarmed Brawl/Martial Arts attackers suffer 10 dice of soakable lethal damage, and any attacker taking more than two health levels loses the attacking limb. Target: weaver. Duration: 12 hours. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 158
+    }
+  },
+  {
+    "id": "spell.god-machine.maser-palm-technique",
+    "name": "Maser Palm Technique",
+    "circle": "God-Machine",
+    "cost": {
+      "raw": "As Blood of Boiling Oil"
+    },
+    "description": "Equivalent to the spell Blood of Boiling Oil (Exalted p.220), except the target's blood simply boils and denatures in the veins rather than becoming oil. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 158
+    }
+  },
+  {
+    "id": "spell.god-machine.passenger-hosting-protocol",
+    "name": "Passenger Hosting Protocol",
+    "circle": "God-Machine",
+    "cost": {
+      "raw": "15 motes per passenger"
+    },
+    "description": "Interweaves the weaver's pattern with up to (half permanent Essence, round up) willing individuals, who occupy the same space and are telepathically linked; only the weaver may act. Passengers' Strength, Stamina, Soak and Resistance stack onto the weaver's, and all damage is split evenly among weaver and passengers. A spirit passenger must first Materialize; a hosting weaver cannot be possessed. Target: the weaver and passenger(s). Duration: one day. Minimum Clarity 3.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 158
+    }
+  },
+  {
+    "id": "spell.god-machine.pattern-suspension-protocol",
+    "name": "Pattern Suspension Protocol",
+    "circle": "God-Machine",
+    "cost": {
+      "raw": "As Eternal Crystalline Encasement"
+    },
+    "description": "The Alchemical version of Eternal Crystalline Encasement (Savant and Sorcerer p.127): the weaver wraps the target object in a scintillating cocoon of spun diamond fiber, then spins a pearl of gem-stuff whose touch ends the protocol and resumes pattern function. Minimum Clarity 0.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 158
+    }
+  },
+  {
+    "id": "spell.god-machine.radiant-matrix-transmutation",
+    "name": "Radiant Matrix Transmutation",
+    "circle": "God-Machine",
+    "cost": {
+      "motes": 35
+    },
+    "description": "A wave of dynamic order radiates 10 feet per turn, transmuting solids and liquids to faceted elemental crystal (existing crystal/adamant unaffected; artifacts resist for (Artifact rating) turns, N/A items for 10, Maker-forged items are immune). Caught creatures take the weaver's Essence in aggravated damage per turn and become crystal statues if Incapacitated; healing requires cutting the crystal from living flesh first. Heals blight zones and reclaims shadowlands within the Maker. Target: (Essence x 10)-foot radius. Duration: permanent. Minimum Clarity 6.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 159
+    }
+  },
+  {
+    "id": "spell.god-machine.transcendent-consciousness-protocol",
+    "name": "Transcendent Consciousness Protocol",
+    "circle": "God-Machine",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Expands all five senses to fill a 60-yard-diameter sphere, sensing through solid objects (and through the Maker's veins) as if touching, examining and closely hearing everything, with full processing of the data. The weaver cannot be surprised, detects even invisible intruders by weight/air/heartbeat/scent, and gains her Essence rating as automatic successes on Perception rolls within range. Target: weaver. Duration: one scene. Minimum Clarity 4.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 159
+    }
+  },
+  {
+    "id": "spell.god-machine.transcendent-pattern-weaving-protocol",
+    "name": "Transcendent Pattern-Weaving Protocol",
+    "circle": "God-Machine",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Spins order out of the Wyld: each hour of prayer and mudra formats reality in a 20-yard radius (weavable for as many hours as the weaver has Stamina), dealing Fair Folk in the area the weaver's permanent Essence in aggravated damage. It strangles every raksha within (Essence) miles (doubled in the Deep Wyld). Targeting a raksha noble directly forces a contested Willpower + Essence roll; on a loss he is reformatted into a torpid Jadeborn soul in an egg of jade. Target: nearby Wyld areas. Duration: permanent. Minimum Clarity 10.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 159
+    }
   }
 ]

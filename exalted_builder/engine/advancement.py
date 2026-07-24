@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from ..models.character import (
     BeastmanGiftPurchase, Character, CollegeRating, Combo, CraftRating, OxBodyPurchase,
-    Specialty, XpEntry)
+    Specialty, SubmodulePurchase, XpEntry)
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import costs, derive, validate
 
@@ -271,11 +271,31 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
         raise AdvancementError(f"Unknown Charm {charm_id!r}.")
     if charm_id in character.charms:
         raise AdvancementError(f"{charm.name} is already known.")
+    # A Charm-Slot splat (Alchemical) does not learn Charms per-pick: it buys a Slot
+    # (buy_charm_slot) or a Panoply Charm (learn_retainer_charm). Route callers there
+    # so a Slot is never silently skipped.
+    if validate.uses_charm_slots(ruleset, character):
+        raise AdvancementError(
+            f"{charm.name}: Alchemicals gain Charms by buying a Charm Slot or a "
+            f"Panoply (retainer) Charm, not directly.")
+    # Another splat's Charm is buyable only by an Eclipse-style caste (p.127), and
+    # then at the doubled price costs.charm_cost applies.
+    if not validate.charm_learnable_by_splat(ruleset, character, charm):
+        raise AdvancementError(
+            f"{charm.name} belongs to another Exalt type ({validate.splat_of(charm)}).")
     if not validate.meets_charm_requirements(ruleset, character, charm):
         raise AdvancementError(f"{charm.name}: requirements not met.")
     cost = costs.charm_cost(ruleset, character, charm)
-    entry = _commit(character, "charms", charm_id, None, None, cost)
+    # p.90 crossover: an Eclipse/Moonshadow learning an Alchemical Charm gains a
+    # General Charm Slot with it. Logged under a distinct target so undo gives the
+    # Slot back too.
+    grants_slot = validate.crossover_alchemical_charm(ruleset, character, charm)
+    entry = _commit(character, "crossover_charms" if grants_slot else "charms",
+                    charm_id, None, None, cost)
     character.charms.append(charm_id)
+    if grants_slot:
+        g, _d, _bg, _bd = validate.charm_slot_counts(ruleset, character)
+        character.general_charm_slots = g + 1
     return entry
 
 
@@ -295,6 +315,126 @@ def learn_spell(ruleset: RuleSet, character: Character, spell_id: str) -> XpEntr
     return entry
 
 
+# --------------------------------------------------------------------------- #
+# Alchemical Charm-Slot economy (post-lock; Autochthonians p.64, p.89)
+# --------------------------------------------------------------------------- #
+
+def _require_slot_splat(ruleset: RuleSet, character: Character) -> None:
+    if not validate.uses_charm_slots(ruleset, character):
+        raise AdvancementError("Charm Slots are an Alchemical mechanic.")
+
+
+def _installable_charm(ruleset: RuleSet, character: Character, charm_id: str):
+    """Shared gate for a Charm the character is about to gain (Slot or Panoply): it
+    exists, is not already owned (installed or on retainer), is learnable by the
+    splat, and its requirements are met. Returns the Charm."""
+    charm = ruleset.charms.get(charm_id)
+    if charm is None:
+        raise AdvancementError(f"Unknown Charm {charm_id!r}.")
+    if charm_id in character.charms or charm_id in character.retainer_charms:
+        raise AdvancementError(f"{charm.name} is already owned.")
+    if not validate.charm_learnable_by_splat(ruleset, character, charm):
+        raise AdvancementError(
+            f"{charm.name} belongs to another Exalt type ({validate.splat_of(charm)}).")
+    if not validate.meets_charm_requirements(ruleset, character, charm):
+        raise AdvancementError(f"{charm.name}: requirements not met.")
+    return charm
+
+
+def buy_charm_slot(ruleset: RuleSet, character: Character, *, dedicated: bool,
+                   charm_id: str) -> XpEntry:
+    """Buy one more Charm Slot (p.64): General (12) or Dedicated (10). The Slot comes
+    with a free Charm of the player's choice that must fit the Slot — a Dedicated Slot
+    holds only a Caste/Favored-Attribute Charm. The Charm is installed (added to
+    `charms`); the Slot count is incremented."""
+    _ensure_locked(character)
+    _require_slot_splat(ruleset, character)
+    charm = _installable_charm(ruleset, character, charm_id)
+    if dedicated and not validate.charm_fits_dedicated_slot(ruleset, character, charm):
+        raise AdvancementError(
+            f"{charm.name} is not keyed to a Caste/Favored Attribute, so it cannot "
+            f"fill a Dedicated Slot; buy a General Slot instead.")
+    g, d, _bg, _bd = validate.charm_slot_counts(ruleset, character)
+    cost = costs.charm_slot_cost(ruleset, character, dedicated=dedicated)
+    kind = "dedicated" if dedicated else "general"
+    frm = d if dedicated else g
+    entry = _commit(character, f"charm_slots.{kind}", charm_id, frm, frm + 1, cost)
+    if dedicated:
+        character.dedicated_charm_slots = d + 1
+    else:
+        character.general_charm_slots = g + 1
+    character.charms.append(charm_id)
+    return entry
+
+
+def upgrade_charm_slot(ruleset: RuleSet, character: Character) -> XpEntry:
+    """Upgrade one Dedicated Charm Slot to a General Slot (p.64, 2 XP). Requires a
+    Dedicated Slot to exist."""
+    _ensure_locked(character)
+    _require_slot_splat(ruleset, character)
+    g, d, _bg, _bd = validate.charm_slot_counts(ruleset, character)
+    if d <= 0:
+        raise AdvancementError("No Dedicated Charm Slot to upgrade.")
+    cost = costs.charm_slot_upgrade_cost(ruleset, character)
+    # Ratings left None: this swaps two counts, not a single-trait change, and a
+    # to<from would be misread as a free reduction by the audit.
+    entry = _commit(character, "charm_slot_upgrade", "", None, None, cost)
+    character.dedicated_charm_slots = d - 1
+    character.general_charm_slots = g + 1
+    return entry
+
+
+def learn_retainer_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntry:
+    """Buy one Panoply (retainer) Charm WITHOUT a Slot. A native Alchemical pays the
+    flat 6 XP (p.64); an Eclipse/Moonshadow may instead add an Alchemical Charm to their
+    Panoply through the crossover at their caste's flat rate (p.90, 8) as a cheaper
+    alternative to a Slot. Either way the Charm is owned but not installed."""
+    _ensure_locked(character)
+    native = validate.uses_charm_slots(ruleset, character)
+    crossover = validate.crossover_panoply_xp(ruleset, character) is not None
+    if not native and not crossover:
+        raise AdvancementError(
+            "Panoply Charms are an Alchemical mechanic (or the Eclipse/Moonshadow "
+            "Alchemical crossover, p.90).")
+    charm = _installable_charm(ruleset, character, charm_id)
+    # A crossover Panoply holds Alchemical Charms specifically (p.90).
+    if not native and not validate.splat_uses_charm_slots(ruleset, validate.splat_of(charm)):
+        raise AdvancementError(
+            f"{charm.name} is not an Alchemical Charm; only Alchemical Charms go on the "
+            f"crossover Panoply.")
+    cost = costs.retainer_charm_cost(ruleset, character)
+    entry = _commit(character, "retainer_charms", charm_id, None, None, cost)
+    character.retainer_charms.append(charm_id)
+    return entry
+
+
+def learn_submodule(ruleset: RuleSet, character: Character,
+                    charm_id: str, key: str) -> XpEntry:
+    """Buy an Alchemical submodule (p.89) post-lock for its `xp_cost`. The parent
+    Charm must be known and the submodule's own Essence/Attribute minimums met."""
+    _ensure_locked(character)
+    definition = validate.submodule_def(ruleset, charm_id, key)
+    if definition is None:
+        raise AdvancementError(f"No submodule {key!r} on Charm {charm_id!r}.")
+    if charm_id not in character.charms:
+        raise AdvancementError(f"Charm {charm_id!r} is not known; install it first.")
+    if any(s.charm_id == charm_id and s.key == key for s in character.submodules):
+        raise AdvancementError(f"Submodule {definition.name} is already owned.")
+    if character.essence_rating < definition.min_essence:
+        raise AdvancementError(
+            f"{definition.name} requires Essence {definition.min_essence}.")
+    if definition.min_attribute:
+        attr = AttributeName(definition.min_attribute)
+        if character.attributes.get(attr, 0) < definition.min_attribute_rating:
+            raise AdvancementError(
+                f"{definition.name} requires {definition.min_attribute} "
+                f"{definition.min_attribute_rating}.")
+    entry = _commit(character, "submodules", f"{charm_id}:{key}", None, None,
+                    definition.xp_cost)
+    character.submodules.append(SubmodulePurchase(charm_id=charm_id, key=key))
+    return entry
+
+
 def add_combo(ruleset: RuleSet, character: Character, name: str,
               charm_ids: list[str]) -> XpEntry:
     _ensure_locked(character)
@@ -309,9 +449,14 @@ def add_combo(ruleset: RuleSet, character: Character, name: str,
     return entry
 
 
-def learn_ox_body(ruleset: RuleSet, character: Character, variant_key: str) -> XpEntry:
+def learn_ox_body(ruleset: RuleSet, character: Character, variant_key: str,
+                  *, dedicated: bool = False) -> XpEntry:
     """Buy one more Ox-Body Technique with the chosen health-level package (post-lock).
-    Gated by the once-per-dot-of-Endurance cap and priced as a normal new Charm."""
+    Gated by the splat's once-per-dot-of-cap-trait limit (Endurance, Stamina for Lunar,
+    Essence for Alchemical). Priced as a normal new Charm — EXCEPT for a Charm-Slot
+    splat (Alchemical), where every purchase installs the Charm in its own Slot (user
+    ruling), so it costs a Slot (General 12 / Dedicated 10) and raises the Slot count.
+    `dedicated` chooses the Slot kind and is ignored by non-Slot splats."""
     _ensure_locked(character)
     charm = validate.ox_body_charm(ruleset, character)
     if charm is None:
@@ -325,11 +470,56 @@ def learn_ox_body(ruleset: RuleSet, character: Character, variant_key: str) -> X
     cap = validate.ox_body_cap(ruleset, character)
     if len(character.ox_body) >= cap:
         raise AdvancementError(
-            f"Ox-Body Technique may be bought at most once per dot of Endurance ({cap}).")
+            f"Ox-Body Technique may be bought at most once per dot of "
+            f"{validate.repeatable_cap_trait_name(charm)} ({cap}).")
+    purchase = OxBodyPurchase(variant=variant_key, health_levels=list(variant.health_levels))
+    if validate.uses_charm_slots(ruleset, character):
+        if dedicated and not validate.charm_fits_dedicated_slot(ruleset, character, charm):
+            raise AdvancementError(
+                f"{charm.name} is not keyed to a Caste/Favored Attribute; it cannot "
+                f"fill a Dedicated Slot.")
+        g, d, _bg, _bd = validate.charm_slot_counts(ruleset, character)
+        cost = costs.charm_slot_cost(ruleset, character, dedicated=dedicated)
+        kind = "dedicated" if dedicated else "general"
+        frm = d if dedicated else g
+        entry = _commit(character, f"ox_body_slot.{kind}", variant_key, frm, frm + 1, cost)
+        if dedicated:
+            character.dedicated_charm_slots = d + 1
+        else:
+            character.general_charm_slots = g + 1
+        character.ox_body.append(purchase)
+        return entry
     cost = costs.ox_body_cost(ruleset, character)
     entry = _commit(character, "ox_body", variant_key, None, None, cost)
-    character.ox_body.append(
-        OxBodyPurchase(variant=variant_key, health_levels=list(variant.health_levels)))
+    character.ox_body.append(purchase)
+    return entry
+
+
+def learn_martial_arts_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntry:
+    """Learn a Martial Arts Charm through Perfected Lotus Matrix (p.100): a Terrestrial/
+    Celestial style, learned "as any other Celestial Exalt", for the flat MA rate (11).
+    Stored inside the Matrix — it uses NO Charm Slot — so it is added to `charms` but
+    the Slot accounting skips it (validate.charm_occupies_slot)."""
+    _ensure_locked(character)
+    charm = ruleset.charms.get(charm_id)
+    if charm is None:
+        raise AdvancementError(f"Unknown Charm {charm_id!r}.")
+    if not validate.is_martial_arts_charm(charm):
+        raise AdvancementError(f"{charm.name} is not a Martial Arts Charm.")
+    if not validate.has_perfected_lotus_matrix(character):
+        raise AdvancementError(
+            "Learning Martial Arts Charms requires Perfected Lotus Matrix installed (p.100).")
+    if charm_id in character.charms:
+        raise AdvancementError(f"{charm.name} is already known.")
+    if not validate.charm_matches_splat(character, charm, ruleset):
+        raise AdvancementError(
+            f"{charm.name} is not a Terrestrial/Celestial style available through "
+            f"Perfected Lotus Matrix.")
+    if not validate.meets_charm_requirements(ruleset, character, charm):
+        raise AdvancementError(f"{charm.name}: requirements not met.")
+    cost = costs.martial_arts_charm_cost(ruleset, character)
+    entry = _commit(character, "martial_arts", charm_id, None, None, cost)
+    character.charms.append(charm_id)
     return entry
 
 
@@ -435,6 +625,26 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
     elif domain == "charms":
         if entry.detail in character.charms:
             character.charms.remove(entry.detail)
+    elif domain == "crossover_charms":
+        # An Eclipse/Moonshadow Alchemical Charm: drop it AND the General Slot it granted.
+        if entry.detail in character.charms:
+            character.charms.remove(entry.detail)
+        character.general_charm_slots = (character.general_charm_slots or 0) - 1
+    elif domain == "charm_slots":
+        # Reverse a bought Slot: uninstall its bundled Charm and drop the Slot count.
+        if entry.detail in character.charms:
+            character.charms.remove(entry.detail)
+        if key == "dedicated":
+            character.dedicated_charm_slots = entry.from_rating
+        else:
+            character.general_charm_slots = entry.from_rating
+    elif domain == "charm_slot_upgrade":
+        # Reverse a Dedicated->General upgrade: give the Dedicated Slot back.
+        character.dedicated_charm_slots = (character.dedicated_charm_slots or 0) + 1
+        character.general_charm_slots = (character.general_charm_slots or 0) - 1
+    elif domain == "retainer_charms":
+        if entry.detail in character.retainer_charms:
+            character.retainer_charms.remove(entry.detail)
     elif domain == "spells":
         if entry.detail in character.spells:
             character.spells.remove(entry.detail)
@@ -456,11 +666,30 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
             if character.ox_body[i].variant == entry.detail:
                 del character.ox_body[i]
                 break
+    elif domain == "ox_body_slot":
+        # An Alchemical Ox-Body purchase: drop the purchase AND give back its Slot.
+        for i in range(len(character.ox_body) - 1, -1, -1):
+            if character.ox_body[i].variant == entry.detail:
+                del character.ox_body[i]
+                break
+        if key == "dedicated":
+            character.dedicated_charm_slots = entry.from_rating
+        else:
+            character.general_charm_slots = entry.from_rating
+    elif domain == "martial_arts":
+        if entry.detail in character.charms:
+            character.charms.remove(entry.detail)
     elif domain == "beastman_gifts":
         # LIFO: drop the most recent purchase with this exact Gift set.
         for i in range(len(character.beastman_gifts) - 1, -1, -1):
             if "|".join(character.beastman_gifts[i].gifts) == entry.detail:
                 del character.beastman_gifts[i]
+                break
+    elif domain == "submodules":
+        for i in range(len(character.submodules) - 1, -1, -1):
+            s = character.submodules[i]
+            if f"{s.charm_id}:{s.key}" == entry.detail:
+                del character.submodules[i]
                 break
 
     character.xp_log.pop()
@@ -495,11 +724,18 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         return costs.willpower_step(ruleset, character, frm)
     if domain == "essence" and frm is not None:
         return costs.essence_step(ruleset, character, frm)
-    if domain == "charms":
+    if domain in ("charms", "crossover_charms"):
         charm = ruleset.charms.get(entry.detail)
         return costs.charm_cost(ruleset, character, charm) if charm else None
     if domain == "spells":
-        return costs.spell_cost(ruleset, character, ruleset.spells[entry.detail]) if entry.detail in ruleset.spells else None
+        spell = ruleset.spells.get(entry.detail)
+        return costs.spell_cost(ruleset, character, spell) if spell else None
+    if domain == "charm_slots":
+        return costs.charm_slot_cost(ruleset, character, dedicated=(key == "dedicated"))
+    if domain == "charm_slot_upgrade":
+        return costs.charm_slot_upgrade_cost(ruleset, character)
+    if domain == "retainer_charms":
+        return costs.retainer_charm_cost(ruleset, character)
     if domain == "specialties":
         return costs.specialty_cost(ruleset, character)
     if domain == "combos":
@@ -507,8 +743,16 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         return costs.combo_cost(ruleset, combo.charm_ids) if combo else None
     if domain == "ox_body":
         return costs.ox_body_cost(ruleset, character)
+    if domain == "ox_body_slot":
+        return costs.charm_slot_cost(ruleset, character, dedicated=(key == "dedicated"))
+    if domain == "martial_arts":
+        return costs.martial_arts_charm_cost(ruleset, character)
     if domain == "beastman_gifts":
         return costs.gift_cost(ruleset, character)
+    if domain == "submodules":
+        cid, _, k = entry.detail.partition(":")
+        definition = validate.submodule_def(ruleset, cid, k)
+        return definition.xp_cost if definition is not None else None
     return None
 
 
