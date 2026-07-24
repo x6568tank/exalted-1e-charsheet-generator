@@ -646,6 +646,39 @@ def submodule_def(ruleset: RuleSet, charm_id: str, key: str):
     return next((s for s in charm.submodules if s.key == key), None)
 
 
+def owns_submodule(character: Character, charm_id: str, key: str) -> bool:
+    """Whether the character has already purchased this submodule."""
+    return any(s.charm_id == charm_id and s.key == key for s in character.submodules)
+
+
+def submodule_block_reason(ruleset: RuleSet, character: Character,
+                           charm_id: str, key: str) -> str:
+    """Why this submodule cannot be purchased right now — "" when it can. The same
+    gates `validate_submodules` and `advancement.learn_submodule` apply (parent Charm
+    installed, own Essence and Attribute minimums), phrased for the picker so the UI
+    never re-derives them. Says nothing about affordability: BP and XP are the
+    caller's budget question, not a legality one."""
+    definition = submodule_def(ruleset, charm_id, key)
+    if definition is None:
+        return "No such submodule."
+    if owns_submodule(character, charm_id, key):
+        return "Already purchased."
+    if charm_id not in character.charms:
+        charm = ruleset.charms.get(charm_id)
+        return f"Install {charm.name if charm else charm_id} first."
+    if character.essence_rating < definition.min_essence:
+        return f"Requires Essence {definition.min_essence}."
+    if definition.min_attribute:
+        try:
+            attr = AttributeName(definition.min_attribute)
+        except ValueError:
+            return f"Unknown Attribute {definition.min_attribute!r}."
+        if character.attributes.get(attr, 0) < definition.min_attribute_rating:
+            return (f"Requires {definition.min_attribute.title()} "
+                    f"{definition.min_attribute_rating}.")
+    return ""
+
+
 def validate_submodules(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Legality of every purchased submodule (p.89): its parent Charm must exist and
     be known, the key must be a real submodule of that Charm, no submodule bought

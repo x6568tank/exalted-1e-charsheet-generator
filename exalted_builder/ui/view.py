@@ -354,6 +354,48 @@ def build_array_view(ruleset: RuleSet, character: Character) -> ArrayView:
                      total_cost=sum(a.cost for a in arrays))
 
 
+@dataclass
+class SubmoduleRow:
+    """One purchasable upgrade to a Charm (p.89), for the picker's detail card."""
+    charm_id: str
+    key: str
+    name: str
+    description: str
+    bp_cost: int
+    xp_cost: int
+    requirement: str     # "Essence 3 · Wits 3", or "" when it gates on nothing extra
+    owned: bool
+    block_reason: str    # "" when purchasable; why not otherwise
+
+    @property
+    def available(self) -> bool:
+        return not self.owned and not self.block_reason
+
+
+def build_submodule_rows(ruleset: RuleSet, character: Character,
+                         charm_id: str) -> list[SubmoduleRow]:
+    """Every submodule offered by `charm_id`, with its dual price (BP at chargen OR
+    XP post-lock), its own minima, and whether it is owned or blocked. Empty for a
+    Charm with no submodules, which is most of them. Pure — legality from the engine."""
+    charm = ruleset.charms.get(charm_id)
+    if charm is None or not charm.submodules:
+        return []
+    rows = []
+    for sub in charm.submodules:
+        gates = []
+        if sub.min_essence > 1:
+            gates.append(f"Essence {sub.min_essence}")
+        if sub.min_attribute and sub.min_attribute_rating:
+            gates.append(f"{sub.min_attribute.title()} {sub.min_attribute_rating}")
+        rows.append(SubmoduleRow(
+            charm_id=charm_id, key=sub.key, name=sub.name, description=sub.description,
+            bp_cost=sub.bp_cost, xp_cost=sub.xp_cost, requirement=" · ".join(gates),
+            owned=validate.owns_submodule(character, charm_id, sub.key),
+            block_reason=validate.submodule_block_reason(
+                ruleset, character, charm_id, sub.key)))
+    return rows
+
+
 def uses_arrays(ruleset: RuleSet, character: Character) -> bool:
     """Whether this character builds Arrays rather than Combos — i.e. is a Charm-Slot
     splat (Alchemical). The Combos tab renders one or the other on this flag, so it is

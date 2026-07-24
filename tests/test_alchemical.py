@@ -16,7 +16,8 @@ import pytest
 
 import exalted_builder
 from exalted_builder import rules_db
-from exalted_builder.engine import advancement, costs, derive, lifecycle, validate
+from exalted_builder.engine import (advancement, costs, derive, lifecycle, refit,
+                                    validate)
 from exalted_builder.models.character import Array, Character, SubmodulePurchase
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
@@ -527,6 +528,127 @@ def test_learn_submodule_post_lock_then_undo(rs):
     assert not [i for i in advancement.validate_xp(rs, c) if i.severity == "error"]
     advancement.undo_last(rs, c)
     assert not c.submodules and not c.xp_log
+
+
+def test_submodule_block_reason_walks_each_gate_in_turn(rs):
+    """The picker's one source of submodule eligibility. Reasons must clear in order:
+    parent Charm installed, then the submodule's own Attribute minimum."""
+    parent = "alchemical.close-combat.polymodal-joint-bearings"
+    key = rs.charms[parent].submodules[0].key
+    c = _alchemical()
+    assert "install" in validate.submodule_block_reason(rs, c, parent, key).lower()
+    c.charms = [parent]
+    c.attributes[AT.WITS] = 2                      # omnidextrous requires Wits 3
+    assert "Wits 3" in validate.submodule_block_reason(rs, c, parent, key)
+    c.attributes[AT.WITS] = 3
+    assert validate.submodule_block_reason(rs, c, parent, key) == ""
+    c.submodules = [SubmodulePurchase(charm_id=parent, key=key)]
+    assert validate.submodule_block_reason(rs, c, parent, key) == "Already purchased."
+    assert validate.owns_submodule(c, parent, key)
+
+
+def test_submodule_rows_carry_both_prices_and_are_empty_for_plain_charms(rs):
+    from exalted_builder.ui import view as viewmod
+    parent = "alchemical.close-combat.polymodal-joint-bearings"
+    c = _alchemical()
+    c.charms = [parent]
+    c.attributes[AT.WITS] = 3
+    rows = viewmod.build_submodule_rows(rs, c, parent)
+    assert len(rows) == 1
+    row = rows[0]
+    assert (row.bp_cost, row.xp_cost) == (2, 6)    # "2 bonus points or 6 experience"
+    assert row.requirement == "Wits 3"
+    assert row.available and not row.owned
+    # Most Charms offer none, and the section must then render nothing at all.
+    assert viewmod.build_submodule_rows(
+        rs, c, "alchemical.close-combat.tactical-analysis-engrams") == []
+
+
+# --------------------------------------------------------------------------- #
+# Vat refit: Charm Slots <-> Panoply (p.88-89)
+# --------------------------------------------------------------------------- #
+
+def _refit_char(rs) -> Character:
+    """An Alchemical wearing four Caste/Favored Charms, with four Slots of each kind."""
+    c = _alchemical()
+    c.charms = list(CF_CHARMS[:4])
+    return c
+
+
+def test_slot_load_reports_live_wear_not_the_chargen_snapshot(rs):
+    """The refit picture must follow character.charms as it changes. validate's
+    charm_slot_usage deliberately reads the frozen snapshot once locked (it answers
+    "was this legally built?"); slot_load answers "what is worn right now"."""
+    c = _refit_char(rs)
+    lifecycle.lock_chargen(c)
+    before = refit.slot_load(rs, c).installed
+    refit.uninstall(rs, c, CF_CHARMS[0])
+    assert refit.slot_load(rs, c).installed == before - 1
+    # The chargen view is unmoved — the refit did not rewrite history.
+    assert validate.charm_slot_usage(rs, c)[0] == before
+
+
+def test_uninstall_moves_a_charm_to_the_panoply_and_install_moves_it_back(rs):
+    c = _refit_char(rs)
+    refit.uninstall(rs, c, CF_CHARMS[0])
+    assert CF_CHARMS[0] not in c.charms and CF_CHARMS[0] in c.retainer_charms
+    refit.install(rs, c, CF_CHARMS[0])
+    assert CF_CHARMS[0] in c.charms and CF_CHARMS[0] not in c.retainer_charms
+
+
+def test_refit_spends_no_experience_and_writes_no_log(rs):
+    """A refit is play-state: the Charms are already paid for, so nothing is charged
+    and the XP ledger must not gain a row."""
+    c = _refit_char(rs)
+    lifecycle.lock_chargen(c)
+    c.xp_earned = 50
+    before = advancement.xp_available(c)
+    refit.uninstall(rs, c, CF_CHARMS[0])
+    refit.install(rs, c, CF_CHARMS[0])
+    assert advancement.xp_available(c) == before
+    assert c.xp_log == []
+
+
+def test_install_refused_when_no_slot_is_free(rs):
+    c = _alchemical()
+    c.charms = list(CF_CHARMS[:4]) + list(NONCF_CHARMS[:4])      # all 8 Slots full
+    c.retainer_charms = [CF_CHARMS[4]]
+    reason = refit.install_block_reason(rs, c, CF_CHARMS[4])
+    assert "No free Charm Slot" in reason
+    with pytest.raises(refit.RefitError, match="No free Charm Slot"):
+        refit.install(rs, c, CF_CHARMS[4])
+
+
+def test_non_caste_favored_charm_needs_a_general_slot_specifically(rs):
+    """Dedicated Slots take only Caste/Favored Charms (p.88), so a free Slot is not
+    enough on its own — it has to be a General one."""
+    c = _alchemical()
+    # All 4 General Slots used by non-C/F Charms; Dedicated Slots still free.
+    c.charms = list(NONCF_CHARMS[:4])
+    c.retainer_charms = [NONCF_CHARMS[4]]
+    reason = refit.install_block_reason(rs, c, NONCF_CHARMS[4])
+    assert "Dedicated" in reason
+    # A Caste/Favored Charm fits those same free Dedicated Slots fine.
+    c.retainer_charms.append(CF_CHARMS[0])
+    assert refit.install_block_reason(rs, c, CF_CHARMS[0]) == ""
+
+
+def test_uninstall_rejects_a_charm_that_is_not_installed(rs):
+    c = _refit_char(rs)
+    with pytest.raises(refit.RefitError, match="not installed"):
+        refit.uninstall(rs, c, CF_CHARMS[5])
+
+
+def test_supports_refit_covers_alchemicals_and_crossover_eclipses(rs):
+    assert refit.supports_refit(rs, _alchemical())
+    plain_solar = Character(id="s", exalt_type="Solar", caste="dawn")
+    assert not refit.supports_refit(rs, plain_solar)
+    # An Eclipse who crossed over holds Alchemical Charms in a Panoply, so they get
+    # the manager even though they are not a Slot splat.
+    eclipse = Character(id="e", exalt_type="Solar", caste="eclipse")
+    assert not refit.supports_refit(rs, eclipse)
+    eclipse.retainer_charms = [CF_CHARMS[0]]
+    assert refit.supports_refit(rs, eclipse)
 
 
 def _maxed_alchemical(rs) -> Character:
