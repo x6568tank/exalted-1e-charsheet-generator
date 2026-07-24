@@ -279,6 +279,15 @@ class Charm(BaseModel):
     # Storage Unit and the Man-/God-Machine Weaving Engines say so explicitly. True
     # for every ordinary Charm (Arrays otherwise accept any Attribute-based Charm).
     arrayable: bool = True
+    # True bars this Charm from ever being uninstalled once worn (CH3 p.141: an
+    # Alchemical "cannot ever remove" either Weaving Engine). The vat refit refuses to
+    # move it to the Panoply. Default False — an ordinary Charm is freely refittable.
+    permanent_install: bool = False
+    # Dots of PERMANENT Clarity gained by installing this Charm (CH2 p.69). Six
+    # Alchemical Charms grant one each; 0 for every other Charm. Derived, not tracked:
+    # removing the Charm removes the dots (p.70), which falls out of reading this off
+    # the character's installed Charms.
+    permanent_clarity: int = Field(default=0, ge=0)
     description: str = ""
     source: Source = Field(default_factory=Source)
 
@@ -688,6 +697,11 @@ class ExaltDefinition(BaseModel):
     # never validated or priced; this flag only decides whether the UI offers the
     # page at all. True for Lunar; a later shapeshifting splat can opt in as data.
     form_library: bool = False
+    # Does this splat use Clarity in place of Limit (CH2 p.69-71)? True for Alchemical,
+    # who took no part in the Great Curse and so have no Limit at all. Decides whether
+    # the tracker shows Clarity or Limit; the permanent half is derived in
+    # engine.derive.clarity, the temporary half tracked on PlayState.
+    clarity: bool = False
     # What this splat calls its caste slot in the UI: Solars have "Caste", the
     # Dragon-Blooded have "Aspect". Presentation only — the underlying field is
     # still Character.caste keyed to RuleSet.castes.

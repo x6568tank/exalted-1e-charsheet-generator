@@ -296,7 +296,8 @@
       "page": 109
     },
     "exalt_type": "Alchemical",
-    "category": "might_and_mobility"
+    "category": "might_and_mobility",
+    "permanent_clarity": 1
   },
   {
     "id": "alchemical.might-and-mobility.alloyed-reinforcement-of-flesh",

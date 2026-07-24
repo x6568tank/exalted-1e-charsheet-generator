@@ -30,6 +30,7 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
+from ..engine import derive
 from ..models.character import Character, Damage, PlayState
 from ..models.party import Party, PartyMember
 from ..models.rules import RuleSet
@@ -340,12 +341,27 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
                     play_mod.count_box(character, i, i < cur.willpower_spent,
                                        "willpower_spent", cv.play.willpower_max, body.refresh)
 
-            ui.label(f"LIMIT  ({cur.limit}/10"
-                     f"{'  — LIMIT BREAK' if cur.limit >= 10 else ''})").classes(
-                "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
-            with ui.row().classes("gap-1 flex-wrap"):
-                for i in range(10):
-                    play_mod.count_box(character, i, i < cur.limit, "limit", 10, body.refresh)
+            # Alchemicals have Clarity in place of Limit (p.69). Only the temporary
+            # half is clickable; the permanent half is derived.
+            if derive.uses_clarity(ruleset, character):
+                cl = derive.clarity(ruleset, character)
+                ui.label(f"CLARITY  ({cl.total}/{derive.CLARITY_MAX}  ·  "
+                         f"{cl.permanent} perm + {cl.temporary} temp  ·  band "
+                         f"{cl.band})").classes(
+                    "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
+                with ui.row().classes("gap-1 flex-wrap"):
+                    for i in range(derive.CLARITY_MAX):
+                        play_mod.count_box(character, i, i < cur.clarity_temporary,
+                                           "clarity_temporary", derive.CLARITY_MAX,
+                                           body.refresh)
+            else:
+                ui.label(f"LIMIT  ({cur.limit}/10"
+                         f"{'  — LIMIT BREAK' if cur.limit >= 10 else ''})").classes(
+                    "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
+                with ui.row().classes("gap-1 flex-wrap"):
+                    for i in range(10):
+                        play_mod.count_box(character, i, i < cur.limit, "limit", 10,
+                                           body.refresh)
 
             # --- permanent numbers worth having at the table -------------- #
             ui.label(f"Soak {cv.soak.bashing}B / {cv.soak.lethal}L / {cv.soak.aggravated}A"

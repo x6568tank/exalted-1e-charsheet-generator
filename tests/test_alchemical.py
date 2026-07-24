@@ -18,7 +18,8 @@ import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import (advancement, costs, derive, lifecycle, refit,
                                     validate)
-from exalted_builder.models.character import Array, Character, SubmodulePurchase
+from exalted_builder.models.character import (Array, Character, PlayState,
+                                             SubmodulePurchase)
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
@@ -635,7 +636,7 @@ def test_non_caste_favored_charm_needs_a_general_slot_specifically(rs):
 
 def test_uninstall_rejects_a_charm_that_is_not_installed(rs):
     c = _refit_char(rs)
-    with pytest.raises(refit.RefitError, match="not installed"):
+    with pytest.raises(refit.RefitError, match="[Nn]ot installed"):
         refit.uninstall(rs, c, CF_CHARMS[5])
 
 
@@ -649,6 +650,99 @@ def test_supports_refit_covers_alchemicals_and_crossover_eclipses(rs):
     assert not refit.supports_refit(rs, eclipse)
     eclipse.retainer_charms = [CF_CHARMS[0]]
     assert refit.supports_refit(rs, eclipse)
+
+
+# --------------------------------------------------------------------------- #
+# Clarity (CH2 p.69-71)
+# --------------------------------------------------------------------------- #
+# The Alchemical stand-in for Limit. Permanent Clarity is DERIVED (one dot per dot
+# of Essence above 5, plus one per installed granting Charm); temporary Clarity is
+# tracked on PlayState. Total is capped at 10 and never "breaks".
+
+_CLARITY_CHARMS = [
+    "alchemical.close-combat.hyperdextrous-tentacle-apparatus",
+    "alchemical.might-and-mobility.insectile-locomotion-upgrade",
+    "alchemical.social.transcendent-brutality-programming",
+    "alchemical.cognitive.clarified-data-assimilator",
+    "alchemical.essence-and-weaving.man-machine-weaving-engine",
+    "alchemical.essence-and-weaving.god-machine-weaving-engine",
+]
+
+
+def test_only_alchemicals_use_clarity(rs):
+    assert derive.uses_clarity(rs, _alchemical())
+    assert not derive.uses_clarity(rs, Character(id="s", exalt_type="Solar", caste="dawn"))
+
+
+def test_exactly_the_six_charms_grant_permanent_clarity(rs):
+    granting = sorted(c.id for c in rs.charms.values() if c.permanent_clarity)
+    assert granting == sorted(_CLARITY_CHARMS)
+    assert all(rs.charms[cid].permanent_clarity == 1 for cid in _CLARITY_CHARMS)
+
+
+def test_permanent_clarity_is_essence_above_five_plus_charms(rs):
+    c = _alchemical()
+    c.essence_rating = 5
+    assert derive.clarity(rs, c).permanent == 0        # nothing at Essence 5
+    c.essence_rating = 8                               # 3 dots above the fifth
+    assert derive.clarity(rs, c).permanent == 3
+    c.charms = [_CLARITY_CHARMS[0], _CLARITY_CHARMS[1]]
+    v = derive.clarity(rs, c)
+    assert v.permanent == 5
+    assert ("Essence 8", 3) in v.sources
+
+
+def test_temporary_clarity_comes_from_play_state(rs):
+    c = _alchemical()
+    assert derive.clarity(rs, c).temporary == 0        # no PlayState at all
+    c.play = PlayState(clarity_temporary=4)
+    v = derive.clarity(rs, c)
+    assert (v.temporary, v.permanent, v.total) == (4, 0, 4)
+
+
+def test_clarity_total_is_capped_at_ten(rs):
+    """"The sum of permanent and temporary Clarity cannot ever exceed 10" (p.69)."""
+    c = _alchemical()
+    c.essence_rating = 12                              # 7 permanent
+    c.play = PlayState(clarity_temporary=8)
+    v = derive.clarity(rs, c)
+    assert v.permanent == 7 and v.temporary == 8
+    assert v.total == 10 and v.capped
+
+
+def test_clarity_bands_match_the_printed_table(rs):
+    assert derive.clarity_band(0)[0] == "0-2"
+    assert derive.clarity_band(2)[0] == "0-2"
+    assert derive.clarity_band(3)[0] == "3-4"
+    assert derive.clarity_band(5)[0] == "5-7"
+    assert derive.clarity_band(7)[0] == "5-7"
+    assert derive.clarity_band(8)[0] == "8-9"
+    assert derive.clarity_band(10)[0] == "10"
+
+
+def test_removing_the_condition_removes_the_permanent_clarity(rs):
+    """p.70: permanent Clarity cannot be lost while its conditions hold, but removing
+    a condition removes the dots. Deriving from live traits gives this for free."""
+    c = _alchemical()
+    c.charms = [_CLARITY_CHARMS[3]]                    # Clarified Data Assimilator
+    assert derive.clarity(rs, c).permanent == 1
+    refit.uninstall(rs, c, _CLARITY_CHARMS[3])         # to the Panoply: no longer worn
+    assert derive.clarity(rs, c).permanent == 0
+
+
+def test_weaving_engines_can_never_be_uninstalled(rs):
+    """CH3 p.141: "she cannot ever remove the Man-Machine Weaving Engine"."""
+    engine = "alchemical.essence-and-weaving.man-machine-weaving-engine"
+    c = _alchemical()
+    c.charms = [engine]
+    assert rs.charms[engine].permanent_install
+    assert "never be removed" in refit.uninstall_block_reason(rs, c, engine)
+    with pytest.raises(refit.RefitError, match="never be removed"):
+        refit.uninstall(rs, c, engine)
+    assert c.charms == [engine]                        # unchanged
+    # An ordinary Charm is still freely refittable.
+    c.charms.append(CF_CHARMS[0])
+    assert refit.uninstall_block_reason(rs, c, CF_CHARMS[0]) == ""
 
 
 def _maxed_alchemical(rs) -> Character:

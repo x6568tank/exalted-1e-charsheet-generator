@@ -44,8 +44,8 @@ Dragon-Blooded and Abyssal are done (see Status). **Lunar is functionally
 complete** (chargen foundation + full Charm catalogue, started 2026-07-22) —
 see the Status entry below. **Alchemical is feature-complete** (2026-07-23:
 chargen, Charm Slots, Arrays, Submodules, the CH3 catalogue, CH4 weaving,
-XP/advancement and the full UI) with two items outstanding — Clarity, blocked on
-a source page, and a browser click-through. **Sidereal is next** — no build order
+XP/advancement, Clarity and the full UI); only a browser click-through is
+outstanding. **Sidereal is next** — no build order
 chosen yet; ask the user before starting. **Mortals**
 (Godblooded/Ghosts/Heroic Mortals/etc.) are planned after the Exalt types.
 
@@ -61,7 +61,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit). **Blocked/remaining: Clarity (no source page yet), browser click-through** |
+| Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker). **Remaining: browser click-through only** |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -169,7 +169,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (585 tests passing)
+## Status (593 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -181,7 +181,7 @@ extraction dir). `character_to_json`/`_from_json` and their `party_*` mirrors ar
 the in-memory (de)serialisers the browser upload/download path reuses.
 
 ### Engine
-- `derive.py` — Willpower; per-splat Essence pools via `RuleSet.exalts`/`exalt_for`
+- `derive.py` — Clarity (Alchemical, see below); Willpower; per-splat Essence pools via `RuleSet.exalts`/`exalt_for`
   (essence coefficients + an optional Breeding-Background term for Dragon-Blooded);
   health track; per-type soak (bashing/lethal/aggravated, core pp.231-232).
 - `validate.py`:
@@ -831,17 +831,44 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     layout; the Augmentation page-swap + dialog, the Arrays tab and the Vat Refit page
     all want a human pass, as the DBT dialog did — it found two bugs no server-render
     check could).
-    **STILL TO BUILD (UI):** (1) **Clarity** (→ `PlayState`/Limit precedent) — BLOCKED:
-    the Clarity trait's own rules are in none of the three pasted chapters; CH4 only
-    references per-protocol `Minimum Clarity` values (already recorded in the protocol
-    descriptions, deliberately not enforced). Needs the human to drop that page in
-    `images/Alchemical/`. (2) a real browser click-through of the whole Alchemical flow.
+    **Clarity — DONE 2026-07-23** (CH2 **p.69-71**, in the Character Creation chapter,
+    not CH3/CH4). The Alchemical replacement for Limit: they took no part in the Great
+    Curse, so they have no Limit at all. Modelled as a **split**, per the user's call:
+    - **Permanent Clarity is DERIVED, not tracked** — one dot per dot of Essence above
+      5, plus one for each installed Charm that grants it (`Charm.permanent_clarity`,
+      set on exactly six Charms: Hyperdextrous Tentacle Apparatus, Insectile Locomotion
+      Upgrade, Transcendent Brutality Programming, Clarified Data Assimilator, and both
+      Weaving Engines). Reading it off the LIVE `character.charms` makes p.70's
+      "removing these conditions immediately removes the appropriate amount of
+      permanent Clarity" free — a vat refit that sheds such a Charm sheds its dots, with
+      no bookkeeping. This is the "capacities flow OUT of the engine" rule, same as the
+      health track.
+    - **Temporary Clarity is TRACKED** on `PlayState.clarity_temporary`, alongside Limit
+      and Renown — it moves on Storyteller calls (suppressing Virtues, weeks without
+      human contact, Compassion rolls after a scene) that this engine does not model.
+    - Total = permanent + temporary, **hard-capped at 10** ("cannot ever exceed 10 under
+      any circumstances"). Unlike Limit it never breaks or resets.
+    - `derive.clarity` → `ClarityView` (permanent/temporary/total/itemised sources/band/
+      effects); `derive.CLARITY_BANDS` holds the p.70-71 table. **The band is DISPLAY
+      ONLY** — the dice penalties and bonuses are printed text, nothing applies them to
+      a roll (same scope line as combat/attack derivation).
+    - `ExaltDefinition.clarity` (data, True on Alchemical) decides whether the Play tab
+      and the GM card show Clarity or Limit — no splat is named in UI code.
+    - **NOT modelled: Gremlin Syndrome / Dissonance** (p.71). It is explicitly "an
+      Alchemical-only **Flaw** worth 5 bonus points", and Merits & Flaws are out of the
+      project until the centralized re-add (see **Removed**). Revisit it with M&F, not
+      before.
+    **Weaving Engines can never be uninstalled** (CH3 p.141: "she cannot ever remove
+    the Man-Machine Weaving Engine"). New `Charm.permanent_install` (True on both
+    engines) which `refit.uninstall_block_reason` refuses — a flag, not an id check, so
+    another such Charm is pure data.
+    **STILL TO BUILD (UI):** a real browser click-through of the whole Alchemical flow.
 
-    **Open rules question, NOT decided:** when a Charm is moved to the Panoply, its
-    *dependents* are left installed — `refit.uninstall` does not cascade or block the
-    way the pre-lock picker's `charms_depending_on` guard does. A Panoply Charm is
-    still OWNED, so it is arguable that a prerequisite need only be owned, not worn.
-    Unresolved: ask before changing the behaviour either way.
+    **Rules-authority call, CONFIRMED 2026-07-23 — do not relitigate:** moving a Charm
+    to the Panoply leaves its *dependents* installed. `refit.uninstall` deliberately
+    does NOT cascade or block the way the pre-lock picker's `charms_depending_on` guard
+    does, because a Panoply Charm is still OWNED — a prerequisite must be owned, not
+    worn. (The pre-lock guard is a different case: there the Charm is being *unlearned*.)
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled
@@ -892,9 +919,6 @@ three-page Abilities/Martial Arts/Spells split, GM mode.
   kind of check that has found the UI bugs the test suite cannot (see the DBT dialog).
   Walk Edit → Charms (incl. the Augmentation pop-ups and Vat Refit) → Arrays → XP →
   Play → Sheet with `examples/gearheart.character.json`.
-- **Alchemical: Clarity** — blocked on source. The trait's own rules are in none of the
-  three pasted chapters; drop the page into `images/Alchemical/` and it can be modelled
-  on the `PlayState`/Limit precedent.
 - **Sidereal** Exalt type, then **Mortals** — see **Next Exalt Types** above for the
   color scheme and the M&F-return plan. (Lunar and Alchemical are done.) No build
   order chosen yet; ask the user before starting.

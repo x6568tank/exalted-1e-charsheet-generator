@@ -31,6 +31,8 @@
     "installation_cost": 1,
     "prerequisites": [],
     "arrayable": false,
+    "permanent_install": true,
+    "permanent_clarity": 1,
     "grants_circle": "Man-Machine",
     "no_foreign_learning": true,
     "cost": {
@@ -63,6 +65,8 @@
       ]
     ],
     "arrayable": false,
+    "permanent_install": true,
+    "permanent_clarity": 1,
     "grants_circle": "God-Machine",
     "no_foreign_learning": true,
     "cost": {

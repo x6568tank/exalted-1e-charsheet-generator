@@ -865,7 +865,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     def _refit_row(charm_id: str, *, installed: bool) -> None:
         charm = ruleset.charms.get(charm_id)
         name = charm.name if charm is not None else charm_id
-        reason = "" if installed else refit.install_block_reason(ruleset, character, charm_id)
+        reason = (refit.uninstall_block_reason(ruleset, character, charm_id) if installed
+                  else refit.install_block_reason(ruleset, character, charm_id))
         with ui.row().classes("w-full items-center justify-between no-wrap gap-2"):
             with ui.column().classes("flex-1 min-w-0 gap-0"):
                 ui.label(name).classes("text-sm")
@@ -881,7 +882,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.label(" · ".join(bits)).classes("text-xs text-gray-500")
                 if reason:
                     ui.label(reason).classes("text-xs text-amber-700 italic")
-            if installed:
+            if installed and reason:
+                ui.button("To Panoply", icon="lock").props(
+                    "dense flat no-caps size=sm disable").tooltip(reason)
+            elif installed:
                 ui.button("To Panoply", icon="archive",
                           on_click=lambda _=None, c=charm_id: do_uninstall(c)).props(
                     "dense flat no-caps size=sm color=negative")

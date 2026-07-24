@@ -131,16 +131,35 @@ def install_block_reason(ruleset: RuleSet, character: Character, charm_id: str) 
     return ""
 
 
-def uninstall(ruleset: RuleSet, character: Character, charm_id: str) -> None:
-    """Move an installed Charm into the Panoply. Always legal — removing load never
-    breaks a Slot rule — but the Charm must actually be installed and occupy a Slot."""
+def uninstall_block_reason(ruleset: RuleSet, character: Character, charm_id: str) -> str:
+    """Why `charm_id` cannot be moved to the Panoply — "" when it can. Shedding load
+    never breaks a Slot or Essence rule, so the only bars are structural: the Charm
+    must be installed and occupy a Slot, and a `permanent_install` Charm (either
+    Weaving Engine, p.141) can never come out once worn.
+
+    Note what is deliberately NOT a bar: a Charm that other installed Charms name as a
+    prerequisite. A Panoply Charm is still OWNED, and a prerequisite must be owned, not
+    worn — so uninstalling never cascades. (The pre-lock picker's `charms_depending_on`
+    guard is a different case: there the Charm is being unlearned outright.)"""
     charm = ruleset.charms.get(charm_id)
     if charm_id not in character.charms:
-        raise RefitError(f"{charm_id!r} is not installed.")
-    if charm is not None and not validate.charm_occupies_slot(ruleset, character, charm):
-        raise RefitError(
-            f"{charm.name} is held in the Perfected Lotus Matrix, not a Charm Slot, "
-            "so it cannot be moved to the Panoply.")
+        return "Not installed."
+    if charm is None:
+        return ""
+    if not validate.charm_occupies_slot(ruleset, character, charm):
+        return (f"Held in the Perfected Lotus Matrix, not a Charm Slot, so it cannot "
+                f"move to the Panoply.")
+    if charm.permanent_install:
+        return "Can never be removed once installed (p.141)."
+    return ""
+
+
+def uninstall(ruleset: RuleSet, character: Character, charm_id: str) -> None:
+    """Move an installed Charm into the Panoply."""
+    reason = uninstall_block_reason(ruleset, character, charm_id)
+    if reason:
+        raise RefitError(f"{ruleset.charms[charm_id].name}: {reason}"
+                         if charm_id in ruleset.charms else reason)
     character.charms.remove(charm_id)
     if charm_id not in character.retainer_charms:
         character.retainer_charms.append(charm_id)
