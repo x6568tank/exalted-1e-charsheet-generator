@@ -1,0 +1,126 @@
+[
+  {
+    "id": "sidereal.medicine.smooth-transition",
+    "name": "Smooth Transition",
+    "category": "medicine",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "Applied to an Incapacitated or dying target, this Charm ensures the target cannot rise again as an undead. If applied to a corpse, neither the body nor spirit can rise again as an undead. Zombies instantly collapse. This power cannot target ghosts directly, but if applied to the ghost's original body — not a body it happens to possess — it banishes the ghost instantly and permanently to the Underworld. No Charm or ability protects the victim against Smooth Transition or activates in the moment of death. This is a perfect effect. However, extremely unusual corpses — such as spine chains — require a Charisma + Medicine roll to lay to rest, with difficulty equal to the Essence of the creature that raised them.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.medicine.peaceable-conclusion",
+    "name": "Peaceable Conclusion",
+    "category": "medicine",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "Peaceable Conclusion Invocation of the Storm-Follow: Earth and Sky Bargain be dying, Incapacitated or even wounded but must be willing to pass into death, His consent cannot be forced, nor can it be forcibly withheld: The target dies ifand only if he would decide to consent, given adequate time and comfort inwhich to think, while under the influence of neither drug nor Charm, The Sidereal Exalted can freely make the prospect of life as unpleasant as she desires, Sidereal Exalted may always use their Valor with this Charm. INVOCATION OF THE STORM-FOLLOWING SILENCE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.medicine.invocation-of-the-storm-following-silence",
+    "name": "Invocation of the Storm-Following Silence",
+    "category": "medicine",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.medicine.smooth-transition"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The character casts forth the violet radiance of Endings, stillness coming to the weave of fate. He brings a Smooth Transition to all those within (his Essence x 10) yards. ILacing unusual corpses, his player makes only a single Charisma + Medicine roll; compare the number of successes received to the Essence of the Deathlord or deathknight who raised each given corpse to determine whether it falls. Sidereal Exalted may always use their Valor with this Charm. ‘TERMINATE ILLNESS",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.medicine.terminate-illness",
+    "name": "Terminate Illness",
+    "category": "medicine",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 10,
+      "willpower": 0,
+      "health": 0,
+      "raw": "10 motes"
+    },
+    "duration": "Ins The character makes the Inferior Sign of the Corpse against the spirit ofan illness, and it comes to its natural end. The Exalt’s player makes an Intelligence + Medi- cine roll against the normal difficulty to treat the disease, adding her Essence in dice. If successful, the disease’s course ends, the least god of the infection dies peacefully, and the target can begin recovery. This does not affect spiritual diseases (see pp. 195-201). Sidereal Exalted may always use their Conviction with this Charm. EARTH AND Sky BARGAIN",
+    "description": "The character makes the Inferior Sign of the Corpse against the spirit of an illness, and it comes to its natural end. The Exalt's player makes an Intelligence + Medicine roll against the normal difficulty to treat the disease, adding her Essence in dice. If successful, the disease's course ends, the least god of the infection dies peacefully, and the target can begin recovery. This does not affect spiritual diseases. Sidereal Exalted may always use their Conviction with this Charm.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.medicine.earth-and-sky-bargain",
+    "name": "Earth and Sky Bargain",
+    "category": "medicine",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.medicine.peaceable-conclusion"
+      ],
+      [
+        "sidereal.medicine.invocation-of-the-storm-following-silence"
+      ],
+      [
+        "sidereal.medicine.terminate-illness"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1,
+      "raw": "10 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "Indefinite",
+    "description": "This Charm uses a prayer strip marked with the scripture of the Maiden and the Road. The character buries it seven yards beneath the ground and covers its grave with stone. Ten spines of indigo light burst upward from the grave and explode into the sky — the Charm then takes effect. The Sidereal’s intuition for fate leads her to the nearest spirit or elemental of the earth or the air who stands, for whatever reason, on the verge of death. If the Sidereal so chooses, she may offer it an opportunity to endure past its time. If it accepts, it binds itself to the Sidereal Exalted’s soul and vanishes. Until the Sidereal releases this Charm and the regeneration functions only in contact with the earth or stone. In addition, her natural soak increases by (3L/3B) if she binds an air creature and (6L/6B) if she ties herself tothe earth. This soak is not compatible with armor. The character does not choose which sort of elemental or spirit she finds. The matter is in Saturn’s hands. The character can transfer the bound spirit or elemental toanother. From that point forward, that person benefits from the effects, and she does not. She cannot reclaim it once so transferred, although the Charm still ends when she stops committing Essence to it When the character ends the Charm, the elemental or spirit is born again from its host’s soul. It does not return as quite the same entity and is often closer to the Exalt’s strength than to its original power. It may or may not consider itself indebted, depending on its nature, how long the character left the Charm in force and whether the Sidereal had anything to do with its being on the verge of death in the first place.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

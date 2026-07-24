@@ -1,0 +1,377 @@
+[
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.feverish-essence-discharge-atemi",
+    "name": "Feverish Essence Discharge Atemi",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 7,
+      "willpower": 0,
+      "health": 0,
+      "raw": "7 motes"
+    },
+    "duration": "Instant",
+    "description": "«whose lover's practices displeased the sun. The allseeing sun no longer could sustain Tormenting the enemy like the bites of a hundred mosquitoes, the character delivers a spark of poisoned Essence into the core of his enemy's soul. This is an infectious Martial Arts attack that carries the White Sun Sickness. A victim of White Sun Sickness suffers from a fever of the soul. Each time she spends motes of Essence on a Charm, the disease increases the Charm’s cost by | mote. This effect is a cumulative one: The second expenditure costs 2 extra motes, the third costs three, and so forth. Reduce the accumulated total by five in each day the victim spends no motes. The victim also hallucinates. In stressful situations, this reduces all of her dice pools by het White Sun Sickness occurs in nature. It aGicts — though very rarely — those who spend too long meditating on the ways of the Fair Folk, the ever-changing spirit of Luna, the power of the Elemental Dragons or the inspiring greatness of the Unconquered Sun. Mundane Treatment Difficulty: 6 Magical Treatment Difficulty: 3 DisJOINTED ESSENCE INFECTIOUS ATEMI",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.disjointed-essence-infectious-atemi",
+    "name": "Disjointed Essence Infectious Atemi",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 12,
+      "willpower": 0,
+      "health": 0,
+      "raw": "12 motes"
+    },
+    "duration": "Instant",
+    "description": "These practices, but with enraged disdain, darts forth such pestilent malignant beams, Her fingers brushing past the victim's defenses like contaminated water seeping into a pool, the character infects a victim's Essence with the spastic, divisive Drunken Moth Sickness. This is an infectious Martial Arts attack. A victim of Drunken Moth Sickness no longer entirely controls his behavior. The disease comes with a general purpose specified by the Sidereal — something like “embarrass yourself,” “protect me” or “beat up your friends.” In each turn, the character has three choices: Use a simple Charm, use a Combo, or spend at least half ofhis non-reflexive actions serving the disease’s purpose. (Splitting Otherwise, the actions that go to the Drunken Moth Sickness are wasted — the character does nothing. This disease occasionally occurs in nature, generally when someone eats something into which a spirit has been bound. Mundane Treatment Difficulty: 6 Magical Treatment Difficulty: 4 Convutsive DisPLACEMENT INFECTIOUS ATEM)",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.convulsive-displacement-infectious-atemi",
+    "name": "Convulsive Displacement Infectious Atemi",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 12,
+      "willpower": 1,
+      "health": 0,
+      "raw": "12 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "As shed infection on air, earth and streams; One precise punch or kick disrupts the entire functioning of the victim’s body and soul, shattering his Essence into the jagged pattern characteristic of the Jigsaw Organ Condition. This is an infectious Martial Arts attack A victim of the Jigsaw Organ Condition lacks the physical coherence of his peers. Struck in combat, he loses limbs or extremities with abnormal ease, simply falling apart. Fortunately, when he does lose a limb, he need simply stick it back on, and it begins to heal. Similarly, if he loses an organ, he can spend a turn swallowing it, and it slides back into place. Individual organs remain alive, connected and under the victim's control when separated from the body. The victim still takes damage normally, however, due to the sheer physical trauma of it. Whenever a victim suffers damage, roll his Stamina against a difficulty equal to the number of health levels lost. On a failure, a limb falls off, he coughs out a lung, or some similar event transpires. If the Sidereal successfully infects someone with this disease, the target automatically loses a limb or organ of the Sidereal’s choice. The Exalt can attempt to catch it with a reflexive Dexterity + Athletics action at her full dice pool. For example, she might infect her victim with a measured blow to the back, cartwheeling past him to catch his heart as he coughs it into her hands. She can again force a lost limb of her choice and, again, try to catch it, any time she does damage to the aGicted target — the target cannot defend himself with a Stamina roll. Defensive Charms only protect such organs or limbs as they are naturally applicable to. By defaule, limited leverage reduces the dice pool for a severed limb’s actions to 0 before the influence of Charms. Further, most Charms cua do not function when by as The Sidereal Exalted are only aware of 40 naturally contracted cases of Jigsaw Organ Condition this Age. The vector for this disease is unknown, Mundane Treatment Difficulty: 10 Magical Treatment Difficulty: 4 Essence-D1SRUPTING INFECTIOUS ATEMI",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.essence-disrupting-infectious-atemi",
+    "name": "Essence-Disrupting Infectious Atemi",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.citrine-poxes-of-contagion.feverish-essence-discharge-atemi"
+      ],
+      [
+        "sidereal.citrine-poxes-of-contagion.disjointed-essence-infectious-atemi"
+      ],
+      [
+        "sidereal.citrine-poxes-of-contagion.convulsive-displacement-infectious-atemi"
+      ]
+    ],
+    "cost": {
+      "motes": 12,
+      "willpower": 1,
+      "health": 0,
+      "raw": "12 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "From whence this malady its birth received. The character's understanding of the art of infectious martial arts increases. She learns the 25 underlying principles of infection and may apply them in combination to inflict arbitrary First or Second Circle illnesses upon her opponent. This requires an infectious Martial Arts attack supplemented by this Charm. Characters develop their own First or Second Circle infections for use with Essence-Disrupting Infectious Atemi. Creating such a sickness requires an Intelligence + Medicine roll. The player describes the disease desired, and the Storyteller decides upon its Circle and treatment difficulties. The difficulty of the Medicine roll equals the Magical Treatment Difficulty for the sickness. Reduce thi culty by one point if another Sidereal Exalted teaches the character how to inflict the disease. The Sidereal can attempt to realize a general infection concept, her player making the appropriate roll, no more than once per story. Normally, characters practice the infliction of new spiritual infections before testing them in battle. Developing diseases on the Iy imposes a +2 difficulty penalty. It also requires the Storyteller’s permission and requires a separate action from the blow that inflicts the disease. PERFECT RECONSTRUCTION METHOD.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.perfect-reconstruction-method",
+    "name": "Perfect Reconstruction Method",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 8,
+      "willpower": 1,
+      "health": 0,
+      "raw": "8 motes, 1 Willpower, 1 experience point"
+    },
+    "duration": "Instant",
+    "description": "Essence. Add the character's Medicine score in automatic successes. The target can dodge of parry normally. If the Sidereal hi ences the following beneficial effects: * The target heals all bashing damage. * The target heals a number of lethal damage levels equal ro the character’s Martial Arts score. Treat any aggravated damage levels as two lethal damage levels, and heal them first. © The target can immediately spend one experience point to heal one point of permanent Trait loss. This cannot raise a Trait above the highest level previously purchased. (In other words, the target cannot lose a point of Willpower, buy itback between stories and then take advantage of this Charm to raise it further.) © Any effect that has locked the target into an undesired shape is instantly shattered. After a successful application of this method, the target's player must succeed at a Temperance roll against difficulty 2, or the target falls unconscious in a moment of transcendent ecstasy. The character can use this method on herself. This Charm does noraffect tattooed Lunar Exalted, who treat it as an external attempt to modify their shape (see Exalted: the Lunars, p. 121). Spirit AND Bovy PuriFICATION TOUCH",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.spirit-and-body-purification-touch",
+    "name": "Spirit and Body Purification Touch",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 8,
+      "willpower": 1,
+      "health": 0,
+      "raw": "8 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "His head with sacrificial garlands crowned, Like the rain that comes after a battle to wash away the blood and tears, the gentle fall of the Sidereal’s hands or feet upon a target's Essence cleanses the target of disease and ill effects. The Sidereal’s player rolls Dexterity + Martial Arts against a difficulty equal to the target's Essence. Add the character's Medicine score in automatic successes, The target can dodge or parry normally. Ifthe character hits, the target experiences the following beneficial effects: © Spiritual and physical diseases instantly leave her system, and she fully recovers from their effects. The Exalt’s player must roll Intelligence + Medicine against the Magical Treatment Difficulty to cure a Third Circle illness or the Great Contagion (difficulty 5) with this Charm. © All poison and drugs leave her system, and the target i © TheSidereal Exalted can transferasmany points of his temporary Willpower to the target as desired. © Curses upon the target are broken, although permanently lost Attributes are not recovered. This includes most debilitating effects imposed through nonphysical mear © The character can erase painful memories, that he is aware of, which aGict the target. In the future, the target must spend a Willpower point to recall these memories for a scene, and even then, they return only dimly. The target has even greater difficulty remembering the events leading up to the use of this Charm — specifically, the scene in which this Charm was used Remembering those events later requires not simply a Willpower point, buta successful Conviction roll against difficulty 2. Again, the memory only lasts for a scene. The character can use this method on herself. INNER DRAGON UNBINDING",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.inner-dragon-unbinding",
+    "name": "Inner Dragon Unbinding",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.citrine-poxes-of-contagion.spirit-and-body-purification-touch"
+      ]
+    ],
+    "cost": {
+      "motes": 12,
+      "willpower": 1,
+      "health": 0,
+      "raw": "12 motes, 1 Willpower"
+    },
+    "duration": "One turn",
+    "description": "The character guides her actions with the quadrumvirate of redress, four fundamental patterns of Essence flow designed to overcome restraints upon the heart, body, mind and soul. This instantly breaks any debilitating magical effects upon her, save for those imposed by the limits of her own Charms. In addition, for the remainder of the turn, the players of others must succeed at an Essence roll with a difficulty equal to the character's permanent Essence for their characters to affect the Sidereal with a Charm, spell or Charm-assisted attack.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.flare-of-invulnerability-method",
+    "name": "Flare of Invulnerability Method",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.citrine-poxes-of-contagion.perfect-reconstruction-method"
+      ],
+      [
+        "sidereal.citrine-poxes-of-contagion.spirit-and-body-purification-touch"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 0,
+      "health": 0,
+      "raw": "10 motes"
+    },
+    "duration": "One scene",
+    "description": "The character stirs the Essence within her to a blaze, burning through at least 10 motes of Essence each turn (losing any she does not spend). Further, no combination of effects can allow her to regain more than 5 Essence in a given turn.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.citrine-poxes-of-contagion-form",
+    "name": "Citrine Poxes of Contagion Form",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "sidereal.citrine-poxes-of-contagion.essence-disrupting-infectious-atemi"
+      ],
+      [
+        "sidereal.citrine-poxes-of-contagion.inner-dragon-unbinding"
+      ],
+      [
+        "sidereal.citrine-poxes-of-contagion.flare-of-invulnerability-method"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "Prom him the malady received its name. The character moves in a sinuous pattern that makes the Iows of Essence about her weep. An anima banner-like effect rises above her, displaying a latticework of iron dripping with sea water and blood. This is the symbol of the sickness named Iphimedeia, the Revel Outside the Sealing of the Gates. The air out to (her Essence x 10) yards from the character becomes redolent with contagion. Starting the next turn, all those within. that distance of the Exalt risk infection. The Exalt can protect a number of allies up to her permanent Essence from this effect. This is an infectious Martial Arts attack. It does not require that the character strike her targets, but perfect blocks and perfect dodges still protect against the outpouring of disease. A victim of Iphimedeia finds the Iesh of his body twisting and Iowing, melting while remaining yet alive. This does one level of unsoakable aggravated damage per turn but stops when aggravated damage fills the -0 and 1 wound tracks. Characters protected against the influence of the Wyld do not suffer from this effect. The infected also find their legs twitching with the desire to dance. In any given turn, a victim can choose to succumb, devoting a dice action to dancing, adding his Essence in automatic successes to the Performance roll and losing control over his movement. He normally dances around an object or person chosen by the Storytellerata distance of 10 yards. Alternately, he can resist. Struggling with his own body reduces his effective Dexterity to 0. The greater a victim's self-control, the more Iphimedeia impedes him. In each turn, he must fail a Temperance roll, spend a Willpower point or lose his action as patches of the air become as hard as iron to him. Choosing to dance does not protect him from this effect. Ifappropriate to the game style, female Dragon-Blooded -— Aspects of Water may find themselves pregnant after against the Sidereal’s Essence to resist lose all dice from their Stamina + Resistance pool before the application of Charms. Characters using this Form are immune to all disease and poison, as if employing the Immunity to Everything Technique. Mundane Treatment Difficul Magical Treatment Difficulty: 4 SPIRITUAL PERFECTION (Style prerequisite: mastery of one complete Martial Arts style — all its Charms.)",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.spiritual-perfection",
+    "name": "Spiritual Perfection",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Reflexive",
+    "min_ability": 6,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "sidereal.citrine-poxes-of-contagion.citrine-poxes-of-contagion-form"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote"
+    },
+    "duration": "Instant",
+    "description": "The Elder Sutva of Decay: Once, there was a crippled maiden, The character's understanding of the processes by which one balances or unbalances the Iow ofa person’s Essence helps him shield himself from any disability. For a single mote of Essence, he can render himself permanently immune to any poison or disease to which he has been exposed. He can also spend a mote of Essence to halve the damage from a single attack, after damage is rolled, or to reflexively protect himself from any disabling effect upon his body or mind. He must invoke the Charm once for each such attack or effect. For example, hit by a Lightning Torment Hatchet, the Sidereal could spend { mote to halve the damage taken. and 1 mote to block its painful, disabling effect. The character cannot cure disabilities originating outside his body, such as shackles binding his wrists. All of these effects are perfect. The character is the master of his own body and mind. GeNTLE TOUCH OF THE WickeD HAND",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.gentle-touch-of-the-wicked-hand",
+    "name": "Gentle Touch of the Wicked Hand",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Supplemental",
+    "min_ability": 6,
+    "min_essence": 7,
+    "prerequisites": [
+      [
+        "sidereal.citrine-poxes-of-contagion.spiritual-perfection"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "Youshall know your enemies when they teach you to forget One who approaches mastery of Decay-style martial arts learns ten thousand subtle principles of infection, each of which she can employ ten thousand different ways. Applying them in combination, she can wreak the greatest forms of havoc upon. the Essence Iows of het Characters develop their own Third Circle illnesses for use with Gentle Touch of the Wicked Hand. Infection follows the ordinary rules for infectious Martial Arts, save that itis intrinsically more difficult —as noted above —to resist Third Circle infection. Creating a Third Circle illness requires an Intelligence + Medicine roll. The Storytellersersa difficulty between 5 and 10, based on the disease’s effects. Reduce this difficulty by one point if another Sidereal teaches the character how to inflict this disease. The Sidereal can attempt to realize a general infection concept, her player making the appropriate roll, no more than once in every year. Normally, characters practice the infliction of new spiritual infections before testing them in battle. Developing diseases on the Iy imposes a +2 difficulty penalty. It also requires the Storyteller’s permission and requires a separate action from the blow that inflicts the disease. GLORIOUS SIDEREAL PROTECTION",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.glorious-sidereal-protection",
+    "name": "Glorious Sidereal Protection",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Simple",
+    "min_ability": 6,
+    "min_essence": 7,
+    "prerequisites": [
+      [
+        "sidereal.citrine-poxes-of-contagion.spiritual-perfection"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "The character learns to guard himself and others from even the most terrible attacks. This Charm manipulates one target’s Essence. Under its effects, she automatically converts any aggravated damage she receives to lethal damage, before soak. This stacks with Charms that convert lethal to bashing damage; characters under both effects convert all damage directly to bashing. The character can use this Charm on himself. Essence-SHATTERING T YPHOON",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.citrine-poxes-of-contagion.essence-shattering-typhoon",
+    "name": "Essence-Shattering Typhoon",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "exalt_type": "Sidereal",
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "type": "Simple",
+    "min_ability": 7,
+    "min_essence": 7,
+    "prerequisites": [
+      [
+        "sidereal.citrine-poxes-of-contagion.gentle-touch-of-the-wicked-hand"
+      ],
+      [
+        "sidereal.citrine-poxes-of-contagion.glorious-sidereal-protection"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1,
+      "health": 0,
+      "raw": "6 motes, 1 Willpower"
+    },
+    "duration": "One turn",
+    "description": "The character’s fists blur as she pounds them against the air, shattering the currents of the world and casting a storm of broken and tainted Essence toward her foes. In the first urn, the effects extend three yards beyond her fists. Anyone and anything immediately in front of her suffers either 15 dice of aggravated damage or a Third Circle illness she has learned to inflict (targets can resist the disease normally.) This is an unblockable, undodgeable effect. For each turn that the Exalt continuously performs this Charm, the effects stretch one mile further forward and a tehth of a mil side. This Charm is a semi-physic: not reach through unbroken until the turn it either destrc around them. It does note ter or to her sides, “ rth, trees, ete. hem or has a route tl behind the charac-",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

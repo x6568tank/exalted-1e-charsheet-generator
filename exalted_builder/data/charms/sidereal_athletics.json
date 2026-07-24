@@ -1,0 +1,126 @@
+[
+  {
+    "id": "sidereal.athletics.burn-life",
+    "name": "Burn Life",
+    "category": "athletics",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes per dot"
+    },
+    "duration": "One scene",
+    "description": "The character draws upon the long thread of his own future destiny for power, sacrificing a few days or weeks of lifespan to suffuse his physical form with Essence. His player rolls Essence + Athletics. Each success represents one point that the Exalt can add to his Strength, Dexterity or Stamina until the end of the scene; he cannot raise any of them by more than his Essence. These improvements add normally to his damage, running speed or soak. Each increase costs 3 motes of Essence and three days of lifespan. Successes not paid for are lost. Increases to his Attributes are dice bonuses added by a Charm and should be considered assuch when determining the maximum effect of other dice-bonus Charms. Sidereal Exalted may always use their Conviction with this Charm. Hunery ToucH",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.athletics.hungry-touch",
+    "name": "Hungry Touch",
+    "category": "athletics",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.athletics.burn-life"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per target number reduction or dam- age point"
+    },
+    "duration": "Instant",
+    "description": "Withasingle blow, the character consumes the destiny of an object, bringing that destiny partway toward or immediately to its final conclusion. When attempting to destroy an object with a feat of strength, the character can use this Charm to reduce the target number of the Willpower roll to boost her Strength + Athletics. If she succeeds at destroying the object, she recovers the Willpower pointspent. Alternately, when attacking an object, the character can buy up to her Essence in additional points of damage at 1 mote each. Forcorren EARTH",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.athletics.forgotten-earth",
+    "name": "Forgotten Earth",
+    "category": "athletics",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote"
+    },
+    "duration": "Instant",
+    "description": "For a moment, the character cuts the connection between herself and the ground, and her destiny lies in the air. She triples her leaping distance fora single jump. INEXORABLE ADVANCE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.athletics.inexorable-advance",
+    "name": "Inexorable Advance",
+    "category": "athletics",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote"
+    },
+    "duration": "Five curns",
+    "description": "Eliding the moments of her own life between footsteps, or between the beginning of a gesture and its end, the character acts without the need for motion. She suffers no wound or armor penalties of any sort, nor any penalties that reduce her running speed. When) characters first learn this Charm, involve Iickering shifts in their position —as if others saw them through a strobe light. With a few days’ practice, however, they can smooth out this effect, moving with a Iuid grace that appears to ignore normal anatomical constraints. their movements INVISIBLE MOTION",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.athletics.invisible-motion",
+    "name": "Invisible Motion",
+    "category": "athletics",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.athletics.hungry-touch"
+      ],
+      [
+        "sidereal.athletics.forgotten-earth"
+      ],
+      [
+        "sidereal.athletics.inexorable-advance"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower, 1"
+    },
+    "duration": "One day",
+    "description": "This Charm uses a prayer strip marked with the scripture of the Maiden and the Dust. The character s it around his forehead or neck, whereupon it exudes a sofrscent of lilacs and decay. For the rest of the day, the character receives the benefits of the Inexorable ‘Advance Charm every turn. This continuous simplification of his movements also reduces the fatigue value of his armor by two, to a minimum of zero. A fatigue value of zero means that the character need never roll to see if he becomes fatigued from wearing the armor. In addition, the character can compress more action and more health level complex action into the fractional seconds of his life he ips over and reduces to instantaneousness. He doubles character can reserve some of these successes for reflexive actions later in the turn, but successes not used by the end of each turn are lost.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

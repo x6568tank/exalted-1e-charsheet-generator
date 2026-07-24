@@ -1,0 +1,152 @@
+[
+  {
+    "id": "sidereal.archery.generalized-ammunition-technique",
+    "name": "Generalized Ammunition Technique",
+    "category": "archery",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote"
+    },
+    "duration": "Instant",
+    "description": "The mirror of adjusting circumstances to meet one’s needs is adapting one’s needs to things found in one’s circumstances. Both allow for the smooth progress of fate, This Charm lets an adaptable Exalt fire anything no heavier than her fist and no longer than her arm as if it were an arrow, including handfuls of dust or fire, shouts, dragonflies, small spirits or shadows. Living things can avoid the Sidereal seizing and launching them with a reflexive Dexterity + Dodge roll against a difficulty equal to the Sidereal’s Archery score. Upon impact, an improvised arrow inflicts damage as a normal arrow of any type (Exale’s choice), in addition to any unusual effects appropriate to the attack. Sidereal Exalted can only shape arrows from concrete things, although the Maiden of Battles shapes her arrows from intention and desire. Avy Direction ARROW",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.archery.any-direction-arrow",
+    "name": "Any Direction Arrow",
+    "category": "archery",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote + 1 mote per die"
+    },
+    "duration": "Instant",
+    "description": "ALIZED ) ANMUNIT ION Essence in dice toan Archery roll. In addition, the arrow takes no penalties from up to 50 percent cover. Every Direcrion ARROW",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.archery.every-direction-arrow",
+    "name": "Every Direction Arrow",
+    "category": "archery",
+    "exalt_type": "Sidereal",
+    "type": "Extra Action",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.archery.any-direction-arrow"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes per extra arrow"
+    },
+    "duration": "Instant",
+    "description": "The character fires a number of arrows no greater than her Essence, which first scatter and then strike a single target from every side. Use one attack roll for all the arrows, but apply the damage for each of them separately. OpporTUNE SHOT",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.archery.opportune-shot",
+    "name": "Opportune Shot",
+    "category": "archery",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "Spotting an opportunity thanks to the graces of fate, the character launches an arrow before her normal initiative. This Charm lets her automatically win initiative over a single target for purposes of making an Archery attack against him. She cannot split her dice pool on the tutn she uses Opportune Shot. Characters Five Seasons APPROACH",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.archery.five-seasons-approach",
+    "name": "Five Seasons Approach",
+    "category": "archery",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.archery.every-direction-arrow"
+      ],
+      [
+        "sidereal.archery.opportune-shot"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes per target number reduction"
+    },
+    "duration": "Instant",
+    "description": "If skill does not suffice to make her shot, then a character may trust to the world’s esteem for her. If not to that, then to the world’s fear of what she hopes to save it from, Ifnot to that, to the world’s dreams of the glories she strives for. Even if these things fail, she may trust to luck. This is the Five Seasons Approach. The character can reduce the targetnumberofan Archery roll. Sidereal Exalted can always use any Virtue with this Charm Many Missites Bow TecHNIQUE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.archery.many-missiles-bow-technique",
+    "name": "Many Missiles Bow Technique",
+    "category": "archery",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.archery.generalized-ammunition-technique"
+      ],
+      [
+        "sidereal.archery.five-seasons-approach"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1,
+      "raw": "10 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "One scene",
+    "description": "This Charm uses a prayer strip marked with the scripture of the Clay Maiden. The Exalt casts it into the sky, where it radiates a gaudy pink light, hovering 10 ‘yards above her bow. some other aspect of Creation. Commonly known transformations include: * Rain of fire: The arrow turns into a rain of fire, attacking and applying its normal damage toall creatures within five yards of the target, setting Iammable things alight, and ignoring armor on a successful hit # Snow: It begins to snow around the region where the arrow fell. The character must renew this effect with at least one arrow per minute to maintain it. © Life: The target is healed for one level of lethal or bashing damage. * Grain: A small patch of ripe wheat, enough to feed one person for a day, sprouts where the arrow lands. * Boulder: The arrow tums into an unblockable boulder as it falls. It can be dodged. Double the raw damage of the attack, including extra successes, when used against inanimate objects. * Glass: The arrow becomes transparentas it falls. Targets must make a reflexive Perception + Awareness roll at difficulty 2 to defend against it without the use of Charms, Each such arrow costs 1 mote of Essence to fire. Living or heavily worked “arrows” based on the Generalized Ammunition Technique cannot suffer transformations, nor can arrows made from the Five Magical Materials, Characters can learn transformations from other Exalted with this Charm. They can also design new transformations, with the Storyteller’s approval. ELects should be simple and should not directly duplicate the effects of other Charms.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

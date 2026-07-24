@@ -86,7 +86,7 @@
     },
     "magic_track": "sorcery",
     "highest_magic_circle_id": "Celestial",
-    "ox_body_charm_id": "",
+    "ox_body_charm_id": "sidereal.endurance.ox-body-technique",
     "caste_noun": "Caste",
     "tier": "Celestial",
     "limit_label": "Paradox"

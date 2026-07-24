@@ -45,9 +45,10 @@ complete** (chargen foundation + full Charm catalogue, started 2026-07-22) —
 see the Status entry below. **Alchemical is feature-complete** (2026-07-23:
 chargen, Charm Slots, Arrays, Submodules, the CH3 catalogue, CH4 weaving,
 XP/advancement, Clarity, Backgrounds and the full UI; UI clicked through
-2026-07-23). **Sidereal is IN PROGRESS** (chargen foundation, per-house minimums and the
-Colleges, the Ronin variant and Paradox are all complete; only the Charm
-catalogue remains — see Status). **Mortals**
+2026-07-23). **Sidereal is IN PROGRESS** (chargen foundation, per-house minimums, the
+Colleges, the Ronin variant, Paradox AND the full 193-Charm catalogue are complete
+as of 2026-07-24; only the Sidereal-Martial-Arts cost/cap wiring remains — see
+Status). **Mortals**
 (Godblooded/Ghosts/Heroic Mortals/etc.) are planned after the Exalt types.
 
 Work on a given splat starts only once its rulebook images land in
@@ -61,7 +62,7 @@ Work on a given splat starts only once its rulebook images land in
 | Abyssal | Black on ash | DONE |
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
-| Sidereal | Purple | waiting on Sidereal chargen work |
+| Sidereal | Purple | chargen + Colleges + 193-Charm catalogue + SMA cost/cap wiring DONE (2026-07-24); browser click-through remains |
 | Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker); UI clicked through 2026-07-23 |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
@@ -175,7 +176,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (642 tests passing)
+## Status (654 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -673,16 +674,46 @@ ability-caste + required-minimums + essence-spec machinery with ZERO new engine 
   Play tab and the GM card. A pure rename of the same 0-10 track with the same break
   threshold, per p.253; it is a label, not a second code path, and is ignored when
   `clarity` is True (the Alchemical has no Limit to rename).
-- **STILL TODO:**
-  1. **Charms catalogue** — `data/charms/sidereal_*.json`, incl. **Sidereal Martial
-     Arts** (own Charm category, ≤3 at chargen, XP 12/10 — a distinct rate; the BP
-     rate **8/6** is confirmed on the p.101 summary table and still needs a
-     `BonusPointCosts` field, since it differs from the ordinary Charm 7/5).
-     Then set `ox_body_charm_id` to the authored Sidereal Ox-Body, and un-defer the
-     full `validate_chargen` (the 12-Charm pool the tests currently can't assert).
-     **A ronin may take NO Sidereal Martial Arts Charms at all** (Violet Bier of
-     Sorrows Style is still open to them) — nothing enforces that yet because no
-     Sidereal MA Charm exists to enforce it against; wire it when the data lands.
+- **Charms catalogue — DONE 2026-07-24 (v0.7).** **193 Charms** in
+  `data/charms/sidereal_*.json`, authored from `images/Sidereal/chapter5 - Charms.md`
+  (human-OCR'd text; systematically de-ligatured — see [[sidereal-charm-ocr-pipeline]]).
+  24 ability trees + **Violet Bier of Sorrows** (`martial_arts:violet-bier-of-sorrows`,
+  9, the Endings auspicious Martial Arts tree) + **3 Celestial-open Sidereal Martial
+  Arts styles** (`open_to_tiers:[Celestial]`, per the preamble "treat Sidereal Martial
+  Arts as Solar Charms"): **Charcoal March of Spiders** (12), **Prismatic Arrangement
+  of Creation** (16), **Citrine Poxes of Contagion** (13). Terrestrial/Celestial Circle
+  Sorcery carry `grants_circle`; Ox-Body is repeatable on Endurance. `ox_body_charm_id`
+  is now set. The 12-Charm `validate_chargen` pool the foundation tests could not
+  assert is now covered (`tests/test_sidereal.py`, catalogue + cascade + chargen block).
+  **~56 Min Ability/Essence digits and a few activation-mote costs were dropped by the
+  OCR and supplied by the human** (`images/Sidereal/_MISSING_MINIMUMS.md`); the SMA
+  styles' `min_ability`/`min_essence` and Sequential Charm Disruption's cost came from
+  the human, not guessed.
+- **Sidereal Martial Arts cost/cap wiring — DONE 2026-07-24.** Rules-authority call
+  (confirmed): the distinct rate applies to **ALL Martial Arts** for a Sidereal (Violet
+  Bier AND the 3 supernatural styles) — there is no Solar-only Martial Arts a Sidereal
+  cannot learn.
+  1. **BP 8/6, XP 12/10** (p.101 / p.265). New `BonusPointCosts.martial_arts_charm`
+     (+`_favored_caste`) and `ExperienceCosts.new_martial_arts_charm` (+`_favored_caste`),
+     both `Optional`, defaulting `None` → **fall back to the ordinary Charm rate**, so
+     every other splat's MA Charms are byte-identical (regression-guarded). Wired into
+     `costs.charm_cost` and `validate.bonus_point_breakdown` for `category` starting
+     `martial_arts` (the Immaculate branch is still checked first, so DB Immaculate MA
+     keeps its own rate). `costs.martial_arts_charm_cost` (Alchemical PLM path) gained
+     the same `None`→`new_charm` fallback. The MA discount fires when Martial Arts is
+     the caste's Auspicious ability (Endings), giving the /6 & /10 rates.
+  2. **≤3 Charms from a Sidereal Martial Arts *form* at chargen; ronin 0** (p.101,
+     `chapter3 - Character Creation.md` line 540). New
+     `ChargenBudgets.martial_arts_form_charm_cap` (3 for Sidereal, 0 for `Sidereal:ronin`,
+     `None`=no cap elsewhere); `validate_chargen` counts `martial_arts` Charms that are
+     `open_to_tiers` (the data-driven marker of a supernatural SMA style — Violet Bier is
+     NOT `open_to_tiers`, so it is uncapped and stays open to ronin) and raises
+     `charm-too-many-martial-arts-forms`. Tested in `tests/test_sidereal.py`.
+- **STILL TODO for Sidereal:** a browser click-through of the picker with real Sidereal
+  data (serve-and-grep is not verification — the Lunar/Alchemical UI passes each found
+  bugs no render check could). The Charms tab, the Martial Arts group (4 style trees),
+  the Spells page (Terrestrial/Celestial sorcery), and the XP tab's MA pricing are all
+  unexercised in a browser.
 
 ### Alchemical — chargen foundation + Charm Slot system (in progress, started 2026-07-23)
 Read from `images/Alchemical/` — pasted text from the Autochthonians book (1e
@@ -1085,7 +1116,8 @@ three-page Abilities/Martial Arts/Spells split, GM mode.
   enumerates these lists itself. `engine.validate.bonus_point_breakdown` already
   builds this list internally to price picks; that is the model to extract.
   **Refactor of working code — no behaviour change intended.**
-- **Sidereal** Exalt type (in flight — only the Charm catalogue remains), then **Mortals** —
+- **Sidereal** Exalt type (in flight — catalogue done 2026-07-24; only the SMA
+  cost/cap wiring remains, see Status), then **Mortals** —
   see **Next Exalt Types** above for the color scheme and the M&F-return plan.
   (Lunar and Alchemical are done.)
 - **Windows .exe** — needs building on an actual Windows host (PyInstaller

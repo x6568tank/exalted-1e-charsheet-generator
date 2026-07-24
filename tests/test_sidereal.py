@@ -1,11 +1,13 @@
-"""Sidereal chargen foundation — exercises the shipped Sidereal data (exalts.json
-Sidereal row, chargen_budgets/costs_bonus/costs_xp Sidereal rows, the 5 Maiden
-castes) against the existing ability-caste machinery. Charms and the Astrological
-College subsystem land in later phases, so these tests assert on the specific
-pieces the foundation provides rather than a fully-clean validate_chargen (which
-needs the 12-Charm pool the catalogue will supply).
+"""Sidereal chargen — exercises the shipped Sidereal data (exalts.json Sidereal row,
+chargen_budgets/costs_bonus/costs_xp Sidereal rows, the 5 Maiden castes, the
+Astrological Colleges, and the full v0.7 Charm catalogue: 193 Charms across 24
+ability trees + Violet Bier of Sorrows + 3 Celestial-open Sidereal Martial Arts
+styles) against the ability-caste machinery. The 12-Charm pool the earlier
+foundation phase could not assert is now covered by
+test_sidereal_chargen_clean_with_full_charm_pool.
 
-Sources: The Sidereals p96-101 (Character Creation); see [[sidereal-chargen-findings]].
+Sources: The Sidereals p96-101 (Character Creation), Charms chapter (p.140-193);
+see [[sidereal-chargen-findings]].
 """
 
 from pathlib import Path
@@ -55,6 +57,22 @@ def _sidereal(caste="battles") -> Character:
     })
     c.virtues.update({V.COMPASSION: 3, V.CONVICTION: 2, V.TEMPERANCE: 3, V.VALOR: 1})
     c.essence_rating = 2
+    # 12 Charms, >=5 from Auspicious/Favored (all 12 are: 7 auspicious, 5 favored),
+    # each within the fixture's ability ratings, none needing a prerequisite.
+    c.charms = [
+        "sidereal.melee.harmony-of-blows",
+        "sidereal.melee.orchestration-of-conflict",
+        "sidereal.melee.impeding-the-flow",
+        "sidereal.presence.heroic-essence-replenishment",
+        "sidereal.presence.presence-in-absence-technique",
+        "sidereal.resistance.red-haze",
+        "sidereal.resistance.someone-elses-destiny",
+        "sidereal.lore.systematic-understanding-of-everything",
+        "sidereal.occult.mark-of-exaltation",
+        "sidereal.occult.incite-decorum",
+        "sidereal.awareness.wise-choice",
+        "sidereal.stealth.soft-presence-practice",
+    ]
     # 7 College dots, ≥4 in the Battles Maiden's House of War (p.98).
     c.colleges = [
         CollegeRating(college_id="sidereal.battles.banner", rating=3),
@@ -305,3 +323,165 @@ def test_sidereal_limit_track_is_called_paradox(rs):
     c = _sidereal()
     assert derive.limit_label(rs, c) == "Paradox"
     assert derive.limit_label(rs, Character(id="s", exalt_type="Solar", caste="dawn")) == "Limit"
+
+
+# --- Charm catalogue (v0.7): 193 Charms across 24 ability trees + Violet Bier of
+# --- Sorrows + 3 Celestial-open Sidereal Martial Arts styles. ------------------
+
+def _sid_charms(rs):
+    return [c for c in rs.charms.values() if getattr(c, "exalt_type", None) == "Sidereal"]
+
+
+def test_sidereal_catalogue_loads(rs):
+    """The whole Sidereal catalogue is present and link-checks clean on load."""
+    sid = _sid_charms(rs)
+    assert len(sid) == 193
+    # every prerequisite id resolves to a real Charm
+    dangling = [(c.id, p) for c in sid for grp in c.prerequisites for p in grp
+                if p not in rs.charms]
+    assert dangling == []
+    # no Charm is missing a description
+    assert [c.id for c in sid if len(c.description.strip()) < 20] == []
+
+
+def test_sidereal_category_coverage(rs):
+    """All 24 auspicious abilities are represented, plus the four MA style trees."""
+    cats = {c.category for c in _sid_charms(rs)}
+    abilities = {a for a in (
+        "endurance ride sail survival thrown craft dodge linguistics performance "
+        "socialize archery brawl melee presence resistance investigation larceny "
+        "lore occult stealth athletics awareness bureaucracy medicine").split()}
+    assert abilities <= cats
+    assert "martial_arts:violet-bier-of-sorrows" in cats
+    for style in ("charcoal-march-of-spiders", "prismatic-arrangement-of-creation",
+                  "citrine-poxes-of-contagion"):
+        assert f"martial_arts:{style}" in cats
+
+
+def test_sidereal_martial_arts_styles_are_celestial_open(rs):
+    """The 3 supernatural SMA styles are learnable by any Celestial Exalt (source
+    preamble: 'treat Sidereal Martial Arts as Solar Charms'); Violet Bier is not."""
+    for c in _sid_charms(rs):
+        if c.category.startswith("martial_arts:") and "violet-bier" not in c.category:
+            assert c.open_to_tiers == ["Celestial"], c.id
+    vb = [c for c in _sid_charms(rs) if c.category == "martial_arts:violet-bier-of-sorrows"]
+    assert vb and all(not c.open_to_tiers for c in vb)
+
+
+def test_sidereal_sorcery_initiations_grant_circles(rs):
+    grants = {c.name: str(c.grants_circle) for c in _sid_charms(rs) if getattr(c, "grants_circle", None)}
+    assert grants == {"Terrestrial Circle Sorcery": "SpellCircle.TERRESTRIAL",
+                      "Celestial Circle Sorcery": "SpellCircle.CELESTIAL"}
+    # Celestial requires Terrestrial (the "one prayer strip Charm" clause is narrative)
+    cel = rs.charms["sidereal.occult.celestial-circle-sorcery"]
+    assert cel.prerequisites == [["sidereal.occult.terrestrial-circle-sorcery"]]
+
+
+def test_sidereal_deep_prereq_cascade_resolves(rs):
+    """A maxed Prismatic capstone resolves its full prerequisite chain."""
+    cid = "sidereal.prismatic-arrangement-of-creation.prismatic-arrangement-of-creation-form"
+    reqs = validate.meets_charm_requirements
+    # walk the whole style: owning every non-capstone Charm must satisfy the capstone
+    style = [c for c in _sid_charms(rs)
+             if c.category == "martial_arts:prismatic-arrangement-of-creation"]
+    owned = {c.id for c in style}
+    c = _sidereal()
+    c.essence_rating = 5
+    for ab in (A.MARTIAL_ARTS,):
+        c.abilities[ab] = 5
+    c.charms = list(owned - {cid})
+    # the capstone's own prerequisites are all in `owned`
+    cap = rs.charms[cid]
+    assert all(any(p in owned for p in grp) for grp in cap.prerequisites)
+
+
+def test_sidereal_ox_body_wired(rs):
+    e = next(x for x in rs.exalts.values() if x.id == "Sidereal")
+    assert e.ox_body_charm_id == "sidereal.endurance.ox-body-technique"
+    ob = rs.charms[e.ox_body_charm_id]
+    assert ob.repeatable_cap_ability == "endurance" and ob.type.value == "Special"
+
+
+def test_sidereal_chargen_clean_with_full_charm_pool(rs):
+    """Un-defers the 12-Charm assertion the foundation tests could not make: a legal
+    Chosen of Battles with a full 12-Charm spend validates with no chargen issues."""
+    c = _sidereal()
+    assert len(c.charms) == 12
+    issues = validate.validate_chargen(rs, c)
+    charm_issues = [i for i in issues if "charm" in i.code]
+    assert charm_issues == [], charm_issues
+
+
+# --- Sidereal Martial Arts cost/cap wiring (p.101, p.265) ---------------------
+# The SMA rate applies to ALL Martial Arts (Violet Bier AND the 3 supernatural
+# styles) — there is no Solar-only Martial Arts a Sidereal cannot learn.
+
+_VB_FLIGHT = "sidereal.violet-bier-of-sorrows.flight-of-mercury"
+_SMA_FORM = "sidereal.charcoal-march-of-spiders.dance-of-the-hungry-spider"
+_CHARCOAL = [
+    "sidereal.charcoal-march-of-spiders.dance-of-the-hungry-spider",
+    "sidereal.charcoal-march-of-spiders.maw-of-dripping-venom",
+    "sidereal.charcoal-march-of-spiders.rain-of-unseen-threads",
+    "sidereal.charcoal-march-of-spiders.nest-of-living-strands",
+]
+
+
+def _form_ids(rs):
+    return [cid for cid, ch in rs.charms.items()
+            if ch.category.startswith("martial_arts") and ch.open_to_tiers]
+
+
+def test_sidereal_martial_arts_bp_and_xp_rates(rs):
+    bc = rs.bonus_costs_for("Sidereal")
+    xp = rs.xp_costs_for("Sidereal")
+    assert (bc.martial_arts_charm, bc.martial_arts_charm_favored_caste) == (8, 6)   # vs Charm 7/5
+    assert (xp.new_martial_arts_charm, xp.new_martial_arts_charm_favored_caste) == (12, 10)  # vs 11/9
+    # other splats leave the fields None → their MA Charms keep the ordinary rate
+    assert rs.bonus_costs_for("Solar").martial_arts_charm is None
+    assert rs.xp_costs_for("Lunar").new_martial_arts_charm is None
+
+
+def test_sidereal_all_martial_arts_use_the_ma_xp_rate(rs):
+    """Violet Bier AND the supernatural styles both cost 12 XP (10 if MA is Caste)."""
+    battles = _sidereal("battles"); battles.abilities[A.MARTIAL_ARTS] = 5; battles.essence_rating = 5
+    endings = _sidereal("endings"); endings.abilities[A.MARTIAL_ARTS] = 5; endings.essence_rating = 5
+    for cid in (_VB_FLIGHT, _SMA_FORM):
+        charm = rs.charms[cid]
+        assert costs.charm_cost(rs, battles, charm) == 12   # Battles: MA not Auspicious
+        assert costs.charm_cost(rs, endings, charm) == 10   # Endings: MA is Auspicious → discount
+    # an ordinary ability Charm is unaffected (Battles Melee is Caste → 9)
+    assert costs.charm_cost(rs, battles, rs.charms["sidereal.melee.harmony-of-blows"]) == 9
+
+
+def test_sidereal_martial_arts_bp_rate_in_breakdown(rs):
+    """A Martial Arts pick paid from bonus points is charged 8 (6 if MA is Caste)."""
+    forms = _form_ids(rs)[:13]                          # 13 picks, free pool is 12
+    battles = _sidereal("battles"); battles.charms = forms
+    endings = _sidereal("endings"); endings.charms = forms
+    def charm_bp(c):
+        bd = validate.bonus_point_breakdown(rs, c)
+        return next(l.points for l in bd.lines if l.domain == "Charms & Spells")
+    assert charm_bp(battles) == 8      # MA not Caste for Battles
+    assert charm_bp(endings) == 6      # MA is Caste for Endings
+
+
+def test_sidereal_martial_arts_form_chargen_cap(rs):
+    """p.101: no more than 3 chargen Charms from a Sidereal Martial Arts *form*.
+    Violet Bier is not a form and does not count against the cap."""
+    c = _sidereal("endings")
+    c.charms = _CHARCOAL                                 # 4 form Charms → over the cap
+    assert _codes(validate.validate_chargen(rs, c), "charm-too-many-martial-arts-forms") != []
+    c.charms = _CHARCOAL[:3]                             # exactly 3 → allowed
+    assert _codes(validate.validate_chargen(rs, c), "charm-too-many-martial-arts-forms") == []
+    c.charms = _CHARCOAL[:3] + [_VB_FLIGHT]              # Violet Bier does not count
+    assert _codes(validate.validate_chargen(rs, c), "charm-too-many-martial-arts-forms") == []
+
+
+def test_sidereal_ronin_may_take_no_martial_arts_forms(rs):
+    """p.101: a ronin may take NONE from a Sidereal Martial Arts form; Violet Bier
+    of Sorrows stays open to them."""
+    c = _sidereal("endings"); c.origin = "ronin"
+    c.charms = [_SMA_FORM]                               # even one form is barred
+    assert _codes(validate.validate_chargen(rs, c), "charm-too-many-martial-arts-forms") != []
+    c.charms = [_VB_FLIGHT]                              # Violet Bier remains legal
+    assert _codes(validate.validate_chargen(rs, c), "charm-too-many-martial-arts-forms") == []

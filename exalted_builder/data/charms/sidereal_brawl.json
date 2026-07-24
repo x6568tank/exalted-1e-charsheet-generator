@@ -1,0 +1,122 @@
+[
+  {
+    "id": "sidereal.brawl.unobstructed-blow",
+    "name": "Unobstructed Blow",
+    "category": "brawl",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "Instant The character chooses the are of his blow and writes it into forthcoming fate. One attack made using Brawl cannot be blocked. If it hits, the target's armor provides no protection. TOLERANT STRIFE",
+    "description": "The character chooses the arc of his blow and writes it into forthcoming fate. One attack made using Brawl cannot be blocked. If it hits, the target's armor provides no protection.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.brawl.tolerant-strife",
+    "name": "Tolerant Strife",
+    "category": "brawl",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes + 1 mote per die"
+    },
+    "duration": "Instant",
+    "description": "The character adapts to the conditions of the battlefield, rewriting the course of events so that they aid rather than hinder her. She makes a Brawl attack, suffering no environmental or circumstantial penalties and adding up to her Essence in dice. Sidereal Exalted may always use their Compassion with this Charm.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.brawl.horrific-wreath",
+    "name": "Horrific Wreath",
+    "category": "brawl",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "The character mirrors her personal Essence to that of her enemies. When she strikes ata demon, this Charm wreathes her fists in a hideous red glare. When she attacks the servants of the Malfeans, her hands burn an. undifferentiated white. Her unarmed attacks and attacks using starmetal brawling aids do lethal damage against ordinary foes and aggravated damage against inhabitants of Malfeas and the Underworld. This Charm can be invoked during a clinch, and its effects apply to a character's clinching damage. Its effects also apply to barehanded Martial Arts attacks. ve turns CRIMSON PALM COUNTERSTRIKE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.brawl.crimson-palm-counterstrike",
+    "name": "Crimson Palm Counterstrike",
+    "category": "brawl",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "Instant",
+    "description": "Horrific Wreath Coming to an accommodation with an enemy's movements, the character learns to interruptan enemy's strike an instant before it happens. If the character is aware of an incoming hand-to-hand attack, she can reflexively counterattack. A well-executed Crimson Palm Counterstrike knocks the enemy out of position: He overreaches or stumbles and cannot complete his attack. The Sidereal’s player makes a single Dext number of successes. Apply these successes first as a parry, even againsta lethal attack, to resolve the initial blow. Then, apply the remainder as successes received on an immediate Brawl counterattack. The character can only use this Charm if she’s able to attack and cannot use it in response to Crimson Palm Counterstrike or other any counterattack Charm. Otherwise, the parry and counterattack succeed or fail independently — she can knock her opponent aside without damaging him, or vice versa. Easity AccepTeD PROPOSITION STANCE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.brawl.easily-accepted-proposition-stance",
+    "name": "Easily Accepted Proposition Stance",
+    "category": "brawl",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.brawl.unobstructed-blow"
+      ],
+      [
+        "sidereal.brawl.tolerant-strife"
+      ],
+      [
+        "sidereal.brawl.crimson-palm-counterstrike"
+      ]
+    ],
+    "cost": {
+      "motes": 12,
+      "willpower": 1,
+      "health": 1,
+      "raw": "12 motes, 1 Willpower, I health level"
+    },
+    "duration": "One battle",
+    "description": "This Charm uses a prayer strip marked with the scripture of the Drowning Maiden. The character knots it into her shadow, where it shimmers a soft scarlet. Once per invocation of this Charm, the character can strikea fate-resolving blow, sending cascading vibrations through the weave of the world. She dictates a single event or circumstance. The dictum must be a feasible occurrence, although it can be highly improbable: Reinforcements might arrive, a wall might spontaneously crumble, or the character's fallen army might turn out to be bruised and unconscious rather than wounded and dead. Legions of tyrant lizards cannot fall from the sky and set upon the foe. The Exalt’s player rolls Intelligence + Brawl. The difficulty is the Essence ‘of the highest-Essence entity of aggravated damage equal to the Sidereal’s Essence, plus one die per extra success on the Brawl roll. This damage ignores armor. The attempted use of a defensive Charm nullifies the damage entirely; instead, the dictum takes effect. Sidereal Exalted can always use their Valor with this Charm. Using this Charm without authorization is a Severity 3 offense.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

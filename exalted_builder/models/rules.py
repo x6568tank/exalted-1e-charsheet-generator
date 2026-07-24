@@ -536,6 +536,14 @@ class BonusPointCosts(BaseModel):
     # applies when the Charm's Ability is Favoured/Caste, same as `charm`.
     immaculate_charm: int = 10
     immaculate_charm_favored_caste: int = 7
+    # Sidereal Martial Arts Charms cost a distinct BP rate (8/6, p.101 summary),
+    # differing from the ordinary Charm 7/5. Applies to ALL Martial Arts for a
+    # Sidereal (there is no Solar-only Martial Arts they cannot learn). None on
+    # every other splat, falling back to `charm`/`charm_favored_caste` so their MA
+    # Charms are unchanged. Immaculate MA Charms keep the immaculate rate (that
+    # branch is checked first).
+    martial_arts_charm: Optional[int] = None
+    martial_arts_charm_favored_caste: Optional[int] = None
     # Astrological Colleges (Sidereal, p.100-101): 8 BP per dot, 6 if the College is
     # one of the character's own Maiden's. Unused by splats without colleges.
     college: int = 8
@@ -596,7 +604,12 @@ class ExperienceCosts(BaseModel):
     new_charm_slot_general: int = 12
     new_charm_slot_dedicated: int = 10
     charm_slot_upgrade: int = 2            # upgrade one Dedicated Slot to General
-    new_martial_arts_charm: int = 11       # gated on Perfected Lotus Matrix (transition deferred)
+    # Martial Arts Charm XP rate. Alchemical (11, via Perfected Lotus Matrix) and
+    # Sidereal (12/10 — a distinct rate applying to ALL Martial Arts, p.265) set it;
+    # None elsewhere, falling back to `new_charm`/`new_charm_favored_caste` so other
+    # splats' MA Charms are unchanged.
+    new_martial_arts_charm: Optional[int] = None
+    new_martial_arts_charm_favored_caste: Optional[int] = None
 
 
 class BackgroundRule(BaseModel):
@@ -703,6 +716,12 @@ class ChargenBudgets(BaseModel):
 
     charm_count: int = 10
     charm_min_caste_favored: int = 5
+    # Sidereal, p.101: "no more than 3 [chargen Charms] may be from a Sidereal Martial
+    # Arts form; ronin ... none from Sidereal Martial Arts". A "form" is a supernatural
+    # SMA style — a martial_arts Charm that is `open_to_tiers` (Celestial-open); the
+    # Violet Bier of Sorrows auspicious tree is NOT open_to_tiers and is uncapped. None
+    # = no cap (every other splat). 0 = barred (the Sidereal ronin).
+    martial_arts_form_charm_cap: Optional[int] = None
     # Charm Slot system (Alchemical, p.88-89): instead of pricing Charms per pick,
     # the character has a fixed number of General Slots (hold any Charm) and
     # Dedicated Slots (hold only a Caste/Favored-Attribute Charm); every Slot comes

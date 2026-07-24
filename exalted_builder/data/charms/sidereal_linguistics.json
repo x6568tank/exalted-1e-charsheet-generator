@@ -1,0 +1,100 @@
+[
+  {
+    "id": "sidereal.linguistics.favorable-inflection-procedure",
+    "name": "Favorable Inflection Procedure",
+    "category": "linguistics",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "Instant",
+    "description": "Spoken properly, a person’s name or nickname can pleasingly reflect the underlying pattern of his existence, formingasense of completion in his heart. The character knows how to inflect aname in sucha fashion. Her player rolls Charisma + Linguistics against the target's Essence. If the roll succeeds, the target experiences a momentary burst of warmth, happiness and connection to the Sidereal. If upset or violent, he loses his train of thought, forgetting what caused his unhappiness. He will not remember it naturally, but events may remind him. For example, seeing the Exalt standing over the murdered body of his bride with a bloody knife in her hand would immediately reinvoke his rage. This Charm fails before the Great Curse, and the character must know the target’s name. Sidereal Exalted may always use their Compassion with this Charm. BLue VERVAIN BINDING",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.linguistics.blue-vervain-binding",
+    "name": "Blue Vervain Binding",
+    "category": "linguistics",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes, 1 experience point"
+    },
+    "duration": "One minute",
+    "description": "The Blue Vervain Binding is a minute-long formal blessing in the language of the Old Realm. It ties together two creatures’ fates. (One creature can be the Sidereal himself.) Successfully reciting the binding requires perfect intonation, cadence and inflection throughout —and thusan Intelligence + Linguistics roll against difficulty 5. Forever after, to the limits of their intellects, each creature can understand the other perfectly and make herself understood. JCE AND Fire BINDING",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.linguistics.ice-and-fire-binding",
+    "name": "Ice and Fire Binding",
+    "category": "linguistics",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 10,
+      "willpower": 0,
+      "health": 0,
+      "raw": "10 motes"
+    },
+    "duration": "One hour",
+    "description": "Reciting the Ice and Fire Binding is similarly complex and takes a full hour to complete. The player rolls Intelligence + Linguistics againsta difficulty of 9. Each additional Sidereal who supports the Charm with her presence and words reduces the difficulty by 1, to a minimum of 5. Supporters need not know the Charm. This incantation summons a spirit or elemental of fire, with Essence less than the character's own and touches it with the essence of Serenity. For one season, it binds that spirit to seek the joy, health and pleasure of those around it. Afterward, it smoothly removes any details of the characters who summoned and bound it from the spirit’s memory. Lover’s OATH",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.linguistics.lovers-oath",
+    "name": "Lover's Oath",
+    "category": "linguistics",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.linguistics.favorable-inflection-procedure"
+      ],
+      [
+        "sidereal.linguistics.blue-vervain-binding"
+      ],
+      [
+        "sidereal.linguistics.ice-and-fire-binding"
+      ]
+    ],
+    "cost": {
+      "motes": 20,
+      "willpower": 1,
+      "health": 1,
+      "raw": "20 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "Instant",
+    "description": "Charm uses a long prayer strip marked with the scripture of the Bride. The Sidereal and a consenting partner invoke it together. His partner need not know this Charm but must fully understand its implications. Together, they twist the strip and wind it around one finger each, reciting an oath in the language of the Old Realm. Both players roll Intelligence + Linguisticsagainst difficulty 5. On a success, every detail of cant and expression is correct, The prayer strip shrivels and reshapes into two starmetal rings, set with sapphires. Neither character can ever directly or indirectly attempt to remove the rings. Others can destroy them using the standard rules for breaking a prayer strip. While the rings endure, each character can reflexively spend the others’ health levels, Essence and Willpower as his own. Treat motes of Essence drawn from the character's partner as Peripheral for the purpose of affecting the drawing characters’ anima banner. A character automatically and involuntarily draws on the other's health levels when his partner has a smaller (pre-Charm) wound penalty than he. When defending or helping one’s partner, treat all Compassion dice as automatic successes. This Charm is tantamount to a wedding ceremony, and the Maidens expect their Exalted to treat it with reverence. The feelings between the characters need not be romantic love. They do not even have to be love at all — one can make a Lover’s Oath of expedience. However, the bond remains sacred, and ill fate follows should one character treat his partner poorly.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

@@ -1,0 +1,120 @@
+[
+  {
+    "id": "sidereal.stealth.soft-presence-practice",
+    "name": "Soft Presence Practice",
+    "category": "stealth",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per target number reduction"
+    },
+    "duration": "One scene",
+    "description": "The natural residents of Creation deform the Iow of others’ fates, marking it with the signs of their presence. Using this Charm, the character reduces this deformation, stepping lightly through the world the Maidens weave. For one scene, she reduces the target number of any roll to remain undetected. WALKING OuTsIDE FATE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.stealth.walking-outside-fate",
+    "name": "Walking Outside Fate",
+    "category": "stealth",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.stealth.soft-presence-practice"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower"
+    },
+    "duration": "Indefinite",
+    "description": "Quiet as the Void, the Sidereal steps entirely out of the weave of fate. Only those with Essence greater than her own can sense her directly. The touch of chance allows others a reflexive Perception + Awareness roll for others to feel a presence nearby. Even if they succeed, those who cannot sense her directly have a +2 difficulty penalty on attempts to attack her or affect her with Charms. Only supernatural trackers can engage in tracking contests with the character. The Exalt returns instantly to the weave if her anima banner makes Stealth Charms fail. For the duration of this Charm, the Sidereal is treated asa creature outside of fate. Learning this Charm requires the Maiden of Secrets’ approval. SUBORDINATE JNSPIRATION TECHNIQUE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.stealth.subordinate-inspiration-technique",
+    "name": "Subordinate Inspiration Technique",
+    "category": "stealth",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.stealth.walking-outside-fate"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote"
+    },
+    "duration": "One minute",
+    "description": "The character can only use this Charm while Walking Outside Fate. Any spirit or Sidereal present hears the character's words as his own thoughts. A target can dismiss them as irrelevant internal monologue, but his player must make a Perception + Awareness roll at difficulty equal to the Sidereal’s Essence to realize that the thoughts are not his own. BLINDING THE BOAR",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.stealth.blinding-the-boar",
+    "name": "Blinding the Boar",
+    "category": "stealth",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower"
+    },
+    "duration": "Five turns",
+    "description": "BLINDING, THE BOAR Subordinate Inspiration Technique Casting forth shadows of a thousand possible futures, the Sidereal conceals the truths of her exist ence from another. Although the character remains pparent to every sense, focusing on her to determine exact location, her body language, what she is saying or any other detail becomes near-impossible. The player makes a Manipulation + Stealth roll. Add her successes to the difficulty of all attempts the target makes to attack, dodge or otherwise influence the Sidereal for the Charm’s duration. If the player receives even one success, the target cannot understand the Sidereal’s words. Sidereal Exalted may always use their Valor with this Charm. CEASING TO Exist APPROACH",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.stealth.ceasing-to-exist-approach",
+    "name": "Ceasing to Exist Approach",
+    "category": "stealth",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 3,
+      "health": 1,
+      "raw": "5 motes, 3 Willpower, 1 health level"
+    },
+    "duration": "Indefinite",
+    "description": "Blinding the Boar his Charm uses a prayer strip marked with the Subordinate Inspiration scripture of Absence. The character places it upon her chest. Flashing with dark green light, it sinks inside and wraps around her heart. In that instant, the Sidereal vanishes from the weave of fate and reap. pears elsewhere, woven seamlessly into a new life. No effect that targets the Sidereal based on her identity rather than her physical | time being, although others cation functions. For the member her, the Side real simply does not exist The character creates a new identity and ap pearance for herself as any sort of non-Primordial alted, spirits and the come someone who ture, including mortals, J, She cannot, however, f already exists. The character chooses up to 15 dots of Backgrounds appropriate to her new life; Background dots above 3 cost double. She travels instantly to a location chosen by the Maiden of Secrets to fit her new e social entity. She instantly develops appropri relationships, seamlessly integrating into the life of any appropriate entities save creatures of the Wyld, be above the level of the Maidens. Thus, if the character chose to assume the identity of an Abyssal Exalted, the dead of her “nativ: gs outside the pattern of fate and spirits on or shadowland would reco",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

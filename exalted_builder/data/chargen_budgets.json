@@ -245,7 +245,8 @@
         ],
         "rating": 1
       }
-    ]
+    ],
+    "martial_arts_form_charm_cap": 3
   },
   "Sidereal:ronin": {
     "attribute_pools": [
@@ -274,7 +275,8 @@
     "bonus_points": 18,
     "college_dots": 0,
     "college_min_own_house": 0,
-    "ignore_caste_min_abilities": true
+    "ignore_caste_min_abilities": true,
+    "martial_arts_form_charm_cap": 0
   },
   "Alchemical": {
     "attribute_mode": "caste_favored",

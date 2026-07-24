@@ -1,0 +1,177 @@
+[
+  {
+    "id": "sidereal.craft.elegant-patterns-of-fate",
+    "name": "Elegant Patterns of Fate",
+    "category": "craft",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes per die"
+    },
+    "duration": "Instant",
+    "description": "Many such designs go into any given day’s fate. A number of Sidereal Exalted have this Charm. Spirits with the Creation of Perfection Charm (see Games of Divinity, p. 127) can also compete at the destinydesigning game. Treat the relevant rolls as explicitly opposed but only to see what happens when two plans conflict. For example, if one plan focuses on the death of Cathak Cainan of House Cathak and the transfer of his power to his son, while another relies on Cainan’s support for a joint venture with House V'neef, the opposed roll decides whether he lives or dies. However, even if he lives, his power likely drifts into his son’s hands. Even if he dies, House Cathak probably supports the joint venture. Members of the Eclipse and Moonshadow Castes can learn this Charm, but it does them no good unless someone submits their proposals to the Bureau of Destiny. EXCELLENT ]MPLEMENTATION OF OBJECTIVES",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.craft.excellent-implementation-of-objectives",
+    "name": "Excellent Implementation of Objectives",
+    "category": "craft",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.craft.elegant-patterns-of-fate"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 0,
+      "health": 0,
+      "raw": "8 motes + 1 mote per target number reduction"
+    },
+    "duration": "Varies",
+    "description": "Having planned some work of mundane or magical craftsmanship, the character weaves that plan into the more general design for the world. This ensures a swift and precise implementation. The Charm can reduce the target number of the final Dexterity + Craft or Intelligence + Craftroll. Also, the Sidereal divides the required construction time by her Essence. ‘Worffb-SHAPING ARTISTIC VISION",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.craft.world-shaping-artistic-vision",
+    "name": "World-Shaping Artistic Vision",
+    "category": "craft",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "Characters with this Charm develop skill in manipulating fate in a specific, personal fashion. Each purchase of this Charm creates a circumstance — with the same breadth as a specialty — during which she automatically reduces the target number of all her actions by I. The character can purchase this Charm up to three times, applying it to the same circumstance or toa new one each time. There is no cost to use this Charm’s effects — leami specialty at fate alteration “In Cities” becomes more urbane. A character who specializes in using fate“Against Demons” develops a martial appearance. A gleam in her Maiden’s color may skate down the starmetal of her sword when a demon’s presence is revealed. Destiny-KNitTING ENTANGLEMENT",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.craft.destiny-knitting-entanglement",
+    "name": "Destiny-Knitting Entanglement",
+    "category": "craft",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.craft.world-shaping-artistic-vision"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "The character can intertwine the fate of objects with her own, binding to hera total number of objects no greater than her Craft (Fate) score. To bind an object, she must handle it for an hour. This has no cost. Afterward, at any time, she can spend 2 motes of Essence to learn a general description of the object's circumstances — information on the order of “in a guarded vault in a rich man’s house in the Scavenger Lands” or “traveling through the Wyld in the hands of a Lunar Exalt.” Given basic knowledge of its situation, she can instead spend 2 Essence to call it back into her hands, describing a reasonable method by which fate could bring it closer to her. For example, “one of the guards decides he must have it for his own, steals it and Iees the city to avoid n.” This might not work, but something happens. If the guards are incorruptible, one experiences a strong temptation, An incompetent guard might steal it bur get caught. If the character tries often enough, though, she eventually succeeds, She can freely release the binding on an object that no longer interests her. In combat, the character can use this Charm and a stunt to recall a lost weapon or object into her hands. For example, astumbling enemy might kick her daiklave back intoher grasp, ora bracer fallen overacliff might rise back up on a hybroc’s head even as the character dives for it. ELEMENTAL VISION",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.craft.elemental-vision",
+    "name": "Elemental Vision",
+    "category": "craft",
+    "exalt_type": "Sidereal",
+    "type": "Special",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "None Duratior ‘ermanent"
+    },
+    "duration": "Instant",
+    "description": "Each Maiden has an elemental association. The character learns to manipulate this element, automatically reducing the target number for all dealings with Charms effects — learning this Charm simply enhances the Exale’s capabilities. Learning this Charm requires the relevant Maiden’s approval. MENDING WARPED DESIGNS",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.craft.mending-warped-designs",
+    "name": "Mending Warped Designs",
+    "category": "craft",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "Instant",
+    "description": "The character can patch damage to the local pattern, of fate. The Sidereal’s player rolls Dexterity + Craft (Fate). Each success heals one health level that the target lost to a creature or effect of Malfeas, the Underworld or the Wyld, Alternately, success can heal minor debilitating effects caused by such creatures, requiring one success for each mote of Essence spent on that harm. Thus, three successes can break a demon’s Possession Charm, while 60 successes can heal a region wounded by a Deathlord’s Rain of Doom. This Charm has a limited ability to counter the direct effects of the Wyld. Five successes can cleanse a Wyld pox (see Exalted, p. 280). Twenty successes can remove a stronger Wyld mutation or Taint. Fifty successes can cleanse a small region within Creation of Wyld influence. This Charm does not permit extended rolls, but multiple Sidereal Exalted can apply it in the same turn, adding their successes. Sidereal Exalted may always use their Valor with this Charm. ImPLiciT CONSTRUCTION METHODOLOGY",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.craft.implicit-construction-methodology",
+    "name": "Implicit Construction Methodology",
+    "category": "craft",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.craft.excellent-implementation-of-objectives"
+      ],
+      [
+        "sidereal.craft.destiny-knitting-entanglement"
+      ],
+      [
+        "sidereal.craft.elemental-vision"
+      ],
+      [
+        "sidereal.craft.mending-warped-designs"
+      ]
+    ],
+    "cost": {
+      "motes": 20,
+      "willpower": 1,
+      "health": 1,
+      "raw": "20 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "Varies",
+    "description": "This Charm usesa long prayer strip marked with the scripture of Lover and Maiden. Having planned construction of some item and evaluated the available materials, the character twists the prayer strip and binds itaround his wrists, Ittransforms into a band of cold blue light, slowly twisting and slithering around the bound extremities. The Sidereal suffers a +2 difficulty penalty toactionsusing his hands for the duration of this Charm. This Charm extends the Excellent Implementation the design assemble and mold themselves, needing no direct intervention. The process takes a scene for mundane construction, a day for works involving the Magical Materials and a month for massive projects such as Manses and artifact ships. This Charm does not allow the Exalt to work with moonsilver. The character automatically receives a perfect success on his Craft pool for building the item: All dice come up successes. In addition, all extra successes from the planning phase carry over as additional successes on the Craft roll. However, this form of Craft is not an extended action. The character cannot achieve any further successes through additional uses of this Charm or by making Craft rolls. Also, the Charm only shapes what is present. The character must procure the materials to be fabricated. The character must have both the relevant Craft and Craft (Fate) at 4 or higher to use this Charm Sidereal Exalted may always use their Compassion with this Charm.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

@@ -1,0 +1,233 @@
+[
+  {
+    "id": "sidereal.violet-bier-of-sorrows.secrets-of-future-strife",
+    "name": "Secrets of Future Strife",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "exalt_type": "Sidereal",
+    "type": "Special",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "The character trains himself for instant acceptance of the twists and turns of circumstance. In any given combat, in the first turn he acts, he doubles his base initiative (Dexterity + Wits). Charms such as Opportune Shotand Thunderclap Rush Attack donot automatically win initiative over him, These advantages cease to apply once he takes his first non-reflexive action. There is no cost to use this Charm — learning this Charm permanently enhances the Exalt’s capabilities. FuicHt OF MERCURY",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.violet-bier-of-sorrows.flight-of-mercury",
+    "name": "Flight of Mercury",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per initiative bonus"
+    },
+    "duration": "One scene",
+    "description": "Blade of the Battle Maiden Violet Bier of rows Form Conelusion-Pursuing Joe ‘Approach ‘The character moves with the swift precision of one who knows her destiny. For each mote of Essence spent, she adds one point to her initiative for the remainder of thescene. Multiple applications of thisCharm are cumulative, but she cannot add more than her Martial Arts to her initiative with any combination of effects that includes this Charm. BLADE OF THE BATTLE MAIDEN",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.violet-bier-of-sorrows.blade-of-the-battle-maiden",
+    "name": "Blade of the Battle Maiden",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.violet-bier-of-sorrows.secrets-of-future-strife"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 2,
+      "health": 0,
+      "raw": "2 motes per die, 2 Willpower"
+    },
+    "duration": "One scene",
+    "description": "Essence shines around the characters hands (or weapons), tracing with their every movement crimson trails through the air. For each 2 motesspent, the characteradds one die to each unarmed Martial Arts tack and parry she makes for the remainder of the sue combination of effects. While under this effect, her hands may safely parry even lethal damage blows, although blocking arrows or magical attacks requires a well-described stunt. Joy in Avversity STANCE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.violet-bier-of-sorrows.joy-in-adversity-stance",
+    "name": "Joy in Adversity Stance",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "sidereal.violet-bier-of-sorrows.secrets-of-future-strife"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "Those who routinely face terrible odds can learn to take some measure of happiness in each moment’s survival. Once having activated this Charm, the player rolls the Sidereal’s Essence each time the character successfully blocks or dodges an attack. Each success indicates two motes of Essence, Iavored by the tang of Serenity, that she recovers. This Charm does not actiate against attacks not truly inten: o harm the a z fre mies too weak to Vio eT Bier OF SORROWS FORM",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.violet-bier-of-sorrows.violet-bier-of-sorrows-form",
+    "name": "Violet Bier of Sorrows Form",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.violet-bier-of-sorrows.flight-of-mercury"
+      ],
+      [
+        "sidereal.violet-bier-of-sorrows.blade-of-the-battle-maiden"
+      ],
+      [
+        "sidereal.violet-bier-of-sorrows.joy-in-adversity-stance"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 0,
+      "health": 0,
+      "raw": "6 motes"
+    },
+    "duration": "One scene",
+    "description": "The character adopts the cold detachment with which Saturn makes her Sign against those things whose time has passed. While the character uses the Violet Bier of Sorrows Form, each successful attack also drains some of the victim's passion. After damaging an opponent with an unarmed Martial Arts attack, the Exalt can remove one point of one of the target’s Virtues, to a minimum of 1. This cannot reduce a target’s Virtues below the minimums required for the Great Curse. For example, ifa Solar’s Virtue Flaw is Compassionate Martyrdom (see Exalted, p. 131), this Form cannot reduce his Compassion below 3. However, it can reduce a spirit, elemental or demon’s Virtues below the minimum level necessary to use a given Charm, in which case the spirit loses access to that Charm until its Virtue recovers. Each Virtue heals at the rate of one point a day. This Form changes the normal minimum for damage dice. While it is active, after a successful and potentially damaging unarmed Martial Arts attack, the character always rolls at least her Martial Arts score in damage dice. This Charm is also called the “Endings Form.” DeATH-PARRYING STROKE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.violet-bier-of-sorrows.death-parrying-stroke",
+    "name": "Death-Parrying Stroke",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.violet-bier-of-sorrows.violet-bier-of-sorrows-form"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 1,
+      "raw": "2 motes per health level"
+    },
+    "duration": "Instant",
+    "description": "In a blur of violet Essence, the character's blade catches an attack that might otherwise have killed him. If the character tries and fails to parry a blockable attack, he may decide — after damage is rolled — to invoke this Charm, reducing the damage by one level per 2 motes spent. Liffie-SEVERING Blow",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.violet-bier-of-sorrows.life-severing-blow",
+    "name": "Life-Severing Blow",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 1,
+      "raw": "2 motes per health level"
+    },
+    "duration": "Instant",
+    "description": "Drawing on the Essence of Endings, a character can add power to a blow that he realizes is about to pierce his enemy's defenses. As soon as a character hits an opponent with an unarmed attack, his player can declare the use of this Charm, purchasing automatic damage successes at a cost of 2 motes each. He cannot purchase more than his character's Essence in automatic successes. This Charm applies to unarmed Brawl attacks and is explicitly permitted to share a Combo with Brawl Charms; the disciplined approach of a martial artist is necessary only in the last instant of the blow.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.violet-bier-of-sorrows.metal-storm",
+    "name": "Metal Storm",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "exalt_type": "Sidereal",
+    "type": "Extra Action",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.violet-bier-of-sorrows.life-severing-blow"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes per attack"
+    },
+    "duration": "Instant",
+    "description": "Not even the most cunning of opponents can evade asword that strikes everywhere at once. For each 3 motes spent, the character can make an extra unarmed Martial Arts attack at her full dice pool. All her attacks must be made against the same target. She cannot make more total attacks than her Martial Arts, nor can she split her dice pool in the same turn she uses Metal Storm. CoNcLUSION-PURSUING APPROACH",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.violet-bier-of-sorrows.conclusion-pursuing-approach",
+    "name": "Conclusion-Pursuing Approach",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.violet-bier-of-sorrows.death-parrying-stroke"
+      ],
+      [
+        "sidereal.violet-bier-of-sorrows.metal-storm"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1,
+      "raw": "10 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "One scene",
+    "description": "At the pinnacle of the Violet Bier of Sorrows Style,a character learns to draw strength from the pain of others. Her attacks gain resolve as her enemy falters. She is trained to take full advantage of the weakness of the wounded, stalking failing prey as death hunts those whose time has come. Whenever she successfully harms an opponent with an unarmed Martial Arts attack, she gains one point of Willpower. In addition, an opponent's wound penalties are tripled when it comes to attacking her or defending against her unarmed Martial Arts attacks. Sidereal Exalted, and those who learn this Charm as a Sidereal Charm, can enhance it with a prayer strip marked with the scripture of the Expectant Maiden. The character fixes itto her sword (or otherallowed weapon), wrapping the whole in a radiant be light. While _",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

@@ -109,6 +109,15 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     # Immaculate Order Charms (Dragon-Blooded) have their own, higher rate (p.292).
     if validate.is_immaculate_charm(charm):
         cost = xp.new_immaculate_charm_favored_caste if favored else xp.new_immaculate_charm
+    elif charm.category.startswith("martial_arts"):
+        # Sidereal Martial Arts is a distinct rate (12/10, p.265); other splats leave
+        # both MA fields None and fall back to the ordinary new_charm rate.
+        if favored:
+            cost = xp.new_martial_arts_charm_favored_caste
+            if cost is None:
+                cost = xp.new_charm_favored_caste
+        else:
+            cost = xp.new_martial_arts_charm if xp.new_martial_arts_charm is not None else xp.new_charm
     else:
         cost = xp.new_charm_favored_caste if favored else xp.new_charm
     # An Eclipse/Moonshadow learning another splat's Charm pays a multiple (p.90).
@@ -174,7 +183,8 @@ def retainer_charm_cost(ruleset: RuleSet, character: Character) -> int:
 def martial_arts_charm_cost(ruleset: RuleSet, character: Character) -> int:
     """XP for one Martial Arts Charm learned through Perfected Lotus Matrix (p.100,
     flat 11). MA Charms are stored inside the Matrix and use no Charm Slot."""
-    return ruleset.xp_costs_for(character.exalt_type).new_martial_arts_charm
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    return xp.new_martial_arts_charm if xp.new_martial_arts_charm is not None else xp.new_charm
 
 
 def ox_body_cost(ruleset: RuleSet, character: Character) -> int:

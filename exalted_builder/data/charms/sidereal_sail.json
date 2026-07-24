@@ -1,0 +1,101 @@
+[
+  {
+    "id": "sidereal.sail.salt-into-ash-sleight",
+    "name": "Salt into Ash Sleight",
+    "category": "sail",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes +2 motes per target number reduction"
+    },
+    "duration": "One scene",
+    "description": "Clapping her hands, the character surrounds an elemental or spirit of water or the sea in a fiery yellow aura. Mercury calls that creature to journey. Its reasons to visit another place, where important unfinished business awaits it, press increasingly upon its mind. Simply by using the Charm, the Exalt proves and guarantees that such business already exists in some distant place. If necessary, the creature becomes aware of it. The creature must make a Willpower roll not to set forth immediately. For the duration of the scene, Mercury's call reduces the target number for any character's attempts to drive the creature away, physically or socially. This benefit applies to both attack and damage rolls.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.sail.stone-skipping-spirit",
+    "name": "Stone Skipping Spirit",
+    "category": "sail",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "The character exhales a puff of wind that travels beyond the world and disentangles the destiny of ship, sky and sea. No matter how fierce the weather or the waves, the ship sails smoothly, isolated from the world. For the duration of the scene, Sail checks made for the character ignore environmental penalties. He sails on aplacid sea, with a good wind behind him and the favor of the local spirits, even if a typhoon rages around his location. He still suffers penalties for any damage the ship has taken, but it takes on no further water, and its condition does not degenerate naturally for the remainder of the scene. MIRROR SHATTERING METHOD",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.sail.mirror-shattering-method",
+    "name": "Mirror Shattering Method",
+    "category": "sail",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.sail.stone-skipping-spirit"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "Five days",
+    "description": "The character casts salt into a puddle or body of water beneath her. Its surface breaks and dissolves into foaming whitecaps, and the character vanishes. From her perspective, the whitecaps rush out in all directions, and then, she stands atop a field of white that is— at any given moment — water, wind-blown Iower petals or butterflies. The world around her fades away as she separates herself from the normal processes of fate. While this Charm remainsactive, the character can travel at twice her normal pace, ignoring any obstacles. She remains in Creation, but her presence and location are obscured. Only the slightest shimmer in the wind marks her passing, which increases the difficulty of Awareness checks to notice her or Survival checks to track her by 2. She cannot sense the world around her at all. Nevertheless, when the Charm ends, she invariably finds herself in an auspicious location. If at all possible given the distance and general direction of her journey, she does not find herself in immediate danger, under observation or in a precarious location when she arrives. The character can use this Charm when on board a ship (or any construct suspended entirely above a body of water) by casting salt into the water below. The entire ship and crew then travels with her. It sails at twice its normal speed across the field of white, An auspicious location for a ship's arrival includes the existence of water sufficient to keep it afloat. Asan alternative to mortal travel, a character using this Charm can travel to Yu-Shan. This requires five days on foot or a day on shipboard. Travel to other unusual locations, such as Malfeas, may be possible at the Storyteller’s discretion. This always requires five days. Five OrvEALS Obyssty",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.sail.five-ordeals-odyssey",
+    "name": "Five Ordeals Odyssey",
+    "category": "sail",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.sail.salt-into-ash-sleight"
+      ],
+      [
+        "sidereal.sail.mirror-shattering-method"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1,
+      "raw": "10 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "One hazard",
+    "description": "This Charm uses a prayer strip marked with the scripture of the Maiden at Sea. The character casts it at an adversarial force, and it hangs in the air, wreathed in dandelion-hued lightning, until the resolution of the Charm destroys it. The character may use this Charm when faced with any meaningful hazard at sea: storms, thirst while becalmed, pirates, monsters, reefs, mutiny and so forth. The character must then take action to remove the hazard asa practical threat toher life, health and progress. If she ensures that it cannot reasonably prevent a safe conclusion to her journey, the Charm marks her victory by wreaking massive damage upon the force that opposed her. It tears storms from the sky, breaks the calm ina fierce wind, splits the pirate ship in ewo, consumes the monster's corpse with fire and so forth. It kills extras and shatters inanimate things. Defeated characters suffersufficient bashing damage to reduce them instantly to Incapacitated, although fate restores their consciousness (healing them to -4) if they face an immediate threat to life and limb before waking. In general, the prayer strip accomplishes this devastation in the moment of its own destruction, casting forth fire, thunder and lightning BECOMING THEQ. WILDERNESS Adopting the Untamed Face Each travail speeds the character toward her destiny, granting an ever-greater attunement to the Essence Iows of fate and the world. Each time the character invokes this Charm and permits it to run its full duration, increase her effective permanent Essence by 1, to a maximum of",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

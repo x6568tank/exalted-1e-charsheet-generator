@@ -1438,6 +1438,15 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
             if charm.immaculate:
                 pick_costs.append(bp_costs.immaculate_charm_favored_caste if is_cf
                                   else bp_costs.immaculate_charm)
+            elif charm.category.startswith("martial_arts"):
+                # Sidereal Martial Arts BP rate (8/6, p.101); other splats leave both
+                # fields None and fall back to the ordinary Charm rate.
+                if is_cf:
+                    ma_cf = bp_costs.martial_arts_charm_favored_caste
+                    pick_costs.append(ma_cf if ma_cf is not None else bp_costs.charm_favored_caste)
+                else:
+                    ma = bp_costs.martial_arts_charm
+                    pick_costs.append(ma if ma is not None else bp_costs.charm)
             else:
                 pick_costs.append(bp_costs.charm_favored_caste if is_cf else bp_costs.charm)
         for sid in spells:
@@ -1792,6 +1801,26 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"At least {b.charm_min_caste_favored} of the {b.charm_count} "
                         f"Charms/Spells must be Caste/Favoured; only {cf_pick_count} "
                         "resolve as such.",
+            ))
+
+    # --- Sidereal Martial Arts form cap (p.101) ------------------------------ #
+    # "no more than 3 [chargen Charms] may be from a Sidereal Martial Arts form;
+    # ronin ... none". A "form" is a supernatural SMA style — a martial_arts Charm
+    # that is open_to_tiers (Celestial-open); the Violet Bier auspicious tree is not
+    # open_to_tiers and is uncapped. None on every other splat = no cap.
+    if b.martial_arts_form_charm_cap is not None:
+        n_form = sum(
+            1 for cid in charms
+            if (c := ruleset.charms.get(cid)) is not None
+            and c.category.startswith("martial_arts") and c.open_to_tiers)
+        if n_form > b.martial_arts_form_charm_cap:
+            cap = b.martial_arts_form_charm_cap
+            issues.append(Issue(
+                code="charm-too-many-martial-arts-forms",
+                message=(f"{n_form} Charms are from a Sidereal Martial Arts form; at "
+                         f"chargen no more than {cap} may be" +
+                         (" (a ronin may take none, p.101)." if cap == 0
+                          else f" from such forms (p.101).")),
             ))
 
     # --- Willpower start-cap -------------------------------------------------- #

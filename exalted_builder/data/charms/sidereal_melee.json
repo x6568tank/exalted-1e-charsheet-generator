@@ -1,0 +1,180 @@
+[
+  {
+    "id": "sidereal.melee.harmony-of-blows",
+    "name": "Harmony of Blows",
+    "category": "melee",
+    "exalt_type": "Sidereal",
+    "type": "Extra Action",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 8,
+      "willpower": 0,
+      "health": 0,
+      "raw": "8 motes"
+    },
+    "duration": "Instant",
+    "description": "The patterns and Iows of a battlefield hold no h not need to improVisionary In the tum in which she invokes this Charm, the character can take two extra attack actions, using Archery, Brawl, Melee or Thrown. Sidereal Exalted may always use their Temperance with this Charm. This Charm is explicitly permitted to be in a Combo with Charms of other Abilities. Note that the rules on Combos may limit the kinds of actions a character can take MEDITATION ON WAR",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.melee.meditation-on-war",
+    "name": "Meditation on War",
+    "category": "melee",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.melee.harmony-of-blows"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per die + 1 mote per dice pool penalty cancelled"
+    },
+    "duration": "Instant",
+    "description": "Calm and precision envelops the character as she strikes, She adds dice to one Melee attack, increasing it toa maximum of its normal pool plus the character's Essence. For example, an Essence 3 character who has a -I wound penalty can spend up t04 mores toenhance her attack. This can overcome penalties that reduce the character's dice pool to 0 before Charms. Sidereal Exalted may always use their Temperance with this Charm. ORCHESTRATION OF CONFLICT",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.melee.orchestration-of-conflict",
+    "name": "Orchestration of Conflict",
+    "category": "melee",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes per target number reduction"
+    },
+    "duration": "Instant",
+    "description": "Manipulating the local flow of a conflict through the ripple effects of her own actions, the character reduces the target number for a Melee attack or parry.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.melee.impeding-the-flow",
+    "name": "Impeding the Flow",
+    "category": "melee",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "A wind full of red stardust and the character’s will, visible to those who can see dematerialized spirits, spins around the character. It reroutes the Iows of Essence and fate that normally allow others to attack her. A casual movement of the Exalt’s weapon parties any one incoming attack she is aware of, so long as the attack has a physical component and is not specifically noted as impossible to block. This is not a perfect defense. SERENITY IN BLOOD",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.melee.serenity-in-blood",
+    "name": "Serenity in Blood",
+    "category": "melee",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.melee.harmony-of-blows"
+      ],
+      [
+        "sidereal.melee.impeding-the-flow"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "Stirring the currents of fate with the tip of her weapon, the character disrupts the 3 to divert the blow. Otherwise, this is a perfect block, capable of stopping even unblockable attacks. SMILING AT THE DAMNED",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.melee.smiling-at-the-damned",
+    "name": "Smiling at the Damned",
+    "category": "melee",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "Instant",
+    "description": "In the moment the character's weapon strikes true, the colors around her take on a harsh red tinge. Essence dissolves at the weapon’s touch. Halve the raw damage for one attack, rounding down, but the damage is aggravated. Sidereal Exalted may always use their Conviction with this Charm. PERFECTION OF THE VISIONARY WARRIOR",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.melee.perfection-of-the-visionary-warrior",
+    "name": "Perfection of the Visionary Warrior",
+    "category": "melee",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.melee.meditation-on-war"
+      ],
+      [
+        "sidereal.melee.orchestration-of-conflict"
+      ],
+      [
+        "sidereal.melee.serenity-in-blood"
+      ],
+      [
+        "sidereal.melee.smiling-at-the-damned"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1,
+      "raw": "10 motes, 1 Willpower, I health level"
+    },
+    "duration": "One scene",
+    "description": "Charm uses a prayer strip marked with the scripture of the Maiden on the Shelf, The character places itacross his eyes, whereupon it adheres and begins to drip with dark blood. The character suffers no visibility penalties. All opponents and attacks become apparent to him, although effects such as the Mental Invisibility Technique can force him to ignore them. He and faces but as patterns of fate and potential or — for creatures outside of fate — disruptions in such patterns. The character can reflexively parry any blockable attack with his full Dexterity + Melee dice pool. Once per turn, after his initiative, he can reflexively make an Archery, Brawl, Melee or Thrown attack at his full dice pool. He cannot use the latter ability in any turn where he splits his normal dice pool. sees enemies not as bodies",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

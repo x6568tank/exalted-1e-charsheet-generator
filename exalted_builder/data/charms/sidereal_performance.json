@@ -1,0 +1,173 @@
+[
+  {
+    "id": "sidereal.performance.compassionate-essence-replenishment",
+    "name": "Compassionate Essence Replenishment",
+    "category": "performance",
+    "exalt_type": "Sidereal",
+    "type": "Special",
+    "min_ability": 1,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "In many ways, Sidereals become the central figures in the lives of those around them — unrecognized, unknown, but nevertheless the ones about whom events turn. When they call out for it, the world returns the love and service they have given it, offering its Essence to them freely. This Charm draws on the Exalt's ability to move through situations without taking overt action, encouraging spirits and the world to willingly restore her Essence.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.performance.perfection-in-life",
+    "name": "Perfection in Life",
+    "category": "performance",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "Misery fills the world, but it is an incomplete fate. Characters with this Charm would sketch a life of sorrow as a broken pattern, full of pain, casting forth strands of effort, desire, hope and fear that reach for fulfillment. Those strands blunt themselves on weakness and circumstance but implicitly define the rest of the pattern — the perfection that that person’s life could be. The Exalt can manipulate events to temporarily complete such patterns. This is the dance of Venus. His words and actions, though apparently mundane, purify and brighten the lives around him. The cadence ofhismoyementsand The player rolls Charisma + Performance. For one scene, the character and everyone he interacts with gains 1 temporary Willpower point. This can increase Willpower past its normal maximum, but it cannot increase temporary Willpower past the number of successes rolled. Beneficiaries also feel fulfilled and happy. No character can gain Willpower from this Charm more than once per day. Sidereal Exalted may always use their Compassion with this Charm. DEFENSE OF SHINING JOY",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.performance.defense-of-shining-joy",
+    "name": "Defense of Shining Joy",
+    "category": "performance",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.performance.perfection-in-life"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "Infusing herself with the Essence of the dance, the character sees the perfect completion to every enemy attack, Matching her efforts to their own, she avoids all harm. For the remainder of the scene, the character can reflexively dodge any physical attack with her full Dexterity + Dodge or Dexterity + Performance dice pool. SONG OF SpiriT PERSUASION",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.performance.song-of-spirit-persuasion",
+    "name": "Song of Spirit Persuasion",
+    "category": "performance",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower Singing in the language of the Old Realm— which she must, of course, know — the character answers the deepest fears and questions in a spirit or elemental’s heart. As with the dance of Venus, she chooses her words and melody to complete that which is incomplete. In this fashion, she bends the spirit to her ends. The Sidereal’s player makes a Manipulation + Per- formance roll against the spirit’s Essence. It must be able to hear the song, although it need not be awake or present. On a success, the spirit becomes one of the character's allies. Spending experience points equal to the spirit’s Essence makes this permanent. Otherwise, the spirit forgets the Exalt at the end of the story. Spirits of fire and wood, embodying life and passion, are particularly vulnerable to this technique. Add a +2 difficulty penalty when entrancing spirits of earth, water and air. FAULTLESS CEREMONY"
+    },
+    "duration": "Instant",
+    "description": "Singing in the language of the Old Realm — which she must, of course, know — the character answers the deepest fears and questions in a spirit or elemental's heart. As with the dance of Venus, she chooses her words and melody to complete that which is incomplete. In this fashion, she bends the spirit to her ends. The Sidereal's player makes a Manipulation + Performance roll against the spirit's Essence. It must be able to hear the song, although it need not be awake or present. On a success, the spirit becomes one of the character's allies. Spending experience points equal to the spirit's Essence makes this permanent. Otherwise, the spirit forgets the Exalt at the end of the story. Spirits of fire and wood, embodying life and passion, are particularly vulnerable to this technique. Add a +2 difficulty penalty when entrancing spirits of earth, water and air.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.performance.faultless-ceremony",
+    "name": "Faultless Ceremony",
+    "category": "performance",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote + 1 mote per target number reduction"
+    },
+    "duration": "One scene",
+    "description": "The character closes the loose ends of fate, making a : e participates in perfect and complete in the wets pp 335-336) against a difficulty of (8 the Resources cost of the ceremony). She adds her character's Essence in dice, She may lower the target number of this roll. Success provides a meaningful bias to fate, particularly in matters relevant to her caste. Thus, Chosen of Endings can easily arrange a smooth conclusion toa dead man’s affairs, and the Chosen of Serenity can all but guarantee a couple’s fertility. Active intervention from antagonists in Heaven or creatures outside of fate can muddle the result. HeART-BRIGHTENING PRESENTATION STYLE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.performance.heart-brightening-presentation-style",
+    "name": "Heart-Brightening Presentation Style",
+    "category": "performance",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes per die"
+    },
+    "duration": "Instant",
+    "description": "Every time an audience’s trust in the character is about to falter, the Exalt adapts her approach to form a better answer to its members’ needs and desires. The player can add dice up to her character's Essence to Presence, Performance, Bureaucracy and Socialize rolls. This Charm is explicitly permitted to be used in aCombo with Charms of other Abilities. Sidereal Exalted may always use their Compassion with this Charm. HARMONIC COMPLETION",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.performance.harmonic-completion",
+    "name": "Harmonic Completion",
+    "category": "performance",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.performance.defense-of-shining-joy"
+      ],
+      [
+        "sidereal.performance.song-of-spirit-persuasion"
+      ],
+      [
+        "sidereal.performance.faultless-ceremony"
+      ],
+      [
+        "sidereal.performance.heart-brightening-presentation-style"
+      ]
+    ],
+    "cost": {
+      "motes": 16,
+      "willpower": 1,
+      "health": 1,
+      "raw": "16 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "Five days",
+    "description": "This Charm uses a long prayer strip marked with the scripture of the Dancer. The character binds it around her eyes, whereupon it transforms intoa band of starmetal and blue jade. (It still abides by the normal rules for prayer strip destruction.) For the duration of this effect, the Exalt is genuinely blind and takes a +2 difficulty penalty on appropriate rolls The words of a character employing Harmonic Completion sound to others like the affirmations and truths they have waited their entire lives to hear. Each comes across as a measured antidote to every trouble written in their history and fate. The Exalt receives a perfect success on all Performance rolls to influence mortals. Anyone, mortal or Exalted, who does not deliberately tune heroutfallsin love. Anynonextra character",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

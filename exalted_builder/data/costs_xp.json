@@ -1,6 +1,8 @@
 {
   "Dragon-Blooded": {
-    "essence": {"coeff": 10},
+    "essence": {
+      "coeff": 10
+    },
     "new_charm": 12,
     "new_charm_favored_caste": 10,
     "new_spell": 12,
@@ -9,26 +11,45 @@
     "new_immaculate_charm_favored_caste": 12
   },
   "Lunar": {
-    "essence": {"coeff": 9},
-    "attribute_caste_favored": {"coeff": 4, "offset": -1},
+    "essence": {
+      "coeff": 9
+    },
+    "attribute_caste_favored": {
+      "coeff": 4,
+      "offset": -1
+    },
     "new_charm": 15,
     "new_charm_favored_caste": 12,
-    "new_spell_by_circle": {"Terrestrial": 12, "Celestial": 15}
+    "new_spell_by_circle": {
+      "Terrestrial": 12,
+      "Celestial": 15
+    }
   },
   "Sidereal": {
-    "essence": {"coeff": 9},
+    "essence": {
+      "coeff": 9
+    },
     "new_charm": 11,
     "new_charm_favored_caste": 9,
     "new_college": 5,
-    "college": {"coeff": 3}
+    "college": {
+      "coeff": 3
+    },
+    "new_martial_arts_charm": 12,
+    "new_martial_arts_charm_favored_caste": 10
   },
   "Alchemical": {
-    "essence": {"coeff": 9},
+    "essence": {
+      "coeff": 9
+    },
     "new_charm": 6,
     "new_charm_slot_general": 12,
     "new_charm_slot_dedicated": 10,
     "charm_slot_upgrade": 2,
     "new_martial_arts_charm": 11,
-    "spell_cost_by_circle": {"Man-Machine": 12, "God-Machine": 14}
+    "spell_cost_by_circle": {
+      "Man-Machine": 12,
+      "God-Machine": 14
+    }
   }
 }

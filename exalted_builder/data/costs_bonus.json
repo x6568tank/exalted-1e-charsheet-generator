@@ -44,7 +44,9 @@
     "charm": 7,
     "charm_favored_caste": 5,
     "college": 8,
-    "college_own_house": 6
+    "college_own_house": 6,
+    "martial_arts_charm": 8,
+    "martial_arts_charm_favored_caste": 6
   },
   "Alchemical": {
     "attribute": 4,

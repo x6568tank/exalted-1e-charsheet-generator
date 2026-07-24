@@ -1,0 +1,126 @@
+[
+  {
+    "id": "sidereal.thrown.willful-weapon-method",
+    "name": "Willful Weapon Method",
+    "category": "thrown",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "Instant",
+    "description": "If the shadow hits, the target loses two points of temporary Willpower as a spirit-bird screams in the mansion of the Gull and the house of Endings quietly takes note. In addition, the character's weapon appears, quivering, in the target’s chest, doing normal damage. If the character does not spend a Thrown action every turn on this Charm, the shadow fades away. Sidereal Exalted may always use their Temperance with this Charm, Lire Gers Worse APPROACH",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.thrown.life-gets-worse-approach",
+    "name": "Life Gets Worse Approach",
+    "category": "thrown",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "The character makes the Inferior Sign of the Gull over his weapon, whispers to it to seek the heart (orsome other desired organ) and throws. This attack adds his Essence to the raw damage of the attack. In addition, if the weapon hits, it emits a soft yellow radiance that calls to things traveling through the air. Once per turn, when someone in range misses with a Thrown or Archery attack, the Exalt can reflexively spend 2 motes to summon the projectile to the wound. The player of the person responsible for the attack must immediately reflexively reroll the attack against the target of this Charm. All Charms used on the original attack still apply except for those inapplicable to the new targetand those that allow the attack to target multiple characters. The Charms need not be paid for again. Removing the weapon requires a simple Strength + Athletics action and ends the effects of this Charm. If left alone long enough, the embedded weapon eventually attracts stray insects, birds and Iying debris. Essence THORN PRACTICE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.thrown.essence-thorn-practice",
+    "name": "Essence Thorn Practice",
+    "category": "thrown",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.thrown.life-gets-worse-approach"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The blade of a knife is the gate between life and death. The target’s fate is to suffer its touch. The character dispenses with the intermediate steps, hurlinga blade of Essence up to (his Essence x 20) yards. Ir moves at such speed that it cannot be blocked, only dodged, the wind of its passage dragging the character up to 20 yards in the direction = its trav 1. Te cule no penalties from range, Creatures of the shadowlands have passed beyond death’s gate, and the Essence Thorn drags them closer to life. Hit by the blade, they suffer no damage. Instead, convert damage successes one for one into points of temporary Willpower lost. Such being can be reduced to a minimum of 0 temporary Willpower. If brought to 0 Willpower by this attack, the creature suffers hallucinations and disorientation, taking no actions save to engage in reverie, self-defense or extended self-defense (ie., escape) for the remainder of the scene. Abyssal Exalted are alive and take damage. Deathlords are immune to the Essence Thorn unless already at 0 Willpower when it strikes them. PAIN AMPLIFICATION STRATAGEM",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.thrown.pain-amplification-stratagem",
+    "name": "Pain Amplification Stratagem",
+    "category": "thrown",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "Before making a Thrown attack, the character touches her weapon to the skin beneath her eye. She bleeds three drops of blood onto the weapon, symbolizing the sorrow she might theoretically feel for herimpending victim. Ir is the way of fate that pain begets pain, Apply the victim’s current wound penalty to the target number forboth the attack and damage rolls. For example, against a character with a -2 wound penalty, the target number for both rolls would be 5. Sidereal Exalted may always use their Compassion with this Charm. UNRELENTING TORMENT TECHNIQUE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.thrown.unrelenting-torment-technique",
+    "name": "Unrelenting Torment Technique",
+    "category": "thrown",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.thrown.willful-weapon-method"
+      ],
+      [
+        "sidereal.thrown.essence-thorn-practice"
+      ],
+      [
+        "sidereal.thrown.pain-amplification-stratagem"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1,
+      "raw": "10 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "Indefinite",
+    "description": "Charm uses a prayer strip marked with the scripture of the Maiden and Shadow. The character casts it at an opponent or object as a Thrown weapon with a range of 100 yards and Accuracy +0. Ifit hits, it adheres, wreathing the target in an unpleasant, pulsing yellow glow. The Exalt can only have one such strip active at any given time, and it can only affix to someone with hostile intentions toward him. While this Charm is in effect, whenever the character takes damage and has at least one mobile hand, a hatchet of Essence leaps from hishand to attack the target. [tpasses freely through obstacies and across any distance up to a Ignoring non-perfect soaks, it inflicts the character's Essence in dice of unsoakable lethal damage. For each health level the target loses, the Sidereal heals one health level — the harsh fate inflicted upon him has been given to another. This is a reflexive action and does not count against the character's actions for that turn. Sometimes, it is harder to stop a terrible journey than to embark upon it. The victim of this Charm suffers an overpowering, irrational desire to hurt the character. Despite the unpleasant consequences of each attack, she has difficulty remembering how to stop. Each turn, to avoid attacking the Sidereal with the greatest force available to her, her player must succeed at a Willpower roll. If the victim cannot see or hear the character, the effect subsides. She can spend a temporary Willpower to free herself from the compulsion until she sees or hears the character again. Sidereal Exalted may always use their Conviction with this Charm. SERENITY: THE CERULEAN Lute OF HARMONY",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

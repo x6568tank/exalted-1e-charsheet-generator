@@ -1,0 +1,127 @@
+[
+  {
+    "id": "sidereal.dodge.absence",
+    "name": "Absence",
+    "category": "dodge",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per target number reduction"
+    },
+    "duration": "Instant",
+    "description": "Predicting the path of a blade or blow well in advance, the Exalted arranges to be somewhere else when it lands. He can reduce the target number of a Dexterity + Dodge roll. Duck FATE",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.dodge.duck-fate",
+    "name": "Duck Fate",
+    "category": "dodge",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 10,
+      "willpower": 0,
+      "health": 0,
+      "raw": "10 motes"
+    },
+    "duration": "Instant",
+    "description": "The character sees impending danger rippling toward her in the skein of fate and, as with Absence, chooses not to meet it. Her player rolls Dexterity + Dodge against a difficulty equal to her opponent's Essence. Ifthe roll succeeds, the Exaltavoidsany undesirable effect, including attacks she is not aware of, attacks with an area of effect, attacks with no physical component such as the Irresistible Questioning Technique and continuous deleterious effects such as Youand Yours Stance. She must Duck Fate before her opponent's player makes the attack roll or as soon as her player knows about the effect, whichever is applicable. She need evade a continuous effect only once. AVOIDANCE KATA",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.dodge.avoidance-kata",
+    "name": "Avoidance Kata",
+    "category": "dodge",
+    "exalt_type": "Sidereal",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.dodge.duck-fate"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "Sometimes, the best answer to trouble is not being there at all. In the first two turns of combat or the first minute of a social encounter, the Sidereal’s player can leclar For this Charm’s purposes, the first minute of a social encounter begins at the last chance the Exalt had to conveniently leave. If the character is chatting with a friend and Lilith shows up, a new social encounter has begun. The Sidereal can use this Charm, retroactively making her excuses and ducking out sometime beforehand. If the character is chatting with Lilith and a friend shows up, however, she's still in the encounter with Lilith. TRouBLe REDUCTION STRATEGY",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.dodge.trouble-reduction-strategy",
+    "name": "Trouble Reduction Strategy",
+    "category": "dodge",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.dodge.duck-fate"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "Generous Sidereals learn to spot impending danger to others as well. When activating this Charm, the character chooses a number of targets whose total Essence does not exceed her own. While the Trouble Reduction Strategy is in force, the character can use any other Dodge Charm she knows to benefit a consenting target instead of herself. Simple and extra action Charms use the character's action and Dodge pool. Reflexive declares an appropriate Combo when using her first Charm. If the Combo includes non-reflexive Charms from other Abilities, the character cannotuse it with the Trouble Reduction Strategy. If it includes reflexive Charms from other Abilities, she cannot use them on the target's behalf. She could, for example, Combo Absence and Shield of Mars (see p. 163). When she invoked the Combo, she could use Absence but not Shield of Mars to protect a friend. She must take a dodge action that turn, assisted by Absence, even if no one tries to hit her, because it isa supplemental Charm in a Combo. She can reflexively invoke the Shield of Mars. Sidereal Exalted may always use their Compassion with this Charm. NEIGHBORHOOD RELOCATION SCHEME",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.dodge.neighborhood-relocation-scheme",
+    "name": "Neighborhood Relocation Scheme",
+    "category": "dodge",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.dodge.avoidance-kata"
+      ],
+      [
+        "sidereal.dodge.trouble-reduction-strategy"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 1,
+      "raw": "15 motes, 1 Willpower, I health level"
+    },
+    "duration": "Indefinite",
+    "description": "This Charm uses a long prayer strip marked with the scripture of the Hunted Maiden. The character twists it and wraps it around her waist, whereupon it transforms into a band of crystalline Essence the color of thesky. Each hour the Exalted leaves this Charm in force, the band tightens, doing two levels of unsoakable bashing damage. This damage cannot be healed until the Charm ends. The character begins to walk or run. These are the only acceptable forms of motion, but she can enhance them with Charms o the Lesser Sign of Mercury. As the character travels, the weave of Creation shifts, dragging part of the world after her. Specifically, both the general terrain and all habitations within her Essence in miles move with her. In the planning rooms of fate, this Charm slowly changes the records of each transported thing's position. Thus, their fated interactions in the moments to come take place in a new location. This Charm alters divine records, which are then interpreted by those who feed fate into the world. Accordingly, it is an intelligent effect. The Sidereal cannot shear a mountain or city in two. If the Charm cannot logically divide such features, given the radius ofeffect, they do not travel atall. Further, Creation fills in the “vacant space” with something reasonable. Finally, the Sidereal cannot “erase” anything important by dragging land onto it. If she drags a desert onto a Manse ina forested region, the forest retreats but does not vanish. The Manse follows the forest or relocates to the desert. The new location seems correct and reasonable to all witnesses, although they remember the previous state of affairs. This Charm was first used to pull a key fortification out of the way of a Primordial assault, in the days when Exalted and Primordials warred. Using this Charm without authorization is a Severity 3 offense.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]

@@ -1,0 +1,174 @@
+[
+  {
+    "id": "sidereal.socialize.stern-essence-replenishment",
+    "name": "Stern Essence Replenishment",
+    "category": "socialize",
+    "exalt_type": "Sidereal",
+    "type": "Special",
+    "min_ability": 1,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "In taking those actions she considers necessary, whatever the personal cost, a Sidereal sers her order on the world. As she does so, it helplessly yields its Essence to her. This Charm draws on the Exalt’s ability to play spiritsand the world, manipulating Creation in Creation’s service, Immediately aftera successful roll using Conviction orimmediately aftera Socialize roll that substantially changed the local social environment in her favor, the Exalt regains twice her Conviction in motes of Essence, up to her normal maximum. There is no cost to use this Charm’s effects — learning this Charm simply enhances the Exalt’s capabilities. SHUN THE SMILING LADY",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.socialize.shun-the-smiling-lady",
+    "name": "Shun the Smiling Lady",
+    "category": "socialize",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 7,
+      "willpower": 0,
+      "health": 0,
+      "raw": "7 motes"
+    },
+    "duration": "Indefinite",
+    "description": "The character blots the target’s name from the rolls of those destined to attract love. The target has an effective Appearance 1 for all non-magical effects. To invoke any form of supernatural appeal or to maintain it into a new scene, the target must spend a Willpower point, and his player must succeed at a Manipulation + Socialize roll against a difficulty of the Sidereal’s EsCash and Murder Games Wantin, Fearing those feelings are instantly severed. They do not return when the Charm ends. CASH AND MURDER GAMES",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.socialize.cash-and-murder-games",
+    "name": "Cash and Murder Games",
+    "category": "socialize",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "sidereal.socialize.shun-the-smiling-lady"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "Quickly sketching a proposed relationship in the plans for future fate, the character increases the power one person has over another. The character names the fashion in which the beneficiary acquires dominion over the target — generally fear or desire, sexual or otherwise. The player rolls Manipulation + Socialize. To resist being intimidated, enthralled or impressed to the point of near-servitude, the target must spend one temporary Willpower per scene where he encounters the Charm’s beneficiary. When he has spent Willpower equal to the number of successes rolled, the compulsion fades. Normally, the emotional impact does not entirely dissipate so much as mute itself to non-magical levels. The Sidereal can choose herselfas the beneficiary. Sidereal Exalted may always use their Conviction with this Charm. Lire WiTHouT COMPUNCTION",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.socialize.life-without-compunction",
+    "name": "Life Without Compunction",
+    "category": "socialize",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "Instant Looking upon him, and payer i Aswith legal crimes, the right tricks can make social crimes... disappear. The Sidereal can instantly erase the onus attached to herself or to someone else for some social blunder or taboo violation. Her player rolls Ma- nipulation + Socialize. A single success makes people stop caring. With three successes, the character can choose instead either to make the relevant action gener- ally acceptable or to make the person who committed it an admirable rebel (e.g., an ideologue who makes a bold, daring statement by digging up people’s dead grand- mothers, however disgusting that behavior would be in others). The Charm only affects communities where the relevant action significantly contributes to the target’s notoriety. (To make theft socially acceptable through- out Creation, the Sidereal would have to arrange an act, of theft infamous throughout Creation.) Socially ac- ceptableacts often retain legal penalties. Sidereal Exalted may always use their Temperance with this Charm. You Ano Yours STANCE",
+    "description": "As with legal crimes, the right tricks can make social crimes disappear. The Sidereal can instantly erase the onus attached to herself or to someone else for some social blunder or taboo violation. Her player rolls Manipulation + Socialize. A single success makes people stop caring. With three successes, the character can choose instead either to make the relevant action generally acceptable or to make the person who committed it an admirable rebel. The Charm only affects communities where the relevant action significantly contributes to the target's notoriety.",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.socialize.you-and-yours-stance",
+    "name": "You and Yours Stance",
+    "category": "socialize",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "sidereal.socialize.shun-the-smiling-lady"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "The character wraps himself in the tenor of fate that gives rise to lust. He becomes impossible to recognize. others perceive only a blazing sense not to act as best they can, short of suicide, to please him. This Charm adds the character's Essence in automatic successes to any seduction roll. Hor-Eyeb SNAKE WHISPERING",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.socialize.hot-eyed-snake-whispering",
+    "name": "Hot-Eyed Snake Whispering",
+    "category": "socialize",
+    "exalt_type": "Sidereal",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per target number reduction"
+    },
+    "duration": "Instant",
+    "description": "Every time an audience's trust in the character is about to falter, her hands on the web of fate twitch its members’ minds back onto the proper path. The Charm can reduce the target number of Presence, Performance, Bureaucracy and Socialize rolls. This Charm is explicitly permitted to be in a Combo with Charms of other Abilities. Sidereal Exalted may always use their Convietion with this Charm. ‘WANTING AND FEARING PRAYER",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  },
+  {
+    "id": "sidereal.socialize.wanting-and-fearing-prayer",
+    "name": "Wanting and Fearing Prayer",
+    "category": "socialize",
+    "exalt_type": "Sidereal",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "sidereal.socialize.life-without-compunction"
+      ],
+      [
+        "sidereal.socialize.you-and-yours-stance"
+      ],
+      [
+        "sidereal.socialize.hot-eyed-snake-whispering"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1,
+      "raw": "10 motes, 1 Willpower, I health level"
+    },
+    "duration": "Indefinite",
+    "description": "This Charm uses two prayer strips marked with the scripture of the Whore. The character holds them up, one at a time, and names a target for each. The targets must be within 10 miles. Each prayer strip burns lambent blue for a moment before disappearing, reappearing wrapped around one of its target's bones. Its light cannot shine through even the thinnest veil of Iesh, but bursts forth brilliantly if that Iesh is ever cut away. Extracting the strip requires 12 successes on an extended Dexterity + Medicine roll. Each attempt inflicts one level of unsoakable lethal damage. The Sidereal’s player rolls Manipulation + Socialize against the Essence of each target. If he succeeds both times, the character can dictate a new social and emotional relationship between the two targets. As fast and hard as plausible, for the duration of the Charm, events push the victims toward that social relationship. The imposed emotional relationship is partly a magical compulsion, which remains while the character commits Essence to the Charm. Under its influence, a target must spenda Willpower point to act significantly at odds with the imposed emotional context. The Charm also i stantly creates genuine emotions, which do not depend ic to sust fade or blossom BATTLES: THE CRIMSON",
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": null
+    }
+  }
+]
