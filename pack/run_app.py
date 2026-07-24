@@ -27,6 +27,23 @@ if sys.stdout is None:
 if sys.stderr is None:
     sys.stderr = open(os.devnull, "w")
 
+# PyInstaller's bootloader sets LD_LIBRARY_PATH to the onefile extraction dir and
+# stashes the caller's original in LD_LIBRARY_PATH_ORIG. Child processes inherit
+# the former, so anything we shell out to -- notably /bin/sh, which the
+# browser-open path runs through xdg-open -- tries to load OUR bundled copies of
+# system libraries. A version mismatch against the host is fatal to the child
+# (e.g. Arch bash + a bundle built on Ubuntu: "/bin/sh: undefined symbol:
+# rl_trim_arg_from_keyseq"). Restore the original for children.
+#
+# Safe for us: glibc reads LD_LIBRARY_PATH once at process start, so editing
+# os.environ affects only processes we spawn, never this one's own loading.
+if getattr(sys, "frozen", False):
+    _orig = os.environ.pop("LD_LIBRARY_PATH_ORIG", None)
+    if _orig is not None:
+        os.environ["LD_LIBRARY_PATH"] = _orig
+    else:
+        os.environ.pop("LD_LIBRARY_PATH", None)
+
 import asyncio
 import multiprocessing
 import socket

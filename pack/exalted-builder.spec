@@ -30,9 +30,23 @@ a = Analysis(
     runtime_hooks=[],
     # The app runs in the browser; keep the native (pywebview/Qt) stack out of the
     # bundle even if it happens to be installed, so the build stays small/portable.
-    excludes=["webview", "qtpy", "PyQt6", "PyQt5", "PySide6", "PySide2"],
+    excludes=["webview", "qtpy", "PyQt6", "PyQt5", "PySide6", "PySide2",
+              # CPython's readline module drags libreadline/libtinfo into the
+              # bundle; see the binary filter below for why that breaks the host.
+              "readline", "rlcompleter"],
     noarchive=False,
 )
+
+# The bootloader points LD_LIBRARY_PATH at the onefile extraction dir, and every
+# CHILD process inherits it -- including /bin/sh, which the browser-open path
+# shells out through. A bundled libreadline built on the CI runner (Ubuntu,
+# readline 8.1) then gets loaded by the host's own bash (Arch, expects 8.2),
+# which dies with "undefined symbol: rl_trim_arg_from_keyseq". Nothing in a
+# browser-based GUI app needs readline or a terminfo database, so drop them.
+_HOST_LIBS = ("libreadline.so", "libtinfo.so", "libncurses.so", "libncursesw.so")
+a.binaries = [b for b in a.binaries
+              if not b[0].split("/")[-1].startswith(_HOST_LIBS)]
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
