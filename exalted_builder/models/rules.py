@@ -247,6 +247,17 @@ class Spell(BaseModel):
     source: Source = Field(default_factory=Source)
 
 
+class AbilityMinimum(BaseModel):
+    """A required minimum in one of a set of Abilities (OR semantics): the character
+    must have at least `rating` in AT LEAST ONE of `abilities`. A single-element list
+    is a specific-ability floor. Used for the Dragon-Blooded Dynastic schooling
+    minimums (p.151) and the Sidereal per-house minimums (p.98) — these are a floor
+    spent from the pool, NOT free extra dots."""
+    model_config = ConfigDict(frozen=True)
+    abilities: list[AbilityName]
+    rating: int = Field(ge=1)
+
+
 class CasteDefinition(BaseModel):
     """One caste (Solar) / aspect (Dragon-Blooded) / etc. `id` is the stable
     lowercase key it is stored under in RuleSet.castes and on Character.caste
@@ -271,8 +282,28 @@ class CasteDefinition(BaseModel):
     # including the other Lunar castes. Ignored entirely by splats that price spells
     # flatly (they use the Occult-Caste/Favoured discount instead).
     spell_cost_discount: int = 0
+    # Per-caste ability floors, unioned with the exalt-type-keyed budget minimums.
+    # The Sidereal per-house minimums (p.98) differ by caste, unlike the DB Dynastic
+    # floor which is the same for every aspect, so they live here rather than on
+    # ChargenBudgets. Empty for every caste with no house-specific floor.
+    required_min_abilities: list[AbilityMinimum] = Field(default_factory=list)
     description: str = ""                   # a quick flavour blurb for the caste
     anima_powers: str = ""
+
+
+class College(BaseModel):
+    """One Astrological College (Sidereal, p.220-235) — a rated Advantage bought at
+    chargen with its own point pool, distinct from Abilities. `house` is the caste id
+    of the Maiden that governs it (journeys/serenity/battles/secrets/endings), so the
+    "≥4 dots in the Colleges of his Maiden" rule (p.98) matches `house` to
+    Character.caste directly; `house_label` is the printed astrological house name
+    (e.g. Serenity's colleges sit in the "House of Leisure"). Sidereal-only today;
+    other splats simply ship no colleges.json and never reference one."""
+    model_config = ConfigDict(frozen=True)
+    id: str
+    name: str
+    house: str                              # caste id of the governing Maiden
+    house_label: str = ""                   # printed astrological house name (display)
 
 
 # --------------------------------------------------------------------------- #
@@ -432,6 +463,10 @@ class BonusPointCosts(BaseModel):
     # applies when the Charm's Ability is Favoured/Caste, same as `charm`.
     immaculate_charm: int = 10
     immaculate_charm_favored_caste: int = 7
+    # Astrological Colleges (Sidereal, p.100-101): 8 BP per dot, 6 if the College is
+    # one of the character's own Maiden's. Unused by splats without colleges.
+    college: int = 8
+    college_own_house: int = 6
 
 
 class ExperienceCosts(BaseModel):
@@ -450,6 +485,10 @@ class ExperienceCosts(BaseModel):
     # flat "new trait" costs
     new_ability: int = 3
     new_specialty: int = 3
+    # Astrological Colleges (Sidereal, p.265): a new College costs 5; raising one
+    # scales at current rating × 3. Unused by splats without colleges.
+    new_college: int = 5
+    college: LinearCost = Field(default_factory=lambda: LinearCost(coeff=3))
     new_charm: int = 10
     new_charm_favored_caste: int = 8
     # Immaculate Order Charms (Dragon-Blooded, p.292 — "15, 12 if Favored"). Only
@@ -468,16 +507,6 @@ class ExperienceCosts(BaseModel):
     # effect for such a splat). Empty (every other splat) => the flat new_spell path.
     new_spell_by_circle: dict[SpellCircle, int] = Field(default_factory=dict)
     foreign_charm: int = 20                # spirit Charms / other Exalt types; Eclipse only (gated in engine)
-
-
-class AbilityMinimum(BaseModel):
-    """A required minimum in one of a set of Abilities (OR semantics): the character
-    must have at least `rating` in AT LEAST ONE of `abilities`. A single-element list
-    is a specific-ability floor. Used for the Dragon-Blooded Dynastic schooling
-    minimums (p.151) — these are a floor spent from the pool, NOT free extra dots."""
-    model_config = ConfigDict(frozen=True)
-    abilities: list[AbilityName]
-    rating: int = Field(ge=1)
 
 
 class ChargenBudgets(BaseModel):
@@ -503,6 +532,14 @@ class ChargenBudgets(BaseModel):
 
     background_dots: int = 7
     background_cap_pre_bp: int = 3
+
+    # Astrological Colleges (Sidereal, p.98) — a rated Advantage with its OWN point
+    # pool, separate from Abilities and Backgrounds. `college_dots` 0 (the default)
+    # means the splat has no colleges (every non-Sidereal). `college_min_own_house`
+    # is how many of those dots must be in the character's Maiden's Colleges.
+    college_dots: int = 0
+    college_min_own_house: int = 0
+    college_cap_pre_bp: int = 3
 
     virtue_dots: int = 5                   # spent over a base of 1 each
     virtue_base: int = 1
@@ -673,6 +710,7 @@ class RuleSet(BaseModel):
     background_catalog: dict[str, BackgroundType] = Field(default_factory=dict)
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
+    colleges: dict[str, College] = Field(default_factory=dict)   # Astrological Colleges (Sidereal)
     bonus_costs: dict[str, BonusPointCosts] = Field(
         default_factory=lambda: {"default": BonusPointCosts()})
     xp_costs: dict[str, ExperienceCosts] = Field(

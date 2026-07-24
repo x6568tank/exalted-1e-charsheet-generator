@@ -16,7 +16,8 @@ engine.validate; the trait caps live here.
 from __future__ import annotations
 
 from ..models.character import (
-    BeastmanGiftPurchase, Character, Combo, CraftRating, OxBodyPurchase, Specialty, XpEntry)
+    BeastmanGiftPurchase, Character, CollegeRating, Combo, CraftRating, OxBodyPurchase,
+    Specialty, XpEntry)
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import costs, derive, validate
 
@@ -125,6 +126,34 @@ def raise_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
         raise AdvancementError(f"Craft ({focus}) is already at {_DOT_MAX}.")
     cost = costs.ability_step(ruleset, character, AbilityName.CRAFT, cr.rating)
     entry = _commit(character, "crafts", focus, cr.rating, cr.rating + 1, cost)
+    cr.rating += 1
+    return entry
+
+
+def learn_college(ruleset: RuleSet, character: Character, college_id: str) -> XpEntry:
+    """Begin a new Astrological College at rating 1 (Sidereal, p.265). Flat new_college
+    cost. The id must be a real College and not already owned."""
+    _ensure_locked(character)
+    if college_id not in ruleset.colleges:
+        raise AdvancementError(f"Unknown college {college_id!r}.")
+    if any(c.college_id == college_id for c in character.colleges):
+        raise AdvancementError(f"{ruleset.colleges[college_id].name} is already known; raise it instead.")
+    cost = costs.college_new_cost(ruleset, character)
+    entry = _commit(character, "colleges", college_id, 0, 1, cost)
+    character.colleges.append(CollegeRating(college_id=college_id, rating=1))
+    return entry
+
+
+def raise_college(ruleset: RuleSet, character: Character, college_id: str) -> XpEntry:
+    """Raise an existing College one dot, scaled (current × 3, p.265)."""
+    _ensure_locked(character)
+    cr = next((c for c in character.colleges if c.college_id == college_id), None)
+    if cr is None:
+        raise AdvancementError(f"No college {college_id!r} to raise; learn it first.")
+    if cr.rating >= _DOT_MAX:
+        raise AdvancementError(f"{ruleset.colleges[college_id].name} is already at {_DOT_MAX}.")
+    cost = costs.college_step(ruleset, character, cr.rating)
+    entry = _commit(character, "colleges", college_id, cr.rating, cr.rating + 1, cost)
     cr.rating += 1
     return entry
 
@@ -388,6 +417,14 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
                 else:                       # was a freshly-learned craft -> remove it
                     del character.crafts[i]
                 break
+    elif domain == "colleges":
+        for i in range(len(character.colleges) - 1, -1, -1):
+            if character.colleges[i].college_id == entry.detail:
+                if entry.from_rating and entry.from_rating > 0:
+                    character.colleges[i].rating = entry.from_rating
+                else:                       # was a freshly-learned college -> remove it
+                    del character.colleges[i]
+                break
     elif domain == "virtues":
         character.virtues[VirtueName(key)] = entry.from_rating
     elif domain == "willpower":
@@ -449,6 +486,9 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         return costs.ability_step(ruleset, character, AbilityName(key), frm)
     if domain == "crafts" and frm is not None:
         return costs.ability_step(ruleset, character, AbilityName.CRAFT, frm)
+    if domain == "colleges" and frm is not None:
+        return (costs.college_new_cost(ruleset, character) if frm <= 0
+                else costs.college_step(ruleset, character, frm))
     if domain == "virtues" and frm is not None:
         return costs.virtue_step(ruleset, character, frm)
     if domain == "willpower" and frm is not None:

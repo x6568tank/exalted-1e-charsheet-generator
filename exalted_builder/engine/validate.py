@@ -851,6 +851,7 @@ def _chargen_source(character: Character):
         snap.essence_rating if snap else character.essence_rating,
         snap.willpower_purchased if snap else character.willpower_purchased,
         snap.beastman_gifts if snap else character.beastman_gifts,
+        snap.colleges if snap else character.colleges,
     )
 
 
@@ -869,7 +870,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     bp_costs = ruleset.bonus_costs_for(character.exalt_type)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased,
-     beastman_gifts) = _chargen_source(character)
+     beastman_gifts, colleges) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
@@ -970,6 +971,28 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     per_point = bp_costs.specialty_favored_caste_dots_per_point
     spec_bp = other_spec_dots * bp_costs.specialty + (cf_spec_dots + per_point - 1) // per_point
 
+    # --- Astrological Colleges (Sidereal): own pool, pre-BP cap 3 ------------- #
+    # Same shape as Abilities: own-Maiden Colleges are the cheap dots (6), other
+    # houses the dear (8); the free pool absorbs the dearest first, so overflow is
+    # paid cheapest-first (player-favourable). Above-cap dots always cost BP.
+    college_cap = b.college_cap_pre_bp
+    col_cheap_within = col_dear_within = col_above_bp = 0
+    for cr in colleges:
+        college = ruleset.colleges.get(cr.college_id)
+        own = college is not None and college.house == character.caste
+        within = min(cr.rating, college_cap)
+        above = max(0, cr.rating - college_cap)
+        col_above_bp += above * (bp_costs.college_own_house if own else bp_costs.college)
+        if own:
+            col_cheap_within += within
+        else:
+            col_dear_within += within
+    col_overflow = max(0, (col_cheap_within + col_dear_within) - b.college_dots)
+    col_overflow_cheap = min(col_overflow, col_cheap_within)
+    college_bp = (col_above_bp
+                  + col_overflow_cheap * bp_costs.college_own_house
+                  + (col_overflow - col_overflow_cheap) * bp_costs.college)
+
     # --- Willpower / Essence -------------------------------------------------- #
     wp_bp = wp_purchased * bp_costs.willpower
     essence_bp = max(0, essence - b.essence_start) * bp_costs.essence
@@ -985,6 +1008,10 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         BonusPointLine(domain="Willpower", points=wp_bp),
         BonusPointLine(domain="Essence", points=essence_bp),
     ]
+    # Colleges only exist for splats that ship them (Sidereal) — omit the line
+    # entirely otherwise so every other splat's breakdown is unchanged.
+    if b.college_dots > 0 or colleges:
+        lines.insert(3, BonusPointLine(domain="Colleges", points=college_bp))
     total = sum(line.points for line in lines)
     return BonusPointBreakdown(lines=lines, total=total, available=b.bonus_points)
 
@@ -1007,7 +1034,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     b = ruleset.budgets_for(character.exalt_type, character.origin)
     (attributes, abilities, crafts, virtues, _backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
-     beastman_gifts) = _chargen_source(character)
+     beastman_gifts, colleges) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:
@@ -1074,8 +1101,13 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                     f"Ability dots must be Caste/Favoured; only {cheap_within} are.",
         ))
     # Required minimum Abilities — the Dragon-Blooded Dynastic schooling floor
-    # (p.151). Each requirement is satisfied by any one of its listed Abilities.
-    for req in b.required_min_abilities:
+    # (p.151) and the Sidereal per-house floor (p.98). Each requirement is satisfied
+    # by any one of its listed Abilities; the budget's (exalt-type-keyed) list is
+    # unioned with the caste's own (the Sidereal per-house minimums live on the caste
+    # because they differ per house, unlike the DB floor which is aspect-agnostic).
+    caste_def = ruleset.castes.get(character.caste)
+    caste_min = caste_def.required_min_abilities if caste_def else []
+    for req in list(b.required_min_abilities) + list(caste_min):
         best = max((abilities.get(ab, 0) for ab in req.abilities), default=0)
         if best < req.rating:
             names = " or ".join(a.value for a in req.abilities)
@@ -1090,6 +1122,33 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 code="virtue-range", where=v.value,
                 message=f"Virtue {v.value} = {rating}; must be {b.virtue_base}-5 at creation.",
             ))
+
+    # --- Astrological Colleges (Sidereal, p.98) ------------------------------- #
+    # Reference integrity + range + the "at least N dots in the Colleges of his
+    # Maiden" floor. Over-budget/over-cap dots are paid from bonus points (see
+    # bonus_point_breakdown), so there is no hard total cap here — same as Backgrounds.
+    own_house_dots = 0
+    for cr in colleges:
+        college = ruleset.colleges.get(cr.college_id)
+        if college is None:
+            issues.append(Issue(
+                code="unknown-college", where=cr.college_id,
+                message=f"College {cr.college_id} is not in the RuleSet.",
+            ))
+            continue
+        if not (0 <= cr.rating <= 5):
+            issues.append(Issue(
+                code="college-range", where=cr.college_id,
+                message=f"College {college.name} = {cr.rating}; must be 0-5 at creation.",
+            ))
+        if college.house == character.caste:
+            own_house_dots += cr.rating
+    if own_house_dots < b.college_min_own_house:
+        issues.append(Issue(
+            code="college-own-house-min",
+            message=f"At least {b.college_min_own_house} College dots must be in the "
+                    f"character's Maiden's Colleges; only {own_house_dots} are.",
+        ))
 
     # --- Charms & Spells: top circle barred at creation, plus one of two paths -- #
     # Standard path: >=charm_min_caste_favored of the picks are Caste/Favoured.

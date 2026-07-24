@@ -42,6 +42,8 @@
     "willpower": 2,
     "essence": 10,
     "charm": 7,
-    "charm_favored_caste": 5
+    "charm_favored_caste": 5,
+    "college": 8,
+    "college_own_house": 6
   }
 }

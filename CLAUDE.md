@@ -164,7 +164,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (495 tests passing)
+## Status (496 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -529,26 +529,35 @@ ability-caste + required-minimums + essence-spec machinery with ZERO new engine 
   per the user rule since p265 omits base rows; new Charm 11/9 per p265). Theme
   `theme._SIDEREAL` = purple, `fam="purple"`. Editor picks the splat up with no code
   change (it iterates `ruleset.exalts`). Tests: `tests/test_sidereal.py`.
+- **Per-house ability minimums DONE 2026-07-22** — `CasteDefinition.required_min_abilities`
+  (new field; `AbilityMinimum` moved above `CasteDefinition` in `models/rules.py`) is
+  unioned with the exalt-type-keyed budget floor in `validate_chargen`. Each Sidereal
+  caste carries its house floor (p.98): e.g. Battles = Archery/Melee ●●●, Athletics ●●,
+  Dodge ●●, Presence ●●, Resistance ●●. Overlaps with the universal minimums resolve to
+  the higher rating automatically (each `AbilityMinimum` is checked independently).
 - **STILL TODO (later phases), in rough order:**
-  1. **Per-house ability minimums** (each caste adds its own floor, p.98) — needs a
-     `CasteDefinition.required_min_abilities` field unioned into validation, since the
-     existing floor is exalt-type-keyed, not caste-keyed. Only the *universal* minimums
-     are wired so far.
-  2. **Astrological Colleges** — 25 Colleges in 5 houses as budgeted rated traits
-     (Craft-style per-instance pattern): 7 dots, ≥4 own-Maiden, cap 3, BP 8/6, XP 5 new
-     / ×3 raise. Astrology EFFECTS stay out of scope (like combat derivation); their
-     reference tables (Pattern Bite / Effect Scope-Duration-Power, p.214-219) go into the
-     GM Storyteller reference screen instead. Needs Colleges data + model + budget +
-     validation + UI + XP.
-  3. **Charms catalogue** — `data/charms/sidereal_*.json`, incl. **Sidereal Martial
+  1. **Astrological Colleges** ⚠️ **BLOCKED ON DATA (2026-07-22)** — the 25-college
+     catalog (names + house groupings) is on astrology-chapter pages p.220-239, which are
+     NOT in `images/Sidereals/` (only 214-219, 240-241, 265 of that chapter were
+     provided). Do NOT author the college names/houses from memory — ask the user for
+     those PNGs. Confirmed design: a budgeted per-instance rated-trait system (7 dots, ≥4
+     own-Maiden, cap 3, BP 8/6, XP 5 new / ×3 raise) with its OWN budget pool (NOT part of
+     the 35 ability dots — so not a pure Craft clone). A College's "house" = one of the 5
+     caste ids (journeys/serenity/battles/secrets/endings); the ≥4-own-Maiden rule matches
+     `College.house` to `Character.caste`. Astrology EFFECTS stay out of scope (like combat
+     derivation); their reference tables (Pattern Bite / Effect Scope-Duration-Power,
+     p.214-219) go into the GM Storyteller reference screen. Needs: colleges.json data +
+     model + budget + BP/XP + validation + UI. The machinery can be built ahead of the
+     data (tested synthetically) once the user greenlights building it blind.
+  2. **Charms catalogue** — `data/charms/sidereal_*.json`, incl. **Sidereal Martial
      Arts** (own Charm category, ≤3 at chargen, BP 8/6 + XP 12/10 — a distinct rate).
      Then set `ox_body_charm_id` to the authored Sidereal Ox-Body, and un-defer the
      full `validate_chargen` (the 12-Charm pool the tests currently can't assert).
-  4. **Ronin variant** (`Sidereal:ronin`, like DB Outcaste / Lunar Casteless): 25
+  3. **Ronin variant** (`Sidereal:ronin`, like DB Outcaste / Lunar Casteless): 25
      abilities ≥10 C/F, 7 backgrounds (limited list), 8 Charms (no Sidereal MA; Violet
      Bier Style still allowed), 0 Colleges, no minimums. Add to `chargen_budgets.json` +
      editor `_SPLAT_ORIGINS`.
-  5. **Paradox = Limit rename** in the play-state tracker for Sidereals (no new mechanic
+  4. **Paradox = Limit rename** in the play-state tracker for Sidereals (no new mechanic
      — the Sidereal Curse is roleplay-only, p.253).
 
 ### Removed

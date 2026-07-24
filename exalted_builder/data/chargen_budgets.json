@@ -98,6 +98,9 @@
     "virtue_dots": 5,
     "essence_start": 2,
     "bonus_points": 18,
+    "college_dots": 7,
+    "college_min_own_house": 4,
+    "college_cap_pre_bp": 3,
     "required_min_abilities": [
       {"abilities": ["awareness"], "rating": 2},
       {"abilities": ["bureaucracy"], "rating": 2},

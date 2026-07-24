@@ -1,0 +1,31 @@
+[
+  {"id": "sidereal.journeys.captain", "name": "The Captain", "house": "journeys", "house_label": "House of Journeys"},
+  {"id": "sidereal.journeys.gull", "name": "The Gull", "house": "journeys", "house_label": "House of Journeys"},
+  {"id": "sidereal.journeys.mast", "name": "The Mast", "house": "journeys", "house_label": "House of Journeys"},
+  {"id": "sidereal.journeys.messenger", "name": "The Messenger", "house": "journeys", "house_label": "House of Journeys"},
+  {"id": "sidereal.journeys.ships-wheel", "name": "The Ship's Wheel", "house": "journeys", "house_label": "House of Journeys"},
+
+  {"id": "sidereal.serenity.ewer", "name": "The Ewer", "house": "serenity", "house_label": "House of Leisure"},
+  {"id": "sidereal.serenity.lovers", "name": "The Lovers", "house": "serenity", "house_label": "House of Leisure"},
+  {"id": "sidereal.serenity.musician", "name": "The Musician", "house": "serenity", "house_label": "House of Leisure"},
+  {"id": "sidereal.serenity.peacock", "name": "The Peacock", "house": "serenity", "house_label": "House of Leisure"},
+  {"id": "sidereal.serenity.pillar", "name": "The Pillar", "house": "serenity", "house_label": "House of Leisure"},
+
+  {"id": "sidereal.battles.banner", "name": "The Banner", "house": "battles", "house_label": "House of War"},
+  {"id": "sidereal.battles.gauntlet", "name": "The Gauntlet", "house": "battles", "house_label": "House of War"},
+  {"id": "sidereal.battles.quiver", "name": "The Quiver", "house": "battles", "house_label": "House of War"},
+  {"id": "sidereal.battles.shield", "name": "The Shield", "house": "battles", "house_label": "House of War"},
+  {"id": "sidereal.battles.spear", "name": "The Spear", "house": "battles", "house_label": "House of War"},
+
+  {"id": "sidereal.secrets.guardians", "name": "The Guardians", "house": "secrets", "house_label": "House of Secrets"},
+  {"id": "sidereal.secrets.key", "name": "The Key", "house": "secrets", "house_label": "House of Secrets"},
+  {"id": "sidereal.secrets.mask", "name": "The Mask", "house": "secrets", "house_label": "House of Secrets"},
+  {"id": "sidereal.secrets.sorcerer", "name": "The Sorcerer", "house": "secrets", "house_label": "House of Secrets"},
+  {"id": "sidereal.secrets.treasure-trove", "name": "The Treasure Trove", "house": "secrets", "house_label": "House of Secrets"},
+
+  {"id": "sidereal.endings.corpse", "name": "The Corpse", "house": "endings", "house_label": "House of Endings"},
+  {"id": "sidereal.endings.crow", "name": "The Crow", "house": "endings", "house_label": "House of Endings"},
+  {"id": "sidereal.endings.haywain", "name": "The Haywain", "house": "endings", "house_label": "House of Endings"},
+  {"id": "sidereal.endings.rising-smoke", "name": "The Rising Smoke", "house": "endings", "house_label": "House of Endings"},
+  {"id": "sidereal.endings.sword", "name": "The Sword", "house": "endings", "house_label": "House of Endings"}
+]

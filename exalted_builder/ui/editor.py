@@ -25,8 +25,8 @@ from nicegui import ui
 from .. import persistence, rules_db
 from ..engine import derive, validate
 from ..models.character import (
-    Armor, BackgroundEntry, Character, CraftRating, HealthLevel, Specialty,
-    VirtueFlaw, Weapon)
+    Armor, BackgroundEntry, Character, CollegeRating, CraftRating, HealthLevel,
+    Specialty, VirtueFlaw, Weapon)
 
 _BASE_HEALTH = {0: 1, -1: 2, -2: 2, -4: 1}   # base levels per penalty tier
 
@@ -321,6 +321,33 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_bg(idx)).props("flat dense round")
             ui.button("Add background", icon="add", on_click=add_bg).props("flat dense")
 
+        # Astrological Colleges (Sidereal) — a rated Advantage with its own pool.
+        # Shown only for splats that ship colleges (b.college_dots > 0). Options are
+        # grouped by house label, and the character's own Maiden's house is marked ★.
+        if b.college_dots > 0 and ruleset.colleges:
+            own_house = character.caste
+            college_opts = {
+                col.id: (f"{'★ ' if col.house == own_house else ''}{col.name}"
+                         f"  ·  {col.house_label}")
+                for col in ruleset.colleges.values()
+            }
+            own_dots = sum(cr.rating for cr in character.colleges
+                           if (c := ruleset.colleges.get(cr.college_id)) and c.house == own_house)
+            with panel(f"Astrological Colleges ({b.college_dots} dots; ≥{b.college_min_own_house} "
+                       f"in your Maiden's ★ house — have {own_dots}; ≤{b.college_cap_pre_bp} pre-bonus)"):
+                for idx, cr in enumerate(character.colleges):
+                    # guard an off-catalog id (old save) so the select never 500s
+                    row_opts = (college_opts if cr.college_id in college_opts
+                                else {**college_opts, cr.college_id: cr.college_id})
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.select(row_opts, value=cr.college_id,
+                                  on_change=lambda e, cr=cr: (setattr(cr, "college_id", e.value), changed())
+                                  ).classes("flex-1")
+                        dots(lambda cr=cr: cr.rating, lambda v, cr=cr: setattr(cr, "rating", v), 0, 5)
+                        ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_college(idx)
+                                  ).props("flat dense round")
+                ui.button("Add college", icon="add", on_click=add_college).props("flat dense")
+
         # specialties
         with panel("Specialties"):
             for idx, sp in enumerate(character.specialties):
@@ -492,6 +519,19 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     def remove_bg(idx: int) -> None:
         del character.backgrounds[idx]
+        body.refresh(); changed()
+
+    def add_college() -> None:
+        # default to the first college of the character's own Maiden's house, so a
+        # fresh row already counts toward the ≥4-own-house minimum.
+        own = next((cid for cid, col in ruleset.colleges.items()
+                    if col.house == character.caste), None)
+        first = own or next(iter(ruleset.colleges), "")
+        character.colleges.append(CollegeRating(college_id=first, rating=1))
+        body.refresh(); changed()
+
+    def remove_college(idx: int) -> None:
+        del character.colleges[idx]
         body.refresh(); changed()
 
     def add_craft() -> None:

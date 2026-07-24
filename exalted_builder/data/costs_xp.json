@@ -18,6 +18,8 @@
   "Sidereal": {
     "essence": {"coeff": 9},
     "new_charm": 11,
-    "new_charm_favored_caste": 9
+    "new_charm_favored_caste": 9,
+    "new_college": 5,
+    "college": {"coeff": 3}
   }
 }

@@ -69,6 +69,16 @@ def specialty_cost(ruleset: RuleSet, character: Character) -> int:
     return ruleset.xp_costs_for(character.exalt_type).new_specialty
 
 
+def college_new_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP for a new Astrological College (Sidereal, p.265): flat new_college (5)."""
+    return ruleset.xp_costs_for(character.exalt_type).new_college
+
+
+def college_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
+    """XP to raise a College one dot, scaled on the current rating (p.265: ×3)."""
+    return ruleset.xp_costs_for(character.exalt_type).college.at(from_rating)
+
+
 def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     """XP to learn a Charm: discounted when its gating Ability is Caste/Favoured
     (Ability-keyed Charms), or when its gating Attribute's category matches the

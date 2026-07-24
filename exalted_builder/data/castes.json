@@ -157,6 +157,14 @@
     "exalt_type": "Sidereal",
     "label": "Chosen of Journeys",
     "caste_abilities": ["endurance", "ride", "sail", "survival", "thrown"],
+    "required_min_abilities": [
+      {"abilities": ["athletics"], "rating": 2},
+      {"abilities": ["endurance"], "rating": 2},
+      {"abilities": ["linguistics"], "rating": 2},
+      {"abilities": ["stealth"], "rating": 1},
+      {"abilities": ["survival"], "rating": 2},
+      {"abilities": ["ride", "sail"], "rating": 3}
+    ],
     "description": "Heaven's Messengers, the Chosen of Journeys serve the Maiden of Journeys and the Golden Barque of the Heavens. They travel anywhere in Creation they may be needed, carrying the mandates of destiny to the farthest reaches of the world.",
     "anima_powers": "By spending 10 motes, the character may triple her own and her allies' running speeds for the rest of the scene."
   },
@@ -165,6 +173,13 @@
     "exalt_type": "Sidereal",
     "label": "Chosen of Serenity",
     "caste_abilities": ["craft", "dodge", "linguistics", "performance", "socialize"],
+    "required_min_abilities": [
+      {"abilities": ["craft", "performance"], "rating": 2},
+      {"abilities": ["linguistics"], "rating": 3},
+      {"abilities": ["medicine"], "rating": 2},
+      {"abilities": ["presence"], "rating": 2},
+      {"abilities": ["socialize"], "rating": 3}
+    ],
     "description": "Heaven's Courtesans, the Chosen of Serenity serve the Maiden of Serenity and the Cerulean Lute of Harmony. They oversee gatherings of both gods and men, and the arts of civilization and pleasure.",
     "anima_powers": "By spending 10 motes, the character adds her Essence rating in extra successes to Performance rolls made for herself and her allies for the rest of the scene."
   },
@@ -173,6 +188,13 @@
     "exalt_type": "Sidereal",
     "label": "Chosen of Battles",
     "caste_abilities": ["archery", "brawl", "melee", "presence", "resistance"],
+    "required_min_abilities": [
+      {"abilities": ["archery", "melee"], "rating": 3},
+      {"abilities": ["athletics"], "rating": 2},
+      {"abilities": ["dodge"], "rating": 2},
+      {"abilities": ["presence"], "rating": 2},
+      {"abilities": ["resistance"], "rating": 2}
+    ],
     "description": "Heaven's Soldiers, the Chosen of Battles serve the Maiden of Battles and the Crimson Panoply of Victory. They are ever on guard and ready to enforce the will of the Celestial Hierarchy.",
     "anima_powers": "By spending 10 motes, the character reduces by one health level the damage of all attacks made against herself and her allies for the rest of the scene."
   },
@@ -181,6 +203,13 @@
     "exalt_type": "Sidereal",
     "label": "Chosen of Secrets",
     "caste_abilities": ["investigation", "larceny", "lore", "occult", "stealth"],
+    "required_min_abilities": [
+      {"abilities": ["awareness"], "rating": 3},
+      {"abilities": ["investigation"], "rating": 3},
+      {"abilities": ["larceny"], "rating": 3},
+      {"abilities": ["socialize"], "rating": 2},
+      {"abilities": ["stealth"], "rating": 3}
+    ],
     "description": "Heaven's Eyes, the Chosen of Secrets serve the Maiden of Secrets and the Forbidding Manse of Ivy. They uncover all the things that Heaven must know, working in hidden actions and unspoken truths.",
     "anima_powers": "By spending 10 motes, the character protects herself and her allies against all forms of mind control and thought reading for the rest of the scene."
   },
@@ -189,6 +218,13 @@
     "exalt_type": "Sidereal",
     "label": "Chosen of Endings",
     "caste_abilities": ["athletics", "awareness", "bureaucracy", "martial_arts", "medicine"],
+    "required_min_abilities": [
+      {"abilities": ["athletics"], "rating": 2},
+      {"abilities": ["awareness"], "rating": 2},
+      {"abilities": ["dodge"], "rating": 3},
+      {"abilities": ["martial_arts"], "rating": 3},
+      {"abilities": ["stealth"], "rating": 3}
+    ],
     "description": "Heaven's Gardeners, the Chosen of Endings serve the Maiden of Endings and the Violet Bier of Sorrows. They oversee and instigate the Celestially mandated ending of all things.",
     "anima_powers": "By spending 10 motes, the character adds one health level of damage to all attacks made by herself and her allies for the rest of the scene."
   }

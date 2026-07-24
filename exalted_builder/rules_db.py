@@ -42,6 +42,7 @@ from .models.rules import (
     CasteDefinition,
     ChargenBudgets,
     Charm,
+    College,
     ExaltDefinition,
     ExperienceCosts,
     MagicalMaterial,
@@ -209,6 +210,8 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
                      "id", "nature", problems)
     materials = _index(_load_array(data_dir / "materials.json", MagicalMaterial, problems),
                        "id", "material", problems)
+    colleges = _index(_load_array(data_dir / "colleges.json", College, problems),
+                      "id", "college", problems)
 
     exalt_list = _load_array(data_dir / "exalts.json", ExaltDefinition, problems)
     exalts = (_index(exalt_list, "id", "exalt", problems) if exalt_list
@@ -236,6 +239,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         background_catalog=backgrounds,
         nature_catalog=natures,
         material_catalog=materials,
+        colleges=colleges,
         bonus_costs=bonus_costs,
         xp_costs=xp_costs,
         budgets=budgets,

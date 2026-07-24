@@ -63,6 +63,15 @@ class CraftRating(BaseModel):
     rating: int = Field(ge=0, le=5)
 
 
+class CollegeRating(BaseModel):
+    """One Astrological College instance on a character (Sidereal, p.98). `college_id`
+    references a RuleSet College by id; `rating` is its dots. Colleges are a rated
+    Advantage with their own chargen pool, so — like backgrounds and per-focus crafts
+    — they live as a list rather than a single dot on a fixed trait."""
+    college_id: str
+    rating: int = Field(ge=0, le=5)
+
+
 class Combo(BaseModel):
     name: str
     charm_ids: list[str] = Field(default_factory=list)
@@ -168,6 +177,7 @@ class ChargenSnapshot(BaseModel):
     attributes: dict[AttributeName, int]
     abilities: dict[AbilityName, int]
     crafts: list[CraftRating] = Field(default_factory=list)
+    colleges: list[CollegeRating] = Field(default_factory=list)
     virtues: dict[VirtueName, int]
     specialties: list[Specialty]
     backgrounds: list[BackgroundEntry]
@@ -269,6 +279,9 @@ class Character(BaseModel):
     # Craft is per-focus (core p.136): each entry is its own rated Ability. The
     # AbilityName.CRAFT key in `abilities` is unused — read craft from here.
     crafts: list[CraftRating] = Field(default_factory=list)
+    # Astrological Colleges (Sidereal, p.98): a rated Advantage with its own chargen
+    # pool; each entry references a RuleSet College by id. Empty for non-Sidereals.
+    colleges: list[CollegeRating] = Field(default_factory=list)
     favored_abilities: list[AbilityName] = Field(default_factory=list)
     specialties: list[Specialty] = Field(default_factory=list)
 
