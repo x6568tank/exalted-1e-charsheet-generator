@@ -61,7 +61,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker). **Remaining: browser click-through only** |
+| Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker). **Remaining: browser click-through only** |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -121,6 +121,11 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Charm prerequisites are **AND-of-OR**: `list[list[str]]`. Every inner group must
   be satisfied; a group is satisfied by any one of its ids. A flat list of
   single-id groups is the common "all required" case.
+- **Backgrounds are soft free text** — `BackgroundEntry.name` is a name, not an id,
+  and the catalog is an autofill source, never a hard reference. ONE exception, added
+  for the Alchemical: `ChargenBudgets.background_rules` attaches per-splat chargen
+  mechanics (auto-rating, prerequisites, per-dot pool cost, cap exemption) to a
+  Background by NAME. Empty for every splat that does not need it.
 - Equipment is stored as an **inline copy** on the character (artifacts and
   customization vary per character); the catalog in the RuleSet is an autofill
   source, not a hard reference. Charms and spells, which never vary, ARE
@@ -169,7 +174,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (593 tests passing)
+## Status (600 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -609,11 +614,38 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
   - `charm_count: 8` (informational); `charm_min_caste_favored: 0` — the slot-fit
     rules replace the per-pick caste/favored minimum for Alchemical (see the Charm
     Slot system entry above), so this stays 0 on purpose.
-- **Provisional data decision still open:**
-  - `background_dots: 13` approximates the auto **Class ••• grant + 10 free dots**
-    (p.61). Backgrounds are soft/unvalidated free text, so the "3 must be Class",
-    the Artifact-only above-3 exception, and "3 Artifact dots per dot bought" are
-    NOT modeled — noted, not enforced.
+- **Backgrounds — DONE 2026-07-23 (CH2 p.65-69). The FIRST Backgrounds in this
+  project with real mechanics.** Backgrounds are soft everywhere else — free text,
+  an autofill catalog, never hard-validated (see **Data conventions**) — and the
+  Alchemical book is the first to give them chargen rules. Modelled as a narrow,
+  **opt-in** mechanism rather than a special case: `ChargenBudgets.background_rules`
+  maps a Background **NAME** (lowercased — `BackgroundEntry.name` is free text, NOT
+  a `BackgroundType.id`, so it cannot key on the id) to a `BackgroundRule`. It is
+  empty for every other splat, pinned by a test, so nothing changes for them. It
+  lives on `ChargenBudgets` (per-exalt-type) and NOT on `BackgroundType` because the
+  rules modify otherwise-universal Backgrounds — Artifact is ordinary for a Solar
+  and heavily reworked for an Alchemical.
+  - `background_dots: 13` = the auto **Class ••• grant + 10 others** ("Class 3, plus
+    10 others; only Artifact may be higher than 3 without bonus points", p.61).
+  - **Enforced:** Class is automatically 3 (`background-below-minimum`); Backing
+    requires Class 3+ (`background-requires`); **Artifact alone may exceed the
+    pre-BP cap of 3** (`cap_pre_bp_exempt`), and **its 4th and 5th dots each cost
+    TWO dots of the pool** (`expensive_above`/`expensive_dot_cost`), so Artifact 5
+    eats 7 of the 13 dots. Helpers: `validate.background_rule`/
+    `background_pool_dots`/`background_rating`/`background_issues`.
+  - **Two different charges, do not conflate them:** exceeding the cap-3 rule costs
+    `bonus_costs.background_above_3` (2) per dot; overflowing the 13-dot pool costs
+    `bonus_costs.background` (1) per dot.
+  - **Described, NOT enforced:** "3 artifact dots per dot bought" and Charms bought
+    as artifacts — both grant things outside the dot economy.
+  - **Followers / Influence / Resources stay offerable to Alchemicals** (user call
+    2026-07-23). Class subsumes them and *civilized* Autochthonians may not take
+    them, but **Lumpen outcasts explicitly do**, and `excluded_exalt_types` would
+    wrongly hide them from a Lumpen character. The rule is recorded in Class's
+    description instead.
+  - Also authored: **Class** and **Vats** (both `exalt_type: "Alchemical"`), and
+    Alchemical notes appended to **Artifact / Backing / Familiar / Manse** using the
+    existing inline-parenthetical convention (cf. Artifact's Dragon-Blooded note).
 - **Arrays DONE (p.89).** `models.character.Array` (+ `Character.arrays`, snapshot,
   lock copy). `validate.array_issues`/`validate_arrays`: ≥2 known Charms, all
   Attribute-based (no supernatural MA), no duplicate/cross-Array reuse, and only a
