@@ -62,7 +62,7 @@ Work on a given splat starts only once its rulebook images land in
 | Abyssal | Black on ash | DONE |
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
-| Sidereal | Purple | chargen + Colleges + 193-Charm catalogue + SMA cost/cap wiring DONE (2026-07-24); browser click-through remains |
+| Sidereal | Purple | DONE (shipped 2026-07-24): chargen + Colleges + 193-Charm catalogue + SMA cost/cap wiring + UI click-through |
 | Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker); UI clicked through 2026-07-23 |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
@@ -709,11 +709,9 @@ ability-caste + required-minimums + essence-spec machinery with ZERO new engine 
      `open_to_tiers` (the data-driven marker of a supernatural SMA style — Violet Bier is
      NOT `open_to_tiers`, so it is uncapped and stays open to ronin) and raises
      `charm-too-many-martial-arts-forms`. Tested in `tests/test_sidereal.py`.
-- **STILL TODO for Sidereal:** a browser click-through of the picker with real Sidereal
-  data (serve-and-grep is not verification — the Lunar/Alchemical UI passes each found
-  bugs no render check could). The Charms tab, the Martial Arts group (4 style trees),
-  the Spells page (Terrestrial/Celestial sorcery), and the XP tab's MA pricing are all
-  unexercised in a browser.
+- **Sidereal is COMPLETE (shipped 2026-07-24).** The human clicked through the picker
+  with real Sidereal data (Charms tab, the 4 Martial Arts style trees, the sorcery
+  Spells page, XP-tab MA pricing) — all fine — and pushed. Next splat is **Mortals**.
 
 ### Alchemical — chargen foundation + Charm Slot system (in progress, started 2026-07-23)
 Read from `images/Alchemical/` — pasted text from the Autochthonians book (1e

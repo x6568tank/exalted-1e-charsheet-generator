@@ -179,9 +179,21 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label(line.domain).classes(f"text-xs {muted}")
                 ui.label(str(line.points)).classes(f"text-xs {muted}")
 
+    # ---- live tally of ability dots spent (updates on every dot click) ----- #
+    @ui.refreshable
+    def ability_tally() -> None:
+        b = ruleset.budgets_for(character.exalt_type, character.origin)
+        spent = (sum(v for a, v in character.abilities.items() if a != AbilityName.CRAFT)
+                 + sum(cr.rating for cr in character.crafts))
+        over = spent > b.ability_dots
+        ui.label(f"{spent} / {b.ability_dots} dots spent").classes(
+            "text-xs font-semibold").style(
+            f"color:{'#b91c1c' if over else pal.accent}")
+
     def changed() -> None:
         readout.refresh()
         bp_log.refresh()
+        ability_tally.refresh()
 
     # ---- a clickable dot-track rating control ----------------------------- #
     def dots(get, setv, lo: int, hi: int):
@@ -329,6 +341,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
         # abilities (by ability-caste group)
         with panel(f"Abilities ({b.ability_dots} dots; ≥{b.ability_min_caste_favored} caste/favoured; ≤{b.ability_cap_pre_bp} each pre-bonus)"):
+            ability_tally()
             groups = viewmod.ability_group_defs(ruleset, character.exalt_type)
             for start in range(0, len(groups), 3):
                 with ui.row().classes("w-full gap-2 no-wrap"):
