@@ -4,6 +4,7 @@
     "name": "Aim-Calibrating Sensors",
     "type": "Supplemental",
     "min_attribute": "perception",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 2,
     "prerequisites": [],
@@ -24,6 +25,7 @@
     "name": "Paramagnetic Tether Beam",
     "type": "Reflexive",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 2,
     "prerequisites": [
@@ -49,6 +51,7 @@
     "name": "Essence Pulse Cannon",
     "type": "Supplemental",
     "min_attribute": "strength",
+    "min_ability": 4,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -158,6 +161,7 @@
     "name": "Interceptor Spark Emitter",
     "type": "Reflexive",
     "min_attribute": "wits",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -182,6 +186,7 @@
     "name": "Pulseweb Entanglement Burst",
     "type": "Simple",
     "min_attribute": "strength",
+    "min_ability": 5,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -208,6 +213,7 @@
     "name": "Protosynthetic Ammunition Replicator",
     "type": "Reflexive",
     "min_attribute": "dexterity",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -233,6 +239,7 @@
     "name": "Repeating Pneumatic Bow",
     "type": "Reflexive",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -274,6 +281,7 @@
     "name": "Subluminous Onslaught Missile",
     "type": "Simple",
     "min_attribute": "strength",
+    "min_ability": 5,
     "min_essence": 4,
     "installation_cost": 1,
     "prerequisites": [
@@ -300,6 +308,7 @@
     "name": "Hundredfold Strafing Methodology",
     "type": "Extra Action",
     "min_attribute": "dexterity",
+    "min_ability": 5,
     "min_essence": 4,
     "installation_cost": 1,
     "prerequisites": [
@@ -326,6 +335,7 @@
     "name": "Transmodal Rapid Targeting System",
     "type": "Extra Action",
     "min_attribute": "dexterity",
+    "min_ability": 5,
     "min_essence": 3,
     "installation_cost": 2,
     "prerequisites": [
@@ -350,6 +360,7 @@
     "name": "Dedicated Harmonic Targeting",
     "type": "Supplemental",
     "min_attribute": "perception",
+    "min_ability": 3,
     "min_essence": 3,
     "installation_cost": 0,
     "prerequisites": [

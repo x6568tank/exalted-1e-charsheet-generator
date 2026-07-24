@@ -4,6 +4,7 @@
     "name": "Imprinted Data Cluster",
     "type": "Reflexive",
     "min_attribute": "intelligence",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 2,
     "prerequisites": [
@@ -28,6 +29,7 @@
     "name": "Clarified Data Assimilator",
     "type": "Supplemental",
     "min_attribute": "intelligence",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -53,6 +55,7 @@
     "name": "Abstract Abacus Implant",
     "type": "Supplemental",
     "min_attribute": "intelligence",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -88,6 +91,7 @@
     "name": "Technological Analysis Engrams",
     "type": "Simple",
     "min_attribute": "perception",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -117,6 +121,7 @@
     "name": "Omnitool Implant",
     "type": "Simple",
     "min_attribute": "wits",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -143,6 +148,7 @@
     "name": "Synaptic Acceleration Node",
     "type": "Reflexive",
     "min_attribute": "wits",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -168,6 +174,7 @@
     "name": "Incomparable Efficiency Upgrade",
     "type": "Simple",
     "min_attribute": "wits",
+    "min_ability": 5,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -193,6 +200,7 @@
     "name": "Logic Engineering Lobe",
     "type": "Reflexive",
     "min_attribute": "wits",
+    "min_ability": 5,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -220,6 +228,7 @@
     "name": "Eidetic Processing Core",
     "type": "Permanent",
     "min_attribute": "wits",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [

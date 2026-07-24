@@ -16,7 +16,7 @@ import pytest
 
 import exalted_builder
 from exalted_builder import rules_db
-from exalted_builder.engine import advancement, derive, lifecycle, validate
+from exalted_builder.engine import advancement, costs, derive, lifecycle, validate
 from exalted_builder.models.character import Array, Character, SubmodulePurchase
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
@@ -257,6 +257,16 @@ def _valid_alchemical_with_charms(rs) -> Character:
     return c
 
 
+# Two Attribute-keyed Charms with a NON-ZERO minimum Attribute rating (Wits 3 and
+# Dexterity 3, CH3 p.90), so an Array built from them has a real XP price. The root
+# Augmentations rate 1-2, and CF_CHARMS are the Transitory roots, so a price built
+# from those alone would not catch a cost function that always returned 0.
+_RATED_ARRAY_CHARMS = (
+    "alchemical.close-combat.tactical-analysis-engrams",       # Minimum Wits: 3
+    "alchemical.close-combat.accelerated-response-system",     # Minimum Dexterity: 3
+)
+
+
 def test_valid_array_costs_one_bp_per_charm(rs):
     c = _valid_alchemical_with_charms(rs)
     c.arrays = [Array(name="Reflex Suite", charm_ids=CF_CHARMS[:3])]  # 3 Charms
@@ -329,6 +339,118 @@ def test_array_reduces_installation_cost_to_three_quarters(rs):
     assert validate._installation_motes(rs, four, []) == 4
     arr = [Array(name="Quad", charm_ids=four)]
     assert validate._installation_motes(rs, four, arr) == 3   # ceil(3/4 * 4) = 3
+
+
+def test_every_attribute_keyed_charm_carries_its_minimum_rating(rs):
+    """Every Alchemical Charm prints a 'Minimum <Attribute>: N' line (CH3), and that
+    N lives in min_ability — min_attribute only NAMES the trait. A missing rating is
+    silently invisible twice over: the Charm gates on nothing, and Arrays built from
+    it price at 0 XP (their cost IS the sum of these ratings, p.89). Every one of the
+    120 Attribute-keyed Charms shipped with min_ability 0 until 2026-07-23."""
+    alch = [c for c in rs.charms.values() if c.exalt_type == "Alchemical"]
+    missing = [c.id for c in alch if c.min_attribute and c.min_ability <= 0]
+    assert not missing, missing
+    # Spot-checks straight off the page, one per shape of source entry.
+    def rating(cid):
+        return rs.charms[cid].min_ability
+    assert rating("alchemical.close-combat.tactical-analysis-engrams") == 3   # plain
+    assert rating("alchemical.close-combat.limb-extension-armatures") == 3    # "Minimums"
+    assert rating("alchemical.sensory-and-spiritual.tympanal-receptor-upgrade") == 3
+    assert rating("alchemical.general.transitory-augmentation-of-wits") == 1  # template
+    assert rating("alchemical.general.sustained-augmentation-of-wits") == 2   # template
+    assert rating("alchemical.might-and-mobility.steam-inured-frame") == 4    # (Element)
+    assert rating("alchemical.close-combat.material-synthesis-wave-emitter-jade") == 3
+    # The chapter's only above-5 minimum; reachable because Sustained Augmentation
+    # raises that Attribute's maximum by a dot (p.92).
+    assert rating("alchemical.essence-and-weaving.god-machine-weaving-engine") == 6
+
+
+def test_attribute_minimum_actually_gates_charm_learning(rs):
+    """The rating is not decoration: a character below it cannot take the Charm."""
+    c = _alchemical()
+    charm = rs.charms["alchemical.close-combat.tactical-analysis-engrams"]   # Wits 3
+    c.charms = ["alchemical.general.transitory-augmentation-of-wits"]        # prereq met
+    c.essence_rating = 2
+    c.attributes[AT.WITS] = 2
+    assert not validate.meets_charm_requirements(rs, c, charm)
+    c.attributes[AT.WITS] = 3
+    assert validate.meets_charm_requirements(rs, c, charm)
+
+
+def test_array_installation_motes_is_the_public_three_quarters_rule(rs):
+    """The public helper the UI reads must agree with the chargen check's arithmetic —
+    they are the same code path, so a divergence is impossible by construction."""
+    four = CF_CHARMS[:4]
+    assert validate.array_installation_motes(rs, four) == 3
+    assert (validate.array_installation_motes(rs, four)
+            == validate._installation_motes(rs, four, [Array(name="Q", charm_ids=four)]))
+
+
+def test_eligible_array_charms_excludes_ability_based_and_unarrayable(rs):
+    c = _valid_alchemical_with_charms(rs)
+    weave = "alchemical.essence-and-weaving.man-machine-weaving-engine"
+    ability_charm = "solar.archery.wise-arrow"
+    c.charms = c.charms + [weave, ability_charm]
+    eligible = validate.eligible_array_charms(rs, c)
+    assert CF_CHARMS[0] in eligible
+    assert weave not in eligible                     # arrayable=False
+    assert ability_charm not in eligible             # Ability-based, not Attribute-based
+
+
+# --- Arrays post-lock (XP = sum of minimum Attribute ratings, p.89) --------- #
+
+def test_add_array_costs_sum_of_min_attribute_ratings(rs):
+    c = _locked_alch(rs)
+    # Dynamic Reaction Enhancement System and Accelerated Response System both gate on
+    # a rated Attribute, so the Array has a non-zero price (unlike the rating-0 roots).
+    c.charms = list(_RATED_ARRAY_CHARMS)
+    expected = sum(rs.charms[cid].min_ability for cid in _RATED_ARRAY_CHARMS)
+    assert expected > 0
+    assert costs.array_cost(rs, list(_RATED_ARRAY_CHARMS)) == expected
+    before = advancement.xp_available(c)
+    advancement.add_array(rs, c, "Reflex Suite", list(_RATED_ARRAY_CHARMS))
+    assert [a.name for a in c.arrays] == ["Reflex Suite"]
+    assert advancement.xp_available(c) == before - expected
+    # the audit re-derives the price and agrees with what was charged
+    assert not [i for i in advancement.validate_xp(rs, c) if i.severity == "error"]
+
+
+def test_add_array_undo_removes_it_and_refunds(rs):
+    c = _locked_alch(rs)
+    c.charms = list(_RATED_ARRAY_CHARMS)
+    before = advancement.xp_available(c)
+    advancement.add_array(rs, c, "Reflex Suite", list(_RATED_ARRAY_CHARMS))
+    advancement.undo_last(rs, c)
+    assert c.arrays == []
+    assert advancement.xp_available(c) == before
+
+
+def test_add_array_rejects_reusing_a_linked_charm(rs):
+    """A Charm may join only one Array — the post-lock path must enforce the
+    cross-Array rule too, not just the per-Array one."""
+    c = _locked_alch(rs)
+    c.charms = list(_RATED_ARRAY_CHARMS)
+    advancement.add_array(rs, c, "First", list(_RATED_ARRAY_CHARMS))
+    with pytest.raises(advancement.AdvancementError, match="already linked"):
+        advancement.add_array(rs, c, "Second", list(_RATED_ARRAY_CHARMS))
+
+
+def test_add_array_rejects_illegal_set(rs):
+    c = _locked_alch(rs)
+    c.charms = list(_RATED_ARRAY_CHARMS)
+    with pytest.raises(advancement.AdvancementError, match="at least two"):
+        advancement.add_array(rs, c, "Lonely", [_RATED_ARRAY_CHARMS[0]])
+
+
+def test_add_array_barred_for_a_non_slot_splat(rs):
+    """Eclipse/Moonshadow may not build Arrays (p.90) even once they hold Alchemical
+    Charms through the crossover rule."""
+    solar = Character(id="s", exalt_type="Solar", caste="eclipse")
+    solar.charms = ["solar.melee.example-base-charm", "solar.melee.fire-and-stones-strike"]
+    lifecycle.lock_chargen(solar)
+    solar.xp_earned = 100
+    with pytest.raises(advancement.AdvancementError, match="Alchemical"):
+        advancement.add_array(rs, solar, "Nope", list(solar.charms))
 
 
 # --------------------------------------------------------------------------- #
@@ -408,12 +530,18 @@ def test_learn_submodule_post_lock_then_undo(rs):
 
 
 def _maxed_alchemical(rs) -> Character:
-    """An Alchemical with every Attribute at 5, high Essence, Martial Arts 2, who
+    """An Alchemical with every Attribute at 6, high Essence, Martial Arts 2, who
     knows every Alchemical Charm — for prerequisite-CHAIN sanity (does the whole
     cascade resolve?), not chargen-budget realism. Essence 10 clears even municipal
-    (Essence 8+) Charm minimums."""
+    (Essence 8+) Charm minimums.
+
+    Attributes are 6, not the usual 5 ceiling: God-Machine Weaving Engine requires
+    Minimum Intelligence 6 (CH3 p.141 — the only above-5 minimum in the chapter), and
+    that is legitimately reachable because Sustained Augmentation of (Attribute) raises
+    that Attribute's maximum by one dot (p.92). This fixture knows all nine Sustained
+    Augmentations, so all nine Attributes legitimately cap at 6 for it."""
     c = _alchemical()
-    c.attributes.update({a: 5 for a in AT})
+    c.attributes.update({a: 6 for a in AT})
     c.essence_rating = 10
     c.abilities[A.MARTIAL_ARTS] = 2                 # Perfected Lotus Matrix gate
     c.charms = [cid for cid, ch in rs.charms.items() if ch.exalt_type == "Alchemical"]

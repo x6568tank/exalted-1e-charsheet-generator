@@ -16,8 +16,8 @@ engine.validate; the trait caps live here.
 from __future__ import annotations
 
 from ..models.character import (
-    BeastmanGiftPurchase, Character, Combo, CraftRating, OxBodyPurchase, Specialty,
-    SubmodulePurchase, XpEntry)
+    Array, BeastmanGiftPurchase, Character, Combo, CraftRating, OxBodyPurchase,
+    Specialty, SubmodulePurchase, XpEntry)
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import costs, derive, validate
 
@@ -421,6 +421,36 @@ def add_combo(ruleset: RuleSet, character: Character, name: str,
     return entry
 
 
+def add_array(ruleset: RuleSet, character: Character, name: str,
+              charm_ids: list[str]) -> XpEntry:
+    """Buy an Alchemical Array post-lock (p.89) for the sum of its member Charms'
+    minimum Attribute ratings. Legality is `validate.array_issues` plus the two
+    cross-Array rules `validate_arrays` adds — only a Charm-Slot splat may build
+    Arrays, and a Charm may sit in only one — checked here against the Arrays the
+    character already holds so a post-lock purchase cannot reuse a linked Charm."""
+    _ensure_locked(character)
+    if not validate.uses_charm_slots(ruleset, character):
+        raise AdvancementError(
+            "Only Alchemical Exalted build Arrays (Eclipse and Moonshadow Caste "
+            "may not, p.90).")
+    array = Array(name=name, charm_ids=list(charm_ids))
+    problems = [i for i in validate.array_issues(ruleset, character, array)
+                if i.severity == "error"]
+    if problems:
+        raise AdvancementError(problems[0].message)
+    linked = {cid for existing in character.arrays for cid in existing.charm_ids}
+    reused = [cid for cid in charm_ids if cid in linked]
+    if reused:
+        charm = ruleset.charms.get(reused[0])
+        raise AdvancementError(
+            f"{charm.name if charm else reused[0]} is already linked into another "
+            "Array; a Charm may join only one Array unless purchased again.")
+    cost = costs.array_cost(ruleset, charm_ids)
+    entry = _commit(character, "arrays", name, None, None, cost)
+    character.arrays.append(array)
+    return entry
+
+
 def learn_ox_body(ruleset: RuleSet, character: Character, variant_key: str,
                   *, dedicated: bool = False) -> XpEntry:
     """Buy one more Ox-Body Technique with the chosen health-level package (post-lock).
@@ -617,6 +647,11 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
             if character.combos[i].name == entry.detail:
                 del character.combos[i]
                 break
+    elif domain == "arrays":
+        for i in range(len(character.arrays) - 1, -1, -1):
+            if character.arrays[i].name == entry.detail:
+                del character.arrays[i]
+                break
     elif domain == "specialties":
         ab, _, spec_name = entry.detail.partition(":")
         for i in range(len(character.specialties) - 1, -1, -1):
@@ -701,6 +736,9 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
     if domain == "combos":
         combo = next((c for c in character.combos if c.name == entry.detail), None)
         return costs.combo_cost(ruleset, combo.charm_ids) if combo else None
+    if domain == "arrays":
+        array = next((a for a in character.arrays if a.name == entry.detail), None)
+        return costs.array_cost(ruleset, array.charm_ids) if array else None
     if domain == "ox_body":
         return costs.ox_body_cost(ruleset, character)
     if domain == "ox_body_slot":

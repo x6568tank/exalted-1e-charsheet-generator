@@ -541,6 +541,21 @@ def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def eligible_array_charms(ruleset: RuleSet, character: Character) -> list[str]:
+    """Ids of the character's known Charms that may legally be linked into an Array
+    (p.89) — Attribute-based and `arrayable`, which excludes the Ability-based
+    supernatural martial arts and the Weaving Engines. Order follows the character's
+    Charm list. This is the Array counterpart of `eligible_combo_charms`: it does NOT
+    exclude Charms already sitting in an Array (`validate_arrays` reports reuse), so
+    the caller decides whether to offer them again."""
+    out: list[str] = []
+    for cid in character.charms:
+        charm = ruleset.charms.get(cid)
+        if charm is not None and charm.min_attribute and charm.arrayable:
+            out.append(cid)
+    return out
+
+
 def array_issues(ruleset: RuleSet, character: Character, array) -> list[Issue]:
     """Legality findings for a single Alchemical Array (p.89): two or more *known*
     Charms, no Charm twice, and every member Attribute-based (supernatural martial
@@ -692,6 +707,15 @@ def validate_submodules(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def array_installation_motes(ruleset: RuleSet, charm_ids) -> int:
+    """The combined installation cost of one Array's member Charms (p.89):
+    three-fourths of their summed cost, rounded up. Public so the UI can show an
+    Array's mote saving using the same arithmetic the chargen check applies."""
+    total = sum(ruleset.charms[cid].installation_cost
+                for cid in charm_ids if cid in ruleset.charms)
+    return (3 * total + 3) // 4              # ceil(3/4 * total)
+
+
 def _installation_motes(ruleset: RuleSet, charm_ids, arrays) -> int:
     """Total Personal Essence committed to install `charm_ids`, applying the Array
     discount (p.89): a Charm inside an Array contributes to that Array's combined
@@ -702,20 +726,16 @@ def _installation_motes(ruleset: RuleSet, charm_ids, arrays) -> int:
         for cid in arr.charm_ids:
             array_of.setdefault(cid, i)      # first Array wins (reuse is flagged elsewhere)
     loose = 0
-    array_sums: dict[int, int] = {}
+    grouped: dict[int, list[str]] = {}
     for cid in charm_ids:
-        charm = ruleset.charms.get(cid)
-        if charm is None:
+        if cid not in ruleset.charms:
             continue
         if cid in array_of:
-            idx = array_of[cid]
-            array_sums[idx] = array_sums.get(idx, 0) + charm.installation_cost
+            grouped.setdefault(array_of[cid], []).append(cid)
         else:
-            loose += charm.installation_cost
-    total = loose
-    for s in array_sums.values():
-        total += (3 * s + 3) // 4            # ceil(3/4 * s)
-    return total
+            loose += ruleset.charms[cid].installation_cost
+    return loose + sum(array_installation_motes(ruleset, ids)
+                       for ids in grouped.values())
 
 
 # --------------------------------------------------------------------------- #

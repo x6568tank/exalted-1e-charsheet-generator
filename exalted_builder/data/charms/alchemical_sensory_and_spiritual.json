@@ -4,6 +4,7 @@
     "name": "Optical Enhancement",
     "type": "Permanent",
     "min_attribute": "perception",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 2,
     "prerequisites": [
@@ -82,6 +83,7 @@
     "name": "Mobile Sensory Drone",
     "type": "Simple",
     "min_attribute": "perception",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -160,6 +162,7 @@
     "name": "Chemical Analysis System",
     "type": "Simple",
     "min_attribute": "perception",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -186,6 +189,7 @@
     "name": "Tympanal Receptor Upgrade",
     "type": "Simple",
     "min_attribute": "perception",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -212,6 +216,7 @@
     "name": "Deception Recognition Module",
     "type": "Reflexive",
     "min_attribute": "perception",
+    "min_ability": 4,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -238,6 +243,7 @@
     "name": "Interpolative Situational Analysis Processor",
     "type": "Simple",
     "min_attribute": "wits",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -266,6 +272,7 @@
     "name": "Soulgem Detector",
     "type": "Simple",
     "min_attribute": "perception",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -292,6 +299,7 @@
     "name": "Cross-Phase Scanner",
     "type": "Simple",
     "min_attribute": "perception",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -317,6 +325,7 @@
     "name": "Transphase Engine",
     "type": "Supplemental",
     "min_attribute": "wits",
+    "min_ability": 3,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -342,6 +351,7 @@
     "name": "God-Ward Projector",
     "type": "Simple",
     "min_attribute": "charisma",
+    "min_ability": 5,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
