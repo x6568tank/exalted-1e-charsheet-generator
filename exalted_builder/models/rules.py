@@ -546,6 +546,33 @@ class AbilityMinimum(BaseModel):
     rating: int = Field(ge=1)
 
 
+class BackgroundRule(BaseModel):
+    """Mechanical rules attached to ONE Background for ONE splat (see
+    `ChargenBudgets.background_rules`).
+
+    Backgrounds are otherwise deliberately soft in this project — free text, an
+    autofill catalog, never hard-validated. The Alchemical is the first splat whose
+    book gives Backgrounds actual chargen mechanics (CH2 p.65-69), so this is the
+    narrow, opt-in exception: a Background with no rule behaves exactly as before.
+
+    `expensive_above`/`expensive_dot_cost` model a Background whose upper dots cost
+    more than one dot of the chargen pool each (Alchemical Artifact: "the fourth and
+    fifth dot still cost two (2) dots each"). `cap_pre_bp_exempt` lets a Background
+    exceed `background_cap_pre_bp` without bonus points ("only Artifact may be higher
+    than 3 without bonus points"). `min_rating` is a rating the splat receives
+    automatically ("Alchemical Exalted automatically receive Class ••• during
+    character creation"). `requires`/`requires_rating` gate one Background on another
+    (Backing "requires Class •••+ as a prerequisite")."""
+    model_config = ConfigDict(frozen=True)
+
+    cap_pre_bp_exempt: bool = False
+    expensive_above: int = 0               # 0 = every dot costs one pool dot
+    expensive_dot_cost: int = Field(default=1, ge=1)
+    min_rating: int = Field(default=0, ge=0)
+    requires: str = ""                     # another Background's NAME, lowercased
+    requires_rating: int = Field(default=0, ge=0)
+
+
 class ChargenBudgets(BaseModel):
     # attributes: 8/6/4 across the three prioritized categories; all start at 1.
     # Which category gets which pool is derived from the per-category spend, not stored.
@@ -586,6 +613,14 @@ class ChargenBudgets(BaseModel):
 
     background_dots: int = 7
     background_cap_pre_bp: int = 3
+    # Per-Background mechanical rules, keyed by the Background's NAME lowercased
+    # (character.BackgroundEntry.name is free text, not an id, so this cannot key on
+    # BackgroundType.id). Empty for every splat whose Backgrounds are purely narrative
+    # — which was ALL of them until the Alchemical (CH2 p.65-69) introduced the first
+    # Backgrounds with real mechanics. Per-splat because the rules modify otherwise
+    # universal Backgrounds: Artifact is ordinary for a Solar and heavily reworked for
+    # an Alchemical, so the mechanics cannot live on the shared BackgroundType.
+    background_rules: dict[str, BackgroundRule] = Field(default_factory=dict)
 
     virtue_dots: int = 5                   # spent over a base of 1 each
     virtue_base: int = 1

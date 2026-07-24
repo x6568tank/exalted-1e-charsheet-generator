@@ -541,6 +541,58 @@ def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def background_rule(budgets, name: str):
+    """The `BackgroundRule` for the Background called `name` under these budgets, or
+    None when it has no mechanics. Backgrounds are free text, so the lookup is by
+    lowercased, stripped NAME — not by `BackgroundType.id`."""
+    return budgets.background_rules.get(name.strip().lower())
+
+
+def background_pool_dots(rule, rating: int) -> int:
+    """How many dots of the chargen Background pool a rating of `rating` consumes.
+    Ordinarily one per dot; a rule may make the dots above a threshold cost more
+    (Alchemical Artifact: dots 4 and 5 cost two pool dots each, CH2 p.65)."""
+    if rule is None or not rule.expensive_above or rating <= rule.expensive_above:
+        return rating
+    cheap = rule.expensive_above
+    return cheap + (rating - cheap) * rule.expensive_dot_cost
+
+
+def background_rating(backgrounds, name: str) -> int:
+    """The character's rating in the Background called `name` (0 if absent). Sums
+    duplicates, since Backgrounds are free text and nothing stops two rows."""
+    key = name.strip().lower()
+    return sum(bg.rating for bg in backgrounds if bg.name.strip().lower() == key)
+
+
+def background_issues(budgets, backgrounds) -> list[Issue]:
+    """Chargen legality for Backgrounds that carry mechanics (`background_rules`).
+    Empty for every splat with none — which is all of them but the Alchemical, whose
+    book is the first to give Backgrounds real rules (CH2 p.65-69).
+
+    Two checks: a Background the splat receives automatically may not be below that
+    rating (Alchemicals "automatically receive Class ••• during character creation"),
+    and a Background gated on another must have it (Backing "requires Class •••+")."""
+    issues: list[Issue] = []
+    for name, rule in budgets.background_rules.items():
+        rating = background_rating(backgrounds, name)
+        if rule.min_rating and rating < rule.min_rating:
+            issues.append(Issue(
+                code="background-below-minimum", where=name,
+                message=f"{name.title()} is automatically {rule.min_rating} at character "
+                        f"creation; this character has {rating}.",
+            ))
+        if rule.requires and rating > 0:
+            have = background_rating(backgrounds, rule.requires)
+            if have < rule.requires_rating:
+                issues.append(Issue(
+                    code="background-requires", where=name,
+                    message=f"{name.title()} requires {rule.requires.title()} "
+                            f"{rule.requires_rating}+; this character has {have}.",
+                ))
+    return issues
+
+
 def eligible_array_charms(ruleset: RuleSet, character: Character) -> list[str]:
     """Ids of the character's known Charms that may legally be linked into an Array
     (p.89) — Attribute-based and `arrayable`, which excludes the Ability-based
@@ -1312,11 +1364,15 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                   + overflow_cheap * bp_costs.ability_favored_caste
                   + (overflow - overflow_cheap) * bp_costs.ability)
 
-    # --- Backgrounds: 7 free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
+    # --- Backgrounds: N free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
+    # `background_rules` (empty for every splat but the Alchemical) can exempt a
+    # Background from the cap and make its upper dots cost more than one pool dot each.
     bg_within = bg_above_bp = 0
     for bg in backgrounds:
-        bg_within += min(bg.rating, b.background_cap_pre_bp)
-        bg_above_bp += max(0, bg.rating - b.background_cap_pre_bp) * bp_costs.background_above_3
+        rule = background_rule(b, bg.name)
+        cap = bg.rating if (rule and rule.cap_pre_bp_exempt) else b.background_cap_pre_bp
+        bg_within += background_pool_dots(rule, min(bg.rating, cap))
+        bg_above_bp += max(0, bg.rating - cap) * bp_costs.background_above_3
     bg_overflow = max(0, bg_within - b.background_dots)
     bg_bp = bg_above_bp + bg_overflow * bp_costs.background
 
@@ -1430,9 +1486,13 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     """
     issues: list[Issue] = []
     b = ruleset.budgets_for(character.exalt_type, character.origin)
-    (attributes, abilities, crafts, virtues, _backgrounds, _specialties,
+    (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
      beastman_gifts, arrays, _submodules) = _chargen_source(character)
+
+    # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
+    # for every splat whose Backgrounds are purely narrative.
+    issues += background_issues(b, backgrounds)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:

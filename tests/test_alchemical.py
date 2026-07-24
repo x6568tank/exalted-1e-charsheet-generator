@@ -18,7 +18,8 @@ import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import (advancement, costs, derive, lifecycle, refit,
                                     validate)
-from exalted_builder.models.character import (Array, Character, PlayState,
+from exalted_builder.models.character import (Array, BackgroundEntry, Character,
+                                             PlayState,
                                              SubmodulePurchase)
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
@@ -55,7 +56,10 @@ def _alchemical(caste="orichalcum") -> Character:
         A.LORE: 3, A.OCCULT: 3, A.PRESENCE: 3, A.BUREAUCRACY: 2,   # = 23
     })
     c.virtues.update({V.COMPASSION: 3, V.CONVICTION: 3, V.TEMPERANCE: 2, V.VALOR: 1})  # spend 5
-    c.backgrounds = []
+    # Class ••• is automatic for every Alchemical (CH2 p.66), so the minimum-rating
+    # rule requires it even on an otherwise-bare fixture. It spends 3 of the 13
+    # Background dots, which are free, so the build still costs 0 bonus points.
+    c.backgrounds = [BackgroundEntry(name="Class", rating=3)]
     c.essence_rating = 2
     return c
 
@@ -158,6 +162,85 @@ def test_favored_attributes_get_discounted_overspend(rs):
     bp = validate.bonus_point_breakdown(rs, c)
     attr_line = next(l for l in bp.lines if l.domain == "Attributes")
     assert attr_line.points == 3
+
+
+# --------------------------------------------------------------------------- #
+# Backgrounds (CH2 p.65-69)
+# --------------------------------------------------------------------------- #
+# The Alchemical is the FIRST splat whose Backgrounds carry real chargen mechanics;
+# for every other splat they stay soft free text and `background_rules` is empty.
+
+def _bg(c, **ratings):
+    c.backgrounds = [BackgroundEntry(name=n, rating=r) for n, r in ratings.items()]
+    return c
+
+
+def test_alchemical_backgrounds_are_in_the_catalog(rs):
+    catalog = {b.id: b for b in rs.backgrounds_for("Alchemical")}
+    assert "background.class" in catalog and "background.vats" in catalog
+    # Both are Alchemical-only and must not leak into another splat's picker.
+    solar = {b.id for b in rs.backgrounds_for("Solar")}
+    assert "background.class" not in solar and "background.vats" not in solar
+
+
+def test_other_splats_have_no_background_mechanics(rs):
+    """The rules are opt-in per splat; nothing may change for anyone else."""
+    for splat in ("Solar", "Abyssal", "Dragon-Blooded", "Lunar"):
+        assert rs.budgets_for(splat).background_rules == {}
+
+
+def test_class_is_automatic_at_three(rs):
+    c = _bg(_alchemical(), Class=3)
+    assert not _codes(validate.validate_chargen(rs, c), "background-below-minimum")
+    c = _bg(_alchemical(), Class=2)
+    assert _codes(validate.validate_chargen(rs, c), "background-below-minimum")
+
+
+def test_backing_requires_class_three(rs):
+    c = _bg(_alchemical(), Class=3, Backing=2)
+    assert not _codes(validate.validate_chargen(rs, c), "background-requires")
+    # Class 3 is the gate; a lower Class fails Backing as well as its own minimum.
+    c = _bg(_alchemical(), Class=1, Backing=2)
+    assert _codes(validate.validate_chargen(rs, c), "background-requires")
+    # No Backing at all: the prerequisite is moot, not violated.
+    c = _bg(_alchemical(), Class=1)
+    assert not _codes(validate.validate_chargen(rs, c), "background-requires")
+
+
+def test_artifact_may_exceed_three_without_bonus_points(rs):
+    """"Only Artifact may be higher than 3 without bonus points" (p.61) — for any
+    other Background the 4th and 5th dot cost bonus points."""
+    c = _bg(_alchemical(), Class=3, Artifact=5)          # 3 + 2 + 2 = 7 pool dots
+    assert validate.bonus_point_breakdown(rs, c).total == 0
+    c = _bg(_alchemical(), Class=3, Vats=5)              # 2 dots above the cap
+    line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                if l.domain == "Backgrounds")
+    assert line.points == 2 * rs.bonus_costs_for("Alchemical").background_above_3
+
+
+def test_artifact_fourth_and_fifth_dots_cost_two_pool_dots_each(rs):
+    """"The fourth and fifth dot still cost two (2) dots each" (p.65)."""
+    assert validate.background_pool_dots(
+        validate.background_rule(rs.budgets_for("Alchemical"), "Artifact"), 3) == 3
+    assert validate.background_pool_dots(
+        validate.background_rule(rs.budgets_for("Alchemical"), "Artifact"), 4) == 5
+    assert validate.background_pool_dots(
+        validate.background_rule(rs.budgets_for("Alchemical"), "Artifact"), 5) == 7
+    # Artifact 5 eats SEVEN of the 13 dots, not five: Class 3 + Artifact 7 + Vats 3
+    # exactly fills the pool.
+    c = _bg(_alchemical(), Class=3, Artifact=5, Vats=3)
+    assert validate.bonus_point_breakdown(rs, c).total == 0
+    # One more dot overflows the pool, charged at the flat per-dot rate (1) — which is
+    # a different charge from exceeding the cap-3 rule (background_above_3, 2).
+    c = _bg(_alchemical(), Class=3, Artifact=5, Vats=3, Allies=1)
+    assert validate.bonus_point_breakdown(rs, c).total == rs.bonus_costs_for(
+        "Alchemical").background
+
+
+def test_background_rules_are_matched_case_insensitively(rs):
+    """BackgroundEntry.name is free text, so the lookup must not be brittle."""
+    c = _bg(_alchemical(), **{"class": 3})
+    assert not _codes(validate.validate_chargen(rs, c), "background-below-minimum")
 
 
 # --------------------------------------------------------------------------- #

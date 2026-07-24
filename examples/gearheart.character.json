@@ -67,7 +67,28 @@
   "virtue_flaw": null,
   "willpower_purchased": 0,
   "wp_virtue_component": null,
-  "backgrounds": [],
+  "backgrounds": [
+    {
+      "name": "Class",
+      "rating": 3,
+      "note": "Junior Tripartite, Sodality of Surgeons"
+    },
+    {
+      "name": "Artifact",
+      "rating": 4,
+      "note": "12 dots of orichalcum gear"
+    },
+    {
+      "name": "Vats",
+      "rating": 3,
+      "note": "Two days' notice for a minor refit"
+    },
+    {
+      "name": "Backing",
+      "rating": 2,
+      "note": "Sodality of Surgeons"
+    }
+  ],
   "charms": [
     "alchemical.general.transitory-augmentation-of-strength",
     "alchemical.general.transitory-augmentation-of-dexterity",
