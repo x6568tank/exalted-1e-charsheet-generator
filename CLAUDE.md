@@ -287,11 +287,17 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
 (party page). Run: `.venv/bin/python -m exalted_builder.ui.builder [char.json]
 [--show] [--port N] [--native]`. Example char: `examples/ashes-of-dawn.character.json`.
 
-- **Picker has three pages** — Abilities / Martial Arts / Spells (a toggle
-  omitted when a splat has none of one kind). Martial Arts holds every
-  `martial_arts:*` style category. Spells has a Circle dropdown offering every 
-  circle the character can reach across BOTH tracks, one full-width row per spell 
-  (add/remove/locked, cost, description, lock reason).
+- **The picker's group toggle is built from what the splat HAS**, so no character
+  sees all of it. The base three are Abilities / Martial Arts / Spells (each omitted
+  when the splat has none of that kind); **Form Library** is added for a splat with
+  `ExaltDefinition.form_library` (Lunar) and **Vat Refit** for one with Charm Slots or
+  a Panoply (Alchemical, plus a crossover Eclipse) — both detailed in their splat's
+  section below. Martial Arts holds every `martial_arts:*` style category. Spells has
+  a Circle dropdown offering every circle the character can reach across BOTH tracks,
+  one full-width row per spell (add/remove/locked, cost, description, lock reason).
+  A Charm category may also swap the Cytoscape canvas for its own panel — the
+  Alchemical Augmentation pop-ups do, staying an Abilities page while replacing the
+  graph.
 - **Splat dropdown on the Charms tab (Eclipse generalist rule).** Rendered only for
   a caste with `foreign_charms`, and only on the two Charm-tree pages (spells are
   gated by circle, the Form Library is the character's own). Beside it, pre-lock
@@ -958,7 +964,10 @@ three-page Abilities/Martial Arts/Spells split, GM mode.
 - **Alchemical: browser click-through** — the last item on that splat, and the only
   kind of check that has found the UI bugs the test suite cannot (see the DBT dialog).
   Walk Edit → Charms (incl. the Augmentation pop-ups and Vat Refit) → Arrays → XP →
-  Play → Sheet with `examples/gearheart.character.json`.
+  Play (Clarity) → Sheet with `examples/gearheart.character.json`. Also hover a
+  Background in the Edit tab's dropdown: the tooltip's *content* is asserted by a
+  test, but whether Quasar actually pops it (and whether a long description like
+  Class's is readable at `max-width:32rem`) has never been seen.
 - **Sidereal** Exalt type, then **Mortals** — see **Next Exalt Types** above for the
   color scheme and the M&F-return plan. (Lunar and Alchemical are done.) No build
   order chosen yet; ask the user before starting.
