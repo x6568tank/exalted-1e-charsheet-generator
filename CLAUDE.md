@@ -42,8 +42,11 @@ Solar values. If unsure, ask human.
 ## Next Exalt Types
 Dragon-Blooded and Abyssal are done (see Status). **Lunar is functionally
 complete** (chargen foundation + full Charm catalogue, started 2026-07-22) —
-see the Status entry below. **Sidereal and Alchemical are next** — no build
-order chosen for them yet; ask the user before starting. **Mortals**
+see the Status entry below. **Alchemical is feature-complete** (2026-07-23:
+chargen, Charm Slots, Arrays, Submodules, the CH3 catalogue, CH4 weaving,
+XP/advancement and the full UI) with two items outstanding — Clarity, blocked on
+a source page, and a browser click-through. **Sidereal is next** — no build order
+chosen yet; ask the user before starting. **Mortals**
 (Godblooded/Ghosts/Heroic Mortals/etc.) are planned after the Exalt types.
 
 Work on a given splat starts only once its rulebook images land in
@@ -58,7 +61,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | IN PROGRESS 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + brass theme + UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page); remaining UI — Arrays/Submodules widgets, Vat-Refit Slot/Panoply manager, browser click-through |
+| Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit). **Blocked/remaining: Clarity (no source page yet), browser click-through** |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -95,7 +98,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
     models/            rules.py, character.py   (pydantic; import nothing game-specific)
     rules_db.py        loads data/*.json -> RuleSet; indexes by id; link-checks
                        prerequisites and spell-circle access
-    engine/            derive.py, validate.py, costs.py   PURE: (RuleSet, Character) -> result
+    engine/            derive.py, validate.py, costs.py, refit.py   PURE: (RuleSet, Character) -> result
     persistence.py     load/save a Character to/from JSON
     ui/                thin frontend; no game logic
     data/              rules data as JSON (see below)
@@ -166,7 +169,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (567 tests passing)
+## Status (585 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -263,11 +266,18 @@ the in-memory (de)serialisers the browser upload/download path reuses.
   (curses / Charm costs) reduce a permanent trait OUTSIDE the XP economy at cost 0
   — Willpower's purchased component can go net-negative, so a curse can drop
   Willpower below the Virtue floor.
+- `refit.py` — the Alchemical vat refit: moves a Charm between the Charm Slots and
+  the Panoply (`character.charms` <-> `retainer_charms`). Play-state, NOT an XP
+  transaction — nothing here writes the ledger or reaches chargen validation — but
+  the move respects Slot fit and committed Personal Essence. Computes the LIVE Slot
+  load itself rather than reusing `validate.charm_slot_usage`, which reads the
+  frozen chargen snapshot; see the Alchemical Vat Refit note for why.
 
 ### UI (NiceGUI)
 File map: `ui/view.py` (pure, toolkit-free presenter), `ui/app.py` (read-only
 sheet), `ui/editor.py` (chargen editor), `ui/picker.py` (Cytoscape charm/spell
-picker), `ui/combos.py` (Combo builder), `ui/xp.py` (post-lock XP tab),
+picker, plus the Alchemical Vat Refit page), `ui/combos.py` (Combo builder — and
+the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `ui/xp.py` (post-lock XP tab),
 `ui/play.py` (in-play tracker), `ui/builder.py` (unified tabbed app), `ui/gm.py`
 (party page). Run: `.venv/bin/python -m exalted_builder.ui.builder [char.json]
 [--show] [--port N] [--native]`. Example char: `examples/ashes-of-dawn.character.json`.
@@ -729,23 +739,32 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     post-lock only. Backgrounds here are soft free-text, so a chargen retainer count is
     NOT validated against Vats rating (consistent with every other Background) — the UI
     may still let you list them.
-    **Still open (UI pass):** **Vat refit** — the user wants the Charms tab to carry a
-    general **Slot / Retainer (Panoply) management system** for Alchemicals: list
-    installed (Slot) Charms vs Panoply Charms and swap between them (like the Lunar Form
-    Library but with mechanical weight — affects committed Personal Essence). Play-state,
-    isolated from chargen/XP validation. This is where the `charms` ↔ `retainer_charms`
-    move operation lives; it also surfaces an Eclipse's crossover Slots. Build in the UI
-    pass.
-  - **⏸ RESUME HERE (paused 2026-07-23, session at cap).** UI pass is mid-flight; engine
-    is complete. Next up when resuming: **Arrays + Submodules widgets** (task #5), then the
-    **Vat-Refit Slot/Panoply manager** (task #7), Clarity, and a **browser click-through**
-    of the whole Alchemical flow (serve-and-grep has verified no crashes, NOT layout).
-    **Also queued: rework the brass theme colour** — `theme._ALCHEMICAL` accent `#9a7b1f`
-    "doesn't feel quite right" (user); pick a different brass-like tone (warmer/less
-    olive, or a truer metallic brass) and re-check it reads distinct from Solar amber.
-  - **UI pass — IN PROGRESS 2026-07-23.** Done: `theme._ALCHEMICAL` (brass, `fam="yellow"`,
-    accent `#9a7b1f` — distinct from Solar amber, but the exact tone is FLAGGED FOR
-    REWORK, see Resume note above); a legal example
+    **Vat refit — DONE 2026-07-23.** See the UI pass entry below.
+  - **Charm Attribute minima — DATA BUG FOUND AND FIXED 2026-07-23.** All 120
+    Attribute-keyed Alchemical Charms shipped with `min_ability: 0`. The convention
+    (shared with Lunar, `models/rules.py`) is that **`min_attribute` NAMES the gating
+    trait and `min_ability` RATES it** — the first authoring pass captured only the
+    name. Two silent consequences, both invisible without cross-cutting data: every
+    Alchemical Charm gated on *nothing* (an Essence-2 character could install a
+    Minimum Dexterity 5 Charm), and every **Array priced at 0 XP**, since an Array's
+    cost IS the sum of exactly those ratings (p.89). Ratings were extracted from the
+    `Minimum <Attribute>: N` lines in `images/Alchemical/CH 3 Charms.md` and are pinned
+    by `test_every_attribute_keyed_charm_carries_its_minimum_rating`. **Gotchas for
+    anyone re-parsing that page:** it prints both `Cost:` and `Costs:`, the typo
+    `Minimums <Attr>:`, one trailing comma, one heading wrapped across two lines
+    (INTERPOLATIVE SITUATIONAL ANALYSIS / PROCESSOR), and four *template* entries that
+    expand to several Charms each (Transitory/Sustained Augmentation of (Attribute),
+    (Material) Synthesis Wave Emitter, (Element)-Inured Frame). The 10 category
+    headings all end in "CHARMS" and no Charm name does — that is what distinguishes
+    them. **God-Machine Weaving Engine needs Minimum Intelligence 6**, the chapter's
+    only above-5 minimum, legitimately reachable because Sustained Augmentation raises
+    that Attribute's maximum by a dot (p.92); the maxed-cascade fixture sets 6 for that
+    reason. This is the same bug class as the Lunar charm-discount miss: **when a splat
+    introduces a new gating axis, re-audit every field that axis is supposed to fill,
+    not just the one that makes the tests pass.**
+  - **UI pass — DONE 2026-07-23.** Done: `theme._ALCHEMICAL` (brass, `fam="yellow"`,
+    accent `#a8792c` — a true warm brass; the first attempt `#9a7b1f` read too olive
+    and the user flagged it, so do not revert toward yellow-green); a legal example
     (`examples/gearheart.character.json`, Orichalcum, fills all 8 Slots); the editor
     Attribute panel now handles caste_favored mode (`view.uses_caste_favored_attributes`/
     `attribute_budget_summary` — a Favored-Attributes multi-select, ● Caste / ✦ Favored
@@ -771,15 +790,58 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     `init_graph`/`update_graph` no-op there); `toggle_augment` is an immediate pre-lock
     add/remove with the usual `charms_depending_on` removal guard. In-play buying still
     routes through the (unbuilt) post-lock Slot flow — the dialog is pre-lock only.
-    **Verified by serve-and-grep + unit tests only — NOT yet clicked through in a
-    browser** (that proves no crash, not correct layout; the Augmentation page-swap +
-    dialog especially want a human pass, like the DBT dialog did).
-    **STILL TO BUILD (UI):** (1) **Arrays + Submodules** widgets (build/price Arrays,
-    buy Submodules, pre- and post-lock). (2) **Vat-Refit Slot/Panoply manager** on the
-    Charms/Play tab — list installed(Slot) vs Panoply(`retainer_charms`) Charms + swap
-    (the `charms`↔`retainer_charms` move op; affects committed Personal Essence); also
-    surfaces an Eclipse's crossover Slots. (3) Clarity (→ `PlayState`/Limit precedent).
-    (4) a real browser click-through of the whole Alchemical flow.
+    **Arrays tab — DONE 2026-07-23.** A Charm-Slot splat builds Arrays INSTEAD of
+    Combos, so the Combos tab renders one system or the other on `view.uses_arrays`
+    (which is just `uses_charm_slots` — a later Slot splat needs no UI change) and the
+    tab is relabelled "Arrays" for them; the tab keeps its internal `"Combos"` name so
+    tab state/visibility/`resolve_tab` are untouched. Pre-lock builds in place at
+    1 BP/Charm; post-lock buys whole via the new `advancement.add_array` (XP = Σ member
+    minimum Attribute ratings, `costs.array_cost`), with undo and `_expected_cost`
+    audit under an `arrays` domain. The post-lock path enforces the CROSS-Array rule
+    too (a Charm joins only one Array) — `array_issues` alone checks only within one
+    Array. `validate.eligible_array_charms` is the pool; each Array shows the committed
+    Essence its three-fourths discount saves, via the new public
+    `validate.array_installation_motes` (which `_installation_motes` now calls, so the
+    readout and the chargen check cannot diverge).
+    **Submodules — DONE 2026-07-23.** A SUBMODULES section on the picker's sticky
+    detail card, on the Charm they upgrade (not a catalogue page — they are per-Charm).
+    Shows the dual price (BP pre-lock, XP post-lock), the submodule's own minima, owned
+    state, and the block reason. `validate.submodule_block_reason`/`owns_submodule` are
+    the single eligibility source (same gates `validate_submodules` and
+    `advancement.learn_submodule` apply); presenter `view.build_submodule_rows` →
+    `SubmoduleRow`. Renders nothing for the ~112 Charms with no submodules.
+    **Vat Refit — DONE 2026-07-23.** A "Vat Refit" group on the Charms tab toggle,
+    beside Abilities / Martial Arts / Spells: installed (Slot) Charms vs the Panoply,
+    with swap buttons. New **`engine/refit.py`** owns the `charms` ↔ `retainer_charms`
+    move (`install`/`uninstall`/`install_block_reason`/`slot_load`/`supports_refit`,
+    `RefitError`). It is play-state — no BP, no XP, no log row — but the move has
+    mechanical weight, so it checks Slot fit (Dedicated Slots take only Caste/Favored
+    Charms) and committed Personal Essence, applying the Array discount to the delta.
+    **`refit.slot_load` deliberately does NOT call `validate.charm_slot_usage`:** that
+    function reads the frozen chargen snapshot once locked and answers "was this
+    legally built?", while a refit asks "what is worn *right now*". Conflating them
+    would make a refit either invisible or look like chargen tampering; a test pins
+    that a refit moves the live count and leaves the chargen view untouched. Ox-Body
+    purchases occupy Slots but live on `character.ox_body`, so they are counted as
+    fixed load and are not swappable. `supports_refit` keys on having a Panoply or
+    Slots rather than on the splat, so an **Eclipse who crossed over** (p.90) gets the
+    page without being a Slot splat.
+    **Verified by serve-and-grep + unit tests only — the whole Alchemical flow has
+    still NOT been clicked through in a browser** (that proves no crash, not correct
+    layout; the Augmentation page-swap + dialog, the Arrays tab and the Vat Refit page
+    all want a human pass, as the DBT dialog did — it found two bugs no server-render
+    check could).
+    **STILL TO BUILD (UI):** (1) **Clarity** (→ `PlayState`/Limit precedent) — BLOCKED:
+    the Clarity trait's own rules are in none of the three pasted chapters; CH4 only
+    references per-protocol `Minimum Clarity` values (already recorded in the protocol
+    descriptions, deliberately not enforced). Needs the human to drop that page in
+    `images/Alchemical/`. (2) a real browser click-through of the whole Alchemical flow.
+
+    **Open rules question, NOT decided:** when a Charm is moved to the Panoply, its
+    *dependents* are left installed — `refit.uninstall` does not cascade or block the
+    way the pre-lock picker's `charms_depending_on` guard does. A Panoply Charm is
+    still OWNED, so it is arguable that a prerequisite need only be owned, not worn.
+    Unresolved: ask before changing the behaviour either way.
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled
@@ -826,9 +888,16 @@ three-page Abilities/Martial Arts/Spells split, GM mode.
   enumerates these lists itself. `engine.validate.bonus_point_breakdown` already
   builds this list internally to price picks; that is the model to extract.
   **Refactor of working code — no behaviour change intended.**
-- **Sidereal, Lunar, and Alchemical** Exalt types, then **Mortals** — see
-  **Next Exalt Types** above for the color scheme and the M&F-return plan. No
-  build order chosen yet; ask the user before starting.
+- **Alchemical: browser click-through** — the last item on that splat, and the only
+  kind of check that has found the UI bugs the test suite cannot (see the DBT dialog).
+  Walk Edit → Charms (incl. the Augmentation pop-ups and Vat Refit) → Arrays → XP →
+  Play → Sheet with `examples/gearheart.character.json`.
+- **Alchemical: Clarity** — blocked on source. The trait's own rules are in none of the
+  three pasted chapters; drop the page into `images/Alchemical/` and it can be modelled
+  on the `PlayState`/Limit precedent.
+- **Sidereal** Exalt type, then **Mortals** — see **Next Exalt Types** above for the
+  color scheme and the M&F-return plan. (Lunar and Alchemical are done.) No build
+  order chosen yet; ask the user before starting.
 - **Windows .exe** — needs building on an actual Windows host (PyInstaller
   can't cross-compile); same spec as `linux.sh`/`windows.bat`.
 
