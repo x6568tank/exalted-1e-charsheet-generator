@@ -44,8 +44,8 @@ Dragon-Blooded and Abyssal are done (see Status). **Lunar is functionally
 complete** (chargen foundation + full Charm catalogue, started 2026-07-22) —
 see the Status entry below. **Alchemical is feature-complete** (2026-07-23:
 chargen, Charm Slots, Arrays, Submodules, the CH3 catalogue, CH4 weaving,
-XP/advancement, Clarity and the full UI); only a browser click-through is
-outstanding. **Sidereal is next** — no build order
+XP/advancement, Clarity, Backgrounds and the full UI; UI clicked through
+2026-07-23). **Sidereal is next** — no build order
 chosen yet; ask the user before starting. **Mortals**
 (Godblooded/Ghosts/Heroic Mortals/etc.) are planned after the Exalt types.
 
@@ -61,7 +61,7 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | waiting on Sidereal chargen work |
-| Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker). **Remaining: browser click-through only** |
+| Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker); UI clicked through 2026-07-23 |
 | Mortals | Muddy brown | waiting on Mortal chargen work |
 
 **Merits & Flaws will return once every splat above is implemented** — as a
@@ -174,7 +174,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (603 tests passing)
+## Status (606 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -533,6 +533,17 @@ below, which is the least-exercised piece of this whole batch.
   Editor's `_SPLAT_ORIGINS` gained a `"Lunar"` entry (Society/Casteless) so the
   origin is reachable in the UI; the Caste dropdown does NOT yet auto-sync with
   it, so picking one without the other trips the new consistency check.
+- **Four Shapeshifting Charms may NOT be learned by other Exalted (2026-07-23).**
+  The Eclipse/Moonshadow generalist rule (core p.127) otherwise opens ANY splat's
+  Charms to a Celestial with a willing tutor, but shapeshifting is bound up with the
+  Lunar body itself. `Charm.no_foreign_learning: true` — the same flag the Alchemical
+  Weaving Engines use — is set on **Finding the Spirit's Shape, Deadly Beastman
+  Transformation, Humble Mouse Shape and Prey's Skin Disguise**, and on nothing else
+  Lunar. Human-listed in `images/Lunar/No Foreign Exalts.md`. The bar is narrow on
+  purpose: every OTHER Lunar Charm still crosses over normally (Ox-Body, the
+  Body Enhancement tree, ...), and a Lunar is unaffected. Pinned by three tests in
+  `tests/test_lunar.py`, including one asserting the flagged set is EXACTLY those four
+  so a later addition has to be deliberate.
 - **Magic-track ceiling (rules-authority confirmed, 2026-07-22):** Lunars and
   Sidereals, as Celestial Exalted (not native sorcerers or necromancers, unlike
   Solar/Abyssal), reach **sorcery up to Celestial Circle** and **necromancy up
@@ -727,7 +738,8 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     `check_splat_consistency` raises `charm-wrong-splat` even when foreign learning is
     otherwise permitted. Pinned in `tests/test_alchemical.py` (weaving section).
     NOTE for later data: any other splat's magic that must never cross via the
-    generalist rule should set the same flag.
+    generalist rule should set the same flag — the four Lunar Shapeshifting Charms
+    now do (see the Lunar section).
   - **XP / advancement — DONE 2026-07-23** (verified against the CH2 p.64 EXPERIENCE
     COSTS table — the real numbers, not the plan's paraphrase). Trait costs:
     `ExperienceCosts.attribute_favored_caste` = (rating×4)−1 (new field, model default,
@@ -872,11 +884,12 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     fixed load and are not swappable. `supports_refit` keys on having a Panoply or
     Slots rather than on the splat, so an **Eclipse who crossed over** (p.90) gets the
     page without being a Slot splat.
-    **Verified by serve-and-grep + unit tests only — the whole Alchemical flow has
-    still NOT been clicked through in a browser** (that proves no crash, not correct
-    layout; the Augmentation page-swap + dialog, the Arrays tab and the Vat Refit page
-    all want a human pass, as the DBT dialog did — it found two bugs no server-render
-    check could).
+    **Clicked through in a browser by the human on 2026-07-23** — Edit, Charms
+    (Augmentation pop-ups and Vat Refit), Arrays, XP, Play (Clarity) and Sheet, plus
+    the Background dropdown tooltips. Everything up to that point had been verified by
+    serve-and-grep + unit tests only, which prove no crash and say nothing about
+    layout; the Lunar DBT dialog pass found two bugs no server-render check could, so
+    the pass was not a formality.
     **Clarity — DONE 2026-07-23** (CH2 **p.69-71**, in the Character Creation chapter,
     not CH3/CH4). The Alchemical replacement for Limit: they took no part in the Great
     Curse, so they have no Limit at all. Modelled as a **split**, per the user's call:
@@ -908,7 +921,6 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
     the Man-Machine Weaving Engine"). New `Charm.permanent_install` (True on both
     engines) which `refit.uninstall_block_reason` refuses — a flag, not an id check, so
     another such Charm is pure data.
-    **STILL TO BUILD (UI):** a real browser click-through of the whole Alchemical flow.
 
     **Rules-authority call, CONFIRMED 2026-07-23 — do not relitigate:** moving a Charm
     to the Panoply leaves its *dependents* installed. `refit.uninstall` deliberately
@@ -961,13 +973,6 @@ three-page Abilities/Martial Arts/Spells split, GM mode.
   enumerates these lists itself. `engine.validate.bonus_point_breakdown` already
   builds this list internally to price picks; that is the model to extract.
   **Refactor of working code — no behaviour change intended.**
-- **Alchemical: browser click-through** — the last item on that splat, and the only
-  kind of check that has found the UI bugs the test suite cannot (see the DBT dialog).
-  Walk Edit → Charms (incl. the Augmentation pop-ups and Vat Refit) → Arrays → XP →
-  Play (Clarity) → Sheet with `examples/gearheart.character.json`. Also hover a
-  Background in the Edit tab's dropdown: the tooltip's *content* is asserted by a
-  test, but whether Quasar actually pops it (and whether a long description like
-  Class's is readable at `max-width:32rem`) has never been seen.
 - **Sidereal** Exalt type, then **Mortals** — see **Next Exalt Types** above for the
   color scheme and the M&F-return plan. (Lunar and Alchemical are done.) No build
   order chosen yet; ask the user before starting.
