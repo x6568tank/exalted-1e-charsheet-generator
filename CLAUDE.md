@@ -174,7 +174,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (600 tests passing)
+## Status (603 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -341,6 +341,14 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
   back with no sync code, and there's never a second Cytoscape instance on the
   page). **v1 scope stops here** — no initiative/turn order, no NPC stat blocks,
   no party-wide Rest; ask before adding them.
+- **Background dropdowns show their catalog description on hover.**
+  `editor.DescribedSelect` (a `ui.select` subclass, reused by `ui/xp.py`) renders each
+  option through Quasar's scoped `option` slot with a `QTooltip`. The descriptions in
+  `backgrounds.json` were authored but read by nothing until this. **Do not try to
+  attach the description by assigning `select._props["options"]` after construction:**
+  `_props` is an observable dict, so the write schedules an update, and
+  `ChoiceElement.update()` rebuilds `options` from the labels — silently discarding it.
+  Overriding `_update_options` is what makes it stick (and survive `set_options`).
 - **Gotcha:** NiceGUI 3.x's `ui.select` raises `ValueError` if constructed with a
   `value` not in its `options`. Any select whose value can be a free-text/custom
   entry must fold that value into `options` first (`editor._opts_with`) —

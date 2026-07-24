@@ -226,3 +226,22 @@ async def test_sheet_still_shows_the_spells_panel_for_a_sorcerer(user: User) -> 
     await user.open('/sheet-desc')
     await user.should_see("Spells (1)")
     await user.should_see("CHARMS & SORCERY")   # _heading upper-cases
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_background_select_options_carry_their_descriptions(user: User) -> None:
+    """The catalog descriptions must reach the rendered option dicts, which is what
+    the QSelect `option` slot turns into a hover tooltip. Checked on the real page
+    because `_props` is observable: writing options schedules an update that rebuilds
+    them from the labels, so a naive assignment is silently discarded."""
+    from exalted_builder.ui.editor import DescribedSelect
+    await user.open('/custom')
+    sels = [e for e in user.client.elements.values() if isinstance(e, DescribedSelect)]
+    bg = next(s for s in sels if s._props.get('label') == 'Background')
+    described = {o['label']: o.get('description') for o in bg._props['options']}
+    assert described.get('Artifact', '').startswith('Wondrous devices')
+    # Every offered Background carries one; a blank would render as a missing tooltip.
+    assert all(described.values()), [k for k, v in described.items() if not v]
+    # The tooltip slot itself is registered, else the descriptions are never shown.
+    assert 'q-tooltip' in bg.slots['option'].template
