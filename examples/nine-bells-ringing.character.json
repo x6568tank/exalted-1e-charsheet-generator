@@ -1,0 +1,125 @@
+{
+  "id": "sid.nine-bells",
+  "name": "Nine Bells Ringing",
+  "player": "",
+  "edition": "1e",
+  "exalt_type": "Sidereal",
+  "caste": "battles",
+  "origin": "hierarchy",
+  "concept": "Bronze Faction enforcer",
+  "nature": "Judge",
+  "anima": "A crimson panoply of interlocking shields",
+  "totem": "",
+  "animal_forms": [],
+  "essence_rating": 2,
+  "attributes": {
+    "strength": 5,
+    "dexterity": 4,
+    "stamina": 2,
+    "charisma": 4,
+    "manipulation": 3,
+    "appearance": 2,
+    "perception": 3,
+    "intelligence": 2,
+    "wits": 2
+  },
+  "abilities": {
+    "archery": 1,
+    "brawl": 1,
+    "martial_arts": 2,
+    "melee": 3,
+    "thrown": 0,
+    "endurance": 0,
+    "performance": 0,
+    "presence": 2,
+    "resistance": 2,
+    "survival": 2,
+    "craft": 0,
+    "investigation": 0,
+    "lore": 3,
+    "medicine": 0,
+    "occult": 2,
+    "athletics": 2,
+    "awareness": 2,
+    "dodge": 2,
+    "larceny": 0,
+    "stealth": 1,
+    "bureaucracy": 2,
+    "linguistics": 1,
+    "ride": 3,
+    "sail": 3,
+    "socialize": 1
+  },
+  "crafts": [],
+  "colleges": [
+    {
+      "college_id": "sidereal.battles.banner",
+      "rating": 3
+    },
+    {
+      "college_id": "sidereal.battles.shield",
+      "rating": 1
+    },
+    {
+      "college_id": "sidereal.journeys.captain",
+      "rating": 2
+    },
+    {
+      "college_id": "sidereal.secrets.key",
+      "rating": 1
+    }
+  ],
+  "favored_abilities": [
+    "awareness",
+    "occult",
+    "lore",
+    "stealth"
+  ],
+  "favored_attributes": [],
+  "specialties": [],
+  "virtues": {
+    "compassion": 3,
+    "conviction": 2,
+    "temperance": 3,
+    "valor": 1
+  },
+  "virtue_flaw": null,
+  "willpower_purchased": 0,
+  "wp_virtue_component": null,
+  "backgrounds": [
+    {
+      "name": "Backing",
+      "rating": 3,
+      "note": "Bronze Faction"
+    },
+    {
+      "name": "Salary",
+      "rating": 2,
+      "note": ""
+    },
+    {
+      "name": "Manse",
+      "rating": 2,
+      "note": ""
+    }
+  ],
+  "charms": [],
+  "retainer_charms": [],
+  "combos": [],
+  "arrays": [],
+  "submodules": [],
+  "spells": [],
+  "ox_body": [],
+  "general_charm_slots": null,
+  "dedicated_charm_slots": null,
+  "beastman_gifts": [],
+  "weapons": [],
+  "armor": [],
+  "health_bonus_levels": [],
+  "st_foreign_charms": false,
+  "chargen_locked": false,
+  "chargen_snapshot": null,
+  "xp_earned": 0,
+  "xp_log": [],
+  "play": null
+}
