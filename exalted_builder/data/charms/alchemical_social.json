@@ -4,6 +4,7 @@
     "name": "Pattern Facilitation Module",
     "type": "Simple",
     "min_attribute": "charisma",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -33,6 +34,7 @@
     "name": "Synergy-Promoting Upgrade",
     "type": "Reflexive",
     "min_attribute": "charisma",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],
@@ -53,6 +55,7 @@
     "name": "Perfection of Assembly",
     "type": "Simple",
     "min_attribute": "charisma",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -79,6 +82,7 @@
     "name": "Thousandfold Courtesan Calculations",
     "type": "Simple",
     "min_attribute": "appearance",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -105,6 +109,7 @@
     "name": "Emotive Aesthetics of the Body Electric",
     "type": "Permanent",
     "min_attribute": "appearance",
+    "min_ability": 4,
     "min_essence": 2,
     "installation_cost": 2,
     "prerequisites": [
@@ -129,6 +134,7 @@
     "name": "Empathy Simulation Engine",
     "type": "Simple",
     "min_attribute": "manipulation",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],
@@ -150,6 +156,7 @@
     "name": "Transcendent Brutality Programming",
     "type": "Permanent",
     "min_attribute": "manipulation",
+    "min_ability": 4,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -167,13 +174,15 @@
       "page": 116
     },
     "exalt_type": "Alchemical",
-    "category": "social"
+    "category": "social",
+    "permanent_clarity": 1
   },
   {
     "id": "alchemical.social.conceptual-entropy-module",
     "name": "Conceptual Entropy Module",
     "type": "Simple",
     "min_attribute": "manipulation",
+    "min_ability": 3,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -201,6 +210,7 @@
     "name": "Motivational Vocoder",
     "type": "Simple",
     "min_attribute": "manipulation",
+    "min_ability": 3,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -228,6 +238,7 @@
     "name": "Personality Override Spike",
     "type": "Reflexive",
     "min_attribute": "manipulation",
+    "min_ability": 5,
     "min_essence": 3,
     "installation_cost": 2,
     "prerequisites": [
@@ -254,6 +265,7 @@
     "name": "Mind-Ripping Probe",
     "type": "Permanent",
     "min_attribute": "manipulation",
+    "min_ability": 5,
     "min_essence": 4,
     "installation_cost": 1,
     "prerequisites": [
@@ -278,6 +290,7 @@
     "name": "Memory Implantation Surge",
     "type": "Permanent",
     "min_attribute": "manipulation",
+    "min_ability": 5,
     "min_essence": 4,
     "installation_cost": 1,
     "prerequisites": [

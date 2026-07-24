@@ -105,6 +105,7 @@
     "highest_magic_circle_id": "God-Machine",
     "ox_body_charm_id": "alchemical.might-and-mobility.strain-resistant-chassis-modification",
     "caste_noun": "Caste",
+    "clarity": true,
     "tier": "Alchemical"
   }
 ]

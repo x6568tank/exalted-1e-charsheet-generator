@@ -1402,3 +1402,51 @@ def test_ox_body_over_cap_message_names_the_right_trait(rs):
                  OxBodyPurchase(variant="two-minus-one", health_levels=[])]
     msg = next(i.message for i in validate.check_ox_body(rs, c) if i.code == "ox-body-over-cap")
     assert "Stamina" in msg and "Endurance" not in msg
+
+
+# --- Shapeshifting Charms no other Exalt may learn -------------------------- #
+# The Eclipse/Moonshadow generalist rule (core p.127) otherwise lets a Celestial buy
+# ANY splat's Charms with a willing tutor. Shapeshifting is bound up with the Lunar
+# body itself, so four of those Charms are barred outright via Charm.no_foreign_learning
+# — the same flag the Alchemical Weaving Engines use. Source: images/Lunar/No Foreign
+# Exalts.md (human-listed).
+
+_NO_FOREIGN = [
+    "lunar.shapeshifting.finding-the-spirits-shape",
+    "lunar.shapeshifting.deadly-beastman-transformation",
+    "lunar.shapeshifting.humble-mouse-shape",
+    "lunar.shapeshifting.preys-skin-disguise",
+]
+
+
+def _eclipse() -> Character:
+    """A Solar Eclipse with Storyteller permission — the generalist rule wide open."""
+    return Character(id="e", exalt_type="Solar", caste="eclipse", st_foreign_charms=True)
+
+
+def test_exactly_these_lunar_charms_are_barred_from_foreign_learning(rs):
+    flagged = sorted(c.id for c in rs.charms.values()
+                     if c.exalt_type == "Lunar" and c.no_foreign_learning)
+    assert flagged == sorted(_NO_FOREIGN)
+
+
+def test_eclipse_cannot_learn_the_barred_shapeshifting_charms(rs):
+    eclipse = _eclipse()
+    for cid in _NO_FOREIGN:
+        assert not validate.charm_learnable_by_splat(rs, eclipse, rs.charms[cid]), cid
+    # ...and check_splat_consistency calls it a wrong-splat Charm, not a permission gap.
+    eclipse.charms = [_NO_FOREIGN[0]]
+    codes = {i.code for i in validate.check_splat_consistency(rs, eclipse)}
+    assert "charm-wrong-splat" in codes
+
+
+def test_the_bar_is_narrow(rs):
+    """Only those four: every other Lunar Charm still crosses over normally, and a
+    Lunar is of course unaffected by a rule about foreign learners."""
+    eclipse = _eclipse()
+    crossable = [c for c in rs.charms.values()
+                 if c.exalt_type == "Lunar" and not c.no_foreign_learning]
+    assert validate.charm_learnable_by_splat(rs, eclipse, crossable[0])
+    lunar = _lunar()
+    for cid in _NO_FOREIGN:
+        assert validate.charm_learnable_by_splat(rs, lunar, rs.charms[cid]), cid

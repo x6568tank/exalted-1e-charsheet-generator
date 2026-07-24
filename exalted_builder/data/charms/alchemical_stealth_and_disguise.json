@@ -4,6 +4,7 @@
     "name": "Integrated Artifact Transmogrifier",
     "type": "Reflexive",
     "min_attribute": "appearance",
+    "min_ability": 1,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],
@@ -24,6 +25,7 @@
     "name": "Essence Dormancy Mode",
     "type": "Reflexive",
     "min_attribute": "appearance",
+    "min_ability": 2,
     "min_essence": 3,
     "installation_cost": 0,
     "prerequisites": [
@@ -49,6 +51,7 @@
     "name": "Husk-Sculpting Apparatus",
     "type": "Simple",
     "min_attribute": "appearance",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -75,6 +78,7 @@
     "name": "Voice Distortion Field",
     "type": "Reflexive",
     "min_attribute": "manipulation",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],
@@ -96,6 +100,7 @@
     "name": "Pheromone Regulation Systems",
     "type": "Simple",
     "min_attribute": "charisma",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],
@@ -117,6 +122,7 @@
     "name": "Optical Shroud",
     "type": "Reflexive",
     "min_attribute": "appearance",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 2,
     "prerequisites": [],
@@ -138,6 +144,7 @@
     "name": "Aura-Dampening Component",
     "type": "Permanent",
     "min_attribute": "appearance",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -162,6 +169,7 @@
     "name": "Dynamic Cloaking Module",
     "type": "Simple",
     "min_attribute": "appearance",
+    "min_ability": 2,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -188,6 +196,7 @@
     "name": "Essence Veil",
     "type": "Permanent",
     "min_attribute": "appearance",
+    "min_ability": 2,
     "min_essence": 4,
     "installation_cost": 1,
     "prerequisites": [

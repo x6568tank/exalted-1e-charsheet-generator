@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "exalted-builder"
-version = "0.1.0"
-description = "Character builder and validator for Exalted 1st Edition (Solar)"
+version = "0.7.0"
+description = "Character builder and validator for Exalted 1st Edition"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.6",

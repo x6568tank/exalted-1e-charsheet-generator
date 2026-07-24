@@ -21,6 +21,7 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
+from ..engine import derive
 from ..models.character import Character, Damage, PlayState
 from ..models.rules import RuleSet
 from . import theme
@@ -186,15 +187,48 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                         count_box(character, i, i < cur.willpower_spent,
                                   "willpower_spent", pv.willpower_max, body.refresh)
 
-            # --- Limit (bare 0..10 counter) ------------------------------ #
-            with _panel(f"Limit  ({cur.limit} / 10{'  — LIMIT BREAK' if cur.limit >= 10 else ''})", pal):
-                with ui.row().classes("gap-1 flex-wrap"):
-                    for i in range(10):
-                        count_box(character, i, i < cur.limit, "limit", 10, body.refresh)
+            # --- Limit, or Clarity for the splats that have it instead ---- #
+            # Alchemicals took no part in the Great Curse and have no Limit at all
+            # (p.69); Clarity stands in its place. Only the TEMPORARY half is a
+            # counter — the permanent half is derived from Essence and installed
+            # Charms, so it is shown read-only above the track.
+            if derive.uses_clarity(ruleset, character):
+                cl = derive.clarity(ruleset, character)
+                with _panel(f"Clarity  ({cl.total} / {derive.CLARITY_MAX}"
+                            f"  ·  {cl.permanent} permanent + {cl.temporary} temporary)", pal):
+                    if cl.sources:
+                        ui.label("Permanent (derived): " + ", ".join(
+                            f"{label} +{dots}" for label, dots in cl.sources)).classes(
+                            "text-xs text-gray-600")
+                    else:
+                        ui.label("No permanent Clarity — Essence 5 or below, and no "
+                                 "Charm installed that grants it.").classes(
+                            "text-xs text-gray-600")
+                    ui.label("Temporary (click to set):").classes("text-xs text-gray-600 mt-1")
+                    with ui.row().classes("gap-1 flex-wrap"):
+                        for i in range(derive.CLARITY_MAX):
+                            count_box(character, i, i < cur.clarity_temporary,
+                                      "clarity_temporary", derive.CLARITY_MAX, body.refresh)
+                    if cl.capped:
+                        ui.label(f"Permanent + temporary exceeds {derive.CLARITY_MAX}; "
+                                 "the total is capped (p.69).").classes(
+                            "text-xs text-amber-700")
+                    ui.label(f"{cl.band}: {cl.effects}").classes("text-xs mt-1").style(
+                        f"color:{pal.accent}")
+                    ui.label("Clarity never breaks or resets at 10, unlike Limit "
+                             "(p.70).").classes("text-xs text-gray-500")
+            else:
+                with _panel(f"Limit  ({cur.limit} / 10"
+                            f"{'  — LIMIT BREAK' if cur.limit >= 10 else ''})", pal):
+                    with ui.row().classes("gap-1 flex-wrap"):
+                        for i in range(10):
+                            count_box(character, i, i < cur.limit, "limit", 10, body.refresh)
 
+            _curse = "Clarity" if derive.uses_clarity(ruleset, character) else "Limit"
             ui.button("Clear motes spent", icon="refresh", on_click=clear_motes).props(
-                f"flat color={pal.button}").tooltip("Resets Personal and Peripheral motes spent to 0. "
-                                            "Willpower, Health, and Limit are left to you / the ST.")
+                f"flat color={pal.button}").tooltip(
+                "Resets Personal and Peripheral motes spent to 0. "
+                f"Willpower, Health, and {_curse} are left to you / the ST.")
 
     def _mote_input(label: str, field: str, value: int, cap: int) -> None:
         with ui.column().classes("gap-0"):

@@ -4,6 +4,7 @@
     "name": "Strain Resistant Chassis Modification",
     "type": "Special",
     "min_attribute": "stamina",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "repeatable_cap_ability": "essence",
@@ -46,6 +47,7 @@
     "name": "Pain Suppression Nodes",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -71,6 +73,7 @@
     "name": "Subcutaneous/Exoskeletal Armor Plating",
     "type": "Permanent",
     "min_attribute": "stamina",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -95,6 +98,7 @@
     "name": "Aegis Integration System",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -121,6 +125,7 @@
     "name": "Essence Shield Projector",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],
@@ -142,6 +147,7 @@
     "name": "Crystal-Inured Frame",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -167,6 +173,7 @@
     "name": "Lightning-Inured Frame",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -192,6 +199,7 @@
     "name": "Oil-Inured Frame",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -217,6 +225,7 @@
     "name": "Metal-Inured Frame",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -242,6 +251,7 @@
     "name": "Steam-Inured Frame",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -267,6 +277,7 @@
     "name": "Insectile Locomotion Upgrade",
     "type": "Simple",
     "min_attribute": "dexterity",
+    "min_ability": 3,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -285,13 +296,15 @@
       "page": 109
     },
     "exalt_type": "Alchemical",
-    "category": "might_and_mobility"
+    "category": "might_and_mobility",
+    "permanent_clarity": 1
   },
   {
     "id": "alchemical.might-and-mobility.alloyed-reinforcement-of-flesh",
     "name": "Alloyed Reinforcement of Flesh",
     "type": "Permanent",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -317,6 +330,7 @@
     "name": "Personal Gravity Manipulation Apparatus",
     "type": "Simple",
     "min_attribute": "strength",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],
@@ -338,6 +352,7 @@
     "name": "Parabolic Leap Overcharger Device",
     "type": "Reflexive",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -362,6 +377,7 @@
     "name": "Plasma Thruster Assembly",
     "type": "Reflexive",
     "min_attribute": "strength",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -386,6 +402,7 @@
     "name": "Fluidic Impeller Drive",
     "type": "Simple",
     "min_attribute": "strength",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],
@@ -407,6 +424,7 @@
     "name": "Electroneural Control Spurs",
     "type": "Simple",
     "min_attribute": "charisma",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -434,6 +452,7 @@
     "name": "Universal Pilot Key",
     "type": "Simple",
     "min_attribute": "charisma",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [

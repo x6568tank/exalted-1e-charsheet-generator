@@ -64,3 +64,23 @@ def test_breeding_id_matches_the_essence_coefficient(rs):
     spec = rs.exalt_for("Dragon-Blooded").essence
     assert spec.breeding_background == "Breeding"
     assert any(b.name == "Breeding" for b in rs.background_catalog.values())
+
+
+# --- Background descriptions surface in the picker -------------------------- #
+# The catalog descriptions were authored but entirely unread by the UI until the
+# Background selects started rendering them as per-option hover tooltips.
+
+def test_every_background_has_a_description(rs):
+    """A Background with no description shows no tooltip, which reads as a bug."""
+    missing = [b.id for b in rs.background_catalog.values() if not b.description.strip()]
+    assert not missing, missing
+
+
+def test_background_selects_are_described_in_editor_and_xp():
+    """Both places a Background is chosen must show the descriptions — the chargen
+    editor and the post-lock XP tab, where Backgrounds stay freely editable."""
+    import inspect
+    from exalted_builder.ui import editor, xp
+    for module in (editor, xp):
+        src = inspect.getsource(module)
+        assert "DescribedSelect(_opts_with(bg_names" in src, module.__name__

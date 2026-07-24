@@ -4,6 +4,7 @@
     "name": "Tactical Analysis Engrams",
     "type": "Reflexive",
     "min_attribute": "wits",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -30,6 +31,7 @@
     "name": "Accelerated Response System",
     "type": "Reflexive",
     "min_attribute": "dexterity",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -56,6 +58,7 @@
     "name": "Dynamic Reaction Enhancement System",
     "type": "Reflexive",
     "min_attribute": "dexterity",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -81,6 +84,7 @@
     "name": "Celerity Enabling Module",
     "type": "Extra Action",
     "min_attribute": "dexterity",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -107,6 +111,7 @@
     "name": "Anticipatory Simulation Processor",
     "type": "Reflexive",
     "min_attribute": "wits",
+    "min_ability": 5,
     "min_essence": 4,
     "installation_cost": 1,
     "prerequisites": [
@@ -138,6 +143,7 @@
     "name": "Polymodal Joint Bearings",
     "type": "Simple",
     "min_attribute": "dexterity",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -175,6 +181,7 @@
     "name": "Limb Extension Armatures",
     "type": "Simple",
     "min_attribute": "dexterity",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -201,6 +208,7 @@
     "name": "Multi-Limb Frame",
     "type": "Simple",
     "min_attribute": "dexterity",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -225,6 +233,7 @@
     "name": "Hyperdextrous Tentacle Apparatus",
     "type": "Simple",
     "min_attribute": "dexterity",
+    "min_ability": 5,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -250,13 +259,15 @@
       "page": 95
     },
     "exalt_type": "Alchemical",
-    "category": "close_combat"
+    "category": "close_combat",
+    "permanent_clarity": 1
   },
   {
     "id": "alchemical.close-combat.integrated-arsenal-upgrade",
     "name": "Integrated Arsenal Upgrade",
     "type": "Permanent",
     "min_attribute": "dexterity",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -290,6 +301,7 @@
     "name": "Orichalcum Synthesis Wave Emitter",
     "type": "Supplemental",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -315,6 +327,7 @@
     "name": "Moonsilver Synthesis Wave Emitter",
     "type": "Supplemental",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -340,6 +353,7 @@
     "name": "Jade Synthesis Wave Emitter",
     "type": "Supplemental",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -365,6 +379,7 @@
     "name": "Starmetal Synthesis Wave Emitter",
     "type": "Supplemental",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -390,6 +405,7 @@
     "name": "Soulsteel Synthesis Wave Emitter",
     "type": "Supplemental",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -415,6 +431,7 @@
     "name": "Adamant Synthesis Wave Emitter",
     "type": "Supplemental",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 0,
     "prerequisites": [
@@ -440,6 +457,7 @@
     "name": "Transcendent Multimodal Weapon Matrix",
     "type": "Simple",
     "min_attribute": "dexterity",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 0,
     "prerequisites": [
@@ -473,6 +491,7 @@
     "name": "Electrification Onslaught Dynamo",
     "type": "Reflexive",
     "min_attribute": "strength",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -497,6 +516,7 @@
     "name": "Chemical Fog Generator",
     "type": "Reflexive",
     "min_attribute": "manipulation",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],

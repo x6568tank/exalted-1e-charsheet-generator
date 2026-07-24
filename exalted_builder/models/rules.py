@@ -279,6 +279,15 @@ class Charm(BaseModel):
     # Storage Unit and the Man-/God-Machine Weaving Engines say so explicitly. True
     # for every ordinary Charm (Arrays otherwise accept any Attribute-based Charm).
     arrayable: bool = True
+    # True bars this Charm from ever being uninstalled once worn (CH3 p.141: an
+    # Alchemical "cannot ever remove" either Weaving Engine). The vat refit refuses to
+    # move it to the Panoply. Default False — an ordinary Charm is freely refittable.
+    permanent_install: bool = False
+    # Dots of PERMANENT Clarity gained by installing this Charm (CH2 p.69). Six
+    # Alchemical Charms grant one each; 0 for every other Charm. Derived, not tracked:
+    # removing the Charm removes the dots (p.70), which falls out of reading this off
+    # the character's installed Charms.
+    permanent_clarity: int = Field(default=0, ge=0)
     description: str = ""
     source: Source = Field(default_factory=Source)
 
@@ -590,6 +599,33 @@ class ExperienceCosts(BaseModel):
     new_martial_arts_charm: int = 11       # gated on Perfected Lotus Matrix (transition deferred)
 
 
+class BackgroundRule(BaseModel):
+    """Mechanical rules attached to ONE Background for ONE splat (see
+    `ChargenBudgets.background_rules`).
+
+    Backgrounds are otherwise deliberately soft in this project — free text, an
+    autofill catalog, never hard-validated. The Alchemical is the first splat whose
+    book gives Backgrounds actual chargen mechanics (CH2 p.65-69), so this is the
+    narrow, opt-in exception: a Background with no rule behaves exactly as before.
+
+    `expensive_above`/`expensive_dot_cost` model a Background whose upper dots cost
+    more than one dot of the chargen pool each (Alchemical Artifact: "the fourth and
+    fifth dot still cost two (2) dots each"). `cap_pre_bp_exempt` lets a Background
+    exceed `background_cap_pre_bp` without bonus points ("only Artifact may be higher
+    than 3 without bonus points"). `min_rating` is a rating the splat receives
+    automatically ("Alchemical Exalted automatically receive Class ••• during
+    character creation"). `requires`/`requires_rating` gate one Background on another
+    (Backing "requires Class •••+ as a prerequisite")."""
+    model_config = ConfigDict(frozen=True)
+
+    cap_pre_bp_exempt: bool = False
+    expensive_above: int = 0               # 0 = every dot costs one pool dot
+    expensive_dot_cost: int = Field(default=1, ge=1)
+    min_rating: int = Field(default=0, ge=0)
+    requires: str = ""                     # another Background's NAME, lowercased
+    requires_rating: int = Field(default=0, ge=0)
+
+
 class ChargenBudgets(BaseModel):
     # attributes: 8/6/4 across the three prioritized categories; all start at 1.
     # Which category gets which pool is derived from the per-category spend, not stored.
@@ -630,6 +666,14 @@ class ChargenBudgets(BaseModel):
 
     background_dots: int = 7
     background_cap_pre_bp: int = 3
+    # Per-Background mechanical rules, keyed by the Background's NAME lowercased
+    # (character.BackgroundEntry.name is free text, not an id, so this cannot key on
+    # BackgroundType.id). Empty for every splat whose Backgrounds are purely narrative
+    # — which was ALL of them until the Alchemical (CH2 p.65-69) introduced the first
+    # Backgrounds with real mechanics. Per-splat because the rules modify otherwise
+    # universal Backgrounds: Artifact is ordinary for a Solar and heavily reworked for
+    # an Alchemical, so the mechanics cannot live on the shared BackgroundType.
+    background_rules: dict[str, BackgroundRule] = Field(default_factory=dict)
 
     # Astrological Colleges (Sidereal, p.98) — a rated Advantage with its OWN point
     # pool, separate from Abilities and Backgrounds. `college_dots` 0 (the default)
@@ -749,6 +793,11 @@ class ExaltDefinition(BaseModel):
     # never validated or priced; this flag only decides whether the UI offers the
     # page at all. True for Lunar; a later shapeshifting splat can opt in as data.
     form_library: bool = False
+    # Does this splat use Clarity in place of Limit (CH2 p.69-71)? True for Alchemical,
+    # who took no part in the Great Curse and so have no Limit at all. Decides whether
+    # the tracker shows Clarity or Limit; the permanent half is derived in
+    # engine.derive.clarity, the temporary half tracked on PlayState.
+    clarity: bool = False
     # What this splat calls its caste slot in the UI: Solars have "Caste", the
     # Dragon-Blooded have "Aspect". Presentation only — the underlying field is
     # still Character.caste keyed to RuleSet.castes.

@@ -73,6 +73,109 @@ class DerivedTraits(BaseModel):
     soak: SoakView
 
 
+# --- Clarity (Alchemical, CH2 p.69-71) -------------------------------------- #
+# The Alchemical replacement for Limit. It has two halves that behave differently,
+# and only one of them belongs here:
+#
+#   PERMANENT Clarity is fully determined by stored traits — one dot per dot of
+#   Essence above 5, plus one for each installed Charm that grants it (p.69). It is
+#   therefore DERIVED, exactly like the health track or the Essence pools, and never
+#   stored. That also makes p.70's "removing these conditions immediately removes the
+#   appropriate amount of permanent Clarity" free: uninstall the Charm or drop the
+#   Essence and the dots go with it, with no bookkeeping.
+#
+#   TEMPORARY Clarity is pure Storyteller adjudication (suppressing Virtues, weeks
+#   without human contact, Compassion rolls after a scene). It lives on PlayState with
+#   Limit and Renown, and nothing here computes it.
+#
+# The effects table below is DISPLAY ONLY. The dice penalties and bonuses are reported
+# as printed text so a sheet can show which band applies; nothing applies them to a
+# roll, the same scope line combat/attack derivation sits behind.
+
+CLARITY_MAX = 10                   # "cannot ever exceed 10 under any circumstances"
+
+# (upper bound of band, label, printed effects) — p.70-71, in ascending order.
+CLARITY_BANDS: tuple[tuple[int, str, str], ...] = (
+    (2, "0-2",
+     "No sign of emotional dissociation or alien thought. As pleasant to deal with "
+     "as her Social Attributes and Abilities allow."),
+    (4, "3-4",
+     "Colder and more callous. -1 die to Social rolls (except intimidation) with "
+     "sentient/feeling beings, +1 die with Autochthonian deities, automata and "
+     "Alchemicals of equal or greater Clarity; -1 die to all Compassion rolls."),
+    (7, "5-7",
+     "Notably inhuman: clipped, laconic, efficient. The Social penalty/bonus and the "
+     "Compassion penalty rise to 2 dice."),
+    (9, "8-9",
+     "Humanity is a distant memory; courtesy is simulated without feeling. Social and "
+     "Compassion penalties/bonuses rise to 3 dice. +1 die to Mental Attribute or "
+     "Temperance rolls involving memory recall, analytical deduction or dispassionate "
+     "self-control, as the Storyteller allows."),
+    (10, "10",
+     "Aloof and utterly alien; amoral though not malicious. Social penalty/bonus rises "
+     "to 4 dice and she automatically FAILS all Compassion rolls. +2 dice to the "
+     "cognitive and Temperance rolls described for Clarity 8-9."),
+)
+
+
+class ClarityView(BaseModel):
+    """The Clarity picture for a sheet: the derived permanent half with its sources
+    itemised, the tracked temporary half, and the band the total falls in."""
+    permanent: int
+    temporary: int
+    total: int                     # permanent + temporary, capped at CLARITY_MAX
+    sources: list[tuple[str, int]]  # (label, dots) making up `permanent`
+    band: str                      # "5-7"
+    effects: str                   # the printed effects for that band
+
+    @property
+    def capped(self) -> bool:
+        """True when permanent + temporary was clipped by the hard 10 ceiling."""
+        return self.permanent + self.temporary > CLARITY_MAX
+
+
+def clarity_band(total: int) -> tuple[str, str]:
+    """The (label, effects) band `total` falls in (p.70-71)."""
+    for bound, label, effects in CLARITY_BANDS:
+        if total <= bound:
+            return label, effects
+    return CLARITY_BANDS[-1][1], CLARITY_BANDS[-1][2]
+
+
+def uses_clarity(ruleset: RuleSet, character: Character) -> bool:
+    """Whether Clarity applies to this character. Data-driven: a splat uses Clarity if
+    any Charm it can hold grants permanent Clarity would be too loose, so this asks the
+    ExaltDefinition instead — see `ExaltDefinition.clarity`."""
+    exalt = ruleset.exalt_for(character.exalt_type)
+    return bool(exalt and exalt.clarity)
+
+
+def permanent_clarity(ruleset: RuleSet, character: Character) -> list[tuple[str, int]]:
+    """The itemised sources of permanent Clarity (p.69): one dot per dot of Essence
+    above 5, plus one per installed Charm that grants it. Reads the character's LIVE
+    installed Charms, so a vat refit that sheds such a Charm sheds its dots too."""
+    sources: list[tuple[str, int]] = []
+    over = max(0, character.essence_rating - 5)
+    if over:
+        sources.append((f"Essence {character.essence_rating}", over))
+    for cid in character.charms:
+        charm = ruleset.charms.get(cid)
+        if charm is not None and charm.permanent_clarity:
+            sources.append((charm.name, charm.permanent_clarity))
+    return sources
+
+
+def clarity(ruleset: RuleSet, character: Character) -> ClarityView:
+    """The full Clarity view: derived permanent + tracked temporary, capped at 10."""
+    sources = permanent_clarity(ruleset, character)
+    perm = sum(dots for _label, dots in sources)
+    temp = character.play.clarity_temporary if character.play is not None else 0
+    total = min(CLARITY_MAX, perm + temp)
+    label, effects = clarity_band(total)
+    return ClarityView(permanent=perm, temporary=temp, total=total,
+                       sources=sources, band=label, effects=effects)
+
+
 def two_highest_virtues(virtues: dict[VirtueName, int]) -> int:
     """Sum of the two highest Virtue ratings — the Willpower component at chargen."""
     ordered = sorted(virtues.values(), reverse=True)

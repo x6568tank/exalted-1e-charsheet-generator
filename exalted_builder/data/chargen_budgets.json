@@ -128,6 +128,11 @@
     "charm_slots_dedicated": 4,
     "virtue_dots": 5,
     "essence_start": 2,
-    "bonus_points": 15
+    "bonus_points": 15,
+    "background_rules": {
+      "class":    {"min_rating": 3},
+      "backing":  {"requires": "class", "requires_rating": 3},
+      "artifact": {"cap_pre_bp_exempt": true, "expensive_above": 3, "expensive_dot_cost": 2}
+    }
   }
 }

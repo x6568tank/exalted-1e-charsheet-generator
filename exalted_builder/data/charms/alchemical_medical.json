@@ -4,6 +4,7 @@
     "name": "Sustenance Replication Engine",
     "type": "Permanent",
     "min_attribute": "stamina",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -28,6 +29,7 @@
     "name": "Biofunction Inhibitor",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -54,6 +56,7 @@
     "name": "Toxicity Filtration Subsystems",
     "type": "Reflexive",
     "min_attribute": "stamina",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -80,6 +83,7 @@
     "name": "Restorative Fusion Transponder",
     "type": "Simple",
     "min_attribute": "stamina",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -105,6 +109,7 @@
     "name": "Body-Reweaving Matrix",
     "type": "Reflexive",
     "min_attribute": "stamina",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -131,6 +136,7 @@
     "name": "Diagnostic Sensor Apparatus",
     "type": "Simple",
     "min_attribute": "perception",
+    "min_ability": 2,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -157,6 +163,7 @@
     "name": "Biosight Reticle",
     "type": "Simple",
     "min_attribute": "perception",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 1,
     "prerequisites": [
@@ -183,6 +190,7 @@
     "name": "Biostasis Field Projector",
     "type": "Simple",
     "min_attribute": "intelligence",
+    "min_ability": 3,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -211,6 +219,7 @@
     "name": "Multifunction Hypodermic Apparatus",
     "type": "Simple",
     "min_attribute": "intelligence",
+    "min_ability": 4,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [
@@ -342,6 +351,7 @@
     "name": "Regenerative Essence Transfusion",
     "type": "Simple",
     "min_attribute": "intelligence",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 0,
     "prerequisites": [
@@ -369,6 +379,7 @@
     "name": "Metabolic Augmentation Injection",
     "type": "Simple",
     "min_attribute": "intelligence",
+    "min_ability": 4,
     "min_essence": 3,
     "installation_cost": 0,
     "prerequisites": [

@@ -541,6 +541,73 @@ def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def background_rule(budgets, name: str):
+    """The `BackgroundRule` for the Background called `name` under these budgets, or
+    None when it has no mechanics. Backgrounds are free text, so the lookup is by
+    lowercased, stripped NAME — not by `BackgroundType.id`."""
+    return budgets.background_rules.get(name.strip().lower())
+
+
+def background_pool_dots(rule, rating: int) -> int:
+    """How many dots of the chargen Background pool a rating of `rating` consumes.
+    Ordinarily one per dot; a rule may make the dots above a threshold cost more
+    (Alchemical Artifact: dots 4 and 5 cost two pool dots each, CH2 p.65)."""
+    if rule is None or not rule.expensive_above or rating <= rule.expensive_above:
+        return rating
+    cheap = rule.expensive_above
+    return cheap + (rating - cheap) * rule.expensive_dot_cost
+
+
+def background_rating(backgrounds, name: str) -> int:
+    """The character's rating in the Background called `name` (0 if absent). Sums
+    duplicates, since Backgrounds are free text and nothing stops two rows."""
+    key = name.strip().lower()
+    return sum(bg.rating for bg in backgrounds if bg.name.strip().lower() == key)
+
+
+def background_issues(budgets, backgrounds) -> list[Issue]:
+    """Chargen legality for Backgrounds that carry mechanics (`background_rules`).
+    Empty for every splat with none — which is all of them but the Alchemical, whose
+    book is the first to give Backgrounds real rules (CH2 p.65-69).
+
+    Two checks: a Background the splat receives automatically may not be below that
+    rating (Alchemicals "automatically receive Class ••• during character creation"),
+    and a Background gated on another must have it (Backing "requires Class •••+")."""
+    issues: list[Issue] = []
+    for name, rule in budgets.background_rules.items():
+        rating = background_rating(backgrounds, name)
+        if rule.min_rating and rating < rule.min_rating:
+            issues.append(Issue(
+                code="background-below-minimum", where=name,
+                message=f"{name.title()} is automatically {rule.min_rating} at character "
+                        f"creation; this character has {rating}.",
+            ))
+        if rule.requires and rating > 0:
+            have = background_rating(backgrounds, rule.requires)
+            if have < rule.requires_rating:
+                issues.append(Issue(
+                    code="background-requires", where=name,
+                    message=f"{name.title()} requires {rule.requires.title()} "
+                            f"{rule.requires_rating}+; this character has {have}.",
+                ))
+    return issues
+
+
+def eligible_array_charms(ruleset: RuleSet, character: Character) -> list[str]:
+    """Ids of the character's known Charms that may legally be linked into an Array
+    (p.89) — Attribute-based and `arrayable`, which excludes the Ability-based
+    supernatural martial arts and the Weaving Engines. Order follows the character's
+    Charm list. This is the Array counterpart of `eligible_combo_charms`: it does NOT
+    exclude Charms already sitting in an Array (`validate_arrays` reports reuse), so
+    the caller decides whether to offer them again."""
+    out: list[str] = []
+    for cid in character.charms:
+        charm = ruleset.charms.get(cid)
+        if charm is not None and charm.min_attribute and charm.arrayable:
+            out.append(cid)
+    return out
+
+
 def array_issues(ruleset: RuleSet, character: Character, array) -> list[Issue]:
     """Legality findings for a single Alchemical Array (p.89): two or more *known*
     Charms, no Charm twice, and every member Attribute-based (supernatural martial
@@ -631,6 +698,39 @@ def submodule_def(ruleset: RuleSet, charm_id: str, key: str):
     return next((s for s in charm.submodules if s.key == key), None)
 
 
+def owns_submodule(character: Character, charm_id: str, key: str) -> bool:
+    """Whether the character has already purchased this submodule."""
+    return any(s.charm_id == charm_id and s.key == key for s in character.submodules)
+
+
+def submodule_block_reason(ruleset: RuleSet, character: Character,
+                           charm_id: str, key: str) -> str:
+    """Why this submodule cannot be purchased right now — "" when it can. The same
+    gates `validate_submodules` and `advancement.learn_submodule` apply (parent Charm
+    installed, own Essence and Attribute minimums), phrased for the picker so the UI
+    never re-derives them. Says nothing about affordability: BP and XP are the
+    caller's budget question, not a legality one."""
+    definition = submodule_def(ruleset, charm_id, key)
+    if definition is None:
+        return "No such submodule."
+    if owns_submodule(character, charm_id, key):
+        return "Already purchased."
+    if charm_id not in character.charms:
+        charm = ruleset.charms.get(charm_id)
+        return f"Install {charm.name if charm else charm_id} first."
+    if character.essence_rating < definition.min_essence:
+        return f"Requires Essence {definition.min_essence}."
+    if definition.min_attribute:
+        try:
+            attr = AttributeName(definition.min_attribute)
+        except ValueError:
+            return f"Unknown Attribute {definition.min_attribute!r}."
+        if character.attributes.get(attr, 0) < definition.min_attribute_rating:
+            return (f"Requires {definition.min_attribute.title()} "
+                    f"{definition.min_attribute_rating}.")
+    return ""
+
+
 def validate_submodules(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Legality of every purchased submodule (p.89): its parent Charm must exist and
     be known, the key must be a real submodule of that Charm, no submodule bought
@@ -692,6 +792,15 @@ def validate_submodules(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def array_installation_motes(ruleset: RuleSet, charm_ids) -> int:
+    """The combined installation cost of one Array's member Charms (p.89):
+    three-fourths of their summed cost, rounded up. Public so the UI can show an
+    Array's mote saving using the same arithmetic the chargen check applies."""
+    total = sum(ruleset.charms[cid].installation_cost
+                for cid in charm_ids if cid in ruleset.charms)
+    return (3 * total + 3) // 4              # ceil(3/4 * total)
+
+
 def _installation_motes(ruleset: RuleSet, charm_ids, arrays) -> int:
     """Total Personal Essence committed to install `charm_ids`, applying the Array
     discount (p.89): a Charm inside an Array contributes to that Array's combined
@@ -702,20 +811,16 @@ def _installation_motes(ruleset: RuleSet, charm_ids, arrays) -> int:
         for cid in arr.charm_ids:
             array_of.setdefault(cid, i)      # first Array wins (reuse is flagged elsewhere)
     loose = 0
-    array_sums: dict[int, int] = {}
+    grouped: dict[int, list[str]] = {}
     for cid in charm_ids:
-        charm = ruleset.charms.get(cid)
-        if charm is None:
+        if cid not in ruleset.charms:
             continue
         if cid in array_of:
-            idx = array_of[cid]
-            array_sums[idx] = array_sums.get(idx, 0) + charm.installation_cost
+            grouped.setdefault(array_of[cid], []).append(cid)
         else:
-            loose += charm.installation_cost
-    total = loose
-    for s in array_sums.values():
-        total += (3 * s + 3) // 4            # ceil(3/4 * s)
-    return total
+            loose += ruleset.charms[cid].installation_cost
+    return loose + sum(array_installation_motes(ruleset, ids)
+                       for ids in grouped.values())
 
 
 # --------------------------------------------------------------------------- #
@@ -1271,11 +1376,15 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                   + overflow_cheap * bp_costs.ability_favored_caste
                   + (overflow - overflow_cheap) * bp_costs.ability)
 
-    # --- Backgrounds: 7 free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
+    # --- Backgrounds: N free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
+    # `background_rules` (empty for every splat but the Alchemical) can exempt a
+    # Background from the cap and make its upper dots cost more than one pool dot each.
     bg_within = bg_above_bp = 0
     for bg in backgrounds:
-        bg_within += min(bg.rating, b.background_cap_pre_bp)
-        bg_above_bp += max(0, bg.rating - b.background_cap_pre_bp) * bp_costs.background_above_3
+        rule = background_rule(b, bg.name)
+        cap = bg.rating if (rule and rule.cap_pre_bp_exempt) else b.background_cap_pre_bp
+        bg_within += background_pool_dots(rule, min(bg.rating, cap))
+        bg_above_bp += max(0, bg.rating - cap) * bp_costs.background_above_3
     bg_overflow = max(0, bg_within - b.background_dots)
     bg_bp = bg_above_bp + bg_overflow * bp_costs.background
 
@@ -1415,9 +1524,13 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     """
     issues: list[Issue] = []
     b = ruleset.budgets_for(character.exalt_type, character.origin)
-    (attributes, abilities, crafts, virtues, _backgrounds, _specialties,
+    (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
      beastman_gifts, arrays, _submodules, colleges) = _chargen_source(character)
+
+    # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
+    # for every splat whose Backgrounds are purely narrative.
+    issues += background_issues(b, backgrounds)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:

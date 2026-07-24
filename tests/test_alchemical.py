@@ -16,8 +16,11 @@ import pytest
 
 import exalted_builder
 from exalted_builder import rules_db
-from exalted_builder.engine import advancement, derive, lifecycle, validate
-from exalted_builder.models.character import Array, Character, SubmodulePurchase
+from exalted_builder.engine import (advancement, costs, derive, lifecycle, refit,
+                                    validate)
+from exalted_builder.models.character import (Array, BackgroundEntry, Character,
+                                             PlayState,
+                                             SubmodulePurchase)
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
@@ -53,7 +56,10 @@ def _alchemical(caste="orichalcum") -> Character:
         A.LORE: 3, A.OCCULT: 3, A.PRESENCE: 3, A.BUREAUCRACY: 2,   # = 23
     })
     c.virtues.update({V.COMPASSION: 3, V.CONVICTION: 3, V.TEMPERANCE: 2, V.VALOR: 1})  # spend 5
-    c.backgrounds = []
+    # Class ••• is automatic for every Alchemical (CH2 p.66), so the minimum-rating
+    # rule requires it even on an otherwise-bare fixture. It spends 3 of the 13
+    # Background dots, which are free, so the build still costs 0 bonus points.
+    c.backgrounds = [BackgroundEntry(name="Class", rating=3)]
     c.essence_rating = 2
     return c
 
@@ -159,6 +165,85 @@ def test_favored_attributes_get_discounted_overspend(rs):
 
 
 # --------------------------------------------------------------------------- #
+# Backgrounds (CH2 p.65-69)
+# --------------------------------------------------------------------------- #
+# The Alchemical is the FIRST splat whose Backgrounds carry real chargen mechanics;
+# for every other splat they stay soft free text and `background_rules` is empty.
+
+def _bg(c, **ratings):
+    c.backgrounds = [BackgroundEntry(name=n, rating=r) for n, r in ratings.items()]
+    return c
+
+
+def test_alchemical_backgrounds_are_in_the_catalog(rs):
+    catalog = {b.id: b for b in rs.backgrounds_for("Alchemical")}
+    assert "background.class" in catalog and "background.vats" in catalog
+    # Both are Alchemical-only and must not leak into another splat's picker.
+    solar = {b.id for b in rs.backgrounds_for("Solar")}
+    assert "background.class" not in solar and "background.vats" not in solar
+
+
+def test_other_splats_have_no_background_mechanics(rs):
+    """The rules are opt-in per splat; nothing may change for anyone else."""
+    for splat in ("Solar", "Abyssal", "Dragon-Blooded", "Lunar"):
+        assert rs.budgets_for(splat).background_rules == {}
+
+
+def test_class_is_automatic_at_three(rs):
+    c = _bg(_alchemical(), Class=3)
+    assert not _codes(validate.validate_chargen(rs, c), "background-below-minimum")
+    c = _bg(_alchemical(), Class=2)
+    assert _codes(validate.validate_chargen(rs, c), "background-below-minimum")
+
+
+def test_backing_requires_class_three(rs):
+    c = _bg(_alchemical(), Class=3, Backing=2)
+    assert not _codes(validate.validate_chargen(rs, c), "background-requires")
+    # Class 3 is the gate; a lower Class fails Backing as well as its own minimum.
+    c = _bg(_alchemical(), Class=1, Backing=2)
+    assert _codes(validate.validate_chargen(rs, c), "background-requires")
+    # No Backing at all: the prerequisite is moot, not violated.
+    c = _bg(_alchemical(), Class=1)
+    assert not _codes(validate.validate_chargen(rs, c), "background-requires")
+
+
+def test_artifact_may_exceed_three_without_bonus_points(rs):
+    """"Only Artifact may be higher than 3 without bonus points" (p.61) — for any
+    other Background the 4th and 5th dot cost bonus points."""
+    c = _bg(_alchemical(), Class=3, Artifact=5)          # 3 + 2 + 2 = 7 pool dots
+    assert validate.bonus_point_breakdown(rs, c).total == 0
+    c = _bg(_alchemical(), Class=3, Vats=5)              # 2 dots above the cap
+    line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                if l.domain == "Backgrounds")
+    assert line.points == 2 * rs.bonus_costs_for("Alchemical").background_above_3
+
+
+def test_artifact_fourth_and_fifth_dots_cost_two_pool_dots_each(rs):
+    """"The fourth and fifth dot still cost two (2) dots each" (p.65)."""
+    assert validate.background_pool_dots(
+        validate.background_rule(rs.budgets_for("Alchemical"), "Artifact"), 3) == 3
+    assert validate.background_pool_dots(
+        validate.background_rule(rs.budgets_for("Alchemical"), "Artifact"), 4) == 5
+    assert validate.background_pool_dots(
+        validate.background_rule(rs.budgets_for("Alchemical"), "Artifact"), 5) == 7
+    # Artifact 5 eats SEVEN of the 13 dots, not five: Class 3 + Artifact 7 + Vats 3
+    # exactly fills the pool.
+    c = _bg(_alchemical(), Class=3, Artifact=5, Vats=3)
+    assert validate.bonus_point_breakdown(rs, c).total == 0
+    # One more dot overflows the pool, charged at the flat per-dot rate (1) — which is
+    # a different charge from exceeding the cap-3 rule (background_above_3, 2).
+    c = _bg(_alchemical(), Class=3, Artifact=5, Vats=3, Allies=1)
+    assert validate.bonus_point_breakdown(rs, c).total == rs.bonus_costs_for(
+        "Alchemical").background
+
+
+def test_background_rules_are_matched_case_insensitively(rs):
+    """BackgroundEntry.name is free text, so the lookup must not be brittle."""
+    c = _bg(_alchemical(), **{"class": 3})
+    assert not _codes(validate.validate_chargen(rs, c), "background-below-minimum")
+
+
+# --------------------------------------------------------------------------- #
 # Charm Slot system (p.88-89)
 # --------------------------------------------------------------------------- #
 # Orichalcum Caste Attributes = Strength/Charisma/Intelligence; the _alchemical()
@@ -257,6 +342,16 @@ def _valid_alchemical_with_charms(rs) -> Character:
     return c
 
 
+# Two Attribute-keyed Charms with a NON-ZERO minimum Attribute rating (Wits 3 and
+# Dexterity 3, CH3 p.90), so an Array built from them has a real XP price. The root
+# Augmentations rate 1-2, and CF_CHARMS are the Transitory roots, so a price built
+# from those alone would not catch a cost function that always returned 0.
+_RATED_ARRAY_CHARMS = (
+    "alchemical.close-combat.tactical-analysis-engrams",       # Minimum Wits: 3
+    "alchemical.close-combat.accelerated-response-system",     # Minimum Dexterity: 3
+)
+
+
 def test_valid_array_costs_one_bp_per_charm(rs):
     c = _valid_alchemical_with_charms(rs)
     c.arrays = [Array(name="Reflex Suite", charm_ids=CF_CHARMS[:3])]  # 3 Charms
@@ -329,6 +424,118 @@ def test_array_reduces_installation_cost_to_three_quarters(rs):
     assert validate._installation_motes(rs, four, []) == 4
     arr = [Array(name="Quad", charm_ids=four)]
     assert validate._installation_motes(rs, four, arr) == 3   # ceil(3/4 * 4) = 3
+
+
+def test_every_attribute_keyed_charm_carries_its_minimum_rating(rs):
+    """Every Alchemical Charm prints a 'Minimum <Attribute>: N' line (CH3), and that
+    N lives in min_ability — min_attribute only NAMES the trait. A missing rating is
+    silently invisible twice over: the Charm gates on nothing, and Arrays built from
+    it price at 0 XP (their cost IS the sum of these ratings, p.89). Every one of the
+    120 Attribute-keyed Charms shipped with min_ability 0 until 2026-07-23."""
+    alch = [c for c in rs.charms.values() if c.exalt_type == "Alchemical"]
+    missing = [c.id for c in alch if c.min_attribute and c.min_ability <= 0]
+    assert not missing, missing
+    # Spot-checks straight off the page, one per shape of source entry.
+    def rating(cid):
+        return rs.charms[cid].min_ability
+    assert rating("alchemical.close-combat.tactical-analysis-engrams") == 3   # plain
+    assert rating("alchemical.close-combat.limb-extension-armatures") == 3    # "Minimums"
+    assert rating("alchemical.sensory-and-spiritual.tympanal-receptor-upgrade") == 3
+    assert rating("alchemical.general.transitory-augmentation-of-wits") == 1  # template
+    assert rating("alchemical.general.sustained-augmentation-of-wits") == 2   # template
+    assert rating("alchemical.might-and-mobility.steam-inured-frame") == 4    # (Element)
+    assert rating("alchemical.close-combat.material-synthesis-wave-emitter-jade") == 3
+    # The chapter's only above-5 minimum; reachable because Sustained Augmentation
+    # raises that Attribute's maximum by a dot (p.92).
+    assert rating("alchemical.essence-and-weaving.god-machine-weaving-engine") == 6
+
+
+def test_attribute_minimum_actually_gates_charm_learning(rs):
+    """The rating is not decoration: a character below it cannot take the Charm."""
+    c = _alchemical()
+    charm = rs.charms["alchemical.close-combat.tactical-analysis-engrams"]   # Wits 3
+    c.charms = ["alchemical.general.transitory-augmentation-of-wits"]        # prereq met
+    c.essence_rating = 2
+    c.attributes[AT.WITS] = 2
+    assert not validate.meets_charm_requirements(rs, c, charm)
+    c.attributes[AT.WITS] = 3
+    assert validate.meets_charm_requirements(rs, c, charm)
+
+
+def test_array_installation_motes_is_the_public_three_quarters_rule(rs):
+    """The public helper the UI reads must agree with the chargen check's arithmetic —
+    they are the same code path, so a divergence is impossible by construction."""
+    four = CF_CHARMS[:4]
+    assert validate.array_installation_motes(rs, four) == 3
+    assert (validate.array_installation_motes(rs, four)
+            == validate._installation_motes(rs, four, [Array(name="Q", charm_ids=four)]))
+
+
+def test_eligible_array_charms_excludes_ability_based_and_unarrayable(rs):
+    c = _valid_alchemical_with_charms(rs)
+    weave = "alchemical.essence-and-weaving.man-machine-weaving-engine"
+    ability_charm = "solar.archery.wise-arrow"
+    c.charms = c.charms + [weave, ability_charm]
+    eligible = validate.eligible_array_charms(rs, c)
+    assert CF_CHARMS[0] in eligible
+    assert weave not in eligible                     # arrayable=False
+    assert ability_charm not in eligible             # Ability-based, not Attribute-based
+
+
+# --- Arrays post-lock (XP = sum of minimum Attribute ratings, p.89) --------- #
+
+def test_add_array_costs_sum_of_min_attribute_ratings(rs):
+    c = _locked_alch(rs)
+    # Dynamic Reaction Enhancement System and Accelerated Response System both gate on
+    # a rated Attribute, so the Array has a non-zero price (unlike the rating-0 roots).
+    c.charms = list(_RATED_ARRAY_CHARMS)
+    expected = sum(rs.charms[cid].min_ability for cid in _RATED_ARRAY_CHARMS)
+    assert expected > 0
+    assert costs.array_cost(rs, list(_RATED_ARRAY_CHARMS)) == expected
+    before = advancement.xp_available(c)
+    advancement.add_array(rs, c, "Reflex Suite", list(_RATED_ARRAY_CHARMS))
+    assert [a.name for a in c.arrays] == ["Reflex Suite"]
+    assert advancement.xp_available(c) == before - expected
+    # the audit re-derives the price and agrees with what was charged
+    assert not [i for i in advancement.validate_xp(rs, c) if i.severity == "error"]
+
+
+def test_add_array_undo_removes_it_and_refunds(rs):
+    c = _locked_alch(rs)
+    c.charms = list(_RATED_ARRAY_CHARMS)
+    before = advancement.xp_available(c)
+    advancement.add_array(rs, c, "Reflex Suite", list(_RATED_ARRAY_CHARMS))
+    advancement.undo_last(rs, c)
+    assert c.arrays == []
+    assert advancement.xp_available(c) == before
+
+
+def test_add_array_rejects_reusing_a_linked_charm(rs):
+    """A Charm may join only one Array — the post-lock path must enforce the
+    cross-Array rule too, not just the per-Array one."""
+    c = _locked_alch(rs)
+    c.charms = list(_RATED_ARRAY_CHARMS)
+    advancement.add_array(rs, c, "First", list(_RATED_ARRAY_CHARMS))
+    with pytest.raises(advancement.AdvancementError, match="already linked"):
+        advancement.add_array(rs, c, "Second", list(_RATED_ARRAY_CHARMS))
+
+
+def test_add_array_rejects_illegal_set(rs):
+    c = _locked_alch(rs)
+    c.charms = list(_RATED_ARRAY_CHARMS)
+    with pytest.raises(advancement.AdvancementError, match="at least two"):
+        advancement.add_array(rs, c, "Lonely", [_RATED_ARRAY_CHARMS[0]])
+
+
+def test_add_array_barred_for_a_non_slot_splat(rs):
+    """Eclipse/Moonshadow may not build Arrays (p.90) even once they hold Alchemical
+    Charms through the crossover rule."""
+    solar = Character(id="s", exalt_type="Solar", caste="eclipse")
+    solar.charms = ["solar.melee.example-base-charm", "solar.melee.fire-and-stones-strike"]
+    lifecycle.lock_chargen(solar)
+    solar.xp_earned = 100
+    with pytest.raises(advancement.AdvancementError, match="Alchemical"):
+        advancement.add_array(rs, solar, "Nope", list(solar.charms))
 
 
 # --------------------------------------------------------------------------- #
@@ -407,13 +614,233 @@ def test_learn_submodule_post_lock_then_undo(rs):
     assert not c.submodules and not c.xp_log
 
 
+def test_submodule_block_reason_walks_each_gate_in_turn(rs):
+    """The picker's one source of submodule eligibility. Reasons must clear in order:
+    parent Charm installed, then the submodule's own Attribute minimum."""
+    parent = "alchemical.close-combat.polymodal-joint-bearings"
+    key = rs.charms[parent].submodules[0].key
+    c = _alchemical()
+    assert "install" in validate.submodule_block_reason(rs, c, parent, key).lower()
+    c.charms = [parent]
+    c.attributes[AT.WITS] = 2                      # omnidextrous requires Wits 3
+    assert "Wits 3" in validate.submodule_block_reason(rs, c, parent, key)
+    c.attributes[AT.WITS] = 3
+    assert validate.submodule_block_reason(rs, c, parent, key) == ""
+    c.submodules = [SubmodulePurchase(charm_id=parent, key=key)]
+    assert validate.submodule_block_reason(rs, c, parent, key) == "Already purchased."
+    assert validate.owns_submodule(c, parent, key)
+
+
+def test_submodule_rows_carry_both_prices_and_are_empty_for_plain_charms(rs):
+    from exalted_builder.ui import view as viewmod
+    parent = "alchemical.close-combat.polymodal-joint-bearings"
+    c = _alchemical()
+    c.charms = [parent]
+    c.attributes[AT.WITS] = 3
+    rows = viewmod.build_submodule_rows(rs, c, parent)
+    assert len(rows) == 1
+    row = rows[0]
+    assert (row.bp_cost, row.xp_cost) == (2, 6)    # "2 bonus points or 6 experience"
+    assert row.requirement == "Wits 3"
+    assert row.available and not row.owned
+    # Most Charms offer none, and the section must then render nothing at all.
+    assert viewmod.build_submodule_rows(
+        rs, c, "alchemical.close-combat.tactical-analysis-engrams") == []
+
+
+# --------------------------------------------------------------------------- #
+# Vat refit: Charm Slots <-> Panoply (p.88-89)
+# --------------------------------------------------------------------------- #
+
+def _refit_char(rs) -> Character:
+    """An Alchemical wearing four Caste/Favored Charms, with four Slots of each kind."""
+    c = _alchemical()
+    c.charms = list(CF_CHARMS[:4])
+    return c
+
+
+def test_slot_load_reports_live_wear_not_the_chargen_snapshot(rs):
+    """The refit picture must follow character.charms as it changes. validate's
+    charm_slot_usage deliberately reads the frozen snapshot once locked (it answers
+    "was this legally built?"); slot_load answers "what is worn right now"."""
+    c = _refit_char(rs)
+    lifecycle.lock_chargen(c)
+    before = refit.slot_load(rs, c).installed
+    refit.uninstall(rs, c, CF_CHARMS[0])
+    assert refit.slot_load(rs, c).installed == before - 1
+    # The chargen view is unmoved — the refit did not rewrite history.
+    assert validate.charm_slot_usage(rs, c)[0] == before
+
+
+def test_uninstall_moves_a_charm_to_the_panoply_and_install_moves_it_back(rs):
+    c = _refit_char(rs)
+    refit.uninstall(rs, c, CF_CHARMS[0])
+    assert CF_CHARMS[0] not in c.charms and CF_CHARMS[0] in c.retainer_charms
+    refit.install(rs, c, CF_CHARMS[0])
+    assert CF_CHARMS[0] in c.charms and CF_CHARMS[0] not in c.retainer_charms
+
+
+def test_refit_spends_no_experience_and_writes_no_log(rs):
+    """A refit is play-state: the Charms are already paid for, so nothing is charged
+    and the XP ledger must not gain a row."""
+    c = _refit_char(rs)
+    lifecycle.lock_chargen(c)
+    c.xp_earned = 50
+    before = advancement.xp_available(c)
+    refit.uninstall(rs, c, CF_CHARMS[0])
+    refit.install(rs, c, CF_CHARMS[0])
+    assert advancement.xp_available(c) == before
+    assert c.xp_log == []
+
+
+def test_install_refused_when_no_slot_is_free(rs):
+    c = _alchemical()
+    c.charms = list(CF_CHARMS[:4]) + list(NONCF_CHARMS[:4])      # all 8 Slots full
+    c.retainer_charms = [CF_CHARMS[4]]
+    reason = refit.install_block_reason(rs, c, CF_CHARMS[4])
+    assert "No free Charm Slot" in reason
+    with pytest.raises(refit.RefitError, match="No free Charm Slot"):
+        refit.install(rs, c, CF_CHARMS[4])
+
+
+def test_non_caste_favored_charm_needs_a_general_slot_specifically(rs):
+    """Dedicated Slots take only Caste/Favored Charms (p.88), so a free Slot is not
+    enough on its own — it has to be a General one."""
+    c = _alchemical()
+    # All 4 General Slots used by non-C/F Charms; Dedicated Slots still free.
+    c.charms = list(NONCF_CHARMS[:4])
+    c.retainer_charms = [NONCF_CHARMS[4]]
+    reason = refit.install_block_reason(rs, c, NONCF_CHARMS[4])
+    assert "Dedicated" in reason
+    # A Caste/Favored Charm fits those same free Dedicated Slots fine.
+    c.retainer_charms.append(CF_CHARMS[0])
+    assert refit.install_block_reason(rs, c, CF_CHARMS[0]) == ""
+
+
+def test_uninstall_rejects_a_charm_that_is_not_installed(rs):
+    c = _refit_char(rs)
+    with pytest.raises(refit.RefitError, match="[Nn]ot installed"):
+        refit.uninstall(rs, c, CF_CHARMS[5])
+
+
+def test_supports_refit_covers_alchemicals_and_crossover_eclipses(rs):
+    assert refit.supports_refit(rs, _alchemical())
+    plain_solar = Character(id="s", exalt_type="Solar", caste="dawn")
+    assert not refit.supports_refit(rs, plain_solar)
+    # An Eclipse who crossed over holds Alchemical Charms in a Panoply, so they get
+    # the manager even though they are not a Slot splat.
+    eclipse = Character(id="e", exalt_type="Solar", caste="eclipse")
+    assert not refit.supports_refit(rs, eclipse)
+    eclipse.retainer_charms = [CF_CHARMS[0]]
+    assert refit.supports_refit(rs, eclipse)
+
+
+# --------------------------------------------------------------------------- #
+# Clarity (CH2 p.69-71)
+# --------------------------------------------------------------------------- #
+# The Alchemical stand-in for Limit. Permanent Clarity is DERIVED (one dot per dot
+# of Essence above 5, plus one per installed granting Charm); temporary Clarity is
+# tracked on PlayState. Total is capped at 10 and never "breaks".
+
+_CLARITY_CHARMS = [
+    "alchemical.close-combat.hyperdextrous-tentacle-apparatus",
+    "alchemical.might-and-mobility.insectile-locomotion-upgrade",
+    "alchemical.social.transcendent-brutality-programming",
+    "alchemical.cognitive.clarified-data-assimilator",
+    "alchemical.essence-and-weaving.man-machine-weaving-engine",
+    "alchemical.essence-and-weaving.god-machine-weaving-engine",
+]
+
+
+def test_only_alchemicals_use_clarity(rs):
+    assert derive.uses_clarity(rs, _alchemical())
+    assert not derive.uses_clarity(rs, Character(id="s", exalt_type="Solar", caste="dawn"))
+
+
+def test_exactly_the_six_charms_grant_permanent_clarity(rs):
+    granting = sorted(c.id for c in rs.charms.values() if c.permanent_clarity)
+    assert granting == sorted(_CLARITY_CHARMS)
+    assert all(rs.charms[cid].permanent_clarity == 1 for cid in _CLARITY_CHARMS)
+
+
+def test_permanent_clarity_is_essence_above_five_plus_charms(rs):
+    c = _alchemical()
+    c.essence_rating = 5
+    assert derive.clarity(rs, c).permanent == 0        # nothing at Essence 5
+    c.essence_rating = 8                               # 3 dots above the fifth
+    assert derive.clarity(rs, c).permanent == 3
+    c.charms = [_CLARITY_CHARMS[0], _CLARITY_CHARMS[1]]
+    v = derive.clarity(rs, c)
+    assert v.permanent == 5
+    assert ("Essence 8", 3) in v.sources
+
+
+def test_temporary_clarity_comes_from_play_state(rs):
+    c = _alchemical()
+    assert derive.clarity(rs, c).temporary == 0        # no PlayState at all
+    c.play = PlayState(clarity_temporary=4)
+    v = derive.clarity(rs, c)
+    assert (v.temporary, v.permanent, v.total) == (4, 0, 4)
+
+
+def test_clarity_total_is_capped_at_ten(rs):
+    """"The sum of permanent and temporary Clarity cannot ever exceed 10" (p.69)."""
+    c = _alchemical()
+    c.essence_rating = 12                              # 7 permanent
+    c.play = PlayState(clarity_temporary=8)
+    v = derive.clarity(rs, c)
+    assert v.permanent == 7 and v.temporary == 8
+    assert v.total == 10 and v.capped
+
+
+def test_clarity_bands_match_the_printed_table(rs):
+    assert derive.clarity_band(0)[0] == "0-2"
+    assert derive.clarity_band(2)[0] == "0-2"
+    assert derive.clarity_band(3)[0] == "3-4"
+    assert derive.clarity_band(5)[0] == "5-7"
+    assert derive.clarity_band(7)[0] == "5-7"
+    assert derive.clarity_band(8)[0] == "8-9"
+    assert derive.clarity_band(10)[0] == "10"
+
+
+def test_removing_the_condition_removes_the_permanent_clarity(rs):
+    """p.70: permanent Clarity cannot be lost while its conditions hold, but removing
+    a condition removes the dots. Deriving from live traits gives this for free."""
+    c = _alchemical()
+    c.charms = [_CLARITY_CHARMS[3]]                    # Clarified Data Assimilator
+    assert derive.clarity(rs, c).permanent == 1
+    refit.uninstall(rs, c, _CLARITY_CHARMS[3])         # to the Panoply: no longer worn
+    assert derive.clarity(rs, c).permanent == 0
+
+
+def test_weaving_engines_can_never_be_uninstalled(rs):
+    """CH3 p.141: "she cannot ever remove the Man-Machine Weaving Engine"."""
+    engine = "alchemical.essence-and-weaving.man-machine-weaving-engine"
+    c = _alchemical()
+    c.charms = [engine]
+    assert rs.charms[engine].permanent_install
+    assert "never be removed" in refit.uninstall_block_reason(rs, c, engine)
+    with pytest.raises(refit.RefitError, match="never be removed"):
+        refit.uninstall(rs, c, engine)
+    assert c.charms == [engine]                        # unchanged
+    # An ordinary Charm is still freely refittable.
+    c.charms.append(CF_CHARMS[0])
+    assert refit.uninstall_block_reason(rs, c, CF_CHARMS[0]) == ""
+
+
 def _maxed_alchemical(rs) -> Character:
-    """An Alchemical with every Attribute at 5, high Essence, Martial Arts 2, who
+    """An Alchemical with every Attribute at 6, high Essence, Martial Arts 2, who
     knows every Alchemical Charm — for prerequisite-CHAIN sanity (does the whole
     cascade resolve?), not chargen-budget realism. Essence 10 clears even municipal
-    (Essence 8+) Charm minimums."""
+    (Essence 8+) Charm minimums.
+
+    Attributes are 6, not the usual 5 ceiling: God-Machine Weaving Engine requires
+    Minimum Intelligence 6 (CH3 p.141 — the only above-5 minimum in the chapter), and
+    that is legitimately reachable because Sustained Augmentation of (Attribute) raises
+    that Attribute's maximum by one dot (p.92). This fixture knows all nine Sustained
+    Augmentations, so all nine Attributes legitimately cap at 6 for it."""
     c = _alchemical()
-    c.attributes.update({a: 5 for a in AT})
+    c.attributes.update({a: 6 for a in AT})
     c.essence_rating = 10
     c.abilities[A.MARTIAL_ARTS] = 2                 # Perfected Lotus Matrix gate
     c.charms = [cid for cid, ch in rs.charms.items() if ch.exalt_type == "Alchemical"]

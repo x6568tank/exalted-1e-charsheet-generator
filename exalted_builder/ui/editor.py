@@ -78,6 +78,57 @@ def _opts_with(names: list[str], current: str | None) -> list[str]:
     return names
 
 
+# Quasar's QSelect renders each dropdown entry through its scoped `option` slot. The
+# default slot shows the label alone, so a catalog description has nowhere to appear;
+# this replaces it with the same item plus a QTooltip. `props` is the scope variable
+# NiceGUI exposes to a slot template.
+_OPTION_TOOLTIP_SLOT = """
+<q-item v-bind="props.itemProps">
+  <q-item-section>
+    <q-item-label>{{ props.opt.label }}</q-item-label>
+  </q-item-section>
+  <q-tooltip v-if="props.opt.description"
+             anchor="center right" self="center left"
+             class="text-body2"
+             style="max-width:32rem; white-space:normal">
+    {{ props.opt.description }}
+  </q-tooltip>
+</q-item>
+"""
+
+
+class DescribedSelect(ui.select):
+    """A ``ui.select`` whose dropdown entries carry a hover tooltip with the catalog
+    description of the option, so the text authored in ``data/`` is actually readable
+    where you choose from it.
+
+    NiceGUI builds each option as ``{'value': <index>, 'label': <name>}``. The
+    description has to be injected into that dict for the `option` slot to render it,
+    and it cannot simply be assigned after construction: ``Element._props`` is an
+    observable dict, so writing to it schedules an update, and
+    ``ChoiceElement.update()`` rebuilds ``options`` from the labels — silently
+    discarding the descriptions. Overriding ``_update_options`` instead re-applies
+    them every time the options are (re)built, including after ``set_options``.
+
+    Descriptions are keyed by option NAME. A name with no description gets no
+    tooltip, so an off-catalog custom entry (folded in by `_opts_with`) is harmless."""
+
+    def __init__(self, options, *, descriptions: dict[str, str], **kwargs) -> None:
+        self._descriptions = descriptions or {}
+        super().__init__(options, **kwargs)
+        self.add_slot("option", _OPTION_TOOLTIP_SLOT)
+
+    def _update_options(self) -> None:
+        super()._update_options()
+        # `_labels` is what super() built the option dicts from, so it lines up 1:1.
+        described = []
+        for option, name in zip(self._props["options"], self._labels):
+            text = self._descriptions.get(str(name), "")
+            described.append({**option, "description": text} if text else option)
+        with self._props.suspend_updates():      # we are already inside an update
+            self._props["options"] = described
+
+
 def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                  *, with_header: bool = True, on_theme_change=None) -> None:
     """Render the whole editor for `character`. Pure-ish wiring: every control
@@ -323,13 +374,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
         # backgrounds — autofill list is splat-aware (DB gain Breeding/Connections,
         # lose Contacts/Influence/Followers; see RuleSet.backgrounds_for).
-        bg_names = [b.name for b in ruleset.backgrounds_for(character.exalt_type)]
+        bg_catalog = ruleset.backgrounds_for(character.exalt_type)
+        bg_names = [b.name for b in bg_catalog]
+        bg_descriptions = {b.name: b.description for b in bg_catalog}
         with panel(f"Backgrounds ({b.background_dots} dots; ≤{b.background_cap_pre_bp} pre-bonus)"):
             for idx, bg in enumerate(character.backgrounds):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    (ui.select(_opts_with(bg_names, bg.name), value=bg.name or None, label="Background",
-                               with_input=True, new_value_mode="add-unique",
-                               on_change=lambda e, bg=bg: setattr(bg, "name", e.value or ""))
+                    (DescribedSelect(_opts_with(bg_names, bg.name), descriptions=bg_descriptions,
+                                     value=bg.name or None, label="Background",
+                                     with_input=True, new_value_mode="add-unique",
+                                     on_change=lambda e, bg=bg: setattr(bg, "name", e.value or ""))
                      .classes("flex-1"))
                     ui.input(value=bg.note, placeholder="note",
                              on_change=lambda e, bg=bg: setattr(bg, "note", e.value)).classes("flex-1")

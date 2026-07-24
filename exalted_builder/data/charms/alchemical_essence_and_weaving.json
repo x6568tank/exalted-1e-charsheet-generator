@@ -4,6 +4,7 @@
     "name": "Auxiliary Essence Storage Unit",
     "type": "Permanent",
     "min_attribute": "stamina",
+    "min_ability": 1,
     "min_essence": 2,
     "installation_cost": 1,
     "prerequisites": [],
@@ -25,10 +26,13 @@
     "name": "Man-Machine Weaving Engine",
     "type": "Simple",
     "min_attribute": "intelligence",
+    "min_ability": 4,
     "min_essence": 4,
     "installation_cost": 1,
     "prerequisites": [],
     "arrayable": false,
+    "permanent_install": true,
+    "permanent_clarity": 1,
     "grants_circle": "Man-Machine",
     "no_foreign_learning": true,
     "cost": {
@@ -49,6 +53,7 @@
     "name": "God-Machine Weaving Engine",
     "type": "Simple",
     "min_attribute": "intelligence",
+    "min_ability": 6,
     "min_essence": 5,
     "installation_cost": 2,
     "prerequisites": [
@@ -60,6 +65,8 @@
       ]
     ],
     "arrayable": false,
+    "permanent_install": true,
+    "permanent_clarity": 1,
     "grants_circle": "God-Machine",
     "no_foreign_learning": true,
     "cost": {

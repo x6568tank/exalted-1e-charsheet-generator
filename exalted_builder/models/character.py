@@ -254,6 +254,13 @@ class PlayState(BaseModel):
     motes_peripheral_spent: int = Field(default=0, ge=0)
     willpower_spent: int = Field(default=0, ge=0)
     limit: int = Field(default=0, ge=0, le=10)
+    # Alchemical-only (CH2 p.69-71): the TEMPORARY half of Clarity, the Alchemical
+    # replacement for Limit. Storyteller-adjudicated exactly as Limit is — gained by
+    # suppressing Virtues or going without human contact, shed by Compassion rolls and
+    # channelled Virtues — so it is tracked, not computed. The PERMANENT half is
+    # derived (Essence above 5 + installed Charms) and deliberately NOT stored here;
+    # see engine.derive.clarity. Unlike Limit, Clarity never "breaks" or resets at 10.
+    clarity_temporary: int = Field(default=0, ge=0, le=10)
     renown: dict[str, int] = Field(
         default_factory=lambda: {"succor": 0, "mettle": 0, "cunning": 0, "glory": 0})
     face: int = Field(default=0, ge=0, le=10)

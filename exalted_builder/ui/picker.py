@@ -31,8 +31,9 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import advancement, costs, validate
-from ..models.character import AnimalForm, BeastmanGiftPurchase, Character, OxBodyPurchase
+from ..engine import advancement, costs, refit, validate
+from ..models.character import (AnimalForm, BeastmanGiftPurchase, Character,
+                                OxBodyPurchase, SubmodulePurchase)
 from ..models.rules import RuleSet, circle_kind
 from . import theme
 from . import view as viewmod
@@ -181,6 +182,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         state["circle"] = _spell_circles[0].value
     if _has_forms:
         GROUPS["forms"] = "Form Library"
+    # The Slot/Panoply manager, for a Charm-Slot splat or an Eclipse who crossed over.
+    _has_panoply = refit.supports_refit(ruleset, character)
+    if _has_panoply:
+        GROUPS["panoply"] = "Vat Refit"
 
     # The Alchemical "general" category (the 18 Augmentation templates) renders as two
     # per-type pop-ups instead of an 18-node graph. None for every other splat.
@@ -316,6 +321,72 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             ui.button("Add", icon="add", on_click=lambda: toggle(d.id)).props("dense color=positive")
         else:
             ui.button("Add", icon="lock").props("dense disable").tooltip("Prerequisites not met")
+        submodule_section(d.id)
+
+    # ---- Submodules (Alchemical, p.89) ------------------------------------ #
+    # A submodule permanently upgrades ONE Charm, so it is bought on that Charm's
+    # detail card rather than from a catalogue. Dual cost: bonus points at chargen,
+    # experience post-lock — the page prints both. Most Charms have none, in which
+    # case this renders nothing at all.
+    def add_submodule(charm_id: str, key: str) -> None:
+        character.submodules.append(SubmodulePurchase(charm_id=charm_id, key=key))
+        detail.refresh(); readout.refresh()      # spends BP: the budget readout moves
+
+    def remove_submodule(charm_id: str, key: str) -> None:
+        for i in range(len(character.submodules) - 1, -1, -1):
+            s = character.submodules[i]
+            if s.charm_id == charm_id and s.key == key:
+                del character.submodules[i]
+                break
+        detail.refresh(); readout.refresh()
+
+    def buy_submodule(charm_id: str, key: str) -> None:
+        sub = validate.submodule_def(ruleset, charm_id, key)
+        if not _buy(lambda: advancement.learn_submodule(ruleset, character, charm_id, key)):
+            return
+        ui.notify(f"Bought {sub.name} — {sub.xp_cost} XP", type="positive")
+        detail.refresh(); readout.refresh()
+
+    def submodule_section(charm_id: str) -> None:
+        rows = viewmod.build_submodule_rows(ruleset, character, charm_id)
+        if not rows:
+            return
+        ui.separator()
+        ui.label("SUBMODULES").classes("text-xs font-bold tracking-widest").style(
+            f"color:{pal.accent}")
+        for r in rows:
+            with ui.column().classes("w-full gap-0 mb-1"):
+                with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
+                    ui.label(r.name).classes("text-xs font-semibold")
+                    ui.label(f"{r.xp_cost} XP" if in_play()
+                             else f"{r.bp_cost} BP").classes("text-xs text-gray-600")
+                if r.requirement:
+                    ui.label(f"Requires {r.requirement}").classes("text-xs text-gray-500")
+                if r.description:
+                    ui.label(r.description).classes("text-xs text-gray-600")
+                if r.owned:
+                    if in_play():
+                        # Post-lock the only refund is last-first undo on the XP tab,
+                        # exactly as for Charms and Combos.
+                        ui.label("Purchased.").classes("text-xs text-gray-500")
+                    else:
+                        ui.button("Remove", icon="remove",
+                                  on_click=lambda _=None, c=r.charm_id, k=r.key:
+                                  remove_submodule(c, k)).props("dense flat size=sm color=negative")
+                elif r.block_reason:
+                    ui.button("Add", icon="lock").props("dense flat size=sm disable").tooltip(
+                        r.block_reason)
+                    ui.label(r.block_reason).classes("text-xs text-amber-700")
+                elif in_play():
+                    btn = ui.button(f"Buy · {r.xp_cost} XP", icon="shopping_cart",
+                                    on_click=lambda _=None, c=r.charm_id, k=r.key:
+                                    buy_submodule(c, k)).props("dense flat size=sm color=positive")
+                    if not _afford(r.xp_cost):
+                        btn.props("disable")
+                else:
+                    ui.button("Add", icon="add",
+                              on_click=lambda _=None, c=r.charm_id, k=r.key:
+                              add_submodule(c, k)).props("dense flat size=sm color=positive")
 
     def _charm_buy_button(d) -> None:
         """The in-play detail-card action: buy at the engine's price. A known Charm
@@ -769,6 +840,110 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             ui.button("Add form", icon="add", on_click=add_form).props(
                 f"dense flat no-caps color={pal.button}")
 
+    # ---- Vat refit: Charm Slots vs the Panoply (Alchemical, p.88-89) ------- #
+    # An Alchemical owns more Charms than they can wear. Installed Charms sit in Slots
+    # and commit Personal Essence; the rest wait in the Panoply. This page moves them
+    # between the two. Like the Form Library it is play-state — no BP, no XP, nothing
+    # here reaches chargen validation or the XP audit — but unlike it, the move has
+    # mechanical weight, so engine.refit checks Slot fit and committed Essence.
+    def do_uninstall(charm_id: str) -> None:
+        try:
+            refit.uninstall(ruleset, character, charm_id)
+        except refit.RefitError as ex:
+            ui.notify(str(ex), type="warning")
+            return
+        panoply_panel.refresh(); readout.refresh()
+
+    def do_install(charm_id: str) -> None:
+        try:
+            refit.install(ruleset, character, charm_id)
+        except refit.RefitError as ex:
+            ui.notify(str(ex), type="warning")
+            return
+        panoply_panel.refresh(); readout.refresh()
+
+    def _refit_row(charm_id: str, *, installed: bool) -> None:
+        charm = ruleset.charms.get(charm_id)
+        name = charm.name if charm is not None else charm_id
+        reason = (refit.uninstall_block_reason(ruleset, character, charm_id) if installed
+                  else refit.install_block_reason(ruleset, character, charm_id))
+        with ui.row().classes("w-full items-center justify-between no-wrap gap-2"):
+            with ui.column().classes("flex-1 min-w-0 gap-0"):
+                ui.label(name).classes("text-sm")
+                bits = []
+                if charm is not None:
+                    if charm.min_attribute:
+                        bits.append(f"{charm.min_attribute.title()} {charm.min_ability}")
+                    if charm.installation_cost:
+                        bits.append(f"{charm.installation_cost}m install")
+                    if not validate.charm_fits_dedicated_slot(ruleset, character, charm):
+                        bits.append("General Slot only")
+                if bits:
+                    ui.label(" · ".join(bits)).classes("text-xs text-gray-500")
+                if reason:
+                    ui.label(reason).classes("text-xs text-amber-700 italic")
+            if installed and reason:
+                ui.button("To Panoply", icon="lock").props(
+                    "dense flat no-caps size=sm disable").tooltip(reason)
+            elif installed:
+                ui.button("To Panoply", icon="archive",
+                          on_click=lambda _=None, c=charm_id: do_uninstall(c)).props(
+                    "dense flat no-caps size=sm color=negative")
+            elif reason:
+                ui.button("Install", icon="lock").props(
+                    "dense flat no-caps size=sm disable").tooltip(reason)
+            else:
+                ui.button("Install", icon="memory",
+                          on_click=lambda _=None, c=charm_id: do_install(c)).props(
+                    "dense flat no-caps size=sm color=positive")
+
+    @ui.refreshable
+    def panoply_panel() -> None:
+        if state["group"] != "panoply":
+            return
+        load = refit.slot_load(ruleset, character)
+        with ui.card().classes(f"w-full p-3 gap-2 {pal.card}"):
+            with ui.row().classes("w-full items-baseline gap-3"):
+                ui.label("Vat Refit").classes(
+                    "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                ui.label("Swap Charms between your Slots and your Panoply. Costs "
+                         "nothing — they are already bought.").classes(
+                    "text-xs text-gray-500")
+            with ui.row().classes("w-full items-baseline gap-4"):
+                over = load.installed > load.total_slots or load.motes > load.personal
+                ui.label(f"Slots {load.installed}/{load.total_slots} "
+                         f"({load.general} General · {load.dedicated} Dedicated)").classes(
+                    "text-xs font-semibold").style(
+                    f"color:{'#b91c1c' if over else pal.accent}")
+                ui.label(f"General used {load.noncf}/{load.general}").classes(
+                    "text-xs text-gray-600")
+                ui.label(f"Committed {load.motes}m of {load.personal}m Personal").classes(
+                    "text-xs text-gray-600")
+            if character.ox_body:
+                # Ox-Body purchases occupy Slots but live on their own list, so they
+                # count against the budget above yet cannot be swapped here.
+                ui.label(f"{len(character.ox_body)} Strain Resistant Chassis purchase(s) "
+                         "occupy Slots and are not refittable.").classes(
+                    "text-xs text-gray-500 italic")
+            ui.separator()
+            ui.label("INSTALLED").classes("text-xs font-bold tracking-widest").style(
+                f"color:{pal.accent}")
+            slotted = [cid for cid in character.charms
+                       if (ch := ruleset.charms.get(cid)) is not None
+                       and validate.charm_occupies_slot(ruleset, character, ch)]
+            if not slotted:
+                ui.label("No Charms installed.").classes("text-sm text-gray-400")
+            for cid in slotted:
+                _refit_row(cid, installed=True)
+            ui.separator()
+            ui.label("PANOPLY").classes("text-xs font-bold tracking-widest").style(
+                f"color:{pal.accent}")
+            if not character.retainer_charms:
+                ui.label("Panoply empty — nothing on retainer.").classes(
+                    "text-sm text-gray-400")
+            for cid in character.retainer_charms:
+                _refit_row(cid, installed=False)
+
     # ---- Augmentation pop-ups (Alchemical 'general') ---------------------- #
     # The 18 Augmentation Charms stay distinct ids (82 other Charms name a specific one
     # as a prerequisite); the picker just collapses them into two per-type cards, each
@@ -1038,6 +1213,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         spells_panel.refresh()
         forms_panel.refresh()
         augment_panel.refresh()
+        panoply_panel.refresh()
 
     def set_group(value: str) -> None:
         """Switch between the ability pages, the martial-arts styles and the spell
@@ -1145,6 +1321,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             spells_panel()
             forms_panel()
             augment_panel()
+            panoply_panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes(f"w-full p-3 {pal.card}"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")

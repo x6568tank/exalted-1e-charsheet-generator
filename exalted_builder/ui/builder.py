@@ -348,6 +348,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         header_el.style(f"background:{pal.accent}")
         title_label.set_text(f"Exalted 1e — {pal.splat_label} Builder")
         ui.query("body").style(f"background:{pal.bg};color:{pal.ink}")
+        # A Charm-Slot splat builds Arrays instead of Combos (p.89), so the tab is
+        # relabelled for them. Only the LABEL changes — the tab keeps its "Combos"
+        # name, so tab state, visibility and resolve_tab are untouched.
+        tabs["Combos"].props(
+            f'label={"Arrays" if viewmod.uses_arrays(ruleset, ctx["char"]) else "Combos"}')
 
     _ICONS = {"Edit": "edit", "Charms": "account_tree", "Combos": "bolt",
               "XP": "trending_up", "Play": "casino", "Sheet": "description"}

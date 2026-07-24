@@ -197,3 +197,13 @@ def combo_cost(ruleset: RuleSet, charm_ids: list[str]) -> int:
     """XP for a new Combo: the sum of its member Charms' minimum Ability values
     (core p.213). Unknown ids contribute nothing (reference checks flag them)."""
     return sum(ruleset.charms[cid].min_ability for cid in charm_ids if cid in ruleset.charms)
+
+
+def array_cost(ruleset: RuleSet, charm_ids: list[str]) -> int:
+    """XP for a new Alchemical Array: the sum of its member Charms' minimum
+    Attribute ratings (p.89). Arithmetically identical to `combo_cost` because
+    `Charm.min_ability` stores the required *rating* for both keyings — the
+    Attribute a Charm gates on is named by `min_attribute`, not rated by it — but
+    it is a different rule on a different page, so it gets its own name rather
+    than callers reaching for the Combo function."""
+    return combo_cost(ruleset, charm_ids)

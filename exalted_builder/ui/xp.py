@@ -31,7 +31,7 @@ from ..models.character import Armor, BackgroundEntry, Character, Weapon
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import theme
 from . import view as viewmod
-from .editor import _opts_with
+from .editor import DescribedSelect, _opts_with
 
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
@@ -263,13 +263,16 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.row().classes("w-full items-baseline gap-2"):
                 ui.label("Backgrounds").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label("free — no XP").classes("text-xs text-gray-500")
-            bg_names = [b.name for b in rs.backgrounds_for(character.exalt_type)]
+            bg_catalog = rs.backgrounds_for(character.exalt_type)
+            bg_names = [b.name for b in bg_catalog]
+            bg_descriptions = {b.name: b.description for b in bg_catalog}
             for idx, bg in enumerate(character.backgrounds):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    ui.select(_opts_with(bg_names, bg.name), value=bg.name or None, label="Background",
-                              with_input=True, new_value_mode="add-unique",
-                              on_change=lambda e, bg=bg: setattr(bg, "name", e.value or "")
-                              ).props("dense").classes("flex-1")
+                    DescribedSelect(_opts_with(bg_names, bg.name), descriptions=bg_descriptions,
+                                    value=bg.name or None, label="Background",
+                                    with_input=True, new_value_mode="add-unique",
+                                    on_change=lambda e, bg=bg: setattr(bg, "name", e.value or "")
+                                    ).props("dense").classes("flex-1")
                     ui.input(value=bg.note, placeholder="note",
                              on_change=lambda e, bg=bg: setattr(bg, "note", e.value)
                              ).props("dense").classes("flex-1")
