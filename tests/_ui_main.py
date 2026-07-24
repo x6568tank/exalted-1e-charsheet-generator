@@ -4,7 +4,7 @@ from nicegui import ui
 from exalted_builder import rules_db
 from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
-    Armor, BackgroundEntry, Character, Damage, PlayState, Weapon)
+    Armor, BackgroundEntry, Character, CollegeRating, Damage, PlayState, Weapon)
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.models.rules import AbilityName
 from exalted_builder.ui import app as sheet_app
@@ -181,6 +181,27 @@ GM_PENALTY = _gm_ctx(Character(id="pn", name="Wounded", caste="dawn"))
 @ui.page('/gm-penalty')
 def page_gm_penalty():
     gm.build_gm(RS, GM_PENALTY, with_header=False)
+
+# (f) a Sidereal with Astrological Colleges — the sheet panel and the XP tab's
+# College buy/raise rows (both are Sidereal-only, gated on b.college_dots).
+CHAR_SID = Character(id="s", name="Chosen of Battles", exalt_type="Sidereal", caste="battles")
+CHAR_SID.colleges = [
+    CollegeRating(college_id="sidereal.battles.shield", rating=2),    # own Maiden (star)
+    CollegeRating(college_id="sidereal.journeys.gull", rating=1),
+]
+
+@ui.page('/sidsheet')
+def page_sid_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_SID))
+
+CHAR_SID_XP = Character(id="sx", name="Locked Sidereal", exalt_type="Sidereal", caste="battles")
+CHAR_SID_XP.colleges = [CollegeRating(college_id="sidereal.battles.shield", rating=2)]
+lifecycle.lock_chargen(CHAR_SID_XP)
+CHAR_SID_XP.xp_earned = 40
+
+@ui.page('/sidxp')
+def page_sid_xp():
+    xp.build_xp(RS, CHAR_SID_XP, Path("x.json"), with_header=False)
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()

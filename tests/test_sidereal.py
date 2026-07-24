@@ -19,6 +19,7 @@ from exalted_builder.models.character import Character, CollegeRating
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
+from exalted_builder.ui import view
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
@@ -199,3 +200,48 @@ def test_sidereal_college_xp_advancement(rs):
     assert next(cr.rating for cr in c.colleges if cr.college_id == "sidereal.endings.crow") == 1
     advancement.undo_last(rs, c)                                       # reverse the learn
     assert not any(cr.college_id == "sidereal.endings.crow" for cr in c.colleges)
+
+
+# --------------------------------------------------------------------------- #
+# College presentation (pure presenter — see ui/view.py)
+# --------------------------------------------------------------------------- #
+
+def test_college_rows_mark_own_house_and_sort_it_first(rs):
+    c = _sidereal()                                    # Chosen of Battles
+    c.colleges = [
+        CollegeRating(college_id="sidereal.journeys.gull", rating=1),      # other house
+        CollegeRating(college_id="sidereal.battles.shield", rating=3),     # own Maiden
+    ]
+    rows = view.college_rows(rs, c)
+    names = [r[0] for r in rows]
+    assert rows[0][3] is True and rows[0][1] == 3      # own-house Battles college first
+    assert rows[1][3] is False                         # Journeys after it
+    assert len(names) == 2 and all(r[2] for r in rows)  # every row carries a house label
+
+
+def test_college_rows_survive_an_unknown_id(rs):
+    """A College id no longer in the RuleSet must still render (as its raw id) rather
+    than silently vanishing from the sheet — the reader needs to see the breakage."""
+    c = _sidereal()
+    c.colleges = [CollegeRating(college_id="sidereal.nowhere.void", rating=2)]
+    rows = view.college_rows(rs, c)
+    assert rows == [("sidereal.nowhere.void", 2, "?", False)]
+
+
+def test_sheet_view_carries_colleges_and_other_splats_get_none(rs):
+    c = _sidereal()
+    c.colleges = [CollegeRating(college_id="sidereal.battles.shield", rating=2)]
+    assert view.build_sheet_view(rs, c).colleges
+    solar = Character(id="sol", exalt_type="Solar", caste="dawn")
+    assert view.build_sheet_view(rs, solar).colleges == []
+
+
+def test_college_xp_log_label_names_the_college(rs):
+    """Without a `colleges` branch the log falls through to the raw target string —
+    the same class of miss the Beastman Gifts log had (see CLAUDE.md)."""
+    c = _sidereal()
+    lifecycle.lock_chargen(c)
+    c.xp_earned = 20
+    advancement.learn_college(rs, c, "sidereal.endings.crow")
+    label = view.build_xp_log(rs, c)[-1].label
+    assert "Crow" in label and "colleges" not in label

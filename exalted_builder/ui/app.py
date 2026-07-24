@@ -134,6 +134,17 @@ def render_sheet(view: viewmod.SheetView) -> None:
                     ui.label("—").classes("text-sm text-gray-400")
                 for ability, name, rating in view.specialties:
                     ui.label(f"{ability} — {name} ({rating})").classes("text-sm")
+            # Astrological Colleges are Sidereal-only, so the panel appears only when
+            # the character has some — an empty one would sit on every other splat's
+            # sheet saying "—", the same reason the Spells panel is conditional below.
+            if view.colleges:
+                with _panel().classes("flex-1"):
+                    ui.label("Astrological Colleges").classes("text-xs font-semibold").style(f"color:{pal.accent}")
+                    for name, rating, house_label, own in view.colleges:
+                        with ui.row().classes("w-full items-center gap-1 no-wrap"):
+                            ui.label(f"{'★ ' if own else ''}{name}").classes(
+                                "text-sm flex-1 truncate").tooltip(house_label)
+                            ui.label(_dots(rating)).classes("text-sm font-mono")
 
         # --- charms / spells ---------------------------------------------- #
         # Most characters are not sorcerers, so an empty Spells panel would sit there

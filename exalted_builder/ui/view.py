@@ -420,6 +420,10 @@ def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> s
         return f"{_label(key)} {entry.from_rating} → {entry.to_rating}{note}"
     if domain == "crafts":
         return f"Craft ({entry.detail}) {entry.from_rating} → {entry.to_rating}"
+    if domain == "colleges":
+        college = ruleset.colleges.get(entry.detail)
+        return (f"College: {college.name if college else entry.detail} "
+                f"{entry.from_rating} → {entry.to_rating}")
     if domain in ("willpower", "essence"):
         return f"{domain.title()} {entry.from_rating} → {entry.to_rating}{note}"
     if domain == "charms":
@@ -526,6 +530,10 @@ class SheetView:
     health: list[str]                                 # formatted level labels
     # advantages / gear
     backgrounds: list[tuple[str, int, str]]           # (name, rating, note)
+    # Astrological Colleges (Sidereal, p.98). (name, rating, house_label, own_house)
+    # — `own_house` marks a College of the character's own Maiden, the ones the
+    # chargen floor counts. Empty for every splat that ships no colleges.
+    colleges: list[tuple[str, int, str, bool]]
     specialties: list[tuple[str, str, int]]           # (ability label, name, rating)
     charms: list[CharmRow]
     spells: list[SpellRow]
@@ -766,6 +774,22 @@ def _health_label(hl: derive.HealthLevelView) -> str:
     return f"{base} ★" if hl.source else base   # ★ marks a Charm-granted level
 
 
+def college_rows(ruleset: RuleSet, character: Character) -> list[tuple[str, int, str, bool]]:
+    """The character's Astrological Colleges as (name, rating, house_label, own_house),
+    ordered own-Maiden first then by name — the chargen floor counts only the own-house
+    dots (Sidereal, p.98), so those are what a reader checks first. A College id no
+    longer in the RuleSet still renders, showing its raw id, rather than vanishing."""
+    rows = []
+    for cr in character.colleges:
+        college = ruleset.colleges.get(cr.college_id)
+        if college is None:
+            rows.append((cr.college_id, cr.rating, "?", False))
+        else:
+            rows.append((college.name, cr.rating, college.house_label,
+                         college.house == character.caste))
+    return sorted(rows, key=lambda r: (not r[3], r[0]))
+
+
 def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     d = derive.derive(ruleset, character)
 
@@ -867,6 +891,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         soak=d.soak,
         health=[_health_label(hl) for hl in d.health_levels],
         backgrounds=[(b.name, b.rating, b.note) for b in character.backgrounds],
+        colleges=college_rows(ruleset, character),
         specialties=[(_label(s.ability.value), s.name, s.rating) for s in character.specialties],
         charms=charms,
         spells=spells,

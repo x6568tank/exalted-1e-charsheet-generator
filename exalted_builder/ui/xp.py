@@ -56,6 +56,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         "spec_name": "",
         "craft_focus": None,
         "craft_new": "",
+        "college_id": None,
+        "college_new": None,
         "add_amount": 5,
         "lower_target": f"attr:{AttributeName.STRENGTH.value}",   # what to reduce
         "lower_reason": "",                                       # curse / charm-cost note
@@ -254,6 +256,52 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button("Learn Craft", on_click=lambda: _do(
                     lambda: (advancement.learn_craft(rs, character, sel["craft_new"]),
                              sel.__setitem__("craft_new", "")))).props(f"dense color={pal.button}")
+
+        # --- Astrological Colleges (Sidereal, p.98/p.265) ------------------- #
+        # Shown only for a splat that ships colleges, the same data gate the editor
+        # uses (b.college_dots > 0) — not a splat-name check. Unlike Craft, a College
+        # is picked from the catalog, so both rows are dropdowns; the "new" one lists
+        # only Colleges not already known. ★ marks the character's own Maiden's house.
+        if rs.budgets_for(character.exalt_type, character.origin).college_dots > 0 and rs.colleges:
+            with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+                ui.label("Astrological Colleges").classes(
+                    "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                owned = {c.college_id: c.rating for c in character.colleges}
+
+                def _college_label(cid: str) -> str:
+                    col = rs.colleges.get(cid)
+                    if col is None:
+                        return cid
+                    return f"{'★ ' if col.house == character.caste else ''}{col.name}"
+
+                raise_opts = {cid: f"{_college_label(cid)} {r}" for cid, r in owned.items()}
+                cur_id = sel["college_id"] if sel["college_id"] in raise_opts else None
+                cur = owned.get(cur_id)
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.select(raise_opts, value=cur_id, label="Raise college",
+                              on_change=lambda e: (sel.__setitem__("college_id", e.value), panel.refresh())
+                              ).props("dense").classes("flex-1")
+                    if cur is not None and cur < 5:
+                        cost = costs.college_step(rs, character, cur)
+                        ui.label(f"{cur}→{cur + 1}: {cost} XP").classes("text-xs w-24")
+                        ui.button("Raise", on_click=lambda: _do(
+                            lambda: advancement.raise_college(rs, character, sel["college_id"]))
+                            ).props(f"dense color={pal.button}")
+                    elif cur is not None:
+                        ui.label("max").classes("text-xs text-gray-400 w-24")
+
+                new_opts = {cid: _college_label(cid) for cid in rs.colleges if cid not in owned}
+                new_value = sel["college_new"] if sel["college_new"] in new_opts else None
+                new_cost = costs.college_new_cost(rs, character)
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.select(new_opts, value=new_value, label="New college",
+                              on_change=lambda e: (sel.__setitem__("college_new", e.value), panel.refresh())
+                              ).props("dense").classes("flex-1")
+                    ui.label(f"{new_cost} XP").classes("text-xs w-12")
+                    ui.button("Learn", on_click=lambda: _do(
+                        lambda: (advancement.learn_college(rs, character, sel["college_new"]),
+                                 sel.__setitem__("college_new", None)))
+                        ).props(f"dense color={pal.button}")
 
         # --- backgrounds (free; story-driven, not an XP-priced trait) ------ #
         # Backgrounds change in play through the story (a Manse falls, an Ally is

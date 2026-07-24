@@ -46,7 +46,8 @@ see the Status entry below. **Alchemical is feature-complete** (2026-07-23:
 chargen, Charm Slots, Arrays, Submodules, the CH3 catalogue, CH4 weaving,
 XP/advancement, Clarity, Backgrounds and the full UI; UI clicked through
 2026-07-23). **Sidereal is IN PROGRESS** (chargen foundation, per-house minimums and the
-Astrological Colleges engine + data are in; the College UI is not — see Status). **Mortals**
+Astrological Colleges are complete, engine + data + UI; the Charm catalogue is
+not — see Status). **Mortals**
 (Godblooded/Ghosts/Heroic Mortals/etc.) are planned after the Exalt types.
 
 Work on a given splat starts only once its rulebook images land in
@@ -174,7 +175,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (631 tests passing)
+## Status (637 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -624,29 +625,37 @@ ability-caste + required-minimums + essence-spec machinery with ZERO new engine 
   caste carries its house floor (p.98): e.g. Battles = Archery/Melee ●●●, Athletics ●●,
   Dodge ●●, Presence ●●, Resistance ●●. Overlaps with the universal minimums resolve to
   the higher rating automatically (each `AbilityMinimum` is checked independently).
+- **Astrological Colleges DONE 2026-07-23** (engine, data AND UI). A budgeted
+  per-instance rated trait with its **OWN pool** — 7 dots, ≥4 in the character's own
+  Maiden's house, cap 3 pre-bonus, BP 8/6, XP 5 new / ×3 raise — so it is NOT a pure
+  Craft clone (Craft spends from the Ability pool; Colleges do not). `rules.College`
+  (`data/colleges.json`, 25 across 5 houses) + `character.CollegeRating`;
+  `ChargenBudgets.college_dots/college_min_own_house/college_cap_pre_bp`;
+  `BonusPointCosts.college/college_own_house`; `ExperienceCosts.new_college/college`.
+  A College's `house` IS a caste id, which is how the own-Maiden rule matches
+  `Character.caste` with no lookup table. Validation: `unknown-college`,
+  `college-range`, `college-own-house-min`. Advancement: `learn_college`/
+  `raise_college` (+ undo + `_expected_cost` audit). UI: the editor's add/remove rows,
+  a ★-marked sheet panel (`view.college_rows` → `SheetView.colleges`, rendered in
+  `ui/app.py` only when non-empty, so no other splat grows an empty panel), the XP
+  tab's buy/raise dropdowns, and a `colleges` branch in the XP-log label — that last
+  one is the same miss Beastman Gifts had, so **grep the log labels whenever a new
+  purchasable trait lands**. Every UI gate is `b.college_dots > 0`, data not a splat
+  name, so a later College-like splat opts in for free. Astrology EFFECTS stay out of
+  scope (like combat derivation); their reference tables (Pattern Bite / Effect
+  Scope-Duration-Power, p.214-219) belong in the GM reference screen, not here.
+  Data source: `images/Sidereals/Storytelling/220-235`. Tests: the College block in
+  `tests/test_sidereal.py` + `tests/test_sidereal_ui.py` (render).
 - **STILL TODO (later phases), in rough order:**
-  1. **Astrological Colleges** ⚠️ **BLOCKED ON DATA (2026-07-22)** — the 25-college
-     catalog (names + house groupings) is on astrology-chapter pages p.220-239, which are
-     NOT in `images/Sidereals/` (only 214-219, 240-241, 265 of that chapter were
-     provided). Do NOT author the college names/houses from memory — ask the user for
-     those PNGs. Confirmed design: a budgeted per-instance rated-trait system (7 dots, ≥4
-     own-Maiden, cap 3, BP 8/6, XP 5 new / ×3 raise) with its OWN budget pool (NOT part of
-     the 35 ability dots — so not a pure Craft clone). A College's "house" = one of the 5
-     caste ids (journeys/serenity/battles/secrets/endings); the ≥4-own-Maiden rule matches
-     `College.house` to `Character.caste`. Astrology EFFECTS stay out of scope (like combat
-     derivation); their reference tables (Pattern Bite / Effect Scope-Duration-Power,
-     p.214-219) go into the GM Storyteller reference screen. Needs: colleges.json data +
-     model + budget + BP/XP + validation + UI. The machinery can be built ahead of the
-     data (tested synthetically) once the user greenlights building it blind.
-  2. **Charms catalogue** — `data/charms/sidereal_*.json`, incl. **Sidereal Martial
+  1. **Charms catalogue** — `data/charms/sidereal_*.json`, incl. **Sidereal Martial
      Arts** (own Charm category, ≤3 at chargen, BP 8/6 + XP 12/10 — a distinct rate).
      Then set `ox_body_charm_id` to the authored Sidereal Ox-Body, and un-defer the
      full `validate_chargen` (the 12-Charm pool the tests currently can't assert).
-  3. **Ronin variant** (`Sidereal:ronin`, like DB Outcaste / Lunar Casteless): 25
+  2. **Ronin variant** (`Sidereal:ronin`, like DB Outcaste / Lunar Casteless): 25
      abilities ≥10 C/F, 7 backgrounds (limited list), 8 Charms (no Sidereal MA; Violet
      Bier Style still allowed), 0 Colleges, no minimums. Add to `chargen_budgets.json` +
      editor `_SPLAT_ORIGINS`.
-  4. **Paradox = Limit rename** in the play-state tracker for Sidereals (no new mechanic
+  3. **Paradox = Limit rename** in the play-state tracker for Sidereals (no new mechanic
      — the Sidereal Curse is roleplay-only, p.253).
 
 ### Alchemical — chargen foundation + Charm Slot system (in progress, started 2026-07-23)
@@ -1050,7 +1059,7 @@ three-page Abilities/Martial Arts/Spells split, GM mode.
   enumerates these lists itself. `engine.validate.bonus_point_breakdown` already
   builds this list internally to price picks; that is the model to extract.
   **Refactor of working code — no behaviour change intended.**
-- **Sidereal** Exalt type (in flight — Colleges need their UI), then **Mortals** —
+- **Sidereal** Exalt type (in flight — Charms, Ronin and Paradox remain), then **Mortals** —
   see **Next Exalt Types** above for the color scheme and the M&F-return plan.
   (Lunar and Alchemical are done.)
 - **Windows .exe** — needs building on an actual Windows host (PyInstaller
