@@ -1,0 +1,267 @@
+[
+  {
+    "id": "solar.martial-arts.leaping-mantis-technique",
+    "name": "Leaping Mantis Technique",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "The character springs into action with the speed of a mantis leaping at its prey. Add the Exalted's Martial Arts score in yards to the maximum distance the character can leap and to the character's Initiative score, provided that he leaps up or toward his opponent (making this Charm of limited use in an enclosed space). This Charm can only be used once per turn and must be activated before initiative is rolled.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 74
+    }
+  },
+  {
+    "id": "solar.martial-arts.iron-arm-block",
+    "name": "Iron-Arm Block",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.martial-arts.leaping-mantis-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "The character imitates the defensive stance of the mantis. The Exalt can add his Martial Arts score to a single parry attempt, either unarmed or with a martial arts weapon, and the character can parry attacks that do lethal damage while unarmed.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 74
+    }
+  },
+  {
+    "id": "solar.martial-arts.mantis-form",
+    "name": "Mantis Form",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.iron-arm-block"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 0,
+      "health": 0,
+      "raw": "6 motes"
+    },
+    "duration": "One scene",
+    "description": "The character adopts the stance of a mantis, ready to strike or block in an instant. The character adds his Martial Arts score to his Initiative and to his bashing and lethal soak. He may parry lethal attacks without a stunt. So long as he wields a martial arts weapon using his Martial Arts score or fights barehanded, he may abort to a cascading parry, which may be used to block multiple attacks. The dice pool of a cascading parry is reduced by 1 per successive parry attempt, as per a full dodge. The character's unarmed Martial Arts attacks also do lethal damage. Characters cannot use more than one Martial Arts Form-type Charm at a time. Activating another Form Charm immediately negates the effects of the first. This Charm is incompatible with the use of armor.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 74
+    }
+  },
+  {
+    "id": "solar.martial-arts.grasping-claw-method",
+    "name": "Grasping Claw Method",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "solar.martial-arts.mantis-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "The character can snatch weapons away from opponents in combat. The character using this Charm adds his Martial Arts score to an attempt to disarm an opponent in hand-to-hand combat.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.martial-arts.grasping-mantis-defense",
+    "name": "Grasping Mantis Defense",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.grasping-claw-method"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "Instant",
+    "description": "When the character is successfully attacked, he may activate this Charm and immediately attempt to parry the attack with his Dexterity + Martial Arts pool. If the parry is successful, the character's opponent is placed in a hold using the character's net successes as the extra successes on the hold attempt.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.martial-arts.joint-locking-technique",
+    "name": "Joint-Locking Technique",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.mantis-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "One turn or one hold",
+    "description": "The character can place an opponent in a hold that is difficult to break. If the character places someone in a hold and activates this Charm, the difficulty to break the hold is increased by the character's permanent Essence (so the player has a number of automatic successes on the Dexterity + Martial Arts roll to maintain the hold equal to his character's Essence).",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.martial-arts.joint-breaking-attack",
+    "name": "Joint-Breaking Attack",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.joint-locking-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "Instant",
+    "description": "Make a martial arts attack roll as normal, including rolling damage. However, the attack does no actual damage. Rather, for every health level the attack would have inflicted, the target's player is at a -1 penalty to all rolls for the remainder of the scene.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.martial-arts.flying-mantis-kick",
+    "name": "Flying Mantis Kick",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.mantis-form"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "The Exalt leaps into the air and strikes out with a devastating kick. The character's extra attack successes are doubled for the purposes of determining damage of an unarmed kick attack.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.martial-arts.crushing-claw-technique",
+    "name": "Crushing Claw Technique",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.mantis-form"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes per turn"
+    },
+    "duration": "Varies",
+    "description": "When the character executes a clinch attack, the attack does Strength + Martial Arts + 2 lethal damage rather than the usual Strength + 2 bashing damage.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.martial-arts.unfolding-retribution-stance",
+    "name": "Unfolding Retribution Stance",
+    "category": "martial_arts:praying-mantis",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.grasping-mantis-defense"
+      ],
+      [
+        "solar.martial-arts.joint-breaking-attack"
+      ],
+      [
+        "solar.martial-arts.flying-mantis-kick"
+      ],
+      [
+        "solar.martial-arts.crushing-claw-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1,
+      "health": 0,
+      "raw": "6 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "During the turn this Charm is active, the character can launch an immediate Martial Arts counterattack against anyone who attacks him using his full Dexterity + Martial Arts dice pool. The counterattack comes after the opponent's attack roll but before the damage effects are applied. The Unfolding Retribution Stance in no way mitigates the attack's effects. A character cannot use the Unfolding Retribution Stance in response to Solar Counterattack or any other counterattack Charm.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 75
+    }
+  }
+]

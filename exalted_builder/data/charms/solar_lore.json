@@ -1,9 +1,336 @@
 [
-  {"id": "solar.lore.integrity-protecting-prana", "name": "Integrity-Protecting Prana", "category": "lore", "type": "Simple", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"motes": 5, "willpower": 1}, "duration": "One day", "description": "Wards the character's mind and body against magical influence and Wyld mutation for a day.", "source": {"book": "Exalted 1e Core", "page": 186}},
-  {"id": "solar.lore.chaos-repelling-pattern", "name": "Chaos-Repelling Pattern", "category": "lore", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.lore.integrity-protecting-prana"]], "cost": {"motes": 10, "willpower": 1}, "duration": "One hour", "description": "Protects an area and those within it from the warping influence of the Wyld.", "source": {"book": "Exalted 1e Core", "page": 186}},
-  {"id": "solar.lore.wyld-shaping-technique", "name": "Wyld-Shaping Technique", "category": "lore", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.lore.chaos-repelling-pattern"]], "cost": {"motes": 20, "willpower": 1}, "duration": "Instant", "description": "Shapes raw Wyld chaos into real objects, creatures, or even a manse, by force of will.", "source": {"book": "Exalted 1e Core", "page": 186}},
-  {"id": "solar.lore.essence-lending-method", "name": "Essence-Lending Method", "category": "lore", "type": "Simple", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"motes": 3}, "duration": "Instant", "description": "Transfers the character's Essence (motes) to another character by touch.", "source": {"book": "Exalted 1e Core", "page": 187}},
-  {"id": "solar.lore.will-bolstering-method", "name": "Will-Bolstering Method", "category": "lore", "type": "Simple", "min_ability": 2, "min_essence": 2, "prerequisites": [["solar.lore.essence-lending-method"]], "cost": {"motes": 5, "willpower": 1}, "duration": "Instant", "description": "Lends temporary Willpower to another character.", "source": {"book": "Exalted 1e Core", "page": 187}},
-  {"id": "solar.lore.wound-accepting-technique", "name": "Wound-Accepting Technique", "category": "lore", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.lore.will-bolstering-method"]], "cost": {"raw": "3 motes per health level, 1 Willpower"}, "duration": "Instant", "description": "Takes another character's wounds onto oneself, accepting their damage to relieve them.", "source": {"book": "Exalted 1e Core", "page": 188}},
-  {"id": "solar.lore.power-awarding-prana", "name": "Power-Awarding Prana", "category": "lore", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.lore.wound-accepting-technique"]], "cost": {"motes": 5, "willpower": 1, "raw": "5 motes, 1 Willpower, 1 experience point"}, "duration": "One day", "description": "Awards a portion of the character's own Essence to another character (costs 1 experience point).", "source": {"book": "Exalted 1e Core", "page": 188}}
+  {
+    "id": "solar.lore.integrity-protecting-prana",
+    "name": "Integrity-Protecting Prana",
+    "category": "lore",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "Wards the character's mind and body against magical influence and Wyld mutation for a day.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 186
+    }
+  },
+  {
+    "id": "solar.lore.chaos-repelling-pattern",
+    "name": "Chaos-Repelling Pattern",
+    "category": "lore",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.lore.integrity-protecting-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One hour",
+    "description": "Protects an area and those within it from the warping influence of the Wyld.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 186
+    }
+  },
+  {
+    "id": "solar.lore.wyld-shaping-technique",
+    "name": "Wyld-Shaping Technique",
+    "category": "lore",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.lore.chaos-repelling-pattern"
+      ]
+    ],
+    "cost": {
+      "motes": 20,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "Shapes raw Wyld chaos into real objects, creatures, or even a manse, by force of will.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 186
+    }
+  },
+  {
+    "id": "solar.lore.essence-lending-method",
+    "name": "Essence-Lending Method",
+    "category": "lore",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "Instant",
+    "description": "Transfers the character's Essence (motes) to another character by touch.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 187
+    }
+  },
+  {
+    "id": "solar.lore.will-bolstering-method",
+    "name": "Will-Bolstering Method",
+    "category": "lore",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.lore.essence-lending-method"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "Lends temporary Willpower to another character.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 187
+    }
+  },
+  {
+    "id": "solar.lore.wound-accepting-technique",
+    "name": "Wound-Accepting Technique",
+    "category": "lore",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.lore.will-bolstering-method"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes per health level, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "Takes another character's wounds onto oneself, accepting their damage to relieve them.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 188
+    }
+  },
+  {
+    "id": "solar.lore.power-awarding-prana",
+    "name": "Power-Awarding Prana",
+    "category": "lore",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.lore.wound-accepting-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "raw": "5 motes, 1 Willpower, 1 experience point"
+    },
+    "duration": "One day",
+    "description": "Awards a portion of the character's own Essence to another character (costs 1 experience point).",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 188
+    }
+  },
+  {
+    "id": "solar.lore.brewing-venom-technique",
+    "name": "Brewing Venom Technique",
+    "category": "lore",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.lore.chaos-repelling-pattern"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 1,
+      "health": 1,
+      "raw": "4 motes, 1 willpower, 1 health level per pot created"
+    },
+    "duration": "One week",
+    "description": "The Exalt must spend an entire scene (30 minutes) boiling a small pot of water. During this time, she meditates and focuses her Essence into the water, transforming it into a deadly poison. The difficulty of the Stamina + Resistance roll to avoid the poison and the penalty it causes are both equal to the character's Lore Ability score. This penalty persists for a number of minutes equal to the character's permanent Essence.\n\nThe damage done if the victim's player succeeds in making a successful Stamina + Resistance roll is equal to half of the brewing character's Lore (round up), and the damage done by the poison if the victim's player fails the roll is equal to twice the brewing character's Lore.\n\nAt the character's choice, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or delivered via a weapon to be effective. Each pot made contains poison enough to envenom a dozen weapons or to poison a large meal. The poison is odorless, tasteless and colorless, requiring a Perception + Awareness roll of a difficulty equal to the brewing character's Essence to detect.\n\nLike all other weapon venoms, each dose of poison can only be used against a single target. Once it has been used, the poison must be applied to the weapon again to be effective. The poison transforms back into harmless water after a week. Each batch must be brewed as either a thick weapon venom or an ingested venom that is as thin as water. Charms such as Poison-Resisting Meditation and Immunity to Everything Technique affect this poison normally.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 71
+    }
+  },
+  {
+    "id": "solar.lore.envenomed-weapon-prana",
+    "name": "Envenomed Weapon Prana",
+    "category": "lore",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.lore.brewing-venom-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1,
+      "health": 1,
+      "raw": "6 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "One day",
+    "description": "With a seemingly harmless touch, the character can envenom a single weapon, a single plate of food or a goblet of wine. The difficulty to resist the poison and the penalty and damage for the poison are all the same as for Brewing Venom Technique. At the character's option, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or enter a wound to be effective. The poison is odorless, tasteless and colorless. The poison lingers in the drink or the weapon for the next full day — after this time, it dissipates harmlessly. This Charm cannot be used to poison food or drink in the same turn that it is consumed or to envenom a weapon in the same turn that it is being used to strike a target.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.lore.mastery-of-poison-technique",
+    "name": "Mastery-of-Poison Technique",
+    "category": "lore",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.lore.envenomed-weapon-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1,
+      "raw": "10 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "Instant",
+    "description": "The character can use this Charm to either envenom a single weapon on the same turn that it is used to strike a target or to poison a single plate of food or goblet of drink. Also, the character may poison a weapon, food or drink that is up to one yard per point of permanent Essence away. The difficulty to resist the poison and the penalty and damage for the poison are all the same as for Brewing Venom Technique. At the character's choice, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or enter a wound to be effective. The poison is odorless, tasteless and colorless. The poison lingers on the drink or the weapon for the next full scene — after this time, it harmlessly dissipates.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.lore.earth-firming-method",
+    "name": "Earth-Firming Method",
+    "category": "lore",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.lore.chaos-repelling-pattern"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower"
+    },
+    "duration": "One day",
+    "description": "With this Charm, an Exalted can protect a large area from the ravages of the Wyld for a single day. While it lasts, the earth and vegetation within the warded area, together with any living beings present inside it, will not be affected by the Wyld's changes, and the air will remain breathable and safe. The Solar paces around the area that he wishes to ward (which may not have more than a five yard radius per dot of permanent Essence that he has) and invokes the Charm. Unfortunately, although the contents of the area will be safe from change, faeries or Wyld-mutated beings are not prevented from entering the protected area.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 71
+    }
+  },
+  {
+    "id": "solar.lore.injury-forcing-technique",
+    "name": "Injury-Forcing Technique",
+    "category": "lore",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.lore.wound-accepting-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes per health level, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "With this Charm, an Exalt may transfer his current injuries to another person. The character must be in skin-to-skin contact with the target of the Charm for a turn, and his player must spend a point of temporary Willpower and the appropriate amount of Essence. The Exalt's wounds close up and heal on his own body, while appearing at the same time on that of the subject. The Solar using the Charm immediately heals a number of health levels of bashing or lethal damage, and the target of the Charm immediately takes a like number of levels of bashing damage. The maximum number of health levels transferable is the lower of the two characters' Staminas. This Charm cannot be used to transfer aggravated damage. However, it is quite possible to kill somebody with it. It can be used in combat, but it requires that the character have concluded a successful grab or clinch maneuver and have the target trapped at the time the Charm is used.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 71
+    }
+  },
+  {
+    "id": "solar.lore.order-affirming-blow",
+    "name": "Order-Affirming Blow",
+    "category": "lore",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.lore.chaos-repelling-pattern"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "By means of this Charm, an Exalt can use his singular knowledge of both chaos and order to restore a Wyld-corrupted living creature or object. By placing his hands upon the target and focusing his will, the Solar can restore it to its original physical and mental state. However, any time that has passed will be taken into account: The target of the Charm will be restored to his appropriate age and may age significantly if the Wyld has preserved him from the passing years. For a full day after this Charm has been used, the target is immune to the effects of the Wyld. However, if he remains in Wyld areas after that time, he will once again be subject to its changes and may eventually be returned to his previous altered form. Note that this Charm does nothing to cure Wyld addiction — exposure to the energies of the madlands is still pleasurable.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 71
+    }
+  },
+  {
+    "id": "solar.lore.sorcery-conferring-contemplation",
+    "name": "Sorcery-Conferring Contemplation",
+    "category": "lore",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 6,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "solar.lore.power-awarding-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower, 1 experience point"
+    },
+    "duration": "Instant",
+    "description": "By means of this Charm, a character can lend one of her spells to another Exalted sorcerer. For each dot of the loaning character's Essence, she can lend a spell for one use. The recipient must have the appropriate Sorcery Charm to be able to use the spell. These spells draw directly on the Essence of the Exalted who lent them, but the recipient must pay any non-Essence costs — for example the Willpower to activate the appropriate Sorcery Charm.\n\nThe Solar is still able to use these spells while the Charm is in effect, but as soon as the recipient has cast any of them as many times as the lending character has permanent Essence, the recipient loses the ability to cast that particular spell again. Use of this Charm does not aid in the study of the spell — it merely imprints the spell on the target, giving him the ability to use it once per dot of the lending character's Essence. Powerful Solars often used this ability to empower lesser minions — particularly the Dragon-Blooded — for particular missions.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 71
+    }
+  }
 ]

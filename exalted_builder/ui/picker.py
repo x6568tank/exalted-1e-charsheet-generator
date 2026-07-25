@@ -258,10 +258,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                     f"color:{'#b91c1c' if slots.over_personal else pal.accent}")
             else:
                 # Each Ox-Body and each Deadly Beastman Transformation purchase consumes a
-                # Charm pick from the shared pool, exactly as engine.validate prices them —
-                # both live on their own lists, so neither is inside character.charms.
-                charm_picks = (len(character.charms) + len(character.ox_body)
-                               + len(character.beastman_gifts))
+                # Charm pick from the shared pool, exactly as engine.validate prices them.
+                # They live on their own lists, so the count comes from the engine's
+                # canonical enumeration rather than from adding lists up here.
+                charm_picks = validate.charm_pick_count(ruleset, character)
                 ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
                     "text-sm font-semibold").style(f"color:{pal.accent}")
             _immaculate_path_banner()

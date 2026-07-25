@@ -354,6 +354,19 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                       value=choice.chosen_key or None,
                                       on_change=lambda e, i=idx: set_camp_choice(i, e.value)
                                       ).classes("w-full")
+                            # Picking the style is only half the choice — the package is
+                            # "two Charms from ONE of four martial arts" (p.90), so the
+                            # player chooses WHICH. Multi-select, capped at `pick`.
+                            if choice.charm_options:
+                                copts = {o.charm_id: (o.label if o.meets_minimums
+                                                      else f"{o.label} — {o.reason}")
+                                         for o in choice.charm_options}
+                                ui.select(copts, multiple=True,
+                                          label=f"Which {choice.pick}?",
+                                          value=list(choice.chosen_charm_ids),
+                                          on_change=lambda e, i=idx: set_camp_choice_charms(
+                                              i, list(e.value or []))
+                                          ).props("use-chips").classes("w-full")
                     # right: the Calling and what it discounts
                     with ui.column().classes("flex-1 gap-1 min-w-0"):
                         if camp_view.calling_options:
@@ -625,16 +638,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
         # charms/spells (read-only here; the picker is the next slice).
         # Alchemical pays for Slots, not picks — show occupancy; every other splat
-        # counts picks (Ox-Body / Beastman purchases live outside character.charms, so
-        # count them or the header undercounts).
+        # counts picks via the engine's canonical enumeration (Ox-Body / Beastman
+        # purchases live outside character.charms, so counting by hand undercounts).
         _slots = viewmod.charm_slot_budget(ruleset, character)
         if _slots is not None:
             _charm_hdr = (f"Charm Slots {_slots.installed}/{_slots.general + _slots.dedicated} "
                           f"(G {_slots.general} · D {_slots.dedicated})")
         else:
-            _charm_picks = (len(character.charms) + len(character.ox_body)
-                            + len(character.beastman_gifts))
-            _charm_hdr = f"Charms ({_charm_picks})"
+            _charm_hdr = f"Charms ({validate.charm_pick_count(ruleset, character)})"
         with panel(f"{_charm_hdr} & Spells ({len(character.spells)}) — edit via the picker"):
             view = viewmod.build_sheet_view(ruleset, character)
             for c in view.charms:
@@ -731,6 +742,31 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             new = [c.id for c in pool[:choice.pick]]
         keep = [cid for cid in character.granted_charms if cid not in old]
         character.granted_charms = keep + [cid for cid in new if cid not in keep]
+        body.refresh(); changed()
+
+    def set_camp_choice_charms(choice_index: int, ids: list[str]) -> None:
+        """Set WHICH Charms a category choice grants, within the already-chosen style.
+
+        The style select seeds a reachable default; this is how the player changes it.
+        Over-picking is refused rather than silently truncated — the package is exactly
+        `pick` Charms and quietly dropping one would misreport the grant. Under-picking
+        is allowed through so the control can be emptied and refilled; the engine's
+        `granted-charm-missing` issue covers the incomplete state."""
+        camp = ruleset.camps.get(character.camp)
+        if camp is None or choice_index >= len(camp.granted_charm_choices):
+            return
+        cview = viewmod.build_camp_view(ruleset, character).choices[choice_index]
+        allowed = {o.charm_id for o in cview.charm_options}
+        chosen = [cid for cid in ids if cid in allowed]
+        if len(chosen) > cview.pick:
+            ui.notify(f"{cview.label} grants only {cview.pick} Charm(s) — "
+                      f"deselect one first.", type="warning")
+            body.refresh()          # snap the control back to the real selection
+            return
+        # Replace this choice's Charms, leaving the fixed grants and any other choice
+        # untouched: drop everything from THIS style, then add the new selection.
+        keep = [cid for cid in character.granted_charms if cid not in allowed]
+        character.granted_charms = keep + chosen
         body.refresh(); changed()
 
     def set_favored(values: list[AbilityName]) -> None:

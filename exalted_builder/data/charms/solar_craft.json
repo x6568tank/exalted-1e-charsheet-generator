@@ -1,9 +1,264 @@
 [
-  {"id": "solar.craft.flawless-handiwork-method", "name": "Flawless Handiwork Method", "category": "craft", "type": "Supplemental", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"raw": "3 motes per success"}, "duration": "Instant", "description": "Channels Essence into craftwork, adding automatic successes to a Craft roll.", "source": {"book": "Exalted 1e Core", "page": 182}},
-  {"id": "solar.craft.object-strengthening-touch", "name": "Object-Strengthening Touch", "category": "craft", "type": "Simple", "min_ability": 2, "min_essence": 1, "prerequisites": [["solar.craft.flawless-handiwork-method"]], "cost": {"motes": 6}, "duration": "One scene", "description": "Strengthens an object so it endures far more damage than normal.", "source": {"book": "Exalted 1e Core", "page": 183}},
-  {"id": "solar.craft.durability-enhancing-technique", "name": "Durability-Enhancing Technique", "category": "craft", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.craft.object-strengthening-touch"]], "cost": {"motes": 10}, "duration": "Instant", "description": "Permanently enhances an object's durability, making it nearly indestructible.", "source": {"book": "Exalted 1e Core", "page": 183}},
-  {"id": "solar.craft.chaos-resistance-preparation", "name": "Chaos-Resistance Preparation", "category": "craft", "type": "Simple", "min_ability": 4, "min_essence": 2, "prerequisites": [["solar.craft.object-strengthening-touch"]], "cost": {"motes": 10, "willpower": 1}, "duration": "Instant", "description": "Wards an object against the warping, reshaping effects of the Wyld.", "source": {"book": "Exalted 1e Core", "page": 183}},
-  {"id": "solar.craft.shattering-grasp", "name": "Shattering Grasp", "category": "craft", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.craft.object-strengthening-touch"]], "cost": {"motes": 5}, "duration": "Instant", "description": "Channels Essence to rend stone and metal by hand, doubling Strength + Athletics to break the worked material.", "source": {"book": "Exalted 1e Core", "page": 184}},
-  {"id": "solar.craft.craftsman-needs-no-tools", "name": "Craftsman Needs No Tools", "category": "craft", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.craft.shattering-grasp"]], "cost": {"motes": 7, "willpower": 1}, "duration": "One scene", "description": "Shapes a chosen material directly with hands and voice, needing no tools or workshop.", "source": {"book": "Exalted 1e Core", "page": 184}},
-  {"id": "solar.craft.crack-mending-technique", "name": "Crack-Mending Technique", "category": "craft", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.craft.craftsman-needs-no-tools"], ["solar.craft.durability-enhancing-technique"]], "cost": {"motes": 10, "willpower": 1, "health": 1}, "duration": "Instant", "description": "Repairs any broken object, no matter how damaged, piecing it back together over hours of work.", "source": {"book": "Exalted 1e Core", "page": 183}}
+  {
+    "id": "solar.craft.flawless-handiwork-method",
+    "name": "Flawless Handiwork Method",
+    "category": "craft",
+    "type": "Supplemental",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes per success"
+    },
+    "duration": "Instant",
+    "description": "Channels Essence into craftwork, adding automatic successes to a Craft roll.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 182
+    }
+  },
+  {
+    "id": "solar.craft.object-strengthening-touch",
+    "name": "Object-Strengthening Touch",
+    "category": "craft",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.craft.flawless-handiwork-method"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "One scene",
+    "description": "Strengthens an object so it endures far more damage than normal.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 183
+    }
+  },
+  {
+    "id": "solar.craft.durability-enhancing-technique",
+    "name": "Durability-Enhancing Technique",
+    "category": "craft",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.craft.object-strengthening-touch"
+      ]
+    ],
+    "cost": {
+      "motes": 10
+    },
+    "duration": "Instant",
+    "description": "Permanently enhances an object's durability, making it nearly indestructible.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 183
+    }
+  },
+  {
+    "id": "solar.craft.chaos-resistance-preparation",
+    "name": "Chaos-Resistance Preparation",
+    "category": "craft",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.craft.object-strengthening-touch"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "Wards an object against the warping, reshaping effects of the Wyld.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 183
+    }
+  },
+  {
+    "id": "solar.craft.shattering-grasp",
+    "name": "Shattering Grasp",
+    "category": "craft",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.craft.object-strengthening-touch"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "Instant",
+    "description": "Channels Essence to rend stone and metal by hand, doubling Strength + Athletics to break the worked material.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 184
+    }
+  },
+  {
+    "id": "solar.craft.craftsman-needs-no-tools",
+    "name": "Craftsman Needs No Tools",
+    "category": "craft",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.craft.shattering-grasp"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Shapes a chosen material directly with hands and voice, needing no tools or workshop.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 184
+    }
+  },
+  {
+    "id": "solar.craft.crack-mending-technique",
+    "name": "Crack-Mending Technique",
+    "category": "craft",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.craft.craftsman-needs-no-tools"
+      ],
+      [
+        "solar.craft.durability-enhancing-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1
+    },
+    "duration": "Instant",
+    "description": "Repairs any broken object, no matter how damaged, piecing it back together over hours of work.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 183
+    }
+  },
+  {
+    "id": "solar.craft.impurity-hammering-blow",
+    "name": "Impurity-Hammering Blow",
+    "category": "craft",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.craft.flawless-handiwork-method"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "With this Charm, an Exalted can purify base metal or other raw substances of natural taints and flaws, working badly tanned raw leather into butter-soft suede, cheap marble into smooth stone worthy of the palace of the Empress and flawed jewels into pure specimens of their kind. Characters cannot use this Charm to convert raw materials into any of the Five Magical Materials — for example, turning gold into orichalcum. That must be done by the usual long, slow process of extraction. However, the Exalt can greatly improve the quality of raw materials by invoking this Charm as he creates an item. The character may purify the materials for an object in an equal number of Dexterity or Stamina + Crafts successes as required to create the item. Players may roll for their characters once per scene of work. For the purposes of this Charm, each scene is normally a day of work, though it can be less (for example, if the Solar is using the Charm Craftsman Needs No Tools, a scene is probably about an hour).",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 69
+    }
+  },
+  {
+    "id": "solar.craft.body-forging-travail",
+    "name": "Body-Forging Travail",
+    "category": "craft",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.craft.object-strengthening-touch"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1,
+      "health": 0,
+      "raw": "8 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "This Charm allows an Exalt to confer physical integrity upon a living being, human or animal, just as he might instill strength into an object. The Solar places his hands upon the subject of this Charm and uses his powers to force the subject's living body to conform to principles of stability and good construction, enhancing its ability to receive blows or other damage. For the remainder of the scene, the subject of the Charm takes half damage after soak (but before damage is rolled, to a minimum of one die) from all blows struck by beings with a Craft Ability equal to or less than that of the Exalted who invoked the Charm. The character also has some degree of protection from forces such as cold, fire, lightning or acid and soaks two additional levels of lethal damage from such attacks until the end of the scene. A sorcerer can use this Charm on himself.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 69
+    }
+  },
+  {
+    "id": "solar.craft.edifice-smashing-strike",
+    "name": "Edifice-Smashing Strike",
+    "category": "craft",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.craft.shattering-grasp"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 0,
+      "health": 0,
+      "raw": "7 motes"
+    },
+    "duration": "Instant",
+    "description": "This Charm enables an Exalted to shake the foundations of buildings and pound down walls with his bare fists due to his understanding of the nature of craftsmanship and the principles of workmanship. When attempting to destroy or break any nonliving crafted material of any substance, add his Essence + Craft to his Strength + Athletics to determine if he can break something or to the amount of damage he does in an attack against an object. A character can use this Charm against any sort of material, regardless of the material she crafts. The only requirement is that the subject of his strikes, be it a wall, a door, a weapon or a building's foundation, be in some way worked or shaped by intelligent beings. This Charm is explicitly permitted to be part of a Combo with Charms of other Abilities. This Charm cannot be used to attack worn or carried gear.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 70
+    }
+  },
+  {
+    "id": "solar.craft.stability-conferring-establishment",
+    "name": "Stability-Conferring Establishment",
+    "category": "craft",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.craft.chaos-resistance-preparation"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 1,
+      "health": 1,
+      "raw": "1 mote, 1 Willpower, 1 health level",
+      "committed": true
+    },
+    "duration": "One year",
+    "description": "With this Charm, an Exalted can create objects that are not only resistant to the effects of the Wyld, but also protect those who wear them. Infusing a part of his own life into the item — which can be anything from a ring to a full suit of armor — the Solar instills a natural aura of order and stability into it, causing it to remain safe from changes for a full year. As long as the object endures unchanged, preserved by the Charm, its wearer will also be protected from the Wyld's ravages. Remember that the mote invested remains committed for the duration of the Charm or until the magic is canceled by the Exalt.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 70
+    }
+  }
 ]

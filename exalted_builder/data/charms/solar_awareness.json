@@ -1,6 +1,164 @@
 [
-  {"id": "solar.awareness.sensory-acuity-prana", "name": "Sensory Acuity Prana", "category": "awareness", "type": "Simple", "min_ability": 2, "min_essence": 1, "prerequisites": [], "cost": {"motes": 5}, "duration": "One scene", "description": "Heightens all five senses, perceiving softer sounds, finer detail, and subtler tastes and scents.", "source": {"book": "Exalted 1e Core", "page": 196}},
-  {"id": "solar.awareness.keen-sense-technique", "name": "Keen (Sense) Technique", "category": "awareness", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.awareness.sensory-acuity-prana"]], "cost": {"motes": 3}, "duration": "One scene", "description": "Sharpens a single chosen sense (sight, hearing, etc.) to a supernatural degree.", "source": {"book": "Exalted 1e Core", "page": 196}},
-  {"id": "solar.awareness.unsurpassed-sense-discipline", "name": "Unsurpassed (Sense) Discipline", "category": "awareness", "type": "Simple", "min_ability": 4, "min_essence": 2, "prerequisites": [["solar.awareness.keen-sense-technique"]], "cost": {"motes": 5}, "duration": "One scene", "description": "Extends a single sense to incredible range and acuity, far beyond Keen (Sense) Technique.", "source": {"book": "Exalted 1e Core", "page": 196}},
-  {"id": "solar.awareness.surprise-anticipation-method", "name": "Surprise Anticipation Method", "category": "awareness", "type": "Reflexive", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.awareness.sensory-acuity-prana"]], "cost": {"motes": 1}, "duration": "Instant", "description": "A preternatural danger sense that warns of imminent threats, making the character almost impossible to ambush.", "source": {"book": "Exalted 1e Core", "page": 197}}
+  {
+    "id": "solar.awareness.sensory-acuity-prana",
+    "name": "Sensory Acuity Prana",
+    "category": "awareness",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "One scene",
+    "description": "Heightens all five senses, perceiving softer sounds, finer detail, and subtler tastes and scents.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 196
+    }
+  },
+  {
+    "id": "solar.awareness.keen-sense-technique",
+    "name": "Keen (Sense) Technique",
+    "category": "awareness",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.awareness.sensory-acuity-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "Sharpens a single chosen sense (sight, hearing, etc.) to a supernatural degree.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 196
+    }
+  },
+  {
+    "id": "solar.awareness.unsurpassed-sense-discipline",
+    "name": "Unsurpassed (Sense) Discipline",
+    "category": "awareness",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.awareness.keen-sense-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "One scene",
+    "description": "Extends a single sense to incredible range and acuity, far beyond Keen (Sense) Technique.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 196
+    }
+  },
+  {
+    "id": "solar.awareness.surprise-anticipation-method",
+    "name": "Surprise Anticipation Method",
+    "category": "awareness",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.awareness.sensory-acuity-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 1
+    },
+    "duration": "Instant",
+    "description": "A preternatural danger sense that warns of imminent threats, making the character almost impossible to ambush.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 197
+    }
+  },
+  {
+    "id": "solar.awareness.owl-eye-technique",
+    "name": "Owl-Eye Technique",
+    "category": "awareness",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.awareness.sensory-acuity-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One day",
+    "description": "A character who uses this Charm can see in absolute darkness without penalty. For the next full day, the character can see equally well on a bright sunny day, on a clear night under the full moon or in a totally lightless cell 10 yards underground. The only sign that a character is using this Charm is that her eyes become somewhat luminescent in dim light, flashing Solar gold from certain angles. This Charm does not allow the character to see more easily through fog or smoke, nor does it help her detect spirits or anyone who has been rendered invisible.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.awareness.barrier-bypassing-senses",
+    "name": "Barrier-Bypassing Senses",
+    "category": "awareness",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.awareness.unsurpassed-sense-discipline"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 0,
+      "health": 0,
+      "raw": "6 motes"
+    },
+    "duration": "One scene",
+    "description": "The character can transcend physical limits and extend her senses past a single barrier. The character can see, hear, touch, smell or taste anything that is on the other side of a barrier that is no thicker than the character's Essence in yards. The character can observe events on the other side of a closed door, hear a conversation inside a locked stone cell or feel a powerful artifact locked inside a safe. The character cannot actually interact with the object, simply gain sensory impressions.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.awareness.eye-of-the-unconquered-sun",
+    "name": "Eye of the Unconquered Sun",
+    "category": "awareness",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 6,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "solar.awareness.unsurpassed-sense-discipline"
+      ]
+    ],
+    "cost": {
+      "motes": 12,
+      "willpower": 1,
+      "health": 0,
+      "raw": "12 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "This potent Charm allows the character to pierce all forms of deception and disguise. Everyone using magical or mundane disguises is seen in their true form, even a Lunar Exalted whose Tell has not yet been spotted or an Immaculate using Shrouding the Body and Mind. Everyone who is hiding is revealed to the character's gaze, regardless of whether they are using ordinary Stealth or potent invisibility magics, including mind-altering effects such as Mental Invisibility Technique. Everyone and everything that was deliberately disguised or hidden can be clearly seen. No known magic can deceive the power of this Charm — Eye of the Unconquered Sun is a perfect defense against invisibility and concealment. When a character uses this Charm, his Caste Mark glows as if the Exalt's anima banner were at the 12-15 mote level if it does not already, shattering all illusion and invisibility Charms and making mundane stealth impossible.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 75
+    }
+  }
 ]

@@ -7,10 +7,15 @@
     "min_ability": 1,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"raw": "1 mote per die"},
+    "cost": {
+      "raw": "1 mote per die"
+    },
     "duration": "Instant",
     "description": "Guides a thrown weapon with Essence, adding one die per mote to a Thrown attack (up to double the pool).",
-    "source": {"book": "Exalted 1e Core", "page": 168}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 168
+    }
   },
   {
     "id": "solar.thrown.joint-wounding-attack",
@@ -19,11 +24,20 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 1,
-    "prerequisites": [["solar.thrown.precision-of-the-striking-raptor"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "solar.thrown.precision-of-the-striking-raptor"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "A thrown strike that wounds a joint, imposing a lasting dice penalty on the target's physical actions.",
-    "source": {"book": "Exalted 1e Core", "page": 168}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 168
+    }
   },
   {
     "id": "solar.thrown.observer-deceiving-attack",
@@ -32,11 +46,20 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["solar.thrown.joint-wounding-attack"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "solar.thrown.joint-wounding-attack"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "Throws a weapon unseen by onlookers, concealing the source and direction of the attack.",
-    "source": {"book": "Exalted 1e Core", "page": 168}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 168
+    }
   },
   {
     "id": "solar.thrown.mist-on-water-attack",
@@ -45,11 +68,20 @@
     "type": "Supplemental",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["solar.thrown.observer-deceiving-attack"]],
-    "cost": {"raw": "3 motes per turn"},
+    "prerequisites": [
+      [
+        "solar.thrown.observer-deceiving-attack"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes per turn"
+    },
     "duration": "Instant",
     "description": "Throws with such control that the weapon strikes in silence, leaving no trace of its path.",
-    "source": {"book": "Exalted 1e Core", "page": 168}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 168
+    }
   },
   {
     "id": "solar.thrown.falling-icicle-strike",
@@ -58,11 +90,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["solar.thrown.joint-wounding-attack"]],
-    "cost": {"motes": 6},
+    "prerequisites": [
+      [
+        "solar.thrown.joint-wounding-attack"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
     "duration": "Instant",
     "description": "An assassin's strike from surprise; the target applies no soak and the damage successes are doubled.",
-    "source": {"book": "Exalted 1e Core", "page": 168}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 168
+    }
   },
   {
     "id": "solar.thrown.triple-distance-attack-technique",
@@ -72,10 +113,15 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 3},
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "Lightens a thrown weapon with Essence to triple its effective range without penalty.",
-    "source": {"book": "Exalted 1e Core", "page": 169}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 169
+    }
   },
   {
     "id": "solar.thrown.cascade-of-cutting-terror",
@@ -84,11 +130,20 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 3,
-    "prerequisites": [["solar.thrown.triple-distance-attack-technique"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "solar.thrown.triple-distance-attack-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "Instant",
     "description": "Hurls Essence-conjured duplicates of a favored throwing weapon, saturating an area with blades.",
-    "source": {"book": "Exalted 1e Core", "page": 169}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 169
+    }
   },
   {
     "id": "solar.thrown.shower-of-deadly-blades",
@@ -97,11 +152,21 @@
     "type": "Extra Action",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["solar.thrown.cascade-of-cutting-terror"]],
-    "cost": {"motes": 5, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.thrown.cascade-of-cutting-terror"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Throws a number of weapons from one hand as extra attacks in a single action.",
-    "source": {"book": "Exalted 1e Core", "page": 169}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 169
+    }
   },
   {
     "id": "solar.thrown.fiery-solar-chakram",
@@ -110,10 +175,124 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["solar.thrown.cascade-of-cutting-terror"]],
-    "cost": {"motes": 5, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.thrown.cascade-of-cutting-terror"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Hurls a chakram of burning Essence (range ~100 yards) that adds automatic successes against demons, ghosts, and creatures of the night.",
-    "source": {"book": "Exalted 1e Core", "page": 169}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 169
+    }
+  },
+  {
+    "id": "solar.thrown.ricochet-weapon-technique",
+    "name": "Ricochet Weapon Technique",
+    "category": "thrown",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.thrown.precision-of-the-striking-raptor"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per ricochet"
+    },
+    "duration": "Instant",
+    "description": "The character can bounce any thrown weapon off of an object and have it hit its intended target without penalty. Each additional ricochet increases the cost of the Charm by one mote of Essence. Bouncing a weapon off of a wall behind a target normally allows the character to hit her target from behind, denying the target the protection of cover or shields. Multiple ricochets can even allow the character to hit targets hiding around corners. When using this Charm, rolls to hit targets that the character cannot see are at +1 difficulty if the target's exact position is known, or at difficulty +2 if the character is aiming by sound or intuition.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 74
+    }
+  },
+  {
+    "id": "solar.thrown.reaping-the-bloody-wheat",
+    "name": "Reaping the Bloody Wheat",
+    "category": "thrown",
+    "exalt_type": "Solar",
+    "type": "Extra Action",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.thrown.ricochet-weapon-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 0,
+      "health": 0,
+      "raw": "6 motes"
+    },
+    "duration": "Instant",
+    "description": "When a character makes a Thrown attack using this Charm, the weapon ricochets from one target to the next, until it finally returns to the character's hand at the end of the turn. The weapon makes a number of separate attacks equal to the character's Thrown score. Each target must be in range and no target can be hit more than once per turn with this attack. Each attack is made at the character's normal Thrown dice pool, with no subtractions for multiple actions. If an attack misses, the weapon continues on to its next target. However, if any of these rolls botch, the weapon hits an unintended target and drops to the ground. Rolling a botch means that a character may be hit by her own weapon.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.thrown.whirling-razor-guardian-technique",
+    "name": "Whirling Razor Guardian Technique",
+    "category": "thrown",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.thrown.reaping-the-bloody-wheat"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 1,
+      "health": 0,
+      "raw": "7 motes, 1 Willpower"
+    },
+    "duration": "One scene or special",
+    "description": "Once thrown, a weapon using this Charm continues to strike targets for the duration of the scene. Bouncing off of trees, walls, targets and the ground, the weapon makes one attack on a target each turn. Once the weapon is in motion, the attacking character need not worry about it, and can act normally without any penalty. When the weapon is thrown, the character must decide whom it will attempt to strike each turn. This choice cannot be changed once made, and the weapon cannot be recalled once set in motion. If a target dies or moves out of range, the weapon continues on to its next target. Each attack is made at the attacking character's normal Thrown dice pool, at the character's initiative for the turn.\n\nThis Charm ends if the caster flees or dies, or once the weapon has failed to inflict damage on a number of attacks equal to the attacker's Permanent Essence score. Such failure may stem from the target's dodge or parry or because the weapon struck successfully but did no damage. The weapon can be attacked at difficulty 4; if successfully struck, it is batted from the air and its deadly rampage ends. If an attack roll for the weapon botches, the weapon strikes an unintended target — a person or an object — and the Charm fades. If the Charm is used on several successive turns, a character can fill the air around him with deadly blades.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.thrown.returning-weapon-concentration",
+    "name": "Returning Weapon Concentration",
+    "category": "thrown",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.thrown.precision-of-the-striking-raptor"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "One scene",
+    "description": "Any thrown weapon used by the character in this scene returns to his hand at the end of the turn in which it was thrown. Even if the weapon hits and damages an opponent, it flies from the wound to its owner's hand. Using this Charm, a character need not worry about running out of weapons to throw. However, a botch on any Thrown roll prevents that weapon from returning.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 76
+    }
   }
 ]

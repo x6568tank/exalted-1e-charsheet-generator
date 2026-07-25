@@ -200,5 +200,172 @@
       "book": "Exalted 1e Cult of the Illuminated",
       "page": 102
     }
+  },
+  {
+    "id": "solar.linguistics.swift-sages-eye",
+    "name": "Swift Sage's Eye",
+    "category": "linguistics",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "One scene",
+    "description": "A character using this technique can read and comprehend written works at superhuman speed. The character can read approximately two pages of written text (or its equivalent) per second, so she can read a book as quickly as she can turn the individual pages or a scroll as quickly as she can unroll it. The character must be able to read the language in the first place in order to use this Charm, and comprehension is the same as if the character read the text at normal speed.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.linguistics.perfect-recollection-discipline",
+    "name": "Perfect Recollection Discipline",
+    "category": "linguistics",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.linguistics.swift-sages-eye"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per work",
+      "committed": true
+    },
+    "duration": "Special",
+    "description": "A character using this Charm can completely memorize a written work or illustration in the time it takes to read or study it. The character can also memorize spoken words. A work can generally be no longer than a medium-sized book, a few hours of conversation or a single fairly complex illustration, such as a map. Longer works require correspondingly greater amounts of Essence.\n\nThe character's memory of the work is flawless: He can recite it from beginning to end, copy it down entirely from memory and even use his recollection in conjunction with Charms such as Whirling Brush Method and Flawless Brush Discipline to produce copies of the work. He can navigate from a memorized map as if he had it in front of him at all times. Although the Chosen can use this Charm to memorize a lexicon of a foreign language (thereby memorizing its vocabulary and grammar), his use of that language is somewhat halting and crude, since he still needs to \"look up\" and translate meanings in his head.\n\nThe work remains memorized for as long as the Chosen commits Essence to it. When the Essence is no longer committed, the character's memory of the work fades to what it would normally be if the character had simply read, viewed or listened to the work.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.linguistics.flawless-forgery-technique",
+    "name": "Flawless Forgery Technique",
+    "category": "linguistics",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.linguistics.flawless-brush-discipline"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 0,
+      "health": 0,
+      "raw": "6 motes"
+    },
+    "duration": "One scene",
+    "description": "With a masterful eye and hand for copying, the character can produce a flawless forgery of any written work or illustration, provided he has a sample to work from — at least one written sentence or a single illustration. The forgery need not be a duplicate of the sample, but it perfectly replicates the original's style, such that anyone familiar with that style would instantly recognize it. The character works at his normal writing or drawing speed but produces work in the chosen style. A character using Sagacious Reading of Intent who is familiar with the original style can determine that the forgery is not genuine, but otherwise, it is completely flawless and undetectable.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 73
+    }
+  },
+  {
+    "id": "solar.linguistics.subtle-speech-method",
+    "name": "Subtle Speech Method",
+    "category": "linguistics",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.linguistics.letter-within-a-letter-technique"
+      ],
+      [
+        "solar.linguistics.poetic-expression-style"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "One scene",
+    "description": "The character can speak in a roundabout fashion, stressing particular words, inflections and allusions to convey ideas and concepts that may have nothing to do with what the character is saying. Only the intended recipients (who must be familiar to the Exalted using this Charm and must speak the same language) understand the true meaning behind the character's words. Everyone else hears only what the character says on the surface. Thus, an Exalted using this Charm could explain the details of an assassination plot to someone while appearing to discuss the weather, for example. Someone using Judge's Ear Technique can tell that there is something behind what the character is saying but not necessarily what it is.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 73
+    }
+  },
+  {
+    "id": "solar.linguistics.masterful-training-manual",
+    "name": "Masterful Training Manual",
+    "category": "linguistics",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.linguistics.poetic-expression-style"
+      ],
+      [
+        "solar.linguistics.twisted-words-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "Special",
+    "description": "The ability to effectively convey information is an important part of teaching. This Charm aids the Exalted in passing on their wisdom. A character writes a treatise or manual with any Attribute or any Ability, Charm or spell known to the Exalt as its subject. Creating the text requires time equal to that needed to train for the author's rating in the chosen Trait (Exalted, p. 271). For example, a character with Socialize 5 writing a manual on proper etiquette and social behavior would take four weeks. If a Charisma 5 character wrote a manual on making friends and influencing people, it would take four months. Charms such as Whirling Brush Method cannot reduce this time, since writing the manual requires careful and deliberate thought.\n\nOnce the text is prepared, others reading it may spend experience to acquire that Trait, using only the text as their tutor. The reader must be capable of learning the Trait described by the text and can only acquire or improve the Trait to the rating of the text's author. So, a manual that describes Martial Arts 3 is useless for a character with a Martial Arts rating of 3 or better, since he has already exceeded the manual's knowledge.\n\nUnfortunately, the vast majority of the various manuals and treatises penned by the Solar Exalted of the First Age were lost or destroyed, although some are said to be preserved in ancient Manses or perhaps in the libraries of certain Dynasts or Sidereals.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 73
+    },
+    "extra_min_abilities": [
+      {
+        "abilities": [
+          "lore"
+        ],
+        "rating": 3
+      }
+    ]
+  },
+  {
+    "id": "solar.linguistics.lore-scanning-method",
+    "name": "Lore-Scanning Method",
+    "category": "linguistics",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.linguistics.sagacious-reading-of-intent"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 0,
+      "health": 0,
+      "raw": "8 motes"
+    },
+    "duration": "Instant",
+    "description": "This Charm permits a character reading a book, letter, inscription or other piece of writing to look for information about sorcery, wonder-working or the use of Charms and to distinguish it from fictional accounts. An Exalted reading while using this Charm will immediately be able to tell if a description of sorcery or other supernatural feat is accurate, though not necessarily to what degree. For instance, he could discern that the description of a spell that summoned an ivory palace for the night was genuine and that there was indeed such a spell, rather than being a fancy of the writer's, but he would not know anything about the spell. While not a perfect method of self-education, this Charm is extremely useful to researchers for finding points to begin their investigations of sorcery and other powers.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 71
+    }
   }
 ]

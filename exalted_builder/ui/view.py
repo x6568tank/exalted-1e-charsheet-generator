@@ -12,7 +12,7 @@ imports NO UI toolkit, so it is unit-testable on its own and the NiceGUI layer
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from ..engine import advancement, costs, derive, validate
@@ -606,11 +606,12 @@ class CampChoiceOption:
     """One option within a camp's grant choice.
 
     `available` is False when the option cannot actually be taken — which for this book
-    means a martial-arts style the page offers but whose Charms are not authored in
-    `data/` yet (3 of the Tabernacle's 4 styles; a pre-existing Solar data gap, see
-    images/Solars/_ILLUMINATED_PENDING.md). Such an option is still LISTED, because the
-    rulebook offers it and hiding it would misrepresent the page — but the UI must
-    refuse to select it rather than assign nothing and silently blank the control."""
+    means a martial-arts style the page offers but whose Charms `data/` cannot yet
+    supply `pick` of. All four of the Tabernacle's styles are authored as of 2026-07-25,
+    so nothing trips this today; it stays because the next book to offer a style before
+    its Charms exist will. Such an option is still LISTED, because the rulebook offers
+    it and hiding it would misrepresent the page — but the UI must refuse to select it
+    rather than assign nothing and silently blank the control."""
     key: str
     label: str
     charm_ids: list[str]
@@ -619,15 +620,39 @@ class CampChoiceOption:
 
 
 @dataclass(frozen=True)
+class CampCharmOption:
+    """One Charm selectable inside an already-chosen category option.
+
+    The Tabernacle's package is "two Charms from ONE of four martial arts" (p.90) —
+    choosing the STYLE is only half the choice, and the player picks WHICH Charms.
+    `meets_minimums` is False when the character does not yet meet the Charm's own trait
+    minimums; the page requires those ("must meet the minimum requirements", p.90) and
+    `validate.granted_charm_issues` raises `granted-charm-minimum` for a violation, so
+    the option is still offered but flagged. Charm PREREQUISITES are deliberately not
+    considered — the package hands out Charms whose tree the character has not climbed."""
+    charm_id: str
+    label: str
+    meets_minimums: bool = True
+    reason: str = ""
+
+
+@dataclass(frozen=True)
 class CampChoiceView:
     """One player choice inside a training camp's free-Charm package, flattened for the
     UI. For a fixed-set choice each option is a whole printed pair; for a category choice
-    each option is one style and `pick` says how many Charms to take from it."""
+    each option is one style and `pick` says how many Charms to take from it.
+
+    A category choice is TWO controls, not one: `options`/`chosen_key` pick the style,
+    then `charm_options`/`chosen_charm_ids` pick which `pick` of that style's Charms are
+    granted. `charm_options` is empty until a style is chosen, and always empty for a
+    fixed-set choice (there the printed pair IS the grant — no sub-choice)."""
     label: str
     pick: int
     is_category_choice: bool
     options: list[CampChoiceOption]
     chosen_key: str = ""
+    charm_options: list[CampCharmOption] = field(default_factory=list)
+    chosen_charm_ids: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -702,12 +727,33 @@ def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView
                     options.append(CampChoiceOption(
                         key=cat, label=_style_label(cat), charm_ids=ids,
                         available=ok, reason=reason))
-                    if ids and len([c for c in ids if c in held]) >= choice.pick:
+                    if ids and any(c in held for c in ids):
                         chosen = cat
+            # Choosing the style is only half a category choice — the page grants
+            # "two Charms from ONE of four martial arts" (p.90), so the player also
+            # picks WHICH. Offer the chosen style's whole roster, flagging any Charm
+            # whose own trait minimums the character does not meet (still selectable:
+            # validate.granted_charm_issues reports it as granted-charm-minimum, and
+            # raising the trait later clears it).
+            charm_options: list[CampCharmOption] = []
+            chosen_charm_ids: list[str] = []
+            if chosen and choice.from_categories:
+                pool = next((o.charm_ids for o in options if o.key == chosen), [])
+                for cid in sorted(pool, key=lambda i: _charm_name(ruleset, i)):
+                    charm = ruleset.charms.get(cid)
+                    short = validate.charm_ability_shortfalls(character, charm) if charm else []
+                    reason = ("needs " + ", ".join(f"{_label(t)} {req}"
+                                                   for t, req, _ in short)
+                              if short else "")
+                    charm_options.append(CampCharmOption(
+                        charm_id=cid, label=_charm_name(ruleset, cid),
+                        meets_minimums=not short, reason=reason))
+                chosen_charm_ids = [c for c in pool if c in held]
             choices.append(CampChoiceView(
                 label=choice.label, pick=choice.pick,
                 is_category_choice=bool(choice.from_categories),
-                options=options, chosen_key=chosen))
+                options=options, chosen_key=chosen,
+                charm_options=charm_options, chosen_charm_ids=chosen_charm_ids))
 
     return CampView(
         camp_options=[(c.id, c.label) for c in camps],
@@ -991,45 +1037,26 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
 
     virtues = [TraitRow(_label(v.value), character.virtues[v]) for v in VirtueName]
 
+    # One row per Charm the character holds, from the single engine enumeration —
+    # the sheet must NOT walk character.charms / .ox_body / .beastman_gifts /
+    # .granted_charms itself. `charm_picks` already labels repeatable purchases with
+    # their chosen variant(s) and tags granted Charms "(granted)".
     charms = []
-    for cid in character.charms:
-        charm = ruleset.charms.get(cid)
-        if charm:
-            charms.append(CharmRow(charm.name, charm.category, _cost_str(charm.cost),
-                                   charm.duration, _charm_description(charm)))
-        else:
-            charms.append(CharmRow(cid, "?", "—", "—"))
-    # Repeatable Ox-Body Technique: one row per purchase, labelled by its package.
-    ox_charm = validate.ox_body_charm(ruleset, character)
-    if ox_charm:
-        labels = {v.key: v.label for v in ox_charm.variants}
-        for p in character.ox_body:
-            charms.append(CharmRow(f"{ox_charm.name} ({labels.get(p.variant, p.variant)})",
-                                   ox_charm.category, "—", ox_charm.duration,
-                                   ox_charm.description))
-    # Deadly Beastman Transformation is the same shape — repeatable, held on its own
-    # list, and so invisible to the `character.charms` loop above. One row per
-    # purchase, labelled by the Gifts taken with it.
-    gift_charm = validate.gift_charm(ruleset, character)
-    if gift_charm:
-        gift_labels = {v.key: v.label for v in gift_charm.variants}
-        for p in character.beastman_gifts:
-            taken = ", ".join(gift_labels.get(k, k) for k in p.gifts)
-            charms.append(CharmRow(f"{gift_charm.name} ({taken})", gift_charm.category,
-                                   _cost_str(gift_charm.cost), gift_charm.duration,
-                                   gift_charm.description))
-    # Charms GRANTED by a training camp (Cult of the Illuminated, p.90). A FOURTH list
-    # outside `character.charms`, alongside ox_body and beastman_gifts — see the
-    # "one canonical Charm-pick enumeration" refactor in CLAUDE.md's TODO. Labelled so
-    # the sheet distinguishes them from picks: they cost no BP and no XP.
-    for cid in character.granted_charms:
-        charm = ruleset.charms.get(cid)
+    for pick in validate.charm_picks(ruleset, character):
+        charm = ruleset.charms.get(pick.charm_id)
         if charm is None:
-            charms.append(CharmRow(f"{cid} (granted)", "?", "—", "—"))
+            charms.append(CharmRow(pick.label, "?", "—", "—"))
             continue
-        charms.append(CharmRow(f"{charm.name} (granted)", charm.category,
-                               _cost_str(charm.cost), charm.duration,
-                               _charm_description(charm)))
+        # A repeatable purchase shows the Charm's own text rather than the
+        # prerequisite-annotated one, and Ox-Body has no per-purchase activation cost.
+        if pick.source in ("ox_body", "beastman_gifts"):
+            cost = "—" if pick.source == "ox_body" else _cost_str(charm.cost)
+            description = charm.description
+        else:
+            cost = _cost_str(charm.cost)
+            description = _charm_description(charm)
+        charms.append(CharmRow(pick.label, charm.category, cost, charm.duration,
+                               description))
     spells = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)

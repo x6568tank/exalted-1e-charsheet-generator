@@ -97,10 +97,12 @@ def test_melee_charm_tree_loads_with_intact_prerequisites():
     rs = rules_db.load_ruleset(DATA_DIR)
     melee = [c for c in rs.charms.values()
              if c.category == "melee" and c.exalt_type == "Solar"]
-    assert len(melee) == 22
+    # 22 corebook/Illuminated Charms + 4 from Caste Book: Night (p.70-71) and
+    # 2 from Caste Book: Dawn (p.74).
+    assert len(melee) == 28
     roots = {c.name for c in melee if not c.prerequisites}
     assert roots == {"Excellent Strike", "Retrieve the Fallen Weapon",
-                     "Golden Essence Block"}
+                     "Golden Essence Block", "Dual Slaying Stance"}
 
 
 def test_dawn_caste_charm_trees_load_with_expected_counts():
@@ -108,15 +110,24 @@ def test_dawn_caste_charm_trees_load_with_expected_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
     # Solar-only counts (DB and other splats share ability categories like "thrown").
     cats = Counter(c.category for c in rs.charms.values() if c.exalt_type == "Solar")
-    assert cats["archery"] == 12
-    # 10 corebook Brawl Charms + the 5 from Cult of the Illuminated (p.100-102).
-    assert cats["brawl"] == 15
-    assert cats["thrown"] == 9
+    # 12 corebook + 3 from Caste Book: Dawn (p.71).
+    assert cats["archery"] == 15
+    # 10 corebook Brawl Charms + the 5 from Cult of the Illuminated (p.100-102)
+    # + 3 from Caste Book: Dawn (p.72).
+    assert cats["brawl"] == 18
+    # 9 corebook + 4 from Caste Book: Dawn (p.74-76).
+    assert cats["thrown"] == 13
     assert cats["martial_arts:snake"] == 10
     # Falling Blossom Style (Cult of the Illuminated, p.102-104) is a second Solar
     # Martial Arts style and lives in its own file, like the Sidereal styles do.
     assert cats["martial_arts:falling-blossom"] == 7
-    assert cats["melee"] == 22
+    # The three castebook styles: Tiger (Dawn p.73-74), Praying Mantis (Eclipse
+    # p.73-75) and Ebon Shadow (Night p.67-70). Their category keys are the ones
+    # the Sequestered Tabernacle training camp already names in data/camps.json.
+    assert cats["martial_arts:tiger"] == 9
+    assert cats["martial_arts:praying-mantis"] == 10
+    assert cats["martial_arts:ebon-shadow"] == 11
+    assert cats["melee"] == 28
 
 
 def test_snake_style_charms_gate_on_martial_arts_ability():
@@ -196,7 +207,7 @@ def test_full_melee_chain_is_legal_on_real_data():
 
 def test_spells_load_with_expected_circle_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.spells) == 81
+    assert len(rs.spells) == 88
     by_circle: dict = {}
     for s in rs.spells.values():
         by_circle[s.circle] = by_circle.get(s.circle, 0) + 1
@@ -204,9 +215,10 @@ def test_spells_load_with_expected_circle_counts():
     # Oath, p161) plus the three Necromancy circles authored in the Abyssal phase
     # (Abyssal p224-229), plus the two Alchemical weaving circles — 23 Man-Machine
     # and 15 God-Machine protocols (Autochthonians CH4).
-    assert by_circle == {SpellCircle.TERRESTRIAL: 10,
-                         SpellCircle.CELESTIAL: 6,
-                         SpellCircle.SOLAR: 4,
+    # Caste Book: Twilight (p.74-77) adds 2 Terrestrial, 3 Celestial and 2 Solar.
+    assert by_circle == {SpellCircle.TERRESTRIAL: 12,
+                         SpellCircle.CELESTIAL: 9,
+                         SpellCircle.SOLAR: 6,
                          SpellCircle.SHADOWLANDS: 9,
                          SpellCircle.LABYRINTH: 7,
                          SpellCircle.VOID: 7,
@@ -270,8 +282,12 @@ def test_celestial_initiate_casts_both_circles_via_prereq_chain():
 
 def test_weapon_and_armor_catalogs_load():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.weapon_catalog) == 49
-    assert len(rs.armor_catalog) == 17
+    # 49 corebook + 30 from the Solar castebooks (Dawn p.79/81, Night p.77-81,
+    # Zenith p.80-81).
+    assert len(rs.weapon_catalog) == 79
+    # 17 corebook + the artifact Chain Shirt (Dawn p.81) and Cloak of Vanishing
+    # Escape (Night p.81).
+    assert len(rs.armor_catalog) == 19
 
 
 def test_mundane_melee_weapons_present():
@@ -353,7 +369,7 @@ def test_build_charm_graph_tags_owned_available_and_locked():
     c.charms = ["solar.melee.excellent-strike"]
 
     g = viewmod.build_charm_graph(rs, c, "melee")
-    assert len(g.nodes) == 22
+    assert len(g.nodes) == 28
     state = {n.id: n.state for n in g.nodes}
     assert state["solar.melee.excellent-strike"] == "owned"
     assert state["solar.melee.hungry-tiger-technique"] == "available"   # prereq owned

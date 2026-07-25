@@ -1,10 +1,225 @@
 [
-  {"id": "solar.larceny.seasoned-criminal-method", "name": "Seasoned Criminal Method", "category": "larceny", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [], "cost": {"motes": 10}, "duration": "One day", "description": "Grants preternatural intuition about criminal subcultures, fences, and the underworld.", "source": {"book": "Exalted 1e Core", "page": 199}},
-  {"id": "solar.larceny.flawlessly-impenetrable-disguise", "name": "Flawlessly Impenetrable Disguise", "category": "larceny", "type": "Simple", "min_ability": 4, "min_essence": 2, "prerequisites": [["solar.larceny.seasoned-criminal-method"]], "cost": {"motes": 7}, "duration": "One day", "description": "Alters the character's appearance, voice, and scent into a flawless disguise.", "source": {"book": "Exalted 1e Core", "page": 199}},
-  {"id": "solar.larceny.perfect-mirror", "name": "Perfect Mirror", "category": "larceny", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.larceny.flawlessly-impenetrable-disguise"]], "cost": {"motes": 10, "willpower": 1}, "duration": "One hour", "description": "Perfectly imitates a specific person the character knows well, fooling even their intimates.", "source": {"book": "Exalted 1e Core", "page": 200}},
-  {"id": "solar.larceny.flawless-pickpocketing-technique", "name": "Flawless Pickpocketing Technique", "category": "larceny", "type": "Simple", "min_ability": 2, "min_essence": 1, "prerequisites": [], "cost": {"motes": 3}, "duration": "Instant", "description": "Picks pockets and palms small objects flawlessly, without chance of detection.", "source": {"book": "Exalted 1e Core", "page": 200}},
-  {"id": "solar.larceny.stealing-from-plain-sight-spirit", "name": "Stealing From Plain Sight Spirit", "category": "larceny", "type": "Simple", "min_ability": 4, "min_essence": 2, "prerequisites": [["solar.larceny.flawless-pickpocketing-technique"]], "cost": {"motes": 6}, "duration": "Instant", "description": "Steals an object even while it is watched, drawing no notice to the act.", "source": {"book": "Exalted 1e Core", "page": 200}},
-  {"id": "solar.larceny.magpies-invisible-talon", "name": "Magpie's Invisible Talon", "category": "larceny", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.larceny.stealing-from-plain-sight-spirit"]], "cost": {"motes": 10, "willpower": 1}, "duration": "Instant", "description": "Steals an object from a distance, with no notice drawn to the theft.", "source": {"book": "Exalted 1e Core", "page": 200}},
-  {"id": "solar.larceny.lock-opening-touch", "name": "Lock-Opening Touch", "category": "larceny", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.larceny.flawless-pickpocketing-technique"]], "cost": {"motes": 5}, "duration": "Instant", "description": "Opens any lock instantly with a touch, as though it were unlocked.", "source": {"book": "Exalted 1e Core", "page": 201}},
-  {"id": "solar.larceny.door-evading-technique", "name": "Door-Evading Technique", "category": "larceny", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.larceny.lock-opening-touch"]], "cost": {"motes": 10, "willpower": 1}, "duration": "Instant", "description": "Passes through locked doors and closed portals as though they stood open.", "source": {"book": "Exalted 1e Core", "page": 201}}
+  {
+    "id": "solar.larceny.seasoned-criminal-method",
+    "name": "Seasoned Criminal Method",
+    "category": "larceny",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 10
+    },
+    "duration": "One day",
+    "description": "Grants preternatural intuition about criminal subcultures, fences, and the underworld.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 199
+    }
+  },
+  {
+    "id": "solar.larceny.flawlessly-impenetrable-disguise",
+    "name": "Flawlessly Impenetrable Disguise",
+    "category": "larceny",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.larceny.seasoned-criminal-method"
+      ]
+    ],
+    "cost": {
+      "motes": 7
+    },
+    "duration": "One day",
+    "description": "Alters the character's appearance, voice, and scent into a flawless disguise.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 199
+    }
+  },
+  {
+    "id": "solar.larceny.perfect-mirror",
+    "name": "Perfect Mirror",
+    "category": "larceny",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.larceny.flawlessly-impenetrable-disguise"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One hour",
+    "description": "Perfectly imitates a specific person the character knows well, fooling even their intimates.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 200
+    }
+  },
+  {
+    "id": "solar.larceny.flawless-pickpocketing-technique",
+    "name": "Flawless Pickpocketing Technique",
+    "category": "larceny",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "Instant",
+    "description": "Picks pockets and palms small objects flawlessly, without chance of detection.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 200
+    }
+  },
+  {
+    "id": "solar.larceny.stealing-from-plain-sight-spirit",
+    "name": "Stealing From Plain Sight Spirit",
+    "category": "larceny",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.larceny.flawless-pickpocketing-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "Instant",
+    "description": "Steals an object even while it is watched, drawing no notice to the act.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 200
+    }
+  },
+  {
+    "id": "solar.larceny.magpies-invisible-talon",
+    "name": "Magpie's Invisible Talon",
+    "category": "larceny",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.larceny.stealing-from-plain-sight-spirit"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "Steals an object from a distance, with no notice drawn to the theft.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 200
+    }
+  },
+  {
+    "id": "solar.larceny.lock-opening-touch",
+    "name": "Lock-Opening Touch",
+    "category": "larceny",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.larceny.flawless-pickpocketing-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "Instant",
+    "description": "Opens any lock instantly with a touch, as though it were unlocked.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 201
+    }
+  },
+  {
+    "id": "solar.larceny.door-evading-technique",
+    "name": "Door-Evading Technique",
+    "category": "larceny",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.larceny.lock-opening-touch"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "Passes through locked doors and closed portals as though they stood open.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 201
+    }
+  },
+  {
+    "id": "solar.larceny.inescapable-shadow-of-the-sun",
+    "name": "Inescapable Shadow of the Sun",
+    "category": "larceny",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.larceny.seasoned-criminal-method"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per die"
+    },
+    "duration": "Instant",
+    "description": "None can challenge the ability of the Night Caste to walk among criminals, learn their methods and infiltrate their ranks. Likewise, when members of the Night Caste become corrupted, none can excel their ability as natural rulers of the underworld. It is said by many that, during the First Age, some among the Night Caste led organized criminal groups, which helped govern lawless areas and protect the vast cities of that era. It is unknown if this is true or simply history garbled by the propaganda of the Immaculates, however.\n\nThrough the use of this Charm, the Exalt can add 1 die per mote of Essence spent to any activities relating to navigating the criminal underworld, planning crimes, recruiting criminal underlings or comprehending the criminal mindset. The character cannot more than double his Attribute + Larceny dice pool. This Charm does not aid in technical larceny such as picking locks and pockets or actually executing con games and espionage rings. It simply allows the character preternatural skill as a crime boss or a scourge of crime.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.larceny.impassable-portal-technique",
+    "name": "Impassable Portal Technique",
+    "category": "larceny",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.larceny.lock-opening-touch"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 0,
+      "health": 0,
+      "raw": "7 motes"
+    },
+    "duration": "Special",
+    "description": "Sometimes, locking a door is as valuable as opening one. With a single touch, the character can lock any door. Regardless of whether the door previously had a lock or not, it is impossible to open for a number of hours equal to the character's permanent Essence. A key that would ordinarily open the door will not work until after the scene is over. The only way to open the door in the meantime is to break it down. Doors that do not possess locks can be pushed open normally once this Charm ends, but lockable doors remain normally locked after the Charm ends.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 76
+    }
+  }
 ]

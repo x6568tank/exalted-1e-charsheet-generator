@@ -215,5 +215,177 @@
       "book": "Exalted 1e Cult of the Illuminated",
       "page": 102
     }
+  },
+  {
+    "id": "solar.endurance.empty-stomach-fasting-meditation",
+    "name": "Empty Stomach Fasting Meditation",
+    "category": "endurance",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote"
+    },
+    "duration": "One day",
+    "description": "The constitutions of Exalted are far more resilient than those of mere mortals, yet even the Chosen must eat. Through the use of this Charm, an Exalted may eliminate her need to eat for a single day. Activation of this Charm takes the normal investment of Essence and meditation for one-quarter hour. Use of this Charm does not alleviate the need to drink water. The Charm may be used for up to 40 days in a row without penalty. Afterward, the Chosen must eat and drink normally for three days in a row. This Charm will not work again until the Chosen has so eaten.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Zenith",
+      "page": 71
+    }
+  },
+  {
+    "id": "solar.endurance.ascetic-monks-purification-discipline",
+    "name": "Ascetic Monk's Purification Discipline",
+    "category": "endurance",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.endurance.empty-stomach-fasting-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 0,
+      "health": 0,
+      "raw": "10 motes"
+    },
+    "duration": "Three days",
+    "description": "In the harsh conditions of the wilderness, even fresh water can be hard to come by. The Exalted who has mastered this Charm can go without food and water for three days. Activation of this Charm takes the normal investment of Essence and meditation for a full hour. The Exalt must eat and drink normally for at least one day before this Charm can be used again.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Zenith",
+      "page": 71
+    }
+  },
+  {
+    "id": "solar.endurance.controlled-breathing-exercise",
+    "name": "Controlled Breathing Exercise",
+    "category": "endurance",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "The Exalted uses Essence to reduce his need for breathing. Once the Charm is activated, the Chosen need not breath until the scene is over, as long as he does not speak and only attempts simple actions. Each turn the Exalted attempts a complicated action, including combat, he must make a reflexive Stamina + Endurance roll to avoid breathing. Obviously, this Charm is of great use in poisoned environments.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Zenith",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.endurance.sleep-of-death-technique",
+    "name": "Sleep of Death Technique",
+    "category": "endurance",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.endurance.controlled-breathing-exercise"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 0,
+      "health": 0,
+      "raw": "15 motes"
+    },
+    "duration": "Special",
+    "description": "Through the use of this Charm, an Exalted can give the illusion of death. Her heartbeat slows to imperceptibility, and she does not breath. To every mortal inspection, the Chosen is dead. The Exalted can remain in this state for as long as she chooses, but the Charm does not remove the need to eat or drink, putting a practical limit on its use without the invocation of additional Charms.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Zenith",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.endurance.unsleeping-watchman-technique",
+    "name": "Unsleeping Watchman Technique",
+    "category": "endurance",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One night",
+    "description": "Even the most careful of Exalted must sleep sometime, and it is when they sleep that they are most vulnerable. The use of this Charm replaces the need for a night's sleep with spent Essence, allowing the Exalt to act without penalty both day and night. There is no limitation on the number of concurrent days on which the Charm may be used. However, each night that Unsleeping Watchman Technique is invoked is a night without dreaming. After a number of consecutive days equal to the Chosen's Stamina + Endurance, the Exalted will begin to experience waking dreams, seeing and hearing weird, seemingly disconnected objects and sounds. Mechanically, the distraction of these hallucinations will cause the character to suffer a one die penalty on all checks. This penalty increases by one day for each additional period of (Stamina + Endurance) consecutive days.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Zenith",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.endurance.tireless-runners-stride",
+    "name": "Tireless Runner's Stride",
+    "category": "endurance",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [],
+    "cost": {
+      "motes": 10,
+      "willpower": 0,
+      "health": 0,
+      "raw": "10 motes"
+    },
+    "duration": "Special",
+    "description": "An Exalted with Tireless Runner's Stride can run for an extended period to complete her tasks. The Chosen must have a specific target in mind when invoking the Charm and must invest the Essence as normal. Afterward, the Exalted can run without ceasing until her goal is reached. She needs no sleep, nor does she need to perform bodily functions. If a sufficient supply of food and water is carried, the Exalted may eat and drink without stopping or slowing her running speed. Her pace is tripled by the investiture of Essence and by the lack of need to stop. If the Exalted stops running, the Charm ends. This running prevents the Exalt from regaining Essence naturally, just like any other strenuous exercise. The Exalted must clearly know the location she seeks to properly invoke this Charm.\n\n(Tireless Traveler's Stamina may be used as an alternate prerequisite to this Charm — Caste Book: Eclipse, p. 72.)",
+    "source": {
+      "book": "Exalted 1e Caste Book: Zenith",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.endurance.extended-life-prana",
+    "name": "Extended Life Prana",
+    "category": "endurance",
+    "exalt_type": "Solar",
+    "type": "Special",
+    "min_ability": 7,
+    "min_essence": 7,
+    "prerequisites": [
+      [
+        "solar.endurance.empty-stomach-fasting-meditation"
+      ],
+      [
+        "solar.endurance.sleep-of-death-technique"
+      ],
+      [
+        "solar.endurance.tireless-runners-stride"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "The Exalted who masters this Charm has his natural life extended many times, staving off the reaper with his righteousness. While the typical Solar Exalted lives for 2,000 to 3,000 years, this Charm extends his life to 5,000 to 7,000 years. The possessor of this Charm shows no sign of aging or degradation of health until his very last days walking Creation. This Charm offers no protection from damage or disease, it merely extends the lifespan of the Chosen. In addition to the prerequisites listed above, the Exalted must have a rating of at least three in all of his Virtues.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Zenith",
+      "page": 72
+    }
   }
 ]

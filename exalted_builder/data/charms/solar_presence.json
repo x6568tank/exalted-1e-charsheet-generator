@@ -236,5 +236,109 @@
       "book": "Exalted 1e Cult of the Illuminated",
       "page": 105
     }
+  },
+  {
+    "id": "solar.presence.command-voice",
+    "name": "Command Voice",
+    "category": "presence",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.presence.hypnotic-tongue-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 0,
+      "health": 0,
+      "raw": "8 motes"
+    },
+    "duration": "One scene",
+    "description": "The character surrounds herself with a potent aura of authority. Unlike Terrifying Apparition of Glory, this Charm does not produce an obvious or overwhelming effect. Instead, everyone who is inclined to follow orders — including peasants, servants, shop assistants, enlisted military personnel and similar individuals — will obey the character as if she were in a position of authority over them. Any target that makes a successful opposed Willpower roll against the character realizes that the character does not have the authority to command him. Everyone else will obey all reasonable-sounding commands given by the character. Orders to commit suicide, go on killing rampages, or requests to give the character most or all of the target's money or possessions will end the character's influence over the target. However, requests for information or admittance to otherwise restricted areas will be instantly granted, as will demands for moderately expensive merchandise (up to Resources ••) in a shop, even if the character does not pay for it.\n\nTargets may make another opposed Willpower roll to disobey the character if a recognized superior contradicts the character's orders. Targets who fail this roll will ignore their actual superior's requests. One of this Charm's most potent and useful features is that others observing the interaction will see nothing odd or magical about the character or the target's reaction. This Charm has no effect on beings with an Essence greater than 1, though it has proven effective on Fair Folk commoners and other supernatural creatures of an inherently servile nature.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 76
+    }
+  },
+  {
+    "id": "solar.presence.rose-lipped-seduction-style",
+    "name": "Rose-Lipped Seduction Style",
+    "category": "presence",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.presence.harmonious-presence-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote"
+    },
+    "duration": "Instant",
+    "description": "Infused with Essence, the Exalt becomes incredibly attractive to a particular person that she wishes to seduce. The Chosen's Presence Ability is doubled for the purpose of seducing her chosen target. These are Charm bonus dice and count against dice pool maximums.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 75
+    }
+  },
+  {
+    "id": "solar.presence.impassioned-orator-technique",
+    "name": "Impassioned Orator Technique",
+    "category": "presence",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.presence.listener-swaying-argument"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One turn",
+    "description": "An Exalted acting in accordance with virtue is an impressive figure indeed — an Exalted using this Charm is even more so. By using this Charm, the Chosen puts the weight of her passions behind her arguments. She may add one of her Virtue ratings in automatic successes to a single Presence roll. The Virtue may be chosen when the Charm is invoked, but the Exalted must be acting in accordance with the virtue in question. If the Exalted is not, or does not, act according to the Virtue, the Essence is spent, but no bonus is gained. Invoking this Charm automatically adds one point to the character's Limit.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Zenith",
+      "page": 78
+    }
+  },
+  {
+    "id": "solar.presence.countenance-of-vast-wrath",
+    "name": "Countenance of Vast Wrath",
+    "category": "presence",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.presence.impassioned-orator-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 0,
+      "health": 0,
+      "raw": "10 motes"
+    },
+    "duration": "One scene",
+    "description": "When driven by his passions, an Exalted can be an almost irresistible force. Through the use of this Charm, one of the Chosen may spend Essence to let the strength of her virtue strike fear in the hearts of those who would oppose her. For the remainder of the Scene, any character with a Willpower lower than the Exalted's current Limit suffers a penalty to his dice pools equal to the Exalt's Essence when attempting to attack her. Invoking this Charm automatically adds one point to the character's Limit, which counts toward the Charm's effect for the purposes of determining this Charm's effect.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Zenith",
+      "page": 79
+    }
   }
 ]

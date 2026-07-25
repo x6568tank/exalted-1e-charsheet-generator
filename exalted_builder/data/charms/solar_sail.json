@@ -1,10 +1,253 @@
 [
-  {"id": "solar.sail.salty-dog-method", "name": "Salty Dog Method", "category": "sail", "type": "Reflexive", "min_ability": 2, "min_essence": 1, "prerequisites": [], "cost": {"motes": 3}, "duration": "One day", "description": "Keeps perfect balance and footing aboard ship, immune to seasickness even in rough seas.", "source": {"book": "Exalted 1e Core", "page": 209}},
-  {"id": "solar.sail.shipwreck-surviving-stamina", "name": "Shipwreck-Surviving Stamina", "category": "sail", "type": "Reflexive", "min_ability": 3, "min_essence": 1, "prerequisites": [["solar.sail.salty-dog-method"]], "cost": {"motes": 5}, "duration": "One day", "description": "Survives shipwreck, treading water and resisting drowning and exposure for days.", "source": {"book": "Exalted 1e Core", "page": 209}},
-  {"id": "solar.sail.perfect-reckoning-technique", "name": "Perfect Reckoning Technique", "category": "sail", "type": "Simple", "min_ability": 3, "min_essence": 1, "prerequisites": [["solar.sail.salty-dog-method"]], "cost": {"motes": 4}, "duration": "Instant", "description": "Always knows the ship's exact position relative to landmarks and the stars.", "source": {"book": "Exalted 1e Core", "page": 210}},
-  {"id": "solar.sail.weather-anticipating-intuition", "name": "Weather-Anticipating Intuition", "category": "sail", "type": "Simple", "min_ability": 3, "min_essence": 1, "prerequisites": [["solar.sail.perfect-reckoning-technique"]], "cost": {"motes": 6}, "duration": "Instant", "description": "Foresees coming weather at sea, predicting squalls and storms.", "source": {"book": "Exalted 1e Core", "page": 210}},
-  {"id": "solar.sail.depth-plumbing-intuition", "name": "Depth-Plumbing Intuition", "category": "sail", "type": "Reflexive", "min_ability": 3, "min_essence": 1, "prerequisites": [["solar.sail.perfect-reckoning-technique"]], "cost": {"motes": 4}, "duration": "One scene", "description": "Senses the depth of the water and hidden reefs or shoals beneath the ship.", "source": {"book": "Exalted 1e Core", "page": 210}},
-  {"id": "solar.sail.wind-defying-course-technique", "name": "Wind-Defying Course Technique", "category": "sail", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.sail.salty-dog-method"]], "cost": {"motes": 6}, "duration": "One scene", "description": "Sails against the wind, granting a ship tremendous speed regardless of conditions.", "source": {"book": "Exalted 1e Core", "page": 210}},
-  {"id": "solar.sail.storm-weathering-essence-infusion", "name": "Storm-Weathering Essence Infusion", "category": "sail", "type": "Simple", "min_ability": 4, "min_essence": 2, "prerequisites": [["solar.sail.wind-defying-course-technique"]], "cost": {"motes": 6, "willpower": 1}, "duration": "One day", "description": "Toughens a ship to weather storms and survive ramming.", "source": {"book": "Exalted 1e Core", "page": 211}},
-  {"id": "solar.sail.hull-preserving-technique", "name": "Hull-Preserving Technique", "category": "sail", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.sail.storm-weathering-essence-infusion"]], "cost": {"raw": "8 motes, 1 Willpower, 1 health level"}, "duration": "One turn", "description": "Reflexively preserves a ship from damage that would sink or wreck it.", "source": {"book": "Exalted 1e Core", "page": 211}}
+  {
+    "id": "solar.sail.salty-dog-method",
+    "name": "Salty Dog Method",
+    "category": "sail",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "One day",
+    "description": "Keeps perfect balance and footing aboard ship, immune to seasickness even in rough seas.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 209
+    }
+  },
+  {
+    "id": "solar.sail.shipwreck-surviving-stamina",
+    "name": "Shipwreck-Surviving Stamina",
+    "category": "sail",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.sail.salty-dog-method"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "One day",
+    "description": "Survives shipwreck, treading water and resisting drowning and exposure for days.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 209
+    }
+  },
+  {
+    "id": "solar.sail.perfect-reckoning-technique",
+    "name": "Perfect Reckoning Technique",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.sail.salty-dog-method"
+      ]
+    ],
+    "cost": {
+      "motes": 4
+    },
+    "duration": "Instant",
+    "description": "Always knows the ship's exact position relative to landmarks and the stars.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 210
+    }
+  },
+  {
+    "id": "solar.sail.weather-anticipating-intuition",
+    "name": "Weather-Anticipating Intuition",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.sail.perfect-reckoning-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "Instant",
+    "description": "Foresees coming weather at sea, predicting squalls and storms.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 210
+    }
+  },
+  {
+    "id": "solar.sail.depth-plumbing-intuition",
+    "name": "Depth-Plumbing Intuition",
+    "category": "sail",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.sail.perfect-reckoning-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 4
+    },
+    "duration": "One scene",
+    "description": "Senses the depth of the water and hidden reefs or shoals beneath the ship.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 210
+    }
+  },
+  {
+    "id": "solar.sail.wind-defying-course-technique",
+    "name": "Wind-Defying Course Technique",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.sail.salty-dog-method"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "One scene",
+    "description": "Sails against the wind, granting a ship tremendous speed regardless of conditions.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 210
+    }
+  },
+  {
+    "id": "solar.sail.storm-weathering-essence-infusion",
+    "name": "Storm-Weathering Essence Infusion",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.sail.wind-defying-course-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "Toughens a ship to weather storms and survive ramming.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 211
+    }
+  },
+  {
+    "id": "solar.sail.hull-preserving-technique",
+    "name": "Hull-Preserving Technique",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.sail.storm-weathering-essence-infusion"
+      ]
+    ],
+    "cost": {
+      "raw": "8 motes, 1 Willpower, 1 health level"
+    },
+    "duration": "One turn",
+    "description": "Reflexively preserves a ship from damage that would sink or wreck it.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 211
+    }
+  },
+  {
+    "id": "solar.sail.golden-essence-sails",
+    "name": "Golden Essence Sails",
+    "category": "sail",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.sail.salty-dog-method"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1,
+      "health": 0,
+      "raw": "6 motes, 1 Willpower"
+    },
+    "duration": "One day",
+    "description": "The character using this Charm weaves sails out of pure Essence for a ship that has no sails (or badly damaged ones). The new sails are of a shimmering golden cloth, as light as silk but stronger than canvas. They appear on the ship's masts and furl or unfurl at their creator's command. They may bear an emblem of the Chosen's anima, if she wishes it. Golden Essence Sails have a soak value of (the Exalt's permanent Essence score + 2) for resisting attacks against the ship's rigging or sails, and they do not accumulate damage (they ignore any attack insufficient to damage them, just like the ship itself does). See Savage Seas, pages 92-93, for more information.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 76
+    }
+  },
+  {
+    "id": "solar.sail.phantom-crew-charm",
+    "name": "Phantom Crew Charm",
+    "category": "sail",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.sail.golden-essence-sails"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1,
+      "health": 0,
+      "raw": "8 motes, 1 Willpower"
+    },
+    "duration": "One day",
+    "description": "With this Charm, the Chosen calls into being phantom sailors able to crew any ship the character is aboard. The phantom crew speaks only when necessary and obeys all of its summoner's orders. The phantom sailors will sail the ship anywhere and perform any shipboard duties, although they will not fight and should be treated as extras with relevant Abilities equal to the Exalted's Essence. The character can summon a crew sufficient for a ship of up to (Essence x 40) feet in length.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 76
+    }
+  },
+  {
+    "id": "solar.sail.glorious-solar-ship",
+    "name": "Glorious Solar Ship",
+    "category": "sail",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.sail.phantom-crew-charm"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower"
+    },
+    "duration": "One day",
+    "description": "The Exalted conjures an entire vessel from pure Essence, capable of bearing him and a number of passengers and crew. The ship has a maximum length of (the character's Essence rating x 20) feet and appears ready to sail, with all of the usual equipment on board. The Glorious Solar Ship has no crew; it is up to the Chosen to provide one, either mortal or otherwise. Other Sail Charms can be applied normally to the Glorious Solar Ship.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 77
+    }
+  }
 ]

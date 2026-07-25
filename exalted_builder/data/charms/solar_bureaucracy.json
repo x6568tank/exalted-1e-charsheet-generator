@@ -1,11 +1,251 @@
 [
-  {"id": "solar.bureaucracy.frugal-merchant-method", "name": "Frugal Merchant Method", "category": "bureaucracy", "type": "Simple", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"motes": 1}, "duration": "Instant", "description": "Evaluates the true quality and fair price of any goods offered for sale at a glance.", "source": {"book": "Exalted 1e Core", "page": 203}},
-  {"id": "solar.bureaucracy.insightful-buyer-technique", "name": "Insightful Buyer Technique", "category": "bureaucracy", "type": "Simple", "min_ability": 2, "min_essence": 1, "prerequisites": [["solar.bureaucracy.frugal-merchant-method"]], "cost": {"motes": 3}, "duration": "Instant", "description": "Discerns a seller's intentions and the true value of an object they offer.", "source": {"book": "Exalted 1e Core", "page": 203}},
-  {"id": "solar.bureaucracy.consumer-evaluating-glance", "name": "Consumer-Evaluating Glance", "category": "bureaucracy", "type": "Simple", "min_ability": 2, "min_essence": 1, "prerequisites": [["solar.bureaucracy.frugal-merchant-method"]], "cost": {"motes": 3}, "duration": "Instant", "description": "Reads a customer's intentions and budget with a single glance.", "source": {"book": "Exalted 1e Core", "page": 203}},
-  {"id": "solar.bureaucracy.irresistible-salesman-spirit", "name": "Irresistible Salesman Spirit", "category": "bureaucracy", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.bureaucracy.consumer-evaluating-glance"], ["solar.bureaucracy.insightful-buyer-technique"]], "cost": {"motes": 5, "willpower": 1}, "duration": "One scene", "description": "Becomes a supernaturally persuasive salesman, able to sell almost anything to anyone.", "source": {"book": "Exalted 1e Core", "page": 203}},
-  {"id": "solar.bureaucracy.deft-officials-way", "name": "Deft Official's Way", "category": "bureaucracy", "type": "Simple", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"motes": 6}, "duration": "One task", "description": "Navigates bureaucracy preternaturally well, getting officials to cooperate.", "source": {"book": "Exalted 1e Core", "page": 204}},
-  {"id": "solar.bureaucracy.speed-the-wheels", "name": "Speed the Wheels", "category": "bureaucracy", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.bureaucracy.deft-officials-way"]], "cost": {"motes": 8}, "duration": "One task", "description": "Cuts through bureaucratic delay to accomplish a task in record time.", "source": {"book": "Exalted 1e Core", "page": 204}},
-  {"id": "solar.bureaucracy.indolent-official-charm", "name": "Indolent Official Charm", "category": "bureaucracy", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.bureaucracy.deft-officials-way"]], "cost": {"motes": 4}, "duration": "One task", "description": "Stalls and slows a bureaucratic process, multiplying the time a task takes.", "source": {"book": "Exalted 1e Core", "page": 205}},
-  {"id": "solar.bureaucracy.foul-air-of-argument-technique", "name": "Foul Air of Argument Technique", "category": "bureaucracy", "type": "Simple", "min_ability": 4, "min_essence": 3, "prerequisites": [["solar.bureaucracy.indolent-official-charm"]], "cost": {"motes": 12, "willpower": 1}, "duration": "One task", "description": "Sows discord in a meeting, hampering and crippling the bureaus involved.", "source": {"book": "Exalted 1e Core", "page": 205}},
-  {"id": "solar.bureaucracy.bureau-rectifying-method", "name": "Bureau-Rectifying Method", "category": "bureaucracy", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.bureaucracy.speed-the-wheels"]], "cost": {"motes": 8, "willpower": 1}, "duration": "One investigation", "description": "Roots out corruption in a bureaucracy through a thorough investigation.", "source": {"book": "Exalted 1e Core", "page": 205}}
+  {
+    "id": "solar.bureaucracy.frugal-merchant-method",
+    "name": "Frugal Merchant Method",
+    "category": "bureaucracy",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1
+    },
+    "duration": "Instant",
+    "description": "Evaluates the true quality and fair price of any goods offered for sale at a glance.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 203
+    }
+  },
+  {
+    "id": "solar.bureaucracy.insightful-buyer-technique",
+    "name": "Insightful Buyer Technique",
+    "category": "bureaucracy",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.bureaucracy.frugal-merchant-method"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "Instant",
+    "description": "Discerns a seller's intentions and the true value of an object they offer.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 203
+    }
+  },
+  {
+    "id": "solar.bureaucracy.consumer-evaluating-glance",
+    "name": "Consumer-Evaluating Glance",
+    "category": "bureaucracy",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.bureaucracy.frugal-merchant-method"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "Instant",
+    "description": "Reads a customer's intentions and budget with a single glance.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 203
+    }
+  },
+  {
+    "id": "solar.bureaucracy.irresistible-salesman-spirit",
+    "name": "Irresistible Salesman Spirit",
+    "category": "bureaucracy",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.bureaucracy.consumer-evaluating-glance"
+      ],
+      [
+        "solar.bureaucracy.insightful-buyer-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Becomes a supernaturally persuasive salesman, able to sell almost anything to anyone.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 203
+    }
+  },
+  {
+    "id": "solar.bureaucracy.deft-officials-way",
+    "name": "Deft Official's Way",
+    "category": "bureaucracy",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "One task",
+    "description": "Navigates bureaucracy preternaturally well, getting officials to cooperate.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 204
+    }
+  },
+  {
+    "id": "solar.bureaucracy.speed-the-wheels",
+    "name": "Speed the Wheels",
+    "category": "bureaucracy",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.bureaucracy.deft-officials-way"
+      ]
+    ],
+    "cost": {
+      "motes": 8
+    },
+    "duration": "One task",
+    "description": "Cuts through bureaucratic delay to accomplish a task in record time.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 204
+    }
+  },
+  {
+    "id": "solar.bureaucracy.indolent-official-charm",
+    "name": "Indolent Official Charm",
+    "category": "bureaucracy",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.bureaucracy.deft-officials-way"
+      ]
+    ],
+    "cost": {
+      "motes": 4
+    },
+    "duration": "One task",
+    "description": "Stalls and slows a bureaucratic process, multiplying the time a task takes.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 205
+    }
+  },
+  {
+    "id": "solar.bureaucracy.foul-air-of-argument-technique",
+    "name": "Foul Air of Argument Technique",
+    "category": "bureaucracy",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.bureaucracy.indolent-official-charm"
+      ]
+    ],
+    "cost": {
+      "motes": 12,
+      "willpower": 1
+    },
+    "duration": "One task",
+    "description": "Sows discord in a meeting, hampering and crippling the bureaus involved.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 205
+    }
+  },
+  {
+    "id": "solar.bureaucracy.bureau-rectifying-method",
+    "name": "Bureau-Rectifying Method",
+    "category": "bureaucracy",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.bureaucracy.speed-the-wheels"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1
+    },
+    "duration": "One investigation",
+    "description": "Roots out corruption in a bureaucracy through a thorough investigation.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 205
+    }
+  },
+  {
+    "id": "solar.bureaucracy.bureaucratic-concealment-technique",
+    "name": "Bureaucratic Concealment Technique",
+    "category": "bureaucracy",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.bureaucracy.indolent-official-charm"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes",
+      "committed": true
+    },
+    "duration": "Special",
+    "description": "Using this Charm, a character can effectively cause a single item to disappear into the depths of a bureaucracy and remain hidden from all efforts to find it until the Exalted ceases committing Essence to the Charm or chooses to retrieve the item herself. The item may be virtually anything that can be moved through human effort: a letter, an artifact, a piece of jewelry — even a statue or the like. It is shuffled from place to place, stored and forgotten, and it draws no attention to itself. Investigation attempts to find the concealed item have their difficulty increased by the Exalted's Essence.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 71
+    }
+  },
+  {
+    "id": "solar.bureaucracy.forgetful-bureau-charm",
+    "name": "Forgetful Bureau Charm",
+    "category": "bureaucracy",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.bureaucracy.indolent-official-charm"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "Forgetful Bureau Charm allows an Exalted character to erase all evidence of one item or individual from a particular bureaucracy. Records are lost or destroyed, officials misremember facts, and so forth. The effects take some time to make themselves felt. A small local bureaucracy is affected within a day. Larger organizations may take weeks, or even months, before the process is complete. So far as the bureaucracy is concerned, the item or individual in question does not exist. Those with direct contact with the subject still recall it normally, but official records and other documentation do not support their recollections. New records can come into being after this Charm is used, but previous records on the subject are permanently lost.\n\nThis Charm allows the Chosen to create difficulties for others by eliminating all official record of them or for the Exalted to protect their own secrets, such as removing evidence of a Circle's activities or of the location of a particular Demesne or Manse.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 71
+    }
+  }
 ]

@@ -3,348 +3,561 @@
     "id": "spell.terrestrial.death-of-obsidian-butterflies",
     "name": "Death of Obsidian Butterflies",
     "circle": "Terrestrial",
-    "cost": {"motes": 15},
+    "cost": {
+      "motes": 15
+    },
     "description": "Conjures a cascade of razor-sharp obsidian butterflies that slash everyone in a roughly 10-yard area; defended against as a hand-to-hand attack with the caster's Perception + Occult successes.",
-    "source": {"book": "Exalted 1e Core", "page": 217}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 217
+    }
   },
   {
     "id": "spell.terrestrial.demon-of-the-first-circle",
     "name": "Demon of the First Circle",
     "circle": "Terrestrial",
-    "cost": {"raw": "20+ motes"},
+    "cost": {
+      "raw": "20+ motes"
+    },
     "description": "Summons and binds a first-circle demon to the sorcerer's service over a night's ritual begun at sunset.",
-    "source": {"book": "Exalted 1e Core", "page": 218}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 218
+    }
   },
   {
     "id": "spell.terrestrial.emerald-countermagic",
     "name": "Emerald Countermagic",
     "circle": "Terrestrial",
-    "cost": {"raw": "10 or 20 motes"},
+    "cost": {
+      "raw": "10 or 20 motes"
+    },
     "description": "Dispels Terrestrial Circle sorcery; can also be used to counter a spell as it is cast.",
-    "source": {"book": "Exalted 1e Core", "page": 218}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 218
+    }
   },
   {
     "id": "spell.terrestrial.impenetrable-frost-barrier",
     "name": "Impenetrable Frost Barrier",
     "circle": "Terrestrial",
-    "cost": {"motes": 20},
+    "cost": {
+      "motes": 20
+    },
     "description": "Raises a barrier of intense magical cold that damages and hampers those who try to cross it.",
-    "source": {"book": "Exalted 1e Core", "page": 218}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 218
+    }
   },
   {
     "id": "spell.terrestrial.infallible-messenger",
     "name": "Infallible Messenger",
     "circle": "Terrestrial",
-    "cost": {"motes": 10},
+    "cost": {
+      "motes": 10
+    },
     "description": "Sends a short spoken message to anyone the sorcerer has met, delivered by a tiny figure of Essence.",
-    "source": {"book": "Exalted 1e Core", "page": 218}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 218
+    }
   },
   {
     "id": "spell.terrestrial.invulnerable-skin-of-bronze",
     "name": "Invulnerable Skin of Bronze",
     "circle": "Terrestrial",
-    "cost": {"motes": 20},
+    "cost": {
+      "motes": 20
+    },
     "description": "Hardens the sorcerer's skin to add +6 soak against lethal damage and +12 against bashing.",
-    "source": {"book": "Exalted 1e Core", "page": 218}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 218
+    }
   },
   {
     "id": "spell.terrestrial.stormwind-rider",
     "name": "Stormwind Rider",
     "circle": "Terrestrial",
-    "cost": {"motes": 15},
+    "cost": {
+      "motes": 15
+    },
     "description": "Wraps the sorcerer in a controllable dust-devil vortex that carries her at great speed and cushions falls.",
-    "source": {"book": "Exalted 1e Core", "page": 219}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 219
+    }
   },
   {
     "id": "spell.terrestrial.summon-elemental",
     "name": "Summon Elemental",
     "circle": "Terrestrial",
-    "cost": {"raw": "10+ motes"},
+    "cost": {
+      "raw": "10+ motes"
+    },
     "description": "Summons and binds an elemental to service; like Demon of the First Circle but castable any time and with gentler terms.",
-    "source": {"book": "Exalted 1e Core", "page": 219}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 219
+    }
   },
   {
     "id": "spell.terrestrial.sworn-brothers-oath",
     "name": "Sworn Brothers' Oath",
     "circle": "Terrestrial",
-    "cost": {"motes": 10, "raw": "10 motes + 1 mote from each Exalted bound by the spell"},
+    "cost": {
+      "motes": 10,
+      "raw": "10 motes + 1 mote from each Exalted bound by the spell"
+    },
     "description": "Binds the Essence of two or more Exalted (of any type) into a sworn brotherhood over an hour-long ritual (one additional hour per Exalt beyond the first two); the sorcerer need not be one of the bound. The caster's Intelligence + Occult successes set the brotherhood's level, which drives three linked effects: Loyalty (a Conviction roll beating that level is needed to act to harm a sworn sibling), Devotion (a once-per-story bonus dice pool equal to the oathbond rating when aiding a sworn sibling), and Familiarity (each knows a sworn sibling's location within rating x 10 yards, or its direction on an Essence roll beyond that).",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 161}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 161
+    }
   },
   {
     "id": "spell.terrestrial.wood-dragons-claw",
     "name": "Wood Dragon's Claw",
     "circle": "Terrestrial",
-    "cost": {"motes": 10},
+    "cost": {
+      "motes": 10
+    },
     "description": "Transforms the hands into gnarled oaken claws dealing Strength + 4 lethal damage and able to block lethal attacks.",
-    "source": {"book": "Exalted 1e Core", "page": 220}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 220
+    }
   },
   {
     "id": "spell.celestial.blood-of-boiling-oil",
     "name": "Blood of Boiling Oil",
     "circle": "Celestial",
-    "cost": {"motes": 30},
+    "cost": {
+      "motes": 30
+    },
     "description": "Hurls a sphere of searing Essence that boils a living victim's blood, dealing aggravated damage.",
-    "source": {"book": "Exalted 1e Core", "page": 220}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 220
+    }
   },
   {
     "id": "spell.celestial.demon-of-the-second-circle",
     "name": "Demon of the Second Circle",
     "circle": "Celestial",
-    "cost": {"raw": "30+ motes"},
+    "cost": {
+      "raw": "30+ motes"
+    },
     "description": "Summons and binds a more powerful second-circle demon; similar to Demon of the First Circle but mightier and more dangerous.",
-    "source": {"book": "Exalted 1e Core", "page": 220}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 220
+    }
   },
   {
     "id": "spell.celestial.dolorous-reflection",
     "name": "Dolorous Reflection",
     "circle": "Celestial",
-    "cost": {"motes": 20},
+    "cost": {
+      "motes": 20
+    },
     "description": "A defensive nimbus of mystical energy that reflects ranged and hand-to-hand attacks back at the attacker.",
-    "source": {"book": "Exalted 1e Core", "page": 220}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 220
+    }
   },
   {
     "id": "spell.celestial.incomparable-body-arsenal",
     "name": "Incomparable Body Arsenal",
     "circle": "Celestial",
-    "cost": {"motes": 30},
+    "cost": {
+      "motes": 30
+    },
     "description": "Grows the sorcerer's body into a living arsenal of blades and barbs, raising Strength and Stamina and dealing lethal damage.",
-    "source": {"book": "Exalted 1e Core", "page": 221}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 221
+    }
   },
   {
     "id": "spell.celestial.sapphire-countermagic",
     "name": "Sapphire Countermagic",
     "circle": "Celestial",
-    "cost": {"raw": "15 or 20 motes"},
+    "cost": {
+      "raw": "15 or 20 motes"
+    },
     "description": "Dispels Celestial Circle (and lower) sorcery; can also counter a spell as it is cast.",
-    "source": {"book": "Exalted 1e Core", "page": 221}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 221
+    }
   },
   {
     "id": "spell.celestial.travel-without-distance",
     "name": "Travel Without Distance",
     "circle": "Celestial",
-    "cost": {"motes": 25},
+    "cost": {
+      "motes": 25
+    },
     "description": "Instantly transports the sorcerer across any distance to a place she can clearly picture.",
-    "source": {"book": "Exalted 1e Core", "page": 221}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 221
+    }
   },
   {
     "id": "spell.solar.adamant-countermagic",
     "name": "Adamant Countermagic",
     "circle": "Solar",
-    "cost": {"raw": "20 or 25 motes"},
+    "cost": {
+      "raw": "20 or 25 motes"
+    },
     "description": "The most powerful countermagic; dispels sorcery of any circle up to and including the Solar Circle, and protects against lower-circle countermagic.",
-    "source": {"book": "Exalted 1e Core", "page": 222}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 222
+    }
   },
   {
     "id": "spell.solar.demon-of-the-third-circle",
     "name": "Demon of the Third Circle",
     "circle": "Solar",
-    "cost": {"raw": "40+ motes"},
+    "cost": {
+      "raw": "40+ motes"
+    },
     "description": "Summons and binds one of the mighty third-circle demon princes; an extremely difficult and dangerous ritual.",
-    "source": {"book": "Exalted 1e Core", "page": 222}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 222
+    }
   },
   {
     "id": "spell.solar.rain-of-doom",
     "name": "Rain of Doom",
     "circle": "Solar",
-    "cost": {"motes": 60},
+    "cost": {
+      "motes": 60
+    },
     "description": "Calls down a corrosive, venomous rain over a vast area that sears and poisons everything it touches.",
-    "source": {"book": "Exalted 1e Core", "page": 222}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 222
+    }
   },
   {
     "id": "spell.solar.rune-of-singular-hate",
     "name": "Rune of Singular Hate",
     "circle": "Solar",
-    "cost": {"motes": 10},
+    "cost": {
+      "motes": 10
+    },
     "description": "A single spoken word of pure malice that strips dots from every Ability, Attribute, and Virtue of its target; the sorcerer also permanently loses one dot from each of her own.",
-    "source": {"book": "Exalted 1e Core", "page": 223}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 223
+    }
   },
-
   {
     "id": "spell.shadowlands.hungry-creeping-shadow",
     "name": "Hungry Creeping Shadow",
     "circle": "Shadowlands",
-    "cost": {"motes": 15},
+    "cost": {
+      "motes": 15
+    },
     "description": "Vomits forth a creature of liquid shadow that pursues one target in sight; it has Physical Attributes and Brawl equal to the caster's Essence and Stamina+Essence health levels, ignores kinetic damage, and clinches to crush its prey. Lasts one hour.",
-    "source": {"book": "Exalted 1e Core", "page": 224}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 224
+    }
   },
   {
     "id": "spell.shadowlands.iron-countermagic",
     "name": "Iron Countermagic",
     "circle": "Shadowlands",
-    "cost": {"raw": "10 or 20 motes"},
+    "cost": {
+      "raw": "10 or 20 motes"
+    },
     "description": "Necromantic countermagic: 10 motes raises a personal shield negating hostile Shadowlands spells until the next turn's end (−2 to Physical actions while it persists); 20 motes extinguishes one Shadowlands spell within Essence×50 feet. May also oppose sorcery one circle higher.",
-    "source": {"book": "Exalted 1e Core", "page": 224}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 224
+    }
   },
   {
     "id": "spell.shadowlands.piercing-the-shroud",
     "name": "Piercing the Shroud",
     "circle": "Shadowlands",
-    "cost": {"motes": 10},
+    "cost": {
+      "motes": 10
+    },
     "description": "A ten-minute chant (minus the caster's Occult) ends with a blade-cut in the air that tears open a rift to the Labyrinth for Essence turns. Only lets a necromancer enter — she must find her own way out.",
-    "source": {"book": "Exalted 1e Core", "page": 225}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 225
+    }
   },
   {
     "id": "spell.shadowlands.raise-the-skeletal-horde",
     "name": "Raise the Skeletal Horde",
     "circle": "Shadowlands",
-    "cost": {"raw": "Varies"},
+    "cost": {
+      "raw": "Varies"
+    },
     "description": "Jagged Essence-lightning animates nearby corpses within 100 yards as common zombies (extras): one per 5 motes (permanent), or one per 3 motes for temporary zombies that fall at scene's end. Cannot mix permanent and temporary in one casting.",
-    "source": {"book": "Exalted 1e Core", "page": 225}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 225
+    }
   },
   {
     "id": "spell.shadowlands.rune-of-sweet-passing",
     "name": "Rune of Sweet Passing",
     "circle": "Shadowlands",
-    "cost": {"motes": 15},
+    "cost": {
+      "motes": 15
+    },
     "description": "An hour-long ritual paints a mortal's skin with blood-and-grave-soil glyphs that ensure she becomes a ghost upon death and alert the necromancer the instant she dies. Creates ghosts only; no control over them. No effect on Exalted or magical beings.",
-    "source": {"book": "Exalted 1e Core", "page": 225}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 225
+    }
   },
   {
     "id": "spell.shadowlands.shade-prison-amulet",
     "name": "Shade Prison Amulet",
     "circle": "Shadowlands",
-    "cost": {"motes": 10},
+    "cost": {
+      "motes": 10
+    },
     "description": "Enchants a piece of bone jewelry to trap one hungry ghost it touches, holding it so long as the talisman is intact; breaking the prison frees the ghost (destroyed if broken by daylight). The Labyrinth version, Bauble of the Captive Soul, catches any ghost for 15 motes.",
-    "source": {"book": "Exalted 1e Core", "page": 225}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 225
+    }
   },
   {
     "id": "spell.shadowlands.soul-brand",
     "name": "Soul Brand",
     "circle": "Shadowlands",
-    "cost": {"motes": 15},
+    "cost": {
+      "motes": 15
+    },
     "description": "Tattoos an unExalted mortal with a permanent rune granting the protection of a Ghost-Warding Glyph; removing it burns the mortal for the necromancer's Essence in lethal dice. Vanishes harmlessly if the bearer ever Exalts.",
-    "source": {"book": "Exalted 1e Core", "page": 225}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 225
+    }
   },
   {
     "id": "spell.shadowlands.summon-ghost",
     "name": "Summon Ghost",
     "circle": "Shadowlands",
-    "cost": {"raw": "15+ motes"},
+    "cost": {
+      "raw": "15+ motes"
+    },
     "description": "An hour-long night/Underworld ritual (needs the ghost's name or a piece of her corpse) tears a portal for 10 motes; each extra 5 motes weakens the ghost by a die. An opposed Willpower+Essence contest binds her to a year-and-a-day of service, or she escapes for a year.",
-    "source": {"book": "Exalted 1e Core", "page": 226}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 226
+    }
   },
   {
     "id": "spell.shadowlands.walking-war-machine",
     "name": "Walking War Machine",
     "circle": "Shadowlands",
-    "cost": {"raw": "Varies"},
+    "cost": {
+      "raw": "Varies"
+    },
     "description": "Animates a pre-built undead siege engine (extended Intelligence+Craft (Necrosurgery) to construct): touching it and investing 5 motes per assembly success sets it serving its master. Spine-chain statistics on Exalted p300.",
-    "source": {"book": "Exalted 1e Core", "page": 226}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 226
+    }
   },
-
   {
     "id": "spell.labyrinth.exquisite-undead-aide",
     "name": "Exquisite Undead Aide",
     "circle": "Labyrinth",
-    "cost": {"motes": 20},
+    "cost": {
+      "motes": 20
+    },
     "description": "Raises a single capable servant instead of a horde: a common zombie whose non-Appearance Attributes are at least 2, with Intelligence+Occult in Ability dots (none above the caster's own). Never decays, can speak in clipped phrases, and has full health levels.",
-    "source": {"book": "Exalted 1e Core", "page": 226}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 226
+    }
   },
   {
     "id": "spell.labyrinth.hundred-shade-breath",
     "name": "Hundred Shade Breath",
     "circle": "Labyrinth",
-    "cost": {"raw": "Varies"},
+    "cost": {
+      "raw": "Varies"
+    },
     "description": "Exhales a blue fog that coalesces into hungry ghosts (extras), one per 2 motes, over the next turn. Useless by day (sunlight burns them to ash); survivors dissolve back into the caster at scene's end, freeing 2 committed motes per ghost lost.",
-    "source": {"book": "Exalted 1e Core", "page": 226}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 226
+    }
   },
   {
     "id": "spell.labyrinth.ivory-razor-forest",
     "name": "Ivory Razor Forest",
     "circle": "Labyrinth",
-    "cost": {"motes": 25},
+    "cost": {
+      "motes": 25
+    },
     "description": "A shockwave of Essence raises dense spines of bone (max height Essence yards) over (Charisma+Occult)×10 square yards of any shape, inflicting unblockable 8L (dodge only) to all within and to anything hurled against them. The spikes last for Essence days.",
-    "source": {"book": "Exalted 1e Core", "page": 227}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 227
+    }
   },
   {
     "id": "spell.labyrinth.reaping-the-fallen",
     "name": "Reaping the Fallen",
     "circle": "Labyrinth",
-    "cost": {"motes": 25},
+    "cost": {
+      "motes": 25
+    },
     "description": "Flares the caster's anima to full and, for the rest of the scene, grants 1 mote for every sentient being that dies within a league (up to her maximum). The Void version, Blood from the Slaughter (35 motes), instead regenerates a health level per kill.",
-    "source": {"book": "Exalted 1e Core", "page": 227}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 227
+    }
   },
   {
     "id": "spell.labyrinth.spiteful-passing",
     "name": "Spiteful Passing",
     "circle": "Labyrinth",
-    "cost": {"raw": "Special"},
+    "cost": {
+      "raw": "Special"
+    },
     "description": "A dying necromancer's final blast: after a turn concentrating, he expires as searing light, dealing everyone within Stamina yards his Essence in lethal dice plus one per remaining mote, bypassing armor (natural soak only). All plants within range wither; his corpse crumbles to dust.",
-    "source": {"book": "Exalted 1e Core", "page": 227}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 227
+    }
   },
   {
     "id": "spell.labyrinth.stealing-the-gathered-breath",
     "name": "Stealing the Gathered Breath",
     "circle": "Labyrinth",
-    "cost": {"motes": 15},
+    "cost": {
+      "motes": 15
+    },
     "description": "Inhales the life energy of every sentient being within Essence×5 yards, inflicting one lethal die (Stamina soak only) on each; every level actually dealt restores 1 mote to the necromancer.",
-    "source": {"book": "Exalted 1e Core", "page": 228}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 228
+    }
   },
   {
     "id": "spell.labyrinth.striking-spectre-lash",
     "name": "Striking Spectre Lash",
     "circle": "Labyrinth",
-    "cost": {"raw": "15 motes + 2 motes per attack"},
+    "cost": {
+      "raw": "15 motes + 2 motes per attack"
+    },
     "description": "Grows a whip of solidified darkness with Speed/Accuracy/Defense equal to Essence, reach four times that, and Strength+Essence base damage that can grapple and kill at range. Reflexively spending 2 motes on a hit forces an Essence roll or the mortal victim drops dead.",
-    "source": {"book": "Exalted 1e Core", "page": 228}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 228
+    }
   },
-
   {
     "id": "spell.void.abyssal-aegis",
     "name": "Abyssal Aegis",
     "circle": "Void",
-    "cost": {"motes": 20},
+    "cost": {
+      "motes": 20
+    },
     "description": "Until next sunrise, grants bashing and lethal soak equal to permanent Essence and negates any magic designed to deal extra damage or trauma to Abyssals, Deathlords, or Underworld denizens — the bonus effect vanishes, though the base attack still lands.",
-    "source": {"book": "Exalted 1e Core", "page": 228}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 228
+    }
   },
   {
     "id": "spell.void.anguished-shade-harvest",
     "name": "Anguished Shade Harvest",
     "circle": "Void",
-    "cost": {"motes": 60},
+    "cost": {
+      "motes": 60
+    },
     "description": "Pacing a boundary on foot from sunset to before midnight consecrates that land to the Underworld: black clouds shroud it, and any mortal who dies violently there afterward rises at dusk as an uncontrolled hungry ghost (extra).",
-    "source": {"book": "Exalted 1e Core", "page": 228}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 228
+    }
   },
   {
     "id": "spell.void.blood-monsoon",
     "name": "Blood Monsoon",
     "circle": "Void",
-    "cost": {"raw": "50 motes (committed) + one lethal health level"},
+    "cost": {
+      "raw": "50 motes (committed) + one lethal health level"
+    },
     "description": "A geyser of the caster's blood builds over an hour into a mile-high cloud covering Essence miles in radius, then rains gore for Stamina hours — killing plants and small animals, sickening others (hourly Stamina+Endurance check), and drawing malevolent creatures for miles.",
-    "source": {"book": "Exalted 1e Core", "page": 228}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 228
+    }
   },
   {
     "id": "spell.void.dimming-of-the-light",
     "name": "Dimming of the Light",
     "circle": "Void",
-    "cost": {"motes": 80},
+    "cost": {
+      "motes": 80
+    },
     "description": "A sunset-to-midnight ritual transforms a willing Solar into an Abyssal: she renounces her god, Caste Mark, Charms, and name, and at midnight her anima is swallowed by shadow. She gains matching Abyssal Charms and caste (Dawn→Dusk, etc.) and is thereafter a deathknight.",
-    "source": {"book": "Exalted 1e Core", "page": 229}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 229
+    }
   },
   {
     "id": "spell.void.inauspicious-citadel",
     "name": "Inauspicious Citadel",
     "circle": "Void",
-    "cost": {"motes": 60},
+    "cost": {
+      "motes": 60
+    },
     "description": "After sacrificing at least 100 mortals into a pit dug in a shadowland and bleeding a health level into it, the earth falls away to the Labyrinth and a unique defensible fortress of obsidian and black basalt grinds up, its lowest chapel opening onto the dead gods below.",
-    "source": {"book": "Exalted 1e Core", "page": 229}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 229
+    }
   },
   {
     "id": "spell.void.lord-of-the-dead",
     "name": "Lord of the Dead",
     "circle": "Void",
-    "cost": {"motes": 25},
+    "cost": {
+      "motes": 25
+    },
     "description": "For a full day the caster's Caste Mark glows red, letting her command any ghost, walking dead, or creature of death of lower permanent Essence, and barring any such creature from attacking her. No power over Abyssal Exalted or Deathlords.",
-    "source": {"book": "Exalted 1e Core", "page": 229}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 229
+    }
   },
   {
     "id": "spell.void.poisoning-the-well",
     "name": "Poisoning the Well",
     "circle": "Void",
-    "cost": {"raw": "50 motes (committed)"},
+    "cost": {
+      "raw": "50 motes (committed)"
+    },
     "description": "Fasting at a Demesne's heart for days equal to its rating dooms it to lose a rating point each month until, at zero, it shifts to an Abyssal aspect and slowly regains strength. Only Adamant Countermagic (at double cost) or an Incarna can arrest the decay.",
-    "source": {"book": "Exalted 1e Core", "page": 229}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 229
+    }
   },
   {
     "id": "spell.man-machine.automaton-override-protocol",
@@ -838,6 +1051,97 @@
     "source": {
       "book": "Exalted 1e The Autochthonians",
       "page": 159
+    }
+  },
+  {
+    "id": "spell.terrestrial.peacock-shadow-eyes",
+    "name": "Peacock Shadow Eyes",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "The character's eyes glow with iridescent flame, holding the attention of a victim with whom he makes eye contact and compelling him to stunned silence. The character must meet his target's eyes, and the target's player must achieve a number of successes on an opposed Willpower + Occult roll equal to the sorcerer's permanent Essence. If the target loses, then he will fall into a light trance state and will be intensely suggestible, believing everything that he is told as the truth, even if he should be able to see that such is evidently not the case. If the target's player rolls a number of successes equal or greater than the sorcerer's Essence, then the target is unaffected by the spell, and it fades away. The spell will last for five minutes after the character breaks eye contact with the target. After it has finished, the target will still believe whatever he was told while the spell lasted to be the truth, unless there is clear evidence to the contrary.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 74
+    }
+  },
+  {
+    "id": "spell.terrestrial.whisper-of-the-grasses",
+    "name": "Whisper of the Grasses",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "With this spell, a character can rouse the very plants and trees to speak to him and to answer his questions. A wind will rise and ruffle the leaves and grasses, till they whisper audibly. Plants speak Old Realm and no other tongues. They will be conscious of what has taken place around them, though only in vague visual terms: A bush could describe a warrior in red with a sword and a scar but would not necessarily be able to identify him as the character's enemy. The spell will last for the length of a conversation, however long that takes: During it, the character may question all the plants and trees within 10 yards of him. Grass will only remember a few days back, while herbs and small bushes may remember events from several weeks ago, and trees may remember happenings from years ago or even centuries. Bearing a naked flame near the plants during the conversation will make them extremely nervous, and they will constantly request that it be put out while they talk.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 74
+    }
+  },
+  {
+    "id": "spell.celestial.curse-of-betrayal",
+    "name": "Curse of Betrayal",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 30
+    },
+    "description": "This malicious spell is used in moments of hatred, bitterness and spite. It causes the target to betray someone she loves, either by action or inaction. It must be cast during the hours of darkness. The ritual involves two hours of chanting, the shedding of blood and the speaking of the target's name. At that moment, the sorcerer's player makes a Willpower + Occult roll and totals the number of successes he achieves. For each 5 additional motes of Essence he spends, he may add another die to the pool. If the sorcerer achieves at least one success, at that moment, wherever she may be, the target of the spell will hear the sorcerer speak her name in tones of rage and hatred.\n\nThe effects are not immediate and may be delayed for days — or even years. However, when the targeted character is next in a position involving the safety of someone whom she loves or whom she is honor-bound to obey, the curse will attempt to work. The target's player must make a Willpower + Conviction roll and compare the total to the number of successes achieved earlier by the sorcerer. If she gains more successes or an equal number, then the curse fails, and a distant scream will echo in the sorcerer's ears as it dissipates. Should the target gain fewer successes than the sorcerer, then the curse will affect her and will blind or deafen her at some critical moment, causing her to betray her lord or loved one. Battle orders may be misheard, the identity of another combatant may be tragically mistaken, or a plea for help may go unnoticed. Whatever the case, terrible tragedy for the loved one will result.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 75
+    }
+  },
+  {
+    "id": "spell.celestial.hidden-judges-of-the-secret-flame",
+    "name": "Hidden Judges of the Secret Flame",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 30
+    },
+    "description": "With this spell, an Exalt can invoke the attention of one of the seven Hidden Judges of the Secret Flame, mysterious spirits who are said to attend each Calibration and prevent open strife among the powers of the year. One may be invoked to guard a place (which it will do until the next Calibration) or to hunt down an enemy. However, a Hidden Judge will not pursue someone who is innocent by its definitions — the target must have offended against divine law in some way or broken a bargain with a spirit. (Attacking a Solar does not count as an offense against divine law!)\n\nAs with the summoning of demons, this spell requires a complex ritual that must be begun at dawn and finished at sunset but can be cast at any time of the year except for Calibration. No contest is required between the sorcerer and the Hidden Judge: If the sorcerer requests one of the above services, the Judge will do as required without argument. Requesting any other service from the Judge involves a Willpower + Essence contest between the sorcerer and the Judge: Should the sorcerer fail, the Judge will strike at him once with his sword before vanishing.\n\nThe Hidden Judges manifest as beings with the bodies and stature of tall men, draped in long, hooded dark cloaks that leave a trail of charred dust behind them. Only their hands and forearms are visible, bones blackened like charred skeletons. Those who have dared to look at their faces have declared that the Hidden Judges have no heads, only a single iridescent blue flame, which burns continually in the shadow of their hoods. Each Hidden Judge bears a great two-handed sword. Although the Hidden Judges are not known by name, their weapons each have a particular name, which must be used when summoning one of the spirits. Known names of the swords include Hekateron, Amantythae, Sebelle, Kasimodente and Pheberester. A Hidden Judge may only be wounded by a blade that has been dipped in the blood of one who has never broken the laws of Heaven or by a magical weapon such as a daiklave or powerbow.\n\nHIDDEN JUDGE — Nature: Judge. Attributes: Strength 4, Dexterity 3, Stamina 5, Charisma 0, Manipulation 2, Appearance 0, Perception 4, Intelligence 4, Wits 4. Virtues: Compassion 1, Conviction 5, Temperance 4, Valor 4. Abilities: Awareness 3, Brawl 3, Dodge 4, Endurance 4, Linguistics 5, Lore 5, Melee 5 (Sword +1), Occult 5, Presence 5, Resistance 3. Backgrounds: Allies 5 (Other Judges), Contacts 5 (Court of Seasons), Influence 3, Resources 3. Charms: Essence Bite, Geas, Imprecation, Instill Obedience, Landscape Travel, Malediction, Materialize, Principle of Motion, Scourge, Tiny Damnation. Cost To Materialize: 50. Base Initiative: 7. Attack — Claw: Speed 7 Accuracy 7 Damage 6L Defense 7; Sword: Speed 9 Accuracy 13 Damage 9L Defense 12. Dodge Pool: 7. Soak: 9L/10B (Enchanted cloak, 6L/6B). Willpower: 9. Health Levels: -0/-0/-0/-1/-1/-1/-1/-1/-1/-2/-2/-2/-2/-2/-2/-4/Incap. Essence: 5. Essence Pool: 100.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 75
+    }
+  },
+  {
+    "id": "spell.celestial.shout-of-turmoil",
+    "name": "Shout of Turmoil",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 25
+    },
+    "description": "When the Exalt is done gathering the Essence for this spell, she takes a deep breath and shouts the 11 syllables of this spell in a voice that can be heard for a mile around. A buzz of aggressive confusion immediately overtakes the area around him, affecting all except those who had their ears covered. The players of all those affected must make an immediate reflexive roll of their characters' Willpower against a difficulty equal to the sorcerer's Essence. Those whose players fail the roll will instantly begin to argue with the nearest convenient target and may even begin to fight if they have weapons convenient to hand. Old quarrels are exacerbated, and new annoyances promptly shift from being minor inconveniences to full grievances. Mothers within earshot shake their wailing babies, children tussle, workers brawl, and soldiers turn their weapons on each other. This spell is hard to shake off, once it has affected a target. For each subsequent minute, the players of all those affected should continue to roll their characters' Willpower: Once they accumulate more successes than the sorcerer's Peripheral Essence, the spell is lifted for their characters, and they may act freely. Note that the sorcerer himself may be a target for those enraged by the spell unless he quickly removes himself from the vicinity.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 76
+    }
+  },
+  {
+    "id": "spell.solar.atrocious-fire-transformation",
+    "name": "Atrocious Fire Transformation",
+    "circle": "Solar",
+    "cost": {
+      "motes": 35
+    },
+    "description": "With this puissant spell, one of the Exalted can turn a large body of water into pure fire that requires no fuel in order to remain alight and will flow and move as did the water but burns with the heat of normal flame. If he works this spell upon a fountain, the fire will spray in all directions. If a river is transformed, then the fire rushes downstream, but also continues to transmute water at the point of invocation for the duration of the spell. The flames will not be affected by any water that touches them, but will actually float on its surface, like oil upon normal water. The flames burn like the living fires of Hesiesh himself, doing six levels of aggravated damage per turn to all those struck by them, soaked as normal for damage of that type. The spell will change a body of water up to the size of a small lake or medium-sized river, and works upon magically created water as well as on the normal element. The spell lasts for a number of hours equal to the character's Essence, after which point, all the flames return to water. The caster himself is immune to the flames, as are his personal belongings, and he may freely wade through them without coming to harm.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 76
+    }
+  },
+  {
+    "id": "spell.solar.evocation-from-the-mirror",
+    "name": "Evocation from the Mirror",
+    "circle": "Solar",
+    "cost": {
+      "motes": 40
+    },
+    "description": "This spell permits an Exalted to call forth the mirror image of another person and to imprison the original within the mirror. To do this, he must be in the presence of his target, and there must also be a mirror of some shape or size within 10 yards. Both the player of the sorcerer and the player of his victim make reflexive opposed Willpower + Essence rolls. The victim must be conscious and able to see the mirror but may be drugged or otherwise bespelled. If the sorcerer fails, then the mirror explodes into a hundred pieces, and the sorcerer's player suffers a penalty of -2 to all Mental and Willpower rolls for the next 24 hours, due to the sorcerous backlash. If the sorcerer and the target score an equal number of successes, then the mirror shatters, but there is no other reaction. If the sorcerer scores more successes than the target, then the target is trapped inside the mirror.\n\nThe victim's mirror reflection has the same physical abilities, Charms, items and so forth as the victim but is a complete moral opposite. She is as intelligent as the victim and will act as her morals dictate — and to prevent herself from being returned to the mirror. She is also the sorcerer's willing slave and will do exactly as the magician commands. The victim herself is trapped in the mirror world, which is a shadowy reflection of the real world and only peopled by others trapped like her. Whenever her escaped reflection is mirrored by any surface (whether natural, such as a pool of water, or unnatural, such as a mirror), she is able to look out into the real world through the same mirror. The victim is not obliged to follow her reflection's movements — she can wave her hands, mouth appeals for help and so on. For this reason, most escaped reflections tend to avoid mirrors at all costs. The only known way to break this spell is to force the escaped reflection to touch the real victim, by touching a reflective surface. If this is done, then the two will resume their proper places.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 76
     }
   }
 ]

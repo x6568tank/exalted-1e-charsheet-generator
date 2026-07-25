@@ -1,8 +1,159 @@
 [
-  {"id": "solar.stealth.easily-overlooked-presence-method", "name": "Easily Overlooked Presence Method", "category": "stealth", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [], "cost": {"motes": 3}, "duration": "One scene", "description": "Makes the character so unremarkable that observers' attention simply slides past her.", "source": {"book": "Exalted 1e Core", "page": 201}},
-  {"id": "solar.stealth.mental-invisibility-technique", "name": "Mental Invisibility Technique", "category": "stealth", "type": "Simple", "min_ability": 4, "min_essence": 2, "prerequisites": [["solar.stealth.easily-overlooked-presence-method"]], "cost": {"motes": 5, "willpower": 1}, "duration": "One scene", "description": "Bends the minds of onlookers so they fail to perceive the character at all.", "source": {"book": "Exalted 1e Core", "page": 201}},
-  {"id": "solar.stealth.vanishing-from-minds-eye-method", "name": "Vanishing From Mind's Eye Method", "category": "stealth", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.stealth.mental-invisibility-technique"]], "cost": {"motes": 10, "willpower": 1}, "duration": "One day", "description": "Erases the character from the memory of those who saw her.", "source": {"book": "Exalted 1e Core", "page": 202}},
-  {"id": "solar.stealth.invisible-statue-spirit", "name": "Invisible Statue Spirit", "category": "stealth", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.stealth.easily-overlooked-presence-method"]], "cost": {"motes": 5}, "duration": "Until disturbed", "description": "While the character holds still, she cannot be seen, heard, or otherwise noticed.", "source": {"book": "Exalted 1e Core", "page": 202}},
-  {"id": "solar.stealth.blurred-form-style", "name": "Blurred Form Style", "category": "stealth", "type": "Simple", "min_ability": 4, "min_essence": 3, "prerequisites": [["solar.stealth.invisible-statue-spirit"]], "cost": {"motes": 8, "willpower": 1}, "duration": "One scene", "description": "Blurs the character's moving form, greatly improving Stealth even while moving.", "source": {"book": "Exalted 1e Core", "page": 202}},
-  {"id": "solar.stealth.sound-and-scent-banishing-attitude", "name": "Sound and Scent Banishing Attitude", "category": "stealth", "type": "Simple", "min_ability": 4, "min_essence": 3, "prerequisites": [["solar.stealth.blurred-form-style"]], "cost": {"motes": 6}, "duration": "One scene", "description": "Banishes the character's sound and scent, protecting her from non-visual detection.", "source": {"book": "Exalted 1e Core", "page": 203}}
+  {
+    "id": "solar.stealth.easily-overlooked-presence-method",
+    "name": "Easily Overlooked Presence Method",
+    "category": "stealth",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "Makes the character so unremarkable that observers' attention simply slides past her.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 201
+    }
+  },
+  {
+    "id": "solar.stealth.mental-invisibility-technique",
+    "name": "Mental Invisibility Technique",
+    "category": "stealth",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.stealth.easily-overlooked-presence-method"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Bends the minds of onlookers so they fail to perceive the character at all.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 201
+    }
+  },
+  {
+    "id": "solar.stealth.vanishing-from-minds-eye-method",
+    "name": "Vanishing From Mind's Eye Method",
+    "category": "stealth",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.stealth.mental-invisibility-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "Erases the character from the memory of those who saw her.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 202
+    }
+  },
+  {
+    "id": "solar.stealth.invisible-statue-spirit",
+    "name": "Invisible Statue Spirit",
+    "category": "stealth",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.stealth.easily-overlooked-presence-method"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "Until disturbed",
+    "description": "While the character holds still, she cannot be seen, heard, or otherwise noticed.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 202
+    }
+  },
+  {
+    "id": "solar.stealth.blurred-form-style",
+    "name": "Blurred Form Style",
+    "category": "stealth",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.stealth.invisible-statue-spirit"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Blurs the character's moving form, greatly improving Stealth even while moving.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 202
+    }
+  },
+  {
+    "id": "solar.stealth.sound-and-scent-banishing-attitude",
+    "name": "Sound and Scent Banishing Attitude",
+    "category": "stealth",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.stealth.blurred-form-style"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "One scene",
+    "description": "Banishes the character's sound and scent, protecting her from non-visual detection.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 203
+    }
+  },
+  {
+    "id": "solar.stealth.unseen-ghost-walk",
+    "name": "Unseen Ghost Walk",
+    "category": "stealth",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.stealth.invisible-statue-spirit"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 1,
+      "health": 0,
+      "raw": "7 motes, 1 Willpower"
+    },
+    "duration": "Essence in minutes",
+    "description": "This Charm allows the character to literally vanish from sight. She can become completely invisible. The only limit to this Charm is the fact that the character must move slowly and carefully (move no more than six yards per turn) and cannot engage in any form of combat or perform any other activity that involves rapid movement. Any such movements instantly disrupt the Charm and render the character visible. However, the character can walk slowly down a corridor, pour a dram of poison in someone's cup or steal a treaty from a table. Characters using Unseen Ghost Walk are not immaterial. They can be detected normally by touch, scent or hearing.\n\nEnemies' players may attempt a reflexive Perception + Awareness roll each turn for the enemies to spot the character. If the observer saw the character disappear, noticed the character last turn or witnessed an action performed by the character, the difficulty for the check is only 1. However, the difficulty increases by one every turn that the character remains undetected, to a maximum of 5. If the observer has some reason to believe that someone is around (a knocked over vase, footprints in the sand), the difficulty for spotting the character starts at 3 and scales up. Just looking casually for the invisible Exalted has a difficulty of 5. Even when spotted, any actions taken against the character are at a +2 difficulty.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 76
+    }
+  }
 ]

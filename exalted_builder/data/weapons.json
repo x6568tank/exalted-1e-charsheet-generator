@@ -1,61 +1,1242 @@
 [
-  {"id": "weapon.archery.self_bow",      "name": "Self Bow",      "accuracy": 0, "rate": 2, "range": 150, "max_strength": 3, "resources_cost": 1, "tags": ["archery"]},
-  {"id": "weapon.archery.long_bow",      "name": "Long Bow",      "accuracy": 1, "rate": 3, "range": 200, "max_strength": 4, "resources_cost": 2, "tags": ["archery"]},
-  {"id": "weapon.archery.composite_bow", "name": "Composite Bow", "accuracy": 0, "rate": 3, "range": 250, "max_strength": 5, "resources_cost": 3, "notes": "Built for Strength 5+.", "tags": ["archery"]},
-
-  {"id": "weapon.thrown.chakram",        "name": "Chakram",        "accuracy": 0,  "damage": 1, "damage_type": "L", "rate": 3, "range": 20, "resources_cost": 1, "tags": ["thrown"]},
-  {"id": "weapon.thrown.hatchet",        "name": "Hatchet",        "accuracy": -1, "damage": 3, "damage_type": "L", "rate": 2, "range": 10, "resources_cost": 1, "tags": ["thrown"]},
-  {"id": "weapon.thrown.javelin",        "name": "Javelin",        "accuracy": 1,  "damage": 3, "damage_type": "L", "rate": 2, "range": 30, "resources_cost": 1, "tags": ["thrown"]},
-  {"id": "weapon.thrown.throwing_baton", "name": "Throwing Baton", "accuracy": 0,  "damage": 3, "damage_type": "B", "rate": 2, "range": 10, "resources_cost": 1, "tags": ["thrown"]},
-  {"id": "weapon.thrown.throwing_knife", "name": "Throwing Knife", "accuracy": 0,  "damage": 2, "damage_type": "L", "rate": 3, "range": 15, "resources_cost": 1, "tags": ["thrown"]},
-
-  {"id": "weapon.melee.hatchet",         "name": "Hatchet",        "speed": 0, "accuracy": 0, "damage": 2, "damage_type": "L", "defense": -1, "min_strength": 2, "resources_cost": 1, "tags": ["melee"]},
-  {"id": "weapon.melee.javelin",         "name": "Javelin",        "speed": 1, "accuracy": 1, "damage": 2, "damage_type": "L", "defense": 0,  "min_strength": 1, "resources_cost": 1, "tags": ["melee"]},
-  {"id": "weapon.melee.throwing_baton",  "name": "Throwing Baton", "speed": 0, "accuracy": 0, "damage": 2, "damage_type": "B", "defense": -1, "min_strength": 1, "resources_cost": 1, "tags": ["melee"]},
-  {"id": "weapon.melee.throwing_knife",  "name": "Throwing Knife", "speed": 2, "accuracy": 0, "damage": 1, "damage_type": "L", "defense": -2, "min_strength": 1, "resources_cost": 1, "tags": ["melee"]},
-
-  {"id": "weapon.melee.chopping_sword",  "name": "Chopping Sword", "speed": 0, "accuracy": 1, "damage": 4, "damage_type": "L", "defense": 0,  "min_strength": 2, "resources_cost": 3, "tags": ["melee", "blade"]},
-  {"id": "weapon.melee.great_sword",     "name": "Great Sword",    "speed": 0, "accuracy": 2, "damage": 6, "damage_type": "L", "defense": -1, "min_strength": 3, "resources_cost": 3, "notes": "Can attack a mounted opponent from foot without penalty.", "tags": ["melee", "blade"]},
-  {"id": "weapon.melee.knife",           "name": "Knife",          "speed": 3, "accuracy": 0, "damage": 1, "damage_type": "L", "defense": -2, "min_strength": 1, "resources_cost": 1, "tags": ["melee", "blade"]},
-  {"id": "weapon.melee.short_sword",     "name": "Short Sword",    "speed": 0, "accuracy": 1, "damage": 2, "damage_type": "L", "defense": 1,  "min_strength": 1, "resources_cost": 1, "tags": ["melee", "blade"]},
-  {"id": "weapon.melee.slashing_sword",  "name": "Slashing Sword", "speed": 3, "accuracy": 1, "damage": 2, "damage_type": "L", "defense": 1,  "min_strength": 1, "resources_cost": 2, "tags": ["melee", "blade"]},
-  {"id": "weapon.melee.straight_sword",  "name": "Straight Sword", "speed": 0, "accuracy": 1, "damage": 3, "damage_type": "L", "defense": 1,  "min_strength": 2, "resources_cost": 2, "tags": ["melee", "blade"]},
-
-  {"id": "weapon.melee.axe",             "name": "Axe",            "speed": 0,  "accuracy": 0,  "damage": 5,  "damage_type": "L", "defense": 0,  "min_strength": 2, "resources_cost": 1, "tags": ["melee", "impact"]},
-  {"id": "weapon.melee.club_staff",      "name": "Club/Staff",     "speed": 0,  "accuracy": 0,  "damage": 2,  "damage_type": "L", "defense": -1, "min_strength": 1, "resources_cost": 1, "tags": ["melee", "impact"]},
-  {"id": "weapon.melee.great_axe",       "name": "Great Axe",      "speed": 0,  "accuracy": 0,  "damage": 7,  "damage_type": "L", "defense": -1, "min_strength": 2, "resources_cost": 2, "notes": "Can attack a mounted opponent from foot without penalty.", "tags": ["melee", "impact"]},
-  {"id": "weapon.melee.hammer",          "name": "Hammer",         "speed": -3, "accuracy": 1,  "damage": 4,  "damage_type": "L", "defense": 1,  "min_strength": 2, "resources_cost": 1, "tags": ["melee", "impact"]},
-  {"id": "weapon.melee.mace",            "name": "Mace",           "speed": -3, "accuracy": 1,  "damage": 5,  "damage_type": "L", "defense": 0,  "min_strength": 2, "resources_cost": 1, "tags": ["melee", "impact"]},
-  {"id": "weapon.melee.poleaxe",         "name": "Poleaxe",        "speed": -3, "accuracy": -1, "damage": 8,  "damage_type": "L", "defense": 0,  "min_strength": 2, "resources_cost": 2, "notes": "Can attack a mounted opponent from foot without penalty.", "tags": ["melee", "impact"]},
-  {"id": "weapon.melee.sledge",          "name": "Sledge",         "speed": -6, "accuracy": -1, "damage": 10, "damage_type": "L", "defense": -1, "min_strength": 4, "resources_cost": 2, "notes": "Can attack a mounted opponent from foot without penalty.", "tags": ["melee", "impact"]},
-
-  {"id": "weapon.melee.lance",           "name": "Lance",          "speed": 10, "accuracy": 0, "damage": 2, "damage_type": "L", "defense": -3, "min_strength": 2, "resources_cost": 1, "notes": "+8L on a mounted charge (base +2L); charging costs defense for the turn.", "tags": ["melee", "spear"]},
-  {"id": "weapon.melee.short_spear",     "name": "Short Spear",    "speed": 1,  "accuracy": 1, "damage": 3, "damage_type": "L", "defense": 0,  "min_strength": 1, "resources_cost": 1, "notes": "Can attack a mounted opponent from foot without penalty.", "tags": ["melee", "spear"]},
-  {"id": "weapon.melee.spear",           "name": "Spear",          "speed": 3,  "accuracy": 1, "damage": 3, "damage_type": "L", "defense": 0,  "min_strength": 2, "resources_cost": 1, "notes": "Can attack a mounted opponent from foot without penalty.", "tags": ["melee", "spear"]},
-
-  {"id": "weapon.melee.bare_fist",       "name": "Bare Fist",        "speed": 0,  "accuracy": 0,  "damage": 0, "damage_type": "B", "defense": 0,  "min_strength": 1, "resources_cost": 0, "tags": ["melee", "brawl"]},
-  {"id": "weapon.melee.cestus",          "name": "Cestus",           "speed": -3, "accuracy": 0,  "damage": 0, "damage_type": "L", "defense": 0,  "min_strength": 1, "resources_cost": 1, "tags": ["melee", "brawl"]},
-  {"id": "weapon.melee.fighting_gauntlet","name": "Fighting Gauntlet","speed": 0, "accuracy": 0,  "damage": 1, "damage_type": "L", "defense": 0,  "min_strength": 2, "resources_cost": 1, "tags": ["melee", "brawl"]},
-  {"id": "weapon.melee.khatar",          "name": "Khatar",           "speed": -3, "accuracy": 0,  "damage": 2, "damage_type": "L", "defense": -1, "min_strength": 1, "resources_cost": 2, "tags": ["melee", "brawl"]},
-  {"id": "weapon.melee.kick",            "name": "Kick",             "speed": -3, "accuracy": -1, "damage": 2, "damage_type": "B", "defense": -1, "min_strength": 1, "min_dexterity": 2, "resources_cost": 0, "tags": ["melee", "brawl"]},
-  {"id": "weapon.melee.tiger_claws",     "name": "Tiger Claws",      "speed": -3, "accuracy": -1, "damage": 2, "damage_type": "L", "defense": 0,  "min_strength": 2, "resources_cost": 2, "tags": ["melee", "brawl"]},
-
-  {"id": "weapon.melee.hook_sword",          "name": "Hook Sword",          "speed": 0, "accuracy": -1, "damage": 3, "damage_type": "L", "defense": 3, "min_strength": 2, "min_dexterity": 3, "min_martial_arts": 3, "resources_cost": 3, "tags": ["melee", "martial_arts"]},
-  {"id": "weapon.melee.seven_section_staff", "name": "Seven-Section Staff", "speed": 3, "accuracy": -2, "damage": 2, "damage_type": "L", "defense": 2, "min_dexterity": 4, "min_martial_arts": 4, "resources_cost": 2, "tags": ["melee", "martial_arts"]},
-  {"id": "weapon.melee.wind_fire_wheel",     "name": "Wind-Fire Wheel",     "speed": 0, "accuracy": -2, "damage": 0, "damage_type": "L", "defense": 2, "min_dexterity": 3, "min_martial_arts": 3, "resources_cost": 2, "tags": ["melee", "martial_arts"]},
-
-  {"id": "weapon.melee.daiklave",            "name": "Daiklave",            "speed": 3,  "accuracy": 2, "damage": 5,  "damage_type": "L", "defense": 2, "min_strength": 2, "artifact_rating": 2, "attunement": 5, "resources_cost": 0, "tags": ["melee", "artifact"]},
-  {"id": "weapon.melee.dire_lance",          "name": "Dire Lance",          "speed": 6,  "accuracy": 2, "damage": 5,  "damage_type": "L", "defense": 0, "min_strength": 1, "artifact_rating": 2, "attunement": 5, "resources_cost": 0, "notes": "Also called a spear; a separate mounted-lance profile (+3/+12L) is listed but the text gives no rule for the distinction.", "tags": ["melee", "artifact"]},
-  {"id": "weapon.melee.goremaul",            "name": "Goremaul",            "speed": 0,  "accuracy": 1, "damage": 6,  "damage_type": "L", "defense": 1, "min_strength": 2, "artifact_rating": 1, "attunement": 5, "resources_cost": 0, "tags": ["melee", "artifact"]},
-  {"id": "weapon.melee.grand_daiklave",      "name": "Grand Daiklave",      "speed": -3, "accuracy": 2, "damage": 11, "damage_type": "L", "defense": 0, "min_strength": 3, "artifact_rating": 3, "attunement": 8, "resources_cost": 0, "tags": ["melee", "artifact"]},
-  {"id": "weapon.melee.grimcleaver",         "name": "Grimcleaver",         "speed": 0,  "accuracy": 1, "damage": 7,  "damage_type": "L", "defense": 0, "min_strength": 2, "artifact_rating": 2, "attunement": 5, "resources_cost": 0, "tags": ["melee", "artifact"]},
-  {"id": "weapon.melee.reaver_daiklave",     "name": "Reaver Daiklave",     "speed": 0,  "accuracy": 2, "damage": 8,  "damage_type": "L", "defense": 0, "min_strength": 2, "artifact_rating": 2, "attunement": 5, "resources_cost": 0, "tags": ["melee", "artifact"]},
-  {"id": "weapon.melee.serpent_sting_staff", "name": "Serpent-Sting Staff", "speed": 3,  "accuracy": 0, "damage": 3,  "damage_type": "L", "defense": 3, "min_dexterity": 4, "min_martial_arts": 4, "artifact_rating": 2, "attunement": 5, "resources_cost": 0, "tags": ["melee", "artifact"]},
-  {"id": "weapon.melee.smashfist",           "name": "Smashfist",           "speed": 3,  "accuracy": 1, "damage": 3,  "damage_type": "L", "defense": 1, "min_strength": 2, "artifact_rating": 1, "attunement": 5, "resources_cost": 0, "tags": ["melee", "artifact"]},
-
-  {"id": "weapon.archery.short_powerbow", "name": "Short Powerbow", "accuracy": 2, "damage": 2, "damage_type": "L", "rate": 2, "range": 250, "min_strength": 3, "artifact_rating": 2, "attunement": 4, "resources_cost": 0, "tags": ["archery", "artifact"]},
-  {"id": "weapon.archery.long_powerbow",  "name": "Long Powerbow",  "accuracy": 1, "damage": 3, "damage_type": "L", "rate": 2, "range": 350, "min_strength": 4, "artifact_rating": 3, "attunement": 7, "resources_cost": 0, "tags": ["archery", "artifact"]},
-
-  {"id": "weapon.thrown.lightning_torment_hatchet", "name": "Lightning Torment Hatchet (Thrown)", "accuracy": 1, "damage": 4, "damage_type": "L", "rate": 2, "range": 20, "artifact_rating": 5, "attunement": 3, "resources_cost": 0, "notes": "Also usable in melee (see the melee entry). Activates lightning powers when attuned.", "tags": ["thrown", "artifact"]},
-  {"id": "weapon.melee.lightning_torment_hatchet",  "name": "Lightning Torment Hatchet (Melee)",  "speed": 3, "accuracy": 0, "damage": 3, "damage_type": "L", "defense": 0, "min_strength": 2, "artifact_rating": 5, "attunement": 3, "resources_cost": 0, "notes": "Also usable as a thrown weapon (see the thrown entry).", "tags": ["melee", "artifact"]}
+  {
+    "id": "weapon.archery.self_bow",
+    "name": "Self Bow",
+    "accuracy": 0,
+    "rate": 2,
+    "range": 150,
+    "max_strength": 3,
+    "resources_cost": 1,
+    "tags": [
+      "archery"
+    ]
+  },
+  {
+    "id": "weapon.archery.long_bow",
+    "name": "Long Bow",
+    "accuracy": 1,
+    "rate": 3,
+    "range": 200,
+    "max_strength": 4,
+    "resources_cost": 2,
+    "tags": [
+      "archery"
+    ]
+  },
+  {
+    "id": "weapon.archery.composite_bow",
+    "name": "Composite Bow",
+    "accuracy": 0,
+    "rate": 3,
+    "range": 250,
+    "max_strength": 5,
+    "resources_cost": 3,
+    "notes": "Built for Strength 5+.",
+    "tags": [
+      "archery"
+    ]
+  },
+  {
+    "id": "weapon.thrown.chakram",
+    "name": "Chakram",
+    "accuracy": 0,
+    "damage": 1,
+    "damage_type": "L",
+    "rate": 3,
+    "range": 20,
+    "resources_cost": 1,
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.thrown.hatchet",
+    "name": "Hatchet",
+    "accuracy": -1,
+    "damage": 3,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 10,
+    "resources_cost": 1,
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.thrown.javelin",
+    "name": "Javelin",
+    "accuracy": 1,
+    "damage": 3,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 30,
+    "resources_cost": 1,
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.thrown.throwing_baton",
+    "name": "Throwing Baton",
+    "accuracy": 0,
+    "damage": 3,
+    "damage_type": "B",
+    "rate": 2,
+    "range": 10,
+    "resources_cost": 1,
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.thrown.throwing_knife",
+    "name": "Throwing Knife",
+    "accuracy": 0,
+    "damage": 2,
+    "damage_type": "L",
+    "rate": 3,
+    "range": 15,
+    "resources_cost": 1,
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.melee.hatchet",
+    "name": "Hatchet",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": -1,
+    "min_strength": 2,
+    "resources_cost": 1,
+    "tags": [
+      "melee"
+    ]
+  },
+  {
+    "id": "weapon.melee.javelin",
+    "name": "Javelin",
+    "speed": 1,
+    "accuracy": 1,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 1,
+    "resources_cost": 1,
+    "tags": [
+      "melee"
+    ]
+  },
+  {
+    "id": "weapon.melee.throwing_baton",
+    "name": "Throwing Baton",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 2,
+    "damage_type": "B",
+    "defense": -1,
+    "min_strength": 1,
+    "resources_cost": 1,
+    "tags": [
+      "melee"
+    ]
+  },
+  {
+    "id": "weapon.melee.throwing_knife",
+    "name": "Throwing Knife",
+    "speed": 2,
+    "accuracy": 0,
+    "damage": 1,
+    "damage_type": "L",
+    "defense": -2,
+    "min_strength": 1,
+    "resources_cost": 1,
+    "tags": [
+      "melee"
+    ]
+  },
+  {
+    "id": "weapon.melee.chopping_sword",
+    "name": "Chopping Sword",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 4,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "resources_cost": 3,
+    "tags": [
+      "melee",
+      "blade"
+    ]
+  },
+  {
+    "id": "weapon.melee.great_sword",
+    "name": "Great Sword",
+    "speed": 0,
+    "accuracy": 2,
+    "damage": 6,
+    "damage_type": "L",
+    "defense": -1,
+    "min_strength": 3,
+    "resources_cost": 3,
+    "notes": "Can attack a mounted opponent from foot without penalty.",
+    "tags": [
+      "melee",
+      "blade"
+    ]
+  },
+  {
+    "id": "weapon.melee.knife",
+    "name": "Knife",
+    "speed": 3,
+    "accuracy": 0,
+    "damage": 1,
+    "damage_type": "L",
+    "defense": -2,
+    "min_strength": 1,
+    "resources_cost": 1,
+    "tags": [
+      "melee",
+      "blade"
+    ]
+  },
+  {
+    "id": "weapon.melee.short_sword",
+    "name": "Short Sword",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 1,
+    "resources_cost": 1,
+    "tags": [
+      "melee",
+      "blade"
+    ]
+  },
+  {
+    "id": "weapon.melee.slashing_sword",
+    "name": "Slashing Sword",
+    "speed": 3,
+    "accuracy": 1,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 1,
+    "resources_cost": 2,
+    "tags": [
+      "melee",
+      "blade"
+    ]
+  },
+  {
+    "id": "weapon.melee.straight_sword",
+    "name": "Straight Sword",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 2,
+    "resources_cost": 2,
+    "tags": [
+      "melee",
+      "blade"
+    ]
+  },
+  {
+    "id": "weapon.melee.axe",
+    "name": "Axe",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "resources_cost": 1,
+    "tags": [
+      "melee",
+      "impact"
+    ]
+  },
+  {
+    "id": "weapon.melee.club_staff",
+    "name": "Club/Staff",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": -1,
+    "min_strength": 1,
+    "resources_cost": 1,
+    "tags": [
+      "melee",
+      "impact"
+    ]
+  },
+  {
+    "id": "weapon.melee.great_axe",
+    "name": "Great Axe",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 7,
+    "damage_type": "L",
+    "defense": -1,
+    "min_strength": 2,
+    "resources_cost": 2,
+    "notes": "Can attack a mounted opponent from foot without penalty.",
+    "tags": [
+      "melee",
+      "impact"
+    ]
+  },
+  {
+    "id": "weapon.melee.hammer",
+    "name": "Hammer",
+    "speed": -3,
+    "accuracy": 1,
+    "damage": 4,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 2,
+    "resources_cost": 1,
+    "tags": [
+      "melee",
+      "impact"
+    ]
+  },
+  {
+    "id": "weapon.melee.mace",
+    "name": "Mace",
+    "speed": -3,
+    "accuracy": 1,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "resources_cost": 1,
+    "tags": [
+      "melee",
+      "impact"
+    ]
+  },
+  {
+    "id": "weapon.melee.poleaxe",
+    "name": "Poleaxe",
+    "speed": -3,
+    "accuracy": -1,
+    "damage": 8,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "resources_cost": 2,
+    "notes": "Can attack a mounted opponent from foot without penalty.",
+    "tags": [
+      "melee",
+      "impact"
+    ]
+  },
+  {
+    "id": "weapon.melee.sledge",
+    "name": "Sledge",
+    "speed": -6,
+    "accuracy": -1,
+    "damage": 10,
+    "damage_type": "L",
+    "defense": -1,
+    "min_strength": 4,
+    "resources_cost": 2,
+    "notes": "Can attack a mounted opponent from foot without penalty.",
+    "tags": [
+      "melee",
+      "impact"
+    ]
+  },
+  {
+    "id": "weapon.melee.lance",
+    "name": "Lance",
+    "speed": 10,
+    "accuracy": 0,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": -3,
+    "min_strength": 2,
+    "resources_cost": 1,
+    "notes": "+8L on a mounted charge (base +2L); charging costs defense for the turn.",
+    "tags": [
+      "melee",
+      "spear"
+    ]
+  },
+  {
+    "id": "weapon.melee.short_spear",
+    "name": "Short Spear",
+    "speed": 1,
+    "accuracy": 1,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 1,
+    "resources_cost": 1,
+    "notes": "Can attack a mounted opponent from foot without penalty.",
+    "tags": [
+      "melee",
+      "spear"
+    ]
+  },
+  {
+    "id": "weapon.melee.spear",
+    "name": "Spear",
+    "speed": 3,
+    "accuracy": 1,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "resources_cost": 1,
+    "notes": "Can attack a mounted opponent from foot without penalty.",
+    "tags": [
+      "melee",
+      "spear"
+    ]
+  },
+  {
+    "id": "weapon.melee.bare_fist",
+    "name": "Bare Fist",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 0,
+    "damage_type": "B",
+    "defense": 0,
+    "min_strength": 1,
+    "resources_cost": 0,
+    "tags": [
+      "melee",
+      "brawl"
+    ]
+  },
+  {
+    "id": "weapon.melee.cestus",
+    "name": "Cestus",
+    "speed": -3,
+    "accuracy": 0,
+    "damage": 0,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 1,
+    "resources_cost": 1,
+    "tags": [
+      "melee",
+      "brawl"
+    ]
+  },
+  {
+    "id": "weapon.melee.fighting_gauntlet",
+    "name": "Fighting Gauntlet",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 1,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "resources_cost": 1,
+    "tags": [
+      "melee",
+      "brawl"
+    ]
+  },
+  {
+    "id": "weapon.melee.khatar",
+    "name": "Khatar",
+    "speed": -3,
+    "accuracy": 0,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": -1,
+    "min_strength": 1,
+    "resources_cost": 2,
+    "tags": [
+      "melee",
+      "brawl"
+    ]
+  },
+  {
+    "id": "weapon.melee.kick",
+    "name": "Kick",
+    "speed": -3,
+    "accuracy": -1,
+    "damage": 2,
+    "damage_type": "B",
+    "defense": -1,
+    "min_strength": 1,
+    "min_dexterity": 2,
+    "resources_cost": 0,
+    "tags": [
+      "melee",
+      "brawl"
+    ]
+  },
+  {
+    "id": "weapon.melee.tiger_claws",
+    "name": "Tiger Claws",
+    "speed": -3,
+    "accuracy": -1,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "resources_cost": 2,
+    "tags": [
+      "melee",
+      "brawl"
+    ]
+  },
+  {
+    "id": "weapon.melee.hook_sword",
+    "name": "Hook Sword",
+    "speed": 0,
+    "accuracy": -1,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 3,
+    "min_strength": 2,
+    "min_dexterity": 3,
+    "min_martial_arts": 3,
+    "resources_cost": 3,
+    "tags": [
+      "melee",
+      "martial_arts"
+    ]
+  },
+  {
+    "id": "weapon.melee.seven_section_staff",
+    "name": "Seven-Section Staff",
+    "speed": 3,
+    "accuracy": -2,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": 2,
+    "min_dexterity": 4,
+    "min_martial_arts": 4,
+    "resources_cost": 2,
+    "tags": [
+      "melee",
+      "martial_arts"
+    ]
+  },
+  {
+    "id": "weapon.melee.wind_fire_wheel",
+    "name": "Wind-Fire Wheel",
+    "speed": 0,
+    "accuracy": -2,
+    "damage": 0,
+    "damage_type": "L",
+    "defense": 2,
+    "min_dexterity": 3,
+    "min_martial_arts": 3,
+    "resources_cost": 2,
+    "tags": [
+      "melee",
+      "martial_arts"
+    ]
+  },
+  {
+    "id": "weapon.melee.daiklave",
+    "name": "Daiklave",
+    "speed": 3,
+    "accuracy": 2,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 2,
+    "min_strength": 2,
+    "artifact_rating": 2,
+    "attunement": 5,
+    "resources_cost": 0,
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.dire_lance",
+    "name": "Dire Lance",
+    "speed": 6,
+    "accuracy": 2,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 1,
+    "artifact_rating": 2,
+    "attunement": 5,
+    "resources_cost": 0,
+    "notes": "Also called a spear; a separate mounted-lance profile (+3/+12L) is listed but the text gives no rule for the distinction.",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.goremaul",
+    "name": "Goremaul",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 6,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 2,
+    "artifact_rating": 1,
+    "attunement": 5,
+    "resources_cost": 0,
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.grand_daiklave",
+    "name": "Grand Daiklave",
+    "speed": -3,
+    "accuracy": 2,
+    "damage": 11,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 3,
+    "artifact_rating": 3,
+    "attunement": 8,
+    "resources_cost": 0,
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.grimcleaver",
+    "name": "Grimcleaver",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 7,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "artifact_rating": 2,
+    "attunement": 5,
+    "resources_cost": 0,
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.reaver_daiklave",
+    "name": "Reaver Daiklave",
+    "speed": 0,
+    "accuracy": 2,
+    "damage": 8,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "artifact_rating": 2,
+    "attunement": 5,
+    "resources_cost": 0,
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.serpent_sting_staff",
+    "name": "Serpent-Sting Staff",
+    "speed": 3,
+    "accuracy": 0,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 3,
+    "min_dexterity": 4,
+    "min_martial_arts": 4,
+    "artifact_rating": 2,
+    "attunement": 5,
+    "resources_cost": 0,
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.smashfist",
+    "name": "Smashfist",
+    "speed": 3,
+    "accuracy": 1,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 2,
+    "artifact_rating": 1,
+    "attunement": 5,
+    "resources_cost": 0,
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.archery.short_powerbow",
+    "name": "Short Powerbow",
+    "accuracy": 2,
+    "damage": 2,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 250,
+    "min_strength": 3,
+    "artifact_rating": 2,
+    "attunement": 4,
+    "resources_cost": 0,
+    "tags": [
+      "archery",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.archery.long_powerbow",
+    "name": "Long Powerbow",
+    "accuracy": 1,
+    "damage": 3,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 350,
+    "min_strength": 4,
+    "artifact_rating": 3,
+    "attunement": 7,
+    "resources_cost": 0,
+    "tags": [
+      "archery",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.thrown.lightning_torment_hatchet",
+    "name": "Lightning Torment Hatchet (Thrown)",
+    "accuracy": 1,
+    "damage": 4,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 20,
+    "artifact_rating": 5,
+    "attunement": 3,
+    "resources_cost": 0,
+    "notes": "Also usable in melee (see the melee entry). Activates lightning powers when attuned.",
+    "tags": [
+      "thrown",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.lightning_torment_hatchet",
+    "name": "Lightning Torment Hatchet (Melee)",
+    "speed": 3,
+    "accuracy": 0,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "artifact_rating": 5,
+    "attunement": 3,
+    "resources_cost": 0,
+    "notes": "Also usable as a thrown weapon (see the thrown entry).",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.razor_claws",
+    "name": "Razor Claws",
+    "speed": 1,
+    "accuracy": 1,
+    "damage": 4,
+    "damage_type": "L",
+    "defense": 2,
+    "min_dexterity": 2,
+    "artifact_rating": 1,
+    "attunement": 2,
+    "notes": "Useable with either Brawling or Martial Arts. Adds 2 dice to all climbing rolls. Counts as tiger claws for the purposes of practicing Tiger-Style martial arts. May be made from any of the Five Magical Materials. (Caste Book: Dawn, p.78-79)",
+    "tags": [
+      "melee",
+      "brawl",
+      "martial_arts",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.lightning_chain",
+    "name": "Lightning Chain",
+    "speed": 4,
+    "accuracy": 0,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 4,
+    "min_dexterity": 4,
+    "min_martial_arts": 3,
+    "artifact_rating": 3,
+    "attunement": 5,
+    "notes": "+5L or B — normally bashing; when charged with 2 motes it may be commanded to do lethal or bashing damage, and its length may be varied between 2 and 20 feet. Can entangle a target's weapon, leg or arm at difficulty 3. Lethal soak 7. Removes all difficulty penalties for climbing. (Caste Book: Dawn, p.79)",
+    "tags": [
+      "melee",
+      "martial_arts",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.flame_short_spear",
+    "name": "Flame Short Spear",
+    "speed": 3,
+    "accuracy": 3,
+    "damage": 6,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 2,
+    "artifact_rating": 4,
+    "attunement": 6,
+    "notes": "+6/8* — the additional damage is gained when the spear is charged with additional Essence to cause it to burn brighter. Grants a +2 bonus to all soak rolls against heat or fire. (Caste Book: Dawn, p.79)",
+    "tags": [
+      "melee",
+      "spear",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.flame_spear",
+    "name": "Flame Spear",
+    "speed": 5,
+    "accuracy": 3,
+    "damage": 6,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 2,
+    "artifact_rating": 4,
+    "attunement": 6,
+    "notes": "+6/8* — the additional damage is gained when the spear is charged with additional Essence to cause it to burn brighter. Grants a +2 bonus to all soak rolls against heat or fire. (Caste Book: Dawn, p.79)",
+    "tags": [
+      "melee",
+      "spear",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.flame_lance",
+    "name": "Flame Lance",
+    "speed": 12,
+    "accuracy": 1,
+    "damage": 6,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 2,
+    "artifact_rating": 4,
+    "attunement": 6,
+    "notes": "+6/8* normally, +15/17* on a mounted charge — the additional damage is gained when the spear is charged with additional Essence to cause it to burn brighter. Grants a +2 bonus to all soak rolls against heat or fire. (Caste Book: Dawn, p.79)",
+    "tags": [
+      "melee",
+      "spear",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.spirit_sword",
+    "name": "Spirit Sword",
+    "speed": 4,
+    "accuracy": 2,
+    "damage": 4,
+    "damage_type": "L",
+    "defense": 2,
+    "min_strength": 1,
+    "artifact_rating": 3,
+    "attunement": 10,
+    "notes": "Lets its wielder perceive and attack intangible opponents. Against a spirit, ghost or other non-corporeal being, double the raw damage. Struck with the flat against a possessed target, it does normal bashing damage to the target and twice that number of levels of lethal damage to the possessing spirit. (Caste Book: Dawn, p.80)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.daiklave_of_conquest",
+    "name": "Daiklave of Conquest",
+    "speed": 4,
+    "accuracy": 4,
+    "damage": 7,
+    "damage_type": "L",
+    "defense": 4,
+    "min_strength": 3,
+    "artifact_rating": 5,
+    "attunement": 10,
+    "notes": "Dawn Caste only — no other Exalted can attune to it. While unsheathed, hostile individuals within 10 meters must make a Valor roll at +1 difficulty or flee. Friendly troops within a mile gain +1 die to all combat pools and need not make Valor rolls; opponents lose one die and take +1 difficulty to Valor. Settings for 3 Hearthstones. (Caste Book: Dawn, p.81)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.archery.powerbow_of_perfect_accuracy",
+    "name": "Powerbow of Perfect Accuracy",
+    "accuracy": 3,
+    "damage": 3,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 350,
+    "min_strength": 2,
+    "artifact_rating": 3,
+    "notes": "The user suffers no environmental penalties and may fire with her eyes closed and still hit on a normal attack roll. Eliminates all increases in difficulty but not reductions in dice pools. While firing, the character's dice pools for all other actions are halved. (Caste Book: Dawn, p.80-81)",
+    "tags": [
+      "archery",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.fighting_chain",
+    "name": "Fighting Chain",
+    "speed": 3,
+    "accuracy": -1,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": 2,
+    "min_strength": 2,
+    "min_dexterity": 4,
+    "min_martial_arts": 4,
+    "resources_cost": 1,
+    "notes": "Can be used by a character on foot to attack a mounted opponent without penalty. Can wrap around a target and perform clinch and hold maneuvers at a range of up to three yards, using Martial Arts rather than Brawl. (Caste Book: Night, p.76-77)",
+    "tags": [
+      "melee",
+      "martial_arts"
+    ]
+  },
+  {
+    "id": "weapon.melee.sai",
+    "name": "Sai",
+    "speed": 3,
+    "accuracy": 0,
+    "damage": 0,
+    "damage_type": "L",
+    "defense": 2,
+    "min_dexterity": 3,
+    "min_martial_arts": 3,
+    "resources_cost": 2,
+    "notes": "Reduce the difficulty of all disarming attempts by -1 when using this weapon (see Exalted, pp.238-239). Normally used in pairs, which reduces disarm difficulty by 1 (to difficulty 2). (Caste Book: Night, p.76-77)",
+    "tags": [
+      "melee",
+      "martial_arts"
+    ]
+  },
+  {
+    "id": "weapon.melee.short_tiger_fork",
+    "name": "Short Tiger Fork",
+    "speed": 1,
+    "accuracy": -1,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 1,
+    "min_dexterity": 3,
+    "min_martial_arts": 3,
+    "resources_cost": 1,
+    "notes": "Reduce the difficulty of all disarming attempts by -1 when using this weapon. Can be used by a character on foot to attack a mounted opponent without penalty. (Caste Book: Night, p.76-77)",
+    "tags": [
+      "melee",
+      "spear",
+      "martial_arts"
+    ]
+  },
+  {
+    "id": "weapon.melee.tiger_fork",
+    "name": "Tiger Fork",
+    "speed": 1,
+    "accuracy": -1,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 2,
+    "min_dexterity": 4,
+    "min_martial_arts": 3,
+    "resources_cost": 1,
+    "notes": "Reduce the difficulty of all disarming attempts by -1 when using this weapon. Can be used by a character on foot to attack a mounted opponent without penalty. (Caste Book: Night, p.76-77)",
+    "tags": [
+      "melee",
+      "spear",
+      "martial_arts"
+    ]
+  },
+  {
+    "id": "weapon.thrown.blowgun",
+    "name": "Blowgun",
+    "accuracy": -1,
+    "damage": 0,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 50,
+    "resources_cost": 1,
+    "notes": "Damage is Strength + 0L. Narrow hollow tube used to fire small darts normally tipped with some form of poison. Uses the Thrown skill. (Caste Book: Night, p.76-78)",
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.archery.crossbow",
+    "name": "Crossbow",
+    "accuracy": 1,
+    "damage": 5,
+    "damage_type": "L",
+    "rate": 1,
+    "range": 125,
+    "resources_cost": 2,
+    "notes": "Damage 5L, flat (Strength does not apply). The standard ranged weapon of the Haslanti infantry. Uses the Archery skill but is not compatible with Archery Charms that allow multiple arrows per turn. Fires only blunt-headed fowling bolts (bashing) or steel-tipped armor-piercing bolts. Exceptional crossbows add +1 accuracy and 50 range but cannot increase rate. (Caste Book: Night, p.76-78)",
+    "tags": [
+      "archery"
+    ]
+  },
+  {
+    "id": "weapon.archery.mini_crossbow",
+    "name": "Mini-Crossbow",
+    "accuracy": 0,
+    "damage": 3,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 75,
+    "resources_cost": 3,
+    "notes": "Damage 3L, flat. An assassin's weapon of feather steel, no longer than a large man's hand, normally worn strapped to the forearm; folds flat to be concealed under bulky sleeves. Its bolts are normally poisoned. (Caste Book: Night, p.77-78)",
+    "tags": [
+      "archery"
+    ]
+  },
+  {
+    "id": "weapon.archery.siege_crossbow",
+    "name": "Siege Crossbow",
+    "accuracy": 0,
+    "damage": 8,
+    "damage_type": "L",
+    "rate": 1,
+    "range": 250,
+    "resources_cost": 3,
+    "notes": "Damage 8L, flat. Rate 1/10 — a slow weapon normally used only from fixed mountings on iceships, air boats and city walls. Over a yard long, made of steel and brass. (Caste Book: Night, p.77-78)",
+    "tags": [
+      "archery"
+    ]
+  },
+  {
+    "id": "weapon.thrown.firedust_grenade",
+    "name": "Firedust Grenade",
+    "accuracy": 0,
+    "damage": 9,
+    "damage_type": "L",
+    "rate": 3,
+    "range": 10,
+    "resources_cost": 2,
+    "notes": "Resources •• (••• outside of the South). Explodes on contact with a hard surface; anyone within two yards of the impact point instead receives 4L. Apply this damage if the grenade is parried or misses its target in a situation where it will certainly burst. May go off if dropped, if knocked back more than 2 yards or if the carrier falls more than 10 feet; store in a padded case. (Caste Book: Night, p.77-78)",
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.thrown.poison_needle",
+    "name": "Poison Needle",
+    "accuracy": 2,
+    "damage": 1,
+    "damage_type": "L",
+    "rate": 3,
+    "range": 5,
+    "resources_cost": 1,
+    "notes": "Tiny grooved spikes thrown with a flick of a finger or spat from the mouth. They do very little damage, but a single scratch delivers their venom — so any botch results in the character accidentally poisoning herself. (Caste Book: Night, p.77-78)",
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.thrown.shuriken",
+    "name": "Shuriken",
+    "accuracy": 0,
+    "damage": 0,
+    "damage_type": "L",
+    "range": 10,
+    "resources_cost": 1,
+    "notes": "Damage is Strength + 0L. Rate: Special — when throwing multiple shuriken, subtract one die from the Dexterity + Thrown pool per star used. All shuriken thrown this way must go at the same target; make a single attack roll and apply it to all of them. A character can throw up to his Thrown ability in shuriken in a single attack. Often poisoned. (Caste Book: Night, p.77-78)",
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.thrown.sleep_grenade",
+    "name": "Sleep Grenade",
+    "accuracy": 2,
+    "damage": 0,
+    "rate": 3,
+    "range": 10,
+    "resources_cost": 2,
+    "notes": "Damage: Special. Resources •• (••• outside of the East). Filled with lethe-flower pollen; everyone who breathes the spores must make a Stamina + Resistance roll at difficulty 2 or fall unconscious for 30 - (Stamina + Resistance) minutes. Exalted need only one success, and their sleep is measured in turns. Ineffective in high wind. (Caste Book: Night, p.77-78)",
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.thrown.sling",
+    "name": "Sling",
+    "accuracy": -1,
+    "damage": 2,
+    "damage_type": "L",
+    "rate": 1,
+    "range": 100,
+    "resources_cost": 1,
+    "notes": "Damage is Strength + 2L. Uses the Thrown skill. Can use any rock of approximately the correct size as ammunition. (Caste Book: Night, p.77-78)",
+    "tags": [
+      "thrown"
+    ]
+  },
+  {
+    "id": "weapon.thrown.sling_of_deadly_prowess",
+    "name": "Sling of Deadly Prowess",
+    "accuracy": 1,
+    "damage": 4,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 150,
+    "artifact_rating": 1,
+    "attunement": 3,
+    "notes": "Carved or forged from a single piece of one of the Five Magical Materials; the Material bonus is the same as for powerbows. Solid and inflexible until attuned. (Caste Book: Night, p.79)",
+    "tags": [
+      "thrown",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.gauntlets_of_distant_claws",
+    "name": "Gauntlets of Distant Claws (Melee Claws)",
+    "speed": 1,
+    "accuracy": 1,
+    "damage": 4,
+    "damage_type": "L",
+    "defense": 2,
+    "artifact_rating": 3,
+    "attunement": 3,
+    "notes": "A pair of bracers with fingerless gauntlets, each extending a trio of razor-sharp claws on command. Reduces the difficulty of all Athletics rolls involving climbing by 1 (to a minimum of 1). Each set of claws can also be fired as a projectile on a fine chain up to 15 yards (see the Fired Claws entry). Used only in pairs; requires 3 motes committed to EACH gauntlet. The left gauntlet has a setting for a single Hearthstone. (Caste Book: Night, p.80)",
+    "tags": [
+      "melee",
+      "brawl",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.thrown.gauntlets_of_distant_claws_fired",
+    "name": "Gauntlets of Distant Claws (Fired Claws)",
+    "accuracy": 2,
+    "damage": 9,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 15,
+    "artifact_rating": 3,
+    "attunement": 3,
+    "notes": "The projectile mode of the Gauntlets of Distant Claws — a hook-like claw fired on a nearly unbreakable chain, useable to attack distant foes or as a grappling hook. Retracting the hooks is a reflexive action. (Caste Book: Night, p.80)",
+    "tags": [
+      "thrown",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.ultimately_useful_tube_staff",
+    "name": "Ultimately Useful Tube (Staff)",
+    "speed": 3,
+    "accuracy": 1,
+    "damage": 4,
+    "damage_type": "L",
+    "defense": 2,
+    "artifact_rating": 3,
+    "attunement": 4,
+    "notes": "A short hollow tube that expands into a staff of up to two yards. Also serves as a crude flute, a snorkel or a blowgun (see the Blow Gun mode). Using this item for any purpose requires the character to spend 4 motes of Essence to attune it to herself. (Caste Book: Night, p.80-81)",
+    "tags": [
+      "melee",
+      "martial_arts",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.thrown.ultimately_useful_tube_blowgun",
+    "name": "Ultimately Useful Tube (Blow Gun)",
+    "accuracy": 1,
+    "damage": 1,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 100,
+    "artifact_rating": 3,
+    "attunement": 4,
+    "notes": "The blowgun mode of the Ultimately Useful Tube. Each dart requires 1 mote to create and fire. The attack is poisoned, and Strength does not add to damage: the blue end fires a paralytic poison (difficulty 2; 3B on a success, 6B on a failure; 4 hours/-3), the red end a lethal poison (difficulty 2; 2L on a success, 4L on a failure; 4 hours/-2). (Caste Book: Night, p.80-81)",
+    "tags": [
+      "thrown",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.hooked_daiklave",
+    "name": "Hooked Daiklave of Dual Prowess",
+    "speed": 2,
+    "accuracy": 2,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 5,
+    "min_strength": 1,
+    "min_dexterity": 3,
+    "min_martial_arts": 3,
+    "artifact_rating": 4,
+    "attunement": 4,
+    "notes": "Always found and used in pairs. Wielded together, a character can take two hand-to-hand actions every turn without penalty and suffers no off-hand penalty, but cannot split dice pools. Extra action Charms affect only a single blade. 4 motes committed per blade (8 for the pair). Each blade has a setting for a single Hearthstone near the hilt. (Caste Book: Night, p.81)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.heavenly_thunder_leaves",
+    "name": "Heavenly Thunder Leaves",
+    "speed": 3,
+    "accuracy": 0,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": 5,
+    "artifact_rating": 1,
+    "attunement": 2,
+    "notes": "Artifact • each; ornate wind-fire wheels made of orichalcum that look like carefully painted dancing fans. Used as part of a dancing performance, they add a one-die bonus to any Performance rolls made by the owner's player and can attract the attention of nearby little gods. No bonus of any sort is gained if only one of the fans is possessed or used. 2 motes to attune to each of the wheels. (Caste Book: Zenith, p.80)",
+    "tags": [
+      "melee",
+      "martial_arts",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.reborn_glacial_rain",
+    "name": "Reborn Glacial Rain",
+    "speed": 9,
+    "accuracy": 2,
+    "damage": 7,
+    "damage_type": "L",
+    "defense": 0,
+    "artifact_rating": 3,
+    "attunement": 5,
+    "notes": "A knife that appears to be made of pure glacial ice. Its bearer gains a three-die bonus to all Survival checks made in arctic terrain, as well as to any Resistance or Endurance checks related to survival in cold climes. Has a setting for a single Hearthstone. (Caste Book: Zenith, p.80-81)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.flying_silver_dream",
+    "name": "Flying Silver Dream",
+    "speed": 3,
+    "accuracy": 4,
+    "damage": 10,
+    "damage_type": "L",
+    "defense": 3,
+    "artifact_rating": 4,
+    "attunement": 5,
+    "notes": "An ornate, straight-bladed moonsilver daiklave. On command it leaps from its bearer's hand to engage a named opponent in single combat, fighting on its own with the launching character's Attributes and Abilities and acting on his initiative. While fighting on its own it dodges with 12 dice, attackers automatically subtract 2 successes, and it has a 10L/8B soak — three levels in one attack drop it to the ground. Has a setting for a single Hearthstone. Designed so that Solars or Lunars receive the moonsilver Material bonus. (Caste Book: Zenith, p.81)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  }
 ]

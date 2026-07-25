@@ -1,7 +1,138 @@
 [
-  {"id": "solar.dodge.reed-in-the-wind", "name": "Reed in the Wind", "category": "dodge", "type": "Reflexive", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"raw": "1 mote per 2 dice"}, "duration": "Instant", "description": "Sways like a reed in the wind to add dice to a dodge against an attack.", "source": {"book": "Exalted 1e Core", "page": 197}},
-  {"id": "solar.dodge.shadow-over-water", "name": "Shadow Over Water", "category": "dodge", "type": "Reflexive", "min_ability": 3, "min_essence": 1, "prerequisites": [["solar.dodge.reed-in-the-wind"]], "cost": {"motes": 2}, "duration": "Instant", "description": "Flows aside to perfectly evade a single attack the character is aware of.", "source": {"book": "Exalted 1e Core", "page": 198}},
-  {"id": "solar.dodge.seven-shadow-evasion", "name": "Seven Shadow Evasion", "category": "dodge", "type": "Reflexive", "min_ability": 5, "min_essence": 1, "prerequisites": [["solar.dodge.shadow-over-water"]], "cost": {"motes": 6}, "duration": "Instant", "description": "Evades even attacks normally impossible to dodge, slipping aside like a shadow.", "source": {"book": "Exalted 1e Core", "page": 198}},
-  {"id": "solar.dodge.reflex-sidestep-technique", "name": "Reflex Sidestep Technique", "category": "dodge", "type": "Reflexive", "min_ability": 3, "min_essence": 1, "prerequisites": [["solar.dodge.reed-in-the-wind"]], "cost": {"motes": 2}, "duration": "Instant", "description": "Reflexively dodges an attack the character was not even aware of.", "source": {"book": "Exalted 1e Core", "page": 198}},
-  {"id": "solar.dodge.flow-like-blood", "name": "Flow Like Blood", "category": "dodge", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.dodge.reflex-sidestep-technique"], ["solar.dodge.seven-shadow-evasion"]], "cost": {"motes": 5, "willpower": 1}, "duration": "One scene", "description": "Moves like flowing water, perfectly evading all physical attacks for a scene.", "source": {"book": "Exalted 1e Core", "page": 198}}
+  {
+    "id": "solar.dodge.reed-in-the-wind",
+    "name": "Reed in the Wind",
+    "category": "dodge",
+    "type": "Reflexive",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote per 2 dice"
+    },
+    "duration": "Instant",
+    "description": "Sways like a reed in the wind to add dice to a dodge against an attack.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 197
+    }
+  },
+  {
+    "id": "solar.dodge.shadow-over-water",
+    "name": "Shadow Over Water",
+    "category": "dodge",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.dodge.reed-in-the-wind"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
+    "duration": "Instant",
+    "description": "Flows aside to perfectly evade a single attack the character is aware of.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 198
+    }
+  },
+  {
+    "id": "solar.dodge.seven-shadow-evasion",
+    "name": "Seven Shadow Evasion",
+    "category": "dodge",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.dodge.shadow-over-water"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "Instant",
+    "description": "Evades even attacks normally impossible to dodge, slipping aside like a shadow.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 198
+    }
+  },
+  {
+    "id": "solar.dodge.reflex-sidestep-technique",
+    "name": "Reflex Sidestep Technique",
+    "category": "dodge",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.dodge.reed-in-the-wind"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
+    "duration": "Instant",
+    "description": "Reflexively dodges an attack the character was not even aware of.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 198
+    }
+  },
+  {
+    "id": "solar.dodge.flow-like-blood",
+    "name": "Flow Like Blood",
+    "category": "dodge",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.dodge.reflex-sidestep-technique"
+      ],
+      [
+        "solar.dodge.seven-shadow-evasion"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Moves like flowing water, perfectly evading all physical attacks for a scene.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 198
+    }
+  },
+  {
+    "id": "solar.dodge.leaping-dodge-method",
+    "name": "Leaping Dodge Method",
+    "category": "dodge",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.dodge.shadow-over-water"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "Instant",
+    "description": "When attacked, the Exalted makes a prodigious leap to take herself out of harms way. When making any dodge using this Charm, the character avoids the attack by leaping up to (Strength + Athletics) x 3 yards vertically or twice this distance horizontally. The Exalt can choose the exact direction and distance of this leap, so long as it is away from her attacker. Leaping Dodge Method is explicitly permitted to be part of a Combo with any Dodge Charms, including Reflex Sidestep Technique. This Charm will break multiple attack techniques if the attacker cannot follow the dodging character.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 75
+    }
+  }
 ]

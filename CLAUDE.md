@@ -5,9 +5,9 @@ A character creator / validator for **Exalted First Edition (1e)** — character
 generation, point validation, and XP advancement, with a character-sheet view.
 Scope is deliberately smaller than EdExalted (which is 2e/2.5e only); **1e is
 unserved, which is the entire point of building this.** Initial target was
-**Solar** Exalted from the core rulebook; **Dragon-Blooded, Abyssal, and Lunar
-are now also fully supported.** Sidereal, Alchemical, and Mortal splats are next
-— see **Next Exalt Types** below.
+**Solar** Exalted from the core rulebook; **Dragon-Blooded, Abyssal, Lunar,
+Sidereal and Alchemical are now also fully supported.** **Mortals** are the only
+splat left — see **Next Exalt Types** below.
 
 ## ⚠️ EDITION: 1e ONLY — never substitute 2e/2.5e rules
 This is the single most important constraint. 2e is far better represented than
@@ -40,16 +40,14 @@ Solar values. If unsure, ask human.
   separate ability from Brawl, and there is no "War" ability in 1e core.**
 
 ## Next Exalt Types
-Dragon-Blooded and Abyssal are done (see Status). **Lunar is functionally
-complete** (chargen foundation + full Charm catalogue, started 2026-07-22) —
-see the Status entry below. **Alchemical is feature-complete** (2026-07-23:
-chargen, Charm Slots, Arrays, Submodules, the CH3 catalogue, CH4 weaving,
-XP/advancement, Clarity, Backgrounds and the full UI; UI clicked through
-2026-07-23). **Sidereal is IN PROGRESS** (chargen foundation, per-house minimums, the
-Colleges, the Ronin variant, Paradox AND the full 193-Charm catalogue are complete
-as of 2026-07-24; only the Sidereal-Martial-Arts cost/cap wiring remains — see
-Status). **Mortals**
-(Godblooded/Ghosts/Heroic Mortals/etc.) are planned after the Exalt types.
+**Every Exalt splat is done.** Dragon-Blooded, Abyssal, Lunar (2026-07-22),
+Alchemical (2026-07-23) and Sidereal (2026-07-24) all shipped complete — chargen,
+Charms, XP/advancement and UI, each clicked through in a browser. See their Status
+entries below for the per-splat detail.
+
+**Mortals** (Godblooded/Ghosts/Heroic Mortals/etc.) are the ONE remaining splat, and
+the next piece of splat work. After that comes the centralized Merits & Flaws re-add
+(see **Removed**).
 
 Work on a given splat starts only once its rulebook images land in
 `images/<ExaltName>/` — never author data from memory, per the Workflow rule below.
@@ -63,14 +61,14 @@ Work on a given splat starts only once its rulebook images land in
 | Dragon-Blooded | Vermillion | DONE |
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | DONE (shipped 2026-07-24): chargen + Colleges + 193-Charm catalogue + SMA cost/cap wiring + UI click-through |
-| Alchemical | Brass | FEATURE-COMPLETE 2026-07-23: chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker); UI clicked through 2026-07-23 |
-| Mortals | Muddy brown | waiting on Mortal chargen work |
+| Alchemical | Brass | DONE (shipped 2026-07-23): chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker); UI clicked through 2026-07-23 |
+| Mortals | Muddy brown | NOT STARTED — the only row left; blocked on source images |
 
-**Merits & Flaws will return once every splat above is implemented** — as a
-single centralized M&F calculation function, specifically so mechanical effects
-don't get scattered invasively across files the way the old implementation did.
-Until that milestone, the removal in Status stands: do not reintroduce the old
-per-file hooks.
+**Merits & Flaws return once Mortals lands** — the last row above, and the last splat.
+It comes back as a single centralized M&F calculation function, specifically so
+mechanical effects don't get scattered invasively across files the way the old
+implementation did. Until that milestone the removal in Status stands: do not
+reintroduce the old per-file hooks.
 
 ## Architecture — keep these boundaries
 - **Pure engine, disposable UI.** All validation and derivation are pure functions
@@ -176,7 +174,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (654 tests passing)
+## Status (776 tests passing)
 
 ### Models, loader, persistence — done
 `models/rules.py`, `models/character.py`, `rules_db.py`, `persistence.py`.
@@ -321,7 +319,7 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
   is the filter: `""`/own splat is EXACTLY `charm_matches_splat` (so every existing
   splat's picker is byte-identical), and a foreign page is that splat's own Charms
   minus anything already native, so a Celestial's Hungry Ghost Style doesn't appear
-  twice. Category names collide across splats ("melee" belongs to three), so
+  twice. Category names collide across splats ("melee" belongs to five), so
   `build_charm_graph` now takes `(category, splat)` — the pair identifies a tree, the
   category alone does not. The detail card labels a foreign Charm and its doubled
   price. **Not yet clicked through in a browser.**
@@ -392,20 +390,76 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
   otherwise a custom name renders once, then 500s on the next reload.
 
 ### Data authored
-- Core: `castes.json`, `backgrounds.json`, `armor.json`, `weapons.json`,
-  `spells.json` (43, across both sorcery and necromancy circles), `natures.json`
-  (16 Archetypes), `materials.json` (5 magical materials, Exalt-gated weapon/armor
-  bonuses, p341/p345-346).
-- Charms — **all three implemented splats have a complete catalogue:**
-  - **Solar:** 220 corebook charms across every ability.
-  - **Dragon-Blooded:** 231 charms — 164 per-element (Air/Earth/Fire/Water/Wood)
-    ability-tree charms, 59 Immaculate style-tree charms, 8 Five-Dragon Style,
-    Ox-Body.
-  - **Abyssal:** 233 charms across every ability, incl. Hungry Ghost Style,
-    sorcery + necromancy initiations, Ox-Body.
+- Core: `castes.json`, `backgrounds.json`, `armor.json` (19), `weapons.json` (79),
+  `spells.json` (**88**, across all three magic tracks — 27 sorcery, 23 necromancy,
+  38 Alchemical weaving protocols), `natures.json` (20 Archetypes), `materials.json`
+  (5 magical materials, Exalt-gated weapon/armor bonuses, p341/p345-346),
+  `colleges.json` (25 Sidereal Astrological Colleges), `camps.json` + `callings.json`
+  (Cult of the Illuminated), `st_screen.json` (the GM reference screen).
+- Charms — **1,378 across six splats; every implemented splat has a complete
+  catalogue.** Counts are `Counter(c.exalt_type for c in rs.charms.values())`:
+  - **Solar: 381** — 222 corebook across every ability, 20 from Cult of the Illuminated
+    (incl. Falling Blossom Style, and the 5 castebook Charms that book reprints) and
+    **139 from the five castebooks** (incl. Tiger, Praying Mantis and Ebon Shadow
+    Style; see the castebook section below).
+  - **Dragon-Blooded: 233** — 164 per-element (Air/Earth/Fire/Water/Wood) ability-tree
+    charms, 59 Immaculate style-tree charms, 8 Five-Dragon Style, Ox-Body.
+  - **Abyssal: 233** across every ability, incl. Hungry Ghost Style, sorcery +
+    necromancy initiations, Ox-Body.
+  - **Lunar: 217** — Attribute-keyed, incl. Deadly Beastman Transformation's Gifts.
+  - **Sidereal: 193** — 24 ability trees, Violet Bier of Sorrows, and 3 Celestial-open
+    Sidereal Martial Arts styles.
+  - **Alchemical: 121** — Attribute-keyed, Charm-Slot installed, many with submodules.
 - **Cross-splat Martial Arts:** Hungry Ghost Style and Five-Dragon Style are
-  `open_to_tiers: [Celestial]` — ready for Lunar/Sidereal with zero data change
-  once those splats exist.
+  `open_to_tiers: [Celestial]`, so every Celestial splat gets them for free — which is
+  how Lunars and Sidereals picked them up with no data or code change when those splats
+  landed. The mechanism is proven; a future Celestial splat needs nothing.
+
+### Solar castebooks — DONE 2026-07-25
+Read from `images/Solars/Castebooks/<Dawn|Eclipse|Night|Twilight|Zenith>/*.png`
+(29 page scans). **139 Charms, 7 spells, 30 weapons, 2 armours.** Open items,
+source defects and the rules calls are in
+`images/Solars/Castebooks/_CASTEBOOK_PENDING.md` — read that before touching this.
+Tests: `tests/test_solar_castebooks.py`.
+- **The three missing Martial Arts styles are now authored** — the ones
+  `data/camps.json`'s Sequestered Tabernacle package has named since the Illuminated
+  work: **Tiger** (`martial_arts:tiger`, 9, Dawn p.73-74), **Praying Mantis**
+  (`martial_arts:praying-mantis`, 10, Eclipse p.73-75) and **Ebon Shadow**
+  (`martial_arts:ebon-shadow`, 11, Night p.67-70), each in its own file per the
+  one-file-per-style convention. All three are **Solar-only** (no `open_to_all`/
+  `open_to_tiers` — their pages say nothing about other splats, unlike Falling
+  Blossom). Eclipse's own heading is "Mantis-Style", but the category key is
+  `praying-mantis` because `camps.json` already said so; the key is pinned from BOTH
+  sides in the tests, since renaming it would silently empty that grant.
+- **Five castebook Charms were already in `data/`** from Cult of the Illuminated,
+  which reprints them — Tireless Traveler's Stamina, Excellent Emissary's Tongue,
+  Graceful Courtier Attitude, Prey-Freezing Gaze, Game-Snaring Huntsman's Method.
+  They were NOT re-authored. **Rules-authority call, 2026-07-25: where the two books
+  disagree the ILLUMINATED version wins, in every case** — including Excellent
+  Emissary's Tongue, which Illuminated lists as merely "reprinted for ease of
+  reference" yet prices differently (4 motes + 1 WP vs the castebook's 3 motes).
+  `data/` already held the Illuminated numbers, so nothing changed. Do not
+  "correct" them back; the discrepancies are tabulated in `_CASTEBOOK_PENDING.md`.
+- **Four new multi-gate Charms** join Ascendant Battle Visage in using
+  `extra_min_abilities` (Masterful Training Manual, Impenetrable Identity, Drunken
+  Warrior Technique, Inebriated Fool Defense). Same rule as before: the extra is a
+  requirement check ONLY and never touches pricing — pinned by a test.
+- **Environmental Hazard-Resisting Meditation (Zenith p.72-73) is a SECOND
+  repeatable Solar Charm** — 4 resistance variants, cap = Resistance dots, "similar
+  to Ox-Body Technique". The DATA is complete (`repeatable_cap_ability`+`variants`);
+  the ENGINE is deliberately NOT wired, because a repeatable Charm needs its own
+  `Character` list and this would be the fifth list outside `character.charms`.
+  Today it is an ordinary one-off pick (legal, priced, gated). The DISPLAY/COUNT half
+  of the blocker is gone — `validate.charm_picks` (below) is now the one place a new
+  repeatable list has to be taught about. What remains is the storage/pricing half:
+  a `Character` list, an `ExaltDefinition` field naming the Charm, cap/variant checks,
+  BP/XP, the lock snapshot, undo and a picker panel.
+- All seven Twilight spells are authored (p.74-77); p.77 then turns to hearthstones,
+  which `note.md` puts out of scope, so the castebooks are complete within it.
+- Gear: `notes` carries everything the models have no field for — Strength-relative
+  damage, the Siege Crossbow's 1/10 rate, the Flame Spear's `+6/8*` split. Two items
+  (Ultimately Useful Tube, Gauntlets of Distant Claws) are two catalog rows each.
+  Per the human's `note.md`, hearthstones/Manses/non-gear artifacts were skipped.
 
 ### Lunar — DONE (started 2026-07-22)
 Read from `images/Lunar/Character Creation 88-93`, `Traits 96-115`, and
@@ -605,7 +659,7 @@ the Gift-picker dialog caveats noted below are cleared.
   `tests/test_validate.py` (synthetic ruleset) and `tests/test_lunar.py` (real
   data, incl. the Five-Dragon Style crossover case).
 
-### Sidereal — chargen foundation IN PROGRESS (started 2026-07-22)
+### Sidereal — DONE (started 2026-07-22, shipped 2026-07-24)
 Read from `images/Sidereals/96 - 101 Character Creation`. Budgets/structure in
 [[sidereal-chargen-findings]]. **Phase 1 (foundation) DONE** — reuses the existing
 ability-caste + required-minimums + essence-spec machinery with ZERO new engine code:
@@ -713,7 +767,7 @@ ability-caste + required-minimums + essence-spec machinery with ZERO new engine 
   with real Sidereal data (Charms tab, the 4 Martial Arts style trees, the sorcery
   Spells page, XP-tab MA pricing) — all fine — and pushed. Next splat is **Mortals**.
 
-### Alchemical — chargen foundation + Charm Slot system (in progress, started 2026-07-23)
+### Alchemical — DONE (started and shipped 2026-07-23)
 Read from `images/Alchemical/` — pasted text from the Autochthonians book (1e
 conventions — WP = two highest Virtues, health 7+Ess; it supersedes *Time of
 Tumult*): `CH 2 Character Creation and Traits.md` (p.58-85), `CH 3 Charms.md`
@@ -832,7 +886,8 @@ Alchemical XP/advancement** — build order is slot-engine-first (done), then th
   `validate.validate_submodules`/`submodule_def`: parent Charm known, key real, no
   dup, minima met. Real datum: Polymodal Joint Bearings' omnidextrous submodule
   (the 22nd starter Charm).
-- **NOT YET BUILT (next increments in this push):**
+- **The rest of the push, all since completed** (kept as the build record — every
+  item below is DONE; the sub-bullets say when and how):
   - **`costs_xp.json` + Alchemical advancement (post-lock).** Slot-based: new Slots
     12/10, upgrade Dedicated→General 2, Weaving Protocols 12/14, MA 11 (Perfected
     Lotus Matrix gate), retainer Charm 6, Essence ×9. ALSO needs a new
@@ -1142,8 +1197,28 @@ budget row. Open items, source defects and the rules calls are recorded in
   ✧ Calling marks concatenated onto the Abilities panel's ● Caste / ✦ Favoured, the
   sheet's "(granted)" Charm rows, and the picker's "✧ Calling Charm — discounted" and
   "Granted by your training camp" tags. Render tests in `tests/test_illuminated_ui.py`.
-  **Not yet clicked through in a browser** — serve-and-grep proves it renders and
-  nothing throws, nothing more (see the Lunar DBT dialog note).
+  **A `from_categories` grant is TWO controls, not one** (bug found by the human in a
+  browser, 2026-07-25: "two charms picker … only lets you select one"). The style select
+  answers *which style*; a second multi-select answers *which `pick` Charms of it*.
+  Before this the two Charms were auto-seeded by lowest requirement and there was no way
+  anywhere to change them — the "the player swaps individual Charms in the picker"
+  comment described an affordance that was never built. `CampChoiceView` gained
+  `charm_options: list[CampCharmOption]` + `chosen_charm_ids` (empty until a style is
+  chosen, and always empty for a `fixed_sets` choice, where the printed pair IS the
+  grant); `editor.set_camp_choice_charms` applies it. Over-picking is REFUSED with a
+  notify rather than truncated; under-picking is allowed through so the control can be
+  emptied and refilled, with the engine's `granted-charm-missing` covering the gap.
+  **`chosen_key` now means "any of this style's Charms is held", not "≥ pick of them"**
+  — the old rule made a one-Charm selection read as *unchosen*, which hid the sub-select
+  and stranded the player. Charms whose own minimums are unmet stay selectable but are
+  flagged (p.90 requires them; the engine already reports `granted-charm-minimum`). This
+  was only reachable once the three castebook styles landed — the grant was dead data
+  before that, which is why the gap survived the original Phase 4 pass.
+  **Clicked through in a browser by the human on 2026-07-25** and confirmed correct.
+  That pass is what found the missing sub-select in the first place: every render test
+  here had been green the whole time, because serve-and-grep proves a control renders
+  and says nothing about whether the control the page NEEDS is present. Same lesson as
+  the Lunar DBT dialog.
 
 ### Tooling
 - **`tools/validate_charms.py`** — lints Charm JSON before it reaches the RuleSet:
@@ -1164,8 +1239,9 @@ budget row. Open items, source defects and the rules calls are recorded in
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled
-  balance-wrecking Charm rewrites). See **Next Exalt Types** above for the
-  planned centralized re-add; until then, do not reintroduce the old per-file hooks.
+  balance-wrecking Charm rewrites). Back in scope, scheduled AFTER Mortals as one
+  centralized `merits_and_flaws_calc` (see **Next Exalt Types**); until that work
+  starts, do not reintroduce the old per-file hooks.
 
 ### Deferred / permanently out of scope
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond
@@ -1181,9 +1257,11 @@ budget row. Open items, source defects and the rules calls are recorded in
 **Done:** M&F removal, repeatable Ox-Body, Nature dropdown, Caste info box,
 editable custom weapons/armor, magical materials, Craft as per-focus Abilities,
 chargen BP-spend log, free background/equipment editing on the XP tab, the
-in-play tracker, the multi-splat engine (P0-P4) plus full Dragon-Blooded and
-Abyssal data catalogues, tier-gated cross-splat Martial Arts, the picker's
-three-page Abilities/Martial Arts/Spells split, GM mode.
+in-play tracker, the multi-splat engine (P0-P4), tier-gated cross-splat Martial Arts,
+the picker's three-page Abilities/Martial Arts/Spells split, GM mode + the ST
+reference screen, **all five non-Solar Exalt splats** (Dragon-Blooded, Abyssal, Lunar,
+Alchemical, Sidereal — data, engine and UI, each browser-verified), the Cult of the
+Illuminated Solar origin, and the five Solar castebooks.
 
 **Next:**
 - **Abyssal Moonshadow's half of the Eclipse generalist rule.** The engine, pricing
@@ -1194,22 +1272,31 @@ three-page Abilities/Martial Arts/Spells split, GM mode.
   permission clause actually read the same before copying them across. Also set
   `foreign_panoply_charm_xp: 8` on the `moonshadow` row (the Alchemical-crossover
   Panoply rate, p.90 — it names both castes), so the crossover works for Moonshadows too.
-- **Refactor: one canonical Charm-pick enumeration.** A repeatable Charm lives on
-  its own `Character` list (`ox_body`, `beastman_gifts`), NOT in `character.charms`,
-  so every consumer that walks `character.charms` has to special-case each of them —
-  and four separately did not when Gifts landed (2026-07-22): the sheet's Charm rows
-  and the XP-log label in `ui/view.py`, and the chargen Charm-pick counters in
-  `ui/picker.py` and `ui/editor.py`. All four are fixed and pinned by tests, but the
-  shape guarantees a fifth miss the moment a splat adds a third repeatable Charm.
-  Fix: an engine-side enumeration (e.g. `charm_picks(ruleset, character)`) yielding
-  every pick — plain Charms plus one entry per repeatable purchase, already labelled
-  — that the sheet, both counters, and the XP log all consume, so the UI never
-  enumerates these lists itself. `engine.validate.bonus_point_breakdown` already
-  builds this list internally to price picks; that is the model to extract.
-  **Refactor of working code — no behaviour change intended.**
-- **Mortals** —
-  see **Next Exalt Types** above for the color scheme and the M&F-return plan.
-  (Lunar and Alchemical are done.)
+- **Refactor: one canonical Charm-pick enumeration — DISPLAY HALF DONE 2026-07-25,
+  pricing half still open.** A repeatable Charm lives on its own `Character` list
+  (`ox_body`, `beastman_gifts`), and granted Charms on a third, NOT in
+  `character.charms` — so every consumer that walked `character.charms` had to
+  special-case each list, and four separately did not when Gifts landed (2026-07-22).
+  **Done:** `engine.validate.charm_picks(ruleset, character)` → `list[CharmPick]`
+  (`charm_id`/`name`/`label`/`category`/`source`/`counts_toward_pool`), plus
+  `charm_pick_count`. Repeatable purchases arrive one entry each, already labelled with
+  their variant(s); granted Charms are listed but `counts_toward_pool=False`. The
+  sheet's Charm rows (`view.build_sheet_view`) and BOTH chargen counters
+  (`ui/picker.py`, `ui/editor.py`) now consume it and no longer enumerate the lists
+  themselves. No behaviour change — `tests/test_charm_picks.py` pins row order, the
+  counts and the free-granted rule. **Still open:** `bonus_point_breakdown` builds its
+  own pick list to PRICE picks, and that arithmetic (Caste/Favoured × Calling ×
+  Martial Arts × Immaculate rates) was deliberately left alone — extracting it is the
+  larger, riskier half. The XP-log label in `view.py` is keyed by XP *domain*, a
+  different axis, and is also untouched. A new repeatable Charm therefore still needs
+  its own storage/pricing wiring; only the display/count side is now free. The
+  concrete case waiting on it: Environmental Hazard-Resisting Meditation (Caste Book:
+  Zenith p.72-73).
+- **Mortals** — the LAST splat (Godblooded / Ghosts / Heroic Mortals / …). Blocked on
+  source images landing in `images/Mortals/`, per the never-author-from-memory rule.
+  See **Next Exalt Types** above for the colour scheme.
+- **Merits & Flaws**, after Mortals — one centralized `merits_and_flaws_calc`, NOT the
+  old per-file hooks. See **Removed**.
 - **Windows .exe** — needs building on an actual Windows host (PyInstaller
   can't cross-compile); same spec as `linux.sh`/`windows.bat`.
 

@@ -111,3 +111,19 @@ async def test_a_plain_solar_can_reach_the_illuminated_origin(user: User) -> Non
     await user.should_see("Standard")           # the default, shown as the select value
     # No camp panel yet — a standard Solar has no camps.
     await user.should_not_see("Training Camp & Calling")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_editor_renders_the_which_charms_sub_select(user: User) -> None:
+    """Regression: choosing the style used to be the ONLY control, with the two Charms
+    auto-seeded and unchangeable — "two Charms ... only lets you select one". A second,
+    multi-select control must render beside it, carrying the chosen Charms as its value.
+
+    A multi-select DOES put its selected labels in the DOM (as chips), unlike a closed
+    single select, so both the label and the current picks are assertable here."""
+    await user.open('/ill-editor-tabernacle')
+    await user.should_see("Which 2?")             # the sub-select's own label
+    # The two Snake Charms seeded in _ui_main.py, shown as chips.
+    await user.should_see("Striking Cobra Technique")
+    await user.should_see("Serpentine Evasion")

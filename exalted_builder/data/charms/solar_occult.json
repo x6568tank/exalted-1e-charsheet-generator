@@ -7,11 +7,17 @@
     "min_ability": 3,
     "min_essence": 3,
     "prerequisites": [],
-    "cost": {"willpower": 1, "raw": "1 Willpower (per spell; each spell also has an Essence cost)"},
+    "cost": {
+      "willpower": 1,
+      "raw": "1 Willpower (per spell; each spell also has an Essence cost)"
+    },
     "duration": "Instant",
     "grants_circle": "Terrestrial",
     "description": "Lets the character learn and cast spells of the Terrestrial (First) Circle. Each spell also has its own Essence cost, listed in the spell. Cannot be placed in a Combo.",
-    "source": {"book": "Exalted 1e Core", "page": 191}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 191
+    }
   },
   {
     "id": "solar.occult.celestial-circle-sorcery",
@@ -20,12 +26,22 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 4,
-    "prerequisites": [["solar.occult.terrestrial-circle-sorcery"]],
-    "cost": {"willpower": 1, "raw": "1 Willpower (per spell; each spell also has an Essence cost)"},
+    "prerequisites": [
+      [
+        "solar.occult.terrestrial-circle-sorcery"
+      ]
+    ],
+    "cost": {
+      "willpower": 1,
+      "raw": "1 Willpower (per spell; each spell also has an Essence cost)"
+    },
     "duration": "Instant",
     "grants_circle": "Celestial",
     "description": "Lets the character learn and cast spells of the Celestial (Second) Circle, the magic of the Celestial Exalted. Cannot be placed in a Combo.",
-    "source": {"book": "Exalted 1e Core", "page": 191}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 191
+    }
   },
   {
     "id": "solar.occult.solar-circle-sorcery",
@@ -34,12 +50,22 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 5,
-    "prerequisites": [["solar.occult.celestial-circle-sorcery"]],
-    "cost": {"willpower": 3, "raw": "3 Willpower (per spell; each spell also has an Essence cost)"},
+    "prerequisites": [
+      [
+        "solar.occult.celestial-circle-sorcery"
+      ]
+    ],
+    "cost": {
+      "willpower": 3,
+      "raw": "3 Willpower (per spell; each spell also has an Essence cost)"
+    },
     "duration": "Instant",
     "grants_circle": "Solar",
     "description": "Lets the character learn and cast spells of the Solar (Third) Circle, the most powerful sorcery, available only to the Solar Exalted. Cannot be placed in a Combo.",
-    "source": {"book": "Exalted 1e Core", "page": 191}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 191
+    }
   },
   {
     "id": "solar.occult.shadowlands-circle-necromancy",
@@ -49,11 +75,16 @@
     "min_ability": 3,
     "min_essence": 3,
     "prerequisites": [],
-    "cost": {"willpower": 1},
+    "cost": {
+      "willpower": 1
+    },
     "duration": "Instant",
     "grants_circle": "Shadowlands",
     "description": "The necromancy of the First Circle, binding the dark energies of the Underworld — potent but limited in scope. Invoking this Charm enables the character to cast a single Shadowlands Circle Necromancy spell; the spell's own Essence cost (listed in its description) must also be paid. Shadowlands Circle Necromancy can never be part of a Combo. (Solars may learn Shadowlands and Labyrinth Circle Necromancy, but never the Void Circle.)",
-    "source": {"book": "Exalted 1e Core", "page": 197}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 197
+    }
   },
   {
     "id": "solar.occult.labyrinth-circle-necromancy",
@@ -62,16 +93,207 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 4,
-    "prerequisites": [["solar.occult.shadowlands-circle-necromancy"]],
-    "cost": {"willpower": 2},
+    "prerequisites": [
+      [
+        "solar.occult.shadowlands-circle-necromancy"
+      ]
+    ],
+    "cost": {
+      "willpower": 2
+    },
     "duration": "Instant",
     "grants_circle": "Labyrinth",
     "description": "The necromancy of the Second Circle — the stuff of nightmares and dreams best left to dead gods, offering great and terrible power. Enables the character to cast a single Labyrinth Circle Necromancy spell; the spell's own Essence cost must also be paid. Labyrinth Circle Necromancy can never be part of a Combo.",
-    "source": {"book": "Exalted 1e Core", "page": 198}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 198
+    }
   },
-  {"id": "solar.occult.spirit-detecting-glance", "name": "Spirit-Detecting Glance", "category": "occult", "type": "Simple", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"motes": 3}, "duration": "One scene", "description": "Perceives unmanifested spirits, gods, ghosts, and demons that would otherwise be invisible.", "source": {"book": "Exalted 1e Core", "page": 192}},
-  {"id": "solar.occult.spirit-cutting-attack", "name": "Spirit-Cutting Attack", "category": "occult", "type": "Supplemental", "min_ability": 2, "min_essence": 2, "prerequisites": [["solar.occult.spirit-detecting-glance"]], "cost": {"motes": 2}, "duration": "Instant", "description": "Lets the character's attacks strike and harm dematerialized spirits.", "source": {"book": "Exalted 1e Core", "page": 192}},
-  {"id": "solar.occult.ghost-eating-technique", "name": "Ghost-Eating Technique", "category": "occult", "type": "Supplemental", "min_ability": 4, "min_essence": 3, "prerequisites": [["solar.occult.spirit-cutting-attack"]], "cost": {"motes": 5}, "duration": "Instant", "description": "Devours a slain ghost's Essence, permanently destroying it and feeding the character's pools.", "source": {"book": "Exalted 1e Core", "page": 192}},
-  {"id": "solar.occult.spirit-repelling-diagram", "name": "Spirit-Repelling Diagram", "category": "occult", "type": "Simple", "min_ability": 5, "min_essence": 2, "prerequisites": [["solar.occult.spirit-cutting-attack"]], "cost": {"motes": 10}, "duration": "One scene", "description": "Inscribes a diagram that bars spirits from an area or holds a bound spirit at bay.", "source": {"book": "Exalted 1e Core", "page": 193}},
-  {"id": "solar.occult.all-encompassing-sorcerers-sight", "name": "All-Encompassing Sorcerer's Sight", "category": "occult", "type": "Simple", "min_ability": 2, "min_essence": 2, "prerequisites": [["solar.occult.spirit-detecting-glance"]], "cost": {"motes": 6}, "duration": "One scene", "description": "Perceives the flow of Essence in the world, identifying enchantments, Manses, and demesnes.", "source": {"book": "Exalted 1e Core", "page": 193}}
+  {
+    "id": "solar.occult.spirit-detecting-glance",
+    "name": "Spirit-Detecting Glance",
+    "category": "occult",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "Perceives unmanifested spirits, gods, ghosts, and demons that would otherwise be invisible.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 192
+    }
+  },
+  {
+    "id": "solar.occult.spirit-cutting-attack",
+    "name": "Spirit-Cutting Attack",
+    "category": "occult",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.occult.spirit-detecting-glance"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
+    "duration": "Instant",
+    "description": "Lets the character's attacks strike and harm dematerialized spirits.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 192
+    }
+  },
+  {
+    "id": "solar.occult.ghost-eating-technique",
+    "name": "Ghost-Eating Technique",
+    "category": "occult",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.occult.spirit-cutting-attack"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "Instant",
+    "description": "Devours a slain ghost's Essence, permanently destroying it and feeding the character's pools.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 192
+    }
+  },
+  {
+    "id": "solar.occult.spirit-repelling-diagram",
+    "name": "Spirit-Repelling Diagram",
+    "category": "occult",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.occult.spirit-cutting-attack"
+      ]
+    ],
+    "cost": {
+      "motes": 10
+    },
+    "duration": "One scene",
+    "description": "Inscribes a diagram that bars spirits from an area or holds a bound spirit at bay.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 193
+    }
+  },
+  {
+    "id": "solar.occult.all-encompassing-sorcerers-sight",
+    "name": "All-Encompassing Sorcerer's Sight",
+    "category": "occult",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.occult.spirit-detecting-glance"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "One scene",
+    "description": "Perceives the flow of Essence in the world, identifying enchantments, Manses, and demesnes.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 193
+    }
+  },
+  {
+    "id": "solar.occult.power-draining-whisper",
+    "name": "Power-Draining Whisper",
+    "category": "occult",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "solar.occult.spirit-cutting-attack"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes per turn"
+    },
+    "duration": "Varies",
+    "description": "By giving voice to the arcane patterns of this Charm, an Exalted can hamper an enemy's ability to use Essence. The character must be within a number of yards of the target equal to his Essence. The Solar's player and target's player must both make Will + Occult rolls: If the Solar's player scores more successes, then for the turn when this Charm is used and in every subsequent turn in which the character spends 5 motes of Essence, the chosen subject of the Charm must pay twice as much Essence to use any of his Charms or other Essence-fueled abilities. If the target scores more successes, then the Charm fails to function. While this Charm does not require continuous concentration by the Exalt, only the continued expenditure of Essence, and counts as the use of a simple Charm every turn, it will be nullified if the Solar using it is rendered unconscious or killed. This Charm may never be used as part of a Combo, nor does it affect beings with an Essence equal to or greater than the character.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 73
+    }
+  },
+  {
+    "id": "solar.occult.power-disrupting-blow",
+    "name": "Power-Disrupting Blow",
+    "category": "occult",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 6,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "solar.occult.all-encompassing-sorcerers-sight"
+      ],
+      [
+        "solar.occult.power-draining-whisper"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 1,
+      "health": 0,
+      "raw": "7 motes of Essence, 1 temporary Willpower"
+    },
+    "duration": "Multiple Turns",
+    "description": "With a barehanded blow, the character using this Charm makes it impossible for his target to make any directed use of Essence for that turn and, potentially, for later turns. It must be used with a successful barehanded attack (which need do no damage but must penetrate the target's block or dodge) and is specifically permitted to be used as part of a Combo with Charms of other Abilities. The character may maintain the Charm as long as she continues to spend 10 motes of Peripheral Essence and 1 permanent Willpower for each turn that it is in use. This count's as the character's Charm use for the turn, as long as se continues to spend 7 motes and 1 temporary Willpower per turn.\n\nThe target — whether he is an Exalt, a spirit, one of the Fair Folk or anything else — will be unable to use any Essence-driven powers and must react on a purely physical level. Note that creatures that are magically aflame or that have magical venom are not restricted by this Charm, as such prodigies are expressions of their fundamental beings, and this attack bars only the working of magic. Likewise, this Charm cannot stop Lunar shapeshifting or the display and use of anima banners. Should the Solar invoking the Charm be rendered unconscious or killed, the magic is broken. It is whispered that there are more powerful versions of this Charm, which can suppress the powers of an Exalted for days, years or permanently, but if so, they are still not yet rediscovered.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 74
+    }
+  },
+  {
+    "id": "solar.occult.spirit-warding-ban",
+    "name": "Spirit-Warding Ban",
+    "category": "occult",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 6,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "solar.occult.spirit-repelling-diagram"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "An Exalted can use this Charm to ward a building or room from unwanted entry by spirits. For the Charm to function, the area being warded must have a clearly defined main entrance and may not be larger than 20 yards square. The Exalt invokes the Charm by tracing his Caste Mark upon the main door of the area — or on the ground, if there is no actual door — to seal the entrance. Dematerialized spirits outside the warded area with permanent Essence lower than the character's may not use their Charms to affect those within the warded area, nor may they enter it unless invited by those within. Should they attempt to enter, whether or not they succeed, the mark upon the entrance blazes bright gold, visible to anybody nearby. This ward is a continuing effect that lasts until the room is broken or the ward is deliberately defiled by a being that is not a spirit.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 74
+    }
+  }
 ]

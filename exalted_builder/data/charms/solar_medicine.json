@@ -1,12 +1,384 @@
 [
-  {"id": "solar.medicine.body-mending-meditation", "name": "Body-Mending Meditation", "category": "medicine", "type": "Reflexive", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"motes": 10}, "duration": "One day", "description": "Channels Essence to knit broken bones and mend wounds at ten times the natural rate while in a healing trance.", "source": {"book": "Exalted 1e Core", "page": 188}},
-  {"id": "solar.medicine.flawless-diagnosis-technique", "name": "Flawless Diagnosis Technique", "category": "medicine", "type": "Simple", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"motes": 1}, "duration": "Five minutes", "description": "Diagnoses a patient's illness or injury with flawless, supernatural accuracy.", "source": {"book": "Exalted 1e Core", "page": 188}},
-  {"id": "solar.medicine.ailment-rectifying-method", "name": "Ailment-Rectifying Method", "category": "medicine", "type": "Simple", "min_ability": 1, "min_essence": 1, "prerequisites": [["solar.medicine.flawless-diagnosis-technique"]], "cost": {"motes": 10}, "duration": "Six hours", "description": "Treats and cures illness, helping a patient recover from even serious disease.", "source": {"book": "Exalted 1e Core", "page": 188}},
-  {"id": "solar.medicine.touch-of-blissful-release", "name": "Touch of Blissful Release", "category": "medicine", "type": "Simple", "min_ability": 2, "min_essence": 1, "prerequisites": [["solar.medicine.body-mending-meditation"]], "cost": {"motes": 5}, "duration": "Six hours", "description": "Eases a patient's pain and discomfort, lessening wound penalties.", "source": {"book": "Exalted 1e Core", "page": 189}},
-  {"id": "solar.medicine.contagion-curing-touch", "name": "Contagion-Curing Touch", "category": "medicine", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.medicine.ailment-rectifying-method"]], "cost": {"motes": 10}, "duration": "One day", "description": "Cures normally incurable diseases and halts the spread of contagion.", "source": {"book": "Exalted 1e Core", "page": 189}},
-  {"id": "solar.medicine.grievous-injury-recovery-method", "name": "Grievous Injury Recovery Method", "category": "medicine", "type": "Simple", "min_ability": 2, "min_essence": 2, "prerequisites": [["solar.medicine.body-mending-meditation"]], "cost": {"motes": 10}, "duration": "One day", "description": "Greatly accelerates the character's own healing of grievous wounds.", "source": {"book": "Exalted 1e Core", "page": 190}},
-  {"id": "solar.medicine.wound-mending-care-technique", "name": "Wound-Mending Care Technique", "category": "medicine", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.medicine.grievous-injury-recovery-method"], ["solar.medicine.touch-of-blissful-release"]], "cost": {"motes": 10}, "duration": "One day", "description": "Heals another character's wounds at an incredible rate over days of bed rest.", "source": {"book": "Exalted 1e Core", "page": 190}},
-  {"id": "solar.medicine.anointment-of-miraculous-health", "name": "Anointment of Miraculous Health", "category": "medicine", "type": "Simple", "min_ability": 4, "min_essence": 3, "prerequisites": [["solar.medicine.contagion-curing-touch"], ["solar.medicine.wound-mending-care-technique"]], "cost": {"motes": 10}, "duration": "Instant", "description": "Instantly heals a patient's wounds, even grievous ones, with a touch.", "source": {"book": "Exalted 1e Core", "page": 190}},
-  {"id": "solar.medicine.bodily-regeneration-prana", "name": "Bodily Regeneration Prana", "category": "medicine", "type": "Simple", "min_ability": 5, "min_essence": 2, "prerequisites": [["solar.medicine.wound-mending-care-technique"]], "cost": {"motes": 10, "willpower": 1}, "duration": "One hour", "description": "Regenerates lost limbs, eyes, and other lost tissue over a healing trance.", "source": {"book": "Exalted 1e Core", "page": 191}},
-  {"id": "solar.medicine.healing-trance-meditation", "name": "Healing Trance Meditation", "category": "medicine", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.medicine.anointment-of-miraculous-health"], ["solar.medicine.bodily-regeneration-prana"]], "cost": {"motes": 10, "willpower": 1}, "duration": "One hour", "description": "A deep healing trance that mends the most serious injuries and regrows lost body parts.", "source": {"book": "Exalted 1e Core", "page": 191}}
+  {
+    "id": "solar.medicine.body-mending-meditation",
+    "name": "Body-Mending Meditation",
+    "category": "medicine",
+    "type": "Reflexive",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 10
+    },
+    "duration": "One day",
+    "description": "Channels Essence to knit broken bones and mend wounds at ten times the natural rate while in a healing trance.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 188
+    }
+  },
+  {
+    "id": "solar.medicine.flawless-diagnosis-technique",
+    "name": "Flawless Diagnosis Technique",
+    "category": "medicine",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 1
+    },
+    "duration": "Five minutes",
+    "description": "Diagnoses a patient's illness or injury with flawless, supernatural accuracy.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 188
+    }
+  },
+  {
+    "id": "solar.medicine.ailment-rectifying-method",
+    "name": "Ailment-Rectifying Method",
+    "category": "medicine",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.medicine.flawless-diagnosis-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10
+    },
+    "duration": "Six hours",
+    "description": "Treats and cures illness, helping a patient recover from even serious disease.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 188
+    }
+  },
+  {
+    "id": "solar.medicine.touch-of-blissful-release",
+    "name": "Touch of Blissful Release",
+    "category": "medicine",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.medicine.body-mending-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "Six hours",
+    "description": "Eases a patient's pain and discomfort, lessening wound penalties.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 189
+    }
+  },
+  {
+    "id": "solar.medicine.contagion-curing-touch",
+    "name": "Contagion-Curing Touch",
+    "category": "medicine",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.medicine.ailment-rectifying-method"
+      ]
+    ],
+    "cost": {
+      "motes": 10
+    },
+    "duration": "One day",
+    "description": "Cures normally incurable diseases and halts the spread of contagion.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 189
+    }
+  },
+  {
+    "id": "solar.medicine.grievous-injury-recovery-method",
+    "name": "Grievous Injury Recovery Method",
+    "category": "medicine",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.medicine.body-mending-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 10
+    },
+    "duration": "One day",
+    "description": "Greatly accelerates the character's own healing of grievous wounds.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 190
+    }
+  },
+  {
+    "id": "solar.medicine.wound-mending-care-technique",
+    "name": "Wound-Mending Care Technique",
+    "category": "medicine",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.medicine.grievous-injury-recovery-method"
+      ],
+      [
+        "solar.medicine.touch-of-blissful-release"
+      ]
+    ],
+    "cost": {
+      "motes": 10
+    },
+    "duration": "One day",
+    "description": "Heals another character's wounds at an incredible rate over days of bed rest.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 190
+    }
+  },
+  {
+    "id": "solar.medicine.anointment-of-miraculous-health",
+    "name": "Anointment of Miraculous Health",
+    "category": "medicine",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.medicine.contagion-curing-touch"
+      ],
+      [
+        "solar.medicine.wound-mending-care-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10
+    },
+    "duration": "Instant",
+    "description": "Instantly heals a patient's wounds, even grievous ones, with a touch.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 190
+    }
+  },
+  {
+    "id": "solar.medicine.bodily-regeneration-prana",
+    "name": "Bodily Regeneration Prana",
+    "category": "medicine",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.medicine.wound-mending-care-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One hour",
+    "description": "Regenerates lost limbs, eyes, and other lost tissue over a healing trance.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 191
+    }
+  },
+  {
+    "id": "solar.medicine.healing-trance-meditation",
+    "name": "Healing Trance Meditation",
+    "category": "medicine",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.medicine.anointment-of-miraculous-health"
+      ],
+      [
+        "solar.medicine.bodily-regeneration-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One hour",
+    "description": "A deep healing trance that mends the most serious injuries and regrows lost body parts.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 191
+    }
+  },
+  {
+    "id": "solar.medicine.venom-anodyne-method",
+    "name": "Venom Anodyne Method",
+    "category": "medicine",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.medicine.grievous-injury-recovery-method"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "To be effective, characters must use this Charm the instant they are subjected to poison damage. This Charm instantly negates all damage from poison and renders the poison harmless.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.medicine.body-purifying-technique",
+    "name": "Body Purifying Technique",
+    "category": "medicine",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.medicine.wound-mending-care-technique"
+      ],
+      [
+        "solar.medicine.venom-anodyne-method"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "Instant",
+    "description": "This Charm allows the character to cure others of all damage caused by poison or acid provided that he can get to them within 10 turns of their being poisoned or burned. The character can also touch poisoned weapons, food or drink and render it harmless with a touch. If she has time to handle and caress a venomous animal, she can render it nonpoisonous for the next day, but this cannot be done in combat, and it does not effect magical animals such as dragons.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.medicine.addiction-cleansing-touch",
+    "name": "Addiction-Cleansing Touch",
+    "category": "medicine",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.medicine.anointment-of-miraculous-health"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1,
+      "health": 0,
+      "raw": "8 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "With this Charm, an Exalted can cleanse another character of any addiction that she may have to alcohol or to more noxious substances, such as opium, bright morning, lotus distillate or fire butterfly wing-powder. The character places her hand on the subject's brow and invokes the Charm, instantly freeing the subject from all psychological and physiological effects and cravings of the addiction. However, the stresses and temptations that drove the subject to addiction in the first place will not be banished and may, quite possibly, cause the subject to relapse. An Exalt cannot use this Charm upon herself.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.medicine.unhealing-wound-infliction",
+    "name": "Unhealing Wound Infliction",
+    "category": "medicine",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.medicine.wound-mending-care-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "In a sense the diametric opposite to the Wound-Mending Care Technique, this Charm allows the character to inflict particularly grievous wounds, which will heal far more slowly than normal. By spending 10 motes of Peripheral Essence and 1 point of temporary Willpower, the character focuses his blows through his understanding of anatomy and Essence flows, so that all aggravated and lethal damage he inflicts will take five times as long to heal, and all bashing damage will take 10 times as long to heal. If healing Charms are later used on the target, they function at half their usual efficacy. Twilight Exalted frequently used this Charm in duels during the First Age.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 73
+    }
+  },
+  {
+    "id": "solar.medicine.merciful-balm-of-sleep",
+    "name": "Merciful Balm of Sleep",
+    "category": "medicine",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 6,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "solar.medicine.healing-trance-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "One day",
+    "description": "With this Charm, an Exalted can heal not only wounded bodies, but also salve damaged minds and souls. While the character must touch the subject of the Charm, the subject need not be cooperative or willing — in fact, if he suffers from a particularly violent form of insanity, he may need to be restrained in some way. Both the Exalted and the target pass into a deep healing trance, in which they remain for an entire day. The only way of forcibly breaking the trance before the day is over is either to separate the two physically or to slay one of them, in which case the other awakens. During the period that the Exalted is entranced, he regains no Essence. If the Charm is completed, then the subject awakens with a clear and rational mind, free from all forms of insanity. While this Charm will also heal the effects on a soul of the Fair Folk's hunger and cure sorcerous forms of madness, it will not necessarily alter a target's morality or cause a person to change strongly held views. An Exalted cannot use this Charm upon himself: If he is suffering from some form of insanity, then someone else must use the Charm on him. Also, the Charm cannot cure the Great Curse.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 73
+    }
+  },
+  {
+    "id": "solar.medicine.youth-restoring-benison",
+    "name": "Youth-Restoring Benison",
+    "category": "medicine",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 7,
+    "min_essence": 7,
+    "prerequisites": [
+      [
+        "solar.medicine.healing-trance-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower, 1 experience point"
+    },
+    "duration": "Instant",
+    "description": "One of the most legendary of Charms, it allows an Exalt to restore youth and health to a normal human or animal. However, it cannot restore another Exalted or a magical being, as it only works on purely natural creatures. The character invokes the Charm, touching the target (who must be willing) and spending 15 motes of Peripheral Essence, 1 Willpower and 1 experience point. The target instantly and visibly grows young again, becoming as healthy and attractive as he was when a young adult (18 years old for humans, proportionally younger for animals), though retaining all his skills and knowledge. The effect lasts for a single year; if it is not renewed at the end of the year, then the subject's lost years will be visited upon him once again. The legends of this Charm are generally not believed: Were it known that Exalts could actually perform such a deed, it is likely that many unscrupulous and powerful persons would be extremely interested.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Twilight",
+      "page": 73
+    }
+  }
 ]

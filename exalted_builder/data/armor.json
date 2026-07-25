@@ -1,20 +1,232 @@
 [
-  {"id": "armor.breastplate",            "name": "Breastplate",            "weight": "Light",      "soak_lethal": 4,  "soak_bashing": 2,  "mobility_penalty": -1, "fatigue": 1, "resources_cost": 2},
-  {"id": "armor.buff_jacket",            "name": "Buff Jacket",            "weight": "Light",      "soak_lethal": 3,  "soak_bashing": 4,  "mobility_penalty": -1, "fatigue": 2, "resources_cost": 1},
-  {"id": "armor.chain_shirt",            "name": "Chain Shirt",            "weight": "Light",      "soak_lethal": 3,  "soak_bashing": 1,  "mobility_penalty": 0,  "fatigue": 1, "resources_cost": 2},
-  {"id": "armor.chain_hauberk",          "name": "Chain Hauberk",          "weight": "Medium",     "soak_lethal": 6,  "soak_bashing": 7,  "mobility_penalty": -3, "fatigue": 2, "resources_cost": 3},
-  {"id": "armor.lamellar",               "name": "Lamellar",               "weight": "Medium",     "soak_lethal": 6,  "soak_bashing": 8,  "mobility_penalty": -2, "fatigue": 1, "resources_cost": 3},
-  {"id": "armor.reinforced_buff_jacket", "name": "Reinforced Buff Jacket", "weight": "Medium",     "soak_lethal": 5,  "soak_bashing": 6,  "mobility_penalty": -2, "fatigue": 2, "resources_cost": 3},
-  {"id": "armor.concealed_plates",       "name": "Concealed Plates",       "weight": "Medium",     "soak_lethal": 5,  "soak_bashing": 6,  "mobility_penalty": -2, "fatigue": 3, "resources_cost": 2, "tags": ["concealable"]},
-  {"id": "armor.articulated_plate",      "name": "Articulated Plate",      "weight": "Heavy",      "soak_lethal": 9,  "soak_bashing": 9,  "mobility_penalty": -3, "fatigue": 2, "resources_cost": 5},
-  {"id": "armor.plate_and_chain",        "name": "Plate-and-Chain",        "weight": "Heavy",      "soak_lethal": 8,  "soak_bashing": 10, "mobility_penalty": -4, "fatigue": 3, "resources_cost": 4},
-  {"id": "armor.reinforced_breastplate", "name": "Reinforced Breastplate", "weight": "Heavy",      "soak_lethal": 7,  "soak_bashing": 6,  "mobility_penalty": -2, "fatigue": 1, "resources_cost": 4},
-  {"id": "armor.chain_swathing",         "name": "Chain Swathing",         "weight": "Superheavy", "soak_lethal": 11, "soak_bashing": 14, "mobility_penalty": -6, "fatigue": 5, "resources_cost": 4},
-  {"id": "armor.superheavy_plate",       "name": "Superheavy Plate",       "weight": "Superheavy", "soak_lethal": 12, "soak_bashing": 12, "mobility_penalty": -4, "fatigue": 3, "resources_cost": 5},
-
-  {"id": "armor.artifact.breastplate",            "name": "Breastplate (Artifact)",            "weight": "Light",      "soak_lethal": 6,  "soak_bashing": 4,  "mobility_penalty": 0,  "fatigue": 0, "resources_cost": 0, "attunement": 2, "artifact_rating": 1, "tags": ["artifact"]},
-  {"id": "armor.artifact.reinforced_buff_jacket", "name": "Reinforced Buff Jacket (Artifact)", "weight": "Medium",     "soak_lethal": 7,  "soak_bashing": 10, "mobility_penalty": -1, "fatigue": 0, "resources_cost": 0, "attunement": 3, "artifact_rating": 2, "tags": ["artifact"]},
-  {"id": "armor.artifact.reinforced_breastplate", "name": "Reinforced Breastplate (Artifact)", "weight": "Heavy",      "soak_lethal": 10, "soak_bashing": 9,  "mobility_penalty": -1, "fatigue": 1, "resources_cost": 0, "attunement": 4, "artifact_rating": 3, "tags": ["artifact"]},
-  {"id": "armor.artifact.articulated_plate",      "name": "Articulated Plate (Artifact)",      "weight": "Heavy",      "soak_lethal": 12, "soak_bashing": 14, "mobility_penalty": -2, "fatigue": 1, "resources_cost": 0, "attunement": 6, "artifact_rating": 4, "tags": ["artifact"]},
-  {"id": "armor.artifact.superheavy_plate",       "name": "Superheavy Plate (Artifact)",       "weight": "Superheavy", "soak_lethal": 15, "soak_bashing": 15, "mobility_penalty": -2, "fatigue": 2, "resources_cost": 0, "attunement": 8, "artifact_rating": 5, "tags": ["artifact"]}
+  {
+    "id": "armor.breastplate",
+    "name": "Breastplate",
+    "weight": "Light",
+    "soak_lethal": 4,
+    "soak_bashing": 2,
+    "mobility_penalty": -1,
+    "fatigue": 1,
+    "resources_cost": 2
+  },
+  {
+    "id": "armor.buff_jacket",
+    "name": "Buff Jacket",
+    "weight": "Light",
+    "soak_lethal": 3,
+    "soak_bashing": 4,
+    "mobility_penalty": -1,
+    "fatigue": 2,
+    "resources_cost": 1
+  },
+  {
+    "id": "armor.chain_shirt",
+    "name": "Chain Shirt",
+    "weight": "Light",
+    "soak_lethal": 3,
+    "soak_bashing": 1,
+    "mobility_penalty": 0,
+    "fatigue": 1,
+    "resources_cost": 2
+  },
+  {
+    "id": "armor.chain_hauberk",
+    "name": "Chain Hauberk",
+    "weight": "Medium",
+    "soak_lethal": 6,
+    "soak_bashing": 7,
+    "mobility_penalty": -3,
+    "fatigue": 2,
+    "resources_cost": 3
+  },
+  {
+    "id": "armor.lamellar",
+    "name": "Lamellar",
+    "weight": "Medium",
+    "soak_lethal": 6,
+    "soak_bashing": 8,
+    "mobility_penalty": -2,
+    "fatigue": 1,
+    "resources_cost": 3
+  },
+  {
+    "id": "armor.reinforced_buff_jacket",
+    "name": "Reinforced Buff Jacket",
+    "weight": "Medium",
+    "soak_lethal": 5,
+    "soak_bashing": 6,
+    "mobility_penalty": -2,
+    "fatigue": 2,
+    "resources_cost": 3
+  },
+  {
+    "id": "armor.concealed_plates",
+    "name": "Concealed Plates",
+    "weight": "Medium",
+    "soak_lethal": 5,
+    "soak_bashing": 6,
+    "mobility_penalty": -2,
+    "fatigue": 3,
+    "resources_cost": 2,
+    "tags": [
+      "concealable"
+    ]
+  },
+  {
+    "id": "armor.articulated_plate",
+    "name": "Articulated Plate",
+    "weight": "Heavy",
+    "soak_lethal": 9,
+    "soak_bashing": 9,
+    "mobility_penalty": -3,
+    "fatigue": 2,
+    "resources_cost": 5
+  },
+  {
+    "id": "armor.plate_and_chain",
+    "name": "Plate-and-Chain",
+    "weight": "Heavy",
+    "soak_lethal": 8,
+    "soak_bashing": 10,
+    "mobility_penalty": -4,
+    "fatigue": 3,
+    "resources_cost": 4
+  },
+  {
+    "id": "armor.reinforced_breastplate",
+    "name": "Reinforced Breastplate",
+    "weight": "Heavy",
+    "soak_lethal": 7,
+    "soak_bashing": 6,
+    "mobility_penalty": -2,
+    "fatigue": 1,
+    "resources_cost": 4
+  },
+  {
+    "id": "armor.chain_swathing",
+    "name": "Chain Swathing",
+    "weight": "Superheavy",
+    "soak_lethal": 11,
+    "soak_bashing": 14,
+    "mobility_penalty": -6,
+    "fatigue": 5,
+    "resources_cost": 4
+  },
+  {
+    "id": "armor.superheavy_plate",
+    "name": "Superheavy Plate",
+    "weight": "Superheavy",
+    "soak_lethal": 12,
+    "soak_bashing": 12,
+    "mobility_penalty": -4,
+    "fatigue": 3,
+    "resources_cost": 5
+  },
+  {
+    "id": "armor.artifact.breastplate",
+    "name": "Breastplate (Artifact)",
+    "weight": "Light",
+    "soak_lethal": 6,
+    "soak_bashing": 4,
+    "mobility_penalty": 0,
+    "fatigue": 0,
+    "resources_cost": 0,
+    "attunement": 2,
+    "artifact_rating": 1,
+    "tags": [
+      "artifact"
+    ]
+  },
+  {
+    "id": "armor.artifact.reinforced_buff_jacket",
+    "name": "Reinforced Buff Jacket (Artifact)",
+    "weight": "Medium",
+    "soak_lethal": 7,
+    "soak_bashing": 10,
+    "mobility_penalty": -1,
+    "fatigue": 0,
+    "resources_cost": 0,
+    "attunement": 3,
+    "artifact_rating": 2,
+    "tags": [
+      "artifact"
+    ]
+  },
+  {
+    "id": "armor.artifact.reinforced_breastplate",
+    "name": "Reinforced Breastplate (Artifact)",
+    "weight": "Heavy",
+    "soak_lethal": 10,
+    "soak_bashing": 9,
+    "mobility_penalty": -1,
+    "fatigue": 1,
+    "resources_cost": 0,
+    "attunement": 4,
+    "artifact_rating": 3,
+    "tags": [
+      "artifact"
+    ]
+  },
+  {
+    "id": "armor.artifact.articulated_plate",
+    "name": "Articulated Plate (Artifact)",
+    "weight": "Heavy",
+    "soak_lethal": 12,
+    "soak_bashing": 14,
+    "mobility_penalty": -2,
+    "fatigue": 1,
+    "resources_cost": 0,
+    "attunement": 6,
+    "artifact_rating": 4,
+    "tags": [
+      "artifact"
+    ]
+  },
+  {
+    "id": "armor.artifact.superheavy_plate",
+    "name": "Superheavy Plate (Artifact)",
+    "weight": "Superheavy",
+    "soak_lethal": 15,
+    "soak_bashing": 15,
+    "mobility_penalty": -2,
+    "fatigue": 2,
+    "resources_cost": 0,
+    "attunement": 8,
+    "artifact_rating": 5,
+    "tags": [
+      "artifact"
+    ]
+  },
+  {
+    "id": "armor.artifact.chain_shirt",
+    "name": "Chain Shirt (Artifact)",
+    "weight": "Light",
+    "soak_lethal": 5,
+    "soak_bashing": 3,
+    "mobility_penalty": 0,
+    "fatigue": 0,
+    "resources_cost": 0,
+    "artifact_rating": 2,
+    "attunement": 3,
+    "tags": [
+      "artifact",
+      "concealable"
+    ]
+  },
+  {
+    "id": "armor.artifact.cloak_of_vanishing_escape",
+    "name": "Cloak of Vanishing Escape",
+    "weight": "Light",
+    "soak_lethal": 1,
+    "soak_bashing": 1,
+    "mobility_penalty": 0,
+    "fatigue": 0,
+    "resources_cost": 0,
+    "artifact_rating": 4,
+    "attunement": 5,
+    "tags": [
+      "artifact",
+      "cloak"
+    ]
+  }
 ]

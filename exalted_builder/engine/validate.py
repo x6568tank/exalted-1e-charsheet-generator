@@ -80,6 +80,99 @@ def gift_charm(ruleset: RuleSet, character: Character) -> Charm | None:
     return ruleset.charms.get(gift_charm_id(ruleset, character))
 
 
+# --------------------------------------------------------------------------- #
+# The canonical Charm-pick enumeration
+# --------------------------------------------------------------------------- #
+
+class CharmPick(BaseModel):
+    """One Charm a character holds, wherever it is stored.
+
+    A repeatable Charm (Ox-Body Technique; Deadly Beastman Transformation) lives on
+    its OWN `Character` list rather than in `character.charms`, because N copies must
+    be representable. Granted Charms (a Cult of the Illuminated training camp, p.90)
+    are a third such list. Every consumer that walked `character.charms` therefore had
+    to special-case each list by hand — and four separately failed to when Gifts
+    landed. This type is the single enumeration they consume instead, so adding a
+    fourth list is one change here rather than a scavenger hunt.
+
+    `counts_toward_pool` is False only for granted Charms: they cost no chargen pick
+    and no bonus points. `label` is display-ready and already folds in a repeatable
+    purchase's chosen variant(s).
+
+    NOTE: this covers what a character HOLDS. It deliberately does not price anything
+    — `bonus_point_breakdown` still owns the per-pick BP arithmetic, which has to
+    reason about Caste/Favoured, Calling, Martial Arts and Immaculate rates that have
+    nothing to do with which list a pick came from.
+    """
+    charm_id: str
+    name: str                  # the Charm's own name, or the raw id if unresolved
+    label: str                 # display name; includes variant labels for repeatables
+    category: str = ""
+    source: str = "charms"     # charms | ox_body | beastman_gifts | granted
+    counts_toward_pool: bool = True
+
+
+def charm_picks(ruleset: RuleSet, character: Character) -> list[CharmPick]:
+    """Every Charm the character holds, in sheet order: plain picks, then one entry
+    per repeatable purchase, then Charms granted by a training camp.
+
+    This is the enumeration the UI must use instead of reading `character.charms`,
+    `character.ox_body`, `character.beastman_gifts` and `character.granted_charms`
+    itself. Unresolvable ids are still yielded (with `name` set to the raw id) so a
+    stale save shows the problem rather than silently losing a row.
+    """
+    picks: list[CharmPick] = []
+
+    for cid in character.charms:
+        charm = ruleset.charms.get(cid)
+        picks.append(CharmPick(
+            charm_id=cid,
+            name=charm.name if charm else cid,
+            label=charm.name if charm else cid,
+            category=charm.category if charm else "",
+            source="charms",
+        ))
+
+    ox = ox_body_charm(ruleset, character)
+    if ox is not None:
+        labels = {v.key: v.label for v in ox.variants}
+        for p in character.ox_body:
+            picks.append(CharmPick(
+                charm_id=ox.id, name=ox.name,
+                label=f"{ox.name} ({labels.get(p.variant, p.variant)})",
+                category=ox.category, source="ox_body",
+            ))
+
+    gift = gift_charm(ruleset, character)
+    if gift is not None:
+        labels = {v.key: v.label for v in gift.variants}
+        for p in character.beastman_gifts:
+            taken = ", ".join(labels.get(k, k) for k in p.gifts)
+            picks.append(CharmPick(
+                charm_id=gift.id, name=gift.name,
+                label=f"{gift.name} ({taken})",
+                category=gift.category, source="beastman_gifts",
+            ))
+
+    for cid in character.granted_charms:
+        charm = ruleset.charms.get(cid)
+        picks.append(CharmPick(
+            charm_id=cid,
+            name=charm.name if charm else cid,
+            label=f"{charm.name if charm else cid} (granted)",
+            category=charm.category if charm else "",
+            source="granted", counts_toward_pool=False,
+        ))
+
+    return picks
+
+
+def charm_pick_count(ruleset: RuleSet, character: Character) -> int:
+    """How many Charm picks the character has spent from the chargen pool — i.e.
+    everything `charm_picks` yields except the free granted ones."""
+    return sum(1 for p in charm_picks(ruleset, character) if p.counts_toward_pool)
+
+
 def _repeatable_purchase_cap(charm: Charm, character: Character) -> int:
     """Resolve a repeatable Charm's `repeatable_cap_ability` against the character:
     an Ability, an Attribute, or the special value 'essence' (Deadly Beastman

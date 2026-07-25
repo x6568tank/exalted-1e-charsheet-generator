@@ -356,5 +356,86 @@
         "rating": 5
       }
     ]
+  },
+  {
+    "id": "solar.brawl.knockout-blow",
+    "name": "Knockout Blow",
+    "category": "brawl",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.brawl.ox-stunning-blow"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes + 2 motes per additional die"
+    },
+    "duration": "Instant",
+    "description": "With greater skill and Essence comes greater power and control. This Charm allows the character to precisely gauge the amount of damage he is causing. Punches enhanced by this Charm cannot accidentally do lethal damage to the target. If the player rolls more health levels of damage than the target has remaining health levels, all remaining damage is ignored. If the damage rolled is insufficient to knock out the target, then the attacker can roll additional dice in an attempt to do enough damage to knock the target out. The character may buy additional damage dice at 2 motes per die. These dice are bought and rolled one at a time as a Reflexive Action, and a character can continue buying and rolling them for as long as he can pay for them. A character cannot buy dice to gain additional damage levels beyond those required to knock out the target.\n\nCharacters can easily run out of Essence if they use this Charm repeatedly. If a character runs out of Essence while using this Charm, count all damage dice that have been paid for. This Charm cannot be used if the character is wielding Tiger Claws or any other weapon or magical effect that causes his punches to do lethal damage.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.brawl.pounding-hammer-of-devastation-technique",
+    "name": "Pounding Hammer of Devastation Technique",
+    "category": "brawl",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "solar.brawl.heaven-thunder-hammer"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 0,
+      "health": 0,
+      "raw": "7 motes"
+    },
+    "duration": "Instant",
+    "description": "The character concentrates vast amounts of Essence around her hands, allowing her to inflict terrible wounds. The character's blow does lethal damage. In addition, when used against a living target, this Charm adds a bonus to the base damage of the attack equal to the attacking character's Permanent Essence. However, this Charm is far more effective when used against inanimate targets. If the character attacks an inanimate object, add a number of damage levels equal to four times the attacking character's Permanent Essence. A single such punch or kick can knock down a sturdy oak door or break a hole in a ship's hull large enough to walk through.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 72
+    }
+  },
+  {
+    "id": "solar.brawl.adamantine-fists-of-battle",
+    "name": "Adamantine Fists of Battle",
+    "category": "brawl",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "solar.brawl.heaven-thunder-hammer"
+      ],
+      [
+        "solar.brawl.hammer-on-iron-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 1,
+      "health": 0,
+      "raw": "7 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "Essence concentrates around the character's hands, infusing them with great and lasting power. For the next full scene, the character adds a number of damage equal to twice her Permanent Essence to all Brawling attacks. When this Charm is performed, the caster can also specify whether these attacks will do bashing or lethal damage. Using this Charm, the character can even choose to do bashing damage when wielding a weapon that would normally cause his blow to do lethal damage.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 72
+    }
   }
 ]

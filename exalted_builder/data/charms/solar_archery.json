@@ -7,10 +7,15 @@
     "min_ability": 1,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"raw": "1 mote per die"},
+    "cost": {
+      "raw": "1 mote per die"
+    },
     "duration": "Instant",
     "description": "Adds one die per mote to a single Archery attack (up to double the Dexterity + Archery pool); the arrow curves to find its target.",
-    "source": {"book": "Exalted 1e Core", "page": 154}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 154
+    }
   },
   {
     "id": "solar.archery.sight-without-eyes",
@@ -19,11 +24,20 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 1,
-    "prerequisites": [["solar.archery.wise-arrow"]],
-    "cost": {"motes": 1},
+    "prerequisites": [
+      [
+        "solar.archery.wise-arrow"
+      ]
+    ],
+    "cost": {
+      "motes": 1
+    },
     "duration": "Instant",
     "description": "Senses the target without sight, negating penalties from darkness, cover, or invisibility (heavy weather still applies).",
-    "source": {"book": "Exalted 1e Core", "page": 154}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 154
+    }
   },
   {
     "id": "solar.archery.accuracy-without-distance",
@@ -32,11 +46,21 @@
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 1,
-    "prerequisites": [["solar.archery.sight-without-eyes"]],
-    "cost": {"motes": 1, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.archery.sight-without-eyes"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Makes an Archery attack out to the bow's maximum range with absolute certainty the shot hits.",
-    "source": {"book": "Exalted 1e Core", "page": 154}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 154
+    }
   },
   {
     "id": "solar.archery.there-is-no-wind",
@@ -45,11 +69,20 @@
     "type": "Supplemental",
     "min_ability": 4,
     "min_essence": 1,
-    "prerequisites": [["solar.archery.sight-without-eyes"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "solar.archery.sight-without-eyes"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "The arrow flies with perfect grace, ignoring all environmental attack penalties such as wind and rain.",
-    "source": {"book": "Exalted 1e Core", "page": 155}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 155
+    }
   },
   {
     "id": "solar.archery.trance-of-unhesitating-speed",
@@ -58,11 +91,20 @@
     "type": "Extra Action",
     "min_ability": 4,
     "min_essence": 1,
-    "prerequisites": [["solar.archery.wise-arrow"]],
-    "cost": {"raw": "Varies"},
+    "prerequisites": [
+      [
+        "solar.archery.wise-arrow"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies"
+    },
     "duration": "Instant",
     "description": "Looses extra arrows as additional attacks (motes per extra attack, up to the character's Dexterity), each at the full pool.",
-    "source": {"book": "Exalted 1e Core", "page": 155}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 155
+    }
   },
   {
     "id": "solar.archery.arrow-storm-technique",
@@ -71,11 +113,21 @@
     "type": "Extra Action",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["solar.archery.trance-of-unhesitating-speed"]],
-    "cost": {"motes": 8, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.archery.trance-of-unhesitating-speed"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Releases a storm of arrows in a single action, attacking many targets at once.",
-    "source": {"book": "Exalted 1e Core", "page": 155}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 155
+    }
   },
   {
     "id": "solar.archery.fiery-arrow-attack",
@@ -85,10 +137,15 @@
     "min_ability": 3,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 2},
+    "cost": {
+      "motes": 2
+    },
     "duration": "Instant",
     "description": "Sets the arrow ablaze, igniting flammable targets and adding the character's Essence to its damage.",
-    "source": {"book": "Exalted 1e Core", "page": 156}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 156
+    }
   },
   {
     "id": "solar.archery.dazzling-flare-attack",
@@ -97,11 +154,20 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["solar.archery.fiery-arrow-attack"]],
-    "cost": {"raw": "1 mote per 2 damage"},
+    "prerequisites": [
+      [
+        "solar.archery.fiery-arrow-attack"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per 2 damage"
+    },
     "duration": "Instant",
     "description": "The flaming arrow bursts into a blinding flare on impact, dazzling foes near its target.",
-    "source": {"book": "Exalted 1e Core", "page": 156}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 156
+    }
   },
   {
     "id": "solar.archery.phantom-arrow-technique",
@@ -110,11 +176,20 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["solar.archery.fiery-arrow-attack"]],
-    "cost": {"raw": "1 mote per arrow"},
+    "prerequisites": [
+      [
+        "solar.archery.fiery-arrow-attack"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per arrow"
+    },
     "duration": "Instant",
     "description": "Conjures arrows of solidified Essence, removing dependence on physical ammunition.",
-    "source": {"book": "Exalted 1e Core", "page": 156}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 156
+    }
   },
   {
     "id": "solar.archery.solar-spike",
@@ -123,11 +198,20 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["solar.archery.phantom-arrow-technique"]],
-    "cost": {"raw": "1 mote per 2 dice of damage"},
+    "prerequisites": [
+      [
+        "solar.archery.phantom-arrow-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per 2 dice of damage"
+    },
     "duration": "Instant",
     "description": "Fires a blazing spike of Essence that adds damage and can strike incorporeal creatures of the night.",
-    "source": {"book": "Exalted 1e Core", "page": 157}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 157
+    }
   },
   {
     "id": "solar.archery.immaculate-golden-bow",
@@ -136,11 +220,21 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["solar.archery.phantom-arrow-technique"]],
-    "cost": {"motes": 5, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.archery.phantom-arrow-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "Conjures a radiant bow of pure Essence for a scene; it carries no ammunition of its own (use Phantom Arrow Technique).",
-    "source": {"book": "Exalted 1e Core", "page": 157}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 157
+    }
   },
   {
     "id": "solar.archery.rain-of-feathered-death",
@@ -149,10 +243,100 @@
     "type": "Supplemental",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["solar.archery.phantom-arrow-technique"]],
-    "cost": {"raw": "3 motes per duplicate"},
+    "prerequisites": [
+      [
+        "solar.archery.phantom-arrow-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes per duplicate"
+    },
     "duration": "Instant",
     "description": "Multiplies one arrow into a rain of duplicates that strike multiple targets, or one target many times.",
-    "source": {"book": "Exalted 1e Core", "page": 157}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 157
+    }
+  },
+  {
+    "id": "solar.archery.bolt-of-fiery-devastation-technique",
+    "name": "Bolt of Fiery Devastation Technique",
+    "category": "archery",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 6,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "solar.archery.solar-spike"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The character pulls a bolt of fiery Essence across his bow. The character makes a normal Dexterity + Archery roll, but the base damage is equal to the character's Permanent Essence. This damage is aggravated. The bolt moves as quickly as a stroke of lightning. Its deadly power is not subject to penalties for range or wind, though poor visibility can hamper shooting. These bolts can be fired to a distance of (firing character's Essence x 100) yards.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 71
+    }
+  },
+  {
+    "id": "solar.archery.inexhaustible-bolts-of-solar-fire",
+    "name": "Inexhaustible Bolts of Solar Fire",
+    "category": "archery",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.archery.solar-spike"
+      ],
+      [
+        "solar.archery.rain-of-feathered-death"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "The character can fight an entire battle without needing to worry about arrows. For the rest of the scene, every time the character shoots her bow, she fires a bolt of concentrated solar Essence that does the same base damage as any type of arrow she desires. These arrows are not subject to penalties for range or wind, though poor visibility can hamper shooting. These bolts have the normal range for arrows fired from the type of bow the character is using.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 71
+    }
+  },
+  {
+    "id": "solar.archery.shot-without-distance-exercise",
+    "name": "Shot Without Distance Exercise",
+    "category": "archery",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.archery.there-is-no-wind"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "Instant",
+    "description": "The character's Essence propels the arrow at the speed of thought. Environmental penalties do not apply to the character's Archery attack, be they for range, high winds, bad weather, bad ammunition, exceedingly difficult called shots or any other external factors. In addition, this shot has no range limitations. As long as the firing character can see the target, even if it is only a tiny dot near the horizon, the shot can hit this distant goal. If the character enhances her sight with a Charm such as Unsurpassed Sight Discipline (see Exalted, page 196), she can literally shoot the hat off of the head of a target five miles away. As with the Charm There Is No Wind, splitting a dice pool for multiple actions is not considered an environmental penalty.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 71
+    }
   }
 ]

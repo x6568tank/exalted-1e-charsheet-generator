@@ -157,5 +157,190 @@
       "book": "Exalted 1e Cult of the Illuminated",
       "page": 106
     }
+  },
+  {
+    "id": "solar.socialize.welcome-guest-method",
+    "name": "Welcome Guest Method",
+    "category": "socialize",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.socialize.mastery-of-small-manners"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "One scene",
+    "description": "A character using this Charm becomes more socially attractive: People find her words charming, her appearance and manner intriguing and her overall presence pleasant and enjoyable. The Chosen's player gains automatic successes equal to his character's permanent Essence on Socialize rolls to make new acquaintances, gain introductions and so forth.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 77
+    }
+  },
+  {
+    "id": "solar.socialize.flawless-discretion-style",
+    "name": "Flawless Discretion Style",
+    "category": "socialize",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.socialize.mastery-of-small-manners"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 0,
+      "health": 0,
+      "raw": "8 motes"
+    },
+    "duration": "One scene",
+    "description": "While this Charm is in use, any effort to spy on the Exalt has its difficulty increased by the character's permanent Essence score. Background noise is always just loud enough to cover the character's conversations, inopportune interruptions prevent others from listening in or looking over the character's shoulder, and searchers never find anything incriminating in the character's quarters or possessions. The Charm does not guard against open inquiries or observation: The character can still be interrogated or openly watched; it only makes it difficult to monitor the Chosen covertly.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 77
+    }
+  },
+  {
+    "id": "solar.socialize.graceful-deflection-technique",
+    "name": "Graceful Deflection Technique",
+    "category": "socialize",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.socialize.wise-eyed-courtier-method"
+      ],
+      [
+        "solar.socialize.mastery-of-small-manners"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "Instant",
+    "description": "The Chosen's mastery of social graces can remove him from danger in more ways than one. Through a combination of reading an opponent's body language and the use of witty or engaging banter, the character may add a number of dice equal to his Socialize Ability to a single dodge attempt in combat. The character's opponent must be capable of hearing and understanding the Exalt's words, so this Charm is ineffective against opponents who are deaf, do not speak the same language or are largely mindless (such as zombies or beasts).",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 77
+    }
+  },
+  {
+    "id": "solar.socialize.distracting-banter-method",
+    "name": "Distracting Banter Method",
+    "category": "socialize",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.socialize.graceful-deflection-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 0,
+      "health": 0,
+      "raw": "8 motes"
+    },
+    "duration": "One scene",
+    "description": "The Exalted engages in an almost nonstop stream of witty banter with her opponents, intended to distract them and keep them off balance. So long as the character keeps up the dialog, opponents attacking her subtract a number of dice from their pools equal to the Exalt's Essence. This Charm only works on opponents capable of hearing and understanding the character's words and whose Essence is lower than the character's. The Charm ends if the Chosen stops talking for more than a turn.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 78
+    }
+  },
+  {
+    "id": "solar.socialize.masterful-dissimulation-method",
+    "name": "Masterful Dissimulation Method",
+    "category": "socialize",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.socialize.motive-discerning-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "This Charm allows the Exalt to conceal his true feelings and motivations; a character using this Charm can speak pleasantly to a hated enemy without any hint of his true feelings showing through. Add the Chosen's permanent Essence score to the difficulty of rolls to pick up on the Exalt's true feelings and motivations. Charms that automatically do so (such as Motive-Discerning Technique) require a successful reflexive opposed Perception + Socialize roll against the Exalt's Wits + Socialize to succeed while this Charm is in effect.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 78
+    }
+  },
+  {
+    "id": "solar.socialize.reading-the-heart",
+    "name": "Reading the Heart",
+    "category": "socialize",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.socialize.motive-discerning-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "With a masterful understanding of human (and inhuman) nature, the Exalt using this Charm can learn a subject's Nature simply by engaging him in a brief conversation. This provides the Chosen with information about the subject's motivations on a broad scale, rather than relating to a specific situation (such as that gained from Motive-Discerning Technique). While the Exalted gains a rough idea of what motivates the subject, she does not necessarily know how the subject will react in any given situation.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 78
+    }
+  },
+  {
+    "id": "solar.socialize.exalted-accolades",
+    "name": "Exalted Accolades",
+    "category": "socialize",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.socialize.understanding-the-court"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "One day",
+    "description": "Using this Charm, an Exalt can draw attention to someone else's achievements and good qualities, improving her reputation and standing within a particular social circle. The subject's virtues are emphasized and talked about, while others tend to turn a blind eye to the subject's faults. The Exalted must touch the subject to use this Charm and must offer some praise for the subject in a public setting. For a full day afterward, the subject's player gains a bonus on all Social rolls equal to the Exalted's Essence score. This Charm has no effect on characters with a higher Essence than the Exalt activating the Charm.",
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 78
+    }
   }
 ]

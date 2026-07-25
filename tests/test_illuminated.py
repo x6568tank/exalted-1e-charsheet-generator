@@ -667,8 +667,18 @@ def test_ascendant_battle_visage_has_a_second_ability_minimum(rs):
 def test_extra_min_abilities_is_empty_for_every_other_charm(rs):
     """Ascendant Battle Visage is the only multi-gate Charm authored so far, so a
     second one has to be deliberate."""
-    multi = [c.id for c in rs.charms.values() if c.extra_min_abilities]
-    assert multi == ["solar.brawl.ascendant-battle-visage"]
+    multi = sorted(c.id for c in rs.charms.values() if c.extra_min_abilities)
+    assert multi == [
+        "solar.brawl.ascendant-battle-visage",
+        # Caste Book: Eclipse p.73 — "Minimum Linguistics: 5 / Minimum Lore: 3".
+        "solar.linguistics.masterful-training-manual",
+        # Caste Book: Zenith p.78 — "Minimum Performance: 5 / Minimum Presence: 3".
+        "solar.performance.impenetrable-identity",
+        # Caste Book: Zenith p.73-74 — the two drink-fuelled Resistance Charms each
+        # print a second "Minimum Performance" line.
+        "solar.resistance.drunken-warrior-technique",
+        "solar.resistance.inebriated-fool-defense",
+    ]
 
 
 def test_falling_blossom_is_a_terrestrial_style_open_to_every_splat(rs):
@@ -948,8 +958,9 @@ def test_camp_view_marks_the_taken_pair_as_chosen(rs):
 
 def test_camp_view_lists_all_four_styles_with_readable_labels(rs):
     """A closed ui.select never puts its options in the DOM, so the option LABELS are
-    asserted here rather than in a render test. Three of the four styles have no Charms
-    authored yet (a pre-existing Solar data gap), so they render with empty pools."""
+    asserted here rather than in a render test. All four styles are authored: Snake
+    (core), Tiger (Caste Book: Dawn p.73-74), Praying Mantis (Caste Book: Eclipse
+    p.73-75) and Ebon Shadow (Caste Book: Night p.67-70)."""
     from exalted_builder.ui import view
     tab = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
                        granted_charms=rs.camps["sequestered-tabernacle"].granted_charms)
@@ -959,8 +970,8 @@ def test_camp_view_lists_all_four_styles_with_readable_labels(rs):
     assert [o.label for o in choice.options] == [
         "Ebon Shadow Style", "Praying Mantis Style", "Snake Style", "Tiger Style"]
     pools = {o.label: len(o.charm_ids) for o in choice.options}
-    assert pools["Snake Style"] == 10
-    assert pools["Tiger Style"] == 0          # not authored yet
+    assert pools == {"Ebon Shadow Style": 11, "Praying Mantis Style": 10,
+                     "Snake Style": 10, "Tiger Style": 9}
     assert choice.chosen_key == ""            # nothing taken, so unresolved
 
 
@@ -1066,11 +1077,12 @@ def test_seeding_clears_everything_for_an_origin_without_camps(rs):
 
 # ---------------------------------------------------- unpickable grant options
 
-def test_unavailable_styles_are_listed_but_flagged(rs):
-    """The Tabernacle offers four martial arts (p.90) but only Snake Style has Charms in
-    `data/`. All four must still be LISTED — the rulebook offers them and hiding them
-    would misrepresent the page — with the three empty ones marked unavailable and
-    carrying a reason, so the UI can refuse them instead of silently blanking."""
+def test_all_four_tabernacle_styles_are_pickable(rs):
+    """The Tabernacle offers four martial arts (p.90). Every one of them is authored
+    now — Snake from the corebook, the other three from their castebooks — so all four
+    must be LISTED and available. The unavailable/reason path is still exercised by
+    test_a_partially_authored_style_reports_how_short_it_is below; it must keep working
+    for whatever style is added next."""
     from exalted_builder.ui import view
     tab = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
                        granted_charms=rs.camps["sequestered-tabernacle"].granted_charms)
@@ -1078,11 +1090,10 @@ def test_unavailable_styles_are_listed_but_flagged(rs):
 
     by_label = {o.label: o for o in choice.options}
     assert len(by_label) == 4
-    assert by_label["Snake Style"].available
-    assert by_label["Snake Style"].reason == ""
-    for label in ("Ebon Shadow Style", "Praying Mantis Style", "Tiger Style"):
-        assert not by_label[label].available, label
-        assert by_label[label].reason == "no Charms authored yet", label
+    for label in ("Ebon Shadow Style", "Praying Mantis Style", "Snake Style",
+                  "Tiger Style"):
+        assert by_label[label].available, label
+        assert by_label[label].reason == "", label
 
 
 def test_a_partially_authored_style_reports_how_short_it_is(rs):
@@ -1130,3 +1141,84 @@ def test_selecting_snake_style_resolves_the_choice(rs):
     (choice,) = view.build_camp_view(rs, tab).choices
     assert choice.chosen_key == "martial_arts:snake"
     assert _codes(validate.granted_charm_issues(rs, tab)) == set()
+
+
+# ------------------------------------------ choosing WHICH Charms a style grants
+
+def _tabernacle(rs, granted=None):
+    """A Tabernacle character whose Martial Arts is high enough to reach most of a
+    style, so the minimum-flagging is exercised rather than blanket-failing."""
+    camp = rs.camps["sequestered-tabernacle"]
+    return _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
+                        abilities={AB.MARTIAL_ARTS: 4},
+                        granted_charms=granted if granted is not None
+                        else list(camp.granted_charms))
+
+
+def test_choosing_a_style_opens_a_second_control_for_which_charms(rs):
+    """The Tabernacle package is "two Charms from ONE of four martial arts" (p.90).
+    Choosing the STYLE is only half the choice — the player must also choose WHICH two,
+    and before this the UI silently auto-picked them with no way to change it.
+
+    `charm_options` is empty until a style is chosen, then lists that style's whole
+    roster."""
+    from exalted_builder.ui import view
+
+    (before,) = view.build_camp_view(rs, _tabernacle(rs)).choices
+    assert before.chosen_key == ""
+    assert before.charm_options == []          # no style chosen yet -> no sub-choice
+
+    camp = rs.camps["sequestered-tabernacle"]
+    tab = _tabernacle(rs, granted=list(camp.granted_charms) + [
+        "solar.martial-arts.crimson-leaping-cat-technique",
+        "solar.martial-arts.striking-fury-claws-attack"])
+    (after,) = view.build_camp_view(rs, tab).choices
+    assert after.chosen_key == "martial_arts:tiger"
+    assert after.pick == 2
+    assert len(after.charm_options) == 9       # the whole Tiger roster is offered
+    assert after.chosen_charm_ids == [
+        "solar.martial-arts.crimson-leaping-cat-technique",
+        "solar.martial-arts.striking-fury-claws-attack"]
+
+
+def test_a_style_stays_chosen_while_only_one_of_its_charms_is_held(rs):
+    """Regression: `chosen_key` used to require `pick` Charms already held, so emptying
+    the sub-select to one Charm made the style look unchosen — which removed the
+    sub-select and stranded the player with no way to add the second."""
+    from exalted_builder.ui import view
+    camp = rs.camps["sequestered-tabernacle"]
+    tab = _tabernacle(rs, granted=list(camp.granted_charms) + [
+        "solar.martial-arts.tiger-form"])
+    (choice,) = view.build_camp_view(rs, tab).choices
+    assert choice.chosen_key == "martial_arts:tiger"
+    assert choice.chosen_charm_ids == ["solar.martial-arts.tiger-form"]
+    assert choice.charm_options, "the sub-select must stay open to add the second Charm"
+
+
+def test_charms_whose_minimums_are_unmet_are_offered_but_flagged(rs):
+    """p.90 requires the character to "meet the minimum requirements", and the engine
+    reports a violation as `granted-charm-minimum`. The option is still selectable —
+    raising the trait later clears it — but it must say why it is flagged, with a
+    readable trait name rather than the raw enum value."""
+    from exalted_builder.ui import view
+    camp = rs.camps["sequestered-tabernacle"]
+    tab = _tabernacle(rs, granted=list(camp.granted_charms) + [
+        "solar.martial-arts.crimson-leaping-cat-technique"])
+    (choice,) = view.build_camp_view(rs, tab).choices
+    by_label = {o.label: o for o in choice.charm_options}
+    # Martial Arts 4: a Minimum Martial Arts 5 Charm is out of reach for now.
+    assert by_label["Celestial Tiger Hide"].meets_minimums is False
+    assert by_label["Celestial Tiger Hide"].reason == "needs Martial Arts 5"
+    assert by_label["Crimson Leaping Cat Technique"].meets_minimums is True
+    assert by_label["Crimson Leaping Cat Technique"].reason == ""
+
+
+def test_fixed_set_choices_have_no_sub_choice(rs):
+    """Kether Rock's package is "one of the following pairs" — the printed pair IS the
+    grant, so there is nothing further to pick and `charm_options` stays empty."""
+    from exalted_builder.ui import view
+    kether = _illuminated(rs)
+    for choice in view.build_camp_view(rs, kether).choices:
+        if not choice.is_category_choice:
+            assert choice.charm_options == []
+            assert choice.chosen_charm_ids == []
