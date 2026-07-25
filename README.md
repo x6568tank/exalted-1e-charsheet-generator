@@ -5,3 +5,7 @@ unaffiliated with white wolf in any way, fan project, yadda yadda
 build by cloning it to your machine and running linux.sh or windows.bat from project root, requires python installed system wide. further build instructions can be found in pack/BUILD.md
 
 or just get a release from the page whenever i put one there
+
+***
+
+currently  has all splatbooks; working on aspectbooks, castebooks, and mortal splats next
