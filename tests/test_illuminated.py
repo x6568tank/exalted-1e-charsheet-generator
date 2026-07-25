@@ -1,0 +1,594 @@
+"""Cult of the Illuminated — the Solar alternate origin (p.89-106).
+
+Phase 1 covers the data foundation only: the `Solar:illuminated` budget row, the
+two training camps, the six Callings, and the loader's link-checks over them. The
+engine does not yet ACT on `camp`/`calling` — camp Ability floors, granted Charms,
+the Calling BP/XP discounts and the Essence ceiling are Phase 2/3 and get their own
+tests there. Nothing here should pass by accident once those land.
+"""
+import pytest
+
+from exalted_builder.models.character import Character
+from exalted_builder.models.rules import AbilityName
+from exalted_builder.rules_db import load_ruleset
+
+DATA = "exalted_builder/data"
+
+
+@pytest.fixture(scope="module")
+def rs():
+    return load_ruleset(DATA)
+
+
+# --------------------------------------------------------------- budget row
+
+def test_illuminated_budget_row_differs_from_standard_solar(rs):
+    """p.89-90: the deltas from a standard Solar, and only these deltas."""
+    std = rs.budgets_for("Solar")
+    ill = rs.budgets_for("Solar", "illuminated")
+
+    assert (std.ability_dots, ill.ability_dots) == (25, 30)
+    assert (std.background_dots, ill.background_dots) == (7, 9)
+    assert (std.charm_count, ill.charm_count) == (10, 8)
+    assert (std.charm_min_caste_favored, ill.charm_min_caste_favored) == (5, 4)
+    assert (std.essence_start, ill.essence_start) == (2, 3)
+
+    # Unchanged: Attributes, the Caste/Favored dot floor, Virtues, bonus points.
+    assert ill.attribute_pools == std.attribute_pools == (8, 6, 4)
+    assert ill.ability_min_caste_favored == std.ability_min_caste_favored == 10
+    assert ill.virtue_dots == std.virtue_dots == 5
+    assert ill.bonus_points == std.bonus_points == 15
+    assert ill.favored_count == std.favored_count == 5
+
+
+def test_essence_ceiling_is_five(rs):
+    """p.90: Essence starts at 3 and may be raised with bonus points, but "under no
+    circumstances may an Illuminated Solar begin with an Essence of six (6) or
+    higher" — so the chargen ceiling is 5. No other splat sets one."""
+    assert rs.budgets_for("Solar", "illuminated").essence_start_cap == 5
+    for key in ("Solar", "Lunar", "Sidereal", "Alchemical", "Dragon-Blooded", "Abyssal"):
+        assert rs.budgets_for(key).essence_start_cap == 0, key
+
+
+def test_camp_and_calling_are_required_only_for_this_origin(rs):
+    ill = rs.budgets_for("Solar", "illuminated")
+    assert ill.requires_camp and ill.requires_calling
+    for key in ("Solar", "Lunar", "Sidereal", "Alchemical", "Dragon-Blooded", "Abyssal"):
+        b = rs.budgets_for(key)
+        assert not b.requires_camp and not b.requires_calling, key
+
+
+def test_backing_is_barred_via_the_allowed_backgrounds_list(rs):
+    """p.96: "a Solar cannot belong to another organization ... and, thus, cannot take
+    the Backing Background." Expressed as the p.93 permitted list, reusing the ronin
+    mechanism — the only hard Background validation in the project."""
+    allowed = rs.budgets_for("Solar", "illuminated").allowed_backgrounds
+    assert allowed, "an empty list means unrestricted, which would let Backing through"
+    assert "Backing" not in allowed
+    assert {"Illumination", "Sorcery", "Tiger Warriors"} <= set(allowed)
+    # Every other origin stays unrestricted apart from the ronin.
+    assert rs.budgets_for("Solar").allowed_backgrounds == []
+
+
+def test_illumination_dot_is_free_on_top_of_the_pool(rs):
+    """p.90: nine Background dots, and "in addition, all Illuminated Solars begin with
+    Illumination • for free". free_rating grants the dot outside the pool; min_rating
+    makes it mandatory. Contrast the Alchemical Class •••, which is mandatory but IS
+    paid for out of the pool (min_rating with no free_rating)."""
+    rule = rs.budgets_for("Solar", "illuminated").background_rules["illumination"]
+    assert rule.free_rating == 1
+    assert rule.min_rating == 1
+
+    alch = rs.budgets_for("Alchemical").background_rules["class"]
+    assert alch.free_rating == 0, "the Alchemical Class dots are paid for, not granted"
+
+
+# ------------------------------------------------------------------- camps
+
+def test_two_camps_scoped_to_the_illuminated_origin(rs):
+    camps = rs.camps_for("Solar", "illuminated")
+    assert [c.id for c in camps] == ["sequestered-tabernacle", "kether-rock"]
+    # A standard Solar is offered no camp at all, which is how the UI stays quiet.
+    assert rs.camps_for("Solar", "") == []
+    assert rs.camps_for("Lunar", "") == []
+
+
+def test_sequestered_tabernacle_ability_floor(rs):
+    """p.89: Endurance •, Linguistics •, Lore •, Martial Arts ••, Occult •,
+    Presence •••, Socialize •."""
+    got = {m.abilities[0].value: m.rating
+           for m in rs.camps["sequestered-tabernacle"].required_min_abilities}
+    assert got == {"endurance": 1, "linguistics": 1, "lore": 1, "martial_arts": 2,
+                   "occult": 1, "presence": 3, "socialize": 1}
+
+
+def test_kether_rock_ability_floor_uses_or_semantics_for_archery_or_brawl(rs):
+    """p.89: "Either Archery • or Brawl •" — AbilityMinimum already means "at least
+    `rating` in AT LEAST ONE of `abilities`", so this needed no new machinery."""
+    mins = rs.camps["kether-rock"].required_min_abilities
+    either = [m for m in mins if len(m.abilities) > 1]
+    assert len(either) == 1
+    assert {a.value for a in either[0].abilities} == {"archery", "brawl"}
+    assert either[0].rating == 1
+
+    fixed = {m.abilities[0].value: m.rating for m in mins if len(m.abilities) == 1}
+    assert fixed == {"endurance": 1, "medicine": 1, "melee": 2,
+                     "presence": 1, "resistance": 1, "survival": 3}
+
+
+def test_tabernacle_grants_two_fixed_charms_plus_a_style_choice(rs):
+    """p.90: Ox-Body Technique, Harmonious Presence Meditation, and two Charms from
+    ONE of four martial arts styles."""
+    camp = rs.camps["sequestered-tabernacle"]
+    assert camp.granted_charms == ["solar.endurance.ox-body-technique",
+                                   "solar.presence.harmonious-presence-meditation"]
+    (choice,) = camp.granted_charm_choices
+    assert choice.pick == 2
+    assert choice.fixed_sets == []
+    assert choice.from_categories == ["martial_arts:ebon-shadow", "martial_arts:praying-mantis",
+                                      "martial_arts:snake", "martial_arts:tiger"]
+
+
+def test_kether_rock_grants_two_fixed_charms_plus_one_whole_pair(rs):
+    """p.90: Ox-Body Technique, Hardship-Surviving Mendicant Spirit, and one of four
+    printed pairs. The Iron Skin Concentration / Spirit Strengthens the Skin swap is
+    authored as two separate pairs, because which one applies is the group's Power
+    Combat house rule, not something the engine should decide."""
+    camp = rs.camps["kether-rock"]
+    assert camp.granted_charms == ["solar.endurance.ox-body-technique",
+                                   "solar.survival.hardship-surviving-mendicant-spirit"]
+    (choice,) = camp.granted_charm_choices
+    assert choice.from_categories == []
+    assert all(len(s) == 2 for s in choice.fixed_sets)
+    assert len(choice.fixed_sets) == 5          # 4 printed pairs + the Power Combat variant
+    flat = {cid for s in choice.fixed_sets for cid in s}
+    assert "solar.resistance.iron-skin-concentration" in flat
+    assert "solar.resistance.spirit-strengthens-the-skin" in flat
+
+
+def test_every_granted_charm_id_resolves(rs):
+    """The loader link-check enforces this; assert it directly so a future edit that
+    weakens the check still fails here. A dangling granted Charm is silent — it just
+    never shows up on the sheet."""
+    for camp in rs.camps.values():
+        for cid in camp.granted_charms:
+            assert cid in rs.charms, (camp.id, cid)
+        for choice in camp.granted_charm_choices:
+            for group in choice.fixed_sets:
+                for cid in group:
+                    assert cid in rs.charms, (camp.id, cid)
+
+
+# ---------------------------------------------------------------- callings
+
+def test_three_callings_per_camp(rs):
+    assert [c.id for c in rs.callings_for("sequestered-tabernacle")] == \
+        ["exemplar", "inquisitor", "itinerant"]
+    assert [c.id for c in rs.callings_for("kether-rock")] == \
+        ["architect", "deacon", "paladin"]
+
+
+def test_each_calling_names_five_abilities(rs):
+    """p.90-92: every Calling lists exactly five Calling Abilities."""
+    for calling in rs.callings.values():
+        assert len(calling.abilities) == 5, calling.id
+        assert len(set(calling.abilities)) == 5, calling.id
+
+
+def test_paladin_craft_records_its_printed_focus(rs):
+    """p.93 prints "Craft (War)". Craft is per-focus in this project (p.136), so the
+    focus has to survive into the data or the discount cannot find the right Craft."""
+    assert rs.callings["paladin"].ability_focus == {"craft": "War"}
+    assert AbilityName.CRAFT in rs.callings["paladin"].abilities
+    # No other Calling has a parenthetical focus.
+    assert all(not c.ability_focus for c in rs.callings.values() if c.id != "paladin")
+
+
+def test_every_calling_charm_id_resolves(rs):
+    for calling in rs.callings.values():
+        for cid in calling.charms:
+            assert cid in rs.charms, (calling.id, cid)
+
+
+def test_calling_charm_lists_are_incomplete_pending_the_charm_batch(rs):
+    """The page gives every Calling ten Calling Charms. Six of those Charms are not
+    authored yet (five are reprinted in this book's own Charms chapter, p.100-106;
+    Unshakable Bloodhound Technique comes from a Caste Book), so four Callings are
+    short. This test pins the CURRENT gap so finishing the Charm batch forces it to
+    be updated rather than leaving a silently under-discounted Calling.
+
+    When the Charms land: add the ids to callings.json and change these to 10."""
+    counts = {c.id: len(c.charms) for c in rs.callings.values()}
+    assert counts == {"exemplar": 10, "inquisitor": 9, "itinerant": 7,
+                      "architect": 9, "deacon": 8, "paladin": 10}
+
+
+def test_a_calling_ability_is_not_thereby_a_favored_ability(rs):
+    """The Calling is a DISCOUNT axis, not a second Favored list — the page has it
+    stacking with the Caste/Favored discount, which only makes sense if they are
+    separate. Nothing in the data may imply otherwise."""
+    calling = rs.callings["exemplar"]
+    assert not hasattr(calling, "favored")
+    # Overlap with Caste Abilities is expected and harmless (Exemplar shares
+    # Endurance/Performance with Zenith); it must not be deduplicated away.
+    zenith = set(rs.castes["zenith"].caste_abilities)
+    assert set(calling.abilities) & zenith
+
+
+# --------------------------------------------------------------- character
+
+def test_character_carries_camp_calling_and_granted_charms():
+    """The three new fields default empty, so every existing save still loads."""
+    c = Character(id="t1", name="Test", exalt_type="Solar", caste="zenith")
+    assert (c.camp, c.calling, c.granted_charms) == ("", "", [])
+
+    ill = Character(id="t2", name="Test", exalt_type="Solar", caste="zenith",
+                    origin="illuminated", camp="kether-rock", calling="paladin",
+                    granted_charms=["solar.endurance.ox-body-technique"])
+    assert ill.camp == "kether-rock"
+    assert ill.granted_charms == ["solar.endurance.ox-body-technique"]
+
+
+def test_granted_charms_are_not_stored_in_charms():
+    """Granted Charms live on their own list for the same reason ox_body and
+    beastman_gifts do: anything counting picks against the Charm pool or the
+    Caste/Favored minimum must not see them."""
+    c = Character(id="t3", name="Test", exalt_type="Solar", caste="dawn",
+                  origin="illuminated", camp="kether-rock", calling="deacon",
+                  granted_charms=["solar.endurance.ox-body-technique"])
+    assert c.charms == []
+    assert "solar.endurance.ox-body-technique" not in c.charms
+
+
+# ============================================================================ #
+# Phase 2 — chargen validation
+# ============================================================================ #
+
+from exalted_builder.engine import costs, validate           # noqa: E402
+from exalted_builder.models.rules import AbilityName as AB    # noqa: E402
+
+
+def _illuminated(rs, **kw):
+    """A LEGAL Illuminated Solar: Kether Rock / Deacon, meeting every camp floor.
+
+    Kether Rock demands (Archery|Brawl) 1, Endurance 1, Medicine 1, Melee 2,
+    Presence 1, Resistance 1, Survival 3 (p.89) — 10 dots of the 30 spent on floors.
+    """
+    abilities = {AB.BRAWL: 1, AB.ENDURANCE: 1, AB.MEDICINE: 1, AB.MELEE: 2,
+                 AB.PRESENCE: 1, AB.RESISTANCE: 1, AB.SURVIVAL: 3}
+    abilities.update(kw.pop("abilities", {}))
+    camp = rs.camps[kw.pop("camp", "kether-rock")]
+    granted = kw.pop("granted_charms", camp.granted_charms + [
+        "solar.resistance.durability-of-oak-meditation",
+        "solar.resistance.iron-skin-concentration"])
+    data = dict(
+        id="ill", name="Illuminated", exalt_type="Solar", caste="dawn",
+        origin="illuminated", camp=camp.id, calling="deacon",
+        essence_rating=3, abilities=abilities, granted_charms=granted,
+    )
+    data.update(kw)
+    return Character(**data)
+
+
+def _codes(issues):
+    return {i.code for i in issues}
+
+
+# ------------------------------------------------------- camp / calling legality
+
+def test_camp_and_calling_are_required_for_this_origin(rs):
+    c = _illuminated(rs, camp="kether-rock")
+    assert _codes(validate.check_camp_and_calling(rs, c)) == set()
+
+    missing = c.model_copy(update={"camp": "", "calling": ""})
+    assert _codes(validate.check_camp_and_calling(rs, missing)) == \
+        {"camp-required", "calling-required"}
+
+
+def test_unknown_camp_and_calling_are_reported(rs):
+    c = _illuminated(rs).model_copy(update={"camp": "nowhere", "calling": "nobody"})
+    assert _codes(validate.check_camp_and_calling(rs, c)) == \
+        {"camp-required", "calling-required"}
+
+
+def test_a_calling_must_belong_to_the_chosen_camp(rs):
+    """p.90-92: the Tabernacle's three Callings are not on offer at Kether Rock."""
+    c = _illuminated(rs, camp="kether-rock").model_copy(update={"calling": "exemplar"})
+    assert "calling-wrong-camp" in _codes(validate.check_camp_and_calling(rs, c))
+
+
+def test_a_standard_solar_may_not_have_a_camp_or_calling(rs):
+    c = Character(id="s", name="Std", exalt_type="Solar", caste="dawn",
+                  camp="kether-rock", calling="deacon")
+    assert _codes(validate.check_camp_and_calling(rs, c)) == \
+        {"camp-not-supported", "calling-not-supported"}
+
+
+# --------------------------------------------------------- camp ability floors
+
+def test_camp_ability_floor_is_enforced_through_validate_chargen(rs):
+    """The camp's floors join the same union the caste's do, so they surface as the
+    existing `required-min-ability` code rather than a new one."""
+    short = _illuminated(rs, abilities={AB.SURVIVAL: 1})       # Kether wants Survival 3
+    codes = _codes(validate.validate_chargen(rs, short))
+    assert "required-min-ability" in codes
+    assert "required-min-ability" not in _codes(validate.validate_chargen(rs, _illuminated(rs)))
+
+
+def test_kether_rock_accepts_archery_or_brawl(rs):
+    """"Either Archery • or Brawl •" — satisfying either is enough, neither is not."""
+    with_archery = _illuminated(rs, abilities={AB.BRAWL: 0, AB.ARCHERY: 1})
+    assert "required-min-ability" not in _codes(validate.validate_chargen(rs, with_archery))
+
+    with_neither = _illuminated(rs, abilities={AB.BRAWL: 0, AB.ARCHERY: 0})
+    assert "required-min-ability" in _codes(validate.validate_chargen(rs, with_neither))
+
+
+def test_tabernacle_floors_differ_from_kether_rock(rs):
+    """A character built for Kether Rock fails the Tabernacle's regimen and vice
+    versa — proof the floor follows the camp, not the origin."""
+    tab_granted = rs.camps["sequestered-tabernacle"].granted_charms + [
+        "solar.martial-arts.snake-form", "solar.martial-arts.striking-cobra-technique"]
+    swapped = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
+                           granted_charms=tab_granted)
+    assert "required-min-ability" in _codes(validate.validate_chargen(rs, swapped))
+
+
+# ------------------------------------------------------------- granted Charms
+
+def test_granted_package_must_include_every_fixed_grant(rs):
+    c = _illuminated(rs, granted_charms=["solar.resistance.durability-of-oak-meditation",
+                                         "solar.resistance.iron-skin-concentration"])
+    assert "granted-charm-missing" in _codes(validate.granted_charm_issues(rs, c))
+
+
+def test_kether_rock_pair_must_be_taken_whole(rs):
+    """One of the printed pairs, all-or-nothing — half a pair resolves nothing."""
+    camp = rs.camps["kether-rock"]
+    half = _illuminated(rs, granted_charms=camp.granted_charms + ["solar.dodge.reed-in-the-wind"])
+    codes = _codes(validate.granted_charm_issues(rs, half))
+    assert "granted-charm-choice-unresolved" in codes
+
+
+def test_power_combat_variant_pair_is_also_legal(rs):
+    """Durability of Oak + Spirit Strengthens the Skin is the Power Combat form of the
+    Durability of Oak + Iron Skin pair (p.90); both are authored, both must pass."""
+    camp = rs.camps["kether-rock"]
+    for second in ("solar.resistance.iron-skin-concentration",
+                   "solar.resistance.spirit-strengthens-the-skin"):
+        c = _illuminated(rs, granted_charms=camp.granted_charms + [
+            "solar.resistance.durability-of-oak-meditation", second],
+            abilities={AB.RESISTANCE: 3})
+        assert _codes(validate.granted_charm_issues(rs, c)) == set(), second
+
+
+def test_extra_charms_in_the_package_are_rejected(rs):
+    camp = rs.camps["kether-rock"]
+    c = _illuminated(rs, granted_charms=camp.granted_charms + [
+        "solar.dodge.reed-in-the-wind", "solar.dodge.shadow-over-water",
+        "solar.melee.golden-essence-block"])
+    assert "granted-charm-extra" in _codes(validate.granted_charm_issues(rs, c))
+
+
+def test_tabernacle_style_charms_must_come_from_one_style(rs):
+    """"two Charms from ONE of the following four martial arts" (p.90). Only Snake
+    Style exists in the Solar data today, so a legal pick is two Snake Charms."""
+    camp = rs.camps["sequestered-tabernacle"]
+    snake = [c.id for c in rs.charms.values() if c.category == "martial_arts:snake"][:2]
+    ok = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
+                      granted_charms=camp.granted_charms + snake,
+                      abilities={AB.MARTIAL_ARTS: 5, AB.PRESENCE: 3},
+                      essence_rating=3)
+    assert "granted-charm-choice-unresolved" not in _codes(validate.granted_charm_issues(rs, ok))
+
+    one_only = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
+                            granted_charms=camp.granted_charms + snake[:1],
+                            abilities={AB.MARTIAL_ARTS: 5, AB.PRESENCE: 3})
+    assert "granted-charm-choice-unresolved" in _codes(validate.granted_charm_issues(rs, one_only))
+
+
+def test_a_granted_charm_still_needs_its_own_minima(rs):
+    """p.90: "As usual, the Solar must meet the minimum requirements to gain these
+    Charms." The package exempts a Charm from the POOL, not from its requirements."""
+    camp = rs.camps["kether-rock"]
+    # Shadow Over Water requires Dodge 3; the Reed in the Wind pair is otherwise legal.
+    c = _illuminated(rs, granted_charms=camp.granted_charms + [
+        "solar.dodge.reed-in-the-wind", "solar.dodge.shadow-over-water"],
+        abilities={AB.DODGE: 0})
+    assert "granted-charm-minimum" in _codes(validate.granted_charm_issues(rs, c))
+    # With Dodge 3 the very same package is clean.
+    ok = _illuminated(rs, granted_charms=camp.granted_charms + [
+        "solar.dodge.reed-in-the-wind", "solar.dodge.shadow-over-water"],
+        abilities={AB.DODGE: 3})
+    assert _codes(validate.granted_charm_issues(rs, ok)) == set()
+
+
+def test_granted_charms_do_not_count_against_the_charm_pool(rs):
+    """8 picks (p.90) plus 4 granted. The granted ones must cost no bonus points."""
+    c = _illuminated(rs)
+    assert len(c.granted_charms) == 4
+    assert c.charms == []
+    bp = validate.bonus_point_breakdown(rs, c)
+    charm_line = next(l for l in bp.lines if l.domain == "Charms & Spells")
+    assert charm_line.points == 0
+
+
+def test_granted_charms_are_rejected_without_a_camp(rs):
+    c = Character(id="s", name="Std", exalt_type="Solar", caste="dawn",
+                  granted_charms=["solar.endurance.ox-body-technique"])
+    assert "granted-charm-not-supported" in _codes(validate.granted_charm_issues(rs, c))
+
+
+# ---------------------------------------------------------- Essence ceiling
+
+def test_essence_may_not_exceed_five_at_creation(rs):
+    """p.90: starts at 3, may be raised with bonus points, never begins at 6+."""
+    assert "essence-above-chargen-cap" not in _codes(
+        validate.validate_chargen(rs, _illuminated(rs, essence_rating=5)))
+    assert "essence-above-chargen-cap" in _codes(
+        validate.validate_chargen(rs, _illuminated(rs, essence_rating=6)))
+
+
+def test_essence_below_three_is_still_below_start(rs):
+    assert "essence-below-start" in _codes(
+        validate.validate_chargen(rs, _illuminated(rs, essence_rating=2)))
+
+
+# ------------------------------------------------- free Illumination dot
+
+def test_illumination_first_dot_costs_no_pool_dots(rs):
+    """p.90: nine dots, and Illumination • free "in addition"."""
+    rule = rs.budgets_for("Solar", "illuminated").background_rules["illumination"]
+    assert validate.background_pool_dots(rule, 1) == 0     # granted
+    assert validate.background_pool_dots(rule, 3) == 2     # dots 2-3 paid
+    # A Background with no rule pays for every dot, unchanged.
+    assert validate.background_pool_dots(None, 3) == 3
+
+
+def test_alchemical_class_dots_are_still_paid_for(rs):
+    """Regression guard: free_rating defaults to 0, so the Alchemical Class ••• grant
+    (mandatory but paid out of the pool) keeps costing three dots."""
+    rule = rs.budgets_for("Alchemical").background_rules["class"]
+    assert validate.background_pool_dots(rule, 3) == 3
+
+
+# ============================================================================ #
+# Phase 2/3 — Calling discounts (BP and XP)
+# ============================================================================ #
+
+def test_calling_abilities_are_not_favored_abilities(rs):
+    """The Calling is a separate axis: it discounts, it does not make an Ability
+    Favored, so it must not feed the Caste/Favoured dot minimum."""
+    c = _illuminated(rs)                                    # Deacon
+    calling = validate.calling_abilities(rs, c)
+    assert AB.STEALTH in calling                            # a Deacon Calling Ability
+    assert AB.STEALTH not in validate.caste_favored_abilities(rs, c)
+
+
+def test_calling_ability_bp_rate_is_one_per_dot(rs):
+    """p.93 table: Ability 2, "1 if Favored or Caste or Calling Ability". Deacon's
+    Calling Abilities are Investigation/Larceny/Melee/Stealth/Survival; Stealth is
+    neither Caste (Dawn) nor Favored here, so it is the Calling-only tier."""
+    over = {AB.STEALTH: 3}                                  # pushes past the 30-dot pool
+    base = _illuminated(rs, abilities={**{AB.SURVIVAL: 3}, **over},
+                        favored_abilities=[])
+    line = next(l for l in validate.bonus_point_breakdown(rs, base).lines
+                if l.domain == "Abilities")
+    # 13 dots spent, pool is 30 — nothing overflows, so no BP either way. The rate is
+    # asserted directly below instead; this pins that a Calling Ability is free within
+    # the pool exactly like any other.
+    assert line.points == 0
+
+
+def test_calling_and_caste_ability_dots_cost_one_bp_per_two_rounding_up(rs):
+    """p.93: "1 for 2 if both a Calling Ability and a Favored or Caste Ability".
+    Rounds UP (rules-authority call, 2026-07-24). Melee is both a Dawn Caste Ability
+    and a Deacon Calling Ability, so its dots are the fractional tier."""
+    bp = rs.bonus_costs_for("Solar")
+    assert bp.calling_ability == 1
+    assert bp.calling_ability_favored_caste_dots_per_point == 2
+    assert bp.calling_charm == 4
+    assert bp.calling_charm_favored_caste == 3
+
+    # Above the pre-BP cap of 3, dots always cost BP — the cleanest way to observe the
+    # tier. Melee 5 = 2 dots above the cap in the 'both' tier => ceil(2/2) = 1 BP.
+    c = _illuminated(rs, abilities={AB.MELEE: 5})
+    line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                if l.domain == "Abilities")
+    assert line.points == 1
+
+    # Melee 4 = 1 dot above the cap => ceil(1/2) = 1 BP, i.e. rounds UP not down.
+    c4 = _illuminated(rs, abilities={AB.MELEE: 4})
+    line4 = next(l for l in validate.bonus_point_breakdown(rs, c4).lines
+                 if l.domain == "Abilities")
+    assert line4.points == 1
+
+
+def test_a_non_calling_non_caste_ability_still_costs_the_full_rate(rs):
+    """Regression: Sail is neither Dawn Caste nor a Deacon Calling Ability, so its
+    above-cap dots cost the undiscounted 2 BP each."""
+    c = _illuminated(rs, abilities={AB.SAIL: 5}, favored_abilities=[])
+    line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                if l.domain == "Abilities")
+    assert line.points == 2 * 2
+
+
+def test_calling_charm_bp_is_four_or_three(rs):
+    """p.90: "purchasing a Calling Charm costs 4 freebies, 3 if Favored or Caste"."""
+    # Ten Magistrate Eyes is a Deacon Calling Charm gated on Investigation.
+    charm_id = "solar.investigation.ten-magistrate-eyes"
+    assert charm_id in rs.callings["deacon"].charms
+
+    # 9 picks against a pool of 8 => exactly one pick is paid for, and because
+    # pick_costs sorts dearest-first into the free pool, the CHEAPEST pick is the one
+    # charged. Compare two builds whose 9th Charm differs only in Calling membership:
+    # a Calling Charm costs 4, an ordinary one 5, so the delta must be exactly 1.
+    dawn_cats = {a.value for a in rs.castes["dawn"].caste_abilities}
+    deacon = set(rs.callings["deacon"].charms)
+
+    def bp_for(ninth):
+        # Every filler must cost the SAME full 5 BP, so the cheapest pick — the one the
+        # free pool leaves unpaid — is deterministically the 9th Charm. That means
+        # excluding both Dawn Caste categories and Deacon Calling Charms from fillers.
+        fillers = [x.id for x in rs.charms.values()
+                   if x.exalt_type == "Solar" and x.min_ability <= 1
+                   and x.min_essence <= 3 and x.id != ninth
+                   and x.category not in dawn_cats
+                   and x.id not in deacon
+                   and not x.category.startswith("martial_arts")][:8]
+        assert len(fillers) == 8
+        c = _illuminated(rs, charms=fillers + [ninth],
+                         abilities={AB.INVESTIGATION: 5, AB.SURVIVAL: 3})
+        return next(l.points for l in validate.bonus_point_breakdown(rs, c).lines
+                    if l.domain == "Charms & Spells")
+
+    # Any ordinary (non-Calling) Solar Charm in a non-Dawn-Caste category, so both
+    # sides of the comparison are in the same Caste/Favoured bucket.
+    ordinary = next(x.id for x in rs.charms.values()
+                    if x.exalt_type == "Solar" and x.min_ability <= 1
+                    and x.min_essence <= 3
+                    and x.category not in dawn_cats
+                    and not x.category.startswith("martial_arts")
+                    and x.id not in deacon)
+    assert bp_for(charm_id) == bp_for(ordinary) - 1
+
+
+def test_calling_ability_xp_discount_stacks_with_caste_favored(rs):
+    """p.102 worked example: the fourth dot of a Calling Ability, normally 6 XP, costs
+    5 — or 4 if the Ability is also Favored or Caste."""
+    c = _illuminated(rs)                                    # Dawn / Deacon
+    # Stealth: Calling only (Dawn Caste is Archery/Brawl/MA/Melee/Thrown).
+    assert costs.ability_step(rs, c, AB.STEALTH, 3) == 5
+    # Melee: Calling AND Dawn Caste => both discounts.
+    assert costs.ability_step(rs, c, AB.MELEE, 3) == 4
+    # Sail: neither => the undiscounted 6.
+    assert costs.ability_step(rs, c, AB.SAIL, 3) == 6
+
+
+def test_calling_charm_xp_discount_stacks_with_caste_favored(rs):
+    """p.102: "a Calling Charm costs 8 experience points, or 6 if Favored or Caste"."""
+    c = _illuminated(rs)
+    calling_charm = rs.charms["solar.investigation.ten-magistrate-eyes"]
+    assert costs.charm_cost(rs, c, calling_charm) == 8      # Investigation: not Dawn
+
+    # No Deacon Calling Charm happens to sit in a Dawn Caste category, so the
+    # stacking case uses Zenith + Paladin: Performance is both a Zenith Caste Ability
+    # and the category of several Paladin Calling Charms.
+    zenith = _illuminated(rs, caste="zenith", calling="paladin",
+                          abilities={AB.PERFORMANCE: 3})
+    perf = next(rs.charms[cid] for cid in rs.callings["paladin"].charms
+                if rs.charms[cid].category == "performance")
+    assert costs.charm_cost(rs, zenith, perf) == 6
+
+
+def test_a_standard_solar_gets_no_calling_discounts(rs):
+    """Regression: the discount fires only for a character WITH a Calling, so every
+    existing Solar is priced exactly as before."""
+    std = Character(id="s", name="Std", exalt_type="Solar", caste="dawn")
+    assert validate.calling_abilities(rs, std) == set()
+    # Melee is a Dawn Caste Ability, so the Caste discount alone gives 5; Sail gets
+    # neither discount and stays at the full 6. Neither moves without a Calling.
+    assert costs.ability_step(rs, std, AB.MELEE, 3) == 5
+    assert costs.ability_step(rs, std, AB.SAIL, 3) == 6
+    charm = rs.charms["solar.investigation.ten-magistrate-eyes"]
+    assert costs.charm_cost(rs, std, charm) == 10

@@ -62,5 +62,11 @@
     "essence": 10,
     "charm": 6,
     "charm_favored_caste": 5
+  },
+  "Solar": {
+    "calling_ability": 1,
+    "calling_ability_favored_caste_dots_per_point": 2,
+    "calling_charm": 4,
+    "calling_charm_favored_caste": 3
   }
 }

@@ -53,7 +53,13 @@ def ability_step(ruleset: RuleSet, character: Character, ability: AbilityName,
         return xp.new_ability
     favored = ability in validate.caste_favored_abilities(ruleset, character)
     cost = xp.ability_favored_caste if favored else xp.ability
-    return cost.at(from_rating)
+    total = cost.at(from_rating)
+    # A Calling Ability is 1 XP cheaper, and the page is explicit that this "stacks
+    # with the benefit of Favored or Caste Abilities" (p.102) — hence a subtraction
+    # applied after the rate, not a third rate. 0 for every splat without Callings.
+    if ability in validate.calling_abilities(ruleset, character):
+        total -= xp.calling_ability_discount
+    return max(0, total)
 
 
 def virtue_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
@@ -120,6 +126,12 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
             cost = xp.new_martial_arts_charm if xp.new_martial_arts_charm is not None else xp.new_charm
     else:
         cost = xp.new_charm_favored_caste if favored else xp.new_charm
+    # A Calling Charm is 2 XP cheaper, stacking with Caste/Favoured (p.102): "a
+    # Calling Charm costs 8 experience points, or 6 if Favored or Caste". Applied
+    # BEFORE the foreign-Charm multiplier, consistent with the existing rule that the
+    # discount lands first and the doubling last.
+    if validate.is_calling_charm(ruleset, character, charm):
+        cost = max(0, cost - xp.calling_charm_discount)
     # An Eclipse/Moonshadow learning another splat's Charm pays a multiple (p.90).
     caste = validate.foreign_charms_caste(ruleset, character)
     if caste is not None and validate.is_foreign_charm(ruleset, character, charm):

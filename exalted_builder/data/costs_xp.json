@@ -51,5 +51,9 @@
       "Man-Machine": 12,
       "God-Machine": 14
     }
+  },
+  "Solar": {
+    "calling_ability_discount": 1,
+    "calling_charm_discount": 2
   }
 }

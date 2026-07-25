@@ -1,0 +1,183 @@
+[
+  {
+    "id": "exemplar",
+    "exalt_type": "Solar",
+    "camp": "sequestered-tabernacle",
+    "label": "Exemplar",
+    "description": "Living embodiments of perfection and sainthood. Masters of theology and martial arts who strengthen the divinity within themselves.",
+    "abilities": [
+      "endurance",
+      "lore",
+      "martial_arts",
+      "medicine",
+      "performance"
+    ],
+    "charms": [
+      "solar.medicine.body-mending-meditation",
+      "solar.occult.celestial-circle-sorcery",
+      "solar.lore.essence-lending-method",
+      "solar.performance.heart-compelling-method",
+      "solar.presence.listener-swaying-argument",
+      "solar.presence.majestic-radiant-presence",
+      "solar.performance.masterful-performance-exercise",
+      "solar.occult.terrestrial-circle-sorcery",
+      "solar.medicine.touch-of-blissful-release",
+      "solar.lore.will-bolstering-method"
+    ],
+    "ability_focus": {},
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 90
+    }
+  },
+  {
+    "id": "inquisitor",
+    "exalt_type": "Solar",
+    "camp": "sequestered-tabernacle",
+    "label": "Inquisitor",
+    "description": "Investigator of corruption and safeguard of communities; excises weakness and heresy from the Cult's ranks and hunts infernal infiltration.",
+    "abilities": [
+      "awareness",
+      "bureaucracy",
+      "investigation",
+      "larceny",
+      "martial_arts"
+    ],
+    "charms": [
+      "solar.bureaucracy.deft-officials-way",
+      "solar.investigation.judges-ear-technique",
+      "solar.larceny.seasoned-criminal-method",
+      "solar.awareness.sensory-acuity-prana",
+      "solar.bureaucracy.speed-the-wheels",
+      "solar.occult.spirit-cutting-attack",
+      "solar.occult.spirit-detecting-glance",
+      "solar.awareness.surprise-anticipation-method",
+      "solar.investigation.ten-magistrate-eyes"
+    ],
+    "ability_focus": {},
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 90
+    }
+  },
+  {
+    "id": "itinerant",
+    "exalt_type": "Solar",
+    "camp": "sequestered-tabernacle",
+    "label": "Itinerant",
+    "description": "Wandering holy man and defender of pilgrims; the ears and eyes of the Cult, guiding pioneering cultists to new communities.",
+    "abilities": [
+      "linguistics",
+      "martial_arts",
+      "occult",
+      "presence",
+      "survival"
+    ],
+    "charms": [
+      "solar.occult.all-encompassing-sorcerers-sight",
+      "solar.lore.chaos-repelling-pattern",
+      "solar.survival.food-gathering-exercise",
+      "solar.survival.hardship-surviving-mendicant-spirit",
+      "solar.lore.integrity-protecting-prana",
+      "solar.occult.spirit-detecting-glance",
+      "solar.survival.trackless-region-navigation-charm"
+    ],
+    "ability_focus": {},
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 90
+    }
+  },
+  {
+    "id": "architect",
+    "exalt_type": "Solar",
+    "camp": "kether-rock",
+    "label": "Architect",
+    "description": "Civic engineer and community leader; a mixture of combat engineer and civil servant who rebuilds conquered cities and governments.",
+    "abilities": [
+      "bureaucracy",
+      "craft",
+      "lore",
+      "melee",
+      "socialize"
+    ],
+    "charms": [
+      "solar.athletics.increasing-strength-exercise",
+      "solar.craft.flawless-handiwork-method",
+      "solar.presence.harmonious-presence-meditation",
+      "solar.performance.masterful-performance-exercise",
+      "solar.socialize.mastery-of-small-manners",
+      "solar.craft.object-strengthening-touch",
+      "solar.performance.respect-commanding-attitude",
+      "solar.athletics.thunders-might",
+      "solar.socialize.wise-eyed-courtier-method"
+    ],
+    "ability_focus": {},
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 91
+    }
+  },
+  {
+    "id": "deacon",
+    "exalt_type": "Solar",
+    "camp": "kether-rock",
+    "label": "Deacon",
+    "description": "Spy, assassin and commando; front line scout and master of covert operations.",
+    "abilities": [
+      "investigation",
+      "larceny",
+      "melee",
+      "stealth",
+      "survival"
+    ],
+    "charms": [
+      "solar.investigation.crafty-observation-method",
+      "solar.stealth.easily-overlooked-presence-method",
+      "solar.athletics.graceful-crane-stance",
+      "solar.stealth.mental-invisibility-technique",
+      "solar.awareness.sensory-acuity-prana",
+      "solar.awareness.surprise-anticipation-method",
+      "solar.investigation.ten-magistrate-eyes",
+      "solar.survival.traceless-passage"
+    ],
+    "ability_focus": {},
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 91
+    }
+  },
+  {
+    "id": "paladin",
+    "exalt_type": "Solar",
+    "camp": "kether-rock",
+    "label": "Paladin",
+    "description": "Commander of soldiers and living weapon.",
+    "abilities": [
+      "craft",
+      "endurance",
+      "melee",
+      "performance",
+      "presence"
+    ],
+    "charms": [
+      "solar.occult.celestial-circle-sorcery",
+      "solar.endurance.essence-gathering-temper",
+      "solar.performance.fury-inciting-presence",
+      "solar.performance.heroism-encouraging-presence",
+      "solar.endurance.ox-body-technique",
+      "solar.performance.respect-commanding-attitude",
+      "solar.performance.rout-stemming-gesture",
+      "solar.occult.terrestrial-circle-sorcery",
+      "solar.performance.unruly-mob-dispersing-rebuke",
+      "solar.endurance.willpower-enhancing-spirit"
+    ],
+    "ability_focus": {
+      "craft": "War"
+    },
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 91
+    }
+  }
+]

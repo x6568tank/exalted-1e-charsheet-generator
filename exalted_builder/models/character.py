@@ -293,6 +293,20 @@ class Character(BaseModel):
     # pair with `caste` (see engine.validate.check_lunar_casteless_consistency) —
     # unlike Dragon-Blooded, it's one condition on two fields, not an independent axis.
     origin: str = ""
+    # Cult of the Illuminated (Solar, p.89-93). A THIRD axis beyond splat and caste:
+    # `camp` is a rules.TrainingCamp id (which Ability floors and free Charms apply),
+    # `calling` is a rules.Calling id (which Abilities/Charms are discounted). Both ""
+    # for every character whose origin does not require them — see
+    # ChargenBudgets.requires_camp / .requires_calling, which is what the engine
+    # keys off, so nothing here names a splat.
+    camp: str = ""
+    calling: str = ""
+    # Charms received FREE from the camp's package (p.90), resolved: the camp's fixed
+    # grants plus whatever the player chose for each GrantedCharmChoice. Kept OUT of
+    # `charms` for the same reason ox_body and beastman_gifts are — anything that
+    # enumerates picks must not count these against the Charm pool or the Caste/
+    # Favored minimum, because they are granted rather than picked.
+    granted_charms: list[str] = Field(default_factory=list)
     concept: str = ""
     nature: str = ""
     anima: str = ""

@@ -43,6 +43,8 @@ from .models.rules import (
     ChargenBudgets,
     Charm,
     College,
+    TrainingCamp,
+    Calling,
     ExaltDefinition,
     ExperienceCosts,
     MagicalMaterial,
@@ -170,6 +172,37 @@ def _check_prereqs(charms: dict[str, Charm], problems: list[str]) -> None:
                     problems.append(f"charm '{ch.id}' references unknown prerequisite '{pid}'")
 
 
+def _check_camps_and_callings(camps, callings, charms, problems: list[str]) -> None:
+    """Every Charm a TrainingCamp grants or a Calling discounts must exist, and every
+    Calling must belong to a real camp. A dangling id here is silent in a way the
+    other tables are not: a granted Charm that does not resolve simply never appears
+    on the sheet, and a Calling Charm that does not resolve quietly charges full
+    price."""
+    for camp in camps.values():
+        for cid in camp.granted_charms:
+            if cid not in charms:
+                problems.append(f"camp {camp.id!r}: granted charm {cid!r} does not exist")
+        for choice in camp.granted_charm_choices:
+            for group in choice.fixed_sets:
+                for cid in group:
+                    if cid not in charms:
+                        problems.append(
+                            f"camp {camp.id!r}: charm {cid!r} in a fixed_sets option does not exist")
+            if not choice.from_categories and not choice.fixed_sets:
+                problems.append(f"camp {camp.id!r}: granted_charm_choice {choice.label!r} offers nothing")
+            if choice.from_categories and choice.pick < 1:
+                problems.append(
+                    f"camp {camp.id!r}: granted_charm_choice {choice.label!r} picks from categories "
+                    f"but `pick` is {choice.pick}")
+    known_camps = set(camps)
+    for calling in callings.values():
+        if calling.camp and calling.camp not in known_camps:
+            problems.append(f"calling {calling.id!r}: unknown camp {calling.camp!r}")
+        for cid in calling.charms:
+            if cid not in charms:
+                problems.append(f"calling {calling.id!r}: calling charm {cid!r} does not exist")
+
+
 def _check_sorcery_reachable(
     charms: dict[str, Charm], spells: dict[str, Spell], problems: list[str]
 ) -> None:
@@ -212,6 +245,10 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
                        "id", "material", problems)
     colleges = _index(_load_array(data_dir / "colleges.json", College, problems),
                       "id", "college", problems)
+    camps = _index(_load_array(data_dir / "camps.json", TrainingCamp, problems),
+                   "id", "camp", problems)
+    callings = _index(_load_array(data_dir / "callings.json", Calling, problems),
+                      "id", "calling", problems)
 
     exalt_list = _load_array(data_dir / "exalts.json", ExaltDefinition, problems)
     exalts = (_index(exalt_list, "id", "exalt", problems) if exalt_list
@@ -225,6 +262,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
     # referential integrity — only meaningful once the rows themselves parsed
     _check_prereqs(charms, problems)
     _check_sorcery_reachable(charms, spells, problems)
+    _check_camps_and_callings(camps, callings, charms, problems)
 
     if problems:
         raise RuleDataError(problems)
@@ -240,6 +278,8 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         nature_catalog=natures,
         material_catalog=materials,
         colleges=colleges,
+        camps=camps,
+        callings=callings,
         bonus_costs=bonus_costs,
         xp_costs=xp_costs,
         budgets=budgets,

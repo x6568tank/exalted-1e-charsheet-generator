@@ -364,6 +364,89 @@ class CasteDefinition(BaseModel):
     anima_powers: str = ""
 
 
+class GrantedCharmChoice(BaseModel):
+    """One player choice within a TrainingCamp's free-Charm package.
+
+    The Cult of the Illuminated grants free Charms in two shapes (p.90), so this
+    covers both and a camp lists whichever it needs:
+
+    * `from_categories` — "two Charms from ONE of the following four martial arts".
+      The player picks a single category from the list, then `pick` Charms inside it.
+    * `fixed_sets` — "one of the following pairs of Charms". The player takes exactly
+      one whole set, verbatim. `pick` is ignored (a set is all-or-nothing).
+
+    A set may offer alternates for one member where a house rule swaps a Charm
+    (Spirit Strengthens the Skin replaces Iron Skin Concentration under Exalted
+    Power Combat); those are authored as two separate sets, since the choice is the
+    player's, not a rules branch the engine should pick."""
+    model_config = ConfigDict(frozen=True)
+    label: str = ""                                 # display, e.g. "Martial arts style"
+    pick: int = Field(default=0, ge=0)              # how many Charms from the chosen category
+    from_categories: list[str] = Field(default_factory=list)
+    fixed_sets: list[list[str]] = Field(default_factory=list)
+
+
+class TrainingCamp(BaseModel):
+    """A training camp: an origin-scoped package of chargen requirements attached to
+    a character alongside (not instead of) their Caste.
+
+    Introduced for the Cult of the Illuminated (Solar, p.89-93), where an
+    Illuminated Solar picks one of two camps — the Sequestered Tabernacle or Kether
+    Rock — and that choice sets Ability floors and a free-Charm package. It is a
+    THIRD axis beyond splat and caste, which is why it needs its own table rather
+    than living on CasteDefinition (any caste may attend either camp) or on
+    ChargenBudgets (the budget row is per-origin, and both camps share one origin).
+
+    `origin` scopes the camp to a `Character.origin` value so the camp list a
+    character may choose from is data-driven; `exalt_type` scopes it to a splat."""
+    model_config = ConfigDict(frozen=True)
+    id: str                                         # stable lowercase key
+    exalt_type: str = "Solar"
+    origin: str = ""                                # Character.origin this camp belongs to
+    label: str
+    description: str = ""
+    # Ability floors this camp's training regimen imposes (p.89). Unioned with the
+    # budget's own minimums exactly as CasteDefinition.required_min_abilities is, and
+    # AbilityMinimum's OR semantics already express Kether Rock's "either Archery •
+    # or Brawl •" with no new machinery.
+    required_min_abilities: list[AbilityMinimum] = Field(default_factory=list)
+    # Free Charms every graduate of this camp receives, by id. These do NOT come out
+    # of the chargen Charm pool and do NOT count toward the Caste/Favored minimum —
+    # they are granted, not picked. The character must still meet each Charm's own
+    # minimum Ability/Essence ("As usual, the Solar must meet the minimum
+    # requirements to gain these Charms", p.90).
+    granted_charms: list[str] = Field(default_factory=list)
+    # Player choices layered on top of `granted_charms`, resolved onto
+    # Character.granted_charms.
+    granted_charm_choices: list[GrantedCharmChoice] = Field(default_factory=list)
+
+
+class Calling(BaseModel):
+    """A Calling: the character's role within their organisation, which discounts a
+    named set of Abilities and Charms at BOTH chargen and in play.
+
+    Cult of the Illuminated, p.90 and p.102. Each TrainingCamp offers three. The
+    discount stacks with the Caste/Favored discount and is a DISCOUNT AXIS, not a
+    second Favored list — a Calling Ability is not thereby Favored, so it does not
+    count toward the Caste/Favored dot minimum.
+
+    The rates live on BonusPointCosts/ExperienceCosts (per exalt type), not here, so
+    a later organisation with a different discount reuses this table unchanged."""
+    model_config = ConfigDict(frozen=True)
+    id: str                                         # stable lowercase key
+    exalt_type: str = "Solar"
+    camp: str = ""                                  # TrainingCamp.id that offers it
+    label: str
+    description: str = ""
+    abilities: list[AbilityName] = Field(default_factory=list)
+    # Calling Charms, by id. A Charm here is discounted, never granted.
+    charms: list[str] = Field(default_factory=list)
+    # Calling Abilities named with a parenthetical focus on the page — Paladin's
+    # "Craft (War)" — record the focus so the Craft-as-per-focus-Ability machinery
+    # can match the right Craft instance. Keyed by AbilityName value.
+    ability_focus: dict[str, str] = Field(default_factory=dict)
+
+
 class College(BaseModel):
     """One Astrological College (Sidereal, p.220-235) — a rated Advantage bought at
     chargen with its own point pool, distinct from Abilities. `house` is the caste id
@@ -548,6 +631,19 @@ class BonusPointCosts(BaseModel):
     # one of the character's own Maiden's. Unused by splats without colleges.
     college: int = 8
     college_own_house: int = 6
+    # Calling discounts (Cult of the Illuminated, p.90 and the p.93 table). A Calling
+    # is a DISCOUNT AXIS layered on top of Caste/Favoured, not a second Favored list,
+    # so these rates replace `ability`/`charm` for a trait named by the character's
+    # Calling and STACK with the Caste/Favoured discount. Defaults equal the
+    # undiscounted rates, so a splat with no Callings is unaffected.
+    calling_ability: int = 2                        # BP/dot: Calling but not Caste/Favoured
+    # Calling AND Caste/Favoured: "1 point per 2 dots" (p.90). Expressed as dots-per-
+    # point rather than a rate because it is a fractional cost; rounds UP, matching
+    # `specialty_favored_caste_dots_per_point` (rules-authority call, 2026-07-24 —
+    # the page does not say how an odd dot rounds).
+    calling_ability_favored_caste_dots_per_point: int = 1
+    calling_charm: int = 5                          # BP: Calling but not Caste/Favoured
+    calling_charm_favored_caste: int = 4            # BP: Calling AND Caste/Favoured
 
 
 class ExperienceCosts(BaseModel):
@@ -610,6 +706,13 @@ class ExperienceCosts(BaseModel):
     # splats' MA Charms are unchanged.
     new_martial_arts_charm: Optional[int] = None
     new_martial_arts_charm_favored_caste: Optional[int] = None
+    # Calling discounts (Cult of the Illuminated, p.102). SUBTRACTED from the computed
+    # cost and explicitly stacking with the Caste/Favoured discount: "Any purchase of a
+    # Calling Ability after character creation receives a 1 experience point discount.
+    # This bonus stacks with the benefit of Favored or Caste Abilities." Deltas rather
+    # than rates for exactly that reason. 0 = no Callings, i.e. every other splat.
+    calling_ability_discount: int = 0
+    calling_charm_discount: int = 0
 
 
 class BackgroundRule(BaseModel):
@@ -635,6 +738,12 @@ class BackgroundRule(BaseModel):
     expensive_above: int = 0               # 0 = every dot costs one pool dot
     expensive_dot_cost: int = Field(default=1, ge=1)
     min_rating: int = Field(default=0, ge=0)
+    # Dots granted FREE, i.e. on top of the pool rather than out of it. Distinct from
+    # min_rating, which is a floor the character must reach by SPENDING pool dots
+    # (Alchemical Class •••, CH2 p.61). The Illuminated Solar "begins with
+    # Illumination • for free" IN ADDITION to nine Background dots (p.90), so the
+    # first dot costs nothing and dots above it cost one each.
+    free_rating: int = Field(default=0, ge=0)
     requires: str = ""                     # another Background's NAME, lowercased
     requires_rating: int = Field(default=0, ge=0)
 
@@ -740,6 +849,17 @@ class ChargenBudgets(BaseModel):
     immaculate_charm_count: int = 5
 
     essence_start: int = 2
+    # Hard ceiling on Essence at the END of character creation, i.e. after bonus
+    # points. Cult of the Illuminated (p.90): an Illuminated Solar starts at Essence
+    # 3 and "under no circumstances may begin with an Essence of six (6) or higher",
+    # so 5. 0 = no ceiling beyond whatever the BP budget can afford, which is every
+    # other splat authored so far.
+    essence_start_cap: int = 0
+    # This origin requires the character to pick a TrainingCamp / Calling (see
+    # rules.TrainingCamp). False for every splat without them, which is all of them
+    # except the Illuminated Solar.
+    requires_camp: bool = False
+    requires_calling: bool = False
     bonus_points: int = 15
 
     willpower_start_cap: int = 8           # may not start above this...
@@ -914,6 +1034,8 @@ class RuleSet(BaseModel):
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
     colleges: dict[str, College] = Field(default_factory=dict)   # Astrological Colleges (Sidereal)
+    camps: dict[str, TrainingCamp] = Field(default_factory=dict)  # Training camps (Illuminated Solar)
+    callings: dict[str, Calling] = Field(default_factory=dict)    # Callings (Illuminated Solar)
     bonus_costs: dict[str, BonusPointCosts] = Field(
         default_factory=lambda: {"default": BonusPointCosts()})
     xp_costs: dict[str, ExperienceCosts] = Field(
@@ -949,6 +1071,17 @@ class RuleSet(BaseModel):
                 continue
             out.append(bg)
         return out
+
+    def camps_for(self, exalt_type: str, origin: str = "") -> list[TrainingCamp]:
+        """The training camps a character of this splat/origin may attend, in table
+        order. Empty for every splat with no camps, which is how the UI decides
+        whether to render the picker at all."""
+        return [c for c in self.camps.values()
+                if c.exalt_type == exalt_type and (not c.origin or c.origin == origin)]
+
+    def callings_for(self, camp_id: str) -> list[Calling]:
+        """The Callings offered by one camp, in table order."""
+        return [c for c in self.callings.values() if c.camp == camp_id]
 
     def budgets_for(self, exalt_type: str, origin: str = "") -> ChargenBudgets:
         """The chargen budget for `exalt_type`, optionally specialised by `origin`

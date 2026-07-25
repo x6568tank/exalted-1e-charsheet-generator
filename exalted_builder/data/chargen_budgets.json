@@ -312,5 +312,36 @@
         "expensive_dot_cost": 2
       }
     }
+  },
+  "Solar:illuminated": {
+    "ability_dots": 30,
+    "ability_min_caste_favored": 10,
+    "background_dots": 9,
+    "charm_count": 8,
+    "charm_min_caste_favored": 4,
+    "essence_start": 3,
+    "essence_start_cap": 5,
+    "requires_camp": true,
+    "requires_calling": true,
+    "allowed_backgrounds": [
+      "Allies",
+      "Artifact",
+      "Contacts",
+      "Familiar",
+      "Followers",
+      "Illumination",
+      "Influence",
+      "Manse",
+      "Mentor",
+      "Resources",
+      "Sorcery",
+      "Tiger Warriors"
+    ],
+    "background_rules": {
+      "illumination": {
+        "free_rating": 1,
+        "min_rating": 1
+      }
+    }
   }
 }

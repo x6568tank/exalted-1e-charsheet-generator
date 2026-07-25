@@ -1,0 +1,163 @@
+[
+  {
+    "id": "sequestered-tabernacle",
+    "exalt_type": "Solar",
+    "origin": "illuminated",
+    "label": "The Sequestered Tabernacle",
+    "description": "The refined and metaphysical training camp of the Cult of the Illuminated. Its regimen emphasises theology, Essence mastery and martial arts, producing Solars with near-complete mastery over their own bodies and the bodies of others (p.89-90).",
+    "required_min_abilities": [
+      {
+        "abilities": [
+          "endurance"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "linguistics"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "lore"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "martial_arts"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "occult"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "presence"
+        ],
+        "rating": 3
+      },
+      {
+        "abilities": [
+          "socialize"
+        ],
+        "rating": 1
+      }
+    ],
+    "granted_charms": [
+      "solar.endurance.ox-body-technique",
+      "solar.presence.harmonious-presence-meditation"
+    ],
+    "granted_charm_choices": [
+      {
+        "label": "Two Charms from one martial arts style",
+        "pick": 2,
+        "from_categories": [
+          "martial_arts:ebon-shadow",
+          "martial_arts:praying-mantis",
+          "martial_arts:snake",
+          "martial_arts:tiger"
+        ],
+        "fixed_sets": []
+      }
+    ],
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 90
+    }
+  },
+  {
+    "id": "kether-rock",
+    "exalt_type": "Solar",
+    "origin": "illuminated",
+    "label": "Kether Rock",
+    "description": "The brutal and militant training camp of the Cult of the Illuminated. Its regimen emphasises war, survival and endurance, producing consummate warriors (p.89-91).",
+    "required_min_abilities": [
+      {
+        "abilities": [
+          "archery",
+          "brawl"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "endurance"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "medicine"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "melee"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "presence"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "resistance"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "survival"
+        ],
+        "rating": 3
+      }
+    ],
+    "granted_charms": [
+      "solar.endurance.ox-body-technique",
+      "solar.survival.hardship-surviving-mendicant-spirit"
+    ],
+    "granted_charm_choices": [
+      {
+        "label": "One of the following pairs of Charms",
+        "pick": 0,
+        "from_categories": [],
+        "fixed_sets": [
+          [
+            "solar.melee.golden-essence-block",
+            "solar.melee.dipping-swallow-defense"
+          ],
+          [
+            "solar.dodge.reed-in-the-wind",
+            "solar.dodge.shadow-over-water"
+          ],
+          [
+            "solar.resistance.durability-of-oak-meditation",
+            "solar.resistance.iron-skin-concentration"
+          ],
+          [
+            "solar.resistance.durability-of-oak-meditation",
+            "solar.resistance.spirit-strengthens-the-skin"
+          ],
+          [
+            "solar.resistance.whirlwind-armor-donning-prana",
+            "solar.endurance.armored-scouts-invigoration"
+          ]
+        ]
+      }
+    ],
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 90
+    }
+  }
+]
