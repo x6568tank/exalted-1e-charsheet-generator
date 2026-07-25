@@ -174,6 +174,17 @@ class CharmVariant(BaseModel):
     description: str = ""
 
 
+class AbilityMinimum(BaseModel):
+    """A required minimum in one of a set of Abilities (OR semantics): the character
+    must have at least `rating` in AT LEAST ONE of `abilities`. A single-element list
+    is a specific-ability floor. Used for the Dragon-Blooded Dynastic schooling
+    minimums (p.151) and the Sidereal per-house minimums (p.98) — these are a floor
+    spent from the pool, NOT free extra dots."""
+    model_config = ConfigDict(frozen=True)
+    abilities: list[AbilityName]
+    rating: int = Field(ge=1)
+
+
 class Submodule(BaseModel):
     """One purchasable upgrade to a single Alchemical Charm (p.89). A submodule
     permanently improves its parent Charm; the character has access to it whenever
@@ -234,6 +245,21 @@ class Charm(BaseModel):
     # should set at most one of min_attribute / an Ability-resolving category.
     min_attribute: str = ""
     min_essence: int = Field(default=1, ge=1)
+    # ADDITIONAL Ability minimums beyond `min_ability`, for the rare Charm the page
+    # gates on more than one Ability. Ascendant Battle Visage (Cult of the Illuminated,
+    # p.102) is the first: "Minimum Brawl: 5 / Minimum Endurance: 5".
+    #
+    # `min_ability` stays the PRIMARY gate — the one derived from `category` — because
+    # everything downstream keys off it: the Caste/Favoured and Calling discounts, XP
+    # and BP pricing, Combo cost, and the picker's tree layout. These extras are pure
+    # REQUIREMENT checks and deliberately feed none of that: a Brawl Charm that also
+    # needs Endurance 5 must not become cheaper for a character whose Caste Ability is
+    # Endurance.
+    #
+    # Reuses AbilityMinimum, so each entry is an independent AND whose inner list is an
+    # OR ("Brawl 5 AND Endurance 5", or hypothetically "AND (Melee 3 OR Thrown 3)").
+    # Empty for all but a handful of Charms.
+    extra_min_abilities: list[AbilityMinimum] = Field(default_factory=list)
     # Alchemical Charms only (p.88-91): the Personal Essence committed to *install*
     # the Charm in a Charm Slot (distinct from `cost`, the activation cost paid in
     # play). Committed for as long as the Charm is installed, so the sum over a
@@ -302,16 +328,6 @@ class Spell(BaseModel):
     description: str = ""
     source: Source = Field(default_factory=Source)
 
-
-class AbilityMinimum(BaseModel):
-    """A required minimum in one of a set of Abilities (OR semantics): the character
-    must have at least `rating` in AT LEAST ONE of `abilities`. A single-element list
-    is a specific-ability floor. Used for the Dragon-Blooded Dynastic schooling
-    minimums (p.151) and the Sidereal per-house minimums (p.98) — these are a floor
-    spent from the pool, NOT free extra dots."""
-    model_config = ConfigDict(frozen=True)
-    abilities: list[AbilityName]
-    rating: int = Field(ge=1)
 
 
 class CasteDefinition(BaseModel):

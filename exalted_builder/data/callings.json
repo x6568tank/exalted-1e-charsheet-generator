@@ -46,6 +46,7 @@
     "charms": [
       "solar.bureaucracy.deft-officials-way",
       "solar.investigation.judges-ear-technique",
+      "solar.presence.prey-freezing-gaze",
       "solar.larceny.seasoned-criminal-method",
       "solar.awareness.sensory-acuity-prana",
       "solar.bureaucracy.speed-the-wheels",
@@ -76,10 +77,12 @@
     "charms": [
       "solar.occult.all-encompassing-sorcerers-sight",
       "solar.lore.chaos-repelling-pattern",
+      "solar.linguistics.excellent-emissarys-tongue",
       "solar.survival.food-gathering-exercise",
       "solar.survival.hardship-surviving-mendicant-spirit",
       "solar.lore.integrity-protecting-prana",
       "solar.occult.spirit-detecting-glance",
+      "solar.endurance.tireless-travelers-stamina",
       "solar.survival.trackless-region-navigation-charm"
     ],
     "ability_focus": {},
@@ -104,6 +107,7 @@
     "charms": [
       "solar.athletics.increasing-strength-exercise",
       "solar.craft.flawless-handiwork-method",
+      "solar.socialize.graceful-courtier-attitude",
       "solar.presence.harmonious-presence-meditation",
       "solar.performance.masterful-performance-exercise",
       "solar.socialize.mastery-of-small-manners",
@@ -134,6 +138,7 @@
     "charms": [
       "solar.investigation.crafty-observation-method",
       "solar.stealth.easily-overlooked-presence-method",
+      "solar.survival.game-snaring-huntsmans-method",
       "solar.athletics.graceful-crane-stance",
       "solar.stealth.mental-invisibility-technique",
       "solar.awareness.sensory-acuity-prana",

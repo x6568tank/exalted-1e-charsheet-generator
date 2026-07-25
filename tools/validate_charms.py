@@ -180,6 +180,34 @@ def check_charm(c: dict, path: Path, rep: Report) -> None:
     if c.get("min_essence", 1) < 1:
         rep.error(where, "min_essence must be >= 1")
 
+    # --- extra Ability minimums (a Charm gated on more than one Ability) ------
+    # Shape is list[{"abilities": [<AbilityName>, ...], "rating": N}] — each entry an
+    # independent AND whose inner list is an OR. Getting the nesting wrong here fails
+    # OPEN (the gate silently disappears), so it is an error, not a warning.
+    extras = c.get("extra_min_abilities", [])
+    if not isinstance(extras, list):
+        rep.error(where, "extra_min_abilities must be a list of {abilities, rating} objects")
+    else:
+        primary = None
+        if not c.get("min_attribute"):
+            cat = c.get("category", "")
+            primary = cat if not cat.startswith("martial_arts") else None
+        for req in extras:
+            if not isinstance(req, dict):
+                rep.error(where, f"extra_min_abilities entry {req!r} must be an object")
+                continue
+            abils = req.get("abilities")
+            if not isinstance(abils, list) or not abils:
+                rep.error(where, "an extra_min_abilities entry needs a non-empty `abilities` list")
+                continue
+            if any(not isinstance(a, str) for a in abils):
+                rep.error(where, f"extra_min_abilities `abilities` must be name strings: {abils!r}")
+            if not isinstance(req.get("rating"), int) or req["rating"] < 1:
+                rep.error(where, f"extra_min_abilities entry needs `rating` >= 1: {req!r}")
+            if primary and primary in abils:
+                rep.warn(where, f"extra_min_abilities repeats the primary gate {primary!r} "
+                                f"— that is what min_ability is for")
+
     # --- prerequisites: AND-of-OR, i.e. list[list[str]] ----------------------
     prereqs = c.get("prerequisites", [])
     if not isinstance(prereqs, list):

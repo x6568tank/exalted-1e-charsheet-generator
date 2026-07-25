@@ -49,6 +49,12 @@ _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 # the first/default origin and "<exalt>:<origin>" for the rest); all the budget
 # numbers live in chargen_budgets.json — this map is just which choices to show.
 _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
+    # A Solar trained by the Cult of the Illuminated has a different initiation
+    # entirely (p.89): 30 Abilities, 9 Backgrounds, 8 Charms, Essence 3, plus a
+    # training camp and a Calling. "standard" has no `Solar:standard` budget row, so
+    # it falls back to the plain "Solar" row — the same trick "dynastic" and "loyal"
+    # use below.
+    "Solar": {"standard": "Standard", "illuminated": "Cult of the Illuminated"},
     "Dragon-Blooded": {"dynastic": "Dynastic", "outcaste": "Outcaste"},
     # Abyssal Backgrounds depend on standing with the Deathlord: 13 dots for a loyal
     # deathknight, 5 for a fugitive/renegade (p.122). First key is the default
@@ -263,6 +269,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.label(caste_def.anima_powers).classes("text-xs")
                 else:
                     ui.label("Unknown caste").classes("text-xs text-gray-500")
+
             with ui.column().classes("flex-1 gap-2 min-w-0"):
                 with panel("Identity"):
                     with ui.row().classes("w-full gap-3 no-wrap"):
@@ -312,6 +319,56 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                   value=list(character.favored_attributes), multiple=True,
                                   on_change=lambda e: set_favored_attributes(e.value)).classes("w-full").props("use-chips")
 
+        # Training camp + Calling (Cult of the Illuminated, p.89-93). Its own full-width
+        # panel between Identity and Attributes rather than inside the caste-info card:
+        # that row is `items-stretch`, so a tall left column stretches the whole row and
+        # leaves a gap under the shorter Identity panel. Rendered only when the ORIGIN
+        # uses camps, so no other splat grows an empty panel.
+        camp_view = viewmod.build_camp_view(ruleset, character)
+        if camp_view is not None:
+            with panel("Training Camp & Calling"):
+                with ui.row().classes("w-full gap-3 items-start"):
+                    # left: the camp, its floors and its free-Charm package
+                    with ui.column().classes("flex-1 gap-1 min-w-0"):
+                        ui.select({cid: label for cid, label in camp_view.camp_options},
+                                  label="Training camp", value=camp_view.camp_id or None,
+                                  on_change=lambda e: set_camp(e.value)).classes("w-full")
+                        if camp_view.camp_description:
+                            ui.label(camp_view.camp_description).classes("text-xs")
+                        if camp_view.minimums:
+                            ui.label("Required Abilities: " + " · ".join(
+                                camp_view.minimums)).classes("text-xs italic")
+                        if camp_view.granted_fixed:
+                            ui.label("Free Charms: " + ", ".join(
+                                n for _, n in camp_view.granted_fixed)).classes("text-xs italic")
+                        for idx, choice in enumerate(camp_view.choices):
+                            suffix = f" (pick {choice.pick})" if choice.is_category_choice else ""
+                            # An option the page offers but `data/` cannot yet satisfy stays
+                            # LISTED — hiding it would misrepresent the rulebook — but is
+                            # marked, and set_camp_choice refuses it rather than assigning
+                            # nothing and blanking the control.
+                            opts = {o.key: (o.label if o.available
+                                            else f"{o.label} — {o.reason}")
+                                    for o in choice.options}
+                            ui.select(opts, label=choice.label + suffix,
+                                      value=choice.chosen_key or None,
+                                      on_change=lambda e, i=idx: set_camp_choice(i, e.value)
+                                      ).classes("w-full")
+                    # right: the Calling and what it discounts
+                    with ui.column().classes("flex-1 gap-1 min-w-0"):
+                        if camp_view.calling_options:
+                            ui.select({cid: label for cid, label in camp_view.calling_options},
+                                      label="Calling", value=camp_view.calling_id or None,
+                                      on_change=lambda e: set_calling(e.value)).classes("w-full")
+                            if camp_view.calling_description:
+                                ui.label(camp_view.calling_description).classes("text-xs")
+                            if camp_view.calling_abilities:
+                                ui.label("✧ Calling Abilities: " + ", ".join(
+                                    camp_view.calling_abilities)).classes("text-xs italic")
+                            if camp_view.calling_charms:
+                                ui.label(f"✧ {len(camp_view.calling_charms)} Calling Charms — "
+                                         f"discounted at chargen and in play").classes("text-xs italic")
+
         # attributes
         attr_header = viewmod.attribute_budget_summary(ruleset, character) or f"prioritise {ap}"
         with panel(f"Attributes ({attr_header})"):
@@ -343,6 +400,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         with panel(f"Abilities ({b.ability_dots} dots; ≥{b.ability_min_caste_favored} caste/favoured; ≤{b.ability_cap_pre_bp} each pre-bonus)"):
             ability_tally()
             groups = viewmod.ability_group_defs(ruleset, character.exalt_type)
+            calling_marks = viewmod.calling_ability_marks(ruleset, character)
             for start in range(0, len(groups), 3):
                 with ui.row().classes("w-full gap-2 no-wrap"):
                     for group_label, abilities in groups[start:start + 3]:
@@ -350,7 +408,13 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                             if group_label:
                                 ui.label(group_label).classes("text-xs font-semibold").style(f"color:{pal.accent}")
                             for a in abilities:
+                                # ● Caste · ✦ Favoured · ✧ Calling. An Ability can be
+                                # both Caste/Favoured AND a Calling Ability — the two
+                                # discounts stack (p.90) — so the marks concatenate
+                                # rather than one winning.
                                 mark = "●" if a in caste_abilities else ("✦" if a in character.favored_abilities else "")
+                                if a in calling_marks:
+                                    mark += "✧"
                                 with ui.row().classes("w-full items-center gap-1 no-wrap"):
                                     ui.label(mark).classes("text-xs w-3").style(f"color:{pal.accent}")
                                     if a == AbilityName.CRAFT:
@@ -592,6 +656,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # for splats that have no intra-splat origin variants.
         origins = _SPLAT_ORIGINS.get(value)
         character.origin = next(iter(origins)) if origins else ""
+        # ...and drop any training camp/Calling, which belong to the OLD origin. Without
+        # this, switching away from an Illuminated Solar leaves a stale camp id behind
+        # and validation reports camp-not-supported.
+        _reset_camp_for_origin()
         body.refresh(); changed()
         if on_theme_change is not None:     # let the embedding app re-theme its chrome
             on_theme_change()
@@ -602,6 +670,67 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     def set_origin(value: str) -> None:
         character.origin = value
+        # Camps/Callings belong to an origin. Switching origin invalidates them, and a
+        # stale camp id would trip camp-wrong-origin; default to the first camp offered
+        # (and its first Calling) so the character stays legal by construction.
+        _reset_camp_for_origin()
+        body.refresh(); changed()
+
+    def _reset_camp_for_origin() -> None:
+        """Re-seed camp/Calling/grants for the current origin. The rule lives in the
+        engine (validate.default_camp_and_calling) — this just applies it."""
+        camp, calling, granted = validate.default_camp_and_calling(ruleset, character)
+        character.camp, character.calling = camp, calling
+        character.granted_charms = granted
+
+    def set_camp(value: str, refresh: bool = True) -> None:
+        """Pick a training camp. The camp determines both the Calling list and the free
+        Charm package, so changing it clears any Calling and granted Charms that
+        belonged to the old one and re-seeds the fixed grants."""
+        character.camp = value
+        camp = ruleset.camps.get(value)
+        callings = ruleset.callings_for(value)
+        if character.calling not in {c.id for c in callings}:
+            character.calling = callings[0].id if callings else ""
+        # Fixed grants are automatic; the player still resolves each choice.
+        character.granted_charms = list(camp.granted_charms) if camp else []
+        if refresh:
+            body.refresh(); changed()
+
+    def set_calling(value: str) -> None:
+        character.calling = value
+        body.refresh(); changed()
+
+    def set_camp_choice(choice_index: int, key: str) -> None:
+        """Resolve one granted-Charm choice. Replaces whatever was previously selected
+        for THAT choice, leaving the fixed grants and the other choices alone."""
+        camp = ruleset.camps.get(character.camp)
+        if camp is None or choice_index >= len(camp.granted_charm_choices):
+            return
+        cv = viewmod.build_camp_view(ruleset, character)
+        cview = cv.choices[choice_index]
+        picked = next((o for o in cview.options if o.key == key), None)
+        if picked is None:
+            return
+        if not picked.available:
+            # Refuse, and say why. Previously this fell through and assigned an empty
+            # list, which cleared the control and looked like the dropdown was broken.
+            ui.notify(f"{picked.label} is not selectable — {picked.reason}.",
+                      type="warning")
+            body.refresh()          # snap the select back to the real selection
+            return
+        old = next((o.charm_ids for o in cview.options if o.key == cview.chosen_key), [])
+        new = list(picked.charm_ids)
+        choice = camp.granted_charm_choices[choice_index]
+        if choice.from_categories:
+            # A category choice takes `pick` Charms from the chosen style. Seed the
+            # lowest-requirement ones so the default is as reachable as possible; the
+            # player swaps individual Charms in the picker.
+            pool = sorted((c for c in ruleset.charms.values() if c.id in new),
+                          key=lambda c: (c.min_ability, c.min_essence, c.name))
+            new = [c.id for c in pool[:choice.pick]]
+        keep = [cid for cid in character.granted_charms if cid not in old]
+        character.granted_charms = keep + [cid for cid in new if cid not in keep]
         body.refresh(); changed()
 
     def set_favored(values: list[AbilityName]) -> None:

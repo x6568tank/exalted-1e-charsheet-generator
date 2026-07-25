@@ -101,13 +101,11 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
     charm = ruleset.charms.get(charm_id)
     if charm is None:
         return None
-    reqs = []
-    if charm.min_attribute:
-        reqs.append(f"{_label(charm.min_attribute)} {charm.min_ability}")
-    else:
-        ability = validate._category_ability(charm.category)
-        if ability is not None and charm.min_ability:
-            reqs.append(f"{_label(ability.value)} {charm.min_ability}")
+    # Every trait minimum, not just the primary one: a Charm may gate on more than one
+    # Ability (Ascendant Battle Visage needs Brawl 5 AND Endurance 5, p.102), and the
+    # engine owns the list so the card cannot show half the requirements.
+    reqs = [f"{_label(name)} {rating}"
+            for name, rating in validate.charm_ability_requirements(charm) if rating]
     reqs.append(f"Essence {charm.min_essence}")
     groups = [[ruleset.charms[r].name if r in ruleset.charms else r for r in group]
               for group in charm.prerequisites]
@@ -603,6 +601,170 @@ def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, lis
     return [(label, list(abilities)) for label, abilities in DEFAULT_ABILITY_GROUPS]
 
 
+@dataclass(frozen=True)
+class CampChoiceOption:
+    """One option within a camp's grant choice.
+
+    `available` is False when the option cannot actually be taken — which for this book
+    means a martial-arts style the page offers but whose Charms are not authored in
+    `data/` yet (3 of the Tabernacle's 4 styles; a pre-existing Solar data gap, see
+    images/Solars/_ILLUMINATED_PENDING.md). Such an option is still LISTED, because the
+    rulebook offers it and hiding it would misrepresent the page — but the UI must
+    refuse to select it rather than assign nothing and silently blank the control."""
+    key: str
+    label: str
+    charm_ids: list[str]
+    available: bool = True
+    reason: str = ""
+
+
+@dataclass(frozen=True)
+class CampChoiceView:
+    """One player choice inside a training camp's free-Charm package, flattened for the
+    UI. For a fixed-set choice each option is a whole printed pair; for a category choice
+    each option is one style and `pick` says how many Charms to take from it."""
+    label: str
+    pick: int
+    is_category_choice: bool
+    options: list[CampChoiceOption]
+    chosen_key: str = ""
+
+
+@dataclass(frozen=True)
+class CampView:
+    """Everything the editor needs to render the camp/Calling panel. Empty/None for
+    every character whose origin has no camps, which is how the panel stays hidden."""
+    camp_options: list[tuple[str, str]]          # (id, label)
+    camp_id: str
+    camp_label: str
+    camp_description: str
+    minimums: list[str]                          # e.g. "Melee 2", "Archery or Brawl 1"
+    granted_fixed: list[tuple[str, str]]         # (charm id, name) — always received
+    choices: list[CampChoiceView]
+    calling_options: list[tuple[str, str]]       # (id, label) for the CHOSEN camp
+    calling_id: str
+    calling_label: str
+    calling_description: str
+    calling_abilities: list[str]                 # display labels, ★-marked by the UI
+    calling_charms: list[tuple[str, str]]        # (charm id, name)
+
+
+def requires_camp(ruleset: RuleSet, character: Character) -> bool:
+    """Whether this character's origin uses training camps (Cult of the Illuminated).
+    Budget-driven, so no splat or origin is named in the UI."""
+    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    return b.requires_camp or b.requires_calling
+
+
+def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView]:
+    """The camp/Calling panel, or None when the origin has no camps."""
+    if not requires_camp(ruleset, character):
+        return None
+
+    camps = ruleset.camps_for(character.exalt_type, character.origin)
+    camp = validate.camp_for(ruleset, character)
+    calling = validate.calling_for(ruleset, character)
+
+    minimums: list[str] = []
+    granted_fixed: list[tuple[str, str]] = []
+    choices: list[CampChoiceView] = []
+    if camp is not None:
+        for req in camp.required_min_abilities:
+            names = " or ".join(_label(a.value) for a in req.abilities)
+            minimums.append(f"{names} {req.rating}")
+        granted_fixed = [(cid, _charm_name(ruleset, cid)) for cid in camp.granted_charms]
+
+        held = set(character.granted_charms)
+        for choice in camp.granted_charm_choices:
+            options: list[CampChoiceOption] = []
+            chosen = ""
+            if choice.fixed_sets:
+                for group in choice.fixed_sets:
+                    key = "|".join(group)
+                    label = " + ".join(_charm_name(ruleset, c) for c in group)
+                    missing = [c for c in group if c not in ruleset.charms]
+                    options.append(CampChoiceOption(
+                        key=key, label=label, charm_ids=list(group),
+                        available=not missing,
+                        reason="" if not missing else "Charm not in data"))
+                    if all(c in held for c in group):
+                        chosen = key
+            else:
+                for cat in choice.from_categories:
+                    ids = [c.id for c in ruleset.charms.values() if c.category == cat]
+                    ok = len(ids) >= choice.pick
+                    if ok:
+                        reason = ""
+                    elif not ids:
+                        reason = "no Charms authored yet"
+                    else:
+                        reason = f"only {len(ids)} Charm(s) authored, needs {choice.pick}"
+                    options.append(CampChoiceOption(
+                        key=cat, label=_style_label(cat), charm_ids=ids,
+                        available=ok, reason=reason))
+                    if ids and len([c for c in ids if c in held]) >= choice.pick:
+                        chosen = cat
+            choices.append(CampChoiceView(
+                label=choice.label, pick=choice.pick,
+                is_category_choice=bool(choice.from_categories),
+                options=options, chosen_key=chosen))
+
+    return CampView(
+        camp_options=[(c.id, c.label) for c in camps],
+        camp_id=camp.id if camp else "",
+        camp_label=camp.label if camp else "",
+        camp_description=camp.description if camp else "",
+        minimums=minimums,
+        granted_fixed=granted_fixed,
+        choices=choices,
+        calling_options=[(c.id, c.label) for c in ruleset.callings_for(camp.id)] if camp else [],
+        calling_id=calling.id if calling else "",
+        calling_label=calling.label if calling else "",
+        calling_description=calling.description if calling else "",
+        calling_abilities=[_label(a.value) for a in calling.abilities] if calling else [],
+        calling_charms=[(cid, _charm_name(ruleset, cid)) for cid in calling.charms]
+                       if calling else [],
+    )
+
+
+def _charm_name(ruleset: RuleSet, charm_id: str) -> str:
+    charm = ruleset.charms.get(charm_id)
+    return charm.name if charm is not None else charm_id
+
+
+def _style_label(category: str) -> str:
+    """"martial_arts:ebon-shadow" -> "Ebon Shadow Style"."""
+    slug = category.split(":", 1)[-1]
+    return " ".join(w.capitalize() for w in slug.replace("_", "-").split("-")) + " Style"
+
+
+def calling_ability_marks(ruleset: RuleSet, character: Character) -> set:
+    """The Ability names the Calling discounts, for the editor's ✦ marks. A separate
+    set from the Caste/Favoured one on purpose: an Ability can be both, and the two
+    discounts stack (p.90)."""
+    return validate.calling_abilities(ruleset, character)
+
+
+def is_calling_charm(ruleset: RuleSet, character: Character, charm_id: str) -> bool:
+    """Whether the picker should mark this Charm as a discounted Calling Charm."""
+    return charm_id in validate.calling_charm_ids(ruleset, character)
+
+
+def granted_charm_rows(ruleset: RuleSet, character: Character) -> list[CharmRow]:
+    """The camp's free Charms, as sheet rows. Kept separate from the picked Charms so
+    the sheet can label them "granted" — they cost no BP and no XP."""
+    rows: list[CharmRow] = []
+    for cid in character.granted_charms:
+        charm = ruleset.charms.get(cid)
+        if charm is None:
+            continue
+        rows.append(CharmRow(
+            name=charm.name, category=_label(charm.category.split(":")[-1]),
+            cost=_cost_str(charm.cost), duration=charm.duration,
+            description=_charm_description(charm)))
+    return rows
+
+
 def uses_caste_favored_attributes(ruleset: RuleSet, character: Character) -> bool:
     """Whether this splat allocates Attributes to Caste/Favored/remaining SETS
     (Alchemical, p.60) rather than prioritising Physical/Social/Mental categories.
@@ -856,6 +1018,18 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
             charms.append(CharmRow(f"{gift_charm.name} ({taken})", gift_charm.category,
                                    _cost_str(gift_charm.cost), gift_charm.duration,
                                    gift_charm.description))
+    # Charms GRANTED by a training camp (Cult of the Illuminated, p.90). A FOURTH list
+    # outside `character.charms`, alongside ox_body and beastman_gifts — see the
+    # "one canonical Charm-pick enumeration" refactor in CLAUDE.md's TODO. Labelled so
+    # the sheet distinguishes them from picks: they cost no BP and no XP.
+    for cid in character.granted_charms:
+        charm = ruleset.charms.get(cid)
+        if charm is None:
+            charms.append(CharmRow(f"{cid} (granted)", "?", "—", "—"))
+            continue
+        charms.append(CharmRow(f"{charm.name} (granted)", charm.category,
+                               _cost_str(charm.cost), charm.duration,
+                               _charm_description(charm)))
     spells = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)

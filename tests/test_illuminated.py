@@ -190,17 +190,20 @@ def test_every_calling_charm_id_resolves(rs):
             assert cid in rs.charms, (calling.id, cid)
 
 
-def test_calling_charm_lists_are_incomplete_pending_the_charm_batch(rs):
-    """The page gives every Calling ten Calling Charms. Six of those Charms are not
-    authored yet (five are reprinted in this book's own Charms chapter, p.100-106;
-    Unshakable Bloodhound Technique comes from a Caste Book), so four Callings are
-    short. This test pins the CURRENT gap so finishing the Charm batch forces it to
-    be updated rather than leaving a silently under-discounted Calling.
+def test_calling_charm_lists_are_complete_except_one_known_gap(rs):
+    """Five of the six Charms this origin's Callings referenced but `data/` lacked were
+    authored from the book's own Charms chapter (p.100-106), so the lists are now as
+    printed. Two counts are NOT ten, for two different reasons:
 
-    When the Charms land: add the ids to callings.json and change these to 10."""
+    * Itinerant — the page itself prints only NINE Calling Charms for it, on both p.91
+      and the p.93 summary. Not a gap.
+    * Deacon — still missing **Unshakable Bloodhound Technique**, which p.100 implies
+      was reprinted from a Caste Book but which does not appear in the chapter. It
+      needs a Caste Book page before it can be authored (see _ILLUMINATED_PENDING.md).
+    """
     counts = {c.id: len(c.charms) for c in rs.callings.values()}
-    assert counts == {"exemplar": 10, "inquisitor": 9, "itinerant": 7,
-                      "architect": 9, "deacon": 8, "paladin": 10}
+    assert counts == {"exemplar": 10, "inquisitor": 10, "itinerant": 9,
+                      "architect": 10, "deacon": 9, "paladin": 10}
 
 
 def test_a_calling_ability_is_not_thereby_a_favored_ability(rs):
@@ -592,3 +595,538 @@ def test_a_standard_solar_gets_no_calling_discounts(rs):
     assert costs.ability_step(rs, std, AB.SAIL, 3) == 6
     charm = rs.charms["solar.investigation.ten-magistrate-eyes"]
     assert costs.charm_cost(rs, std, charm) == 10
+
+
+# ============================================================================ #
+# Charms (p.100-106) — 20 Charms across 6 Abilities plus Falling Blossom Style
+# ============================================================================ #
+
+_ILL_BOOK = "Exalted 1e Cult of the Illuminated"
+
+
+def _ill_charms(rs):
+    return [c for c in rs.charms.values() if c.source.book == _ILL_BOOK]
+
+
+def test_twenty_charms_authored_from_this_book(rs):
+    """The chapter has 21 headings, but FALLING BLOSSOM STYLE is the style's preamble
+    (no Cost/Duration block), not a Charm — so 20."""
+    got = _ill_charms(rs)
+    assert len(got) == 20
+    by_cat = {}
+    for c in got:
+        by_cat[c.category] = by_cat.get(c.category, 0) + 1
+    assert by_cat == {"brawl": 5, "endurance": 1, "linguistics": 1,
+                      "martial_arts:falling-blossom": 7, "presence": 4,
+                      "survival": 1, "socialize": 1}
+
+
+def test_every_new_charm_carries_its_page(rs):
+    for c in _ill_charms(rs):
+        assert c.source.page is not None, c.id
+        assert 100 <= c.source.page <= 106, (c.id, c.source.page)
+
+
+def test_brawl_cascade_resolves_to_an_existing_corebook_root(rs):
+    """The Brawl tree hangs off corebook Charms: Inevitable Victory Meditation needs
+    Fists of Iron Technique, and Irrepressible Bravery Tactic needs Thunderclap Rush
+    Attack. (The page prints "Fist of Iron Technique" — a typo for the corebook
+    "Fists of Iron Technique", which is what the id points at.)"""
+    ivm = rs.charms["solar.brawl.inevitable-victory-meditation"]
+    assert ivm.prerequisites == [["solar.brawl.fists-of-iron-technique"]]
+    ibt = rs.charms["solar.brawl.irrepressible-bravery-tactic"]
+    assert ibt.prerequisites == [["solar.brawl.thunderclap-rush-attack"]]
+
+    # Supremacy of War Method needs BOTH of the above branches (AND, two groups).
+    sow = rs.charms["solar.brawl.supremacy-of-war-method"]
+    assert sow.prerequisites == [["solar.brawl.inevitable-victory-meditation"],
+                                 ["solar.brawl.dancing-with-strife-technique"]]
+
+
+def test_ascendant_battle_visage_crosses_into_endurance(rs):
+    """Its prerequisites span two trees — Supremacy of War Method (Brawl) and
+    Bloodthirsty Sword-Dancer Spirit (Endurance) — as two AND groups."""
+    c = rs.charms["solar.brawl.ascendant-battle-visage"]
+    assert c.prerequisites == [["solar.brawl.supremacy-of-war-method"],
+                              ["solar.endurance.bloodthirsty-sword-dancer-spirit"]]
+    assert c.min_essence == 4
+
+
+def test_ascendant_battle_visage_has_a_second_ability_minimum(rs):
+    """p.102 gives this Charm TWO Ability minimums: "Minimum Brawl: 5 / Minimum
+    Endurance: 5". Brawl is the primary gate (it is the Charm's category); Endurance
+    lives in `extra_min_abilities`. The description carries no note about it — the
+    field is the record now."""
+    c = rs.charms["solar.brawl.ascendant-battle-visage"]
+    assert c.min_ability == 5
+    assert [(list(r.abilities), r.rating) for r in c.extra_min_abilities] == \
+        [([AB.ENDURANCE], 5)]
+    assert "Minimum Endurance" not in c.description
+
+
+def test_extra_min_abilities_is_empty_for_every_other_charm(rs):
+    """Ascendant Battle Visage is the only multi-gate Charm authored so far, so a
+    second one has to be deliberate."""
+    multi = [c.id for c in rs.charms.values() if c.extra_min_abilities]
+    assert multi == ["solar.brawl.ascendant-battle-visage"]
+
+
+def test_falling_blossom_is_a_terrestrial_style_open_to_every_splat(rs):
+    """p.102: "Falling Blossom Style is a Terrestrial Style, and thus, Dragon-Blooded
+    may learn it at no penalty, and mortals with the Essence Mastery Merit ... may also
+    learn it." That is exactly what `open_to_all` means in this project."""
+    style = [c for c in rs.charms.values() if c.category == "martial_arts:falling-blossom"]
+    assert len(style) == 7
+    assert all(c.open_to_all for c in style), [c.id for c in style if not c.open_to_all]
+    # It is NOT one of the four styles the Tabernacle's free package draws from (p.90).
+    (choice,) = rs.camps["sequestered-tabernacle"].granted_charm_choices
+    assert "martial_arts:falling-blossom" not in choice.from_categories
+
+
+def test_falling_blossom_cascade_is_self_contained(rs):
+    """Every prerequisite in the style points inside the style — it has one root
+    (Living Shield Technique) and needs no corebook Charm."""
+    style = {c.id: c for c in rs.charms.values()
+             if c.category == "martial_arts:falling-blossom"}
+    for c in style.values():
+        for group in c.prerequisites:
+            for pid in group:
+                assert pid in style, (c.id, pid)
+    roots = [c.id for c in style.values() if not c.prerequisites]
+    assert roots == ["solar.martial-arts.living-shield-technique"]
+
+
+def test_falling_blossom_form_is_the_style_form_charm(rs):
+    form = rs.charms["solar.martial-arts.falling-blossom-form"]
+    assert form.type.value == "Simple"
+    assert form.min_ability == 4
+    assert form.prerequisites == [["solar.martial-arts.undefended-assault-method"],
+                                 ["solar.martial-arts.dual-scarlet-blossom-technique"]]
+    # Both capstones branch off the Form.
+    for cap in ("purity-of-purpose-attack", "strength-of-faith-meditation"):
+        assert rs.charms[f"solar.martial-arts.{cap}"].prerequisites == \
+            [["solar.martial-arts.falling-blossom-form"]]
+
+
+def test_variable_costs_keep_the_flat_component_at_zero(rs):
+    """`cost.raw` is authoritative for a variable cost, and the numeric fields hold only
+    the FLAT part — so a "per die"/"per success" Charm has 0 motes, not 1."""
+    per_success = rs.charms["solar.brawl.irrepressible-bravery-tactic"]
+    assert per_success.cost.raw == "3 motes per success"
+    assert per_success.cost.motes == 0
+
+    per_die = rs.charms["solar.martial-arts.strength-of-faith-meditation"]
+    assert per_die.cost.raw == "1 mote per die, 1 Willpower"
+    assert (per_die.cost.motes, per_die.cost.willpower) == (0, 1)
+
+    # Dual Scarlet Blossom spends health levels per die too — also variable, so 0.
+    dual = rs.charms["solar.martial-arts.dual-scarlet-blossom-technique"]
+    assert dual.cost.raw == "1 mote and 1 health level per die, 1 Willpower"
+    assert (dual.cost.motes, dual.cost.health) == (0, 0)
+
+
+def test_committed_essence_charms_are_flagged(rs):
+    """Two of these commit Essence for their duration rather than spending it:
+    Supremacy of War Method holds motes until spent as dice, and Excellent Emissary's
+    Tongue holds them for as long as the language is known."""
+    assert rs.charms["solar.brawl.supremacy-of-war-method"].cost.committed
+    assert rs.charms["solar.linguistics.excellent-emissarys-tongue"].cost.committed
+    # And a Charm that merely spends motes is not flagged.
+    assert not rs.charms["solar.presence.prey-freezing-gaze"].cost.committed
+
+
+def test_presence_cascade_chains_off_corebook_charms(rs):
+    p = "solar.presence."
+    assert rs.charms[p + "prey-freezing-gaze"].prerequisites == \
+        [[p + "harmonious-presence-meditation"]]
+    assert rs.charms[p + "soul-shaping-words-technique"].prerequisites == \
+        [[p + "listener-swaying-argument"]]
+    assert rs.charms[p + "true-harmony-revelation"].prerequisites == \
+        [[p + "soul-shaping-words-technique"]]
+    assert rs.charms[p + "horizon-to-horizon-presence-method"].prerequisites == \
+        [[p + "hypnotic-tongue-technique"], [p + "terrifying-apparition-of-glory"]]
+
+
+def test_the_five_previously_missing_calling_charms_now_resolve(rs):
+    """These five were referenced by callings.json but absent from `data/`; authoring
+    the chapter closed the gap. Asserted by id so a rename cannot silently reopen it."""
+    for cid in ("solar.presence.prey-freezing-gaze",
+                "solar.linguistics.excellent-emissarys-tongue",
+                "solar.endurance.tireless-travelers-stamina",
+                "solar.socialize.graceful-courtier-attitude",
+                "solar.survival.game-snaring-huntsmans-method"):
+        assert cid in rs.charms, cid
+        assert any(cid in c.charms for c in rs.callings.values()), cid
+
+
+def test_a_calling_charm_from_this_book_is_priced_at_the_calling_rate(rs):
+    """End-to-end: Prey-Freezing Gaze is an Inquisitor Calling Charm, and Presence is
+    not a Dawn Caste Ability, so it costs the undiscounted-Caste Calling rate of 8."""
+    inquisitor = _illuminated(rs, camp="sequestered-tabernacle", calling="inquisitor",
+                              granted_charms=rs.camps["sequestered-tabernacle"].granted_charms
+                              + [c.id for c in rs.charms.values()
+                                 if c.category == "martial_arts:snake"][:2],
+                              abilities={AB.MARTIAL_ARTS: 5, AB.PRESENCE: 3})
+    charm = rs.charms["solar.presence.prey-freezing-gaze"]
+    assert costs.charm_cost(rs, inquisitor, charm) == 8
+
+
+# ============================================================================ #
+# Multi-gate Charms — the shared trait-minimum helper
+# ============================================================================ #
+
+def _brawler(rs, brawl, endurance):
+    """A Solar holding Ascendant Battle Visage's whole prerequisite chain, so the only
+    thing under test is the pair of Ability minimums."""
+    return Character(
+        id="mg", name="Multi", exalt_type="Solar", caste="dawn", essence_rating=4,
+        abilities={AB.BRAWL: brawl, AB.ENDURANCE: endurance},
+        charms=["solar.brawl.fists-of-iron-technique",
+                "solar.brawl.thunderclap-rush-attack",
+                "solar.brawl.inevitable-victory-meditation",
+                "solar.brawl.irrepressible-bravery-tactic",
+                "solar.brawl.dancing-with-strife-technique",
+                "solar.brawl.supremacy-of-war-method",
+                "solar.endurance.bloodthirsty-sword-dancer-spirit",
+                "solar.brawl.ascendant-battle-visage"],
+    )
+
+
+def test_shortfalls_reports_the_primary_gate(rs):
+    c = _brawler(rs, brawl=3, endurance=5)
+    charm = rs.charms["solar.brawl.ascendant-battle-visage"]
+    assert validate.charm_ability_shortfalls(c, charm) == [("brawl", 5, 3)]
+
+
+def test_shortfalls_reports_the_extra_gate(rs):
+    """The whole point: Brawl 5 alone is no longer enough."""
+    c = _brawler(rs, brawl=5, endurance=2)
+    charm = rs.charms["solar.brawl.ascendant-battle-visage"]
+    assert validate.charm_ability_shortfalls(c, charm) == [("endurance", 5, 2)]
+
+
+def test_shortfalls_reports_both_when_both_fail(rs):
+    c = _brawler(rs, brawl=1, endurance=1)
+    charm = rs.charms["solar.brawl.ascendant-battle-visage"]
+    assert validate.charm_ability_shortfalls(c, charm) == [("brawl", 5, 1), ("endurance", 5, 1)]
+
+
+def test_shortfalls_is_empty_when_both_are_met(rs):
+    c = _brawler(rs, brawl=5, endurance=5)
+    charm = rs.charms["solar.brawl.ascendant-battle-visage"]
+    assert validate.charm_ability_shortfalls(c, charm) == []
+
+
+def test_all_three_engine_gates_honour_the_extra_minimum(rs):
+    """The three places that check trait minimums now share one helper, so all three
+    must agree. Before the field existed each compared `min_ability` by hand, which is
+    exactly how a fourth call site would have diverged."""
+    charm = rs.charms["solar.brawl.ascendant-battle-visage"]
+    short = _brawler(rs, brawl=5, endurance=2)
+    ok = _brawler(rs, brawl=5, endurance=5)
+
+    # 1. the picker's forward-looking eligibility check
+    assert not validate.meets_charm_requirements(rs, short, charm)
+    assert validate.meets_charm_requirements(rs, ok, charm)
+
+    # 2. the owned-Charm audit
+    codes = [i.code for i in validate.check_charm_prerequisites(rs, short)]
+    assert "charm-min-ability" in codes
+    assert "charm-min-ability" not in [
+        i.code for i in validate.check_charm_prerequisites(rs, ok)]
+
+    # 3. the granted-Charm package check (reached via a camp that grants it)
+    camp = rs.camps["kether-rock"]
+    granted = _illuminated(rs, granted_charms=camp.granted_charms + [
+        "solar.dodge.reed-in-the-wind", "solar.dodge.shadow-over-water",
+        "solar.brawl.ascendant-battle-visage"],
+        abilities={AB.DODGE: 3, AB.BRAWL: 5, AB.ENDURANCE: 2}, essence_rating=4)
+    msgs = [i.message for i in validate.granted_charm_issues(rs, granted)
+            if i.code == "granted-charm-minimum"]
+    assert any("endurance 5" in m for m in msgs), msgs
+
+
+def test_or_semantics_work_inside_an_extra_minimum(rs):
+    """`extra_min_abilities` reuses AbilityMinimum, so an entry can be an OR — each
+    entry is an independent AND whose members are alternatives. No Charm needs this
+    yet; the shape is asserted so the infrastructure is known to support it."""
+    from exalted_builder.models.rules import AbilityMinimum
+    charm = rs.charms["solar.brawl.ascendant-battle-visage"].model_copy(
+        update={"extra_min_abilities": [
+            AbilityMinimum(abilities=[AB.MELEE, AB.THROWN], rating=3)]})
+
+    neither = _brawler(rs, brawl=5, endurance=5)
+    assert validate.charm_ability_shortfalls(neither, charm) == [("melee or thrown", 3, 0)]
+
+    with_melee = neither.model_copy(update={
+        "abilities": {**neither.abilities, AB.MELEE: 3}})
+    assert validate.charm_ability_shortfalls(with_melee, charm) == []
+
+    with_thrown = neither.model_copy(update={
+        "abilities": {**neither.abilities, AB.THROWN: 4}})
+    assert validate.charm_ability_shortfalls(with_thrown, charm) == []
+
+
+def test_extra_minimum_does_not_affect_pricing_or_favored_ness(rs):
+    """The extra gate is a REQUIREMENT only. A Zenith Solar has Endurance as a Caste
+    Ability, but Ascendant Battle Visage is a Brawl Charm and must stay full price —
+    the second gate must never leak into the discount logic."""
+    zenith = Character(id="z", name="Z", exalt_type="Solar", caste="zenith",
+                       essence_rating=4)
+    dawn = Character(id="d", name="D", exalt_type="Solar", caste="dawn",
+                     essence_rating=4)
+    charm = rs.charms["solar.brawl.ascendant-battle-visage"]
+    assert costs.charm_cost(rs, zenith, charm) == 10       # Brawl is not a Zenith Ability
+    assert costs.charm_cost(rs, dawn, charm) == 8          # Brawl IS a Dawn Ability
+
+
+def test_requirements_list_is_ordered_primary_then_extras(rs):
+    charm = rs.charms["solar.brawl.ascendant-battle-visage"]
+    assert validate.charm_ability_requirements(charm) == [("brawl", 5), ("endurance", 5)]
+    # A single-gate Charm is unchanged.
+    assert validate.charm_ability_requirements(
+        rs.charms["solar.brawl.dancing-with-strife-technique"]) == [("brawl", 3)]
+    # An Attribute-keyed Charm still reports its Attribute.
+    lunar = next(c for c in rs.charms.values() if c.min_attribute)
+    assert validate.charm_ability_requirements(lunar)[0][0] == lunar.min_attribute
+
+
+def test_the_detail_card_shows_every_requirement(rs):
+    """view.build_charm_detail must list both gates, or a player sees only half of
+    what the Charm needs."""
+    from exalted_builder.ui import view
+    c = _brawler(rs, brawl=5, endurance=5)
+    detail = view.build_charm_detail(rs, c, "solar.brawl.ascendant-battle-visage")
+    assert "Brawl 5" in detail.requirement
+    assert "Endurance 5" in detail.requirement
+    assert "Essence 4" in detail.requirement
+
+
+# ============================================================================ #
+# Phase 4 — presenters (toolkit-free; the render tests live in test_illuminated_ui)
+# ============================================================================ #
+
+def test_camp_view_is_none_without_a_camp_origin(rs):
+    """The panel is gated on the origin's budget, so no other splat grows one."""
+    from exalted_builder.ui import view
+    for c in (Character(id="a", name="a", exalt_type="Solar", caste="dawn"),
+              Character(id="b", name="b", exalt_type="Lunar", caste="full-moon"),
+              Character(id="c", name="c", exalt_type="Sidereal", caste="battles")):
+        assert view.build_camp_view(rs, c) is None, c.exalt_type
+    assert not view.requires_camp(rs, Character(id="d", name="d", exalt_type="Solar",
+                                                caste="dawn"))
+
+
+def test_camp_view_offers_both_camps_and_the_chosen_camps_callings(rs):
+    from exalted_builder.ui import view
+    v = view.build_camp_view(rs, _illuminated(rs))
+    assert [cid for cid, _ in v.camp_options] == ["sequestered-tabernacle", "kether-rock"]
+    # Callings are scoped to the CHOSEN camp, not to the origin.
+    assert [cid for cid, _ in v.calling_options] == ["architect", "deacon", "paladin"]
+    assert v.calling_label == "Deacon"
+    assert v.calling_abilities == ["Investigation", "Larceny", "Melee", "Stealth", "Survival"]
+
+
+def test_camp_view_renders_the_or_minimum_as_one_line(rs):
+    from exalted_builder.ui import view
+    v = view.build_camp_view(rs, _illuminated(rs))
+    assert "Archery or Brawl 1" in v.minimums
+    assert "Survival 3" in v.minimums
+
+
+def test_camp_view_marks_the_taken_pair_as_chosen(rs):
+    """The default fixture takes Durability of Oak + Iron Skin, so that option — and
+    only that option — is the resolved one."""
+    from exalted_builder.ui import view
+    (choice,) = view.build_camp_view(rs, _illuminated(rs)).choices
+    assert not choice.is_category_choice
+    labels = {o.key: o.label for o in choice.options}
+    assert choice.chosen_key in labels
+    assert labels[choice.chosen_key] == "Durability of Oak Meditation + Iron Skin Concentration"
+    assert len(choice.options) == 5
+
+
+def test_camp_view_lists_all_four_styles_with_readable_labels(rs):
+    """A closed ui.select never puts its options in the DOM, so the option LABELS are
+    asserted here rather than in a render test. Three of the four styles have no Charms
+    authored yet (a pre-existing Solar data gap), so they render with empty pools."""
+    from exalted_builder.ui import view
+    tab = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
+                       granted_charms=rs.camps["sequestered-tabernacle"].granted_charms)
+    (choice,) = view.build_camp_view(rs, tab).choices
+    assert choice.is_category_choice
+    assert choice.pick == 2
+    assert [o.label for o in choice.options] == [
+        "Ebon Shadow Style", "Praying Mantis Style", "Snake Style", "Tiger Style"]
+    pools = {o.label: len(o.charm_ids) for o in choice.options}
+    assert pools["Snake Style"] == 10
+    assert pools["Tiger Style"] == 0          # not authored yet
+    assert choice.chosen_key == ""            # nothing taken, so unresolved
+
+
+def test_calling_marks_and_charm_tag_presenters(rs):
+    from exalted_builder.ui import view
+    c = _illuminated(rs)
+    marks = view.calling_ability_marks(rs, c)
+    assert AB.STEALTH in marks and AB.MELEE in marks
+    assert AB.SAIL not in marks
+    assert view.is_calling_charm(rs, c, "solar.investigation.ten-magistrate-eyes")
+    assert not view.is_calling_charm(rs, c, "solar.brawl.ferocious-jab")
+
+
+def test_granted_charm_rows_are_built_for_the_sheet(rs):
+    from exalted_builder.ui import view
+    rows = view.granted_charm_rows(rs, _illuminated(rs))
+    assert [r.name for r in rows] == [
+        "Ox-Body Technique", "Hardship-Surviving Mendicant Spirit",
+        "Durability of Oak Meditation", "Iron Skin Concentration"]
+
+
+def test_sheet_view_labels_granted_charms_and_keeps_picks_separate(rs):
+    """`granted_charms` is a FOURTH list outside `character.charms` (after ox_body and
+    beastman_gifts), so the sheet has to enumerate it explicitly — the same miss
+    Beastman Gifts had. Labelled so a granted Charm is not read as a spent pick."""
+    from exalted_builder.ui import view
+    c = _illuminated(rs, charms=["solar.brawl.ferocious-jab"],
+                     abilities={AB.BRAWL: 3, AB.SURVIVAL: 3})
+    names = [r.name for r in view.build_sheet_view(rs, c).charms]
+    assert "Ferocious Jab" in names                       # a pick, unlabelled
+    assert "Ox-Body Technique (granted)" in names
+    assert sum("(granted)" in n for n in names) == 4
+
+
+def test_the_editor_offers_the_illuminated_origin_for_solars():
+    """The engine can be complete and the feature still unreachable. `_SPLAT_ORIGINS` is
+    the editor's only route to an origin, so it is asserted here rather than left to a
+    render test — and "standard" must fall back to the plain Solar budget row."""
+    from exalted_builder.ui.editor import _SPLAT_ORIGINS
+    origins = _SPLAT_ORIGINS["Solar"]
+    assert list(origins) == ["standard", "illuminated"]
+    assert origins["illuminated"] == "Cult of the Illuminated"
+
+
+def test_every_origin_offered_by_the_editor_resolves_to_a_budget(rs):
+    """A typo in _SPLAT_ORIGINS silently falls back to the splat's default budget, which
+    looks like the feature simply not working. Assert each origin either has its own row
+    or is the deliberate first/default key."""
+    from exalted_builder.ui.editor import _SPLAT_ORIGINS
+    for splat, origins in _SPLAT_ORIGINS.items():
+        for i, key in enumerate(origins):
+            keyed = rs.budgets.get(f"{splat}:{key}")
+            assert keyed is not None or i == 0, (
+                f"{splat}:{key} has no budget row and is not the default origin")
+
+
+def test_switching_splat_clears_a_stale_camp(rs):
+    """Regression: switching away from an Illuminated Solar used to leave `camp` set,
+    which then reported camp-not-supported. Asserted through the engine because the
+    editor setter is a closure."""
+    c = _illuminated(rs)
+    assert _codes(validate.check_camp_and_calling(rs, c)) == set()
+    moved = c.model_copy(update={"exalt_type": "Lunar", "caste": "full-moon", "origin": ""})
+    assert "camp-not-supported" in _codes(validate.check_camp_and_calling(rs, moved))
+    cleared = moved.model_copy(update={"camp": "", "calling": "", "granted_charms": []})
+    assert _codes(validate.check_camp_and_calling(rs, cleared)) == set()
+
+
+def test_picking_the_illuminated_origin_seeds_a_legal_character(rs):
+    """The bug the user hit was reachability: the engine was complete and the origin
+    unselectable. The other half is that selecting it must leave the character LEGAL,
+    not merely leave three more dropdowns to fill in — so the defaulting rule lives in
+    the engine and is asserted here.
+
+    (This replaced a UI click-through test that passed alone and failed in-suite; the
+    behaviour it claimed to prove is verified deterministically instead.)"""
+    fresh = Character(id="f", name="Fresh", exalt_type="Solar", caste="dawn",
+                      origin="illuminated", essence_rating=3)
+    camp, calling, granted = validate.default_camp_and_calling(rs, fresh)
+    assert camp == "sequestered-tabernacle"          # the first camp offered
+    assert calling == "exemplar"                     # its first Calling
+    assert granted == list(rs.camps[camp].granted_charms)
+
+    seeded = fresh.model_copy(update={"camp": camp, "calling": calling,
+                                      "granted_charms": granted})
+    assert _codes(validate.check_camp_and_calling(rs, seeded)) == set()
+
+
+def test_seeding_is_idempotent_and_keeps_the_players_choices(rs):
+    """Re-running the seed must not discard a resolved grant choice, or a body.refresh()
+    would silently wipe the player's martial-arts pick."""
+    c = _illuminated(rs)                              # Kether Rock, pair resolved
+    before = list(c.granted_charms)
+    camp, calling, granted = validate.default_camp_and_calling(rs, c)
+    assert (camp, calling) == ("kether-rock", "deacon")
+    assert granted == before
+
+
+def test_seeding_clears_everything_for_an_origin_without_camps(rs):
+    c = _illuminated(rs).model_copy(update={"origin": ""})
+    assert validate.default_camp_and_calling(rs, c) == ("", "", [])
+
+
+# ---------------------------------------------------- unpickable grant options
+
+def test_unavailable_styles_are_listed_but_flagged(rs):
+    """The Tabernacle offers four martial arts (p.90) but only Snake Style has Charms in
+    `data/`. All four must still be LISTED — the rulebook offers them and hiding them
+    would misrepresent the page — with the three empty ones marked unavailable and
+    carrying a reason, so the UI can refuse them instead of silently blanking."""
+    from exalted_builder.ui import view
+    tab = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
+                       granted_charms=rs.camps["sequestered-tabernacle"].granted_charms)
+    (choice,) = view.build_camp_view(rs, tab).choices
+
+    by_label = {o.label: o for o in choice.options}
+    assert len(by_label) == 4
+    assert by_label["Snake Style"].available
+    assert by_label["Snake Style"].reason == ""
+    for label in ("Ebon Shadow Style", "Praying Mantis Style", "Tiger Style"):
+        assert not by_label[label].available, label
+        assert by_label[label].reason == "no Charms authored yet", label
+
+
+def test_a_partially_authored_style_reports_how_short_it_is(rs):
+    """A style with SOME but not enough Charms is a different failure from an empty one,
+    and the reason must say which — otherwise the fix is a guess."""
+    from exalted_builder.ui import view
+    from exalted_builder.models.rules import GrantedCharmChoice
+
+    one_snake = [c.id for c in rs.charms.values() if c.category == "martial_arts:snake"][:1]
+    # A choice needing 2 from a category that only holds 1 authored Charm.
+    fake_rs = rs.model_copy(deep=True)
+    fake_rs.camps["sequestered-tabernacle"] = rs.camps["sequestered-tabernacle"].model_copy(
+        update={"granted_charm_choices": [GrantedCharmChoice(
+            label="Two Charms from one martial arts style", pick=2,
+            from_categories=["martial_arts:solo"])]})
+    fake_rs.charms[one_snake[0]] = rs.charms[one_snake[0]].model_copy(
+        update={"category": "martial_arts:solo"})
+
+    tab = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
+                       granted_charms=rs.camps["sequestered-tabernacle"].granted_charms)
+    (choice,) = view.build_camp_view(fake_rs, tab).choices
+    (opt,) = choice.options
+    assert not opt.available
+    assert opt.reason == "only 1 Charm(s) authored, needs 2"
+
+
+def test_fixed_set_options_are_all_available(rs):
+    """Kether Rock's pairs are link-checked by the loader, so every option is takeable —
+    availability is not a category-choice-only concept, it is just always True here."""
+    from exalted_builder.ui import view
+    (choice,) = view.build_camp_view(rs, _illuminated(rs)).choices
+    assert all(o.available and o.reason == "" for o in choice.options)
+
+
+def test_selecting_snake_style_resolves_the_choice(rs):
+    """The positive case the user could reach: taking two Snake Charms marks the choice
+    resolved, and the package validates clean."""
+    from exalted_builder.ui import view
+    camp = rs.camps["sequestered-tabernacle"]
+    snake = sorted((c for c in rs.charms.values() if c.category == "martial_arts:snake"),
+                   key=lambda c: (c.min_ability, c.min_essence, c.name))[:2]
+    tab = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
+                       granted_charms=list(camp.granted_charms) + [c.id for c in snake],
+                       abilities={AB.MARTIAL_ARTS: 5, AB.PRESENCE: 3})
+    (choice,) = view.build_camp_view(rs, tab).choices
+    assert choice.chosen_key == "martial_arts:snake"
+    assert _codes(validate.granted_charm_issues(rs, tab)) == set()

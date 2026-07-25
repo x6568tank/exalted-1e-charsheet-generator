@@ -1,8 +1,161 @@
 [
-  {"id": "solar.socialize.wise-eyed-courtier-method", "name": "Wise-Eyed Courtier Method", "category": "socialize", "type": "Simple", "min_ability": 2, "min_essence": 1, "prerequisites": [], "cost": {"motes": 3}, "duration": "Instant", "description": "Reads the unspoken subtext and social currents of a conversation.", "source": {"book": "Exalted 1e Core", "page": 211}},
-  {"id": "solar.socialize.motive-discerning-technique", "name": "Motive-Discerning Technique", "category": "socialize", "type": "Simple", "min_ability": 4, "min_essence": 2, "prerequisites": [["solar.socialize.wise-eyed-courtier-method"]], "cost": {"motes": 6}, "duration": "Instant", "description": "Discerns a target's true motives and what they want in a social situation.", "source": {"book": "Exalted 1e Core", "page": 211}},
-  {"id": "solar.socialize.mastery-of-small-manners", "name": "Mastery of Small Manners", "category": "socialize", "type": "Simple", "min_ability": 2, "min_essence": 1, "prerequisites": [], "cost": {"motes": 3}, "duration": "One scene", "description": "Always behaves with flawless, appropriate manners and etiquette for any situation.", "source": {"book": "Exalted 1e Core", "page": 211}},
-  {"id": "solar.socialize.knowing-the-souls-price", "name": "Knowing the Soul's Price", "category": "socialize", "type": "Simple", "min_ability": 5, "min_essence": 2, "prerequisites": [["solar.socialize.mastery-of-small-manners"], ["solar.socialize.motive-discerning-technique"]], "cost": {"motes": 10, "willpower": 1}, "duration": "Instant", "description": "Determines what a target most desires — what would bribe, sway, or buy them.", "source": {"book": "Exalted 1e Core", "page": 211}},
-  {"id": "solar.socialize.understanding-the-court", "name": "Understanding the Court", "category": "socialize", "type": "Simple", "min_ability": 5, "min_essence": 5, "prerequisites": [["solar.socialize.motive-discerning-technique"]], "cost": {"motes": 20, "willpower": 1}, "duration": "Instant", "description": "Grasps the entire web of power, alliance, and rivalry in a social setting at a glance.", "source": {"book": "Exalted 1e Core", "page": 212}},
-  {"id": "solar.socialize.venomous-rumors-technique", "name": "Venomous Rumors Technique", "category": "socialize", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.socialize.knowing-the-souls-price"], ["solar.socialize.understanding-the-court"]], "cost": {"motes": 10, "willpower": 1}, "duration": "One day", "description": "Spreads ruinous rumors that turn a target into a social outcast.", "source": {"book": "Exalted 1e Core", "page": 213}}
+  {
+    "id": "solar.socialize.wise-eyed-courtier-method",
+    "name": "Wise-Eyed Courtier Method",
+    "category": "socialize",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "Instant",
+    "description": "Reads the unspoken subtext and social currents of a conversation.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 211
+    }
+  },
+  {
+    "id": "solar.socialize.motive-discerning-technique",
+    "name": "Motive-Discerning Technique",
+    "category": "socialize",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.socialize.wise-eyed-courtier-method"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "Instant",
+    "description": "Discerns a target's true motives and what they want in a social situation.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 211
+    }
+  },
+  {
+    "id": "solar.socialize.mastery-of-small-manners",
+    "name": "Mastery of Small Manners",
+    "category": "socialize",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "Always behaves with flawless, appropriate manners and etiquette for any situation.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 211
+    }
+  },
+  {
+    "id": "solar.socialize.knowing-the-souls-price",
+    "name": "Knowing the Soul's Price",
+    "category": "socialize",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.socialize.mastery-of-small-manners"
+      ],
+      [
+        "solar.socialize.motive-discerning-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "Determines what a target most desires — what would bribe, sway, or buy them.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 211
+    }
+  },
+  {
+    "id": "solar.socialize.understanding-the-court",
+    "name": "Understanding the Court",
+    "category": "socialize",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "solar.socialize.motive-discerning-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 20,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "Grasps the entire web of power, alliance, and rivalry in a social setting at a glance.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 212
+    }
+  },
+  {
+    "id": "solar.socialize.venomous-rumors-technique",
+    "name": "Venomous Rumors Technique",
+    "category": "socialize",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.socialize.knowing-the-souls-price"
+      ],
+      [
+        "solar.socialize.understanding-the-court"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "Spreads ruinous rumors that turn a target into a social outcast.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 213
+    }
+  },
+  {
+    "id": "solar.socialize.graceful-courtier-attitude",
+    "name": "Graceful Courtier Attitude",
+    "category": "socialize",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.socialize.mastery-of-small-manners"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes per difficulty penalty"
+    },
+    "duration": "One scene",
+    "description": "By attuning to the flow of Essence, the Chosen becomes virtually unflappable. No matter how difficult or unusual the social situation, she navigates it with enviable ease and grace. Every 2 motes of Essence spent allows the Exalt’s player to ignore one point of difficulty on all Socialize rolls imposed by conditions such as foreign environment, interpersonal tensions, bad weather and bad food — even insult and injury. The difficulty of the Socialize roll cannot be reduced below 1, and this Charm only overcomes penalties that increase the difficulty, it does not make normally difficult feats of Socialize easier (such as convincing a hated enemy to cooperate). The Exalt using this Charm appears graceful and dignified under even the worst circumstances.",
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 106
+    }
+  }
 ]

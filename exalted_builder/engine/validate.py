@@ -170,6 +170,53 @@ def _min_trait_rating(character: Character, charm: Charm) -> tuple[str, int] | N
     return ability.value, ability_rating(character, ability)
 
 
+def charm_ability_shortfalls(character: Character, charm: Charm) -> list[tuple[str, int, int]]:
+    """Every Ability/Attribute minimum on `charm` the character FAILS, as
+    (trait label, required, held).
+
+    THE single place that answers "does this character meet this Charm's trait
+    minimums". Covers both the primary `min_ability` (resolved through `category`, or
+    through `min_attribute` for the Attribute-keyed splats) and any
+    `extra_min_abilities` — the rare Charm the page gates on more than one Ability,
+    e.g. Ascendant Battle Visage's "Minimum Brawl 5 / Minimum Endurance 5" (Cult of
+    the Illuminated, p.102).
+
+    Every caller that used to compare `_min_trait_rating(...)[1] < charm.min_ability`
+    by hand goes through here instead, so adding the second gate could not miss a
+    call site — and a third gating axis has exactly one function to change.
+
+    Empty list means every minimum is met."""
+    out: list[tuple[str, int, int]] = []
+    trait = _min_trait_rating(character, charm)
+    if trait is not None:
+        label, held = trait
+        if held < charm.min_ability:
+            out.append((label, charm.min_ability, held))
+    for req in charm.extra_min_abilities:
+        # AbilityMinimum is OR over its `abilities`, so the best of them counts.
+        best = max((ability_rating(character, ab) for ab in req.abilities), default=0)
+        if best < req.rating:
+            out.append((" or ".join(a.value for a in req.abilities), req.rating, best))
+    return out
+
+
+def charm_ability_requirements(charm: Charm) -> list[tuple[str, int]]:
+    """Every Ability/Attribute minimum a Charm imposes, as (trait label, rating), for
+    display. The primary gate first, then the extras in authored order. Presenters use
+    this instead of reading `min_ability` alone, so a multi-gate Charm cannot show only
+    half its requirements on the sheet or in the picker."""
+    out: list[tuple[str, int]] = []
+    if charm.min_attribute:
+        out.append((charm.min_attribute, charm.min_ability))
+    else:
+        ability = _category_ability(charm.category)
+        if ability is not None:
+            out.append((ability.value, charm.min_ability))
+    for req in charm.extra_min_abilities:
+        out.append((" or ".join(a.value for a in req.abilities), req.rating))
+    return out
+
+
 def is_immaculate_charm(charm: Charm) -> bool:
     """True for an Immaculate Order Charm — a Fivefold Dragon Method martial-arts
     Charm (Dragon-Blooded splatbook, ch.6). These are what a DB may take the
@@ -245,15 +292,12 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
                          f"character has {character.essence_rating}."),
             ))
 
-        trait = _min_trait_rating(character, charm)
-        if trait is not None:
-            trait_name, rating = trait
-            if rating < charm.min_ability:
-                issues.append(Issue(
-                    code="charm-min-ability", where=cid,
-                    message=(f"{charm.name}: requires {trait_name} "
-                             f"{charm.min_ability}, character has {rating}."),
-                ))
+        for trait_name, want, held in charm_ability_shortfalls(character, charm):
+            issues.append(Issue(
+                code="charm-min-ability", where=cid,
+                message=(f"{charm.name}: requires {trait_name} "
+                         f"{want}, character has {held}."),
+            ))
 
         # AND-of-OR: every inner group must be satisfied by at least one known id.
         for group in charm.prerequisites:
@@ -317,8 +361,7 @@ def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> b
         return False
     if character.essence_rating < charm.min_essence:
         return False
-    trait = _min_trait_rating(character, charm)
-    if trait is not None and trait[1] < charm.min_ability:
+    if charm_ability_shortfalls(character, charm):
         return False
     known = set(character.charms)
     return all(any(req in known for req in group) for group in charm.prerequisites)
@@ -652,6 +695,36 @@ def check_camp_and_calling(ruleset, character) -> list[Issue]:
     return issues
 
 
+def default_camp_and_calling(ruleset, character) -> tuple[str, str, list[str]]:
+    """The (camp id, calling id, granted Charm ids) a character of this splat/origin
+    should default to — the first camp offered, its first Calling, and that camp's
+    automatic grants. All three empty when the origin has no camps.
+
+    Lives here rather than in the editor because "which camp is legal, and what does it
+    hand you" is a rules question, and the UI is meant to contain no game logic. It also
+    makes the behaviour testable without driving a browser: picking the Illuminated
+    origin has to leave the character LEGAL, not merely leave three more dropdowns to
+    fill in.
+
+    Keeps a camp/Calling the character already has if it is still valid, so re-running
+    this is idempotent and never silently discards a player's choice."""
+    camps = ruleset.camps_for(character.exalt_type, character.origin)
+    if not camps:
+        return "", "", []
+
+    camp = next((c for c in camps if c.id == character.camp), camps[0])
+    callings = ruleset.callings_for(camp.id)
+    calling = next((c.id for c in callings if c.id == character.calling),
+                   callings[0].id if callings else "")
+
+    granted = list(camp.granted_charms)
+    if camp.id == character.camp:
+        # Same camp: preserve whatever the player already resolved for each choice, and
+        # only top up the fixed grants.
+        granted = list(dict.fromkeys(granted + list(character.granted_charms)))
+    return camp.id, calling, granted
+
+
 def granted_charm_issues(ruleset, character) -> list[Issue]:
     """Whether `character.granted_charms` is a legal resolution of the camp's free-Charm
     package (p.90): every fixed grant present, each choice resolved, nothing extra, and
@@ -757,12 +830,11 @@ def _granted_charm_minima_met(ruleset, character, charm) -> tuple[bool, str]:
     (p.90). Prerequisites are deliberately NOT checked: the package hands out Charms
     like Iron Skin Concentration whose own tree the character has not climbed, and the
     page grants them outright."""
-    trait = _min_trait_rating(character, charm)
-    if trait is not None:
-        label, have = trait
-        if have < charm.min_ability:
-            return False, (f"{charm.name} is granted by the camp but requires "
-                           f"{label} {charm.min_ability}; character has {have}.")
+    short = charm_ability_shortfalls(character, charm)
+    if short:
+        label, want, have = short[0]
+        return False, (f"{charm.name} is granted by the camp but requires "
+                       f"{label} {want}; character has {have}.")
     if character.essence_rating < charm.min_essence:
         return False, (f"{charm.name} is granted by the camp but requires Essence "
                        f"{charm.min_essence}; character has {character.essence_rating}.")

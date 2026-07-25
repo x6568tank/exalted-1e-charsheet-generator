@@ -109,9 +109,13 @@ def test_dawn_caste_charm_trees_load_with_expected_counts():
     # Solar-only counts (DB and other splats share ability categories like "thrown").
     cats = Counter(c.category for c in rs.charms.values() if c.exalt_type == "Solar")
     assert cats["archery"] == 12
-    assert cats["brawl"] == 10
+    # 10 corebook Brawl Charms + the 5 from Cult of the Illuminated (p.100-102).
+    assert cats["brawl"] == 15
     assert cats["thrown"] == 9
     assert cats["martial_arts:snake"] == 10
+    # Falling Blossom Style (Cult of the Illuminated, p.102-104) is a second Solar
+    # Martial Arts style and lives in its own file, like the Sidereal styles do.
+    assert cats["martial_arts:falling-blossom"] == 7
     assert cats["melee"] == 22
 
 

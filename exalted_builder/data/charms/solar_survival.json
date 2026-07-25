@@ -1,12 +1,244 @@
 [
-  {"id": "solar.survival.friendship-with-animals-approach", "name": "Friendship with Animals Approach", "category": "survival", "type": "Simple", "min_ability": 1, "min_essence": 1, "prerequisites": [], "cost": {"motes": 3}, "duration": "One scene", "description": "Calms and befriends any wild animal, communing with it.", "source": {"book": "Exalted 1e Core", "page": 179}},
-  {"id": "solar.survival.spirit-tied-pet", "name": "Spirit-Tied Pet", "category": "survival", "type": "Simple", "min_ability": 3, "min_essence": 2, "prerequisites": [["solar.survival.friendship-with-animals-approach"]], "cost": {"motes": 10, "willpower": 1, "raw": "10 motes, 1 Willpower, 1 experience point"}, "duration": "Instant", "description": "Binds an animal as a permanent Familiar tied to the character's Essence (costs 1 experience point).", "source": {"book": "Exalted 1e Core", "page": 179}},
-  {"id": "solar.survival.bestial-traits-technique", "name": "Bestial Traits Technique", "category": "survival", "type": "Simple", "min_ability": 4, "min_essence": 2, "prerequisites": [["solar.survival.spirit-tied-pet"]], "cost": {"motes": 8}, "duration": "One scene", "description": "Takes on a single bestial characteristic, such as a tiger's strength or an eagle's eyes.", "source": {"book": "Exalted 1e Core", "page": 180}},
-  {"id": "solar.survival.hardship-surviving-mendicant-spirit", "name": "Hardship-Surviving Mendicant Spirit", "category": "survival", "type": "Simple", "min_ability": 3, "min_essence": 1, "prerequisites": [], "cost": {"motes": 5}, "duration": "One day", "description": "Survives the harshest mundane conditions — cold, heat, hunger, thirst — without harm.", "source": {"book": "Exalted 1e Core", "page": 180}},
-  {"id": "solar.survival.trackless-region-navigation-charm", "name": "Trackless Region Navigation Charm", "category": "survival", "type": "Simple", "min_ability": 4, "min_essence": 2, "prerequisites": [["solar.survival.hardship-surviving-mendicant-spirit"]], "cost": {"motes": 7}, "duration": "One day", "description": "Finds the way safely and swiftly through even the worst terrain, leading others along.", "source": {"book": "Exalted 1e Core", "page": 181}},
-  {"id": "solar.survival.food-gathering-exercise", "name": "Food-Gathering Exercise", "category": "survival", "type": "Simple", "min_ability": 5, "min_essence": 2, "prerequisites": [["solar.survival.trackless-region-navigation-charm"]], "cost": {"raw": "3 motes per person"}, "duration": "One hour", "description": "Forages enough food in an hour to feed many people.", "source": {"book": "Exalted 1e Core", "page": 181}},
-  {"id": "solar.survival.unshakeable-bloodhound-technique", "name": "Unshakeable Bloodhound Technique", "category": "survival", "type": "Simple", "min_ability": 5, "min_essence": 2, "prerequisites": [["solar.survival.hardship-surviving-mendicant-spirit"]], "cost": {"motes": 8, "willpower": 1}, "duration": "One day", "description": "Tracks a quarry unerringly across any terrain.", "source": {"book": "Exalted 1e Core", "page": 181}},
-  {"id": "solar.survival.eye-deceiving-camouflage", "name": "Eye-Deceiving Camouflage", "category": "survival", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.survival.hardship-surviving-mendicant-spirit"]], "cost": {"motes": 6}, "duration": "One day", "description": "Conceals the character and her companions from sight, raising her effective Resistance to detection.", "source": {"book": "Exalted 1e Core", "page": 182}},
-  {"id": "solar.survival.traceless-passage", "name": "Traceless Passage", "category": "survival", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.survival.unshakeable-bloodhound-technique"]], "cost": {"raw": "5 motes per person, 1 Willpower"}, "duration": "One day", "description": "Moves without leaving any trail, foiling all but magical pursuit.", "source": {"book": "Exalted 1e Core", "page": 182}},
-  {"id": "solar.survival.element-resisting-prana", "name": "Element-Resisting Prana", "category": "survival", "type": "Simple", "min_ability": 5, "min_essence": 3, "prerequisites": [["solar.survival.hardship-surviving-mendicant-spirit"]], "cost": {"motes": 10, "willpower": 1}, "duration": "One day", "description": "Survives extreme elemental environments, such as the caldera of a volcano or the elemental poles.", "source": {"book": "Exalted 1e Core", "page": 182}}
+  {
+    "id": "solar.survival.friendship-with-animals-approach",
+    "name": "Friendship with Animals Approach",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "Calms and befriends any wild animal, communing with it.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 179
+    }
+  },
+  {
+    "id": "solar.survival.spirit-tied-pet",
+    "name": "Spirit-Tied Pet",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.survival.friendship-with-animals-approach"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "raw": "10 motes, 1 Willpower, 1 experience point"
+    },
+    "duration": "Instant",
+    "description": "Binds an animal as a permanent Familiar tied to the character's Essence (costs 1 experience point).",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 179
+    }
+  },
+  {
+    "id": "solar.survival.bestial-traits-technique",
+    "name": "Bestial Traits Technique",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.survival.spirit-tied-pet"
+      ]
+    ],
+    "cost": {
+      "motes": 8
+    },
+    "duration": "One scene",
+    "description": "Takes on a single bestial characteristic, such as a tiger's strength or an eagle's eyes.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 180
+    }
+  },
+  {
+    "id": "solar.survival.hardship-surviving-mendicant-spirit",
+    "name": "Hardship-Surviving Mendicant Spirit",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "One day",
+    "description": "Survives the harshest mundane conditions — cold, heat, hunger, thirst — without harm.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 180
+    }
+  },
+  {
+    "id": "solar.survival.trackless-region-navigation-charm",
+    "name": "Trackless Region Navigation Charm",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.survival.hardship-surviving-mendicant-spirit"
+      ]
+    ],
+    "cost": {
+      "motes": 7
+    },
+    "duration": "One day",
+    "description": "Finds the way safely and swiftly through even the worst terrain, leading others along.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 181
+    }
+  },
+  {
+    "id": "solar.survival.food-gathering-exercise",
+    "name": "Food-Gathering Exercise",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.survival.trackless-region-navigation-charm"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes per person"
+    },
+    "duration": "One hour",
+    "description": "Forages enough food in an hour to feed many people.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 181
+    }
+  },
+  {
+    "id": "solar.survival.unshakeable-bloodhound-technique",
+    "name": "Unshakeable Bloodhound Technique",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.survival.hardship-surviving-mendicant-spirit"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "Tracks a quarry unerringly across any terrain.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 181
+    }
+  },
+  {
+    "id": "solar.survival.eye-deceiving-camouflage",
+    "name": "Eye-Deceiving Camouflage",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.survival.hardship-surviving-mendicant-spirit"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "One day",
+    "description": "Conceals the character and her companions from sight, raising her effective Resistance to detection.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 182
+    }
+  },
+  {
+    "id": "solar.survival.traceless-passage",
+    "name": "Traceless Passage",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.survival.unshakeable-bloodhound-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes per person, 1 Willpower"
+    },
+    "duration": "One day",
+    "description": "Moves without leaving any trail, foiling all but magical pursuit.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 182
+    }
+  },
+  {
+    "id": "solar.survival.element-resisting-prana",
+    "name": "Element-Resisting Prana",
+    "category": "survival",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.survival.hardship-surviving-mendicant-spirit"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "Survives extreme elemental environments, such as the caldera of a volcano or the elemental poles.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 182
+    }
+  },
+  {
+    "id": "solar.survival.game-snaring-huntsmans-method",
+    "name": "Game-Snaring Huntsman’s Method",
+    "category": "survival",
+    "exalt_type": "Solar",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.survival.hardship-surviving-mendicant-spirit"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per die"
+    },
+    "duration": "One day",
+    "description": "When invoking this Charm, the Exalted names a single breed of animal, which may include “human.” He then crafts a snare appropriate for trapping the species of interest. For each mote invested in the Charm, the Survival roll to create the snare is increased by one die. In addition, for each mote invested, the targeted breed suffers a one-die penalty to detect or escape the trap. The trap will not be triggered by any species other than the one named. This trap cannot be used to snare a specific specimen, but instead, affects the first member of the species that encounters it.\n\nGame-Snaring Huntsman’s Method cannot be used to create a trap that will innately do damage, such as spike-pits or deadfalls. It can only be used to enhance snares, pit traps and other such traps that hinder or ensnare, rather than wound or kill. However, traps empowered by Game-Snaring Huntsman’s Method may inflict incidental damage upon a target while it attempts to escape (a cage, for example, could be spiked to discourage meddling with the bars), so long as the primary purpose of the trap isn’t the wounding of its intended prey.",
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 106
+    }
+  }
 ]

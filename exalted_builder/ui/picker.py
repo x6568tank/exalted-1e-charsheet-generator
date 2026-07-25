@@ -300,6 +300,15 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if _charm is not None and validate.is_immaculate_charm(_charm):
             ui.label("Immaculate Order Charm (Fivefold Dragon Method)").classes(
                 "text-xs font-semibold").style(f"color:{pal.accent}")
+        # A Calling Charm is discounted at both chargen and in play (p.90/p.102), so
+        # the card says so where the price is shown.
+        if viewmod.is_calling_charm(ruleset, character, d.id):
+            ui.label("✧ Calling Charm — discounted").classes(
+                "text-xs font-semibold").style(f"color:{pal.accent}")
+        # Granted by the training camp: owned, but free — it cost no pick.
+        if d.id in character.granted_charms:
+            ui.label("Granted by your training camp — no Charm pick spent").classes(
+                "text-xs font-semibold").style(f"color:{pal.accent}")
         if d.description:
             ui.label(d.description).classes("text-xs")
         ui.separator()

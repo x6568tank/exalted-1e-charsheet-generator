@@ -7,10 +7,15 @@
     "min_ability": 1,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"motes": 6},
+    "cost": {
+      "motes": 6
+    },
     "duration": "One hour",
     "description": "Radiates calm confidence, raising the character's effective Presence in one-on-one interactions.",
-    "source": {"book": "Exalted 1e Core", "page": 175}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 175
+    }
   },
   {
     "id": "solar.presence.listener-swaying-argument",
@@ -19,11 +24,20 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["solar.presence.harmonious-presence-meditation"]],
-    "cost": {"raw": "2 motes per success, 1 Willpower"},
+    "prerequisites": [
+      [
+        "solar.presence.harmonious-presence-meditation"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes per success, 1 Willpower"
+    },
     "duration": "Instant",
     "description": "Lends supernatural persuasiveness to an argument, adding successes to sway a listener.",
-    "source": {"book": "Exalted 1e Core", "page": 175}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 175
+    }
   },
   {
     "id": "solar.presence.hypnotic-tongue-technique",
@@ -32,11 +46,21 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["solar.presence.listener-swaying-argument"]],
-    "cost": {"motes": 10, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.presence.listener-swaying-argument"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "Special",
     "description": "Implants a hypnotic suggestion the target carries out unaware; it persists for days equal to the Exalt's Charisma.",
-    "source": {"book": "Exalted 1e Core", "page": 175}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 175
+    }
   },
   {
     "id": "solar.presence.majestic-radiant-presence",
@@ -45,11 +69,20 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["solar.presence.harmonious-presence-meditation"]],
-    "cost": {"motes": 8},
+    "prerequisites": [
+      [
+        "solar.presence.harmonious-presence-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 8
+    },
     "duration": "One scene",
     "description": "Wreathes the character in radiant majesty, awing onlookers (not usable with the Dawn anima power).",
-    "source": {"book": "Exalted 1e Core", "page": 175}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 175
+    }
   },
   {
     "id": "solar.presence.underling-promoting-touch",
@@ -58,11 +91,21 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["solar.presence.majestic-radiant-presence"]],
-    "cost": {"motes": 10, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.presence.majestic-radiant-presence"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "One day",
     "description": "Imbues a servant with the majesty of the Exalted's office, lending them borrowed authority.",
-    "source": {"book": "Exalted 1e Core", "page": 175}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 175
+    }
   },
   {
     "id": "solar.presence.terrifying-apparition-of-glory",
@@ -71,10 +114,127 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["solar.presence.majestic-radiant-presence"]],
-    "cost": {"motes": 10, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.presence.majestic-radiant-presence"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "Makes the character terrible and awe-inspiring, driving foes to flee or submit.",
-    "source": {"book": "Exalted 1e Core", "page": 176}
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 176
+    }
+  },
+  {
+    "id": "solar.presence.prey-freezing-gaze",
+    "name": "Prey-Freezing Gaze",
+    "category": "presence",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.presence.harmonious-presence-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1,
+      "health": 0,
+      "raw": "3 motes, 1 Willpower"
+    },
+    "duration": "One scene or special",
+    "description": "When the character uses this Charm, she impresses a single target with the overwhelming power of her commanding nature. Targets whose players fail a Valor roll at a difficulty of 3 are frozen in place, unable to move for the next scene. This paralysis is emotional rather than physical, but cannot be broken as long as the attacking character continues to gaze intently at the target. While keeping this eye contact, the character can be no more than five yards from the target. She also cannot move faster than a walk or perform any complex or difficult actions (such as combat). The target’s player receives additional Valor rolls whenever anyone harms or obviously attempts to harm him. If the character ceases to gaze at the target, the paralysis continues for the next three full turns, but the target instantly breaks free if anyone harms or obviously attempts to harm him. This Charm has no effect on targets whose Essence is higher than the character using the Charm.",
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 104
+    }
+  },
+  {
+    "id": "solar.presence.soul-shaping-words-technique",
+    "name": "Soul-Shaping Words Technique",
+    "category": "presence",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.presence.listener-swaying-argument"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1,
+      "health": 0,
+      "raw": "3 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The words of an Illuminated Solar are as forceful as his fists, allowing him to assert dominion over a social conflict. The saintly Solar turns to his target and speaks profound words, a deep insight fueled with Essence. The effect is immediate and powerful. As the target of his words contemplates their meaning, and either he accepts the fundamental truth of the words and the inherent sainthood of the Solar, finding his spirit uplifted, or he rejects them and the Solar, the words ripping through his soul like spurs. The Solar selects the target of his words and reveals his sagacious truth, his player rolling the Solar’s Charisma + Presence at a difficulty of his opponent’s Essence.\n\nIf the roll is successful, the target has a choice: submission or defiance. For one who submits to the Solar, accepting him as divine, everything in the world makes sense, and her place in the world is reaffirmed, and the target gains a temporary point of Willpower. For one who defies the inherent lordship of the Solar, she suffers beneath the weight of her own, false world view, unable to reconcile the truth of the Solar’s statement with her own ideology, losing a number of temporary points of Willpower equal to the number of successes the Solar’s player rolled beyond the requisite difficulty, to a maximum number of Willpower points equal to the Solar’s own Essence. The Solar cannot reduce a target below 0 Willpower points, and those who have no Willpower left as a result of this Charm can no longer bear the sight of the Solar and immediately flee his presence. This technique is as useful as a weapon against unbelievers as it is a way of strengthening the righteous. However, the Charm can only be used upon beings who truly are beneath the Solar and is not effective against anyone with an Essence equal to or higher than the Solar.",
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 105
+    }
+  },
+  {
+    "id": "solar.presence.true-harmony-revelation",
+    "name": "True Harmony Revelation",
+    "category": "presence",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.presence.soul-shaping-words-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The desperate, the downtrodden and the weak can find new hope and new joy in the words of the saintly Illuminated. With a gentle whisper and uncommon insight, a Solar may reveal someone’s true nature to herself, so that she may find the sense of purpose she longs for. This Charm only affects characters who have no remaining temporary Willpower points. The Solar makes a Manipulation + Presence roll at a difficulty of his target’s Conviction. If successful, the Solar molds the spent will of the target into a new form, and the Solar may select a new Nature to replace the target’s old one. For each success beyond the required difficulty, the Solar may rearrange one point of Virtue, making a cowardly man brave or a loving man cold and hard. The effects normally last a month. However, the Solar may spend 1 experience point to make the Nature change permanent, and 1 experience point per Virtue dot shifted during the target’s change to make that permanent. Some characters of strong will may overcome even these permanent changes with time. After a minimum number of months equal to (11 - the character’s Willpower), at the Storyteller’s discretion, even the permanent effects of this Charm subside. This Charm will not affect beings whose Essence exceeds the Solar’s.",
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 105
+    }
+  },
+  {
+    "id": "solar.presence.horizon-to-horizon-presence-method",
+    "name": "Horizon-to-Horizon Presence Method",
+    "category": "presence",
+    "exalt_type": "Solar",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "solar.presence.hypnotic-tongue-technique"
+      ],
+      [
+        "solar.presence.terrifying-apparition-of-glory"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "While any Solar who masters the Charms of Presence has a weighty aura of charisma and influence, those who master Horizon-to-Horizon Presence Method have vast auras that insinuate themselves into all aspects of life. Such an Exalt impacts people whom she has never met. Assassins abandon their quest for her destruction after seeing a painting of her. Hopeless young men devote their entire lives to her upon hearing mere stories of her deeds. The character may influence the world without raising a finger through the power of her charisma alone.\n\nUpon activating this Charm, the Solar may make a single use of her Presence Ability, usually rolled with either Charisma or Manipulation, against any single character irregardless of distance. The difficulty rating of the Presence roll is increased by an amount equal to the target’s Essence. The Solar need not speak or interact with the target in anyway. Indeed, the Charm may be activated unconsciously as the character’s charismatic aura affects people and events completely outside of her knowledge. However, the Charm requires some interaction, even if only distant rumor. The target must hear of her deeds or witness the impact the character has made upon the world. Further, when the character fails to impress someone through the use of this Charm, it diminishes in usefulness. Anytime the Charm is activated but fails to achieve a number of successes equal to the target’s Essence, the Charm may not be activated again for a full day, and the target of the Charm is rendered immune to its use for a month (or longer at the Storyteller’s discretion). Finally, the Charm only creates emotional impressions and vague ideas, not specific messages. While Horizon-to-Horizon Presence Method could persuade a king to seek the Solar’s amorous affections, it could not, for example, convey a secret password to him or convince him to perform a very specific task.\n\nWhile the primary use of this Charm is long-ranged interactions, the strength of the character’s aura does not diminish in close proximity. The Charm may be activated to affect someone in the character’s presence, allowing for powerful nonverbal interaction.",
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 105
+    }
   }
 ]

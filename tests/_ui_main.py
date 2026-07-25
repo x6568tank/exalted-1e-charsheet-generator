@@ -203,5 +203,64 @@ CHAR_SID_XP.xp_earned = 40
 def page_sid_xp():
     xp.build_xp(RS, CHAR_SID_XP, Path("x.json"), with_header=False)
 
+# (g) an Illuminated Solar (Cult of the Illuminated) — the editor's Training Camp +
+# Calling panel, the ✧ Calling marks on the Abilities panel, the granted-Charm rows on
+# the sheet, and the picker's Calling/granted tags. One route per test.
+def _illuminated(cid: str) -> Character:
+    c = Character(id=cid, name="Shining One", exalt_type="Solar", caste="dawn",
+                  origin="illuminated", camp="kether-rock", calling="deacon",
+                  essence_rating=3)
+    c.abilities[AbilityName.BRAWL] = 1
+    c.abilities[AbilityName.ENDURANCE] = 1
+    c.abilities[AbilityName.MEDICINE] = 1
+    c.abilities[AbilityName.MELEE] = 2
+    c.abilities[AbilityName.PRESENCE] = 1
+    c.abilities[AbilityName.RESISTANCE] = 1
+    c.abilities[AbilityName.SURVIVAL] = 3
+    c.granted_charms = list(RS.camps["kether-rock"].granted_charms) + [
+        "solar.resistance.durability-of-oak-meditation",
+        "solar.resistance.iron-skin-concentration"]
+    return c
+
+CHAR_ILL_EDIT = _illuminated("i1")
+
+@ui.page('/ill-editor')
+def page_ill_editor():
+    editor.build_editor(RS, CHAR_ILL_EDIT, Path("i.json"), with_header=False)
+
+CHAR_ILL_SHEET = _illuminated("i2")
+
+@ui.page('/ill-sheet')
+def page_ill_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_ILL_SHEET))
+
+# The Tabernacle variant exercises the OTHER grant shape — "two Charms from one of four
+# martial arts" rather than "one of these pairs".
+CHAR_ILL_TAB = Character(id="i3", name="Tabernacle", exalt_type="Solar", caste="zenith",
+                         origin="illuminated", camp="sequestered-tabernacle",
+                         calling="exemplar", essence_rating=3)
+# Resolve the style choice, so the select renders its chosen value. A closed
+# ui.select puts only its VALUE in the DOM, never its option list — the options are
+# covered by a presenter test instead (test_illuminated.py).
+_SNAKE = sorted((c for c in RS.charms.values() if c.category == "martial_arts:snake"),
+                key=lambda c: (c.min_ability, c.min_essence, c.name))[:2]
+CHAR_ILL_TAB.granted_charms = (list(RS.camps["sequestered-tabernacle"].granted_charms)
+                               + [c.id for c in _SNAKE])
+CHAR_ILL_TAB.abilities[AbilityName.MARTIAL_ARTS] = 5
+CHAR_ILL_TAB.abilities[AbilityName.PRESENCE] = 3
+
+@ui.page('/ill-editor-tabernacle')
+def page_ill_editor_tab():
+    editor.build_editor(RS, CHAR_ILL_TAB, Path("i3.json"), with_header=False)
+
+# A plain Solar, for the test that the Origin dropdown renders at all and offers the
+# Illuminated option — it was missing from _SPLAT_ORIGINS on the first pass, which made
+# the whole origin unselectable while every engine test passed.
+CHAR_SOLAR_ORIGIN = Character(id="so", name="Plain Solar", exalt_type="Solar", caste="dawn")
+
+@ui.page('/solar-origin')
+def page_solar_origin():
+    editor.build_editor(RS, CHAR_SOLAR_ORIGIN, Path("so.json"), with_header=False)
+
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()

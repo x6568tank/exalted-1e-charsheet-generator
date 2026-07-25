@@ -101,6 +101,27 @@ the page prints as `Supplemental`/`Reflexive`.
   priced at 0 XP. Do not repeat this.
 - `min_essence` ≥ 1 always. If the page omits it, use 1 and note it.
 
+**A Charm gated on MORE THAN ONE Ability** — the page prints two `Minimum <Ability>:`
+lines, e.g. Ascendant Battle Visage's "Minimum Brawl: 5 / Minimum Endurance: 5". Put
+the one matching the Charm's `category` in `min_ability`, and every other one in
+`extra_min_abilities`:
+
+```jsonc
+"category": "brawl",
+"min_ability": 5,                                        // Brawl, the primary gate
+"extra_min_abilities": [
+  { "abilities": ["endurance"], "rating": 5 }            // AND Endurance 5
+]
+```
+
+Each entry is an independent **AND**, and the `abilities` list inside one entry is an
+**OR** — so `[{"abilities": ["melee", "thrown"], "rating": 3}]` means "Melee 3 **or**
+Thrown 3". Do not repeat the primary gate here.
+
+Which one is primary matters: the primary gate drives pricing and the Caste/Favored
+discount, and the extras are requirement checks only. Put the wrong one first and the
+Charm gets mispriced.
+
 ### `prerequisites` — AND-of-OR, `list[list[str]]`
 Every inner group must be satisfied; a group is satisfied by **any one** id in it.
 
@@ -166,6 +187,8 @@ each exists for one splat's mechanic and setting one by mistake changes engine
 behaviour:
 
 `element`, `immaculate`, `open_to_all`, `open_to_tiers`, `installation_cost`,
+(but see `extra_min_abilities` above — that one you DO set when the page prints two
+Ability minimums),
 `repeatable_cap_ability`, `variants`, `variant_picks_*`, `grants_circle`,
 `no_foreign_learning`, `submodules`, `arrayable`, `permanent_install`,
 `permanent_clarity`.
