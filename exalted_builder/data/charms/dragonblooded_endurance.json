@@ -9,19 +9,27 @@
     "min_ability": 1,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"raw": "None"},
+    "cost": {
+      "raw": "None"
+    },
     "duration": "Permanent",
     "repeatable_cap_ability": "endurance",
     "variants": [
       {
         "key": "db-standard",
         "label": "One -1 and one -2 level",
-        "health_levels": [-1, -2],
+        "health_levels": [
+          -1,
+          -2
+        ],
         "description": "Gain one extra -1 and one extra -2 health level."
       }
     ],
     "description": "The Dragon-Blooded may buy extra health levels as if they were a Charm. Each level (purchase) grants one -1 and one -2 health level. May be bought at most once per dot of Endurance.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 195}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 195
+    }
   },
   {
     "id": "dragonblooded.endurance.unsleeping-earth-meditation",
@@ -33,10 +41,15 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 1},
+    "cost": {
+      "motes": 1
+    },
     "duration": "One day",
     "description": "By invoking the strength of the Earth Dragon, a Dragon-Blooded can go without sleep for 24 hours without ill effect, suffering no fatigue penalties from sleeplessness and remaining fully alert (she still must rest from physical exertion). Using it for more than the character's Essence + Endurance days is unwise: for every day past that point she loses one temporary Willpower per day, which cannot be recovered until she has had at least 24 hours of uninterrupted sleep.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 196}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 196
+    }
   },
   {
     "id": "dragonblooded.endurance.uneating-earth-meditation",
@@ -47,11 +60,20 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.endurance.unsleeping-earth-meditation"]],
-    "cost": {"motes": 2},
+    "prerequisites": [
+      [
+        "dragonblooded.endurance.unsleeping-earth-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
     "duration": "One day",
     "description": "Stone does not need nourishment, and with this Charm neither do the Dragon-Blooded. The character need not eat or drink and suffers none of the penalties of hunger. Using it for more than her Essence + Endurance days is hard on the body: for every day past that point she loses one bashing health level per day, which cannot be healed until the Charm is discontinued. Most who use it for extended periods go without its effects for a day or two before reinvoking it.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 196}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 196
+    }
   },
   {
     "id": "dragonblooded.endurance.unbreathing-earth-meditation",
@@ -62,11 +84,20 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.endurance.uneating-earth-meditation"]],
-    "cost": {"motes": 2},
+    "prerequisites": [
+      [
+        "dragonblooded.endurance.uneating-earth-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
     "duration": "One scene",
     "description": "The mountains do not breathe, and neither need a Dynast who has mastered this Charm. For the rest of the scene the Dragon-Blood does not breathe, surviving underwater, in clouds of poison gas, and in other asphyxiating environments with no ill effect. For the duration she is incapable of breathing, so speech is impossible (its sound is made by expelled air). It can be used on a willing other by simply touching him.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 196}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 196
+    }
   },
   {
     "id": "dragonblooded.endurance.untiring-earth-meditation",
@@ -77,11 +108,21 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.endurance.unsleeping-earth-meditation"]],
-    "cost": {"motes": 5, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.endurance.unsleeping-earth-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "One day",
-    "description": "Roots the Dragon-Blooded's Essence down into the elemental Earth, magically sustaining him. As long as his feet touch the earth once every two turns, he incurs no fatigue whatsoever from any source — armor, encumbrance, great exertion, or magical effect (it does not relieve fatigue already present when invoked). He may also ignore wound penalties up to his permanent Essence rating. If he does not touch the earth at least once every two turns, the Charm is instantly disrupted.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 196}
+    "description": "Roots the Dragon-Blooded's Essence down into the elemental Earth, magically sustaining him. As long as his feet touch the earth once every two turns, he incurs no fatigue whatsoever from any source \u2014 armor, encumbrance, great exertion, or magical effect (it does not relieve fatigue already present when invoked). He may also ignore wound penalties up to his permanent Essence rating. If he does not touch the earth at least once every two turns, the Charm is instantly disrupted.",
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 196
+    }
   },
   {
     "id": "dragonblooded.endurance.unfeeling-earth-meditation",
@@ -92,11 +133,21 @@
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.endurance.unbreathing-earth-meditation"]],
-    "cost": {"motes": 3, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.endurance.unbreathing-earth-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1
+    },
     "duration": "Varies",
-    "description": "The pain and frailty of mortal flesh may be avoided for short periods. Once active, the character may ignore all wound penalties for a number of turns equal to his Stamina + Endurance. This does nothing to actually protect him from damage — it only temporarily alleviates the symptoms of injury.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 196}
+    "description": "The pain and frailty of mortal flesh may be avoided for short periods. Once active, the character may ignore all wound penalties for a number of turns equal to his Stamina + Endurance. This does nothing to actually protect him from damage \u2014 it only temporarily alleviates the symptoms of injury.",
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 196
+    }
   },
   {
     "id": "dragonblooded.endurance.unflagging-vengeance-meditation",
@@ -108,12 +159,96 @@
     "min_ability": 4,
     "min_essence": 4,
     "prerequisites": [
-      ["dragonblooded.endurance.unfeeling-earth-meditation"],
-      ["dragonblooded.endurance.untiring-earth-meditation"]
+      [
+        "dragonblooded.endurance.unfeeling-earth-meditation"
+      ],
+      [
+        "dragonblooded.endurance.untiring-earth-meditation"
+      ]
     ],
-    "cost": {"motes": 3, "willpower": 1, "raw": "3 motes + 1 Willpower per person"},
+    "cost": {
+      "motes": 3,
+      "willpower": 1,
+      "raw": "3 motes + 1 Willpower per person"
+    },
     "duration": "Until satisfied",
-    "description": "The steady strength of the Earth Dragon fuels the inner flame of vengeance. Invoked by speaking aloud the terms of a vendetta — a simply stated purpose ('Find the person who killed my father') — to which the character commits with all his soul. Until the vendetta is fulfilled, so long as he pursues it, he need not eat, sleep, or rest, incurs no fatigue (magical or natural) and none from armor, may soak both lethal and bashing with his Stamina, and adds his Endurance to both soaks. It can be sustained without ill effect for up to his Essence in days; after that he loses one unsoakable bashing health level each time his Essence in days passes (healable only after the Charm lapses, and at twice the usual rate). Additional characters up to his Essence may join by each paying 1 temporary Willpower. It ends when the vendetta is satisfied or he consciously stops it; anyone who terminates their oath prematurely takes unsoakable lethal damage equal to the sum of the permanent Essences of all involved, unreducible by any means.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 196}
+    "description": "The steady strength of the Earth Dragon fuels the inner flame of vengeance. Invoked by speaking aloud the terms of a vendetta \u2014 a simply stated purpose ('Find the person who killed my father') \u2014 to which the character commits with all his soul. Until the vendetta is fulfilled, so long as he pursues it, he need not eat, sleep, or rest, incurs no fatigue (magical or natural) and none from armor, may soak both lethal and bashing with his Stamina, and adds his Endurance to both soaks. It can be sustained without ill effect for up to his Essence in days; after that he loses one unsoakable bashing health level each time his Essence in days passes (healable only after the Charm lapses, and at twice the usual rate). Additional characters up to his Essence may join by each paying 1 temporary Willpower. It ends when the vendetta is satisfied or he consciously stops it; anyone who terminates their oath prematurely takes unsoakable lethal damage equal to the sum of the permanent Essences of all involved, unreducible by any means.",
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 196
+    }
+  },
+  {
+    "id": "dragonblooded.endurance.sleep-of-stones-trance",
+    "name": "Sleep of Stones Trance",
+    "category": "endurance",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Earth",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "dragonblooded.endurance.unsleeping-earth-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 1
+    },
+    "duration": "One hour",
+    "description": "The Exalt assumes a meditative position and becomes perfectly still, clearing his mind of all thoughts as he locks his gaze forward without really seeing. The character does not actually sleep or dream in this trance and regains no Essence for meditating, but remains peripherally aware of his surroundings. If the character experiences any substantial distraction or interruption, he may prematurely and reflexively snap out of his torpid reverie to confront the situation. Ignoring the distraction and remaining in the trance requires a Temperance roll at standard difficulty. If the character goes a full hour without leaving the trance, roll one die. Success restores one point of Willpower, while a failure or botch indicates the meditation provided no real benefit except to rest the character's body. Characters may not use this Charm more times in a day than their Endurance rating, and trances broken by distractions count against this limit. Dragon-Blooded with Essence 3+ may explicitly use Sleep of Stones Trance to regain Willpower points lost by overusing Unsleeping Earth Meditation, allowing these disciplined stoics to go indefinitely without sleep so long as they regularly meditate.",
+    "source": {
+      "book": "Exalted 1e Aspect Book: Earth",
+      "page": 71
+    }
+  },
+  {
+    "id": "dragonblooded.endurance.breath-of-earth-trance",
+    "name": "Breath of Earth Trance",
+    "category": "endurance",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Earth",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "dragonblooded.endurance.sleep-of-stones-trance"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
+    "duration": "Until broken",
+    "description": "The character sinks into deep meditation, opening her consciousness and soul to the breath of the Elemental Dragons flowing through the world. Whenever the character experiences a substantial distraction and after each hour that passes, roll her Temperance to maintain the trance. The difficulty starts at one and increases by +1 after every two successive checks. A failure or botch on any of these Temperance rolls breaks the meditation and ends the Charm. For each hour the Exalt remains in the trance, she recovers (her permanent Essence + 8) motes. Hours spent using Breath of Earth Trance refresh the soul even better than time spent asleep, possibly supplanting the need for sleep altogether. Characters using Breath of Earth Trance for at least four consecutive hours may regain Willpower with a standard Conviction roll, but players of Exalted only receive one Conviction roll for their characters to regain Willpower each day regardless of the number of hours they sleep or meditate with this Charm. Breath of Earth Trance only functions within Creation. Dragon-Blooded cannot concentrate on the Essence of their patrons inside the tainted energies of a shadowland or Wyld zone, let alone in the Deep Wyld, Malfeas, Autocthonia or the Underworld. The sanctums of the little gods and the Celestial City of Yu-Shan are considered part of Creation for the purpose of this Charm.",
+    "source": {
+      "book": "Exalted 1e Aspect Book: Earth",
+      "page": 71
+    }
+  },
+  {
+    "id": "dragonblooded.endurance.purifying-blood-ascendancy",
+    "name": "Purifying Blood Ascendancy",
+    "category": "endurance",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Earth",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "dragonblooded.endurance.uneating-earth-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "The Terrestrial Exalted calls upon the blood of the Elemental Dragons to awaken and cleanse her body of dangerous impurities. Liquid Essence glows visibly as it spreads through the arteries and veins beneath her skin, growing into a web of vibrant pulsing light the color of her anima. Characters can use this Charm to completely rid themselves of a single disease they have contracted or to completely nullify a single toxin currently present in their bodies. Once this Charm has purged a disease or poison, the character becomes completely immune to that impurity and may ignore any and all future exposure without a Resistance roll for a number of days equal to her permanent Essence. Characters may also use this Charm to cleanse all wounds of infection, which also serves to make their bodies immune to any infection for days equal to Essence. Purifying Blood Ascendancy does not aid against magical plagues and poisons. Characters may use this Charm while unconscious or otherwise incapacitated, making this an effective defense against paralytic venom.",
+    "source": {
+      "book": "Exalted 1e Aspect Book: Earth",
+      "page": 71
+    }
   }
 ]

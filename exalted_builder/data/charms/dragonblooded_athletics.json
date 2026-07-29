@@ -9,10 +9,15 @@
     "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"motes": 1},
+    "cost": {
+      "motes": 1
+    },
     "duration": "Instant",
     "description": "A burst of fiery energy propels the Exalt from the earth's surface in as much time as it takes a man to take a single step: the Dragon-Blooded may rise from a prone or supine position without taking an action to do so. It can also be used to add two dice to the Exalt's Athletics for determining how far he can jump.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 202}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 202
+    }
   },
   {
     "id": "dragonblooded.athletics.falling-star-maneuver",
@@ -23,11 +28,20 @@
     "type": "Supplemental",
     "min_ability": 2,
     "min_essence": 1,
-    "prerequisites": [["dragonblooded.athletics.effortlessly-rising-flame"]],
-    "cost": {"raw": "1 mote per two damage dice (max motes = Essence)"},
+    "prerequisites": [
+      [
+        "dragonblooded.athletics.effortlessly-rising-flame"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per two damage dice (max motes = Essence)"
+    },
     "duration": "Instant",
     "description": "Fire lifts the Exalt's every footstep, letting him jump, tumble, roll, or outrun a foe in hand-to-hand combat to gain a positional advantage. Mechanically it adds two dice per mote expended to the damage of an attack (added before soak), with no more motes spent than permanent Essence. Normally usable only with hand-to-hand attacks, but with a stunt it can add to Thrown or Archery damage when the Exalt reaches an exposed flank. Explicitly usable in Combos with Charms from other Abilities.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 202}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 202
+    }
   },
   {
     "id": "dragonblooded.athletics.fiery-prowess",
@@ -38,11 +52,20 @@
     "type": "Supplemental",
     "min_ability": 2,
     "min_essence": 1,
-    "prerequisites": [["dragonblooded.athletics.effortlessly-rising-flame"]],
-    "cost": {"raw": "1 mote per two dice"},
+    "prerequisites": [
+      [
+        "dragonblooded.athletics.effortlessly-rising-flame"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per two dice"
+    },
     "duration": "Instant",
-    "description": "A burning in the veins as the Exalt pushes his body to its limits: the Dragon-Blooded improves his Athletics Ability by two dice per mote of Essence spent, but cannot increase Athletics to more than double its base value (extra Essence is lost — Athletics 3 plus 2 motes becomes 6, not 7). The increase lasts a full turn, and the Athletics pool may be split normally while under the Charm.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 204}
+    "description": "A burning in the veins as the Exalt pushes his body to its limits: the Dragon-Blooded improves his Athletics Ability by two dice per mote of Essence spent, but cannot increase Athletics to more than double its base value (extra Essence is lost \u2014 Athletics 3 plus 2 motes becomes 6, not 7). The increase lasts a full turn, and the Athletics pool may be split normally while under the Charm.",
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 204
+    }
   },
   {
     "id": "dragonblooded.athletics.bellows-pumping-stride",
@@ -53,11 +76,20 @@
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.athletics.falling-star-maneuver"]],
-    "cost": {"motes": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.athletics.falling-star-maneuver"
+      ]
+    ],
+    "cost": {
+      "motes": 1
+    },
     "duration": "One scene",
     "description": "The Exalt doubles his movement rate for the scene, leaving fiery footprints (at a full sprint, a trail of normal fire that can be a problem in flammable areas). To his own perception he is not moving faster, but his walk is twice as swift: he can move up to (Dexterity + 12) yards and still act in a turn, and up to (Dexterity x 5) + 25 yards as his only action. It does not increase attack speed, only movement.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 203}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 203
+    }
   },
   {
     "id": "dragonblooded.athletics.phoenix-mates-lament",
@@ -68,11 +100,20 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.athletics.falling-star-maneuver"]],
-    "cost": {"raw": "1 mote per 2 soak"},
+    "prerequisites": [
+      [
+        "dragonblooded.athletics.falling-star-maneuver"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per 2 soak"
+    },
     "duration": "Instant",
-    "description": "So long as the Exalt maintains at least a jog (moving at least half his maximum running speed), he can largely ignore many environmental hazards — open natural flame, poisonous gas, falling rocks, and so on. He adds 2 to his soak against nonmagical environmental hazards for every mote spent, up to his Athletics score. It does not protect against magical effects or Charms, though strong elemental effects near an elemental pole count as natural hazards and are protected against. It stacks with any anima effect, Charms, sorcery, or other protections.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 204}
+    "description": "So long as the Exalt maintains at least a jog (moving at least half his maximum running speed), he can largely ignore many environmental hazards \u2014 open natural flame, poisonous gas, falling rocks, and so on. He adds 2 to his soak against nonmagical environmental hazards for every mote spent, up to his Athletics score. It does not protect against magical effects or Charms, though strong elemental effects near an elemental pole count as natural hazards and are protected against. It stacks with any anima effect, Charms, sorcery, or other protections.",
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 204
+    }
   },
   {
     "id": "dragonblooded.athletics.incense-smoke-ladder",
@@ -83,11 +124,20 @@
     "type": "Reflexive",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.athletics.bellows-pumping-stride"]],
-    "cost": {"motes": 2},
+    "prerequisites": [
+      [
+        "dragonblooded.athletics.bellows-pumping-stride"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
     "duration": "Instant",
-    "description": "The Exalt is propelled away from the ground so long as he has a surface to guide his feet: during any active turn he can run up walls, trees, and other vertical surfaces as easily as across a courtyard. He must get a running start of at least two steps and then run up; his feet do not stick and he cannot stand on the surface — only run up it. He may likewise run across water while active, though he cannot stop; running across dangerous liquids (lava, acid) keeps him on the surface but may burn his feet badly.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 203}
+    "description": "The Exalt is propelled away from the ground so long as he has a surface to guide his feet: during any active turn he can run up walls, trees, and other vertical surfaces as easily as across a courtyard. He must get a running start of at least two steps and then run up; his feet do not stick and he cannot stand on the surface \u2014 only run up it. He may likewise run across water while active, though he cannot stop; running across dangerous liquids (lava, acid) keeps him on the surface but may burn his feet badly.",
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 203
+    }
   },
   {
     "id": "dragonblooded.athletics.swift-legion-technique",
@@ -99,13 +149,23 @@
     "min_ability": 4,
     "min_essence": 2,
     "prerequisites": [
-      ["dragonblooded.athletics.bellows-pumping-stride"],
-      ["dragonblooded.athletics.fiery-prowess"]
+      [
+        "dragonblooded.athletics.bellows-pumping-stride"
+      ],
+      [
+        "dragonblooded.athletics.fiery-prowess"
+      ]
     ],
-    "cost": {"motes": 2, "raw": "2 motes per subject"},
+    "cost": {
+      "motes": 2,
+      "raw": "2 motes per subject"
+    },
     "duration": "One scene",
     "description": "The fire at the Exalt's core invigorates his companions as they move. He chooses the subjects on activation and spends 2 motes for each (including himself); for the rest of the scene they all double their basic speeds as per Bellows-Pumping Stride. Because of the malleable nature of time, it can aid long-distance travel (a day's travel is usually a single scene; if interrupted he must reactivate). He cannot aid more companions than his permanent Essence.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 204}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 204
+    }
   },
   {
     "id": "dragonblooded.athletics.dancing-ember-stride",
@@ -116,10 +176,43 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.athletics.incense-smoke-ladder"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "dragonblooded.athletics.incense-smoke-ladder"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "The character drifts upward, buoyed by a hot updraft. He may move up to twice his ordinary movement rate upward, and once in the sky may move horizontally as if standing on the ground, or ascend and descend as he wishes. The only restriction is that he must keep moving; if he remains still he plunges to the ground. He can carry as much weight as he can normally lift while using it, as determined by Strength + Athletics.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 203}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 203
+    }
+  },
+  {
+    "id": "dragonblooded.athletics.flawless-balance-discipline",
+    "name": "Flawless Balance Discipline",
+    "category": "athletics",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Fire",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "dragonblooded.athletics.effortlessly-rising-flame"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "Use of this Charm grants the Dragon-Blood the ability to maintain his footing and move gracefully regardless of adverse conditions. By becoming intensely attuned to his sense of balance, the Exalt can keep his footing at all times and never need worry about falling. Anything he could normally do on flat ground, he can do on slick ice, on a slanted roof, on a lurching ship's deck or on a wire suspended between two towers (while being buffeted by winds), without penalties of any sort.",
+    "source": {
+      "book": "Exalted 1e Aspect Book: Fire",
+      "page": 74
+    }
   }
 ]

@@ -53,6 +53,10 @@ from .models.rules import (
     RuleSet,
     Spell,
     StScreen,
+    ThaumaturgicArt,
+    ThaumaturgicFormula,
+    ThaumaturgicRitual,
+    ThaumaturgicScience,
     WeaponType,
 )
 
@@ -172,6 +176,44 @@ def _check_prereqs(charms: dict[str, Charm], problems: list[str]) -> None:
                     problems.append(f"charm '{ch.id}' references unknown prerequisite '{pid}'")
 
 
+def _check_thaumaturgy(arts, sciences, formulas, problems: list[str]) -> None:
+    """Referential and structural checks for thaumaturgy.
+
+    Aspect ids must be globally unique because the character stores an ArtSpecialty
+    by (art_id, free-text name) and the UI resolves aspects by id across Arts.
+
+    A formula must belong to a real Science and must not require a rating that
+    Science cannot reach — the one place `max_rating` earns its keep, since Alchemy
+    reaches 6 and the other three stop at 5. NOTE that a formula may legitimately
+    sit at a rating with NO printed ScienceLevel: Alchemy has no five-dot rung yet
+    two formulas require Alchemy 5, so a missing rung is never an error."""
+    seen_aspects: dict[str, str] = {}
+    for art in arts.values():
+        for aspect in art.aspects:
+            if aspect.id in seen_aspects:
+                problems.append(
+                    f"thaumaturgic art {art.id!r}: aspect id {aspect.id!r} already used by "
+                    f"art {seen_aspects[aspect.id]!r}")
+            seen_aspects[aspect.id] = art.id
+
+    for science in sciences.values():
+        for lv in science.levels:
+            if lv.rating > science.max_rating:
+                problems.append(
+                    f"thaumaturgic science {science.id!r}: level {lv.rating} exceeds its "
+                    f"max_rating of {science.max_rating}")
+
+    for formula in formulas.values():
+        science = sciences.get(formula.science_id)
+        if science is None:
+            problems.append(
+                f"thaumaturgic formula {formula.id!r}: unknown science {formula.science_id!r}")
+        elif formula.level > science.max_rating:
+            problems.append(
+                f"thaumaturgic formula {formula.id!r}: requires {science.name} {formula.level}, "
+                f"above that Science's max_rating of {science.max_rating}")
+
+
 def _check_camps_and_callings(camps, callings, charms, problems: list[str]) -> None:
     """Every Charm a TrainingCamp grants or a Calling discounts must exist, and every
     Calling must belong to a real camp. A dangling id here is silent in a way the
@@ -250,6 +292,18 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
     callings = _index(_load_array(data_dir / "callings.json", Calling, problems),
                       "id", "calling", problems)
 
+    # Thaumaturgy (Player's Guide CH3). Cross-splat, so it is keyed by nothing and
+    # every file is optional — a data set without them simply has no thaumaturgy.
+    thaum_dir = data_dir / "thaumaturgy"
+    thaum_arts = _index(_load_array(thaum_dir / "arts.json", ThaumaturgicArt, problems),
+                        "id", "thaumaturgic art", problems)
+    thaum_sciences = _index(_load_array(thaum_dir / "sciences.json", ThaumaturgicScience, problems),
+                            "id", "thaumaturgic science", problems)
+    thaum_rituals = _index(_load_array(thaum_dir / "rituals.json", ThaumaturgicRitual, problems),
+                           "id", "thaumaturgic ritual", problems)
+    thaum_formulas = _index(_load_array(thaum_dir / "formulas.json", ThaumaturgicFormula, problems),
+                            "id", "thaumaturgic formula", problems)
+
     exalt_list = _load_array(data_dir / "exalts.json", ExaltDefinition, problems)
     exalts = (_index(exalt_list, "id", "exalt", problems) if exalt_list
               else {SOLAR_EXALT.id: SOLAR_EXALT})
@@ -263,6 +317,7 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
     _check_prereqs(charms, problems)
     _check_sorcery_reachable(charms, spells, problems)
     _check_camps_and_callings(camps, callings, charms, problems)
+    _check_thaumaturgy(thaum_arts, thaum_sciences, thaum_formulas, problems)
 
     if problems:
         raise RuleDataError(problems)
@@ -278,6 +333,10 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         nature_catalog=natures,
         material_catalog=materials,
         colleges=colleges,
+        thaum_arts=thaum_arts,
+        thaum_sciences=thaum_sciences,
+        thaum_rituals=thaum_rituals,
+        thaum_formulas=thaum_formulas,
         camps=camps,
         callings=callings,
         bonus_costs=bonus_costs,

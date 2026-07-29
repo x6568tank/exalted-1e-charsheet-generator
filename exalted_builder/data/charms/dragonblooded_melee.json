@@ -9,10 +9,15 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 1},
+    "cost": {
+      "motes": 1
+    },
     "duration": "Instant",
-    "description": "By concentrating for a moment the character imparts a special property to the melee weapon in hand, based on his elemental aspect. Air: fierce winds knock the foe off his feet — a hit means normal damage and the target's player must make a Dexterity + Athletics roll at difficulty 2 or be knocked prone. Earth: a thunderous shaking makes the enemy lose two dice from all physical dice pools until the end of his next turn. Fire: the target bursts into flames and on his next action must soak another 4L fire damage (separate from the attack, no extra successes; guttering out after one turn). Water: the target is gripped in a drowning embrace and subtracts 3 from his initiative next turn (or this turn if he hasn't acted). Wood: thorns cover the weapon's striking surfaces, adding +2L damage. The effect is instantaneous; Essence must be paid for every attack, before the attack roll.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 207}
+    "description": "By concentrating for a moment the character imparts a special property to the melee weapon in hand, based on his elemental aspect. Air: fierce winds knock the foe off his feet \u2014 a hit means normal damage and the target's player must make a Dexterity + Athletics roll at difficulty 2 or be knocked prone. Earth: a thunderous shaking makes the enemy lose two dice from all physical dice pools until the end of his next turn. Fire: the target bursts into flames and on his next action must soak another 4L fire damage (separate from the attack, no extra successes; guttering out after one turn). Water: the target is gripped in a drowning embrace and subtracts 3 from his initiative next turn (or this turn if he hasn't acted). Wood: thorns cover the weapon's striking surfaces, adding +2L damage. The effect is instantaneous; Essence must be paid for every attack, before the attack roll.",
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 207
+    }
   },
   {
     "id": "dragonblooded.melee.ghost-fire-blade",
@@ -23,11 +28,20 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.melee.dragon-graced-weapon"]],
-    "cost": {"motes": 2},
+    "prerequisites": [
+      [
+        "dragonblooded.melee.dragon-graced-weapon"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
     "duration": "Instant",
     "description": "Ghosts and dematerialized spirits cannot be hit by ordinary weapons. This Charm calls upon the Dragon of Fire to enchant the weapon so it can strike immaterial creatures normally. The character must spend the Essence and activate the Charm before making her attack, and her player must still roll to hit as if the creature were material. It provides no bonus beyond allowing the character to hit dematerialized spirits.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 208}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 208
+    }
   },
   {
     "id": "dragonblooded.melee.refining-the-inner-blade",
@@ -38,11 +52,21 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.melee.dragon-graced-weapon"]],
-    "cost": {"motes": 3, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.melee.dragon-graced-weapon"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "With a few seconds' concentration the Exalted conjures a weapon made entirely from his favored element. It has the qualities of an ordinary weapon of its type plus those of a weapon enchanted by Dragon-Graced Weapon. Made of raw elemental matter and Essence, it does not last long but remains intact until the end of the current battle; when the scene ends it dissipates into a sparkle of light and a whiff of the character's aspected element. It can be any sort of melee weapon.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 208}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 208
+    }
   },
   {
     "id": "dragonblooded.melee.stoking-bonfire-style",
@@ -54,10 +78,15 @@
     "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"raw": "1 mote per two dice"},
+    "cost": {
+      "raw": "1 mote per two dice"
+    },
     "duration": "Instant",
     "description": "Lends the ferocity of fire to the character's blows: his hand becomes steadier and his strike truer. Add two dice to the Melee dice pool for every mote spent, but a Dragon-Blood cannot more than double his Melee Ability with this Charm. The player must declare its use and spend the Essence before making the attack roll.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 208}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 208
+    }
   },
   {
     "id": "dragonblooded.melee.portentous-comet-deflecting-mode",
@@ -68,11 +97,21 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.melee.stoking-bonfire-style"]],
-    "cost": {"motes": 3, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.melee.stoking-bonfire-style"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Fiery sparks leap from the weapon, interposing between the Exalt and a deadly blow. Spend the Essence and roll Dexterity + Melee after an opponent's hand-to-hand attack; if even one success is achieved, regardless of the opponent's successes, the attack is blocked completely. It may be invoked after the opponent's attack roll. It provides no protection against sorcery or attacks enhanced by Charms.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 208}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 208
+    }
   },
   {
     "id": "dragonblooded.melee.deadly-wildfire-legion",
@@ -83,11 +122,20 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.melee.stoking-bonfire-style"]],
-    "cost": {"raw": "1 mote per subject + 1 mote per two dice"},
+    "prerequisites": [
+      [
+        "dragonblooded.melee.stoking-bonfire-style"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per subject + 1 mote per two dice"
+    },
     "duration": "One scene",
     "description": "Briefly empowers a group of allies to attack more effectively, surrounded by a fiery halo, the tips of their weapons scorching the air as they cut through defenses. You may ensorcel one ally per mote spent, to a maximum of your Essence, and must spend additional Essence to improve their Melee by two dice per mote. You cannot add more dice to allies' Abilities than you have in Melee, nor more than double their effective Melee.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 208}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 208
+    }
   },
   {
     "id": "dragonblooded.melee.threshing-floor-technique",
@@ -98,11 +146,21 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.melee.stoking-bonfire-style"]],
-    "cost": {"motes": 2, "raw": "2 motes + 1 mote per targeted ally"},
+    "prerequisites": [
+      [
+        "dragonblooded.melee.stoking-bonfire-style"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2 motes + 1 mote per targeted ally"
+    },
     "duration": "One turn",
     "description": "Normally only about five foes can effectively attack a single target at once. With this Charm the only limit to attackers assaulting one foe in a turn is the Essence the Dragon-Blooded spends: he designates a target, spends 2 motes to activate plus 1 mote per attacker. So long as an attacker is within her ordinary movement distance ([Dexterity + 12] / 2 yards) of the target, she may dash in, make a melee attack against the designated target on her normal action, and pull back to her previous position. Empowered characters need not attack (but the Essence is still spent), and Essence spent on attackers who never strike (e.g. if the target is slain) is also lost.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 209}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 209
+    }
   },
   {
     "id": "dragonblooded.melee.ringing-anvil-onslaught",
@@ -113,10 +171,119 @@
     "type": "Extra Action",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.melee.threshing-floor-technique"]],
-    "cost": {"motes": 8},
+    "prerequisites": [
+      [
+        "dragonblooded.melee.threshing-floor-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 8
+    },
     "duration": "Instant",
     "description": "A Dragon-Blooded can keep a foe entirely off-balance until slain, if his skill suffices. He designates a single target and his player rolls the character's Melee Ability alone (no Attribute added); for each success he gains an extra attack against that target this turn. He cannot gain more extra attacks than his Melee.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 209}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 209
+    }
+  },
+  {
+    "id": "dragonblooded.melee.fire-incites-water-to-ariot-of-clouds",
+    "name": "Fire Incites Water to Ariot of Clouds",
+    "category": "melee",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Fire",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "dragonblooded.melee.dragon-graced-weapon"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes + 1 mote per turn beyond the first"
+    },
+    "duration": "Instant",
+    "description": "Seen by some as a refinement of Dragon-Graced Weapon, Fire Incites Water to a Riot of Clouds allows the Dragon-Blood to channel her connection with the element of fire through a metal weapon and into a body of water to generate a large volume of steam. The moment the Exalt activates this Charm and plunges her weapon into a body of water at least two feet deep, huge roiling clouds of white steam surge from the water around the Dragon-Blood's weapon. This steam isn't particularly hot and cannot be used to scald others, but it is highly effective at dampening opponents and creating a dense, billowing curtain of fog through which enemies cannot see. Due to its thickness, this fog is equal to fog at night on the visibility table (see Exalted, p. 237), limiting those caught in it to a maximum of three yards of murky visibility. The Exalt's weapon generates another 10 yards of steam each turn it remains in the water. The steam will tend to roll away from the Dragon-Blood, and in the absence of any prevailing wind, the character can make a Willpower roll (difficulty 3) to control which direction the cloud of steam billows. Using this Charm to supplement an attack on a water elemental inflicts aggravated damage.",
+    "source": {
+      "book": "Exalted 1e Aspect Book: Fire",
+      "page": 74
+    }
+  },
+  {
+    "id": "dragonblooded.melee.blinding-spark-distraction",
+    "name": "Blinding Spark Distraction",
+    "category": "melee",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Fire",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "dragonblooded.melee.dragon-graced-weapon"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
+    "duration": "Instant",
+    "description": "It is common in the course of combat for clashing weapons to give off sparks. This Charm gives the Exalt the ability to elicit a strategic spray of sparks into her opponent's face any time their weapons clash. The Dragon-Blood can use this Charm any time she parries an opponent's metal weapon with her own or whenever her weapon hits anything metal or stone in the course of combat. Essence multiplies what would normally be a few flying sparks into a crackling blue and gold spray aimed right into her opponent's eyes. The opponent will be blinded the following turn (as per the poor visibility rules on p. 239 of Exalted), subtracting two successes from all attack rolls made for him. The player of the target of the spray of sparks gets a reflexive Wits + Dodge roll to have his character turn away from the spray of sparks. If the roll succeeds, the Exalt is down only two dice on his next turn's attack roll instead of two successes.",
+    "source": {
+      "book": "Exalted 1e Aspect Book: Fire",
+      "page": 74
+    }
+  },
+  {
+    "id": "dragonblooded.melee.spirit-branding-blade-technique",
+    "name": "Spirit-Branding Blade Technique",
+    "category": "melee",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Fire",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "dragonblooded.melee.ghost-fire-blade"
+      ]
+    ],
+    "cost": {
+      "raw": "4+ motes"
+    },
+    "duration": "Essence in days",
+    "description": "The Dragon-Blood channels Essence to her weapon on an attack, and if that attack succeeds, not only does the Exalt cause lethal damage with the blow, she also marks the target with a smoking brand that can lead the Exalt to her target should the target escape. The brand is difficult to hide and smolders through any clothing or fur that hides it. While the brand cannot burn through metal armor, it can make the armor tremendously hot \u2014 so much so that it's intensely uncomfortable to wear next to the skin. Every three turns the target keeps the mark covered with armor, he suffers one level of bashing damage (which may be soaked as normal). This mark is plainly visible to all who see it, including mortals (who see it as a red and inflamed tattoo), but the brand also remains visible if the target becomes invisible or takes on a new form (making it very helpful when dealing with Fair Folk and Lunar Exalts). While marked by the spirit brand, the target cannot lose his pursuers using non-supernatural evasion techniques, and his player suffers a three-die penalty to all Stealth and Survival rolls. A trail of black spirit smoke pours from the brand, which is visible to any who can perceive dematerialized spirits or Essence effects. This plume of smoke rolls in the direction the target traveled. It cannot be touched or smelled, nor can it be dissipated by wind, by hands or bodies passing through it or by any natural means. The burning mark is usually in the shape of the Dragon-Blood's weapon, although some advanced combatants have learned to deliver a more personalized brand (use the rules for marking targets from Exalted, p. 238, but the roll to mark is reflexive, and the attack does damage as normal).",
+    "source": {
+      "book": "Exalted 1e Aspect Book: Fire",
+      "page": 74
+    }
+  },
+  {
+    "id": "dragonblooded.melee.style-countering-meditation",
+    "name": "Style-Countering Meditation",
+    "category": "melee",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Fire",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "Varies",
+    "description": "This Charm allows the Dragon-Blood to adapt perfectly to an opponent's combat style. By watching and analyzing an opponent in combat for no fewer than five turns (during which she can do nothing else), the Exalt reads the subtle strengths and flaws in the target's fighting technique and adjusts her own combat style accordingly, exploiting the target's weaknesses and defending against particular strengths. Roll Intelligence + Melee (or the appropriate Ability). This Charm lasts three turns plus two turns per success, during which the Dragon-Blood gains a bonus of one die per point of permanent Essence on all Dodge and Melee rolls made by her character against that one studied target. Versions of this Charm exist that use Brawl or Martial Arts in place of Melee, but the minimum requirement of 4 remains the same, and all versions require Dodge 4. The Melee, Brawl and Martial Arts versions of this Charm must be learned separately. These versions are still Melee Charms. They simply analyze an enemy's use of different combat Abilities. Due to the complexities and mental demands involved in reading and analyzing a target so thoroughly, the Exalt can use this Charm no more times in a scene than she has points of Intelligence. This is a dice-adding Charm.",
+    "source": {
+      "book": "Exalted 1e Aspect Book: Fire",
+      "page": 74
+    },
+    "extra_min_abilities": [
+      {
+        "abilities": [
+          "dodge"
+        ],
+        "rating": 4
+      }
+    ]
   }
 ]

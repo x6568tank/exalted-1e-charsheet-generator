@@ -75,7 +75,12 @@ def _style(pal: theme.Palette) -> list[dict]:
 
 
 def _elements(graph: viewmod.CharmGraph) -> list[dict]:
-    nodes = [{"data": {"id": n.id, "label": n.label},
+    # A Charm gated only on breadth ("any 3 Occult Charms") has no edge to draw, so its
+    # requirement goes into the node label — otherwise it sits among the roots looking
+    # like an entry-level pick.
+    nodes = [{"data": {"id": n.id,
+                       "label": (f"{n.label}\n({n.count_requirement})"
+                                 if n.count_requirement else n.label)},
               "classes": f"{n.state} external" if n.external else n.state}
              for n in graph.nodes]
     edges = [{"data": {"id": f"{s}__{t}", "source": s, "target": t}} for s, t in graph.edges]
@@ -214,7 +219,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         switch paths. Counts come from the budget, never hardcoded."""
         if character.exalt_type != "Dragon-Blooded":
             return
-        b = ruleset.budgets_for(character.exalt_type, character.origin)
+        b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
         if validate.immaculate_martial_artist(ruleset, character):
             msg = (f"Immaculate path — {b.immaculate_charm_count} Charms from one "
                    f"Dragon style; Aspect/Favored minimum waived.")

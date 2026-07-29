@@ -229,3 +229,147 @@ def array_cost(ruleset: RuleSet, charm_ids: list[str]) -> int:
     it is a different rule on a different page, so it gets its own name rather
     than callers reaching for the Combo function."""
     return combo_cost(ruleset, charm_ids)
+
+
+# --------------------------------------------------------------------------- #
+# Thaumaturgy (Player's Guide CH3)
+#
+# Four purchasable kinds, priced off one ladder, in both currencies. The BP and
+# XP tables (p.116 / p.115) agree on Art (5) and Formula (1) but NOT on Art
+# Specialty (2 BP vs 3 XP) or Ritual base (2 vs 3); they are separate rows for
+# that reason and must not be collapsed.
+#
+# `multiplier` is ExaltDefinition.thaumaturgy_cost_multiplier — 2 for spirits
+# ("Spirits may use thaumaturgy, but they pay twice the normal experience (or
+# bonus) points when learning or improving any Art, Science or ritual", p.114).
+# No playable spirit splat exists yet, so it is 1 everywhere today.
+# --------------------------------------------------------------------------- #
+
+def _thaum_multiplier(ruleset: RuleSet, character: Character) -> int:
+    return ruleset.exalt_for(character.exalt_type).thaumaturgy_cost_multiplier
+
+
+def thaum_art_bp(ruleset: RuleSet, character: Character) -> int:
+    """BP for training in an Art: +2 dice to attempts with it (p.126)."""
+    costs = ruleset.bonus_costs_for(character.exalt_type, character.origin,
+                                    character.upbringing)
+    return costs.thaum_art * _thaum_multiplier(ruleset, character)
+
+
+def thaum_art_xp(ruleset: RuleSet, character: Character) -> int:
+    return (ruleset.xp_costs_for(character.exalt_type).thaum_new_art
+            * _thaum_multiplier(ruleset, character))
+
+
+def thaum_specialty_bp(ruleset: RuleSet, character: Character, *,
+                       narrowed: bool = False) -> int:
+    """BP for one Art specialty — which includes buying a printed *aspect*, since
+    an aspect IS a general specialty (see models.rules.ThaumaturgicAspect).
+
+    `narrowed` is Summoning's option alone (p.127): further limiting an aspect
+    ("Summoning (War Gods)") "halves the cost of the aspect". Rounded UP, so the
+    2-BP specialty becomes 1 rather than 0 — a free purchase is not a thing the
+    book offers, and rounding down would make narrowing strictly dominant.
+    """
+    costs = ruleset.bonus_costs_for(character.exalt_type, character.origin,
+                                    character.upbringing)
+    base = costs.thaum_art_specialty
+    if narrowed:
+        base = -(-base // 2)
+    return base * _thaum_multiplier(ruleset, character)
+
+
+def thaum_specialty_xp(ruleset: RuleSet, character: Character, *,
+                       narrowed: bool = False) -> int:
+    base = ruleset.xp_costs_for(character.exalt_type).thaum_new_art_specialty
+    if narrowed:
+        base = -(-base // 2)
+    return base * _thaum_multiplier(ruleset, character)
+
+
+def thaum_ritual_bp(ruleset: RuleSet, character: Character, level: int,
+                    orientations: int = 1) -> int:
+    """BP for a ritual: "2 + 1 per level of Ritual" (p.116), plus a flat 1 for each
+    regional version beyond the first (p.124)."""
+    costs = ruleset.bonus_costs_for(character.exalt_type, character.origin,
+                                    character.upbringing)
+    base = costs.thaum_ritual_base + costs.thaum_ritual_per_level * level
+    extra = costs.thaum_extra_orientation * max(0, orientations - 1)
+    return (base + extra) * _thaum_multiplier(ruleset, character)
+
+
+def thaum_ritual_xp(ruleset: RuleSet, character: Character, level: int,
+                    orientations: int = 1) -> int:
+    """XP for a ritual: "3, +1 per level of the ritual" (p.115). Note the base
+    differs from the BP table's 2."""
+    costs = ruleset.xp_costs_for(character.exalt_type)
+    base = costs.thaum_ritual_base + costs.thaum_ritual_per_level * level
+    extra = costs.thaum_extra_orientation * max(0, orientations - 1)
+    return (base + extra) * _thaum_multiplier(ruleset, character)
+
+
+def thaum_formula_bp(ruleset: RuleSet, character: Character,
+                     orientations: int = 1) -> int:
+    """BP for a formula or procedure: 1, plus 1 per extra regional version."""
+    costs = ruleset.bonus_costs_for(character.exalt_type, character.origin,
+                                    character.upbringing)
+    total = costs.thaum_formula + costs.thaum_extra_orientation * max(0, orientations - 1)
+    return total * _thaum_multiplier(ruleset, character)
+
+
+def thaum_formula_xp(ruleset: RuleSet, character: Character,
+                     orientations: int = 1) -> int:
+    costs = ruleset.xp_costs_for(character.exalt_type)
+    total = costs.thaum_formula + costs.thaum_extra_orientation * max(0, orientations - 1)
+    return total * _thaum_multiplier(ruleset, character)
+
+
+def thaum_orientation_bp(ruleset: RuleSet, character: Character) -> int:
+    """BP for ONE further regional version of a ritual or formula already known
+    (p.124). Flat, and the same for both kinds: "to completely master all versions of
+    a given spell would cost four bonus points, in addition to the normal cost".
+
+    Kept separate from `thaum_ritual_bp`/`thaum_formula_bp` so an extra orientation is
+    its own logged purchase. That is what keeps the append-only XP log unambiguous —
+    a row can only mean "learned it" or "learned another version of it", never both.
+    """
+    costs = ruleset.bonus_costs_for(character.exalt_type, character.origin,
+                                    character.upbringing)
+    return costs.thaum_extra_orientation * _thaum_multiplier(ruleset, character)
+
+
+def thaum_orientation_xp(ruleset: RuleSet, character: Character) -> int:
+    return (ruleset.xp_costs_for(character.exalt_type).thaum_extra_orientation
+            * _thaum_multiplier(ruleset, character))
+
+
+def thaum_science_step_bp(ruleset: RuleSet, character: Character, from_rating: int) -> int:
+    """BP to raise a Science by ONE dot from `from_rating`: 5 for the first, 7 after.
+
+    Provenance: the published cost tables omit Sciences entirely — a printing error,
+    clarified by Grabowski afterwards and supplied by the rules authority (human,
+    2026-07-29). See models.rules.BonusPointCosts.thaum_science_first_dot.
+    """
+    costs = ruleset.bonus_costs_for(character.exalt_type, character.origin,
+                                    character.upbringing)
+    rate = (costs.thaum_science_first_dot if from_rating <= 0
+            else costs.thaum_science_additional_dot)
+    return rate * _thaum_multiplier(ruleset, character)
+
+
+def thaum_science_bp(ruleset: RuleSet, character: Character, rating: int) -> int:
+    """Total BP to buy a Science up to `rating` from nothing — the chargen figure,
+    since chargen holds a rating rather than a sequence of purchases. Flat per dot,
+    so this is a sum rather than a closed form only to keep the two functions
+    obviously consistent."""
+    return sum(thaum_science_step_bp(ruleset, character, r) for r in range(max(0, rating)))
+
+
+def thaum_science_step_xp(ruleset: RuleSet, character: Character, from_rating: int) -> int:
+    """XP to raise a Science by ONE dot: 7 flat for the first, then current × 6 —
+    the ordinary "new trait flat, raises scale" shape. Same provenance caveat as
+    `thaum_science_step_bp`."""
+    costs = ruleset.xp_costs_for(character.exalt_type)
+    step = (costs.thaum_new_science if from_rating <= 0
+            else costs.thaum_science.at(from_rating))
+    return step * _thaum_multiplier(ruleset, character)

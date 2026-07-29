@@ -782,7 +782,7 @@
     "min_martial_arts": 3,
     "artifact_rating": 3,
     "attunement": 5,
-    "notes": "+5L or B — normally bashing; when charged with 2 motes it may be commanded to do lethal or bashing damage, and its length may be varied between 2 and 20 feet. Can entangle a target's weapon, leg or arm at difficulty 3. Lethal soak 7. Removes all difficulty penalties for climbing. (Caste Book: Dawn, p.79)",
+    "notes": "+5L or B \u2014 normally bashing; when charged with 2 motes it may be commanded to do lethal or bashing damage, and its length may be varied between 2 and 20 feet. Can entangle a target's weapon, leg or arm at difficulty 3. Lethal soak 7. Removes all difficulty penalties for climbing. (Caste Book: Dawn, p.79)",
     "tags": [
       "melee",
       "martial_arts",
@@ -800,7 +800,7 @@
     "min_strength": 2,
     "artifact_rating": 4,
     "attunement": 6,
-    "notes": "+6/8* — the additional damage is gained when the spear is charged with additional Essence to cause it to burn brighter. Grants a +2 bonus to all soak rolls against heat or fire. (Caste Book: Dawn, p.79)",
+    "notes": "+6/8* \u2014 the additional damage is gained when the spear is charged with additional Essence to cause it to burn brighter. Grants a +2 bonus to all soak rolls against heat or fire. (Caste Book: Dawn, p.79)",
     "tags": [
       "melee",
       "spear",
@@ -818,7 +818,7 @@
     "min_strength": 2,
     "artifact_rating": 4,
     "attunement": 6,
-    "notes": "+6/8* — the additional damage is gained when the spear is charged with additional Essence to cause it to burn brighter. Grants a +2 bonus to all soak rolls against heat or fire. (Caste Book: Dawn, p.79)",
+    "notes": "+6/8* \u2014 the additional damage is gained when the spear is charged with additional Essence to cause it to burn brighter. Grants a +2 bonus to all soak rolls against heat or fire. (Caste Book: Dawn, p.79)",
     "tags": [
       "melee",
       "spear",
@@ -836,7 +836,7 @@
     "min_strength": 2,
     "artifact_rating": 4,
     "attunement": 6,
-    "notes": "+6/8* normally, +15/17* on a mounted charge — the additional damage is gained when the spear is charged with additional Essence to cause it to burn brighter. Grants a +2 bonus to all soak rolls against heat or fire. (Caste Book: Dawn, p.79)",
+    "notes": "+6/8* normally, +15/17* on a mounted charge \u2014 the additional damage is gained when the spear is charged with additional Essence to cause it to burn brighter. Grants a +2 bonus to all soak rolls against heat or fire. (Caste Book: Dawn, p.79)",
     "tags": [
       "melee",
       "spear",
@@ -871,7 +871,7 @@
     "min_strength": 3,
     "artifact_rating": 5,
     "attunement": 10,
-    "notes": "Dawn Caste only — no other Exalted can attune to it. While unsheathed, hostile individuals within 10 meters must make a Valor roll at +1 difficulty or flee. Friendly troops within a mile gain +1 die to all combat pools and need not make Valor rolls; opponents lose one die and take +1 difficulty to Valor. Settings for 3 Hearthstones. (Caste Book: Dawn, p.81)",
+    "notes": "Dawn Caste only \u2014 no other Exalted can attune to it. While unsheathed, hostile individuals within 10 meters must make a Valor roll at +1 difficulty or flee. Friendly troops within a mile gain +1 die to all combat pools and need not make Valor rolls; opponents lose one die and take +1 difficulty to Valor. Settings for 3 Hearthstones. (Caste Book: Dawn, p.81)",
     "tags": [
       "melee",
       "artifact"
@@ -1016,7 +1016,7 @@
     "rate": 1,
     "range": 250,
     "resources_cost": 3,
-    "notes": "Damage 8L, flat. Rate 1/10 — a slow weapon normally used only from fixed mountings on iceships, air boats and city walls. Over a yard long, made of steel and brass. (Caste Book: Night, p.77-78)",
+    "notes": "Damage 8L, flat. Rate 1/10 \u2014 a slow weapon normally used only from fixed mountings on iceships, air boats and city walls. Over a yard long, made of steel and brass. (Caste Book: Night, p.77-78)",
     "tags": [
       "archery"
     ]
@@ -1030,7 +1030,7 @@
     "rate": 3,
     "range": 10,
     "resources_cost": 2,
-    "notes": "Resources •• (••• outside of the South). Explodes on contact with a hard surface; anyone within two yards of the impact point instead receives 4L. Apply this damage if the grenade is parried or misses its target in a situation where it will certainly burst. May go off if dropped, if knocked back more than 2 yards or if the carrier falls more than 10 feet; store in a padded case. (Caste Book: Night, p.77-78)",
+    "notes": "Resources \u2022\u2022 (\u2022\u2022\u2022 outside of the South). Explodes on contact with a hard surface; anyone within two yards of the impact point instead receives 4L. Apply this damage if the grenade is parried or misses its target in a situation where it will certainly burst. May go off if dropped, if knocked back more than 2 yards or if the carrier falls more than 10 feet; store in a padded case. (Caste Book: Night, p.77-78)",
     "tags": [
       "thrown"
     ]
@@ -1044,7 +1044,7 @@
     "rate": 3,
     "range": 5,
     "resources_cost": 1,
-    "notes": "Tiny grooved spikes thrown with a flick of a finger or spat from the mouth. They do very little damage, but a single scratch delivers their venom — so any botch results in the character accidentally poisoning herself. (Caste Book: Night, p.77-78)",
+    "notes": "Tiny grooved spikes thrown with a flick of a finger or spat from the mouth. They do very little damage, but a single scratch delivers their venom \u2014 so any botch results in the character accidentally poisoning herself. (Caste Book: Night, p.77-78)",
     "tags": [
       "thrown"
     ]
@@ -1057,7 +1057,7 @@
     "damage_type": "L",
     "range": 10,
     "resources_cost": 1,
-    "notes": "Damage is Strength + 0L. Rate: Special — when throwing multiple shuriken, subtract one die from the Dexterity + Thrown pool per star used. All shuriken thrown this way must go at the same target; make a single attack roll and apply it to all of them. A character can throw up to his Thrown ability in shuriken in a single attack. Often poisoned. (Caste Book: Night, p.77-78)",
+    "notes": "Damage is Strength + 0L. Rate: Special \u2014 when throwing multiple shuriken, subtract one die from the Dexterity + Thrown pool per star used. All shuriken thrown this way must go at the same target; make a single attack roll and apply it to all of them. A character can throw up to his Thrown ability in shuriken in a single attack. Often poisoned. (Caste Book: Night, p.77-78)",
     "tags": [
       "thrown"
     ]
@@ -1070,7 +1070,7 @@
     "rate": 3,
     "range": 10,
     "resources_cost": 2,
-    "notes": "Damage: Special. Resources •• (••• outside of the East). Filled with lethe-flower pollen; everyone who breathes the spores must make a Stamina + Resistance roll at difficulty 2 or fall unconscious for 30 - (Stamina + Resistance) minutes. Exalted need only one success, and their sleep is measured in turns. Ineffective in high wind. (Caste Book: Night, p.77-78)",
+    "notes": "Damage: Special. Resources \u2022\u2022 (\u2022\u2022\u2022 outside of the East). Filled with lethe-flower pollen; everyone who breathes the spores must make a Stamina + Resistance roll at difficulty 2 or fall unconscious for 30 - (Stamina + Resistance) minutes. Exalted need only one success, and their sleep is measured in turns. Ineffective in high wind. (Caste Book: Night, p.77-78)",
     "tags": [
       "thrown"
     ]
@@ -1132,7 +1132,7 @@
     "range": 15,
     "artifact_rating": 3,
     "attunement": 3,
-    "notes": "The projectile mode of the Gauntlets of Distant Claws — a hook-like claw fired on a nearly unbreakable chain, useable to attack distant foes or as a grappling hook. Retracting the hooks is a reflexive action. (Caste Book: Night, p.80)",
+    "notes": "The projectile mode of the Gauntlets of Distant Claws \u2014 a hook-like claw fired on a nearly unbreakable chain, useable to attack distant foes or as a grappling hook. Retracting the hooks is a reflexive action. (Caste Book: Night, p.80)",
     "tags": [
       "thrown",
       "artifact"
@@ -1200,7 +1200,7 @@
     "defense": 5,
     "artifact_rating": 1,
     "attunement": 2,
-    "notes": "Artifact • each; ornate wind-fire wheels made of orichalcum that look like carefully painted dancing fans. Used as part of a dancing performance, they add a one-die bonus to any Performance rolls made by the owner's player and can attract the attention of nearby little gods. No bonus of any sort is gained if only one of the fans is possessed or used. 2 motes to attune to each of the wheels. (Caste Book: Zenith, p.80)",
+    "notes": "Artifact \u2022 each; ornate wind-fire wheels made of orichalcum that look like carefully painted dancing fans. Used as part of a dancing performance, they add a one-die bonus to any Performance rolls made by the owner's player and can attract the attention of nearby little gods. No bonus of any sort is gained if only one of the fans is possessed or used. 2 motes to attune to each of the wheels. (Caste Book: Zenith, p.80)",
     "tags": [
       "melee",
       "martial_arts",
@@ -1233,9 +1233,128 @@
     "defense": 3,
     "artifact_rating": 4,
     "attunement": 5,
-    "notes": "An ornate, straight-bladed moonsilver daiklave. On command it leaps from its bearer's hand to engage a named opponent in single combat, fighting on its own with the launching character's Attributes and Abilities and acting on his initiative. While fighting on its own it dodges with 12 dice, attackers automatically subtract 2 successes, and it has a 10L/8B soak — three levels in one attack drop it to the ground. Has a setting for a single Hearthstone. Designed so that Solars or Lunars receive the moonsilver Material bonus. (Caste Book: Zenith, p.81)",
+    "notes": "An ornate, straight-bladed moonsilver daiklave. On command it leaps from its bearer's hand to engage a named opponent in single combat, fighting on its own with the launching character's Attributes and Abilities and acting on his initiative. While fighting on its own it dodges with 12 dice, attackers automatically subtract 2 successes, and it has a 10L/8B soak \u2014 three levels in one attack drop it to the ground. Has a setting for a single Hearthstone. Designed so that Solars or Lunars receive the moonsilver Material bonus. (Caste Book: Zenith, p.81)",
     "tags": [
       "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.forge_hand_gauntlets",
+    "name": "Forge-Hand Gauntlets",
+    "speed": -3,
+    "accuracy": -1,
+    "damage": 4,
+    "damage_type": "A",
+    "defense": 2,
+    "artifact_rating": 4,
+    "notes": "(Aspect Book: Fire, p.81) Minimums: Strength \u2022\u2022. Exalted Power Combat: Speed +3, Accuracy +1, Damage +3A, Defense +1, Rate 2.",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.eye_of_the_fire_dragon",
+    "name": "Eye of the Fire Dragon",
+    "speed": 10,
+    "accuracy": 3,
+    "damage": 8,
+    "damage_type": "L",
+    "defense": 2,
+    "artifact_rating": 5,
+    "notes": "Forged in secret before the Great Uprising for use in hunting the Anathema; used by Immaculate heroes during the war and said to have struck the killing blow against the Solar Anathema Desus at Hollow. (Aspect Book: Fire, p.81) Minimums: Dexterity \u2022\u2022\u2022, Strength \u2022\u2022. Exalted Power Combat: Speed +15, Accuracy +3, Damage +12L, Defense +6, Rate 4.",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.black_widow_razors",
+    "name": "Black Widow Razors",
+    "speed": 1,
+    "accuracy": 1,
+    "damage": 4,
+    "damage_type": "L",
+    "defense": 2,
+    "artifact_rating": 3,
+    "notes": "Artifact \u2022\u2022\u2022 for the pair. Prized by assassins. Damage is +4L PLUS poison \u2014 the poison is not modelled here. (Aspect Book: Wood, p.83) Minimums: Dexterity \u2022\u2022. Exalted Power Combat: Speed +0, Accuracy +1, Damage +5L (+ poison), Defense +1, Rate 6, minimums Strength \u2022, Dexterity \u2022\u2022.",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.grand_grimcleaver",
+    "name": "Grand Grimcleaver",
+    "speed": -6,
+    "accuracy": 1,
+    "damage": 13,
+    "damage_type": "L",
+    "defense": -1,
+    "notes": "Named only in the weapon table; the chapter carries no write-up and prints no Artifact rating for it. (Aspect Book: Wood, p.83) Minimums: Strength \u2022\u2022\u2022\u2022. Exalted Power Combat: Speed +8, Accuracy +1, Damage +14L, Defense -3, Rate 3.",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.death_at_the_root",
+    "name": "Death at the Root",
+    "speed": -5,
+    "accuracy": 2,
+    "damage": 13,
+    "damage_type": "L",
+    "defense": 0,
+    "artifact_rating": 4,
+    "notes": "(Aspect Book: Wood, p.83) Minimums: Strength \u2022\u2022\u2022. Exalted Power Combat: Speed +9, Accuracy +2, Damage +14L.",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.gauntlets_of_distant_touch",
+    "name": "Gauntlets of Distant Touch",
+    "speed": 3,
+    "accuracy": 2,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 3,
+    "artifact_rating": 3,
+    "notes": "(Aspect Book: Water, p.80) Minimums: Strength \u2022\u2022, Dexterity \u2022\u2022\u2022. Exalted Power Combat: Speed +1, Accuracy +2, Damage +7L, Defense +5, Rate 5.",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.lightning_corona",
+    "name": "Lightning Corona (melee)",
+    "speed": 2,
+    "accuracy": 1,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 1,
+    "notes": "The integral lightning weapon of the Most Terrifying Armor of the Air Dragon; not a separate artifact. Costs 2 motes per turn to use. The book labels this column 'Attack' rather than 'Accuracy'. (Aspect Book: Air, p.81)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.ranged.lightning_corona",
+    "name": "Lightning Corona (ranged)",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 10,
+    "damage_type": "L",
+    "defense": 0,
+    "rate": 1,
+    "range": 200,
+    "notes": "Ranged mode of the Most Terrifying Armor of the Air Dragon's integral weapon; costs 3 motes. The table prints no Speed or Defense for this mode. (Aspect Book: Air, p.81)",
+    "tags": [
+      "ranged",
       "artifact"
     ]
   }

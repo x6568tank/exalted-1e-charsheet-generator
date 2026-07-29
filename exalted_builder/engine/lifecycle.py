@@ -33,6 +33,10 @@ def lock_chargen(character: Character) -> Character:
         submodules=[s.model_copy(deep=True) for s in character.submodules],
         ox_body=[p.model_copy(deep=True) for p in character.ox_body],
         beastman_gifts=[p.model_copy(deep=True) for p in character.beastman_gifts],
+        # Deep-copied like every other purchasable collection, and left None when the
+        # character has no thaumaturgy so an untouched save still round-trips to None.
+        thaumaturgy=(character.thaumaturgy.model_copy(deep=True)
+                     if character.thaumaturgy is not None else None),
         essence_rating=character.essence_rating,
         willpower_purchased=character.willpower_purchased,
         wp_virtue_component=wp_component,

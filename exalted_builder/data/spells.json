@@ -280,7 +280,7 @@
     "cost": {
       "raw": "10 or 20 motes"
     },
-    "description": "Necromantic countermagic: 10 motes raises a personal shield negating hostile Shadowlands spells until the next turn's end (−2 to Physical actions while it persists); 20 motes extinguishes one Shadowlands spell within Essence×50 feet. May also oppose sorcery one circle higher.",
+    "description": "Necromantic countermagic: 10 motes raises a personal shield negating hostile Shadowlands spells until the next turn's end (\u22122 to Physical actions while it persists); 20 motes extinguishes one Shadowlands spell within Essence\u00d750 feet. May also oppose sorcery one circle higher.",
     "source": {
       "book": "Exalted 1e Core",
       "page": 224
@@ -293,7 +293,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "A ten-minute chant (minus the caster's Occult) ends with a blade-cut in the air that tears open a rift to the Labyrinth for Essence turns. Only lets a necromancer enter — she must find her own way out.",
+    "description": "A ten-minute chant (minus the caster's Occult) ends with a blade-cut in the air that tears open a rift to the Labyrinth for Essence turns. Only lets a necromancer enter \u2014 she must find her own way out.",
     "source": {
       "book": "Exalted 1e Core",
       "page": 225
@@ -410,7 +410,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "A shockwave of Essence raises dense spines of bone (max height Essence yards) over (Charisma+Occult)×10 square yards of any shape, inflicting unblockable 8L (dodge only) to all within and to anything hurled against them. The spikes last for Essence days.",
+    "description": "A shockwave of Essence raises dense spines of bone (max height Essence yards) over (Charisma+Occult)\u00d710 square yards of any shape, inflicting unblockable 8L (dodge only) to all within and to anything hurled against them. The spikes last for Essence days.",
     "source": {
       "book": "Exalted 1e Core",
       "page": 227
@@ -449,7 +449,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Inhales the life energy of every sentient being within Essence×5 yards, inflicting one lethal die (Stamina soak only) on each; every level actually dealt restores 1 mote to the necromancer.",
+    "description": "Inhales the life energy of every sentient being within Essence\u00d75 yards, inflicting one lethal die (Stamina soak only) on each; every level actually dealt restores 1 mote to the necromancer.",
     "source": {
       "book": "Exalted 1e Core",
       "page": 228
@@ -475,7 +475,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Until next sunrise, grants bashing and lethal soak equal to permanent Essence and negates any magic designed to deal extra damage or trauma to Abyssals, Deathlords, or Underworld denizens — the bonus effect vanishes, though the base attack still lands.",
+    "description": "Until next sunrise, grants bashing and lethal soak equal to permanent Essence and negates any magic designed to deal extra damage or trauma to Abyssals, Deathlords, or Underworld denizens \u2014 the bonus effect vanishes, though the base attack still lands.",
     "source": {
       "book": "Exalted 1e Core",
       "page": 228
@@ -501,7 +501,7 @@
     "cost": {
       "raw": "50 motes (committed) + one lethal health level"
     },
-    "description": "A geyser of the caster's blood builds over an hour into a mile-high cloud covering Essence miles in radius, then rains gore for Stamina hours — killing plants and small animals, sickening others (hourly Stamina+Endurance check), and drawing malevolent creatures for miles.",
+    "description": "A geyser of the caster's blood builds over an hour into a mile-high cloud covering Essence miles in radius, then rains gore for Stamina hours \u2014 killing plants and small animals, sickening others (hourly Stamina+Endurance check), and drawing malevolent creatures for miles.",
     "source": {
       "book": "Exalted 1e Core",
       "page": 228
@@ -514,7 +514,7 @@
     "cost": {
       "motes": 80
     },
-    "description": "A sunset-to-midnight ritual transforms a willing Solar into an Abyssal: she renounces her god, Caste Mark, Charms, and name, and at midnight her anima is swallowed by shadow. She gains matching Abyssal Charms and caste (Dawn→Dusk, etc.) and is thereafter a deathknight.",
+    "description": "A sunset-to-midnight ritual transforms a willing Solar into an Abyssal: she renounces her god, Caste Mark, Charms, and name, and at midnight her anima is swallowed by shadow. She gains matching Abyssal Charms and caste (Dawn\u2192Dusk, etc.) and is thereafter a deathknight.",
     "source": {
       "book": "Exalted 1e Core",
       "page": 229
@@ -605,7 +605,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Binds one individual in a mesh of luminous filaments that does not impair movement but injures them whenever they spend Essence — the weaver fixes the type at weaving: one bashing level per mote spent, or one lethal level per 2 motes. This damage is soaked only with the target's Essence rating; committed Essence and non-Essence activity are unaffected. Cannot target a being of greater Essence than the weaver. Duration: one scene or one hour, whichever is longer. Minimum Clarity 0.",
+    "description": "Binds one individual in a mesh of luminous filaments that does not impair movement but injures them whenever they spend Essence \u2014 the weaver fixes the type at weaving: one bashing level per mote spent, or one lethal level per 2 motes. This damage is soaked only with the target's Essence rating; committed Essence and non-Essence activity are unaffected. Cannot target a being of greater Essence than the weaver. Duration: one scene or one hour, whichever is longer. Minimum Clarity 0.",
     "source": {
       "book": "Exalted 1e The Autochthonians",
       "page": 147
@@ -618,7 +618,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Conjures a silent floating pocket of roiling shadow — a tenebrapede — that the weaver and companions ride, carrying 200 lbs of cargo/passengers per point of the weaver's Essence. Flies at 200 mph (~600 yards/turn), 25 health levels, soak 25L/35B, 90% hard cover; only one attack may be made against it or its occupants unless matched in flight. Target: weaver. Duration: (Essence x 4) hours, or until it reaches its destination, lands, or is dispelled. Minimum Clarity 2.",
+    "description": "Conjures a silent floating pocket of roiling shadow \u2014 a tenebrapede \u2014 that the weaver and companions ride, carrying 200 lbs of cargo/passengers per point of the weaver's Essence. Flies at 200 mph (~600 yards/turn), 25 health levels, soak 25L/35B, 90% hard cover; only one attack may be made against it or its occupants unless matched in flight. Target: weaver. Duration: (Essence x 4) hours, or until it reaches its destination, lands, or is dispelled. Minimum Clarity 2.",
     "source": {
       "book": "Exalted 1e The Autochthonians",
       "page": 148
@@ -644,7 +644,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Knocks all automata within (Essence x 10) yards offline: gremlins, golems, zombies and the like take the weaver's Essence in bashing damage and fall inert until the next scene, when they resume (often confused). Does not shut down warstriders/powered armor but deadens unshielded limbs — Artifact ••• armor takes -2 mobility, each further dot reduces it by 1 (Artifact ••••• unaffected). Target: all automata within range. Duration: one scene. Minimum Clarity 4.",
+    "description": "Knocks all automata within (Essence x 10) yards offline: gremlins, golems, zombies and the like take the weaver's Essence in bashing damage and fall inert until the next scene, when they resume (often confused). Does not shut down warstriders/powered armor but deadens unshielded limbs \u2014 Artifact \u2022\u2022\u2022 armor takes -2 mobility, each further dot reduces it by 1 (Artifact \u2022\u2022\u2022\u2022\u2022 unaffected). Target: all automata within range. Duration: one scene. Minimum Clarity 4.",
     "source": {
       "book": "Exalted 1e The Autochthonians",
       "page": 149
@@ -800,7 +800,7 @@
     "cost": {
       "raw": "10+ motes"
     },
-    "description": "Exactly like the Terrestrial Circle spell Summon Elemental (Exalted p.219), but calls only the elementals common to Autochthonia — crystal, lightning, metal, oil, smoke and steam. Target: elemental. Duration: up to one month. Minimum Clarity 0.",
+    "description": "Exactly like the Terrestrial Circle spell Summon Elemental (Exalted p.219), but calls only the elementals common to Autochthonia \u2014 crystal, lightning, metal, oil, smoke and steam. Target: elemental. Duration: up to one month. Minimum Clarity 0.",
     "source": {
       "book": "Exalted 1e The Autochthonians",
       "page": 154
@@ -826,7 +826,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Reshapes the local techno-organic landscape at the weaver's gesture — sealing tunnels, raising room, pulling veins to the surface — moving 500 cubic feet of material per turn. In Creation it sculpts up to (Essence x 100) square feet of stone (trenches, mounds, tunnels, bridges) and can raise ore veins up to (Essence x 100) feet deep. Immuring an enemy is slow (5 turns) and resistable (Strength + Athletics, difficulty 2, +1 per shaping turn). Target: terrain. Duration: one scene. Minimum Clarity 0.",
+    "description": "Reshapes the local techno-organic landscape at the weaver's gesture \u2014 sealing tunnels, raising room, pulling veins to the surface \u2014 moving 500 cubic feet of material per turn. In Creation it sculpts up to (Essence x 100) square feet of stone (trenches, mounds, tunnels, bridges) and can raise ore veins up to (Essence x 100) feet deep. Immuring an enemy is slow (5 turns) and resistable (Strength + Athletics, difficulty 2, +1 per shaping turn). Target: terrain. Duration: one scene. Minimum Clarity 0.",
     "source": {
       "book": "Exalted 1e The Autochthonians",
       "page": 155
@@ -865,7 +865,7 @@
     "cost": {
       "raw": "(Rating affected x 10) motes"
     },
-    "description": "Reweaves an automaton or machine's pattern to a new destiny — mending, reactivating, or transforming it (gremlin to custodian, warstrider to airship, or into inert parts). Automatic if the weaver's Essence >= the target's, else a contested Essence roll. Can reconfigure a machine spirit of up to half the weaver's Essence (round up) into an Artifact of half the weaver's Essence (round up) or a familiar rated at the weaver's Essence; equal-power artifact conversions need (Artifact rating) successes on Intelligence + Lore. At Essence 7 the weaver alters multiple targets in line of sight (+5 motes each), but only their programming/behavior, and none may exceed permanent Essence 3. Target: one automaton. Duration: permanent. Minimum Clarity 6.",
+    "description": "Reweaves an automaton or machine's pattern to a new destiny \u2014 mending, reactivating, or transforming it (gremlin to custodian, warstrider to airship, or into inert parts). Automatic if the weaver's Essence >= the target's, else a contested Essence roll. Can reconfigure a machine spirit of up to half the weaver's Essence (round up) into an Artifact of half the weaver's Essence (round up) or a familiar rated at the weaver's Essence; equal-power artifact conversions need (Artifact rating) successes on Intelligence + Lore. At Essence 7 the weaver alters multiple targets in line of sight (+5 motes each), but only their programming/behavior, and none may exceed permanent Essence 3. Target: one automaton. Duration: permanent. Minimum Clarity 6.",
     "source": {
       "book": "Exalted 1e The Autochthonians",
       "page": 156
@@ -930,7 +930,7 @@
     "cost": {
       "raw": "30 or 35 motes"
     },
-    "description": "The weaver metamorphoses into a living nightmare war form comparable to a Lunar's, combining aspects of any beasts or plants; the mechanical nature vanishes. Grants hardness 10 and +10 soak vs bashing and lethal, +2 Strength and +2 Stamina (even above 5), bestial weapons as Artifact •• magical-material weapons (no material bonus) with +3 speed/+1 accuracy and Strength + 6 lethal (Strength + 8 in a clinch), and reach out to (Essence) yards. Incompatible with armor and weapons. For 5 extra motes the form also gains wings, flying at three times land speed. Target: weaver. Duration: (Essence) hours. Minimum Clarity 2 (Maximum Clarity 7).",
+    "description": "The weaver metamorphoses into a living nightmare war form comparable to a Lunar's, combining aspects of any beasts or plants; the mechanical nature vanishes. Grants hardness 10 and +10 soak vs bashing and lethal, +2 Strength and +2 Stamina (even above 5), bestial weapons as Artifact \u2022\u2022 magical-material weapons (no material bonus) with +3 speed/+1 accuracy and Strength + 6 lethal (Strength + 8 in a clinch), and reach out to (Essence) yards. Incompatible with armor and weapons. For 5 extra motes the form also gains wings, flying at three times land speed. Target: weaver. Duration: (Essence) hours. Minimum Clarity 2 (Maximum Clarity 7).",
     "source": {
       "book": "Exalted 1e The Autochthonians",
       "page": 157
@@ -969,7 +969,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Like the Maker's Basic Defense Array but with a sphere of whirling adamant shuriken: effective hardness 10 and +20L/20B soak. Weapons that strike it shatter — non-magical-material on 1-9, magical-material only on 1 (Storyteller rolls 1d) — and even undamaged weapons need a Dexterity + Melee roll (difficulty 3) to keep hold. Unarmed Brawl/Martial Arts attackers suffer 10 dice of soakable lethal damage, and any attacker taking more than two health levels loses the attacking limb. Target: weaver. Duration: 12 hours. Minimum Clarity 0.",
+    "description": "Like the Maker's Basic Defense Array but with a sphere of whirling adamant shuriken: effective hardness 10 and +20L/20B soak. Weapons that strike it shatter \u2014 non-magical-material on 1-9, magical-material only on 1 (Storyteller rolls 1d) \u2014 and even undamaged weapons need a Dexterity + Melee roll (difficulty 3) to keep hold. Unarmed Brawl/Martial Arts attackers suffer 10 dice of soakable lethal damage, and any attacker taking more than two health levels loses the attacking limb. Target: weaver. Duration: 12 hours. Minimum Clarity 0.",
     "source": {
       "book": "Exalted 1e The Autochthonians",
       "page": 158
@@ -1086,7 +1086,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "This malicious spell is used in moments of hatred, bitterness and spite. It causes the target to betray someone she loves, either by action or inaction. It must be cast during the hours of darkness. The ritual involves two hours of chanting, the shedding of blood and the speaking of the target's name. At that moment, the sorcerer's player makes a Willpower + Occult roll and totals the number of successes he achieves. For each 5 additional motes of Essence he spends, he may add another die to the pool. If the sorcerer achieves at least one success, at that moment, wherever she may be, the target of the spell will hear the sorcerer speak her name in tones of rage and hatred.\n\nThe effects are not immediate and may be delayed for days — or even years. However, when the targeted character is next in a position involving the safety of someone whom she loves or whom she is honor-bound to obey, the curse will attempt to work. The target's player must make a Willpower + Conviction roll and compare the total to the number of successes achieved earlier by the sorcerer. If she gains more successes or an equal number, then the curse fails, and a distant scream will echo in the sorcerer's ears as it dissipates. Should the target gain fewer successes than the sorcerer, then the curse will affect her and will blind or deafen her at some critical moment, causing her to betray her lord or loved one. Battle orders may be misheard, the identity of another combatant may be tragically mistaken, or a plea for help may go unnoticed. Whatever the case, terrible tragedy for the loved one will result.",
+    "description": "This malicious spell is used in moments of hatred, bitterness and spite. It causes the target to betray someone she loves, either by action or inaction. It must be cast during the hours of darkness. The ritual involves two hours of chanting, the shedding of blood and the speaking of the target's name. At that moment, the sorcerer's player makes a Willpower + Occult roll and totals the number of successes he achieves. For each 5 additional motes of Essence he spends, he may add another die to the pool. If the sorcerer achieves at least one success, at that moment, wherever she may be, the target of the spell will hear the sorcerer speak her name in tones of rage and hatred.\n\nThe effects are not immediate and may be delayed for days \u2014 or even years. However, when the targeted character is next in a position involving the safety of someone whom she loves or whom she is honor-bound to obey, the curse will attempt to work. The target's player must make a Willpower + Conviction roll and compare the total to the number of successes achieved earlier by the sorcerer. If she gains more successes or an equal number, then the curse fails, and a distant scream will echo in the sorcerer's ears as it dissipates. Should the target gain fewer successes than the sorcerer, then the curse will affect her and will blind or deafen her at some critical moment, causing her to betray her lord or loved one. Battle orders may be misheard, the identity of another combatant may be tragically mistaken, or a plea for help may go unnoticed. Whatever the case, terrible tragedy for the loved one will result.",
     "source": {
       "book": "Exalted 1e Caste Book: Twilight",
       "page": 75
@@ -1099,7 +1099,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "With this spell, an Exalt can invoke the attention of one of the seven Hidden Judges of the Secret Flame, mysterious spirits who are said to attend each Calibration and prevent open strife among the powers of the year. One may be invoked to guard a place (which it will do until the next Calibration) or to hunt down an enemy. However, a Hidden Judge will not pursue someone who is innocent by its definitions — the target must have offended against divine law in some way or broken a bargain with a spirit. (Attacking a Solar does not count as an offense against divine law!)\n\nAs with the summoning of demons, this spell requires a complex ritual that must be begun at dawn and finished at sunset but can be cast at any time of the year except for Calibration. No contest is required between the sorcerer and the Hidden Judge: If the sorcerer requests one of the above services, the Judge will do as required without argument. Requesting any other service from the Judge involves a Willpower + Essence contest between the sorcerer and the Judge: Should the sorcerer fail, the Judge will strike at him once with his sword before vanishing.\n\nThe Hidden Judges manifest as beings with the bodies and stature of tall men, draped in long, hooded dark cloaks that leave a trail of charred dust behind them. Only their hands and forearms are visible, bones blackened like charred skeletons. Those who have dared to look at their faces have declared that the Hidden Judges have no heads, only a single iridescent blue flame, which burns continually in the shadow of their hoods. Each Hidden Judge bears a great two-handed sword. Although the Hidden Judges are not known by name, their weapons each have a particular name, which must be used when summoning one of the spirits. Known names of the swords include Hekateron, Amantythae, Sebelle, Kasimodente and Pheberester. A Hidden Judge may only be wounded by a blade that has been dipped in the blood of one who has never broken the laws of Heaven or by a magical weapon such as a daiklave or powerbow.\n\nHIDDEN JUDGE — Nature: Judge. Attributes: Strength 4, Dexterity 3, Stamina 5, Charisma 0, Manipulation 2, Appearance 0, Perception 4, Intelligence 4, Wits 4. Virtues: Compassion 1, Conviction 5, Temperance 4, Valor 4. Abilities: Awareness 3, Brawl 3, Dodge 4, Endurance 4, Linguistics 5, Lore 5, Melee 5 (Sword +1), Occult 5, Presence 5, Resistance 3. Backgrounds: Allies 5 (Other Judges), Contacts 5 (Court of Seasons), Influence 3, Resources 3. Charms: Essence Bite, Geas, Imprecation, Instill Obedience, Landscape Travel, Malediction, Materialize, Principle of Motion, Scourge, Tiny Damnation. Cost To Materialize: 50. Base Initiative: 7. Attack — Claw: Speed 7 Accuracy 7 Damage 6L Defense 7; Sword: Speed 9 Accuracy 13 Damage 9L Defense 12. Dodge Pool: 7. Soak: 9L/10B (Enchanted cloak, 6L/6B). Willpower: 9. Health Levels: -0/-0/-0/-1/-1/-1/-1/-1/-1/-2/-2/-2/-2/-2/-2/-4/Incap. Essence: 5. Essence Pool: 100.",
+    "description": "With this spell, an Exalt can invoke the attention of one of the seven Hidden Judges of the Secret Flame, mysterious spirits who are said to attend each Calibration and prevent open strife among the powers of the year. One may be invoked to guard a place (which it will do until the next Calibration) or to hunt down an enemy. However, a Hidden Judge will not pursue someone who is innocent by its definitions \u2014 the target must have offended against divine law in some way or broken a bargain with a spirit. (Attacking a Solar does not count as an offense against divine law!)\n\nAs with the summoning of demons, this spell requires a complex ritual that must be begun at dawn and finished at sunset but can be cast at any time of the year except for Calibration. No contest is required between the sorcerer and the Hidden Judge: If the sorcerer requests one of the above services, the Judge will do as required without argument. Requesting any other service from the Judge involves a Willpower + Essence contest between the sorcerer and the Judge: Should the sorcerer fail, the Judge will strike at him once with his sword before vanishing.\n\nThe Hidden Judges manifest as beings with the bodies and stature of tall men, draped in long, hooded dark cloaks that leave a trail of charred dust behind them. Only their hands and forearms are visible, bones blackened like charred skeletons. Those who have dared to look at their faces have declared that the Hidden Judges have no heads, only a single iridescent blue flame, which burns continually in the shadow of their hoods. Each Hidden Judge bears a great two-handed sword. Although the Hidden Judges are not known by name, their weapons each have a particular name, which must be used when summoning one of the spirits. Known names of the swords include Hekateron, Amantythae, Sebelle, Kasimodente and Pheberester. A Hidden Judge may only be wounded by a blade that has been dipped in the blood of one who has never broken the laws of Heaven or by a magical weapon such as a daiklave or powerbow.\n\nHIDDEN JUDGE \u2014 Nature: Judge. Attributes: Strength 4, Dexterity 3, Stamina 5, Charisma 0, Manipulation 2, Appearance 0, Perception 4, Intelligence 4, Wits 4. Virtues: Compassion 1, Conviction 5, Temperance 4, Valor 4. Abilities: Awareness 3, Brawl 3, Dodge 4, Endurance 4, Linguistics 5, Lore 5, Melee 5 (Sword +1), Occult 5, Presence 5, Resistance 3. Backgrounds: Allies 5 (Other Judges), Contacts 5 (Court of Seasons), Influence 3, Resources 3. Charms: Essence Bite, Geas, Imprecation, Instill Obedience, Landscape Travel, Malediction, Materialize, Principle of Motion, Scourge, Tiny Damnation. Cost To Materialize: 50. Base Initiative: 7. Attack \u2014 Claw: Speed 7 Accuracy 7 Damage 6L Defense 7; Sword: Speed 9 Accuracy 13 Damage 9L Defense 12. Dodge Pool: 7. Soak: 9L/10B (Enchanted cloak, 6L/6B). Willpower: 9. Health Levels: -0/-0/-0/-1/-1/-1/-1/-1/-1/-2/-2/-2/-2/-2/-2/-4/Incap. Essence: 5. Essence Pool: 100.",
     "source": {
       "book": "Exalted 1e Caste Book: Twilight",
       "page": 75
@@ -1138,10 +1138,62 @@
     "cost": {
       "motes": 40
     },
-    "description": "This spell permits an Exalted to call forth the mirror image of another person and to imprison the original within the mirror. To do this, he must be in the presence of his target, and there must also be a mirror of some shape or size within 10 yards. Both the player of the sorcerer and the player of his victim make reflexive opposed Willpower + Essence rolls. The victim must be conscious and able to see the mirror but may be drugged or otherwise bespelled. If the sorcerer fails, then the mirror explodes into a hundred pieces, and the sorcerer's player suffers a penalty of -2 to all Mental and Willpower rolls for the next 24 hours, due to the sorcerous backlash. If the sorcerer and the target score an equal number of successes, then the mirror shatters, but there is no other reaction. If the sorcerer scores more successes than the target, then the target is trapped inside the mirror.\n\nThe victim's mirror reflection has the same physical abilities, Charms, items and so forth as the victim but is a complete moral opposite. She is as intelligent as the victim and will act as her morals dictate — and to prevent herself from being returned to the mirror. She is also the sorcerer's willing slave and will do exactly as the magician commands. The victim herself is trapped in the mirror world, which is a shadowy reflection of the real world and only peopled by others trapped like her. Whenever her escaped reflection is mirrored by any surface (whether natural, such as a pool of water, or unnatural, such as a mirror), she is able to look out into the real world through the same mirror. The victim is not obliged to follow her reflection's movements — she can wave her hands, mouth appeals for help and so on. For this reason, most escaped reflections tend to avoid mirrors at all costs. The only known way to break this spell is to force the escaped reflection to touch the real victim, by touching a reflective surface. If this is done, then the two will resume their proper places.",
+    "description": "This spell permits an Exalted to call forth the mirror image of another person and to imprison the original within the mirror. To do this, he must be in the presence of his target, and there must also be a mirror of some shape or size within 10 yards. Both the player of the sorcerer and the player of his victim make reflexive opposed Willpower + Essence rolls. The victim must be conscious and able to see the mirror but may be drugged or otherwise bespelled. If the sorcerer fails, then the mirror explodes into a hundred pieces, and the sorcerer's player suffers a penalty of -2 to all Mental and Willpower rolls for the next 24 hours, due to the sorcerous backlash. If the sorcerer and the target score an equal number of successes, then the mirror shatters, but there is no other reaction. If the sorcerer scores more successes than the target, then the target is trapped inside the mirror.\n\nThe victim's mirror reflection has the same physical abilities, Charms, items and so forth as the victim but is a complete moral opposite. She is as intelligent as the victim and will act as her morals dictate \u2014 and to prevent herself from being returned to the mirror. She is also the sorcerer's willing slave and will do exactly as the magician commands. The victim herself is trapped in the mirror world, which is a shadowy reflection of the real world and only peopled by others trapped like her. Whenever her escaped reflection is mirrored by any surface (whether natural, such as a pool of water, or unnatural, such as a mirror), she is able to look out into the real world through the same mirror. The victim is not obliged to follow her reflection's movements \u2014 she can wave her hands, mouth appeals for help and so on. For this reason, most escaped reflections tend to avoid mirrors at all costs. The only known way to break this spell is to force the escaped reflection to touch the real victim, by touching a reflective surface. If this is done, then the two will resume their proper places.",
     "source": {
       "book": "Exalted 1e Caste Book: Twilight",
       "page": 76
+    }
+  },
+  {
+    "id": "spell.terrestrial.calling-the-gulls-with-beaks-of-steel",
+    "name": "Calling the Gulls with Beaks of Steel",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 25
+    },
+    "description": "The sorcerer summons a horde of sorcerous birds driven by an unquenchable hunger. These birds look like mortal gulls, save for their steel beaks, their glowing topaz eyes and their twice-normal size. They descend on their target, and devour all the non-living organic material that they can find. They will eat a man's clothes from his body while leaving the flesh beneath untouched and peck the silk ribbons out of a woman's hair. More to the point, they will happily chew the wood and rope and sails of a ship that is their target. This spell endures for as many turns as the casting sorcerer has points of permanent Essence, during which time the gulls attack the hull of the target ship. The flock's gnawing and clawing reduces the ship's hull soaks (both bashing and lethal) by a cumulative point per turn, until either the flock is driven away or the spell ends. The damage to the hull remains until it is mended. Thus, 1 point on the first turn, 2 points on the second turn and so on. The birds can be attacked comparatively easily, as they make no attempt to defend themselves from the humans or to attack in return, only going so far as to dodge if attacks are being rained on them. The flock remains bunched together. It has, as a whole, health levels, Dexterity and Dodge equal to those of the sorcerer who summoned it, a bashing soak equal to that of the sorcerer's Perception and a lethal soak equal to the sorcerer's Intelligence, and it dodges reflexively with its full dodge pool if attacked. The birds draw their strength from their summoner's spirit, and a weak sorcerer produces a poor flock of gulls. They may be made to attack any boat within their summoner's field of vision.",
+    "source": {
+      "book": "Exalted 1e The Outcaste",
+      "page": 93
+    }
+  },
+  {
+    "id": "spell.terrestrial.invocation-of-the-living-ship",
+    "name": "Invocation of the Living Ship",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 20
+    },
+    "description": "When using this spell, the Exalt calls to the figurehead of the ship on which he stands with such command and authority that the ship's very spirit wakes and takes control of the vessel through the figurehead. The ship will obey the Exalt's verbal commands for the duration of the scene, to the best of its ability \u2014 it can't suddenly accomplish the impossible, leap into the sky or turn into orichalcum. However, the sails and ropes can set and tack of their own accord, and the wheel and rudder can both manage themselves as the Exalt commands. Oars are unaffected by this sorcery. If the Exalt moves more than 100 yards from the ship, then it will attempt to follow him, whatever orders he may have given, and will pursue him to the limits of its ability until the spell lapses. This spell won't function on a ship that doesn't have a figurehead. It endures until the next dawn or dusk, whichever comes first, at which point, the figurehead closes its eyes and the ship becomes normal once again. There have been recorded cases where sustained use of this spell caused the ship's spirit to awaken permanently.",
+    "source": {
+      "book": "Exalted 1e The Outcaste",
+      "page": 95
+    }
+  },
+  {
+    "id": "spell.terrestrial.keel-cleaves-the-clouds",
+    "name": "Keel Cleaves the Clouds",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 25
+    },
+    "description": "This spell permits a ship to literally sail upon the clouds, ascending from the ocean below to the mists above. It is Terrestrial Circle, but not in general use, as the Dragon-Blooded tend to prefer more efficient ways to move fleets rather than single ships. The spell requires that, at some point, the mists or clouds touch the sea itself. The caster of the spell must be present on the ship while casting it, though she need not be the steersman or captain. After the words have been recited and the gestures made, the ship will move up through the mists, as though rising from wave to wave, until it reaches the heights of the sky and sails atop the clouds there, as though they were merely the foam of heavenly waves. The ship can be steered as it would normally, even to the extent of tacking against the wind, but is as vulnerable to a lack of wind as it would be on the seas below. The spell endures for 12 hours. At the end of this time, it may be recast. If it is not renewed, then the ship descends gently to the ocean below, landing upon the waves as softly as a feather. The ship is not protected in any way from dragons or from other spirits or gods of the high air. If it is traveling above islands or bodies of earth at the point that the spell runs out, the ship will land softly but may be stranded miles from water.",
+    "source": {
+      "book": "Exalted 1e The Outcaste",
+      "page": 95
+    }
+  },
+  {
+    "id": "spell.terrestrial.lightning-whip-smites-the-waters",
+    "name": "Lightning Whip Smites the Waters",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Upon incanting this rediscovered First Age spell, a long whip of braided copper wire with a dark oak handle appears in the caster's hand. It will continue to exist until used or until the next dawn. In either case, the whip dissolves into nothingness, leaving a thin pile of copper powder behind. To use it, the caster cracks the whip in the direction of the target, which must be within half a mile or less. The sorcerer's player makes a Perception + Thrown roll to determine the accuracy of the blow, against a difficulty of 3. The whip transforms into a bolt of lightning, which skips across the surface of the water until it strikes the target. Human-size targets may attempt to dodge as they would a normal missile, but ships have more difficulty. The whip can be parried. If the target fails to dodge, then it is struck by the lightning. The bolt of lightning does 5L structural damage per success scored by the caster to any ship that it strikes and three health levels of aggravated damage (burns and shock) to any living beings within five yards of the point of impact. This spell, unfortunately, only works on a body of open water. If a caster attempts to use it while on land, the lightning grounds itself while leaping toward the target and is lost.",
+    "source": {
+      "book": "Exalted 1e The Outcaste",
+      "page": 95
     }
   }
 ]

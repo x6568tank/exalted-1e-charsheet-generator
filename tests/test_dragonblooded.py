@@ -329,7 +329,8 @@ def test_shipped_db_air_ability_charm_counts(rs):
     air = [c for c in rs.charms.values()
            if c.exalt_type == "Dragon-Blooded" and c.element == "Air" and not c.immaculate]
     assert Counter(c.category for c in air) == Counter(
-        {"linguistics": 7, "lore": 6, "occult": 6, "stealth": 7, "thrown": 8})
+        # Aspect Book: Air (Miracles of Mela) CH6 added the second wave.
+        {"linguistics": 11, "lore": 11, "occult": 10, "stealth": 11, "thrown": 12})
     # all ability charms carry element but are not Immaculate MA
     for c in air:
         assert ":" not in c.category and c.immaculate is False
@@ -340,8 +341,12 @@ def test_shipped_db_earth_ability_charm_counts(rs):
     earth = [c for c in rs.charms.values()
              if c.exalt_type == "Dragon-Blooded" and c.element == "Earth" and not c.immaculate]
     assert Counter(c.category for c in earth) == Counter(
-        {"awareness": 7, "craft": 6, "endurance": 7,
-         "martial_arts:five-dragon": 8, "resistance": 6})
+        # Aspect Book: Earth (Miracles of Pasiap) CH6 added the second wave, plus
+        # Jade Mountain Style as a category of its own. Craft also gained Diligent
+        # Engineer Discipline, which is PRINTED in the Air book but keyed to Craft,
+        # an Earth Ability — element follows the Ability, never the chapter.
+        {"awareness": 10, "craft": 10, "endurance": 10, "resistance": 10,
+         "martial_arts:five-dragon": 8, "martial_arts:jade-mountain": 7})
 
 
 def test_shipped_db_fire_ability_charm_counts(rs):
@@ -349,7 +354,8 @@ def test_shipped_db_fire_ability_charm_counts(rs):
     fire = [c for c in rs.charms.values()
             if c.exalt_type == "Dragon-Blooded" and c.element == "Fire" and not c.immaculate]
     assert Counter(c.category for c in fire) == Counter(
-        {"athletics": 8, "dodge": 8, "melee": 8, "presence": 7, "socialize": 8})
+        # Aspect Book: Fire (Miracles of Hesiesh) CH6 added the second wave.
+        {"athletics": 9, "dodge": 9, "melee": 12, "presence": 10, "socialize": 10})
 
 
 def test_shipped_db_water_ability_charm_counts(rs):
@@ -357,7 +363,9 @@ def test_shipped_db_water_ability_charm_counts(rs):
     water = [c for c in rs.charms.values()
              if c.exalt_type == "Dragon-Blooded" and c.element == "Water" and not c.immaculate]
     assert Counter(c.category for c in water) == Counter(
-        {"brawl": 7, "bureaucracy": 7, "investigation": 6, "larceny": 7, "sail": 5})
+        # Aspect Book: Water (Miracles of Daana'd) CH6 added the second wave; Sail
+        # also gained 5 from The Outcaste p.93-94 (pirates): 5 -> 10 -> 13.
+        {"brawl": 13, "bureaucracy": 11, "investigation": 10, "larceny": 14, "sail": 13})
     for c in water:
         assert ":" not in c.category and c.immaculate is False
 
@@ -367,7 +375,10 @@ def test_shipped_db_wood_ability_charm_counts(rs):
     wood = [c for c in rs.charms.values()
             if c.exalt_type == "Dragon-Blooded" and c.element == "Wood" and not c.immaculate]
     assert Counter(c.category for c in wood) == Counter(
-        {"archery": 7, "medicine": 7, "performance": 5, "ride": 7, "survival": 7})
+        # Aspect Book: Wood (Miracles of Sextes Jylis) CH6 added the second wave.
+        # Medicine also gained Spark Kindling Rescue Technique, PRINTED in the Fire
+        # book but keyed to Medicine, a Wood Ability.
+        {"archery": 9, "medicine": 11, "performance": 7, "ride": 8, "survival": 8})
     for c in wood:
         assert ":" not in c.category and c.immaculate is False
 

@@ -264,3 +264,27 @@ def page_solar_origin():
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()
+
+
+# --- The Outcaste Dragon-Blooded origins (upbringing axis) ------------------- #
+# A Lookshy character exercises the new second dropdown AND the origin-granted Charm
+# rows. A ui.select whose value is not in its options raises at RENDER time, and the
+# upbringing select is seeded from character state, so this is exactly the shape that
+# needs a render route rather than a unit test.
+CHAR_LOOKSHY = Character(id="lk1", name="Karal Fire Orchid", exalt_type="Dragon-Blooded",
+                         caste="air", origin="lookshy", upbringing="foreign",
+                         essence_rating=2)
+CHAR_LOOKSHY.abilities[AbilityName.LINGUISTICS] = 3
+CHAR_LOOKSHY.abilities[AbilityName.SAIL] = 2
+
+@ui.page('/lookshy-editor')
+def page_lookshy_editor():
+    editor.build_editor(RS, CHAR_LOOKSHY, Path("lk.json"), with_header=False)
+
+CHAR_LOOKSHY_SHEET = Character(id="lk2", name="Karal Fire Orchid",
+                               exalt_type="Dragon-Blooded", caste="air",
+                               origin="lookshy", essence_rating=2)
+
+@ui.page('/lookshy-sheet')
+def page_lookshy_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_LOOKSHY_SHEET))

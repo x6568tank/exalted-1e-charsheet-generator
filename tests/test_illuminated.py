@@ -665,10 +665,17 @@ def test_ascendant_battle_visage_has_a_second_ability_minimum(rs):
 
 
 def test_extra_min_abilities_is_empty_for_every_other_charm(rs):
-    """Ascendant Battle Visage is the only multi-gate Charm authored so far, so a
-    second one has to be deliberate."""
+    """Multi-gate Charms are rare enough that each new one has to be deliberate."""
     multi = sorted(c.id for c in rs.charms.values() if c.extra_min_abilities)
     assert multi == [
+        # Aspect Book: Air p.68 — "Minimum Craft: 4 / Minimum Linguistics: 1". Craft is
+        # the primary gate (it is the Charm's category and what pricing keys off).
+        "dragonblooded.craft.diligent-engineer-discipline",
+        # Aspect Book: Fire — "Minimum Dodge: 4 / Minimum Melee: 4", two gates at the
+        # same rating; Melee is primary because that is the section it is printed in.
+        "dragonblooded.melee.style-countering-meditation",
+        # Aspect Book: Air — "Minimum Stealth: 4 / Minimum Larceny: 2".
+        "dragonblooded.stealth.empty-hand-posture",
         "solar.brawl.ascendant-battle-visage",
         # Caste Book: Eclipse p.73 — "Minimum Linguistics: 5 / Minimum Lore: 3".
         "solar.linguistics.masterful-training-manual",

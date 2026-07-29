@@ -262,7 +262,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         # uses (b.college_dots > 0) — not a splat-name check. Unlike Craft, a College
         # is picked from the catalog, so both rows are dropdowns; the "new" one lists
         # only Colleges not already known. ★ marks the character's own Maiden's house.
-        if rs.budgets_for(character.exalt_type, character.origin).college_dots > 0 and rs.colleges:
+        if rs.budgets_for(character.exalt_type, character.origin, character.upbringing).college_dots > 0 and rs.colleges:
             with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
                 ui.label("Astrological Colleges").classes(
                     "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")

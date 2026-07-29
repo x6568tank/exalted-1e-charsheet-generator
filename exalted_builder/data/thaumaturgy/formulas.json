@@ -1,0 +1,158 @@
+[
+  {
+    "id": "formula.blood-staunching-compress",
+    "name": "Blood-Staunching Compress",
+    "science_id": "science.alchemy",
+    "level": 1,
+    "roll": "Intelligence + Occult",
+    "difficulty": 3,
+    "materials_resources": 1,
+    "effects": "Bandages steeped in Blood-Staunching Compress, when applied to a wound, automatically staunch the flow of blood (no roll needed), and wounds wrapped in these bandages do not re-open unless the character botches a combat or Athletics roll. Wound dressings cannot be steeped in both Blood-Staunching Compress and Wound-Cleansing Unguent. Blood-Staunching Compress maintains potency for one year.",
+    "source": {"book": "Exalted Player's Guide", "page": 139}
+  },
+  {
+    "id": "formula.venom-allaying-draught",
+    "name": "Venom-Allaying Draught",
+    "science_id": "science.alchemy",
+    "level": 1,
+    "roll": "Intelligence + Occult",
+    "difficulty": 2,
+    "materials_raw": "Equal to poison cost",
+    "effects": "Each Venom-Allaying Draught is a separate formula, specific to a given poison or venom. If applied promptly (within a number of turns equal to 10 - twice the poison's difficulty to resist), it allows a Stamina + Resistance roll for mortals to resist even powerful toxins. This roll is made at normal difficulty levels, not the doubled levels mortals normally suffer. Antitoxins normally retain their potency for five years.",
+    "source": {"book": "Exalted Player's Guide", "page": 139}
+  },
+  {
+    "id": "formula.wound-cleansing-unguent",
+    "name": "Wound-Cleansing Unguent",
+    "science_id": "science.alchemy",
+    "level": 1,
+    "roll": "Intelligence + Occult",
+    "difficulty": 1,
+    "materials_resources": 1,
+    "effects": "Prevents sepsis effects. Patients treated with antiseptics do not need to roll for infection from surgery unless the surgeon botches, and wound dressings treated in antiseptics reduce infection difficulty by 1. Wound-Cleansing Unguent will retain its potency for at least a decade so long as it is carefully stored. Bandages soaked in it normally keep for 90 days if carefully wrapped, but more commonly they are prepared the night before injuries are expected. It takes two hours for soaked bandages to dry.",
+    "source": {"book": "Exalted Player's Guide", "page": 139}
+  },
+  {
+    "id": "formula.draught-of-blessed-respite",
+    "name": "Draught of Blessed Respite",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult",
+    "difficulty": 2,
+    "materials_resources": 1,
+    "effects": "A simple sleeping potion, commonly used by those who have trouble gaining enough rest at night. A half dose administered in a glass of wine puts the imbiber into a highly restful half-sleep for four hours: any dice pool involving Perception, Wits or Dexterity is halved, but she can still function after a fashion, and she rapidly recovers from fatigue, coming out of the half-sleep fully rested and recovered. A bottle normally contains five doses and, until opened, retains its potency for three years. Once exposed to air the potion quickly decays, becoming useless in only a month.",
+    "addiction": "Using Blessed Respite more times per week than the user's Stamina can lead to addiction. The roll to avoid addiction is difficulty (half the doses taken in a week). An addict is physically dependent on Blessed Respite to gain meaningful sleep — without a dose each night, she suffers -1 to all dice pools and gains only half the normal benefits of rest, including healing, Essence recovery and recovering from fatigue. Recovery rating 4, although no physical side effects other than the lack of sleep occur.",
+    "source": {"book": "Exalted Player's Guide", "page": 139}
+  },
+  {
+    "id": "formula.heros-recovery",
+    "name": "Hero's Recovery",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult",
+    "difficulty": 3,
+    "materials_resources": 2,
+    "effects": "Composed of a variety of rare herbs, strong wine and the blood of some fearsome beast — usually a hunting cat of some kind, but nearly any large predator will do. The potion's effects last for half a day per dot of Stamina the recipient has. During this time the mortal recovers from injuries as an Exalt does. Serious injuries may require more than one dose through the course of treatment. Mortals cannot stand more than their Stamina in number of doses administered in one course. Exceeding this dosage reverses the effects, doubling the patient's recovery times.",
+    "source": {"book": "Exalted Player's Guide", "page": 140}
+  },
+  {
+    "id": "formula.philtre-of-desire",
+    "name": "Philtre of Desire",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult",
+    "difficulty": 2,
+    "materials_resources": 2,
+    "effects": "One of a variety of potions designed to inspire an emotional reaction in the desired target. Depending on the exact recipe, some are drunk by the person who should be the target of the emotions, others by the person who should feel them. Typically these potions either grant the imbiber a two-die bonus to Performance, Presence or Socialize dice pools with respect to the victim only, or increase the difficulty of rolls made for the victim to resist the target's suggestions by 1. They are normally personalized, requiring some article with a sympathetic connection to the victim. Increase the difficulty by 1 if no article is present, and by 2 for a generic potion that increases everyone's reactions to the imbiber. Botches on Social rolls made while using these potions can lead to decades-long hatreds or all-consuming jealous obsessions. Philtres of Desire normally only retain their potency for a month or two.",
+    "source": {"book": "Exalted Player's Guide", "page": 140}
+  },
+  {
+    "id": "formula.eagles-eye-potion",
+    "name": "Eagle's Eye Potion",
+    "science_id": "science.alchemy",
+    "level": 3,
+    "roll": "Wits + Occult",
+    "difficulty": 3,
+    "materials_resources": 2,
+    "effects": "Eagle's Eye Potion clears the sight, granting preternaturally clear vision while it is in effect. It takes one hour to gain its full strength, and the effects last for five hours (plus one additional hour for each extra success on the production roll). While active, the potion grants +1 Perception to all vision-related tasks. Similar potions can be developed for hearing and smell.",
+    "source": {"book": "Exalted Player's Guide", "page": 140}
+  },
+  {
+    "id": "formula.final-vengeance",
+    "name": "Final Vengeance",
+    "science_id": "science.alchemy",
+    "level": 3,
+    "roll": "Wits + Occult",
+    "difficulty": 3,
+    "materials_resources": 3,
+    "effects": "A powerful painkiller and euphoric, used mostly by assassin cults, desperate soldiers and the foolhardy. The potion allows the imbiber to ignore all wound penalties and automatically succeed at all Valor checks while under its effects, and they can (and will) continue to fight until dead. The effects last for one scene. Afterward the imbiber is reduced to a Stamina of 1, regaining one dot of Stamina for each day of complete rest. So long as his Stamina is reduced, all healing is done at half the normal rate, and the patient may not take advantage of non-magical methods of increasing the healing rate.",
+    "source": {"book": "Exalted Player's Guide", "page": 140}
+  },
+  {
+    "id": "formula.munificent-antivenin",
+    "name": "Munificent Antivenin",
+    "science_id": "science.alchemy",
+    "level": 3,
+    "roll": "Intelligence + Occult",
+    "difficulty": 3,
+    "materials_resources": 3,
+    "effects": "A powerful elixir capable of negating even the most deadly of poisons. If ingested in time, the antivenin immediately clears all trace of the poison from the imbiber's bloodstream over the course of several turns (normally one turn per difficulty to resist the toxin). This experience is hardly a pleasant one, accompanied by racking pains, vomiting and sweating from every pore as the body tries to eject the toxin. Afterward the subject is fatigued, suffering a two-die penalty on all dice pools until he has a chance to rest for at least four hours.",
+    "source": {"book": "Exalted Player's Guide", "page": 140}
+  },
+  {
+    "id": "formula.tigers-heart-elixir",
+    "name": "Tiger's Heart Elixir",
+    "science_id": "science.alchemy",
+    "level": 3,
+    "roll": "Wits + Occult",
+    "difficulty": 3,
+    "materials_resources": 2,
+    "effects": "Tiger's Heart Elixir emboldens the spirit, driving fear and doubt away like mist in the dawn. This potion takes only one minute to take effect, and then grants the imbiber +1 Valor for a number of scenes equal to the successes rolled when creating the elixir. Tiger's Heart Elixir has no side effects and is not normally addictive.",
+    "source": {"book": "Exalted Player's Guide", "page": 141}
+  },
+  {
+    "id": "formula.valiant-warrior-formula",
+    "name": "Valiant Warrior Formula",
+    "science_id": "science.alchemy",
+    "level": 3,
+    "roll": "Wits + Occult",
+    "difficulty": 2,
+    "materials_resources": 3,
+    "effects": "Sometimes used by soldiers who have to keep up with exceptional warriors or champions, particularly the Dragon-Blooded. This potion lasts one day, and so long as it is in effect the soldier, no matter her experience, is not treated as an extra: he has the full complement of health levels, can spend Willpower to power Virtues, and so on.",
+    "source": {"book": "Exalted Player's Guide", "page": 141}
+  },
+  {
+    "id": "formula.wind-fire-potion",
+    "name": "Wind-Fire Potion",
+    "science_id": "science.alchemy",
+    "level": 4,
+    "roll": "Wits + Occult",
+    "difficulty": 4,
+    "materials_resources": 2,
+    "effects": "So named because it imbues those who drink it — usually soldiers — with the speed of the wind and the ferocity of fire. Most militaries make sparing use of it, if they use it at all: while it turns soldiers into fierce combatants, it also makes them hard to control and can have serious long-term side effects. While under the influence, a soldier gains +1 to Physical Attributes, Wits and Valor but loses one dot of Compassion, Temperance and Intelligence. The imbiber is no longer treated as an extra (heroic mortals instead gain two additional -4 health levels) and can stunt like an Exalt. The positive effects last one scene, plus one additional scene for every three successes rolled in creating the potion. Once they wear off the user crashes, suffering the same downsides as before and additionally -1 to all Physical Attributes and -1 to all dice pools from fatigue.",
+    "addiction": "Anyone taking more than one dose in a month may become addicted. The difficulty to resist addiction is (the number of times the potion was taken in the last month + 2). Addiction is mostly psychological — when confronted with some important task or mission, the addict will seek out the potion, believing he can only achieve positive results with its aid. The potion has no withdrawal effects other than the normal side effects, and is Recovery 2.",
+    "source": {"book": "Exalted Player's Guide", "page": 141}
+  },
+  {
+    "id": "formula.heavenly-transmutation-processes",
+    "name": "Heavenly Transmutation Processes",
+    "science_id": "science.alchemy",
+    "level": 5,
+    "roll": "Perception + Occult",
+    "difficulty": 7,
+    "materials_raw": "Varies — Resources of original materials +1",
+    "effects": "The art of transmuting the lesser into the more noble extends beyond living flesh for the master alchemist. The alchemist can change base materials into noble ones: the crudest pig iron into flawless steel, lead into gold, common citrines into flawless rubies. Each transmutation process is a separate formula, learned individually — knowledge of changing iron to steel is of no use when one wishes to change granite into marble. Transmutation typically takes one hour per pound of material and results in half as much material as the process was started with. Unlike most alchemy, transmutation costs one Willpower per batch of material to be changed (exceptionally large batches may require more). An alchemist can typically work on no more material than twice his Stamina + Endurance in pounds at one time. Materials created through this process are suitable for creation into artifacts, for use in creating exceptional weapons or armor, or for other duties that require excellent quality material.",
+    "source": {"book": "Exalted Player's Guide", "page": 142}
+  },
+  {
+    "id": "formula.six-demon-potion",
+    "name": "Six-Demon Potion",
+    "science_id": "science.alchemy",
+    "level": 5,
+    "roll": "Stamina + Occult",
+    "difficulty": 5,
+    "materials_resources": 4,
+    "effects": "Perhaps the greatest of alchemical feats, the Six-Demon Potion imbues the drinker with the might of six demons — or so it is claimed. Typically produced in six-dose batches, for difficulty 8. When imbibed by a mortal: the mortal is treated as an Exalt for all purposes, recovering from wounds and penalties, rolling against poisons or diseases, moving and fighting just as an Exalt does for the duration — this specifically includes stunting, but mortals cannot regain Essence using stunts (with a three-die stunt they could regain a point of temporary Willpower, up to their normal limit). The potion adds two temporary Willpower, which can raise the pool above permanent Willpower and fades at the end of the duration if unused. It adds two dots of Valor, which can raise Valor above 5; a mortal whose Valor rises above 5 is immune to all Valor checks until it falls below 5. It temporarily adds 1 dot to Physical Attributes, Wits and Perception. This potion has no effect whatsoever on Exalted, spirits, demons, ghosts, the Fair Folk or God-Blooded of any sort. Effects other than wound recovery last no more than 10 minutes (plus one minute per additional success) and take three minutes to take effect; the wound-recovery effects linger for three days, plus one day per extra success. Brewing takes one month of near-constant supervision and a wide variety of ingredients from throughout Creation. Once produced, a Six-Demon Potion retains its potency for three years, plus three months for each success rolled.",
+    "source": {"book": "Exalted Player's Guide", "page": 142}
+  }
+]

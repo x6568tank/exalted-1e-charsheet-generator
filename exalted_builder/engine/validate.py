@@ -28,11 +28,12 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from ..models.character import Character
+from ..models.character import Character, FormulaEntry, RitualEntry, ThaumaturgyState
 from ..models.rules import (
     AbilityName,
     AttributeName,
     Charm,
+    CharmCountRequirement,
     CharmType,
     RuleSet,
     SpellCircle,
@@ -109,7 +110,7 @@ class CharmPick(BaseModel):
     name: str                  # the Charm's own name, or the raw id if unresolved
     label: str                 # display name; includes variant labels for repeatables
     category: str = ""
-    source: str = "charms"     # charms | ox_body | beastman_gifts | granted
+    source: str = "charms"     # charms | ox_body | beastman_gifts | granted | origin
     counts_toward_pool: bool = True
     caste_favored: bool = False
 
@@ -191,7 +192,27 @@ def _charm_picks_from(ruleset: RuleSet, character: Character,
         picks.append(_pick(cid, charm, f"{charm.name if charm else cid} (granted)",
                            source="granted", counts=False))
 
+    # Charms the ORIGIN hands out unconditionally (Lookshy, p.68). Unlike a training
+    # camp's package these are not stored on the Character at all — they follow from
+    # the budget row, so they are enumerated here rather than saved, and a character
+    # who changes origin simply stops having them. A Charm the character also bought
+    # is not listed twice; the bought copy wins, since it is the one that cost a pick.
+    held = {p.charm_id for p in picks}
+    for cid in origin_granted_charm_ids(ruleset, character):
+        if cid in held:
+            continue
+        charm = ruleset.charms.get(cid)
+        picks.append(_pick(cid, charm, f"{charm.name if charm else cid} (origin)",
+                           source="origin", counts=False))
+
     return picks
+
+
+def origin_granted_charm_ids(ruleset: RuleSet, character: Character) -> list[str]:
+    """The Charm ids this character's origin grants free at creation (Lookshy, p.68).
+    Empty for every origin that grants none, which is all but one today."""
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    return list(b.granted_charms)
 
 
 def charm_pick_count(ruleset: RuleSet, character: Character) -> int:
@@ -216,7 +237,7 @@ def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
     Unresolvable ids are priced at nothing and dropped, matching every other consumer.
     Spells share the Charm pool but are not Charms and are priced by their caller.
     """
-    bp_costs = ruleset.bonus_costs_for(character.exalt_type)
+    bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin, character.upbringing)
     call_charms = calling_charm_ids(ruleset, character)
     costs: list[int] = []
     for pick in picks:
@@ -243,6 +264,259 @@ def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
         else:
             costs.append(bp_costs.charm_favored_caste if cf else bp_costs.charm)
     return costs
+
+
+# --------------------------------------------------------------------------- #
+# The canonical Thaumaturgy-purchase enumeration
+# --------------------------------------------------------------------------- #
+
+def thaum_state(character: Character) -> ThaumaturgyState:
+    """The character's thaumaturgy, or an empty state. `Character.thaumaturgy` is
+    Optional so old saves load with None; every consumer wants the same empty
+    answer, so it is centralised here rather than None-checked at each site."""
+    return character.thaumaturgy or ThaumaturgyState()
+
+
+class ThaumPurchase(BaseModel):
+    """One thaumaturgic thing a character bought, in a shape both currencies price.
+
+    The Charm-pick enumeration's sibling, and for the same reason: four
+    heterogeneous purchasables (Arts, Art specialties, Sciences, rituals, formulas)
+    live on five different lists, and each of the BP breakdown, the XP audit and the
+    UI would otherwise walk all five and special-case each. They are enumerated once
+    here and priced once in `thaum_purchase_bp_costs`.
+
+    `level` is the ritual's or formula's level, or the Science's rating; 0 where the
+    kind has none. `orientations` is how many regional versions are owned — the
+    first is included in the base price and each further one costs a flat point
+    (p.124), which is the whole reason a ritual is not a bare id.
+
+    Every kind is priced. Sciences briefly were not — the published cost tables have
+    no Science row — but that is a printing error Grabowski cleared up later, and the
+    rate came from the rules authority (5/7 BP, 7/rating×6 XP).
+    """
+    kind: str                  # art | specialty | science | ritual | formula
+    key: str                   # catalogue id, or "art_id:name" for a specialty
+    label: str                 # display-ready
+    level: int = 0
+    orientations: int = 1
+    narrowed: bool = False
+
+
+def thaum_purchases(ruleset: RuleSet, character: Character) -> list[ThaumPurchase]:
+    """Everything the character has bought in thaumaturgy RIGHT NOW, in sheet order:
+    Arts, Art specialties, Sciences, rituals, formulas.
+
+    This is what the UI must consume instead of reading the five `ThaumaturgyState`
+    lists. Unresolvable ids are still yielded, with the raw id as the label, so a
+    stale save shows the problem rather than dropping a row.
+    """
+    return _thaum_purchases_from(ruleset, thaum_state(character))
+
+
+def chargen_thaum_purchases(ruleset: RuleSet, character: Character) -> list[ThaumPurchase]:
+    """`thaum_purchases` over the traits chargen accounting reads: the frozen
+    snapshot once locked, else the live state."""
+    snap = character.chargen_snapshot
+    state = (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character)
+    return _thaum_purchases_from(ruleset, state)
+
+
+def thaum_ritual_level(ruleset: RuleSet, entry: RitualEntry) -> int:
+    """A ritual entry's level, from the catalogue when it references one and from the
+    inline fields when it is custom (rituals are catalogue + custom by decision)."""
+    ritual = ruleset.thaum_rituals.get(entry.ritual_id) if entry.ritual_id else None
+    return ritual.level if ritual is not None else entry.level
+
+
+def thaum_formula_level(ruleset: RuleSet, entry: FormulaEntry) -> int:
+    formula = ruleset.thaum_formulas.get(entry.formula_id) if entry.formula_id else None
+    return formula.level if formula is not None else entry.level
+
+
+def _thaum_purchases_from(ruleset: RuleSet, state: ThaumaturgyState) -> list[ThaumPurchase]:
+    """Build the purchase list from an explicit state, so the same enumeration serves
+    both the live character and the chargen snapshot."""
+    out: list[ThaumPurchase] = []
+
+    for art_id in state.arts:
+        art = ruleset.thaum_arts.get(art_id)
+        out.append(ThaumPurchase(kind="art", key=art_id,
+                                 label=art.name if art else art_id))
+
+    for spec in state.art_specialties:
+        art = ruleset.thaum_arts.get(spec.art_id)
+        art_name = art.name if art else spec.art_id
+        out.append(ThaumPurchase(
+            kind="specialty", key=f"{spec.art_id}:{spec.name}",
+            label=f"{art_name} ({spec.name})", narrowed=spec.narrowed))
+
+    for sci in state.sciences:
+        if sci.rating <= 0:
+            continue
+        science = ruleset.thaum_sciences.get(sci.science_id)
+        out.append(ThaumPurchase(
+            kind="science", key=sci.science_id,
+            label=f"{science.name if science else sci.science_id} {sci.rating}",
+            level=sci.rating))
+
+    for entry in state.rituals:
+        ritual = ruleset.thaum_rituals.get(entry.ritual_id) if entry.ritual_id else None
+        name = ritual.name if ritual is not None else (entry.name or entry.ritual_id)
+        level = thaum_ritual_level(ruleset, entry)
+        out.append(ThaumPurchase(
+            kind="ritual", key=entry.ritual_id or entry.name,
+            label=_thaum_label(name, level, entry.orientations),
+            level=level, orientations=len(entry.orientations)))
+
+    for entry in state.formulas:
+        formula = ruleset.thaum_formulas.get(entry.formula_id) if entry.formula_id else None
+        name = formula.name if formula is not None else (entry.name or entry.formula_id)
+        level = thaum_formula_level(ruleset, entry)
+        out.append(ThaumPurchase(
+            kind="formula", key=entry.formula_id or entry.name,
+            label=_thaum_label(name, level, entry.orientations),
+            level=level, orientations=len(entry.orientations)))
+
+    return out
+
+
+def _thaum_label(name: str, level: int, orientations: list) -> str:
+    """`Name (level N; North, Realm)` — orientation is display state as well as
+    accounting state, since which versions are owned is what the player reads back."""
+    regions = ", ".join(o.value for o in orientations)
+    return f"{name} (level {level}; {regions})" if regions else f"{name} (level {level})"
+
+
+def thaum_purchase_bp_costs(ruleset: RuleSet, character: Character,
+                            purchases: list[ThaumPurchase]) -> list[int]:
+    """The bonus-point price of each purchase, in purchase order — parallel to
+    `purchases`, so the UI can render a priced row per purchase. A Science's figure
+    is the whole ladder up to its rating, since chargen holds a rating rather than a
+    sequence of purchases."""
+    # Deferred import: costs.py imports this module, so a top-level import here would
+    # cycle. The thaum_* rate functions depend on nothing in validate, hence safe.
+    from . import costs
+
+    out: list[int] = []
+    for p in purchases:
+        if p.kind == "art":
+            out.append(costs.thaum_art_bp(ruleset, character))
+        elif p.kind == "specialty":
+            out.append(costs.thaum_specialty_bp(ruleset, character, narrowed=p.narrowed))
+        elif p.kind == "science":
+            out.append(costs.thaum_science_bp(ruleset, character, p.level))
+        elif p.kind == "ritual":
+            out.append(costs.thaum_ritual_bp(ruleset, character, p.level, p.orientations))
+        elif p.kind == "formula":
+            out.append(costs.thaum_formula_bp(ruleset, character, p.orientations))
+        else:
+            out.append(0)
+    return out
+
+
+def thaumaturgy_issues(ruleset: RuleSet, character: Character,
+                       state: ThaumaturgyState) -> list["Issue"]:
+    """Legality of a thaumaturgic holding. Called from `validate_chargen` against the
+    chargen state; safe to call on the live state too.
+
+    The gates the source actually states:
+      * Ghosts hold thaumaturgy but may never use it (p.114) — a flag, not a bar, so
+        this is an info Issue and never blocks a purchase (rules-authority call 1).
+      * The Fair Folk cannot learn it at all (p.114) — `thaumaturgy_usable` False.
+      * "a thaumaturge must have an Occult score equal to or higher than the
+        ritual's level" (p.148).
+      * An Art's `min_occult`, and Summoning's per-aspect minima.
+      * A Science may not exceed its own `max_rating` (Alchemy 6, the rest 5).
+
+    Deliberately NOT gated: owning an Art is not required to buy a specialty in it
+    (p.116 footnote, stated three times). Do not add that check.
+    """
+    issues: list[Issue] = []
+    occult = ability_rating(character, AbilityName.OCCULT)
+    exalt = ruleset.exalt_for(character.exalt_type)
+    purchases = _thaum_purchases_from(ruleset, state)
+
+    if not purchases:
+        return issues
+
+    if not exalt.thaumaturgy_usable:      # exalt_for never returns None
+        issues.append(Issue(
+            code="thaum-unusable", where=character.exalt_type,
+            message=f"{character.exalt_type} may hold thaumaturgy but can never "
+                    "use it (Player's Guide p.114).", severity="info",
+        ))
+
+    for art_id in state.arts:
+        art = ruleset.thaum_arts.get(art_id)
+        if art is None:
+            issues.append(Issue(code="unknown-thaum-art", where=art_id,
+                                message=f"Art {art_id} is not in the rule set."))
+        elif occult < art.min_occult:
+            issues.append(Issue(
+                code="thaum-art-occult", where=art_id,
+                message=f"The Art of {art.name} needs Occult {art.min_occult}; "
+                        f"character has {occult}.",
+            ))
+
+    for spec in state.art_specialties:
+        art = ruleset.thaum_arts.get(spec.art_id)
+        if art is None:
+            issues.append(Issue(
+                code="unknown-thaum-art", where=spec.art_id,
+                message=f"Specialty {spec.name!r} names Art {spec.art_id}, "
+                        "which is not in the rule set."))
+            continue
+        # A printed aspect carries its own Occult minimum (Summoning alone). A
+        # player-invented specialty matches no aspect and is ungated.
+        aspect = next((a for a in art.aspects if a.name.casefold() == spec.name.casefold()),
+                      None)
+        if aspect is not None and occult < aspect.min_occult:
+            issues.append(Issue(
+                code="thaum-aspect-occult", where=f"{spec.art_id}:{spec.name}",
+                message=f"{art.name} ({aspect.name}) needs Occult "
+                        f"{aspect.min_occult}; character has {occult}.",
+            ))
+        if spec.narrowed and not art.aspect_narrowing:
+            issues.append(Issue(
+                code="thaum-narrowing-unavailable", where=f"{spec.art_id}:{spec.name}",
+                message=f"Only Summoning allows an aspect to be further limited for "
+                        f"half cost (p.127); {art.name} does not.",
+            ))
+
+    for sci in state.sciences:
+        science = ruleset.thaum_sciences.get(sci.science_id)
+        if science is None:
+            issues.append(Issue(code="unknown-thaum-science", where=sci.science_id,
+                                message=f"Science {sci.science_id} is not in the rule set."))
+        elif sci.rating > science.max_rating:
+            issues.append(Issue(
+                code="thaum-science-range", where=sci.science_id,
+                message=f"{science.name} is {sci.rating}; its maximum is "
+                        f"{science.max_rating}.",
+            ))
+
+    for entry in state.rituals:
+        if entry.ritual_id and entry.ritual_id not in ruleset.thaum_rituals:
+            issues.append(Issue(code="unknown-thaum-ritual", where=entry.ritual_id,
+                                message=f"Ritual {entry.ritual_id} is not in the rule set."))
+            continue
+        level = thaum_ritual_level(ruleset, entry)
+        if occult < level:
+            name = entry.ritual_id or entry.name
+            issues.append(Issue(
+                code="thaum-ritual-occult", where=name,
+                message=f"A level-{level} ritual needs Occult {level}; "
+                        f"character has {occult} (p.148).",
+            ))
+
+    for entry in state.formulas:
+        if entry.formula_id and entry.formula_id not in ruleset.thaum_formulas:
+            issues.append(Issue(
+                code="unknown-thaum-formula", where=entry.formula_id,
+                message=f"Formula {entry.formula_id} is not in the rule set."))
+
+    return issues
 
 
 def _repeatable_purchase_cap(charm: Charm, character: Character) -> int:
@@ -382,6 +656,39 @@ def charm_ability_requirements(charm: Charm) -> list[tuple[str, int]]:
     return out
 
 
+def charm_count_shortfalls(ruleset: RuleSet, held_ids, charm: Charm
+                           ) -> list[tuple[CharmCountRequirement, int]]:
+    """Which of `charm`'s breadth prerequisites ("any three Lore Charms") are unmet,
+    as (requirement, how many the character actually holds).
+
+    The Charm never counts toward its own requirement — otherwise buying it would
+    part-satisfy the thing gating it. Counting is by `category`, which is exactly how
+    a Charm's Ability is identified everywhere else, so a Craft Charm printed in the
+    Air book still counts toward "any three Craft Charms".
+
+    One function for both the retrospective check (`check_charm_prerequisites`) and the
+    forward-looking one (`meets_charm_requirements`), so the picker's "selectable" and
+    the sheet's "illegal" can never disagree.
+    """
+    if not charm.prerequisite_counts:
+        return []
+    out = []
+    for req in charm.prerequisite_counts:
+        have = sum(1 for cid in held_ids
+                   if cid != charm.id
+                   and (c := ruleset.charms.get(cid)) is not None
+                   and c.category == req.category)
+        if have < req.count:
+            out.append((req, have))
+    return out
+
+
+def charm_count_requirement_label(req: CharmCountRequirement) -> str:
+    """"any 3 Occult Charms" — the display form of a breadth prerequisite."""
+    noun = req.label or req.category.replace("_", " ").title()
+    return f"any {req.count} {noun} Charm{'s' if req.count != 1 else ''}"
+
+
 def is_immaculate_charm(charm: Charm) -> bool:
     """True for an Immaculate Order Charm — a Fivefold Dragon Method martial-arts
     Charm (Dragon-Blooded splatbook, ch.6). These are what a DB may take the
@@ -473,6 +780,14 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
                     code="charm-prerequisite", where=cid,
                     message=f"{charm.name}: unmet prerequisite — needs {needed}.",
                 ))
+
+        # Breadth prerequisites: "any three Lore Charms" (Aspect Books).
+        for req, have in charm_count_shortfalls(ruleset, known, charm):
+            issues.append(Issue(
+                code="charm-prerequisite-count", where=cid,
+                message=(f"{charm.name}: unmet prerequisite — needs "
+                         f"{charm_count_requirement_label(req)}, character has {have}."),
+            ))
     return issues
 
 
@@ -529,6 +844,8 @@ def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> b
     if charm_ability_shortfalls(character, charm):
         return False
     known = set(character.charms)
+    if charm_count_shortfalls(ruleset, known, charm):
+        return False
     return all(any(req in known for req in group) for group in charm.prerequisites)
 
 
@@ -809,7 +1126,7 @@ def check_camp_and_calling(ruleset, character) -> list[Issue]:
     """Camp/Calling legality (Cult of the Illuminated, p.89-93). Data-driven off the
     budget's `requires_camp`/`requires_calling`, so no splat or origin is named here."""
     issues: list[Issue] = []
-    budgets = ruleset.budgets_for(character.exalt_type, character.origin)
+    budgets = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
 
     if budgets.requires_camp:
         camp = camp_for(ruleset, character)
@@ -1590,7 +1907,7 @@ def _caste_favored_attr_names(ruleset: RuleSet, character: Character) -> set:
     Solar/...), which is also the discriminator: a non-empty set means caste_favored
     mode, so a Charm's Caste/Favored-ness is a SPECIFIC-attribute match rather than
     the category match category-mode splats use."""
-    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     if b.attribute_mode != "caste_favored":
         return set()
     caste_def = ruleset.castes.get(character.caste)
@@ -1634,7 +1951,7 @@ def uses_charm_slots(ruleset: RuleSet, character: Character) -> bool:
     """Whether this splat uses the Alchemical Charm Slot system (p.88-89) — has any
     free General/Dedicated Slots in its budget — rather than the per-pick Charm
     economy every other splat uses."""
-    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     return (b.charm_slots_general + b.charm_slots_dedicated) > 0
 
 
@@ -1670,7 +1987,7 @@ def charm_slot_counts(ruleset: RuleSet, character: Character) -> tuple[int, int,
     """(general, dedicated, base_general, base_dedicated) Charm Slot counts. The
     effective counts fall back to the budget's free base when the character hasn't
     initialised them (None); the base pair is what BP accounting charges *beyond*."""
-    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     bg, bd = b.charm_slots_general, b.charm_slots_dedicated
     g = character.general_charm_slots if character.general_charm_slots is not None else bg
     d = character.dedicated_charm_slots if character.dedicated_charm_slots is not None else bd
@@ -1761,6 +2078,7 @@ def _chargen_source(character: Character):
         snap.arrays if snap else character.arrays,
         snap.submodules if snap else character.submodules,
         snap.colleges if snap else character.colleges,
+        (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character),
     )
 
 
@@ -1775,11 +2093,11 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     of the BP totals; validate_chargen consumes it for the ceiling check, and the
     editor renders it as a spend log.
     """
-    b = ruleset.budgets_for(character.exalt_type, character.origin)
-    bp_costs = ruleset.bonus_costs_for(character.exalt_type)
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin, character.upbringing)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased,
-     beastman_gifts, arrays, submodules, colleges) = _chargen_source(character)
+     beastman_gifts, arrays, submodules, colleges, thaumaturgy) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
@@ -1867,7 +2185,12 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         rule = background_rule(b, bg.name)
         cap = bg.rating if (rule and rule.cap_pre_bp_exempt) else b.background_cap_pre_bp
         bg_within += background_pool_dots(rule, min(bg.rating, cap))
-        bg_above_bp += max(0, bg.rating - cap) * bp_costs.background_above_3
+        above = max(0, bg.rating - cap)
+        # A per-Background bonus-point surcharge rides on top of the above-cap rate
+        # (Lookshy Breeding, p.66). Dots at or below the cap pay their half of the
+        # same surcharge through the pool, via background_pool_dots.
+        rate = bp_costs.background_above_3 + (rule.bp_surcharge_per_dot if rule else 0)
+        bg_above_bp += above * rate
     bg_overflow = max(0, bg_within - b.background_dots)
     bg_bp = bg_above_bp + bg_overflow * bp_costs.background
 
@@ -1945,6 +2268,15 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                   + col_overflow_cheap * bp_costs.college_own_house
                   + (col_overflow - col_overflow_cheap) * bp_costs.college)
 
+    # --- Thaumaturgy: every purchase priced individually, no free pool -------- #
+    # Unlike every domain above, thaumaturgy has no chargen allowance: "Thaumaturges
+    # may spend their bonus points on any combination of these without limitation"
+    # (p.113). So the total is simply the sum of the purchase prices — the free-pool
+    # arithmetic that shapes the other domains has nothing to absorb here. Sciences
+    # price at 0 because the source gives no rate; see ThaumPurchase.priced.
+    thaum_bp = sum(thaum_purchase_bp_costs(
+        ruleset, character, _thaum_purchases_from(ruleset, thaumaturgy)))
+
     # --- Willpower / Essence -------------------------------------------------- #
     wp_bp = wp_purchased * bp_costs.willpower
     essence_bp = max(0, essence - b.essence_start) * bp_costs.essence
@@ -1972,6 +2304,12 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     # entirely otherwise so every other splat's breakdown is unchanged.
     if b.college_dots > 0 or colleges:
         lines.insert(3, BonusPointLine(domain="Colleges", points=college_bp))
+    # Thaumaturgy is cross-splat but optional for every splat, so the line appears
+    # only once a character has bought something — a Solar who never touches it sees
+    # the same breakdown as before. thaum_bp is 0 whenever the line is omitted.
+    if thaumaturgy.arts or thaumaturgy.art_specialties or thaumaturgy.sciences \
+            or thaumaturgy.rituals or thaumaturgy.formulas:
+        lines.append(BonusPointLine(domain="Thaumaturgy", points=thaum_bp))
     total = sum(line.points for line in lines)
     return BonusPointBreakdown(lines=lines, total=total, available=b.bonus_points)
 
@@ -1991,14 +2329,19 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     over-spent builds.
     """
     issues: list[Issue] = []
-    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
-     beastman_gifts, arrays, _submodules, colleges) = _chargen_source(character)
+     beastman_gifts, arrays, _submodules, colleges, thaumaturgy) = _chargen_source(character)
 
     # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
     # for every splat whose Backgrounds are purely narrative.
     issues += background_issues(b, backgrounds)
+
+    # Thaumaturgy: Occult gates on Arts, aspects and rituals; per-Science ceilings.
+    # No-op for a character who has bought none, which is every character until the
+    # feature is used.
+    issues += thaumaturgy_issues(ruleset, character, thaumaturgy)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:
@@ -2198,6 +2541,20 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         # Caste/Favoured. Immaculate (DB, p.151, triggered by any Immaculate Order
         # Charm): all chargen Charms must instead be one elemental tree, minimum waived.
         immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
+        # Lookshy, p.68: an origin may forbid the Immaculate path outright at creation.
+        # Checked before the path itself, so the character gets the "you may not take
+        # these" message rather than the single-elemental-tree one they cannot satisfy.
+        if b.bar_immaculate_charms_at_chargen:
+            barred = [cid for cid in charms
+                      if (c := ruleset.charms.get(cid)) is not None and c.immaculate]
+            if barred:
+                immaculate = False
+                issues.append(Issue(
+                    code="charm-immaculate-barred-at-chargen",
+                    message=(f"{len(barred)} Immaculate Order Charm(s) taken, but this "
+                             "origin may not learn the Immaculate Martial Arts before "
+                             "play begins (p.68); they may be bought with experience."),
+                ))
         occult_cf = AbilityName.OCCULT in cf_set
         # Same enumeration the pricing reads, so a repeatable or granted list can never
         # again be counted by one of the two and missed by the other.

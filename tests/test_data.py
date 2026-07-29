@@ -207,7 +207,7 @@ def test_full_melee_chain_is_legal_on_real_data():
 
 def test_spells_load_with_expected_circle_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.spells) == 88
+    assert len(rs.spells) == 92
     by_circle: dict = {}
     for s in rs.spells.values():
         by_circle[s.circle] = by_circle.get(s.circle, 0) + 1
@@ -216,7 +216,8 @@ def test_spells_load_with_expected_circle_counts():
     # (Abyssal p224-229), plus the two Alchemical weaving circles — 23 Man-Machine
     # and 15 God-Machine protocols (Autochthonians CH4).
     # Caste Book: Twilight (p.74-77) adds 2 Terrestrial, 3 Celestial and 2 Solar.
-    assert by_circle == {SpellCircle.TERRESTRIAL: 12,
+    # The Outcaste (p.93-95) adds 4 more Terrestrial, the pirates' sea spells.
+    assert by_circle == {SpellCircle.TERRESTRIAL: 16,
                          SpellCircle.CELESTIAL: 9,
                          SpellCircle.SOLAR: 6,
                          SpellCircle.SHADOWLANDS: 9,
@@ -283,11 +284,12 @@ def test_celestial_initiate_casts_both_circles_via_prereq_chain():
 def test_weapon_and_armor_catalogs_load():
     rs = rules_db.load_ruleset(DATA_DIR)
     # 49 corebook + 30 from the Solar castebooks (Dawn p.79/81, Night p.77-81,
-    # Zenith p.80-81).
-    assert len(rs.weapon_catalog) == 79
-    # 17 corebook + the artifact Chain Shirt (Dawn p.81) and Cloak of Vanishing
-    # Escape (Night p.81).
-    assert len(rs.armor_catalog) == 19
+    # Zenith p.80-81) + 8 from the Dragon-Blooded Aspect Books (Fire p.81, Wood p.83,
+    # Water p.80, Air p.81 — the last being the Lightning Corona's two modes).
+    assert len(rs.weapon_catalog) == 87
+    # 17 corebook + the artifact Chain Shirt (Dawn p.81), Cloak of Vanishing
+    # Escape (Night p.81) and the Most Terrifying Armor of the Air Dragon (Air p.81).
+    assert len(rs.armor_catalog) == 20
 
 
 def test_mundane_melee_weapons_present():

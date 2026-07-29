@@ -203,6 +203,21 @@ class Submodule(BaseModel):
     description: str = ""
 
 
+class CharmCountRequirement(BaseModel):
+    """"Any three Lore Charms" — a breadth prerequisite, counting Charms the character
+    holds in a `category` rather than naming ids (see `Charm.prerequisite_counts`).
+
+    The Charm requiring it is never counted toward its own requirement. `label` is an
+    optional display override for the category noun; when empty the presenters use the
+    category itself, which reads correctly for every Ability ("any 3 Occult Charms").
+    """
+    model_config = ConfigDict(frozen=True)
+
+    category: str
+    count: int = Field(default=1, ge=1)
+    label: str = ""
+
+
 class Charm(BaseModel):
     model_config = ConfigDict(frozen=True)  # rules data is immutable at runtime
 
@@ -284,6 +299,12 @@ class Charm(BaseModel):
     # satisfied if ANY of its ids is known. A flat list of single-id groups is
     # the common "all of these required" case.
     prerequisites: list[list[str]] = Field(default_factory=list)
+    # BREADTH prerequisites: "any three Lore Charms" (Aspect Book: Air/Earth, five
+    # Charms). A COUNT over a category, which `prerequisites` cannot express — it is
+    # AND-of-OR over ids, and encoding "3 of 11" as three groups each listing all
+    # eleven would be satisfied three times over by a single owned Charm. Every entry
+    # is an independent AND, like extra_min_abilities. Empty for all but a handful.
+    prerequisite_counts: list[CharmCountRequirement] = Field(default_factory=list)
     cost: CharmCost = Field(default_factory=CharmCost)
     duration: str = "Instant"
     keywords: list[str] = Field(default_factory=list)
@@ -479,6 +500,184 @@ class College(BaseModel):
 
 
 # --------------------------------------------------------------------------- #
+# Thaumaturgy (Player's Guide CH3)
+#
+# Thaumaturgy is NOT a splat and NOT an origin: it is an orthogonal capability
+# layer. p.114 — the Exalted learn it "without any difficulty", the Wyld-tainted
+# "with no restraint", Dragon Kings can, spirits pay double, the Fair Folk not at
+# all, and the dead retain what they learned but may never use it (see
+# ExaltDefinition.thaumaturgy_usable). It therefore keys off nothing; any
+# character may hold it.
+#
+# Four branches, four different mechanical shapes (p.113):
+#   Arts       - BINARY. Trained = +2 dice. Specialties +1 die each, max two
+#                applied to a roll. Buyable WITHOUT the parent Art.
+#   Sciences   - RATED, with printed per-dot descriptions.
+#   Rituals    - LEVELLED 1-5, gated only on Occult >= level.
+#   Formulas   - rote recipes for a Science, cheapest of all.
+#
+# Everything the chapter says about RESOLVING these (ward Strength/Durability,
+# the banishment table, summoning difficulties, internal-alchemy failure, the
+# four ways to pay a cost) is dice resolution and deliberately OUT OF SCOPE, the
+# same call as combat derivation. `roll`/`cost`/`time` below are display strings
+# the engine never parses.
+# --------------------------------------------------------------------------- #
+
+class Orientation(str, Enum):
+    """The regional version of a ritual or formula (p.124). Every ritual and
+    formula has one. Casting one from a foreign orientation costs +1 difficulty at
+    one region away and +2 at two, with prep time x2/x5 — all of which is dice
+    resolution and out of scope. What IS in scope is that a thaumaturge may learn
+    several versions of the same spell, each extra costing a flat 1 point, so a
+    character's holding is (id, {orientations}) and never a bare id."""
+    NORTH = "North"
+    SOUTH = "South"
+    EAST = "East"
+    WEST = "West"
+    REALM = "Realm"
+
+
+class ThaumaturgicAspect(BaseModel):
+    """One sub-field of an Art — Summoning's "ghosts", Warding's "the Wyld".
+
+    **An aspect IS a printed general specialty.** The source uses both words for
+    one thing: the stat block heads the list "Aspects:", while the prose (p.126)
+    says "each field of study is further subdivided into a number of specialties"
+    and "Each art lists a number of specialties". The worked example settles it by
+    using a printed aspect as its middle term — "mastering the Art (Warding, +2),
+    a general specialty in the Art (Fair Folk, +1) and a relevant specialty (Local
+    Fair Folk, +1)" — and "Fair Folk" is an item on Warding's Aspects line.
+
+    So: buying an aspect is buying a specialty, at the Art Specialty rate, and a
+    player-invented narrower specialty stacks on top for another +1. At most TWO
+    specialties apply to any one roll, so the ceiling is +4 (Art +2, general +1,
+    narrow +1).
+
+    **No Art is required to buy one** (p.126, and the BP-table footnote): "A
+    thaumaturge does not need to buy a field of study in order to purchase a
+    specialty in that field, and many do not." Never add a prerequisite.
+
+    `min_occult` is 0 for most: only Summoning gates its aspects individually
+    (Beasts/Mortals •, Demons/Elementals ••, Ghosts/Spirits •••, p.126-129).
+    Warding, Exorcism and Astrology print aspect lists with no per-aspect gate, so
+    0 means "no gate beyond the parent Art's own min_occult"."""
+    model_config = ConfigDict(frozen=True)
+    id: str
+    name: str
+    min_occult: int = Field(default=0, ge=0)
+    description: str = ""
+
+
+class ThaumaturgicArt(BaseModel):
+    """One Art (p.126-135). Binary, not rated: training grants a flat +2 dice.
+
+    `aspects` is the printed general-specialty menu — see ThaumaturgicAspect; an
+    aspect and a specialty are the same purchase. `specialties` is a spare slot for
+    any Art that ever prints a specialty list SEPARATE from its Aspects line; none
+    of the four do, so it is empty everywhere today. Player-invented specialties
+    are free text on the character (the Backgrounds precedent), because the book
+    explicitly invites them: "a character could choose to buy a specialty of 'Local
+    Fair Folk' for the Art of Warding" (p.126)."""
+    model_config = ConfigDict(frozen=True)
+    id: str
+    name: str
+    min_occult: int = Field(default=1, ge=0)
+    roll: str = ""                          # display, e.g. "Charisma + Occult"
+    cost: str = ""                          # display, e.g. "3 motes per attempt"
+    aspects: list[ThaumaturgicAspect] = Field(default_factory=list)
+    specialties: list[str] = Field(default_factory=list)   # suggested, not exhaustive
+    # Summoning only (p.127): further limiting an aspect ("Summoning (War Gods)")
+    # halves that aspect's cost. No other Art prints the option.
+    aspect_narrowing: bool = False
+    description: str = ""
+    source: Source = Field(default_factory=Source)
+
+
+class ScienceLevel(BaseModel):
+    """One printed dot-rung of a Science. Keyed by `rating` rather than held in a
+    positional list BECAUSE THE LADDER IS SPARSE: Alchemy prints • •• ••• •••• and
+    then ••••••, with no five-dot rung, yet two printed formulas require Alchemy
+    ••••• and the stated rule is that a formula's required level equals its
+    difficulty (p.143). Rating 5 is thus reachable and purchasable with no
+    description. Never renumber the six-dot entry down to close the gap."""
+    model_config = ConfigDict(frozen=True)
+    rating: int = Field(ge=1)
+    description: str = ""
+
+
+class ThaumaturgicScience(BaseModel):
+    """One Science: Alchemy, Enchantment, Geomancy or Weather Working (p.136-148).
+    The only rated branch of thaumaturgy.
+
+    `max_rating` is per-Science and is 6 for Alchemy — see ScienceLevel. Do not
+    assume the project's usual <=5 rating bound applies here; that bound is a
+    convention that holds because chargen rarely exceeds 5, not an invariant."""
+    model_config = ConfigDict(frozen=True)
+    id: str
+    name: str
+    roll: str = ""                          # display, e.g. "Dexterity + Occult"
+    cost: str = ""                          # display, e.g. "3 motes per level of effect"
+    time: str = ""                          # display, e.g. "one day per dot of effect"
+    duration: str = ""                      # display
+    max_rating: int = Field(default=5, ge=1)
+    levels: list[ScienceLevel] = Field(default_factory=list)   # sparse; keyed by rating
+    description: str = ""
+    source: Source = Field(default_factory=Source)
+
+    def level(self, rating: int) -> Optional[ScienceLevel]:
+        """The printed rung at `rating`, or None where the book prints none
+        (Alchemy 5). A missing rung is legal, not a data error."""
+        return next((lv for lv in self.levels if lv.rating == rating), None)
+
+
+class ThaumaturgicRitual(BaseModel):
+    """One ritual (p.148-150). Levelled 1-5; "the only normal restriction on
+    purchasing a ritual is that a thaumaturge must have an Occult score equal to
+    or higher than the ritual's level".
+
+    The chapter prints exactly five, and the book expects more to be written
+    (p.148: "there are few constant rules, but there are guidelines"), so the
+    catalogue is a seed and the character may also carry custom rituals inline —
+    the editable-custom-weapons precedent.
+
+    Rituals have NO stat block in the source: the heading is the name with its dot
+    rating inline and everything else is prose. `cost`/`roll`/`difficulty` are
+    therefore best-effort display strings pulled out of that prose, and
+    `description` remains authoritative."""
+    model_config = ConfigDict(frozen=True)
+    id: str
+    name: str
+    level: int = Field(ge=1, le=5)
+    cost: str = ""                          # display, e.g. "1 mote or one Willpower"
+    roll: str = ""                          # display; many rituals print none
+    resources: str = ""                     # display, e.g. "Resources 2" for components
+    description: str = ""
+    source: Source = Field(default_factory=Source)
+
+
+class ThaumaturgicFormula(BaseModel):
+    """One formula or procedure — a rote recipe belonging to a Science (p.138-142).
+    Unlike rituals these DO have a labelled stat block: Name / Alchemy / Roll /
+    Difficulty / Cost of Materials / Effects / Addiction.
+
+    `materials_raw` wins when set, because one printed formula costs "Equal to
+    poison cost" rather than a number of Resources dots."""
+    model_config = ConfigDict(frozen=True)
+    id: str
+    name: str
+    science_id: str                         # the Science it belongs to, e.g. "alchemy"
+    # The Science rating required. NOT bounded at 5: Alchemy reaches 6.
+    level: int = Field(ge=1)
+    roll: str = ""                          # display, normally "Intelligence + Occult"
+    difficulty: Optional[int] = None
+    materials_resources: Optional[int] = None
+    materials_raw: str = ""                 # authoritative when set
+    effects: str = ""
+    addiction: str = ""
+    source: Source = Field(default_factory=Source)
+
+
+# --------------------------------------------------------------------------- #
 # Equipment catalog
 #
 # Catalog entries are autofill sources for the corebook gear tables. The
@@ -509,6 +708,12 @@ class ArmorType(BaseModel):
     # Background needed to start with it; attunement is the motes to commit.
     artifact_rating: int = Field(default=0, ge=0)
     attunement: int = Field(default=0, ge=0)
+    # Everything the fields above cannot hold — WeaponType has carried this since the
+    # castebooks (Strength-relative damage, odd rates); armour needed it once the
+    # Most Terrifying Armor of the Air Dragon landed with a Strength bonus column and
+    # flight rules (Aspect Book: Air p.81). The asymmetry was an oversight: a `notes`
+    # key in armor.json was silently DROPPED on load before this.
+    notes: str = ""
     tags: list[str] = Field(default_factory=list)
 
 
@@ -625,6 +830,29 @@ class BonusPointCosts(BaseModel):
     # p.105: a specialty dot costs 1 BP, but in a Favoured/Caste Ability you get
     # this many dots per 1 BP ("2 per 1"). Cost is thus dots / this, rounded up.
     specialty_favored_caste_dots_per_point: int = 2
+    # --- Thaumaturgy (Player's Guide BP table, p.116) ------------------------ #
+    # Cross-splat, so these sit on the shared default row rather than a splat row.
+    # An Art Specialty and a printed Art *aspect* are the same purchase — see
+    # models.rules.ThaumaturgicAspect.
+    thaum_art: int = 5
+    thaum_art_specialty: int = 2
+    # "Ritual | 2 + 1 per level of Ritual" — so a level-3 ritual is 5 BP.
+    thaum_ritual_base: int = 2
+    thaum_ritual_per_level: int = 1
+    thaum_formula: int = 1
+    # Each ADDITIONAL regional version of a ritual or formula already known
+    # (p.124): "additional versions for other orientations cost only a single
+    # experience or bonus point to learn".
+    thaum_extra_orientation: int = 1
+    # Sciences: 5 for the first dot, 7 for each dot after.
+    #
+    # NOT from the printed tables — the published BP and XP tables have no Science
+    # row at all, which is a PRINTING ERROR Grabowski cleared up afterwards. Supplied
+    # by the rules authority (human, 2026-07-29) from that clarification. Flagged
+    # because it is the one rate here with no page behind it; if it is ever
+    # contradicted by a printed source, the source wins.
+    thaum_science_first_dot: int = 5
+    thaum_science_additional_dot: int = 7
     virtue: int = 3
     willpower: int = 2
     essence: int = 7
@@ -683,6 +911,23 @@ class ExperienceCosts(BaseModel):
     # flat "new trait" costs
     new_ability: int = 3
     new_specialty: int = 3
+    # --- Thaumaturgy (Player's Guide XP table, p.115) ------------------------ #
+    # Note the asymmetry with the BP table: an Art costs 5 either way, but an Art
+    # Specialty is 2 BP and 3 XP. Do not "tidy" them into agreement.
+    thaum_new_art: int = 5
+    thaum_new_art_specialty: int = 3
+    # "Ritual | 3, +1 per level of the ritual" — a level-3 ritual is 6 XP.
+    thaum_ritual_base: int = 3
+    thaum_ritual_per_level: int = 1
+    thaum_formula: int = 1
+    thaum_extra_orientation: int = 1
+    # Sciences: 7 flat for the first dot, then current rating × 6 — the same
+    # "new trait flat, raises scale" shape as every other rated trait here.
+    # Same provenance caveat as the BP side: the printed tables omit Sciences
+    # entirely (a printing error), and these come from the Grabowski clarification
+    # via the rules authority, not from a page.
+    thaum_new_science: int = 7
+    thaum_science: LinearCost = Field(default_factory=lambda: LinearCost(coeff=6))
     # Astrological Colleges (Sidereal, p.265): a new College costs 5; raising one
     # scales at current rating × 3. Unused by splats without colleges.
     new_college: int = 5
@@ -760,6 +1005,15 @@ class BackgroundRule(BaseModel):
     # Illumination • for free" IN ADDITION to nine Background dots (p.90), so the
     # first dot costs nothing and dots above it cost one each.
     free_rating: int = Field(default=0, ge=0)
+    # EXTRA bonus points per dot bought above `background_cap_pre_bp`, on top of
+    # `BonusPointCosts.background_above_3`. The pool-side twin of this surcharge is
+    # `expensive_above`/`expensive_dot_cost` — one rule, two payment routes, which is
+    # exactly how Lookshy Breeding reads (p.66): "each level beyond [2] costs an
+    # additional Background OR bonus point (on top of the extra cost to buy
+    # Backgrounds above 3)". With expensive_above 2 / expensive_dot_cost 2 and
+    # bp_surcharge_per_dot 1, a fully bonus-point-bought Breeding reproduces the
+    # page's own totals: 1, 2, 4, 7, 10.
+    bp_surcharge_per_dot: int = Field(default=0, ge=0)
     requires: str = ""                     # another Background's NAME, lowercased
     requires_rating: int = Field(default=0, ge=0)
 
@@ -863,6 +1117,19 @@ class ChargenBudgets(BaseModel):
     # waived. Only reachable when the character selects Immaculate Order Charms, so it
     # never affects splats without them (Solar).
     immaculate_charm_count: int = 5
+    # Charms this origin hands out FREE at creation: no Charm pick, no bonus points
+    # (Lookshy, p.68 — "all Lookshy Dragon-Blooded have the Charms Wind-Carried Word
+    # Technique and Elemental Bolt Attack, at no cost"). Distinct from a training
+    # camp's package (rules.TrainingCamp), which the PLAYER chooses from and which the
+    # engine validates as choices; these are fixed and unconditional, so they are a
+    # property of the budget row. Empty for every origin that grants nothing.
+    granted_charms: list[str] = Field(default_factory=list)
+    # Does this origin forbid Immaculate Order Charms at creation? Lookshy, p.68:
+    # "Lookshy Dragon-Blooded may not learn the Immaculate Martial Arts before play
+    # begins" — a chargen-only bar (the same page points a player who wants them at
+    # the Dynastic rules), so it never touches the XP economy. Keys off Charm.immaculate
+    # rather than a category list, because that flag already IS "an Immaculate Charm".
+    bar_immaculate_charms_at_chargen: bool = False
 
     essence_start: int = 2
     # Hard ceiling on Essence at the END of character creation, i.e. after bonus
@@ -981,11 +1248,45 @@ class ExaltDefinition(BaseModel):
     # validate.charm_matches_splat, against Charm.open_to_tiers, to open a
     # tier-wide Martial Arts style to splats other than the one that authored it.
     tier: str = "Celestial"
+    # May this splat USE the thaumaturgy it knows? False only for the dead
+    # (Player's Guide p.114): "although the dead retain knowledge of what they
+    # learned in Creation, they are forever barred from using that knowledge …
+    # The dead who knew magic in life can act as tutors for thaumaturges,
+    # however." So this bars USE, not purchase or possession — a ghost keeps its
+    # Arts on the sheet, flagged unusable, and can still teach. True everywhere
+    # else; the Ghost splat sets it False when it lands.
+    thaumaturgy_usable: bool = True
+    # Multiplier on the BP/XP cost of any Art, Science, ritual or formula. 2 for
+    # spirits (p.114: "Spirits may use thaumaturgy, but they pay twice the normal
+    # experience (or bonus) points"). No playable spirit splat exists yet — this
+    # is authored and wired but exercised by nothing.
+    thaumaturgy_cost_multiplier: int = Field(default=1, ge=1)
 
 
 # The canonical Solar definition — the existing hardcoded formula moved into data
 # (the values are the verified core-p.104 Solar pools, not new rules). Used as the
 # default when no exalts.json is loaded and as the fallback for an unknown exalt_type.
+def _keyed_row(table: dict, exalt_type: str, origin: str, upbringing: str, default):
+    """Look a per-splat table up on the splat / origin / upbringing cascade, most
+    specific first: `"E:o:u"` -> `"E:o"` -> `"E"` -> `default`.
+
+    One helper for both `budgets_for` and `bonus_costs_for` so the two can never
+    disagree about which row wins. The cascade is what lets an upbringing row carry
+    ONLY its differences: the three Lost Egg upbringings share one `Dragon-Blooded:
+    lost-egg` bonus-point row, and an origin with no upbringing variants authors no
+    `:u` rows at all.
+    """
+    if origin and upbringing:
+        row = table.get(f"{exalt_type}:{origin}:{upbringing}")
+        if row is not None:
+            return row
+    if origin:
+        row = table.get(f"{exalt_type}:{origin}")
+        if row is not None:
+            return row
+    return table.get(exalt_type, default)
+
+
 SOLAR_EXALT = ExaltDefinition(
     id="Solar",
     label="Solar Exalted",
@@ -1050,6 +1351,12 @@ class RuleSet(BaseModel):
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
     colleges: dict[str, College] = Field(default_factory=dict)   # Astrological Colleges (Sidereal)
+    # Thaumaturgy (Player's Guide CH3). Cross-splat, not keyed by exalt_type:
+    # any character may hold these. Empty when data/thaumaturgy*.json is absent.
+    thaum_arts: dict[str, ThaumaturgicArt] = Field(default_factory=dict)
+    thaum_sciences: dict[str, ThaumaturgicScience] = Field(default_factory=dict)
+    thaum_rituals: dict[str, ThaumaturgicRitual] = Field(default_factory=dict)
+    thaum_formulas: dict[str, ThaumaturgicFormula] = Field(default_factory=dict)
     camps: dict[str, TrainingCamp] = Field(default_factory=dict)  # Training camps (Illuminated Solar)
     callings: dict[str, Calling] = Field(default_factory=dict)    # Callings (Illuminated Solar)
     bonus_costs: dict[str, BonusPointCosts] = Field(
@@ -1067,8 +1374,16 @@ class RuleSet(BaseModel):
         Issue separately, so derivation still produces a number instead of crashing)."""
         return self.exalts.get(exalt_type) or self.exalts.get("Solar") or SOLAR_EXALT
 
-    def bonus_costs_for(self, exalt_type: str) -> BonusPointCosts:
-        return self.bonus_costs.get(exalt_type, self.bonus_costs["default"])
+    def bonus_costs_for(self, exalt_type: str, origin: str = "",
+                        upbringing: str = "") -> BonusPointCosts:
+        """The bonus-point rates for `exalt_type`, specialised by origin/upbringing on
+        the same cascade as `budgets_for`. Nearly every splat prints one table for the
+        whole splat, but the Outcaste book's Lost Eggs pay 2/3 per Background dot
+        rather than 1/2 (p.160) and a Forest Witch raised by Oreithyia buys Virtues at
+        2 and Essence at 8 (p.133) — an origin-level difference in the RATES, not the
+        budgets, so it needs its own keyed row."""
+        return _keyed_row(self.bonus_costs, exalt_type, origin, upbringing,
+                          self.bonus_costs["default"])
 
     def xp_costs_for(self, exalt_type: str) -> ExperienceCosts:
         return self.xp_costs.get(exalt_type, self.xp_costs["default"])
@@ -1099,14 +1414,13 @@ class RuleSet(BaseModel):
         """The Callings offered by one camp, in table order."""
         return [c for c in self.callings.values() if c.camp == camp_id]
 
-    def budgets_for(self, exalt_type: str, origin: str = "") -> ChargenBudgets:
+    def budgets_for(self, exalt_type: str, origin: str = "",
+                    upbringing: str = "") -> ChargenBudgets:
         """The chargen budget for `exalt_type`, optionally specialised by `origin`
-        (an intra-splat variant such as Dragon-Blooded Dynastic vs Outcaste). Tries
-        the origin-keyed row `"<exalt_type>:<origin>"` first, then the plain
-        exalt_type row, then "default". (Character-free: takes strings, not a
-        Character, so this module never imports the character model.)"""
-        if origin:
-            keyed = self.budgets.get(f"{exalt_type}:{origin}")
-            if keyed is not None:
-                return keyed
-        return self.budgets.get(exalt_type, self.budgets["default"])
+        (an intra-splat variant such as Dragon-Blooded Dynastic vs Outcaste) and then
+        by `upbringing` (how that origin raised the character — Outcaste book, see
+        Character.upbringing). Most specific row wins; see `_keyed_row`.
+        (Character-free: takes strings, not a Character, so this module never imports
+        the character model.)"""
+        return _keyed_row(self.budgets, exalt_type, origin, upbringing,
+                          self.budgets["default"])

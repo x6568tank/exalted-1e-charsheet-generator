@@ -25,7 +25,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-from .rules import AbilityName, AttributeName, VirtueName
+from .rules import AbilityName, AttributeName, Orientation, VirtueName
 
 
 # Legacy saves stored the caste as its capitalised display name ("Dawn"); the
@@ -70,6 +70,107 @@ class CollegeRating(BaseModel):
     — they live as a list rather than a single dot on a fixed trait."""
     college_id: str
     rating: int = Field(ge=0, le=5)
+
+
+# --------------------------------------------------------------------------- #
+# Thaumaturgy holdings (Player's Guide CH3). See models/rules.py for the
+# catalogue side and docs/status/thaumaturgy.md for the design.
+# --------------------------------------------------------------------------- #
+
+class ArtSpecialty(BaseModel):
+    """+1 die in a narrow corner of an Art; at most two apply to any one roll.
+
+    `art_id` may name an Art the character does NOT own — this is explicitly legal
+    and stated three times in the source ("You do not have to buy the relevant Art
+    in order to buy a specialty in that Art", p.116). Do not add a prerequisite.
+
+    `name` is free text: the book invites player-invented specialties, so the
+    catalogue's `specialties` list is an autofill source, never a hard reference —
+    the same call already made for Backgrounds.
+
+    `narrowed` is Summoning's special rule (p.127): "a thaumaturge may choose to
+    further limit one or more of their summoning aspects … This halves the cost of
+    the aspect and should be noted on the character sheet." It is a player choice
+    made about a purchase, not a separate purchase and not inferable from the name,
+    so it is stored — the book asks for it on the sheet explicitly. The engine
+    refuses it on Arts whose `aspect_narrowing` is False, which is all but
+    Summoning."""
+    art_id: str
+    name: str
+    narrowed: bool = False
+
+
+class ScienceRating(BaseModel):
+    """One Science at a rating. NOT bounded at 5 here: Alchemy reaches 6 (see
+    rules.ScienceLevel). The per-Science ceiling is `ThaumaturgicScience.
+    max_rating` and is enforced in engine.validate, which has the RuleSet."""
+    science_id: str
+    rating: int = Field(ge=0)
+
+
+class RitualEntry(BaseModel):
+    """A ritual the character knows, in one or more regional versions.
+
+    Catalogue + custom: `ritual_id` references a RuleSet ritual, OR is empty and
+    the inline `name`/`level`/`description` describe a user-authored one (the
+    editable-custom-weapons precedent — the book expects STs to write more).
+
+    `orientations` is the crux and the reason this is not a bare id list. Each
+    extra regional version costs a flat 1 point on top of the ritual's own cost
+    (p.124), so ownership is (id, {orientations}) and the cost function needs the
+    set. Retrofitting this later would leave the append-only XP log ambiguous:
+    "bought ritual X" could mean the ritual or a further orientation of it, at
+    different prices, with no way to re-price history."""
+    ritual_id: str = ""                    # "" => custom, described inline below
+    name: str = ""                         # custom only; catalogue entries read the RuleSet
+    level: int = Field(default=1, ge=1, le=5)   # custom only
+    description: str = ""                  # custom only
+    orientations: list[Orientation] = Field(default_factory=lambda: [Orientation.REALM])
+
+    @field_validator("orientations")
+    @classmethod
+    def _at_least_one_orientation(cls, v: list[Orientation]) -> list[Orientation]:
+        # Every ritual has an orientation; knowing none is not a state that exists.
+        # De-duplicate, since paying twice for the same region is meaningless.
+        if not v:
+            return [Orientation.REALM]
+        return list(dict.fromkeys(v))
+
+
+class FormulaEntry(BaseModel):
+    """A formula or procedure the character knows. Same orientation rule as
+    RitualEntry; formulas are the cheapest purchasable in thaumaturgy (1 point).
+
+    `level` is unbounded above for the same reason as ScienceRating: an Alchemy
+    formula may sit at 5 or 6."""
+    formula_id: str = ""                   # "" => custom, described inline below
+    name: str = ""                         # custom only
+    science_id: str = ""                   # custom only
+    level: int = Field(default=1, ge=1)    # custom only
+    description: str = ""                  # custom only
+    orientations: list[Orientation] = Field(default_factory=lambda: [Orientation.REALM])
+
+    @field_validator("orientations")
+    @classmethod
+    def _at_least_one_orientation(cls, v: list[Orientation]) -> list[Orientation]:
+        if not v:
+            return [Orientation.REALM]
+        return list(dict.fromkeys(v))
+
+
+class ThaumaturgyState(BaseModel):
+    """Everything a character knows of thaumaturgy. Optional on Character, so old
+    saves load with it None — the PlayState precedent.
+
+    Deliberately NOT keyed to a splat: thaumaturgy is a cross-splat capability
+    layer (p.114). Whether a character may USE what it holds is a property of the
+    splat, read from ExaltDefinition.thaumaturgy_usable — the dead keep their Arts
+    and may still teach, but may never cast."""
+    arts: list[str] = Field(default_factory=list)              # trained Art ids: +2 dice
+    art_specialties: list[ArtSpecialty] = Field(default_factory=list)
+    sciences: list[ScienceRating] = Field(default_factory=list)
+    rituals: list[RitualEntry] = Field(default_factory=list)
+    formulas: list[FormulaEntry] = Field(default_factory=list)
 
 
 class Combo(BaseModel):
@@ -213,6 +314,10 @@ class ChargenSnapshot(BaseModel):
     submodules: list[SubmodulePurchase] = Field(default_factory=list)
     ox_body: list[OxBodyPurchase] = Field(default_factory=list)
     beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
+    # Thaumaturgy bought at chargen. None (not an empty state) for a character who
+    # never touched it, so "locked before thaumaturgy existed" and "locked with
+    # none bought" stay distinguishable in the XP audit.
+    thaumaturgy: Optional[ThaumaturgyState] = None
     essence_rating: int
     willpower_purchased: int
     wp_virtue_component: int               # two highest Virtues AT LOCK; never recomputed
@@ -293,6 +398,16 @@ class Character(BaseModel):
     # pair with `caste` (see engine.validate.check_lunar_casteless_consistency) —
     # unlike Dragon-Blooded, it's one condition on two fields, not an independent axis.
     origin: str = ""
+    # A FOURTH axis, under `origin`: how the character was RAISED. The Outcaste book's
+    # four Dragon-Blooded origins each print two or three upbringings whose Ability
+    # budgets and required minimums differ while everything else about the origin
+    # holds — a Lookshy Terrestrial not raised in Lookshy gets 25 Ability dots
+    # instead of 35 (p.68), a patrician-born Lost Egg 30 instead of 25 (p.159), a
+    # Forest Witch raised by Oreithyia cheaper Virtues and Essence (p.133). It is a
+    # separate axis and not more origins because the origin still decides Backgrounds,
+    # Charms, Virtues and the Charm grants. "" = the origin's default upbringing, which
+    # is every origin's own home-raised case and every splat that has no variants.
+    upbringing: str = ""
     # Cult of the Illuminated (Solar, p.89-93). A THIRD axis beyond splat and caste:
     # `camp` is a rules.TrainingCamp id (which Ability floors and free Charms apply),
     # `calling` is a rules.Calling id (which Abilities/Charms are discounted). Both ""
@@ -382,6 +497,11 @@ class Character(BaseModel):
     # per purchase, each carrying the Gift(s) chosen with that purchase. Also NOT
     # in `charms`, same reasoning as ox_body.
     beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
+
+    # Thaumaturgy (Player's Guide CH3) — a cross-splat capability layer, available
+    # to every splat, keyed to none. None on a character that has never taken any,
+    # so old saves load unchanged (the PlayState precedent).
+    thaumaturgy: Optional[ThaumaturgyState] = None
 
     weapons: list[Weapon] = Field(default_factory=list)
     armor: list[Armor] = Field(default_factory=list)

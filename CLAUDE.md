@@ -6,8 +6,9 @@ generation, point validation, and XP advancement, with a character-sheet view.
 Scope is deliberately smaller than EdExalted (which is 2e/2.5e only); **1e is
 unserved, which is the entire point of building this.** Initial target was
 **Solar** Exalted from the core rulebook; **Dragon-Blooded, Abyssal, Lunar,
-Sidereal and Alchemical are now also fully supported.** **Mortals** are the only
-splat left — see **Next Exalt Types** below.
+Sidereal and Alchemical are now also fully supported.** Every *Exalt* splat is done;
+what's left is the six **non-Exalt** splats (Mortals, Heroic Mortals, Godblooded,
+Ghosts, Dragon-Kings, Mountain Folk) — see **Next Exalt Types** below.
 
 ## ⚠️ EDITION: 1e ONLY — never substitute 2e/2.5e rules
 This is the single most important constraint. 2e is far better represented than
@@ -45,9 +46,28 @@ Alchemical (2026-07-23) and Sidereal (2026-07-24) all shipped complete — charg
 Charms, XP/advancement and UI, each clicked through in a browser. See their Status
 entries below for the per-splat detail.
 
-**Mortals** (Godblooded/Ghosts/Heroic Mortals/etc.) are the ONE remaining splat, and
-the next piece of splat work. After that comes the centralized Merits & Flaws re-add
-(see **Removed**).
+**The non-Exalt splats are what's left.** Both pieces of Dragon-Blooded book work that
+came first (human's call, 2026-07-29) are DONE — the four **Outcaste-book origins**
+(`docs/status/dragonblooded-origins.md`) and the five **Aspect books**
+(`dragonblooded-aspect-books.md`). After the non-Exalts comes the centralized Merits &
+Flaws re-add (see **Removed**).
+
+**⚠️ "Mortals" is NOT one splat** (human, 2026-07-29). It is shorthand for **six
+different splats scattered across different books**, each needing its own sources and
+its own chargen/data work:
+
+| Splat | Source images | Status |
+|---|---|---|
+| Mortals | — | NOT STARTED |
+| Heroic Mortals | — | NOT STARTED |
+| Godblooded | — | NOT STARTED |
+| Ghosts | — | NOT STARTED |
+| Dragon-Kings | — | NOT STARTED |
+| Mountain Folk | — | NOT STARTED |
+
+**No screenshots exist for any of them yet.** Do not start any of the six, and do not
+assume they share budgets, a Charm economy, or even a common shape — treat each as its
+own splat until the pages say otherwise.
 
 Work on a given splat starts only once its rulebook images land in
 `images/<ExaltName>/` — never author data from memory, per the Workflow rule below.
@@ -62,10 +82,15 @@ Work on a given splat starts only once its rulebook images land in
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | DONE (shipped 2026-07-24): chargen + Colleges + 193-Charm catalogue + SMA cost/cap wiring + UI click-through |
 | Alchemical | Brass | DONE (shipped 2026-07-23): chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker); UI clicked through 2026-07-23 |
-| Mortals | Muddy brown | NOT STARTED — the only row left; blocked on source images |
+| Mortals | Muddy brown | NOT STARTED — blocked on source images. Colour is for the mortal family as a whole; whether the other five non-Exalt splats share it or get their own is UNDECIDED |
 
-**Merits & Flaws return once Mortals lands** — the last row above, and the last splat.
-It comes back as a single centralized M&F calculation function, specifically so
+**Dragon-Blooded sub-sources:** the Outcaste book's four origins and all five Aspect
+Books shipped 2026-07-29 (`docs/status/dragonblooded-origins.md`,
+`dragonblooded-aspect-books.md`). Only the Outcaste book's numina/Mist aspect is still
+open — see **TODO**.
+
+**Merits & Flaws return once the non-Exalt splats land** — all six of them, the last
+work above. It comes back as a single centralized M&F calculation function, so
 mechanical effects don't get scattered invasively across files the way the old
 implementation did. Until that milestone the removal in Status stands: do not
 reintroduce the old per-file hooks.
@@ -174,7 +199,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (788 tests passing)
+## Status (996 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -189,18 +214,23 @@ touching that area**; the summaries below are pointers, not the full record.
 | Sidereal (Colleges, ronin, Paradox, Charms, SMA wiring) | `docs/status/sidereal.md` |
 | Alchemical (Charm Slots, Arrays, Submodules, Clarity, Vat Refit) | `docs/status/alchemical.md` |
 | Solar alt-origin: Cult of the Illuminated (Camps, Callings, granted Charms) | `docs/status/illuminated.md` |
+| DB origins: Lookshy / Forest Witches / Lost Eggs / Pirates (`upbringing` axis) | `docs/status/dragonblooded-origins.md` |
+| DB Aspect Books CH6 (87 Charms, Jade Mountain, breadth prereqs, gear) | `docs/status/dragonblooded-aspect-books.md` |
+| **Thaumaturgy — ENGINE DONE, UI outstanding** (cross-splat Arts/Sciences/Rituals/Formulas) | `docs/status/thaumaturgy.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
 browser-verified: Solar (core + 5 castebooks + Cult of the Illuminated origin),
-Dragon-Blooded, Abyssal, Lunar, Sidereal, Alchemical. 1,378 Charms total across
+Dragon-Blooded, Abyssal, Lunar, Sidereal, Alchemical. 1,470 Charms total across
 six splats (`data-and-tooling.md`). GM party mode and the Storyteller reference
-screen are done. **Mortals is the only splat left** (see **Next Exalt Types**
-above), blocked on source images. See **TODO** below for what's actually next.
+screen are done. **Every Exalt splat is done; the six non-Exalt splats are what's
+left** (see **Next Exalt Types** above), all blocked on source images. See **TODO**
+below for what's actually next.
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled
-  balance-wrecking Charm rewrites). Back in scope, scheduled AFTER Mortals as one
+  balance-wrecking Charm rewrites). Back in scope, scheduled AFTER the non-Exalt
+  splats as one
   centralized `merits_and_flaws_calc` (see **Next Exalt Types**); until that work
   starts, do not reintroduce the old per-file hooks.
 
@@ -222,17 +252,45 @@ in-play tracker, the multi-splat engine (P0-P4), tier-gated cross-splat Martial 
 the picker's three-page Abilities/Martial Arts/Spells split, GM mode + the ST
 reference screen, **all five non-Solar Exalt splats** (Dragon-Blooded, Abyssal, Lunar,
 Alchemical, Sidereal — data, engine and UI, each browser-verified), the Cult of the
-Illuminated Solar origin, the five Solar castebooks, and the **canonical Charm-pick
+Illuminated Solar origin, the five Solar castebooks, the **four Outcaste-book
+Dragon-Blooded origins** (Lookshy, Forest Witches, Lost Eggs, Pirates — with the new
+`upbringing` axis), the **five Aspect Books' Chapter Six** (87 Charms, Jade Mountain
+Style, breadth prerequisites and gear), and the **canonical Charm-pick
 enumeration** (both halves — see `docs/status/engine-and-ui.md`), and the **Abyssal
 Moonshadow's half of the generalist rule** (2026-07-29, from `images/Abyssal/Traits/
 145-146.png` — pure data, no new code; see `docs/status/engine-and-ui.md`).
 
 **Next:**
-- **Mortals** — the LAST splat (Godblooded / Ghosts / Heroic Mortals / …). Blocked on
-  source images landing in `images/Mortals/`, per the never-author-from-memory rule.
-  See **Next Exalt Types** above for the colour scheme.
-- **Merits & Flaws**, after Mortals — one centralized `merits_and_flaws_calc`, NOT the
-  old per-file hooks. See **Removed**.
+- **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
+  left unauthored (deliberate, human's call 2026-07-29: "add it to the TODO, don't add
+  it anywhere in the code"). **Blocked on pages.** The Forest Witch summary (p.133)
+  gives Mist as an aspect with NO Aspect Abilities whose power is "one numen effect per
+  point of Essence"; a numen must buy Cult • or Cult ••, replaces one Charm with
+  Dematerialize, and reduces Temperance by one dot if it has a blight or affliction
+  (p.132). The numen effect list itself is on **p.118**, which is not in
+  `images/Dragonblooded/`, and the Forest Witch text also points at *Games of Divinity*
+  p.127 and *Exalted: The Lunars* p.98 for Cult. Author nothing until those land.
+- **Thaumaturgy** — comes with Mortals but is **NOT a splat**: it is a cross-splat
+  capability layer any character except the Fair Folk can hold (Ghosts hold it but may
+  never use it), so it lands on all six shipped splats' sheets too.
+  `docs/status/thaumaturgy.md`. **Source is COMPLETE.** The whole ENGINE is done —
+  catalogue, models, cost ladder, purchase enumeration, BP breakdown, chargen Occult
+  gates, snapshot freeze, XP advancement and audit. **Only the UI is left** (a fourth
+  picker page with Arts/Sciences/Rituals/Formulas sub-tabs).
+  **One open rules question: "Magic for Everyone" (p.115) — author nothing for it.**
+  Science costs are RESOLVED (5/7 BP, 7/current×6 XP) but are the **only value in the
+  build with no page behind it** — the printed tables omit Sciences entirely, a
+  printing error Grabowski cleared up later, rate supplied by the human 2026-07-29.
+  Also recorded there: the p.116 Step Four errata ("5 in addition to recorded
+  **Knowledge**", not Inheritance) — read it before building mortal chargen or the
+  Knowledge BP pool.
+- **The six non-Exalt splats** — **Mortals, Heroic Mortals, Godblooded, Ghosts,
+  Dragon-Kings, Mountain Folk**. NOT one "Mortals" splat (human, 2026-07-29): they are
+  six separate splats scattered across different books. **All six are blocked on source
+  images** — none exist yet — per the never-author-from-memory rule. Order is the
+  human's call. See **Next Exalt Types** above.
+- **Merits & Flaws**, after the non-Exalt splats — one centralized
+  `merits_and_flaws_calc`, NOT the old per-file hooks. See **Removed**.
 
 Full multi-splat plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 DB chargen numbers as verified from source pages: [[db-chargen-findings]].

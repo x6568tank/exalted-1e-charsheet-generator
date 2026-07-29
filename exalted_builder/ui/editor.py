@@ -55,7 +55,17 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     # it falls back to the plain "Solar" row — the same trick "dynastic" and "loyal"
     # use below.
     "Solar": {"standard": "Standard", "illuminated": "Cult of the Illuminated"},
-    "Dragon-Blooded": {"dynastic": "Dynastic", "outcaste": "Outcaste"},
+    # The Outcaste book adds four Dragon-Blooded origins on top of the core two. Each
+    # varies by UPBRINGING as well — see _ORIGIN_UPBRINGINGS below, which is the second
+    # dropdown; the origin decides Backgrounds/Charms/Virtues, the upbringing decides
+    # the Ability budget and its minimums.
+    "Dragon-Blooded": {
+        "dynastic": "Dynastic", "outcaste": "Outcaste",
+        "lookshy": "Lookshy (Seventh Legion)",
+        "forest-witch": "Forest Witch",
+        "lost-egg": "Lost Egg",
+        "pirate": "Pirate (Eos and Ossissa)",
+    },
     # Abyssal Backgrounds depend on standing with the Deathlord: 13 dots for a loyal
     # deathknight, 5 for a fugitive/renegade (p.122). First key is the default
     # (plain "Abyssal" budget row); "fugitive" maps to "Abyssal:fugitive".
@@ -71,6 +81,38 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     # has a Caste), unlike Lunar's casteless.
     "Sidereal": {"hierarchy": "Celestial Hierarchy", "ronin": "Ronin"},
 }
+
+# The second axis, keyed by "<exalt_type>:<origin>". Only origins that HAVE variants
+# appear here, and the first key of each is the origin's own default (it has no
+# ":<upbringing>" budget row, so it falls back to the origin row — the same trick the
+# origins above use against the splat row). The Outcaste book is the only source of
+# these so far; every other splat has no entry and so gets no second dropdown.
+_ORIGIN_UPBRINGINGS: dict[str, dict[str, str]] = {
+    # p.68: a Lookshy Terrestrial who was not raised there trades the 35 Ability dots
+    # and the Lookshy minimums for 25/10, but keeps the 13 Backgrounds and 6 Charms.
+    "Dragon-Blooded:lookshy": {
+        "": "Born in Lookshy", "foreign": "Raised elsewhere"},
+    # p.132: an ex-Dynast keeps the Realm schooling; other outcastes get 25 dots; one
+    # raised by Oreithyia also buys Virtues and Essence cheaper (p.133).
+    "Dragon-Blooded:forest-witch": {
+        "": "Ex-Dynast", "outcaste": "Outcaste", "oreithyia": "Raised by Oreithyia"},
+    # p.159: three Realm cases plus the Threshold, which is the only one that drops
+    # the Aspect/Favored minimum to 10.
+    "Dragon-Blooded:lost-egg": {
+        "": "Realm, lower-class birth",
+        "graduate": "Pasiap's Stair / Cloister of Wisdom",
+        "patrician": "Patrician-born",
+        "threshold": "Threshold outcaste"},
+    # p.96: Dynast or born outcaste; both need Sail.
+    "Dragon-Blooded:pirate": {"": "Dynast", "outcaste": "Born outcaste"},
+}
+
+
+def upbringing_options(exalt_type: str, origin: str) -> dict[str, str]:
+    """The upbringing choices for this splat/origin, or {} when it has none (which is
+    every splat but the Outcaste-book Dragon-Blooded). The UI renders the second
+    dropdown only when this is non-empty, so no other splat grows a control."""
+    return _ORIGIN_UPBRINGINGS.get(f"{exalt_type}:{origin}", {})
 
 
 def _label(value: str) -> str:
@@ -188,7 +230,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     # ---- live tally of ability dots spent (updates on every dot click) ----- #
     @ui.refreshable
     def ability_tally() -> None:
-        b = ruleset.budgets_for(character.exalt_type, character.origin)
+        b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
         spent = (sum(v for a, v in character.abilities.items() if a != AbilityName.CRAFT)
                  + sum(cr.rating for cr in character.crafts))
         over = spent > b.ability_dots
@@ -241,7 +283,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         favored_attrs = set(character.favored_attributes)
         # chargen budget for THIS character (splat + origin), so panel headers show
         # the right numbers (Solar 8/6/4·25; DB Dynastic 7/6/4·35, Outcaste ·25).
-        b = ruleset.budgets_for(character.exalt_type, character.origin)
+        b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
         ap = "/".join(str(p) for p in b.attribute_pools)
         # splats name the caste slot differently: Solar "Caste", Dragon-Blooded "Aspect"
         caste_noun = ruleset.exalt_for(character.exalt_type).caste_noun
@@ -298,6 +340,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                             ui.select(origins, label="Origin",
                                       value=character.origin or next(iter(origins)),
                                       on_change=lambda e: set_origin(e.value)).classes(_field)
+                            # Second axis, and only for the origins that have one — see
+                            # _ORIGIN_UPBRINGINGS. Everything else renders exactly as before.
+                            ups = upbringing_options(
+                                character.exalt_type, character.origin or next(iter(origins)))
+                            if ups:
+                                ui.select(ups, label="Upbringing",
+                                          value=character.upbringing if character.upbringing in ups
+                                          else next(iter(ups)),
+                                          on_change=lambda e: set_upbringing(e.value)).classes(_field)
                         nature_names = [n.name for n in ruleset.nature_catalog.values()]
                         ui.select(_opts_with(nature_names, character.nature), label="Nature",
                                   value=character.nature or None,
@@ -681,10 +732,18 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     def set_origin(value: str) -> None:
         character.origin = value
+        # Upbringing is scoped to the origin, so a stale one would silently resolve
+        # against the wrong row (or, worse, a coincidentally-named one on the new
+        # origin). Clear it back to the origin's default whenever the origin changes.
+        character.upbringing = ""
         # Camps/Callings belong to an origin. Switching origin invalidates them, and a
         # stale camp id would trip camp-wrong-origin; default to the first camp offered
         # (and its first Calling) so the character stays legal by construction.
         _reset_camp_for_origin()
+        body.refresh(); changed()
+
+    def set_upbringing(value: str) -> None:
+        character.upbringing = value
         body.refresh(); changed()
 
     def _reset_camp_for_origin() -> None:

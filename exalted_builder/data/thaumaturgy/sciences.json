@@ -1,0 +1,134 @@
+[
+  {
+    "id": "science.alchemy",
+    "name": "Alchemy",
+    "roll": "Intelligence + Occult",
+    "cost": "Normally none. Advanced alchemy (effects of 3 dots or higher) requires a lab costing Resources 3 to maintain; ingredients cost Resources equal to (the level of the effect - 1). Internal alchemy is always at +2 difficulty and costs one Willpower per attempt.",
+    "time": "Days of preparation for external alchemy; internal alchemy takes effect nearly immediately",
+    "duration": "Varies; most alchemical substances last no more than a scene or two",
+    "max_rating": 6,
+    "description": "Alchemy is the art of producing compounds or substances that have (usually) short-term magical effects. Most alchemy is fairly simple herbalism, using the properties of plant and animal parts to enhance the natural processes of the human body. At the higher levels of knowledge, by purifying and revealing the essential natures of the materials used, alchemy gains the ability to cause truly miraculous feats. Internal alchemy is the most dangerous of all forms and many thaumaturges refuse to practice it: the thaumaturge ingests the compounds and converts them in her digestive tract through force of will, gaining a near-immediate effect at the risk of severe poisoning on a failure. NOTE: the printed ladder runs one, two, three, four and then SIX dots — there is no five-dot rung, yet formulas requiring Alchemy 5 exist and a formula's required level equals its difficulty (p.143). Rating 5 is reachable and purchasable with no printed description.",
+    "levels": [
+      {
+        "rating": 1,
+        "description": "The alchemist can produce a wide variety of reasonably mundane formulas — minor painkillers, mild anti-inflammatories and potions to counter the effects of illness. In contemporary terms, she can stock a medicine cabinet. These potions provide no bonuses to Medicine or Resistance rolls, but they may reduce the difficulty of those rolls by 1 in specific circumstances."
+      },
+      {
+        "rating": 2,
+        "description": "Potions of this level can allow a person to exceed her normal potential for a short time, grant extra resistance to disease or pain, or otherwise improve a person's chances. They can add one dot to an Attribute for a minute or two, grant an extra die on an Ability check, or allow someone to ignore up to a two-die penalty for a few minutes. Healing philtres made at this level double a person's natural healing rate for one day. Potions of this level cannot raise a person's Traits above mortal limits."
+      },
+      {
+        "rating": 3,
+        "description": "These potions can enhance their target to superhuman limits for a short time or raise her to mortal limits for a longer period — two dots to a single Attribute for up to an hour, or one dot for a scene if it raises the Attribute beyond 5. Alternately a potion could add one dot to a single category of Attribute for up to a scene. Up to three dots can be added to an Ability, or up to six dots for no more than 20 turns. Materials of this strength can grant non-supernatural Merits for up to an hour. Up to a four-die penalty can be ignored for up to a scene. A healing poultice can double the subject's healing rate for up to a week and adds two dice to all Medicine rolls made on the patient."
+      },
+      {
+        "rating": 4,
+        "description": "Materials produced at this level can have truly lasting effects — an alchemist could purify steel to the point of being unbreakable and ever-sharp, or enhance the lifting properties of hot air until it was as potent as helium. Benefits equal to level 2 potions can be made permanent: the character must pay any relevant experience costs for these bonuses to last, just as she normally would to raise an Attribute or Ability or buy a Merit, but she does not need to spend any time in training."
+      },
+      {
+        "rating": 6,
+        "description": "The pinnacles of alchemical knowledge. While immortality is beyond even these vaunted heights, with the proper elixirs the thaumaturge can extend his life indefinitely — certainly by decades, perhaps centuries. Permanent effects equal to potions of three dots in strength can be wrought, and the alchemist learns the secrets of transmutation, the art of changing one thing fundamentally into another, such as the fabled changing of lead into gold. The thaumaturge cannot transform base materials into the Five Magical Materials, however."
+      }
+    ],
+    "source": {"book": "Exalted Player's Guide", "page": 136}
+  },
+  {
+    "id": "science.enchantment",
+    "name": "Enchantment",
+    "roll": "Dexterity + Occult",
+    "cost": "3 motes per level of effect, +1 Willpower",
+    "time": "Normally one day per dot of effect",
+    "duration": "Varies, but usually long. Even minor talismans will typically last for years, and the greatest feats of enchantment last for decades or even centuries.",
+    "max_rating": 5,
+    "description": "Enchantment is the production of minor magical items — talismans, charms (but not Charms), lesser artifacts, wonders. These are less potent than the artifacts used by the Exalted but are no less important. The world of the charm-seller is full of fraud and trickery: out of a dozen amulets for sale in a shop, perhaps two will contain some measure of real power. Talismans and other enchanted objects typically have a cost equal to the level of Enchantment needed to produce them; alternately, a mortal character can buy a talisman of any level during character generation by spending one dot from the Artifact Background. Most mortal talismans lose their power within a century, and very few last longer than two.",
+    "levels": [
+      {
+        "rating": 1,
+        "description": "Enchantments of this level are both subtle and weak, mostly having to do with enhancing everyday items in some minor fashion — boots that never wear out, a mail coat that never rusts, a set of surgical tools that are always clean. At best, enchanted devices of this level will negate +1 worth of difficulty due to some situational modifier."
+      },
+      {
+        "rating": 2,
+        "description": "The thaumaturge's enchantments can have an impact on the world around him. His charms can negate up to +2 difficulty in situational modifiers (+1 difficulty in combat), or can allow their users to ignore the effects of a single botched roll (the roll is merely treated as a failure rather than a botch)."
+      },
+      {
+        "rating": 3,
+        "description": "Enchanted weapons or equipment are treated as fine equipment, or gain an additional point to add to the weapon's stats if already an exceptional piece of equipment. Periapts against disease and poison can be produced at this level, as can good luck charms that protect against up to two botches per story."
+      },
+      {
+        "rating": 4,
+        "description": "The thaumaturge's enchantments are puissant indeed. His good luck charms can allow the user to ignore three botched rolls per story, or to reroll one failed roll per story (not both). Up to two dice can be added to a dice pool or up to one dot to an Attribute, good only for a single die roll or no more than a minute. He can produce walkaways that reduce damage taken by one. Enchanted weapons or equipment are treated as exceptional equipment, or gain an additional point if already exceptional. Ordinary equipment can be produced from non-standard materials — swords made of glass or wood that are as strong as steel, hammers with heads of gold or lead."
+      },
+      {
+        "rating": 5,
+        "description": "The thaumaturge's talismans are renowned throughout Creation. Enchanted weapons or equipment are treated as perfect equipment, or gain an additional 2 points to add to the weapon's stats if already perfect. Up to two dice can be added to a dice pool or up to one dot to an Attribute for up to a minute, or effects equal to a level 4 talisman for up to a scene. Weapons can be produced that are unbreakable in the same fashion that daiklaves and other artifact weapons are unbreakable."
+      }
+    ],
+    "source": {"book": "Exalted Player's Guide", "page": 142}
+  },
+  {
+    "id": "science.geomancy",
+    "name": "Geomancy",
+    "roll": "Perception + Occult",
+    "cost": "Normally none",
+    "time": "Varies",
+    "duration": "Varies",
+    "max_rating": 5,
+    "description": "Geomancy is the art of detecting and manipulating Essence flows. While thaumaturges cannot work such great feats as reshaping the paths of dragon lines or raising and lowering Demesnes without equally great public-works endeavors, they can nonetheless make works of impressive subtlety and power. By reshaping his surroundings the geomancer can increase the flow of Essence in an area, bringing bountiful harvests and good fortune — or retard it, cursing the inhabitants with blighted crops and disease. Geomancy is remarkably labor and time intensive. Shaping Demesnes is beyond this Science's scope and is covered in Savant and Sorcerer.",
+    "levels": [
+      {
+        "rating": 1,
+        "description": "With a successful Perception + Occult roll and a few minutes of walking an area (no more than half an acre), the geomancer can ascertain how strong the flow of Essence is in that area. One success grants some limited understanding of the power level ('high', 'low', 'moderate') and possibly an idea as to its aspect if it is very powerfully aspected. Three successes allows a precise strength, aspect and direction. Five gives a good start toward a geomantic map of the area."
+      },
+      {
+        "rating": 2,
+        "description": "The geomancer can draw up a precise map of how Essence moves through an area, pinpointing places that are good or bad for various tasks — animal husbandry, farming, raising families, sorcerous activities. Figure four hours per half-acre surveyed, and a set of tools costing Resources 2 to 3. The base difficulty is 1, but extremely detailed or complex surveys may range as high as difficulty 3. This provides little effect in game terms; at best, scrupulously following a detailed survey might allow those using the buildings built to its standard to reduce the severity of a botch."
+      },
+      {
+        "rating": 3,
+        "description": "The geomancer can work with an existing home or other building, or work with an architect in designing a new home, to help ensure good fortune. By determining where entrances and exits should be located, the shape and size of windows, room layouts and decorations, the geomancer can align the building to different aspects of Essence. This allows him to grant a single lucky function to the inhabitants of the house."
+      },
+      {
+        "rating": 4,
+        "description": "The geomancer can expand his area of work to alter the fortunes of an entire area — up to one acre per success scored. This can involve more than simple architecture and minor landscaping: whole sections of the surrounding terrain may need to be reshaped to inhibit, enhance or shift the flow of Essence. This process takes months, sometimes years, even with a skilled team of workers."
+      },
+      {
+        "rating": 5,
+        "description": "The geomancer is sufficiently skilled to affect the flow of Essence in relatively subtle fashions. He can use a single application of this Science to effect more than one form of luck on a household. Alternately, he can fashion an area suitable for a laboratory: while no match for a Manse, this space will provide 1 mote of Essence every two hours for the inhabitant to use."
+      }
+    ],
+    "source": {"book": "Exalted Player's Guide", "page": 146}
+  },
+  {
+    "id": "science.weather-working",
+    "name": "Weather Working",
+    "roll": "Charisma + Occult. Because of the effort involved, weather working is always performed at +2 difficulty.",
+    "cost": "2 motes per level of effect, +1 Willpower for effects of level 4 or 5",
+    "time": "Standard for spell casting. Time to take effect varies.",
+    "duration": "Varies",
+    "max_rating": 5,
+    "description": "Weather witches have always been among the most revered and feared members of the mortal mystic community. A weather witch can doom a community to a slow death by withholding the rains the crops needed, or wreck it quickly by bringing storms that flood the fields. Weather magic can be terribly powerful, but it is also usually very slow to take effect: while small effects can occur quickly, larger changes usually require hours or days to enact. A skilled weather worker can speed changes, but cannot summon tidal waves out of nothing or instantly call storms from clear skies. The Council of Winds is likely to notice any major interruption of its carefully disciplined plans, and weather-working thaumaturges are more likely than most to engage its ire.",
+    "levels": [
+      {
+        "rating": 1,
+        "description": "With a successful roll, the thaumaturge can accurately tell what the weather will be — although not whether the weather is divinely mandated. Each success allows the weather witch to predict the weather one more day into the future. Changes in the mandates of Heaven and the actions of other thaumaturges cannot be determined."
+      },
+      {
+        "rating": 2,
+        "description": "The weather witch can not only tell the weather, she can accurately determine its provenance — whether it is divinely mandated, a natural occurrence or of some other magical nature. She can also call forth extremely minor effects with a successful roll."
+      },
+      {
+        "rating": 3,
+        "description": "A weather witch can evoke minor changes in the local weather. She can cool an area as if it were shaded or warm it as if in the direct rays of the sun, and she can conjure up brief zephyrs of wind or a gentle mist. She can also cause the morning fog to maintain, keeping its strength well into the day, or cause a short-lived fog bank to roll into her local area, cutting visibility in half. These minor changes occur within minutes of being asked for and will typically last for up to a scene or two."
+      },
+      {
+        "rating": 4,
+        "description": "The thaumaturge learns how to truly alter the weather. These changes are rarely sufficient to break the back of current weather; the most she can do is provide some relief. A storm can be lessened to gentle rain, blinding heat to a pleasant summer day — and naturally she can also reverse these trends, increasing the severity of storms or raising or lowering the temperature by up to 15 degrees. These effects normally take hours, sometimes days, although more successes can either reduce the time or strengthen the effect."
+      },
+      {
+        "rating": 5,
+        "description": "The weather witch can change the weather to a great extent, summoning up strong winds in a becalmed sea, rain on a sunny day or sunshine in the middle of storms. Merely altering existing weather (changing severity) can be performed in minutes, an hour at most, and the greatest of changes will rarely take more than a day or two."
+      }
+    ],
+    "source": {"book": "Exalted Player's Guide", "page": 148}
+  }
+]

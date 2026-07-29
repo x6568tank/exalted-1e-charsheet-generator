@@ -1,31 +1,188 @@
 [
-  {"id": "background.allies",    "name": "Allies",    "description": "Aides and friends who help you in tasks — close, capable companions; each Ally is a Storyteller character."},
-  {"id": "background.artifact",  "name": "Artifact",  "description": "Wondrous devices of the First Age that you own, rated by power and rarity. (Dragon-Blooded receive twice the dots' worth of artifacts.) (Alchemicals receive THREE dots of artifacts per dot bought, usually of their caste's Magical Material though this is not required; they alone may buy a rating as high as ••••• at creation without bonus points, but the fourth and fifth dot each cost two dots from the pool. Alchemicals may also buy Charms as artifacts at a rating equal to the Charm's minimum Essence — these are kept on retainer at the Vats and do NOT increase the Charms they may install.)"},
-  {"id": "background.backing",   "name": "Backing",   "description": "Standing and rank within an organization of power, such as the Realm, a Guild, or a society. (An Abyssal in a Deathlord's service may not begin play with Backing — she takes Liege instead, p131.) (In Autochthonia, Backing is membership and authority in a branch of the Tripartite — an Olgotary branch, a Theomachracy branch or one of the Five Sodalities — and requires Class •••+. Autocrats, celebrants and councilors need Backing ••••• in the Olgotary, the Theomachracy or a Sodality respectively. Backing in an exile colony, a Voidbringer sect or the black market is possible but limited, and the latter two mark you for death.)", "excluded_exalt_types": ["Abyssal"]},
-  {"id": "background.contacts",  "name": "Contacts",  "description": "Information sources and useful connections in various places.", "excluded_exalt_types": ["Dragon-Blooded"]},
-  {"id": "background.familiar",  "name": "Familiar",  "description": "An animal companion bonded to you and sustained by your Essence, rated by capability. (Autochthonia has almost no conventional fauna, so Alchemicals bond not animals but the animate constructs of their world, telepathically requisitioning an entity whose properties they define. Mortal Autochthonians may not take Familiar.)"},
-  {"id": "background.followers", "name": "Followers", "description": "Mortals who look to you for leadership, rated by their number and devotion.", "excluded_exalt_types": ["Dragon-Blooded"]},
-  {"id": "background.influence", "name": "Influence", "description": "Your pull and status in society — political, social, or commercial.", "excluded_exalt_types": ["Dragon-Blooded"]},
-  {"id": "background.manse",     "name": "Manse",     "description": "A geomantic structure over a demesne that produces Essence and houses a Hearthstone. (Autochthonia contains no Manses, so this Background is off limits to Alchemicals in any story where the Seal of the Eight Divinities is unbroken; once the Locust Crusade begins they use and build Manses in conquered Creation, purchasing this Trait exactly as a Solar does. Mortal Autochthonians may not take Manse.)"},
-  {"id": "background.mentor",    "name": "Mentor",    "description": "A patron, teacher, or defender who advises and aids you, rated by their power. (An Abyssal in a Deathlord's service may not begin play with Mentor — she takes Liege instead, p131.)", "excluded_exalt_types": ["Abyssal"]},
-  {"id": "background.resources", "name": "Resources", "description": "Your material wealth and income, from destitute to fabulously wealthy."},
-
-  {"id": "background.breeding",    "name": "Breeding",    "description": "The purity of your Terrestrial bloodline: higher Breeding means more pronounced elemental markings, a stronger anima banner, and larger Essence pools.", "exalt_type": "Dragon-Blooded"},
-  {"id": "background.connections", "name": "Connections", "description": "Ties into one area of the Realm's web of institutions and cliques (chosen per instance, e.g. a House or the legions); serves as both Contacts and Influence for the Dragon-Blooded.", "exalt_type": "Dragon-Blooded"},
-  {"id": "background.command",     "name": "Command",     "description": "The earned right to command soldiers of the legions or a House army, from a single fang (5) up to an entire dragon (500) fighting under your banner.", "excluded_exalt_types": ["Abyssal"]},
-  {"id": "background.henchmen",    "name": "Henchmen",    "description": "UnExalted characters of note who have sworn personal oaths of loyalty to you, rated by their number.", "excluded_exalt_types": ["Abyssal"]},
-  {"id": "background.reputation",  "name": "Reputation",  "description": "How widely your exploits are known across the Dynasty and the Realm; may be added to Social rolls where fame carries weight (or subtracted where it is a liability).", "excluded_exalt_types": ["Abyssal"]},
-
-  {"id": "background.abyssal-command", "name": "Abyssal Command", "description": "You have been placed at the head of one of your Deathlord's military formations — battle-trained and moliated ghosts, ancestor-cult zealots or death-cult fanatics. Ranges from a small bodyguard (•) up to a double dragon of 500 war ghosts, 1,000 soldiers and 3,000 zombies (•••••). The Abyssal replacement for the Command Background.", "exalt_type": "Abyssal"},
-  {"id": "background.liege",           "name": "Liege",           "description": "The interest and favor your Deathlord takes in you, standing in for both Mentor and Backing (which loyal deathknights may not take). Grants extra bonus points at creation (2 at •, 4 at ••, 6 at •••, 9 at ••••, 12 at •••••) spendable on Abyssal Command, Artifact, Followers, Influence, Manse, Necromancy, Resources, Underworld Manse, Whispers, Caste/Favored Abilities or Charms. Renegade deathknights on the run from their masters may not buy Liege.", "exalt_type": "Abyssal"},
-  {"id": "background.necromancy",      "name": "Necromancy",      "description": "Training in the death-magic of the Underworld — you begin play knowing necromantic spells without swapping Charms for them: one Shadowlands-Circle spell at •, rising to seven Shadowlands/Labyrinth-Circle spells at •••••. Only Necromancy may be learned this way, never Terrestrial or Celestial sorcery.", "exalt_type": "Abyssal"},
-  {"id": "background.spies",           "name": "Spies",           "description": "A share of your Deathlord's espionage apparatus of demons, ghosts and informants — from five spies (•) up to a network spanning an entire Direction in both the living and dead worlds (•••••). You may use it to spy on foes and draw on its resources for protection, but have no discretionary access to its budget.", "exalt_type": "Abyssal"},
-  {"id": "background.underworld-manse","name": "Underworld Manse","description": "Access and attunement to the Deathlord's manses and Hearthstones within the Underworld (their power fails beyond the edge of the shadowlands). Manses in the land of the living must be bought with the ordinary Manse Background. A renegade who buys this receives only the benefits of the normal Manse Background (p145 of the core rulebook).", "exalt_type": "Abyssal"},
-  {"id": "background.whispers",        "name": "Whispers",        "description": "Your attunement to the dead gods, letting you tap the lore lost in the Underworld's darkness. Once per night, roll Perception + Whispers to uncover a lost secret, be drawn toward where a death would matter most, or substitute Whispers for a single Ability (this last costs 1 temporary Willpower). At ••••• you are one with the Malfeans.", "exalt_type": "Abyssal"},
-
-  {"id": "background.hearts-blood", "name": "Heart's Blood", "description": "The animals (and men) whose forms you can take, beyond your totem animal — drinking a creature's heart's blood at its death teaches your body its shape forever. Higher ratings let you take the heart's blood of larger or more numerous creatures, up to three dozen animals or a dozen humans at •••••.", "exalt_type": "Lunar"},
-  {"id": "background.renown",      "name": "Renown",      "description": "Your standing within the Silver Pact above and beyond the ordinary Lunar's — grants additional points to spend on the Renown trait at creation (5 at •, 10 at ••, 15 at •••, 25 at ••••, 40 at •••••). Casteless Lunars may not take this Background.", "exalt_type": "Lunar"},
-
-  {"id": "background.class", "name": "Class",  "description": "Your rank in Autochthonia's social order and your standard of living, subsuming Followers, Influence and Resources into one Trait. Alchemicals automatically receive Class ••• at creation and may raise it with bonus points. x: Lumpen outcast, living as Resources •, -1 die on Social pools against higher Class. •: Populat laborer, Resources ••. ••: shift chief over 20-300 workers, Resources •••. •••: Populat foreman or junior Tripartite (with Backing • to ••), living at Resources ••• and able to requisition Resources ••••; +1 die on Social rolls against lower Class. ••••: Populat supervisor or veteran Tripartite (Backing •• to •••), requisition up to Resources •••••; +1 die against lower Class. •••••: director/sub-director or senior Tripartite leader (Backing •••• to •••••); +2 dice against lower Class. Because Class subsumes them, civilized Autochthonians may not take Resources or Followers — Lumpen outcasts, who live outside this Background entirely, may.", "exalt_type": "Alchemical"},
-  {"id": "background.vats",  "name": "Vats",   "description": "Your access to your city's Vat foundry: how many Charms you keep on retainer in your Panoply beyond those installed in your Charm Slots, and how fast you can requisition a refit. Cumulative with Charms bought as artifacts; in neither case may you take a Charm whose Trait minimums you do not meet. x: no special access — one month's notice for a minor refit, six months for Essence. •: one extra Charm; two weeks / two months notice. ••: two extra; one week / one month. •••: three extra; two days / two weeks. ••••: four extra; one day / one week. •••••: five extra, and refits receive immediate priority with no notice. Vats also allow accelerated repair: an hour plugged in restores (Essence x 5) motes and multiplies your healing rate by permanent Essence. Mortals may not take Vats.", "exalt_type": "Alchemical"}
+  {
+    "id": "background.abyssal-command",
+    "name": "Abyssal Command",
+    "description": "You have been placed at the head of one of your Deathlord's military formations \u2014 battle-trained and moliated ghosts, ancestor-cult zealots or death-cult fanatics. Ranges from a small bodyguard (\u2022) up to a double dragon of 500 war ghosts, 1,000 soldiers and 3,000 zombies (\u2022\u2022\u2022\u2022\u2022). The Abyssal replacement for the Command Background.",
+    "exalt_type": "Abyssal"
+  },
+  {
+    "id": "background.allies",
+    "name": "Allies",
+    "description": "Aides and friends who help you in tasks \u2014 close, capable companions; each Ally is a Storyteller character."
+  },
+  {
+    "id": "background.arsenal",
+    "name": "Arsenal",
+    "description": "Weapons or equipment issued from the Lookshy armories for your use. The gear remains the property of the Seventh Legion and must be turned in, in working order, when demanded \u2014 a temporary loan rather than part of your panoply."
+  },
+  {
+    "id": "background.artifact",
+    "name": "Artifact",
+    "description": "Wondrous devices of the First Age that you own, rated by power and rarity. (Dragon-Blooded receive twice the dots' worth of artifacts.) (Alchemicals receive THREE dots of artifacts per dot bought, usually of their caste's Magical Material though this is not required; they alone may buy a rating as high as \u2022\u2022\u2022\u2022\u2022 at creation without bonus points, but the fourth and fifth dot each cost two dots from the pool. Alchemicals may also buy Charms as artifacts at a rating equal to the Charm's minimum Essence \u2014 these are kept on retainer at the Vats and do NOT increase the Charms they may install.)"
+  },
+  {
+    "id": "background.backing",
+    "name": "Backing",
+    "description": "Standing and rank within an organization of power, such as the Realm, a Guild, or a society. (An Abyssal in a Deathlord's service may not begin play with Backing \u2014 she takes Liege instead, p131.) (In Autochthonia, Backing is membership and authority in a branch of the Tripartite \u2014 an Olgotary branch, a Theomachracy branch or one of the Five Sodalities \u2014 and requires Class \u2022\u2022\u2022+. Autocrats, celebrants and councilors need Backing \u2022\u2022\u2022\u2022\u2022 in the Olgotary, the Theomachracy or a Sodality respectively. Backing in an exile colony, a Voidbringer sect or the black market is possible but limited, and the latter two mark you for death.)",
+    "excluded_exalt_types": [
+      "Abyssal"
+    ]
+  },
+  {
+    "id": "background.breeding",
+    "name": "Breeding",
+    "description": "The purity of your Terrestrial bloodline: higher Breeding means more pronounced elemental markings, a stronger anima banner, and larger Essence pools.",
+    "exalt_type": "Dragon-Blooded"
+  },
+  {
+    "id": "background.class",
+    "name": "Class",
+    "description": "Your rank in Autochthonia's social order and your standard of living, subsuming Followers, Influence and Resources into one Trait. Alchemicals automatically receive Class \u2022\u2022\u2022 at creation and may raise it with bonus points. x: Lumpen outcast, living as Resources \u2022, -1 die on Social pools against higher Class. \u2022: Populat laborer, Resources \u2022\u2022. \u2022\u2022: shift chief over 20-300 workers, Resources \u2022\u2022\u2022. \u2022\u2022\u2022: Populat foreman or junior Tripartite (with Backing \u2022 to \u2022\u2022), living at Resources \u2022\u2022\u2022 and able to requisition Resources \u2022\u2022\u2022\u2022; +1 die on Social rolls against lower Class. \u2022\u2022\u2022\u2022: Populat supervisor or veteran Tripartite (Backing \u2022\u2022 to \u2022\u2022\u2022), requisition up to Resources \u2022\u2022\u2022\u2022\u2022; +1 die against lower Class. \u2022\u2022\u2022\u2022\u2022: director/sub-director or senior Tripartite leader (Backing \u2022\u2022\u2022\u2022 to \u2022\u2022\u2022\u2022\u2022); +2 dice against lower Class. Because Class subsumes them, civilized Autochthonians may not take Resources or Followers \u2014 Lumpen outcasts, who live outside this Background entirely, may.",
+    "exalt_type": "Alchemical"
+  },
+  {
+    "id": "background.command",
+    "name": "Command",
+    "description": "The earned right to command soldiers of the legions or a House army, from a single fang (5) up to an entire dragon (500) fighting under your banner.",
+    "excluded_exalt_types": [
+      "Abyssal"
+    ]
+  },
+  {
+    "id": "background.connections",
+    "name": "Connections",
+    "description": "Ties into one area of the Realm's web of institutions and cliques (chosen per instance, e.g. a House or the legions); serves as both Contacts and Influence for the Dragon-Blooded.",
+    "exalt_type": "Dragon-Blooded"
+  },
+  {
+    "id": "background.contacts",
+    "name": "Contacts",
+    "description": "Information sources and useful connections in various places.",
+    "excluded_exalt_types": [
+      "Dragon-Blooded"
+    ]
+  },
+  {
+    "id": "background.cult",
+    "name": "Cult",
+    "description": "Worshippers whose devotions give you strength."
+  },
+  {
+    "id": "background.familiar",
+    "name": "Familiar",
+    "description": "An animal companion bonded to you and sustained by your Essence, rated by capability. (Autochthonia has almost no conventional fauna, so Alchemicals bond not animals but the animate constructs of their world, telepathically requisitioning an entity whose properties they define. Mortal Autochthonians may not take Familiar.)"
+  },
+  {
+    "id": "background.family",
+    "name": "Family",
+    "description": "Notable family members. Optional; see Exalted: The Dragon-Blooded p.279."
+  },
+  {
+    "id": "background.followers",
+    "name": "Followers",
+    "description": "Mortals who look to you for leadership, rated by their number and devotion.",
+    "excluded_exalt_types": [
+      "Dragon-Blooded"
+    ]
+  },
+  {
+    "id": "background.hearts-blood",
+    "name": "Heart's Blood",
+    "description": "The animals (and men) whose forms you can take, beyond your totem animal \u2014 drinking a creature's heart's blood at its death teaches your body its shape forever. Higher ratings let you take the heart's blood of larger or more numerous creatures, up to three dozen animals or a dozen humans at \u2022\u2022\u2022\u2022\u2022.",
+    "exalt_type": "Lunar"
+  },
+  {
+    "id": "background.henchmen",
+    "name": "Henchmen",
+    "description": "UnExalted characters of note who have sworn personal oaths of loyalty to you, rated by their number.",
+    "excluded_exalt_types": [
+      "Abyssal"
+    ]
+  },
+  {
+    "id": "background.influence",
+    "name": "Influence",
+    "description": "Your pull and status in society \u2014 political, social, or commercial.",
+    "excluded_exalt_types": [
+      "Dragon-Blooded"
+    ]
+  },
+  {
+    "id": "background.liege",
+    "name": "Liege",
+    "description": "The interest and favor your Deathlord takes in you, standing in for both Mentor and Backing (which loyal deathknights may not take). Grants extra bonus points at creation (2 at \u2022, 4 at \u2022\u2022, 6 at \u2022\u2022\u2022, 9 at \u2022\u2022\u2022\u2022, 12 at \u2022\u2022\u2022\u2022\u2022) spendable on Abyssal Command, Artifact, Followers, Influence, Manse, Necromancy, Resources, Underworld Manse, Whispers, Caste/Favored Abilities or Charms. Renegade deathknights on the run from their masters may not buy Liege.",
+    "exalt_type": "Abyssal"
+  },
+  {
+    "id": "background.manse",
+    "name": "Manse",
+    "description": "A geomantic structure over a demesne that produces Essence and houses a Hearthstone. (Autochthonia contains no Manses, so this Background is off limits to Alchemicals in any story where the Seal of the Eight Divinities is unbroken; once the Locust Crusade begins they use and build Manses in conquered Creation, purchasing this Trait exactly as a Solar does. Mortal Autochthonians may not take Manse.)"
+  },
+  {
+    "id": "background.mentor",
+    "name": "Mentor",
+    "description": "A patron, teacher, or defender who advises and aids you, rated by their power. (An Abyssal in a Deathlord's service may not begin play with Mentor \u2014 she takes Liege instead, p131.)",
+    "excluded_exalt_types": [
+      "Abyssal"
+    ]
+  },
+  {
+    "id": "background.necromancy",
+    "name": "Necromancy",
+    "description": "Training in the death-magic of the Underworld \u2014 you begin play knowing necromantic spells without swapping Charms for them: one Shadowlands-Circle spell at \u2022, rising to seven Shadowlands/Labyrinth-Circle spells at \u2022\u2022\u2022\u2022\u2022. Only Necromancy may be learned this way, never Terrestrial or Celestial sorcery.",
+    "exalt_type": "Abyssal"
+  },
+  {
+    "id": "background.renown",
+    "name": "Renown",
+    "description": "Your standing within the Silver Pact above and beyond the ordinary Lunar's \u2014 grants additional points to spend on the Renown trait at creation (5 at \u2022, 10 at \u2022\u2022, 15 at \u2022\u2022\u2022, 25 at \u2022\u2022\u2022\u2022, 40 at \u2022\u2022\u2022\u2022\u2022). Casteless Lunars may not take this Background.",
+    "exalt_type": "Lunar"
+  },
+  {
+    "id": "background.reputation",
+    "name": "Reputation",
+    "description": "How widely your exploits are known across the Dynasty and the Realm; may be added to Social rolls where fame carries weight (or subtracted where it is a liability).",
+    "excluded_exalt_types": [
+      "Abyssal"
+    ]
+  },
+  {
+    "id": "background.resources",
+    "name": "Resources",
+    "description": "Your material wealth and income, from destitute to fabulously wealthy."
+  },
+  {
+    "id": "background.retainers",
+    "name": "Retainers",
+    "description": "Mortals who serve you \u2014 a steward, a cook, bodyguards, aides and secretaries."
+  },
+  {
+    "id": "background.sorcery",
+    "name": "Sorcery",
+    "description": "The advanced training of Lookshy sorcerers, representing the common training of the sorcerer-technicians rather than the private studies and innovations that must be bought by exchanging Charms or with bonus points or experience."
+  },
+  {
+    "id": "background.spies",
+    "name": "Spies",
+    "description": "A share of your Deathlord's espionage apparatus of demons, ghosts and informants \u2014 from five spies (\u2022) up to a network spanning an entire Direction in both the living and dead worlds (\u2022\u2022\u2022\u2022\u2022). You may use it to spy on foes and draw on its resources for protection, but have no discretionary access to its budget.",
+    "exalt_type": "Abyssal"
+  },
+  {
+    "id": "background.underworld-manse",
+    "name": "Underworld Manse",
+    "description": "Access and attunement to the Deathlord's manses and Hearthstones within the Underworld (their power fails beyond the edge of the shadowlands). Manses in the land of the living must be bought with the ordinary Manse Background. A renegade who buys this receives only the benefits of the normal Manse Background (p145 of the core rulebook).",
+    "exalt_type": "Abyssal"
+  },
+  {
+    "id": "background.vats",
+    "name": "Vats",
+    "description": "Your access to your city's Vat foundry: how many Charms you keep on retainer in your Panoply beyond those installed in your Charm Slots, and how fast you can requisition a refit. Cumulative with Charms bought as artifacts; in neither case may you take a Charm whose Trait minimums you do not meet. x: no special access \u2014 one month's notice for a minor refit, six months for Essence. \u2022: one extra Charm; two weeks / two months notice. \u2022\u2022: two extra; one week / one month. \u2022\u2022\u2022: three extra; two days / two weeks. \u2022\u2022\u2022\u2022: four extra; one day / one week. \u2022\u2022\u2022\u2022\u2022: five extra, and refits receive immediate priority with no notice. Vats also allow accelerated repair: an hour plugged in restores (Essence x 5) motes and multiplies your healing rate by permanent Essence. Mortals may not take Vats.",
+    "exalt_type": "Alchemical"
+  },
+  {
+    "id": "background.whispers",
+    "name": "Whispers",
+    "description": "Your attunement to the dead gods, letting you tap the lore lost in the Underworld's darkness. Once per night, roll Perception + Whispers to uncover a lost secret, be drawn toward where a death would matter most, or substitute Whispers for a single Ability (this last costs 1 temporary Willpower). At \u2022\u2022\u2022\u2022\u2022 you are one with the Malfeans.",
+    "exalt_type": "Abyssal"
+  }
 ]

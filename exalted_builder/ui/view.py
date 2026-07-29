@@ -66,6 +66,11 @@ class CharmNode:
     min_ability: int
     min_essence: int
     external: bool = False   # a prerequisite drawn in from ANOTHER category
+    # A breadth prerequisite ("any 3 Occult Charms", Aspect Books) has no source node
+    # to draw an edge FROM — the requirement is a count over a category, not an id. It
+    # rides as a badge on the node instead, so a capstone Charm does not silently read
+    # as an entry-level root just because nothing points at it.
+    count_requirement: str = ""
 
 
 @dataclass
@@ -109,6 +114,12 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
     reqs.append(f"Essence {charm.min_essence}")
     groups = [[ruleset.charms[r].name if r in ruleset.charms else r for r in group]
               for group in charm.prerequisites]
+    # A breadth prerequisite ("any 3 Occult Charms") names no id, so it cannot be a
+    # group of Charm names — it rides as its own single-entry group, which is how the
+    # card already renders "one of these" lines. Without this the five Aspect-Book
+    # Charms that have ONLY a breadth prerequisite would show none at all.
+    groups += [[validate.charm_count_requirement_label(req)]
+               for req in charm.prerequisite_counts]
     return CharmDetail(
         id=charm.id,
         name=charm.name,
@@ -229,8 +240,11 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str,
             state = "available"
         else:
             state = "locked"
-        nodes.append(CharmNode(c.id, c.name, state, c.min_ability, c.min_essence,
-                               external=c.id in external_ids))
+        nodes.append(CharmNode(
+            c.id, c.name, state, c.min_ability, c.min_essence,
+            external=c.id in external_ids,
+            count_requirement=", ".join(
+                validate.charm_count_requirement_label(r) for r in c.prerequisite_counts)))
 
     ids = {c.id for c in charms}
     edges = [(req, c.id) for c in charms for group in c.prerequisites
@@ -677,7 +691,7 @@ class CampView:
 def requires_camp(ruleset: RuleSet, character: Character) -> bool:
     """Whether this character's origin uses training camps (Cult of the Illuminated).
     Budget-driven, so no splat or origin is named in the UI."""
-    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     return b.requires_camp or b.requires_calling
 
 
@@ -815,14 +829,14 @@ def uses_caste_favored_attributes(ruleset: RuleSet, character: Character) -> boo
     """Whether this splat allocates Attributes to Caste/Favored/remaining SETS
     (Alchemical, p.60) rather than prioritising Physical/Social/Mental categories.
     The editor uses it to switch the Attribute panel between the two layouts."""
-    return ruleset.budgets_for(character.exalt_type, character.origin).attribute_mode == "caste_favored"
+    return ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing).attribute_mode == "caste_favored"
 
 
 def attribute_budget_summary(ruleset: RuleSet, character: Character) -> Optional[str]:
     """A one-line set-based Attribute budget readout for a caste_favored-mode splat
     ('Caste 9 (min 2 each) · Favored 6 · Other 4'), or None for category-mode splats
     (whose panel header shows the prioritised pools instead)."""
-    b = ruleset.budgets_for(character.exalt_type, character.origin)
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     if b.attribute_mode != "caste_favored":
         return None
     caste, favored, other = b.attribute_pools
