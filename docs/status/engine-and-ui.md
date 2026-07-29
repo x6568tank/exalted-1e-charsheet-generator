@@ -29,6 +29,13 @@ the in-memory (de)serialisers the browser upload/download path reuses.
     the Charms of other such beings without Storyteller permission." The Moonshadow
     page prints the same rule in the same words (it adds only "(including ghosts)"),
     so it is the same numbers: ×2, and no chargen Charms without ST permission.
+    **The chargen permission moved 2026-07-29** — it was `Character.st_foreign_charms`
+    and is now `Character.house_rules.st_foreign_charms`, gathered with the other
+    Storyteller options; read it via `validate.foreign_charms_permitted(character)`.
+    A legacy top-level key is migrated forward on load (`Character.
+    _migrate_legacy_st_foreign_charms`), so already-saved Eclipses and Moonshadows
+    keep their permission. The picker still renders the checkbox, marked with a
+    TODO — it belongs on the ST-options tab once that exists.
     Modeled as
     DATA, not a caste check in code: `CasteDefinition.foreign_charms` +
     `foreign_charm_xp_multiplier` (2), now set on BOTH `eclipse` and `moonshadow`.

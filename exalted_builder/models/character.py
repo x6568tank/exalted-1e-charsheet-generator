@@ -23,7 +23,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .rules import AbilityName, AttributeName, Orientation, VirtueName
 
@@ -298,6 +298,52 @@ class XpEntry(BaseModel):
     training_complete: bool = True         # dormant hook for the parked training-time rule
 
 
+class HouseRules(BaseModel):
+    """Optional rules the table has switched on — ST choices, not character traits
+    and not rulebook data.
+
+    They live on the Character rather than the RuleSet because the RuleSet is the
+    rulebook: static, shared and read-only. A table's choices are neither, and they
+    have to travel with a save file for its accounting to still add up on another
+    machine. `Character.play` set the precedent for an optional sub-document; this is
+    the same shape, and old saves load with `house_rules` None.
+
+    A container from the outset even though it holds one flag, because the next such
+    toggle should not need a new field on Character. Anything that changes chargen
+    ACCOUNTING belongs here and must also be frozen into the ChargenSnapshot, or
+    flipping it post-lock would retroactively re-price a locked character.
+
+    Each field below is marked TABLE-WIDE or PER-CHARACTER. Everything here is stored
+    per-character because HouseRules lives on the Character, but the distinction is
+    real: a TABLE-WIDE rule is one the ST turned on for the whole series and should
+    hold for every character in it, while a PER-CHARACTER one is permission granted to
+    this character alone. **A party-wide "apply to all" control may only touch the
+    TABLE-WIDE fields.** Nothing enforces this yet — it is a note for whoever builds
+    that control.
+    """
+    # TABLE-WIDE. "Magic for Everyone" (Player's Guide p.115): every starting
+    # character begins with one ritual, formula or printed aspect per two dots of
+    # Occult, free. Optional but recommended, and if used the book is explicit that
+    # it applies to ALL starting characters — hence table-wide.
+    magic_for_everyone: bool = False
+
+    # TABLE-WIDE. The two chargen restrictions of Player's Guide p.113: "Storytellers
+    # may choose to restrict starting characters to no more than three-dot rituals
+    # and/or the third level of knowledge in any Science." The "and/or" is why these
+    # are two independent flags rather than one. Both are creation-time only — they
+    # cap what may be bought at chargen, not what may ever be learned.
+    restrict_chargen_ritual_level: bool = False
+    restrict_chargen_science_rating: bool = False
+
+    # PER-CHARACTER. Storyteller permission for THIS character to start play knowing
+    # another splat's Charms — the chargen half of the Eclipse/Moonshadow generalist
+    # rule (core p.127): "Eclipse Caste characters may not start the game knowing the
+    # Charms of other such beings without Storyteller permission." Post-lock the rule
+    # needs only a willing tutor, which is narrative, so this gates chargen picks
+    # only. Meaningless unless the caste sets CasteDefinition.foreign_charms.
+    st_foreign_charms: bool = False
+
+
 class ChargenSnapshot(BaseModel):
     """Frozen at lock; the baseline the XP log is measured against."""
     attributes: dict[AttributeName, int]
@@ -318,6 +364,8 @@ class ChargenSnapshot(BaseModel):
     # never touched it, so "locked before thaumaturgy existed" and "locked with
     # none bought" stay distinguishable in the XP audit.
     thaumaturgy: Optional[ThaumaturgyState] = None
+    # Frozen so a post-lock toggle cannot retroactively re-price a locked chargen.
+    house_rules: Optional[HouseRules] = None
     essence_rating: int
     willpower_purchased: int
     wp_virtue_component: int               # two highest Virtues AT LOCK; never recomputed
@@ -507,20 +555,42 @@ class Character(BaseModel):
     armor: list[Armor] = Field(default_factory=list)
     health_bonus_levels: list[HealthLevel] = Field(default_factory=list)
 
-    # Storyteller permission to START play knowing another splat's Charms — the
-    # chargen half of the Eclipse generalist rule (core p.127). Post-lock the rule
-    # needs only a willing tutor, which is narrative, so this gates chargen picks
-    # only. Meaningless unless the caste sets CasteDefinition.foreign_charms.
-    st_foreign_charms: bool = False
-
     # --- lifecycle / accounting ---
     chargen_locked: bool = False
     chargen_snapshot: Optional[ChargenSnapshot] = None
     xp_earned: int = Field(default=0, ge=0)
     xp_log: list[XpEntry] = Field(default_factory=list)
 
+    # --- Storyteller options (see HouseRules; frozen into the snapshot at lock) ---
+    house_rules: Optional[HouseRules] = None
+
     # --- play-state (separate layer; never enters chargen/XP validation) ---
     play: Optional[PlayState] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _migrate_legacy_st_foreign_charms(cls, data: object) -> object:
+        """Lift a pre-HouseRules top-level `st_foreign_charms` into `house_rules`.
+
+        The flag moved when the Storyteller options were gathered into one place. It
+        was a saved field, so without this every already-created Eclipse and
+        Moonshadow would silently lose its permission on load and its foreign Charms
+        would start failing validation. An explicit `house_rules` in the same payload
+        wins — a new save is authoritative over a legacy key.
+        """
+        if not isinstance(data, dict) or "st_foreign_charms" not in data:
+            return data
+        data = dict(data)
+        legacy = data.pop("st_foreign_charms")
+        existing = data.get("house_rules")
+        if isinstance(existing, HouseRules):
+            existing = existing.model_dump()
+        if existing is None:
+            existing = {}
+        if isinstance(existing, dict):
+            existing.setdefault("st_foreign_charms", legacy)
+            data["house_rules"] = existing
+        return data
 
     @field_validator("caste", mode="before")
     @classmethod

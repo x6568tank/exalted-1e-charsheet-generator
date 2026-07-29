@@ -1,14 +1,18 @@
 # Thaumaturgy (Player's Guide CH3)
 
-**STATUS: engine complete — catalogue, models, costs, BP breakdown, chargen gates,
-snapshot freeze and XP advancement. UI is the only piece left.**
+**STATUS: COMPLETE — engine and UI.** Catalogue, models, costs, BP breakdown, chargen
+gates, snapshot freeze, XP advancement and audit, plus the ST Options tab, the picker's
+Thaumaturgy page, the sheet panel and the XP-ledger labels. **Not yet clicked through
+in a real browser** — covered by NiceGUI User-simulation render tests, which catch
+crashes and missing content but are not a substitute for looking at it.
 Source survey and architecture written up 2026-07-29; build started same day.
 Source: `images/Mortals/Mortals & Heroic Mortals/Player's Guide.md` (pasted text,
 pp. 11-12 + 96-150) and `Exalted p103.png` (corebook heroic-mortal chargen).
 
 ## Build log
-Tests: `tests/test_thaumaturgy_data.py` (38, catalogue + cost ladder) and
-`tests/test_thaumaturgy_engine.py` (85, integration). Suite 873 -> 996.
+Tests: `tests/test_thaumaturgy_data.py` (38, catalogue + cost ladder),
+`tests/test_thaumaturgy_engine.py` (119, integration) and
+`tests/test_thaumaturgy_ui.py` (67, presenter + purchases + render). Suite 873 -> 1097.
 
 **Done:**
 - `data/thaumaturgy/{arts,sciences,rituals,formulas}.json` — 4 Arts (+25 aspects),
@@ -40,9 +44,19 @@ Tests: `tests/test_thaumaturgy_data.py` (38, catalogue + cost ladder) and
   and `_expected_cost` re-pricing for all six.
 - Science costs on both ladders (see below) — `raise_thaum_science` caps at the
   Science's OWN `max_rating`, so Alchemy reaches 6 where Geomancy stops at 5.
+- **"Magic for Everyone"** — `HouseRules` on `Character` (frozen into the snapshot),
+  `magic_for_everyone_grant`, `magic_for_everyone_eligible`, and the `free_picks`
+  argument to `thaum_purchase_bp_costs`.
+- **The two optional p.113 chargen caps** — `restrict_chargen_ritual_level` and
+  `restrict_chargen_science_rating`, checked by `thaumaturgy_chargen_issues`. Kept
+  separate from `thaumaturgy_issues` because they are creation-time only: a Science
+  raised past 3 with XP must not start failing them.
+- **`HouseRules` is now the home for every Storyteller toggle**, not just
+  thaumaturgy's — the Eclipse/Moonshadow chargen permission moved onto it
+  (`st_foreign_charms`), with a load migration for existing saves.
 
-**Not done:** the UI page. The Knowledge restricted-BP pool is deliberately
-deferred to the M&F milestone.
+**Not done:** nothing in thaumaturgy itself, beyond a real browser click-through.
+The Knowledge restricted-BP pool is deliberately deferred to the M&F milestone.
 
 ### Science costs — RESOLVED, and the one rate here with no page behind it
 Neither printed cost table has a Science row: the BP table (p.116) runs Attribute /
@@ -81,6 +95,38 @@ restricted-BP pool is deferred to the M&F milestone. **Read this before building
 either** — it decides whether Knowledge comes out of the Background pool (it does
 not).
 
+### "Magic for Everyone" (p.115) — the optional free grant
+Rulings from the human, 2026-07-29. **One ritual, formula/procedure or printed aspect
+free per two dots of Occult** (`Occult // 2`), rituals and formulas capped at level 3,
+**Arts and Sciences never free** ("only specialties in Arts, not the Arts themselves").
+
+**Where the toggle lives — `Character.house_rules`.** It is a table choice, not a
+character trait and not rulebook data, so it belongs on neither the RuleSet (static,
+shared, read-only — it is the rulebook) nor a new settings file. `Character.play`
+already set the precedent for an optional sub-document, and putting it on the save
+means the accounting still adds up when the file moves to another machine.
+`HouseRules` is a container from the outset so the next toggle needs no new field.
+
+It is **frozen into the ChargenSnapshot** alongside the traits. Flipping it post-lock
+would otherwise retroactively re-price a locked chargen — use `unlock_chargen` to
+change it, the same as any other chargen correction.
+
+**The grant does not follow Occult into XP** (explicit ruling). This falls out for
+free rather than needing a mechanism: the allowance reads Occult from
+`_chargen_source`, which is the snapshot once locked.
+
+**Which purchases go free is COMPUTED, not tagged** — the dearest eligible ones
+first, the player-favourable assignment this module already uses wherever a free pool
+meets mixed rates, and consistent with the standing decision that the engine computes
+the accounting rather than the user tagging each dot's currency.
+
+**"(along with any appropriate specialties)" is deliberately unimplemented.** The
+rules authority could not determine what the clause means (human, 2026-07-29) and
+told me to ignore it rather than guess. Do not implement it on a hunch; it needs a
+ruling first. Relatedly, "knowledge of one aspect" is read as a **printed** aspect,
+so a player-invented narrower specialty is not eligible — that is the conservative
+read of a rule that enumerates its own targets, but it is a read, not a quotation.
+
 ### One place the design changed while building
 `ArtSpecialty` gained a stored `narrowed: bool`. Summoning's discount reads "a
 thaumaturge may choose to further limit one or more of their summoning aspects …
@@ -118,9 +164,13 @@ thaumaturgy: ThaumaturgyState | None = None   # old saves load with None
    thaumaturgy.** Note **Virtue is `current × 4`** there (p.115), NOT the Solar ×3 —
    a live example of the never-generalize-a-Solar-number rule. The thaumaturgy part
    is only the Art / Art Specialty / Ritual / Formula rows, which apply to everyone.
-4. **"Magic for Everyone" (p.115) — OPEN.** The optional rule granting every
-   character one ritual/formula/aspect per two dots of Occult (max level 3, aspects
-   only, never Arts). Human is still deciding. Author nothing for it.
+4. **"Magic for Everyone" (p.115) — RESOLVED 2026-07-29, BUILT.** The optional rule
+   granting every character one ritual/formula/aspect per two dots of Occult (max
+   level 3, aspects only, never Arts). Three rulings: it is a **toggleable table
+   setting**; the sidebar's "(along with any appropriate specialties)" is
+   **deliberately unimplemented** — the rules authority could not determine what it
+   means, so do not guess; and the **grant does not follow Occult into XP**. See the
+   Magic for Everyone section below.
 5. **Spirits' ×2 multiplier — note it, wire nothing.** No playable spirit splat
    exists. Author when/if one does.
 
@@ -193,7 +243,9 @@ printing-error note in the Build log; not from either printed table.
 | Weather Working | Charisma + Occult | 2 motes per level, +1 Willpower at levels 4-5 | **always +2 difficulty**. Its 1-5 dot ladder is printed INSIDE the "Council of Winds" sidebar (p.149), not under the Weather Working heading — the paste is not missing it |
 
 Chargen may be capped at "the third level of knowledge in any Science" (ST option,
-p.113). Enchantment 3 gates warding-talisman crafting (p.130 sidebar).
+p.113) — **BUILT** as `HouseRules.restrict_chargen_science_rating`, with its ritual
+twin `restrict_chargen_ritual_level`; p.113's "and/or" is why they are two flags.
+Enchantment 3 gates warding-talisman crafting (p.130 sidebar).
 
 ### ⚠️ Alchemy goes to SIX dots, and has no five-dot description
 **Human's call, 2026-07-29: this is what the book prints, not paste damage.** The
@@ -355,15 +407,47 @@ item is the p.143 cross-reference table (below).
 1. ~~Models + the four data files.~~ **DONE**
 2. ~~`ThaumaturgyState`, the orientation-aware entry, the cost ladder.~~ **DONE**
 3. ~~BP breakdown, chargen gates, snapshot freeze, XP advancement + audit.~~ **DONE**
-4. **UI: the fourth picker page with its four sub-tabs — the only piece left.**
-   Consume `validate.thaum_purchases` / `thaum_purchase_bp_costs`; do not walk the
-   five `ThaumaturgyState` lists directly, which is the whole point of the
-   enumeration. Needs: the Arts/Sciences/Rituals/Formulas sub-tabs, a narrowing
-   checkbox on Summoning aspects only, an orientation multi-select on rituals and
-   formulas, and custom-ritual authoring (catalogue + custom, per the decision above).
+4. ~~UI — two pages, not one.~~ **DONE** (2026-07-29). Both shipped, plus two
+   follow-ons that turned out to be part of the same job:
+   **(a) the Storyteller-options tab** — `ui/storyteller.py`, a seventh builder tab
+   ("ST Options", `gavel`). Renders `view.build_house_rules`, splitting TABLE-WIDE
+   from PER-CHARACTER into two labelled sections, and goes read-only once chargen
+   locks with Unlock named as the way to change a toggle. The Eclipse/Moonshadow
+   permission moved here; the picker keeps only the Splat dropdown it unlocks, plus a
+   line pointing at this tab when permission is missing.
+   **(b) the fourth picker page** — `GROUPS["thaum"]`, four sub-tabs, built on
+   `view.build_thaum_picker`. Real `ui.tabs` rather than the picker's usual
+   `ui.toggle`, because a toggle's options are not separate elements and so cannot be
+   clicked in a test. Narrowing checkbox on Summoning aspects only, per-entry
+   orientation menu, custom-ritual authoring, and a "Bought" summary read straight off
+   `thaum_purchases` / `thaum_purchase_bp_costs` so the free-grant zeroes shown are
+   the ones actually charged.
+   **(c) the read-only sheet** grew a conditional Thaumaturgy panel
+   (`view.thaumaturgy_rows`) — otherwise everything above was purchasable but
+   invisible on the sheet.
+   **(d) the XP ledger** learned to name thaum purchases; without that branch those
+   rows printed raw log targets like `thaum_arts`.
+
+   Two things worth knowing about how this was built:
+   - **The per-purchase gates were extracted into `engine/validate.py`**
+     (`thaum_art_locked_reason`, `thaum_aspect_locked_reason`,
+     `thaum_ritual_locked_reason`, `thaum_science_raise_reason`). They existed only
+     inside `thaumaturgy_issues` before, so a picker would have had to reimplement
+     them — the "no game logic in the UI" rule. The reason strings ARE the issue
+     messages, and `thaumaturgy_issues` now calls these, so a greyed-out row explains
+     itself in the same words the validator uses. `chargen=True` adds the p.113
+     creation-only caps, mirroring `meets_spell_requirements(..., chargen=...)`.
+   - **The purchase functions are module-level in `ui/picker.py`**, not closures
+     inside `build_picker` (the `ui/play.py` precedent). They mutate the save, and
+     several buy buttons legitimately share a label ("5 BP" is every Art), so
+     click-testing one in particular is impossible — module level makes them
+     unit-testable. Each dispatches on the lock, returns the message to show, and
+     raises `AdvancementError` on refusal.
+   - `build_picker` gained `initial_group=` so a caller can open the picker on any of
+     its pages. Used by the render tests; also the obvious hook for deep-linking.
 5. ~~Formulas catalogue (14).~~ **DONE.** The p.143 cross-reference table stays skipped.
 6. ~~Rituals catalogue (8 ids from 5 printed).~~ **DONE** — the chapter ends there.
 
 Deferred by decision, not blocked: the Knowledge restricted-BP pool (M&F milestone).
-Still open: **"Magic for Everyone" (p.115)** — the only open rules question left.
-The Science rate is resolved (see above).
+**No open rules questions remain.** The Science rate and "Magic for Everyone" are
+both resolved and built.

@@ -28,7 +28,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from ..models.character import Character, FormulaEntry, RitualEntry, ThaumaturgyState
+from ..models.character import (
+    Character, FormulaEntry, HouseRules, RitualEntry, ThaumaturgyState)
 from ..models.rules import (
     AbilityName,
     AttributeName,
@@ -270,6 +271,17 @@ def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
 # The canonical Thaumaturgy-purchase enumeration
 # --------------------------------------------------------------------------- #
 
+# "Magic for Everyone" (p.115) covers "rituals, formulas or procedures of no more
+# than level 3". Not in a cost table — it is a limit on an optional grant rather
+# than a rate, so it has no natural home in costs_bonus.json.
+_MAGIC_FOR_EVERYONE_MAX_LEVEL = 3
+
+# The two optional ST chargen restrictions of p.113: "no more than three-dot rituals
+# and/or the third level of knowledge in any Science". Off unless the table turns
+# them on -- see HouseRules.restrict_chargen_*.
+_ST_CHARGEN_RITUAL_CAP = 3
+_ST_CHARGEN_SCIENCE_CAP = 3
+
 def thaum_state(character: Character) -> ThaumaturgyState:
     """The character's thaumaturgy, or an empty state. `Character.thaumaturgy` is
     Optional so old saves load with None; every consumer wants the same empty
@@ -388,12 +400,74 @@ def _thaum_label(name: str, level: int, orientations: list) -> str:
     return f"{name} (level {level}; {regions})" if regions else f"{name} (level {level})"
 
 
+def chargen_house_rules(character: Character) -> HouseRules:
+    """The table toggles chargen accounting reads: the frozen snapshot once locked,
+    else the live setting, else the all-off default.
+
+    Kept as its own accessor rather than an 18th element of `_chargen_source` — that
+    tuple is trait state, and this is a setting about how trait state is priced.
+    """
+    snap = character.chargen_snapshot
+    if snap is not None:
+        return snap.house_rules or HouseRules()
+    return character.house_rules or HouseRules()
+
+
+def magic_for_everyone_grant(ruleset: RuleSet, character: Character) -> int:
+    """How many thaumaturgy purchases this character gets FREE at creation under the
+    optional "Magic for Everyone" rule (p.115): "one ritual, one formula or procedure
+    or knowledge of one aspect for every two dots in Occult".
+
+    0 unless the table has switched the rule on. Occult is read from the chargen
+    source, so the allowance is fixed at creation — **raising Occult with XP does not
+    earn more free picks** (rules-authority call, human 2026-07-29). Post-lock that
+    happens for free: the snapshot holds chargen Occult.
+    """
+    if not chargen_house_rules(character).magic_for_everyone:
+        return 0
+    abilities, crafts = _chargen_source(character)[1], _chargen_source(character)[2]
+    occult = abilities.get(AbilityName.OCCULT, 0)
+    return occult // 2
+
+
+def magic_for_everyone_eligible(ruleset: RuleSet, purchase: ThaumPurchase) -> bool:
+    """Whether `purchase` is the kind of thing the free grant may cover.
+
+    The rule is explicit about its own limits: "rituals, formulas or procedures of no
+    more than level 3, and only specialties in Arts, not the Arts themselves (so a
+    non-thaumaturge could chose to learn how to ward off ghosts, but not the Art of
+    Warding)". So Arts and Sciences are never free.
+
+    "knowledge of one aspect" means a PRINTED aspect, so a player-invented narrower
+    specialty is not eligible — it is not one of the things the book enumerates.
+    (The sidebar's parenthetical "along with any appropriate specialties" is
+    deliberately unimplemented: the rules authority could not determine what it
+    means, human 2026-07-29. Do not guess at it.)
+    """
+    if purchase.kind in ("art", "science"):
+        return False
+    if purchase.kind == "specialty":
+        art_id, _, name = purchase.key.partition(":")
+        art = ruleset.thaum_arts.get(art_id)
+        return art is not None and any(
+            a.name.casefold() == name.casefold() for a in art.aspects)
+    return purchase.level <= _MAGIC_FOR_EVERYONE_MAX_LEVEL
+
+
 def thaum_purchase_bp_costs(ruleset: RuleSet, character: Character,
-                            purchases: list[ThaumPurchase]) -> list[int]:
+                            purchases: list[ThaumPurchase],
+                            free_picks: int = 0) -> list[int]:
     """The bonus-point price of each purchase, in purchase order — parallel to
     `purchases`, so the UI can render a priced row per purchase. A Science's figure
     is the whole ladder up to its rating, since chargen holds a rating rather than a
-    sequence of purchases."""
+    sequence of purchases.
+
+    `free_picks` is the "Magic for Everyone" allowance. It zeroes that many ELIGIBLE
+    purchases, dearest first — the player-favourable assignment this module already
+    uses everywhere a free pool meets mixed rates. The player does not tag which
+    purchases were free; the engine computes it, per the standing decision that
+    current state is canonical and the accounting is derived.
+    """
     # Deferred import: costs.py imports this module, so a top-level import here would
     # cycle. The thaum_* rate functions depend on nothing in validate, hence safe.
     from . import costs
@@ -412,7 +486,103 @@ def thaum_purchase_bp_costs(ruleset: RuleSet, character: Character,
             out.append(costs.thaum_formula_bp(ruleset, character, p.orientations))
         else:
             out.append(0)
+
+    if free_picks > 0:
+        eligible = [i for i, p in enumerate(purchases)
+                    if magic_for_everyone_eligible(ruleset, p)]
+        for i in sorted(eligible, key=lambda i: out[i], reverse=True)[:free_picks]:
+            out[i] = 0
     return out
+
+
+# --------------------------------------------------------------------------- #
+# Per-purchase gates.
+#
+# `thaumaturgy_issues` below answers "is what this character HOLDS legal"; a picker
+# needs the forward-looking twin, "may they buy this ONE thing right now, and if not
+# why". Both questions share one implementation here so the UI can grey a row out
+# for exactly the reason the validator would later complain about — the reason
+# strings ARE the issue messages, which is why the issue builders below call these
+# rather than wording the same gate twice.
+#
+# `chargen=True` adds the two optional p.113 creation-only restrictions, mirroring
+# `meets_spell_requirements(..., chargen=...)`. They are not part of the holding's
+# legality once play starts, so they never appear when chargen=False.
+# --------------------------------------------------------------------------- #
+
+def thaum_art_locked_reason(ruleset: RuleSet, character: Character, art_id: str) -> str:
+    """Why the Art `art_id` may not be trained right now, or "" if it may be."""
+    art = ruleset.thaum_arts.get(art_id)
+    if art is None:
+        return f"Art {art_id} is not in the rule set."
+    occult = ability_rating(character, AbilityName.OCCULT)
+    if occult < art.min_occult:
+        return (f"The Art of {art.name} needs Occult {art.min_occult}; "
+                f"character has {occult}.")
+    return ""
+
+
+def thaum_aspect_locked_reason(ruleset: RuleSet, character: Character,
+                               art_id: str, aspect_name: str) -> str:
+    """Why this specialty may not be bought, or "" if it may be.
+
+    Owning the parent Art is NOT a requirement and must never become one (p.116
+    footnote, stated three times). Only a PRINTED aspect can be gated at all: a
+    player-invented specialty matches no aspect and is therefore always open.
+    """
+    art = ruleset.thaum_arts.get(art_id)
+    if art is None:
+        return f"Art {art_id} is not in the rule set."
+    aspect = next((a for a in art.aspects
+                   if a.name.casefold() == aspect_name.casefold()), None)
+    if aspect is None:
+        return ""
+    occult = ability_rating(character, AbilityName.OCCULT)
+    if occult < aspect.min_occult:
+        return (f"{art.name} ({aspect.name}) needs Occult "
+                f"{aspect.min_occult}; character has {occult}.")
+    return ""
+
+
+def thaum_ritual_locked_reason(ruleset: RuleSet, character: Character, level: int,
+                               *, chargen: bool = False) -> str:
+    """Why a level-`level` ritual may not be learned, or "" if it may be. Level is
+    passed rather than an id so a custom ritual is gated identically to a catalogue
+    one — the Occult rule is stated about the level, not the entry (p.148)."""
+    occult = ability_rating(character, AbilityName.OCCULT)
+    if occult < level:
+        return (f"A level-{level} ritual needs Occult {level}; "
+                f"character has {occult} (p.148).")
+    if (chargen and level > _ST_CHARGEN_RITUAL_CAP
+            and chargen_house_rules(character).restrict_chargen_ritual_level):
+        return (f"This table restricts starting characters to rituals of "
+                f"level {_ST_CHARGEN_RITUAL_CAP} or lower (p.113); this "
+                f"one is level {level}.")
+    return ""
+
+
+def thaum_science_raise_reason(ruleset: RuleSet, character: Character,
+                               science_id: str, *, chargen: bool = False) -> str:
+    """Why this Science may not gain its NEXT dot, or "" if it may.
+
+    The forward-looking counterpart of the `max_rating` check in
+    `thaumaturgy_issues`: that one asks whether a held rating is in range, this asks
+    whether one more dot is buyable. The ceiling is the Science's OWN `max_rating`
+    (Alchemy 6), never the project's usual 5 — see rules.ScienceLevel.
+    """
+    science = ruleset.thaum_sciences.get(science_id)
+    if science is None:
+        return f"Science {science_id} is not in the rule set."
+    held = next((s for s in thaum_state(character).sciences
+                 if s.science_id == science_id), None)
+    rating = held.rating if held is not None else 0
+    if rating >= science.max_rating:
+        return f"{science.name} is already at {science.max_rating}, its maximum."
+    if (chargen and rating >= _ST_CHARGEN_SCIENCE_CAP
+            and chargen_house_rules(character).restrict_chargen_science_rating):
+        return (f"This table restricts starting characters to "
+                f"{_ST_CHARGEN_SCIENCE_CAP} dots in any Science (p.113).")
+    return ""
 
 
 def thaumaturgy_issues(ruleset: RuleSet, character: Character,
@@ -437,6 +607,20 @@ def thaumaturgy_issues(ruleset: RuleSet, character: Character,
     exalt = ruleset.exalt_for(character.exalt_type)
     purchases = _thaum_purchases_from(ruleset, state)
 
+    # Announced BEFORE the no-purchases early return: under "Magic for Everyone" the
+    # allowance applies to every starting character, so the one who has bought no
+    # thaumaturgy at all is exactly the one who needs telling it is there. Silent at
+    # Occult 0-1, where the allowance is zero, and in every game without the toggle.
+    grant = magic_for_everyone_grant(ruleset, character)
+    if grant:
+        issues.append(Issue(
+            code="magic-for-everyone-grant", severity="info",
+            message=f"Magic for Everyone: {grant} free ritual(s), formula(s) or "
+                    f"printed aspect(s) at creation, from Occult {occult}. "
+                    f"Rituals and formulas are limited to level "
+                    f"{_MAGIC_FOR_EVERYONE_MAX_LEVEL}; Arts and Sciences are never free.",
+        ))
+
     if not purchases:
         return issues
 
@@ -448,16 +632,13 @@ def thaumaturgy_issues(ruleset: RuleSet, character: Character,
         ))
 
     for art_id in state.arts:
-        art = ruleset.thaum_arts.get(art_id)
-        if art is None:
+        if art_id not in ruleset.thaum_arts:
             issues.append(Issue(code="unknown-thaum-art", where=art_id,
                                 message=f"Art {art_id} is not in the rule set."))
-        elif occult < art.min_occult:
-            issues.append(Issue(
-                code="thaum-art-occult", where=art_id,
-                message=f"The Art of {art.name} needs Occult {art.min_occult}; "
-                        f"character has {occult}.",
-            ))
+            continue
+        reason = thaum_art_locked_reason(ruleset, character, art_id)
+        if reason:
+            issues.append(Issue(code="thaum-art-occult", where=art_id, message=reason))
 
     for spec in state.art_specialties:
         art = ruleset.thaum_arts.get(spec.art_id)
@@ -469,14 +650,11 @@ def thaumaturgy_issues(ruleset: RuleSet, character: Character,
             continue
         # A printed aspect carries its own Occult minimum (Summoning alone). A
         # player-invented specialty matches no aspect and is ungated.
-        aspect = next((a for a in art.aspects if a.name.casefold() == spec.name.casefold()),
-                      None)
-        if aspect is not None and occult < aspect.min_occult:
+        reason = thaum_aspect_locked_reason(ruleset, character, spec.art_id, spec.name)
+        if reason:
             issues.append(Issue(
                 code="thaum-aspect-occult", where=f"{spec.art_id}:{spec.name}",
-                message=f"{art.name} ({aspect.name}) needs Occult "
-                        f"{aspect.min_occult}; character has {occult}.",
-            ))
+                message=reason))
         if spec.narrowed and not art.aspect_narrowing:
             issues.append(Issue(
                 code="thaum-narrowing-unavailable", where=f"{spec.art_id}:{spec.name}",
@@ -502,13 +680,13 @@ def thaumaturgy_issues(ruleset: RuleSet, character: Character,
                                 message=f"Ritual {entry.ritual_id} is not in the rule set."))
             continue
         level = thaum_ritual_level(ruleset, entry)
-        if occult < level:
-            name = entry.ritual_id or entry.name
+        # chargen=False: the p.113 cap is a creation-time restriction and belongs to
+        # thaumaturgy_chargen_issues, which reports it with its own code.
+        reason = thaum_ritual_locked_reason(ruleset, character, level)
+        if reason:
             issues.append(Issue(
-                code="thaum-ritual-occult", where=name,
-                message=f"A level-{level} ritual needs Occult {level}; "
-                        f"character has {occult} (p.148).",
-            ))
+                code="thaum-ritual-occult", where=entry.ritual_id or entry.name,
+                message=reason))
 
     for entry in state.formulas:
         if entry.formula_id and entry.formula_id not in ruleset.thaum_formulas:
@@ -516,6 +694,45 @@ def thaumaturgy_issues(ruleset: RuleSet, character: Character,
                 code="unknown-thaum-formula", where=entry.formula_id,
                 message=f"Formula {entry.formula_id} is not in the rule set."))
 
+    return issues
+
+
+def thaumaturgy_chargen_issues(ruleset: RuleSet, character: Character,
+                               state: ThaumaturgyState) -> list["Issue"]:
+    """The two OPTIONAL chargen restrictions of p.113, each switched on separately:
+    "Storytellers may choose to restrict starting characters to no more than
+    three-dot rituals and/or the third level of knowledge in any Science."
+
+    Separate from `thaumaturgy_issues` because these are creation-time only — they
+    cap what may be BOUGHT at chargen, not what may ever be known. A character who
+    legitimately raises a Science past 3 with XP must not start failing this check,
+    so it is only ever called with the chargen state, from `validate_chargen`.
+    """
+    issues: list[Issue] = []
+    rules = chargen_house_rules(character)
+
+    if rules.restrict_chargen_ritual_level:
+        for entry in state.rituals:
+            level = thaum_ritual_level(ruleset, entry)
+            if level > _ST_CHARGEN_RITUAL_CAP:
+                issues.append(Issue(
+                    code="thaum-ritual-chargen-cap", where=entry.ritual_id or entry.name,
+                    message=f"This table restricts starting characters to rituals of "
+                            f"level {_ST_CHARGEN_RITUAL_CAP} or lower (p.113); this "
+                            f"one is level {level}.",
+                ))
+
+    if rules.restrict_chargen_science_rating:
+        for sci in state.sciences:
+            if sci.rating > _ST_CHARGEN_SCIENCE_CAP:
+                science = ruleset.thaum_sciences.get(sci.science_id)
+                issues.append(Issue(
+                    code="thaum-science-chargen-cap", where=sci.science_id,
+                    message=f"This table restricts starting characters to "
+                            f"{_ST_CHARGEN_SCIENCE_CAP} dots in any Science (p.113); "
+                            f"{science.name if science else sci.science_id} is "
+                            f"{sci.rating}.",
+                ))
     return issues
 
 
@@ -2274,8 +2491,10 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     # (p.113). So the total is simply the sum of the purchase prices — the free-pool
     # arithmetic that shapes the other domains has nothing to absorb here. Sciences
     # price at 0 because the source gives no rate; see ThaumPurchase.priced.
+    thaum_purchases_cg = _thaum_purchases_from(ruleset, thaumaturgy)
     thaum_bp = sum(thaum_purchase_bp_costs(
-        ruleset, character, _thaum_purchases_from(ruleset, thaumaturgy)))
+        ruleset, character, thaum_purchases_cg,
+        free_picks=magic_for_everyone_grant(ruleset, character)))
 
     # --- Willpower / Essence -------------------------------------------------- #
     wp_bp = wp_purchased * bp_costs.willpower
@@ -2342,6 +2561,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # No-op for a character who has bought none, which is every character until the
     # feature is used.
     issues += thaumaturgy_issues(ruleset, character, thaumaturgy)
+    issues += thaumaturgy_chargen_issues(ruleset, character, thaumaturgy)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:
@@ -2790,6 +3010,14 @@ def foreign_charms_caste(ruleset: RuleSet, character: Character):
     return caste if caste is not None and caste.foreign_charms else None
 
 
+def foreign_charms_permitted(character: Character) -> bool:
+    """The stored Storyteller permission alone, ignoring caste and lock state — what
+    the chargen checkbox reflects. `foreign_charms_open` is the question the engine
+    actually asks; this is just the flag, and lives here so no caller has to know it
+    moved onto HouseRules."""
+    return character.house_rules is not None and character.house_rules.st_foreign_charms
+
+
 def foreign_charms_open(ruleset: RuleSet, character: Character) -> bool:
     """Whether the character may learn other splats' Charms *right now*. The caste
     must allow it (p.127), and — before the sheet is locked — the Storyteller must
@@ -2798,7 +3026,7 @@ def foreign_charms_open(ruleset: RuleSet, character: Character) -> bool:
     asks only for a willing tutor, which is narrative, so the gate falls away."""
     if foreign_charms_caste(ruleset, character) is None:
         return False
-    return character.chargen_locked or character.st_foreign_charms
+    return character.chargen_locked or foreign_charms_permitted(character)
 
 
 def is_foreign_charm(ruleset: RuleSet, character: Character, charm: Charm) -> bool:

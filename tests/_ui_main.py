@@ -4,11 +4,13 @@ from nicegui import ui
 from exalted_builder import rules_db
 from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
-    Armor, BackgroundEntry, Character, CollegeRating, Damage, PlayState, Weapon)
+    Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
+    HouseRules, PlayState, RitualEntry, ScienceRating, ThaumaturgyState, Weapon)
 from exalted_builder.models.party import Party, PartyMember
-from exalted_builder.models.rules import AbilityName
+from exalted_builder.models.rules import AbilityName, Orientation
 from exalted_builder.ui import app as sheet_app
-from exalted_builder.ui import builder, combos, editor, gm, picker, play, view, xp
+from exalted_builder.ui import (builder, combos, editor, gm, picker, play,
+                                storyteller, view, xp)
 
 RS = rules_db.load_ruleset(Path("exalted_builder/data"))
 
@@ -288,3 +290,126 @@ CHAR_LOOKSHY_SHEET = Character(id="lk2", name="Karal Fire Orchid",
 @ui.page('/lookshy-sheet')
 def page_lookshy_sheet():
     sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_LOOKSHY_SHEET))
+
+
+# --- Thaumaturgy (Player's Guide CH3) --------------------------------------- #
+# The picker's Thaumaturgy page and the Storyteller-options tab. Occult 3 is the
+# interesting rating: it opens Summoning, Warding and Exorcism but leaves Astrology
+# (Occult 4) locked, and it makes level-3 rituals legal — so one character exercises
+# both the available and the locked branch of every gate.
+def _thaumaturge(cid: str, occult: int = 3) -> Character:
+    c = Character(id=cid, name="Hedge Wizard", exalt_type="Solar", caste="twilight")
+    c.abilities[AbilityName.OCCULT] = occult
+    return c
+
+CHAR_THAUM = _thaumaturge("th1")
+
+@ui.page('/thaum-picker')
+def page_thaum_picker():
+    picker.build_picker(RS, CHAR_THAUM, Path("th.json"), with_header=True,
+                        initial_group="thaum")
+
+# A thaumaturge who already holds one of each kind, so the owned-row controls (drop,
+# add-orientation, the "Bought" summary) are on the page.
+CHAR_THAUM_OWNED = _thaumaturge("th2")
+CHAR_THAUM_OWNED.thaumaturgy = ThaumaturgyState(
+    arts=["art.warding"],
+    art_specialties=[ArtSpecialty(art_id="art.warding", name="Ghosts")],
+    sciences=[ScienceRating(science_id="science.alchemy", rating=2)],
+    rituals=[RitualEntry(ritual_id="ritual.calling-the-flames-beneficence",
+                         level=1, orientations=[Orientation.REALM])],
+)
+
+@ui.page('/thaum-picker-owned')
+def page_thaum_picker_owned():
+    picker.build_picker(RS, CHAR_THAUM_OWNED, Path("th2.json"), with_header=True,
+                        initial_group="thaum")
+
+# Locked + XP in hand: the page switches from bonus points to experience.
+CHAR_THAUM_INPLAY = _thaumaturge("th3")
+lifecycle.lock_chargen(CHAR_THAUM_INPLAY)
+CHAR_THAUM_INPLAY.xp_earned = 40
+
+@ui.page('/thaum-picker-inplay')
+def page_thaum_picker_inplay():
+    picker.build_picker(RS, CHAR_THAUM_INPLAY, Path("th3.json"), with_header=True,
+                        initial_group="thaum")
+
+# "Magic for Everyone" on, at Occult 4 -> a 2-purchase free grant, which the page
+# must announce even before anything is bought.
+CHAR_THAUM_MFE = _thaumaturge("th4", occult=4)
+CHAR_THAUM_MFE.house_rules = HouseRules(magic_for_everyone=True)
+
+@ui.page('/thaum-picker-mfe')
+def page_thaum_picker_mfe():
+    picker.build_picker(RS, CHAR_THAUM_MFE, Path("th4.json"), with_header=True,
+                        initial_group="thaum")
+
+# --- Storyteller options tab ------------------------------------------------ #
+CHAR_ST = Character(id="st1", name="Table Rules", caste="dawn")
+
+@ui.page('/st-options')
+def page_st_options():
+    storyteller.build_storyteller(RS, CHAR_ST, Path("st.json"), with_header=False)
+
+# An Eclipse: the per-character foreign-Charm permission actually bites here, so it
+# renders without the "no effect" note that a Dawn gets.
+CHAR_ST_ECLIPSE = Character(id="st2", name="Eclipse", caste="eclipse")
+
+@ui.page('/st-options-eclipse')
+def page_st_options_eclipse():
+    storyteller.build_storyteller(RS, CHAR_ST_ECLIPSE, Path("st2.json"), with_header=False)
+
+# Locked: the toggles are frozen into the chargen snapshot, so the tab is read-only.
+CHAR_ST_LOCKED = Character(id="st3", name="Locked Table", caste="dawn")
+lifecycle.lock_chargen(CHAR_ST_LOCKED)
+
+@ui.page('/st-options-locked')
+def page_st_options_locked():
+    storyteller.build_storyteller(RS, CHAR_ST_LOCKED, Path("st3.json"), with_header=False)
+
+
+# A thaumaturge's read-only sheet, and their XP ledger. Thaumaturgy is cross-splat,
+# so the sheet panel can appear on any character — and must be absent from every
+# character who bought none, which /sheet-desc already covers.
+CHAR_THAUM_SHEET = Character(id="th5", name="Hedge Wizard", exalt_type="Solar",
+                             caste="twilight")
+CHAR_THAUM_SHEET.abilities[AbilityName.OCCULT] = 3
+CHAR_THAUM_SHEET.thaumaturgy = ThaumaturgyState(
+    arts=["art.warding"],
+    art_specialties=[ArtSpecialty(art_id="art.warding", name="Ghosts")],
+    sciences=[ScienceRating(science_id="science.geomancy", rating=2)],
+    rituals=[RitualEntry(ritual_id="ritual.calling-the-flames-beneficence",
+                         level=1, orientations=[Orientation.REALM, Orientation.NORTH])],
+)
+
+@ui.page('/thaum-sheet')
+def page_thaum_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_THAUM_SHEET))
+
+# A locked thaumaturge with a spent ledger — the XP tab must name each purchase
+# rather than printing the raw log target.
+CHAR_THAUM_XP = Character(id="th6", name="Veteran Thaumaturge", exalt_type="Solar",
+                          caste="twilight")
+CHAR_THAUM_XP.abilities[AbilityName.OCCULT] = 4
+lifecycle.lock_chargen(CHAR_THAUM_XP)
+CHAR_THAUM_XP.xp_earned = 100
+picker.buy_thaum_art(RS, CHAR_THAUM_XP, "art.warding")
+picker.raise_thaum_science(RS, CHAR_THAUM_XP, "science.alchemy")
+picker.buy_thaum_entry(RS, CHAR_THAUM_XP, "ritual",
+                       "ritual.warding-of-undue-influence", Orientation.REALM)
+picker.add_thaum_orientation(RS, CHAR_THAUM_XP, "ritual",
+                             "ritual.warding-of-undue-influence", Orientation.NORTH)
+
+@ui.page('/thaum-xp')
+def page_thaum_xp():
+    xp.build_xp(RS, CHAR_THAUM_XP, Path("th6.json"), with_header=False)
+
+
+# Its own character for the ST-tab test, so clicking a toggle here cannot leak into
+# another builder test's assertions.
+CHAR_BUILDER_ST = Character(id="bst", name="Table", caste="dawn")
+
+@ui.page('/builder-st')
+def page_builder_st():
+    builder.build_app(RS, CHAR_BUILDER_ST, Path("bst.json"))

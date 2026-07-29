@@ -199,7 +199,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (996 tests passing)
+## Status (1097 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -216,7 +216,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | Solar alt-origin: Cult of the Illuminated (Camps, Callings, granted Charms) | `docs/status/illuminated.md` |
 | DB origins: Lookshy / Forest Witches / Lost Eggs / Pirates (`upbringing` axis) | `docs/status/dragonblooded-origins.md` |
 | DB Aspect Books CH6 (87 Charms, Jade Mountain, breadth prereqs, gear) | `docs/status/dragonblooded-aspect-books.md` |
-| **Thaumaturgy — ENGINE DONE, UI outstanding** (cross-splat Arts/Sciences/Rituals/Formulas) | `docs/status/thaumaturgy.md` |
+| **Thaumaturgy — DONE** (cross-splat Arts/Sciences/Rituals/Formulas; engine + UI) | `docs/status/thaumaturgy.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -258,7 +258,9 @@ Dragon-Blooded origins** (Lookshy, Forest Witches, Lost Eggs, Pirates — with t
 Style, breadth prerequisites and gear), and the **canonical Charm-pick
 enumeration** (both halves — see `docs/status/engine-and-ui.md`), and the **Abyssal
 Moonshadow's half of the generalist rule** (2026-07-29, from `images/Abyssal/Traits/
-145-146.png` — pure data, no new code; see `docs/status/engine-and-ui.md`).
+145-146.png` — pure data, no new code; see `docs/status/engine-and-ui.md`), and
+**Thaumaturgy end to end** (engine + the ST Options tab, the picker's Thaumaturgy
+page, the sheet panel and the XP-ledger labels — `docs/status/thaumaturgy.md`).
 
 **Next:**
 - **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
@@ -270,14 +272,27 @@ Moonshadow's half of the generalist rule** (2026-07-29, from `images/Abyssal/Tra
   (p.132). The numen effect list itself is on **p.118**, which is not in
   `images/Dragonblooded/`, and the Forest Witch text also points at *Games of Divinity*
   p.127 and *Exalted: The Lunars* p.98 for Cult. Author nothing until those land.
-- **Thaumaturgy** — comes with Mortals but is **NOT a splat**: it is a cross-splat
-  capability layer any character except the Fair Folk can hold (Ghosts hold it but may
-  never use it), so it lands on all six shipped splats' sheets too.
-  `docs/status/thaumaturgy.md`. **Source is COMPLETE.** The whole ENGINE is done —
-  catalogue, models, cost ladder, purchase enumeration, BP breakdown, chargen Occult
-  gates, snapshot freeze, XP advancement and audit. **Only the UI is left** (a fourth
-  picker page with Arts/Sciences/Rituals/Formulas sub-tabs).
-  **One open rules question: "Magic for Everyone" (p.115) — author nothing for it.**
+- **Thaumaturgy — DONE (2026-07-29), engine and UI.** Kept here rather than only in
+  Done because its rulings are load-bearing for the mortal splats. It is **NOT a
+  splat**: a cross-splat capability layer any character except the Fair Folk can hold
+  (Ghosts hold it but may never use it), so it sits on all six shipped splats' sheets.
+  `docs/status/thaumaturgy.md`. Source COMPLETE. Shipped: catalogue, models, cost
+  ladder, purchase enumeration, BP breakdown, chargen Occult gates, snapshot freeze,
+  XP advancement + audit, the **ST Options tab**, the picker's **Thaumaturgy page**
+  (four sub-tabs), the sheet panel and the XP-ledger labels. **Not browser-verified
+  yet** — render-tested only.
+  **No open rules questions.** "Magic for Everyone" (p.115) shipped as a toggleable
+  table setting on `Character.house_rules` (frozen into the ChargenSnapshot).
+  **`HouseRules` is the home for EVERY Storyteller toggle**, not just thaumaturgy's:
+  it also holds the two optional p.113 chargen caps and the Eclipse/Moonshadow chargen
+  permission, which **moved off `Character.st_foreign_charms`** (read it via
+  `validate.foreign_charms_permitted`; a legacy top-level key is migrated forward on
+  load). Fields are marked TABLE-WIDE or PER-CHARACTER **in comments only** — a
+  party-wide "apply to all" control may only touch the former, and
+  `tests/test_thaumaturgy_ui.py` pins `view._HOUSE_RULES` to the model so the tab's
+  scope table cannot drift from it. Its "(along with any appropriate specialties)"
+  clause is DELIBERATELY unimplemented (human could not determine what it means,
+  2026-07-29) — do not guess at it.
   Science costs are RESOLVED (5/7 BP, 7/current×6 XP) but are the **only value in the
   build with no page behind it** — the printed tables omit Sciences entirely, a
   printing error Grabowski cleared up later, rate supplied by the human 2026-07-29.

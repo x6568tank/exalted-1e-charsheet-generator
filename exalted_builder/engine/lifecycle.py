@@ -37,6 +37,10 @@ def lock_chargen(character: Character) -> Character:
         # character has no thaumaturgy so an untouched save still round-trips to None.
         thaumaturgy=(character.thaumaturgy.model_copy(deep=True)
                      if character.thaumaturgy is not None else None),
+        # Table toggles that change chargen accounting are frozen with the traits:
+        # flipping one post-lock would otherwise re-price a locked chargen.
+        house_rules=(character.house_rules.model_copy(deep=True)
+                     if character.house_rules is not None else None),
         essence_rating=character.essence_rating,
         willpower_purchased=character.willpower_purchased,
         wp_virtue_component=wp_component,

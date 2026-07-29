@@ -145,6 +145,18 @@ def render_sheet(view: viewmod.SheetView) -> None:
                             ui.label(f"{'★ ' if own else ''}{name}").classes(
                                 "text-sm flex-1 truncate").tooltip(house_label)
                             ui.label(_dots(rating)).classes("text-sm font-mono")
+            # Thaumaturgy is cross-splat, so unlike Colleges this can appear on any
+            # sheet — and like them it is dropped entirely when there is none, rather
+            # than sitting on every non-thaumaturge's sheet saying "—".
+            if view.thaumaturgy:
+                with _panel().classes("flex-1"):
+                    ui.label("Thaumaturgy").classes("text-xs font-semibold").style(f"color:{pal.accent}")
+                    if view.thaumaturgy_note:
+                        ui.label(view.thaumaturgy_note).classes("text-xs italic text-amber-700")
+                    for section, items in view.thaumaturgy:
+                        ui.label(section).classes("text-xs text-gray-500 mt-1")
+                        for item in items:
+                            ui.label(item).classes("text-sm")
 
         # --- charms / spells ---------------------------------------------- #
         # Most characters are not sorcerers, so an empty Spells panel would sit there

@@ -32,9 +32,11 @@ from nicegui import ui
 
 from .. import persistence, rules_db
 from ..engine import advancement, costs, refit, validate
-from ..models.character import (AnimalForm, BeastmanGiftPurchase, Character,
-                                OxBodyPurchase, SubmodulePurchase)
-from ..models.rules import RuleSet, circle_kind
+from ..models.character import (AnimalForm, ArtSpecialty, BeastmanGiftPurchase,
+                                Character, FormulaEntry, OxBodyPurchase,
+                                RitualEntry, ScienceRating, SubmodulePurchase,
+                                ThaumaturgyState)
+from ..models.rules import Orientation, RuleSet, circle_kind
 from . import theme
 from . import view as viewmod
 from .assets import cytoscape_head_html
@@ -87,12 +89,225 @@ def _elements(graph: viewmod.CharmGraph) -> list[dict]:
     return nodes + edges
 
 
+# --------------------------------------------------------------------------- #
+# Thaumaturgy purchases
+#
+# Module-level rather than closures inside build_picker, on the ui/play.py
+# precedent: these are the functions that actually mutate a save, and a bug in one
+# silently corrupts a character's point accounting, so they must be reachable from
+# tests without driving a browser (several buy buttons legitimately share a label,
+# which makes click-testing them individually impossible).
+#
+# Each dispatches on the lock — a chargen list edit before it, an
+# engine.advancement purchase after it — returns the message the caller should
+# show, and raises AdvancementError when the purchase is refused. None of them
+# decides legality: the gates come from engine.validate.
+# --------------------------------------------------------------------------- #
+
+def thaum_state_of(character: Character) -> ThaumaturgyState:
+    """The character's ThaumaturgyState, created on first purchase so a character who
+    never buys any thaumaturgy keeps `thaumaturgy` None in their save."""
+    if character.thaumaturgy is None:
+        character.thaumaturgy = ThaumaturgyState()
+    return character.thaumaturgy
+
+
+def _refuse(message: str) -> None:
+    raise advancement.AdvancementError(message)
+
+
+def _entry_list(character: Character, kind: str) -> list:
+    st = thaum_state_of(character)
+    return st.rituals if kind == "ritual" else st.formulas
+
+
+def _entry_key(entry, kind: str) -> str:
+    return (entry.ritual_id if kind == "ritual" else entry.formula_id) or entry.name
+
+
+def find_thaum_entry(character: Character, kind: str, key: str):
+    return next((e for e in _entry_list(character, kind)
+                 if _entry_key(e, kind) == key), None)
+
+
+def buy_thaum_art(ruleset: RuleSet, character: Character, art_id: str) -> str:
+    reason = validate.thaum_art_locked_reason(ruleset, character, art_id)
+    if reason:
+        _refuse(reason)
+    st = thaum_state_of(character)
+    if art_id in st.arts:
+        _refuse("Already trained in that Art.")
+    name = ruleset.thaum_arts[art_id].name
+    if character.chargen_locked:
+        advancement.learn_thaum_art(ruleset, character, art_id)
+        return f"Learned the Art of {name} — {costs.thaum_art_xp(ruleset, character)} XP"
+    st.arts.append(art_id)
+    return f"Trained in the Art of {name}"
+
+
+def drop_thaum_art(ruleset: RuleSet, character: Character, art_id: str) -> str:
+    st = thaum_state_of(character)
+    if art_id not in st.arts:
+        _refuse("That Art is not trained.")
+    st.arts.remove(art_id)
+    return f"Dropped the Art of {ruleset.thaum_arts[art_id].name}"
+
+
+def buy_thaum_specialty(ruleset: RuleSet, character: Character, art_id: str,
+                        name: str, *, narrowed: bool = False) -> str:
+    """Buy a specialty — a printed aspect or a player-invented one, which are the same
+    purchase at the same rate (p.126). Owning the parent Art is NOT required and must
+    never become a condition here (p.116, stated three times)."""
+    name = (name or "").strip()
+    if not name:
+        _refuse("A specialty needs a name.")
+    reason = validate.thaum_aspect_locked_reason(ruleset, character, art_id, name)
+    if reason:
+        _refuse(reason)
+    st = thaum_state_of(character)
+    if any(s.art_id == art_id and s.name.casefold() == name.casefold()
+           for s in st.art_specialties):
+        _refuse(f"{name} is already known.")
+    if character.chargen_locked:
+        advancement.add_thaum_specialty(ruleset, character, art_id, name,
+                                        narrowed=narrowed)
+        return (f"Learned the {name} specialty — "
+                f"{costs.thaum_specialty_xp(ruleset, character, narrowed=narrowed)} XP")
+    st.art_specialties.append(
+        ArtSpecialty(art_id=art_id, name=name, narrowed=narrowed))
+    return f"Added the {name} specialty"
+
+
+def drop_thaum_specialty(character: Character, art_id: str, name: str) -> str:
+    st = thaum_state_of(character)
+    held = next((s for s in st.art_specialties if s.art_id == art_id
+                 and s.name.casefold() == name.casefold()), None)
+    if held is None:
+        _refuse(f"{name} is not known.")
+    st.art_specialties.remove(held)
+    return f"Dropped the {name} specialty"
+
+
+def raise_thaum_science(ruleset: RuleSet, character: Character, science_id: str) -> str:
+    reason = validate.thaum_science_raise_reason(
+        ruleset, character, science_id, chargen=not character.chargen_locked)
+    if reason:
+        _refuse(reason)
+    st = thaum_state_of(character)
+    held = next((s for s in st.sciences if s.science_id == science_id), None)
+    frm = held.rating if held is not None else 0
+    name = ruleset.thaum_sciences[science_id].name
+    if character.chargen_locked:
+        cost = costs.thaum_science_step_xp(ruleset, character, frm)
+        advancement.raise_thaum_science(ruleset, character, science_id)
+        return f"{name} {frm} → {frm + 1} — {cost} XP"
+    if held is None:
+        st.sciences.append(ScienceRating(science_id=science_id, rating=1))
+    else:
+        held.rating = frm + 1
+    return f"{name} {frm} → {frm + 1}"
+
+
+def lower_thaum_science(ruleset: RuleSet, character: Character, science_id: str) -> str:
+    st = thaum_state_of(character)
+    held = next((s for s in st.sciences if s.science_id == science_id), None)
+    if held is None or held.rating <= 0:
+        _refuse("That Science is not held.")
+    held.rating -= 1
+    if held.rating <= 0:                 # a 0-dot Science is not held at all
+        st.sciences.remove(held)
+    return f"{ruleset.thaum_sciences[science_id].name} lowered"
+
+
+def buy_thaum_entry(ruleset: RuleSet, character: Character, kind: str, key: str,
+                    orientation: Orientation) -> str:
+    """Learn a catalogue ritual or formula in one regional version."""
+    catalogue = ruleset.thaum_rituals if kind == "ritual" else ruleset.thaum_formulas
+    obj = catalogue.get(key)
+    if obj is None:
+        _refuse(f"Unknown {kind} {key!r}.")
+    if find_thaum_entry(character, kind, key) is not None:
+        _refuse(f"{obj.name} is already known — buy another orientation of it instead.")
+    if kind == "ritual":
+        reason = validate.thaum_ritual_locked_reason(
+            ruleset, character, obj.level, chargen=not character.chargen_locked)
+        if reason:
+            _refuse(reason)
+    if character.chargen_locked:
+        learn = (advancement.learn_thaum_ritual if kind == "ritual"
+                 else advancement.learn_thaum_formula)
+        entry = learn(ruleset, character, key, orientation=orientation)
+        return f"Learned {obj.name} ({orientation.value}) — {entry.cost} XP"
+    if kind == "ritual":
+        _entry_list(character, kind).append(RitualEntry(
+            ritual_id=key, level=obj.level, orientations=[orientation]))
+    else:
+        _entry_list(character, kind).append(FormulaEntry(
+            formula_id=key, science_id=obj.science_id, level=obj.level,
+            orientations=[orientation]))
+    return f"Learned {obj.name} ({orientation.value})"
+
+
+def drop_thaum_entry(character: Character, kind: str, key: str) -> str:
+    target = find_thaum_entry(character, kind, key)
+    if target is None:
+        _refuse(f"No known {kind} {key!r}.")
+    _entry_list(character, kind).remove(target)
+    return f"Dropped {key}"
+
+
+def add_thaum_orientation(ruleset: RuleSet, character: Character, kind: str,
+                          key: str, orientation: Orientation) -> str:
+    """A further regional version of something already known — a flat point each
+    (p.124), and its own logged purchase so the XP log stays unambiguous."""
+    target = find_thaum_entry(character, kind, key)
+    if target is None:
+        _refuse(f"No known {kind} {key!r} to add an orientation to.")
+    if orientation in target.orientations:
+        _refuse(f"Already known in its {orientation.value} version.")
+    if character.chargen_locked:
+        cost = costs.thaum_orientation_xp(ruleset, character)
+        advancement.add_thaum_orientation(ruleset, character, kind, key, orientation)
+        return f"Added the {orientation.value} version — {cost} XP"
+    target.orientations.append(orientation)
+    return f"Added the {orientation.value} version"
+
+
+def buy_custom_ritual(ruleset: RuleSet, character: Character, name: str, level: int,
+                      orientation: Orientation) -> str:
+    """Author a ritual the catalogue does not hold. The book prints five and plainly
+    expects more to be written (p.148), so the catalogue is a seed — the
+    editable-custom-weapons precedent."""
+    name = (name or "").strip()
+    if not name:
+        _refuse("A custom ritual needs a name.")
+    level = int(level or 1)
+    reason = validate.thaum_ritual_locked_reason(
+        ruleset, character, level, chargen=not character.chargen_locked)
+    if reason:
+        _refuse(reason)
+    if find_thaum_entry(character, "ritual", name) is not None:
+        _refuse(f"{name} is already known.")
+    if character.chargen_locked:
+        entry = advancement.learn_thaum_ritual(
+            ruleset, character, name=name, level=level, orientation=orientation)
+        return f"Learned {name} (level {level}) — {entry.cost} XP"
+    _entry_list(character, "ritual").append(
+        RitualEntry(name=name, level=level, orientations=[orientation]))
+    return f"Learned {name} (level {level})"
+
+
 def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
-                 *, with_header: bool = True, register_events: bool = True):
+                 *, with_header: bool = True, register_events: bool = True,
+                 initial_group: str = ""):
     """Render the picker. Returns its `toggle(charm_id)` so an embedding app can
     own a single charm_toggle event handler (set register_events=False then).
     with_header=False omits the title/Save bar and the head <script> (the host
-    app supplies Cytoscape)."""
+    app supplies Cytoscape).
+
+    `initial_group` opens the picker on one of its other pages — 'spells', 'thaum',
+    'styles', 'forms', 'panoply' — instead of the Charm trees. Ignored when this
+    character has no such page, so a caller may pass one unconditionally."""
     pal = theme.palette(character.exalt_type)
 
     def in_play() -> bool:
@@ -168,7 +383,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     _start = ("melee" if "melee" in _all_categories
               else (_all_categories[0] if _all_categories else ""))
     state = {"category": _start, "group": _group_of(_start) if _start else "abilities",
-             "circle": "", "splat": character.exalt_type}
+             "circle": "", "splat": character.exalt_type,
+             # Thaumaturgy page: which sub-tab, the orientation new rituals and
+             # formulas are learned in, and the not-yet-bought narrowing intents
+             # keyed "art_id:aspect" (see set_thaum_narrow).
+             "thaum_tab": "arts", "orientation": Orientation.REALM.value,
+             "thaum_narrow": {}}
     _has_styles = any(_group_of(c) == "styles" for c in _all_categories)
     # Which circles this character could ever reach is fixed by their splat's Occult
     # tree, so the Spells page — and its Circle dropdown — either exists for them or
@@ -187,6 +407,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         state["circle"] = _spell_circles[0].value
     if _has_forms:
         GROUPS["forms"] = "Form Library"
+    # Thaumaturgy is cross-splat and unconditional: p.114 makes it available to every
+    # splat that ships today (the dead may hold but not use it, which the page says
+    # rather than hides; only the Fair Folk are barred, and they are not playable).
+    GROUPS["thaum"] = "Thaumaturgy"
     # The Slot/Panoply manager, for a Charm-Slot splat or an Eclipse who crossed over.
     _has_panoply = refit.supports_refit(ruleset, character)
     if _has_panoply:
@@ -208,6 +432,18 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         Augmentation category is still an Abilities page (so it keeps the dropdown) but
         swaps the CANVAS for pop-up cards — see _is_augment_page."""
         return state["group"] in ("abilities", "styles")
+
+    # Open on a page other than the Charm trees, when the caller asked for one and
+    # this character has it. Applied here rather than at `state` because the page
+    # list is not known until GROUPS is complete.
+    if initial_group and initial_group in GROUPS:
+        state["group"] = initial_group
+        if _is_graph_page():
+            # A Charm-tree page needs a category that exists in it, or the dropdown
+            # would render a value outside its own options.
+            state["category"] = next(iter(_visible_category_options()),
+                                     state["category"])
+
     widgets: dict = {}                          # holds the live group toggle + category <select>
 
     # ---- Immaculate-vs-standard chargen path banner (Dragon-Blooded) ------- #
@@ -813,6 +1049,340 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                             if locked:
                                 ui.label(r.reason).classes("text-xs text-amber-700 italic")
 
+    # ---- Thaumaturgy (Player's Guide CH3) --------------------------------- #
+    # A cross-splat capability layer, not a splat: every shipped splat may hold it
+    # (p.114), so this page is on every character's picker. Four sub-tabs because an
+    # Art (binary), a Science (rated, on a sparse ladder), a ritual (levelled) and a
+    # formula (flat rate) are four different mechanical shapes that one flat list
+    # would fight — see docs/status/thaumaturgy.md.
+    #
+    # Every gate, price and label comes from view.build_thaum_picker, which asks the
+    # engine; nothing here decides legality. Purchases edit the chargen lists before
+    # the lock and go through engine.advancement after it, exactly like spells.
+
+    THAUM_TABS = {"arts": "Arts", "sciences": "Sciences",
+                  "rituals": "Rituals", "formulas": "Formulas"}
+
+    def _thaum_changed() -> None:
+        thaum_panel.refresh()
+        readout.refresh()
+
+    def _thaum_do(action) -> None:
+        """Run one purchase or drop and report it. The module-level thaum_* functions
+        own the state change and raise on refusal; this only surfaces the outcome."""
+        try:
+            ui.notify(action(), type="positive")
+        except advancement.AdvancementError as ex:
+            ui.notify(str(ex), type="warning")
+            return
+        _thaum_changed()
+
+    def _no_thaum_drop() -> None:
+        ui.notify("Bought with experience — undo it on the XP tab.", type="info")
+
+    def set_thaum_tab(value: str) -> None:
+        if not value or value == state["thaum_tab"]:
+            return                      # the echo from rebuilding the tab bar
+        state["thaum_tab"] = value
+        thaum_panel.refresh()
+
+    def set_orientation(value: str) -> None:
+        """The regional version new rituals and formulas are learned in (p.124).
+        One page-level choice rather than a control per row: a thaumaturge learns in
+        the tradition they were taught, so it is a mode, not a per-purchase decision."""
+        state["orientation"] = value
+        thaum_panel.refresh()
+
+    def _orientation() -> Orientation:
+        return Orientation(state["orientation"])
+
+    def set_thaum_narrow(art_id: str, name: str, value: bool) -> None:
+        """Remember the intent to narrow an aspect before it is bought. Narrowing is
+        Summoning's alone (p.127) and halves the cost, so it must be decided at
+        purchase time — `ArtSpecialty.narrowed` is stored, not inferred."""
+        state["thaum_narrow"][f"{art_id}:{name}"] = bool(value)
+
+    def toggle_thaum_art(row) -> None:
+        if row.owned and in_play():
+            _no_thaum_drop()
+        elif row.owned:
+            _thaum_do(lambda: drop_thaum_art(ruleset, character, row.id))
+        else:
+            _thaum_do(lambda: buy_thaum_art(ruleset, character, row.id))
+
+    def toggle_thaum_specialty(row) -> None:
+        if row.owned and in_play():
+            _no_thaum_drop()
+        elif row.owned:
+            _thaum_do(lambda: drop_thaum_specialty(character, row.art_id, row.name))
+        else:
+            _thaum_do(lambda: buy_thaum_specialty(
+                ruleset, character, row.art_id, row.name,
+                narrowed=bool(state["thaum_narrow"].get(f"{row.art_id}:{row.name}"))))
+
+    def add_custom_specialty(art_id: str, name: str) -> None:
+        _thaum_do(lambda: buy_thaum_specialty(ruleset, character, art_id, name))
+
+    def raise_science(row) -> None:
+        _thaum_do(lambda: raise_thaum_science(ruleset, character, row.id))
+
+    def lower_science(row) -> None:
+        if in_play():
+            _no_thaum_drop()
+            return
+        _thaum_do(lambda: lower_thaum_science(ruleset, character, row.id))
+
+    def toggle_thaum_entry(row) -> None:
+        if row.owned and in_play():
+            _no_thaum_drop()
+        elif row.owned:
+            _thaum_do(lambda: drop_thaum_entry(character, row.kind, row.key))
+        else:
+            _thaum_do(lambda: buy_thaum_entry(
+                ruleset, character, row.kind, row.key, _orientation()))
+
+    def add_orientation(row, value: str) -> None:
+        _thaum_do(lambda: add_thaum_orientation(
+            ruleset, character, row.kind, row.key, Orientation(value)))
+
+    def add_custom_ritual(name: str, level) -> None:
+        _thaum_do(lambda: buy_custom_ritual(
+            ruleset, character, name, level, _orientation()))
+
+    def _thaum_price_label(price: int, currency: str) -> str:
+        return f"{price} {currency}"
+
+    def _thaum_buy_button(*, owned: bool, available: bool, reason: str,
+                          price: int, currency: str, on_add, on_drop) -> None:
+        """One purchase control, in whichever of the three states a row can be in:
+        owned (droppable at chargen, frozen in play), available (priced), or locked
+        (the engine's reason on the tooltip)."""
+        if owned:
+            if in_play():
+                ui.label("owned").classes("text-xs text-gray-500 w-20 text-right")
+            else:
+                ui.button(icon="remove", on_click=lambda _=None: on_drop()).props(
+                    "flat dense round color=grey").tooltip("Drop")
+        elif available:
+            ui.button(_thaum_price_label(price, currency),
+                      on_click=lambda _=None: on_add()).props(
+                f"dense unelevated color={pal.button}")
+        else:
+            ui.button(icon="lock", on_click=lambda _=None: ui.notify(
+                reason, type="warning")).props("flat dense round color=grey") \
+                .tooltip(reason)
+
+    @ui.refreshable
+    def thaum_panel() -> None:
+        if state["group"] != "thaum":
+            return
+        v = viewmod.build_thaum_picker(ruleset, character)
+        with ui.card().classes(f"w-full p-3 gap-3 {pal.card}"):
+            # ---- header: sub-tabs, orientation, what it costs --------------- #
+            with ui.row().classes("w-full items-center gap-3 no-wrap"):
+                # Real ui.tabs rather than a ui.toggle: four named sub-pages is what
+                # tabs are for, and unlike a toggle's options each tab is its own
+                # element — which is also the only way a click on one is reachable.
+                with ui.tabs(value=state["thaum_tab"],
+                             on_change=lambda e: set_thaum_tab(e.value)) \
+                        .props("dense no-caps").style(f"color:{pal.accent}"):
+                    for _key, _label in THAUM_TABS.items():
+                        ui.tab(_key, label=_label)
+                ui.space()
+                if state["thaum_tab"] in ("rituals", "formulas"):
+                    ui.select({o.value: o.value for o in Orientation},
+                              value=state["orientation"], label="Learn as",
+                              on_change=lambda e: set_orientation(e.value)) \
+                        .classes("w-36").tooltip(
+                        "The regional tradition a new ritual or formula is learned "
+                        "in (p.124). Further versions cost a flat point each.")
+                ui.label(f"Occult {v.occult}").classes("text-xs text-gray-500")
+            if not v.usable:
+                ui.label(v.usable_note).classes("text-xs italic text-amber-700")
+            if v.free_note:
+                ui.label(v.free_note).classes("text-xs italic").style(
+                    f"color:{pal.accent}")
+            ui.separator()
+
+            if state["thaum_tab"] == "arts":
+                _thaum_arts(v)
+            elif state["thaum_tab"] == "sciences":
+                _thaum_sciences(v)
+            else:
+                _thaum_entries_ui(v, state["thaum_tab"][:-1])   # 'rituals' -> 'ritual'
+
+            # ---- what has been bought -------------------------------------- #
+            # Straight off the engine's canonical enumeration, priced by it, so the
+            # free-grant zeroes shown here are the ones actually charged. Deliberately
+            # not recomputed from the rows above — that is the whole point of the
+            # enumeration existing.
+            if v.owned:
+                ui.separator()
+                with ui.row().classes("w-full items-baseline gap-2"):
+                    ui.label("Bought").classes(
+                        "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
+                    ui.label(f"{v.total} {v.currency} total").classes(
+                        "text-xs text-gray-600")
+                for row in v.owned:
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.label(row.label).classes("text-xs flex-1 truncate")
+                        if row.free:
+                            ui.label("free").classes("text-xs italic").style(
+                                f"color:{pal.accent}")
+                        ui.label(f"{row.cost} {v.currency}").classes(
+                            "text-xs font-mono text-gray-600 w-16 text-right")
+
+    def _thaum_arts(v) -> None:
+        for art in v.arts:
+            with ui.expansion(art.name).classes("w-full").props("dense"):
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.label(f"Occult {art.min_occult}"
+                             f"{' · ' + art.roll if art.roll else ''}"
+                             f"{' · ' + art.cost_text if art.cost_text else ''}"
+                             ).classes("text-xs text-gray-600 flex-1")
+                    _thaum_buy_button(
+                        owned=art.owned, available=art.available, reason=art.reason,
+                        price=art.price, currency=v.currency,
+                        on_add=lambda a=art: toggle_thaum_art(a),
+                        on_drop=lambda a=art: toggle_thaum_art(a))
+                if art.owned:
+                    ui.label("Trained: +2 dice to attempts in this Art.").classes(
+                        "text-xs").style(f"color:{pal.accent}")
+                if art.description:
+                    ui.label(art.description).classes("text-xs text-gray-600")
+                ui.label("Specialties — +1 die each, at most two applied to any one "
+                         "roll. The Art itself is not required to buy one (p.126).") \
+                    .classes("text-xs text-gray-500 mt-1")
+                for spec in art.specialties:
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        label = spec.name if spec.printed else f"{spec.name} (custom)"
+                        ui.label(label).classes("text-xs flex-1 truncate").tooltip(
+                            spec.description or "")
+                        if spec.min_occult:
+                            ui.label(f"Occult {spec.min_occult}").classes(
+                                "text-xs text-gray-400")
+                        if spec.narrowed:
+                            ui.label("narrowed").classes("text-xs italic").style(
+                                f"color:{pal.accent}")
+                        elif art.allows_narrowing and not spec.owned and spec.printed:
+                            # Summoning alone (p.127): narrowing halves the cost and
+                            # is recorded on the sheet, so it is chosen before buying.
+                            ui.checkbox(
+                                "narrow",
+                                value=bool(state["thaum_narrow"].get(
+                                    f"{spec.art_id}:{spec.name}")),
+                                on_change=lambda e, s=spec: set_thaum_narrow(
+                                    s.art_id, s.name, e.value)) \
+                                .props(f"dense color={pal.button}").tooltip(
+                                "Further limit this aspect (e.g. 'War Gods') for half "
+                                "cost, noted on the sheet (p.127).")
+                        _thaum_buy_button(
+                            owned=spec.owned, available=spec.available,
+                            reason=spec.reason, price=spec.price, currency=v.currency,
+                            on_add=lambda s=spec: toggle_thaum_specialty(s),
+                            on_drop=lambda s=spec: toggle_thaum_specialty(s))
+                # Player-invented specialties are explicitly invited (p.126).
+                with ui.row().classes("w-full items-center gap-2 no-wrap mt-1"):
+                    custom = ui.input(placeholder="Own specialty, e.g. Local Fair Folk") \
+                        .props("dense outlined").classes("flex-1")
+                    ui.button("Add", on_click=lambda _=None, a=art, c=custom: (
+                        add_custom_specialty(a.id, c.value), c.set_value(""))) \
+                        .props(f"dense flat color={pal.button}")
+
+    def _thaum_sciences(v) -> None:
+        for sci in v.sciences:
+            with ui.expansion(f"{sci.name}  {'●' * sci.rating}"
+                              f"{'○' * (sci.max_rating - sci.rating)}") \
+                    .classes("w-full").props("dense"):
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.label(f"{sci.rating} / {sci.max_rating}"
+                             f"{' · ' + sci.roll if sci.roll else ''}"
+                             f"{' · ' + sci.cost_text if sci.cost_text else ''}"
+                             ).classes("text-xs text-gray-600 flex-1")
+                    if sci.rating and not in_play():
+                        ui.button(icon="remove",
+                                  on_click=lambda _=None, s=sci: lower_science(s)) \
+                            .props("flat dense round color=grey").tooltip("Lower")
+                    if sci.can_raise:
+                        ui.button(f"+1 · {sci.next_price} {v.currency}",
+                                  on_click=lambda _=None, s=sci: raise_science(s)) \
+                            .props(f"dense unelevated color={pal.button}")
+                    else:
+                        ui.button(icon="lock", on_click=lambda _=None, s=sci: ui.notify(
+                            s.reason, type="warning")).props(
+                            "flat dense round color=grey").tooltip(sci.reason)
+                for extra in ((sci.time, "Time"), (sci.duration, "Duration")):
+                    if extra[0]:
+                        ui.label(f"{extra[1]}: {extra[0]}").classes(
+                            "text-xs text-gray-600")
+                if sci.description:
+                    ui.label(sci.description).classes("text-xs text-gray-600")
+                # Rendered 1..max_rating, so Alchemy's undescribed five-dot rung shows
+                # as an empty rung instead of pulling the six-dot text down (p.136).
+                for rung in sci.levels:
+                    held = rung.rating <= sci.rating
+                    text = rung.description or "(no description printed at this level)"
+                    with ui.row().classes("w-full items-start gap-2 no-wrap"):
+                        ui.label("●" * rung.rating).classes(
+                            "text-xs font-mono w-16").style(
+                            f"color:{pal.accent if held else '#9ca3af'}")
+                        ui.label(text).classes(
+                            f"text-xs flex-1 {'' if rung.description else 'italic'} "
+                            f"{'text-gray-700' if held else 'text-gray-400'}")
+
+    def _thaum_entries_ui(v, kind: str) -> None:
+        rows = v.rituals if kind == "ritual" else v.formulas
+        if kind == "ritual":
+            ui.label("A thaumaturge must have Occult equal to the ritual's level "
+                     "(p.148).").classes("text-xs text-gray-500")
+        else:
+            ui.label("Formulas and procedures are a flat point each, whatever their "
+                     "level.").classes("text-xs text-gray-500")
+        for row in rows:
+            with ui.column().classes("w-full gap-0"):
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.label(f"{row.name}").classes("text-sm flex-1 truncate")
+                    ui.label(f"level {row.level}").classes("text-xs text-gray-500")
+                    if row.custom:
+                        ui.label("custom").classes("text-xs italic text-gray-400")
+                    if row.owned:
+                        ui.label(", ".join(row.orientations)).classes(
+                            "text-xs").style(f"color:{pal.accent}")
+                        remaining = [o.value for o in Orientation
+                                     if o.value not in row.orientations]
+                        if remaining:
+                            with ui.button(icon="add_location_alt").props(
+                                    "flat dense round color=grey").tooltip(
+                                    f"Add another regional version — "
+                                    f"{row.orientation_price} {v.currency}"):
+                                with ui.menu():
+                                    for value in remaining:
+                                        ui.menu_item(
+                                            value,
+                                            lambda _=None, r=row, o=value:
+                                                add_orientation(r, o))
+                    _thaum_buy_button(
+                        owned=row.owned, available=row.available, reason=row.reason,
+                        price=row.price, currency=v.currency,
+                        on_add=lambda r=row: toggle_thaum_entry(r),
+                        on_drop=lambda r=row: toggle_thaum_entry(r))
+                for label, value in row.detail:
+                    ui.label(f"{label}: {value}").classes("text-xs text-gray-600")
+                if row.description:
+                    ui.label(row.description).classes("text-xs text-gray-500")
+                ui.separator()
+        if kind == "ritual":
+            # Catalogue + custom by decision: the chapter prints five rituals and
+            # expects STs to write more (p.148).
+            with ui.row().classes("w-full items-center gap-2 no-wrap mt-1"):
+                name = ui.input(placeholder="Custom ritual name").props(
+                    "dense outlined").classes("flex-1")
+                level = ui.number(label="Level", value=1, min=1, max=5,
+                                  format="%d").props("dense outlined").classes("w-24")
+                ui.button("Add ritual", on_click=lambda _=None, n=name, l=level: (
+                    add_custom_ritual(n.value, l.value), n.set_value(""))) \
+                    .props(f"dense flat color={pal.button}")
+
     # ---- Form Library ----------------------------------------------------- #
     def add_form() -> None:
         character.animal_forms.append(AnimalForm())
@@ -1185,23 +1755,6 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             set_category(first)
         _apply_group()                  # the Martial Arts page may have just vanished
 
-    def set_st_permission(value: bool) -> None:
-        """The Storyteller-permission half of the p.127 rule, editable pre-lock only:
-        without it a foreign Charm may not be known at the start of play, so the Splat
-        dropdown offers nothing. Withdrawing permission snaps the picker back to the
-        character's own splat — any foreign Charm already picked then shows up in the
-        readout as a `charm-foreign-no-st-permission` issue rather than silently
-        disappearing with the page it was picked on."""
-        character.st_foreign_charms = bool(value)
-        sel = widgets.get("splat")
-        if sel is not None:
-            opts = _splat_options()
-            keep = state["splat"] if state["splat"] in opts else character.exalt_type
-            sel.set_options(opts, value=keep)
-            sel.set_visibility(len(opts) > 1 and _is_graph_page())
-            set_splat(keep)
-        readout.refresh()
-
     def _apply_group() -> None:
         """Show the graph furniture (category dropdown, legend, canvas, detail card)
         on the two Charm-tree pages and hide it on the Spells and Form Library pages,
@@ -1228,6 +1781,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         forms_panel.refresh()
         augment_panel.refresh()
         panoply_panel.refresh()
+        thaum_panel.refresh()
 
     def set_group(value: str) -> None:
         """Switch between the ability pages, the martial-arts styles and the spell
@@ -1293,20 +1847,29 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                         ).props(f"no-caps dense unelevated toggle-color={pal.button}")
                     if _foreign_caste:
                         # Eclipse/Moonshadow only (CasteDefinition.foreign_charms).
-                        # The checkbox is the chargen Storyteller permission and is
-                        # meaningless post-lock, where a tutor is the only gate.
-                        if not in_play():
-                            ui.checkbox("ST permission", value=character.st_foreign_charms,
-                                        on_change=lambda e: set_st_permission(e.value)) \
-                                .props(f"dense color={pal.button}") \
-                                .tooltip("Storyteller permission to START play knowing "
-                                         "another Exalt type's Charms (p.127).")
+                        # The Storyteller permission itself now lives on the ST Options
+                        # tab with the other table toggles (human's call, 2026-07-29);
+                        # what stays here is the Splat dropdown it unlocks, plus a
+                        # pointer for the player who wonders why the dropdown is empty.
+                        if not in_play() and not _foreign_open():
+                            ui.label("ST permission needed — see the ST Options tab") \
+                                .classes("text-xs italic").style(f"color:{pal.accent}") \
+                                .tooltip("An Eclipse or Moonshadow may not START play "
+                                         "knowing another Exalt type's Charms without "
+                                         "Storyteller permission (p.127).")
                         widgets["splat"] = ui.select(
                             _splat_options(), value=state["splat"], label="Splat",
                             on_change=lambda e: set_splat(e.value)).classes("w-40")
                         widgets["splat"].set_visibility(len(_splat_options()) > 1)
+                    # Seeded from the Charm-tree group even when the picker opened on
+                    # another page: the dropdown is HIDDEN there but still built, and
+                    # a NiceGUI select whose value is absent from its options raises
+                    # at build time. `state["category"]` always belongs to _start's
+                    # group, so that is the group to offer.
                     widgets["category"] = ui.select(
-                        _visible_category_options(), value=state["category"], label="Category",
+                        _visible_category_options(
+                            state["group"] if _is_graph_page() else _group_of(_start)),
+                        value=state["category"], label="Category",
                         on_change=lambda e: set_category(e.value)).classes("w-48")
                     if _has_spells:
                         widgets["circle"] = ui.select(
@@ -1330,12 +1893,13 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             widgets["graph"] = (ui.element("div").props("id=charm-graph")
                                 .style(f"height:720px;width:100%;border:1px solid {pal.graph_border};"
                                        f"border-radius:8px;background:{pal.node_bg}"))
-            # The Spells, Form Library and Augmentation pages render here, in place of
-            # the graph.
+            # The Spells, Form Library, Augmentation and Thaumaturgy pages render
+            # here, in place of the graph.
             spells_panel()
             forms_panel()
             augment_panel()
             panoply_panel()
+            thaum_panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes(f"w-full p-3 {pal.card}"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")

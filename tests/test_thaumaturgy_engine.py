@@ -10,7 +10,8 @@ import pytest
 
 from exalted_builder.engine import advancement, lifecycle, validate
 from exalted_builder.models.character import (
-    ArtSpecialty, Character, FormulaEntry, RitualEntry, ScienceRating, ThaumaturgyState)
+    ArtSpecialty, Character, FormulaEntry, HouseRules, RitualEntry, ScienceRating,
+    ThaumaturgyState)
 from exalted_builder.models.rules import (
     AbilityName, CasteDefinition, Orientation, RuleSet, ScienceLevel,
     SOLAR_EXALT, ThaumaturgicArt, ThaumaturgicAspect, ThaumaturgicFormula,
@@ -636,3 +637,244 @@ def test_audit_catches_an_underpaid_science_raise():
     advancement.raise_thaum_science(rs, c, "science.alchemy")
     c.xp_log[-1].cost = 3
     assert "xp-cost-mismatch" in _audit_codes(rs, c)
+
+
+# --------------------------------------------------------------------------- #
+# "Magic for Everyone" (p.115) — the optional free grant
+# --------------------------------------------------------------------------- #
+
+def _mfe(occult=4, **thaum):
+    c = _character(occult=occult, **thaum)
+    c.house_rules = HouseRules(magic_for_everyone=True)
+    return c
+
+
+def _thaum_bp(rs, c):
+    return next((ln.points for ln in validate.bonus_point_breakdown(rs, c).lines
+                 if ln.domain == "Thaumaturgy"), 0)
+
+
+def test_grant_is_zero_unless_the_table_switched_it_on():
+    """Every existing character must be unaffected: the toggle defaults off and
+    old saves have house_rules None."""
+    assert validate.magic_for_everyone_grant(_ruleset(), _character(occult=5)) == 0
+
+
+@pytest.mark.parametrize("occult,grant", [(0, 0), (1, 0), (2, 1), (3, 1), (4, 2), (5, 2)])
+def test_grant_is_one_per_two_dots_of_occult(occult, grant):
+    assert validate.magic_for_everyone_grant(_ruleset(), _mfe(occult=occult)) == grant
+
+
+def test_grant_makes_an_eligible_ritual_free():
+    rs = _ruleset()
+    paid = _character(occult=4, rituals=[RitualEntry(ritual_id="rit.gate")])
+    free = _mfe(occult=4, rituals=[RitualEntry(ritual_id="rit.gate")])
+    assert (_thaum_bp(rs, paid), _thaum_bp(rs, free)) == (5, 0)
+
+
+def test_grant_covers_only_its_allowance():
+    """Occult 2 grants one pick; the second formula is still paid for."""
+    rs = _ruleset()
+    c = _mfe(occult=2, formulas=[FormulaEntry(formula_id="for.draught"),
+                                 FormulaEntry(name="Second", level=1)])
+    assert _thaum_bp(rs, c) == 1
+
+
+def test_grant_is_spent_on_the_dearest_eligible_purchase_first():
+    """Player-favourable, matching how every other free pool in this module is
+    assigned. A level-3 ritual (5 BP) must be picked over a 1 BP formula."""
+    rs = _ruleset()
+    c = _mfe(occult=2, rituals=[RitualEntry(ritual_id="rit.gate")],
+             formulas=[FormulaEntry(formula_id="for.draught")])
+    assert _thaum_bp(rs, c) == 1        # the ritual went free, the formula did not
+
+
+def test_arts_are_never_free():
+    """"only specialties in Arts, not the Arts themselves"."""
+    rs = _ruleset()
+    c = _mfe(occult=4, arts=["art.summoning"])
+    assert _thaum_bp(rs, c) == 5
+
+
+def test_sciences_are_never_free():
+    rs = _ruleset()
+    c = _mfe(occult=4, sciences=[ScienceRating(science_id="science.alchemy", rating=1)])
+    assert _thaum_bp(rs, c) == 5
+
+
+def test_a_printed_aspect_is_free_but_an_invented_specialty_is_not():
+    """"knowledge of one aspect" enumerates printed aspects; a player-invented
+    narrower specialty is not one of the things the rule lists."""
+    rs = _ruleset()
+    printed = _mfe(occult=2, art_specialties=[
+        ArtSpecialty(art_id="art.summoning", name="Beasts")])
+    invented = _mfe(occult=2, art_specialties=[
+        ArtSpecialty(art_id="art.summoning", name="Ancestral Ghosts")])
+    assert (_thaum_bp(rs, printed), _thaum_bp(rs, invented)) == (0, 2)
+
+
+def test_rituals_above_level_three_are_never_free():
+    rs = _ruleset()
+    c = _mfe(occult=5, rituals=[RitualEntry(name="Great Working", level=5)])
+    assert _thaum_bp(rs, c) == 7
+
+
+def test_a_level_three_ritual_is_exactly_at_the_cap():
+    rs = _ruleset()
+    c = _mfe(occult=4, rituals=[RitualEntry(ritual_id="rit.gate")])   # level 3
+    assert _thaum_bp(rs, c) == 0
+
+
+def test_grant_is_frozen_at_lock_and_does_not_follow_xp():
+    """Rules-authority call (human, 2026-07-29): raising Occult with XP earns no
+    further free picks. The snapshot holds chargen Occult, so this falls out."""
+    rs, c = _ruleset(), _mfe(occult=2)
+    lifecycle.lock_chargen(c)
+    c.xp_earned = 100
+    advancement.raise_ability(rs, c, A.OCCULT)
+    advancement.raise_ability(rs, c, A.OCCULT)
+    assert c.abilities[A.OCCULT] == 4
+    assert validate.magic_for_everyone_grant(rs, c) == 1      # not 2
+
+
+def test_toggle_is_frozen_at_lock():
+    """Flipping the table setting post-lock must not re-price a locked chargen."""
+    rs = _ruleset()
+    c = _character(occult=4, rituals=[RitualEntry(ritual_id="rit.gate")])
+    lifecycle.lock_chargen(c)
+    c.house_rules = HouseRules(magic_for_everyone=True)
+    assert _thaum_bp(rs, c) == 5          # still paid for, as it was at lock
+
+
+def test_grant_is_announced_even_with_no_purchases():
+    """The rule applies to all starting characters, so the one who bought nothing is
+    exactly the one who needs telling the allowance exists."""
+    c = _mfe(occult=4)
+    codes = [i.code for i in validate.thaumaturgy_issues(_ruleset(), c, ThaumaturgyState())]
+    assert "magic-for-everyone-grant" in codes
+
+
+def test_no_announcement_when_the_allowance_is_zero():
+    c = _mfe(occult=1)
+    codes = [i.code for i in validate.thaumaturgy_issues(_ruleset(), c, ThaumaturgyState())]
+    assert "magic-for-everyone-grant" not in codes
+
+
+def test_no_announcement_in_a_game_without_the_toggle():
+    c = _character(occult=5)
+    codes = [i.code for i in validate.thaumaturgy_issues(_ruleset(), c, ThaumaturgyState())]
+    assert "magic-for-everyone-grant" not in codes
+
+
+def test_house_rules_round_trip_through_json():
+    c = _mfe(occult=4)
+    assert Character.model_validate_json(
+        c.model_dump_json()).house_rules.magic_for_everyone is True
+
+
+def test_old_saves_have_no_house_rules():
+    assert Character(id="c", caste="dawn").house_rules is None
+
+
+# --------------------------------------------------------------------------- #
+# The optional p.113 chargen restrictions
+# --------------------------------------------------------------------------- #
+
+def _cap_codes(rs, c, state=None):
+    return [i.code for i in validate.thaumaturgy_chargen_issues(
+        rs, c, state if state is not None else validate.thaum_state(c))]
+
+
+def test_ritual_cap_is_off_by_default():
+    """Both restrictions are ST options; an ordinary table sees neither."""
+    c = _character(occult=5, rituals=[RitualEntry(name="Great Working", level=5)])
+    assert _cap_codes(_ruleset(), c) == []
+
+
+def test_ritual_cap_flags_a_level_four_ritual():
+    c = _character(occult=5, rituals=[RitualEntry(name="Great Working", level=4)])
+    c.house_rules = HouseRules(restrict_chargen_ritual_level=True)
+    assert "thaum-ritual-chargen-cap" in _cap_codes(_ruleset(), c)
+
+
+def test_ritual_cap_allows_exactly_three():
+    c = _character(occult=5, rituals=[RitualEntry(ritual_id="rit.gate")])   # level 3
+    c.house_rules = HouseRules(restrict_chargen_ritual_level=True)
+    assert _cap_codes(_ruleset(), c) == []
+
+
+def test_science_cap_flags_a_fourth_dot():
+    c = _character(sciences=[ScienceRating(science_id="science.alchemy", rating=4)])
+    c.house_rules = HouseRules(restrict_chargen_science_rating=True)
+    assert "thaum-science-chargen-cap" in _cap_codes(_ruleset(), c)
+
+
+def test_science_cap_allows_exactly_three():
+    c = _character(sciences=[ScienceRating(science_id="science.alchemy", rating=3)])
+    c.house_rules = HouseRules(restrict_chargen_science_rating=True)
+    assert _cap_codes(_ruleset(), c) == []
+
+
+def test_the_two_caps_are_independent():
+    """p.113's "and/or" — a table may restrict rituals without restricting Sciences."""
+    c = _character(occult=5,
+                   rituals=[RitualEntry(name="Great Working", level=5)],
+                   sciences=[ScienceRating(science_id="science.alchemy", rating=5)])
+    c.house_rules = HouseRules(restrict_chargen_ritual_level=True)
+    codes = _cap_codes(_ruleset(), c)
+    assert "thaum-ritual-chargen-cap" in codes
+    assert "thaum-science-chargen-cap" not in codes
+
+
+def test_caps_do_not_bind_a_science_raised_past_three_with_xp():
+    """The restriction is on what may be BOUGHT at creation, not what may ever be
+    known — so it reads the frozen snapshot, not current state."""
+    rs, c = _ruleset(), _character()
+    c.house_rules = HouseRules(restrict_chargen_science_rating=True)
+    lifecycle.lock_chargen(c)
+    c.xp_earned = 200
+    for _ in range(4):
+        advancement.raise_thaum_science(rs, c, "science.alchemy")
+    assert c.thaumaturgy.sciences[0].rating == 4
+    assert "thaum-science-chargen-cap" not in [
+        i.code for i in validate.validate_chargen(rs, c)]
+
+
+def test_caps_reach_validate_chargen():
+    c = _character(occult=5, rituals=[RitualEntry(name="Great Working", level=5)])
+    c.house_rules = HouseRules(restrict_chargen_ritual_level=True)
+    assert "thaum-ritual-chargen-cap" in [
+        i.code for i in validate.validate_chargen(_ruleset(), c)]
+
+
+# --------------------------------------------------------------------------- #
+# The Eclipse/Moonshadow permission's move onto HouseRules
+# --------------------------------------------------------------------------- #
+
+def test_legacy_top_level_st_foreign_charms_is_migrated_forward():
+    """It was a saved field before the Storyteller options were gathered; without
+    the migration every existing Eclipse would silently lose permission on load."""
+    c = Character.model_validate(
+        {"id": "x", "exalt_type": "Solar", "caste": "eclipse", "st_foreign_charms": True})
+    assert c.house_rules.st_foreign_charms is True
+    assert validate.foreign_charms_permitted(c) is True
+
+
+def test_migration_does_not_clobber_an_explicit_house_rules():
+    """A new save is authoritative over a legacy key that should not be there."""
+    c = Character.model_validate({
+        "id": "x", "caste": "eclipse", "st_foreign_charms": True,
+        "house_rules": {"st_foreign_charms": False, "magic_for_everyone": True}})
+    assert c.house_rules.st_foreign_charms is False
+    assert c.house_rules.magic_for_everyone is True
+
+
+def test_a_save_without_the_legacy_key_is_untouched():
+    assert Character.model_validate({"id": "x", "caste": "dawn"}).house_rules is None
+
+
+def test_permission_survives_a_json_round_trip():
+    c = Character(id="x", caste="eclipse")
+    c.house_rules = HouseRules(st_foreign_charms=True)
+    assert validate.foreign_charms_permitted(
+        Character.model_validate_json(c.model_dump_json())) is True

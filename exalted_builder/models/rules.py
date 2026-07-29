@@ -385,7 +385,7 @@ class CasteDefinition(BaseModel):
     # the normal experience. False for every other caste, so the ability is data,
     # not a splat check — the Abyssal Moonshadow parallel is a one-line data change.
     # The chargen half of the rule ("may not start the game knowing" them without
-    # Storyteller permission) is Character.st_foreign_charms.
+    # Storyteller permission) is Character.house_rules.st_foreign_charms.
     foreign_charms: bool = False
     # Only meaningful when foreign_charms is True. p.127: "Such Charms cost double
     # the normal experience to learn (usually 20 points) and use." The *use* half

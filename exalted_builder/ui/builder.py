@@ -2,8 +2,9 @@
 ui/builder.py — the unified Exalted 1e builder app.
 
 Stitches the views over one in-memory Character: an Edit tab (the editable sheet),
-a Charms tab (the Cytoscape charm-tree picker), a Combos tab, a Play tab and a
-Sheet tab (the read-only viewer). A top bar provides Save, Load, and Finish & Lock.
+a Charms tab (the Cytoscape charm-tree picker), a Combos tab, a Play tab, an ST
+Options tab (the table's optional-rule switches) and a Sheet tab (the read-only
+viewer). A top bar provides Save, Load, and Finish & Lock.
 
 The tab bar tracks the character's stage. Edit and XP occupy one slot: Edit while
 chargen is open, XP once it is locked (see `visible_tabs`). Charms and Combos are on
@@ -35,6 +36,7 @@ from . import app as sheet_app
 from . import combos as combos_mod
 from . import editor, picker, theme
 from . import play as play_mod
+from . import storyteller as st_mod
 from . import view as viewmod
 from . import xp as xp_mod
 from .assets import cytoscape_head_html
@@ -44,7 +46,7 @@ from .assets import cytoscape_head_html
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 
-_TABS = ("Edit", "Charms", "Combos", "XP", "Play", "Sheet")
+_TABS = ("Edit", "Charms", "Combos", "XP", "Play", "ST", "Sheet")
 
 
 def visible_tabs(locked: bool) -> tuple[str, ...]:
@@ -171,6 +173,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             xp_mod.build_xp(ruleset, char, path, with_header=False)
         elif state["tab"] == "Play":
             play_mod.build_play(ruleset, char, path, with_header=False)
+        elif state["tab"] == "ST":
+            st_mod.build_storyteller(ruleset, char, path, with_header=False)
         else:
             sheet_app.render_sheet(viewmod.build_sheet_view(ruleset, char))
 
@@ -355,9 +359,14 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             f'label={"Arrays" if viewmod.uses_arrays(ruleset, ctx["char"]) else "Combos"}')
 
     _ICONS = {"Edit": "edit", "Charms": "account_tree", "Combos": "bolt",
-              "XP": "trending_up", "Play": "casino", "Sheet": "description"}
+              "XP": "trending_up", "Play": "casino", "ST": "gavel",
+              "Sheet": "description"}
+    # Tab names are identifiers (state, visible_tabs, resolve_tab all key off them);
+    # where a name reads badly on the bar, the LABEL differs — see Combos/Arrays.
+    _LABELS = {"ST": "ST Options"}
     with ui.tabs(value="Edit").classes("w-full") as tab_bar:
-        tabs = {name: ui.tab(name, icon=_ICONS[name]) for name in _TABS}
+        tabs = {name: ui.tab(name, label=_LABELS.get(name, name), icon=_ICONS[name])
+                for name in _TABS}
     tab_bar.on_value_change(lambda e: _on_tab_change(e.value))
 
     def _sync_tabs() -> None:

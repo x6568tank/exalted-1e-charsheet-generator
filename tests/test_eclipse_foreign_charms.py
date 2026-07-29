@@ -18,7 +18,9 @@ Modelled as data, not a caste check in code: `CasteDefinition.foreign_charms` +
 `foreign_charm_xp_multiplier`. That paid off — the Moonshadow half (2026-07-29)
 was three keys in castes.json and ZERO engine, UI or pricing changes; every
 Moonshadow test below reaches the same code paths as its Eclipse twin. The
-chargen half of the rule is `Character.st_foreign_charms`.
+chargen half of the rule is `Character.house_rules.st_foreign_charms` (it moved
+onto HouseRules when the Storyteller options were gathered; a legacy top-level
+`st_foreign_charms` key is still migrated forward on load).
 
 Rules-authority calls baked in here (see CLAUDE.md):
   * Full Caste/Favored treatment — the discount applies FIRST, then the doubling.
@@ -36,7 +38,7 @@ import pytest
 import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import advancement, costs, validate
-from exalted_builder.models.character import Character
+from exalted_builder.models.character import Character, HouseRules
 from exalted_builder.models.rules import AbilityName, AttributeName
 from exalted_builder.ui import view as viewmod
 
@@ -125,7 +127,7 @@ def test_eclipse_needs_st_permission_before_the_lock(rs):
     assert validate.foreign_charms_open(rs, char) is False
     assert validate.charm_learnable_by_splat(rs, char, db) is False
 
-    char.st_foreign_charms = True
+    char.house_rules = HouseRules(st_foreign_charms=True)
     assert validate.foreign_charms_open(rs, char) is True
     assert validate.charm_learnable_by_splat(rs, char, db) is True
 
@@ -133,7 +135,7 @@ def test_eclipse_needs_st_permission_before_the_lock(rs):
 def test_permission_is_moot_after_the_lock(rs):
     """Post-lock the rule asks only for a willing tutor, which is narrative."""
     char = _eclipse(chargen_locked=True)
-    assert char.st_foreign_charms is False
+    assert validate.foreign_charms_permitted(char) is False
     assert validate.foreign_charms_open(rs, char) is True
 
 
@@ -143,7 +145,7 @@ def test_unpermitted_foreign_charm_is_its_own_issue_not_wrong_splat(rs):
     codes = {i.code for i in validate.check_splat_consistency(rs, char)}
     assert codes == {"charm-foreign-no-st-permission"}
 
-    char.st_foreign_charms = True
+    char.house_rules = HouseRules(st_foreign_charms=True)
     assert validate.check_splat_consistency(rs, char) == []
 
 
@@ -280,7 +282,7 @@ def test_moonshadow_needs_st_permission_before_the_lock(rs):
     assert validate.foreign_charms_open(rs, char) is False
     assert validate.charm_learnable_by_splat(rs, char, lunar) is False
 
-    char.st_foreign_charms = True
+    char.house_rules = HouseRules(st_foreign_charms=True)
     assert validate.foreign_charms_open(rs, char) is True
     assert validate.charm_learnable_by_splat(rs, char, lunar) is True
 
@@ -329,7 +331,7 @@ def test_unpermitted_foreign_charm_is_its_own_issue_for_a_moonshadow(rs):
     char.charms = [_foreign_charm(rs, "Lunar").id]
     assert {i.code for i in validate.check_splat_consistency(rs, char)} == \
         {"charm-foreign-no-st-permission"}
-    char.st_foreign_charms = True
+    char.house_rules = HouseRules(st_foreign_charms=True)
     assert validate.check_splat_consistency(rs, char) == []
 
 
