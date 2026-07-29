@@ -174,7 +174,7 @@ Exalted-1E-Charsheet-Generator/      (project root)
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (776 tests passing)
+## Status (788 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -222,44 +222,17 @@ in-play tracker, the multi-splat engine (P0-P4), tier-gated cross-splat Martial 
 the picker's three-page Abilities/Martial Arts/Spells split, GM mode + the ST
 reference screen, **all five non-Solar Exalt splats** (Dragon-Blooded, Abyssal, Lunar,
 Alchemical, Sidereal — data, engine and UI, each browser-verified), the Cult of the
-Illuminated Solar origin, and the five Solar castebooks.
+Illuminated Solar origin, the five Solar castebooks, and the **canonical Charm-pick
+enumeration** (both halves — see `docs/status/engine-and-ui.md`), and the **Abyssal
+Moonshadow's half of the generalist rule** (2026-07-29, from `images/Abyssal/Traits/
+145-146.png` — pure data, no new code; see `docs/status/engine-and-ui.md`).
 
 **Next:**
-- **Abyssal Moonshadow's half of the Eclipse generalist rule.** The engine, pricing
-  and Splat dropdown are all data-driven off `CasteDefinition.foreign_charms`, so
-  this is a one-line change to the `moonshadow` row of `castes.json` — but the page
-  image has not landed yet (the human is dropping it in `images/Abyssal/`). Author it
-  from that page, not from the Eclipse text: confirm the multiplier and the chargen
-  permission clause actually read the same before copying them across. Also set
-  `foreign_panoply_charm_xp: 8` on the `moonshadow` row (the Alchemical-crossover
-  Panoply rate, p.90 — it names both castes), so the crossover works for Moonshadows too.
-- **Refactor: one canonical Charm-pick enumeration — DISPLAY HALF DONE 2026-07-25,
-  pricing half still open.** A repeatable Charm lives on its own `Character` list
-  (`ox_body`, `beastman_gifts`), and granted Charms on a third, NOT in
-  `character.charms` — so every consumer that walked `character.charms` had to
-  special-case each list, and four separately did not when Gifts landed (2026-07-22).
-  **Done:** `engine.validate.charm_picks(ruleset, character)` → `list[CharmPick]`
-  (`charm_id`/`name`/`label`/`category`/`source`/`counts_toward_pool`), plus
-  `charm_pick_count`. Repeatable purchases arrive one entry each, already labelled with
-  their variant(s); granted Charms are listed but `counts_toward_pool=False`. The
-  sheet's Charm rows (`view.build_sheet_view`) and BOTH chargen counters
-  (`ui/picker.py`, `ui/editor.py`) now consume it and no longer enumerate the lists
-  themselves. No behaviour change — `tests/test_charm_picks.py` pins row order, the
-  counts and the free-granted rule. **Still open:** `bonus_point_breakdown` builds its
-  own pick list to PRICE picks, and that arithmetic (Caste/Favoured × Calling ×
-  Martial Arts × Immaculate rates) was deliberately left alone — extracting it is the
-  larger, riskier half. The XP-log label in `view.py` is keyed by XP *domain*, a
-  different axis, and is also untouched. A new repeatable Charm therefore still needs
-  its own storage/pricing wiring; only the display/count side is now free. The
-  concrete case waiting on it: Environmental Hazard-Resisting Meditation (Caste Book:
-  Zenith p.72-73).
 - **Mortals** — the LAST splat (Godblooded / Ghosts / Heroic Mortals / …). Blocked on
   source images landing in `images/Mortals/`, per the never-author-from-memory rule.
   See **Next Exalt Types** above for the colour scheme.
 - **Merits & Flaws**, after Mortals — one centralized `merits_and_flaws_calc`, NOT the
   old per-file hooks. See **Removed**.
-- **Windows .exe** — needs building on an actual Windows host (PyInstaller
-  can't cross-compile); same spec as `linux.sh`/`windows.bat`.
 
 Full multi-splat plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 DB chargen numbers as verified from source pages: [[db-chargen-findings]].

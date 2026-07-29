@@ -119,6 +119,9 @@
     "exalt_type": "Abyssal",
     "label": "Moonshadow",
     "caste_abilities": ["bureaucracy", "linguistics", "ride", "sail", "socialize"],
+    "foreign_charms": true,
+    "foreign_charm_xp_multiplier": 2,
+    "foreign_panoply_charm_xp": 8,
     "description": "Diplomats and bureaucrats, the Hollow Darkness is the force that keeps the empires of the dead running smoothly. The Deathlords chose the Moonshadow Caste from those who master the arts of negotiation, travel and treachery.",
     "anima_powers": "When party or witness to an oath, the deathknight may sanctify it: touching the hands of those sworn, he spends 10 motes of Essence and 1 Willpower. An oathbreaker suffers terrible luck, horribly botching a critical roll a number of times equal to the deathknight's Essence when he witnessed the oath. Moonshadows are also gifted generalists — with a willing tutor they may learn the Charms of other Exalted and even spirits (including ghosts), though such Charms cost double the experience to learn and use."
   },

@@ -35,12 +35,13 @@ Tests: `tests/test_solar_castebooks.py`.
   to Ox-Body Technique". The DATA is complete (`repeatable_cap_ability`+`variants`);
   the ENGINE is deliberately NOT wired, because a repeatable Charm needs its own
   `Character` list and this would be the fifth list outside `character.charms`.
-  Today it is an ordinary one-off pick (legal, priced, gated). The DISPLAY/COUNT half
-  of the blocker is gone — `validate.charm_picks` (see `engine-and-ui.md` /
-  the TODO in `CLAUDE.md`) is now the one place a new repeatable list has to be
-  taught about. What remains is the storage/pricing half:
-  a `Character` list, an `ExaltDefinition` field naming the Charm, cap/variant checks,
-  BP/XP, the lock snapshot, undo and a picker panel.
+  Today it is an ordinary one-off pick (legal, priced, gated). The enumeration blocker
+  is gone entirely as of 2026-07-29 — `validate.charm_picks` /
+  `chargen_charm_picks` / `charm_pick_bp_costs` (see `engine-and-ui.md`) are the one
+  place a new repeatable list has to be taught about, and display, counting AND BP
+  pricing all follow from it. What remains is the STORAGE half: a `Character` list, an
+  `ExaltDefinition` field naming the Charm, cap/variant checks, XP, the lock snapshot,
+  undo and a picker panel.
 - All seven Twilight spells are authored (p.74-77); p.77 then turns to hearthstones,
   which `note.md` puts out of scope, so the castebooks are complete within it.
 - Gear: `notes` carries everything the models have no field for — Strength-relative

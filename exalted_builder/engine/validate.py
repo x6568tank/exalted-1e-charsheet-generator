@@ -97,12 +97,13 @@ class CharmPick(BaseModel):
 
     `counts_toward_pool` is False only for granted Charms: they cost no chargen pick
     and no bonus points. `label` is display-ready and already folds in a repeatable
-    purchase's chosen variant(s).
+    purchase's chosen variant(s). `caste_favored` is the Caste/Favoured decision for
+    THIS pick, resolved once here — the discount axis both the BP pricing and the
+    chargen Caste/Favoured minimum key off, whichever list the pick came from.
 
-    NOTE: this covers what a character HOLDS. It deliberately does not price anything
-    — `bonus_point_breakdown` still owns the per-pick BP arithmetic, which has to
-    reason about Caste/Favoured, Calling, Martial Arts and Immaculate rates that have
-    nothing to do with which list a pick came from.
+    NOTE: this covers what a character HOLDS, plus the one trait of it (Caste/Favoured)
+    that does not depend on the accounting being done. The per-pick BP arithmetic is
+    `charm_pick_bp_costs`, which consumes this list.
     """
     charm_id: str
     name: str                  # the Charm's own name, or the raw id if unresolved
@@ -110,59 +111,85 @@ class CharmPick(BaseModel):
     category: str = ""
     source: str = "charms"     # charms | ox_body | beastman_gifts | granted
     counts_toward_pool: bool = True
+    caste_favored: bool = False
 
 
 def charm_picks(ruleset: RuleSet, character: Character) -> list[CharmPick]:
-    """Every Charm the character holds, in sheet order: plain picks, then one entry
-    per repeatable purchase, then Charms granted by a training camp.
+    """Every Charm the character holds RIGHT NOW, in sheet order: plain picks, then one
+    entry per repeatable purchase, then Charms granted by a training camp.
 
     This is the enumeration the UI must use instead of reading `character.charms`,
     `character.ox_body`, `character.beastman_gifts` and `character.granted_charms`
     itself. Unresolvable ids are still yielded (with `name` set to the raw id) so a
     stale save shows the problem rather than silently losing a row.
-    """
-    picks: list[CharmPick] = []
 
-    for cid in character.charms:
-        charm = ruleset.charms.get(cid)
-        picks.append(CharmPick(
+    Chargen accounting wants `chargen_charm_picks` instead — post-lock, the current
+    lists include Charms bought with XP.
+    """
+    return _charm_picks_from(
+        ruleset, character,
+        character.charms, character.ox_body, character.beastman_gifts,
+        character.granted_charms,
+    )
+
+
+def chargen_charm_picks(ruleset: RuleSet, character: Character) -> list[CharmPick]:
+    """`charm_picks` over the traits chargen accounting reads: the frozen snapshot once
+    locked, else the current lists. Granted Charms are read live either way — they are
+    a property of the training camp, cost nothing, and the snapshot does not hold them.
+    """
+    src = _chargen_source(character)
+    return _charm_picks_from(
+        ruleset, character,
+        src[6], src[9], src[12], character.granted_charms,
+    )
+
+
+def _charm_picks_from(ruleset: RuleSet, character: Character,
+                      charms, ox_body, beastman_gifts, granted) -> list[CharmPick]:
+    """Build the pick list from explicit trait lists, so the same enumeration serves
+    both the live character and the chargen snapshot."""
+    cf_set = caste_favored_abilities(ruleset, character)
+    caste_attr_category = _caste_favored_attribute_category(ruleset, character)
+    caste_fav_attrs = _caste_favored_attr_names(ruleset, character)
+
+    def _pick(cid, charm, label, *, source, counts=True) -> CharmPick:
+        return CharmPick(
             charm_id=cid,
             name=charm.name if charm else cid,
-            label=charm.name if charm else cid,
+            label=label,
             category=charm.category if charm else "",
-            source="charms",
-        ))
+            source=source, counts_toward_pool=counts,
+            caste_favored=bool(charm) and _charm_is_caste_favored(
+                charm, cf_set, caste_attr_category, caste_fav_attrs),
+        )
+
+    picks: list[CharmPick] = []
+
+    for cid in charms:
+        charm = ruleset.charms.get(cid)
+        picks.append(_pick(cid, charm, charm.name if charm else cid, source="charms"))
 
     ox = ox_body_charm(ruleset, character)
     if ox is not None:
         labels = {v.key: v.label for v in ox.variants}
-        for p in character.ox_body:
-            picks.append(CharmPick(
-                charm_id=ox.id, name=ox.name,
-                label=f"{ox.name} ({labels.get(p.variant, p.variant)})",
-                category=ox.category, source="ox_body",
-            ))
+        for p in ox_body:
+            picks.append(_pick(
+                ox.id, ox, f"{ox.name} ({labels.get(p.variant, p.variant)})",
+                source="ox_body"))
 
     gift = gift_charm(ruleset, character)
     if gift is not None:
         labels = {v.key: v.label for v in gift.variants}
-        for p in character.beastman_gifts:
+        for p in beastman_gifts:
             taken = ", ".join(labels.get(k, k) for k in p.gifts)
-            picks.append(CharmPick(
-                charm_id=gift.id, name=gift.name,
-                label=f"{gift.name} ({taken})",
-                category=gift.category, source="beastman_gifts",
-            ))
+            picks.append(_pick(gift.id, gift, f"{gift.name} ({taken})",
+                               source="beastman_gifts"))
 
-    for cid in character.granted_charms:
+    for cid in granted:
         charm = ruleset.charms.get(cid)
-        picks.append(CharmPick(
-            charm_id=cid,
-            name=charm.name if charm else cid,
-            label=f"{charm.name if charm else cid} (granted)",
-            category=charm.category if charm else "",
-            source="granted", counts_toward_pool=False,
-        ))
+        picks.append(_pick(cid, charm, f"{charm.name if charm else cid} (granted)",
+                           source="granted", counts=False))
 
     return picks
 
@@ -171,6 +198,51 @@ def charm_pick_count(ruleset: RuleSet, character: Character) -> int:
     """How many Charm picks the character has spent from the chargen pool — i.e.
     everything `charm_picks` yields except the free granted ones."""
     return sum(1 for p in charm_picks(ruleset, character) if p.counts_toward_pool)
+
+
+def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
+                        picks: list[CharmPick]) -> list[int]:
+    """The bonus-point price of each pool-counting pick in `picks`, in pick order.
+
+    The pricing half of the canonical enumeration: one rate ladder, applied to every
+    pick regardless of which `Character` list it came from. Most specific claim about
+    the Charm wins —
+
+      Calling         (Cult of the Illuminated, p.90)   4 BP, 3 if Caste/Favoured
+      Immaculate      (DB, p.151)                       10 / 7
+      Martial Arts    (Sidereal, p.101)                 8 / 6, None → the ordinary rate
+      ordinary                                          charm / charm_favored_caste
+
+    Unresolvable ids are priced at nothing and dropped, matching every other consumer.
+    Spells share the Charm pool but are not Charms and are priced by their caller.
+    """
+    bp_costs = ruleset.bonus_costs_for(character.exalt_type)
+    call_charms = calling_charm_ids(ruleset, character)
+    costs: list[int] = []
+    for pick in picks:
+        if not pick.counts_toward_pool:
+            continue
+        charm = ruleset.charms.get(pick.charm_id)
+        if charm is None:
+            continue
+        cf = pick.caste_favored
+        if pick.charm_id in call_charms:
+            costs.append(bp_costs.calling_charm_favored_caste if cf
+                         else bp_costs.calling_charm)
+        elif charm.immaculate:
+            costs.append(bp_costs.immaculate_charm_favored_caste if cf
+                         else bp_costs.immaculate_charm)
+        elif charm.category.startswith("martial_arts"):
+            # Other splats leave both Martial Arts fields None and fall back to the
+            # ordinary Charm rate, so their MA Charms are byte-identical.
+            rate = (bp_costs.martial_arts_charm_favored_caste if cf
+                    else bp_costs.martial_arts_charm)
+            if rate is None:
+                rate = bp_costs.charm_favored_caste if cf else bp_costs.charm
+            costs.append(rate)
+        else:
+            costs.append(bp_costs.charm_favored_caste if cf else bp_costs.charm)
+    return costs
 
 
 def _repeatable_purchase_cap(charm: Charm, character: Character) -> int:
@@ -1487,35 +1559,6 @@ def _attr_bp_caste_favored(ruleset: RuleSet, character: Character, b, bp_costs,
             + max(0, spend(remaining) - pools[2]) * bp_costs.attribute)
 
 
-def _ox_body_caste_favored(ruleset: RuleSet, character: Character,
-                            cf_set: set, caste_attr_category: str | None) -> bool:
-    """Whether the character's splat's Ox-Body-equivalent Charm counts as
-    Caste/Favoured — same rule as any other Charm (category-Ability membership
-    for Solar/DB/Abyssal's Endurance-keyed Charm, Attribute-category match for
-    Lunar's Stamina-keyed one), just resolved once here instead of re-deriving
-    `ox_body_charm` at each call site."""
-    charm = ox_body_charm(ruleset, character)
-    if charm is None:
-        return False
-    ability = _category_ability(charm.category)
-    if ability is not None and ability in cf_set:
-        return True
-    return _charm_attribute_caste_favored(charm, caste_attr_category)
-
-
-def _gift_caste_favored(ruleset: RuleSet, character: Character,
-                         cf_set: set, caste_attr_category: str | None) -> bool:
-    """Whether the character's splat's Gift-granting Charm counts as Caste/
-    Favoured — same rule as _ox_body_caste_favored, just against gift_charm."""
-    charm = gift_charm(ruleset, character)
-    if charm is None:
-        return False
-    ability = _category_ability(charm.category)
-    if ability is not None and ability in cf_set:
-        return True
-    return _charm_attribute_caste_favored(charm, caste_attr_category)
-
-
 def _charm_attribute_caste_favored(charm: Charm, caste_attr_category: str | None) -> bool:
     """Whether an Attribute-keyed Charm (Lunar) counts as Caste-favored: its
     `min_attribute`'s category matches the caste's favored category (p.122).
@@ -1741,6 +1784,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
     caste_attr_category = _caste_favored_attribute_category(ruleset, character)
+    picks = chargen_charm_picks(ruleset, character)
 
     # --- Attributes ----------------------------------------------------------- #
     # caste_favored mode (Alchemical, p.60): pools go to the caste / favored /
@@ -1852,44 +1896,13 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
         free_charm_pool = b.immaculate_charm_count if immaculate else b.charm_count
         occult_cf = AbilityName.OCCULT in cf_set
-        caste_fav_attrs = _caste_favored_attr_names(ruleset, character)
-        pick_costs: list[int] = []
-        call_charms = calling_charm_ids(ruleset, character)
-        for cid in charms:
-            charm = ruleset.charms.get(cid)
-            if charm is None:
-                continue
-            is_cf = _charm_is_caste_favored(charm, cf_set, caste_attr_category, caste_fav_attrs)
-            # A Calling Charm (p.90) has its own pair of rates, checked before the
-            # Immaculate/Martial-Arts branches because it is the more specific claim
-            # about THIS Charm. 4 BP, 3 if also Caste/Favoured.
-            if cid in call_charms:
-                pick_costs.append(bp_costs.calling_charm_favored_caste if is_cf
-                                  else bp_costs.calling_charm)
-            elif charm.immaculate:
-                pick_costs.append(bp_costs.immaculate_charm_favored_caste if is_cf
-                                  else bp_costs.immaculate_charm)
-            elif charm.category.startswith("martial_arts"):
-                # Sidereal Martial Arts BP rate (8/6, p.101); other splats leave both
-                # fields None and fall back to the ordinary Charm rate.
-                if is_cf:
-                    ma_cf = bp_costs.martial_arts_charm_favored_caste
-                    pick_costs.append(ma_cf if ma_cf is not None else bp_costs.charm_favored_caste)
-                else:
-                    ma = bp_costs.martial_arts_charm
-                    pick_costs.append(ma if ma is not None else bp_costs.charm)
-            else:
-                pick_costs.append(bp_costs.charm_favored_caste if is_cf else bp_costs.charm)
+        # One ladder for every pick, whichever list it lives on — see
+        # `charm_pick_bp_costs`. Spells share the pool but are not Charms.
+        pick_costs = charm_pick_bp_costs(ruleset, character, picks)
         for sid in spells:
             if ruleset.spells.get(sid) is None:
                 continue
             pick_costs.append(bp_costs.charm_favored_caste if occult_cf else bp_costs.charm)
-        ox_body_cf = _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category)
-        for _ in ox_body:
-            pick_costs.append(bp_costs.charm_favored_caste if ox_body_cf else bp_costs.charm)
-        gift_cf = _gift_caste_favored(ruleset, character, cf_set, caste_attr_category)
-        for _ in beastman_gifts:
-            pick_costs.append(bp_costs.charm_favored_caste if gift_cf else bp_costs.charm)
         pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
         charm_bp = sum(pick_costs[free_charm_pool:])
 
@@ -2186,19 +2199,15 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         # Charm): all chargen Charms must instead be one elemental tree, minimum waived.
         immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
         occult_cf = AbilityName.OCCULT in cf_set
-        cf_pick_count = 0
-        for cid in charms:
-            charm = ruleset.charms.get(cid)
-            if charm is None:
-                continue
-            if _charm_is_caste_favored(charm, cf_set, caste_attr_category, caste_fav_attrs):
-                cf_pick_count += 1
+        # Same enumeration the pricing reads, so a repeatable or granted list can never
+        # again be counted by one of the two and missed by the other.
+        cf_pick_count = sum(
+            1 for p in chargen_charm_picks(ruleset, character)
+            if p.counts_toward_pool and p.caste_favored
+            and ruleset.charms.get(p.charm_id) is not None
+        )
         if occult_cf:
             cf_pick_count += sum(1 for sid in spells if ruleset.spells.get(sid) is not None)
-        if _ox_body_caste_favored(ruleset, character, cf_set, caste_attr_category):
-            cf_pick_count += len(ox_body)
-        if _gift_caste_favored(ruleset, character, cf_set, caste_attr_category):
-            cf_pick_count += len(beastman_gifts)
 
         if immaculate:
             # Every chargen Charm must be an Immaculate Charm of one shared element;

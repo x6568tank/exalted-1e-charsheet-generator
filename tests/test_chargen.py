@@ -22,6 +22,7 @@ from exalted_builder.models.rules import (
     Charm,
     CharmType,
     RuleSet,
+    SOLAR_EXALT,
     Spell,
     SpellCircle,
     VirtueName,
@@ -47,12 +48,21 @@ def _ruleset() -> RuleSet:
                           type=CharmType.SIMPLE, min_ability=1, min_essence=1)
         for cat in cats
     }
+    # The splat's repeatable Ox-Body-equivalent, keyed to Endurance (Favoured on the
+    # legal Solar below) so its purchases price as Caste/Favoured picks. Without an
+    # ExaltDefinition naming it, `ox_body_charm` resolves to nothing and an Ox-Body
+    # purchase is invisible to every consumer that enumerates picks.
+    charms["c-ox-body"] = Charm(id="c-ox-body", name="Ox-Body Technique",
+                                category="endurance", type=CharmType.SIMPLE,
+                                min_ability=1, min_essence=1,
+                                repeatable_cap_ability="endurance")
+    exalts = {"Solar": SOLAR_EXALT.model_copy(update={"ox_body_charm_id": "c-ox-body"})}
     spells = {
         "s-terr": Spell(id="s-terr", name="Terrestrial Spell", circle=SpellCircle.TERRESTRIAL),
         "s-cele": Spell(id="s-cele", name="Celestial Spell", circle=SpellCircle.CELESTIAL),
         "s-solar": Spell(id="s-solar", name="Solar Spell", circle=SpellCircle.SOLAR),
     }
-    return RuleSet(castes=castes, charms=charms, spells=spells)
+    return RuleSet(castes=castes, charms=charms, spells=spells, exalts=exalts)
 
 
 def _legal_solar() -> Character:

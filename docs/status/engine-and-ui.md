@@ -20,13 +20,24 @@ the in-memory (de)serialisers the browser upload/download path reuses.
 - `validate.py`:
   - Reference integrity; Charm prereqs (AND-of-OR + min ability/essence);
     `meets_charm_requirements`/`charms_depending_on` (picker eligibility + safe removal).
-  - **Eclipse generalist rule (core p.127, `images/Solar/Traits/126-127.png`):**
+  - **The generalist rule — Solar Eclipse (core p.127,
+    `images/Solar/Traits/126-127.png`) AND Abyssal Moonshadow (Abyssals p.146,
+    `images/Abyssal/Traits/145-146.png`), DONE 2026-07-29:**
     "Provided they have a willing tutor, they may learn the Charms of other types
     of Exalted... Such Charms cost double the normal experience to learn (usually
     20 points) and use. Eclipse Caste characters may not start the game knowing
-    the Charms of other such beings without Storyteller permission." Modeled as
+    the Charms of other such beings without Storyteller permission." The Moonshadow
+    page prints the same rule in the same words (it adds only "(including ghosts)"),
+    so it is the same numbers: ×2, and no chargen Charms without ST permission.
+    Modeled as
     DATA, not a caste check in code: `CasteDefinition.foreign_charms` +
-    `foreign_charm_xp_multiplier` (2), set on `eclipse` only so far. The chargen
+    `foreign_charm_xp_multiplier` (2), now set on BOTH `eclipse` and `moonshadow`.
+    That design paid off exactly as intended — the Moonshadow half was three keys in
+    `castes.json` (`foreign_charms`, `foreign_charm_xp_multiplier`,
+    `foreign_panoply_charm_xp: 8`) and ZERO engine, pricing or UI changes; the picker's
+    Splat dropdown and ST-permission checkbox are gated on `foreign_charms_open`, never
+    on a caste id. `tests/test_eclipse_foreign_charms.py` now runs the whole rule twice,
+    once per caste, with a Dusk as the same-splat control. The chargen
     permission is `Character.st_foreign_charms`; post-lock it falls away (a willing
     tutor is narrative). Engine surface: `validate.foreign_charms_caste` /
     `foreign_charms_open` / `is_foreign_charm` / `charm_learnable_by_splat`;
@@ -67,6 +78,42 @@ the in-memory (de)serialisers the browser upload/download path reuses.
     accounting (pp.104-105) — all pulled per-exalt-type via `RuleSet.budgets_for`/
     `bonus_costs`. `bonus_point_breakdown` is the pure per-domain BP accounting the
     chargen ceiling check consumes.
+  - **The canonical Charm-pick enumeration — BOTH HALVES DONE 2026-07-29.** A
+    repeatable Charm lives on its own `Character` list (`ox_body`, `beastman_gifts`)
+    and granted Charms on a third, never in `character.charms`; every consumer that
+    walked `character.charms` used to special-case each list, and four separately did
+    not when Gifts landed. There is now exactly one enumeration and one price ladder:
+    - `charm_picks(ruleset, character)` → `list[CharmPick]` — what the character holds
+      RIGHT NOW, in sheet order. `charm_id`/`name`/`label`/`category`/`source`/
+      `counts_toward_pool`/`caste_favored`. Repeatable purchases arrive one entry each,
+      already labelled with their variant(s); granted Charms are listed with
+      `counts_toward_pool=False`. Consumed by `view.build_sheet_view` and both chargen
+      counters (`ui/picker.py`, `ui/editor.py`), plus `charm_pick_count`.
+    - `chargen_charm_picks` — the same list over what the chargen accounting reads: the
+      frozen snapshot once locked, else the current lists. Granted Charms are read live
+      either way (they cost nothing and the snapshot does not hold them).
+    - `charm_pick_bp_costs` — the price of each pool-counting pick. ONE ladder, most
+      specific claim first: Calling (p.90) → Immaculate (DB p.151) → Martial Arts
+      (Sidereal p.101, `None` → the ordinary rate) → ordinary. `bonus_point_breakdown`
+      calls it instead of rebuilding the pick list, and `validate_chargen`'s
+      Caste/Favoured pick minimum counts `caste_favored` off the same picks.
+    `_ox_body_caste_favored`/`_gift_caste_favored` are GONE — `_charm_is_caste_favored`
+    now decides for every source uniformly. **One behaviour change fell out, and the human RULED ON IT
+    2026-07-29 (confirmed — do not relitigate):** the Paladin Calling (Cult of the
+    Illuminated p.91) names Ox-Body Technique in its discount list, so an Ox-Body
+    *purchase* pays the Calling rate (4/3) rather than the flat Charm rate — "if it says
+    it should be discounted, discount it", and that applies to every purchase, not just
+    the first. The old code priced that list separately and never consulted the Calling.
+    Paladin is the only Calling naming a repeatable Charm, so it is the only character
+    affected. Pinned in `tests/test_charm_picks.py`. `tests/test_chargen.py`'s fixture
+    RuleSet gained an `exalts` row naming its Ox-Body Charm; without one
+    `ox_body_charm` resolves to nothing and a purchase is invisible to every consumer.
+    **Still not unified:** the XP-log label in `view.py` is keyed by XP *domain*, a
+    different axis, and is untouched. A new repeatable Charm still needs its own
+    `Character` list, cap/variant checks, lock snapshot, undo and picker panel — but
+    display, counting AND pricing now come free once it is enumerated. The concrete case
+    waiting on that storage work: Environmental Hazard-Resisting Meditation
+    (Caste Book: Zenith p.72-73).
   - **Spells at chargen (p.100):** share one pool with Charms — a spell takes a
     Charm pick 1:1, costs the same BP, gets the Occult discount, and counts toward
     the C/F minimum. The circle barred at creation is
