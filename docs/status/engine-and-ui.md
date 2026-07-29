@@ -42,10 +42,11 @@ the in-memory (de)serialisers the browser upload/download path reuses.
     That design paid off exactly as intended — the Moonshadow half was three keys in
     `castes.json` (`foreign_charms`, `foreign_charm_xp_multiplier`,
     `foreign_panoply_charm_xp: 8`) and ZERO engine, pricing or UI changes; the picker's
-    Splat dropdown and ST-permission checkbox are gated on `foreign_charms_open`, never
-    on a caste id. `tests/test_eclipse_foreign_charms.py` now runs the whole rule twice,
+    Splat dropdown and the ST-permission toggle are gated on `foreign_charms_open`,
+    never on a caste id. `tests/test_eclipse_foreign_charms.py` now runs the whole rule twice,
     once per caste, with a Dusk as the same-splat control. The chargen
-    permission is `Character.st_foreign_charms`; post-lock it falls away (a willing
+    permission is `Character.house_rules.st_foreign_charms` (read it via
+    `validate.foreign_charms_permitted`); post-lock it falls away (a willing
     tutor is narrative). Engine surface: `validate.foreign_charms_caste` /
     `foreign_charms_open` / `is_foreign_charm` / `charm_learnable_by_splat`;
     `check_splat_consistency` raises `charm-foreign-no-st-permission` (not
@@ -178,7 +179,8 @@ File map: `ui/view.py` (pure, toolkit-free presenter), `ui/app.py` (read-only
 sheet), `ui/editor.py` (chargen editor), `ui/picker.py` (Cytoscape charm/spell
 picker, plus the Alchemical Vat Refit page), `ui/combos.py` (Combo builder — and
 the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `ui/xp.py` (post-lock XP tab),
-`ui/play.py` (in-play tracker), `ui/builder.py` (unified tabbed app), `ui/gm.py`
+`ui/play.py` (in-play tracker), `ui/storyteller.py` (the ST Options tab),
+`ui/builder.py` (unified tabbed app), `ui/gm.py`
 (party page). Run: `.venv/bin/python -m exalted_builder.ui.builder [char.json]
 [--show] [--port N] [--native]`. Example char: `examples/ashes-of-dawn.character.json`.
 
@@ -187,7 +189,9 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
   when the splat has none of that kind); **Form Library** is added for a splat with
   `ExaltDefinition.form_library` (Lunar) and **Vat Refit** for one with Charm Slots or
   a Panoply (Alchemical, plus a crossover Eclipse) — both detailed in their splat's
-  section (`lunar.md` / `alchemical.md`). Martial Arts holds every `martial_arts:*` style category. Spells has
+  section (`lunar.md` / `alchemical.md`). **Thaumaturgy** is the one page every
+  character gets unconditionally, because it is a cross-splat capability layer rather
+  than a splat feature (`thaumaturgy.md`). Martial Arts holds every `martial_arts:*` style category. Spells has
   a Circle dropdown offering every circle the character can reach across BOTH tracks,
   one full-width row per spell (add/remove/locked, cost, description, lock reason).
   A Charm category may also swap the Cytoscape canvas for its own panel — the
@@ -195,16 +199,16 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
   graph.
 - **Splat dropdown on the Charms tab (Eclipse generalist rule).** Rendered only for
   a caste with `foreign_charms`, and only on the two Charm-tree pages (spells are
-  gated by circle, the Form Library is the character's own). Beside it, pre-lock
-  only, an "ST permission" checkbox bound to `Character.st_foreign_charms` —
-  without it the dropdown has one option and hides itself. `view.charm_on_splat_page`
+  gated by circle, the Form Library is the character's own). Without permission the
+  dropdown has one option and hides itself; **the permission checkbox itself moved to
+  the ST Options tab 2026-07-29**, leaving the picker a pre-lock line pointing there. `view.charm_on_splat_page`
   is the filter: `""`/own splat is EXACTLY `charm_matches_splat` (so every existing
   splat's picker is byte-identical), and a foreign page is that splat's own Charms
   minus anything already native, so a Celestial's Hungry Ghost Style doesn't appear
   twice. Category names collide across splats ("melee" belongs to five), so
   `build_charm_graph` now takes `(category, splat)` — the pair identifies a tree, the
   category alone does not. The detail card labels a foreign Charm and its doubled
-  price. **Not yet clicked through in a browser.**
+  price.
 - **Form Library page (Lunar).** A fourth group on the Charms tab's toggle, beside
   Abilities / Martial Arts / Spells: the character's Totem plus every animal shape
   they have taken. Deliberately FREE — narrative bookkeeping the Storyteller
@@ -213,6 +217,32 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
   validation, the XP audit or any derivation. Same isolation as play-state, for the
   same reason. Gated on `ExaltDefinition.form_library` (data, not a splat check), so
   a later shapeshifting splat opts in without a code change.
+- **ST Options tab (`ui/storyteller.py`).** The only place `Character.house_rules` is
+  edited, and the home for **every** Storyteller toggle, not just thaumaturgy's — see
+  `thaumaturgy.md` for the four it holds today. Three things about it are load-bearing
+  for whoever adds the fifth:
+  * **It is read-only post-lock.** The toggles change how chargen is PRICED and are
+    frozen into the ChargenSnapshot, so flipping one after the fact would re-price a
+    signed-off chargen. The tab says so and names Unlock as the route.
+  * **TABLE-WIDE vs PER-CHARACTER is rendered as two sections**, from
+    `view._HOUSE_RULES`. The model marks the split in comments only (human's call,
+    2026-07-29 — one flat model), so the machine-readable copy lives in the presenter
+    and `tests/test_thaumaturgy_ui.py` pins it to `HouseRules.model_fields`. **Add a
+    field and that test fails until the table is updated** — which is the whole reason
+    the comments-only choice is safe. A party-wide "apply to all" control may only
+    touch the table-wide ones.
+  * **An inert toggle is annotated, not hidden.** A Dawn still sees the foreign-Charm
+    permission, with a note saying its caste cannot use it — an ST hunting for a
+    setting should be told why it does nothing rather than wonder where it went.
+- **Thaumaturgy page (`ui/picker.py` + `view.build_thaum_picker`).** Detailed in
+  `thaumaturgy.md`; two notes that generalise beyond it. Its **purchase functions are
+  module-level, not closures inside `build_picker`** (the `ui/play.py` precedent) —
+  they mutate the save, and several buy buttons legitimately share a label ("5 BP" is
+  every Art), so click-testing one in particular is impossible; module level makes them
+  unit-testable. And its sub-tabs are real `ui.tabs` rather than the picker's usual
+  `ui.toggle`, because **a toggle's options are not separate elements and so cannot be
+  clicked from the User simulation** — worth knowing before adding another sub-paged
+  panel. `build_picker` also gained `initial_group=` to open on a given page.
 - **The charm graph draws cross-category prerequisites.** `build_charm_graph`
   pulls a category's out-of-category prerequisites in transitively and flags them
   `external` (dashed, smaller node); `roots` means "nothing in the graph points at

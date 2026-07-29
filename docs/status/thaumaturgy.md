@@ -1,10 +1,11 @@
 # Thaumaturgy (Player's Guide CH3)
 
-**STATUS: COMPLETE — engine and UI.** Catalogue, models, costs, BP breakdown, chargen
-gates, snapshot freeze, XP advancement and audit, plus the ST Options tab, the picker's
-Thaumaturgy page, the sheet panel and the XP-ledger labels. **Not yet clicked through
-in a real browser** — covered by NiceGUI User-simulation render tests, which catch
-crashes and missing content but are not a substitute for looking at it.
+**STATUS: COMPLETE — engine and UI, browser-verified 2026-07-29.** Catalogue, models,
+costs, BP breakdown, chargen gates, snapshot freeze, XP advancement and audit, plus the
+ST Options tab, the picker's Thaumaturgy page, the sheet panel and the XP-ledger
+labels. Clicked through by the human with no notes; the ST Options tab confirmed
+working. Also covered by NiceGUI User-simulation render tests, which catch crashes and
+missing content but are not a substitute for looking at it.
 Source survey and architecture written up 2026-07-29; build started same day.
 Source: `images/Mortals/Mortals & Heroic Mortals/Player's Guide.md` (pasted text,
 pp. 11-12 + 96-150) and `Exalted p103.png` (corebook heroic-mortal chargen).
@@ -55,8 +56,8 @@ Tests: `tests/test_thaumaturgy_data.py` (38, catalogue + cost ladder),
   thaumaturgy's — the Eclipse/Moonshadow chargen permission moved onto it
   (`st_foreign_charms`), with a load migration for existing saves.
 
-**Not done:** nothing in thaumaturgy itself, beyond a real browser click-through.
-The Knowledge restricted-BP pool is deliberately deferred to the M&F milestone.
+**Not done:** nothing. The Knowledge restricted-BP pool is deliberately deferred to
+the M&F milestone, and is the only thaumaturgy-adjacent work left anywhere.
 
 ### Science costs — RESOLVED, and the one rate here with no page behind it
 Neither printed cost table has a Science row: the BP table (p.116) runs Attribute /
@@ -407,8 +408,8 @@ item is the p.143 cross-reference table (below).
 1. ~~Models + the four data files.~~ **DONE**
 2. ~~`ThaumaturgyState`, the orientation-aware entry, the cost ladder.~~ **DONE**
 3. ~~BP breakdown, chargen gates, snapshot freeze, XP advancement + audit.~~ **DONE**
-4. ~~UI — two pages, not one.~~ **DONE** (2026-07-29). Both shipped, plus two
-   follow-ons that turned out to be part of the same job:
+4. ~~UI — two pages, not one.~~ **DONE** (2026-07-29, browser-verified). Both shipped,
+   plus two follow-ons that turned out to be part of the same job:
    **(a) the Storyteller-options tab** — `ui/storyteller.py`, a seventh builder tab
    ("ST Options", `gavel`). Renders `view.build_house_rules`, splitting TABLE-WIDE
    from PER-CHARACTER into two labelled sections, and goes read-only once chargen

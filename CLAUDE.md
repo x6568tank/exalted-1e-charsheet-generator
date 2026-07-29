@@ -216,14 +216,16 @@ touching that area**; the summaries below are pointers, not the full record.
 | Solar alt-origin: Cult of the Illuminated (Camps, Callings, granted Charms) | `docs/status/illuminated.md` |
 | DB origins: Lookshy / Forest Witches / Lost Eggs / Pirates (`upbringing` axis) | `docs/status/dragonblooded-origins.md` |
 | DB Aspect Books CH6 (87 Charms, Jade Mountain, breadth prereqs, gear) | `docs/status/dragonblooded-aspect-books.md` |
-| **Thaumaturgy — DONE** (cross-splat Arts/Sciences/Rituals/Formulas; engine + UI) | `docs/status/thaumaturgy.md` |
+| **Thaumaturgy — DONE** (cross-splat Arts/Sciences/Rituals/Formulas; engine + UI, browser-verified) | `docs/status/thaumaturgy.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
 browser-verified: Solar (core + 5 castebooks + Cult of the Illuminated origin),
 Dragon-Blooded, Abyssal, Lunar, Sidereal, Alchemical. 1,470 Charms total across
 six splats (`data-and-tooling.md`). GM party mode and the Storyteller reference
-screen are done. **Every Exalt splat is done; the six non-Exalt splats are what's
+screen are done. **Thaumaturgy is done end to end** (2026-07-29) — the cross-splat
+capability layer, including its ST Options tab, which is now the home for every
+Storyteller toggle. **Every Exalt splat is done; the six non-Exalt splats are what's
 left** (see **Next Exalt Types** above), all blocked on source images. See **TODO**
 below for what's actually next.
 
@@ -279,8 +281,8 @@ page, the sheet panel and the XP-ledger labels — `docs/status/thaumaturgy.md`)
   `docs/status/thaumaturgy.md`. Source COMPLETE. Shipped: catalogue, models, cost
   ladder, purchase enumeration, BP breakdown, chargen Occult gates, snapshot freeze,
   XP advancement + audit, the **ST Options tab**, the picker's **Thaumaturgy page**
-  (four sub-tabs), the sheet panel and the XP-ledger labels. **Not browser-verified
-  yet** — render-tested only.
+  (four sub-tabs), the sheet panel and the XP-ledger labels. **Browser-verified
+  2026-07-29** (clicked through, no notes).
   **No open rules questions.** "Magic for Everyone" (p.115) shipped as a toggleable
   table setting on `Character.house_rules` (frozen into the ChargenSnapshot).
   **`HouseRules` is the home for EVERY Storyteller toggle**, not just thaumaturgy's:
