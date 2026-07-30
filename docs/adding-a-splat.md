@@ -4,7 +4,7 @@ Six splats are implemented. **Not one of them was data alone**, and anyone who t
 this engine is generic enough that a new splat is "just JSON" is selling you something.
 What is true is narrower and still useful:
 
-> A splat's **content** — Charms, spells, castes, costs, budgets — is data. A splat's
+> A splat's **content** (Charms, spells, castes, costs, budgets) is data. A splat's
 > **novel subsystem** is code. The ratio has been roughly 90/10 by volume and 10/90 by
 > effort.
 
@@ -14,20 +14,13 @@ the traps that have already bitten.
 
 ## Step 0 — get the pages, or stop
 
-Nothing starts until the rulebook pages are in `images/<Splat>/` — PNGs, or `.md` text
-the maintainer pasted out of a text-selectable book. **Never author a value from memory**,
-and never read the PDFs in `sources/` yourself. This is decision
-[0001](decisions/0001-first-edition-only.md) and it is not negotiable: 2e values feel
-right and are wrong.
-
-What you need before writing anything:
-
-* the **Character Creation** pages — the budget table, the caste list, Essence
-* the **Traits** pages — anything the splat does differently with Abilities, Attributes,
-  Backgrounds, Virtues, or its Limit analogue
-* the **Charms** chapter, including any tree diagrams (those must be images; a
-  boxes-and-arrows diagram does not survive text extraction)
-* the **Storytelling / advancement** page with the XP table, if the splat prints one
+If you're vibecoding a custom splat, have your data ready in `images/{Splat}/` or not at all.
+Otherwise, I'd still like *some* record of your new Splat's baseline -- the budgets, the 
+XP-tables, Charm trees, Spells, etc etc. Before writing anything, you need 
+* Character Creation, something like the summary in the splatbooks
+* Traits pages -- custom backgrounds, virtues, and anything the Splat does different from base Solars
+* Charms, or if it has access to other Splat's charm trees.
+* XP-Advancement costs or it'll default to Solars
 
 ## Step 1 — the four data rows
 
@@ -43,10 +36,10 @@ splats.
    `caste_abilities` *or* `caste_attributes` (see the Lunar note below), plus
    `required_min_abilities` if the splat prints per-caste floors.
 3. **`chargen_budgets.json`** — a row keyed by exalt type. ~38 fields exist; author only
-   the ones the page states and let the rest fall back.
-4. **`costs_bonus.json` + `costs_xp.json`** — the BP and XP rows, if the splat prints its
+   the ones your splat changes and let the rest fall back.
+4. **`costs_bonus.json` + `costs_xp.json`** — the BP and XP rows, if the splat has its
    own. Anything unstated falls back to the Solar baseline, which is usually right and
-   occasionally is not: check the page rather than assuming.
+   occasionally is not: don't assume.
 
 Then `theme.py` gets a palette (`fam` must be a real Tailwind colour family), and the
 Charms go in `data/charms/*.json`.
@@ -60,7 +53,7 @@ Ask these against the Traits and Character Creation pages **before** estimating:
 | Question | If yes |
 |---|---|
 | Are Charms keyed to something other than an Ability? | New gating axis. Lunar needed `Charm.min_attribute` and `CasteDefinition.caste_attributes` as parallels to the Ability versions |
-| Does the splat lack ability-castes entirely? | Anything that lays the Ability roster out *by caste* renders blank. `view.ability_group_defs` is the one place that decides grouping |
+| Does the splat lack ability-castes entirely? | Anything that lays the Ability roster out *by caste* renders blank. `view.ability_group_defs` is the one place that decides grouping -- currently falls back to Player's Guide grouping if no caste grouping |
 | Does chargen spend a pool this engine has never had? | New budget field **and** new validation. Sidereal's 7 College dots; Alchemical's Charm Slots |
 | Is there an intra-splat variant (Dynastic vs Outcaste, ronin)? | The `origin` axis, and possibly `upbringing` under it — both are keyed-table suffixes |
 | Does it have its own magic track or circles? | New `SpellCircle` values and a `magic_track`; the circles must each be granted by a Charm |
@@ -105,13 +98,13 @@ subsystem as the real project.
    set. Author the initiation Charm and the spells together.
 7. **Solar fallbacks are a feature and a hazard.** Anything a splat does not state
    inherits Solar's number. That is usually correct and is occasionally a silent rules
-   bug — the XP tables needed fixing for exactly this reason.
+   bug -- the XP tables needed fixing for exactly this reason.
 
 ## Step 5 — definition of done
 
 A splat is not done when the tests pass.
 
-1. Data authored from pages, with page numbers recorded.
+1. Data authored from source, with page numbers recorded if any exist.
 2. `.venv/bin/python -m pytest` green, including a splat-specific test module asserting
    the distinctive numbers (`tests/test_lunar.py` and friends are the pattern).
 3. **Driven in a browser by a human** — every tab, with a real character of that splat.
