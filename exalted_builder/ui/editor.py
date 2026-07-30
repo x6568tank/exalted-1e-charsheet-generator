@@ -207,8 +207,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         ui.label(bp).classes("text-sm font-semibold").style(f"color:{pal.accent}")
         with ui.row().classes("gap-4 text-sm"):
             ui.label(f"Willpower {view.willpower}")
-            ui.label(f"Personal {view.essence_personal}")
-            ui.label(f"Peripheral {view.essence_peripheral}")
+            ui.label(view.essence_pool_label())
         ui.label(f"Soak  B{view.soak.bashing} / L{view.soak.lethal} / A{view.soak.aggravated}").classes("text-sm")
         ui.separator()
         status = "✓ Legal chargen" if not errors else f"✗ {len(errors)} error(s)"
@@ -237,7 +236,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     # ---- live tally of ability dots spent (updates on every dot click) ----- #
     @ui.refreshable
     def ability_tally() -> None:
-        b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+        # effective_budgets, not budgets_for: a trait-forfeit Flaw (Unskilled, Callous)
+        # sells free dots for bonus points, and the tally must count against what the
+        # engine actually charges or the sheet contradicts its own validation.
+        b = validate.effective_budgets(ruleset, character)
         spent = (sum(v for a, v in character.abilities.items() if a != AbilityName.CRAFT)
                  + sum(cr.rating for cr in character.crafts))
         over = spent > b.ability_dots
@@ -290,8 +292,22 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         favored_attrs = set(character.favored_attributes)
         # chargen budget for THIS character (splat + origin), so panel headers show
         # the right numbers (Solar 8/6/4·25; DB Dynastic 7/6/4·35, Outcaste ·25).
-        b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+        b = validate.effective_budgets(ruleset, character)
+        # Trait ceilings a Merit or Flaw has moved, read once for the dot rows below.
+        mf_effects = merits.merits_and_flaws_calc(ruleset, character)
+
+        def _attr_cap(a) -> int:
+            return mf_effects.attribute_caps.get(a.value, merits.DOT_MAX)
+
+        virtue_cap = (mf_effects.virtue_cap if mf_effects.virtue_cap is not None
+                      else merits.DOT_MAX)
         ap = "/".join(str(p) for p in b.attribute_pools)
+        # Attribute pools are matched to categories by SPEND, so a Diminished
+        # Attributes forfeit cannot be folded into the printed 8/6/4 the way the
+        # Ability and Virtue budgets can — name the shortfall alongside it instead.
+        forfeited = merits.merits_and_flaws_calc(ruleset, character).forfeited_attribute_dots
+        if forfeited:
+            ap += " " + ", ".join(f"−{n} {cat}" for cat, n in sorted(forfeited.items()))
         # splats name the caste slot differently: Solar "Caste", Dragon-Blooded "Aspect"
         exalt_def = ruleset.exalt_for(character.exalt_type)
         caste_noun = exalt_def.caste_noun
@@ -482,10 +498,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 ui.label(mark).classes("text-xs w-3").style(f"color:{pal.accent}")
                                 ui.label(_label(a.value)).classes("text-sm w-28")
                                 # update this column's tally live as its dots change
+                                # The dot row's ceiling is the trait's, not a flat 5:
+                                # Legendary Attribute raises one Attribute and
+                                # Disfigured lowers Appearance, and a cap the player
+                                # cannot click to is a cap they cannot use.
                                 dots(lambda a=a: character.attributes[a],
                                      lambda v, a=a, upd=show_spent: (
                                          character.attributes.__setitem__(a, v), upd()),
-                                     1, 5)
+                                     min(1, _attr_cap(a)), _attr_cap(a))
 
         # abilities (by ability-caste group)
         with panel(f"Abilities ({b.ability_dots} dots; ≥{b.ability_min_caste_favored} caste/favoured; ≤{b.ability_cap_pre_bp} each pre-bonus)"):
@@ -536,7 +556,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):
                         ui.label(_label(v.value)).classes("text-sm w-28")
                         dots(lambda v=v: character.virtues[v],
-                             lambda val, v=v: character.virtues.__setitem__(v, val), 1, 5)
+                             lambda val, v=v: character.virtues.__setitem__(v, val),
+                             1, virtue_cap)
             with panel("Essence & Willpower").classes("flex-1"):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.label("Essence").classes("text-sm w-28")

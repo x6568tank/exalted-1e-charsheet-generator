@@ -256,3 +256,71 @@ override — neither splat exists in this build. Add it with them.
   `db_enlightenment_met` is Dragon-Blooded-specific and returns True for every other
   splat, so a mortal would otherwise have walked straight in. Consistent with barring
   Spirit Walking, since the Dragon Paths are exactly what Spirit Walking unlocks.
+
+
+## NEXT SESSION — modelling the mechanical effects (planned 2026-07-30)
+
+> **SUPERSEDED — this section is the PLAN as it was written, kept for its reasoning
+> (especially "why not parallel subagents"). The work is under way and its record is
+> `merits-flaws-triage.md`:** the triage pass is done, the human has ruled on the
+> boundary, and clusters **A1-A5 are implemented** (trait forfeits, health levels, trait
+> caps, cost modifiers, Essence-pool shape). A6-A7 remain. The counts below are the
+> pre-triage estimate; the real answer is 26 implementable entries in 8 mechanisms.
+
+**Only 4 of 98 M&F have their mechanical effects modelled**: Essence Awareness, Essence
+Mastery, Oathbound Magic, and Holy Mien's Priest grant. The other 94 are printed text on
+the sheet and nothing more. The catalogue, costs, validation and UI are all complete —
+what is missing is the *effects*.
+
+### The useful number is much smaller than 94
+
+Rough triage by what each description actually touches (regex over the descriptions, so
+treat as indicative, not final):
+
+| Bucket | Count | Expressible here? |
+|---|---|---|
+| Dice pools / difficulties | 30 | **No.** This build models no dice pools (decisions 0008/0009) — there is nothing to hook. |
+| Pure narrative | 33 | **No.** Nothing to model. |
+| Mentions Willpower / Virtue | 21 | **Mixed.** Most are "make a Willpower roll" (out of scope); a few may be real permanent modifiers. This bucket needs reading. |
+| Health levels | 2 | **Yes** — Large Size, Small |
+| Attribute rating / cap | 3 | **Yes** — Legendary Attribute, Diminished Attributes, The Flow of Essence |
+| Favored abilities | 2 | **Yes** — Prodigy, Unskilled |
+
+Expect the genuinely implementable set to land around **10-20**, not 94.
+
+### The plan
+
+1. **Triage pass.** Produce a table of all 94: each marked *implementable / out of scope
+   (dice) / narrative*, with a one-line reason. The 21-row Willpower/Virtue bucket is
+   where the real reading is.
+2. **Human rules on the boundary cases.** The dice/no-dice line has to be drawn once and
+   applied consistently, or the same rule gets two answers in different entries.
+3. **Implement the survivors in ONE sweep** through `MeritEffects` — new fields, new
+   branches in `merits_and_flaws_calc`, and the corresponding reads in derive/validate.
+
+### Why NOT parallel subagents (assessed 2026-07-30)
+
+Considered at the human's suggestion and advised against, for reasons specific to this
+work rather than any capability limit:
+
+* **Decision 0011 funnels every effect through one object and one function.** Parallel
+  agents would all be editing `MeritEffects` and `merits_and_flaws_calc` — same two
+  files, same two spots. Maximum collision on work that is mostly deciding, not typing.
+* **The hard part is scope adjudication, not implementation.** "+2 dice to Perception"
+  has nothing to attach to. That boundary must be drawn ONCE; split across agents you
+  get several different readings of it.
+* **Each real effect is small but architectural.** Large Size granting a -0 health level
+  touches `derive.health_track`, which today reads only Charms and Ox-Body purchases.
+
+The one place parallelism would genuinely help is **step 1**: several agents each
+classifying a slice of the chapter against a fixed rubric, with the results merged. That
+was the human's fallback if they want it.
+
+### Known first targets
+
+* `derive.health_track` — currently reads Charms + Ox-Body only. Large Size (+1 -0 level
+  at 4pts; +1 -0 and +1 -1 at 6pts) and Small are the first callers that are not Charms.
+* `ExaltDefinition`/validate attribute caps — Legendary Attribute raises the ceiling one
+  dot above what Essence allows, "during character creation or after it".
+* `validate.favored_ability_count` — Prodigy grants "one additional Favored Ability for
+  every" rung; Unskilled is its inverse.

@@ -264,6 +264,9 @@ def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
             costs.append(rate)
         else:
             costs.append(bp_costs.charm_favored_caste if cf else bp_costs.charm)
+        # Brigid's Heir doubles the BONUS-point cost as well as the XP one, outside the
+        # sorcery line. Applied per pick so the exemption is per Charm.
+        costs[-1] = merits.adjust_charm_cost(ruleset, character, charm, costs[-1])
     return costs
 
 
@@ -2302,7 +2305,7 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
     legitimately not want them. Reads the frozen snapshot once locked, like all the
     other chargen accounting, so a locked sheet's warnings never drift.
     """
-    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    b = effective_budgets(ruleset, character)
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      *_rest) = _chargen_source(character)
     issues: list[Issue] = []
@@ -2323,9 +2326,9 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
                   for g in groups]
         pools = list(b.attribute_pools)                              # FIXED order here
     else:
-        spends = sorted((sum(attributes[a] - b.attribute_base for a in attrs)
-                         for attrs in ATTRIBUTE_CATEGORIES.values()), reverse=True)
-        pools = sorted(b.attribute_pools, reverse=True)
+        assignment = attribute_pool_assignment(ruleset, character, b, attributes)
+        spends = [spend for _cat, spend, _pool in assignment]
+        pools = [pool for _cat, _spend, pool in assignment]
     warn("Attribute", sum(max(0, p - s) for s, p in zip(spends, pools)), sum(pools))
 
     # Abilities/Virtues/Backgrounds: one flat pool each, and only dots at or below the
@@ -2366,7 +2369,13 @@ def favored_ability_count(ruleset: RuleSet, character: Character) -> int:
     """How many Favoured Abilities this character must pick — the budget's count, plus
     the one core p.103's optional rule grants a heroic mortal when it is in play."""
     b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
-    return b.favored_count + (1 if optional_favored_ability_open(ruleset, character) else 0)
+    total = b.favored_count + (1 if optional_favored_ability_open(ruleset, character) else 0)
+    # Prodigy grants "one additional Favored Ability for every time this Merit is
+    # purchased", but "characters may not have more than five Favored Abilities in
+    # total" (p.21) — which is exactly why the Merit is closed to the splats already at
+    # that limit.
+    extra = merits.merits_and_flaws_calc(ruleset, character).extra_favored_abilities
+    return min(merits.PRODIGY_FAVORED_CAP, total + extra) if extra else total
 
 
 def mortal_favored_ability_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -2449,7 +2458,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     of the BP totals; validate_chargen consumes it for the ceiling check, and the
     editor renders it as a spend log.
     """
-    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    b = effective_budgets(ruleset, character)
     bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin, character.upbringing)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased,
@@ -2473,16 +2482,11 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         # p.93 — "4, 3 if a Caste Attribute"). Ability-caste splats have no favored
         # category (caste_attr_category is None), so every category costs the same
         # flat `attribute` rate.
-        cat_spends = sorted(
-            ((cat, sum(attributes[a] - b.attribute_base for a in attrs))
-             for cat, attrs in ATTRIBUTE_CATEGORIES.items()),
-            key=lambda cs: cs[1], reverse=True,
-        )
-        pools = sorted(b.attribute_pools, reverse=True)
         attr_bp = sum(
             max(0, spend - pool) * (bp_costs.attribute_caste_favored if cat == caste_attr_category
                                      else bp_costs.attribute)
-            for (cat, spend), pool in zip(cat_spends, pools)
+            for cat, spend, pool in attribute_pool_assignment(ruleset, character, b,
+                                                              attributes)
         )
 
     # --- Abilities: 25 free dots, pre-BP cap 3 -------------------------------- #
@@ -2581,7 +2585,9 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         for sid in spells:
             if ruleset.spells.get(sid) is None:
                 continue
-            pick_costs.append(bp_costs.charm_favored_caste if occult_cf else bp_costs.charm)
+            pick_costs.append(merits.adjust_spell_cost(
+                ruleset, character,
+                bp_costs.charm_favored_caste if occult_cf else bp_costs.charm))
         pick_costs.sort(reverse=True)                # free pool absorbs the dearest picks
         charm_bp = sum(pick_costs[free_charm_pool:])
 
@@ -2727,6 +2733,19 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                         f"{', '.join(definition.exalt_types)}; this character is "
                         f"{character.exalt_type}.",
             ))
+        if character.exalt_type in definition.barred_exalt_types:
+            issues.append(Issue(
+                code="merit-barred-splat", where=definition.id,
+                message=f"{definition.name} is not available to "
+                        f"{', '.join(definition.barred_exalt_types)}.",
+            ))
+        if character.caste in definition.barred_castes:
+            caste = ruleset.castes.get(character.caste)
+            issues.append(Issue(
+                code="merit-barred-caste", where=definition.id,
+                message=f"{definition.name} is not available to the "
+                        f"{caste.label if caste else character.caste} caste.",
+            ))
         if definition.thaumaturges_only and not has_thaum:
             issues.append(Issue(
                 code="merit-thaumaturges-only", where=definition.id,
@@ -2790,6 +2809,96 @@ def effective_merit_kind(definition, purchase) -> str:
     return purchase.taken_as if purchase.taken_as in ("merit", "flaw") else "merit"
 
 
+def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attributes
+                              ) -> list[tuple[str, int, int]]:
+    """[(category, spend, pool)] for category-mode splats — which of the 8/6/4 pools
+    each Attribute category gets, and how many dots were spent against it.
+
+    The pools are matched to categories BY SPEND, not declared: the biggest spend takes
+    the biggest pool. That is why Diminished Attributes cannot be applied as a budget
+    delta the way Callous and Unskilled are — the forfeit has to come off the pool its
+    category actually receives, which is only known once the matching is done. So the
+    matching happens first, on the character's real spends, and the forfeit is taken
+    off the pool afterwards.
+
+    A consequence the human accepted explicitly (2026-07-30): forfeiting dots lowers a
+    category's spend, which can drop it to a smaller pool, and that reshuffle can cost
+    bonus points elsewhere. "If BP need be consumed because of how the pools change,
+    then that's what happens."
+    """
+    forfeits = merits.merits_and_flaws_calc(ruleset, character).forfeited_attribute_dots
+    cat_spends = sorted(
+        ((cat, sum(attributes[a] - b.attribute_base for a in attrs))
+         for cat, attrs in ATTRIBUTE_CATEGORIES.items()),
+        key=lambda cs: cs[1], reverse=True,
+    )
+    pools = sorted(b.attribute_pools, reverse=True)
+    return [(cat, spend, max(0, pool - forfeits.get(cat, 0)))
+            for (cat, spend), pool in zip(cat_spends, pools)]
+
+
+WITHHELD_CHARM_TARGET = "charms_withheld"
+
+
+def withheld_charm_credits(ruleset: RuleSet, character: Character) -> tuple[int, int]:
+    """(granted, remaining) chargen Charm picks banked for XP-free use after the lock.
+
+    Weak Essence lets a new Exalt "withhold up to five Charms in reserve … Withheld
+    Charms waive their experience cost" (p.41), because a character pinned at Essence 1
+    cannot qualify for enough Charms to spend a full chargen budget.
+
+    NOTHING new is stored. How many were withheld is the unspent remainder of the
+    chargen Charm budget — the snapshot already records what was taken — capped by the
+    Flaw's own ceiling:
+
+        granted = min(charm_credits_max, charm_count − picks taken)
+
+    which is the human's rule ("keep the free Charms at 5; if more than five Charms are
+    selected during chargen, subtract the number over") stated so it holds for any
+    splat's budget rather than only Solar's 10. Banking can never yield MORE Charms than
+    the character's ordinary budget: it defers picks, it does not add them.
+
+    Redemptions are counted straight off the append-only XP log, so the pair always
+    reconciles with what was actually spent.
+    """
+    ceiling = merits.merits_and_flaws_calc(ruleset, character).charm_credits_max
+    if not ceiling:
+        return 0, 0
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    taken = len(chargen_charm_picks(ruleset, character))
+    granted = max(0, min(ceiling, b.charm_count - taken))
+    redeemed = sum(1 for e in character.xp_log if e.target == WITHHELD_CHARM_TARGET)
+    return granted, max(0, granted - redeemed)
+
+
+def effective_budgets(ruleset: RuleSet, character: Character):
+    """The character's chargen budgets, reduced by any trait-forfeit Flaw they hold.
+
+    Four Flaws (PG pp.35-36) pay bonus points for free chargen dots GIVEN UP rather
+    than for a disadvantage suffered — Callous trades Virtue dots, Unskilled Ability
+    dots, Weak-Willed permanent Willpower, Diminished Attributes Attribute dots. The
+    human's framing (2026-07-30) is that this is a budget delta and nothing more: a
+    Callous character who sold two Virtue dots has a Virtue budget of 3 rather than 5,
+    and every existing over-spend check then does the real work unchanged.
+
+    The printed budget stays the one in `data/`; this returns a COPY. Callers that want
+    to show the player what they gave up can diff the two.
+
+    Diminished Attributes is deliberately NOT applied here: `attribute_pools` are
+    matched to categories by spend rather than declared, so the forfeit has to be taken
+    off the pool that its category actually receives, at the point the two are zipped.
+    `MeritEffects.forfeited_attribute_dots` carries it; nothing consumes it yet.
+    """
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    effects = merits.merits_and_flaws_calc(ruleset, character)
+    if not (effects.forfeited_ability_dots or effects.forfeited_virtue_dots):
+        return b
+    return b.model_copy(update={
+        "ability_dots": max(0, b.ability_dots - effects.forfeited_ability_dots),
+        "virtue_dots": max(0, b.virtue_dots - effects.forfeited_virtue_dots),
+    })
+
+
 def merit_points(definition, purchase, exalt_type: str = "", caste: str = "") -> int:
     if definition.variable_cost:
         return max(0, purchase.points)
@@ -2825,7 +2934,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     over-spent builds.
     """
     issues: list[Issue] = []
-    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    b = effective_budgets(ruleset, character)
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
      beastman_gifts, arrays, _submodules, colleges, thaumaturgy) = _chargen_source(character)
@@ -2871,11 +2980,14 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         issues += mortal_favored_ability_issues(ruleset, character)
     else:
         caste_abilities, favored = cf
-        # Favoured: exactly favored_count, all distinct from Caste, >=1 dot each.
-        if len(favored) != b.favored_count:
+        # Favoured: exactly favored_ability_count, all distinct from Caste, >=1 dot
+        # each. The count is not b.favored_count directly because Prodigy grants extra
+        # Favoured Abilities to the splats not already at the five-Ability limit.
+        expected_favored = favored_ability_count(ruleset, character)
+        if len(favored) != expected_favored:
             issues.append(Issue(
                 code="favored-count",
-                message=f"Expected {b.favored_count} Favoured abilities, "
+                message=f"Expected {expected_favored} Favoured abilities, "
                         f"found {len(favored)}.",
             ))
         overlap = favored & caste_abilities
@@ -2904,11 +3016,21 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     caste_attr_category = _caste_favored_attribute_category(ruleset, character)
 
     # --- Range checks --------------------------------------------------------- #
+    # The universal ceiling is 5; a Merit or Flaw may move it for one named Attribute
+    # (Legendary Attribute raises, Disfigured lowers Appearance). Read from
+    # MeritEffects rather than branching on an entry, per decision 0011.
+    mf_caps = merits.merits_and_flaws_calc(ruleset, character)
     for name, attr in attributes.items():
-        if not (b.attribute_base <= attr <= 5):
+        cap = mf_caps.attribute_caps.get(name.value, merits.DOT_MAX)
+        # A Flaw's ceiling can sit BELOW the normal chargen floor — Disfigured at four
+        # points is "an Appearance of 0", and the free dot every Attribute starts with
+        # is exactly what it takes away. So the floor follows the ceiling down.
+        low = min(b.attribute_base, cap)
+        if not (low <= attr <= cap):
+            span = f"exactly {cap}" if low == cap else f"{low}-{cap}"
             issues.append(Issue(
                 code="attribute-range", where=name.value,
-                message=f"Attribute {name.value} = {attr}; must be {b.attribute_base}-5 at creation.",
+                message=f"Attribute {name.value} = {attr}; must be {span} at creation.",
             ))
 
     # --- caste_favored attribute legality (Alchemical, p.60) ------------------ #
@@ -2976,11 +3098,14 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"This origin requires at least {req.rating} dot(s) in {names}; "
                         f"has {best}.",
             ))
+    virtue_cap = (mf_caps.virtue_cap if mf_caps.virtue_cap is not None
+                  else merits.DOT_MAX)
     for v, rating in virtues.items():
-        if not (b.virtue_base <= rating <= 5):
+        if not (b.virtue_base <= rating <= virtue_cap):
             issues.append(Issue(
                 code="virtue-range", where=v.value,
-                message=f"Virtue {v.value} = {rating}; must be {b.virtue_base}-5 at creation.",
+                message=f"Virtue {v.value} = {rating}; must be "
+                        f"{b.virtue_base}-{virtue_cap} at creation.",
             ))
 
     # --- Astrological Colleges (Sidereal, p.98) ------------------------------- #
@@ -3153,6 +3278,53 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                          f"{b.willpower_cap_exception_count} Virtues are "
                          f">= {b.willpower_cap_exception_virtue}."),
             ))
+
+    # --- Willpower rules imposed by a held Flaw ------------------------------- #
+    # Callous ceilings Willpower just above the Virtues it let the player sell off, and
+    # Weak-Willed floors what its own forfeit may reach. Both read MeritEffects fields
+    # rather than naming a Flaw (decision 0011). The Callous ceiling is the sanctioned
+    # exception to decision 0005 — the human ruled that Willpower moves with the Virtues
+    # for a Callous character, and stays pinned at lock for everyone else.
+    mf = merits.merits_and_flaws_calc(ruleset, character)
+    wp_forfeited = max(0, wp_total - mf.forfeited_willpower_dots)
+    if mf.willpower_virtue_margin is not None:
+        ceiling = derive.two_highest_virtues(virtues) + mf.willpower_virtue_margin
+        if wp_forfeited > ceiling:
+            issues.append(Issue(
+                code="callous-willpower-cap",
+                message=(f"Willpower starts at {wp_forfeited}; a Flaw held caps it at "
+                         f"{ceiling} — no more than {mf.willpower_virtue_margin} above "
+                         f"the sum of the two highest Virtues."),
+            ))
+    if mf.willpower_floor and wp_forfeited < mf.willpower_floor:
+        issues.append(Issue(
+            code="willpower-below-flaw-floor",
+            message=(f"Willpower starts at {wp_forfeited}; a Flaw held floors it at "
+                     f"{mf.willpower_floor}."),
+        ))
+    if mf.barred_natures and character.nature in mf.barred_natures:
+        issues.append(Issue(
+            code="nature-barred-by-flaw",
+            message=f"A Flaw held bars the {character.nature} Nature.",
+        ))
+    for name in mf.nature_requirement_unmet:
+        issues.append(Issue(
+            code="merit-nature-required", where=name,
+            message=(f"{name} may only be purchased or retained with the Nature it "
+                     f"requires; this character's Nature is "
+                     f"{character.nature or 'unset'}."),
+        ))
+
+    # --- Essence forced by a Flaw --------------------------------------------- #
+    # Weak Essence "reduces the character's starting Essence rating to 1", which is a
+    # ceiling on creation, not on later advancement — the Flaw exists precisely so the
+    # character can raise Essence in play.
+    if mf.essence_start_override is not None and essence > mf.essence_start_override:
+        issues.append(Issue(
+            code="essence-above-flaw-start",
+            message=(f"Essence starts at {essence}; a Flaw held reduces the starting "
+                     f"rating to {mf.essence_start_override}."),
+        ))
 
     # --- Essence -------------------------------------------------------------- #
     if essence < b.essence_start:

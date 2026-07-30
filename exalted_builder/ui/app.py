@@ -286,7 +286,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
                 ui.separator()
                 ui.label("Essence").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 _named_value("Rating", view.essence_rating)
-                ui.label(f"Personal {view.essence_personal}  ·  Peripheral {view.essence_peripheral}").classes("text-sm")
+                ui.label(view.essence_pool_label()).classes("text-sm")
                 ui.separator()
                 ui.label(f"Experience: {view.experience}").classes("text-xs")
 

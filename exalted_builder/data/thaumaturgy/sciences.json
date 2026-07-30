@@ -6,8 +6,8 @@
     "cost": "Normally none. Advanced alchemy (effects of 3 dots or higher) requires a lab costing Resources 3 to maintain; ingredients cost Resources equal to (the level of the effect - 1). Internal alchemy is always at +2 difficulty and costs one Willpower per attempt.",
     "time": "Days of preparation for external alchemy; internal alchemy takes effect nearly immediately",
     "duration": "Varies; most alchemical substances last no more than a scene or two",
-    "max_rating": 6,
-    "description": "Alchemy is the art of producing compounds or substances that have (usually) short-term magical effects. Most alchemy is fairly simple herbalism, using the properties of plant and animal parts to enhance the natural processes of the human body. At the higher levels of knowledge, by purifying and revealing the essential natures of the materials used, alchemy gains the ability to cause truly miraculous feats. Internal alchemy is the most dangerous of all forms and many thaumaturges refuse to practice it: the thaumaturge ingests the compounds and converts them in her digestive tract through force of will, gaining a near-immediate effect at the risk of severe poisoning on a failure. NOTE: the printed ladder runs one, two, three, four and then SIX dots — there is no five-dot rung, yet formulas requiring Alchemy 5 exist and a formula's required level equals its difficulty (p.143). Rating 5 is reachable and purchasable with no printed description.",
+    "max_rating": 5,
+    "description": "Alchemy is the art of producing compounds or substances that have (usually) short-term magical effects. Most alchemy is fairly simple herbalism, using the properties of plant and animal parts to enhance the natural processes of the human body. At the higher levels of knowledge, by purifying and revealing the essential natures of the materials used, alchemy gains the ability to cause truly miraculous feats. Internal alchemy is the most dangerous of all forms and many thaumaturges refuse to practice it: the thaumaturge ingests the compounds and converts them in her digestive tract through force of will, gaining a near-immediate effect at the risk of severe poisoning on a failure. NOTE: the printed ladder runs one, two, three, four and then SIX dots, with no five-dot rung — but the top rung is authored here as FIVE. The printed 6 is a typographical error (human, rules authority, 2026-07-30, on a report from a player familiar with the system; the internal evidence agrees — the only two Alchemy formulas above level four, Heavenly Transmutation Processes and Six-Demon Potion, both require Alchemy 5, a rating the printed ladder never describes, and a formula's required level equals its difficulty, p.143). Read as 5, every anomaly resolves: the ladder is 1-5 like the other three Sciences and both formulas sit on a described rung. This is a DELIBERATE departure from the printed page — do not 'correct' it back.",
     "levels": [
       {
         "rating": 1,
@@ -26,11 +26,14 @@
         "description": "Materials produced at this level can have truly lasting effects — an alchemist could purify steel to the point of being unbreakable and ever-sharp, or enhance the lifting properties of hot air until it was as potent as helium. Benefits equal to level 2 potions can be made permanent: the character must pay any relevant experience costs for these bonuses to last, just as she normally would to raise an Attribute or Ability or buy a Merit, but she does not need to spend any time in training."
       },
       {
-        "rating": 6,
+        "rating": 5,
         "description": "The pinnacles of alchemical knowledge. While immortality is beyond even these vaunted heights, with the proper elixirs the thaumaturge can extend his life indefinitely — certainly by decades, perhaps centuries. Permanent effects equal to potions of three dots in strength can be wrought, and the alchemist learns the secrets of transmutation, the art of changing one thing fundamentally into another, such as the fabled changing of lead into gold. The thaumaturge cannot transform base materials into the Five Magical Materials, however."
       }
     ],
-    "source": {"book": "Exalted Player's Guide", "page": 136}
+    "source": {
+      "book": "Exalted Player's Guide",
+      "page": 136
+    }
   },
   {
     "id": "science.enchantment",
@@ -63,7 +66,10 @@
         "description": "The thaumaturge's talismans are renowned throughout Creation. Enchanted weapons or equipment are treated as perfect equipment, or gain an additional 2 points to add to the weapon's stats if already perfect. Up to two dice can be added to a dice pool or up to one dot to an Attribute for up to a minute, or effects equal to a level 4 talisman for up to a scene. Weapons can be produced that are unbreakable in the same fashion that daiklaves and other artifact weapons are unbreakable."
       }
     ],
-    "source": {"book": "Exalted Player's Guide", "page": 142}
+    "source": {
+      "book": "Exalted Player's Guide",
+      "page": 142
+    }
   },
   {
     "id": "science.geomancy",
@@ -96,7 +102,10 @@
         "description": "The geomancer is sufficiently skilled to affect the flow of Essence in relatively subtle fashions. He can use a single application of this Science to effect more than one form of luck on a household. Alternately, he can fashion an area suitable for a laboratory: while no match for a Manse, this space will provide 1 mote of Essence every two hours for the inhabitant to use."
       }
     ],
-    "source": {"book": "Exalted Player's Guide", "page": 146}
+    "source": {
+      "book": "Exalted Player's Guide",
+      "page": 146
+    }
   },
   {
     "id": "science.weather-working",
@@ -129,6 +138,9 @@
         "description": "The weather witch can change the weather to a great extent, summoning up strong winds in a becalmed sea, rain on a sunny day or sunshine in the middle of storms. Merely altering existing weather (changing severity) can be performed in minutes, an hour at most, and the greatest of changes will rarely take more than a day or two."
       }
     ],
-    "source": {"book": "Exalted Player's Guide", "page": 148}
+    "source": {
+      "book": "Exalted Player's Guide",
+      "page": 148
+    }
   }
 ]

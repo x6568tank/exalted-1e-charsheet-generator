@@ -976,6 +976,9 @@ class SheetView:
     willpower: int
     essence_personal: int
     essence_peripheral: int
+    # Personal is 0 by RULE, not by arithmetic (Beacon of Power) — read it through
+    # `essence_pool_label`, which is what both the sheet and the editor display.
+    essence_single_pool: bool
     soak: derive.SoakView
     health: list[str]                                 # formatted level labels
     # advantages / gear
@@ -1004,6 +1007,14 @@ class SheetView:
     experience: int
     issues: list[validate.Issue]
     chargen_locked: bool
+
+    def essence_pool_label(self) -> str:
+        """The Essence pools as one line. A merged pool is named as one rather than
+        shown as "Personal 0", which reads as a character with no Essence at all."""
+        if self.essence_single_pool:
+            return f"Single pool {self.essence_peripheral} (all Peripheral)"
+        return (f"Personal {self.essence_personal}"
+                f"  ·  Peripheral {self.essence_peripheral}")
 
 
 def _label(value: str) -> str:
@@ -1599,6 +1610,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         willpower=d.willpower,
         essence_personal=d.essence_personal,
         essence_peripheral=d.essence_peripheral,
+        essence_single_pool=d.essence_single_pool,
         soak=d.soak,
         health=[_health_label(hl) for hl in d.health_levels],
         backgrounds=[(b.name, b.rating, b.note) for b in character.backgrounds],

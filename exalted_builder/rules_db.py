@@ -232,10 +232,12 @@ def _check_thaumaturgy(arts, sciences, formulas, problems: list[str]) -> None:
     by (art_id, free-text name) and the UI resolves aspects by id across Arts.
 
     A formula must belong to a real Science and must not require a rating that
-    Science cannot reach — the one place `max_rating` earns its keep, since Alchemy
-    reaches 6 and the other three stop at 5. NOTE that a formula may legitimately
-    sit at a rating with NO printed ScienceLevel: Alchemy has no five-dot rung yet
-    two formulas require Alchemy 5, so a missing rung is never an error."""
+    Science cannot reach. NOTE that a formula may legitimately sit at a rating with NO
+    printed ScienceLevel, so a missing rung is never an error — that tolerance was
+    written for Alchemy, whose printed ladder skipped five while two of its formulas
+    required it. That anomaly is gone (the printed 6 was a typo for 5, human
+    2026-07-30), but the tolerance stays: it costs nothing and the next book may do the
+    same thing."""
     seen_aspects: dict[str, str] = {}
     for art in arts.values():
         for aspect in art.aspects:

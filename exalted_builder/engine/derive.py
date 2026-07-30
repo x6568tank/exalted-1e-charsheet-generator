@@ -69,6 +69,10 @@ class DerivedTraits(BaseModel):
     wp_from_virtues: int           # the two-highest-Virtues component used
     essence_personal: int
     essence_peripheral: int
+    # The two pools are ONE pool, all of it Peripheral (Beacon of Power). Personal is
+    # then 0 by rule rather than by arithmetic, which a sheet must be able to tell
+    # apart: "Personal 0" alone reads as a bug.
+    essence_single_pool: bool
     health_levels: list[HealthLevelView]
     soak: SoakView
 
@@ -200,14 +204,25 @@ def two_highest_virtues(virtues: dict[VirtueName, int]) -> int:
     return sum(ordered[:2])
 
 
-def willpower(character: Character) -> int:
-    """Permanent Willpower = the Virtue component + any purchased dots.
+def willpower(character: Character, ruleset: Optional[RuleSet] = None) -> int:
+    """Permanent Willpower = the Virtue component + purchased dots − any forfeited.
 
     Pre-lock the Virtue component tracks the current two highest Virtues; once
     chargen is locked it is the frozen `wp_virtue_component`, so raising a Virtue
     afterward does not raise Willpower.
+
+    `ruleset` is optional and only ever subtracts: the Weak-Willed Flaw sells permanent
+    Willpower dots for bonus points, and without a RuleSet there is no way to know a
+    Flaw is held. Every caller that has one should pass it — the same optional-ruleset
+    shape `soak` already uses. Floored at zero; the floors that actually apply (4 for
+    the Exalted, 2 otherwise) are validated at chargen rather than clamped here, so a
+    sheet below them reports rather than silently corrects.
     """
-    return wp_virtue_component(character) + character.willpower_purchased
+    total = wp_virtue_component(character) + character.willpower_purchased
+    if ruleset is not None:
+        from . import merits
+        total -= merits.merits_and_flaws_calc(ruleset, character).forfeited_willpower_dots
+    return max(0, total)
 
 
 def wp_virtue_component(character: Character) -> int:
@@ -245,15 +260,33 @@ def _named_virtue_term(spec, virtues: dict[VirtueName, int]) -> int:
     return virtues.get(virtue, 0) * spec.personal_named_virtue_coeff
 
 
-def _breeding_bonus(character: Character, name: str, table: list[int]) -> int:
+def _breeding_rating(character: Character, name: str, override: Optional[int]) -> int:
+    """The character's effective rating in the pool-feeding Background, which a Merit
+    may raise above the one they bought (Legendary Breeding). `override` is
+    MeritEffects.breeding_rating_override, and wins outright when set."""
+    if override is not None:
+        return override
+    return max((b.rating for b in character.backgrounds
+                if b.name.strip().lower() == name.strip().lower()), default=0)
+
+
+def _breeding_bonus(character: Character, name: str, table: list[int],
+                    override: Optional[int] = None) -> int:
     """The additive pool bonus from a Background-derived term (DB Breeding): look up
     the character's rating in `name` and index `table` (clamped to its length). Returns
     0 when the Background is absent or the table is empty."""
     if not name or not table:
         return 0
-    rating = max((b.rating for b in character.backgrounds
-                  if b.name.strip().lower() == name.strip().lower()), default=0)
-    return table[min(rating, len(table) - 1)]
+    return table[min(_breeding_rating(character, name, override), len(table) - 1)]
+
+
+def essence_pool_is_merged(ruleset: RuleSet, character: Character) -> bool:
+    """Are the two Essence pools a single Peripheral pool (Beacon of Power)? Separate
+    from `essence_pools` because that returns motes and this is about their SHAPE — a
+    sheet showing "Personal 0" needs to know whether it is reporting a rule or a
+    character with no Essence at all."""
+    from . import merits as _merits
+    return _merits.merits_and_flaws_calc(ruleset, character).essence_single_pool
 
 
 def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
@@ -274,23 +307,28 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
     keyed off the character's Breeding Background rating; splats without it carry
     empty tables.
 
-    A splat with NO pool of its own (mortals: "they lack an Essence pool, either
-    Peripheral or Personal", PG p.114) can have one UNLOCKED by a Merit, in which case
-    `ExaltDefinition.unlocked_essence` replaces the empty default spec. Which Merits do
-    that is engine.merits' business, not this function's — see decision 0011."""
+    Merits reshape all three of those parts (A5), and never by naming themselves here:
+    they can UNLOCK a pool a splat does not have (mortals: "they lack an Essence pool,
+    either Peripheral or Personal", PG p.114 — `ExaltDefinition.unlocked_essence`
+    replaces the empty default spec), raise the effective Breeding rating, and MERGE the
+    two pools into one Peripheral pool. Which Merits do any of that is engine.merits'
+    business, not this function's — see decision 0011."""
+    # Import locally: engine.merits imports the models only, but keeping this out
+    # of the module header avoids a derive <-> merits cycle if merits ever needs
+    # a derivation of its own.
+    from . import merits as _merits
+    effects = _merits.merits_and_flaws_calc(ruleset, character)
     exalt = ruleset.exalt_for(character.exalt_type)
     spec = exalt.essence
-    if exalt.unlocked_essence is not None:
-        # Import locally: engine.merits imports the models only, but keeping this out
-        # of the module header avoids a derive <-> merits cycle if merits ever needs
-        # a derivation of its own.
-        from . import merits as _merits
-        if _merits.merits_and_flaws_calc(ruleset, character).essence_pool_unlocked:
-            spec = exalt.unlocked_essence
+    if exalt.unlocked_essence is not None and effects.essence_pool_unlocked:
+        spec = exalt.unlocked_essence
     essence = character.essence_rating
-    wp = willpower(character)
-    breeding_p = _breeding_bonus(character, spec.breeding_background, spec.breeding_personal)
-    breeding_pp = _breeding_bonus(character, spec.breeding_background, spec.breeding_peripheral)
+    wp = willpower(character, ruleset)
+    override = effects.breeding_rating_override
+    breeding_p = _breeding_bonus(character, spec.breeding_background,
+                                 spec.breeding_personal, override)
+    breeding_pp = _breeding_bonus(character, spec.breeding_background,
+                                  spec.breeding_peripheral, override)
     personal = (essence * spec.personal_essence_coeff
                 + wp * spec.personal_willpower_coeff
                 + _named_virtue_term(spec, character.virtues)
@@ -302,13 +340,26 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
                   + (_peripheral_virtue_term(spec.peripheral_virtue_mode, character.virtues)
                      * spec.peripheral_virtue_coeff)
                   + breeding_pp)
+    if effects.essence_single_pool:
+        # "a single Essence pool equal to the sum of their Personal and Peripheral
+        # Essence, all of which is considered Peripheral" (p.41). Merged AFTER both
+        # are computed, so every term above still contributes exactly what it did.
+        peripheral += personal
+        personal = 0
     return personal, peripheral
 
 
-def health_track(character: Character) -> list[HealthLevelView]:
+def health_track(character: Character,
+                 ruleset: Optional[RuleSet] = None) -> list[HealthLevelView]:
     """The base wound levels plus any Charm-granted bonus levels, ordered from
     least to most severe (0, -1, -2, -4), with Incapacitated last. Bonus levels
-    of equal penalty follow the base levels they share a tier with."""
+    of equal penalty follow the base levels they share a tier with.
+
+    `ruleset` is optional and only Merits & Flaws need it: Large Size grants levels and
+    Small takes one away, the first sources of a health level in this build that are not
+    Charms. Without a RuleSet there is no way to know a Merit is held, so the track is
+    the Charm-only one — the same optional-ruleset shape `soak` and `willpower` use.
+    """
     levels = [HealthLevelView(penalty=p) for p in BASE_WOUND_PENALTIES]
     levels += [
         HealthLevelView(penalty=hl.penalty, source=hl.source_charm)
@@ -319,12 +370,27 @@ def health_track(character: Character) -> list[HealthLevelView]:
         HealthLevelView(penalty=p, source="Ox-Body Technique")
         for purchase in character.ox_body for p in purchase.health_levels
     ]
+    effects = None
+    if ruleset is not None:
+        from . import merits
+        effects = merits.merits_and_flaws_calc(ruleset, character)
+        levels += [HealthLevelView(penalty=penalty, source=label)
+                   for penalty, label in effects.health_levels_granted]
+
+    def _remove(penalty: int) -> None:
+        """Drop one level of this penalty, base first — base levels lead the list, so
+        first-match is what 'base first' means here."""
+        idx = next((i for i, lv in enumerate(levels) if lv.penalty == penalty), None)
+        if idx is not None:
+            levels.pop(idx)
+
     # Curses remove a level of the given penalty (a base level first).
     for hl in character.health_bonus_levels:
         if hl.removed:
-            idx = next((i for i, lv in enumerate(levels) if lv.penalty == hl.penalty), None)
-            if idx is not None:
-                levels.pop(idx)
+            _remove(hl.penalty)
+    # Flaws do the same — Small "costs her one -1 health level" (p.32).
+    for penalty in (effects.health_levels_removed if effects else ()):
+        _remove(penalty)
     # Stable sort by severity: 0 first (highest penalty value), -4 last.
     levels.sort(key=lambda lv: lv.penalty, reverse=True)
     levels.append(HealthLevelView(penalty=None, incapacitated=True))
@@ -411,10 +477,11 @@ def derive(ruleset: RuleSet, character: Character) -> DerivedTraits:
     """Bundle the implemented derivations."""
     personal, peripheral = essence_pools(ruleset, character)
     return DerivedTraits(
-        willpower=willpower(character),
+        willpower=willpower(character, ruleset),
         wp_from_virtues=wp_virtue_component(character),
         essence_personal=personal,
         essence_peripheral=peripheral,
-        health_levels=health_track(character),
+        essence_single_pool=essence_pool_is_merged(ruleset, character),
+        health_levels=health_track(character, ruleset),
         soak=soak(character, ruleset),
     )

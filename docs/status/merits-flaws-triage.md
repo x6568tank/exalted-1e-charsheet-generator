@@ -1,0 +1,434 @@
+# Merits & Flaws — mechanical-effect triage (2026-07-30)
+
+Step one of the plan in `merits-flaws.md` ("NEXT SESSION"): every one of the 94
+unmodelled M&F read in full and sorted, so the human can rule on the boundary before
+any code is written. **Nothing here is implemented.** Four entries already have effects
+(Essence Awareness, Essence Mastery, Oathbound Magic, Holy Mien) and are not listed.
+
+Buckets, after the human's rulings (2026-07-30, recorded below):
+
+| | Meaning | Count |
+|---|---|---|
+| **A** | Implementable — a hook exists or is a small, well-shaped addition | **26** |
+| **B** | Out of scope: the whole effect is dice or difficulty (decisions 0008/0009) | 31 |
+| **C** | Narrative / ST adjudication — there is nothing to compute | 32 |
+| **D** | Deferred or out of scope for a stated reason | 5 |
+
+The estimate in the plan (10-20) was low. **A is 26, and it is really 8 mechanisms**,
+which is the number that matters — several entries share one hook.
+
+## RULINGS (human, rules authority, 2026-07-30)
+
+1. **The dice line is drawn correctly.** Virtue Specialty and Vice stay OUT: both are
+   dice-rolling, and both only take effect during play. Buckets B and C are skipped
+   entirely — no work, now or later.
+2. **Callous is an exception to decision 0005.** "If Callous is taken, Willpower
+   changes. Otherwise it is locked where it is." So the pinned-at-lock Virtue component
+   is re-derived for a Callous character and for no one else.
+3. **A1 is a budget delta, not a new concept.** Forfeiting dots lowers that trait's
+   chargen budget (2 BP taken → Virtue budget 5→4) and the existing over-spend
+   validation does the rest. **No new model field is needed**: all four are
+   `variable_cost` entries, so `MeritFlawPurchase.points` is already recorded and
+   `dots = points ÷ rate`; Diminished Attributes' category goes in `detail`.
+4. **The whole of A is approved to implement, bit by bit.**
+5. **D mostly collapses.** Maximum Limit/Paradox is 10 by default — no derivation
+   needed, so Greater Curse is a subtraction from a constant. Resonance is the Abyssal
+   Limit track and needs only a rename (`ExaltDefinition.limit_label`, which is unset
+   for Abyssal today and should read "Resonance", exactly as Sidereal reads "Paradox").
+   The luck pools are modelled only insofar as the two Merits create them. **Out of
+   scope: Pain Tolerance, Slow Healing, Essence Recovery** — all per-table, play-time.
+   **Deferred: artifact and Manse attunement**, to be modelled eventually, most simply
+   by letting the player declare it.
+6. **Derangement moves to C.** Its mechanical hooks are references to individual Virtue
+   Flaws (Heart of Tears, Berserk Anger, Deliberate Cruelty — core pp.131-133), which
+   are not in `data/` at all; this build knows only *whether a splat has* a Virtue Flaw.
+   Nothing to point at, so there is nothing to model.
+
+---
+
+## A — implementable (22)
+
+### A1. Chargen trait-forfeit → bonus points (4 entries, one mechanism)
+
+The single highest-value cluster: four Flaws that all say "forfeit dots of X during
+character creation, receive N bonus points per dot". Today they grant their printed
+value like any Flaw, which is wrong — their value IS the forfeit.
+
+| Entry | Rule |
+|---|---|
+| `mf.diminished-attributes` | 3 BP per Physical Attribute dot forfeited. May not forfeit the free dot; may not then buy Physical Attributes with BP. Mental/Social variants exist as separate categories. |
+| `mf.callous` | 2 BP per Virtue dot forfeited. Cannot forfeit the last dot of a Virtue. **Willpower may not start more than 1 above the sum of the two highest Virtues** — this collides with decision 0005. Flaw self-removes at 9 total Virtue dots. Bans the Paragon Nature. |
+| `mf.unskilled` | 1 BP per Ability dot forfeited. Must still meet Favored-Ability minimums; may not then buy Ability dots with BP. |
+| `mf.weak-willed` | 1 BP per permanent Willpower dot forfeited. Floor of 4 for Exalted, 2 for un-Exalted or Callous characters. |
+
+Needs a `forfeited_dots` shape on the purchase (or reuse of `points`), plus the "may
+not spend BP on the forfeited category" restriction. **Question for you:** is the
+forfeit recorded as a number, or inferred from the character being below the chargen
+minimum? Inferring is fragile; recording is explicit but is a new field.
+
+### A2. Health levels (2 entries) — `derive.health_track`
+
+| Entry | Rule |
+|---|---|
+| `mf.large-size` | 4-pt: +1 `-0` level. 6-pt: +1 `-0` and +1 `-1`. |
+| `mf.small` | −1 `-1` level. (Its other half — Strength −1 for weapon minimums — is combat, out under 0008.) |
+
+`health_track` reads Charms and Ox-Body only; these are the first non-Charm callers.
+
+### A3. Trait caps (4 entries)
+
+| Entry | Rule |
+|---|---|
+| `mf.legendary-attribute` | One Attribute may go one dot above the Essence-imposed limit, at chargen or after. Mortals/Essence 1-5 → 6. |
+| `mf.true-paragon` | May raise any Virtue to 6 with BP or XP (+1 to the permitted max if already above 5). Permanent Willpower still capped at 10. Paragon Nature only. |
+| `mf.disfigured` | 3-pt: Appearance may never exceed 1. 4-pt: Appearance 0, unraisable by BP or XP. |
+| `mf.weak-essence` | Starting Essence rating forced to 1. Also lets the player withhold up to 5 Charms, XP-free. |
+
+Chargen caps live at `validate.py:2908` (`attribute_base <= attr <= 5`); the XP-side
+caps live in `advancement.py`. Both would read a `MeritEffects` field.
+
+### A4. Point-cost modifiers (2 entries)
+
+| Entry | Rule |
+|---|---|
+| `mf.brigid-s-heir` | **Doubles** BP/XP cost and training time of all Charms; **halves** the same for spells. Ox-Body and anything on the Terrestrial Circle Sorcery line are exempt from the doubling. |
+| `mf.prodigy` | Grants one extra Favored Ability per purchase (cap 5 total; barred to Solars/Abyssals/Lunars/Alchemicals). The optional +2 BP "increased aptitude" lowers that Ability's XP cost to `(rating × 2) − 2`. Its `+1 die` half is out. |
+
+Both are clean: the cost tables are already data, and the calc can hand back a
+multiplier and a Favored-Ability grant.
+
+### A5. Essence-pool shape (2 entries)
+
+| Entry | Rule |
+|---|---|
+| `mf.legendary-breeding` | Breeding Background counts as 6 → +6 Personal, +11 Peripheral, anima activation −3. `derive._breeding_bonus` is already the hook. Requires Breeding 5. DB only. |
+| `mf.beacon-of-power` | One pool equal to Personal + Peripheral, all of it treated as Peripheral for anima. Exalted only; Night and Day may not take it. |
+
+### A6. Background budget and rating restrictions (5 entries)
+
+| Entry | Rule |
+|---|---|
+| `mf.heir-apparent` | 2 Background dots per point invested (max 5 points), **may exceed the rating-3 chargen cap**, +1 dot per stipulation (max 3). |
+| `mf.innocuous` (4-pt) | Allies / Contacts / Mentor capped at 2 dots each; no Followers, Henchmen, Cult or Command at all. Sidereals barred entirely. |
+| `mf.damaged-artifact` | Points may not exceed the artifact's rating, nor the BP/Background spent on it; character needs Artifact ≥ points + 1. |
+| `mf.known-anathema` | Points may not exceed the character's Influence rating. |
+| `mf.debt` | Functions as inverse Resources; if the character also has Resources, Debt must exceed it. |
+
+### Adjacent mechanism, not an entry: **trait prerequisites**
+
+`MeritFlaw.prerequisites` holds Merit ids only; every trait-rated prerequisite is
+currently unchecked printed text in `prerequisite_note`. At least six entries want it:
+Hidden Manse (Manse Background), Cache (Resources 4+ / Salary 2+), Innocuous 2-pt
+(Appearance 2), Legendary Breeding (Breeding 5), Alternative Divination (purchases
+≤ Occult rating), Large Size (Strength and Stamina 3+, though that one is printed as
+"most characters", not a requirement). Worth doing as one field, independent of effects.
+
+---
+
+## B — dice pools and difficulties only (31)
+
+Nothing to hook: the entire printed effect is "+N dice" or "+N difficulty", and this
+build derives no dice pools (0008) and rolls nothing (0009).
+
+`thaum.flow-of-essence` · `thaum.sheltered-upbringing` · `mf.ambidextrous` ·
+`mf.acute-sense` · `mf.double-jointed` · `mf.special-resistance` ·
+`mf.internal-compass` · `mf.virtue-specialty` · `mf.driving-passion` ·
+`mf.tactical-instincts` · `mf.true-love` · `mf.jack-of-all-trades` · `mf.born-to-rule` ·
+`mf.enchanting-feature` · `mf.past-lives` · `mf.signature-style` · `mf.daredevil` ·
+`mf.prescient-dreamer` · `mf.unusual-appearance` · `mf.one-eye` · `mf.sun-seared` ·
+`mf.climate-sensitive` · `mf.weak-immune-system` · `mf.diminished-sense` · `mf.vice` ·
+`mf.nightmares` · `mf.pacifist` · `mf.barbarian` · `mf.disturbing` · `mf.child` ·
+`mf.chimera`
+
+**Boundary case for you:** `mf.virtue-specialty` and `mf.vice` modify *Virtue* dice, and
+Virtues are a permanent trait this build does track. They are still dice — but they are
+the closest B gets to A. Same question for `mf.innocuous`'s dice half, whose Background
+restrictions I put in A6.
+
+---
+
+## C — narrative / ST adjudication (31)
+
+No mechanical effect at all, or one the Storyteller arbitrates entirely.
+
+`thaum.celestial-travel-permit` · `thaum.dark-magics` · `mf.selective-conception` ·
+`mf.special-sense` · `mf.mutation` · `mf.common-sense` · `mf.eidetic-recall` ·
+`mf.favor` · `mf.heirloom` · `mf.legendary-artifact` · `mf.terrestrial-bloodline` ·
+`mf.priest` · `mf.destiny` · `mf.sworn-brotherhood` · `mf.taint-s-warning` ·
+`mf.eternal-vow` · `mf.mute` · `mf.sterile` · `mf.limited-forms` · `mf.amputee` ·
+`mf.amnesia` · `mf.superstition` · `mf.addiction` · `mf.secrets` · `mf.disciple` ·
+`mf.enemy-rival` · `mf.wanted` · `mf.unbidden-oracle` · `mf.dark-fate` ·
+`mf.permanent-caste-mark` · `mf.throwback` · `mf.derangement`
+
+These are exactly what `MeritEffects.narrative_only` exists to report.
+
+---
+
+## A7. Play-state pools and tracks (4 entries) — promoted from D by ruling 5
+
+| Entry | Rule |
+|---|---|
+| `mf.lucky` | A luck pool equal to points invested (Sidereals: +2, pool capped 5, min 3). The pool exists only because the Merit does — so it is a `MeritEffects` field, tracked in play-state. Spending it to reroll is 0009 and stays out; the pool is just a counter. |
+| `mf.unlucky` | The same, ST-side and negative. May be held simultaneously with Lucky. |
+| `mf.greater-curse` | Maximum Limit/Paradox reduced by 1 per point, max 5. The maximum is the constant 10, so this is `10 − points`. Celestial Exalted only. |
+| `mf.death-taint` | Permanent Resonance, cumulative with the temporary track. Needs the Abyssal `limit_label` rename to "Resonance" first, plus a permanent counterpart to the pool. Abyssals and ghosts only — the ghost half waits on that splat. |
+
+These are play-state (decision 0006): they may be tracked and displayed, and must never
+enter chargen validation or the XP audit.
+
+---
+
+## D — deferred or out of scope (5)
+
+| Entry | Call |
+|---|---|
+| `mf.pain-tolerance` | **Out of scope.** Wound-penalty arithmetic; per-table, play-time. |
+| `mf.slow-healing` | **Out of scope.** Healing rates; per-table, play-time. |
+| `thaum.essence-recovery` | **Out of scope.** Mote regeneration rate; per-table, play-time. |
+| `thaum.magical-attunement` | **Deferred.** Artifact attunement should be modelled eventually — simplest is to let the player declare it. |
+| `thaum.manse-attunement` | **Deferred.** Manse attunement, same. |
+
+`mf.derangement` moved to **C** (ruling 6).
+
+---
+
+## Implementation order
+
+Bit by bit, per ruling 4. Each cluster is self-contained; do not batch them.
+
+| # | Cluster | Why here |
+|---|---|---|
+| 1 | **A1** forfeit → budget delta | The core job: chargen point accounting is wrong without it. Carries the Callous/0005 ruling. |
+| 2 | **A2** health levels | Smallest. First non-Charm caller of `derive.health_track`. |
+| 3 | **A3** trait caps | Same shape as A1 — a per-trait delta, chargen and XP side. |
+| 4 | **A4** cost modifiers | Cost tables are already data. |
+| 5 | **A5** Essence pools | Legendary Breeding hooks `_breeding_bonus`; Beacon of Power needs more care. |
+| 6 | **A6** Background restrictions | Plain validation rules. |
+| 7 | **Trait prerequisites** | Catalogue data, not effects — independent of everything above. |
+| 8 | **A7** play-state pools | Needs the Abyssal `limit_label` rename first. |
+
+## A1 — COMPLETE 2026-07-30 (all four)
+
+Callous, Unskilled, Weak-Willed and Diminished Attributes, engine and chargen UI.
+1304 tests pass (was 1285). **Not browser-verified.**
+
+* `MeritEffects` gained `forfeited_ability_dots`, `forfeited_virtue_dots`,
+  `forfeited_willpower_dots`, `forfeited_attribute_dots`, `willpower_virtue_margin`,
+  `willpower_floor`, `barred_natures`. No new field on `MeritFlawPurchase` — dots are
+  `points // rate`, exactly as ruling 3 predicted.
+* `validate.effective_budgets(ruleset, character)` returns the budgets reduced by the
+  forfeit; it returns the printed object unchanged when nothing forfeits. Swapped into
+  the three chargen-accounting sites (unspent-dot warnings, `bonus_point_breakdown`,
+  `validate_chargen`).
+* New issue codes: `callous-willpower-cap`, `willpower-below-flaw-floor`,
+  `nature-barred-by-flaw`.
+* `derive.willpower` takes an optional `ruleset` — the same shape `soak` already uses —
+  and subtracts the Weak-Willed forfeit only when given one.
+
+* **Diminished Attributes** is wired through `validate.attribute_pool_assignment`, which
+  does the spend-to-pool matching FIRST and takes the forfeit off the pool the category
+  actually receives. Consequence the human accepted explicitly: forfeiting dots lowers a
+  category's spend, which can drop it to a smaller pool, and that reshuffle can cost
+  bonus points elsewhere — *"if BP need be consumed because of how the pools change,
+  then that's what happens."*
+* **The chargen editor** now reads `validate.effective_budgets`, so its Ability and
+  Virtue headers show the budget the engine charges against. The Attribute header cannot
+  fold the forfeit into the printed 8/6/4 (the pools are spend-matched, not fixed), so
+  it names the shortfall alongside: `8/6/4 −2 Physical`.
+* **`mf.callous`'s tier menu was wrong in the data** and is fixed: authored 2..10, but
+  the entry prices itself at "two bonus points for every dot", so 3/5/7/9 granted points
+  without buying a dot. Now 2/4/6/8/10.
+
+## A2 — COMPLETE 2026-07-30 (health levels)
+
+Large Size and Small. 1315 tests pass. **Not browser-verified.**
+
+* `MeritEffects` gained `health_levels_granted` (as `(penalty, source label)` pairs, so
+  the sheet attributes a Merit level exactly as it does an Ox-Body one) and
+  `health_levels_removed`.
+* `derive.health_track` takes an optional `ruleset` — the third function to use that
+  shape, after `soak` and `willpower`. These are its first non-Charm callers.
+* Small reuses the removal path that already existed for curses, and takes a BASE level
+  before a granted one. Large Size 6 + Small therefore nets out at the printed track
+  with the granted `-1` surviving and still attributed.
+* **The play tracker followed for free** — `build_play_view` reads `derive.derive()`,
+  so a Large Size character gets 8 or 9 damage boxes rather than 7, with no change in
+  `ui/play.py`.
+* An unrecorded Large Size tier grants NOTHING rather than guessing a size. That is only
+  safe because `merit-bad-tier` already reports it; the test pins both halves together.
+
+## A3 — COMPLETE 2026-07-30 (trait caps)
+
+Legendary Attribute, True Paragon, Disfigured, Weak Essence. 1333 tests pass.
+**Not browser-verified.** The first cluster to span the chargen/advancement boundary.
+
+* `MeritEffects` gained `attribute_caps` (keyed by `AttributeName.value`, which is
+  **lowercase** — a normalisation bug caught by tests), `virtue_cap`,
+  `essence_start_override` and `nature_requirement_unmet`.
+* **Legendary Attribute and Disfigured share `attribute_caps`.** Raising a ceiling and
+  lowering one are the same question — "what may this trait reach" — so they are one
+  field, keyed by effect rather than by Merit, as the module docstring requires. Where
+  both apply to one trait the **lowest cap wins**, so a Merit can never undo a Flaw's
+  ceiling by being processed second.
+* Legendary Attribute's cap is `max(5, essence) + 1`, from "for mortals and Exalted with
+  Essence 1 to 5, this allows a rating of 6. Exalted with Essence 6 may raise the
+  Attribute to 7". **This does NOT introduce an Essence-scaled cap build-wide** — the
+  base ceiling stays a flat 5 for everyone without the Merit. If the underlying
+  Essence-limits-Attributes rule is ever wanted generally, it needs its own page.
+* Read in `validate` (chargen range checks, Essence start) and in `advancement`
+  (`raise_attribute`, `raise_virtue`) — Legendary Attribute is explicitly "during
+  character creation or after it".
+* **A Flaw ceiling can sit below the chargen floor.** Disfigured at four points forces
+  Appearance 0, and the free dot every Attribute starts with is what it takes away, so
+  the floor follows the ceiling down. Without that the sheet reported `must be 1-0`.
+* The editor's dot rows read the per-trait cap instead of a hardcoded 5 — a ceiling the
+  player cannot click to is a ceiling they cannot use.
+* New issue codes: `merit-nature-required`, `essence-above-flaw-start`.
+
+**Fixed in passing — an A1 regression.** `advancement.raise_willpower` measured against
+`derive.willpower(character)` with no RuleSet, so a Weak-Willed character was capped as
+though they still had the dots they had sold. Now passes the ruleset. **Worth a general
+check:** every `derive.willpower` / `derive.soak` / `derive.health_track` call that
+omits the optional ruleset is potentially the same bug.
+
+### Weak Essence's withheld Charms — DONE (2026-07-30, after the A3 sweep)
+
+Initially deferred as needing new persistent state; that assessment was **wrong** and
+the human pushed back on it. Nothing new is stored:
+
+```
+granted   = min(5, charm_count − chargen picks taken)     # the snapshot already
+remaining = granted − rows logged under `charms_withheld` # records both halves
+```
+
+`validate.withheld_charm_credits` returns the pair. The human's rule — "keep the free
+Charms at 5; if more than five are selected during chargen, subtract the number over" —
+is stated against `charm_count` rather than a literal 10 so it holds for any splat's
+budget. Banking can never yield MORE Charms than the ordinary budget: it defers picks,
+it does not add them.
+
+**Ruling (human, 2026-07-30): banked PICKS, not Charms named at creation.** The Flaw
+exists because a character pinned at Essence 1 cannot choose well, so what is held back
+is the choice itself.
+
+**The trap, and why redemptions get their own XP-log target.** `_expected_cost`
+re-prices every entry from the table, so a 0 filed under `charms` would be reported as
+`xp-cost-mismatch` on every later validation. Redemptions log under
+`validate.WITHHELD_CHARM_TARGET` (`"charms_withheld"`), which prices at 0 by rule —
+the same distinct-target pattern the Eclipse crossover already uses. That target is
+also what makes the credits countable.
+
+`learn_charm` spends a credit automatically while one remains; `undo_last` removes the
+row and the credit returns, since credits are counted from the log rather than stored.
+The XP tab shows "N of M withheld Charm(s) still in reserve".
+
+**Still out: the training-time half.** "They still require the same training time" hangs
+on `XpEntry.training_complete`, a dormant hook for a rule parked project-wide. So the XP
+waiver ships without its counterweight — deliberate, and worth remembering if training
+time is ever implemented.
+
+**A robustness note found while testing:** credits are counted against the FROZEN
+chargen pick list. A character locked *without* a `ChargenSnapshot` would count every
+Charm learned afterwards as a chargen pick and silently eat its own credits.
+`lifecycle.lock_chargen` always writes one, so the normal path is safe.
+
+## A4 — COMPLETE 2026-07-30 (point-cost modifiers), with two open rulings
+
+Brigid's Heir and Prodigy. 1351 tests pass. **Not browser-verified.**
+
+* `MeritEffects` gained `charm_cost_doubled`, `spell_cost_halved` and
+  `extra_favored_abilities`.
+* **Brigid's Heir could not be a plain multiplier field** — the answer depends on WHICH
+  Charm, because the sorcery line is exempt. So `merits.adjust_charm_cost` and
+  `merits.adjust_spell_cost` are the read: callers hand over a cost and get one back,
+  and still name no Merit id. Decision 0011's rule is about not branching on ids, and a
+  function in `engine/merits.py` honours that better than leaking the exemption set.
+* **The exemption is found through DATA, not ids**: the initiating Charm is the one
+  whose `grants_circle` is Terrestrial, so it works for every splat with sorcery. The
+  closure is cached per (ruleset, splat) because it walks every Charm's prerequisites.
+* Applied at four sites — XP for Charms and spells (`costs`), and bonus points for both
+  (`validate.charm_pick_bp_costs` and the spell row beside it), because the entry says
+  "the bonus/experience cost", not just XP.
+* Prodigy feeds `validate.favored_ability_count`, so the existing favored-count check
+  does the work unchanged, clamped at the printed five.
+* **Prodigy's splat bars are catalogue DATA, not an effect.** New `MeritFlaw
+  .barred_exalt_types` — the negative of the existing `exalt_types` — with a new
+  `merit-barred-splat` issue. A printed restriction is inert like a cost or a
+  prerequisite, so it belongs on the model rather than in `engine/merits.py`.
+
+### ⚠ Two rulings needed
+
+1. **Is Terrestrial Circle Sorcery itself exempt from Brigid's Heir?** The text exempts
+   Charms that "include [it] as an ultimate prerequisite or lead directly to that
+   Charm" — neither of which is TCS itself. Leaving the one Charm the Merit is *about*
+   at double cost while everything either side is exempt reads as a drafting slip, so it
+   is exempt here **by inference**. If the literal reading is wanted it is a one-token
+   change — see the OPEN RULING comment in `merits._terrestrial_sorcery_line`.
+2. **How does an odd spell cost halve?** The page does not say. Rounded DOWN
+   (player-favourable). No printed cost in the build is currently odd, so this has no
+   effect today — it is flagged against future data rather than because it bites now.
+
+**Noted, not a bug:** Terrestrial Circle Sorcery is a ROOT Charm in this data — nothing
+is its prerequisite — so the "leads directly to that Charm" clause has no members. The
+implementation handles it; the test records the fact so it stays visible if a splat ever
+gates it behind something. Necromancy is a separate line and is **not** exempt.
+
+**Deferred from A4:** Prodigy's optional "+2 bonus points to increase aptitude further",
+which lowers that Ability's XP to `(current × 2) − 2`. The catalogue prices Prodigy as a
+2/3/4/5 tier menu that **conflates two different things** — the base grant (3, or 2 for
+Dragon Kings and God-Blooded) and the +2 aptitude add-on — so there is no unambiguous
+way to record that the extra was paid. Needs either a data reshape or a purchase field;
+either way it is a decision, not a line of code. The bonus die it also grants is out
+anyway (dice).
+
+## A5 — COMPLETE 2026-07-30 (Essence-pool shape)
+
+Legendary Breeding and Beacon of Power. 1360 tests pass. **Not browser-verified.**
+
+* `MeritEffects` gained `breeding_rating_override` and `essence_single_pool`.
+* **Legendary Breeding is modelled as the RATING it grants, not as +6/+11 motes.** The
+  entry says two things — "her Breeding Background has a rating of 6" and "adds 6 motes
+  … and 11 motes" — and the second is the first's consequence, not an addition on top:
+  the printed 0..5 Breeding table climbs +1 Personal / +2 Peripheral per step and ends
+  at 5/9, so 6/11 is exactly its rating-6 row. `data/exalts.json` gained that row and
+  `derive._breeding_rating` takes the override. Reading it as additive would have paid
+  a Breeding-5 character (which the Merit REQUIRES) 11/20.
+* **Its Breeding-5 prerequisite is still unchecked** — that is the trait-prerequisites
+  item, deliberately not done here. Nothing stops a Breeding-2 character taking it.
+* **Beacon of Power merges AFTER both pools are computed**, so every term still
+  contributes what it did; the test pins that by stacking it with Legendary Breeding.
+  Its anima half ("all of which is considered Peripheral for the purposes of anima
+  displays") needs nothing: **the build models no anima costs at all** — `anima` is a
+  free-text field and `anima_powers` is printed text. The same is true of Legendary
+  Breeding's −3 anima activation, its Social dice and its Exaltation roll, all out.
+* **`DerivedTraits.essence_single_pool` carries the SHAPE alongside the number**, and
+  the sheet and editor both read `SheetView.essence_pool_label()`. "Personal 0" alone
+  reads as a character with no Essence rather than as a rule. The play tracker followed
+  for free, as it did in A2.
+* **`derive.essence_pools` now calls the M&F calc unconditionally** (it was conditional
+  on the splat having an unlockable pool). Same local-import shape as before.
+* **Beacon's caste bar is catalogue DATA**, the A4 precedent one level down: new
+  `MeritFlaw.barred_castes` and a `merit-barred-caste` issue. Caste ids are unique
+  across splats, so `["night", "day"]` needs no splat qualifier.
+
+## Source-fidelity pass (2026-07-30)
+
+The human re-pasted the chapter after Amputee turned up truncated. Rather than fix the
+one entry by hand, every `mf.*` description was diffed against its section of
+`images/Merits & Flaws/CH 1 - Merits and Flaws.md` by normalised length. That found a
+second, worse problem nobody had noticed:
+
+* **`mf.amputee`** was at **12%** of its printed body — cut off mid-word at *"Alter-"*,
+  with the tail of the NEXT entry glued on. Re-extracted in full.
+* **`mf.dying` (p.31) was missing from the catalogue entirely.** Its opening had been
+  lost and its tail was what had been glued onto Amputee. Authored from the source:
+  2/4/6/10-pt Flaw, one Stamina dot lost per interval (annual / months / weeks / days).
+  The general chapter is **88 entries, not 87**; the catalogue is **99**.
+
+`test_every_description_matches_the_source_text` now pins this: it re-runs the same diff
+over every entry and fails on anything below 92% of its source section. It skips when
+`images/` is absent, since the source is gitignored and does not travel with a clone.
+
+**The lesson, again:** a truncated description is invisible to every test that checks
+counts, costs and links — all of which passed. Only comparing against the source found
+it. Diff mechanically; do not spot-read.

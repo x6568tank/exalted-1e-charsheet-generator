@@ -44,7 +44,7 @@ Tests: `tests/test_thaumaturgy_data.py` (38, catalogue + cost ladder),
   `learn_thaum_ritual`, `learn_thaum_formula`, `add_thaum_orientation`, plus undo
   and `_expected_cost` re-pricing for all six.
 - Science costs on both ladders (see below) — `raise_thaum_science` caps at the
-  Science's OWN `max_rating`, so Alchemy reaches 6 where Geomancy stops at 5.
+  Science's OWN `max_rating` (all four are 5; see the Alchemy note below).
 - **"Magic for Everyone"** — `HouseRules` on `Character` (frozen into the snapshot),
   `magic_for_everyone_grant`, `magic_for_everyone_eligible`, and the `free_picks`
   argument to `thaum_purchase_bp_costs`.
@@ -233,12 +233,12 @@ list aspects with no per-aspect gate. So `min_occult` on an aspect is optional.
 Summoning also has a **narrowing discount**: further limiting an aspect ("Summoning
 (War Gods)") **halves that aspect's cost** and is noted on the sheet.
 
-### Sciences — RATED 1-5 (Alchemy 6), each with printed dot descriptions
+### Sciences — RATED 1-5, each with printed dot descriptions
 Costs: **5 BP first dot / 7 after; 7 XP first dot / current x 6 after** — see the
 printing-error note in the Build log; not from either printed table.
 | Science | Roll | Cost | Notes |
 |---|---|---|---|
-| Alchemy | Intelligence + Occult | normally none | Lab (Resources 3) required for effects 3+; ingredients cost `level - 1`. Internal alchemy: +2 difficulty, 1 Willpower, reaches 5 dots, own failure table |
+| Alchemy | Intelligence + Occult | normally none | Lab (Resources 3) required for effects 3+; ingredients cost `level - 1`. Internal alchemy: +2 difficulty, 1 Willpower, own failure table |
 | Enchantment | Dexterity + Occult | 3 motes per level of effect, +1 Willpower | Time: 1 day per dot of effect |
 | Geomancy | Perception + Occult | normally none | Time varies |
 | Weather Working | Charisma + Occult | 2 motes per level, +1 Willpower at levels 4-5 | **always +2 difficulty**. Its 1-5 dot ladder is printed INSIDE the "Council of Winds" sidebar (p.149), not under the Weather Working heading — the paste is not missing it |
@@ -248,27 +248,43 @@ p.113) — **BUILT** as `HouseRules.restrict_chargen_science_rating`, with its r
 twin `restrict_chargen_ritual_level`; p.113's "and/or" is why they are two flags.
 Enchantment 3 gates warding-talisman crafting (p.130 sidebar).
 
-### ⚠️ Alchemy goes to SIX dots, and has no five-dot description
-**Human's call, 2026-07-29: this is what the book prints, not paste damage.** The
-Alchemy ladder runs `• •• ••• ••••` and then `••••••`. There is no five-dot rung.
+### Alchemy's printed SIX-dot rung is a typo for five — REVERSED 2026-07-30
 
-But **five-dot Alchemy formulas exist** — Heavenly Transmutation Processes and
-Six-Demon Potion are both `Alchemy: •••••` — and the general rule is "a formula's
-required Alchemy level is equal to its difficulty." So ratings 1-6 are all reachable
-and only the level-5 *description* is absent.
+**Superseded ruling.** From 2026-07-29 this file recorded the literal reading: the
+printed ladder runs `• •• ••• ••••` then `••••••`, so Alchemy reached 6 with no five-dot
+description, and the entry said *"Do NOT 'fix' this by renumbering the six-dot entry to
+five."*
 
-Consequences, and the reason this is a pain to wire:
-- **`Science` needs its own `max_rating`** (Alchemy 6, the other three 5) rather than
-  the ordinary rating constraint. Note the human's framing (2026-07-29): **`≤5` is a
-  convention, not a real invariant** — it holds because chargen rarely exceeds 5, but
-  ratings above 5 genuinely exist in 1e (very old Exalts run Essence past 5). Alchemy
-  is an instance of a known soft spot, not a special case. Do not treat a `≤5` bound
-  anywhere in `models/` as load-bearing without checking.
-- The dot-description list is **sparse, not an array indexed 1..n** — level 5 has no
-  text. Store descriptions keyed by rating, and let the UI render level 5 as a rung
-  with no printed description rather than shifting level 6 down into the gap.
-- Do NOT "fix" this by renumbering the six-dot entry to five. Two formulas already
-  occupy level 5.
+**That is now reversed** (human, rules authority, 2026-07-30, on a report from a player
+familiar with the system — likely a designer answer this project has no copy of). The
+printed 6 is a **typographical error for 5**. The top rung is authored at rating 5,
+`max_rating` is 5, and Alchemy matches the other three Sciences exactly.
+
+The internal evidence is what made the reversal believable, and it is worth keeping:
+under the literal reading Alchemy was simultaneously the only Science with a *hole* in
+its ladder and the only one whose formulas required a rung the book never describes —
+Heavenly Transmutation Processes and Six-Demon Potion are both `Alchemy: •••••`, and "a
+formula's required Alchemy level is equal to its difficulty" (p.143). Read as 5, both
+anomalies vanish at once.
+
+**This is a deliberate departure from the printed page**, which decision 0001 normally
+forbids. It is recorded in the Science's own `description` field in
+`data/thaumaturgy/sciences.json` so a future session reading the book cannot quietly
+"correct" it back, and `test_the_typo_reading_resolves_every_alchemy_anomaly` pins the
+reasoning.
+
+What survives the reversal:
+- **`Science.max_rating` stays per-Science.** All four now read 5, so it expresses
+  nothing exceptional today — but the ceiling is rules data, not an engine constant, and
+  the next book may need it.
+- **The sparse dot-description list stays.** Descriptions are keyed by rating and the
+  loader still tolerates a formula sitting at a rating with no printed rung. Nothing
+  exercises that tolerance now; it costs nothing and the next book may.
+- **The human's framing that `≤5` is a convention, not an invariant** (2026-07-29) is
+  UNAFFECTED and still true: ratings above 5 genuinely exist in 1e (very old Exalts run
+  Essence past 5). Do not treat a `≤5` bound anywhere in `models/` as load-bearing
+  without checking. Alchemy is no longer an instance of that soft spot, but the soft
+  spot is real.
 
 ### Rituals — leveled • to •••••
 "The only normal restriction on purchasing a ritual is that a thaumaturge must have
@@ -389,8 +405,10 @@ rituals, both cost tables and mortal chargen are in hand. The only deliberately 
 item is the p.143 cross-reference table (below).
 
 ## Source oddities to preserve, not "fix"
-- **Alchemy's six-dot ladder with no five-dot rung** — see the Sciences section. Human
-  confirmed as printed.
+- ~~**Alchemy's six-dot ladder with no five-dot rung**~~ — **NO LONGER AN ODDITY.**
+  Confirmed as printed on 2026-07-29, then reversed 2026-07-30: the printed 6 is a typo
+  for 5. See the Sciences section. Left here struck through because a reader who knows
+  the book WILL notice the ladder and needs to find out why the data disagrees.
 - The Exceptional Equipment quality table prints difficulties 1, 2, 3, **5** — there is
   no 4. Author as printed.
 - **"FORMULAS FROM OTHER WORKS" (p.143) — SKIPPED, human's call 2026-07-29.** A 16-row

@@ -107,27 +107,41 @@ def test_weather_working_has_its_full_dot_ladder(ruleset):
 # Alchemy's six-dot ladder — the awkward one
 # --------------------------------------------------------------------------- #
 
-def test_alchemy_reaches_six_dots_and_prints_no_five_dot_rung(ruleset):
-    """Human's rules call, 2026-07-29: this is what the book prints, not paste
-    damage. The ladder runs 1-2-3-4 then SIX, with no five-dot description."""
+def test_alchemy_tops_out_at_five_like_every_other_science(ruleset):
+    """**REVERSES the 2026-07-29 ruling**, which read the printed ladder literally
+    (1-2-3-4 then SIX, no five-dot rung) and said "never renumber the six-dot rung down
+    to close it". The human reversed that 2026-07-30 on a report from a player familiar
+    with the system: the printed 6 is a typographical error for 5.
+
+    The internal evidence agrees, which is why the reversal was accepted — see
+    `test_the_typo_reading_resolves_every_alchemy_anomaly` below.
+
+    This is a DELIBERATE departure from the printed page (decision 0001 normally forbids
+    exactly this), recorded in the Science's own `description` so it cannot be quietly
+    "corrected" back by a later session reading the book."""
     alchemy = ruleset.thaum_sciences["science.alchemy"]
-    assert alchemy.max_rating == 6
-    assert [lv.rating for lv in alchemy.levels] == [1, 2, 3, 4, 6]
-    assert alchemy.level(5) is None
-    assert alchemy.level(6) is not None
+    assert alchemy.max_rating == 5
+    assert [lv.rating for lv in alchemy.levels] == [1, 2, 3, 4, 5]
+    assert alchemy.level(5) is not None
+    assert alchemy.level(6) is None
 
 
-def test_rating_five_alchemy_is_reachable_despite_having_no_description(ruleset):
-    """The gap is a hole in the DESCRIPTIONS, not in the ratings: two printed
-    formulas require Alchemy 5, and "a formula's required Alchemy level is equal to
-    its difficulty" (p.143). Never renumber the six-dot rung down to close it."""
+def test_the_typo_reading_resolves_every_alchemy_anomaly(ruleset):
+    """Why the reversal was believed. Under the literal reading Alchemy was the only
+    Science with a hole in its ladder AND the only one whose formulas required a rung
+    the book never describes. Read as 5, both vanish at once: the two level-5 formulas
+    land on a described rung, and Alchemy matches the other three Sciences exactly."""
     alchemy = ruleset.thaum_sciences["science.alchemy"]
     at_five = [f for f in ruleset.thaum_formulas.values()
                if f.science_id == "science.alchemy" and f.level == 5]
     assert {f.name for f in at_five} == {
         "Heavenly Transmutation Processes", "Six-Demon Potion",
     }
-    assert alchemy.level(5) is None       # reachable, purchasable, undescribed
+    # every formula now sits on a rung that HAS a printed description
+    for formula in ruleset.thaum_formulas.values():
+        if formula.science_id == "science.alchemy":
+            assert alchemy.level(formula.level) is not None, formula.name
+    assert "typographical error" in alchemy.description
 
 
 def test_the_other_three_sciences_stop_at_five(ruleset):

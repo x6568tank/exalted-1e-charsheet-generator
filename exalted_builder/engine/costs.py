@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from ..models.character import Character
 from ..models.rules import AbilityName, AttributeName, Charm, RuleSet
-from . import validate
+from . import merits, validate
 
 # A trait's first dot (an Ability bought from 0) has no `from_rating` to scale; it
 # is the flat new_ability cost. Attributes/Virtues never start below 1, so they are
@@ -148,7 +148,9 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     caste = validate.foreign_charms_caste(ruleset, character)
     if caste is not None and validate.is_foreign_charm(ruleset, character, charm):
         cost *= caste.foreign_charm_xp_multiplier
-    return cost
+    # A Merit may reprice Charms wholesale (Brigid's Heir). Applied LAST, consistent
+    # with the existing rule that discounts land first and multipliers last.
+    return merits.adjust_charm_cost(ruleset, character, charm, cost)
 
 
 def spell_cost(ruleset: RuleSet, character: Character, spell=None) -> int:
@@ -166,17 +168,23 @@ def spell_cost(ruleset: RuleSet, character: Character, spell=None) -> int:
     `spell` is optional only so a caller with no spell in hand still gets the flat
     price; both per-circle policies need the spell to read its circle."""
     xp = ruleset.xp_costs_for(character.exalt_type)
+
+    def _adjust(cost: int) -> int:
+        # A Merit may reprice spells wholesale (Brigid's Heir halves them). Every
+        # policy below routes through here so none of the three can be missed.
+        return merits.adjust_spell_cost(ruleset, character, cost)
+
     if spell is not None:
         by_circle = xp.spell_cost_by_circle.get(spell.circle.value)
         if by_circle is not None:
-            return by_circle
+            return _adjust(by_circle)
         if spell.circle in xp.new_spell_by_circle:
             base = xp.new_spell_by_circle[spell.circle]
             caste_def = ruleset.castes.get(character.caste)
             discount = caste_def.spell_cost_discount if caste_def else 0
-            return base - discount
+            return _adjust(base - discount)
     favored = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, character)
-    return xp.new_spell_occult_favored_caste if favored else xp.new_spell
+    return _adjust(xp.new_spell_occult_favored_caste if favored else xp.new_spell)
 
 
 def charm_slot_cost(ruleset: RuleSet, character: Character, *, dedicated: bool) -> int:

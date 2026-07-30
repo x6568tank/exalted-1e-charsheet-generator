@@ -366,6 +366,14 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                              sel.__setitem__("spec_name", "")))).props(f"dense color={pal.button}")
             ui.label("Charms, spells and Ox-Body are bought on the Charms tab; "
                      "Combos on the Combos tab.").classes("text-xs text-gray-500")
+            # Chargen Charm picks banked by a Flaw (Weak Essence, p.41). Shown here
+            # rather than only on the Charms tab because it is XP the player does NOT
+            # have to spend, and that belongs beside the rest of the XP accounting.
+            granted, remaining = validate.withheld_charm_credits(rs, character)
+            if granted:
+                ui.label(f"{remaining} of {granted} withheld Charm(s) still in reserve "
+                         f"— the next {remaining or 'no'} Charm(s) learned cost no XP."
+                         ).classes("text-xs font-semibold").style(f"color:{pal.accent}")
 
         # --- crafts: each focus is its own rated Ability (core p.136) ----- #
         with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):

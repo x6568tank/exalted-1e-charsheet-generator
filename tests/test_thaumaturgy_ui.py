@@ -159,15 +159,15 @@ def test_a_held_custom_specialty_is_listed_and_ungated(ruleset) -> None:
     assert custom.owned and custom.available and not custom.printed
 
 
-def test_alchemy_ladder_runs_to_six_with_an_empty_fifth_rung(ruleset) -> None:
-    # The book prints • •• ••• •••• then ••••••, and two formulas sit at level 5.
-    # The rung must render empty rather than pulling the six-dot text down.
+def test_the_alchemy_ladder_has_no_gap(ruleset) -> None:
+    """The picker used to render an EMPTY fifth rung, because the book prints
+    • •• ••• •••• then ••••••. The printed 6 is a typo for 5 (human, 2026-07-30), so
+    every rung now carries text and the ladder matches the other three Sciences."""
     v = viewmod.build_thaum_picker(ruleset, _thaum_char(3))
     alchemy = next(s for s in v.sciences if s.name == "Alchemy")
-    assert alchemy.max_rating == 6
-    assert [r.rating for r in alchemy.levels] == [1, 2, 3, 4, 5, 6]
-    assert alchemy.levels[4].description == ""
-    assert alchemy.levels[5].description != ""
+    assert alchemy.max_rating == 5
+    assert [r.rating for r in alchemy.levels] == [1, 2, 3, 4, 5]
+    assert all(r.description for r in alchemy.levels)
 
 
 def test_rituals_are_gated_on_occult_equal_to_their_level(ruleset) -> None:
@@ -484,9 +484,11 @@ def test_raising_a_science_walks_its_ladder(ruleset) -> None:
     assert viewmod.build_thaum_picker(ruleset, char).total == 12
 
 
-def test_alchemy_can_be_raised_to_six_and_others_stop_at_five(ruleset) -> None:
+def test_every_science_now_stops_at_five(ruleset) -> None:
+    """Alchemy used to be the exception, reaching six. `max_rating` stays per-Science —
+    the machinery is still right, it simply has nothing exceptional to express now."""
     char = _thaum_char(5)
-    for _ in range(6):
+    for _ in range(5):
         pickermod.raise_thaum_science(ruleset, char, "science.alchemy")
     with pytest.raises(advancement.AdvancementError, match="maximum"):
         pickermod.raise_thaum_science(ruleset, char, "science.alchemy")

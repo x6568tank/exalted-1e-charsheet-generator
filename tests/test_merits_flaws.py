@@ -17,11 +17,13 @@ import pytest
 
 import exalted_builder
 from exalted_builder import rules_db
-from exalted_builder.engine import advancement, costs, derive, merits, validate
-from exalted_builder.models.character import Character, MeritFlawPurchase as MP
+from exalted_builder.engine import advancement, costs, derive, lifecycle, merits, validate
+from exalted_builder.models.character import BackgroundEntry, Character, MeritFlawPurchase as MP
 from exalted_builder.models.rules import SpellCircle
 from exalted_builder.ui import view
 from exalted_builder.models.rules import VirtueName as V
+from exalted_builder.models.rules import AttributeName as A
+from exalted_builder.models.rules import AbilityName
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
@@ -78,7 +80,8 @@ def test_merit_definitions_carry_no_mechanical_effect(rs):
     fields = set(type(next(iter(rs.merits_flaws.values()))).model_fields)
     assert fields == {"id", "name", "kind", "category", "cost", "cost_options",
                       "cost_options_by_exalt_type", "cost_options_by_caste", "cost_by_kind",
-                      "variable_cost", "exalt_types", "cost_note",
+                      "variable_cost", "exalt_types", "barred_exalt_types",
+                      "barred_castes", "cost_note",
                       "prerequisites", "prerequisite_note", "repeatable_by",
                       "thaumaturges_only", "description", "source"}
 
@@ -549,17 +552,61 @@ def test_a_variable_cost_merit_prices_from_the_purchase(rs):
 
 
 def test_the_whole_general_chapter_is_authored(rs):
-    """87 entries across pp.16-41 — 43 Merits and 44 Flaws, in five categories."""
+    """88 entries across pp.16-41 — 43 Merits and 45 Flaws, in five categories.
+
+    Was 87 until 2026-07-30: Dying (p.31) had been missed entirely when the chapter
+    was pasted, and its tail had been glued onto a truncated Amputee. Both were found
+    by diffing every description against the source .md rather than by reading — see
+    docs/status/merits-flaws-triage.md.
+    """
     general = [m for m in rs.merits_flaws.values() if m.id.startswith("mf.")]
-    assert len(general) == 87
+    assert len(general) == 88
     # Three entries are printed as BOTH ("MERIT OR FLAW"), so they carry kind
     # "either" and sit in neither count — 43/44 is how the chapter PRINTS them.
     either = [m for m in general if m.kind == "either"]
     assert {m.id for m in either} == {"mf.mutation", "mf.favor", "mf.eternal-vow"}
     assert len([m for m in general if m.kind == "merit"]) + len(either) == 43
-    assert len([m for m in general if m.kind == "flaw"]) == 44
+    assert len([m for m in general if m.kind == "flaw"]) == 45
     assert {m.category for m in general} == {
         "Physical", "Mental", "Social", "Property", "Supernatural"}
+
+
+def test_every_description_matches_the_source_text(rs):
+    """Guards the failure that hid Dying for a month: a description silently truncated
+    mid-sentence, with the next entry's tail glued on. Compares each authored
+    description against its section of the pasted chapter by normalised length, which
+    is what caught Amputee at 12% of its printed body.
+
+    Skipped when the source is absent — `images/` is gitignored and does not travel
+    with a clone, so this cannot be a hard dependency of the suite.
+    """
+    import re, unicodedata
+    src = Path("images/Merits & Flaws/CH 1 - Merits and Flaws.md")
+    if not src.exists():
+        pytest.skip("source chapter not present (images/ is gitignored)")
+
+    secs = {}
+    for part in re.split(r"\n#{3,4} +", src.read_text())[1:]:
+        head, _, body = part.partition("\n")
+        name = re.sub(r"\s*\([^)]*\)\s*$", "", head).strip()   # cost may share the line
+        secs[name.upper()] = body
+
+    def norm(s: str) -> str:
+        s = unicodedata.normalize("NFKD", s).replace("’", "'").replace("—", " ")
+        return re.sub(r"[^a-z0-9]", "", s.lower())
+
+    by_name = {norm(k): v for k, v in secs.items()}
+    short = []
+    for m in rs.merits_flaws.values():
+        if not m.id.startswith("mf."):
+            continue
+        body = by_name.get(norm(m.name))
+        assert body is not None, f"{m.name} has no section in the source chapter"
+        body = re.sub(r"^\s*\([^)]*\)\s*", "", body.strip(), flags=re.S)
+        ratio = len(norm(m.description)) / max(1, len(norm(body)))
+        if ratio < 0.92:
+            short.append(f"{m.name} ({ratio:.0%} of source)")
+    assert not short, "descriptions shorter than their source: " + ", ".join(short)
 
 
 def test_every_entry_keeps_its_printed_cost_line(rs):
@@ -745,3 +792,732 @@ def test_an_unresolvable_row_explains_itself_in_the_tooltip(rs):
     row = view.merit_rows(rs, c)[0]
     assert row[0].startswith("⚠")
     assert "missing" in row[4]
+
+
+# --- the trait-forfeit Flaws (PG pp.35-36) ---------------------------------- #
+# Four Flaws pay bonus points for free chargen dots GIVEN UP rather than for a
+# disadvantage suffered. The human's ruling (2026-07-30): this is a budget delta and
+# nothing more — sell two Virtue dots and the Virtue budget is 3 instead of 5, after
+# which every existing over-spend check does the real work unchanged.
+
+CALLOUS = "mf.callous"
+UNSKILLED = "mf.unskilled"
+WEAK_WILLED = "mf.weak-willed"
+DIMINISHED_ATTR = "mf.diminished-attributes"
+
+
+def _solar(*purchases, **kw) -> Character:
+    c = Character(id="c.s", exalt_type="Solar", caste="dawn", essence_rating=1,
+                  merits_flaws=list(purchases))
+    for k, v in kw.items():
+        setattr(c, k, v)
+    return c
+
+
+def test_callous_dots_come_from_the_point_value(rs):
+    """dots = points // rate, so no new model field is needed. Callous is 2 BP/dot."""
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=CALLOUS, tier="4")))
+    assert e.forfeited_virtue_dots == 2
+
+
+def test_callous_lowers_the_virtue_budget(rs):
+    """The whole mechanism: 4 points of Callous drops the Virtue budget 5 -> 3."""
+    plain = validate.effective_budgets(rs, _solar())
+    callous = validate.effective_budgets(rs, _solar(MP(merit_id=CALLOUS, tier="4")))
+    assert callous.virtue_dots == plain.virtue_dots - 2
+
+
+def test_unskilled_lowers_the_ability_budget(rs):
+    """Unskilled is 1 BP/dot, and it is a variable_cost entry, so points are on the
+    purchase rather than on a tier."""
+    b = validate.effective_budgets(rs, _solar(MP(merit_id=UNSKILLED, points=3)))
+    assert b.ability_dots == validate.effective_budgets(rs, _solar()).ability_dots - 3
+
+
+def test_a_character_holding_no_forfeit_flaw_gets_the_printed_budget(rs):
+    """The printed budget must be returned UNCHANGED — same object, not a copy — when
+    nothing forfeits, so the common path costs nothing."""
+    c = _solar()
+    assert validate.effective_budgets(rs, c) is rs.budgets_for("Solar", c.origin,
+                                                               c.upbringing)
+
+
+def test_forfeit_flaws_still_grant_their_bonus_points(rs):
+    """The BP half was already working and must not regress: the forfeit fields are the
+    OTHER half of the bargain, not a replacement for it."""
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=CALLOUS, tier="4")))
+    assert e.bonus_point_grant == 4
+
+
+def test_callous_caps_willpower_just_above_the_virtues_it_sold(rs):
+    """"...may not begin play with a Willpower rating more than one point higher than
+    the sum of their two highest Virtues" (p.35)."""
+    c = _solar(MP(merit_id=CALLOUS, tier="4"), nature="Survivor",
+               virtues={V.COMPASSION: 1, V.CONVICTION: 1, V.TEMPERANCE: 1, V.VALOR: 1},
+               willpower_purchased=4)
+    assert _codes(validate.validate_chargen(rs, c), "callous-willpower-cap")
+
+
+def test_callous_willpower_cap_allows_exactly_one_above(rs):
+    c = _solar(MP(merit_id=CALLOUS, tier="4"), nature="Survivor",
+               virtues={V.COMPASSION: 1, V.CONVICTION: 1, V.TEMPERANCE: 1, V.VALOR: 1},
+               willpower_purchased=1)
+    assert not _codes(validate.validate_chargen(rs, c), "callous-willpower-cap")
+
+
+def test_callous_falls_away_at_nine_virtue_dots(rs):
+    """"...at which point the character automatically loses this Flaw at no cost."""
+    c = _solar(MP(merit_id=CALLOUS, tier="4"), nature="Paragon",
+               virtues={V.COMPASSION: 3, V.CONVICTION: 3, V.TEMPERANCE: 2, V.VALOR: 1})
+    e = merits.merits_and_flaws_calc(rs, c)
+    assert e.willpower_virtue_margin is None and not e.barred_natures
+
+
+def test_callous_bars_the_paragon_nature(rs):
+    c = _solar(MP(merit_id=CALLOUS, tier="4"), nature="Paragon",
+               virtues={V.COMPASSION: 1, V.CONVICTION: 1, V.TEMPERANCE: 1, V.VALOR: 1})
+    assert _codes(validate.validate_chargen(rs, c), "nature-barred-by-flaw")
+
+
+def test_weak_willed_lowers_derived_willpower(rs):
+    """Willpower is derived, not stored, so its forfeit is a subtraction in derive —
+    and only when a RuleSet is passed, since without one no Flaw is knowable."""
+    c = _solar(MP(merit_id=WEAK_WILLED, points=2),
+               virtues={V.COMPASSION: 3, V.CONVICTION: 3, V.TEMPERANCE: 1, V.VALOR: 1})
+    assert derive.willpower(c) == 6
+    assert derive.willpower(c, rs) == 4
+
+
+def test_weak_willed_floors_an_exalt_at_four(rs):
+    c = _solar(MP(merit_id=WEAK_WILLED, points=3), nature="Survivor",
+               virtues={V.COMPASSION: 3, V.CONVICTION: 3, V.TEMPERANCE: 1, V.VALOR: 1})
+    assert _codes(validate.validate_chargen(rs, c), "willpower-below-flaw-floor")
+
+
+def test_weak_willed_floors_a_mortal_at_two_not_four(rs):
+    """"UnExalted and Callous Exalted characters may have a Willpower score as low as
+    2" (p.36). The un-Exalted test is the absence of a native Essence pool, which is
+    how this module already asks the question."""
+    c = _mortal(MP(merit_id=WEAK_WILLED, points=3),
+                virtues={V.COMPASSION: 3, V.CONVICTION: 3, V.TEMPERANCE: 1, V.VALOR: 1})
+    assert merits.merits_and_flaws_calc(rs, c).willpower_floor == 2
+
+
+def test_callous_lowers_an_exalts_weak_willed_floor_to_two(rs):
+    c = _solar(MP(merit_id=WEAK_WILLED, points=3), MP(merit_id=CALLOUS, tier="4"),
+               virtues={V.COMPASSION: 1, V.CONVICTION: 1, V.TEMPERANCE: 1, V.VALOR: 1})
+    assert merits.merits_and_flaws_calc(rs, c).willpower_floor == 2
+
+
+def test_diminished_attributes_records_its_category(rs):
+    """Three printed Flaws share one entry; the purchase names which via `detail`."""
+    e = merits.merits_and_flaws_calc(
+        rs, _solar(MP(merit_id=DIMINISHED_ATTR, points=6, detail="Mental")))
+    assert e.forfeited_attribute_dots == {"Mental": 2}
+
+
+def test_diminished_attributes_defaults_to_physical(rs):
+    """The printed entry's own category, when the player recorded none."""
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=DIMINISHED_ATTR, points=3)))
+    assert e.forfeited_attribute_dots == {"Physical": 1}
+
+
+def test_forfeit_flaws_are_not_reported_as_narrative_only(rs):
+    """They have real effects now, so the UI must stop calling them decorative."""
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=CALLOUS, tier="4")))
+    assert CALLOUS not in e.narrative_only
+
+
+def test_diminished_attributes_shrinks_the_pool_its_category_receives(rs):
+    """The pools are matched to categories BY SPEND, so the forfeit is taken off the
+    pool the category actually gets — not off a fixed slot. Physical here is the
+    biggest spend, so it holds the 8-pool; forfeiting 2 dots leaves it 6."""
+    attrs = {A.STRENGTH: 4, A.DEXTERITY: 4, A.STAMINA: 3,      # Physical spend 8
+             A.CHARISMA: 3, A.MANIPULATION: 3, A.APPEARANCE: 2,  # Social spend 5
+             A.PERCEPTION: 2, A.INTELLIGENCE: 2, A.WITS: 2}      # Mental spend 3
+    c = _solar(MP(merit_id=DIMINISHED_ATTR, points=6, detail="Physical"),
+               attributes=attrs)
+    b = rs.budgets_for("Solar", c.origin, c.upbringing)
+    assignment = validate.attribute_pool_assignment(rs, c, b, attrs)
+    assert ("Physical", 8, 6) in assignment
+    assert ("Social", 5, 6) in assignment          # untouched
+
+
+def test_diminished_attributes_charges_bp_for_the_dots_it_took_away(rs):
+    """The point of wiring it: an unchanged sheet that WAS legal becomes over-spent,
+    because the budget it was spending against is smaller."""
+    attrs = {A.STRENGTH: 4, A.DEXTERITY: 4, A.STAMINA: 3,
+             A.CHARISMA: 3, A.MANIPULATION: 3, A.APPEARANCE: 2,
+             A.PERCEPTION: 2, A.INTELLIGENCE: 2, A.WITS: 2}
+    def attr_bp(c):
+        line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                    if l.domain.lower().startswith("attribute"))
+        return line.points
+    assert attr_bp(_solar(attributes=attrs)) == 0
+    assert attr_bp(_solar(MP(merit_id=DIMINISHED_ATTR, points=6, detail="Physical"),
+                          attributes=attrs)) > 0
+
+
+def test_the_editor_counts_against_the_forfeited_budget(rs):
+    """The sheet must not contradict its own validation: a Callous or Unskilled
+    character's panel headers have to show the budget the engine charges against, not
+    the printed one. Pins the UI to `effective_budgets` rather than `budgets_for`."""
+    src = (Path(exalted_builder.__file__).parent / "ui" / "editor.py").read_text()
+    # the two budget reads that feed every dot-count header in the chargen editor
+    assert src.count("validate.effective_budgets(ruleset, character)") == 2
+
+
+# --- A2: health levels (PG p.20, p.32) -------------------------------------- #
+# Large Size and Small are the first sources of a health level in this build that are
+# not Charms — `derive.health_track` read Charms and Ox-Body purchases only.
+
+LARGE_SIZE = "mf.large-size"
+SMALL = "mf.small"
+
+
+def _penalties(track):
+    return [lv.penalty for lv in track if not lv.incapacitated]
+
+
+def test_the_base_track_is_unchanged_without_merits(rs):
+    assert _penalties(derive.health_track(_solar(), rs)) == [0, -1, -1, -2, -2, -4]
+
+
+def test_large_size_four_points_grants_one_zero_level(rs):
+    """"Such imposing bulk grants one additional -0 health level" (p.20)."""
+    c = _solar(MP(merit_id=LARGE_SIZE, tier="4"))
+    assert _penalties(derive.health_track(c, rs)) == [0, 0, -1, -1, -2, -2, -4]
+
+
+def test_large_size_six_points_grants_a_zero_and_a_minus_one(rs):
+    """"Such characters receive one -0 level and one -1 level" (p.20)."""
+    c = _solar(MP(merit_id=LARGE_SIZE, tier="6"))
+    assert _penalties(derive.health_track(c, rs)) == [0, 0, -1, -1, -1, -2, -2, -4]
+
+
+def test_a_granted_level_names_the_merit_it_came_from(rs):
+    """The sheet shows provenance for an Ox-Body level; a Merit level is no different."""
+    track = derive.health_track(_solar(MP(merit_id=LARGE_SIZE, tier="4")), rs)
+    assert [lv.source for lv in track if lv.source] == ["Large Size"]
+
+
+def test_small_costs_one_minus_one_level(rs):
+    """"Her reduced size also costs her one -1 health level" (p.32)."""
+    c = _solar(MP(merit_id=SMALL))
+    assert _penalties(derive.health_track(c, rs)) == [0, -1, -2, -2, -4]
+
+
+def test_large_size_and_small_cancel_at_the_minus_one_tier(rs):
+    """Both held: the six-point grant adds a -1 and Small removes one. The removal
+    takes a BASE level first, so the granted one survives and is still attributed."""
+    c = _solar(MP(merit_id=LARGE_SIZE, tier="6"), MP(merit_id=SMALL))
+    track = derive.health_track(c, rs)
+    assert _penalties(track) == [0, 0, -1, -1, -2, -2, -4]
+    assert sorted(lv.source for lv in track if lv.source) == ["Large Size", "Large Size"]
+
+
+def test_an_unrecorded_large_size_tier_grants_nothing_and_is_reported(rs):
+    """Guessing which size was meant would silently hand out a health level. Granting
+    nothing is only safe because it is also VISIBLE — `merit-bad-tier` already fires,
+    so the two halves are pinned together here."""
+    c = _solar(MP(merit_id=LARGE_SIZE))
+    assert _penalties(derive.health_track(c, rs)) == [0, -1, -1, -2, -2, -4]
+    assert _codes(validate.validate_chargen(rs, c), "merit-bad-tier")
+
+
+def test_health_track_without_a_ruleset_ignores_merits(rs):
+    """The optional-ruleset shape `soak` and `willpower` already use: no RuleSet means
+    no way to know a Merit is held, so the caller gets the Charm-only track."""
+    c = _solar(MP(merit_id=LARGE_SIZE, tier="6"))
+    assert _penalties(derive.health_track(c)) == [0, -1, -1, -2, -2, -4]
+
+
+def test_derive_bundles_the_merit_aware_track(rs):
+    """derive() has a RuleSet in hand, so the sheet must get the full track."""
+    c = _solar(MP(merit_id=LARGE_SIZE, tier="4"))
+    assert _penalties(derive.derive(rs, c).health_levels) == [0, 0, -1, -1, -2, -2, -4]
+
+
+def test_health_merits_are_not_reported_as_narrative_only(rs):
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=LARGE_SIZE, tier="4"),
+                                                MP(merit_id=SMALL)))
+    assert LARGE_SIZE not in e.narrative_only and SMALL not in e.narrative_only
+
+
+# --- A3: trait caps (PG pp.20, 22, 33, 41) ---------------------------------- #
+# The first cluster to span the chargen/advancement boundary: Legendary Attribute is
+# explicitly usable "during character creation or after it", so both the range checks
+# in validate and the ceilings in advancement have to read the same field.
+
+LEGENDARY_ATTR = "mf.legendary-attribute"
+TRUE_PARAGON = "mf.true-paragon"
+DISFIGURED = "mf.disfigured"
+WEAK_ESSENCE = "mf.weak-essence"
+
+
+def test_legendary_attribute_raises_one_named_attribute_to_six(rs):
+    """"...a rating one dot higher than the normal limit imposed by their Essence
+    allows ... for mortals and Exalted with Essence 1 to 5, this allows a rating of 6."""
+    c = _solar(MP(merit_id=LEGENDARY_ATTR, detail="Strength"))
+    assert merits.merits_and_flaws_calc(rs, c).attribute_caps == {"strength": 6}
+
+
+def test_legendary_attribute_scales_with_essence_above_five(rs):
+    """"Exalted with Essence 6 may raise the Attribute to 7, etc." The BASE cap stays
+    5 for everyone else — this does not introduce an Essence-scaled cap build-wide."""
+    c = _solar(MP(merit_id=LEGENDARY_ATTR, detail="Strength"), essence_rating=6)
+    assert merits.merits_and_flaws_calc(rs, c).attribute_caps == {"strength": 7}
+
+
+def test_the_raised_attribute_is_legal_at_chargen_and_others_are_not(rs):
+    c = _solar(MP(merit_id=LEGENDARY_ATTR, detail="Strength"))
+    c.attributes[A.STRENGTH] = 6
+    assert not _codes(validate.validate_chargen(rs, c), "attribute-range")
+    c.attributes[A.DEXTERITY] = 6
+    assert _codes(validate.validate_chargen(rs, c), "attribute-range")
+
+
+def test_an_unnamed_legendary_attribute_raises_nothing(rs):
+    """Picking an Attribute for the player would hand out a dot they never chose."""
+    assert merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=LEGENDARY_ATTR))
+                                        ).attribute_caps == {}
+
+
+def test_legendary_attribute_raises_the_xp_ceiling_too(rs):
+    """"This may be done during character creation or after it" (p.20)."""
+    c = _solar(MP(merit_id=LEGENDARY_ATTR, detail="Strength"))
+    c.attributes[A.STRENGTH] = 5
+    c.chargen_locked = True
+    advancement.add_xp(c, 200)
+    assert advancement.raise_attribute(rs, c, A.STRENGTH).to_rating == 6
+    with pytest.raises(advancement.AdvancementError, match="already at 6"):
+        advancement.raise_attribute(rs, c, A.STRENGTH)
+
+
+def test_an_ordinary_attribute_still_stops_at_five(rs):
+    c = _solar(MP(merit_id=LEGENDARY_ATTR, detail="Strength"))
+    c.attributes[A.DEXTERITY] = 5
+    c.chargen_locked = True
+    advancement.add_xp(c, 200)
+    with pytest.raises(advancement.AdvancementError, match="already at 5"):
+        advancement.raise_attribute(rs, c, A.DEXTERITY)
+
+
+def test_disfigured_lowers_the_appearance_cap(rs):
+    """3-pt: "cannot ever have an Appearance rating greater than 1". 4-pt: Appearance 0
+    "that cannot be improved with bonus or experience points" — a cap of 0 says both."""
+    three = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=DISFIGURED, tier="3")))
+    four = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=DISFIGURED, tier="4")))
+    assert three.attribute_caps == {"appearance": 1}
+    assert four.attribute_caps == {"appearance": 0}
+
+
+def test_disfigured_appearance_is_reported_at_chargen(rs):
+    c = _solar(MP(merit_id=DISFIGURED, tier="4"))
+    c.attributes[A.APPEARANCE] = 1
+    assert _codes(validate.validate_chargen(rs, c), "attribute-range")
+
+
+def test_a_flaw_ceiling_beats_a_merit_ceiling_on_the_same_trait(rs):
+    """Holding both, the LOWEST cap wins — a Merit must never undo a Flaw's ceiling by
+    happening to be processed second."""
+    c = _solar(MP(merit_id=LEGENDARY_ATTR, detail="Appearance"),
+               MP(merit_id=DISFIGURED, tier="3"))
+    assert merits.merits_and_flaws_calc(rs, c).attribute_caps == {"appearance": 1}
+
+
+def test_true_paragon_raises_every_virtue_to_six(rs):
+    c = _solar(MP(merit_id=TRUE_PARAGON), nature="Paragon")
+    assert merits.merits_and_flaws_calc(rs, c).virtue_cap == 6
+    c.virtues = {V.COMPASSION: 6, V.CONVICTION: 1, V.TEMPERANCE: 1, V.VALOR: 1}
+    assert not _codes(validate.validate_chargen(rs, c), "virtue-range")
+
+
+def test_true_paragon_raises_the_virtue_xp_ceiling(rs):
+    c = _solar(MP(merit_id=TRUE_PARAGON), nature="Paragon")
+    c.virtues = {V.COMPASSION: 5, V.CONVICTION: 1, V.TEMPERANCE: 1, V.VALOR: 1}
+    c.chargen_locked = True
+    advancement.add_xp(c, 200)
+    assert advancement.raise_virtue(rs, c, V.COMPASSION).to_rating == 6
+    with pytest.raises(advancement.AdvancementError, match="already at 6"):
+        advancement.raise_virtue(rs, c, V.COMPASSION)
+
+
+def test_a_virtue_still_stops_at_five_without_true_paragon(rs):
+    c = _solar()
+    c.virtues = {V.COMPASSION: 5, V.CONVICTION: 1, V.TEMPERANCE: 1, V.VALOR: 1}
+    c.chargen_locked = True
+    advancement.add_xp(c, 200)
+    with pytest.raises(advancement.AdvancementError, match="already at 5"):
+        advancement.raise_virtue(rs, c, V.COMPASSION)
+
+
+def test_true_paragon_requires_the_paragon_nature(rs):
+    """"Only characters with the Paragon Nature may purchase or retain this Merit."
+    Reported by NAME, so no caller has to know the id."""
+    c = _solar(MP(merit_id=TRUE_PARAGON), nature="Survivor")
+    assert merits.merits_and_flaws_calc(rs, c).nature_requirement_unmet == ("True Paragon",)
+    assert _codes(validate.validate_chargen(rs, c), "merit-nature-required")
+
+
+def test_true_paragon_and_callous_are_mutually_exclusive_in_practice(rs):
+    """Callous BARS the Paragon Nature and True Paragon REQUIRES it, so holding both
+    always reports — whichever Nature is set."""
+    c = _solar(MP(merit_id=TRUE_PARAGON), MP(merit_id=CALLOUS, tier="4"),
+               nature="Paragon",
+               virtues={V.COMPASSION: 1, V.CONVICTION: 1, V.TEMPERANCE: 1, V.VALOR: 1})
+    assert _codes(validate.validate_chargen(rs, c), "nature-barred-by-flaw")
+    c.nature = "Survivor"
+    assert _codes(validate.validate_chargen(rs, c), "merit-nature-required")
+
+
+def test_weak_essence_forces_a_starting_essence_of_one(rs):
+    c = _solar(MP(merit_id=WEAK_ESSENCE), essence_rating=2)
+    assert merits.merits_and_flaws_calc(rs, c).essence_start_override == 1
+    assert _codes(validate.validate_chargen(rs, c), "essence-above-flaw-start")
+
+
+def test_weak_essence_does_not_block_raising_essence_in_play(rs):
+    """The Flaw is a CREATION ceiling — it exists so the character can raise Essence
+    later ("typically until after the character can raise Essence in play")."""
+    c = _solar(MP(merit_id=WEAK_ESSENCE), essence_rating=1)
+    c.chargen_locked = True
+    advancement.add_xp(c, 200)
+    assert advancement.raise_essence(rs, c).to_rating == 2
+
+
+def test_weak_willed_uses_the_forfeited_willpower_at_its_xp_ceiling(rs):
+    """Regression from A1: raise_willpower measured against the UN-forfeited value, so
+    a Weak-Willed character was capped as though they still had the dots they sold."""
+    c = _solar(MP(merit_id=WEAK_WILLED, points=3),
+               virtues={V.COMPASSION: 5, V.CONVICTION: 5, V.TEMPERANCE: 1, V.VALOR: 1})
+    c.willpower_purchased = 0
+    c.chargen_locked = True
+    advancement.add_xp(c, 200)
+    assert derive.willpower(c, rs) == 7          # 10 - 3 forfeited
+    assert advancement.raise_willpower(rs, c).from_rating == 7
+
+
+def test_a_flaw_ceiling_below_the_chargen_floor_reads_sensibly(rs):
+    """Disfigured at four points forces Appearance 0, which is below the free dot every
+    Attribute starts with — so the floor follows the ceiling down rather than reporting
+    an impossible "must be 1-0" range."""
+    c = _solar(MP(merit_id=DISFIGURED, tier="4"))
+    c.attributes[A.APPEARANCE] = 0
+    assert not _codes(validate.validate_chargen(rs, c), "attribute-range")
+    c.attributes[A.APPEARANCE] = 1
+    issue = _codes(validate.validate_chargen(rs, c), "attribute-range")[0]
+    assert "exactly 0" in issue.message
+
+
+# --- Weak Essence's withheld Charms (PG p.41) ------------------------------- #
+# "the player may choose to withhold up to five Charms in reserve ... Withheld Charms
+# waive their experience cost." Read as banked PICKS, not Charms named at creation
+# (human, rules authority, 2026-07-30). NOTHING new is stored: what was withheld is the
+# unspent remainder of the chargen Charm budget, and redemptions are counted off the
+# append-only XP log.
+
+
+def _locked_weak_essence(rs, picks: int) -> Character:
+    """A Solar with Weak Essence who spent `picks` of their 10 chargen Charms."""
+    c = _solar(MP(merit_id=WEAK_ESSENCE), essence_rating=1)
+    # Ability dots so a Charm's prerequisites can actually be met — the point under
+    # test is the credit economy, not Charm legality.
+    c.abilities = {a: 5 for a in AbilityName if a != AbilityName.CRAFT}
+    solar_charms = [cid for cid, ch in rs.charms.items()
+                    if validate.charm_matches_splat(c, ch, rs)][:picks]
+    c.charms = solar_charms
+    # Lock through lifecycle so the ChargenSnapshot is written: credits are counted
+    # against the FROZEN pick list, and a character locked without one would count
+    # every Charm learned afterwards as a chargen pick and eat its own credits.
+    lifecycle.lock_chargen(c)
+    advancement.add_xp(c, 200)
+    return c
+
+
+def test_no_credits_without_the_flaw(rs):
+    c = _solar()
+    c.chargen_locked = True
+    assert validate.withheld_charm_credits(rs, c) == (0, 0)
+
+
+def test_withholding_five_of_ten_banks_five(rs):
+    """The intended shape: pinned at Essence 1 you can only qualify for a handful, so
+    you take those and bank the rest. Total across both phases is still 10 — the Flaw
+    DEFERS picks, it does not add any."""
+    assert validate.withheld_charm_credits(rs, _locked_weak_essence(rs, 5)) == (5, 5)
+
+
+def test_spending_more_than_five_at_chargen_reduces_the_bank(rs):
+    """The human's rule: "if more than five Charms are selected during chargen,
+    subtract the number over from the total"."""
+    assert validate.withheld_charm_credits(rs, _locked_weak_essence(rs, 7)) == (3, 3)
+    assert validate.withheld_charm_credits(rs, _locked_weak_essence(rs, 10)) == (0, 0)
+
+
+def test_the_bank_is_capped_at_five_however_few_were_taken(rs):
+    """Spending none does not bank ten — the ceiling is the Flaw's own five."""
+    assert validate.withheld_charm_credits(rs, _locked_weak_essence(rs, 0)) == (5, 5)
+
+
+def test_redeeming_a_credit_costs_no_xp(rs):
+    c = _locked_weak_essence(rs, 5)
+    before = advancement.xp_spent(c)
+    charm = next(cid for cid, ch in rs.charms.items()
+                 if validate.charm_matches_splat(c, ch, rs)
+                 and cid not in c.charms
+                 and validate.meets_charm_requirements(rs, c, ch))
+    entry = advancement.learn_charm(rs, c, charm)
+    assert entry.cost == 0
+    assert advancement.xp_spent(c) == before
+    assert charm in c.charms
+    assert validate.withheld_charm_credits(rs, c) == (5, 4)
+
+
+def test_a_redeemed_charm_does_not_trip_the_xp_audit(rs):
+    """THE trap: the audit re-prices every entry from the table, so a 0 filed under
+    `charms` would be reported as a cost mismatch on every later validation."""
+    c = _locked_weak_essence(rs, 5)
+    charm = next(cid for cid, ch in rs.charms.items()
+                 if validate.charm_matches_splat(c, ch, rs)
+                 and cid not in c.charms
+                 and validate.meets_charm_requirements(rs, c, ch))
+    advancement.learn_charm(rs, c, charm)
+    assert not _codes(advancement.validate_xp(rs, c), "xp-cost-mismatch")
+
+
+def test_credits_run_out_and_the_next_charm_costs_xp(rs):
+    c = _locked_weak_essence(rs, 10)             # nothing banked
+    charm = next(cid for cid, ch in rs.charms.items()
+                 if validate.charm_matches_splat(c, ch, rs)
+                 and cid not in c.charms
+                 and validate.meets_charm_requirements(rs, c, ch))
+    assert advancement.learn_charm(rs, c, charm).cost > 0
+
+
+def test_undoing_a_redemption_restores_the_credit(rs):
+    c = _locked_weak_essence(rs, 5)
+    charm = next(cid for cid, ch in rs.charms.items()
+                 if validate.charm_matches_splat(c, ch, rs)
+                 and cid not in c.charms
+                 and validate.meets_charm_requirements(rs, c, ch))
+    advancement.learn_charm(rs, c, charm)
+    advancement.undo_last(rs, c)
+    assert charm not in c.charms
+    assert validate.withheld_charm_credits(rs, c) == (5, 5)
+
+
+# --- A4: point-cost modifiers (PG pp.21, 30) -------------------------------- #
+
+BRIGIDS_HEIR = "mf.brigid-s-heir"
+PRODIGY = "mf.prodigy"
+
+
+def _sorcerer(*purchases, **kw) -> Character:
+    c = _solar(*purchases, **kw)
+    c.abilities = {a: 5 for a in AbilityName if a != AbilityName.CRAFT}
+    return c
+
+
+def test_brigids_heir_doubles_ordinary_charms(rs):
+    """"...doubles the bonus/experience cost ... of all Charms" (p.30)."""
+    plain, heir = _sorcerer(), _sorcerer(MP(merit_id=BRIGIDS_HEIR))
+    charm = next(ch for cid, ch in rs.charms.items()
+                 if validate.charm_matches_splat(plain, ch, rs)
+                 and not ch.grants_circle and "occult" not in ch.category)
+    assert costs.charm_cost(rs, heir, charm) == costs.charm_cost(rs, plain, charm) * 2
+
+
+def test_brigids_heir_halves_spells(rs):
+    """"...but halves the corresponding costs ... for spells"."""
+    plain, heir = _sorcerer(), _sorcerer(MP(merit_id=BRIGIDS_HEIR))
+    spell = next(iter(rs.spells.values()))
+    assert costs.spell_cost(rs, heir, spell) == costs.spell_cost(rs, plain, spell) // 2
+
+
+def test_ox_body_is_exempt_from_the_doubling(rs):
+    """"Ox-Body Technique is exempt from this doubling"."""
+    plain, heir = _sorcerer(), _sorcerer(MP(merit_id=BRIGIDS_HEIR))
+    ox = validate.ox_body_charm(rs, plain)
+    assert ox is not None
+    assert costs.charm_cost(rs, heir, ox) == costs.charm_cost(rs, plain, ox)
+
+
+def test_the_terrestrial_sorcery_line_is_exempt(rs):
+    """"...as is any Charm that includes Terrestrial Circle Sorcery as an ultimate
+    prerequisite or leads directly to that Charm." Found through `grants_circle`, so it
+    holds for every splat with sorcery without naming a Charm id."""
+    plain, heir = _sorcerer(), _sorcerer(MP(merit_id=BRIGIDS_HEIR))
+    tcs = next(ch for ch in rs.charms.values()
+               if ch.grants_circle == SpellCircle.TERRESTRIAL
+               and validate.charm_matches_splat(plain, ch, rs))
+    # Terrestrial Circle Sorcery is a ROOT Charm in this data — no Charm is its
+    # prerequisite — so the printed "leads directly to that Charm" clause has no
+    # members here. Recorded rather than asserted, so that stays visible if a splat
+    # ever gates it behind something.
+    assert [p for group in tcs.prerequisites for p in group] == []
+    downstream = [cid for cid, ch in rs.charms.items()
+                  if any(tcs.id in group for group in ch.prerequisites)]
+    assert downstream, "expected Charms downstream of Terrestrial Circle Sorcery"
+    for cid in [tcs.id, *downstream]:
+        charm = rs.charms[cid]
+        assert costs.charm_cost(rs, heir, charm) == costs.charm_cost(rs, plain, charm), cid
+    # Two dots downstream too: Solar Circle Sorcery reaches it only transitively.
+    solar_circle = rs.charms.get("solar.occult.solar-circle-sorcery")
+    assert costs.charm_cost(rs, heir, solar_circle) == costs.charm_cost(rs, plain, solar_circle)
+    # ...but NECROMANCY is a separate line and is not exempt.
+    necro = rs.charms["solar.occult.shadowlands-circle-necromancy"]
+    assert costs.charm_cost(rs, heir, necro) == costs.charm_cost(rs, plain, necro) * 2
+
+
+def test_brigids_heir_doubles_the_chargen_bonus_cost_too(rs):
+    """"doubles the BONUS/experience cost" — both halves, not only XP."""
+    charm = next(ch for cid, ch in rs.charms.items()
+                 if validate.charm_matches_splat(_solar(), ch, rs)
+                 and not ch.grants_circle and "occult" not in ch.category)
+    plain, heir = _sorcerer(), _sorcerer(MP(merit_id=BRIGIDS_HEIR))
+    plain.charms = heir.charms = [charm.id]
+    a = validate.charm_pick_bp_costs(rs, plain, validate.chargen_charm_picks(rs, plain))
+    b = validate.charm_pick_bp_costs(rs, heir, validate.chargen_charm_picks(rs, heir))
+    assert b == [a[0] * 2]
+
+
+def test_prodigy_grants_an_extra_favored_ability(rs):
+    """"...gaining one additional Favored Ability for every time this Merit is
+    purchased" (p.21). Feeds the count the existing favored-count check uses."""
+    db = Character(id="c.db", exalt_type="Dragon-Blooded", caste="air",
+                   merits_flaws=[MP(merit_id=PRODIGY, tier="3")])
+    plain = Character(id="c.db2", exalt_type="Dragon-Blooded", caste="air")
+    assert (validate.favored_ability_count(rs, db)
+            == validate.favored_ability_count(rs, plain) + 1)
+
+
+def test_prodigy_never_exceeds_five_favored_abilities(rs):
+    """"Characters may not have more than five Favored Abilities in total"."""
+    db = Character(id="c.db", exalt_type="Dragon-Blooded", caste="air",
+                   merits_flaws=[MP(merit_id=PRODIGY, tier="3")] * 6)
+    assert validate.favored_ability_count(rs, db) == merits.PRODIGY_FAVORED_CAP
+
+
+def test_prodigy_is_barred_from_the_splats_already_at_the_limit(rs):
+    """"...so Prodigy is not available to Solars, Abyssals or Lunars ... Alchemical
+    Exalted may not take this Merit at all." A printed restriction is inert catalogue
+    data, like a cost — it lives on MeritFlaw, not in engine.merits."""
+    assert set(rs.merits_flaws[PRODIGY].barred_exalt_types) == {
+        "Solar", "Abyssal", "Lunar", "Alchemical"}
+    c = _solar(MP(merit_id=PRODIGY, tier="3"))
+    assert _codes(validate.validate_chargen(rs, c), "merit-barred-splat")
+
+
+def test_a_splat_that_may_take_prodigy_is_not_flagged(rs):
+    db = Character(id="c.db", exalt_type="Dragon-Blooded", caste="air",
+                   merits_flaws=[MP(merit_id=PRODIGY, tier="3")])
+    assert not _codes(validate.validate_chargen(rs, db), "merit-barred-splat")
+
+
+def test_cost_modifiers_are_not_reported_as_narrative_only(rs):
+    e = merits.merits_and_flaws_calc(rs, _sorcerer(MP(merit_id=BRIGIDS_HEIR)))
+    assert BRIGIDS_HEIR not in e.narrative_only
+
+
+# --- A5: Essence-pool shape (PG pp.28, 41) ---------------------------------- #
+#
+# Two entries that change the POOLS rather than any term feeding them: Legendary
+# Breeding raises the effective Breeding rating, Beacon of Power merges the two pools.
+
+LEGENDARY_BREEDING = "mf.legendary-breeding"
+BEACON = "mf.beacon-of-power"
+
+
+def _db(*purchases, breeding: int = 5, **kw) -> Character:
+    c = Character(id="c.db", exalt_type="Dragon-Blooded", caste="air", essence_rating=1,
+                  merits_flaws=list(purchases))
+    if breeding:
+        c.backgrounds = [BackgroundEntry(name="Breeding", rating=breeding)]
+    for k, v in kw.items():
+        setattr(c, k, v)
+    return c
+
+
+def test_legendary_breeding_grants_the_rating_six_pools(rs):
+    """"her Breeding Background ... has a rating of 6. This superb ancestry adds 6
+    motes to her Personal Essence pool and 11 motes to her Peripheral" (p.28) — the
+    printed totals, which are the rating-6 row of the Breeding table."""
+    plain_p, plain_pp = derive.essence_pools(rs, _db())
+    p, pp = derive.essence_pools(rs, _db(MP(merit_id=LEGENDARY_BREEDING)))
+    # Breeding 5 is already worth 5/9, so the Merit is worth one more step of each.
+    assert (p - plain_p, pp - plain_pp) == (1, 2)
+    # And the absolute bonus over no Breeding at all is the printed 6 and 11.
+    none_p, none_pp = derive.essence_pools(rs, _db(breeding=0))
+    assert (p - none_p, pp - none_pp) == (6, 11)
+
+
+def test_legendary_breeding_overrides_a_lower_purchased_rating(rs):
+    """The Merit states the rating outright, so it does not stack with what was
+    bought. (Breeding 5 is a printed prerequisite this build cannot yet check — see
+    the trait-prerequisites item in the triage doc.)"""
+    e = merits.merits_and_flaws_calc(rs, _db(MP(merit_id=LEGENDARY_BREEDING), breeding=2))
+    assert e.breeding_rating_override == merits.LEGENDARY_BREEDING_RATING
+    assert (derive.essence_pools(rs, _db(MP(merit_id=LEGENDARY_BREEDING), breeding=2))
+            == derive.essence_pools(rs, _db(MP(merit_id=LEGENDARY_BREEDING), breeding=5)))
+
+
+def test_legendary_breeding_does_nothing_to_a_splat_without_breeding(rs):
+    """Every other splat carries an empty Breeding table, so the override is inert
+    rather than an error. (Validation flags the wrong splat separately.)"""
+    solar = _solar(MP(merit_id=LEGENDARY_BREEDING))
+    assert derive.essence_pools(rs, solar) == derive.essence_pools(rs, _solar())
+
+
+def test_beacon_of_power_merges_the_pools(rs):
+    """"...a single Essence pool equal to the sum of their Personal and Peripheral
+    Essence, all of which is considered Peripheral" (p.41)."""
+    plain_p, plain_pp = derive.essence_pools(rs, _solar())
+    p, pp = derive.essence_pools(rs, _solar(MP(merit_id=BEACON)))
+    assert (p, pp) == (0, plain_p + plain_pp)
+
+
+def test_beacon_of_power_merges_after_every_other_pool_effect(rs):
+    """The merge is arithmetic on the finished pools, so a Merit that feeds a term
+    still contributes exactly what it did — here Legendary Breeding's 6 + 11."""
+    a_p, a_pp = derive.essence_pools(rs, _db(MP(merit_id=LEGENDARY_BREEDING)))
+    _, merged = derive.essence_pools(rs, _db(MP(merit_id=LEGENDARY_BREEDING),
+                                             MP(merit_id=BEACON)))
+    assert merged == a_p + a_pp
+
+
+def test_a_merged_pool_is_reported_as_one_pool_not_as_personal_zero(rs):
+    """"Personal 0" on a sheet reads as a character with no Essence at all, so the
+    shape travels with the number."""
+    d = derive.derive(rs, _solar(MP(merit_id=BEACON)))
+    assert d.essence_single_pool
+    assert not derive.derive(rs, _solar()).essence_single_pool
+    sheet = view.build_sheet_view(rs, _solar(MP(merit_id=BEACON)))
+    assert sheet.essence_pool_label().startswith("Single pool")
+    assert "Personal" in view.build_sheet_view(rs, _solar()).essence_pool_label()
+
+
+def test_the_play_tracker_follows_the_merged_pool(rs):
+    """The in-play mote tracker reads the derivation, so it needs no change of its
+    own — but a Personal track with zero boxes has to be what the rule produced."""
+    pv = view.build_play_view(rs, _solar(MP(merit_id=BEACON)))
+    plain = view.build_play_view(rs, _solar())
+    assert pv.personal_max == 0
+    assert pv.peripheral_max == plain.personal_max + plain.peripheral_max
+
+
+def test_beacon_of_power_is_barred_from_the_concealment_castes(rs):
+    """"Night and Day Caste Exalted may not take this Flaw" (p.41). A printed
+    restriction is inert catalogue data, exactly like Prodigy's splat bars."""
+    assert set(rs.merits_flaws[BEACON].barred_castes) == {"night", "day"}
+    night = _solar(MP(merit_id=BEACON), caste="night")
+    assert _codes(validate.validate_chargen(rs, night), "merit-barred-caste")
+    assert not _codes(validate.validate_chargen(rs, _solar(MP(merit_id=BEACON))),
+                      "merit-barred-caste")
+
+
+def test_the_pool_shape_entries_are_not_reported_as_narrative_only(rs):
+    e = merits.merits_and_flaws_calc(rs, _db(MP(merit_id=LEGENDARY_BREEDING),
+                                             MP(merit_id=BEACON)))
+    assert LEGENDARY_BREEDING not in e.narrative_only
+    assert BEACON not in e.narrative_only

@@ -129,9 +129,11 @@ class ArtSpecialty(BaseModel):
 
 
 class ScienceRating(BaseModel):
-    """One Science at a rating. NOT bounded at 5 here: Alchemy reaches 6 (see
-    rules.ScienceLevel). The per-Science ceiling is `ThaumaturgicScience.
-    max_rating` and is enforced in engine.validate, which has the RuleSet."""
+    """One Science at a rating. Not bounded here: the per-Science ceiling is
+    `ThaumaturgicScience.max_rating`, enforced in engine.validate, which has the
+    RuleSet. Every Science currently stops at 5 — Alchemy's printed six-dot rung was a
+    typo for five (human, 2026-07-30) — but the ceiling stays per-Science data rather
+    than a constant, so a future Science may differ without a model change."""
     science_id: str
     rating: int = Field(ge=0)
 
@@ -169,8 +171,8 @@ class FormulaEntry(BaseModel):
     """A formula or procedure the character knows. Same orientation rule as
     RitualEntry; formulas are the cheapest purchasable in thaumaturgy (1 point).
 
-    `level` is unbounded above for the same reason as ScienceRating: an Alchemy
-    formula may sit at 5 or 6."""
+    `level` is unbounded above for the same reason as ScienceRating: the ceiling is
+    per-Science rules data, not a model constant."""
     formula_id: str = ""                   # "" => custom, described inline below
     name: str = ""                         # custom only
     science_id: str = ""                   # custom only

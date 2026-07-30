@@ -65,6 +65,88 @@ PRIEST = "mf.priest"
 # any splat able to reach Terrestrial MA at all would otherwise be handed it.
 SPIRIT_WALKING = "dragonblooded.martial-arts.spirit-walking"
 
+# The four trait-forfeit Flaws (PG pp.35-36, p.20), and the bonus points each pays per
+# dot given up. The rate is what converts a purchase's point value back into dots, so
+# the forfeit needs no field of its own on the purchase.
+DIMINISHED_ATTRIBUTES = "mf.diminished-attributes"
+CALLOUS = "mf.callous"
+UNSKILLED = "mf.unskilled"
+WEAK_WILLED = "mf.weak-willed"
+
+# Health levels (A2). Large Size at four points grants "one additional -0 health level";
+# at six, "one -0 level and one -1 level" (p.20). Small "costs her one -1 health level"
+# (p.32). Keyed by tier because the tier IS the printed distinction.
+LARGE_SIZE = "mf.large-size"
+SMALL = "mf.small"
+
+_LARGE_SIZE_LEVELS: dict[str, tuple[int, ...]] = {"4": (0,), "6": (0, -1)}
+_SMALL_REMOVES: tuple[int, ...] = (-1,)
+
+# Trait caps (A3). The universal ceiling on any trait in this build is 5; these are the
+# entries that move it for one character.
+LEGENDARY_ATTRIBUTE = "mf.legendary-attribute"
+TRUE_PARAGON = "mf.true-paragon"
+DISFIGURED = "mf.disfigured"
+WEAK_ESSENCE = "mf.weak-essence"
+
+DOT_MAX = 5                        # the universal trait cap these entries depart from
+
+# Disfigured: three points "cannot ever have an Appearance rating greater than 1"; four
+# points is "an Appearance of 0 that cannot be improved with bonus or experience points"
+# (p.33). A cap of 0 expresses the unraisability on its own.
+_DISFIGURED_APPEARANCE_CAPS: dict[str, int] = {"3": 1, "4": 0}
+# Keyed by AttributeName.value, which is LOWERCASE — the caps dict is looked up with
+# that value, so every key written into it must be normalised the same way.
+APPEARANCE = "appearance"
+
+# True Paragon raises every Virtue's ceiling to 6 (p.22) and requires the Paragon
+# Nature — the exact Nature that Callous bars, which is why one is a required-Nature
+# check and the other a barred-Nature one.
+TRUE_PARAGON_VIRTUE_CAP = 6
+
+# Weak Essence "reduces the character's starting Essence rating to 1" (p.41).
+WEAK_ESSENCE_START = 1
+# "If used to represent a new Exalt, the player may choose to withhold up to five Charms
+# in reserve (typically until after the character can raise Essence in play). Withheld
+# Charms waive their experience cost, though they still require the same training time."
+# Read (human, rules authority, 2026-07-30) as banked PICKS rather than Charms named at
+# creation: the Flaw exists because a character at Essence 1 cannot choose well, so what
+# is held back is the choice itself.
+WEAK_ESSENCE_CHARM_CREDITS = 5
+
+_FORFEIT_RATES = {
+    DIMINISHED_ATTRIBUTES: 3,      # "three points for every Physical Attribute dot"
+    CALLOUS: 2,                    # "two bonus points for every dot of Virtues"
+    UNSKILLED: 1,                  # "one bonus point for every dot of Abilities"
+    WEAK_WILLED: 1,                # "one bonus point for every dot of permanent Willpower"
+}
+
+# Callous "automatically loses this Flaw at no cost" once the character has 9 dots of
+# Virtues (p.35). Below that its Willpower ceiling and Nature ban both apply.
+CALLOUS_EXPIRY_VIRTUE_DOTS = 9
+CALLOUS_WILLPOWER_MARGIN = 1
+PARAGON_NATURE = "Paragon"
+
+# Weak-Willed's floors (p.36): "Exalted characters with this Flaw may not begin with a
+# Willpower rating lower than 4, unless they are also Callous. UnExalted and Callous
+# Exalted characters may have a Willpower score as low as 2."
+WEAK_WILLED_FLOOR_EXALTED = 4
+WEAK_WILLED_FLOOR_MORTAL = 2
+
+# Essence-pool shape (A5). Two entries that change the pools themselves rather than any
+# term feeding them.
+LEGENDARY_BREEDING = "mf.legendary-breeding"
+BEACON_OF_POWER = "mf.beacon-of-power"
+
+# "her Breeding Background (see E:DB, p. 158) has a rating of 6. This superb ancestry
+# adds 6 motes to her Personal Essence pool and 11 motes to her Peripheral Essence pool"
+# (p.28). Those two totals are the rating-6 row of the Breeding table — one more step of
+# the +1 Personal / +2 Peripheral the printed 0..5 rows already climb — so the Merit is
+# modelled as the RATING it says it grants, and the motes come from the table in
+# data/exalts.json like every other Breeding rating's do. Requires Breeding 5 to buy,
+# which is a trait prerequisite and not yet checked anywhere (see the triage doc).
+LEGENDARY_BREEDING_RATING = 6
+
 
 @dataclass(frozen=True)
 class MeritEffects:
@@ -88,6 +170,18 @@ class MeritEffects:
     # mortal exceed Essence 1 at all, and 3 is "the limit of human potential —
     # mortals that exceed Essence 3 become gods" (PG p.114). None = no override.
     essence_cap_override: int | None = None
+    # An EFFECTIVE rating for the Background that feeds the Essence pools
+    # (EssencePoolSpec.breeding_background — Dragon-Blooded Breeding), replacing the
+    # rating the character actually bought. Legendary Breeding's whole effect is
+    # "her Breeding Background has a rating of 6"; the motes follow from the table.
+    # None = use the purchased rating. Ignored by splats with no such Background.
+    breeding_rating_override: int | None = None
+    # Beacon of Power: "a single Essence pool equal to the sum of their Personal and
+    # Peripheral Essence, all of which is considered Peripheral for the purposes of
+    # anima displays" (p.41). Personal becomes 0 and everything sits in Peripheral —
+    # the pools are still computed normally, they are just merged afterwards.
+    # The anima-display half needs nothing: this build models no anima costs at all.
+    essence_single_pool: bool = False
 
     # --- Magic access ------------------------------------------------------ #
     # Charm categories opened to a character whose splat is otherwise Charmless, and
@@ -114,6 +208,92 @@ class MeritEffects:
     # What the Flaws would have granted before the cap, so the UI can say "10 of 13"
     # rather than silently swallowing three points the player thinks they have.
     flaw_points_raw: int = 0
+
+    # --- Trait caps -------------------------------------------------------- #
+    # Per-Attribute ceilings that REPLACE the universal 5 for the trait named, keyed by
+    # AttributeName.value. Deliberately one field for both directions: Legendary
+    # Attribute raises a cap and Disfigured lowers Appearance, and "what may this trait
+    # reach" is one question however it is answered. Keyed by EFFECT, not by Merit, per
+    # the module docstring. Absent = the universal 5.
+    attribute_caps: dict[str, int] = field(default_factory=dict)
+    # The ceiling on every Virtue, when a Merit raises it — True Paragon's "may spend
+    # bonus or experience points to raise any Virtue to a rating of 6" (p.22). None =
+    # the universal 5. Permanent Willpower's own maximum of 10 is untouched by this;
+    # the page says so explicitly.
+    virtue_cap: int | None = None
+    # Essence forced at creation — Weak Essence "reduces the character's starting
+    # Essence rating to 1" (p.41). None = the splat's own starting Essence.
+    essence_start_override: int | None = None
+    # --- Cost repricing (A4) ------------------------------------------------ #
+    # Brigid's Heir "doubles the bonus/experience cost and training time of all Charms
+    # but halves the corresponding costs and training time for spells" (p.30). Flags
+    # rather than multipliers because the Charm half is exempt along the Terrestrial
+    # sorcery line — see `adjust_charm_cost`, which is what callers actually use.
+    # Training time is not modelled anywhere (it is Storyteller bookkeeping), so only
+    # the point costs move.
+    charm_cost_doubled: bool = False
+    spell_cost_halved: bool = False
+
+    # --- Favored Abilities (A4) --------------------------------------------- #
+    # Extra Favored Abilities granted, one per purchase of Prodigy (p.21). Added to the
+    # count `validate.favored_ability_count` requires, so the existing favored-count
+    # check does the work.
+    extra_favored_abilities: int = 0
+
+    # The MOST chargen Charm picks a Flaw lets the character bank for post-lock use,
+    # XP-free. A ceiling, not an entitlement: how many were actually withheld is the
+    # unspent remainder of the chargen Charm budget, which only validate can count
+    # (see `validate.withheld_charm_credits`). 0 = no such Flaw held.
+    charm_credits_max: int = 0
+    # Display NAMES (never ids) of held entries whose printed Nature requirement is not
+    # met — True Paragon is "only characters with the Paragon Nature may purchase or
+    # retain this Merit". Names so the UI can report without naming an id.
+    nature_requirement_unmet: tuple[str, ...] = ()
+
+    # --- Health track ------------------------------------------------------ #
+    # Levels a Merit adds, as (wound penalty, source label) — the label is the Merit's
+    # own name, read from the catalogue, so the sheet can say where a level came from
+    # exactly as it does for Ox-Body. Large Size is the first non-Charm source of a
+    # health level in the build.
+    health_levels_granted: tuple[tuple[int, str], ...] = ()
+    # Wound penalties a Flaw takes AWAY, one level per entry. Small is the only one.
+    # A base level goes before a granted one, matching how a curse already removes.
+    health_levels_removed: tuple[int, ...] = ()
+
+    # --- Chargen budget forfeits ------------------------------------------- #
+    # Four Flaws buy their bonus points by GIVING UP free chargen dots rather than by
+    # imposing a disadvantage: Diminished Attributes (3 BP per Physical Attribute dot),
+    # Callous (2 per Virtue dot), Unskilled (1 per Ability dot) and Weak-Willed (1 per
+    # permanent Willpower dot). The bonus points themselves need nothing special —
+    # every one is priced from the purchase, so `flaw_points` already grants them.
+    # These fields are the OTHER half of the bargain: the budget the character no
+    # longer has. Expressed as a delta rather than as a rewritten ChargenBudgets so
+    # the printed budget stays the one in data/ and the difference is always visible.
+    #
+    # Dots are derived, not stored: each entry's point value IS its dot count times a
+    # fixed rate, so `dots = points // rate` and no new model field is needed.
+    forfeited_ability_dots: int = 0
+    forfeited_virtue_dots: int = 0
+    forfeited_willpower_dots: int = 0
+    # {"Physical" | "Social" | "Mental": dots}. Keyed by category because Diminished
+    # Attributes is printed as three separate Flaws sharing one entry — the Mental and
+    # Social versions "are considered Mental and Social Flaws rather than falling into
+    # the Physical category" (p.36) — and the purchase names which in `detail`.
+    forfeited_attribute_dots: dict[str, int] = field(default_factory=dict)
+    # Callous: "may not begin play with a Willpower rating more than one point higher
+    # than the sum of their two highest Virtues" (p.35). None for everyone else, which
+    # is NOT the same as 0 — no margin at all would be a real and different rule.
+    # This is the one sanctioned exception to decision 0005: the human ruled 2026-07-30
+    # that Willpower moves with the Virtues for a Callous character and stays pinned
+    # for everybody else.
+    willpower_virtue_margin: int | None = None
+    # A floor under starting permanent Willpower — Weak-Willed's "may not begin with a
+    # Willpower rating lower than 4" for the Exalted, 2 for the un-Exalted or Callous.
+    # 0 = no floor imposed by any held Flaw.
+    willpower_floor: int = 0
+    # Natures a held Flaw forbids. Callous bars Paragon (p.35); True Paragon requires
+    # it, which is why this is a set of names rather than a Callous-shaped boolean.
+    barred_natures: frozenset[str] = frozenset()
 
     # --- Cross-Merit effects ----------------------------------------------- #
     # Merits held FREE because another Merit grants them (Holy Mien -> Priest at the
@@ -203,6 +383,54 @@ def flaw_points(ruleset: RuleSet, character: Character) -> int:
     return total
 
 
+def _forfeited_dots(ruleset: RuleSet, character: Character) -> dict[str, int]:
+    """{merit_id: dots given up} for each trait-forfeit Flaw the character holds.
+
+    Each of the four pays a FIXED number of bonus points per dot, so the dot count is
+    recoverable from the point value the purchase already records — `_FORFEIT_RATES`
+    is that conversion. A purchase whose points are not a whole multiple of the rate
+    rounds DOWN — the player-unfavourable direction, so a mis-entered value can never
+    conjure budget out of nothing.
+
+    That rounding is currently reachable through the DATA, not just through bad input:
+    `mf.callous` is authored with a 2..10 tier menu, but its own text prices it at "two
+    bonus points for every dot of Virtues", so the odd tiers 3/5/7/9 buy no extra dot
+    while still granting their points. Flagged for the human — see
+    docs/status/merits-flaws-triage.md — rather than silently re-authored here.
+    """
+    from .validate import merit_points                    # validate imports merits
+
+    out: dict[str, int] = {}
+    for definition, purchase in _held(ruleset, character):
+        rate = _FORFEIT_RATES.get(definition.id)
+        if rate is None:
+            continue
+        points = merit_points(definition, purchase, character.exalt_type, character.caste)
+        out[definition.id] = out.get(definition.id, 0) + max(0, points) // rate
+    return out
+
+
+def _attribute_forfeits(ruleset: RuleSet, character: Character) -> dict[str, int]:
+    """Diminished Attributes' dots, split by the Attribute category they came out of.
+
+    The category is the player's, recorded in `MeritFlawPurchase.detail`, because the
+    page prints three versions of one Flaw — Physical, and the Mental and Social
+    variants that "are considered Mental and Social Flaws rather than falling into the
+    Physical category" (p.36). A purchase with no category recorded defaults to
+    Physical, the printed entry's own category, and validate flags the omission.
+    """
+    from .validate import merit_points
+
+    out: dict[str, int] = {}
+    for definition, purchase in _held(ruleset, character):
+        if definition.id != DIMINISHED_ATTRIBUTES:
+            continue
+        points = merit_points(definition, purchase, character.exalt_type, character.caste)
+        category = (purchase.detail or "").strip().title() or "Physical"
+        out[category] = out.get(category, 0) + max(0, points) // _FORFEIT_RATES[definition.id]
+    return out
+
+
 def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffects:
     """The single M&F calculation. See the module docstring for why it is the only one.
 
@@ -245,6 +473,93 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         if exalt.essence_cap and exalt.essence_cap < 3:
             cap_override = 3
 
+    # --- Trait caps -------------------------------------------------------- #
+    attribute_caps: dict[str, int] = {}
+    virtue_cap: int | None = None
+    essence_start_override: int | None = None
+    charm_credits_max = 0
+    charm_cost_doubled = False
+    spell_cost_halved = False
+    extra_favored = 0
+    nature_unmet: list[str] = []
+    breeding_override: int | None = None
+    single_pool = False
+    for definition, purchase in _held(ruleset, character):
+        if definition.id == LEGENDARY_ATTRIBUTE:
+            # "a rating one dot higher than the normal limit imposed by their Essence
+            # allows ... for mortals and Exalted with Essence 1 to 5, this allows a
+            # rating of 6. Exalted with Essence 6 may raise the Attribute to 7" (p.20).
+            # So the normal limit is Essence once Essence exceeds 5, and the universal
+            # 5 below that. NOTE this does NOT introduce an Essence-scaled cap for
+            # anyone else — the base cap stays 5 throughout the build.
+            trait = (purchase.detail or "").strip().lower()   # AttributeName.value
+            if trait:
+                cap = max(DOT_MAX, character.essence_rating) + 1
+                attribute_caps[trait] = max(attribute_caps.get(trait, 0), cap)
+                effects_from.add(definition.id)
+        elif definition.id == DISFIGURED:
+            cap = _DISFIGURED_APPEARANCE_CAPS.get(purchase.tier)
+            if cap is not None:
+                # The LOWEST cap wins where several apply, so a Merit can never undo a
+                # Flaw's ceiling by being processed second.
+                current = attribute_caps.get(APPEARANCE)
+                attribute_caps[APPEARANCE] = cap if current is None else min(current, cap)
+                effects_from.add(definition.id)
+        elif definition.id == TRUE_PARAGON:
+            virtue_cap = TRUE_PARAGON_VIRTUE_CAP
+            if character.nature != PARAGON_NATURE:
+                nature_unmet.append(definition.name)
+            effects_from.add(definition.id)
+        elif definition.id == BRIGIDS_HEIR:
+            charm_cost_doubled = True
+            spell_cost_halved = True
+            effects_from.add(definition.id)
+        elif definition.id == PRODIGY:
+            extra_favored += 1
+            effects_from.add(definition.id)
+        elif definition.id == WEAK_ESSENCE:
+            essence_start_override = WEAK_ESSENCE_START
+            charm_credits_max = WEAK_ESSENCE_CHARM_CREDITS
+            effects_from.add(definition.id)
+        elif definition.id == LEGENDARY_BREEDING:
+            # The highest rating wins if this were ever held twice — an effective
+            # rating is a ceiling on ancestry, not something that accumulates.
+            breeding_override = max(breeding_override or 0, LEGENDARY_BREEDING_RATING)
+            effects_from.add(definition.id)
+        elif definition.id == BEACON_OF_POWER:
+            single_pool = True
+            effects_from.add(definition.id)
+
+    # --- Health levels ----------------------------------------------------- #
+    granted_levels: list[tuple[int, str]] = []
+    removed_levels: list[int] = []
+    for definition, purchase in _held(ruleset, character):
+        if definition.id == LARGE_SIZE:
+            # An unrecognised tier grants nothing rather than guessing which size was
+            # meant; validate reports the unrecorded choice separately.
+            for penalty in _LARGE_SIZE_LEVELS.get(purchase.tier, ()):
+                granted_levels.append((penalty, definition.name))
+            effects_from.add(definition.id)
+        elif definition.id == SMALL:
+            removed_levels.extend(_SMALL_REMOVES)
+            effects_from.add(definition.id)
+
+    # --- The trait-forfeit Flaws ------------------------------------------- #
+    forfeits = _forfeited_dots(ruleset, character)
+    effects_from.update(forfeits.keys() & held_ids)
+
+    callous_dots = forfeits.get(CALLOUS, 0)
+    virtue_total = sum(character.virtues.values())
+    # Callous falls away at 9 Virtue dots, taking its ceiling and Nature ban with it —
+    # but NOT its bonus points, which were spent at creation and are not refunded.
+    callous_active = CALLOUS in held_ids and virtue_total < CALLOUS_EXPIRY_VIRTUE_DOTS
+
+    willpower_floor = 0
+    if WEAK_WILLED in held_ids:
+        willpower_floor = (WEAK_WILLED_FLOOR_MORTAL
+                           if (not has_native_pool or CALLOUS in held_ids)
+                           else WEAK_WILLED_FLOOR_EXALTED)
+
     # Holy Mien's grant, expressed as effects rather than a branch in the cost code.
     granted_merits: frozenset[str] = frozenset()
     cost_overrides: dict[str, dict[str, int]] = {}
@@ -254,11 +569,30 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         effects_from.add(HOLY_MIEN)
 
     return MeritEffects(
+        attribute_caps=attribute_caps,
+        virtue_cap=virtue_cap,
+        essence_start_override=essence_start_override,
+        charm_credits_max=charm_credits_max,
+        charm_cost_doubled=charm_cost_doubled,
+        spell_cost_halved=spell_cost_halved,
+        extra_favored_abilities=extra_favored,
+        nature_requirement_unmet=tuple(nature_unmet),
+        health_levels_granted=tuple(granted_levels),
+        health_levels_removed=tuple(removed_levels),
+        forfeited_ability_dots=forfeits.get(UNSKILLED, 0),
+        forfeited_virtue_dots=callous_dots,
+        forfeited_willpower_dots=forfeits.get(WEAK_WILLED, 0),
+        forfeited_attribute_dots=_attribute_forfeits(ruleset, character),
+        willpower_virtue_margin=CALLOUS_WILLPOWER_MARGIN if callous_active else None,
+        willpower_floor=willpower_floor,
+        barred_natures=frozenset({PARAGON_NATURE}) if callous_active else frozenset(),
         granted_merits=granted_merits,
         merit_cost_overrides=cost_overrides,
         essence_pool_unlocked=has_native_pool or awareness or mastery,
         essence_pool_unrestricted=has_native_pool or mastery,
         essence_cap_override=cap_override,
+        breeding_rating_override=breeding_override,
+        essence_single_pool=single_pool,
         open_charm_categories=open_categories,
         barred_charm_ids=barred,
         bar_immaculate_charms=bar_immaculate,
@@ -268,3 +602,103 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         narrative_only=tuple(sorted(
             held_ids - effects_from - {OATHBOUND_MAGIC})),
     )
+
+
+# --------------------------------------------------------------------------- #
+# Cost adjustment (A4). Brigid's Heir is the only entry that reprices Charms and
+# spells, and it does so with a per-Charm exemption, so it cannot be a plain field on
+# MeritEffects: the answer depends on WHICH Charm. These functions are the read —
+# callers pass a cost and get one back, and still name no Merit id.
+# --------------------------------------------------------------------------- #
+
+BRIGIDS_HEIR = "mf.brigid-s-heir"
+PRODIGY = "mf.prodigy"
+
+# "may not have more than five Favored Abilities in total" (p.21).
+PRODIGY_FAVORED_CAP = 5
+
+# Charms exempt from Brigid's Heir's doubling, per splat. Recomputed rarely and cached
+# because the sorcery-line closure walks every Charm's prerequisites.
+_BRIGID_EXEMPT_CACHE: dict[tuple[int, str], frozenset[str]] = {}
+
+
+def _terrestrial_sorcery_line(ruleset: RuleSet, character: Character) -> frozenset[str]:
+    """Charm ids exempt from Brigid's Heir: "Ox-Body Technique is exempt from this
+    doubling, as is any Charm that includes Terrestrial Circle Sorcery as an ultimate
+    prerequisite or leads directly to that Charm" (p.30).
+
+    Found through DATA, not by id: the initiating Charm is the one whose `grants_circle`
+    is Terrestrial, so this works for every splat that has sorcery without naming any of
+    their Charms. Three groups:
+
+      * the initiating Charm itself,
+      * its direct prerequisites — the Charms that "lead directly to" it,
+      * everything with it in the transitive prerequisite closure — the Charms that
+        "include it as an ultimate prerequisite".
+
+    ⚠ OPEN RULING: the printed text names only the second and third groups, so the
+    initiating Charm itself is exempt here by inference — leaving the one Charm the
+    Merit is *about* at double cost while everything either side of it is exempt reads
+    as a drafting slip rather than intent. Flagged for the rules authority; if the
+    literal reading is wanted, drop `{tcs_id}` from the union below.
+    """
+    key = (id(ruleset), character.exalt_type)
+    cached = _BRIGID_EXEMPT_CACHE.get(key)
+    if cached is not None:
+        return cached
+
+    exempt: set[str] = set()
+    from .validate import ox_body_charm_id
+    ox = ox_body_charm_id(ruleset, character)
+    if ox:
+        exempt.add(ox)
+
+    tcs_ids = {cid for cid, charm in ruleset.charms.items()
+               if charm.grants_circle == SpellCircle.TERRESTRIAL}
+    for tcs_id in tcs_ids:
+        exempt.add(tcs_id)                                  # see the OPEN RULING above
+        tcs = ruleset.charms[tcs_id]
+        for group in tcs.prerequisites:                     # AND-of-OR: flatten
+            exempt.update(group)
+    # Downstream: anything whose prerequisite closure reaches an initiating Charm.
+    for cid, charm in ruleset.charms.items():
+        seen: set[str] = set()
+        stack = [p for group in charm.prerequisites for p in group]
+        while stack:
+            pid = stack.pop()
+            if pid in seen:
+                continue
+            seen.add(pid)
+            if pid in tcs_ids:
+                exempt.add(cid)
+                break
+            prereq = ruleset.charms.get(pid)
+            if prereq is not None:
+                stack.extend(p for group in prereq.prerequisites for p in group)
+
+    result = frozenset(exempt)
+    _BRIGID_EXEMPT_CACHE[key] = result
+    return result
+
+
+def adjust_charm_cost(ruleset: RuleSet, character: Character, charm, cost: int) -> int:
+    """`cost` after any Merit that reprices Charms. Brigid's Heir "doubles the
+    bonus/experience cost ... of all Charms" outside the sorcery line (p.30)."""
+    if not merits_and_flaws_calc(ruleset, character).charm_cost_doubled:
+        return cost
+    if charm is not None and charm.id in _terrestrial_sorcery_line(ruleset, character):
+        return cost
+    return cost * 2
+
+
+def adjust_spell_cost(ruleset: RuleSet, character: Character, cost: int) -> int:
+    """`cost` after any Merit that reprices spells. Brigid's Heir "halves the
+    corresponding costs ... for spells" (p.30).
+
+    ⚠ The page does not say how an odd cost halves. Rounded DOWN, the player-favourable
+    direction for a price. No printed cost in the build is currently odd, so this has no
+    effect today — flagged for the rules authority against future data.
+    """
+    if not merits_and_flaws_calc(ruleset, character).spell_cost_halved:
+        return cost
+    return cost // 2

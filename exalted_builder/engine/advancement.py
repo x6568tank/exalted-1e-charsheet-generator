@@ -97,8 +97,12 @@ def _commit(character: Character, target: str, detail: str,
 def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName) -> XpEntry:
     _ensure_locked(character)
     frm = character.attributes[attr]
-    if frm >= _DOT_MAX:
-        raise AdvancementError(f"{attr.value} is already at {_DOT_MAX}.")
+    # A Merit or Flaw may move the ceiling for one named Attribute — Legendary
+    # Attribute explicitly applies "during character creation or after it".
+    cap = merits.merits_and_flaws_calc(ruleset, character).attribute_caps.get(
+        attr.value, _DOT_MAX)
+    if frm >= cap:
+        raise AdvancementError(f"{attr.value} is already at {cap}.")
     cost = costs.attribute_step(ruleset, character, frm, attr)
     entry = _commit(character, f"attributes.{attr.value}", "", frm, frm + 1, cost)
     character.attributes[attr] = frm + 1
@@ -177,8 +181,11 @@ def raise_college(ruleset: RuleSet, character: Character, college_id: str) -> Xp
 def raise_virtue(ruleset: RuleSet, character: Character, virtue: VirtueName) -> XpEntry:
     _ensure_locked(character)
     frm = character.virtues[virtue]
-    if frm >= _DOT_MAX:
-        raise AdvancementError(f"{virtue.value} is already at {_DOT_MAX}.")
+    # True Paragon lets Virtues be raised to 6 "with bonus or experience points".
+    mf_cap = merits.merits_and_flaws_calc(ruleset, character).virtue_cap
+    cap = mf_cap if mf_cap is not None else _DOT_MAX
+    if frm >= cap:
+        raise AdvancementError(f"{virtue.value} is already at {cap}.")
     cost = costs.virtue_step(ruleset, character, frm)
     entry = _commit(character, f"virtues.{virtue.value}", "", frm, frm + 1, cost)
     character.virtues[virtue] = frm + 1
@@ -189,7 +196,7 @@ def raise_willpower(ruleset: RuleSet, character: Character) -> XpEntry:
     """Raise permanent Willpower one dot (increments the purchased component; the
     pinned Virtue component is untouched)."""
     _ensure_locked(character)
-    frm = derive.willpower(character)
+    frm = derive.willpower(character, ruleset)
     if frm >= _WILLPOWER_MAX:
         raise AdvancementError(f"Willpower is already at {_WILLPOWER_MAX}.")
     cost = costs.willpower_step(ruleset, character, frm)
@@ -326,8 +333,17 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
     # General Charm Slot with it. Logged under a distinct target so undo gives the
     # Slot back too.
     grants_slot = validate.crossover_alchemical_charm(ruleset, character, charm)
-    entry = _commit(character, "crossover_charms" if grants_slot else "charms",
-                    charm_id, None, None, cost)
+    # A chargen pick banked by a Flaw (Weak Essence, p.41) pays for this Charm instead
+    # of XP. Logged under its OWN target rather than as a zero-cost `charms` row: the
+    # XP audit re-prices every entry from the table, so a 0 filed as `charms` would be
+    # reported as a mismatch forever after. The distinct target is also what makes the
+    # credits countable — see validate.withheld_charm_credits.
+    target = "crossover_charms" if grants_slot else "charms"
+    if not grants_slot and cost > 0:
+        _granted, remaining = validate.withheld_charm_credits(ruleset, character)
+        if remaining > 0:
+            target, cost = validate.WITHHELD_CHARM_TARGET, 0
+    entry = _commit(character, target, charm_id, None, None, cost)
     character.charms.append(charm_id)
     if grants_slot:
         g, _d, _bg, _bd = validate.charm_slot_counts(ruleset, character)
@@ -702,9 +718,10 @@ def add_thaum_specialty(ruleset: RuleSet, character: Character, art_id: str,
 def raise_thaum_science(ruleset: RuleSet, character: Character, science_id: str) -> XpEntry:
     """Raise a Science by one dot: 7 XP for the first, then current rating × 6.
 
-    The ceiling is the Science's OWN `max_rating`, not the usual _DOT_MAX — Alchemy
-    runs to six dots (its five-dot rung is simply undescribed), which is the whole
-    reason `max_rating` is per-Science.
+    The ceiling is the Science's OWN `max_rating` rather than the usual _DOT_MAX. All
+    four Sciences currently stop at 5 — Alchemy's printed six-dot rung turned out to be
+    a typo for five (human, 2026-07-30) — so this reads as a plain 5 today. Kept
+    per-Science because the ceiling is rules data, not an engine constant.
     """
     _ensure_locked(character)
     science = ruleset.thaum_sciences.get(science_id)
@@ -850,6 +867,10 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
         character.willpower_purchased -= (entry.to_rating - entry.from_rating)
     elif domain == "essence":
         character.essence_rating = entry.from_rating
+    elif domain == validate.WITHHELD_CHARM_TARGET:
+        # Removing the row restores the credit, since credits are counted from the log.
+        if entry.detail in character.charms:
+            character.charms.remove(entry.detail)
     elif domain == "charms":
         if entry.detail in character.charms:
             character.charms.remove(entry.detail)
@@ -1006,6 +1027,10 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         return costs.willpower_step(ruleset, character, frm)
     if domain == "essence" and frm is not None:
         return costs.essence_step(ruleset, character, frm)
+    if domain == validate.WITHHELD_CHARM_TARGET:
+        # Paid with a banked chargen pick, not XP. Free by rule, so the table rate must
+        # not be re-applied here.
+        return 0
     if domain in ("charms", "crossover_charms"):
         charm = ruleset.charms.get(entry.detail)
         return costs.charm_cost(ruleset, character, charm) if charm else None

@@ -888,6 +888,17 @@ class MeritFlaw(BaseModel):
     # Splats this entry is restricted to, as printed ("LUNARS ONLY", "CELESTIAL
     # EXALTED ONLY"). Empty = open to all. Display + validation.
     exalt_types: list[str] = Field(default_factory=list)
+    # Splats this entry is CLOSED to, as printed — the negative of `exalt_types`.
+    # Prodigy is "not available to Solars, Abyssals or Lunars (who already reach these
+    # limits as part of their Exaltation)" and "Alchemical Exalted may not take this
+    # Merit at all" (p.21). A restriction is inert data like a cost or a prerequisite,
+    # so it belongs here rather than in engine.merits.
+    barred_exalt_types: list[str] = Field(default_factory=list)
+    # CasteDefinition ids this entry is closed to — the same restriction one level
+    # down. Beacon of Power is open to every splat but "Night and Day Caste Exalted
+    # may not take this Flaw" (p.41), the two castes whose whole point is concealment.
+    # Caste ids are unique across splats, so no splat qualifier is needed.
+    barred_castes: list[str] = Field(default_factory=list)
     prerequisites: list[str] = Field(default_factory=list)       # other MeritFlaw ids
     prerequisite_note: str = ""            # printed prereq this build cannot check
     repeatable_by: str = ""                # "" = once only
@@ -1340,9 +1351,10 @@ class EssencePoolSpec(BaseModel):
     Some splats add a flat, Background-derived bonus to both pools that plain
     coefficients can't express — the Dragon-Blooded Breeding Background (p.158-159).
     `breeding_background` names that Background; `breeding_personal`/`breeding_peripheral`
-    are per-rating bonus tables indexed by the Background's rating (0..5). Empty tables
-    (Solar) mean no such term. If a splat needs a term none of this can express, STOP
-    and ask for the page."""
+    are per-rating bonus tables indexed by the Background's rating (0..5, plus a
+    rating-6 row a Merit can reach — see engine.merits.LEGENDARY_BREEDING). Empty
+    tables (Solar) mean no such term. If a splat needs a term none of this can express,
+    STOP and ask for the page."""
     model_config = ConfigDict(frozen=True)
     personal_essence_coeff: int
     personal_willpower_coeff: int = 1
@@ -1352,7 +1364,7 @@ class EssencePoolSpec(BaseModel):
     peripheral_virtue_coeff: int = 1        # multiplies the selected Virtue term (Lunar: 4)
     # Optional Background-derived additive term (DB Breeding, p.158-159).
     breeding_background: str = ""            # Background name whose rating indexes the tables
-    breeding_personal: list[int] = Field(default_factory=list)     # index by rating 0..5
+    breeding_personal: list[int] = Field(default_factory=list)     # index by rating 0..6
     breeding_peripheral: list[int] = Field(default_factory=list)
     # A Virtue term on the PERSONAL pool. Every Exalt splat's personal pool is
     # Essence/Willpower only, so these default to inert. They exist for the unlocked
