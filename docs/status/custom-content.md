@@ -51,9 +51,10 @@ that can produce book data can produce homebrew.
 
 ## Things that came free
 
-* **A Martial Arts style needs no schema.** `picker._group_of` derives style groups
-  from the `martial_arts:<slug>` category, so the style exists the moment a Charm uses
-  it. There is deliberately no Styles tab.
+* **A Martial Arts style needs no schema.** The `_group_of` helper inside
+  `picker.build_picker` derives the style groups from the `martial_arts:<slug>`
+  category, so the style exists the moment a Charm uses it. There is deliberately no
+  Styles tab.
 * **Pricing needed nothing.** BP/XP cost keys off `category` + `min_ability`.
 * **Combo eligibility needed nothing** — it is derived from `duration == "Instant"`
   (core p.213).

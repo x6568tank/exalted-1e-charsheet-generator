@@ -1,6 +1,6 @@
 # Building the desktop app
 
-The Exalted 1e Solar Builder can be packaged into a **single double-click
+The Exalted 1e Character Builder can be packaged into a **single double-click
 executable** that bundles Python, the app, all rules data, and a local copy of
 Cytoscape — so it runs with no Python install and **no internet**. On launch it
 starts a local server and opens the user's browser to the app.
@@ -10,6 +10,8 @@ PyInstaller builds for the OS it runs **on**. To produce:
 - a **Linux** binary → build on Linux,
 - a **Windows** `.exe` → build on Windows,
 - a **macOS** app → build on macOS.
+NOTE: I HAVE NOT TESTED THE macOS BUILD. BUILD AT YOUR OWN RISK, BECAUSE I AIN'T
+DOING THAT FOR YOU
 
 There is no way to build a Windows `.exe` from Linux (or vice versa). Use a
 Windows machine (or a Windows CI runner / VM) for the Windows build.
@@ -17,6 +19,8 @@ Windows machine (or a Windows CI runner / VM) for the Windows build.
 Note also that a Linux PyInstaller binary is **not reliably portable between Linux
 distributions** (glibc and system-library differences). For broad Linux sharing,
 build on the **oldest** distro you need to support.
+
+Or just grab from the release page.
 
 ## Quickest path: the build scripts
 

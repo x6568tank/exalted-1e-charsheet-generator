@@ -30,3 +30,6 @@ custom/
 
 # Local character saves — uncomment if you don't want them tracked
 # *.character.json
+
+#temp documentation
+docs/docs_refactor.md

@@ -64,13 +64,20 @@ its own chargen/data work:
 | Ghosts | — | NOT STARTED |
 | Dragon-Kings | — | NOT STARTED |
 | Mountain Folk | — | NOT STARTED |
+| ~~Fair Folk / Fae~~ | — | **NEVER — permanently out of scope** (human, 2026-07-29) |
 
 **No screenshots exist for any of them yet.** Do not start any of the six, and do not
 assume they share budgets, a Charm economy, or even a common shape — treat each as its
 own splat until the pages say otherwise.
 
+The **Fair Folk are the one splat that is never being implemented** — see *Deferred /
+permanently out of scope*. Six to go, not seven.
+
 Work on a given splat starts only once its rulebook images land in
 `images/<ExaltName>/` — never author data from memory, per the Workflow rule below.
+**Read `docs/adding-a-splat.md` before estimating one**: it records what each of the six
+finished splats needed BEYOND data (Charm Slots, Colleges, Attribute-keyed Charms, the
+`origin`/`upbringing` axes) and the traps, `highest_magic_circle_id` chief among them.
 
 **Splat color scheme (UI theming):**
 
@@ -95,88 +102,44 @@ mechanical effects don't get scattered invasively across files the way the old
 implementation did. Until that milestone the removal in Status stands: do not
 reintroduce the old per-file hooks.
 
-## Architecture — keep these boundaries
-- **Pure engine, disposable UI.** All validation and derivation are pure functions
-  of `(RuleSet, Character)` — no I/O, no UI, no mutation. The UI calls the engine
-  and contains **zero game logic.**
-- **Two data domains, kept separate:** *rules data* (the rulebook — static, loaded
-  once, read-only) and *character data* (the save file — mutable). Characters
-  reference rules by id.
-- **pydantic guards shape; the engine guards rules.** Models enforce only
-  structural invariants (non-negative ratings, valid enums, ≤5). Game legality
-  (budgets, caps, prerequisites) lives in `engine/validate.py`, which takes the
-  `RuleSet`. The models deliberately do **not** import the rules.
-- Dependency direction: `ui → engine → models`. `rules_db` and persistence sit at
-  the edges. Nothing flows back inward.
-- Does not currently exist, but when the UI is being engineered put any UI assets in `assets/`.
+## Architecture, layout and data conventions → `docs/ARCHITECTURE.md`
+**Read that file before touching the engine, the loader, the models or the data
+shapes.** It is the SINGLE copy of: the `ui → engine → models` dependency rule, the two
+data domains (rules vs character) and why they stay apart, what each module is
+responsible for, the chargen → lock → XP lifecycle, the load-time link checking, the
+invariants that must survive a refactor (play-state isolation, id-vs-inline references,
+AND-of-OR prerequisites, the one Charm-pick enumeration, graceful unresolvable ids,
+cost tables as data), and the data conventions (schemas live in the pydantic models
+and nowhere else; namespaced ids; `martial_arts:<slug>` categories; soft-reference
+Backgrounds).
 
-## Layout
-This is the TARGET structure. See **Status** for what exists today.
-```
-Exalted-1E-Charsheet-Generator/      (project root)
-  CLAUDE.md            this file
-  conftest.py          pytest import shim (makes the package importable)
-  pyproject.toml       dependencies + pytest config
-  .gitignore           ignores sources/, __pycache__/, .venv/, *.pyc
-  exalted_builder/     the package
-    __init__.py
-    models/            rules.py, character.py   (pydantic; import nothing game-specific)
-    rules_db.py        loads data/*.json -> RuleSet; indexes by id; link-checks
-                       prerequisites and spell-circle access
-    engine/            derive.py, validate.py, costs.py, refit.py   PURE: (RuleSet, Character) -> result
-    persistence.py     load/save a Character to/from JSON
-    ui/                thin frontend; no game logic
-    data/              rules data as JSON (see below)
-  assets/              assets for web ui
-  tests/               pytest; fixtures of known-good AND known-illegal characters
-  sources/             rulebook PDFs — GITIGNORED, never committed
-  images/              rulebook images — GITIGNORED, where any requested images from the rulebook will go
-```
+**Do not restate any of it here.** One copy, or the two drift and the next session
+believes the wrong one.
 
-## Data conventions
-- **Schemas live in code, not in this file.** The authoritative shapes are the
-  pydantic models in `exalted_builder/models/` (`rules.py`, `character.py`) — read
-  them for field-level truth; never duplicate or infer them. For the concrete JSON
-  a data file should produce, copy a working example: `data/armor.json` for armor,
-  `data/charm.example.json` for charms.
-- Rules data is JSON under `data/`. Charms are split per ability/splat in
-  `data/charms/*.json`.
-- Stable string ids (e.g. `solar.melee.fire-and-stones-strike`). Reference by id,
-  never by name.
-- Charm prerequisites are **AND-of-OR**: `list[list[str]]`. Every inner group must
-  be satisfied; a group is satisfied by any one of its ids. A flat list of
-  single-id groups is the common "all required" case.
-- **Backgrounds are soft free text** — `BackgroundEntry.name` is a name, not an id,
-  and the catalog is an autofill source, never a hard reference. ONE exception, added
-  for the Alchemical: `ChargenBudgets.background_rules` attaches per-splat chargen
-  mechanics (auto-rating, prerequisites, per-dot pool cost, cap exemption) to a
-  Background by NAME. Empty for every splat that does not need it.
-- Equipment is stored as an **inline copy** on the character (artifacts and
-  customization vary per character); the catalog in the RuleSet is an autofill
-  source, not a hard reference. Charms and spells, which never vary, ARE
-  referenced by id — the distinction is intentional.
-- `rules_db.load_ruleset` accumulates every data error and raises them together,
-  so the data set is fixed in one pass. Optional cost/budget tables fall back to
-  the model defaults when absent.
+Two things that are directives rather than description, so they live here:
+- UI assets go in `assets/`.
+- `sources/` (rulebook PDFs) and `images/` (rulebook page images) are gitignored and
+  are never committed.
 
-## Decisions already made (do not relitigate without reason)
-- **Current state is canonical and editable.** The engine *computes* the point
-  accounting; the user does not hand-tag each dot's currency.
-- **Chargen and advancement are different shapes.** Chargen is a constraint
-  snapshot validated against the budgets; `lock_chargen()` freezes it. Post-lock
-  changes are an append-only XP log the engine reconciles against the snapshot.
-- `lock_chargen()` must compute and store `wp_virtue_component` (the two highest
-  Virtues at lock). This is the mechanism by which post-creation Virtue gains do
-  not raise Willpower.
-- **Play-state is a SEPARATE, validation-isolated layer.** It was originally out
-  of scope; the user has since added an in-play tracker (the Play tab): marked
-  health damage, motes spent, temporary Willpower, and Limit. It lives on
-  `Character.play` (`PlayState`, optional → old saves load with it `None`) and is a
-  deliberately dumb manual tracker — no auto mote-accounting, no damage-wrapping, no
-  auto-healing. The hard rule survives: **play-state must NOT enter chargen validation,
-  the XP audit, or the permanent-value derivations.** Capacities only flow OUT of the
-  engine (health track, Essence pools, permanent WP) into the tracker; nothing flows
-  back. Still out of scope: Virtue channels and the Resources purchase transaction.
+## Decisions already made → `docs/decisions/`
+**Do not relitigate any of these without the human reopening it.** One numbered record
+per closed decision, each with the alternatives that were rejected and what the choice
+costs — read the record before proposing anything that contradicts it.
+
+`docs/decisions/README.md` is the index. The ones most likely to matter mid-task:
+
+| # | Decision |
+|---|---|
+| 0001 | **1e only, never 2e** — also the source of the never-author-from-memory rule below |
+| 0003 | Current state is canonical; the engine computes the point accounting |
+| 0004 | Chargen and advancement are different shapes (snapshot + append-only XP log) |
+| 0005 | Willpower's Virtue component is pinned at lock |
+| 0006 | Play-state is validation-isolated — it must never enter chargen, the XP audit or a permanent derivation |
+| 0008 | No combat/attack derivation |
+| 0009 | **No dice rolling, ever** — broader than 0008; do not propose it |
+| 0010 | The Fair Folk are permanently out of scope — six non-Exalt splats left, not seven |
+| 0011 | Merits & Flaws return as ONE centralized calc, never the old per-file hooks |
+| 0012 | Homebrew: the `custom/` library is the store, saves carry copies, homebrew errors are non-fatal |
 
 ## Stack
 - Python + pydantic v2 + pytest.
@@ -211,6 +174,10 @@ touching that area**; the summaries below are pointers, not the full record.
 
 | Area | File |
 |---|---|
+| **How it works** (module boundaries, lifecycle, invariants) | `docs/ARCHITECTURE.md` |
+| **Why** (closed decisions, one record each) | `docs/decisions/` |
+| **The rules data** (conventions, what the loader checks) | `docs/content.md` |
+| **Implementing a splat** (honest cost, from the six done) | `docs/adding-a-splat.md` |
 | Models, loader, persistence, `engine/`, NiceGUI UI | `docs/status/engine-and-ui.md` |
 | Core data files, Charm counts, `tools/` | `docs/status/data-and-tooling.md` |
 | Solar castebooks (Dawn/Eclipse/Night/Twilight/Zenith) | `docs/status/solar-castebooks.md` |
@@ -244,15 +211,17 @@ below for what's actually next.
   centralized `merits_and_flaws_calc` (see **Next Exalt Types**); until that work
   starts, do not reintroduce the old per-file hooks.
 
-### Deferred / permanently out of scope
+### Deferred (still open, just not now)
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond
   what's authored — optional, loader falls back to model defaults.
 - A per-session XP-grant ledger and the "training time" rule
   (`XpEntry.training_complete` is a dormant hook); state-reconciliation of
   hand-edited current-vs-snapshot drift (the read-only lock guards normal use).
-- **Combat/attack derivation is OUT OF SCOPE, not deferred (user decision,
-  2026-07-22)** — weapons stay display-only; no attack-roll engine, no Dire
-  Lance mounted profile. Do not build this without the user reopening it.
+
+### Permanently out of scope
+Recorded as decision records, not restated here — read them before proposing any of it:
+**no combat/attack derivation** (`0008`), **no dice rolling of any kind** (`0009`), and
+**the Fair Folk** (`0010`).
 
 ## TODO
 **Done:** M&F removal, repeatable Ox-Body, Nature dropdown, Caste info box,
