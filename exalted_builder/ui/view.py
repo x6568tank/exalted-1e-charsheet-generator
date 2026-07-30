@@ -15,10 +15,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
+from .. import custom_content
 from ..engine import advancement, costs, derive, validate
 from ..models.character import Armor, Character, HouseRules, Weapon, XpEntry
-from ..models.rules import (AbilityName, CharmCost, RuleSet, SpellCircle,
-                            TRACK_CIRCLES, VirtueName, circle_kind)
+from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, CharmCost,
+                            Damage, RuleSet, SpellCircle, TRACK_CIRCLES, VirtueName,
+                            circle_kind)
 
 
 @dataclass
@@ -36,6 +38,15 @@ class CharmRow:
     cost: str
     duration: str = ""
     description: str = ""
+    # Homebrew from the user's custom library rather than a printed Charm. The sheet
+    # badges it: the human's requirement is that custom content stay easily
+    # distinguishable from canon (2026-07-29).
+    custom: bool = False
+    # The id does not resolve in the RuleSet at all — a deleted custom Charm, or a
+    # save opened on a machine without the library that defined it. The row is still
+    # rendered (never silently dropped) so the loss is visible; engine.validate
+    # reports it as an `unknown-charm` error separately.
+    missing: bool = False
 
 
 @dataclass
@@ -44,6 +55,8 @@ class SpellRow:
     circle: str
     cost: str
     description: str = ""
+    custom: bool = False                   # see CharmRow.custom
+    missing: bool = False                  # see CharmRow.missing
 
 
 @dataclass
@@ -56,6 +69,7 @@ class SpellPickRow:
     owned: bool
     available: bool        # learnable right now (circle granted, not Solar at chargen)
     reason: str            # why it is locked, when neither owned nor available
+    custom: bool = False   # see CharmRow.custom
 
 
 @dataclass
@@ -71,6 +85,7 @@ class CharmNode:
     # rides as a badge on the node instead, so a capstone Charm does not silently read
     # as an entry-level root just because nothing points at it.
     count_requirement: str = ""
+    custom: bool = False     # homebrew from the user's library — see CharmRow.custom
 
 
 @dataclass
@@ -97,6 +112,7 @@ class CharmDetail:
     # privilege (p.127) and priced at double. "" for an ordinary native Charm — the
     # cross-tier styles a Celestial may learn natively are NOT foreign.
     foreign_splat: str = ""
+    custom: bool = False                   # see CharmRow.custom
 
 
 def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) -> Optional[CharmDetail]:
@@ -133,6 +149,7 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
         available=validate.meets_charm_requirements(ruleset, character, charm),
         foreign_splat=(validate.splat_of(charm)
                        if validate.is_foreign_charm(ruleset, character, charm) else ""),
+        custom=charm.custom,
     )
 
 
@@ -145,6 +162,7 @@ class SpellDetail:
     description: str
     owned: bool
     available: bool                        # a known Charm grants its Circle
+    custom: bool = False                   # see CharmRow.custom
 
 
 def build_spell_detail(ruleset: RuleSet, character: Character, spell_id: str) -> Optional[SpellDetail]:
@@ -162,6 +180,7 @@ def build_spell_detail(ruleset: RuleSet, character: Character, spell_id: str) ->
         description=spell.description,
         owned=spell_id in character.spells,
         available=validate.meets_spell_requirements(ruleset, character, spell, chargen=False),
+        custom=spell.custom,
     )
 
 
@@ -244,7 +263,8 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str,
             c.id, c.name, state, c.min_ability, c.min_essence,
             external=c.id in external_ids,
             count_requirement=", ".join(
-                validate.charm_count_requirement_label(r) for r in c.prerequisite_counts)))
+                validate.charm_count_requirement_label(r) for r in c.prerequisite_counts),
+            custom=c.custom))
 
     ids = {c.id for c in charms}
     edges = [(req, c.id) for c in charms for group in c.prerequisites
@@ -541,7 +561,7 @@ def build_spell_picker(ruleset: RuleSet, character: Character) -> list[SpellPick
         rows.append(SpellPickRow(
             id=spell.id, name=spell.name, circle=spell.circle.value,
             cost=_cost_str(spell.cost), description=spell.description,
-            owned=owned, available=available, reason=reason,
+            owned=owned, available=available, reason=reason, custom=spell.custom,
         ))
     return rows
 
@@ -1373,7 +1393,10 @@ def _cost_str(cost: CharmCost) -> str:
     if cost.willpower:
         parts.append(f"{cost.willpower}wp")
     if cost.health:
-        parts.append(f"{cost.health}hl")
+        # The damage type is named only where a source (or a homebrew author) says
+        # so; unset renders "1hl" exactly as before, which is every printed Charm.
+        kind = DAMAGE_LABELS.get(cost.health_type, "") if cost.health_type else ""
+        parts.append(f"{cost.health}hl {kind}".strip())
     return ", ".join(parts) if parts else "—"
 
 
@@ -1470,7 +1493,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     for pick in validate.charm_picks(ruleset, character):
         charm = ruleset.charms.get(pick.charm_id)
         if charm is None:
-            charms.append(CharmRow(pick.label, "?", "—", "—"))
+            charms.append(CharmRow(pick.label, "?", "—", "—", missing=True))
             continue
         # A repeatable purchase shows the Charm's own text rather than the
         # prerequisite-annotated one, and Ox-Body has no per-purchase activation cost.
@@ -1481,15 +1504,18 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
             cost = _cost_str(charm.cost)
             description = _charm_description(charm)
         charms.append(CharmRow(pick.label, charm.category, cost, charm.duration,
-                               description))
+                               description, custom=charm.custom))
     spells = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
-        if spell:
-            spells.append(SpellRow(spell.name, spell.circle.value, _cost_str(spell.cost),
-                                   spell.description))
-        else:
-            spells.append(SpellRow(sid, "?", "—"))
+        if spell is None:
+            # Mirrors the missing-Charm row above: a spell whose definition has gone
+            # (a deleted custom spell) must show as lost, not quietly vanish off the
+            # sheet leaving the character looking like it never knew it.
+            spells.append(SpellRow(sid, "?", "—", missing=True))
+            continue
+        spells.append(SpellRow(spell.name, spell.circle.value, _cost_str(spell.cost),
+                               spell.description, custom=spell.custom))
 
     virtue_flaw = None
     if character.virtue_flaw:
@@ -1610,3 +1636,297 @@ def build_party_card_view(ruleset: RuleSet, character: Character) -> PartyCardVi
         play=build_play_view(ruleset, character),
         chargen_locked=character.chargen_locked,
     )
+
+
+# --------------------------------------------------------------------------- #
+# Custom content (the /custom authoring page)
+#
+# The page is a JSON editor with dropdowns, so everything here is shape-shuffling
+# between a flat form dict and a Charm/Spell payload — no game logic, and no
+# writing: custom_content owns the filesystem, models own validity.
+#
+# It lives in view.py with the other presenters so it can be tested without
+# NiceGUI, which matters more here than for most panels: the form is where a typo
+# turns into an unloadable library.
+# --------------------------------------------------------------------------- #
+
+# The health-cost damage types, for the form's dropdown. "" is "the source does not
+# say", which is how all 52 printed Charms with a health cost read.
+HEALTH_TYPE_OPTIONS = {"": "unspecified"} | {
+    d.value: DAMAGE_LABELS[d] for d in Damage}
+
+# The one field that is a free-text escape hatch rather than a dropdown. Seeded
+# from what the shipped data actually uses, most common first, and a combobox so
+# anything else can still be typed.
+CHARM_DURATIONS = ["Instant", "One scene", "One turn", "One day", "One hour",
+                   "Indefinite", "Permanent", "Varies", "Special", "N/A"]
+
+# v1 deliberately omits `keywords`: all 1,470 shipped Charms leave it empty, so a
+# control for it would be clutter. Phase 5 owns the rest of the advanced fields.
+
+
+@dataclass
+class CustomRow:
+    """One row in the library list on the left of the authoring page."""
+    id: str
+    name: str
+    kind: str                  # "charm" | "spell"
+    detail: str                # category/circle, for the list's second line
+    valid: bool                # False = in the library but rejected by the loader
+    problem: str = ""          # why it was rejected, when it was
+
+
+# Sentinel category: the page swaps in a style-name box and writes
+# martial_arts:<slug>. Not a storable value — never reaches a payload.
+NEW_STYLE = "__new_style__"
+
+
+def _style_categories(ruleset: RuleSet) -> list[str]:
+    """Every Martial Arts style category present in the rule set, custom included."""
+    return sorted({c.category for c in ruleset.charms.values()
+                   if c.category.startswith("martial_arts:")})
+
+
+def custom_category_options(ruleset: RuleSet) -> dict[str, str]:
+    """The category dropdown: every Ability, then every known Martial Arts style,
+    then the sentinel that creates a NEW style. Keys are the stored `category`
+    strings, values the labels."""
+    opts = {a.value: _label(a.value) for a in AbilityName}
+    opts.update({cat: _style_label(cat) for cat in _style_categories(ruleset)})
+    opts["sorcery"] = "Sorcery (no gating Ability)"
+    opts[NEW_STYLE] = "New Martial Arts style…"
+    return opts
+
+
+
+def charm_element_options(ruleset: RuleSet) -> dict[str, str]:
+    """The elemental-tree dropdown, read from the data rather than hardcoded so a
+    splat with a different elemental axis needs no change here."""
+    elements = sorted({c.element for c in ruleset.charms.values() if c.element})
+    return {"": "no elemental tree"} | {e: e for e in elements}
+
+
+def charm_tier_options(ruleset: RuleSet) -> dict[str, str]:
+    """The Exalt tiers a Charm may be opened to (`open_to_tiers`), from the splat
+    definitions — "Celestial" on the cross-tier Martial Arts styles."""
+    return {t: t for t in sorted({e.tier for e in ruleset.exalts.values() if e.tier})}
+
+
+def extra_req_trait_options(kind: str) -> dict[str, str]:
+    """The trait dropdown for one extra-requirement row: Abilities or Attributes.
+    Both are OR-lists, so the control is a multi-select either way."""
+    names = AttributeName if kind == "attribute" else AbilityName
+    return {t.value: _label(t.value) for t in names}
+
+
+def custom_charm_form(row: Optional[dict] = None) -> dict:
+    """The form state for a Charm: blank for a new one, or filled from a library
+    row for an edit. Flat and JSON-safe so the page can bind straight to it."""
+    row = row or {}
+    cost = row.get("cost") or {}
+    source = row.get("source") or {}
+    groups = row.get("prerequisites") or []
+    # AND-of-OR collapses to two shapes the form can express: every group a single
+    # id ("all of these"), or one group of several ("any one of these"). Anything
+    # more complex was hand-authored and is left to the JSON pane, which is why the
+    # mode is reported rather than guessed at save time.
+    any_of = len(groups) == 1 and len(groups[0]) > 1
+    return {
+        "id": row.get("id", ""),
+        "name": row.get("name", ""),
+        "category": row.get("category", AbilityName.MELEE.value),
+        "style_name": "",
+        "exalt_type": row.get("exalt_type", "Solar"),
+        "type": row.get("type", "Supplemental"),
+        "min_ability": row.get("min_ability", 1),
+        "min_essence": row.get("min_essence", 1),
+        "motes": cost.get("motes", 0),
+        "willpower": cost.get("willpower", 0),
+        "health": cost.get("health", 0),
+        "health_type": cost.get("health_type") or "",
+        "committed": bool(cost.get("committed", False)),
+        "cost_raw": cost.get("raw", ""),
+        "duration": row.get("duration", "Instant"),
+        "extra_reqs": ([{"kind": "ability", "traits": list(r.get("abilities") or []),
+                         "rating": r.get("rating", 1)}
+                        for r in (row.get("extra_min_abilities") or [])]
+                       + [{"kind": "attribute", "traits": list(r.get("attributes") or []),
+                           "rating": r.get("rating", 1)}
+                          for r in (row.get("extra_min_attributes") or [])]),
+        "prerequisites": [g[0] for g in groups] if not any_of else list(groups[0]),
+        "prereq_mode": "any" if any_of else "all",
+        "grants_circle": row.get("grants_circle") or "",
+        # --- advanced: splat mechanics, behind the form's collapsed section ---
+        "element": row.get("element", ""),
+        "immaculate": bool(row.get("immaculate", False)),
+        "open_to_all": bool(row.get("open_to_all", False)),
+        "open_to_tiers": list(row.get("open_to_tiers") or []),
+        "min_attribute": row.get("min_attribute", ""),
+        "no_foreign_learning": bool(row.get("no_foreign_learning", False)),
+        "installation_cost": row.get("installation_cost", 0),
+        "arrayable": bool(row.get("arrayable", True)),
+        "permanent_install": bool(row.get("permanent_install", False)),
+        "permanent_clarity": row.get("permanent_clarity", 0),
+        "breadth_reqs": [{"category": r.get("category", ""), "count": r.get("count", 1),
+                          "label": r.get("label", "")}
+                         for r in (row.get("prerequisite_counts") or [])],
+        "description": row.get("description", ""),
+        "book": source.get("book", "Homebrew"),
+        "page": source.get("page") or None,
+    }
+
+
+def custom_charm_payload(form: dict) -> dict:
+    """Form state -> a Charm payload for custom_content.save_charm. Drops empty
+    optional fields rather than storing zeros and "", so a hand-read library file
+    stays as short as the Charm actually is."""
+    category = form.get("category") or ""
+    if category == NEW_STYLE:
+        category = custom_content.style_category(form.get("style_name", ""))
+    ids = [i for i in (form.get("prerequisites") or []) if i]
+    prerequisites = ([list(ids)] if form.get("prereq_mode") == "any" and len(ids) > 1
+                     else [[i] for i in ids])
+    cost = {k: int(form.get(k) or 0) for k in ("motes", "willpower", "health")}
+    cost = {k: v for k, v in cost.items() if v}
+    # Only meaningful alongside a health cost: naming a damage type for a Charm that
+    # spends no health levels would be stored and then never read.
+    if cost.get("health") and form.get("health_type"):
+        cost["health_type"] = form["health_type"]
+    if form.get("committed"):
+        cost["committed"] = True
+    if (form.get("cost_raw") or "").strip():
+        cost["raw"] = form["cost_raw"].strip()
+
+    payload = {
+        "id": form.get("id") or "",
+        "name": (form.get("name") or "").strip(),
+        "category": category,
+        "exalt_type": form.get("exalt_type") or "Solar",
+        "type": form.get("type") or "Supplemental",
+        "min_ability": int(form.get("min_ability") or 0),
+        "min_essence": int(form.get("min_essence") or 1),
+        "duration": form.get("duration") or "Instant",
+        "description": (form.get("description") or "").strip(),
+        "source": {"book": (form.get("book") or "Homebrew").strip(),
+                   "page": form.get("page") or None},
+    }
+    if cost:
+        payload["cost"] = cost
+    if prerequisites:
+        payload["prerequisites"] = prerequisites
+    if form.get("grants_circle"):
+        payload["grants_circle"] = form["grants_circle"]
+    # Extra trait minimums. One control in the form, two typed lists in the payload:
+    # the engine budgets Abilities and Attributes differently and the models keep them
+    # apart. A row with no traits picked is dropped rather than stored empty.
+    extra_abilities, extra_attributes = [], []
+    for req in form.get("extra_reqs") or []:
+        traits = [t for t in (req.get("traits") or []) if t]
+        rating = int(req.get("rating") or 1)
+        if not traits:
+            continue
+        if req.get("kind") == "attribute":
+            extra_attributes.append({"attributes": traits, "rating": rating})
+        else:
+            extra_abilities.append({"abilities": traits, "rating": rating})
+    if extra_abilities:
+        payload["extra_min_abilities"] = extra_abilities
+    if extra_attributes:
+        payload["extra_min_attributes"] = extra_attributes
+
+    # Breadth prerequisites ("any three Lore Charms") — a COUNT over a category,
+    # which the id-based `prerequisites` cannot express.
+    breadth = [{"category": r["category"], "count": int(r.get("count") or 1)}
+               | ({"label": r["label"]} if (r.get("label") or "").strip() else {})
+               for r in (form.get("breadth_reqs") or []) if (r.get("category") or "")]
+    if breadth:
+        payload["prerequisite_counts"] = breadth
+
+    # Advanced splat mechanics. Each is written only when it differs from the model
+    # default, so an ordinary homebrew Charm's JSON stays short and readable.
+    for key in ("element", "min_attribute"):
+        if (form.get(key) or "").strip():
+            payload[key] = form[key].strip()
+    for key in ("immaculate", "open_to_all", "no_foreign_learning", "permanent_install"):
+        if form.get(key):
+            payload[key] = True
+    if form.get("open_to_tiers"):
+        payload["open_to_tiers"] = list(form["open_to_tiers"])
+    for key in ("installation_cost", "permanent_clarity"):
+        if int(form.get(key) or 0):
+            payload[key] = int(form[key])
+    # `arrayable` defaults TRUE, so only the False case is worth storing.
+    if not form.get("arrayable", True):
+        payload["arrayable"] = False
+    return payload
+
+
+def custom_spell_form(row: Optional[dict] = None) -> dict:
+    row = row or {}
+    cost = row.get("cost") or {}
+    source = row.get("source") or {}
+    return {
+        "id": row.get("id", ""),
+        "name": row.get("name", ""),
+        "circle": row.get("circle", SpellCircle.TERRESTRIAL.value),
+        "motes": cost.get("motes", 0),
+        "willpower": cost.get("willpower", 0),
+        "cost_raw": cost.get("raw", ""),
+        "description": row.get("description", ""),
+        "book": source.get("book", "Homebrew"),
+        "page": source.get("page") or None,
+    }
+
+
+def custom_spell_payload(form: dict) -> dict:
+    cost = {k: int(form.get(k) or 0) for k in ("motes", "willpower")}
+    cost = {k: v for k, v in cost.items() if v}
+    if (form.get("cost_raw") or "").strip():
+        cost["raw"] = form["cost_raw"].strip()
+    payload = {
+        "id": form.get("id") or "",
+        "name": (form.get("name") or "").strip(),
+        "circle": form.get("circle") or SpellCircle.TERRESTRIAL.value,
+        "description": (form.get("description") or "").strip(),
+        "source": {"book": (form.get("book") or "Homebrew").strip(),
+                   "page": form.get("page") or None},
+    }
+    if cost:
+        payload["cost"] = cost
+    return payload
+
+
+def build_custom_library(ruleset: RuleSet, charm_rows: list[dict],
+                         spell_rows: list[dict]) -> list[CustomRow]:
+    """The library list: every row ON DISK, whether or not it loaded.
+
+    Taking the rows as arguments keeps this pure — the page reads the disk. A row
+    the loader rejected still appears, marked invalid with the loader's reason, so
+    the only copy of a broken Charm is not invisible in the one screen that could
+    fix it.
+    """
+    problems = {p: p for p in ruleset.custom_problems}
+
+    def _problem_for(row_id: str) -> str:
+        return next((p for p in problems if f"{row_id!r}" in p), "")
+
+    out: list[CustomRow] = []
+    for row in charm_rows:
+        rid = row.get("id", "")
+        loaded = ruleset.charms.get(rid)
+        out.append(CustomRow(
+            id=rid, name=row.get("name") or rid, kind="charm",
+            detail=(_style_label(loaded.category) if loaded and loaded.category.startswith("martial_arts:")
+                    else _label(loaded.category) if loaded
+                    else row.get("category", "?")),
+            valid=loaded is not None and loaded.custom,
+            problem=_problem_for(rid)))
+    for row in spell_rows:
+        rid = row.get("id", "")
+        loaded = ruleset.spells.get(rid)
+        out.append(CustomRow(
+            id=rid, name=row.get("name") or rid, kind="spell",
+            detail=f"{loaded.circle.value} Circle" if loaded else row.get("circle", "?"),
+            valid=loaded is not None and loaded.custom,
+            problem=_problem_for(rid)))
+    return out

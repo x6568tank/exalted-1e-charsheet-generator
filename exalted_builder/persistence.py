@@ -81,7 +81,7 @@ def character_from_json(data: str) -> Character:
     return Character.model_validate_json(data)
 
 
-def _atomic_write(path: str | os.PathLike, payload: str) -> Path:
+def atomic_write(path: str | os.PathLike, payload: str) -> Path:
     """Write `payload` to `path`, atomically. Creates parent directories if needed.
     Returns the path written.
 
@@ -106,17 +106,50 @@ def _atomic_write(path: str | os.PathLike, payload: str) -> Path:
     return path
 
 
-def save_character(character: Character, path: str | os.PathLike) -> Path:
+def _custom_content():
+    """custom_content, imported lazily to break the cycle — it imports this module
+    for `atomic_write` and `default_save_dir`. The builder does the same for ui.gm."""
+    from . import custom_content
+    return custom_content
+
+
+def save_character(character: Character, path: str | os.PathLike, *,
+                   embed_custom: bool = True,
+                   custom_dir: str | os.PathLike | None = None) -> Path:
     """Write `character` to `path` as JSON, atomically. Creates parent directories
-    if needed. Returns the path written."""
-    return _atomic_write(path, character_to_json(character))
+    if needed. Returns the path written.
+
+    Also refreshes the homebrew definitions the character carries (see
+    custom_content.embed_definitions), so a save handed to another player brings its
+    custom Charms with it. This happens HERE, at the single choke point, rather than
+    in each of the UI's save handlers — there are a dozen, and the one that got missed
+    would produce a save that silently loses homebrew.
+
+    `embed_custom=False` writes the character exactly as it is, for the rare caller
+    that wants no filesystem read of the library.
+    """
+    if embed_custom:
+        _custom_content().embed_definitions(character, custom_dir=custom_dir)
+    return atomic_write(path, character_to_json(character))
 
 
-def load_character(path: str | os.PathLike) -> Character:
+def load_character(path: str | os.PathLike, *, absorb_custom: bool = True,
+                   custom_dir: str | os.PathLike | None = None) -> Character:
     """Read and parse a Character from `path`. Propagates FileNotFoundError and
-    pydantic.ValidationError unchanged so callers can distinguish them."""
+    pydantic.ValidationError unchanged so callers can distinguish them.
+
+    Any homebrew definitions the save carries are absorbed into the local library
+    (see custom_content.absorb_definitions) so the Charms resolve on this machine.
+    Only ids the library lacks are written: the local copy always wins. A caller that
+    wants to TELL the user what was imported passes `absorb_custom=False` and calls
+    `custom_content.absorb_definitions` itself, which returns the ids it added — doing
+    it here first would leave nothing for it to report.
+    """
     text = Path(path).read_text(encoding="utf-8")
-    return character_from_json(text)
+    character = character_from_json(text)
+    if absorb_custom:
+        _custom_content().absorb_definitions(character, custom_dir=custom_dir)
+    return character
 
 
 # --------------------------------------------------------------------------- #
@@ -154,12 +187,30 @@ def party_from_json(data: str) -> Party:
     return Party.model_validate_json(data)
 
 
-def save_party(party: Party, path: str | os.PathLike) -> Path:
-    """Write `party` to `path` as JSON, atomically. Returns the path written."""
-    return _atomic_write(path, party_to_json(party))
+def save_party(party: Party, path: str | os.PathLike, *, embed_custom: bool = True,
+               custom_dir: str | os.PathLike | None = None) -> Path:
+    """Write `party` to `path` as JSON, atomically. Returns the path written.
+
+    A party embeds full Character copies, so each member gets the same homebrew
+    treatment a standalone save does — otherwise the GM's party file would be the one
+    save format that loses custom Charms."""
+    if embed_custom:
+        cc = _custom_content()
+        for member in party.members:
+            cc.embed_definitions(member.character, custom_dir=custom_dir)
+    return atomic_write(path, party_to_json(party))
 
 
-def load_party(path: str | os.PathLike) -> Party:
+def load_party(path: str | os.PathLike, *, absorb_custom: bool = True,
+               custom_dir: str | os.PathLike | None = None) -> Party:
     """Read and parse a Party from `path`. Propagates FileNotFoundError and
-    pydantic.ValidationError unchanged so callers can distinguish them."""
-    return party_from_json(Path(path).read_text(encoding="utf-8"))
+    pydantic.ValidationError unchanged so callers can distinguish them.
+
+    Absorbs every member's homebrew, so a GM opening the table's party file gets the
+    whole group's custom content at once."""
+    party = party_from_json(Path(path).read_text(encoding="utf-8"))
+    if absorb_custom:
+        cc = _custom_content()
+        for member in party.members:
+            cc.absorb_definitions(member.character, custom_dir=custom_dir)
+    return party

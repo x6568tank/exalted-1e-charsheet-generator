@@ -14,6 +14,12 @@ pass, not fix-rerun-fix.
 Optional tables (bonus/xp costs, chargen budgets) fall back to the model
 defaults when their files are absent, so the loader runs on a partial data set.
 
+A SECOND, optional data source sits on top: the user's custom library (see
+custom_content.py), merged by `load_app_ruleset`. It uses the same file shapes and
+the same loaders, but its failures are non-fatal — reported on
+`RuleSet.custom_problems` rather than raised — because homebrew must never be able
+to stop the app from starting. `load_ruleset` alone loads the book only.
+
 Expected layout:
     data/
       castes.json            array of CasteDefinition
@@ -35,6 +41,7 @@ from typing import Any, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
+from . import custom_content
 from .models.rules import (
     ArmorType,
     BackgroundType,
@@ -258,9 +265,90 @@ def _check_sorcery_reachable(
             )
 
 
-def load_ruleset(data_dir: str | Path) -> RuleSet:
+def _load_custom_layer(
+    custom_dir: Path,
+    charms: dict[str, Charm],
+    spells: dict[str, Spell],
+) -> list[str]:
+    """Merge the user's custom library over the book data, in place.
+
+    Returns the problems found, which are deliberately NOT fatal: a bad row is
+    dropped and reported, and the app loads anyway. The book's own data has already
+    been link-checked and raised on by the time this runs, so anything wrong here is
+    the user's homebrew and theirs alone to fix.
+
+    Three rules, in order:
+      * the book always wins an id collision — a printed Charm must never be
+        silently replaced by homebrew that happens to reuse its id;
+      * a custom Charm whose prerequisite group has NO satisfiable member is
+        dropped, iterated to a fixpoint because dropping one row can orphan
+        another that required it;
+      * a custom spell whose circle no Charm grants is dropped, the same check the
+        book data gets — such a spell could never legally be learned.
+    """
+    problems: list[str] = []
+
+    custom_charms: dict[str, Charm] = {}
+    charm_dir = custom_dir / "charms"
+    if charm_dir.is_dir():
+        for f in sorted(charm_dir.glob("*.json")):
+            for row in _load_array(f, Charm, problems):
+                if row.id in charms:
+                    problems.append(
+                        f"custom charm {row.id!r} shadows a Charm from the rulebook; ignored")
+                elif row.id in custom_charms:
+                    problems.append(
+                        f"custom charm {row.id!r} is defined twice in the library; "
+                        f"the first definition is used")
+                else:
+                    custom_charms[row.id] = row.model_copy(update={"custom": True})
+
+    # Drop unsatisfiable rows before publishing any of them, so nothing downstream
+    # ever sees a Charm pointing at an id that is not in the RuleSet.
+    known = set(charms) | set(custom_charms)
+    while True:
+        doomed = {
+            cid: group
+            for cid, ch in custom_charms.items()
+            for group in ch.prerequisites
+            if not (set(group) & known)
+        }
+        if not doomed:
+            break
+        for cid, group in doomed.items():
+            missing = ", ".join(repr(p) for p in group)
+            problems.append(
+                f"custom charm {cid!r} requires {missing}, which does not exist; dropped")
+            del custom_charms[cid]
+        known = set(charms) | set(custom_charms)
+
+    charms.update(custom_charms)
+
+    custom_spells = _load_array(custom_dir / "spells.json", Spell, problems)
+    granted = {ch.grants_circle for ch in charms.values() if ch.grants_circle}
+    for sp in custom_spells:
+        if sp.id in spells:
+            problems.append(
+                f"custom spell {sp.id!r} shadows a spell from the rulebook; ignored")
+        elif sp.circle not in granted:
+            problems.append(
+                f"custom spell {sp.id!r} is {sp.circle.value} circle, but no Charm grants "
+                f"that circle, so it could never be learned; dropped")
+        else:
+            spells[sp.id] = sp.model_copy(update={"custom": True})
+
+    return problems
+
+
+def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> RuleSet:
     """Load and validate the full rulebook. Raises RuleDataError listing every
-    problem found, so the data can be corrected in a single pass."""
+    problem found, so the data can be corrected in a single pass.
+
+    `custom_dir` overlays a user-authored library on top of the book data (see
+    custom_content.py and _load_custom_layer). None — the default — loads the book
+    alone, which is what the engine tests want; the UI calls `load_app_ruleset`
+    instead, which points it at the user's library.
+    """
     data_dir = Path(data_dir)
     problems: list[str] = []
 
@@ -322,6 +410,12 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
     if problems:
         raise RuleDataError(problems)
 
+    # The custom layer goes on only after the book has passed its own checks, so a
+    # book error is never blamed on the user's homebrew (and vice versa).
+    custom_problems: list[str] = []
+    if custom_dir is not None and Path(custom_dir).is_dir():
+        custom_problems = _load_custom_layer(Path(custom_dir), charms, spells)
+
     return RuleSet(
         exalts=exalts,
         castes=castes,
@@ -343,4 +437,38 @@ def load_ruleset(data_dir: str | Path) -> RuleSet:
         xp_costs=xp_costs,
         budgets=budgets,
         st_screen=st_screen,
+        custom_problems=custom_problems,
     )
+
+
+def reload_custom_layer(ruleset: RuleSet, custom_dir: str | Path | None = None) -> list[str]:
+    """Re-read the custom library into an ALREADY LOADED RuleSet, in place. Returns
+    the problems found (also stored on `ruleset.custom_problems`).
+
+    In place on purpose. Every page closes over one RuleSet built at startup, so the
+    authoring page has two ways to make an edit visible: rebuild the RuleSet and
+    thread the new object through every page and renderer, or update the object they
+    all already hold. The second is a few lines and cannot get out of sync; the book
+    half is untouched, and only rows the loader stamped `custom` are replaced.
+
+    Rebuilding from disk rather than patching one row keeps this honest: a Charm that
+    was dropped for a dangling prerequisite comes back when the prerequisite is
+    authored, without the caller having to know that.
+    """
+    for cid in [cid for cid, ch in ruleset.charms.items() if ch.custom]:
+        del ruleset.charms[cid]
+    for sid in [sid for sid, sp in ruleset.spells.items() if sp.custom]:
+        del ruleset.spells[sid]
+
+    target = Path(custom_dir) if custom_dir is not None else custom_content.custom_data_dir()
+    problems = _load_custom_layer(target, ruleset.charms, ruleset.spells) \
+        if target.is_dir() else []
+    ruleset.custom_problems = problems
+    return problems
+
+
+def load_app_ruleset(data_dir: str | Path) -> RuleSet:
+    """What the UI pages call: the rulebook plus whatever the user has authored in
+    their custom library. Split from `load_ruleset` so the engine tests can load the
+    book alone and stay unaffected by whatever homebrew sits on the machine."""
+    return load_ruleset(data_dir, custom_dir=custom_content.custom_data_dir())

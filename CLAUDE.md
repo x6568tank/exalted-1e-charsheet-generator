@@ -196,10 +196,14 @@ Exalted-1E-Charsheet-Generator/      (project root)
   not silently choose an interpretation.
 - **Game data comes from the page, never from your own knowledge.** Any concrete value — a cost, minimum, prerequisite, rating, or rules detail — that you write into `data/` or code must come from source material the human gave you, or from an existing `data/` file. Do not supply one from your own knowledge of Exalted even when you are confident — 2e values will feel right and be wrong for 1e. If you need a value and have no source for it, stop and ask. Never choose an interpretation, invent a number, or read the PDFs in `sources/` yourself.
 - **Source material lives in `images/<Splat>/` and is human-vetted.** Two forms, both authoritative: **PNG page images** (diagrams — especially Charm-tree boxes-and-arrows — and any page not cleanly copyable), and **pasted `.md` text** the human copies out of a text-selectable book (prose + cost/prereq tables, page-marked with `<!--PAGE n-->`). Pasted text is preferred where it's clean: cheaper (no image rasterization) and exact for numbers, and the copy step is the human's vetting checkpoint. Reading the `sources/` PDFs yourself is still forbidden — the point is the human curates what you see. When pasted text looks column-scrambled or garbled (multi-column PDFs interleave), flag it rather than guess; screenshot the diagram instead.
+- **The never-author-from-memory rule covers `data/` only.** The USER's custom
+  library (`custom/`, see `docs/status/custom-content.md`) is theirs to fill with
+  whatever they like — that is the point of it. You still never write a *printed*
+  value you have no page for, and homebrew never goes into `data/`.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1097 tests passing)
+## Status (1180 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -217,6 +221,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | DB origins: Lookshy / Forest Witches / Lost Eggs / Pirates (`upbringing` axis) | `docs/status/dragonblooded-origins.md` |
 | DB Aspect Books CH6 (87 Charms, Jade Mountain, breadth prereqs, gear) | `docs/status/dragonblooded-aspect-books.md` |
 | **Thaumaturgy — DONE** (cross-splat Arts/Sciences/Rituals/Formulas; engine + UI, browser-verified) | `docs/status/thaumaturgy.md` |
+| **Custom content — DONE** (user-authored Charms/styles/spells: library, `/custom` page, saves that carry homebrew) | `docs/status/custom-content.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -225,7 +230,10 @@ Dragon-Blooded, Abyssal, Lunar, Sidereal, Alchemical. 1,470 Charms total across
 six splats (`data-and-tooling.md`). GM party mode and the Storyteller reference
 screen are done. **Thaumaturgy is done end to end** (2026-07-29) — the cross-splat
 capability layer, including its ST Options tab, which is now the home for every
-Storyteller toggle. **Every Exalt splat is done; the six non-Exalt splats are what's
+Storyteller toggle. **User-authored custom content is done end to end** (2026-07-29):
+a Storyteller can write their own Charms, Martial Arts styles and spells in the app,
+they merge over the book data non-fatally, and a character save carries the homebrew
+it uses (`docs/status/custom-content.md`). **Every Exalt splat is done; the six non-Exalt splats are what's
 left** (see **Next Exalt Types** above), all blocked on source images. See **TODO**
 below for what's actually next.
 
@@ -263,6 +271,14 @@ Moonshadow's half of the generalist rule** (2026-07-29, from `images/Abyssal/Tra
 145-146.png` — pure data, no new code; see `docs/status/engine-and-ui.md`), and
 **Thaumaturgy end to end** (engine + the ST Options tab, the picker's Thaumaturgy
 page, the sheet panel and the XP-ledger labels — `docs/status/thaumaturgy.md`).
+
+**Also done (2026-07-29):** **user-authored custom content**, all five phases,
+browser-verified — the `custom/` library merged over the book data (non-fatally; book
+data errors stay fatal), the `/custom` authoring page and builder tab, the ✎/⚠
+provenance markers, and saves that carry the homebrew they depend on.
+`docs/status/custom-content.md`. Two additive model fields came out of it, both
+homebrew-only with no printed use: `CharmCost.health_type` and
+`Charm.extra_min_attributes`.
 
 **Next:**
 - **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book

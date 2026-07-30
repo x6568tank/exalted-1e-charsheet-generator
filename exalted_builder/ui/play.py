@@ -264,7 +264,7 @@ def _save(character: Character, save_path: Path) -> None:
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:
-    ruleset = rules_db.load_ruleset(_DATA_DIR)
+    ruleset = rules_db.load_app_ruleset(_DATA_DIR)
     path = Path(character_path) if character_path else _EXAMPLE
     character = persistence.load_character(path)
     return ruleset, character, path

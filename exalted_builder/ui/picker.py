@@ -70,10 +70,24 @@ def _style(pal: theme.Palette) -> list[dict]:
         {"selector": "node.external", "style": {
             "width": 30, "height": 30, "border-style": "dashed",
             "font-style": "italic", "font-weight": 400}},
+        # Homebrew from the user's custom library: keeps its owned/available/locked
+        # fill (the state still matters) but takes a violet double border, matching
+        # the ✎ marker the sheet and the detail card use. Listed AFTER .external so a
+        # custom external prerequisite still reads as custom.
+        {"selector": "node.custom", "style": {
+            "border-color": "#6d28d9", "border-width": 4, "border-style": "double"}},
         {"selector": "edge", "style": {
             "width": 2, "line-color": "#9ca3af", "target-arrow-color": "#9ca3af",
             "target-arrow-shape": "triangle", "curve-style": "bezier", "arrow-scale": 1.1}},
     ]
+
+
+def _node_classes(n: viewmod.CharmNode) -> str:
+    """The Cytoscape class list for one node. ONE definition on purpose: the graph is
+    built once and then repainted by `classes()`, which replaces the whole list, so
+    two copies of this logic means a repaint silently drops whatever the second copy
+    forgot (it has happened once already, with `external`)."""
+    return " ".join([n.state] + ["external"] * n.external + ["custom"] * n.custom)
 
 
 def _elements(graph: viewmod.CharmGraph) -> list[dict]:
@@ -83,7 +97,7 @@ def _elements(graph: viewmod.CharmGraph) -> list[dict]:
     nodes = [{"data": {"id": n.id,
                        "label": (f"{n.label}\n({n.count_requirement})"
                                  if n.count_requirement else n.label)},
-              "classes": f"{n.state} external" if n.external else n.state}
+              "classes": _node_classes(n)}
              for n in graph.nodes]
     edges = [{"data": {"id": f"{s}__{t}", "source": s, "target": t}} for s, t in graph.edges]
     return nodes + edges
@@ -533,6 +547,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return
         ui.label(d.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
         ui.label(f"{d.type} · {d.cost}").classes("text-xs text-gray-600")
+        # Homebrew is called out wherever a Charm is read, not only on the sheet: a
+        # player picking Charms should know which of them no book backs up.
+        if d.custom:
+            ui.label("✎ Custom (homebrew) Charm — not from a rulebook").classes(
+                "text-xs font-semibold text-violet-700")
         _charm = ruleset.charms.get(d.id)
         if d.foreign_splat:
             ui.label(f"{d.foreign_splat} Charm — needs a willing tutor; costs double "
@@ -1664,10 +1683,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             augment_panel.refresh(); readout.refresh()
             return
         graph = viewmod.build_charm_graph(ruleset, character, state["category"], state["splat"])
-        # `classes()` replaces the whole class list, so carry `external` along with
-        # the state or a foreign prerequisite loses its dashed styling on any repaint.
-        states = {n.id: f"{n.state} external" if n.external else n.state
-                  for n in graph.nodes}
+        # `classes()` replaces the whole class list, so the repaint must send the FULL
+        # list (state + external + custom), not just the state — see _node_classes.
+        states = {n.id: _node_classes(n) for n in graph.nodes}
         ui.run_javascript(f"""
         if (window.cy) {{
           var s = {json.dumps(states)};
@@ -1918,7 +1936,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:
-    ruleset = rules_db.load_ruleset(_DATA_DIR)
+    ruleset = rules_db.load_app_ruleset(_DATA_DIR)
     path = Path(character_path) if character_path else _EXAMPLE
     character = persistence.load_character(path)
     return ruleset, character, path

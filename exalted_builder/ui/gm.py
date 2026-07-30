@@ -481,7 +481,7 @@ def main() -> None:
     parser.add_argument("--show", action="store_true")
     args = parser.parse_args()
 
-    ruleset = rules_db.load_ruleset(_DATA_DIR)
+    ruleset = rules_db.load_app_ruleset(_DATA_DIR)
     character = Character(id="char.new")
     path = persistence.default_save_dir() / persistence.suggested_filename(character)
     ctx = builder_mod.make_context(character, path)

@@ -771,14 +771,26 @@ class Issue(BaseModel):
 
 def check_references(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Every Charm/Spell id the character holds must resolve in the RuleSet.
-    Equipment is an inline copy by design and is intentionally not checked."""
+    Equipment is an inline copy by design and is intentionally not checked.
+
+    Charms live on four lists, and all four are checked: an unresolvable id in the
+    Alchemical's Panoply (`retainer_charms`) or in a camp's `granted_charms` is the
+    same defect as one in `charms` — most likely a custom Charm deleted from the
+    library, or a save opened without the library that defined it (see
+    custom_content.py)."""
     issues: list[Issue] = []
-    for cid in character.charms:
-        if cid not in ruleset.charms:
-            issues.append(Issue(
-                code="unknown-charm", where=cid,
-                message=f"Character holds unknown Charm id {cid!r}.",
-            ))
+    charm_lists = (
+        ("", character.charms),
+        (" (in the Panoply)", character.retainer_charms),
+        (" (granted by a training camp)", character.granted_charms),
+    )
+    for note, ids in charm_lists:
+        for cid in ids:
+            if cid not in ruleset.charms:
+                issues.append(Issue(
+                    code="unknown-charm", where=cid,
+                    message=f"Character holds unknown Charm id {cid!r}{note}.",
+                ))
     for sid in character.spells:
         if sid not in ruleset.spells:
             issues.append(Issue(
@@ -853,6 +865,10 @@ def charm_ability_shortfalls(character: Character, charm: Charm) -> list[tuple[s
         best = max((ability_rating(character, ab) for ab in req.abilities), default=0)
         if best < req.rating:
             out.append((" or ".join(a.value for a in req.abilities), req.rating, best))
+    for req in charm.extra_min_attributes:
+        best = max((character.attributes.get(at, 0) for at in req.attributes), default=0)
+        if best < req.rating:
+            out.append((" or ".join(a.value for a in req.attributes), req.rating, best))
     return out
 
 
@@ -870,6 +886,8 @@ def charm_ability_requirements(charm: Charm) -> list[tuple[str, int]]:
             out.append((ability.value, charm.min_ability))
     for req in charm.extra_min_abilities:
         out.append((" or ".join(a.value for a in req.abilities), req.rating))
+    for req in charm.extra_min_attributes:
+        out.append((" or ".join(a.value for a in req.attributes), req.rating))
     return out
 
 

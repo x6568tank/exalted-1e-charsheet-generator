@@ -71,6 +71,22 @@ def _trait_row(r: viewmod.TraitRow, dot_total: int = 5) -> None:
         ui.label(_dots(r.value, dot_total)).classes("text-sm font-mono tracking-tight")
 
 
+def _content_mark(row) -> None:
+    """The provenance marker beside a Charm/spell name: homebrew from the user's
+    custom library, or an id that no longer resolves at all. Nothing is drawn for
+    ordinary printed content, which is the overwhelming majority of rows.
+
+    Custom content must stay obvious at a glance on a sheet (human's requirement,
+    2026-07-29) — a Storyteller reading a player's sheet needs to see which Charms
+    are not in any book."""
+    if getattr(row, "missing", False):
+        ui.label("⚠").classes("text-xs text-red-600").tooltip(
+            f"'{row.name}' is not in the rule set — its definition is missing "
+            f"(a deleted custom Charm, or a library this machine does not have).")
+    elif getattr(row, "custom", False):
+        ui.label("✎").classes("text-xs text-violet-700").tooltip("Custom (homebrew) content")
+
+
 def _named_value(label: str, value: int, dot_total: int = 5) -> None:
     with ui.row().classes("w-full items-center gap-1 no-wrap"):
         ui.label(label).classes("text-sm flex-1")
@@ -172,6 +188,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
                     with ui.column().classes("w-full gap-0"):
                         with ui.row().classes("w-full items-center gap-2 no-wrap"):
                             ui.label(c.name).classes("text-sm flex-1 truncate")
+                            _content_mark(c)
                             ui.label(c.category).classes("text-xs text-gray-500")
                             ui.label(c.duration).classes("text-xs text-gray-500 w-24 text-right")
                             ui.label(c.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
@@ -184,6 +201,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
                         with ui.column().classes("w-full gap-0"):
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
                                 ui.label(s.name).classes("text-sm flex-1 truncate")
+                                _content_mark(s)
                                 ui.label(s.circle).classes("text-xs text-gray-500")
                                 ui.label(s.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
                             if s.description:
@@ -258,7 +276,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character]:
-    ruleset = rules_db.load_ruleset(_DATA_DIR)
+    ruleset = rules_db.load_app_ruleset(_DATA_DIR)
     path = Path(character_path) if character_path else _EXAMPLE
     character = persistence.load_character(path)
     return ruleset, character

@@ -27,13 +27,14 @@ from pathlib import Path
 
 from nicegui import app, ui
 
-from .. import persistence, rules_db
+from .. import custom_content, persistence, rules_db
 from ..engine import lifecycle, validate
 from ..models.character import Character
 from ..models.party import Party
 from ..models.rules import RuleSet
 from . import app as sheet_app
 from . import combos as combos_mod
+from . import custom as custom_mod
 from . import editor, picker, theme
 from . import play as play_mod
 from . import storyteller as st_mod
@@ -46,7 +47,7 @@ from .assets import cytoscape_head_html
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 
-_TABS = ("Edit", "Charms", "Combos", "XP", "Play", "ST", "Sheet")
+_TABS = ("Edit", "Charms", "Combos", "XP", "Play", "ST", "Custom", "Sheet")
 
 
 def visible_tabs(locked: bool) -> tuple[str, ...]:
@@ -175,6 +176,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             play_mod.build_play(ruleset, char, path, with_header=False)
         elif state["tab"] == "ST":
             st_mod.build_storyteller(ruleset, char, path, with_header=False)
+        elif state["tab"] == "Custom":
+            # Rule-set editing, not character editing: it takes no Character and is
+            # the one tab whose edits outlive the open save. It mutates `ruleset` in
+            # place, so every other tab sees new homebrew without a restart.
+            custom_mod.build_custom(ruleset, with_header=False)
         else:
             sheet_app.render_sheet(viewmod.build_sheet_view(ruleset, char))
 
@@ -230,7 +236,18 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     def _apply_loaded(loaded: Character, path: Path | None, source_label: str) -> None:
         """Swap in a freshly loaded character. With a real path, future saves land
-        beside it; for an uploaded file (no path) they default to the save dir."""
+        beside it; for an uploaded file (no path) they default to the save dir.
+
+        The single funnel for every load, which is why the homebrew import happens
+        here: a save from another table carries the definitions of the custom Charms
+        it uses, and absorbing them into this machine's library is what makes those
+        Charms resolve instead of showing as ⚠ rows. Both load paths pass
+        `absorb_custom=False` so the count is still ours to report."""
+        imported = custom_content.absorb_definitions(loaded)
+        if imported:
+            rules_db.reload_custom_layer(ruleset)
+            ui.notify(f"Imported {len(imported)} homebrew definition(s) from this save",
+                      type="info")
         ctx["char"] = loaded
         if path is not None:
             ctx["path"] = path
@@ -243,7 +260,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     def do_load(path_str: str, dialog) -> None:
         try:
-            loaded = persistence.load_character(path_str)
+            loaded = persistence.load_character(path_str, absorb_custom=False)
         except Exception as ex:                       # noqa: BLE001 - surface any load error to the user
             ui.notify(f"Load failed: {ex}", type="negative")
             return
@@ -360,7 +377,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     _ICONS = {"Edit": "edit", "Charms": "account_tree", "Combos": "bolt",
               "XP": "trending_up", "Play": "casino", "ST": "gavel",
-              "Sheet": "description"}
+              "Custom": "construction", "Sheet": "description"}
     # Tab names are identifiers (state, visible_tabs, resolve_tab all key off them);
     # where a name reads badly on the bar, the LABEL differs — see Combos/Arrays.
     _LABELS = {"ST": "ST Options"}
@@ -413,7 +430,7 @@ def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, 
     with none, start on a blank new character whose save lands next to the
     executable (see persistence.default_save_dir). The bundled example is no longer
     auto-loaded — open it via the path argument or the Load dialog."""
-    ruleset = rules_db.load_ruleset(_DATA_DIR)
+    ruleset = rules_db.load_app_ruleset(_DATA_DIR)
     if character_path:
         path = Path(character_path)
         character = persistence.load_character(path)

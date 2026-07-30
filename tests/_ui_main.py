@@ -1,4 +1,6 @@
 """Helper 'main file' for the NiceGUI User-simulation regression test."""
+import json
+import tempfile
 from pathlib import Path
 from nicegui import ui
 from exalted_builder import rules_db
@@ -9,8 +11,8 @@ from exalted_builder.models.character import (
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.models.rules import AbilityName, Orientation
 from exalted_builder.ui import app as sheet_app
-from exalted_builder.ui import (builder, combos, editor, gm, picker, play,
-                                storyteller, view, xp)
+from exalted_builder.ui import (builder, combos, custom, editor, gm, picker,
+                                play, storyteller, view, xp)
 
 RS = rules_db.load_ruleset(Path("exalted_builder/data"))
 
@@ -413,3 +415,34 @@ CHAR_BUILDER_ST = Character(id="bst", name="Table", caste="dawn")
 @ui.page('/builder-st')
 def page_builder_st():
     builder.build_app(RS, CHAR_BUILDER_ST, Path("bst.json"))
+
+
+# --------------------------------------------------------------------------- #
+# The custom-content page. Its own throwaway library under the OS temp dir, seeded
+# with one good row and one that the loader must reject, so the page's two list
+# states (valid / invalid-with-a-reason) both render. A separate RuleSet, because
+# the page mutates the one it is given and no other test's assertions should move.
+# --------------------------------------------------------------------------- #
+CUSTOM_DIR = Path(tempfile.mkdtemp(prefix="exalted-ui-custom-"))
+(CUSTOM_DIR / "charms").mkdir(parents=True, exist_ok=True)
+(CUSTOM_DIR / "charms" / "custom-charms.json").write_text(json.dumps([
+    {"id": "custom.house-strike", "name": "House Strike", "category": "melee",
+     "type": "Supplemental", "min_ability": 2, "min_essence": 1,
+     "cost": {"motes": 3}, "description": "A homebrew Melee Charm."},
+    {"id": "custom.orphan", "name": "Orphan Charm", "category": "melee",
+     "type": "Supplemental", "prerequisites": [["no-such-charm"]]},
+]))
+RS_CUSTOM = rules_db.load_ruleset(Path("exalted_builder/data"), custom_dir=CUSTOM_DIR)
+
+@ui.page('/custom-content')
+def page_custom_content():
+    custom.build_custom(RS_CUSTOM, custom_dir=CUSTOM_DIR, with_header=False)
+
+# A character holding the seeded homebrew Charm: the sheet must badge it as custom.
+CHAR_CUSTOM_CHARM = Character(id="cc", name="Homebrewer", caste="dawn")
+CHAR_CUSTOM_CHARM.charms = ["custom.house-strike"]
+CHAR_CUSTOM_CHARM.spells = ["custom.gone-missing"]     # never defined -> the ⚠ row
+
+@ui.page('/custom-sheet')
+def page_custom_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS_CUSTOM, CHAR_CUSTOM_CHARM))

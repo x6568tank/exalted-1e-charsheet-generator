@@ -25,5 +25,8 @@ venv/
 *.swp
 .DS_Store
 
+# The user's own homebrew library (custom_content.py) — theirs, not the project's
+custom/
+
 # Local character saves — uncomment if you don't want them tracked
 # *.character.json

@@ -162,7 +162,7 @@
     "min_ability": 4,
     "min_essence": 2,
     "prerequisites": [["lunar.survival-and-healing.wolf-endurance-method"]],
-    "cost": {"motes": 3, "health": 1, "raw": "3 motes, 1 Stamina"},
+    "cost": {"motes": 3, "raw": "3 motes, 1 Stamina"},
     "duration": "1 month",
     "description": "By activating this Charm, the Lunar can place himself in a deep sleep, during which time he need not eat and drink. Instead, Essence and body fat reserves sustain the Lunar. The character may place himself in this hibernation for a number of months up to his Stamina score, paying 3 motes of Essence and 1 point of temporary Stamina to maintain his body during this time. However long he sleeps, the Lunar will be ravenous upon waking. The character must have a solid meal within 24 hours of waking, or else, he loses an additional point of Stamina each day until he does. The Wolf Endurance Method cannot offset this Stamina loss — after or during hibernating, the Lunar is beyond mere hunger. If his Stamina declines to 0, the Lunar dies. Every day after waking during which he eats properly allows the character to recover one of the points of Stamina (including the one spent when activating the Charm).",
     "source": {"book": "Exalted 1e The Lunars", "page": 170}

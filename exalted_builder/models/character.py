@@ -25,7 +25,8 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from .rules import AbilityName, AttributeName, Orientation, VirtueName
+from .rules import (AbilityName, AttributeName, Damage, Orientation,
+                    VirtueName)
 
 
 # Legacy saves stored the caste as its capitalised display name ("Dawn"); the
@@ -371,14 +372,6 @@ class ChargenSnapshot(BaseModel):
     wp_virtue_component: int               # two highest Virtues AT LOCK; never recomputed
 
 
-class Damage(str, Enum):
-    """A mark in a health-track box. The 1e shorthand: '/' bashing, 'x' lethal,
-    '*' aggravated. (Empty boxes are None.)"""
-    BASHING = "/"
-    LETHAL = "x"
-    AGGRAVATED = "*"
-
-
 class PlayState(BaseModel):
     """Ephemeral *play-state* — current motes/Willpower spent, marked health damage,
     and Limit. This is a deliberately separate layer from the permanent character:
@@ -566,6 +559,22 @@ class Character(BaseModel):
 
     # --- play-state (separate layer; never enters chargen/XP validation) ---
     play: Optional[PlayState] = None
+
+    # --- homebrew this character depends on (see custom_content.py) ------------
+    # Definitions of the CUSTOM Charms/spells this character references, carried
+    # inside the save so it survives being handed to someone whose machine has no
+    # copy of the author's library. Keyed "charms"/"spells".
+    #
+    # Deliberately OPAQUE dicts, not Charm/Spell models: those are rules data, and
+    # this module must not grow a dependency on the rules catalogue (see the module
+    # docstring). They are parsed and validated at the edge — custom_content writes
+    # them and rules_db loads them — so a save carrying a malformed row still loads
+    # as a Character, and the row is reported rather than fatal.
+    #
+    # Populated on save and absorbed into the library on load; nothing in the engine
+    # reads it, and an id that is in here but not in the RuleSet is still an
+    # `unknown-charm` error like any other.
+    custom_definitions: dict[str, list[dict]] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     @classmethod

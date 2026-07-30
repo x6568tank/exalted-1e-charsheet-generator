@@ -113,7 +113,7 @@ def test_save_party_replaces_an_existing_file_atomically(tmp_path):
 
 
 def test_save_character_still_atomic_after_the_refactor(tmp_path):
-    """The character path shares _atomic_write now — guard it kept its behaviour."""
+    """The character path shares atomic_write now — guard it kept its behaviour."""
     target = tmp_path / "a" / "b" / "hero.character.json"
     persistence.save_character(Character(id="c", name="Hero"), target)
     assert persistence.load_character(target).name == "Hero"

@@ -142,12 +142,38 @@ class Source(BaseModel):
     page: Optional[int] = None
 
 
+class Damage(str, Enum):
+    """A mark in a health-track box. The 1e shorthand: '/' bashing, 'x' lethal,
+    '*' aggravated. (Empty boxes are None.)
+
+    Shared vocabulary: the character marks damage in its health track, and a Charm
+    cost may name which KIND of health level it spends. It lives here, with the other
+    enums character.py already imports, rather than in a module of its own.
+    """
+    BASHING = "/"
+    LETHAL = "x"
+    AGGRAVATED = "*"
+
+
+# Display names, for anywhere the shorthand glyph alone would not read.
+DAMAGE_LABELS = {
+    Damage.BASHING: "bashing",
+    Damage.LETHAL: "lethal",
+    Damage.AGGRAVATED: "aggravated",
+}
+
+
 class CharmCost(BaseModel):
     """Activation cost paid in play. Distinct from the XP/BP cost to *learn* the
     Charm, which is character-relative and computed in engine.costs."""
     motes: int = Field(default=0, ge=0)
     willpower: int = Field(default=0, ge=0)
     health: int = Field(default=0, ge=0)   # health levels spent by the Charm
+    # WHICH kind of health level `health` spends. None means the page does not say —
+    # which is the case for every one of the 52 printed Charms with a health cost, so
+    # it is the default and renders exactly as before. Set it only where a source
+    # names the type, or on homebrew where the author decides.
+    health_type: Optional[Damage] = None
     committed: bool = False                # committed motes reduce the pool until released
     raw: str = ""                          # display string; authoritative for variable costs
 
@@ -182,6 +208,25 @@ class AbilityMinimum(BaseModel):
     spent from the pool, NOT free extra dots."""
     model_config = ConfigDict(frozen=True)
     abilities: list[AbilityName]
+    rating: int = Field(ge=1)
+
+
+class AttributeMinimum(BaseModel):
+    """The Attribute mirror of AbilityMinimum: the character must have at least
+    `rating` in AT LEAST ONE of `attributes` (OR semantics; a single-element list is a
+    specific-Attribute floor).
+
+    Its own type rather than a widened AbilityMinimum, because AbilityMinimum is also
+    the Dragon-Blooded/Sidereal chargen schooling minimum — those consumers budget
+    ABILITY dots and must not be handed an Attribute.
+
+    Distinct from `Charm.min_attribute`, which RETARGETS the primary `min_ability`
+    gate at an Attribute for the Attribute-keyed splats (Lunar, p.122) and therefore
+    feeds pricing and the Caste/Favoured discount. These are pure additional
+    requirements and feed neither, exactly like `extra_min_abilities`.
+    """
+    model_config = ConfigDict(frozen=True)
+    attributes: list[AttributeName]
     rating: int = Field(ge=1)
 
 
@@ -275,6 +320,12 @@ class Charm(BaseModel):
     # OR ("Brawl 5 AND Endurance 5", or hypothetically "AND (Melee 3 OR Thrown 3)").
     # Empty for all but a handful of Charms.
     extra_min_abilities: list[AbilityMinimum] = Field(default_factory=list)
+    # ADDITIONAL Attribute minimums, the same shape over Attributes ("Stamina 3 AND
+    # (Wits 4 OR Perception 4)"). Empty for every printed Charm in the build — no 1e
+    # page gates a Charm on more than one Attribute — and added for homebrew, which
+    # freely wants combinations the books never printed. Enforced and displayed
+    # through the same two functions as extra_min_abilities, so it cannot drift.
+    extra_min_attributes: list[AttributeMinimum] = Field(default_factory=list)
     # Alchemical Charms only (p.88-91): the Personal Essence committed to *install*
     # the Charm in a Charm Slot (distinct from `cost`, the activation cost paid in
     # play). Committed for as long as the Charm is installed, so the sum over a
@@ -337,6 +388,13 @@ class Charm(BaseModel):
     permanent_clarity: int = Field(default=0, ge=0)
     description: str = ""
     source: Source = Field(default_factory=Source)
+    # NOT authored — stamped by the loader on rows that came from the user's custom
+    # library rather than from `data/` (see custom_content.py). The engine treats a
+    # custom Charm as an ordinary Charm of its category in every respect; the flag
+    # exists so the UI can badge it as non-canon (human's call 2026-07-29: homebrew
+    # must be easily distinguishable from printed Charms) and so the authoring page
+    # knows which rows it is allowed to edit or delete.
+    custom: bool = False
 
 
 class Spell(BaseModel):
@@ -348,6 +406,8 @@ class Spell(BaseModel):
     cost: CharmCost = Field(default_factory=CharmCost)
     description: str = ""
     source: Source = Field(default_factory=Source)
+    # Stamped by the loader, exactly as Charm.custom is — see that field.
+    custom: bool = False
 
 
 
@@ -1367,6 +1427,10 @@ class RuleSet(BaseModel):
         default_factory=lambda: {"default": ChargenBudgets()})
     # Optional read-only GM reference screen (data/st_screen.json). None when absent.
     st_screen: Optional[StScreen] = None
+    # Everything wrong with the user's custom library (custom_content.py), one string
+    # per dropped row. Book-data problems are fatal and never reach here — these are
+    # non-fatal by design, so the UI shows them as a warning and the app still runs.
+    custom_problems: list[str] = Field(default_factory=list)
 
     def exalt_for(self, exalt_type: str) -> ExaltDefinition:
         """The ExaltDefinition for `exalt_type`, falling back to Solar if the type
