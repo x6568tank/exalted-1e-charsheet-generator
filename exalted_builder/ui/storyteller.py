@@ -101,11 +101,21 @@ def build_storyteller(ruleset: RuleSet, character: Character, save_path: Path,
     def _rule_card(row: viewmod.HouseRuleRow) -> None:
         with ui.card().classes(f"w-full p-3 gap-1 {pal.card_soft}"):
             with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                box = ui.checkbox(
-                    row.label, value=row.value,
-                    on_change=lambda e, f=row.field: _toggle(f, e.value),
-                ).props(f"dense color={pal.button}")
-                box.set_enabled(not locked)
+                if row.options:
+                    # A multiple-choice rule (M&F change method) renders as a select
+                    # rather than a checkbox — same card, same lock behaviour.
+                    ui.label(row.label).classes("text-sm font-medium")
+                    sel = ui.select(
+                        row.options, value=row.value,
+                        on_change=lambda e, f=row.field: _toggle(f, e.value),
+                    ).props("dense outlined").classes("min-w-[22rem]")
+                    sel.set_enabled(not locked)
+                else:
+                    box = ui.checkbox(
+                        row.label, value=row.value,
+                        on_change=lambda e, f=row.field: _toggle(f, e.value),
+                    ).props(f"dense color={pal.button}")
+                    box.set_enabled(not locked)
                 ui.space()
                 ui.label(row.citation).classes("text-xs text-gray-400 whitespace-nowrap")
             ui.label(row.description).classes("text-xs text-gray-600")

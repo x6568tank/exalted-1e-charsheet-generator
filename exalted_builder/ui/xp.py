@@ -26,8 +26,9 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import advancement, costs, derive
-from ..models.character import Armor, BackgroundEntry, Character, Weapon
+from ..engine import advancement, merits as meritsmod, costs, derive, validate
+from ..models.character import (Armor, BackgroundEntry, Character, MeritFlawPurchase,
+                                Weapon)
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import theme
 from . import view as viewmod
@@ -84,6 +85,35 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             ui.notify(str(ex), type="warning")
             return
         refresh_all()
+
+    def _mf_changed(state: dict, **kw) -> None:
+        """Update the pending selection and re-render its preview, without touching
+        the character — nothing is bought until Gain is pressed."""
+        state.update(kw)
+        refresh = state.get("refresh")
+        if refresh is not None:
+            refresh()
+
+    def _gain_mf(state: dict) -> None:
+        """Gain a Merit or Flaw in play. Which side of the transaction it is depends
+        on the ENTRY, not on the button — a Flaw pays the character."""
+        mid = state.get("id") or ""
+        definition = rs.merits_flaws.get(mid)
+        if definition is None:
+            ui.notify("Pick a Merit or Flaw first.", type="warning")
+            return
+        kw = dict(tier=state.get("tier", ""))
+        if definition.kind == "flaw":
+            _do(lambda: advancement.gain_flaw(rs, character, mid, **kw))
+        else:
+            _do(lambda: advancement.buy_merit(rs, character, mid, **kw))
+
+    def _drop_mf(state: dict) -> None:
+        idx = state.get("idx")
+        if idx == "" or idx is None:
+            ui.notify("Pick a held Merit or Flaw first.", type="warning")
+            return
+        _do(lambda: advancement.drop_merit(rs, character, int(idx)))
 
     def _add_bg() -> None:
         character.backgrounds.append(BackgroundEntry(name="", rating=1))
@@ -185,6 +215,112 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button(f"Essence {ess}→{ess + 1}  ·  {costs.essence_step(rs, character, ess)} XP",
                           on_click=lambda: _do(lambda: advancement.raise_essence(rs, character))).props(
                     f"dense color={pal.button}")
+
+        # --- Merits & Flaws in play (PG p.17) ------------------------------ #
+        # Only meaningful when the table uses the experience method; under the other
+        # two, changes "do not cost or reward" and belong on the chargen editor, so
+        # the card says so rather than offering buttons that all read 0 XP.
+        if rs.merits_flaws:
+            method = advancement.mf_change_method(character)
+            eff = meritsmod.merits_and_flaws_calc(rs, character)
+            with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+                ui.label("Merits & Flaws").classes(
+                    "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                if method != "experience":
+                    ui.label(f"This table uses the '{method}' method (Player's Guide "
+                             f"p.17), under which gaining or losing a Merit costs and "
+                             f"rewards nothing. Edit them on the character tab.").classes(
+                        "text-xs text-gray-600")
+                else:
+                    ui.label("Gaining a Merit or losing a Flaw costs twice its point "
+                             "value; losing a Merit or gaining a Flaw pays the same. "
+                             "An unaffordable change runs a debt against future XP."
+                             ).classes("text-xs text-gray-600")
+                    debt = advancement.xp_debt(character)
+                    if debt:
+                        ui.label(f"⚠ {debt} XP owed — all further experience clears "
+                                 f"this first.").classes("text-xs font-semibold text-amber-700")
+                    # --- gain --------------------------------------------- #
+                    gain_state = {"id": "", "tier": "", "points": 0}
+                    opts = {m.id: f"{m.name} {m.cost_note or ''}".strip()
+                            for m in sorted(rs.merits_flaws.values(), key=lambda m: m.name)
+                            if not m.exalt_types or character.exalt_type in m.exalt_types}
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        # NB: not named `sel` — `panel()` already binds that for the
+                        # raise-a-trait selectors, and shadowing it makes the whole
+                        # function treat the outer one as unassigned.
+                        ui.select(opts, label="Merit / Flaw", with_input=True,
+                                  on_change=lambda e: _mf_changed(gain_state, id=e.value or "")
+                                  ).classes("flex-1").props("dense")
+                        ui.input(label="tier / points",
+                                 on_change=lambda e: _mf_changed(
+                                     gain_state, tier=e.value or "",
+                                     points=int(e.value) if (e.value or "").isdigit() else 0)
+                                 ).classes("w-32").props("dense")
+                        ui.button("Gain", on_click=lambda: _gain_mf(gain_state)).props(
+                            f"dense color={pal.button}")
+
+                    # What the selected entry actually IS — printed cost line, any
+                    # splat restriction, the price this character would pay, and the
+                    # rules text. Buying a Merit blind off a dropdown label is how you
+                    # end up taking a Flaw by accident.
+                    @ui.refreshable
+                    def mf_detail() -> None:
+                        definition = rs.merits_flaws.get(gain_state.get("id") or "")
+                        if definition is None:
+                            ui.label("Select an entry to see its rules text."
+                                     ).classes("text-xs italic opacity-60")
+                            return
+                        side = ("Flaw — GAINING this pays the character"
+                                if definition.kind == "flaw" else
+                                "Merit or Flaw — records which side you take"
+                                if definition.kind == "either" else
+                                "Merit — gaining this costs XP")
+                        with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                            ui.label(definition.name).classes("text-sm font-semibold")
+                            ui.label(definition.cost_note).classes("text-xs font-mono opacity-60")
+                        ui.label(side).classes(
+                            "text-xs font-semibold "
+                            + ("text-emerald-700" if definition.kind == "flaw"
+                               else "text-amber-800"))
+                        price = validate.merit_points(
+                            definition, MeritFlawPurchase(
+                                merit_id=definition.id, tier=gain_state.get("tier", ""),
+                                points=gain_state.get("points", 0)),
+                            character.exalt_type, character.caste)
+                        xp_cost = price * rs.xp_costs_for(
+                            character.exalt_type).new_merit_bp_multiplier
+                        ui.label(f"At the selected tier: {price} points "
+                                 f"= {xp_cost} XP").classes("text-xs opacity-70")
+                        if definition.exalt_types:
+                            ui.label("Restricted to: " + ", ".join(definition.exalt_types)
+                                     ).classes("text-xs italic opacity-70")
+                        if definition.prerequisite_note:
+                            ui.label(f"Requires: {definition.prerequisite_note}"
+                                     ).classes("text-xs italic opacity-70")
+                        ui.label(definition.description).classes("text-xs opacity-80")
+
+                    mf_detail()
+                    gain_state["refresh"] = mf_detail.refresh
+                    # --- lose --------------------------------------------- #
+                    if character.merits_flaws:
+                        held = {str(i): (rs.merits_flaws[mp.merit_id].name
+                                         if mp.merit_id in rs.merits_flaws else mp.merit_id)
+                                + (f" ({mp.tier})" if mp.tier else "")
+                                for i, mp in enumerate(character.merits_flaws)}
+                        drop_state = {"idx": ""}
+                        with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                            ui.select(held, label="Held",
+                                      on_change=lambda e: drop_state.update(idx=e.value or "")
+                                      ).classes("flex-1").props("dense")
+                            ui.button("Lose / buy off",
+                                      on_click=lambda: _drop_mf(drop_state)).props("dense flat")
+                    if eff.granted_merits:
+                        names = ", ".join(sorted(
+                            rs.merits_flaws[m].name for m in eff.granted_merits
+                            if m in rs.merits_flaws))
+                        ui.label(f"Granted free by another Merit: {names}").classes(
+                            "text-xs italic opacity-70")
 
         # --- reduce a trait (curse / Charm cost; free, refunds no XP) ------ #
         with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):

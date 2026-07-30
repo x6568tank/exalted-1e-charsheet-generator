@@ -134,9 +134,14 @@ def render_sheet(view: viewmod.SheetView) -> None:
                         for r in rows:
                             _trait_row(r)
 
-        # --- specialties + backgrounds ------------------------------------ #
-        with ui.row().classes("w-full gap-2 items-stretch no-wrap"):
-            with _panel().classes("flex-1"):
+        # --- specialties + backgrounds + the conditional panels ----------- #
+        # WRAPS deliberately (no `no-wrap`): this row can hold up to five panels —
+        # Backgrounds, Specialties, Merits & Flaws, Colleges, Thaumaturgy — and on a
+        # no-wrap row the later ones squeeze to unreadable slivers. Each gets a min
+        # width so they flow onto a second line instead. Do NOT add `no-wrap` back
+        # without dropping the min widths, or the row overflows horizontally.
+        with ui.row().classes("w-full gap-2 items-stretch"):
+            with _panel().classes("flex-1 min-w-[14rem]"):
                 ui.label("Backgrounds").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 if not view.backgrounds:
                     ui.label("—").classes("text-sm text-gray-400")
@@ -144,17 +149,36 @@ def render_sheet(view: viewmod.SheetView) -> None:
                     with ui.row().classes("w-full items-center gap-1 no-wrap"):
                         ui.label(f"{name}{' · ' + note if note else ''}").classes("text-sm flex-1 truncate")
                         ui.label(_dots(rating)).classes("text-sm font-mono")
-            with _panel().classes("flex-1"):
+            with _panel().classes("flex-1 min-w-[14rem]"):
                 ui.label("Specialties").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 if not view.specialties:
                     ui.label("—").classes("text-sm text-gray-400")
                 for ability, name, rating in view.specialties:
                     ui.label(f"{ability} — {name} ({rating})").classes("text-sm")
+            # Merits & Flaws, dropped when there are none — the same rule Colleges and
+            # Thaumaturgy follow, rather than an empty panel on every sheet. A Flaw's
+            # value is shown with a + because it GRANTS points; a Merit's with a −.
+            if view.merits_flaws:
+                with _panel().classes("flex-1 min-w-[14rem]"):
+                    ui.label("Merits & Flaws").classes("text-xs font-semibold").style(f"color:{pal.accent}")
+                    for name, points, detail, kind, tip in view.merits_flaws:
+                        with ui.row().classes("w-full items-center gap-1 no-wrap"):
+                            # The rules text rides on a tooltip: the panel shares its
+                            # row with four others, so there is no room to print it,
+                            # but a Merit you cannot read the text of is just a word.
+                            row_label = ui.label(
+                                f"{name}{' · ' + detail if detail else ''}").classes(
+                                "text-sm flex-1 truncate cursor-help")
+                            if tip:
+                                row_label.tooltip(tip)
+                            ui.label(points).classes(
+                                "text-sm font-mono "
+                                + ("opacity-70" if kind == "merit" else "font-semibold"))
             # Astrological Colleges are Sidereal-only, so the panel appears only when
             # the character has some — an empty one would sit on every other splat's
             # sheet saying "—", the same reason the Spells panel is conditional below.
             if view.colleges:
-                with _panel().classes("flex-1"):
+                with _panel().classes("flex-1 min-w-[14rem]"):
                     ui.label("Astrological Colleges").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                     for name, rating, house_label, own in view.colleges:
                         with ui.row().classes("w-full items-center gap-1 no-wrap"):
@@ -165,7 +189,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
             # sheet — and like them it is dropped entirely when there is none, rather
             # than sitting on every non-thaumaturge's sheet saying "—".
             if view.thaumaturgy:
-                with _panel().classes("flex-1"):
+                with _panel().classes("flex-1 min-w-[14rem]"):
                     ui.label("Thaumaturgy").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                     if view.thaumaturgy_note:
                         ui.label(view.thaumaturgy_note).classes("text-xs italic text-amber-700")

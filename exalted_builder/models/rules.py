@@ -821,6 +821,90 @@ class BackgroundType(BaseModel):
     excluded_exalt_types: list[str] = Field(default_factory=list)
 
 
+class MeritFlaw(BaseModel):
+    """One purchasable Merit or Flaw.
+
+    Merits & Flaws were ripped out in June 2026 because the old implementation
+    scattered mechanical effects across every file they touched. Decision 0011 is that
+    they come back as ONE centralized calculation, and this entity is deliberately
+    INERT: it carries the printed text, the cost and the prerequisites, and NOTHING
+    about what a Merit does. Effects live in `engine.merits.merits_and_flaws_calc`,
+    keyed by id. A new Merit with no mechanical effect therefore needs data only.
+
+    The Thaumaturgy Merits (Player's Guide pp.120-122) are authored first because they
+    are the mortal unlock set and were already in hand; the general M&F chapter drops
+    into the same file. Shape notes for that:
+
+      * `cost` is the printed point value. Oathbound Magic has no single cost — it is
+        a Flaw whose value depends on the oath sworn — so `cost_options` carries the
+        named tiers and `cost` stays 0. A purchase then names its tier.
+      * `kind` is "merit" or "flaw". A FLAW's cost is a bonus-point GRANT, not a spend;
+        the calc, not this model, decides the sign.
+      * `repeatable_by` names the axis a repeatable Merit varies along ("attribute
+        group" for The Flow of Essence, which may be taken once per Physical/Social/
+        Mental). Empty = take it once.
+      * `prerequisites` are other MeritFlaw ids. Non-Merit prerequisites that this
+        build cannot yet express (Celestial Travel Permit needs "Celestial Patron of at
+        least 2", a Background) go in `prerequisite_note` as printed text, so the
+        requirement is shown to the player and simply not machine-checked.
+    """
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    name: str
+    # "merit" | "flaw" | "either". A few entries are printed as both — "VARIABLE COST
+    # MERIT OR FLAW" (Mutation, Favor) and Eternal Vow's "3-PT. MERIT OR 1-PT. FLAW" —
+    # and which side applies is the PLAYER's choice, recorded on the purchase
+    # (`MeritFlawPurchase.taken_as`), not fixed by the catalogue.
+    kind: str = "merit"
+    category: str = ""                     # "Supernatural" / "Social" / ... as printed
+    cost: int = 0                          # printed point value; 0 when cost_options is used
+    cost_options: dict[str, int] = Field(default_factory=dict)   # named tier -> points
+    # Per-splat cost overrides, {exalt_type: {tier: points}}. The general chapter is
+    # full of these — "(1- OR 2-PT. MERIT, 1-PT. FOR LUNARS)", "(5-PT. MERIT, 3-PT.
+    # FOR EXALTED)" — and they are real mechanical differences, not flavour, so the
+    # price a character pays depends on their splat. Inner key "" means the splat has
+    # a single fixed price regardless of the tiers the default offers. Empty for a
+    # Merit that costs the same for everyone.
+    cost_options_by_exalt_type: dict[str, dict[str, int]] = Field(default_factory=dict)
+    # The same shape keyed by CASTE id, which outranks the splat override. Only
+    # Brigid's Heir needs it ("5-PT. MERIT, 4-PT. FOR TWILIGHT CASTE", p.30) — the one
+    # price in 87 entries that keys on caste rather than splat.
+    cost_options_by_caste: dict[str, dict[str, int]] = Field(default_factory=dict)
+    # Per-SIDE price for a `kind: "either"` entry, {"merit": N, "flaw": N} — Eternal
+    # Vow is "3-PT. MERIT OR 1-PT. FLAW" (p.30). Empty when both sides price alike or
+    # are variable (Mutation, Favor).
+    cost_by_kind: dict[str, int] = Field(default_factory=dict)
+    # A Merit whose price the page does not fix at all ("VARIABLE COST MERIT",
+    # "VARIABLE POINT FLAW") — the value is agreed with the Storyteller and stored on
+    # the PURCHASE, not here. Distinct from cost_options, which is a printed menu.
+    variable_cost: bool = False
+    # The printed cost line, verbatim. Every entry carries it, because a few qualifiers
+    # cannot be modelled at all — a per-CASTE price ("4-PT. FOR TWILIGHT CASTE"), a
+    # RELATIVE one ("1-PT. LESS FOR EXALTED") — and dropping them would lose printed
+    # rules. The UI shows it, so the Storyteller always sees what the book actually
+    # says even where the engine cannot price it.
+    cost_note: str = ""
+    # Splats this entry is restricted to, as printed ("LUNARS ONLY", "CELESTIAL
+    # EXALTED ONLY"). Empty = open to all. Display + validation.
+    exalt_types: list[str] = Field(default_factory=list)
+    prerequisites: list[str] = Field(default_factory=list)       # other MeritFlaw ids
+    prerequisite_note: str = ""            # printed prereq this build cannot check
+    repeatable_by: str = ""                # "" = once only
+    # "VARIABLE COST SUPERNATURAL FLAW, THAUMATURGES ONLY" — the Merit is only open to
+    # a character who actually holds thaumaturgy. False for everything else.
+    thaumaturges_only: bool = False
+    description: str = ""
+    source: Source = Field(default_factory=Source)
+
+    @field_validator("kind")
+    @classmethod
+    def _check_kind(cls, v: str) -> str:
+        if v not in ("merit", "flaw", "either"):
+            raise ValueError(f"kind must be merit/flaw/either, got {v!r}")
+        return v
+
+
 class NatureType(BaseModel):
     """A character Nature (Archetype). Narrative only — no mechanical enforcement;
     this is the catalog the editor's Nature dropdown is populated from. The chosen
@@ -966,6 +1050,14 @@ class ExperienceCosts(BaseModel):
     ability: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2))
     ability_favored_caste: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2, offset=-1))
     essence: LinearCost = Field(default_factory=lambda: LinearCost(coeff=8))
+    # Flat per-step Essence prices, keyed by the TARGET rating, overriding `essence`
+    # for the steps listed. The mortal table (PG p.115) prices Essence by destination
+    # rather than by a coefficient — "Essence 2* | 20", "Essence 3** | 40" — and stops
+    # at 3, which is why ExaltDefinition.essence_cap tops out there for a mortal with
+    # the Essence Mastery Merit. Empty for every splat whose Essence is linear.
+    # Both starred footnotes ("must already have Essence Mastery"; "must already have
+    # Essence 2") are prerequisites, NOT prices, and are enforced elsewhere.
+    essence_by_rating: dict[int, int] = Field(default_factory=dict)
     virtue: LinearCost = Field(default_factory=lambda: LinearCost(coeff=3))   # does NOT raise Willpower
     willpower: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2))
     # flat "new trait" costs
@@ -974,6 +1066,9 @@ class ExperienceCosts(BaseModel):
     # --- Thaumaturgy (Player's Guide XP table, p.115) ------------------------ #
     # Note the asymmetry with the BP table: an Art costs 5 either way, but an Art
     # Specialty is 2 BP and 3 XP. Do not "tidy" them into agreement.
+    # "New Merit (mystical only) | cost in bonus points x2" (PG p.115). A multiplier
+    # rather than a table, because the BP value is already on the MeritFlaw row.
+    new_merit_bp_multiplier: int = 2
     thaum_new_art: int = 5
     thaum_new_art_specialty: int = 3
     # "Ritual | 3, +1 per level of the ritual" — a level-3 ritual is 6 XP.
@@ -1115,6 +1210,12 @@ class ChargenBudgets(BaseModel):
     ability_min_caste_favored: int = 10    # >= 10 of the 25 on caste/favored abilities
     ability_cap_pre_bp: int = 3
     favored_count: int = 5                 # >= 1 dot required in each favored ability
+    # May this origin take core p.103's optional Favored Ability, if the Storyteller
+    # switches it on (HouseRules.mortal_favored_ability)? True ONLY for the heroic
+    # mortal row: the page offers it to "heroic mortals", not to ordinary ones, which
+    # is why it is an origin-keyed budget flag and not a splat-wide property. The house
+    # rule alone is not enough — both this and the toggle must be set.
+    optional_favored_ability: bool = False
 
     background_dots: int = 7
     background_cap_pre_bp: int = 3
@@ -1253,8 +1354,19 @@ class EssencePoolSpec(BaseModel):
     breeding_background: str = ""            # Background name whose rating indexes the tables
     breeding_personal: list[int] = Field(default_factory=list)     # index by rating 0..5
     breeding_peripheral: list[int] = Field(default_factory=list)
+    # A Virtue term on the PERSONAL pool. Every Exalt splat's personal pool is
+    # Essence/Willpower only, so these default to inert. They exist for the unlocked
+    # mortal (PG p.114), whose single pool is
+    #   Essence + Willpower + Conviction + (highest Virtue x 2)
+    # — a NAMED Virtue added flat alongside a scaled highest-Virtue term, which
+    # nothing else in this spec could express. `personal_named_virtue` is a
+    # VirtueName value ("conviction"); "" adds nothing.
+    personal_virtue_mode: str = "none"       # same vocabulary as peripheral_virtue_mode
+    personal_virtue_coeff: int = 1
+    personal_named_virtue: str = ""
+    personal_named_virtue_coeff: int = 1
 
-    @field_validator("peripheral_virtue_mode")
+    @field_validator("peripheral_virtue_mode", "personal_virtue_mode")
     @classmethod
     def _check_virtue_mode(cls, v: str) -> str:
         if v not in ("all", "two_highest", "highest", "none"):
@@ -1299,6 +1411,42 @@ class ExaltDefinition(BaseModel):
     # not a second code path. Ignored entirely when `clarity` is True (the Alchemical
     # has no Limit at all to rename). Presentation only.
     limit_label: str = "Limit"
+    # Does this splat have a Virtue Flaw — the named Virtue whose failure triggers a
+    # Limit Break? True for Solar, Abyssal and Lunar. False for Dragon-Blooded,
+    # Sidereal and Alchemical (human, rules authority, 2026-07-30), and false for
+    # mortals, who take no part in the Great Curse (core p.103: mortals "do not have
+    # a Virtue Flaw or suffer from Limit Breaks"). Independent of `limit_label` and
+    # `clarity`: the Sidereal still HAS a Limit track called Paradox, it just has no
+    # flawed Virtue naming it. Decides whether the editor offers the panel at all.
+    has_virtue_flaw: bool = True
+    # May this splat hold Charms AT ALL? False only for mortals — "Mortals cannot
+    # purchase Charms" (core p.103), a flat bar, not a budget of zero. It has to be
+    # its own flag because `charm_count: 0` merely grants none at creation: the eight
+    # `open_to_all` Charms with min_essence 1 would still be purchasable with bonus
+    # points, and p.103 spends bonus points "on any Traits except Charms and Essence".
+    # When Merits & Flaws land this becomes the DEFAULT rather than the whole story —
+    # the right Merits reopen Terrestrial Martial Arts (all but Spirit Walking) and
+    # Terrestrial Sorcery, so expect this to be read through merits_and_flaws_calc
+    # rather than deleted. See CLAUDE.md's Merits & Flaws TODO.
+    charms_available: bool = True
+    # Hard ceiling on Essence for the whole of the character's life, XP included — as
+    # opposed to ChargenBudgets.essence_start_cap, which only binds until the sheet is
+    # locked. 0 (every Exalt splat) means no ceiling beyond _DOT_MAX.
+    # 1 for mortals: Player's Guide p.11, "Mortal characters have an Essence of 1, but
+    # no way to gain access to their Essence pool." The way UP is the Essence Mastery
+    # Merit (5-pt Supernatural, PG p.121), which "unlock[s] her Essence pool completely"
+    # and after which a mortal may buy Essence to 3 with XP (human, rules authority,
+    # 2026-07-30 — the printed Merit text does not itself state the 3). So when Merits &
+    # Flaws land, merits_and_flaws_calc raises this 1 to 3 rather than removing it.
+    essence_cap: int = 0
+    # The Essence formula that applies once a Merit has UNLOCKED the pool, for a splat
+    # whose default `essence` spec is empty because it has no pool at all. Mortals
+    # (PG p.114): "Mortals who manage to unlock their Essence gain an Essence pool
+    # equal to (Essence + Willpower + Conviction + [highest Virtue x 2])" — one pool,
+    # not a personal/peripheral pair, so the peripheral coefficients stay zero. None
+    # for every splat whose pool needs no unlocking, which is every Exalt.
+    # Selected by engine.derive.essence_pools via engine.merits, never by splat name.
+    unlocked_essence: Optional[EssencePoolSpec] = None
     # What this splat calls its caste slot in the UI: Solars have "Caste", the
     # Dragon-Blooded have "Aspect". Presentation only — the underlying field is
     # still Character.caste keyed to RuleSet.castes.
@@ -1411,6 +1559,9 @@ class RuleSet(BaseModel):
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
     colleges: dict[str, College] = Field(default_factory=dict)   # Astrological Colleges (Sidereal)
+    # Merits & Flaws. Cross-splat like thaumaturgy, and inert data: what a Merit DOES
+    # lives in engine.merits, never here (decision 0011). Empty when the file is absent.
+    merits_flaws: dict[str, MeritFlaw] = Field(default_factory=dict)
     # Thaumaturgy (Player's Guide CH3). Cross-splat, not keyed by exalt_type:
     # any character may hold these. Empty when data/thaumaturgy*.json is absent.
     thaum_arts: dict[str, ThaumaturgicArt] = Field(default_factory=dict)

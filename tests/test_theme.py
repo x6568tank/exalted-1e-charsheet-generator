@@ -51,9 +51,21 @@ def test_alchemical_palette_is_brass():
 
 def test_unknown_or_missing_splat_falls_back_to_solar():
     assert theme.palette(None).accent == theme.palette("Solar").accent
-    # Mortals are the next splat with no palette of their own (see CLAUDE.md's
-    # colour table); Sidereal and Alchemical are both themed now.
-    assert theme.palette("Mortal").accent == theme.palette("Solar").accent
+    # Every splat with data now has a palette (Mortal took the last one, muddy brown),
+    # so the fallback is exercised by a splat that does not exist at all — which is
+    # what it actually guards: a save naming a splat this build has never heard of.
+    assert theme.palette("Godblooded").accent == theme.palette("Solar").accent
+
+
+def test_mortal_is_muddy_brown_and_the_dullest_palette():
+    """The one splat that is not magical gets the one palette that does not shine."""
+    pal = theme.palette("Mortal")
+    assert pal.fam == "stone"                     # Tailwind has no "brown" family
+    r, g, b = (int(pal.accent[i:i + 2], 16) for i in (1, 3, 5))
+    assert r > g > b                              # earth tone: warm, red leads
+    # duller than the Solar gold it must not be mistaken for: less saturated, darker.
+    sr, sg, sb = (int(theme.palette("Solar").accent[i:i + 2], 16) for i in (1, 3, 5))
+    assert (r - b) < (sr - sb)
 
 
 def test_card_class_helpers_track_the_family():

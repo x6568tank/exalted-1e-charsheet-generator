@@ -74,11 +74,30 @@ def test_house_rule_rows_reflect_stored_values(ruleset) -> None:
     assert rows["restrict_chargen_ritual_level"].value is False
 
 
-def test_absent_house_rules_read_as_all_off(ruleset) -> None:
-    # An old save has house_rules None; the tab must still render every row.
+def test_absent_house_rules_read_as_the_model_defaults(ruleset) -> None:
+    # An old save has house_rules None; the tab must still render every row, each at
+    # its model default. Every TOGGLE defaults off; a multiple-choice rule (the M&F
+    # change method) defaults to the option the model declares, not to False.
     char = _character()
     assert char.house_rules is None
-    assert all(r.value is False for r in viewmod.build_house_rules(ruleset, char))
+    defaults = HouseRules()
+    for row in viewmod.build_house_rules(ruleset, char):
+        assert row.value == getattr(defaults, row.field), row.field
+        if not row.options:
+            assert row.value is False, row.field
+
+
+def test_a_multiple_choice_rule_offers_its_stored_value(ruleset) -> None:
+    """A ui.select whose value is absent from its options raises at build time, so
+    every choice the model accepts must appear in the row's options."""
+    char = _character()
+    rows = {r.field: r for r in viewmod.build_house_rules(ruleset, char)}
+    row = rows["mf_change_method"]
+    assert row.options and row.value in row.options
+    for choice in ("experience", "backgrounds", "swap"):
+        char.house_rules = HouseRules(mf_change_method=choice)
+        r = {x.field: x for x in viewmod.build_house_rules(ruleset, char)}["mf_change_method"]
+        assert r.value == choice and choice in r.options
 
 
 def test_foreign_charm_toggle_is_annotated_inert_for_a_plain_caste(ruleset) -> None:

@@ -9,7 +9,7 @@ import pytest
 
 import exalted_builder
 from exalted_builder import rules_db
-from exalted_builder.engine import validate
+from exalted_builder.engine import derive, validate
 from exalted_builder.models.character import Character
 from exalted_builder.models.rules import AbilityName, SpellCircle, TRACK_CIRCLES
 
@@ -408,3 +408,18 @@ def test_ranged_weapons_carry_range_and_bows_max_strength():
     assert long_bow.range == 200 and long_bow.max_strength == 4
     powerbow = rs.weapon_catalog["weapon.archery.long_powerbow"]
     assert powerbow.range == 350 and powerbow.artifact_rating == 3
+
+
+def test_virtue_flaw_is_splat_gated():
+    """The Dragon-Blooded, Sidereals and Alchemicals have no Virtue Flaw (human,
+    rules authority, 2026-07-30). Independent of the Limit track: the Sidereal still
+    has Paradox, it just has no flawed Virtue naming it."""
+    rs = rules_db.load_ruleset(DATA_DIR)
+    without = {"Dragon-Blooded", "Sidereal", "Alchemical", "Mortal"}
+    for eid, ex in rs.exalts.items():
+        assert ex.has_virtue_flaw is (eid not in without), eid
+    # the derivation agrees, and a Sidereal keeps its renamed Limit track regardless
+    sid = Character(id="c.sid", exalt_type="Sidereal", caste="journeys")
+    assert derive.has_virtue_flaw(rs, sid) is False
+    assert derive.limit_label(rs, sid) == "Paradox"
+    assert derive.has_virtue_flaw(rs, Character(id="c.sol", exalt_type="Solar", caste="dawn")) is True

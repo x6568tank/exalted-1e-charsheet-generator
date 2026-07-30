@@ -40,7 +40,7 @@ from ..models.rules import (
     SpellCircle,
     VirtueName,
 )
-from . import derive
+from . import derive, merits
 
 # Attribute categories and the order Strength/Dexterity/Stamina etc. (core p.104).
 # Which category receives which of the 8/6/4 pools is the player's priority and is
@@ -1132,6 +1132,10 @@ def accessible_circles(ruleset: RuleSet, character: Character) -> set[SpellCircl
     for charm in ruleset.charms.values():
         if charm.grants_circle is not None and charm_matches_splat(character, charm, ruleset):
             out.add(charm.grants_circle)
+    # A Merit can grant a circle with no initiating Charm at all — the only route to
+    # sorcery for a splat that may hold no Charms (mortals + Essence Mastery, capped
+    # at Terrestrial). See engine.merits.
+    out |= set(merits.merits_and_flaws_calc(ruleset, character).granted_circles)
     return out
 
 
@@ -2045,6 +2049,15 @@ def check_beastman_gifts(ruleset: RuleSet, character: Character) -> list[Issue]:
 # Chargen (not yet implemented — see module docstring)
 # --------------------------------------------------------------------------- #
 
+def splat_has_castes(ruleset: RuleSet, exalt_type: str) -> bool:
+    """Does this splat have any castes to choose from? False only for the casteless
+    splats — mortals "select Nature as normal but do not select a caste" (core p.103).
+    Distinct from a Lunar, who HAS castes that simply carry no Caste Abilities: a
+    Lunar caste row exists, so this is True for them and the missing-caste check
+    still applies. Data-driven, so the next casteless splat needs no code."""
+    return any(cd.exalt_type == exalt_type for cd in ruleset.castes.values())
+
+
 def _caste_favored(ruleset: RuleSet, character: Character) -> tuple[set, set] | None:
     """(caste_abilities, favored_abilities) as sets, or None if the caste is not
     in the RuleSet (caller emits an issue and skips caste-dependent checks). For a
@@ -2271,6 +2284,114 @@ def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[Abili
         return set(character.favored_abilities)
     caste_abilities, favored = cf
     return caste_abilities | favored
+
+
+def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """Free chargen dots the character has NOT allocated, as non-blocking warnings.
+
+    The engine's budget arithmetic is otherwise entirely one-sided: every domain
+    computes `max(0, spend - budget)`, charges the overflow to bonus points and errors
+    only if THAT exceeds the allowance. Nothing ever noticed a character who spent too
+    LITTLE, so a completely blank sheet reported "✓ Legal" — visible on a mortal, whose
+    lack of caste rules leaves nothing else to report, but true of every splat.
+
+    Warnings, not errors (rules-authority call, 2026-07-30): an unfinished sheet is
+    incomplete, not illegal, and the UI already treats severity="warning" as
+    non-blocking. Covers Attributes, Abilities, Virtues and **Backgrounds**; bonus
+    points are deliberately EXCLUDED — "BP are bonus for a reason", and a concept may
+    legitimately not want them. Reads the frozen snapshot once locked, like all the
+    other chargen accounting, so a locked sheet's warnings never drift.
+    """
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    (attributes, abilities, crafts, virtues, backgrounds, _specialties,
+     *_rest) = _chargen_source(character)
+    issues: list[Issue] = []
+
+    def warn(domain: str, left: int, total: int) -> None:
+        if left > 0:
+            issues.append(Issue(
+                code="unspent-chargen-dots", where=domain.lower(), severity="warning",
+                message=f"{left} of {total} free {domain} dots are unspent.",
+            ))
+
+    # Attributes: pools are per-GROUP, so leftovers are counted per pool and summed —
+    # spending all 13 in one category leaves the other two pools unspent, and both
+    # that and the resulting overspend are worth saying.
+    if b.attribute_mode == "caste_favored":
+        groups = _caste_favored_attribute_sets(ruleset, character)   # caste/favored/rest
+        spends = [sum(attributes.get(a, b.attribute_base) - b.attribute_base for a in g)
+                  for g in groups]
+        pools = list(b.attribute_pools)                              # FIXED order here
+    else:
+        spends = sorted((sum(attributes[a] - b.attribute_base for a in attrs)
+                         for attrs in ATTRIBUTE_CATEGORIES.values()), reverse=True)
+        pools = sorted(b.attribute_pools, reverse=True)
+    warn("Attribute", sum(max(0, p - s) for s, p in zip(spends, pools)), sum(pools))
+
+    # Abilities/Virtues/Backgrounds: one flat pool each, and only dots at or below the
+    # pre-BP cap count toward it — the same `within` arithmetic bonus_point_breakdown
+    # uses, so the two can never disagree about what "spent from the pool" means.
+    ability_within = sum(min(rating, b.ability_cap_pre_bp)
+                         for _ab, rating in _ability_slots(abilities, crafts))
+    warn("Ability", b.ability_dots - ability_within, b.ability_dots)
+
+    virtue_within = sum(max(0, min(r, b.virtue_cap_pre_bp) - b.virtue_base)
+                        for r in virtues.values())
+    warn("Virtue", b.virtue_dots - virtue_within, b.virtue_dots)
+
+    bg_within = 0
+    for bg in backgrounds:
+        rule = background_rule(b, bg.name)
+        cap = bg.rating if (rule and rule.cap_pre_bp_exempt) else b.background_cap_pre_bp
+        bg_within += background_pool_dots(rule, min(bg.rating, cap))
+    warn("Background", b.background_dots - bg_within, b.background_dots)
+
+    return issues
+
+
+def optional_favored_ability_open(ruleset: RuleSet, character: Character) -> bool:
+    """Whether core p.103's optional Favoured Ability is actually in play: the ORIGIN
+    must allow it and the Storyteller must have switched it on. Both halves matter —
+    the page offers it to "heroic mortals" only, so an ordinary mortal does not get one
+    however the table's toggle is set, and an Exalt's origin never allows it at all.
+
+    Reads the house rules through `chargen_house_rules`, so a locked sheet keeps the
+    answer it was built with even if the table later changes its mind."""
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    return (b.optional_favored_ability
+            and chargen_house_rules(character).mortal_favored_ability)
+
+
+def favored_ability_count(ruleset: RuleSet, character: Character) -> int:
+    """How many Favoured Abilities this character must pick — the budget's count, plus
+    the one core p.103's optional rule grants a heroic mortal when it is in play."""
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    return b.favored_count + (1 if optional_favored_ability_open(ruleset, character) else 0)
+
+
+def mortal_favored_ability_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """The price of p.103's optional Favoured Ability: "the character can never have
+    any other Ability rated higher than his Favored Ability. The Favored Ability must
+    be equal to or greater than every other skill he possesses."
+
+    Only meaningful while the rule is actually in play — an Exalt's Favoured Abilities
+    carry no such ceiling ("Exalted do not suffer from this restriction")."""
+    if not optional_favored_ability_open(ruleset, character):
+        return []
+    favored = list(character.favored_abilities)
+    if not favored:
+        return []
+    best = max(character.abilities.get(f, 0) for f in favored)
+    over = sorted(a for a, r in character.abilities.items()
+                  if a not in favored and r > best)
+    if not over:
+        return []
+    return [Issue(
+        code="mortal-favored-not-highest", where=a.value,
+        message=f"{a.value} ({character.abilities[a]}) is rated above the Favoured "
+                f"Ability ({best}); a mortal's Favoured Ability must be equal to or "
+                f"greater than every other Ability (core p.103).",
+    ) for a in over]
 
 
 class BonusPointLine(BaseModel):
@@ -2547,8 +2668,146 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     if thaumaturgy.arts or thaumaturgy.art_specialties or thaumaturgy.sciences \
             or thaumaturgy.rituals or thaumaturgy.formulas:
         lines.append(BonusPointLine(domain="Thaumaturgy", points=thaum_bp))
+    # Merits & Flaws. A MERIT is a spend at its printed point value; a FLAW is a
+    # GRANT that raises the allowance rather than reducing the spend, which is why it
+    # lands on `available` and not as a negative line — a negative line would let a
+    # Flaw silently pay for an overspend elsewhere in the same total. Oathbound
+    # Magic's grant is already net of its same-arena stacking reduction.
+    merit_bp = merit_bonus_point_cost(ruleset, character)
+    granted = merits.merits_and_flaws_calc(ruleset, character).bonus_point_grant
+    if character.merits_flaws or merit_bp:
+        lines.append(BonusPointLine(domain="Merits", points=merit_bp))
     total = sum(line.points for line in lines)
-    return BonusPointBreakdown(lines=lines, total=total, available=b.bonus_points)
+    return BonusPointBreakdown(lines=lines, total=total,
+                               available=b.bonus_points + granted)
+
+
+def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """Legality of the character's Merits & Flaws (Player's Guide pp.120-122).
+
+    Structural only — an unknown id, a missing prerequisite, a variable-cost entry
+    with no valid tier, a repeat of a non-repeatable Merit, or a thaumaturges-only
+    entry on a character who holds no thaumaturgy. What a Merit DOES is never checked
+    here; that is engine.merits' job (decision 0011)."""
+    issues: list[Issue] = []
+    held: dict[str, int] = {}
+    # "THAUMATURGES ONLY" asks whether the character holds any thaumaturgy at all;
+    # read through the snapshot so a locked sheet keeps the answer it was built with.
+    snap = character.chargen_snapshot
+    thaum = (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character)
+    has_thaum = bool(thaum.arts or thaum.sciences or thaum.rituals or thaum.formulas
+                     or thaum.art_specialties)
+
+    for purchase in character.merits_flaws:
+        definition = ruleset.merits_flaws.get(purchase.merit_id)
+        if definition is None:
+            issues.append(Issue(
+                code="merit-unknown", where=purchase.merit_id,
+                message=f"Merit {purchase.merit_id!r} is not in the rule set.",
+            ))
+            continue
+        held[definition.id] = held.get(definition.id, 0) + 1
+
+        if definition.cost_options and purchase.tier not in definition.cost_options:
+            issues.append(Issue(
+                code="merit-bad-tier", where=definition.id,
+                message=f"{definition.name} needs one of "
+                        f"{sorted(definition.cost_options)}; got {purchase.tier!r}.",
+            ))
+        if definition.kind == "either" and purchase.taken_as not in ("merit", "flaw"):
+            issues.append(Issue(
+                code="merit-side-unchosen", where=definition.id,
+                message=f"{definition.name} is printed as a Merit OR a Flaw "
+                        f"{definition.cost_note}; record which side was taken.",
+            ))
+        if definition.exalt_types and character.exalt_type not in definition.exalt_types:
+            issues.append(Issue(
+                code="merit-wrong-splat", where=definition.id,
+                message=f"{definition.name} is restricted to "
+                        f"{', '.join(definition.exalt_types)}; this character is "
+                        f"{character.exalt_type}.",
+            ))
+        if definition.thaumaturges_only and not has_thaum:
+            issues.append(Issue(
+                code="merit-thaumaturges-only", where=definition.id,
+                message=f"{definition.name} is open to thaumaturges only; this "
+                        f"character holds no Arts, Sciences, rituals or formulas.",
+            ))
+
+    for mid, count in held.items():
+        definition = ruleset.merits_flaws[mid]
+        if count > 1 and not definition.repeatable_by:
+            issues.append(Issue(
+                code="merit-repeated", where=mid,
+                message=f"{definition.name} may only be taken once; found {count}.",
+            ))
+        for pid in definition.prerequisites:
+            if pid not in held:
+                name = ruleset.merits_flaws[pid].name if pid in ruleset.merits_flaws else pid
+                issues.append(Issue(
+                    code="merit-prerequisite", where=mid,
+                    message=f"{definition.name} requires {name}.",
+                ))
+    return issues
+
+
+def merit_bonus_point_cost(ruleset: RuleSet, character: Character) -> int:
+    """Bonus points SPENT on Merits. Flaws cost nothing to take — their point value is
+    a grant, accounted separately (see `MeritEffects.bonus_point_grant`), so only
+    `kind == "merit"` rows are charged here.
+
+    Every cost shape is resolved by `merit_points`, including the per-splat prices the
+    general chapter is full of — hence passing the character's Exalt type."""
+    total = 0
+    # A Merit whose price another Merit changes (Holy Mien -> Priest). Asked of
+    # engine.merits, so no Merit id is ever named here.
+    overrides = merits.merits_and_flaws_calc(ruleset, character).merit_cost_overrides
+    for purchase in character.merits_flaws:
+        definition = ruleset.merits_flaws.get(purchase.merit_id)
+        if definition is None:
+            continue
+        if effective_merit_kind(definition, purchase) != "merit":
+            continue
+        override = overrides.get(definition.id)
+        if override is not None and purchase.tier in override:
+            total += override[purchase.tier]
+            continue
+        total += merit_points(definition, purchase, character.exalt_type,
+                              character.caste)
+    return total
+
+
+def effective_merit_kind(definition, purchase) -> str:
+    """Whether THIS purchase counts as a Merit or a Flaw.
+
+    Fixed by the catalogue for the single-sided majority. A `kind: "either"` entry —
+    Mutation, Favor, Eternal Vow, each printed as "MERIT OR FLAW" — is the player's
+    choice, recorded on the purchase. An either-entry with no choice recorded defaults
+    to "merit" here so pricing never crashes; validate reports the missing choice
+    separately rather than letting it pass unnoticed."""
+    if definition.kind != "either":
+        return definition.kind
+    return purchase.taken_as if purchase.taken_as in ("merit", "flaw") else "merit"
+
+
+def merit_points(definition, purchase, exalt_type: str = "", caste: str = "") -> int:
+    if definition.variable_cost:
+        return max(0, purchase.points)
+    # A two-sided entry may price each side differently (Eternal Vow: 3 as a Merit,
+    # 1 as a Flaw), and that outranks every other shape.
+    if definition.cost_by_kind:
+        side = effective_merit_kind(definition, purchase)
+        if side in definition.cost_by_kind:
+            return definition.cost_by_kind[side]
+    by_caste = definition.cost_options_by_caste.get(caste or "")
+    if by_caste:
+        return by_caste.get(purchase.tier, by_caste.get("", 0))
+    by_splat = definition.cost_options_by_exalt_type.get(exalt_type or "")
+    if by_splat:
+        return by_splat.get(purchase.tier, by_splat.get("", 0))
+    if definition.cost_options:
+        return definition.cost_options.get(purchase.tier, 0)
+    return definition.cost
 
 
 def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -2583,12 +2842,33 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
 
     cf = _caste_favored(ruleset, character)
     if cf is None:
-        issues.append(Issue(
-            code="unknown-caste", where=str(character.caste),
-            message=f"Caste {character.caste} is not in the RuleSet; "
-                    "caste/favoured checks skipped.",
-        ))
-        caste_abilities, favored = set(), set()
+        # A splat with NO castes in the RuleSet is casteless BY DESIGN, not
+        # mis-configured: mortals "do not select a caste" (core p.103). Only report a
+        # missing caste for a splat that actually has some to choose from, or every
+        # mortal sheet carries a permanent spurious error.
+        if splat_has_castes(ruleset, character.exalt_type):
+            issues.append(Issue(
+                code="unknown-caste", where=str(character.caste),
+                message=f"Caste {character.caste} is not in the RuleSet; "
+                        "caste/favoured checks skipped.",
+            ))
+        # A casteless splat still HAS a Favoured set — normally empty, but core p.103's
+        # optional rule gives a heroic mortal one. Carry it through rather than
+        # discarding it, or the count below can never be checked for them.
+        caste_abilities, favored = set(), set(character.favored_abilities)
+        expected = favored_ability_count(ruleset, character)
+        if len(favored) != expected:
+            issues.append(Issue(
+                code="favored-count",
+                message=f"Expected {expected} Favoured abilities, found {len(favored)}.",
+            ))
+        for ab in sorted(favored, key=lambda a: a.value):
+            if abilities.get(ab, 0) < 1:
+                issues.append(Issue(
+                    code="favored-needs-dot", where=ab.value,
+                    message=f"Favoured ability {ab.value} must have at least 1 dot.",
+                ))
+        issues += mortal_favored_ability_issues(ruleset, character)
     else:
         caste_abilities, favored = cf
         # Favoured: exactly favored_count, all distinct from Caste, >=1 dot each.
@@ -2890,6 +3170,11 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                     f"{b.essence_start_cap} for this origin.",
         ))
 
+    # Unallocated free dots — warnings, so they never block, but "✓ Legal" no longer
+    # claims a blank sheet is finished.
+    issues.extend(unspent_budget_issues(ruleset, character))
+    issues.extend(merit_issues(ruleset, character))
+
     issues.extend(check_camp_and_calling(ruleset, character))
     issues.extend(granted_charm_issues(ruleset, character))
 
@@ -2969,6 +3254,14 @@ def splat_of(charm: Charm) -> str:
     return charm.exalt_type
 
 
+def charms_available(ruleset: RuleSet, character: Character) -> bool:
+    """Whether this character's splat may hold Charms at all. False only for mortals
+    (core p.103, "Mortals cannot purchase Charms"). See
+    `ExaltDefinition.charms_available` for why this is a flag and not `charm_count: 0`,
+    and for how Merits & Flaws are expected to reopen it later."""
+    return ruleset.exalt_for(character.exalt_type).charms_available
+
+
 def charm_matches_splat(character: Character, charm: Charm,
                         ruleset: Optional[RuleSet] = None) -> bool:
     """Whether `charm` is available to the character — the picker/graph filter and
@@ -2981,7 +3274,27 @@ def charm_matches_splat(character: Character, charm: Charm,
         Celestial-only styles (Hungry Ghost, Five-Dragon).
 
     The tier test needs the splat table, so it only applies when `ruleset` is
-    given; without one the call degrades to the splat/`open_to_all` answer."""
+    given; without one the call degrades to the splat/`open_to_all` answer.
+
+    A splat that may not hold Charms at all (mortals, core p.103) matches NOTHING,
+    and that test comes first — `open_to_all` would otherwise hand a mortal the eight
+    cross-splat Charms whose minimums an Essence-1 character can actually meet. A
+    Merit can reopen part of that (Essence Mastery grants Terrestrial Martial Arts),
+    which is asked of engine.merits and never decided here."""
+    if ruleset is not None and not charms_available(ruleset, character):
+        eff = merits.merits_and_flaws_calc(ruleset, character)
+        if charm.id in eff.barred_charm_ids:
+            return False
+        if eff.bar_immaculate_charms and is_immaculate_charm(charm):
+            return False
+        # A Merit opens a whole CATEGORY; `martial_arts:<style>` categories match on
+        # their prefix so one grant covers every Terrestrial style.
+        root = charm.category.split(":", 1)[0]
+        if root not in eff.open_charm_categories:
+            return False
+        # Within an opened category the ordinary splat/tier rules still apply — the
+        # Merit grants access to Terrestrial styles, not to every splat's Charms.
+        return charm.open_to_all or "Terrestrial" in charm.open_to_tiers
     if charm.open_to_all or splat_of(charm) == character.exalt_type:
         return True
     if ruleset is not None and charm.open_to_tiers:
@@ -3076,6 +3389,15 @@ def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issu
     cross-splat (gated by circle, not splat) and are not checked; unknown Charm ids
     are left to check_references."""
     issues: list[Issue] = []
+    # A splat barred from Charms outright gets its own finding: "wrong splat" would be
+    # actively misleading for a mortal holding an `open_to_all` Charm, which belongs to
+    # no splat in particular and is refused for a different reason entirely.
+    if not charms_available(ruleset, character):
+        return [Issue(
+            code="charms-not-available", where=cid,
+            message=f"{ruleset.exalt_for(character.exalt_type).label} characters "
+                    f"cannot purchase Charms (core p.103); remove {cid!r}.",
+        ) for cid in character.charms]
     permissive = foreign_charms_open(ruleset, character)
     gated = foreign_charms_caste(ruleset, character) is not None and not permissive
     for cid in character.charms:

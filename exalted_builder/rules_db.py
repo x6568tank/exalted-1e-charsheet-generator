@@ -55,6 +55,7 @@ from .models.rules import (
     ExaltDefinition,
     ExperienceCosts,
     MagicalMaterial,
+    MeritFlaw,
     SOLAR_EXALT,
     NatureType,
     RuleSet,
@@ -181,6 +182,47 @@ def _check_prereqs(charms: dict[str, Charm], problems: list[str]) -> None:
             for pid in group:
                 if pid not in charms:
                     problems.append(f"charm '{ch.id}' references unknown prerequisite '{pid}'")
+
+
+def _check_merits_flaws(merits: dict, problems: list[str]) -> None:
+    """Referential and structural checks for Merits & Flaws.
+
+    Prerequisites are Merit ids and must resolve — the same rule Charms follow. A
+    printed prerequisite this build cannot express belongs in `prerequisite_note`
+    instead, which is free text and deliberately unchecked.
+
+    A variable-cost entry must actually offer options, and a fixed-cost one must not
+    offer both: `cost` and `cost_options` are alternatives, and a row carrying both
+    would silently price by whichever the calc happened to read first."""
+    for m in merits.values():
+        for pid in m.prerequisites:
+            if pid not in merits:
+                problems.append(
+                    f"merit '{m.id}' references unknown prerequisite '{pid}'")
+        if m.cost and m.cost_options:
+            problems.append(
+                f"merit '{m.id}' sets both cost and cost_options; use one")
+        # A variable-cost entry ("VARIABLE COST MERIT") prices from the purchase, so
+        # it is the one shape that legitimately carries no printed number.
+        if not any((m.cost, m.cost_options, m.variable_cost, m.cost_by_kind)):
+            problems.append(
+                f"merit '{m.id}' has no cost shape (cost / cost_options / "
+                f"variable_cost / cost_by_kind)")
+        # cost_by_kind prices the two sides of an "either" entry; it is meaningless
+        # on a single-sided one and would silently never be read.
+        if m.cost_by_kind and m.kind != "either":
+            problems.append(
+                f"merit '{m.id}' sets cost_by_kind but its kind is {m.kind!r}")
+        if m.kind == "either" and not (m.cost_by_kind or m.variable_cost):
+            problems.append(
+                f"merit '{m.id}' is kind 'either' but prices neither side")
+        if m.variable_cost and (m.cost or m.cost_options):
+            problems.append(
+                f"merit '{m.id}' is variable_cost but also carries a printed price")
+        for splat, opts in m.cost_options_by_exalt_type.items():
+            if not opts:
+                problems.append(
+                    f"merit '{m.id}' has an empty cost override for {splat!r}")
 
 
 def _check_thaumaturgy(arts, sciences, formulas, problems: list[str]) -> None:
@@ -375,6 +417,11 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
                        "id", "material", problems)
     colleges = _index(_load_array(data_dir / "colleges.json", College, problems),
                       "id", "college", problems)
+    # Merits & Flaws (decision 0011). Optional, cross-splat and INERT — the file
+    # carries printed text and costs only; effects live in engine.merits.
+    merits_flaws = _index(_load_array(data_dir / "merits_flaws.json", MeritFlaw, problems),
+                          "id", "merit", problems)
+
     camps = _index(_load_array(data_dir / "camps.json", TrainingCamp, problems),
                    "id", "camp", problems)
     callings = _index(_load_array(data_dir / "callings.json", Calling, problems),
@@ -406,6 +453,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     _check_sorcery_reachable(charms, spells, problems)
     _check_camps_and_callings(camps, callings, charms, problems)
     _check_thaumaturgy(thaum_arts, thaum_sciences, thaum_formulas, problems)
+    _check_merits_flaws(merits_flaws, problems)
 
     if problems:
         raise RuleDataError(problems)
@@ -427,6 +475,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         nature_catalog=natures,
         material_catalog=materials,
         colleges=colleges,
+        merits_flaws=merits_flaws,
         thaum_arts=thaum_arts,
         thaum_sciences=thaum_sciences,
         thaum_rituals=thaum_rituals,

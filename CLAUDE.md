@@ -6,9 +6,10 @@ generation, point validation, and XP advancement, with a character-sheet view.
 Scope is deliberately smaller than EdExalted (which is 2e/2.5e only); **1e is
 unserved, which is the entire point of building this.** Initial target was
 **Solar** Exalted from the core rulebook; **Dragon-Blooded, Abyssal, Lunar,
-Sidereal and Alchemical are now also fully supported.** Every *Exalt* splat is done;
-what's left is the six **non-Exalt** splats (Mortals, Heroic Mortals, Godblooded,
-Ghosts, Dragon-Kings, Mountain Folk) — see **Next Exalt Types** below.
+Sidereal and Alchemical are now also fully supported.** Every *Exalt* splat is done,
+and **Mortals + Heroic Mortals shipped 2026-07-30** (one splat, two origins);
+what's left is the four remaining **non-Exalt** splats (Godblooded, Ghosts,
+Dragon-Kings, Mountain Folk) — see **Next Exalt Types** below.
 
 ## ⚠️ EDITION: 1e ONLY — never substitute 2e/2.5e rules
 This is the single most important constraint. 2e is far better represented than
@@ -46,11 +47,13 @@ Alchemical (2026-07-23) and Sidereal (2026-07-24) all shipped complete — charg
 Charms, XP/advancement and UI, each clicked through in a browser. See their Status
 entries below for the per-splat detail.
 
-**The non-Exalt splats are what's left.** Both pieces of Dragon-Blooded book work that
-came first (human's call, 2026-07-29) are DONE — the four **Outcaste-book origins**
-(`docs/status/dragonblooded-origins.md`) and the five **Aspect books**
-(`dragonblooded-aspect-books.md`). After the non-Exalts comes the centralized Merits &
-Flaws re-add (see **Removed**).
+**The non-Exalt splats are what's left, and the first of them is done.** Both pieces of
+Dragon-Blooded book work that came first (human's call, 2026-07-29) are DONE — the four
+**Outcaste-book origins** (`docs/status/dragonblooded-origins.md`) and the five **Aspect
+books** (`dragonblooded-aspect-books.md`). **Mortals + Heroic Mortals shipped
+2026-07-30** (`docs/status/mortals.md`) — chargen only: their route to Martial Arts and
+Sorcery runs through Merits, so it is deliberately absent until the M&F work.
+After the non-Exalts comes the centralized Merits & Flaws re-add (see **Removed**).
 
 **⚠️ "Mortals" is NOT one splat** (human, 2026-07-29). It is shorthand for **six
 different splats scattered across different books**, each needing its own sources and
@@ -58,15 +61,20 @@ its own chargen/data work:
 
 | Splat | Source images | Status |
 |---|---|---|
-| Mortals | — | NOT STARTED |
-| Heroic Mortals | — | NOT STARTED |
+| Mortals | `images/Mortals/Mortals & Heroic Mortals/` | **DONE 2026-07-30** — chargen, engine, UI, tests. Magic access deferred to M&F. Not browser-verified yet. `docs/status/mortals.md` |
+| Heroic Mortals | *(same, core p.103)* | **DONE 2026-07-30** — NOT a separate splat after all: the `heroic`/`ordinary` origin axis on `Mortal`. See below |
 | Godblooded | — | NOT STARTED |
 | Ghosts | — | NOT STARTED |
 | Dragon-Kings | — | NOT STARTED |
 | Mountain Folk | — | NOT STARTED |
 | ~~Fair Folk / Fae~~ | — | **NEVER — permanently out of scope** (human, 2026-07-29) |
 
-**No screenshots exist for any of them yet.** Do not start any of the six, and do not
+**Mortals and Heroic Mortals turned out to be ONE splat, two origins** (core p.103 runs
+a single procedure through both, varying only 6/4/3·22 vs 4/3/3·16). That is a revision
+of the 2026-07-29 "six separate splats" note *for those two only* — it says nothing
+about the other four, which remain unstarted, sourceless and presumed unrelated.
+
+**No source exists for the remaining four.** Do not start them, and do not
 assume they share budgets, a Charm economy, or even a common shape — treat each as its
 own splat until the pages say otherwise.
 
@@ -89,7 +97,7 @@ finished splats needed BEYOND data (Charm Slots, Colleges, Attribute-keyed Charm
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | DONE (shipped 2026-07-24): chargen + Colleges + 193-Charm catalogue + SMA cost/cap wiring + UI click-through |
 | Alchemical | Brass | DONE (shipped 2026-07-23): chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker); UI clicked through 2026-07-23 |
-| Mortals | Muddy brown | NOT STARTED — blocked on source images. Colour is for the mortal family as a whole; whether the other five non-Exalt splats share it or get their own is UNDECIDED |
+| Mortal | Muddy brown | DONE (shipped 2026-07-30): `stone` family, the deliberately dullest palette of the seven. Whether the other four non-Exalt splats share it or get their own is UNDECIDED |
 
 **Dragon-Blooded sub-sources:** the Outcaste book's four origins and all five Aspect
 Books shipped 2026-07-29 (`docs/status/dragonblooded-origins.md`,
@@ -166,7 +174,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1180 tests passing)
+## Status (1285 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -189,6 +197,8 @@ touching that area**; the summaries below are pointers, not the full record.
 | DB Aspect Books CH6 (87 Charms, Jade Mountain, breadth prereqs, gear) | `docs/status/dragonblooded-aspect-books.md` |
 | **Thaumaturgy — DONE** (cross-splat Arts/Sciences/Rituals/Formulas; engine + UI, browser-verified) | `docs/status/thaumaturgy.md` |
 | **Custom content — DONE** (user-authored Charms/styles/spells: library, `/custom` page, saves that carry homebrew) | `docs/status/custom-content.md` |
+| **Mortals & Heroic Mortals — chargen DONE** (casteless, no Charms, Essence pinned at 1; magic deferred to M&F) | `docs/status/mortals.md` |
+| **Merits & Flaws — DONE** (centralized calc per decision 0011; all 98 M&F authored; mortal magic unlock; editor + sheet + ST Options UI) | `docs/status/merits-flaws.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -200,8 +210,12 @@ capability layer, including its ST Options tab, which is now the home for every
 Storyteller toggle. **User-authored custom content is done end to end** (2026-07-29):
 a Storyteller can write their own Charms, Martial Arts styles and spells in the app,
 they merge over the book data non-fatally, and a character save carries the homebrew
-it uses (`docs/status/custom-content.md`). **Every Exalt splat is done; the six non-Exalt splats are what's
-left** (see **Next Exalt Types** above), all blocked on source images. See **TODO**
+it uses (`docs/status/custom-content.md`). **Every Exalt splat is done, and the first
+non-Exalt splat shipped 2026-07-30**: Mortals + Heroic Mortals, which turned out to be
+one splat with two origins rather than two splats (`docs/status/mortals.md`). Their
+chargen is complete and their magic is not — Martial Arts and Sorcery are gated on
+Merits, so they wait on the M&F work. **Four non-Exalt splats remain** (Godblooded,
+Ghosts, Dragon-Kings, Mountain Folk), all blocked on source material. See **TODO**
 below for what's actually next.
 
 ### Removed
@@ -286,13 +300,37 @@ homebrew-only with no printed use: `CharmCost.health_type` and
   Also recorded there: the p.116 Step Four errata ("5 in addition to recorded
   **Knowledge**", not Inheritance) — read it before building mortal chargen or the
   Knowledge BP pool.
-- **The six non-Exalt splats** — **Mortals, Heroic Mortals, Godblooded, Ghosts,
-  Dragon-Kings, Mountain Folk**. NOT one "Mortals" splat (human, 2026-07-29): they are
-  six separate splats scattered across different books. **All six are blocked on source
-  images** — none exist yet — per the never-author-from-memory rule. Order is the
-  human's call. See **Next Exalt Types** above.
+- **The four remaining non-Exalt splats** — **Godblooded, Ghosts, Dragon-Kings,
+  Mountain Folk**. Separate splats scattered across different books (human,
+  2026-07-29); **all four are blocked on source material** — none exists yet — per the
+  never-author-from-memory rule. Order is the human's call. See **Next Exalt Types**.
+  Mortals + Heroic Mortals are DONE (2026-07-30) and were the exception to the
+  "six separate splats" note: p.103 runs one procedure through both, so they shipped as
+  one splat with a `heroic`/`ordinary` origin axis. Do not generalise that to the other
+  four. `docs/status/mortals.md`.
+- **Mortal magic access** — mortals currently have NO route to Martial Arts or Sorcery.
+  Deliberate (human's call, 2026-07-30: ship chargen first rather than pull M&F
+  forward), and it unblocks with the Merits & Flaws work below, which carries the
+  rulings. `ExaltDefinition.charms_available` and `essence_cap` are the two flags that
+  flip; neither should be deleted.
+- **Browser click-through for Mortals** — PARTLY done (2026-07-30) and it earned its
+  keep, turning up three bugs the 1200-test suite missed: the Charm picker crashed for
+  a Charmless splat (blanking Abilities AND Thaumaturgy), the Favored-Ability ST toggle
+  leaked to ordinary mortals, and a character with NOTHING in it validated as legal.
+  All three are fixed with regression tests; `docs/status/mortals.md` records them.
+  The remaining tabs still want a pass.
 - **Merits & Flaws**, after the non-Exalt splats — one centralized
-  `merits_and_flaws_calc`, NOT the old per-file hooks. See **Removed**.
+  `merits_and_flaws_calc`, NOT the old per-file hooks. See **Removed**. Source has NOT
+  landed: `images/Merits & Flaws/CH 1 - Merits and Flaws.md` is a 4-line header stub with
+  no content.
+  **Carry this ruling into that work** (human, 2026-07-30): Merits are how a **mortal**
+  reaches magic at all, and the access they grant is **Terrestrial-circle only** —
+  Terrestrial Sorcery, and any Terrestrial Martial Art **except
+  `dragonblooded.martial-arts.spirit-walking`** (Spirit Walking, 2nd in
+  `martial_arts:enlightenment`), which is barred because it is what opens Celestial
+  Martial Arts and a mortal can never reach those. Note the existing tier machinery will
+  NOT catch this on its own: Spirit Walking is `open_to_all: true`, so the mortal
+  exclusion has to be authored deliberately as part of the centralized calc.
 
 Full multi-splat plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 DB chargen numbers as verified from source pages: [[db-chargen-findings]].

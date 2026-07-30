@@ -116,6 +116,16 @@ _ALCHEMICAL = Palette(
     bg="#f4efdb", node_bg="#fffef4", button="amber-9", fam="yellow",
 )
 
+# Mortal: muddy brown — earth rather than metal, the one palette with no shine to it,
+# which is the point. Tailwind has no "brown" family, so `fam` is `stone`: a warm grey
+# that tints the cards toward earth without the Abyssal's cold neutral. Deliberately
+# the lowest-contrast accent of the seven — a mortal sheet should not glitter.
+_MORTAL = Palette(
+    splat_label="Mortal",
+    accent="#6b5334", accent_dark="#4a3823", ink="#2b2317",
+    bg="#f0ebe1", node_bg="#fbf9f5", button="brown-8", fam="stone",
+)
+
 _BY_SPLAT: dict[str, Palette] = {
     "Solar": _SOLAR,
     "Dragon-Blooded": _DRAGON_BLOODED,
@@ -123,6 +133,7 @@ _BY_SPLAT: dict[str, Palette] = {
     "Lunar": _LUNAR,
     "Sidereal": _SIDEREAL,
     "Alchemical": _ALCHEMICAL,
+    "Mortal": _MORTAL,
 }
 
 

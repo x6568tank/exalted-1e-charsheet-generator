@@ -386,3 +386,68 @@ def test_locked_snapshot_is_validated_not_current_traits():
     codes = {i.code for i in _errors(validate.validate_chargen(rs, c))}
     assert "essence-below-start" not in codes
     assert "bonus-points-exceeded" in codes      # essence 5 -> 21 BP, from the snapshot
+
+
+# --- unspent free dots (2026-07-30) ---------------------------------------- #
+# The budget arithmetic used to be one-sided: every domain charged
+# `max(0, spend - budget)` to bonus points, and nothing ever noticed a character who
+# spent too LITTLE — so a completely blank sheet reported "✓ Legal". Warnings rather
+# than errors: an unfinished sheet is incomplete, not illegal (rules authority,
+# 2026-07-30), and the UI's legality banner filters on severity == "error".
+
+def test_the_legal_baseline_reports_no_unspent_dots():
+    """False-positive guard, and the strongest one available: _legal_solar spends
+    its free budgets EXACTLY, so every pool must come back silent."""
+    rs, c = _ruleset(), _legal_solar()
+    assert validate.unspent_budget_issues(rs, c) == []
+
+
+def test_blank_sheet_warns_about_every_unspent_pool():
+    rs = _ruleset()
+    issues = validate.unspent_budget_issues(rs, Character(id="blank", caste="dawn"))
+    by_domain = {i.where: i for i in issues}
+    assert set(by_domain) == {"attribute", "ability", "virtue", "background"}
+    assert all(i.severity == "warning" for i in issues)
+    assert "18 of 18" in by_domain["attribute"].message      # 8/6/4
+    assert "25 of 25" in by_domain["ability"].message
+    assert "5 of 5" in by_domain["virtue"].message
+    assert "7 of 7" in by_domain["background"].message
+
+
+def test_unspent_dots_do_not_make_a_character_illegal():
+    rs = _ruleset()
+    issues = validate.validate_chargen(rs, Character(id="blank", caste="dawn"))
+    assert all(i.severity == "warning"
+               for i in issues if i.code == "unspent-chargen-dots")
+
+
+def test_bonus_points_are_never_reported_as_unspent():
+    """Deliberate (rules authority, 2026-07-30): "BP are bonus for a reason".
+    Backgrounds ARE covered; bonus points are not."""
+    rs, c = _ruleset(), _legal_solar()
+    c.backgrounds = []                              # 7 background dots now unspent
+    issues = validate.unspent_budget_issues(rs, c)
+    assert [i.where for i in issues] == ["background"]
+    assert not any("bonus" in i.message.lower() for i in issues)
+
+
+def test_attribute_pools_are_counted_per_group_not_in_aggregate():
+    """8/6/4 are three separate pools, so pouring everything into one category
+    leaves the other two unspent even though the TOTAL would balance."""
+    rs, c = _ruleset(), _legal_solar()
+    # 18 dots, all Physical: the total is right, the distribution is not.
+    c.attributes.update({
+        AT.STRENGTH: 5, AT.DEXTERITY: 5, AT.STAMINA: 5,
+        AT.CHARISMA: 1, AT.MANIPULATION: 1, AT.APPEARANCE: 1,
+        AT.PERCEPTION: 1, AT.INTELLIGENCE: 1, AT.WITS: 1,
+    })
+    msg = {i.where: i.message for i in validate.unspent_budget_issues(rs, c)}
+    assert "10 of 18" in msg["attribute"]           # the 6 and 4 pools untouched
+
+
+def test_dots_above_the_pre_bp_cap_do_not_count_toward_the_pool():
+    """A 5-dot Ability is 3 pool dots and 2 bonus-point dots, so raising one past
+    the cap must not silently 'fill' the free pool it never drew on."""
+    rs, c = _ruleset(), _legal_solar()
+    c.abilities[A.MELEE] = 5                        # +2 dots, both above the cap of 3
+    assert validate.unspent_budget_issues(rs, c) == []

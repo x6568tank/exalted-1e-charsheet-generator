@@ -17,10 +17,10 @@ from __future__ import annotations
 
 from ..models.character import (
     Array, ArtSpecialty, BeastmanGiftPurchase, Character, CollegeRating, Combo, CraftRating,
-    FormulaEntry, OxBodyPurchase, RitualEntry, ScienceRating, Specialty, SubmodulePurchase,
+    FormulaEntry, MeritFlawPurchase, OxBodyPurchase, RitualEntry, ScienceRating, Specialty, SubmodulePurchase,
     ThaumaturgyState, XpEntry)
 from ..models.rules import AbilityName, AttributeName, Orientation, RuleSet, VirtueName
-from . import costs, derive, validate
+from . import costs, derive, merits, validate
 
 # Conventional maxima for raises. The 1-5 dot cap is the universal trait cap used
 # throughout chargen; Willpower's permanent maximum is 10. (Essence is capped here
@@ -43,13 +43,28 @@ def xp_spent(character: Character) -> int:
 
 
 def xp_available(character: Character) -> int:
-    """Unspent XP: earned minus the log total (may go negative if hand-edited)."""
+    """Unspent XP: earned minus the log total. Goes NEGATIVE when a Merit change was
+    taken on credit (see `xp_debt`) or after a hand-edit."""
     return character.xp_earned - xp_spent(character)
+
+
+def xp_debt(character: Character) -> int:
+    """Outstanding balance owed on a Merit change the character could not afford —
+    Player's Guide p.17: "she pays whatever she has available and must allocate all
+    further experience to the remaining balance until it is paid in full."
+
+    DERIVED, not stored, and that is load-bearing. An earlier cut stored the balance
+    and paid it down inside `add_xp`, which silently destroyed experience: the log
+    recorded only the part that was affordable, so the rest was never counted as
+    spent at all. Logging the FULL cost and letting `xp_available` go negative makes
+    the debt self-evident, self-clearing as XP is earned, and impossible to lose."""
+    return max(0, -xp_available(character))
 
 
 def add_xp(character: Character, amount: int) -> None:
     """Adjust earned XP by `amount` (negative to correct an over-grant). Earned
-    never drops below zero."""
+    never drops below zero. Any outstanding debt clears automatically, because it is
+    derived from the same two numbers."""
     character.xp_earned = max(0, character.xp_earned + amount)
 
 
@@ -188,6 +203,19 @@ def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
     frm = character.essence_rating
     if frm >= _DOT_MAX:
         raise AdvancementError(f"Essence is already at {_DOT_MAX}.")
+    # A splat-wide lifetime ceiling, which for a mortal is 1 — they have "no way to
+    # gain access to their Essence pool" (PG p.11) until the Essence Mastery Merit
+    # opens it. See ExaltDefinition.essence_cap.
+    cap = ruleset.exalt_for(character.exalt_type).essence_cap
+    # A Merit can raise it: Essence Mastery takes a mortal from 1 to 3, "the limit of
+    # human potential" (PG p.114). Asked of engine.merits, never decided here.
+    override = validate.merits.merits_and_flaws_calc(ruleset, character).essence_cap_override
+    if override is not None:
+        cap = override
+    if cap and frm >= cap:
+        raise AdvancementError(
+            f"{ruleset.exalt_for(character.exalt_type).label} characters cannot raise "
+            f"Essence above {cap}.")
     cost = costs.essence_step(ruleset, character, frm)
     entry = _commit(character, "essence", "", frm, frm + 1, cost)
     character.essence_rating = frm + 1
@@ -279,6 +307,13 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
         raise AdvancementError(
             f"{charm.name}: Alchemicals gain Charms by buying a Charm Slot or a "
             f"Panoply (retainer) Charm, not directly.")
+    # A splat barred from Charms outright (mortals, core p.103) is refused first and
+    # by name: the generic message below blames the Charm's splat, which reads as
+    # nonsense for an `open_to_all` Charm that belongs to no one splat.
+    if not validate.charms_available(ruleset, character):
+        raise AdvancementError(
+            f"{ruleset.exalt_for(character.exalt_type).label} characters cannot "
+            f"purchase Charms (core p.103).")
     # Another splat's Charm is buyable only by an Eclipse-style caste (p.127), and
     # then at the doubled price costs.charm_cost applies.
     if not validate.charm_learnable_by_splat(ruleset, character, charm):
@@ -1055,3 +1090,146 @@ def validate_xp(ruleset: RuleSet, character: Character) -> list[validate.Issue]:
                 f"({xp_available(character)} available).",
     ))
     return issues
+
+
+def mf_change_method(character: Character) -> str:
+    """Which Player's Guide p.17 method governs post-creation M&F changes for this
+    character's table. Only "experience" moves any XP."""
+    return (character.house_rules.mf_change_method
+            if character.house_rules is not None else "experience")
+
+
+def merit_change_xp(ruleset: RuleSet, character: Character, merit, tier: str = "") -> int:
+    """XP a post-creation M&F change costs (positive) or pays (negative), under the
+    experience method: "If a character loses a Merit or gains a Flaw, she receives a
+    number of experience points equal to twice its bonus point value. If a character
+    gains a Merit or loses a Flaw, she must pay a like number" (PG p.17).
+
+    Returns 0 under the other two methods, which "do not cost or reward players after
+    character creation"."""
+    if mf_change_method(character) != "experience":
+        return 0
+    return costs.merit_cost(ruleset, character, merit, tier)
+
+
+def _pay_or_owe(character: Character, target: str, detail: str, cost: int) -> XpEntry:
+    """Commit a Merit change, allowing it to go into debt rather than refusing.
+
+    Distinct from `_commit`, which REFUSES an unaffordable purchase. A Merit change is
+    not always the player's choice — a Flaw healed by someone else's Charm charges her
+    whether or not she can pay — so p.17 provides for a running balance instead. The
+    full cost is logged; `xp_available` goes negative and `xp_debt` reports it.
+    """
+    entry = XpEntry(target=target, detail=detail, from_rating=None, to_rating=None,
+                    cost=cost)
+    character.xp_log.append(entry)
+    return entry
+
+
+def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
+              *, tier: str = "", detail: str = "", arena: str = "") -> XpEntry:
+    """Gain a Merit after creation. Under the experience method this costs twice its
+    bonus-point value (PG p.17, and the same rate the mortal table gives on p.115);
+    under the other two methods it costs nothing, because they "do not cost or reward
+    players after character creation".
+
+    Flaws are not bought — a Flaw is GAINED (see `gain_flaw`), which pays the
+    character rather than charging her.
+    """
+    _ensure_locked(character)
+    definition = ruleset.merits_flaws.get(merit_id)
+    if definition is None:
+        raise AdvancementError(f"Unknown Merit {merit_id!r}.")
+    if definition.kind != "merit":
+        raise AdvancementError(
+            f"{definition.name} is a Flaw; gaining a Flaw pays the character "
+            f"(gain_flaw), it is not bought.")
+    held = [p.merit_id for p in character.merits_flaws]
+    if merit_id in held and not definition.repeatable_by:
+        raise AdvancementError(f"{definition.name} is already held.")
+    for pid in definition.prerequisites:
+        if pid not in held:
+            name = ruleset.merits_flaws[pid].name if pid in ruleset.merits_flaws else pid
+            raise AdvancementError(f"{definition.name} requires {name}.")
+    if definition.cost_options and tier not in definition.cost_options:
+        raise AdvancementError(
+            f"{definition.name} needs one of {sorted(definition.cost_options)}.")
+
+    cost = merit_change_xp(ruleset, character, definition, tier)
+    entry = _pay_or_owe(character, "merits", merit_id, cost)
+    character.merits_flaws.append(
+        MeritFlawPurchase(merit_id=merit_id, tier=tier, detail=detail, arena=arena))
+    return entry
+
+
+def gain_flaw(ruleset: RuleSet, character: Character, merit_id: str,
+              *, tier: str = "", detail: str = "", arena: str = "") -> XpEntry:
+    """Take on a Flaw in play. Under the experience method this PAYS the character
+    twice its point value (a negative-cost log row); under the others it pays nothing.
+
+    The p.16 cap is deliberately NOT applied here — "characters with more than 10
+    points of Flaws receive no experience for the excess" is a total across all Flaws,
+    so it is enforced by engine.merits against the whole sheet, not per purchase.
+    """
+    _ensure_locked(character)
+    definition = ruleset.merits_flaws.get(merit_id)
+    if definition is None:
+        raise AdvancementError(f"Unknown Flaw {merit_id!r}.")
+    if definition.kind != "flaw":
+        raise AdvancementError(f"{definition.name} is a Merit; buy it instead.")
+    if definition.cost_options and tier not in definition.cost_options:
+        raise AdvancementError(
+            f"{definition.name} needs one of {sorted(definition.cost_options)}.")
+
+    award = merit_change_xp(ruleset, character, definition, tier)
+    # "Characters with more than 10 points of Flaws receive no experience for the
+    # excess" (PG p.17) — the same ceiling as chargen. Measured against the Flaws
+    # ALREADY held, so a Flaw that straddles the cap pays for its legal part only.
+    if award:
+        already = merits.flaw_points(ruleset, character)
+        room = max(0, merits.FLAW_POINT_CAP - already)
+        value = (definition.cost_options.get(tier, 0)
+                 if definition.cost_options else definition.cost)
+        if value > room:
+            award = merit_change_xp(ruleset, character, definition, tier) * room // max(1, value)
+    entry = _commit_award(character, "merits", merit_id, -award)
+    character.merits_flaws.append(
+        MeritFlawPurchase(merit_id=merit_id, tier=tier, detail=detail, arena=arena))
+    return entry
+
+
+def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry:
+    """Lose a Merit, or buy off a Flaw. Mirrors the two above: losing a MERIT pays the
+    character twice its value, losing a FLAW charges it (PG p.17)."""
+    _ensure_locked(character)
+    if not 0 <= index < len(character.merits_flaws):
+        raise AdvancementError(f"No Merit at index {index}.")
+    purchase = character.merits_flaws[index]
+    definition = ruleset.merits_flaws.get(purchase.merit_id)
+    if definition is None:
+        raise AdvancementError(f"Unknown Merit {purchase.merit_id!r}.")
+    # Anything that depends on it must go first, or the sheet is left inconsistent.
+    dependents = [d.name for d in ruleset.merits_flaws.values()
+                  if definition.id in d.prerequisites
+                  and any(p.merit_id == d.id for p in character.merits_flaws)]
+    if dependents:
+        raise AdvancementError(
+            f"{definition.name} is a prerequisite of {', '.join(sorted(dependents))}.")
+
+    value = merit_change_xp(ruleset, character, definition, purchase.tier)
+    if definition.kind == "merit":
+        entry = _commit_award(character, "merits", f"-{purchase.merit_id}", -value)
+    else:
+        entry = _pay_or_owe(character, "merits", f"-{purchase.merit_id}", value)
+    del character.merits_flaws[index]
+    return entry
+
+
+def _commit_award(character: Character, target: str, detail: str, cost: int) -> XpEntry:
+    """Append a log row that PAYS the character (negative cost) with no affordability
+    check — there is nothing to afford. Kept separate from `_commit` so the ordinary
+    purchase path keeps its gate."""
+    entry = XpEntry(target=target, detail=detail, from_rating=None, to_rating=None,
+                    cost=cost)
+    character.xp_log.append(entry)
+    return entry

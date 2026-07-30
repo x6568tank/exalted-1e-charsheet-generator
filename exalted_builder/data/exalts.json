@@ -41,7 +41,8 @@
     "highest_magic_circle_id": "",
     "ox_body_charm_id": "dragonblooded.endurance.ox-body-technique",
     "caste_noun": "Aspect",
-    "tier": "Terrestrial"
+    "tier": "Terrestrial",
+    "has_virtue_flaw": false
   },
   {
     "id": "Abyssal",
@@ -89,7 +90,8 @@
     "ox_body_charm_id": "sidereal.endurance.ox-body-technique",
     "caste_noun": "Caste",
     "tier": "Celestial",
-    "limit_label": "Paradox"
+    "limit_label": "Paradox",
+    "has_virtue_flaw": false
   },
   {
     "id": "Alchemical",
@@ -107,6 +109,37 @@
     "ox_body_charm_id": "alchemical.might-and-mobility.strain-resistant-chassis-modification",
     "caste_noun": "Caste",
     "clarity": true,
-    "tier": "Alchemical"
+    "tier": "Alchemical",
+    "has_virtue_flaw": false
+  },
+  {
+    "id": "Mortal",
+    "label": "Mortal",
+    "essence": {
+      "personal_essence_coeff": 0,
+      "personal_willpower_coeff": 0,
+      "peripheral_essence_coeff": 0,
+      "peripheral_willpower_coeff": 0,
+      "peripheral_virtue_mode": "none"
+    },
+    "magic_track": "sorcery",
+    "highest_magic_circle_id": "",
+    "ox_body_charm_id": "",
+    "caste_noun": "Caste",
+    "tier": "Mortal",
+    "has_virtue_flaw": false,
+    "charms_available": false,
+    "essence_cap": 1,
+    "unlocked_essence": {
+      "personal_essence_coeff": 1,
+      "personal_willpower_coeff": 1,
+      "personal_named_virtue": "conviction",
+      "personal_named_virtue_coeff": 1,
+      "personal_virtue_mode": "highest",
+      "personal_virtue_coeff": 2,
+      "peripheral_essence_coeff": 0,
+      "peripheral_willpower_coeff": 0,
+      "peripheral_virtue_mode": "none"
+    }
   }
 ]

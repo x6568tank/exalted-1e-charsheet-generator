@@ -159,6 +159,15 @@ def limit_label(ruleset: RuleSet, character: Character) -> str:
     return (exalt.limit_label if exalt and exalt.limit_label else "Limit")
 
 
+def has_virtue_flaw(ruleset: RuleSet, character: Character) -> bool:
+    """Whether this character's splat has a Virtue Flaw at all. False for the
+    Dragon-Blooded, Sidereals and Alchemicals — see `ExaltDefinition.has_virtue_flaw`.
+    Note this is NOT the same question as whether the splat has a Limit track: a
+    Sidereal has Paradox but no flawed Virtue."""
+    exalt = ruleset.exalt_for(character.exalt_type)
+    return bool(exalt and exalt.has_virtue_flaw)
+
+
 def permanent_clarity(ruleset: RuleSet, character: Character) -> list[tuple[str, int]]:
     """The itemised sources of permanent Clarity (p.69): one dot per dot of Essence
     above 5, plus one per installed Charm that grants it. Reads the character's LIVE
@@ -221,6 +230,21 @@ def _peripheral_virtue_term(mode: str, virtues: dict[VirtueName, int]) -> int:
     return 0
 
 
+def _named_virtue_term(spec, virtues: dict[VirtueName, int]) -> int:
+    """A single NAMED Virtue added flat to the Personal pool — the "+ Conviction" in
+    the unlocked mortal's pool (PG p.114). Zero for every splat that names none, which
+    is all of them; an unrecognised name contributes nothing rather than raising, so a
+    typo in the data degrades to a wrong number rather than a crash the loader would
+    not have caught."""
+    if not spec.personal_named_virtue:
+        return 0
+    try:
+        virtue = VirtueName(spec.personal_named_virtue)
+    except ValueError:
+        return 0
+    return virtues.get(virtue, 0) * spec.personal_named_virtue_coeff
+
+
 def _breeding_bonus(character: Character, name: str, table: list[int]) -> int:
     """The additive pool bonus from a Background-derived term (DB Breeding): look up
     the character's rating in `name` and index `table` (clamped to its length). Returns
@@ -248,14 +272,30 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
 
     The Breeding term (p.158-159) is a flat per-rating bonus added to BOTH pools,
     keyed off the character's Breeding Background rating; splats without it carry
-    empty tables."""
-    spec = ruleset.exalt_for(character.exalt_type).essence
+    empty tables.
+
+    A splat with NO pool of its own (mortals: "they lack an Essence pool, either
+    Peripheral or Personal", PG p.114) can have one UNLOCKED by a Merit, in which case
+    `ExaltDefinition.unlocked_essence` replaces the empty default spec. Which Merits do
+    that is engine.merits' business, not this function's — see decision 0011."""
+    exalt = ruleset.exalt_for(character.exalt_type)
+    spec = exalt.essence
+    if exalt.unlocked_essence is not None:
+        # Import locally: engine.merits imports the models only, but keeping this out
+        # of the module header avoids a derive <-> merits cycle if merits ever needs
+        # a derivation of its own.
+        from . import merits as _merits
+        if _merits.merits_and_flaws_calc(ruleset, character).essence_pool_unlocked:
+            spec = exalt.unlocked_essence
     essence = character.essence_rating
     wp = willpower(character)
     breeding_p = _breeding_bonus(character, spec.breeding_background, spec.breeding_personal)
     breeding_pp = _breeding_bonus(character, spec.breeding_background, spec.breeding_peripheral)
     personal = (essence * spec.personal_essence_coeff
                 + wp * spec.personal_willpower_coeff
+                + _named_virtue_term(spec, character.virtues)
+                + (_peripheral_virtue_term(spec.personal_virtue_mode, character.virtues)
+                   * spec.personal_virtue_coeff)
                 + breeding_p)
     peripheral = (essence * spec.peripheral_essence_coeff
                   + wp * spec.peripheral_willpower_coeff

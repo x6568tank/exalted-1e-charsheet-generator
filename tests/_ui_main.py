@@ -6,6 +6,7 @@ from nicegui import ui
 from exalted_builder import rules_db
 from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
+    MeritFlawPurchase,
     Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
     HouseRules, PlayState, RitualEntry, ScienceRating, ThaumaturgyState, Weapon)
 from exalted_builder.models.party import Party, PartyMember
@@ -446,3 +447,59 @@ CHAR_CUSTOM_CHARM.spells = ["custom.gone-missing"]     # never defined -> the âš
 @ui.page('/custom-sheet')
 def page_custom_sheet():
     sheet_app.render_sheet(view.build_sheet_view(RS_CUSTOM, CHAR_CUSTOM_CHARM))
+
+# (h) a Mortal: the first CASTELESS splat. Its editor must render with no caste
+# dropdown and no caste-info box, and its sheet must lay Abilities out by the
+# default grouping rather than blank (adding-a-splat.md traps #3 and #5).
+CHAR_MORTAL = Character(id="mt", name="Nine Cups", exalt_type="Mortal", caste="",
+                        origin="heroic", essence_rating=1)
+
+@ui.page('/mortal')
+def page_mortal():
+    editor.build_editor(RS, CHAR_MORTAL, Path("x.json"), with_header=False)
+
+@ui.page('/mortal-sheet')
+def page_mortal_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_MORTAL))
+
+# A mortal's Charm picker: they have NO Charms, so the Abilities/Martial Arts pages
+# must not be offered at all. Building the Category dropdown with an empty option
+# list raises at BUILD time and takes every sibling tab down with it â€” this page is
+# the regression guard for that (reported 2026-07-30: Abilities AND Thaumaturgy both
+# rendered blank).
+@ui.page('/mortalpicker')
+def page_mortalpicker():
+    picker.build_picker(RS, CHAR_MORTAL, Path("x.json"), with_header=False)
+
+# A mortal holding Merits: the editor's Merits panel and the sheet's block must both
+# render, including the variable-cost row (Oathbound Magic) whose tier/arena controls
+# only exist for that entry.
+CHAR_MERITS = Character(id="mf", name="Oathsworn", exalt_type="Mortal", caste="",
+                        origin="heroic", essence_rating=1)
+CHAR_MERITS.merits_flaws = [
+    MeritFlawPurchase(merit_id="thaum.essence-awareness"),
+    MeritFlawPurchase(merit_id="thaum.essence-mastery"),
+    MeritFlawPurchase(merit_id="thaum.oathbound-magic", tier="major", arena="combat",
+                      detail="Never raise a hand in anger: +1 Strength"),
+    MeritFlawPurchase(merit_id="thaum.gone-missing"),      # unresolvable -> the warn row
+]
+
+@ui.page('/merits')
+def page_merits():
+    editor.build_editor(RS, CHAR_MERITS, Path("x.json"), with_header=False)
+
+@ui.page('/merits-sheet')
+def page_merits_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_MERITS))
+
+
+# The XP tab's Merits & Flaws card: a LOCKED character under the experience method,
+# already carrying a debt, so the card renders its warning and both controls.
+CHAR_MF_XP = Character(id="mfx", name="Indebted", exalt_type="Mortal", caste="",
+                       origin="heroic", essence_rating=1)
+CHAR_MF_XP.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness")]
+CHAR_MF_XP.chargen_locked = True
+
+@ui.page('/mf-xp')
+def page_mf_xp():
+    xp.build_xp(RS, CHAR_MF_XP, Path("x.json"), with_header=False)

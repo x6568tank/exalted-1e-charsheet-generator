@@ -55,5 +55,14 @@
   "Solar": {
     "calling_ability_discount": 1,
     "calling_charm_discount": 2
+  },
+  "Mortal": {
+    "virtue": {
+      "coeff": 4
+    },
+    "essence_by_rating": {
+      "2": 20,
+      "3": 40
+    }
   }
 }

@@ -12,7 +12,7 @@ imports NO UI toolkit, so it is unit-testable on its own and the NiceGUI layer
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, field as dc_field
 from typing import Optional
 
 from .. import custom_content
@@ -870,7 +870,10 @@ class HouseRuleRow:
     scope: str              # 'table' | 'character'
     citation: str
     description: str
-    value: bool
+    # bool for a plain toggle; a str for a multiple-choice rule, whose `options` maps
+    # stored value -> label. `options` empty means it renders as a checkbox.
+    value: bool | str
+    options: dict[str, str] = dc_field(default_factory=dict)
     note: str = ""          # why it currently does nothing, when it doesn't
 
 
@@ -892,7 +895,25 @@ _HOUSE_RULES = [
      "Storyteller permission for THIS character to begin play already knowing "
      "another Exalt type's Charms. After chargen the rule asks only for a willing "
      "tutor, so this stops mattering once the sheet is locked."),
+    ("mortal_favored_ability", "Heroic mortal may pick a Favored Ability", "character",
+     "Exalted p.103",
+     "Grants one Favored Ability, discount included. The price is a ceiling: no other "
+     "Ability may be rated above it. Only affects splats with no castes."),
+    ("mf_change_method", "Merits & Flaws after character creation", "table",
+     "Player's Guide p.17",
+     "How a Merit or Flaw gained or lost in play is accounted for. The book offers "
+     "three methods and lets the Storyteller pick, or combine them per situation."),
 ]
+
+# Multiple-choice house rules: field -> {stored value: label}. Everything absent here
+# is a plain boolean toggle.
+_HOUSE_RULE_OPTIONS: dict[str, dict[str, str]] = {
+    "mf_change_method": {
+        "experience": "Experience — pay/receive twice the point value (default)",
+        "backgrounds": "Like Backgrounds — changes cost and reward nothing",
+        "swap": "Equal-value swap — a lost Trait is replaced, a gained one erodes another",
+    },
+}
 
 
 def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleRow]:
@@ -911,13 +932,24 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
             elif character.chargen_locked:
                 note = ("No longer applies: chargen is locked, so a willing tutor "
                         "is the only remaining gate.")
+        elif fld == "mortal_favored_ability":
+            b = ruleset.budgets_for(character.exalt_type, character.origin,
+                                    character.upbringing)
+            if not b.optional_favored_ability:
+                note = ("No effect: core p.103 offers this to HEROIC mortals only, "
+                        f"and this character is {character.exalt_type}"
+                        f"{'/' + character.origin if character.origin else ''}.")
+            elif getattr(rules, fld):
+                note = "Granting 1 Favored Ability, which must stay the highest-rated."
         elif fld == "magic_for_everyone" and getattr(rules, fld):
             grant = validate.magic_for_everyone_grant(ruleset, character)
             note = (f"Currently granting {grant} free purchase(s)." if grant else
                     "Granting nothing yet: the allowance is Occult ÷ 2, rounded down.")
         rows.append(HouseRuleRow(field=fld, label=label, scope=scope,
                                  citation=citation, description=description,
-                                 value=getattr(rules, fld), note=note))
+                                 value=getattr(rules, fld),
+                                 options=dict(_HOUSE_RULE_OPTIONS.get(fld, {})),
+                                 note=note))
     return rows
 
 
@@ -948,6 +980,11 @@ class SheetView:
     health: list[str]                                 # formatted level labels
     # advantages / gear
     backgrounds: list[tuple[str, int, str]]           # (name, rating, note)
+    # (name, printed cost with sign, detail, "merit"|"flaw"|"either", tooltip) — the
+    # sign carries the direction so a Flaw never reads as something the character paid
+    # for. The tooltip is the printed cost line plus the rules text: the sheet has no
+    # room to show it inline, but a Merit whose text you cannot read is just a word.
+    merits_flaws: list[tuple[str, str, str, str, str]]
     # Astrological Colleges (Sidereal, p.98). (name, rating, house_label, own_house)
     # — `own_house` marks a College of the character's own Maiden, the ones the
     # chargen floor counts. Empty for every splat that ships no colleges.
@@ -1009,6 +1046,28 @@ def repeatable_cap_trait(charm) -> tuple[str, str]:
         return ("", "")
     # Essence is rated in points; Abilities and Attributes in dots.
     return ("Essence", "point") if name == "essence" else (_label(name), "dot")
+
+
+def merit_rows(ruleset: RuleSet, character: Character
+               ) -> list[tuple[str, str, str, str, str]]:
+    """The Merits & Flaws block for a sheet. An unresolvable id is SHOWN with a warning
+    marker rather than dropped — the same graceful treatment unknown Charm ids get,
+    since a save opened without its data set should say so, not quietly shrink."""
+    rows: list[tuple[str, str, str, str, str]] = []
+    for mp in character.merits_flaws:
+        definition = ruleset.merits_flaws.get(mp.merit_id)
+        if definition is None:
+            rows.append((f"⚠ {mp.merit_id}", "?", mp.detail, "merit",
+                         "Not in the rule set — the data that defined it is missing."))
+            continue
+        points = (definition.cost_options.get(mp.tier, 0)
+                  if definition.cost_options else definition.cost)
+        sign = "−" if definition.kind == "merit" else "+"
+        name = definition.name + (f" ({mp.tier})" if mp.tier else "")
+        detail = " · ".join(x for x in (mp.arena, mp.detail) if x)
+        tooltip = " ".join(x for x in (definition.cost_note, definition.description) if x)
+        rows.append((name, f"{sign}{points}", detail, definition.kind, tooltip))
+    return rows
 
 
 def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, list[AbilityName]]]:
@@ -1543,6 +1602,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         soak=d.soak,
         health=[_health_label(hl) for hl in d.health_levels],
         backgrounds=[(b.name, b.rating, b.note) for b in character.backgrounds],
+        merits_flaws=merit_rows(ruleset, character),
         colleges=college_rows(ruleset, character),
         thaumaturgy=thaumaturgy_rows(ruleset, character),
         # The dead hold thaumaturgy but may never use it (p.114) — a note on the sheet,

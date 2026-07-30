@@ -413,7 +413,13 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     _has_spells = bool(_spell_circles)
     _exalt_def = ruleset.exalt_for(character.exalt_type)
     _has_forms = bool(_exalt_def and _exalt_def.form_library)
-    GROUPS = {"abilities": "Abilities"}
+    # The Charm-tree page exists only for a splat that HAS Charms. A mortal has none
+    # (core p.103), so `_all_categories` is empty and every widget on this page would
+    # render blank — and the Category dropdown would raise outright, taking the whole
+    # picker down with it (its value cannot be in an empty option list).
+    GROUPS: dict[str, str] = {}
+    if _all_categories:
+        GROUPS["abilities"] = "Abilities"
     if _has_styles:
         GROUPS["styles"] = "Martial Arts"
     if _has_spells:
@@ -446,6 +452,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         Augmentation category is still an Abilities page (so it keeps the dropdown) but
         swaps the CANVAS for pop-up cards — see _is_augment_page."""
         return state["group"] in ("abilities", "styles")
+
+    # `state["group"]` defaulted to "abilities" before GROUPS was known. If this splat
+    # has no Charm-tree page, land on whatever its first real page is (Thaumaturgy for
+    # a mortal) rather than a group that does not exist.
+    if state["group"] not in GROUPS:
+        state["group"] = next(iter(GROUPS))
 
     # Open on a page other than the Charm trees, when the caller asked for one and
     # this character has it. Applied here rather than at `state` because the page
@@ -1884,10 +1896,16 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                     # a NiceGUI select whose value is absent from its options raises
                     # at build time. `state["category"]` always belongs to _start's
                     # group, so that is the group to offer.
+                    _cat_opts = _visible_category_options(
+                        state["group"] if _is_graph_page() else _group_of(_start))
+                    # Belt and braces: the value must be among the options or ui.select
+                    # raises at BUILD time, killing every sibling tab on the page (this
+                    # is how a mortal blanked Abilities *and* Thaumaturgy at once). The
+                    # page-level guard above should mean this never fires, but a select
+                    # that can take the whole picker down does not get to be clever.
+                    _cat_opts.setdefault(state["category"], _pretty(state["category"]))
                     widgets["category"] = ui.select(
-                        _visible_category_options(
-                            state["group"] if _is_graph_page() else _group_of(_start)),
-                        value=state["category"], label="Category",
+                        _cat_opts, value=state["category"], label="Category",
                         on_change=lambda e: set_category(e.value)).classes("w-48")
                     if _has_spells:
                         widgets["circle"] = ui.select(

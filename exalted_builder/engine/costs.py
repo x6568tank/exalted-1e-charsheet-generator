@@ -74,8 +74,20 @@ def willpower_step(ruleset: RuleSet, character: Character, from_rating: int) -> 
 
 
 def essence_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
-    """XP to raise Essence one dot, scaled on the current rating."""
-    return ruleset.xp_costs_for(character.exalt_type).essence.at(from_rating)
+    """XP to raise Essence one dot, scaled on the current rating — unless the splat
+    prices that step flat by destination (the mortal table, PG p.115), in which case
+    the per-rating entry wins. See XpCosts.essence_by_rating."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    flat = xp.essence_by_rating.get(from_rating + 1)
+    return flat if flat is not None else xp.essence.at(from_rating)
+
+
+def merit_cost(ruleset: RuleSet, character: Character, merit, tier: str = "") -> int:
+    """XP to buy a Merit after creation: its bonus-point value doubled (PG p.115,
+    "New Merit (mystical only) | cost in bonus points x2"). A variable-cost Merit
+    prices by the named tier."""
+    bp = merit.cost_options.get(tier, 0) if merit.cost_options else merit.cost
+    return bp * ruleset.xp_costs_for(character.exalt_type).new_merit_bp_multiplier
 
 
 def specialty_cost(ruleset: RuleSet, character: Character) -> int:

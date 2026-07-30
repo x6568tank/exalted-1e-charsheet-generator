@@ -26,6 +26,9 @@ def lock_chargen(character: Character) -> Character:
         virtues=dict(character.virtues),
         specialties=list(character.specialties),
         backgrounds=list(character.backgrounds),
+        # Merits bought at creation freeze with everything else, or the XP audit would
+        # re-price them against a moving baseline (decision 0004).
+        merits_flaws=[m.model_copy(deep=True) for m in character.merits_flaws],
         charms=list(character.charms),
         spells=list(character.spells),
         combos=[c.model_copy(deep=True) for c in character.combos],

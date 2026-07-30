@@ -857,5 +857,40 @@
         "min_rating": 1
       }
     }
+  },
+  "Mortal": {
+    "attribute_pools": [
+      6,
+      4,
+      3
+    ],
+    "ability_dots": 22,
+    "ability_min_caste_favored": 0,
+    "favored_count": 0,
+    "background_dots": 5,
+    "charm_count": 0,
+    "charm_min_caste_favored": 0,
+    "virtue_dots": 5,
+    "essence_start": 1,
+    "essence_start_cap": 1,
+    "bonus_points": 21,
+    "optional_favored_ability": true
+  },
+  "Mortal:ordinary": {
+    "attribute_pools": [
+      4,
+      3,
+      3
+    ],
+    "ability_dots": 16,
+    "ability_min_caste_favored": 0,
+    "favored_count": 0,
+    "background_dots": 5,
+    "charm_count": 0,
+    "charm_min_caste_favored": 0,
+    "virtue_dots": 5,
+    "essence_start": 1,
+    "essence_start_cap": 1,
+    "bonus_points": 21
   }
 }

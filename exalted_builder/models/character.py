@@ -54,6 +54,33 @@ class BackgroundEntry(BaseModel):
     note: str = ""                         # the specific descriptor
 
 
+class MeritFlawPurchase(BaseModel):
+    """One Merit or Flaw the character holds, referencing rules.MeritFlaw by id.
+
+    Deliberately thin. What the Merit DOES is decided in one place —
+    `engine.merits.merits_and_flaws_calc` — never stored here (decision 0011).
+
+    `tier` names the option for a variable-cost entry (Oathbound Magic: "minor",
+    "moderate", "major", "legendary"); "" for the fixed-cost majority. `detail` is the
+    player's free text — the Attribute group a repeatable Merit was taken for, or the
+    wording of an oath and the Traits it bought, which the page requires be recorded.
+    `arena` groups oaths for the stacking rule ("combat", "sex", "eating"): oaths in
+    one arena past the first lose value, so the calc needs to know which share one.
+    """
+    merit_id: str
+    tier: str = ""
+    detail: str = ""
+    arena: str = ""
+    # Agreed point value for a `variable_cost` entry, whose price the page leaves to
+    # the table ("VARIABLE COST MERIT"). Ignored for every printed-cost entry, which
+    # prices from its MeritFlaw row instead — never trust this over the catalogue.
+    points: int = 0
+    # Which side of a `kind: "either"` entry was taken ("merit" or "flaw"). Ignored
+    # for the single-sided majority; "" on an either-entry defaults to merit and is
+    # flagged by validate, so the choice is never silently made for the player.
+    taken_as: str = ""
+
+
 class CraftRating(BaseModel):
     """One Craft Ability instance. In 1e (core p.136) Craft is taken per focus —
     "characters who wish to master multiple crafts must take this Ability multiple
@@ -344,6 +371,46 @@ class HouseRules(BaseModel):
     # only. Meaningless unless the caste sets CasteDefinition.foreign_charms.
     st_foreign_charms: bool = False
 
+    # PER-CHARACTER. The optional rule of core p.103: "If the Storyteller agrees to
+    # it, heroic mortals may choose one Ability as a Favored Ability, complete with
+    # the discount." Permission for one character, not a series-wide switch, so it is
+    # per-character despite reading like a table rule.
+    #
+    # It is NOT a free discount: the same paragraph attaches a constraint — "the
+    # character can never have any other Ability rated higher than his Favored
+    # Ability. The Favored Ability must be equal to or greater than every other skill
+    # he possesses." That ceiling is the price of the discount and is validated
+    # (mortal-favored-not-highest); the Exalted are exempt, which is flavour here
+    # because only a mortal can turn this flag on in the first place.
+    mortal_favored_ability: bool = False
+
+    # TABLE-WIDE. How Merits & Flaws change AFTER character creation (Player's Guide
+    # p.17, "Gaining and Losing Merits and Flaws"). The book gives three methods and
+    # says the Storyteller "may use any of these three methods or a combination":
+    #
+    #   "experience" (DEFAULT) — the thorough one. Losing a Merit or gaining a Flaw
+    #       pays the character twice its bonus-point value in XP; gaining a Merit or
+    #       losing a Flaw charges the same. An unpayable charge becomes a DEBT that
+    #       garnishes all further XP until cleared. Flaws past 10 points earn nothing.
+    #   "backgrounds" — M&F "change with the plot and events but do not cost or reward
+    #       players after character creation".
+    #   "swap" — a lost Trait is eventually replaced by another of equal value, and a
+    #       gained one erodes another.
+    #
+    # NOTE the last two are mechanically IDENTICAL to this engine: neither moves any
+    # experience. They are kept as separate values because they oblige the Storyteller
+    # to different things at the table, and a sheet should record which was chosen —
+    # not because the engine does anything different. Do not "simplify" them into one.
+    mf_change_method: str = "experience"
+
+    @field_validator("mf_change_method")
+    @classmethod
+    def _check_mf_method(cls, v: str) -> str:
+        if v not in ("experience", "backgrounds", "swap"):
+            raise ValueError(
+                f"mf_change_method must be experience/backgrounds/swap, got {v!r}")
+        return v
+
 
 class ChargenSnapshot(BaseModel):
     """Frozen at lock; the baseline the XP log is measured against."""
@@ -354,6 +421,7 @@ class ChargenSnapshot(BaseModel):
     virtues: dict[VirtueName, int]
     specialties: list[Specialty]
     backgrounds: list[BackgroundEntry]
+    merits_flaws: list[MeritFlawPurchase] = Field(default_factory=list)
     charms: list[str]
     spells: list[str]
     combos: list[Combo] = Field(default_factory=list)
@@ -510,6 +578,9 @@ class Character(BaseModel):
     wp_virtue_component: Optional[int] = None
 
     backgrounds: list[BackgroundEntry] = Field(default_factory=list)
+    # Merits & Flaws (decision 0011). Effects are computed in engine.merits from these
+    # ids and never stored; an empty list is every character who has bought none.
+    merits_flaws: list[MeritFlawPurchase] = Field(default_factory=list)
     charms: list[str] = Field(default_factory=list)           # Charm ids into the RuleSet
     # Alchemical Panoply (p.89): Charms the character OWNS but has NOT installed in a
     # Charm Slot — bought post-lock for the flat "New Charm" XP cost, or via the Vats

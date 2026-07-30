@@ -23,10 +23,10 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import derive, validate
+from ..engine import derive, merits, validate
 from ..models.character import (
     Armor, BackgroundEntry, Character, CollegeRating, CraftRating, HealthLevel,
-    Specialty, VirtueFlaw, Weapon)
+    MeritFlawPurchase, Specialty, VirtueFlaw, Weapon)
 
 _BASE_HEALTH = {0: 1, -1: 2, -2: 2, -4: 1}   # base levels per penalty tier
 
@@ -80,6 +80,13 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     # Colleges and no Ability minimums. Independent of the Caste field (a ronin still
     # has a Caste), unlike Lunar's casteless.
     "Sidereal": {"hierarchy": "Celestial Hierarchy", "ronin": "Ronin"},
+    # Core p.103 draws one line through the mortal rules: a heroic mortal gets 6/4/3
+    # Attributes and 22 Ability dots, an ordinary one 4/3/3 and 16. Everything else on
+    # the page (5 Backgrounds, no Charms, Essence 1, 21 bonus points) is shared, which
+    # is why this is an origin and not two splats. "heroic" is the default and so has
+    # no `Mortal:heroic` row — it falls back to the plain "Mortal" row, the same trick
+    # "dynastic" and "loyal" use above.
+    "Mortal": {"heroic": "Heroic Mortal", "ordinary": "Ordinary Mortal"},
 }
 
 # The second axis, keyed by "<exalt_type>:<origin>". Only origins that HAVE variants
@@ -286,7 +293,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
         ap = "/".join(str(p) for p in b.attribute_pools)
         # splats name the caste slot differently: Solar "Caste", Dragon-Blooded "Aspect"
-        caste_noun = ruleset.exalt_for(character.exalt_type).caste_noun
+        exalt_def = ruleset.exalt_for(character.exalt_type)
+        caste_noun = exalt_def.caste_noun
+        # Whether the SPLAT has castes at all, as opposed to this character having an
+        # unrecognised one — the two want different UI (see the caste-info box below).
+        splat_has_castes = any(cd.exalt_type == character.exalt_type
+                               for cd in ruleset.castes.values())
 
         # caste-info box (left) + identity fields (right). The BP-spend log lives in
         # the right-hand sticky column under Live Validation, not here.
@@ -309,8 +321,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.separator()
                         ui.label("Anima Power").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                         ui.label(caste_def.anima_powers).classes("text-xs")
-                else:
+                elif splat_has_castes:
                     ui.label("Unknown caste").classes("text-xs text-gray-500")
+                else:
+                    # Not an error for this splat — mortals have no caste to be
+                    # unknown. The box keeps its place in the row so the identity
+                    # fields beside it don't jump width between splats.
+                    ui.label(exalt_def.label).classes(
+                        "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                    ui.label("Not one of the Chosen — no caste, no Charms, "
+                             "Essence 1.").classes("text-xs")
 
             with ui.column().classes("flex-1 gap-2 min-w-0"):
                 with panel("Identity"):
@@ -330,11 +350,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                   on_change=lambda e: set_exalt_type(e.value)).classes(_field)
                         caste_opts = {cd.id: cd.label for cd in ruleset.castes.values()
                                       if cd.exalt_type == character.exalt_type}
-                        # keep the current caste selectable even if off-splat (NiceGUI 3.x
-                        # ui.select raises if value ∉ options — see the select-value gotcha)
-                        caste_opts.setdefault(character.caste, character.caste)
-                        ui.select(caste_opts, label=caste_noun, value=character.caste,
-                                  on_change=lambda e: set_caste(e.value)).classes(_field)
+                        # A splat with NO castes at all doesn't get the control: mortals
+                        # "select Nature as normal but do not select a caste" (core p.103).
+                        # Distinct from Lunar, who HAS castes that carry no caste-abilities.
+                        if caste_opts:
+                            # keep the current caste selectable even if off-splat (NiceGUI 3.x
+                            # ui.select raises if value ∉ options — see the select-value gotcha)
+                            caste_opts.setdefault(character.caste, character.caste)
+                            ui.select(caste_opts, label=caste_noun, value=character.caste,
+                                      on_change=lambda e: set_caste(e.value)).classes(_field)
                         origins = _SPLAT_ORIGINS.get(character.exalt_type)
                         if origins:
                             ui.select(origins, label="Origin",
@@ -359,9 +383,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     # Favored ABILITIES (most splats) or Favored ATTRIBUTES (Alchemical,
                     # p.60) — a splat has one or the other. `favored_count` is 0 for a
                     # caste_favored splat, so the abilities picker hides itself there.
-                    if b.favored_count:
+                    # Asked of the engine rather than the budget row because a heroic
+                    # mortal's single Favoured Ability is an ST toggle, not a budget.
+                    fav_n = validate.favored_ability_count(ruleset, character)
+                    if fav_n:
                         ui.select({a: _label(a.value) for a in AbilityName},
-                                  label=f"Favored abilities (pick {b.favored_count})",
+                                  label=f"Favored abilities (pick {fav_n})",
                                   value=list(character.favored_abilities), multiple=True,
                                   on_change=lambda e: set_favored(e.value)).classes("w-full").props("use-chips")
                     if cf_attr_mode:
@@ -537,6 +564,86 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_bg(idx)).props("flat dense round")
             ui.button("Add background", icon="add", on_click=add_bg).props("flat dense")
 
+        # Merits & Flaws. Shown only when the rule set ships any (decision 0011: the
+        # data file is optional). A MERIT costs bonus points; a FLAW grants them, which
+        # is why the header reports the grant separately rather than as a negative.
+        if ruleset.merits_flaws:
+            # Label carries the sign so a Flaw reads as a grant, not a charge; a
+            # variable-cost entry shows its range instead of a single number.
+            def _merit_label(m) -> str:
+                if m.cost_options:
+                    lo, hi = min(m.cost_options.values()), max(m.cost_options.values())
+                    price = f"{lo}-{hi}"
+                else:
+                    price = str(m.cost)
+                sign = "−" if m.kind == "merit" else "+"
+                return f"{m.name}  ({sign}{price} {m.category or m.kind})"
+
+            merit_opts = {m.id: _merit_label(m) for m in sorted(
+                ruleset.merits_flaws.values(),
+                key=lambda m: (m.kind != "merit", m.name))}
+            eff = merits.merits_and_flaws_calc(ruleset, character)
+            spent = validate.merit_bonus_point_cost(ruleset, character)
+            grant = eff.bonus_point_grant
+            header = f"Merits & Flaws (−{spent} BP"
+            header += f", +{grant} from Flaws)" if grant else ")"
+            with panel(header):
+                for idx, mp in enumerate(character.merits_flaws):
+                    definition = ruleset.merits_flaws.get(mp.merit_id)
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        # An off-catalogue id (a save opened without its data) stays
+                        # selectable rather than 500ing the select — the same guard the
+                        # caste and college dropdowns use.
+                        row_opts = dict(merit_opts)
+                        row_opts.setdefault(mp.merit_id, mp.merit_id)
+                        ui.select(row_opts, value=mp.merit_id, label="Merit / Flaw",
+                                  on_change=lambda e, mp=mp: set_merit(mp, e.value)
+                                  ).classes("flex-1").props("dense")
+                        # Tier only for a variable-cost entry (Oathbound Magic).
+                        if definition is not None and definition.cost_options:
+                            ui.select({t: f"{t.title()} ({v})"
+                                       for t, v in definition.cost_options.items()},
+                                      value=mp.tier or None, label="Oath",
+                                      on_change=lambda e, mp=mp: (setattr(mp, "tier", e.value or ""),
+                                                                  body.refresh(), changed())
+                                      ).classes("w-40").props("dense")
+                            # Arena drives the same-arena stacking reduction (p.122);
+                            # free text, because the page's list is examples, not a set.
+                            ui.input(value=mp.arena, placeholder="arena (combat, food…)",
+                                     on_change=lambda e, mp=mp: (setattr(mp, "arena", e.value),
+                                                                 body.refresh(), changed())
+                                     ).classes("w-40").props("dense")
+                        ui.input(value=mp.detail,
+                                 placeholder=(definition.repeatable_by if definition
+                                              and definition.repeatable_by else "note"),
+                                 on_change=lambda e, mp=mp: (setattr(mp, "detail", e.value),
+                                                             changed())).classes("flex-1").props("dense")
+                        ui.button(icon="delete",
+                                  on_click=lambda e=None, idx=idx: remove_merit(idx)
+                                  ).props("flat dense round")
+                    if definition is not None:
+                        # The printed cost line always shows: a few qualifiers cannot
+                        # be priced by the engine (a per-caste rate, a relative one),
+                        # so the ST must be able to see what the book actually says.
+                        if definition.cost_note:
+                            ui.label(definition.cost_note).classes(
+                                "text-xs font-mono opacity-60 pl-1")
+                        if definition.exalt_types:
+                            ui.label("Restricted to: " + ", ".join(definition.exalt_types)
+                                     ).classes("text-xs italic opacity-70 pl-1")
+                        if definition.description:
+                            ui.label(definition.description).classes("text-xs opacity-70 pl-1")
+                ui.button("Add merit / flaw", icon="add", on_click=add_merit).props("flat dense")
+                # Say which held Merits this build treats as narrative, rather than
+                # letting a player wonder why nothing changed.
+                if eff.narrative_only:
+                    names = ", ".join(sorted(
+                        ruleset.merits_flaws[m].name for m in eff.narrative_only
+                        if m in ruleset.merits_flaws))
+                    if names:
+                        ui.label(f"Narrative only in this build: {names}."
+                                 ).classes("text-xs italic opacity-70")
+
         # Astrological Colleges (Sidereal) — a rated Advantage with its own pool.
         # Shown only for splats that ship colleges (b.college_dots > 0). Options are
         # grouped by house label, and the character's own Maiden's house is marked ★.
@@ -671,15 +778,17 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                      on_change=lambda e, wp=wp: (setattr(wp, "notes", e.value), changed())).classes("w-full").props("dense")
                 ui.button("Add weapon", icon="add", on_click=lambda: add_item("weapons")).props("flat dense")
 
-        # virtue flaw + bonus health levels (e.g. Ox-Body Technique)
+        # virtue flaw + bonus health levels (e.g. Ox-Body Technique). The Virtue Flaw
+        # half is splat-gated: the Dragon-Blooded, Sidereals and Alchemicals have none.
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
-            with panel("Virtue Flaw").classes("flex-1"):
-                vf = character.virtue_flaw
-                ui.select({v: _label(v.value) for v in VirtueName}, label="Flawed Virtue",
-                          value=vf.virtue if vf else None,
-                          on_change=lambda e: set_virtue_flaw_virtue(e.value)).classes("w-full")
-                ui.input("Description", value=vf.description if vf else "",
-                         on_change=lambda e: set_virtue_flaw_desc(e.value)).classes("w-full")
+            if derive.has_virtue_flaw(ruleset, character):
+                with panel("Virtue Flaw").classes("flex-1"):
+                    vf = character.virtue_flaw
+                    ui.select({v: _label(v.value) for v in VirtueName}, label="Flawed Virtue",
+                              value=vf.virtue if vf else None,
+                              on_change=lambda e: set_virtue_flaw_virtue(e.value)).classes("w-full")
+                    ui.input("Description", value=vf.description if vf else "",
+                             on_change=lambda e: set_virtue_flaw_desc(e.value)).classes("w-full")
             with panel("Bonus health levels per tier (charms raise, curses lower)").classes("flex-1"):
                 with ui.row().classes("w-full gap-3 no-wrap"):
                     for p in (0, -1, -2, -4):
@@ -712,12 +821,24 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # keep the caste coherent with the new splat: if the current caste doesn't
         # belong to it, switch to that splat's first caste (if the splat has any).
         valid = [cd.id for cd in ruleset.castes.values() if cd.exalt_type == value]
-        if character.caste not in valid and valid:
-            character.caste = valid[0]
+        if character.caste not in valid:
+            # Clearing (not keeping) is what a CASTELESS splat needs: switching a Dawn
+            # Solar to Mortal must not leave "dawn" behind, or the mortal silently
+            # keeps a Solar caste's Abilities discounted.
+            character.caste = valid[0] if valid else ""
         # keep the origin coherent: default to the splat's first origin, or clear it
         # for splats that have no intra-splat origin variants.
         origins = _SPLAT_ORIGINS.get(value)
         character.origin = next(iter(origins)) if origins else ""
+        # ...and pull Essence into the new splat's legal chargen range. A Solar sits at
+        # 2, a mortal is pinned at 1 and an Illuminated Solar starts at 3, so without
+        # this the sheet carries an essence-below-start / above-cap error from the
+        # instant the splat is switched, for a value the player never chose.
+        nb = ruleset.budgets_for(value, character.origin, character.upbringing)
+        if character.essence_rating < nb.essence_start:
+            character.essence_rating = nb.essence_start
+        elif nb.essence_start_cap and character.essence_rating > nb.essence_start_cap:
+            character.essence_rating = nb.essence_start
         # ...and drop any training camp/Calling, which belong to the OLD origin. Without
         # this, switching away from an Illuminated Solar leaves a stale camp id behind
         # and validation reports camp-not-supported.
@@ -842,6 +963,30 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     def remove_bg(idx: int) -> None:
         del character.backgrounds[idx]
+        body.refresh(); changed()
+
+    def add_merit() -> None:
+        # Default to the cheapest Merit so a fresh row is always a legal selection.
+        first = min((m for m in ruleset.merits_flaws.values()),
+                    key=lambda m: (m.kind != "merit", m.cost, m.name), default=None)
+        if first is None:
+            return
+        character.merits_flaws.append(
+            MeritFlawPurchase(merit_id=first.id,
+                              tier=next(iter(first.cost_options), "") if first.cost_options else ""))
+        body.refresh(); changed()
+
+    def set_merit(mp: MeritFlawPurchase, merit_id: str) -> None:
+        mp.merit_id = merit_id
+        # The old tier belongs to the old Merit; reset it to the new one's first
+        # option (or clear it) so a variable-cost row is never left on a dead tier.
+        definition = ruleset.merits_flaws.get(merit_id)
+        mp.tier = (next(iter(definition.cost_options), "")
+                   if definition and definition.cost_options else "")
+        body.refresh(); changed()
+
+    def remove_merit(idx: int) -> None:
+        del character.merits_flaws[idx]
         body.refresh(); changed()
 
     def add_college() -> None:
