@@ -652,3 +652,36 @@ that grows a per-option bar later cannot reintroduce it.
 against "one additional Favored Ability for **every time this Merit is purchased**". Now
 `"ability"`; the five-Favored cap is enforced by `favored_ability_count`, not by
 forbidding the repeat.
+
+## The flaw-point cap is now visible on both surfaces (2026-07-31)
+
+`MeritEffects.flaw_points_raw` was computed and read by **nothing**. Its own comment
+said what it was for — "so the UI can say '10 of 13' rather than silently swallowing
+three points the player thinks they have" — and the UI never said it. A test asserted
+the field's value directly and passed, which is why 1,415 green tests never noticed.
+Found by `.claude/skills/preflight/effect_reads.py`, the read-site audit.
+
+The rule is p.17: "Characters with more than 10 points of Flaws receive no experience
+for the excess." It bites in two different ways and both were silent:
+
+* **Chargen editor** — the panel header printed the CAPPED grant alone, so a character
+  carrying 14 points of Flaws read `+10 from Flaws` with nothing to distinguish the
+  ceiling from an arithmetic bug. Now an amber line under the header names the raw
+  total, the granted total and the difference, and says **the Flaws still apply** —
+  what is lost is the points, not the disadvantage.
+* **XP tab** — in play the cap truncates the XP *award* (`award * room // value` in
+  `advancement`), so a Flaw bought past the ceiling quietly pays a fraction or nothing
+  at all. The card now states the remaining room *before* anything is bought, and warns
+  when there is none.
+
+Three UI tests, two new `_ui_main.py` routes (`/mf-capped`, `/mf-capped-xp`). This is
+display only: the engine already enforced the cap correctly in both places, which is
+exactly why the gap was invisible. **Browser-verified 2026-07-31**, both surfaces, at
+the cap and under it, including the warning clearing when a Flaw is removed.
+
+**Open judgement call, deliberately left in:** the XP tab states the headroom even at
+`0 of 10`, on every character. Raised with the human at click-through and kept. If it
+reads as clutter later, gate it behind holding at least one Flaw — the at-cap warning
+is the half that matters.
+
+The read-site audit now reports **zero** unconsumed `MeritEffects` fields.

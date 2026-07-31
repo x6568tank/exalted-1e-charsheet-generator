@@ -253,6 +253,22 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                              "value; losing a Merit or gaining a Flaw pays the same. "
                              "An unaffordable change runs a debt against future XP."
                              ).classes("text-xs text-gray-600")
+                    # The p.17 cap applies in play too, and here it truncates the XP
+                    # AWARD rather than a bonus-point grant — a Flaw taken past the
+                    # ceiling pays for its legal part only. Silently paying less than
+                    # the table expects is the worse failure, so the remaining room is
+                    # stated before anything is bought.
+                    room = max(0, meritsmod.FLAW_POINT_CAP - eff.flaw_points_raw)
+                    if room:
+                        ui.label(f"{eff.flaw_points_raw} of "
+                                 f"{meritsmod.FLAW_POINT_CAP} points of Flaws taken — "
+                                 f"a new Flaw pays for at most {room} more."
+                                 ).classes("text-xs text-gray-600")
+                    else:
+                        ui.label(f"⚠ {eff.flaw_points_raw} points of Flaws taken — at "
+                                 f"the {meritsmod.FLAW_POINT_CAP}-point cap (p.17). A "
+                                 f"further Flaw still applies, but pays no XP."
+                                 ).classes("text-xs font-semibold text-amber-700")
                     debt = advancement.xp_debt(character)
                     if debt:
                         ui.label(f"⚠ {debt} XP owed — all further experience clears "

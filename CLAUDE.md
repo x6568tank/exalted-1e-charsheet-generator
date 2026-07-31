@@ -174,7 +174,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1411 tests passing)
+## Status (1421 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -356,15 +356,28 @@ homebrew-only with no printed use: `CharmCost.health_type` and
   merges the pools after every other effect**. `DerivedTraits.essence_single_pool`
   carries the shape so a sheet can tell "Personal 0 by rule" from "no Essence at all",
   and `MeritFlaw.barred_castes` is A4's splat-bar precedent one level down.
+  **A5 addendum 2026-07-31: Essence Awareness' partial unlock.** A5 shipped the pool's
+  shape but not its ACCESS — Awareness and Mastery derived an identical pool, because
+  `essence_pool_unrestricted` was computed and read by nothing. `derive.essence_freely_accessible`
+  is the read; the pool is not reduced, the free share rides beside it. The Willpower
+  roll stays printed description, never modelled (human, 2026-07-31).
+  Rounding of "one third" is **floor** — the human's interpretation, confirmed
+  2026-07-31; p.120 prints no rounding rule. Browser-verified.
   **Next cluster is A6** (Background budget and rating restrictions), then
   A7 in the order the triage doc gives. Do them one at a time —
   the human's instruction, and each is architecturally small but touches a different
   derivation.
-- **Browser click-through of Merits & Flaws** — NOT done, and it is the highest-value
-  thing outstanding. The Mortal pass earned its keep this morning: it found three bugs
-  1,200 tests missed, and a further four surfaced during the M&F work (a picker crash
-  that blanked two tabs, an XP tab taken down by a shadowed local, a sheet panel crushed
+- **Browser click-through of Merits & Flaws** — **PARTLY done.** The 2026-07-31 pass
+  covered the Essence-pool unlock, the flaw-point cap on both surfaces, and the
+  locked-only Play tab: **no findings**, the first clean pass in this area. Still
+  unclicked: **A1-A4** (forfeit Flaws, health levels, trait caps, cost modifiers) and
+  A5's Legendary Breeding / Beacon of Power half. The Mortal pass found three bugs
+  1,200 tests missed, and four more surfaced during the M&F work (a picker crash that
+  blanked two tabs, an XP tab taken down by a shadowed local, a sheet panel crushed
   invisible by a `no-wrap` row, and a sheet block with no rules text). Assume more.
+  **Run the `preflight` skill before booking the human's time** — its read-site audit
+  found the two dead effect fields that A5's and the cap's click-throughs then
+  confirmed, and both had passing tests asserting them directly.
 - **Two-sided entries and the editor's splat filter — DONE 2026-07-31.** Both gaps
   closed; see `docs/status/merits-flaws.md`. The side of a `kind: "either"` entry is
   now selectable in the editor AND on the XP tab, and `validate.merit_available_to` is

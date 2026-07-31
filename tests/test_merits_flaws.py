@@ -142,6 +142,42 @@ def test_the_unlocked_mortal_pool_formula(rs):
     assert derive.essence_pools(rs, c) == (19, 0)
 
 
+def test_essence_awareness_frees_only_a_third_of_the_pool(rs):
+    """PG p.120: "divide it into two pools: the first, equal to one third of the
+    pool, can be drawn on normally … the other two thirds can only be accessed with
+    a Willpower roll". The pool itself is NOT reduced — all 19 motes are the
+    character's, 6 of them freely. Rounding is floor (an open question, see
+    `derive.essence_freely_accessible`)."""
+    c = _mortal(MP(merit_id=AWARENESS))
+    c.virtues = {V.COMPASSION: 2, V.CONVICTION: 3, V.TEMPERANCE: 2, V.VALOR: 4}
+    assert derive.essence_pools(rs, c) == (19, 0)      # unchanged by the split
+    assert derive.essence_freely_accessible(rs, c) == 6
+
+
+def test_essence_mastery_frees_the_whole_pool(rs):
+    """p.121: "her entire Essence pool without limit or required rolls". None means
+    unrestricted, which must be distinguishable from a freely-drawable 0."""
+    c = _mortal(MP(merit_id=AWARENESS), MP(merit_id=MASTERY))
+    c.virtues = {V.COMPASSION: 2, V.CONVICTION: 3, V.TEMPERANCE: 2, V.VALOR: 4}
+    assert derive.essence_pools(rs, c) == (19, 0)
+    assert derive.essence_freely_accessible(rs, c) is None
+
+
+def test_an_exalt_is_never_restricted_by_holding_essence_awareness(rs):
+    """The restriction keys on having no NATIVE pool, so a Solar who somehow holds
+    the Merit still draws on all of theirs."""
+    s = Character(id="s", exalt_type="Solar", caste="dawn")
+    s.merits_flaws = [MP(merit_id=AWARENESS)]
+    assert derive.essence_freely_accessible(rs, s) is None
+
+
+def test_the_willpower_roll_is_described_not_modelled(rs):
+    """Decision 0009: the roll is dice and stays out of the engine. It must still
+    reach the player, so it lives in the Merit's printed description — which is what
+    the sheet's tooltip shows."""
+    assert "Willpower roll" in rs.merits_flaws[AWARENESS].description
+
+
 def test_an_exalt_pool_is_untouched_by_the_merit_machinery(rs):
     """The unlock is keyed on the splat having no native pool, not on being Mortal —
     and an Exalt must compute identically whether or not they hold Merits."""
@@ -1950,6 +1986,40 @@ async def test_xp_tab_collects_values_through_the_same_controls_as_the_editor(us
     await user.should_see("Merits & Flaws")
     labels = {(e.props.get("label") or "") for e in user.find(ui.input).elements}
     assert "tier / points" not in labels, "the double-duty free-text field is still there"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_editor_says_how_many_flaw_points_the_cap_swallowed(user) -> None:
+    """`flaw_points_raw` was computed for this line and read by nothing, so the panel
+    printed the CAPPED grant alone: a player who took 14 points of Flaws saw "+10" and
+    could not tell the p.17 ceiling from an arithmetic bug. Found by the preflight
+    read-site audit, not by a test — one asserted the field directly and passed."""
+    await user.open('/mf-capped')
+    await user.should_see("+10 from Flaws")
+    await user.should_see("14 points of Flaws taken, 10 granted")
+    await user.should_see("The Flaws still apply.")   # the excess is lost, not the Flaw
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_xp_tab_says_there_is_no_room_left_under_the_cap(user) -> None:
+    """In play the same ceiling truncates the XP AWARD (`award * room // value`), which
+    is worth stating BEFORE a Flaw is bought rather than discovering afterwards that it
+    paid nothing."""
+    await user.open('/mf-capped-xp')
+    await user.should_see("Merits & Flaws")
+    await user.should_see("at the 10-point cap")
+    await user.should_see("pays no XP")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_xp_tab_reports_the_room_that_is_left(user) -> None:
+    """The under-cap case states the remaining headroom rather than staying silent."""
+    await user.open('/mf-xp')
+    await user.should_see("0 of 10 points of Flaws taken")
+    await user.should_see("pays for at most 10 more")
 
 
 def test_the_xp_and_chargen_paths_price_a_purchase_identically(rs):

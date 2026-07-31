@@ -73,6 +73,10 @@ class DerivedTraits(BaseModel):
     # then 0 by rule rather than by arithmetic, which a sheet must be able to tell
     # apart: "Personal 0" alone reads as a bug.
     essence_single_pool: bool
+    # Motes drawable without a Willpower roll (Essence Awareness, PG p.120), or None
+    # when the whole pool is — see `essence_freely_accessible`. Carried beside the
+    # totals rather than reducing them: the other two thirds still exist.
+    essence_free: Optional[int]
     health_levels: list[HealthLevelView]
     soak: SoakView
 
@@ -299,6 +303,38 @@ def essence_pool_is_merged(ruleset: RuleSet, character: Character) -> bool:
     return _merits.merits_and_flaws_calc(ruleset, character).essence_single_pool
 
 
+def essence_freely_accessible(ruleset: RuleSet, character: Character) -> Optional[int]:
+    """How many motes of the pool may be drawn on WITHOUT a Willpower roll, or None
+    when the whole pool may be (which is everyone except a mortal holding Essence
+    Awareness alone).
+
+    Essence Awareness (PG p.120) unlocks a mortal's pool only in part: "divide it into
+    two pools: the first, equal to one third of the pool, can be drawn on normally …
+    the other two thirds can only be accessed with a Willpower roll". Essence Mastery
+    (p.121) removes the restriction — "her entire Essence pool without limit or
+    required rolls" — and so does having a native pool, which is why an Exalt is never
+    restricted by holding the Merit.
+
+    The ROLL itself is deliberately not modelled: it is dice (decision 0009), and it
+    stays in the Merit's printed description where the player can read it. What is
+    modelled is the SIZE of the freely-drawable portion, because that is a number on
+    the sheet. The other two thirds are not lost — the pool is still the full pool —
+    so this is carried alongside the totals rather than reducing them.
+
+    Returns the share of the WHOLE pool (personal + peripheral); the split is over
+    "his Essence pool", not over either half. In practice a mortal's unlocked pool is
+    entirely Personal.
+
+    ⚠ ROUNDING IS AN OPEN QUESTION: p.120 says "one third" and prints no rounding
+    rule. Floor is used here. Confirm with the rules authority before relying on it.
+    """
+    from . import merits as _merits
+    if _merits.merits_and_flaws_calc(ruleset, character).essence_pool_unrestricted:
+        return None
+    personal, peripheral = essence_pools(ruleset, character)
+    return (personal + peripheral) // 3
+
+
 def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
     """(personal, peripheral) motes, from the character's Exalt-type formula
     (RuleSet.exalt_for → EssencePoolSpec), a pure data lookup rather than a per-splat
@@ -492,6 +528,7 @@ def derive(ruleset: RuleSet, character: Character) -> DerivedTraits:
         essence_personal=personal,
         essence_peripheral=peripheral,
         essence_single_pool=essence_pool_is_merged(ruleset, character),
+        essence_free=essence_freely_accessible(ruleset, character),
         health_levels=health_track(character, ruleset),
         soak=soak(character, ruleset),
     )

@@ -527,3 +527,28 @@ CHAR_MF_SIDE_XP.chargen_locked = True
 @ui.page('/mf-side-xp')
 def page_mf_side_xp():
     xp.build_xp(RS, CHAR_MF_SIDE_XP, Path("x.json"), with_header=False)
+
+
+# 14 points of Flaws against the 10-point cap (p.17), so both surfaces have to say
+# that four points are being swallowed rather than printing the capped 10 alone.
+CHAR_MF_CAPPED = Character(id="mfc", name="Overburdened", exalt_type="Mortal", caste="",
+                           origin="heroic", essence_rating=1)
+CHAR_MF_CAPPED.merits_flaws = [
+    MeritFlawPurchase(merit_id="thaum.dark-magics"),            # 3
+    MeritFlawPurchase(merit_id="thaum.sheltered-upbringing"),   # 3
+    MeritFlawPurchase(merit_id="thaum.oathbound-magic", tier="legendary", arena="x"),
+]
+
+@ui.page('/mf-capped')
+def page_mf_capped():
+    editor.build_editor(RS, CHAR_MF_CAPPED, Path("x.json"), with_header=False)
+
+
+# The same overload on the XP tab, locked, where the cap truncates the XP AWARD.
+CHAR_MF_CAPPED_XP = CHAR_MF_CAPPED.model_copy(deep=True)
+CHAR_MF_CAPPED_XP.id = "mfcx"
+CHAR_MF_CAPPED_XP.chargen_locked = True
+
+@ui.page('/mf-capped-xp')
+def page_mf_capped_xp():
+    xp.build_xp(RS, CHAR_MF_CAPPED_XP, Path("x.json"), with_header=False)

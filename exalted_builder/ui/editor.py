@@ -636,6 +636,18 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             header = f"Merits & Flaws (−{spent} BP"
             header += f", +{grant} from Flaws)" if grant else ")"
             with panel(header):
+                # "Characters with more than 10 points of Flaws receive no bonus
+                # points for the excess" (PG p.17). Say so when it bites: the grant
+                # in the header is the CAPPED number, and a player who took 13 points
+                # of Flaws and sees "+10" has no way to tell the cap from a bug in
+                # our arithmetic. `flaw_points_raw` exists for exactly this line.
+                if eff.flaw_points_raw > eff.bonus_point_grant:
+                    ui.label(f"⚠ {eff.flaw_points_raw} points of Flaws taken, "
+                             f"{eff.bonus_point_grant} granted — the excess "
+                             f"{eff.flaw_points_raw - eff.bonus_point_grant} is lost "
+                             f"to the {merits.FLAW_POINT_CAP}-point cap (p.17). The "
+                             f"Flaws still apply."
+                             ).classes("text-xs font-semibold text-amber-700")
                 for idx, mp in enumerate(character.merits_flaws):
                     definition = ruleset.merits_flaws.get(mp.merit_id)
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):

@@ -417,6 +417,40 @@ Legendary Breeding and Beacon of Power. 1360 tests pass. **Not browser-verified.
   `MeritFlaw.barred_castes` and a `merit-barred-caste` issue. Caste ids are unique
   across splats, so `["night", "day"]` needs no splat qualifier.
 
+### A5 addendum — Essence Awareness' partial unlock (2026-07-31)
+
+A5 shipped the pool's SHAPE but not its ACCESS. `essence_pool_unrestricted` was
+computed and read by nothing, so a mortal with Essence Awareness and one with Essence
+Mastery derived an identical pool — the p.120 split was in the dataclass and nowhere
+else. Found by `.claude/skills/preflight/effect_reads.py`, not by a test: 1,412 tests
+were green and one of them asserted the dead field directly.
+
+1416 tests. **Browser-verified 2026-07-31** — clicked through on a mortal with
+Awareness, the same with Mastery, and with the Merit removed; no findings. **Floor
+rounding confirmed by the rules authority the same day** — it is an interpretation he
+is happy with, not a printed value, and stays flagged as such.
+
+* **New `derive.essence_freely_accessible`** — motes drawable without a Willpower
+  roll, or `None` when the whole pool is (every Exalt, and any mortal with Mastery).
+  `None` rather than the total, so "unrestricted" is distinguishable from a
+  freely-drawable 0.
+* **The pool is NOT reduced.** p.120 divides the pool in two; it does not shrink it.
+  The restricted two thirds are still the character's motes, so the free share is
+  carried beside the totals exactly as `essence_single_pool` carries the shape.
+  `DerivedTraits.essence_free` → `SheetView.essence_pool_label()` → `PlayView.free_max`,
+  the same three layers A5 used, and the play tracker's inputs still run to the full
+  maximum with the line drawn as a note under them.
+* **The Willpower roll is not modelled and will not be** (decision 0009, and the
+  human's call 2026-07-31: Awareness is a prerequisite for Mastery, so a rolled
+  sub-pool would get tied up in a state most characters pass straight through). It
+  reaches the player as printed description text, which the sheet tooltip shows; a
+  test pins that the sentence is still in the catalogue entry.
+* **⚠ OPEN RULES QUESTION: rounding.** p.120 says "one third" and prints no rounding
+  rule. **Floor** is implemented (19 motes → 6 free) and flagged in the docstring.
+  Confirm before relying on it — it is currently the only number here without a page.
+* An Exalt holding the Merit is unrestricted: the gate is `has_native_pool or mastery`,
+  which A5 already had right.
+
 ## Source-fidelity pass (2026-07-30)
 
 The human re-pasted the chapter after Amputee turned up truncated. Rather than fix the

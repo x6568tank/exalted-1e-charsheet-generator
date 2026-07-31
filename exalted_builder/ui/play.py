@@ -185,6 +185,14 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                     _mote_input("Peripheral" if not pv.single_pool else "All motes",
                                 "motes_peripheral_spent",
                                 cur.motes_peripheral_spent, pv.peripheral_max)
+                # Essence Awareness unlocks only a third of the pool freely; the rest
+                # needs a Willpower roll the table makes, not this app. The inputs
+                # still run to the full maximum — those motes are spendable — so the
+                # line goes under them as a note rather than as a second cap.
+                if pv.free_max is not None:
+                    ui.label(f"{pv.free_max} of these may be spent freely; the rest "
+                             f"need a Willpower roll (Essence Awareness)"
+                             ).classes("text-xs opacity-70 mt-1")
 
             # --- Temporary Willpower ------------------------------------- #
             with _panel(f"Temporary Willpower  ({pv.willpower_max - cur.willpower_spent} / "

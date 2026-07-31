@@ -37,7 +37,22 @@ def test_locking_moves_the_editor_tab_to_xp():
 
 def test_resolve_tab_leaves_a_still_visible_tab_alone():
     assert builder.resolve_tab("Charms", locked=True) == "Charms"
-    assert builder.resolve_tab("Play", locked=False) == "Play"
+    assert builder.resolve_tab("Sheet", locked=False) == "Sheet"
+
+
+def test_play_tab_is_locked_only():
+    """The tracker overlays fill-state onto capacities the character does not have
+    yet — every box moves while chargen is open, and marks made there mean nothing to
+    the point accounting (decision 0006)."""
+    assert "Play" not in builder.visible_tabs(locked=False)
+    assert "Play" in builder.visible_tabs(locked=True)
+
+
+def test_unlocking_moves_a_player_off_the_play_tab():
+    """Unlock while sitting on Play and the tab goes; land on Edit rather than
+    rendering a tab that is no longer on the bar."""
+    assert builder.resolve_tab("Play", locked=True) == "Play"
+    assert builder.resolve_tab("Play", locked=False) == "Edit"
 
 
 @pytest.mark.asyncio
