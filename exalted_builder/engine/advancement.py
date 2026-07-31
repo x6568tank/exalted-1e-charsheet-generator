@@ -230,6 +230,111 @@ def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
 
 
 # --------------------------------------------------------------------------- #
+# The merged trait surface (decision 0013)
+#
+# One dot track serves both sides of the lock: pre-lock a free setter, post-lock a
+# stepper. These two functions are what the post-lock half needs and the per-dot
+# `raise_*` above cannot express on their own. Neither adds a rule or a price — they
+# route to the functions above and read the log.
+# --------------------------------------------------------------------------- #
+
+# Log targets that ARE dot tracks in the editor, mapped to their per-dot raise. The
+# names match the `XpEntry.target` convention `undo_last` already partitions on, so
+# the UI names a trait the same way everywhere. Willpower is deliberately absent: it
+# is a number input, not a track, because decision 0005 pins its Virtue component and
+# only `willpower_purchased` moves. Crafts and Colleges are absent because they carry
+# a `detail` (the focus / college id) and are their own controls.
+_DOT_TRACK_RAISES = {
+    "attributes": lambda rs, c, key: raise_attribute(rs, c, AttributeName(key)),
+    "abilities": lambda rs, c, key: raise_ability(rs, c, AbilityName(key)),
+    "virtues": lambda rs, c, key: raise_virtue(rs, c, VirtueName(key)),
+    "essence": lambda rs, c, key: raise_essence(rs, c),
+}
+
+
+def _dot_track_step(target: str):
+    """The per-dot raise for a log target, or None if that target is not a dot track."""
+    domain, _, _key = target.partition(".")
+    return _DOT_TRACK_RAISES.get(domain)
+
+
+def _dot_track_rating(character: Character, target: str) -> int:
+    domain, _, key = target.partition(".")
+    if domain == "attributes":
+        return character.attributes[AttributeName(key)]
+    if domain == "abilities":
+        return character.abilities.get(AbilityName(key), 0)
+    if domain == "virtues":
+        return character.virtues[VirtueName(key)]
+    return character.essence_rating
+
+
+def refundable_depth(character: Character, target: str, detail: str = "") -> int:
+    """How many rows at the TAIL of the XP log are consecutive *raises* of exactly
+    this target — i.e. how many dots of it `undo_last` could give back right now.
+
+    This is what greys the downward-click dialog's undo branch and caps its count. It
+    is emphatically NOT "how many dots of this trait were bought": undo is LIFO across
+    the whole log, so a raise buried under any other purchase is unreachable until
+    that purchase is unwound, and this returns 0 for it. Reading it as a per-trait
+    refund allowance is the misreading decision 0013 warns about.
+
+    A REDUCTION at the tail stops the count. It shares the log with purchases but is
+    not one — it refunded nothing, so there is nothing above it to refund. Direction
+    (`to_rating > from_rating`) is what distinguishes them, not cost: a withheld-Charm
+    pick (Weak Essence) is a genuine purchase that also costs 0.
+    """
+    depth = 0
+    for entry in reversed(character.xp_log):
+        if entry.target != target or entry.detail != detail:
+            break
+        if entry.from_rating is None or entry.to_rating is None:
+            break
+        if entry.to_rating <= entry.from_rating:      # a reduction, not a purchase
+            break
+        depth += 1
+    return depth
+
+
+def raise_to(ruleset: RuleSet, character: Character, target: str,
+             to_rating: int) -> list[XpEntry]:
+    """Raise a dot-tracked trait to `to_rating`, one logged step per dot.
+
+    The stepper behind an upward click on a post-lock dot track. Every step goes
+    through the ordinary per-dot `raise_*`, so each dot is priced from the live rating
+    (the escalating `current x N`) and gated by the same caps — no pricing or rule
+    lives here.
+
+    **The whole click is validated before any of it commits.** A probe run against a
+    deep copy spends the identical functions, so an unaffordable or illegal click
+    raises with the character untouched rather than landing halfway up the track with
+    the XP gone. That is the failure mode this exists to prevent, and it is why the
+    UI can offer a multi-dot click at all.
+
+    Downward is not handled here — it is the dialog's job to choose between undo and
+    reduce, and silently refunding here would make that choice. A `to_rating` at or
+    below the current one returns [] and changes nothing.
+    """
+    _ensure_locked(character)
+    step = _dot_track_step(target)
+    if step is None:
+        raise AdvancementError(
+            f"{target!r} is not a dot-tracked trait; raise it with its own control.")
+    _domain, _, key = target.partition(".")
+    steps = to_rating - _dot_track_rating(character, target)
+    if steps <= 0:
+        return []
+
+    # Probe first: same functions, throwaway character. Anything illegal or
+    # unaffordable raises here, before the real character has been touched.
+    probe = character.model_copy(deep=True)
+    for _ in range(steps):
+        step(ruleset, probe, key)
+
+    return [step(ruleset, character, key) for _ in range(steps)]
+
+
+# --------------------------------------------------------------------------- #
 # Permanent reductions (curses, Charm costs, story effects)
 #
 # A reduction lowers a permanent trait *outside* the XP economy: it refunds NO XP
@@ -369,7 +474,14 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
     # A splat barred from Charms outright (mortals, core p.103) is refused first and
     # by name: the generic message below blames the Charm's splat, which reads as
     # nonsense for an `open_to_all` Charm that belongs to no one splat.
-    if not validate.charms_available(ruleset, character):
+    #
+    # The bar is not absolute — a Merit reopens part of it (Essence Mastery grants
+    # Terrestrial Martial Arts, PG p.121), and chargen already honours that through
+    # charm_matches_splat. Ask the same question here rather than the splat flag
+    # alone, or a Charm a mortal may legally pick at creation becomes unbuyable the
+    # moment they lock.
+    if (not validate.charms_available(ruleset, character)
+            and not validate.charm_matches_splat(character, charm, ruleset)):
         raise AdvancementError(
             f"{ruleset.exalt_for(character.exalt_type).label} characters cannot "
             f"purchase Charms (core p.103).")

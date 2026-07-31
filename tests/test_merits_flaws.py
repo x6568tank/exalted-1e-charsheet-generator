@@ -254,6 +254,110 @@ def test_mastery_grants_terrestrial_sorcery_only(rs):
     assert validate.accessible_circles(rs, _unlocked()) == {SpellCircle.TERRESTRIAL}
 
 
+# --- magic access: the BUY paths -------------------------------------------- #
+# Both bugs below were found by a player, not by the suite, because every test above
+# stops at the effect (charm_matches_splat, accessible_circles) and never asks the
+# gate that actually spends the points. That is the dead-effect-field trap wearing a
+# different hat: the grant existed and nothing downstream read it.
+
+MA_CHARM = "solar.martial-arts.living-shield-technique"
+
+
+def _martial(*extra, **kw) -> Character:
+    """An unlocked mortal with enough Martial Arts to meet a first-tier style Charm."""
+    c = _unlocked(*extra, **kw)
+    c.abilities[AbilityName.MARTIAL_ARTS] = 3
+    return c
+
+
+def test_mastery_lets_a_mortal_buy_martial_arts_with_experience(rs):
+    """The chargen half already worked; the XP half refused on the splat's flat
+    `charms_available` flag and never asked the Merit. A Charm a mortal may legally
+    pick at creation must not become unbuyable the moment they lock."""
+    c = _martial()
+    lifecycle.lock_chargen(c, rs)
+    advancement.add_xp(c, 60)
+    entry = advancement.learn_charm(rs, c, MA_CHARM)
+    assert entry.target == "charms" and entry.cost > 0
+    assert MA_CHARM in c.charms
+
+
+@pytest.mark.parametrize("charm_id", [
+    merits.SPIRIT_WALKING,                  # explicitly barred (Celestial MA)
+    "solar.melee.excellent-strike",         # never opened: not Martial Arts
+])
+def test_the_xp_path_still_refuses_what_mastery_does_not_open(rs, charm_id):
+    """Widening the gate must not become "a mortal with any Merit buys anything"."""
+    c = _martial()
+    lifecycle.lock_chargen(c, rs)
+    advancement.add_xp(c, 60)
+    with pytest.raises(advancement.AdvancementError):
+        advancement.learn_charm(rs, c, charm_id)
+
+
+def test_a_mortal_without_mastery_still_buys_no_charms_at_all(rs):
+    c = _mortal()
+    c.abilities[AbilityName.MARTIAL_ARTS] = 3
+    lifecycle.lock_chargen(c, rs)
+    advancement.add_xp(c, 60)
+    with pytest.raises(advancement.AdvancementError, match="cannot purchase Charms"):
+        advancement.learn_charm(rs, c, MA_CHARM)
+
+
+def test_validation_does_not_flag_a_charm_mastery_legitimately_opened(rs):
+    """The same flat flag a third time: check_splat_consistency short-circuited on
+    `charms_available` and condemned EVERY Charm a mortal held, so a legally bought
+    style Charm sat on the sheet as a permanent error."""
+    c = _martial(charms=[MA_CHARM])
+    assert _codes(validate.validate(rs, c), "charms-not-available") == []
+    # ...while the Charm Mastery does NOT open is still condemned, by that same code.
+    bad = _martial(charms=["solar.melee.excellent-strike"])
+    assert _codes(validate.validate(rs, bad), "charms-not-available")
+
+
+def _terrestrial_spell(rs):
+    return next(s for s in rs.spells.values() if s.circle == SpellCircle.TERRESTRIAL)
+
+
+def test_mastery_makes_terrestrial_spells_takeable_not_merely_visible(rs):
+    """The grant reached `accessible_circles` (what the picker LISTS) but not
+    `granted_circles` (what the picker marks available, and what validation checks),
+    so every spell rendered as a locked row reading "needs a Charm granting the
+    Terrestrial Circle" — a Charm a mortal can never hold."""
+    spell = _terrestrial_spell(rs)
+    assert validate.granted_circles(rs, _unlocked()) == {SpellCircle.TERRESTRIAL}
+    assert validate.meets_spell_requirements(rs, _unlocked(), spell) is True
+    row = next(r for r in view.build_spell_picker(rs, _unlocked()) if r.id == spell.id)
+    assert row.available is True and row.reason == ""
+    # ...and holding it validates clean, rather than raising spell-circle forever.
+    assert _codes(validate.check_spell_access(rs, _unlocked(spells=[spell.id])),
+                  "spell-circle") == []
+
+
+def test_a_mortal_with_mastery_can_buy_a_terrestrial_spell_with_experience(rs):
+    c = _unlocked()
+    lifecycle.lock_chargen(c, rs)
+    advancement.add_xp(c, 60)
+    spell = _terrestrial_spell(rs)
+    assert advancement.learn_spell(rs, c, spell.id).cost > 0
+    assert spell.id in c.spells
+
+
+def test_a_mortal_without_mastery_reaches_no_circle(rs):
+    """The grant is Mastery's, not "any mortal with Merits"."""
+    assert validate.granted_circles(rs, _mortal()) == set()
+    assert not any(r.available for r in view.build_spell_picker(rs, _mortal()))
+
+
+def test_an_exalt_circle_access_is_unchanged_by_the_merit_machinery(rs):
+    """granted_circles now consults Merits for everyone; a Solar's answer must still
+    come from their known Charms alone."""
+    s = Character(id="s", exalt_type="Solar", caste="twilight")
+    assert validate.granted_circles(rs, s) == set()
+    s.merits_flaws = [MP(merit_id=AWARENESS), MP(merit_id=MASTERY)]
+    assert validate.granted_circles(rs, s) == set()
+
+
 # --- points ----------------------------------------------------------------- #
 
 def test_merits_cost_bonus_points_and_flaws_do_not(rs):
@@ -402,6 +506,22 @@ async def test_editor_merits_panel_renders(user) -> None:
     await user.open('/merits')
     await user.should_see("Merits & Flaws")
     await user.should_see("Essence Mastery")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+@pytest.mark.parametrize("route", ['/mastery-picker', '/mastery-picker-xp'])
+async def test_mastery_puts_the_martial_arts_and_spell_pages_back(user, route) -> None:
+    """The mirror of test_mortal_picker_offers_no_charm_pages_and_still_renders: a
+    mortal normally gets neither page, and Essence Mastery must bring both back —
+    before AND after the lock, which is where the player's report landed."""
+    await user.open(route)
+    # The page toggle is a ui.toggle, whose labels are props rather than text nodes,
+    # so its options are read off the element rather than through should_see.
+    groups = set(next(iter(user.find(ui.toggle).elements)).options.values())
+    assert {"Martial Arts", "Spells"} <= groups
+    # ...and the Charm-tree furniture the plain mortal must NOT have is back.
+    await user.should_see("Category")
 
 
 @pytest.mark.asyncio
@@ -2999,3 +3119,34 @@ def test_every_menu_priced_entry_has_a_legal_default_for_every_splat(rs, exalt_t
                 f"{m.id} offers no tier to {exalt_type} but is still listed as available")
             continue
         assert not validate.exalt_type_barred_from_tier(m, exalt_type, tiers[0]), m.id
+
+
+# --- the XP tab's trait ceilings (player report, 2026-07-31) ----------------- #
+# The engine honoured both Merit-raised caps and the chargen editor displayed them;
+# only the XP tab hardcoded 5, so the buy was unreachable exactly where it mattered.
+# Engine-level tests could not see it — they call raise_attribute directly, which
+# always worked. Assert through the row instead. Decision 0013 deletes this tab; until
+# it does, the cap is live. See docs/status/edit-xp-merge.md.
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_xp_tab_honours_merit_raised_trait_ceilings(user) -> None:
+    await user.open('/xp-caps')
+    # Strength 5 with Legendary Attribute and Valor 5 with True Paragon both go to 6,
+    # so NEITHER row may read "max" — which is what the hardcoded 5 produced.
+    await user.should_not_see("max")
+    await user.should_see("5→6")
+
+
+def test_the_engine_allows_both_ceilings_the_xp_tab_was_hiding(rs):
+    """The other half of the same bug: proof the row was refusing a legal purchase,
+    not reflecting one. Both raises succeed at the rating the UI called 'max'."""
+    c = _solar(MP(merit_id="mf.legendary-attribute", detail="strength"),
+               MP(merit_id="mf.true-paragon"))
+    c.nature = "Paragon"
+    c.attributes[A.STRENGTH] = 5
+    c.virtues[V.VALOR] = 5
+    lifecycle.lock_chargen(c, rs)
+    advancement.add_xp(c, 200)
+    assert advancement.raise_attribute(rs, c, A.STRENGTH).to_rating == 6
+    assert advancement.raise_virtue(rs, c, V.VALOR).to_rating == 6

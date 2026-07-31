@@ -174,7 +174,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1485 tests passing)
+## Status (1496 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -287,6 +287,14 @@ Background clauses now name eight more Backgrounds. Both are written up in
 Merits & Flaws moved off the Edit⇄XP split onto one both-sides tab, deleting the two
 duplicate implementations of each. `docs/status/advantages-tab.md`. Preflight caught a
 `ui.select` build-time crash on the way, latent since before the move.
+
+**A player report on 2026-07-31 found mortal magic access wired to chargen only** — three
+gates (`advancement.learn_charm`, `check_splat_consistency`, `granted_circles`) asked the
+flat per-splat `charms_available` / Charm-only circle question instead of asking whether
+Essence Mastery had reopened this Charm or granted this circle. All three fixed, tested
+and written up in `merits-flaws.md`; **not browser-verified.** The generalisable lesson is
+there too: a single-read-site effect field is as suspect as a zero-read one when the read
+sits in the phase that wrote it. **Test the buy path, not the effect.**
 
 **What is next is the human's call.** The candidates are the **M&F filter/search** (99
 entries in a flat dropdown, now solvable in one place) and `docs/status/rated-artifacts.md`.

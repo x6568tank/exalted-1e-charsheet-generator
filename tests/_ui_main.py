@@ -10,7 +10,8 @@ from exalted_builder.models.character import (
     Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
     HouseRules, PlayState, RitualEntry, ScienceRating, ThaumaturgyState, Weapon)
 from exalted_builder.models.party import Party, PartyMember
-from exalted_builder.models.rules import AbilityName, Orientation
+from exalted_builder.models.rules import (AbilityName, AttributeName, Orientation,
+                                          VirtueName)
 from exalted_builder.ui import advantages, app as sheet_app
 from exalted_builder.ui import (builder, combos, custom, editor, gm, picker,
                                 play, storyteller, view, xp)
@@ -498,6 +499,34 @@ CHAR_MERITS.merits_flaws = [
 def page_merits():
     advantages.build_advantages(RS, CHAR_MERITS, Path("x.json"), with_header=False)
 
+# The OTHER mortal picker shape: a mortal whose Merits reopen part of the Charm bar.
+# `/mortalpicker` proves the pages vanish when there is nothing to show; these two
+# prove they come BACK — Martial Arts and Spells both, unlocked and locked. The
+# locked one is the shape a player reported broken (2026-07-31): buying with XP asked
+# the splat's flat charms_available flag and never asked the Merit.
+def _mastery_mortal(cid: str, name: str) -> Character:
+    c = Character(id=cid, name=name, exalt_type="Mortal", caste="", origin="heroic",
+                  essence_rating=1)
+    c.abilities[AbilityName.MARTIAL_ARTS] = 3
+    c.abilities[AbilityName.OCCULT] = 3
+    c.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness"),
+                      MeritFlawPurchase(merit_id="thaum.essence-mastery")]
+    return c
+
+CHAR_MASTERY = _mastery_mortal("mm", "Unbound")
+
+@ui.page('/mastery-picker')
+def page_mastery_picker():
+    picker.build_picker(RS, CHAR_MASTERY, Path("x.json"), with_header=False)
+
+CHAR_MASTERY_XP = _mastery_mortal("mm2", "Unbound Veteran")
+lifecycle.lock_chargen(CHAR_MASTERY_XP, RS)
+CHAR_MASTERY_XP.xp_earned = 60
+
+@ui.page('/mastery-picker-xp')
+def page_mastery_picker_xp():
+    picker.build_picker(RS, CHAR_MASTERY_XP, Path("x.json"), with_header=False)
+
 # A6: a Solar holding Heir Apparent (whose purchase records STIPULATIONS, a control no
 # other entry gets) and Innocuous' veiled tier (which caps Allies and closes Cult, so
 # the Background dot rows must stop where the Flaw says).
@@ -671,3 +700,24 @@ CHAR_MF_CAPPED_XP.chargen_locked = True
 @ui.page('/mf-capped-xp')
 def page_mf_capped_xp():
     advantages.build_advantages(RS, CHAR_MF_CAPPED_XP, Path("x.json"), with_header=False)
+
+
+# The XP tab's trait rows against Merit-RAISED ceilings. Reported by a player
+# 2026-07-31: the rows hardcoded a cap of 5, so Legendary Attribute (Strength 6) and
+# True Paragon (Virtues 6) both showed "max" with the Raise button disabled, while the
+# engine would have allowed the buy. Both traits sit AT 5 here, which is precisely the
+# rating the old constant refused and the new cap must permit.
+CHAR_XP_CAPS = Character(id="xpc", name="Legendary", exalt_type="Solar", caste="dawn",
+                         essence_rating=2, nature="Paragon")
+CHAR_XP_CAPS.merits_flaws = [
+    MeritFlawPurchase(merit_id="mf.legendary-attribute", detail="strength"),
+    MeritFlawPurchase(merit_id="mf.true-paragon"),
+]
+CHAR_XP_CAPS.attributes[AttributeName.STRENGTH] = 5
+CHAR_XP_CAPS.virtues[VirtueName.VALOR] = 5
+lifecycle.lock_chargen(CHAR_XP_CAPS, RS)
+CHAR_XP_CAPS.xp_earned = 200
+
+@ui.page('/xp-caps')
+def page_xp_caps():
+    xp.build_xp(RS, CHAR_XP_CAPS, Path("x.json"), with_header=False)

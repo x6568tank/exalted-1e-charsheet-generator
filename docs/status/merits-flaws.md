@@ -781,3 +781,47 @@ A6, cluster 7 and A7 all clicked. **Everything on the A-list is now browser-veri
   catalogue has no such entry, so that half of the OR reads 0 and can never fire. Left
   deliberately (human, 2026-07-31) under the graceful-unresolvable-reference rule until a
   page for Salary turns up. The OR machinery itself is exercised by the Resources branch.
+
+## Player report, 2026-07-31 — mortal magic access never left chargen
+
+A friend clicked through a mortal with Essence Awareness + Essence Mastery and found two
+things, which turned out to be three instances of ONE mistake: **`charms_available` is a
+flat per-splat flag, and three gates asked it instead of asking whether the Merit had
+reopened this particular Charm.** `charm_matches_splat` has known the answer since the
+Merit shipped; only the chargen picker was asking it.
+
+* **"Essence Mastery should allow a mortal to use Martial Arts."**
+  `advancement.learn_charm` refused on the flat flag, so a style Charm a mortal could
+  legally pick at creation became unbuyable the instant they locked. It now refuses only
+  when `charm_matches_splat` also refuses — Spirit Walking, the Immaculate styles and
+  every ordinary Charm stay barred, and the p.103 message is unchanged for them.
+* **`check_splat_consistency` condemned every Charm a mortal held.** Same flag, same
+  short-circuit: a legally bought Falling Blossom Charm sat on the sheet as a permanent
+  `charms-not-available` error. Found by preflight, not reported — the friend would have
+  hit it the moment they bought one.
+* **"A mortal with Essence Mastery cannot see/take Terrestrial Circle Sorcery."**
+  The Merit's circle grant reached `accessible_circles` (what the picker LISTS) but not
+  `granted_circles` (what the picker marks *available*, what `meets_spell_requirements`
+  gates on and what `check_spell_access` validates). Every Terrestrial spell rendered as
+  a locked row reading "needs a Charm granting the Terrestrial Circle" — a Charm a mortal
+  can never hold. The grant moved into `granted_circles`; `accessible_circles` inherits it
+  from there and lost its own duplicate union.
+
+**One tightening came out of the move.** `granted_circles` is now consulted for everyone,
+and the grant was unconditional on holding the Merit, so a Solar with Essence Mastery
+would have cast Terrestrial spells without buying Terrestrial Circle Sorcery — invisible
+before, because a Solar reaches that circle through Charms anyway. The grant is now gated
+on `not exalt.charms_available`: it SUBSTITUTES for the initiating Charm, so it belongs
+only to a splat that can hold none.
+
+**The lesson is the one this file already records, one level up.** The dead-effect-field
+trap has a sibling: a field with exactly one read site, in the phase where it was written.
+`open_charm_categories` and `granted_circles` both read as healthy on
+`effect_reads.py` — a single site in `validate.py` — and both were wired to chargen only.
+The tests had the same shape, asserting `charm_matches_splat` and `accessible_circles`
+directly and never the gate that spends the points. **Test the buy path, not the effect.**
+Eight new tests do, plus two render routes (`/mastery-picker`, `/mastery-picker-xp`) that
+are the mirror of `/mortalpicker`: the pages that must vanish for a plain mortal must come
+back for this one, before and after the lock.
+
+Not browser-verified.

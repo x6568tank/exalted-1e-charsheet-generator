@@ -681,8 +681,12 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         barred = frozenset({SPIRIT_WALKING})
         bar_immaculate = True
         # Terrestrial circle only — a mortal never reaches Celestial sorcery
-        # (human, rules authority, 2026-07-30).
-        circles = frozenset({SpellCircle.TERRESTRIAL})
+        # (human, rules authority, 2026-07-30). The grant SUBSTITUTES for the
+        # initiating Charm, so it belongs only to a splat that can hold no Charms:
+        # handing it to an Exalt would let them cast Terrestrial spells without ever
+        # buying Terrestrial Circle Sorcery.
+        if not exalt.charms_available:
+            circles = frozenset({SpellCircle.TERRESTRIAL})
         # Only meaningful where the splat is capped below 3 to begin with; an Exalt's
         # cap is 0 (uncapped) and must not be LOWERED to 3 by holding this Merit.
         if exalt.essence_cap and exalt.essence_cap < 3:

@@ -333,3 +333,115 @@ def test_undo_reverses_an_attribute_reduction():
     advancement.undo_last(rs, c)
     assert c.attributes[AT.DEXTERITY] == 3
     assert c.xp_log == []
+
+
+# --------------------------------------------------------------------------- #
+# Decision 0013 groundwork: the two primitives the merged trait surface needs.
+#
+# `refundable_depth` decides what the downward-click dialog OFFERS (never whether a
+# click does anything — see the decision record). `raise_to` is the stepper behind an
+# upward click on a dot track.
+# --------------------------------------------------------------------------- #
+
+def test_refundable_depth_is_zero_with_an_empty_log():
+    _rs, c = _ruleset(), _locked()
+    assert advancement.refundable_depth(c, "attributes.dexterity") == 0
+
+
+def test_refundable_depth_counts_consecutive_raises_of_that_trait():
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_attribute(rs, c, AT.DEXTERITY)      # 3 -> 4
+    advancement.raise_attribute(rs, c, AT.DEXTERITY)      # 4 -> 5
+    assert advancement.refundable_depth(c, "attributes.dexterity") == 2
+
+
+def test_refundable_depth_stops_at_an_interrupting_purchase():
+    """Undo is LIFO across the WHOLE log, not per trait. A Dexterity raise buried
+    under an Ability purchase is not refundable without unwinding that Ability first,
+    and the dialog must not offer it."""
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_attribute(rs, c, AT.DEXTERITY)
+    advancement.raise_ability(rs, c, A.MELEE)
+    assert advancement.refundable_depth(c, "attributes.dexterity") == 0
+    assert advancement.refundable_depth(c, "abilities.melee") == 1
+
+
+def test_refundable_depth_ignores_a_trait_never_raised():
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_attribute(rs, c, AT.DEXTERITY)
+    assert advancement.refundable_depth(c, "attributes.strength") == 0
+
+
+def test_a_reduction_at_the_tail_is_not_refundable():
+    """A curse row shares the log with purchases but is not one: it refunds nothing,
+    so a downward click above it is a REDUCE, not an undo. Distinguished by direction
+    (to_rating < from_rating), not by cost — a withheld-Charm purchase also costs 0."""
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_attribute(rs, c, AT.DEXTERITY)
+    advancement.lower_attribute(c, AT.DEXTERITY, "a curse")
+    assert advancement.refundable_depth(c, "attributes.dexterity") == 0
+
+
+# ---- raise_to (the stepper) ------------------------------------------------ #
+
+def test_raise_to_logs_one_row_per_dot_at_escalating_prices():
+    """The whole point of looping the existing step function: each dot is priced from
+    the LIVE rating, so 3->5 is not two identical charges."""
+    rs, c = _ruleset(), _locked(xp=200)
+    entries = advancement.raise_to(rs, c, "attributes.dexterity", 5)
+    assert [(e.from_rating, e.to_rating) for e in entries] == [(3, 4), (4, 5)]
+    assert entries[0].cost < entries[1].cost          # current x 4
+    assert c.attributes[AT.DEXTERITY] == 5
+    assert advancement.xp_spent(c) == sum(e.cost for e in entries)
+
+
+def test_raise_to_refuses_the_whole_click_when_only_part_is_affordable():
+    """A half-applied click is the failure mode this exists to prevent: the player
+    asked for 5 and must not silently land on 4 with their XP gone."""
+    rs, c = _ruleset(), _locked(xp=200)
+    one = advancement.costs.attribute_step(rs, c, 3, AT.DEXTERITY)
+    c.xp_earned = one + 1                              # enough for the first dot only
+    with pytest.raises(advancement.AdvancementError):
+        advancement.raise_to(rs, c, "attributes.dexterity", 5)
+    assert c.attributes[AT.DEXTERITY] == 3             # nothing moved
+    assert c.xp_log == []                              # and nothing was logged
+
+
+def test_raise_to_refuses_the_whole_click_when_a_later_dot_is_illegal():
+    """Affordability is not the only per-step gate — the cap is one too. A click that
+    ends above the ceiling must not buy the dots below it on the way."""
+    rs, c = _ruleset(), _locked(xp=500)
+    c.abilities[A.MELEE] = 3
+    with pytest.raises(advancement.AdvancementError):
+        advancement.raise_to(rs, c, "abilities.melee", 7)
+    assert c.abilities[A.MELEE] == 3
+    assert c.xp_log == []
+
+
+def test_raise_to_is_a_no_op_at_or_below_the_current_rating():
+    """Downward is not this function's job — it belongs to the dialog, which chooses
+    between undo and reduce. Silently refunding here would pick one."""
+    rs, c = _ruleset(), _locked(xp=200)
+    assert advancement.raise_to(rs, c, "attributes.dexterity", 3) == []
+    assert advancement.raise_to(rs, c, "attributes.dexterity", 1) == []
+    assert c.attributes[AT.DEXTERITY] == 3
+    assert c.xp_log == []
+
+
+@pytest.mark.parametrize("target,attr,expected", [
+    ("abilities.melee", None, 3),
+    ("virtues.valor", None, 3),
+    ("essence", None, 3),
+])
+def test_raise_to_routes_every_dot_tracked_target(target, attr, expected):
+    """The four targets that ARE dot tracks in the editor. Willpower is deliberately
+    absent: it is a number input, not a track (decision 0005 pins its Virtue half)."""
+    rs, c = _ruleset(), _locked(xp=500)
+    entries = advancement.raise_to(rs, c, target, expected)
+    assert entries and entries[-1].to_rating == expected
+
+
+def test_raise_to_rejects_an_unknown_target():
+    rs, c = _ruleset(), _locked(xp=200)
+    with pytest.raises(advancement.AdvancementError, match="willpower"):
+        advancement.raise_to(rs, c, "willpower", 5)

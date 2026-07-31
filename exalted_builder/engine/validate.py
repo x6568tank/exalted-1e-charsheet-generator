@@ -1112,13 +1112,22 @@ def charms_depending_on(ruleset: RuleSet, character: Character, charm_id: str) -
 
 def granted_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
     """The set of magic circles the character can cast in, taken from the
-    `grants_circle` of every known initiation Charm. Track-agnostic (sorcery or,
-    later, necromancy) — the circle enum carries the distinction."""
-    return {
+    `grants_circle` of every known initiation Charm PLUS any circle a Merit grants
+    outright. Track-agnostic (sorcery or, later, necromancy) — the circle enum
+    carries the distinction.
+
+    The Merit half is not a convenience: a splat that may hold no Charms at all
+    (mortals) can never satisfy the Charm half, so Essence Mastery's Terrestrial
+    sorcery would be permanently unreachable without it. This is the function the
+    *gates* use (meets_spell_requirements, check_spell_access), which is why the
+    grant has to land here and not only in accessible_circles."""
+    out = {
         ruleset.charms[cid].grants_circle
         for cid in character.charms
         if cid in ruleset.charms and ruleset.charms[cid].grants_circle is not None
     }
+    out |= set(merits.merits_and_flaws_calc(ruleset, character).granted_circles)
+    return out
 
 
 def accessible_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
@@ -1131,14 +1140,12 @@ def accessible_circles(ruleset: RuleSet, character: Character) -> set[SpellCircl
     and necromancy initiations (Abyssals carry Terrestrial/Celestial Sorcery AND the
     three Necromancy circles) reaches both tracks, so its picker must too. Track is a
     display-ordering hint, not an access gate — the gate is the granting Charm."""
+    # Merit-granted circles (mortals + Essence Mastery, capped at Terrestrial) arrive
+    # through granted_circles, which is where the gates read them too. See engine.merits.
     out = granted_circles(ruleset, character)
     for charm in ruleset.charms.values():
         if charm.grants_circle is not None and charm_matches_splat(character, charm, ruleset):
             out.add(charm.grants_circle)
-    # A Merit can grant a circle with no initiating Charm at all — the only route to
-    # sorcery for a splat that may hold no Charms (mortals + Essence Mastery, capped
-    # at Terrestrial). See engine.merits.
-    out |= set(merits.merits_and_flaws_calc(ruleset, character).granted_circles)
     return out
 
 
@@ -3838,11 +3845,17 @@ def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issu
     # actively misleading for a mortal holding an `open_to_all` Charm, which belongs to
     # no splat in particular and is refused for a different reason entirely.
     if not charms_available(ruleset, character):
+        # ...but the bar is not absolute: a Merit reopens part of it (Essence Mastery
+        # grants Terrestrial Martial Arts), and charm_matches_splat is the one place
+        # that knows which part. Anything it still refuses is reported; anything it
+        # allows is a legal pick and must not be flagged, at chargen or in play.
         return [Issue(
             code="charms-not-available", where=cid,
             message=f"{ruleset.exalt_for(character.exalt_type).label} characters "
                     f"cannot purchase Charms (core p.103); remove {cid!r}.",
-        ) for cid in character.charms]
+        ) for cid in character.charms
+            if cid in ruleset.charms          # unknown ids: check_references' job
+            and not charm_matches_splat(character, ruleset.charms[cid], ruleset)]
     permissive = foreign_charms_open(ruleset, character)
     gated = foreign_charms_caste(ruleset, character) is not None and not permissive
     for cid in character.charms:

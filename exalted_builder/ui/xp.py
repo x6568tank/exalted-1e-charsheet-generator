@@ -96,8 +96,14 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         refresh_all()
 
     # ---- buy rows --------------------------------------------------------- #
+    # `cap` is the ceiling the ENGINE will enforce, passed in by the caller — never a
+    # constant here. A hardcoded 5 was live until 2026-07-31 and made both Merit-raised
+    # ceilings unreachable post-lock (Legendary Attribute 6, True Paragon 6) while
+    # `advancement.raise_attribute`/`raise_virtue` honoured them and the chargen editor
+    # displayed them. Reported by a player. See decision 0013: this whole tab exists
+    # twice, and that is why the two sides disagreed.
     def _raise_row(label: str, options: dict, key: str, current: int, cost: int, action,
-                   cap: int = 5) -> None:
+                   cap: int = meritsmod.DOT_MAX) -> None:
         with ui.row().classes("w-full items-center gap-2 no-wrap"):
             ui.label(label).classes("text-xs w-20")
             ui.select(options, value=sel[key],
@@ -119,6 +125,10 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             return
 
         # --- raise dotted traits ------------------------------------------ #
+        # Merit-moved ceilings, read once for the rows below — the same call and the
+        # same defaults the chargen editor uses (editor.py:329-334).
+        mf_effects = meritsmod.merits_and_flaws_calc(rs, character)
+
         with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
             ui.label("Raise a Trait").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
 
@@ -126,7 +136,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             _raise_row("Attribute", {a: _label(a.value) for a in AttributeName}, "attr",
                        character.attributes[attr], costs.attribute_step(rs, character, character.attributes[attr]),
                        lambda: advancement.raise_attribute(rs, character, sel["attr"]),
-                       cap=5)
+                       cap=mf_effects.attribute_caps.get(attr.value, meritsmod.DOT_MAX))
 
             ab = sel["ability"]
             ab_cur = character.abilities.get(ab, 0)
@@ -139,7 +149,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
             _raise_row("Virtue", {x: _label(x.value) for x in VirtueName}, "virtue",
                        character.virtues[v], costs.virtue_step(rs, character, character.virtues[v]),
                        lambda: advancement.raise_virtue(rs, character, sel["virtue"]),
-                       cap=5)
+                       cap=(mf_effects.virtue_cap if mf_effects.virtue_cap is not None
+                            else meritsmod.DOT_MAX))
 
             wp = derive.willpower(character, rs)   # rs, or a Flaw-held
             # character is QUOTED one price and CHARGED another
