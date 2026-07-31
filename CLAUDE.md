@@ -380,8 +380,11 @@ homebrew-only with no printed use: `CharmCost.health_type` and
   shape), deleting the two duplicate implementations of each. Full plan, the human's four
   rulings and the touch points: `docs/status/advantages-tab.md`. **Blocked behind the
   unpushed desktop A6**, which lives in exactly the code this relocates.
-- **The XP tab's tier/points field is one free-text input doing double duty** — a tier
-  key for a menu-priced entry, a point value for a variable-cost one. Works; crude.
+- **The XP tab's value controls — DONE 2026-07-31.** The free-text field doing double
+  duty is gone; the XP tab now collects tier / dots / points / structured detail through
+  the same entry-aware controls as the editor, and both paths price through
+  `validate.merit_points`. **All three M&F UI gaps are now closed.** The XP tab's M&F
+  card is the ONE M&F surface not yet clicked through — the editor side has been.
 - **The four remaining non-Exalt splats** — Godblooded, Ghosts, Dragon-Kings, Mountain
   Folk. All blocked on source material; order is the human's call. Note PG p.114 gives a
   hook for the first: "mortals that exceed Essence 3 become gods, in the same way the
