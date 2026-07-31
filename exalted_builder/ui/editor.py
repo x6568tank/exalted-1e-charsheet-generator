@@ -600,9 +600,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 sign = "−" if m.kind == "merit" else "+"
                 return f"{m.name}  ({sign}{price} {m.category or m.kind})"
 
+            # Filtered to what this character may actually take, the way the XP tab
+            # already is: offering a Solar Chimera only to answer with a validation
+            # error is a worse experience than not offering it. Held rows survive the
+            # filter via the `row_opts.setdefault` guard below, so an entry that became
+            # illegal (a caste change) stays visible and flagged rather than vanishing.
             merit_opts = {m.id: _merit_label(m) for m in sorted(
                 ruleset.merits_flaws.values(),
-                key=lambda m: (m.kind != "merit", m.name))}
+                key=lambda m: (m.kind != "merit", m.name))
+                if validate.merit_available_to(m, character.exalt_type, character.caste)}
             eff = merits.merits_and_flaws_calc(ruleset, character)
             spent = validate.merit_bonus_point_cost(ruleset, character)
             grant = eff.bonus_point_grant
@@ -620,6 +626,17 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.select(row_opts, value=mp.merit_id, label="Merit / Flaw",
                                   on_change=lambda e, mp=mp: set_merit(mp, e.value)
                                   ).classes("flex-1").props("dense")
+                        # Which side a two-sided entry was taken on. No blank option:
+                        # the value is what decides whether this charges bonus points
+                        # or grants them, so it must be a deliberate pick. An
+                        # unrecorded choice shows empty and validate flags it.
+                        if definition is not None and definition.kind == "either":
+                            ui.select({"merit": "as Merit", "flaw": "as Flaw"},
+                                      value=mp.taken_as or None, label="Taken",
+                                      on_change=lambda e, mp=mp: (
+                                          setattr(mp, "taken_as", e.value or ""),
+                                          body.refresh(), changed())
+                                      ).classes("w-32").props("dense")
                         # Tier only for a variable-cost entry (Oathbound Magic).
                         if definition is not None and definition.cost_options:
                             ui.select({t: f"{t.title()} ({v})"
@@ -987,8 +1004,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         body.refresh(); changed()
 
     def add_merit() -> None:
-        # Default to the cheapest Merit so a fresh row is always a legal selection.
-        first = min((m for m in ruleset.merits_flaws.values()),
+        # Default to the cheapest Merit so a fresh row is always a legal selection —
+        # which means picking from the same filtered set the dropdown offers, or the
+        # row would open on an entry that is not in its own options.
+        first = min((m for m in ruleset.merits_flaws.values()
+                     if validate.merit_available_to(m, character.exalt_type,
+                                                    character.caste)),
                     key=lambda m: (m.kind != "merit", m.cost, m.name), default=None)
         if first is None:
             return
@@ -1004,6 +1025,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         definition = ruleset.merits_flaws.get(merit_id)
         mp.tier = (next(iter(definition.cost_options), "")
                    if definition and definition.cost_options else "")
+        # Same for the side: a choice made for the old entry says nothing about the
+        # new one, and a stale "flaw" on a single-sided Merit would be read by
+        # `effective_merit_kind` as nothing at all — better to make it re-chosen.
+        mp.taken_as = ""
         body.refresh(); changed()
 
     def remove_merit(idx: int) -> None:

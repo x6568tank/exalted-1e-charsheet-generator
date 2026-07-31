@@ -174,7 +174,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1360 tests passing)
+## Status (1370 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -199,6 +199,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Custom content — DONE** (user-authored Charms/styles/spells: library, `/custom` page, saves that carry homebrew) | `docs/status/custom-content.md` |
 | **Mortals & Heroic Mortals — DONE** (one splat, two origins; casteless, no Charms, Essence pinned at 1; magic via M&F) | `docs/status/mortals.md` |
 | **Merits & Flaws — DONE** (centralized calc per decision 0011; all 98 M&F authored; mortal magic unlock; editor + sheet + ST Options UI) | `docs/status/merits-flaws.md` |
+| **Advantages tab — PLAN ONLY** (Backgrounds + M&F onto one both-sides tab; blocked behind A6) | `docs/status/advantages-tab.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -364,14 +365,21 @@ homebrew-only with no printed use: `CharmCost.health_type` and
   1,200 tests missed, and a further four surfaced during the M&F work (a picker crash
   that blanked two tabs, an XP tab taken down by a shadowed local, a sheet panel crushed
   invisible by a `no-wrap` row, and a sheet block with no rules text). Assume more.
-- **Two-sided entries cannot be chosen in the UI.** Mutation, Favor and Eternal Vow are
-  `kind: "either"`; nothing in the editor or the XP tab sets `MeritFlawPurchase.taken_as`,
-  so the XP tab always routes them to the Merit branch. Validation flags the unrecorded
-  choice (`merit-side-unchosen`) so it is visible, not silent — but the choice cannot yet
-  be MADE. Smallest real gap.
-- **The editor's Merit dropdown does not filter by splat.** The XP tab does. So a Solar
-  can pick Chimera (Lunars only) at chargen and get a validation error rather than being
-  prevented.
+- **Two-sided entries and the editor's splat filter — DONE 2026-07-31.** Both gaps
+  closed; see `docs/status/merits-flaws.md`. The side of a `kind: "either"` entry is
+  now selectable in the editor AND on the XP tab, and `validate.merit_available_to` is
+  the one predicate both Merit dropdowns filter on. Three things it turned up on the
+  way: `drop_merit` branched on the catalogue's `kind` (so buying off an either-entry
+  held as a Flaw PAID the character), `costs.merit_cost` could not see `cost_by_kind`
+  (so Eternal Vow cost 0 XP in play, and it now delegates to `validate.merit_points`
+  so the XP and chargen paths cannot disagree about a price), and two-sided entries
+  could not be gained in play AT ALL — `buy_merit` demanded `kind == "merit"` and
+  raised. Not browser-verified.
+- **The Advantages tab — AGREED 2026-07-31, PLAN ONLY, do not start yet.** Backgrounds
+  and M&F move off the Edit⇄XP split onto one top-level both-sides tab (the Charms/Combos
+  shape), deleting the two duplicate implementations of each. Full plan, the human's four
+  rulings and the touch points: `docs/status/advantages-tab.md`. **Blocked behind the
+  unpushed desktop A6**, which lives in exactly the code this relocates.
 - **The XP tab's tier/points field is one free-text input doing double duty** — a tier
   key for a menu-priced entry, a point value for a variable-cost one. Works; crude.
 - **The four remaining non-Exalt splats** — Godblooded, Ghosts, Dragon-Kings, Mountain

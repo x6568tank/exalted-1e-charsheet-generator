@@ -2809,6 +2809,28 @@ def effective_merit_kind(definition, purchase) -> str:
     return purchase.taken_as if purchase.taken_as in ("merit", "flaw") else "merit"
 
 
+def merit_available_to(definition, exalt_type: str, caste: str = "") -> bool:
+    """Whether the catalogue opens this entry to this character at all.
+
+    The printed restrictions only — splat allow-list, splat bar, caste bar — which are
+    inert catalogue DATA rather than effects, so no Merit id is named and
+    `engine.merits` is not consulted. Prerequisites, tiers and "thaumaturges only" are
+    NOT checked here: those depend on the rest of the sheet and change as it is built,
+    so hiding an entry for them would make the dropdown flicker.
+
+    Shares its three conditions with the `merit-wrong-splat` / `merit-barred-splat` /
+    `merit-barred-caste` issues above, so a UI that filters on this can never offer
+    something validation would immediately reject.
+    """
+    if definition.exalt_types and exalt_type not in definition.exalt_types:
+        return False
+    if exalt_type in definition.barred_exalt_types:
+        return False
+    if caste and caste in definition.barred_castes:
+        return False
+    return True
+
+
 def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attributes
                               ) -> list[tuple[str, int, int]]:
     """[(category, spend, pool)] for category-mode splats — which of the 8/6/4 pools

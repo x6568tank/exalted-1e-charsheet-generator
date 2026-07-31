@@ -324,3 +324,55 @@ was the human's fallback if they want it.
   dot above what Essence allows, "during character creation or after it".
 * `validate.favored_ability_count` — Prodigy grants "one additional Favored Ability for
   every" rung; Unskilled is its inverse.
+
+## Two-sided entries and the editor's splat filter (2026-07-31)
+
+Two of the three UI gaps CLAUDE.md listed. 1,370 tests pass. **Not browser-verified.**
+
+**`kind: "either"` entries could not be chosen — and could not be gained in play at
+all.** Mutation, Favor and Eternal Vow are printed "MERIT OR FLAW"; the side lives on
+`MeritFlawPurchase.taken_as`, and validation has always flagged an unrecorded one
+(`merit-side-unchosen`). Nothing could SET it. Worse than the TODO recorded: the XP tab
+routed every either-entry into `buy_merit`, which demanded `kind == "merit"` and raised,
+so the Merit branch it "always routed to" rejected them outright.
+
+* **Editor**: a two-option `ui.select` on any either-row. No blank option and no
+  default — the value decides whether the row charges bonus points or grants them.
+  `set_merit` clears it when the row's entry changes, for the reason it already cleared
+  `tier`: a choice made for the old entry says nothing about the new one.
+* **XP tab**: the same selector inside the refreshable detail preview, driving the
+  Merit/Flaw banner and the price line as well as the routing. `_gain_mf` refuses to
+  act on an unchosen side rather than picking one.
+* **`buy_merit`/`gain_flaw`** take `taken_as` and admit an either-entry only when it
+  names THEIR side. Defaulting it here was never an option: the side is the direction
+  of the transaction.
+* **`drop_merit` branched on the CATALOGUE's `kind`**, so buying off an either-entry
+  held as a Flaw paid the character instead of charging her. It now reads
+  `validate.effective_merit_kind(definition, purchase)`.
+* **`costs.merit_cost` could not see `cost_by_kind`** — it read `merit.cost`, which is
+  0 for Eternal Vow, so gaining it in play cost nothing. It now delegates to
+  `validate.merit_points`, which is where every cost shape was already resolved, so the
+  XP path and the chargen path cannot disagree about a price. That also fixed
+  variable-cost entries in play (Mutation and Favor are variable AND two-sided): the
+  agreed `points` reach the pricing, and the p.17 Flaw-point cap is measured against
+  the value the purchase actually carries.
+
+**The editor's Merit dropdown now filters by splat and caste**, as the XP tab already
+did. New `validate.merit_available_to(definition, exalt_type, caste)` is the single
+predicate, sharing its three conditions with the `merit-wrong-splat` /
+`merit-barred-splat` / `merit-barred-caste` issues so a dropdown can never offer
+something validation would immediately reject. Both dropdowns and `add_merit`'s default
+row read it.
+
+* It checks the printed restrictions ONLY — splat allow-list, splat bar, caste bar —
+  all of them inert catalogue data, so no Merit id is named and `engine/merits.py` is
+  not consulted. Prerequisites, tiers and "thaumaturges only" are deliberately NOT
+  filtered on: they depend on the rest of the sheet and would make the dropdown flicker
+  as it is edited. Validation still reports them.
+* A HELD entry that became illegal (a caste change) survives the filter through the
+  existing `row_opts.setdefault` guard, so it stays visible and flagged rather than
+  vanishing from the sheet.
+
+**Still open**, and the last of the three: the XP tab's tier/points field is one
+free-text input doing double duty — a tier key for a menu-priced entry, a point value
+for a variable-cost one. Works; crude.

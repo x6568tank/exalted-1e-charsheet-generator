@@ -503,3 +503,27 @@ CHAR_MF_XP.chargen_locked = True
 @ui.page('/mf-xp')
 def page_mf_xp():
     xp.build_xp(RS, CHAR_MF_XP, Path("x.json"), with_header=False)
+
+
+# A Solar holding a two-sided entry (Eternal Vow, "3-PT. MERIT OR 1-PT. FLAW"). The
+# editor's Merits panel must offer the side selector for it, and its Merit dropdown
+# must not offer entries this character is barred from: Chimera is Lunars-only and
+# Prodigy is barred to Solars, so neither may appear in the options.
+CHAR_MF_SIDE = Character(id="mfs", name="Vowbound", exalt_type="Solar", caste="dawn",
+                         essence_rating=1)
+CHAR_MF_SIDE.merits_flaws = [MeritFlawPurchase(merit_id="mf.eternal-vow")]
+
+@ui.page('/mf-side')
+def page_mf_side():
+    editor.build_editor(RS, CHAR_MF_SIDE, Path("x.json"), with_header=False)
+
+
+# The same entry on the XP tab, locked and in funds, so the gain card renders its
+# "choose a side" state rather than silently routing to the Merit branch.
+CHAR_MF_SIDE_XP = Character(id="mfsx", name="Vowbound", exalt_type="Solar",
+                            caste="dawn", essence_rating=1, xp_earned=50)
+CHAR_MF_SIDE_XP.chargen_locked = True
+
+@ui.page('/mf-side-xp')
+def page_mf_side_xp():
+    xp.build_xp(RS, CHAR_MF_SIDE_XP, Path("x.json"), with_header=False)

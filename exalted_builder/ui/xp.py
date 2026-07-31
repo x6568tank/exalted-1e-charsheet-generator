@@ -102,8 +102,18 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         if definition is None:
             ui.notify("Pick a Merit or Flaw first.", type="warning")
             return
-        kw = dict(tier=state.get("tier", ""))
-        if definition.kind == "flaw":
+        # A two-sided entry is routed by the player's recorded choice; a single-sided
+        # one by the catalogue, which is why the button is not labelled "Buy".
+        side = definition.kind
+        if side == "either":
+            side = state.get("taken_as", "")
+            if side not in ("merit", "flaw"):
+                ui.notify(f"{definition.name} is a Merit OR a Flaw — pick which side.",
+                          type="warning")
+                return
+        kw = dict(tier=state.get("tier", ""), taken_as=state.get("taken_as", ""),
+                  points=state.get("points", 0))
+        if side == "flaw":
             _do(lambda: advancement.gain_flaw(rs, character, mid, **kw))
         else:
             _do(lambda: advancement.buy_merit(rs, character, mid, **kw))
@@ -241,16 +251,20 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.label(f"⚠ {debt} XP owed — all further experience clears "
                                  f"this first.").classes("text-xs font-semibold text-amber-700")
                     # --- gain --------------------------------------------- #
-                    gain_state = {"id": "", "tier": "", "points": 0}
+                    gain_state = {"id": "", "tier": "", "points": 0, "taken_as": ""}
                     opts = {m.id: f"{m.name} {m.cost_note or ''}".strip()
                             for m in sorted(rs.merits_flaws.values(), key=lambda m: m.name)
-                            if not m.exalt_types or character.exalt_type in m.exalt_types}
+                            if validate.merit_available_to(m, character.exalt_type,
+                                                           character.caste)}
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):
                         # NB: not named `sel` — `panel()` already binds that for the
                         # raise-a-trait selectors, and shadowing it makes the whole
                         # function treat the outer one as unassigned.
+                        # Changing the entry clears the side: a choice made for the
+                        # previous one says nothing about this one.
                         ui.select(opts, label="Merit / Flaw", with_input=True,
-                                  on_change=lambda e: _mf_changed(gain_state, id=e.value or "")
+                                  on_change=lambda e: _mf_changed(
+                                      gain_state, id=e.value or "", taken_as="")
                                   ).classes("flex-1").props("dense")
                         ui.input(label="tier / points",
                                  on_change=lambda e: _mf_changed(
@@ -271,22 +285,37 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                             ui.label("Select an entry to see its rules text."
                                      ).classes("text-xs italic opacity-60")
                             return
+                        # For a two-sided entry the chosen side decides the direction of
+                        # the transaction, so it drives this banner too — an unchosen
+                        # one says so rather than implying the Merit branch.
+                        chosen = gain_state.get("taken_as", "")
+                        effective = (chosen if definition.kind == "either"
+                                     else definition.kind)
                         side = ("Flaw — GAINING this pays the character"
-                                if definition.kind == "flaw" else
-                                "Merit or Flaw — records which side you take"
-                                if definition.kind == "either" else
-                                "Merit — gaining this costs XP")
+                                if effective == "flaw" else
+                                "Merit — gaining this costs XP" if effective == "merit"
+                                else "Merit OR Flaw — choose a side before gaining it")
                         with ui.row().classes("w-full items-center gap-2 no-wrap"):
                             ui.label(definition.name).classes("text-sm font-semibold")
                             ui.label(definition.cost_note).classes("text-xs font-mono opacity-60")
                         ui.label(side).classes(
                             "text-xs font-semibold "
-                            + ("text-emerald-700" if definition.kind == "flaw"
-                               else "text-amber-800"))
+                            + ("text-emerald-700" if effective == "flaw"
+                               else "text-amber-800" if effective == "merit"
+                               else "text-rose-700"))
+                        if definition.kind == "either":
+                            # ui.select, not ui.toggle: a toggle's options cannot be
+                            # driven from the UI tests (see the thaumaturgy tab), and
+                            # this is the control the whole feature turns on.
+                            ui.select({"merit": "as Merit", "flaw": "as Flaw"},
+                                      value=chosen or None, label="Take it",
+                                      on_change=lambda e: _mf_changed(
+                                          gain_state, taken_as=e.value or "")
+                                      ).classes("w-40").props("dense")
                         price = validate.merit_points(
                             definition, MeritFlawPurchase(
                                 merit_id=definition.id, tier=gain_state.get("tier", ""),
-                                points=gain_state.get("points", 0)),
+                                points=gain_state.get("points", 0), taken_as=chosen),
                             character.exalt_type, character.caste)
                         xp_cost = price * rs.xp_costs_for(
                             character.exalt_type).new_merit_bp_multiplier

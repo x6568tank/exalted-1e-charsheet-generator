@@ -14,6 +14,7 @@ docs/status/merits-flaws.md.
 from pathlib import Path
 
 import pytest
+from nicegui import ui
 
 import exalted_builder
 from exalted_builder import rules_db
@@ -1521,3 +1522,138 @@ def test_the_pool_shape_entries_are_not_reported_as_narrative_only(rs):
                                              MP(merit_id=BEACON)))
     assert LEGENDARY_BREEDING not in e.narrative_only
     assert BEACON not in e.narrative_only
+
+
+# --- two-sided entries: making the choice, not just flagging it -------------- #
+# "Merit OR Flaw" entries (Mutation, Favor, Eternal Vow) carry `taken_as` on the
+# PURCHASE. Validation has always flagged an unrecorded side (`merit-side-unchosen`);
+# until 2026-07-31 nothing could actually SET it, and the XP path rejected every
+# two-sided entry outright because `buy_merit` demanded `kind == "merit"`.
+
+VOW = "mf.eternal-vow"
+
+
+def _locked_solar(*purchases, xp=50) -> Character:
+    c = _solar(*purchases)
+    c.chargen_locked = True
+    advancement.add_xp(c, xp)
+    return c
+
+
+def test_a_two_sided_entry_cannot_be_gained_without_a_side(rs):
+    """Neither branch may default the choice: the side is what decides whether the
+    transaction charges the character or pays her."""
+    c = _locked_solar()
+    with pytest.raises(advancement.AdvancementError, match="which side"):
+        advancement.buy_merit(rs, c, VOW)
+    with pytest.raises(advancement.AdvancementError, match="which side"):
+        advancement.gain_flaw(rs, c, VOW)
+    # and the wrong side is refused by the branch it does not belong to
+    with pytest.raises(advancement.AdvancementError, match="which side"):
+        advancement.buy_merit(rs, c, VOW, taken_as="flaw")
+    assert c.merits_flaws == []
+
+
+def test_a_two_sided_entry_prices_by_the_side_taken(rs):
+    """Eternal Vow is "3-PT. MERIT OR 1-PT. FLAW" (p.29) — `cost_by_kind`, which the
+    XP path could not previously see at all (it read `merit.cost`, which is 0)."""
+    as_merit = _locked_solar()
+    assert advancement.buy_merit(rs, as_merit, VOW, taken_as="merit").cost == 6
+    as_flaw = _locked_solar()
+    assert advancement.gain_flaw(rs, as_flaw, VOW, taken_as="flaw").cost == -2
+
+
+def test_gaining_records_the_side_and_clears_the_validation_issue(rs):
+    c = _locked_solar()
+    advancement.buy_merit(rs, c, VOW, taken_as="merit")
+    assert c.merits_flaws[0].taken_as == "merit"
+    assert not _codes(validate.validate_chargen(rs, c), "merit-side-unchosen")
+    # the same entry with no side recorded is still reported
+    assert _codes(validate.validate_chargen(rs, _solar(MP(merit_id=VOW))),
+                  "merit-side-unchosen")
+
+
+def test_buying_off_a_two_sided_entry_held_as_a_flaw_charges(rs):
+    """`drop_merit` branched on the CATALOGUE's kind, so buying off an either-entry
+    held as a Flaw paid the character instead of charging her."""
+    held_as_flaw = _locked_solar(MP(merit_id=VOW, taken_as="flaw"))
+    assert advancement.drop_merit(rs, held_as_flaw, 0).cost == 2      # charged
+    held_as_merit = _locked_solar(MP(merit_id=VOW, taken_as="merit"))
+    assert advancement.drop_merit(rs, held_as_merit, 0).cost == -6    # paid
+
+
+def test_a_variable_cost_two_sided_entry_prices_from_its_agreed_points(rs):
+    """Mutation and Favor are variable AND two-sided, so both the agreed points and
+    the side have to reach the pricing — otherwise they gain for 0 XP."""
+    c = _locked_solar()
+    assert advancement.gain_flaw(rs, c, "mf.mutation", taken_as="flaw",
+                                 points=4).cost == -8
+    assert c.merits_flaws[0].points == 4
+    assert c.merits_flaws[0].taken_as == "flaw"
+
+
+# --- the availability predicate the two dropdowns share ---------------------- #
+
+def test_merit_available_to_reads_the_three_printed_restrictions(rs):
+    """One predicate, sharing its conditions with merit-wrong-splat /
+    merit-barred-splat / merit-barred-caste so a dropdown cannot offer something
+    validation would immediately reject."""
+    chimera = rs.merits_flaws["mf.chimera"]            # LUNARS ONLY
+    assert validate.merit_available_to(chimera, "Lunar")
+    assert not validate.merit_available_to(chimera, "Solar")
+
+    prodigy = rs.merits_flaws["mf.prodigy"]            # barred to Solar/Abyssal/...
+    assert validate.merit_available_to(prodigy, "Dragon-Blooded")
+    assert not validate.merit_available_to(prodigy, "Solar")
+
+    beacon = rs.merits_flaws["mf.beacon-of-power"]     # not for Night or Day caste
+    assert validate.merit_available_to(beacon, "Solar", "dawn")
+    assert not validate.merit_available_to(beacon, "Solar", "night")
+
+
+def test_availability_ignores_the_conditions_that_change_as_a_sheet_is_built(rs):
+    """Prerequisites and "thaumaturges only" are deliberately NOT filtered on — they
+    depend on the rest of the sheet, so hiding an entry for them would make the
+    dropdown flicker as the character is edited."""
+    mastery = rs.merits_flaws[MASTERY]                 # requires Essence Awareness
+    assert validate.merit_available_to(mastery, "Mortal")
+    assert validate.merit_available_to(rs.merits_flaws[OATH], "Mortal")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_editor_offers_a_side_selector_for_a_two_sided_entry(user) -> None:
+    """The gap this closes: Mutation, Favor and Eternal Vow are `kind: "either"`, and
+    nothing in the editor set `taken_as`, so the choice validation asked for could not
+    be made anywhere in the app."""
+    await user.open('/mf-side')
+    await user.should_see("Merits & Flaws")
+    await user.should_see("Eternal Vow")
+    # Asserted on the select's OPTIONS, not with should_see: a dropdown's options are
+    # not in the rendered HTML until it is opened (the same reason the thaumaturgy
+    # tab's toggles cannot be clicked from a test).
+    sides = [sel for sel in user.find(ui.select).elements
+             if set(sel.options or {}) == {"merit", "flaw"}]
+    assert sides, "no side selector rendered for the two-sided entry"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_editor_merit_dropdown_filters_by_splat_and_caste(user) -> None:
+    """The XP tab filtered; the editor did not, so a Solar could pick Chimera at
+    chargen and be told off for it afterwards."""
+    await user.open('/mf-side')
+    options = {o for sel in user.find(ui.select).elements for o in (sel.options or {})}
+    assert "mf.chimera" not in options          # LUNARS ONLY
+    assert "mf.prodigy" not in options          # barred to Solars
+    assert "mf.eternal-vow" in options          # open to this Solar
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_xp_tab_asks_for_a_side_before_gaining_a_two_sided_entry(user) -> None:
+    """The XP tab used to route every either-entry into the Merit branch, which then
+    raised — so they could not be gained in play at all."""
+    await user.open('/mf-side-xp')
+    await user.should_see("Merits & Flaws")
+    await user.should_see("Gain")
