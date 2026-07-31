@@ -20,7 +20,7 @@ import exalted_builder
 from exalted_builder import rules_db
 from exalted_builder.engine import advancement, costs, derive, lifecycle, merits, validate
 from exalted_builder.models.character import BackgroundEntry, Character, MeritFlawPurchase as MP
-from exalted_builder.models.rules import SpellCircle
+from exalted_builder.models.rules import SpellCircle, TraitPrerequisite
 from exalted_builder.ui import view
 from exalted_builder.models.rules import VirtueName as V
 from exalted_builder.models.rules import AttributeName as A
@@ -77,14 +77,20 @@ def test_no_module_outside_engine_merits_names_a_merit_id():
 
 def test_merit_definitions_carry_no_mechanical_effect(rs):
     """rules.MeritFlaw is inert by design: printed text, cost, prerequisites. A field
-    describing what a Merit DOES belongs in engine.merits, not the data."""
+    describing what a Merit DOES belongs in engine.merits, not the data.
+
+    The line this draws is EFFECT vs RESTRICTION. A restriction is as inert as a cost —
+    it says who may hold the entry, never what holding it does — so `barred_castes`,
+    `barred_exalt_types` and `trait_prerequisites` all live here, and evaluating them
+    needs no Merit id at all. That is why adding trait prerequisites 2026-07-31 REMOVED
+    an id from engine/merits.py (Legendary Breeding's) rather than adding one."""
     fields = set(type(next(iter(rs.merits_flaws.values()))).model_fields)
     assert fields == {"id", "name", "kind", "category", "cost", "cost_options",
                       "cost_options_by_exalt_type", "cost_options_by_caste", "cost_by_kind",
                       "variable_cost", "exalt_types", "barred_exalt_types",
                       "barred_castes", "cost_note",
-                      "prerequisites", "prerequisite_note", "repeatable_by",
-                      "thaumaturges_only", "description", "source"}
+                      "prerequisites", "trait_prerequisites", "prerequisite_note",
+                      "repeatable_by", "thaumaturges_only", "description", "source"}
 
 
 # --- the catalogue ---------------------------------------------------------- #
@@ -1894,3 +1900,97 @@ def test_the_prerequisite_is_reported_not_enforced(rs):
     change a pool the player can see."""
     none_held = _db(MP(merit_id=LEGENDARY_BREEDING), breeding=0)
     assert merits.merits_and_flaws_calc(rs, none_held).breeding_rating_override == 6
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_xp_tab_collects_values_through_the_same_controls_as_the_editor(user) -> None:
+    """The XP tab priced every entry through ONE free-text input doing double duty — a
+    tier key for a menu-priced entry, a point value for a variable-cost one. The editor
+    grew proper tier / dots / points / structured-detail controls on 2026-07-31, which
+    left the two halves of the app collecting the same rules through different widgets:
+    exactly the shape that produced the splat-filter bug. The free-text box is gone."""
+    await user.open('/mf-side-xp')
+    await user.should_see("Merits & Flaws")
+    labels = {(e.props.get("label") or "") for e in user.find(ui.input).elements}
+    assert "tier / points" not in labels, "the double-duty free-text field is still there"
+
+
+def test_the_xp_and_chargen_paths_price_a_purchase_identically(rs):
+    """The point of routing both through `validate.merit_points`: whatever the two UIs
+    collect, one function turns it into a price. Pinned across every cost SHAPE the
+    catalogue uses, since it was a shape (`cost_by_kind`) that the XP path could not
+    see at all before today."""
+    rate = merits.forfeit_rate(rs.merits_flaws[DIMINISHED])
+    cases = [
+        (VOW, dict(taken_as="merit"), 3),                    # cost_by_kind
+        (VOW, dict(taken_as="flaw"), 1),                     # ...the other side
+        (CALLOUS, dict(tier="4"), 4),                        # cost_options menu
+        (DIMINISHED, dict(points=2 * rate, detail="Physical"), 2 * rate),   # variable
+        (LEGENDARY_ATTR, dict(detail="Strength"), 3),        # flat, Solar rate
+    ]
+    for mid, kw, expected in cases:
+        purchase = MP(merit_id=mid, **kw)
+        assert validate.merit_points(rs.merits_flaws[mid], purchase, "Solar", "dawn") \
+            == expected, mid
+
+
+# --- trait prerequisites, generalised (2026-07-31) -------------------------- #
+# A prerequisite on a TRAIT rather than on another Merit. `MeritFlaw.prerequisites`
+# holds Merit ids only, so these had nowhere to live and went unchecked. Now catalogue
+# data evaluated generically — which REMOVED Legendary Breeding's id from engine/merits
+# rather than adding one, because a restriction is as inert as a cost.
+
+def test_trait_prerequisites_are_authored_for_the_three_printed_ones(rs):
+    """Every entry whose text gates purchase on a trait, and only those. Sifted from
+    the source chapter: several near-misses are flavour, not gates — Large Size's "MOST
+    characters with this Merit have Strength and Stamina 3 or higher" describes typical
+    holders, and Barbarian's Lore 2 is a consequence of the Flaw, not a gate on it."""
+    authored = {m.id: m.trait_prerequisites for m in rs.merits_flaws.values()
+                if m.trait_prerequisites}
+    assert set(authored) == {"mf.legendary-breeding", "mf.hidden-manse", "mf.innocuous"}
+
+
+def test_a_background_prerequisite_reads_the_highest_instance_held(rs):
+    """Hidden Manse: "Characters must have the Manse Background to purchase this Merit"
+    (p.24). Backgrounds match by name, case-insensitively — a player types those — and
+    on the highest instance, since two Manses is a legal sheet."""
+    def solar_with(*bgs):
+        c = _solar(MP(merit_id="mf.hidden-manse", tier="1"))
+        c.backgrounds = [BackgroundEntry(name=n, rating=r) for n, r in bgs]
+        return c
+    assert _codes(validate.validate_chargen(rs, solar_with()), "merit-trait-required")
+    assert _codes(validate.validate_chargen(rs, solar_with(("Artifact", 3))),
+                  "merit-trait-required")
+    # held, and matched despite the casing
+    assert not _codes(validate.validate_chargen(rs, solar_with(("manse", 1))),
+                      "merit-trait-required")
+    # highest of several instances wins
+    assert not _codes(validate.validate_chargen(rs, solar_with(("Manse", 0), ("Manse", 2))),
+                      "merit-trait-required")
+
+
+def test_a_tier_scoped_prerequisite_applies_to_that_tier_only(rs):
+    """Innocuous is "2- OR 4-PT." and its gate is explicitly on "this version" — the
+    two-point one. The four-point version is a different (Supernatural) Merit in all
+    but name and carries no Appearance requirement."""
+    def innocuous(tier, appearance):
+        c = _solar(MP(merit_id="mf.innocuous", tier=tier))
+        c.attributes[A.APPEARANCE] = appearance
+        return c
+    assert _codes(validate.validate_chargen(rs, innocuous("2", 1)), "merit-trait-required")
+    assert not _codes(validate.validate_chargen(rs, innocuous("2", 2)), "merit-trait-required")
+    # the four-point version is ungated
+    assert not _codes(validate.validate_chargen(rs, innocuous("4", 1)), "merit-trait-required")
+
+
+def test_the_check_needs_no_merit_id(rs):
+    """The architectural point. A trait prerequisite on ANY entry is evaluated by the
+    same code path, so the catalogue can grow one without engine/merits.py changing."""
+    invented = rs.merits_flaws[CALLOUS].model_copy(
+        update={"trait_prerequisites": [TraitPrerequisite(
+            kind="attribute", name="wits", minimum=4)]})
+    c = _solar(MP(merit_id=CALLOUS, tier="2"))
+    c.attributes[A.WITS] = 1
+    patched = rs.model_copy(update={"merits_flaws": dict(rs.merits_flaws, **{CALLOUS: invented})})
+    assert _codes(validate.validate_chargen(patched, c), "merit-trait-required")

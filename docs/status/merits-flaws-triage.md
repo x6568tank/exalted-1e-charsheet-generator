@@ -356,17 +356,23 @@ Brigid's Heir and Prodigy. 1351 tests pass. **Not browser-verified.**
   `merit-barred-splat` issue. A printed restriction is inert like a cost or a
   prerequisite, so it belongs on the model rather than in `engine/merits.py`.
 
-### ⚠ Two rulings needed
+### ✅ Two rulings — BOTH ANSWERED 2026-07-31 (human)
+
+Both were resolved in the human's favour of what shipped, so **no code changed**. Kept
+here as the record of a closed question rather than an open one.
 
 1. **Is Terrestrial Circle Sorcery itself exempt from Brigid's Heir?** The text exempts
    Charms that "include [it] as an ultimate prerequisite or lead directly to that
    Charm" — neither of which is TCS itself. Leaving the one Charm the Merit is *about*
    at double cost while everything either side is exempt reads as a drafting slip, so it
-   is exempt here **by inference**. If the literal reading is wanted it is a one-token
-   change — see the OPEN RULING comment in `merits._terrestrial_sorcery_line`.
-2. **How does an odd spell cost halve?** The page does not say. Rounded DOWN
-   (player-favourable). No printed cost in the build is currently odd, so this has no
-   effect today — it is flagged against future data rather than because it bites now.
+   is exempt here **by inference**.
+   **RULED: keep the inference** — "that's fine for now, but I don't mind." Read as
+   settled-but-reopenable: the human has no strong view, so do not treat it as
+   load-bearing precedent for any other exemption. Reverting is still a one-token change
+   at the OPEN RULING comment in `merits._terrestrial_sorcery_line`.
+2. **How does an odd spell cost halve?** The page does not say. Rounded DOWN.
+   **RULED: player-favourable, i.e. DOWN — as shipped.** No printed cost in the build is
+   currently odd, so this still has no effect today; it is settled against future data.
 
 **Noted, not a bug:** Terrestrial Circle Sorcery is a ROOT Charm in this data — nothing
 is its prerequisite — so the "leads directly to that Charm" clause has no members. The

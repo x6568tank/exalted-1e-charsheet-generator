@@ -472,3 +472,78 @@ allowlist of the eight then known. That is what turned 2 sightings into 8.
   multiply without naming a Merit id.
 * The other 8 variable-cost entries take a plain points field.
 * Mortals may take Prodigy; they are its main audience.
+
+## The last UI gap, and trait prerequisites (2026-07-31)
+
+1,392 tests. **Not browser-verified.**
+
+### The XP tab now collects values the way the editor does
+
+The third of the three UI gaps, and by the end of the day an inconsistency this work had
+itself created: the editor grew proper tier / dots / points / structured-detail controls
+in the morning, leaving the XP tab pricing everything through **one free-text input
+doing double duty** — a tier key for a menu-priced entry, a point value for a
+variable-cost one. Two halves of the app collecting the same rules through different
+widgets is precisely the shape that produced the splat-filter bug.
+
+The controls now live inside the refreshable detail block so they can rebuild per entry,
+and changing the entry clears **every** value that belonged to the old one — side, tier,
+points and detail all mean something entry-specific, and a carried-over value silently
+mis-prices. `test_the_xp_and_chargen_paths_price_a_purchase_identically` pins the two
+paths across every cost SHAPE the catalogue uses, since it was a shape (`cost_by_kind`)
+that the XP path could not see at all until this morning.
+
+### Trait prerequisites are catalogue DATA, and that removed an id
+
+A prerequisite on a TRAIT rather than on another Merit. `MeritFlaw.prerequisites` holds
+Merit ids only, so these had nowhere to live and went unchecked — the Legendary Breeding
+hole the click-through found.
+
+New `MeritFlaw.trait_prerequisites: list[TraitPrerequisite]` (`kind` background/attribute,
+`name`, `minimum`, optional `tier`). **This REMOVED Legendary Breeding's id from
+`engine/merits.py` rather than adding one**: a printed restriction is as inert as a cost,
+so it belongs on the model beside `barred_castes` and `barred_exalt_types`, and the
+evaluation is generic. The catalogue can grow a trait prerequisite on any entry with no
+engine change at all.
+
+Three are authored, and only three — the chapter was swept mechanically and the
+near-misses are flavour rather than gates:
+
+| Entry | Printed | Note |
+|---|---|---|
+| `mf.legendary-breeding` | "must already have Breeding 5" (p.28) | Background ≥ 5 |
+| `mf.hidden-manse` | "must have the Manse Background" (p.24) | Background ≥ 1, both tiers |
+| `mf.innocuous` | "must have Appearance 2 … to purchase **this version**" (p.23) | Attribute ≥ 2, **tier "2" only** — the 4-pt version is a Supernatural Merit in all but name and is ungated |
+
+Rejected as descriptive: Large Size's "**MOST** characters with this Merit have Strength
+and Stamina 3 or higher" (typical holders, not a gate) and Barbarian's "not assumed to be
+literate unless they have Lore 2 or higher" (a consequence of the Flaw, not a gate on
+it). Legendary Attribute, True Paragon, Destiny, Callous, Derangement and Death-Taint all
+match the search but describe caps or effects.
+
+**Reported, never enforced** — the effect still applies, so the sheet stays internally
+consistent and the Storyteller decides. Enforcing would silently change a pool the player
+can see.
+
+**Load-time check** (`rules_db._check_merits_flaws`): a trait prerequisite is looked up by
+NAME at validation time and an unmatched name simply reads 0, so a typo would not error —
+it would make the entry permanently unbuyable. Attributes are a closed enum and are
+checked outright; a `tier` must be one of the entry's own cost options. **Backgrounds are
+deliberately NOT checked**: they are soft references by design, and a character may name
+one the catalogue has never heard of.
+
+### ⚠ Two open rules questions, deliberately unauthored
+
+Both were found in the same sweep and are the human's call — nothing is authored for
+either:
+
+1. **Chimera** (p.38): "True chimerae cannot have the Renown Background." A NEGATIVE
+   prerequisite, which the model cannot currently express — but the harder problem is
+   scope. The preceding sentence distinguishes "actual chimerae — those who have lost
+   themselves to the Wyld" from a Lunar merely holding the Flaw, so it is unclear
+   whether the bar applies to every holder or only to that subset.
+2. **Weak Essence** (p.41): "Other magical beings may take this Flaw, provided that they
+   normally have a starting Essence of 2. Dragon Kings are an exception." A gate on the
+   SPLAT's starting Essence rather than on a character trait, and its named exception is
+   a splat that does not exist yet. Best authored alongside Dragon Kings, with Prodigy's
+   "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" override.

@@ -821,6 +821,31 @@ class BackgroundType(BaseModel):
     excluded_exalt_types: list[str] = Field(default_factory=list)
 
 
+class TraitPrerequisite(BaseModel):
+    """A rating a character must already have before a Merit or Flaw may be purchased.
+
+    `kind` says where to look the trait up: "background" matches a BackgroundEntry by
+    name (case-insensitively, since a player types those), "attribute" an AttributeName
+    value. `minimum` is the rating required, ">=" — the plain reading of "must have
+    Appearance 2 in order to purchase".
+
+    `tier` restricts the requirement to ONE option of a menu-priced entry: Innocuous is
+    "2- OR 4-PT." and its Appearance gate is explicitly on "this version", the two-point
+    one. Empty = the requirement applies however the entry was bought.
+    """
+    kind: str                              # "background" | "attribute"
+    name: str
+    minimum: int = 1
+    tier: str = ""
+
+    @field_validator("kind")
+    @classmethod
+    def _check_kind(cls, v: str) -> str:
+        if v not in ("background", "attribute"):
+            raise ValueError(f"trait prerequisite kind must be background/attribute, got {v!r}")
+        return v
+
+
 class MeritFlaw(BaseModel):
     """One purchasable Merit or Flaw.
 
@@ -900,6 +925,12 @@ class MeritFlaw(BaseModel):
     # Caste ids are unique across splats, so no splat qualifier is needed.
     barred_castes: list[str] = Field(default_factory=list)
     prerequisites: list[str] = Field(default_factory=list)       # other MeritFlaw ids
+    # Printed prerequisites on a TRAIT rather than on another Merit — "Characters must
+    # already have Breeding 5 to purchase this Merit" (p.28). Inert catalogue data, the
+    # same as `barred_castes` and `barred_exalt_types`: engine.merits evaluates them
+    # generically and so needs no Merit id, which is the whole point of putting them
+    # here rather than in a table over there.
+    trait_prerequisites: list["TraitPrerequisite"] = Field(default_factory=list)
     prerequisite_note: str = ""            # printed prereq this build cannot check
     repeatable_by: str = ""                # "" = once only
     # "VARIABLE COST SUPERNATURAL FLAW, THAUMATURGES ONLY" — the Merit is only open to

@@ -112,7 +112,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                           type="warning")
                 return
         kw = dict(tier=state.get("tier", ""), taken_as=state.get("taken_as", ""),
-                  points=state.get("points", 0))
+                  points=state.get("points", 0), detail=state.get("detail", ""))
         if side == "flaw":
             _do(lambda: advancement.gain_flaw(rs, character, mid, **kw))
         else:
@@ -251,7 +251,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.label(f"⚠ {debt} XP owed — all further experience clears "
                                  f"this first.").classes("text-xs font-semibold text-amber-700")
                     # --- gain --------------------------------------------- #
-                    gain_state = {"id": "", "tier": "", "points": 0, "taken_as": ""}
+                    gain_state = {"id": "", "tier": "", "points": 0, "taken_as": "",
+                                  "detail": ""}
                     opts = {m.id: f"{m.name} {m.cost_note or ''}".strip()
                             for m in sorted(rs.merits_flaws.values(), key=lambda m: m.name)
                             if validate.merit_available_to(m, character.exalt_type,
@@ -260,17 +261,14 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                         # NB: not named `sel` — `panel()` already binds that for the
                         # raise-a-trait selectors, and shadowing it makes the whole
                         # function treat the outer one as unassigned.
-                        # Changing the entry clears the side: a choice made for the
-                        # previous one says nothing about this one.
+                        # Changing the entry clears EVERY value that belonged to the
+                        # old one — side, tier, points and detail all mean something
+                        # entry-specific, and a carried-over value silently mis-prices.
                         ui.select(opts, label="Merit / Flaw", with_input=True,
                                   on_change=lambda e: _mf_changed(
-                                      gain_state, id=e.value or "", taken_as="")
+                                      gain_state, id=e.value or "", taken_as="",
+                                      tier="", points=0, detail="")
                                   ).classes("flex-1").props("dense")
-                        ui.input(label="tier / points",
-                                 on_change=lambda e: _mf_changed(
-                                     gain_state, tier=e.value or "",
-                                     points=int(e.value) if (e.value or "").isdigit() else 0)
-                                 ).classes("w-32").props("dense")
                         ui.button("Gain", on_click=lambda: _gain_mf(gain_state)).props(
                             f"dense color={pal.button}")
 
@@ -312,10 +310,53 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                                       on_change=lambda e: _mf_changed(
                                           gain_state, taken_as=e.value or "")
                                       ).classes("w-40").props("dense")
+                        # The value controls, entry-aware — the same set the editor
+                        # offers at chargen. This was ONE free-text box doing double
+                        # duty (a tier key for a menu-priced entry, a point value for a
+                        # variable-cost one), which meant the two halves of the app
+                        # collected the same rules through very different widgets: the
+                        # shape that produced the splat-filter bug. They live inside
+                        # this refreshable so they can rebuild when the entry changes.
+                        with ui.row().classes("w-full items-center gap-2 flex-wrap"):
+                            if definition.cost_options:
+                                ui.select({t: f"{t.title()} ({v})"
+                                           for t, v in definition.cost_options.items()},
+                                          value=gain_state.get("tier") or None,
+                                          label="Oath" if meritsmod.uses_arena(definition) else "Points",
+                                          on_change=lambda e: _mf_changed(
+                                              gain_state, tier=e.value or "")
+                                          ).classes("w-40").props("dense")
+                            elif definition.variable_cost:
+                                rate = meritsmod.forfeit_rate(definition)
+                                if rate:
+                                    # Dots in, points stored — the editor's rule, and
+                                    # the human's (2026-07-31): the dots are what a
+                                    # player chooses and the payout follows.
+                                    ui.number(value=gain_state.get("points", 0) // rate,
+                                              min=0, max=20, format="%d",
+                                              label=f"{meritsmod.forfeit_trait_label(definition)} dots",
+                                              on_change=lambda e, r=rate: _mf_changed(
+                                                  gain_state, points=int(e.value or 0) * r)
+                                              ).classes("w-36").props("dense")
+                                else:
+                                    ui.number(value=gain_state.get("points", 0),
+                                              min=0, max=20, format="%d", label="Points",
+                                              on_change=lambda e: _mf_changed(
+                                                  gain_state, points=int(e.value or 0))
+                                              ).classes("w-28").props("dense")
+                            choices = meritsmod.detail_choices(definition)
+                            if choices:
+                                ui.select({c: c for c in choices},
+                                          value=gain_state.get("detail") or None,
+                                          label="Applies to",
+                                          on_change=lambda e: _mf_changed(
+                                              gain_state, detail=e.value or "")
+                                          ).classes("w-40").props("dense")
                         price = validate.merit_points(
                             definition, MeritFlawPurchase(
                                 merit_id=definition.id, tier=gain_state.get("tier", ""),
-                                points=gain_state.get("points", 0), taken_as=chosen),
+                                points=gain_state.get("points", 0), taken_as=chosen,
+                                detail=gain_state.get("detail", "")),
                             character.exalt_type, character.caste)
                         xp_cost = price * rs.xp_costs_for(
                             character.exalt_type).new_merit_bp_multiplier

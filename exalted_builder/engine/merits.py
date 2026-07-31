@@ -146,11 +146,12 @@ BEACON_OF_POWER = "mf.beacon-of-power"
 # data/exalts.json like every other Breeding rating's do. Requires Breeding 5 to buy,
 # which is a trait prerequisite and not yet checked anywhere (see the triage doc).
 LEGENDARY_BREEDING_RATING = 6
-# "requires the Breeding 5 Background" (p.28). A TRAIT prerequisite, not a Merit one —
-# `MeritFlaw.prerequisites` only holds other Merit ids — so it is checked here. Until
-# 2026-07-31 nothing checked it at all, and the Merit paid its full rating-6 row to a
-# character with no Breeding Background whatsoever, which an Outcaste typically is.
-LEGENDARY_BREEDING_REQUIRES = 5
+# Its "Characters must already have Breeding 5 to purchase this Merit" (p.28) is a TRAIT
+# prerequisite, which `MeritFlaw.prerequisites` cannot express — that holds Merit ids
+# only. It now lives in the catalogue as `MeritFlaw.trait_prerequisites` and is
+# evaluated generically, so no constant is needed here and this module learns nothing
+# about it. Until 2026-07-31 nothing checked it at all and the Merit paid its full
+# rating-6 row to a character with no Breeding whatsoever — an Outcaste, typically.
 
 
 @dataclass(frozen=True)
@@ -459,6 +460,24 @@ def detail_choices(definition) -> tuple[str, ...]:
     return ()
 
 
+def _trait_rating(character: Character, req) -> int:
+    """The character's current rating in the trait a prerequisite names.
+
+    Backgrounds match by NAME, case-insensitively and on the highest instance held: a
+    player types those, and the same Background may legitimately appear twice (two
+    Manses). An Attribute matches its `AttributeName.value`. An unknown trait reads 0,
+    so a mis-authored prerequisite reports rather than silently passing.
+    """
+    if req.kind == "background":
+        return max((b.rating for b in character.backgrounds
+                    if b.name.strip().casefold() == req.name.strip().casefold()),
+                   default=0)
+    for attr, rating in character.attributes.items():
+        if attr.value == req.name.strip().casefold():
+            return rating
+    return 0
+
+
 def _forfeited_dots(ruleset: RuleSet, character: Character) -> dict[str, int]:
     """{merit_id: dots given up} for each trait-forfeit Flaw the character holds.
 
@@ -562,6 +581,18 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
     breeding_override: int | None = None
     single_pool = False
     for definition, purchase in _held(ruleset, character):
+        # Printed TRAIT prerequisites, evaluated from catalogue data so this needs no
+        # Merit id at all — the check is the same shape for every entry that grows one.
+        # REPORTED, never enforced: the effect still applies, so the sheet stays
+        # internally consistent and the Storyteller decides what to do about it.
+        for req in definition.trait_prerequisites:
+            if req.tier and req.tier != purchase.tier:
+                continue                       # gate is on one option of the menu only
+            held_rating = _trait_rating(character, req)
+            if held_rating < req.minimum:
+                trait_unmet.append(
+                    f"{definition.name} requires {req.name.title()} {req.minimum}; "
+                    f"this character has {held_rating}")
         if definition.id == LEGENDARY_ATTRIBUTE:
             # "a rating one dot higher than the normal limit imposed by their Essence
             # allows ... for mortals and Exalted with Essence 1 to 5, this allows a
@@ -603,17 +634,6 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
             # rating is a ceiling on ancestry, not something that accumulates.
             breeding_override = max(breeding_override or 0, LEGENDARY_BREEDING_RATING)
             effects_from.add(definition.id)
-            # The Background this Merit upgrades must already be at its printed
-            # minimum. Reported, not enforced: the override still applies, so the
-            # sheet stays internally consistent and the ST decides.
-            bg_name = exalt.essence.breeding_background
-            held_rating = max((b.rating for b in character.backgrounds
-                               if bg_name and b.name.strip().casefold()
-                               == bg_name.casefold()), default=0)
-            if held_rating < LEGENDARY_BREEDING_REQUIRES:
-                trait_unmet.append(
-                    f"{definition.name} requires {bg_name or 'Breeding'} "
-                    f"{LEGENDARY_BREEDING_REQUIRES}; this character has {held_rating}")
         elif definition.id == BEACON_OF_POWER:
             single_pool = True
             effects_from.add(definition.id)
@@ -726,11 +746,13 @@ def _terrestrial_sorcery_line(ruleset: RuleSet, character: Character) -> frozens
       * everything with it in the transitive prerequisite closure — the Charms that
         "include it as an ultimate prerequisite".
 
-    ⚠ OPEN RULING: the printed text names only the second and third groups, so the
-    initiating Charm itself is exempt here by inference — leaving the one Charm the
-    Merit is *about* at double cost while everything either side of it is exempt reads
-    as a drafting slip rather than intent. Flagged for the rules authority; if the
-    literal reading is wanted, drop `{tcs_id}` from the union below.
+    RULED 2026-07-31 (human, rules authority): the printed text names only the second
+    and third groups, so the initiating Charm itself is exempt here BY INFERENCE —
+    leaving the one Charm the Merit is *about* at double cost while everything either
+    side of it is exempt reads as a drafting slip rather than intent. The human kept
+    the inference but holds it lightly ("fine for now, but I don't mind"), so do NOT
+    cite it as precedent for any other exemption. Reverting to the literal reading is
+    still one token: drop `{tcs_id}` from the union below.
     """
     key = (id(ruleset), character.exalt_type)
     cached = _BRIGID_EXEMPT_CACHE.get(key)
@@ -746,7 +768,7 @@ def _terrestrial_sorcery_line(ruleset: RuleSet, character: Character) -> frozens
     tcs_ids = {cid for cid, charm in ruleset.charms.items()
                if charm.grants_circle == SpellCircle.TERRESTRIAL}
     for tcs_id in tcs_ids:
-        exempt.add(tcs_id)                                  # see the OPEN RULING above
+        exempt.add(tcs_id)                                  # by inference — see above
         tcs = ruleset.charms[tcs_id]
         for group in tcs.prerequisites:                     # AND-of-OR: flatten
             exempt.update(group)

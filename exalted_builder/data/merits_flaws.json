@@ -531,7 +531,15 @@
     "source": {
       "book": "Exalted 1e Player's Guide",
       "page": 22
-    }
+    },
+    "trait_prerequisites": [
+      {
+        "kind": "attribute",
+        "name": "appearance",
+        "minimum": 2,
+        "tier": "2"
+      }
+    ]
   },
   {
     "id": "mf.favor",
@@ -573,7 +581,14 @@
     "source": {
       "book": "Exalted 1e Player's Guide",
       "page": 23
-    }
+    },
+    "trait_prerequisites": [
+      {
+        "kind": "background",
+        "name": "Manse",
+        "minimum": 1
+      }
+    ]
   },
   {
     "id": "mf.heir-apparent",
@@ -796,7 +811,14 @@
     "source": {
       "book": "Exalted 1e Player's Guide",
       "page": 28
-    }
+    },
+    "trait_prerequisites": [
+      {
+        "kind": "background",
+        "name": "Breeding",
+        "minimum": 5
+      }
+    ]
   },
   {
     "id": "mf.prescient-dreamer",
