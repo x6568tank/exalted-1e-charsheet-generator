@@ -209,7 +209,9 @@ def willpower(character: Character, ruleset: Optional[RuleSet] = None) -> int:
 
     Pre-lock the Virtue component tracks the current two highest Virtues; once
     chargen is locked it is the frozen `wp_virtue_component`, so raising a Virtue
-    afterward does not raise Willpower.
+    afterward does not raise Willpower — EXCEPT for Callous, the one sanctioned
+    exception to decision 0005, whose Virtue component keeps tracking (and therefore
+    needs `ruleset` to be seen at all).
 
     `ruleset` is optional and only ever subtracts: the Weak-Willed Flaw sells permanent
     Willpower dots for bonus points, and without a RuleSet there is no way to know a
@@ -218,11 +220,19 @@ def willpower(character: Character, ruleset: Optional[RuleSet] = None) -> int:
     the Exalted, 2 otherwise) are validated at chargen rather than clamped here, so a
     sheet below them reports rather than silently corrects.
     """
-    total = wp_virtue_component(character) + character.willpower_purchased
+    virtue_part = wp_virtue_component(character)
+    forfeited = 0
     if ruleset is not None:
         from . import merits
-        total -= merits.merits_and_flaws_calc(ruleset, character).forfeited_willpower_dots
-    return max(0, total)
+        effects = merits.merits_and_flaws_calc(ruleset, character)
+        forfeited = effects.forfeited_willpower_dots
+        # Callous is the one sanctioned exception to decision 0005: its Willpower keeps
+        # following the Virtues after the lock rather than holding the frozen component.
+        # Without a RuleSet there is no way to know the Flaw is held, so a caller that
+        # omits it silently gets the pinned value — pass one.
+        if effects.willpower_tracks_virtues:
+            virtue_part = two_highest_virtues(character.virtues)
+    return max(0, virtue_part + character.willpower_purchased - forfeited)
 
 
 def wp_virtue_component(character: Character) -> int:

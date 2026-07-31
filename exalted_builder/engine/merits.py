@@ -287,6 +287,13 @@ class MeritEffects:
     # that Willpower moves with the Virtues for a Callous character and stays pinned
     # for everybody else.
     willpower_virtue_margin: int | None = None
+    # Whether permanent Willpower's Virtue component keeps TRACKING the current Virtues
+    # after the lock instead of being the frozen `wp_virtue_component`. True only for
+    # Callous, and it is the other half of the ruling above: the margin field alone is
+    # a chargen ceiling, which does nothing post-lock, so raising a Virtue on a Callous
+    # character left Willpower where it was (found in the 2026-07-31 click-through).
+    # Decision 0005 still governs everybody else.
+    willpower_tracks_virtues: bool = False
     # A floor under starting permanent Willpower — Weak-Willed's "may not begin with a
     # Willpower rating lower than 4" for the Exalted, 2 for the un-Exalted or Callous.
     # 0 = no floor imposed by any held Flaw.
@@ -381,6 +388,53 @@ def flaw_points(ruleset: RuleSet, character: Character) -> int:
         total += merit_points(definition, purchase, character.exalt_type,
                               character.caste)
     return total
+
+
+def forfeit_rate(definition) -> int | None:
+    """Bonus points this entry pays per dot given up, or None if it is not a
+    trait-forfeit Flaw at all.
+
+    The ONE thing a caller outside this module may ask about the forfeit Flaws, and it
+    exists so the editor can collect DOTS rather than points: the human ruled
+    2026-07-31 that the dots are what a player chooses and the payout follows, which is
+    also how the page phrases it ("three points for every Physical Attribute dot").
+    Returning the rate rather than a set of ids keeps decision 0011 intact — the caller
+    still never learns which Merit it is holding, only that this one converts.
+
+    `dots x forfeit_rate(d)` is what belongs in `MeritFlawPurchase.points`; the engine
+    reads points and divides back, so nothing downstream changes.
+    """
+    return _FORFEIT_RATES.get(definition.id)
+
+
+def forfeit_trait_label(definition) -> str:
+    """What a dot of this forfeit BUYS BACK, for the editor's field label. Empty for
+    anything that is not a forfeit Flaw. Kept beside the rate so the two cannot drift,
+    and phrased as the trait rather than the Flaw so no id leaks into the UI."""
+    return {DIMINISHED_ATTRIBUTES: "Attribute", CALLOUS: "Virtue",
+            UNSKILLED: "Ability", WEAK_WILLED: "Willpower"}.get(definition.id, "")
+
+
+def uses_arena(definition) -> bool:
+    """Whether `MeritFlawPurchase.arena` means anything for this entry. True only for
+    Oathbound Magic, whose same-arena stacking rule (p.122) is the only thing that
+    reads it — the editor was showing an "arena (combat, food…)" box beside EVERY
+    menu-priced entry, Callous and Large Size included, where it does nothing."""
+    return definition.id == OATHBOUND_MAGIC
+
+
+def forfeit_categories(definition) -> tuple[str, ...]:
+    """The Attribute categories this forfeit may be taken from, or () if the choice
+    does not arise. Only Diminished Attributes has one: the page prints three versions
+    of the one Flaw, the Mental and Social variants being "considered Mental and Social
+    Flaws rather than falling into the Physical category" (p.36).
+
+    `_attribute_forfeits` reads that choice off `MeritFlawPurchase.detail`, so this is
+    what lets the editor offer a dropdown instead of free text — where a typo silently
+    became a fourth category and a default of Physical.
+    """
+    return (("Physical", "Mental", "Social")
+            if definition.id == DIMINISHED_ATTRIBUTES else ())
 
 
 def _forfeited_dots(ruleset: RuleSet, character: Character) -> dict[str, int]:
@@ -584,6 +638,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         forfeited_willpower_dots=forfeits.get(WEAK_WILLED, 0),
         forfeited_attribute_dots=_attribute_forfeits(ruleset, character),
         willpower_virtue_margin=CALLOUS_WILLPOWER_MARGIN if callous_active else None,
+        willpower_tracks_virtues=callous_active,
         willpower_floor=willpower_floor,
         barred_natures=frozenset({PARAGON_NATURE}) if callous_active else frozenset(),
         granted_merits=granted_merits,

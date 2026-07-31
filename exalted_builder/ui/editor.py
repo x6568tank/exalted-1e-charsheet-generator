@@ -240,8 +240,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # sells free dots for bonus points, and the tally must count against what the
         # engine actually charges or the sheet contradicts its own validation.
         b = validate.effective_budgets(ruleset, character)
-        spent = (sum(v for a, v in character.abilities.items() if a != AbilityName.CRAFT)
-                 + sum(cr.rating for cr in character.crafts))
+        # Only dots WITHIN the pre-bonus cap draw on the free pool. A dot above it is
+        # bought with bonus points and never consumes one of the 25 (human's ruling,
+        # 2026-07-31), which is exactly how the engine already prices them — see the
+        # `within_by_tier` / `above_by_tier` split in validate.bonus_point_breakdown.
+        # Summing raw ratings here made a character with one Ability at 4 read 25/25
+        # while the engine still had a free dot unspent.
+        cap = b.ability_cap_pre_bp
+        spent = (sum(min(v, cap) for a, v in character.abilities.items()
+                     if a != AbilityName.CRAFT)
+                 + sum(min(cr.rating, cap) for cr in character.crafts))
         over = spent > b.ability_dots
         ui.label(f"{spent} / {b.ability_dots} dots spent").classes(
             "text-xs font-semibold").style(
@@ -393,7 +401,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.select(_opts_with(nature_names, character.nature), label="Nature",
                                   value=character.nature or None,
                                   with_input=True, new_value_mode="add-unique",
-                                  on_change=lambda e: setattr(character, "nature", e.value or "")).classes(_field)
+                                  on_change=lambda e: (setattr(character, "nature", e.value or ""),
+                                                       changed())).classes(_field)
                         ui.input("Anima", value=character.anima,
                                  on_change=lambda e: setattr(character, "anima", e.value)).classes(_field)
                     # Favored ABILITIES (most splats) or Favored ATTRIBUTES (Alchemical,
@@ -485,7 +494,13 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         spent_label = ui.label().classes("text-xs font-semibold")
 
                         def show_spent(label=spent_label, members=members, category=category):
-                            spent = sum(character.attributes[a] - 1 for a in members)
+                            # Every Attribute starts at one free dot — UNLESS a Flaw
+                            # caps it below that (Disfigured can put Appearance at 0),
+                            # in which case there is no free dot to discount and the
+                            # baseline is the cap. Subtracting a flat 1 made a legal
+                            # Social row read "−1 spent".
+                            spent = sum(character.attributes[a] - min(1, _attr_cap(a))
+                                        for a in members)
                             label.set_text(f"{category} — {spent} spent")
 
                         show_spent()
@@ -637,25 +652,67 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                           setattr(mp, "taken_as", e.value or ""),
                                           body.refresh(), changed())
                                       ).classes("w-32").props("dense")
-                        # Tier only for a variable-cost entry (Oathbound Magic).
+                        # A menu-priced entry picks its printed tier. Labelled by what
+                        # the menu MEANS, not "Oath" — 36 entries price by menu and
+                        # only one of them is an oath.
                         if definition is not None and definition.cost_options:
                             ui.select({t: f"{t.title()} ({v})"
                                        for t, v in definition.cost_options.items()},
-                                      value=mp.tier or None, label="Oath",
+                                      value=mp.tier or None,
+                                      label="Oath" if merits.uses_arena(definition) else "Points",
                                       on_change=lambda e, mp=mp: (setattr(mp, "tier", e.value or ""),
                                                                   body.refresh(), changed())
                                       ).classes("w-40").props("dense")
                             # Arena drives the same-arena stacking reduction (p.122);
                             # free text, because the page's list is examples, not a set.
-                            ui.input(value=mp.arena, placeholder="arena (combat, food…)",
-                                     on_change=lambda e, mp=mp: (setattr(mp, "arena", e.value),
-                                                                 body.refresh(), changed())
-                                     ).classes("w-40").props("dense")
-                        ui.input(value=mp.detail,
-                                 placeholder=(definition.repeatable_by if definition
-                                              and definition.repeatable_by else "note"),
-                                 on_change=lambda e, mp=mp: (setattr(mp, "detail", e.value),
-                                                             changed())).classes("flex-1").props("dense")
+                            # Only for the entry that HAS that rule.
+                            if merits.uses_arena(definition):
+                                ui.input(value=mp.arena, placeholder="arena (combat, food…)",
+                                         on_change=lambda e, mp=mp: (setattr(mp, "arena", e.value),
+                                                                     body.refresh(), changed())
+                                         ).classes("w-40").props("dense")
+                        # A variable-cost entry's value lives on the PURCHASE — the page
+                        # leaves it to the table. Without this field it stayed 0, which
+                        # made all 11 of them inert at chargen: no bonus points, no
+                        # effect. Three of the four trait-forfeit Flaws are in that set,
+                        # which is why Diminished Attributes appeared to do nothing.
+                        elif definition is not None and definition.variable_cost:
+                            rate = merits.forfeit_rate(definition)
+                            if rate:
+                                # Collect DOTS and multiply, rather than collecting
+                                # points and flooring back: the dots are what the player
+                                # chooses ("three points for every Physical Attribute
+                                # dot"), and entering points directly can silently lose
+                                # a remainder. Human's ruling, 2026-07-31.
+                                cats = merits.forfeit_categories(definition)
+                                if cats:
+                                    ui.select({c: c for c in cats},
+                                              value=(mp.detail or cats[0]), label="From",
+                                              on_change=lambda e, mp=mp: (
+                                                  setattr(mp, "detail", e.value or ""),
+                                                  body.refresh(), changed())
+                                              ).classes("w-32").props("dense")
+                                ui.number(value=mp.points // rate, min=0, max=20, format="%d",
+                                          label=f"{merits.forfeit_trait_label(definition)} dots",
+                                          on_change=lambda e, mp=mp, r=rate: (
+                                              setattr(mp, "points", int(e.value or 0) * r),
+                                              body.refresh(), changed())
+                                          ).classes("w-32").props("dense")
+                            else:
+                                ui.number(value=mp.points, min=0, max=20, format="%d",
+                                          label="Points",
+                                          on_change=lambda e, mp=mp: (
+                                              setattr(mp, "points", int(e.value or 0)),
+                                              body.refresh(), changed())
+                                          ).classes("w-28").props("dense")
+                        # The category dropdown above already IS the detail for a
+                        # categorised forfeit; a second free-text box would fight it.
+                        if definition is None or not merits.forfeit_categories(definition):
+                            ui.input(value=mp.detail,
+                                     placeholder=(definition.repeatable_by if definition
+                                                  and definition.repeatable_by else "note"),
+                                     on_change=lambda e, mp=mp: (setattr(mp, "detail", e.value),
+                                                                 changed())).classes("flex-1").props("dense")
                         ui.button(icon="delete",
                                   on_click=lambda e=None, idx=idx: remove_merit(idx)
                                   ).props("flat dense round")

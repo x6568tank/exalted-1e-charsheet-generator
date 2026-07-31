@@ -1657,3 +1657,163 @@ async def test_xp_tab_asks_for_a_side_before_gaining_a_two_sided_entry(user) -> 
     await user.open('/mf-side-xp')
     await user.should_see("Merits & Flaws")
     await user.should_see("Gain")
+
+
+# --- 2026-07-31 browser click-through: three bugs 1,370 tests missed --------- #
+# All three are the same species — a rule that WAS implemented, in a place that does
+# not run when it matters. None was catchable by the existing suite, which is why the
+# click-through earned its keep for the second time.
+
+def test_callous_willpower_keeps_tracking_the_virtues_after_the_lock(rs):
+    """THE A1 headline claim, and it did not work. `willpower_virtue_margin` was only
+    ever read as a CHARGEN CEILING in validate, which does nothing post-lock, so
+    raising a Virtue on a locked Callous character left Willpower on the frozen
+    component — decision 0005's normal behaviour, i.e. the exception was absent."""
+    c = _solar(MP(merit_id=CALLOUS, tier="4"))
+    c.virtues = {v: 1 for v in V}          # 4 dots — well under the 9 that expire it
+    lifecycle.lock_chargen(c)
+    before = derive.willpower(c, rs)
+    c.virtues[V.COMPASSION] = 3            # 6 dots: still Callous
+    assert derive.willpower(c, rs) == before + 2, "Callous Willpower must follow the Virtues"
+
+
+def test_everyone_else_stays_pinned_at_the_lock(rs):
+    """Decision 0005 still governs every character without the Flaw — the exception
+    must not have leaked into the general path."""
+    c = _solar()
+    c.virtues = {v: 1 for v in V}
+    lifecycle.lock_chargen(c)
+    before = derive.willpower(c, rs)
+    c.virtues[V.COMPASSION] = 3
+    assert derive.willpower(c, rs) == before
+
+
+def test_willpower_without_a_ruleset_cannot_see_the_exception(rs):
+    """The optional-`ruleset` shape means a caller that omits it gets the pinned
+    value. Recorded rather than fixed: it is the documented cost of that shape, and
+    the reason every caller should pass one."""
+    c = _solar(MP(merit_id=CALLOUS, tier="4"))
+    c.virtues = {v: 1 for v in V}
+    lifecycle.lock_chargen(c)
+    c.virtues[V.COMPASSION] = 3
+    assert derive.willpower(c) < derive.willpower(c, rs)
+
+
+def test_an_attribute_capped_below_one_has_no_free_starting_dot(rs):
+    """Disfigured at 4 points caps Appearance at 0. The editor's per-category tally
+    discounted a flat one free dot per Attribute, so a legal Social row of
+    Appearance 0 / Manipulation 1 / Charisma 1 read "−1 spent"."""
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=DISFIGURED, tier="4")))
+    assert e.attribute_caps.get("appearance") == 0
+    # the baseline the UI now uses: min(1, cap) per Attribute, never a flat 1
+    caps = [e.attribute_caps.get(n, merits.DOT_MAX) for n in
+            ("appearance", "manipulation", "charisma")]
+    ratings = [0, 1, 1]
+    assert sum(r - min(1, c) for r, c in zip(ratings, caps)) == 0
+
+
+def test_ability_dots_above_the_cap_do_not_consume_the_free_pool(rs):
+    """The human's ruling 2026-07-31: dots above the pre-bonus cap are BP-only and
+    never draw on the 25. The ENGINE always had this right — the editor's tally was
+    summing raw ratings, so one Ability at 4 read 25/25 with a free dot still unspent.
+    Pinned here against the engine so the two cannot drift apart again."""
+    c = _solar()
+    names = [a for a in AbilityName if a != AbilityName.CRAFT]
+    c.abilities = {a: 0 for a in names}
+    for a in names[:7]:
+        c.abilities[a] = 3                       # 21 dots, all within the cap
+    c.abilities[names[7]] = 4                    # 25 raw, but only 24 within
+    b = validate.effective_budgets(rs, c)
+    within = sum(min(v, b.ability_cap_pre_bp) for v in c.abilities.values())
+    assert sum(c.abilities.values()) == 25 and within == 24
+    # the 25th free dot is still available, and the above-cap dot was charged instead
+    bd = validate.bonus_point_breakdown(rs, c)
+    assert next(l.points for l in bd.lines if l.domain == "Abilities") > 0
+
+
+def test_willpower_re_pins_when_callous_expires(rs):
+    """"automatically loses this Flaw at no cost" at 9 dots of Virtues (p.35). Once it
+    is gone the character is an ordinary decision-0005 case again, so Willpower stops
+    following the Virtues and falls back to the frozen component. Found while writing
+    the test above, which raised a Virtue hard enough to expire the Flaw mid-assertion."""
+    c = _solar(MP(merit_id=CALLOUS, tier="4"))
+    c.virtues = {v: 1 for v in V}
+    lifecycle.lock_chargen(c)
+    pinned = c.wp_virtue_component
+    c.virtues[V.COMPASSION] = 3                       # 6 dots: still tracking
+    assert derive.willpower(c, rs) != pinned
+    for v in V:
+        c.virtues[v] = 3                              # 12 dots: Flaw expires
+    assert not merits.merits_and_flaws_calc(rs, c).willpower_tracks_virtues
+    assert derive.willpower(c, rs) == pinned
+
+
+# --- variable-cost entries were inert at chargen (2026-07-31 click-through) --- #
+# The editor had NO handling of `variable_cost` at all, so `MeritFlawPurchase.points`
+# stayed 0 for all 11 such entries: no bonus points granted, no effect computed. Three
+# of the four trait-forfeit Flaws are variable-cost, which is why Diminished Attributes
+# "did nothing" while Callous — the one with a printed tier menu — worked.
+
+DIMINISHED = "mf.diminished-attributes"
+
+
+def test_every_variable_cost_entry_is_inert_at_zero_points(rs):
+    """The precondition that made this invisible: with no points recorded, a
+    variable-cost entry is legal, costless and effectless. Nothing was ever going to
+    fail — it just quietly did nothing."""
+    variable = [m for m in rs.merits_flaws.values() if m.variable_cost]
+    assert len(variable) == 11
+    for m in variable:
+        c = _solar(MP(merit_id=m.id))
+        assert validate.merit_points(m, c.merits_flaws[0], "Solar", "dawn") == 0
+
+
+def test_the_forfeit_rate_accessor_converts_dots_to_points(rs):
+    """The editor collects DOTS and multiplies (human's ruling 2026-07-31). This is the
+    accessor that lets it do so without naming a Merit id — decision 0011 holds."""
+    assert merits.forfeit_rate(rs.merits_flaws[DIMINISHED]) == 3
+    assert merits.forfeit_rate(rs.merits_flaws[CALLOUS]) == 2
+    assert merits.forfeit_rate(rs.merits_flaws["mf.unskilled"]) == 1
+    assert merits.forfeit_rate(rs.merits_flaws["mf.large-size"]) is None
+    assert merits.forfeit_trait_label(rs.merits_flaws[DIMINISHED]) == "Attribute"
+
+
+def test_diminished_attributes_shrinks_the_pool_its_category_received(rs):
+    """The bug as reported: 8 dots into Physical with the Flaw held produced no
+    shortfall, no over-spend and an unchanged 8/6/4. With dots recorded, the pool the
+    Physical category is matched to drops by the forfeit."""
+    rate = merits.forfeit_rate(rs.merits_flaws[DIMINISHED])
+    c = _solar(MP(merit_id=DIMINISHED, detail="Physical", points=2 * rate))
+    c.attributes = {a: 1 for a in A}
+    c.attributes[A.STRENGTH] = 4
+    c.attributes[A.DEXTERITY] = 4
+    c.attributes[A.STAMINA] = 3                      # 8 spent into Physical
+    c.attributes[A.CHARISMA] = 3
+    c.attributes[A.MANIPULATION] = 3
+    c.attributes[A.APPEARANCE] = 3                   # 6
+    c.attributes[A.PERCEPTION] = 3
+    c.attributes[A.INTELLIGENCE] = 2
+    c.attributes[A.WITS] = 2                         # 4
+    e = merits.merits_and_flaws_calc(rs, c)
+    assert e.forfeited_attribute_dots == {"Physical": 2}
+    assert e.bonus_point_grant == 6                  # 3 per dot
+    b = validate.effective_budgets(rs, c)
+    assignment = validate.attribute_pool_assignment(rs, c, b, c.attributes)
+    physical = next(row for row in assignment if row[0] == "Physical")
+    assert physical == ("Physical", 8, 6), "the forfeit must come off the matched pool"
+
+
+def test_the_category_is_a_closed_set_not_free_text(rs):
+    """`_attribute_forfeits` title-cases `detail` and defaults to Physical, so a typo
+    silently became a fourth category. The editor now offers only these three."""
+    assert merits.forfeit_categories(rs.merits_flaws[DIMINISHED]) == (
+        "Physical", "Mental", "Social")
+    assert merits.forfeit_categories(rs.merits_flaws[CALLOUS]) == ()
+
+
+def test_arena_belongs_only_to_the_entry_with_the_stacking_rule(rs):
+    """The editor showed an arena box beside every menu-priced entry — Callous and
+    Large Size included — where nothing reads it."""
+    assert merits.uses_arena(rs.merits_flaws[OATH])
+    assert not merits.uses_arena(rs.merits_flaws[CALLOUS])
+    assert not merits.uses_arena(rs.merits_flaws["mf.large-size"])
