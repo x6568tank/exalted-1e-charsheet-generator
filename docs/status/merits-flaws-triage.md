@@ -210,7 +210,7 @@ Bit by bit, per ruling 4. Each cluster is self-contained; do not batch them.
 ## A1 — COMPLETE 2026-07-30 (all four)
 
 Callous, Unskilled, Weak-Willed and Diminished Attributes, engine and chargen UI.
-1304 tests pass (was 1285). **Not browser-verified.**
+1304 tests pass (was 1285). **Browser-verified 2026-07-31** (the thorough pass — 13 findings, 10 real bugs; `merits-flaws.md`).
 
 * `MeritEffects` gained `forfeited_ability_dots`, `forfeited_virtue_dots`,
   `forfeited_willpower_dots`, `forfeited_attribute_dots`, `willpower_virtue_margin`,
@@ -241,7 +241,7 @@ Callous, Unskilled, Weak-Willed and Diminished Attributes, engine and chargen UI
 
 ## A2 — COMPLETE 2026-07-30 (health levels)
 
-Large Size and Small. 1315 tests pass. **Not browser-verified.**
+Large Size and Small. 1315 tests pass. **Browser-verified 2026-07-31** (the thorough pass — 13 findings, 10 real bugs; `merits-flaws.md`).
 
 * `MeritEffects` gained `health_levels_granted` (as `(penalty, source label)` pairs, so
   the sheet attributes a Merit level exactly as it does an Ox-Body one) and
@@ -260,7 +260,7 @@ Large Size and Small. 1315 tests pass. **Not browser-verified.**
 ## A3 — COMPLETE 2026-07-30 (trait caps)
 
 Legendary Attribute, True Paragon, Disfigured, Weak Essence. 1333 tests pass.
-**Not browser-verified.** The first cluster to span the chargen/advancement boundary.
+**Browser-verified 2026-07-31** (the thorough pass — 13 findings, 10 real bugs; `merits-flaws.md`). The first cluster to span the chargen/advancement boundary.
 
 * `MeritEffects` gained `attribute_caps` (keyed by `AttributeName.value`, which is
   **lowercase** — a normalisation bug caught by tests), `virtue_cap`,
@@ -335,7 +335,7 @@ Charm learned afterwards as a chargen pick and silently eat its own credits.
 
 ## A4 — COMPLETE 2026-07-30 (point-cost modifiers), with two open rulings
 
-Brigid's Heir and Prodigy. 1351 tests pass. **Not browser-verified.**
+Brigid's Heir and Prodigy. 1351 tests pass. **Browser-verified 2026-07-31** (the thorough pass — 13 findings, 10 real bugs; `merits-flaws.md`).
 
 * `MeritEffects` gained `charm_cost_doubled`, `spell_cost_halved` and
   `extra_favored_abilities`.
@@ -357,17 +357,23 @@ Brigid's Heir and Prodigy. 1351 tests pass. **Not browser-verified.**
   `merit-barred-splat` issue. A printed restriction is inert like a cost or a
   prerequisite, so it belongs on the model rather than in `engine/merits.py`.
 
-### ⚠ Two rulings needed
+### ✅ Two rulings — BOTH ANSWERED 2026-07-31 (human)
+
+Both were resolved in the human's favour of what shipped, so **no code changed**. Kept
+here as the record of a closed question rather than an open one.
 
 1. **Is Terrestrial Circle Sorcery itself exempt from Brigid's Heir?** The text exempts
    Charms that "include [it] as an ultimate prerequisite or lead directly to that
    Charm" — neither of which is TCS itself. Leaving the one Charm the Merit is *about*
    at double cost while everything either side is exempt reads as a drafting slip, so it
-   is exempt here **by inference**. If the literal reading is wanted it is a one-token
-   change — see the OPEN RULING comment in `merits._terrestrial_sorcery_line`.
-2. **How does an odd spell cost halve?** The page does not say. Rounded DOWN
-   (player-favourable). No printed cost in the build is currently odd, so this has no
-   effect today — it is flagged against future data rather than because it bites now.
+   is exempt here **by inference**.
+   **RULED: keep the inference** — "that's fine for now, but I don't mind." Read as
+   settled-but-reopenable: the human has no strong view, so do not treat it as
+   load-bearing precedent for any other exemption. Reverting is still a one-token change
+   at the OPEN RULING comment in `merits._terrestrial_sorcery_line`.
+2. **How does an odd spell cost halve?** The page does not say. Rounded DOWN.
+   **RULED: player-favourable, i.e. DOWN — as shipped.** No printed cost in the build is
+   currently odd, so this still has no effect today; it is settled against future data.
 
 **Noted, not a bug:** Terrestrial Circle Sorcery is a ROOT Charm in this data — nothing
 is its prerequisite — so the "leads directly to that Charm" clause has no members. The
@@ -384,7 +390,7 @@ anyway (dice).
 
 ## A5 — COMPLETE 2026-07-30 (Essence-pool shape)
 
-Legendary Breeding and Beacon of Power. 1360 tests pass. **Not browser-verified.**
+Legendary Breeding and Beacon of Power. 1360 tests pass. **Browser-verified 2026-07-31** (the thorough pass — 13 findings, 10 real bugs; `merits-flaws.md`).
 
 * `MeritEffects` gained `breeding_rating_override` and `essence_single_pool`.
 * **Legendary Breeding is modelled as the RATING it grants, not as +6/+11 motes.** The
@@ -412,10 +418,44 @@ Legendary Breeding and Beacon of Power. 1360 tests pass. **Not browser-verified.
   `MeritFlaw.barred_castes` and a `merit-barred-caste` issue. Caste ids are unique
   across splats, so `["night", "day"]` needs no splat qualifier.
 
+### A5 addendum — Essence Awareness' partial unlock (2026-07-31)
+
+A5 shipped the pool's SHAPE but not its ACCESS. `essence_pool_unrestricted` was
+computed and read by nothing, so a mortal with Essence Awareness and one with Essence
+Mastery derived an identical pool — the p.120 split was in the dataclass and nowhere
+else. Found by `.claude/skills/preflight/effect_reads.py`, not by a test: 1,412 tests
+were green and one of them asserted the dead field directly.
+
+1416 tests. **Browser-verified 2026-07-31** — clicked through on a mortal with
+Awareness, the same with Mastery, and with the Merit removed; no findings. **Floor
+rounding confirmed by the rules authority the same day** — it is an interpretation he
+is happy with, not a printed value, and stays flagged as such.
+
+* **New `derive.essence_freely_accessible`** — motes drawable without a Willpower
+  roll, or `None` when the whole pool is (every Exalt, and any mortal with Mastery).
+  `None` rather than the total, so "unrestricted" is distinguishable from a
+  freely-drawable 0.
+* **The pool is NOT reduced.** p.120 divides the pool in two; it does not shrink it.
+  The restricted two thirds are still the character's motes, so the free share is
+  carried beside the totals exactly as `essence_single_pool` carries the shape.
+  `DerivedTraits.essence_free` → `SheetView.essence_pool_label()` → `PlayView.free_max`,
+  the same three layers A5 used, and the play tracker's inputs still run to the full
+  maximum with the line drawn as a note under them.
+* **The Willpower roll is not modelled and will not be** (decision 0009, and the
+  human's call 2026-07-31: Awareness is a prerequisite for Mastery, so a rolled
+  sub-pool would get tied up in a state most characters pass straight through). It
+  reaches the player as printed description text, which the sheet tooltip shows; a
+  test pins that the sentence is still in the catalogue entry.
+* **⚠ OPEN RULES QUESTION: rounding.** p.120 says "one third" and prints no rounding
+  rule. **Floor** is implemented (19 motes → 6 free) and flagged in the docstring.
+  Confirm before relying on it — it is currently the only number here without a page.
+* An Exalt holding the Merit is unrestricted: the gate is `has_native_pool or mastery`,
+  which A5 already had right.
+
 ## A6 — COMPLETE 2026-07-30 (Background budget and rating restrictions)
 
 Heir Apparent, Innocuous, Damaged Artifact, Known Anathema, Debt. 1377 tests pass
-(was 1360). **Not browser-verified.**
+(was 1360). **Browser-verified 2026-07-31.**
 
 **Five entries, but only TWO are effects.** Damaged Artifact, Known Anathema and Debt
 all say the same thing in different words — *this entry's point value is bounded by a
@@ -483,7 +523,10 @@ The rating check ships as it is until then.
 
 ## Cluster 7 — COMPLETE 2026-07-30 (trait prerequisites)
 
-1389 tests pass (was 1377). **Not browser-verified.** Catalogue data, not effects —
+1389 tests pass (was 1377). **Browser-verified 2026-07-31.** Note that the work branch implemented this
+cluster independently and clicked THAT version through; the 2026-07-31 merge kept the
+desktop's richer shape, so the verification that counts is the post-merge one.
+Catalogue data, not effects —
 `engine/merits.py` was not touched at all.
 
 **Every entry was re-read for a prerequisite rather than trusting the triage's list of
@@ -537,7 +580,8 @@ feedback was an issue after the fact.
 ## A7 — COMPLETE 2026-07-30 (play-state pools and tracks). **The A-list is DONE.**
 
 Lucky, Unlucky, Greater Curse, Death's Taint. 1403 tests pass (was 1389).
-**Not browser-verified** (nor is A6 or cluster 7; A1-A5 were verified by the human).
+**Browser-verified 2026-07-31.** A7's click-through is where permanent Resonance turned out to be in the
+wrong shape — see `merits-flaws.md`. **The whole A-list is now browser-verified.**
 
 **The blocking rename landed first:** `data/exalts.json` gives Abyssal
 `limit_label: "Resonance"`, exactly as Sidereal reads "Paradox". A label, not a second
@@ -559,11 +603,21 @@ mechanic — `derive.limit_label` already existed and needed no change.
   is what its base four-point value buys, and a sheet must be able to tell that from not
   holding it at all.
 * `Character.limit_permanent` is the only new stored field, capped at Essence by the page
-  (`derive.permanent_limit_cap`). **It was first written onto `PlayState` — see the
+  (`derive.permanent_limit_cap`). **⚠ AMENDED 2026-07-31: it also SHORTENS the temporary
+  track** — ruled by the human, "cumulative with temporary Resonance" (p.41) means it
+  occupies the 10 rather than riding beside it, so 2 permanent leaves a track of 8. It
+  had been built as a separate rating next to a full track. `derive.limit_max` subtracts
+  it alongside Greater Curse. **It was first written onto `PlayState` — see the
   CORRECTION below for why that was wrong.**
 * **The tracker does NOT seed itself.** It reports "began play with N permanent
   Resonance" instead. Seeding would reset a chronicle already in progress every time the
   tab was opened, and the tracker is deliberately dumb (`ui/play.py` docstring).
+  **⚠ AMENDED 2026-07-31: nothing else seeded it either.** `permanent_limit_start` was
+  derived and read by NOTHING, so the price above the base four points bought a starting
+  rating that never reached the character. The seed belongs at LOCK, not in the tracker —
+  `lifecycle.lock_chargen` now does it, guarded so it never overwrites a track the XP
+  ledger has moved. The reasoning above is still right about the tracker; it was wrong to
+  conclude no one had to do it.
 * **`ui/play.py` imports `engine.merits` for `LIMIT_MAX` only.** Reading a constant is
   not branching on a Merit id, which is what decision 0011 forbids; the containment test
   greps for ids and is unaffected.

@@ -73,6 +73,10 @@ class DerivedTraits(BaseModel):
     # then 0 by rule rather than by arithmetic, which a sheet must be able to tell
     # apart: "Personal 0" alone reads as a bug.
     essence_single_pool: bool
+    # Motes drawable without a Willpower roll (Essence Awareness, PG p.120), or None
+    # when the whole pool is — see `essence_freely_accessible`. Carried beside the
+    # totals rather than reducing them: the other two thirds still exist.
+    essence_free: Optional[int]
     health_levels: list[HealthLevelView]
     soak: SoakView
 
@@ -167,16 +171,27 @@ def limit_max(ruleset: RuleSet, character: Character) -> int:
     """The maximum of this character's Limit / Paradox / Resonance track.
 
     Ordinarily the constant 10 — the triage's ruling 5 is that this is a constant rather
-    than something derived, so there is exactly one Flaw that moves it: Greater Curse
-    "reduces their maximum Limit pool by one dot per point invested in the Flaw, to a
-    maximum reduction of five dots" (p.40), which makes Limit Break arrive sooner.
+    than something derived. TWO things move it:
+
+    * Greater Curse "reduces their maximum Limit pool by one dot per point invested in
+      the Flaw, to a maximum reduction of five dots" (p.40), which makes Limit Break
+      arrive sooner.
+    * **Permanent Resonance occupies the track.** "Permanent Resonance is cumulative
+      with temporary Resonance" (p.41), which the human (rules authority, 2026-07-31)
+      reads as headroom rather than a rating riding alongside: 2 permanent means the
+      temporary track tops out at 8 and the Break arrives two points sooner. This is
+      what the field is FOR — the same shape a permanent Limit would take on a Solar.
+
+    Both subtract, and the floor is 0: a character whose permanent Resonance has reached
+    a shortened maximum has no temporary track left at all.
 
     Play-state (decision 0006): read by the tracker and the sheet, never by chargen
     validation or the XP audit.
     """
     from . import merits                                   # merits imports validate
     effects = merits.merits_and_flaws_calc(ruleset, character)
-    return merits.LIMIT_MAX if effects.limit_max is None else effects.limit_max
+    base = merits.LIMIT_MAX if effects.limit_max is None else effects.limit_max
+    return max(0, base - character.limit_permanent)
 
 
 def permanent_limit_cap(ruleset: RuleSet, character: Character) -> int:
@@ -261,7 +276,9 @@ def willpower(character: Character, ruleset: Optional[RuleSet] = None) -> int:
 
     Pre-lock the Virtue component tracks the current two highest Virtues; once
     chargen is locked it is the frozen `wp_virtue_component`, so raising a Virtue
-    afterward does not raise Willpower.
+    afterward does not raise Willpower — EXCEPT for Callous, the one sanctioned
+    exception to decision 0005, whose Virtue component keeps tracking (and therefore
+    needs `ruleset` to be seen at all).
 
     `ruleset` is optional and only ever subtracts: the Weak-Willed Flaw sells permanent
     Willpower dots for bonus points, and without a RuleSet there is no way to know a
@@ -270,11 +287,19 @@ def willpower(character: Character, ruleset: Optional[RuleSet] = None) -> int:
     the Exalted, 2 otherwise) are validated at chargen rather than clamped here, so a
     sheet below them reports rather than silently corrects.
     """
-    total = wp_virtue_component(character) + character.willpower_purchased
+    virtue_part = wp_virtue_component(character)
+    forfeited = 0
     if ruleset is not None:
         from . import merits
-        total -= merits.merits_and_flaws_calc(ruleset, character).forfeited_willpower_dots
-    return max(0, total)
+        effects = merits.merits_and_flaws_calc(ruleset, character)
+        forfeited = effects.forfeited_willpower_dots
+        # Callous is the one sanctioned exception to decision 0005: its Willpower keeps
+        # following the Virtues after the lock rather than holding the frozen component.
+        # Without a RuleSet there is no way to know the Flaw is held, so a caller that
+        # omits it silently gets the pinned value — pass one.
+        if effects.willpower_tracks_virtues:
+            virtue_part = two_highest_virtues(character.virtues)
+    return max(0, virtue_part + character.willpower_purchased - forfeited)
 
 
 def wp_virtue_component(character: Character) -> int:
@@ -339,6 +364,38 @@ def essence_pool_is_merged(ruleset: RuleSet, character: Character) -> bool:
     character with no Essence at all."""
     from . import merits as _merits
     return _merits.merits_and_flaws_calc(ruleset, character).essence_single_pool
+
+
+def essence_freely_accessible(ruleset: RuleSet, character: Character) -> Optional[int]:
+    """How many motes of the pool may be drawn on WITHOUT a Willpower roll, or None
+    when the whole pool may be (which is everyone except a mortal holding Essence
+    Awareness alone).
+
+    Essence Awareness (PG p.120) unlocks a mortal's pool only in part: "divide it into
+    two pools: the first, equal to one third of the pool, can be drawn on normally …
+    the other two thirds can only be accessed with a Willpower roll". Essence Mastery
+    (p.121) removes the restriction — "her entire Essence pool without limit or
+    required rolls" — and so does having a native pool, which is why an Exalt is never
+    restricted by holding the Merit.
+
+    The ROLL itself is deliberately not modelled: it is dice (decision 0009), and it
+    stays in the Merit's printed description where the player can read it. What is
+    modelled is the SIZE of the freely-drawable portion, because that is a number on
+    the sheet. The other two thirds are not lost — the pool is still the full pool —
+    so this is carried alongside the totals rather than reducing them.
+
+    Returns the share of the WHOLE pool (personal + peripheral); the split is over
+    "his Essence pool", not over either half. In practice a mortal's unlocked pool is
+    entirely Personal.
+
+    ⚠ ROUNDING IS AN OPEN QUESTION: p.120 says "one third" and prints no rounding
+    rule. Floor is used here. Confirm with the rules authority before relying on it.
+    """
+    from . import merits as _merits
+    if _merits.merits_and_flaws_calc(ruleset, character).essence_pool_unrestricted:
+        return None
+    personal, peripheral = essence_pools(ruleset, character)
+    return (personal + peripheral) // 3
 
 
 def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
@@ -534,6 +591,7 @@ def derive(ruleset: RuleSet, character: Character) -> DerivedTraits:
         essence_personal=personal,
         essence_peripheral=peripheral,
         essence_single_pool=essence_pool_is_merged(ruleset, character),
+        essence_free=essence_freely_accessible(ruleset, character),
         health_levels=health_track(character, ruleset),
         soak=soak(character, ruleset),
     )

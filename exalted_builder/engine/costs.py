@@ -14,7 +14,7 @@ engine.advancement call them, and the UI shows them as a price before buying.
 
 from __future__ import annotations
 
-from ..models.character import Character
+from ..models.character import Character, MeritFlawPurchase
 from ..models.rules import AbilityName, AttributeName, Charm, RuleSet
 from . import merits, validate
 
@@ -59,6 +59,11 @@ def ability_step(ruleset: RuleSet, character: Character, ability: AbilityName,
     # applied after the rate, not a third rate. 0 for every splat without Callings.
     if ability in validate.calling_abilities(ruleset, character):
         total -= xp.calling_ability_discount
+    # Prodigy's "increased aptitude": "(current rating x 2) - 2". Another subtraction
+    # after the rate, so it stacks with the two above exactly as the Calling discount
+    # does — and, like it, only ever reduces. Read as a field, never by Merit id.
+    total -= merits.merits_and_flaws_calc(ruleset, character).ability_xp_discount.get(
+        ability.value, 0)
     return max(0, total)
 
 
@@ -82,11 +87,21 @@ def essence_step(ruleset: RuleSet, character: Character, from_rating: int) -> in
     return flat if flat is not None else xp.essence.at(from_rating)
 
 
-def merit_cost(ruleset: RuleSet, character: Character, merit, tier: str = "") -> int:
+def merit_cost(ruleset: RuleSet, character: Character, merit, tier: str = "",
+               *, taken_as: str = "", points: int = 0) -> int:
     """XP to buy a Merit after creation: its bonus-point value doubled (PG p.115,
-    "New Merit (mystical only) | cost in bonus points x2"). A variable-cost Merit
-    prices by the named tier."""
-    bp = merit.cost_options.get(tier, 0) if merit.cost_options else merit.cost
+    "New Merit (mystical only) | cost in bonus points x2").
+
+    The bonus-point value is whatever `validate.merit_points` says it is, so the XP
+    path and the chargen path can never disagree about a price. That matters for the
+    shapes a bare `merit.cost` cannot express: a per-tier menu, a per-splat or
+    per-caste rate, a variable cost agreed at the table (`points`), and a two-sided
+    entry priced differently on each side (`taken_as` — Eternal Vow is 3 as a Merit
+    and 1 as a Flaw, and reading `merit.cost` would price both at 0)."""
+    bp = validate.merit_points(
+        merit, MeritFlawPurchase(merit_id=merit.id, tier=tier, taken_as=taken_as,
+                                 points=points),
+        character.exalt_type, character.caste)
     return bp * ruleset.xp_costs_for(character.exalt_type).new_merit_bp_multiplier
 
 

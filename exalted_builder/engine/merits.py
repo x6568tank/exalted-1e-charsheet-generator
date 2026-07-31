@@ -32,7 +32,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from ..models.character import Character
-from ..models.rules import MeritFlaw, RuleSet, SpellCircle
+from ..models.rules import AbilityName, AttributeName, MeritFlaw, RuleSet, SpellCircle
 
 # --------------------------------------------------------------------------- #
 # The ids this module knows. Nothing outside engine/merits.py may name these.
@@ -154,14 +154,30 @@ HEIR_APPARENT_MAX_STIPULATIONS = 3
 # Allies, Contacts, Mentor … Veiled characters may not have Followers, Henchman, a Cult,
 # any form of Command" (p.22). The two-point version is dice and is out (bucket B).
 #
-# Its "or any other socially dependent Backgrounds" / "other Backgrounds contingent on
-# being widely known" clauses are Storyteller adjudication and are deliberately NOT
-# guessed at — only the Backgrounds the page names by name are modelled. Names are
-# lowercased because Backgrounds are free text, matched by name and never by id.
+# Both clauses are open-ended — "or any other socially dependent Backgrounds" and "other
+# Backgrounds contingent on being widely known" — so which of the catalogue's other
+# Backgrounds they reach is a RULING, not a reading. The human gave it 2026-07-31, from
+# each Background's own catalogue description:
+#
+#   capped at 2 — Backing ("standing and rank within an organization of power": the
+#     institution must know you, the world need not), Connections (the Dragon-Blooded
+#     Contacts), Retainers, Renown (standing within the Silver Pact — known to a faction
+#     rather than to the world, which is why it caps rather than bars), and Liege, the
+#     strongest case of the lot: it "stands in for both Mentor and Backing", so without
+#     it an Abyssal simply dodged the cap the Mentor line imposes.
+#   barred — Reputation ("how widely your exploits are known") and Influence ("your pull
+#     and status in society"), both of which contradict the Merit outright.
+#
+# Names are lowercased because Backgrounds are free text, matched by name and never by id.
 INNOCUOUS_VEILED_TIER = "4"
-_INNOCUOUS_CAPS: dict[str, int] = {"allies": 2, "contacts": 2, "mentor": 2}
+_INNOCUOUS_CAPS: dict[str, int] = {
+    "allies": 2, "contacts": 2, "mentor": 2,          # named on the page
+    "backing": 2, "connections": 2, "retainers": 2,   # ruled 2026-07-31
+    "liege": 2, "renown": 2,
+}
 _INNOCUOUS_BARRED: frozenset[str] = frozenset(
-    {"followers", "henchmen", "henchman", "cult", "command"})
+    {"followers", "henchmen", "henchman", "cult", "command",   # named on the page
+     "reputation", "influence"})                               # ruled 2026-07-31
 
 # Play-state pools and tracks (A7). Four entries whose whole effect is a counter the
 # Storyteller manages during play. Decision 0006 governs everything here: these may be
@@ -209,7 +225,8 @@ BEACON_OF_POWER = "mf.beacon-of-power"
 # the +1 Personal / +2 Peripheral the printed 0..5 rows already climb — so the Merit is
 # modelled as the RATING it says it grants, and the motes come from the table in
 # data/exalts.json like every other Breeding rating's do. Requires Breeding 5 to buy,
-# which is a trait prerequisite and not yet checked anywhere (see the triage doc).
+# which is a TRAIT prerequisite — `MeritFlaw.trait_prerequisites` carries it as catalogue
+# data and validate evaluates it generically, so this module learns nothing about it.
 LEGENDARY_BREEDING_RATING = 6
 
 
@@ -304,6 +321,14 @@ class MeritEffects:
     # count `validate.favored_ability_count` requires, so the existing favored-count
     # check does the work.
     extra_favored_abilities: int = 0
+    # {`AbilityName.value`: XP subtracted per dot} where a Merit has lowered the cost of
+    # raising an Ability. Prodigy's "increased aptitude" is the only source today.
+    # Carries the AMOUNT, not just the fact, so the caller reads a number and names
+    # nothing — a constant called PRODIGY_* imported into costs.py would satisfy the
+    # letter of decision 0011 while breaking its point. Keyed per Ability because the
+    # discount attaches to one named Ability per purchase; buying it twice for the same
+    # Ability does not stack, which a dict gives for free.
+    ability_xp_discount: dict[str, int] = field(default_factory=dict)
 
     # The MOST chargen Charm picks a Flaw lets the character bank for post-lock use,
     # XP-free. A ceiling, not an entitlement: how many were actually withheld is the
@@ -352,6 +377,13 @@ class MeritEffects:
     # that Willpower moves with the Virtues for a Callous character and stays pinned
     # for everybody else.
     willpower_virtue_margin: int | None = None
+    # Whether permanent Willpower's Virtue component keeps TRACKING the current Virtues
+    # after the lock instead of being the frozen `wp_virtue_component`. True only for
+    # Callous, and it is the other half of the ruling above: the margin field alone is
+    # a chargen ceiling, which does nothing post-lock, so raising a Virtue on a Callous
+    # character left Willpower where it was (found in the 2026-07-31 click-through).
+    # Decision 0005 still governs everybody else.
+    willpower_tracks_virtues: bool = False
     # A floor under starting permanent Willpower — Weak-Willed's "may not begin with a
     # Willpower rating lower than 4" for the Exalted, 2 for the un-Exalted or Callous.
     # 0 = no floor imposed by any held Flaw.
@@ -493,6 +525,72 @@ def flaw_points(ruleset: RuleSet, character: Character) -> int:
     return total
 
 
+def forfeit_rate(definition) -> int | None:
+    """Bonus points this entry pays per dot given up, or None if it is not a
+    trait-forfeit Flaw at all.
+
+    The ONE thing a caller outside this module may ask about the forfeit Flaws, and it
+    exists so the editor can collect DOTS rather than points: the human ruled
+    2026-07-31 that the dots are what a player chooses and the payout follows, which is
+    also how the page phrases it ("three points for every Physical Attribute dot").
+    Returning the rate rather than a set of ids keeps decision 0011 intact — the caller
+    still never learns which Merit it is holding, only that this one converts.
+
+    `dots x forfeit_rate(d)` is what belongs in `MeritFlawPurchase.points`; the engine
+    reads points and divides back, so nothing downstream changes.
+    """
+    return _FORFEIT_RATES.get(definition.id)
+
+
+def forfeit_trait_label(definition) -> str:
+    """What a dot of this forfeit BUYS BACK, for the editor's field label. Empty for
+    anything that is not a forfeit Flaw. Kept beside the rate so the two cannot drift,
+    and phrased as the trait rather than the Flaw so no id leaks into the UI."""
+    return {DIMINISHED_ATTRIBUTES: "Attribute", CALLOUS: "Virtue",
+            UNSKILLED: "Ability", WEAK_WILLED: "Willpower"}.get(definition.id, "")
+
+
+def uses_arena(definition) -> bool:
+    """Whether `MeritFlawPurchase.arena` means anything for this entry. True only for
+    Oathbound Magic, whose same-arena stacking rule (p.122) is the only thing that
+    reads it — the editor was showing an "arena (combat, food…)" box beside EVERY
+    menu-priced entry, Callous and Large Size included, where it does nothing."""
+    return definition.id == OATHBOUND_MAGIC
+
+
+def detail_choices(definition) -> tuple[str, ...]:
+    """The closed set of values `MeritFlawPurchase.detail` may take for this entry, or
+    () where the detail is genuinely free text (a note, an oath's wording).
+
+    Two entries structure their detail, and BOTH were broken by being free text:
+
+      * Diminished Attributes — which Attribute category the dots come out of. The page
+        prints three versions of one Flaw, the Mental and Social variants being
+        "considered Mental and Social Flaws rather than falling into the Physical
+        category" (p.36). `_attribute_forfeits` title-cases whatever was typed and
+        defaults to Physical, so a typo silently became a fourth category.
+      * Legendary Attribute — which Attribute gets the raised ceiling. Read as an
+        `AttributeName.value`, so anything else left the Merit inert with no complaint
+        at all (reported 2026-07-31).
+
+    Returned as display strings; the caller stores them verbatim. Values are matched
+    case-insensitively downstream, which is why the Attribute names may be Title Case
+    here while `AttributeName.value` is lower.
+    """
+    if definition.id == DIMINISHED_ATTRIBUTES:
+        return ("Physical", "Mental", "Social")
+    if definition.id == LEGENDARY_ATTRIBUTE:
+        return tuple(a.value.title() for a in AttributeName)
+    if definition.id == PRODIGY:
+        # Which Ability this purchase applies to. ONE per purchase: the page stacks the
+        # aptitude cost "onto the cost of purchasing the Trait as Favored" or has it
+        # "paid separately" for an already-favored Trait — singular, and the same Trait
+        # in both branches. Craft is excluded: it is taken per focus (core p.136) and so
+        # is not a single rateable Ability here.
+        return tuple(a.value.title() for a in AbilityName if a != AbilityName.CRAFT)
+    return ()
+
+
 def _forfeited_dots(ruleset: RuleSet, character: Character) -> dict[str, int]:
     """{merit_id: dots given up} for each trait-forfeit Flaw the character holds.
 
@@ -502,11 +600,18 @@ def _forfeited_dots(ruleset: RuleSet, character: Character) -> dict[str, int]:
     rounds DOWN — the player-unfavourable direction, so a mis-entered value can never
     conjure budget out of nothing.
 
-    That rounding is currently reachable through the DATA, not just through bad input:
-    `mf.callous` is authored with a 2..10 tier menu, but its own text prices it at "two
-    bonus points for every dot of Virtues", so the odd tiers 3/5/7/9 buy no extra dot
-    while still granting their points. Flagged for the human — see
-    docs/status/merits-flaws-triage.md — rather than silently re-authored here.
+    That rounding is currently UNREACHABLE, and the note here that used to claim
+    otherwise was wrong about its own data (human, 2026-07-31): it read `mf.callous`'s
+    "2- TO 10-PT." as every integer in the range, but the authored menu is
+    {2, 4, 6, 8, 10} — every tier an exact multiple of the 2-point rate, which is
+    precisely how the drop-down avoids the problem. The other three forfeits close it
+    from the other end: Unskilled and Weak-Willed convert at 1, and Diminished
+    Attributes' editor collects DOTS and multiplies by 3, so its points are always a
+    whole multiple too.
+
+    The floor therefore only bites on a hand-edited save, and it rounds DOWN — the
+    player-unfavourable direction, so a mis-entered value can never conjure budget out
+    of nothing. Kept as a guard, not as a live concern.
     """
     from .validate import merit_points                    # validate imports merits
 
@@ -592,6 +697,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
     spell_cost_halved = False
     extra_favored = 0
     nature_unmet: list[str] = []
+    aptitude_abilities: dict[str, int] = {}
     breeding_override: int | None = None
     single_pool = False
     bonus_background_dots = 0
@@ -634,7 +740,14 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
             spell_cost_halved = True
             effects_from.add(definition.id)
         elif definition.id == PRODIGY:
-            extra_favored += 1
+            # Only the halves that actually GRANT a Favored Ability raise the count —
+            # a Solar buying aptitude alone gains no Favored slot, which is the whole
+            # reason the bar is per-option.
+            if purchase.tier in PRODIGY_GRANTS_FAVORED:
+                extra_favored += 1
+            if purchase.tier in PRODIGY_GRANTS_APTITUDE and purchase.detail.strip():
+                aptitude_abilities[purchase.detail.strip().casefold()] = \
+                    PRODIGY_APTITUDE_XP_DISCOUNT
             effects_from.add(definition.id)
         elif definition.id == WEAK_ESSENCE:
             essence_start_override = WEAK_ESSENCE_START
@@ -748,6 +861,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         charm_cost_doubled=charm_cost_doubled,
         spell_cost_halved=spell_cost_halved,
         extra_favored_abilities=extra_favored,
+        ability_xp_discount=dict(aptitude_abilities),
         nature_requirement_unmet=tuple(nature_unmet),
         health_levels_granted=tuple(granted_levels),
         health_levels_removed=tuple(removed_levels),
@@ -756,6 +870,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         forfeited_willpower_dots=forfeits.get(WEAK_WILLED, 0),
         forfeited_attribute_dots=_attribute_forfeits(ruleset, character),
         willpower_virtue_margin=CALLOUS_WILLPOWER_MARGIN if callous_active else None,
+        willpower_tracks_virtues=callous_active,
         willpower_floor=willpower_floor,
         barred_natures=frozenset({PARAGON_NATURE}) if callous_active else frozenset(),
         bonus_background_dots=bonus_background_dots,
@@ -793,6 +908,17 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
 
 BRIGIDS_HEIR = "mf.brigid-s-heir"
 PRODIGY = "mf.prodigy"
+# Prodigy's two independent halves, as its semantic cost tiers. The 2/3/4/5 menu it
+# used to carry conflated them: "aptitude only" and "Dragon King grant only" are both
+# 2 points, so the price could not say which had been bought — a collision that would
+# have detonated exactly when Dragon Kings landed.
+PRODIGY_GRANTS_FAVORED = ("favored", "favored_aptitude")
+PRODIGY_GRANTS_APTITUDE = ("aptitude", "favored_aptitude")
+# "The increased aptitude lowers the cost of raising the Trait with experience to
+# (current rating x 2) - 2" (p.21) — a SUBTRACTION after the rate, the same shape as a
+# Calling Ability's discount, which is why costs.ability_step can take both. Its bonus
+# die is out of scope (dice).
+PRODIGY_APTITUDE_XP_DISCOUNT = 2
 
 # "may not have more than five Favored Abilities in total" (p.21).
 PRODIGY_FAVORED_CAP = 5
@@ -816,11 +942,13 @@ def _terrestrial_sorcery_line(ruleset: RuleSet, character: Character) -> frozens
       * everything with it in the transitive prerequisite closure — the Charms that
         "include it as an ultimate prerequisite".
 
-    ⚠ OPEN RULING: the printed text names only the second and third groups, so the
-    initiating Charm itself is exempt here by inference — leaving the one Charm the
-    Merit is *about* at double cost while everything either side of it is exempt reads
-    as a drafting slip rather than intent. Flagged for the rules authority; if the
-    literal reading is wanted, drop `{tcs_id}` from the union below.
+    RULED 2026-07-31 (human, rules authority): the printed text names only the second
+    and third groups, so the initiating Charm itself is exempt here BY INFERENCE —
+    leaving the one Charm the Merit is *about* at double cost while everything either
+    side of it is exempt reads as a drafting slip rather than intent. The human kept
+    the inference but holds it lightly ("fine for now, but I don't mind"), so do NOT
+    cite it as precedent for any other exemption. Reverting to the literal reading is
+    still one token: drop `{tcs_id}` from the union below.
     """
     key = (id(ruleset), character.exalt_type)
     cached = _BRIGID_EXEMPT_CACHE.get(key)
@@ -836,7 +964,7 @@ def _terrestrial_sorcery_line(ruleset: RuleSet, character: Character) -> frozens
     tcs_ids = {cid for cid, charm in ruleset.charms.items()
                if charm.grants_circle == SpellCircle.TERRESTRIAL}
     for tcs_id in tcs_ids:
-        exempt.add(tcs_id)                                  # see the OPEN RULING above
+        exempt.add(tcs_id)                                  # by inference — see above
         tcs = ruleset.charms[tcs_id]
         for group in tcs.prerequisites:                     # AND-of-OR: flatten
             exempt.update(group)

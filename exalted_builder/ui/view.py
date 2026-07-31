@@ -461,6 +461,14 @@ def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> s
     if domain == "charms":
         charm = ruleset.charms.get(entry.detail)
         return f"Charm: {charm.name if charm else entry.detail}"
+    # A Charm redeemed against a Weak Essence credit. Its own target keeps the audit
+    # from re-pricing it, but the target has no dot in it, so `domain` was the whole
+    # string and the row fell through to the raw "charms_withheld" — the charm's own
+    # name never appeared. Keeps the "Charm:" prefix the ordinary rows use so the
+    # ledger still sorts and scans as one thing.
+    if domain == validate.WITHHELD_CHARM_TARGET:
+        charm = ruleset.charms.get(entry.detail)
+        return f"Charm: {charm.name if charm else entry.detail} (withheld, no XP)"
     if domain == "spells":
         spell = ruleset.spells.get(entry.detail)
         return f"Spell: {spell.name if spell else entry.detail}"
@@ -979,6 +987,9 @@ class SheetView:
     # Personal is 0 by RULE, not by arithmetic (Beacon of Power) — read it through
     # `essence_pool_label`, which is what both the sheet and the editor display.
     essence_single_pool: bool
+    # Motes drawable without a Willpower roll (Essence Awareness), or None when the
+    # whole pool is. Also read through `essence_pool_label`.
+    essence_free: Optional[int]
     soak: derive.SoakView
     health: list[str]                                 # formatted level labels
     # advantages / gear
@@ -1010,11 +1021,18 @@ class SheetView:
 
     def essence_pool_label(self) -> str:
         """The Essence pools as one line. A merged pool is named as one rather than
-        shown as "Personal 0", which reads as a character with no Essence at all."""
+        shown as "Personal 0", which reads as a character with no Essence at all, and
+        a partly-unlocked one says how much of it is reachable without a Willpower
+        roll — a mortal with Essence Awareness owns the whole pool but may only draw
+        on a third of it freely, and a bare total would overstate what he can spend."""
         if self.essence_single_pool:
-            return f"Single pool {self.essence_peripheral} (all Peripheral)"
-        return (f"Personal {self.essence_personal}"
-                f"  ·  Peripheral {self.essence_peripheral}")
+            base = f"Single pool {self.essence_peripheral} (all Peripheral)"
+        else:
+            base = (f"Personal {self.essence_personal}"
+                    f"  ·  Peripheral {self.essence_peripheral}")
+        if self.essence_free is None:
+            return base
+        return f"{base}  ·  {self.essence_free} without a Willpower roll"
 
 
 def _label(value: str) -> str:
@@ -1611,6 +1629,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         essence_personal=d.essence_personal,
         essence_peripheral=d.essence_peripheral,
         essence_single_pool=d.essence_single_pool,
+        essence_free=d.essence_free,
         soak=d.soak,
         health=[_health_label(hl) for hl in d.health_levels],
         backgrounds=[(b.name, b.rating, b.note) for b in character.backgrounds],
@@ -1654,6 +1673,18 @@ class PlayView:
     personal_max: int
     peripheral_max: int
     willpower_max: int
+    # The two pools merged into one (Beacon of Power). Carried rather than inferred
+    # from `personal_max == 0`, which cannot tell "merged by rule" from "this splat
+    # has no Personal pool" — the same distinction `essence_single_pool` draws for
+    # the sheet. Without it the tracker rendered a Personal box reading 0/0, which
+    # looks like a bug rather than a rule (reported 2026-07-31).
+    single_pool: bool = False
+    # Motes of that maximum drawable without a Willpower roll (Essence Awareness),
+    # or None when all of them are. The tracker still counts spending against the
+    # FULL maximum — the restricted two thirds are spendable, just not freely — so
+    # this is a marker on the track, never a second cap. The roll is the table's to
+    # make (decision 0009); the tracker only says where the line falls.
+    free_max: Optional[int] = None
 
 
 def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
@@ -1666,6 +1697,8 @@ def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
         personal_max=d.essence_personal,
         peripheral_max=d.essence_peripheral,
         willpower_max=d.willpower,
+        single_pool=d.essence_single_pool,
+        free_max=d.essence_free,
     )
 
 

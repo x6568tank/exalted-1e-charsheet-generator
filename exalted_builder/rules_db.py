@@ -43,6 +43,7 @@ from pydantic import BaseModel, ValidationError
 
 from . import custom_content
 from .models.rules import (
+    AttributeName,
     ArmorType,
     BackgroundType,
     BonusPointCosts,
@@ -202,6 +203,17 @@ def _check_merits_flaws(merits: dict, problems: list[str]) -> None:
         if m.cost and m.cost_options:
             problems.append(
                 f"merit '{m.id}' sets both cost and cost_options; use one")
+        # A trait prerequisite is looked up by NAME at validation time, across four
+        # namespaces, and a name that matches nothing simply reads 0 — so a typo would
+        # not error, it would make the entry permanently unbuyable. Backgrounds are soft
+        # references by design (a character may name one the catalogue has never heard
+        # of) and Abilities include per-focus Crafts, so the NAME is deliberately not
+        # checked here. The tier key is: it must be one of the entry's own options.
+        for tier in m.trait_prerequisites:
+            if tier and tier not in m.cost_options:
+                problems.append(
+                    f"merit '{m.id}' scopes a trait prerequisite to tier '{tier}', "
+                    f"which is not one of its cost options {sorted(m.cost_options)}")
         # A variable-cost entry ("VARIABLE COST MERIT") prices from the purchase, so
         # it is the one shape that legitimately carries no printed number.
         if not any((m.cost, m.cost_options, m.variable_cost, m.cost_by_kind)):

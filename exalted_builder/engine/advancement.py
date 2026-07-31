@@ -274,13 +274,19 @@ def lower_virtue(character: Character, virtue: VirtueName, reason: str = "") -> 
     return _log_reduction(character, f"virtues.{virtue.value}", frm, frm - 1, reason)
 
 
-def lower_willpower(character: Character, reason: str = "") -> XpEntry:
+def lower_willpower(character: Character, reason: str = "", *,
+                    ruleset: RuleSet | None = None) -> XpEntry:
     """Reduce permanent Willpower one dot (a curse). Decrements the purchased
     component, which may go negative — permanent Willpower = pinned Virtue component
     + purchased, so a curse below the Virtue floor is represented as net-negative
     purchased. Floored at a permanent Willpower of 1."""
     _ensure_locked(character)
-    frm = derive.willpower(character)
+    # `ruleset` is optional to match its `lower_*` siblings, but OMITTING IT IS A BUG
+    # for any character holding a Flaw that moves Willpower — Weak-Willed sells dots,
+    # Callous keeps tracking the Virtues. Without it the "already at 1" guard tests the
+    # wrong number and the ledger records a reduction that never happened. Same class
+    # as the `raise_willpower` omission fixed earlier.
+    frm = derive.willpower(character, ruleset)
     if frm <= 1:
         raise AdvancementError("Willpower is already at 1 (the minimum).")
     character.willpower_purchased -= 1
@@ -1178,7 +1184,8 @@ def mf_change_method(character: Character) -> str:
             if character.house_rules is not None else "experience")
 
 
-def merit_change_xp(ruleset: RuleSet, character: Character, merit, tier: str = "") -> int:
+def merit_change_xp(ruleset: RuleSet, character: Character, merit, tier: str = "",
+                    *, taken_as: str = "", points: int = 0) -> int:
     """XP a post-creation M&F change costs (positive) or pays (negative), under the
     experience method: "If a character loses a Merit or gains a Flaw, she receives a
     number of experience points equal to twice its bonus point value. If a character
@@ -1188,7 +1195,8 @@ def merit_change_xp(ruleset: RuleSet, character: Character, merit, tier: str = "
     character creation"."""
     if mf_change_method(character) != "experience":
         return 0
-    return costs.merit_cost(ruleset, character, merit, tier)
+    return costs.merit_cost(ruleset, character, merit, tier,
+                            taken_as=taken_as, points=points)
 
 
 def _pay_or_owe(character: Character, target: str, detail: str, cost: int) -> XpEntry:
@@ -1206,7 +1214,8 @@ def _pay_or_owe(character: Character, target: str, detail: str, cost: int) -> Xp
 
 
 def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
-              *, tier: str = "", detail: str = "", arena: str = "") -> XpEntry:
+              *, tier: str = "", detail: str = "", arena: str = "",
+              taken_as: str = "", points: int = 0) -> XpEntry:
     """Gain a Merit after creation. Under the experience method this costs twice its
     bonus-point value (PG p.17, and the same rate the mortal table gives on p.115);
     under the other two methods it costs nothing, because they "do not cost or reward
@@ -1214,12 +1223,20 @@ def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
 
     Flaws are not bought — a Flaw is GAINED (see `gain_flaw`), which pays the
     character rather than charging her.
+
+    A `kind: "either"` entry (Mutation, Favor, Eternal Vow) may come through here, but
+    only when `taken_as="merit"` records that side as the player's choice: the side is
+    what decides whether this charges or pays, so it may never be defaulted here.
     """
     _ensure_locked(character)
     definition = ruleset.merits_flaws.get(merit_id)
     if definition is None:
         raise AdvancementError(f"Unknown Merit {merit_id!r}.")
-    if definition.kind != "merit":
+    if definition.kind == "either" and taken_as != "merit":
+        raise AdvancementError(
+            f"{definition.name} is printed as a Merit OR a Flaw "
+            f"{definition.cost_note}; say which side is being taken.")
+    if definition.kind == "flaw":
         raise AdvancementError(
             f"{definition.name} is a Flaw; gaining a Flaw pays the character "
             f"(gain_flaw), it is not bought.")
@@ -1234,46 +1251,66 @@ def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
         raise AdvancementError(
             f"{definition.name} needs one of {sorted(definition.cost_options)}.")
 
-    cost = merit_change_xp(ruleset, character, definition, tier)
+    cost = merit_change_xp(ruleset, character, definition, tier,
+                           taken_as=taken_as, points=points)
     entry = _pay_or_owe(character, "merits", merit_id, cost)
     character.merits_flaws.append(
-        MeritFlawPurchase(merit_id=merit_id, tier=tier, detail=detail, arena=arena))
+        MeritFlawPurchase(merit_id=merit_id, tier=tier, detail=detail, arena=arena,
+                          points=points,
+                          taken_as=taken_as if definition.kind == "either" else ""))
     return entry
 
 
 def gain_flaw(ruleset: RuleSet, character: Character, merit_id: str,
-              *, tier: str = "", detail: str = "", arena: str = "") -> XpEntry:
+              *, tier: str = "", detail: str = "", arena: str = "",
+              taken_as: str = "", points: int = 0) -> XpEntry:
     """Take on a Flaw in play. Under the experience method this PAYS the character
     twice its point value (a negative-cost log row); under the others it pays nothing.
 
     The p.16 cap is deliberately NOT applied here — "characters with more than 10
     points of Flaws receive no experience for the excess" is a total across all Flaws,
     so it is enforced by engine.merits against the whole sheet, not per purchase.
+
+    As with `buy_merit`, a `kind: "either"` entry is admitted only when `taken_as`
+    records the choice explicitly — here, `"flaw"`.
     """
     _ensure_locked(character)
     definition = ruleset.merits_flaws.get(merit_id)
     if definition is None:
         raise AdvancementError(f"Unknown Flaw {merit_id!r}.")
-    if definition.kind != "flaw":
+    if definition.kind == "either" and taken_as != "flaw":
+        raise AdvancementError(
+            f"{definition.name} is printed as a Merit OR a Flaw "
+            f"{definition.cost_note}; say which side is being taken.")
+    if definition.kind == "merit":
         raise AdvancementError(f"{definition.name} is a Merit; buy it instead.")
     if definition.cost_options and tier not in definition.cost_options:
         raise AdvancementError(
             f"{definition.name} needs one of {sorted(definition.cost_options)}.")
 
-    award = merit_change_xp(ruleset, character, definition, tier)
+    award = merit_change_xp(ruleset, character, definition, tier,
+                            taken_as=taken_as, points=points)
     # "Characters with more than 10 points of Flaws receive no experience for the
     # excess" (PG p.17) — the same ceiling as chargen. Measured against the Flaws
     # ALREADY held, so a Flaw that straddles the cap pays for its legal part only.
     if award:
         already = merits.flaw_points(ruleset, character)
         room = max(0, merits.FLAW_POINT_CAP - already)
-        value = (definition.cost_options.get(tier, 0)
-                 if definition.cost_options else definition.cost)
+        # The point value being measured against the cap has to be the one this
+        # purchase actually carries — its side, its tier, its agreed points — or a
+        # two-sided or variable-cost Flaw is capped against a number it never had.
+        value = validate.merit_points(
+            definition,
+            MeritFlawPurchase(merit_id=merit_id, tier=tier, taken_as=taken_as,
+                              points=points),
+            character.exalt_type, character.caste)
         if value > room:
-            award = merit_change_xp(ruleset, character, definition, tier) * room // max(1, value)
+            award = award * room // max(1, value)
     entry = _commit_award(character, "merits", merit_id, -award)
     character.merits_flaws.append(
-        MeritFlawPurchase(merit_id=merit_id, tier=tier, detail=detail, arena=arena))
+        MeritFlawPurchase(merit_id=merit_id, tier=tier, detail=detail, arena=arena,
+                          points=points,
+                          taken_as=taken_as if definition.kind == "either" else ""))
     return entry
 
 
@@ -1295,8 +1332,11 @@ def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry:
         raise AdvancementError(
             f"{definition.name} is a prerequisite of {', '.join(sorted(dependents))}.")
 
-    value = merit_change_xp(ruleset, character, definition, purchase.tier)
-    if definition.kind == "merit":
+    value = merit_change_xp(ruleset, character, definition, purchase.tier,
+                           taken_as=purchase.taken_as, points=purchase.points)
+    # The SIDE this purchase was taken on, not the catalogue's `kind` — buying off a
+    # two-sided entry held as a Flaw must charge, not pay.
+    if validate.effective_merit_kind(definition, purchase) == "merit":
         entry = _commit_award(character, "merits", f"-{purchase.merit_id}", -value)
     else:
         entry = _pay_or_owe(character, "merits", f"-{purchase.merit_id}", value)

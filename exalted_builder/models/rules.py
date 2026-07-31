@@ -953,6 +953,20 @@ class MeritFlaw(BaseModel):
     # Caste ids are unique across splats, so no splat qualifier is needed.
     barred_castes: list[str] = Field(default_factory=list)
     prerequisites: list[str] = Field(default_factory=list)       # other MeritFlaw ids
+    # A floor on the SPLAT's starting Essence, as opposed to a character trait. Weak
+    # Essence is "6-PT." and its entire cost is reducing starting Essence to 1, so a
+    # splat that already starts at 1 would collect the points for nothing: "Other
+    # magical beings may take this Flaw, provided that they normally have a starting
+    # Essence of 2" (p.41). 0 = no floor. Read against `ChargenBudgets.essence_start`.
+    min_starting_essence: int = 0
+    # Splat bars that apply to ONE option of a menu rather than to the whole entry.
+    # Prodigy is barred to Solars/Abyssals/Lunars/Alchemicals only for the half that
+    # grants a Favored Ability — "not available to Solars, Abyssals or Lunars (who
+    # already reach these limits)" — while its +2 "increased aptitude" half is
+    # explicitly open to "characters who innately gain Favored Abilities as part of
+    # character creation", which is exactly those splats (p.20-21, ruled 2026-07-31).
+    # {tier: [exalt_type, ...]}. An entry barred at EVERY tier is barred outright.
+    tier_barred_exalt_types: dict[str, list[str]] = Field(default_factory=dict)
     prerequisite_note: str = ""            # printed prereq this build cannot check
     # Rated traits required before this entry may be bought, keyed by TIER — "" is the
     # requirement every tier carries, and a named tier adds its own. Innocuous is why:

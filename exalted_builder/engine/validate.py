@@ -1590,6 +1590,20 @@ def background_rating(backgrounds, name: str) -> int:
     return sum(bg.rating for bg in backgrounds if bg.name.strip().lower() == key)
 
 
+def background_best(backgrounds, name: str) -> int:
+    """The HIGHEST single instance of the Background called `name` (0 if absent).
+
+    Backgrounds that name a specific possession are held per possession — two Artifacts
+    at 2 dots each are two artifacts, not one artifact at 4 — so a rule that measures
+    ONE of them must not read the sum. Damaged Artifact is the case: "may not gain more
+    points from this Flaw than the rating of the artifact it modifies" (p.37), singular.
+    Two 2-dot artifacts satisfied a 3-point Damaged Artifact until 2026-07-31.
+    """
+    key = name.strip().lower()
+    return max((bg.rating for bg in backgrounds if bg.name.strip().lower() == key),
+               default=0)
+
+
 def trait_rating(character: Character, name: str, backgrounds=None) -> int:
     """The character's rating in the trait called `name`, whatever kind of trait it is.
 
@@ -2800,11 +2814,22 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
             continue
         held[definition.id] = held.get(definition.id, 0) + 1
 
-        if definition.cost_options and purchase.tier not in definition.cost_options:
+        if purchase.tier and exalt_type_barred_from_tier(definition, character.exalt_type,
+                                                         purchase.tier):
+            issues.append(Issue(
+                code="merit-barred-splat-tier", where=definition.id,
+                message=(f"{definition.name} at {purchase.tier!r} is not available to "
+                         f"{character.exalt_type}; open options are "
+                         f"{', '.join(merit_tiers_available(definition, character.exalt_type, character.caste))}."),
+            ))
+        # Against the menu THIS character prices on, not the generic one — a Sidereal
+        # recording Lucky at 4 would otherwise pass validation and be worth 0 points.
+        own_options = merit_cost_options(definition, character.exalt_type, character.caste)
+        if definition.cost_options and purchase.tier not in own_options:
             issues.append(Issue(
                 code="merit-bad-tier", where=definition.id,
                 message=f"{definition.name} needs one of "
-                        f"{sorted(definition.cost_options)}; got {purchase.tier!r}.",
+                        f"{sorted(own_options)}; got {purchase.tier!r}.",
             ))
         if definition.kind == "either" and purchase.taken_as not in ("merit", "flaw"):
             issues.append(Issue(
@@ -2836,20 +2861,20 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
         if limit is not None:
             points = merit_points(definition, purchase, character.exalt_type,
                                   character.caste)
-            rating = background_rating(backgrounds, limit.background) + limit.offset
+            rating = background_best(backgrounds, limit.background) + limit.offset
             if limit.mode == "max" and points > rating:
                 issues.append(Issue(
                     code="merit-points-above-background", where=definition.id,
                     message=f"{definition.name} may not be worth more than "
                             f"{max(0, rating)} point(s) at {limit.background} "
-                            f"{background_rating(backgrounds, limit.background)}; "
+                            f"{background_best(backgrounds, limit.background)}; "
                             f"this purchase is worth {points}.",
                 ))
             elif limit.mode == "above" and points <= rating:
                 issues.append(Issue(
                     code="merit-points-below-background", where=definition.id,
                     message=f"{definition.name} must exceed {limit.background} "
-                            f"{background_rating(backgrounds, limit.background)}; "
+                            f"{background_best(backgrounds, limit.background)}; "
                             f"this purchase is worth {points}.",
                 ))
         for group in unmet_trait_prerequisites(character, definition, purchase,
@@ -2859,6 +2884,28 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                 code="merit-trait-prerequisite", where=definition.id,
                 message=f"{definition.name} requires {want}.",
             ))
+        # A structured `detail` (which Attribute category a forfeit comes from, which
+        # Attribute Legendary Attribute raises) is a CLOSED set. Unset or off-list, the
+        # effect silently does not happen — Legendary Attribute grants no cap at all,
+        # and a forfeit falls back to Physical. Reported rather than defaulted.
+        choices = merits.detail_choices(definition)
+        if choices and purchase.detail.strip().title() not in choices:
+            issues.append(Issue(
+                code="merit-detail-unchosen", where=definition.id,
+                message=(f"{definition.name} must name which of "
+                         f"{', '.join(choices)} it applies to; got "
+                         f"{purchase.detail or '(nothing)'!r}."),
+            ))
+        if definition.min_starting_essence:
+            start = effective_budgets(ruleset, character).essence_start
+            if start < definition.min_starting_essence:
+                issues.append(Issue(
+                    code="merit-starting-essence", where=definition.id,
+                    message=(f"{definition.name} is only open to characters whose splat "
+                             f"starts at Essence {definition.min_starting_essence} or "
+                             f"more; {character.exalt_type} starts at {start}, so the "
+                             f"Flaw would cost nothing and still pay its points."),
+                ))
         if definition.thaumaturges_only and not has_thaum:
             issues.append(Issue(
                 code="merit-thaumaturges-only", where=definition.id,
@@ -2955,6 +3002,76 @@ def effective_merit_kind(definition, purchase) -> str:
     if definition.kind != "either":
         return definition.kind
     return purchase.taken_as if purchase.taken_as in ("merit", "flaw") else "merit"
+
+
+def merit_cost_options(definition, exalt_type: str = "", caste: str = "") -> dict[str, int]:
+    """The menu this character actually prices against — the ONE resolution order, so a
+    dropdown can never offer an option the pricer will not honour.
+
+    Caste outranks splat outranks the generic table, exactly as `merit_points` reads
+    them. Lucky is why this is not just `definition.cost_options`: it is "1- TO 5-PT.
+    MERIT, 1- TO 3-PT. FOR SIDEREALS", and reading the generic table offered a Sidereal
+    a 4- and 5-point option that priced at 0 — visible in the dropdown, worth nothing.
+    """
+    by_caste = definition.cost_options_by_caste.get(caste or "")
+    if by_caste:
+        return dict(by_caste)
+    by_splat = definition.cost_options_by_exalt_type.get(exalt_type or "")
+    if by_splat:
+        return dict(by_splat)
+    return dict(definition.cost_options)
+
+
+def merit_tiers_available(definition, exalt_type: str, caste: str = "") -> tuple[str, ...]:
+    """The options of a menu-priced entry this splat may actually choose.
+
+    Two things narrow the menu. `tier_barred_exalt_types` is Prodigy's, barred to four
+    splats for the half that grants a Favored Ability while its "increased aptitude"
+    half stays open to exactly those splats. `merit_cost_options` is Lucky's, where the
+    splat gets a SHORTER menu rather than a differently-priced one. Returns () for an
+    entry with no menu at all — callers should treat that as "no tier to choose", not
+    as "nothing available".
+    """
+    return tuple(t for t in merit_cost_options(definition, exalt_type, caste)
+                 if exalt_type not in definition.tier_barred_exalt_types.get(t, ()))
+
+
+def exalt_type_barred_from_tier(definition, exalt_type: str, tier: str) -> bool:
+    """Whether this splat is barred from one named option of a menu-priced entry."""
+    return exalt_type in definition.tier_barred_exalt_types.get(tier, ())
+
+
+def merit_available_to(definition, exalt_type: str, caste: str = "", *,
+                       starting_essence: int | None = None) -> bool:
+    """Whether the catalogue opens this entry to this character at all.
+
+    The printed restrictions only — splat allow-list, splat bar, caste bar — which are
+    inert catalogue DATA rather than effects, so no Merit id is named and
+    `engine.merits` is not consulted. Prerequisites, tiers and "thaumaturges only" are
+    NOT checked here: those depend on the rest of the sheet and change as it is built,
+    so hiding an entry for them would make the dropdown flicker.
+
+    Shares its three conditions with the `merit-wrong-splat` / `merit-barred-splat` /
+    `merit-barred-caste` issues above, so a UI that filters on this can never offer
+    something validation would immediately reject.
+    """
+    if definition.exalt_types and exalt_type not in definition.exalt_types:
+        return False
+    if exalt_type in definition.barred_exalt_types:
+        return False
+    if caste and caste in definition.barred_castes:
+        return False
+    # A splat-level floor on starting Essence. Optional because not every caller has
+    # the budgets to hand; when it is not supplied the entry is NOT hidden, so a
+    # missing argument can only ever be permissive — validation still reports it.
+    if (starting_essence is not None and definition.min_starting_essence
+            and starting_essence < definition.min_starting_essence):
+        return False
+    # Barred at every option of its own menu = barred outright. Derived rather than
+    # duplicated, so a per-tier bar can never disagree with the whole-entry one.
+    if definition.cost_options and not merit_tiers_available(definition, exalt_type):
+        return False
+    return True
 
 
 def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attributes
@@ -3069,14 +3186,9 @@ def merit_points(definition, purchase, exalt_type: str = "", caste: str = "") ->
         side = effective_merit_kind(definition, purchase)
         if side in definition.cost_by_kind:
             return definition.cost_by_kind[side]
-    by_caste = definition.cost_options_by_caste.get(caste or "")
-    if by_caste:
-        return by_caste.get(purchase.tier, by_caste.get("", 0))
-    by_splat = definition.cost_options_by_exalt_type.get(exalt_type or "")
-    if by_splat:
-        return by_splat.get(purchase.tier, by_splat.get("", 0))
-    if definition.cost_options:
-        return definition.cost_options.get(purchase.tier, 0)
+    options = merit_cost_options(definition, exalt_type, caste)
+    if options:
+        return options.get(purchase.tier, options.get("", 0))
     return definition.cost
 
 

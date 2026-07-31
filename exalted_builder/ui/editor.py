@@ -240,8 +240,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # sells free dots for bonus points, and the tally must count against what the
         # engine actually charges or the sheet contradicts its own validation.
         b = validate.effective_budgets(ruleset, character)
-        spent = (sum(v for a, v in character.abilities.items() if a != AbilityName.CRAFT)
-                 + sum(cr.rating for cr in character.crafts))
+        # Only dots WITHIN the pre-bonus cap draw on the free pool. A dot above it is
+        # bought with bonus points and never consumes one of the 25 (human's ruling,
+        # 2026-07-31), which is exactly how the engine already prices them — see the
+        # `within_by_tier` / `above_by_tier` split in validate.bonus_point_breakdown.
+        # Summing raw ratings here made a character with one Ability at 4 read 25/25
+        # while the engine still had a free dot unspent.
+        cap = b.ability_cap_pre_bp
+        spent = (sum(min(v, cap) for a, v in character.abilities.items()
+                     if a != AbilityName.CRAFT)
+                 + sum(min(cr.rating, cap) for cr in character.crafts))
         over = spent > b.ability_dots
         ui.label(f"{spent} / {b.ability_dots} dots spent").classes(
             "text-xs font-semibold").style(
@@ -393,7 +401,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.select(_opts_with(nature_names, character.nature), label="Nature",
                                   value=character.nature or None,
                                   with_input=True, new_value_mode="add-unique",
-                                  on_change=lambda e: setattr(character, "nature", e.value or "")).classes(_field)
+                                  on_change=lambda e: (setattr(character, "nature", e.value or ""),
+                                                       changed())).classes(_field)
                         ui.input("Anima", value=character.anima,
                                  on_change=lambda e: setattr(character, "anima", e.value)).classes(_field)
                     # Favored ABILITIES (most splats) or Favored ATTRIBUTES (Alchemical,
@@ -485,7 +494,13 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         spent_label = ui.label().classes("text-xs font-semibold")
 
                         def show_spent(label=spent_label, members=members, category=category):
-                            spent = sum(character.attributes[a] - 1 for a in members)
+                            # Every Attribute starts at one free dot — UNLESS a Flaw
+                            # caps it below that (Disfigured can put Appearance at 0),
+                            # in which case there is no free dot to discount and the
+                            # baseline is the cap. Subtracting a flat 1 made a legal
+                            # Social row read "−1 spent".
+                            spent = sum(character.attributes[a] - min(1, _attr_cap(a))
+                                        for a in members)
                             label.set_text(f"{category} — {spent} spent")
 
                         show_spent()
@@ -606,6 +621,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         if ruleset.merits_flaws:
             # Label carries the sign so a Flaw reads as a grant, not a charge; a
             # variable-cost entry shows its range instead of a single number.
+            # A tier key is either a bare point value ("4") or a semantic name
+            # ("favored_aptitude"). Render both readably without the caller caring.
+            def _tier_label(t: str) -> str:
+                return t.replace("_", " + ").title() if not t.isdigit() else t.title()
+
             def _merit_label(m) -> str:
                 if m.cost_options:
                     lo, hi = min(m.cost_options.values()), max(m.cost_options.values())
@@ -615,15 +635,34 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 sign = "−" if m.kind == "merit" else "+"
                 return f"{m.name}  ({sign}{price} {m.category or m.kind})"
 
+            # Filtered to what this character may actually take, the way the XP tab
+            # already is: offering a Solar Chimera only to answer with a validation
+            # error is a worse experience than not offering it. Held rows survive the
+            # filter via the `row_opts.setdefault` guard below, so an entry that became
+            # illegal (a caste change) stays visible and flagged rather than vanishing.
             merit_opts = {m.id: _merit_label(m) for m in sorted(
                 ruleset.merits_flaws.values(),
-                key=lambda m: (m.kind != "merit", m.name))}
+                key=lambda m: (m.kind != "merit", m.name))
+                if validate.merit_available_to(m, character.exalt_type, character.caste,
+                                               starting_essence=b.essence_start)}
             eff = merits.merits_and_flaws_calc(ruleset, character)
             spent = validate.merit_bonus_point_cost(ruleset, character)
             grant = eff.bonus_point_grant
             header = f"Merits & Flaws (−{spent} BP"
             header += f", +{grant} from Flaws)" if grant else ")"
             with panel(header):
+                # "Characters with more than 10 points of Flaws receive no bonus
+                # points for the excess" (PG p.17). Say so when it bites: the grant
+                # in the header is the CAPPED number, and a player who took 13 points
+                # of Flaws and sees "+10" has no way to tell the cap from a bug in
+                # our arithmetic. `flaw_points_raw` exists for exactly this line.
+                if eff.flaw_points_raw > eff.bonus_point_grant:
+                    ui.label(f"⚠ {eff.flaw_points_raw} points of Flaws taken, "
+                             f"{eff.bonus_point_grant} granted — the excess "
+                             f"{eff.flaw_points_raw - eff.bonus_point_grant} is lost "
+                             f"to the {merits.FLAW_POINT_CAP}-point cap (p.17). The "
+                             f"Flaws still apply."
+                             ).classes("text-xs font-semibold text-amber-700")
                 for idx, mp in enumerate(character.merits_flaws):
                     definition = ruleset.merits_flaws.get(mp.merit_id)
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):
@@ -635,20 +674,79 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.select(row_opts, value=mp.merit_id, label="Merit / Flaw",
                                   on_change=lambda e, mp=mp: set_merit(mp, e.value)
                                   ).classes("flex-1").props("dense")
-                        # Tier only for a variable-cost entry (Oathbound Magic).
+                        # Which side a two-sided entry was taken on. No blank option:
+                        # the value is what decides whether this charges bonus points
+                        # or grants them, so it must be a deliberate pick. An
+                        # unrecorded choice shows empty and validate flags it.
+                        if definition is not None and definition.kind == "either":
+                            ui.select({"merit": "as Merit", "flaw": "as Flaw"},
+                                      value=mp.taken_as or None, label="Taken",
+                                      on_change=lambda e, mp=mp: (
+                                          setattr(mp, "taken_as", e.value or ""),
+                                          body.refresh(), changed())
+                                      ).classes("w-32").props("dense")
+                        # A menu-priced entry picks its printed tier. Labelled by what
+                        # the menu MEANS, not "Oath" — 36 entries price by menu and
+                        # only one of them is an oath.
                         if definition is not None and definition.cost_options:
-                            ui.select({t: f"{t.title()} ({v})"
-                                       for t, v in definition.cost_options.items()},
-                                      value=mp.tier or None, label="Oath",
+                            # Only the options this splat may actually choose. Prodigy
+                            # bars its Favored-granting halves to four splats while
+                            # leaving the aptitude half open to exactly them, so the
+                            # menu is filtered rather than the entry hidden. A tier
+                            # already recorded stays selectable, like the merit row's
+                            # own off-catalogue guard.
+                            opts = validate.merit_cost_options(
+                                definition, character.exalt_type, character.caste)
+                            tiers = validate.merit_tiers_available(
+                                definition, character.exalt_type, character.caste)
+                            tier_opts = {t: f"{_tier_label(t)} ({v})"
+                                         for t, v in opts.items()
+                                         if t in tiers}
+                            if mp.tier:
+                                tier_opts.setdefault(
+                                    mp.tier,
+                                    f"{_tier_label(mp.tier)} "
+                                    f"({opts.get(mp.tier, '?')})")
+                            ui.select(tier_opts,
+                                      value=mp.tier or None,
+                                      label="Oath" if merits.uses_arena(definition) else "Buying",
                                       on_change=lambda e, mp=mp: (setattr(mp, "tier", e.value or ""),
                                                                   body.refresh(), changed())
                                       ).classes("w-40").props("dense")
                             # Arena drives the same-arena stacking reduction (p.122);
                             # free text, because the page's list is examples, not a set.
-                            ui.input(value=mp.arena, placeholder="arena (combat, food…)",
-                                     on_change=lambda e, mp=mp: (setattr(mp, "arena", e.value),
-                                                                 body.refresh(), changed())
-                                     ).classes("w-40").props("dense")
+                            # Only for the entry that HAS that rule.
+                            if merits.uses_arena(definition):
+                                ui.input(value=mp.arena, placeholder="arena (combat, food…)",
+                                         on_change=lambda e, mp=mp: (setattr(mp, "arena", e.value),
+                                                                     body.refresh(), changed())
+                                         ).classes("w-40").props("dense")
+                        # A variable-cost entry's value lives on the PURCHASE — the page
+                        # leaves it to the table. Without this field it stayed 0, which
+                        # made all 11 of them inert at chargen: no bonus points, no
+                        # effect. Three of the four trait-forfeit Flaws are in that set,
+                        # which is why Diminished Attributes appeared to do nothing.
+                        elif definition is not None and definition.variable_cost:
+                            rate = merits.forfeit_rate(definition)
+                            if rate:
+                                # Collect DOTS and multiply, rather than collecting
+                                # points and flooring back: the dots are what the player
+                                # chooses ("three points for every Physical Attribute
+                                # dot"), and entering points directly can silently lose
+                                # a remainder. Human's ruling, 2026-07-31.
+                                ui.number(value=mp.points // rate, min=0, max=20, format="%d",
+                                          label=f"{merits.forfeit_trait_label(definition)} dots",
+                                          on_change=lambda e, mp=mp, r=rate: (
+                                              setattr(mp, "points", int(e.value or 0) * r),
+                                              body.refresh(), changed())
+                                          ).classes("w-32").props("dense")
+                            else:
+                                ui.number(value=mp.points, min=0, max=20, format="%d",
+                                          label="Points",
+                                          on_change=lambda e, mp=mp: (
+                                              setattr(mp, "points", int(e.value or 0)),
+                                              body.refresh(), changed())
+                                          ).classes("w-28").props("dense")
                         # Stipulations are dots, so they need a number rather than a
                         # note — "an extra dot ... for every major stipulation applied
                         # to the Inheritance, up a maximum of three" (p.24). Offered
@@ -661,11 +759,26 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                                   max(0, int(e.value or 0))),
                                           body.refresh(), changed())
                                       ).classes("w-32").props("dense")
-                        ui.input(value=mp.detail,
-                                 placeholder=(definition.repeatable_by if definition
-                                              and definition.repeatable_by else "note"),
-                                 on_change=lambda e, mp=mp: (setattr(mp, "detail", e.value),
-                                                             changed())).classes("flex-1").props("dense")
+                        # A structured detail is a CLOSED set, not free text: which
+                        # Attribute category a forfeit comes from, which Attribute gets
+                        # Legendary Attribute's raised ceiling. Both were free-text, and
+                        # both failed silently — a typo became a fourth category, and an
+                        # empty box left Legendary Attribute inert with no complaint.
+                        choices = (merits.detail_choices(definition)
+                                   if definition is not None else ())
+                        if choices:
+                            ui.select({c: c for c in choices},
+                                      value=mp.detail or None, label="Applies to",
+                                      on_change=lambda e, mp=mp: (
+                                          setattr(mp, "detail", e.value or ""),
+                                          body.refresh(), changed())
+                                      ).classes("w-40").props("dense")
+                        else:
+                            ui.input(value=mp.detail,
+                                     placeholder=(definition.repeatable_by if definition
+                                                  and definition.repeatable_by else "note"),
+                                     on_change=lambda e, mp=mp: (setattr(mp, "detail", e.value),
+                                                                 changed())).classes("flex-1").props("dense")
                         ui.button(icon="delete",
                                   on_click=lambda e=None, idx=idx: remove_merit(idx)
                                   ).props("flat dense round")
@@ -1026,24 +1139,40 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         del character.backgrounds[idx]
         body.refresh(); changed()
 
+    def _default_tier(definition) -> str:
+        """The option a fresh row should open on: the first this SPLAT may choose, not
+        merely the first authored. Prodigy's menu leads with `favored`, which four
+        splats are barred from — so a Solar's new row opened on an illegal tier and
+        flagged itself immediately (reported 2026-07-31)."""
+        if definition is None or not definition.cost_options:
+            return ""
+        return next(iter(validate.merit_tiers_available(
+            definition, character.exalt_type)), "")
+
     def add_merit() -> None:
-        # Default to the cheapest Merit so a fresh row is always a legal selection.
-        first = min((m for m in ruleset.merits_flaws.values()),
+        # Default to the cheapest Merit so a fresh row is always a legal selection —
+        # which means picking from the same filtered set the dropdown offers, or the
+        # row would open on an entry that is not in its own options.
+        first = min((m for m in ruleset.merits_flaws.values()
+                     if validate.merit_available_to(m, character.exalt_type,
+                                                    character.caste)),
                     key=lambda m: (m.kind != "merit", m.cost, m.name), default=None)
         if first is None:
             return
         character.merits_flaws.append(
-            MeritFlawPurchase(merit_id=first.id,
-                              tier=next(iter(first.cost_options), "") if first.cost_options else ""))
+            MeritFlawPurchase(merit_id=first.id, tier=_default_tier(first)))
         body.refresh(); changed()
 
     def set_merit(mp: MeritFlawPurchase, merit_id: str) -> None:
         mp.merit_id = merit_id
         # The old tier belongs to the old Merit; reset it to the new one's first
-        # option (or clear it) so a variable-cost row is never left on a dead tier.
-        definition = ruleset.merits_flaws.get(merit_id)
-        mp.tier = (next(iter(definition.cost_options), "")
-                   if definition and definition.cost_options else "")
+        # AVAILABLE option (or clear it) so a row is never left on a dead tier — or on
+        # one this splat is barred from.
+        mp.tier = _default_tier(ruleset.merits_flaws.get(merit_id))
+        # Same for the side: a choice made for the old entry says nothing about the
+        # new one, and a stale "flaw" on a single-sided Merit would be read by
+        # `effective_merit_kind` as nothing at all — better to make it re-chosen.
+        mp.taken_as = ""
         body.refresh(); changed()
 
     def remove_merit(idx: int) -> None:

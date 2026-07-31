@@ -54,9 +54,17 @@ def visible_tabs(locked: bool) -> tuple[str, ...]:
     """The tabs for a character at this stage of its life. Edit and XP are the same
     slot seen from two sides — chargen builds the baseline, XP spends against it —
     so exactly one of them is ever on the bar. Charms and Combos stay on both sides:
-    they switch from picking (free, within the chargen budget) to buying (with XP)."""
-    hidden = "XP" if not locked else "Edit"
-    return tuple(t for t in _TABS if t != hidden)
+    they switch from picking (free, within the chargen budget) to buying (with XP).
+
+    Play is locked-only. The tracker overlays spent motes, marked health and Willpower
+    onto capacities derived from the finished character, and every one of those moves
+    while chargen is still open — a half-built character's track is a set of boxes that
+    change under the player. It is also the tab most likely to mislead: play-state is
+    validation-isolated (decision 0006) and never enters chargen, so marks made before
+    the lock silently mean nothing to the point accounting.
+    """
+    hidden = {"XP", "Play"} if not locked else {"Edit"}
+    return tuple(t for t in _TABS if t not in hidden)
 
 
 def resolve_tab(name: str, locked: bool) -> str:
@@ -333,7 +341,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     def finish() -> None:
         errors = [i for i in validate.validate_chargen(ruleset, ctx["char"]) if i.severity == "error"]
-        lifecycle.lock_chargen(ctx["char"])
+        lifecycle.lock_chargen(ctx["char"], ruleset)
         if errors:
             ui.notify(f"Locked with {len(errors)} unresolved error(s) — see the Sheet", type="warning")
         else:

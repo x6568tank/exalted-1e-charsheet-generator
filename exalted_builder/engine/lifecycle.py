@@ -14,9 +14,16 @@ from ..models.character import ChargenSnapshot, Character
 from . import derive
 
 
-def lock_chargen(character: Character) -> Character:
+def lock_chargen(character: Character, ruleset=None) -> Character:
     """Freeze chargen: snapshot traits and pin the Willpower virtue component.
-    Idempotent in effect, but re-locking re-snapshots current state."""
+    Idempotent in effect, but re-locking re-snapshots current state.
+
+    `ruleset` is OPTIONAL, the same shape `derive.willpower` and friends use: without
+    one there is no way to see a Merit, so the one Flaw that sets a STARTING trait
+    (Death's Taint, whose price above its base four points buys permanent Resonance)
+    cannot be applied. Pass it wherever you can — the omission is silent, not a
+    TypeError.
+    """
     wp_component = derive.two_highest_virtues(character.virtues)
     character.chargen_snapshot = ChargenSnapshot(
         attributes=dict(character.attributes),
@@ -49,8 +56,23 @@ def lock_chargen(character: Character) -> Character:
         wp_virtue_component=wp_component,
     )
     character.wp_virtue_component = wp_component
+    # Death's Taint buys a STARTING permanent Resonance out of its price. It is the only
+    # Flaw that seeds a trait rather than bounding one, and until 2026-07-31 the derived
+    # value was computed and read by nothing — the character always began at 0. Seeded
+    # here because lock is where chargen values become the character's own.
+    #
+    # Never overwrites a track the ledger has already moved: a re-lock after play would
+    # otherwise undo a Harrowing or re-inflict a shed dot.
+    if ruleset is not None and not _permanent_resonance_moved(character):
+        character.limit_permanent = derive.permanent_limit_start(ruleset, character)
     character.chargen_locked = True
     return character
+
+
+def _permanent_resonance_moved(character: Character) -> bool:
+    """Whether the XP ledger has ever moved permanent Resonance for this character."""
+    from .validate import PERMANENT_RESONANCE_TARGET
+    return any(e.target == PERMANENT_RESONANCE_TARGET for e in character.xp_log)
 
 
 def unlock_chargen(character: Character) -> Character:

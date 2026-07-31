@@ -184,6 +184,19 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
 (party page). Run: `.venv/bin/python -m exalted_builder.ui.builder [char.json]
 [--show] [--port N] [--native]`. Example char: `examples/ashes-of-dawn.character.json`.
 
+- **`builder.visible_tabs(locked)` is the ONE place a tab's stage is decided**, and
+  `resolve_tab` moves you off a tab that just disappeared. Edit and XP are one slot
+  seen from two sides, so exactly one is ever on the bar. **Play joined them as
+  locked-only on 2026-07-31**: the tracker overlays fill-state onto capacities derived
+  from the finished character, all of which move while chargen is open, and marks made
+  before the lock are validation-isolated (decision 0006) so they silently mean nothing
+  to the point accounting. Charms, Combos, ST, Custom and Sheet are on both sides.
+  The GM party page (`ui/gm.py`) is deliberately NOT gated this way — it renders a
+  tracker for every member and flags the unlocked ones with a lock icon, because a
+  Storyteller running a table may well have a half-built character in it.
+  **Browser-verified 2026-07-31**, including the lock→Play→unlock transition and a
+  splat change while the bar was re-theming; the GM page's ungated trackers were shown
+  to the human and kept as they are.
 - **The picker's group toggle is built from what the splat HAS**, so no character
   sees all of it. The base three are Abilities / Martial Arts / Spells (each omitted
   when the splat has none of that kind); **Form Library** is added for a splat with

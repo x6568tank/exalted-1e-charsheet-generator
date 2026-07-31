@@ -174,7 +174,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1411 tests passing)
+## Status (1475 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -198,8 +198,10 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Thaumaturgy — DONE** (cross-splat Arts/Sciences/Rituals/Formulas; engine + UI, browser-verified) | `docs/status/thaumaturgy.md` |
 | **Custom content — DONE** (user-authored Charms/styles/spells: library, `/custom` page, saves that carry homebrew) | `docs/status/custom-content.md` |
 | **Mortals & Heroic Mortals — DONE** (one splat, two origins; casteless, no Charms, Essence pinned at 1; magic via M&F) | `docs/status/mortals.md` |
-| **Merits & Flaws — DONE** (centralized calc per decision 0011; all 98 M&F authored; mortal magic unlock; editor + sheet + ST Options UI) | `docs/status/merits-flaws.md` |
+| **Merits & Flaws — DONE, browser-verified** (centralized calc per decision 0011; all 99 authored; every A-list mechanism; mortal magic unlock) | `docs/status/merits-flaws.md` |
+| M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
 | **Rated artifacts — DEFERRED, sourced** (the E:Ab p.131 Artifact budget table, transcribed; per-specific-artifact Damaged Artifact) | `docs/status/rated-artifacts.md` |
+| **Advantages tab — PLAN ONLY, unblocked** (Backgrounds + M&F onto one both-sides tab) | `docs/status/advantages-tab.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -216,7 +218,9 @@ non-Exalt splat shipped 2026-07-30**: Mortals + Heroic Mortals, which turned out
 one splat with two origins rather than two splats (`docs/status/mortals.md`). Their
 chargen is complete, and so is their magic: **Merits & Flaws came back the same day**
 (99 entries, one centralized calc — `docs/status/merits-flaws.md`), which is what opens
-Terrestrial Martial Arts and Sorcery to a mortal. **Four non-Exalt splats remain** (Godblooded,
+Terrestrial Martial Arts and Sorcery to a mortal — and as of 2026-07-31 every mechanical
+effect on the M&F triage's A-list is implemented and browser-verified, so the subsystem is
+closed. **Four non-Exalt splats remain** (Godblooded,
 Ghosts, Dragon-Kings, Mountain Folk), all blocked on source material. See **TODO**
 below for what's actually next.
 
@@ -260,26 +264,27 @@ Recorded as decision records, not restated here — read them before proposing a
 
 ## TODO
 
-### 👉 START HERE (session handoff, end of 2026-07-30)
-**The Merits & Flaws triage's whole A-list is IMPLEMENTED — A1 through A7 plus cluster 7
-(trait prerequisites). Nothing on it is left to build.** 1,411 tests pass; the tree is
-**uncommitted**.
+### 👉 START HERE (session handoff, 2026-07-31)
+**Merits & Flaws are DONE — every mechanism on the triage's A-list is implemented AND
+browser-verified.** A1 through A7 plus cluster 7 (trait prerequisites). 1,475 tests pass.
+`docs/status/merits-flaws.md` is the record; read it before touching M&F.
 
-What is actually next is **browser click-through**, of the four things that landed after
-the human's last verification pass:
+**The desktop and work-machine branches were merged 2026-07-31** and the merged tree was
+clicked through the same day. The one thing to know about the merge: both branches had
+implemented cluster 7 independently under the SAME field name, and the desktop's richer
+`TraitRequirement` shape (tier-keyed, AND-of-OR, four namespaces) was kept while the work
+machine's `TraitPrerequisite` was dropped. Everything else was unioned. Full detail and
+the two silent breakages git caused on its own: `docs/status/merits-flaws.md`.
 
-1. **A6** — Backgrounds (Heir Apparent's enlarged pool + cap waiver, Innocuous' caps and
-   bars, the three point-limit Flaws).
-2. **Cluster 7** — trait prerequisites, and the new "Requires: …" line in the editor's
-   Merit rows.
-3. **A7** — the Abyssal "Resonance" rename, Greater Curse's shortened track, the luck
-   pools.
-4. **The permanent-Resonance move** — it touched `models/character.py`, `ui/play.py` and
-   `ui/xp.py`, so it is the most likely of the four to have a UI bug.
+**The click-through found five bugs and produced two rulings** — permanent Resonance
+occupies the Resonance track rather than riding beside it, and Innocuous' two open-ended
+Background clauses now name eight more Backgrounds. Both are written up in
+`merits-flaws.md`; the second is the kind of thing to re-read before touching Innocuous.
 
-A1-A5 are verified and need no re-testing. After the click-through, the open items are
-the three known UI gaps listed further down (two-sided entries, the editor's unfiltered
-Merit dropdown, the XP tab's double-duty tier field), then `docs/status/rated-artifacts.md`.
+**What is next is the human's call.** The obvious candidates are the **Advantages tab**
+(`docs/status/advantages-tab.md` — agreed, planned, and no longer blocked now that A6 has
+landed) and `docs/status/rated-artifacts.md`. The four remaining non-Exalt splats are all
+still blocked on source material.
 
 **Done:** M&F removal, repeatable Ox-Body, Nature dropdown, Caste info box,
 editable custom weapons/armor, magical materials, Craft as per-focus Abilities,
@@ -350,102 +355,38 @@ homebrew-only with no printed use: `CharmCost.health_type` and
   Mortals + Heroic Mortals are DONE (2026-07-30) and were the exception to the
   "six separate splats" note: p.103 runs one procedure through both, so they shipped as
   one splat with a `heroic`/`ordinary` origin axis. Do not generalise that to the other
-  four. `docs/status/mortals.md`.
-- **Merits & Flaws — DONE 2026-07-30, ahead of schedule.** Decision 0011's centralized
-  `merits_and_flaws_calc` exists (`exalted_builder/engine/merits.py`) and **99 M&F are
-  authored**: the 11 Thaumaturgy ones (PG pp.120-122) and all 88 of the general chapter
-  (pp.16-41). It was pulled forward of the remaining non-Exalt splats because mortals
-  shipped with no route to magic at all, and that route runs entirely through Merits.
-  `docs/status/merits-flaws.md` is the full record — **read it before touching M&F.**
-  The one rule that must not be broken: **no module outside `engine/merits.py` may name
-  a Merit id**; callers read `MeritEffects` fields, and
-  `test_no_module_outside_engine_merits_names_a_merit_id` enforces it by grepping the
-  package. If it fails, add a FIELD to MeritEffects — never an allowlist.
-- **Mortal magic access — DONE.** Essence Awareness unlocks the pool, Essence Mastery
-  unlocks it fully and opens Terrestrial Martial Arts (minus Spirit Walking AND minus
-  the Immaculate Dragon styles) plus Terrestrial Sorcery, and raises `essence_cap` 1→3.
+  four. `docs/status/mortals.md`. Two hooks recorded when they turn up: PG p.114 says
+  "mortals that exceed Essence 3 become gods, in the same way the God-Blooded do", and
+  Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" cost override is deliberately
+  unauthored and should be added with those splats.
+- **Merits & Flaws — DONE.** Decision 0011's centralized `merits_and_flaws_calc` exists
+  (`exalted_builder/engine/merits.py`) and **99 M&F are authored**: the 11 Thaumaturgy
+  ones (PG pp.120-122) and all 88 of the general chapter (pp.16-41). Pulled forward of
+  the remaining non-Exalt splats because mortals shipped with no route to magic and that
+  route runs entirely through Merits. **Mortal magic access is part of it:** Essence
+  Awareness unlocks the pool, Essence Mastery unlocks it fully and opens Terrestrial
+  Martial Arts (minus Spirit Walking AND the Immaculate Dragon styles) plus Terrestrial
+  Sorcery, and raises `essence_cap` 1→3. See the block below.
 
-**Next (2026-07-30, after lunch):**
-- **Model the M&F mechanical effects — IN PROGRESS, step by step.** **The triage is
-  DONE** and `docs/status/merits-flaws-triage.md` is the record: all 94 unmodelled
-  entries read in full and sorted, the human's rulings on the boundary recorded at the
-  top. **26 are implementable, in 8 mechanisms** (A1-A7 plus trait prerequisites); the
-  31 dice-only and 32 narrative entries are **skipped permanently** — not deferred, not
-  worth revisiting. **Read the triage doc before touching any of this**, especially the
-  RULINGS section: Callous is the one sanctioned exception to decision 0005, forfeit
-  Flaws are a budget delta and nothing more, and Limit/Paradox maxima are the constant
-  10 rather than something to derive.
-  **A1-A5 are COMPLETE (2026-07-30).** A1: all four trait-forfeit Flaws
-  (Callous, Unskilled, Weak-Willed, Diminished Attributes), engine and chargen UI —
-  `validate.effective_budgets` and `validate.attribute_pool_assignment` are the hooks.
-  A2: health levels (Large Size, Small), which the in-play damage tracker picked up for
-  free. A3: trait caps (Legendary Attribute, True Paragon, Disfigured, Weak Essence) —
-  the first cluster to span chargen AND advancement, plus Weak Essence's withheld-Charm
-  credits (`validate.withheld_charm_credits`, redeemed through the `charms_withheld` XP
-  target so the audit does not re-price them). A4: point-cost modifiers (Brigid's Heir,
-  Prodigy) — `merits.adjust_charm_cost`/`adjust_spell_cost` are the read, since the
-  sorcery-line exemption makes it per-Charm rather than a flat multiplier.
-  **A1-A5 ARE browser-verified** (human, 2026-07-30). **A4 still carries two open rules
-  questions** (is Terrestrial Circle Sorcery itself exempt; how does an odd spell cost
-  halve) — both recorded in `docs/status/merits-flaws-triage.md`.
-  Three engine functions now take an OPTIONAL `ruleset` so they can see Merits —
-  `derive.soak`, `derive.willpower`, `derive.health_track`. Follow that shape rather
-  than threading MeritEffects through call sites.
-  A5: Essence-pool shape — **Legendary Breeding is the Breeding RATING it grants**
-  (the rating-6 row now exists in `data/exalts.json`; its printed +6/+11 motes ARE that
-  row, not an addition on top of the Breeding 5 it requires), and **Beacon of Power
-  merges the pools after every other effect**. `DerivedTraits.essence_single_pool`
-  carries the shape so a sheet can tell "Personal 0 by rule" from "no Essence at all",
-  and `MeritFlaw.barred_castes` is A4's splat-bar precedent one level down.
-  A6: Backgrounds — **Heir Apparent is the mirror of A1**, a budget delta with the
-  opposite sign, so it went in `validate.effective_budgets` beside them; its cap
-  exemption is a TRANSFER (a waived above-cap dot consumes a pool dot instead of paying
-  BP, or it would have been free), and `validate.background_pool_spend` is now the one
-  place that arithmetic lives. Three of A6's five entries turned out not to be effects
-  at all — Damaged Artifact, Known Anathema and Debt all bound their own point value
-  against a Background rating, which is inert catalogue data
-  (`MeritFlaw.points_limited_by`), the A4/A5 precedent a third time.
-  Cluster 7 (trait prerequisites) is DONE: `MeritFlaw.trait_prerequisites`, keyed by
-  TIER (Innocuous gates only its 2-pt version) and AND-of-OR inside (Cache is
-  "Resources 4 or Salary 2"), with `validate.trait_rating` resolving a trait NAME across
-  Attributes/Abilities/Virtues/Backgrounds — the six entries span all four. Large Size
-  was deliberately NOT given one ("*Most* characters…" is descriptive) and a test says so.
-  A7 (play-state pools) is DONE, and with it **the triage's whole A-list**: the Abyssal
-  `limit_label` rename to "Resonance" landed first, Greater Curse is a subtraction from
-  the constant `merits.LIMIT_MAX` (the tracker's hardcoded 10s now read
-  `derive.limit_max`), Sidereal Lucky is the band `min(5, max(3, points + 2))`, and
-  Death's Taint's starting permanent Resonance comes out of its price (`points − 4`,
-  the A1 trick).
-  **CORRECTED the same day: `limit_permanent` is on `Character`, not `PlayState`.**
-  Permanent Resonance is a permanent trait — decision 0006's own last bullet routes
-  permanent trait movement to the XP ledger — so it moves through
-  `advancement.gain_permanent_resonance` (free) and `shed_permanent_resonance` (5 XP),
-  both logged, priced per DIRECTION off `validate.PERMANENT_RESONANCE_TARGET` because
-  the audit's generic "a reduction is free" rule would otherwise zero the shed. The play
-  tracker shows it read-only and points at the XP tab. **Rerolling is out (0009); so is
-  the Harrowing, which is training-time-class and out permanently.**
-  **What is left on M&F is the browser click-through** — A1-A5 are verified, A6,
-  cluster 7 and A7 are NOT.
-- **Browser click-through of Merits & Flaws** — NOT done, and it is the highest-value
-  thing outstanding. The Mortal pass earned its keep this morning: it found three bugs
-  1,200 tests missed, and a further four surfaced during the M&F work (a picker crash
-  that blanked two tabs, an XP tab taken down by a shadowed local, a sheet panel crushed
-  invisible by a `no-wrap` row, and a sheet block with no rules text). Assume more.
-- **Two-sided entries cannot be chosen in the UI.** Mutation, Favor and Eternal Vow are
-  `kind: "either"`; nothing in the editor or the XP tab sets `MeritFlawPurchase.taken_as`,
-  so the XP tab always routes them to the Merit branch. Validation flags the unrecorded
-  choice (`merit-side-unchosen`) so it is visible, not silent — but the choice cannot yet
-  be MADE. Smallest real gap.
-- **The editor's Merit dropdown does not filter by splat.** The XP tab does. So a Solar
-  can pick Chimera (Lunars only) at chargen and get a validation error rather than being
-  prevented.
-- **The XP tab's tier/points field is one free-text input doing double duty** — a tier
-  key for a menu-priced entry, a point value for a variable-cost one. Works; crude.
-- **The four remaining non-Exalt splats** — Godblooded, Ghosts, Dragon-Kings, Mountain
-  Folk. All blocked on source material; order is the human's call. Note PG p.114 gives a
-  hook for the first: "mortals that exceed Essence 3 become gods, in the same way the
-  God-Blooded do." Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" cost override
-  is deliberately unauthored and should be added with those splats.
+**M&F mechanical effects — DONE and browser-verified 2026-07-31.** The triage's whole
+A-list (A1-A7 plus cluster 7) is implemented, clicked through and written up. The record
+is `docs/status/merits-flaws.md` and `docs/status/merits-flaws-triage.md`, in that order;
+**read them before touching M&F rather than looking for the detail here.** The three
+things most likely to bite from outside that area:
+- **No module outside `engine/merits.py` may name a Merit id.** A test greps the package
+  for it. If it fails, add a FIELD to `MeritEffects` — never an allowlist.
+- **`derive.soak`, `derive.willpower`, `derive.health_track` and `lifecycle.lock_chargen`
+  take an OPTIONAL `ruleset`** so they can see Merits. Every omission is a silent wrong
+  answer rather than a TypeError. Follow that shape; do not thread `MeritEffects` through
+  call sites.
+- **A derived effect field that nothing reads is this area's recurring bug**, three times
+  now and invisible to the suite each time. **Run the `preflight` skill** before booking
+  browser time.
+
+The 31 dice-only and 32 narrative entries are **skipped permanently** — not deferred.
+Two A4 rules questions were answered 2026-07-31 and one item stays open: **Salary is
+named by Cache's prerequisite and does not exist as a Background**, left unresolvable
+until a page for it appears.
 
 Full multi-splat plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 DB chargen numbers as verified from source pages: [[db-chargen-findings]].

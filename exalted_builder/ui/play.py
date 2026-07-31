@@ -174,12 +174,27 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                         "flat dense").classes("text-xs")
 
             # --- Motes (numeric; capacities derived, spend is user input) - #
-            with _panel("Essence (motes spent — manual)", pal):
+            # A merged pool is ONE track: "all of which is considered Peripheral"
+            # (p.41), so the Personal box would be a permanent 0/0 that reads as
+            # broken. Say the rule in the header instead of rendering a dead input.
+            title = ("Essence — single pool (motes spent — manual)" if pv.single_pool
+                     else "Essence (motes spent — manual)")
+            with _panel(title, pal):
                 with ui.row().classes("gap-6 flex-wrap items-end"):
-                    _mote_input("Personal", "motes_personal_spent",
-                                cur.motes_personal_spent, pv.personal_max)
-                    _mote_input("Peripheral", "motes_peripheral_spent",
+                    if not pv.single_pool:
+                        _mote_input("Personal", "motes_personal_spent",
+                                    cur.motes_personal_spent, pv.personal_max)
+                    _mote_input("Peripheral" if not pv.single_pool else "All motes",
+                                "motes_peripheral_spent",
                                 cur.motes_peripheral_spent, pv.peripheral_max)
+                # Essence Awareness unlocks only a third of the pool freely; the rest
+                # needs a Willpower roll the table makes, not this app. The inputs
+                # still run to the full maximum — those motes are spendable — so the
+                # line goes under them as a note rather than as a second cap.
+                if pv.free_max is not None:
+                    ui.label(f"{pv.free_max} of these may be spent freely; the rest "
+                             f"need a Willpower roll (Essence Awareness)"
+                             ).classes("text-xs opacity-70 mt-1")
 
             # --- Temporary Willpower ------------------------------------- #
             with _panel(f"Temporary Willpower  ({pv.willpower_max - cur.willpower_spent} / "
@@ -234,8 +249,18 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                             count_box(character, i, i < cur.limit, "limit", lim_max,
                                       body.refresh)
                     if lim_max < merits.LIMIT_MAX:
-                        ui.label(f"Maximum {lim} reduced from "
-                                 f"{merits.LIMIT_MAX} by a Flaw.").classes(
+                        # Two different causes, and the ST needs to know which: a Flaw
+                        # shortened the track outright, or permanent Resonance is
+                        # occupying part of it (ruled 2026-07-31 — permanent is headroom
+                        # off the maximum, not a rating riding alongside).
+                        why = []
+                        if character.limit_permanent:
+                            why.append(f"{character.limit_permanent} permanent")
+                        curse = merits.LIMIT_MAX - lim_max - character.limit_permanent
+                        if curse > 0:
+                            why.append(f"{curse} by a Flaw")
+                        ui.label(f"Maximum {lim} reduced from {merits.LIMIT_MAX} "
+                                 f"({', '.join(why)}).").classes(
                             "text-xs text-amber-700")
                     # Death's Taint gives the Abyssal Curse a permanent counterpart,
                     # "cumulative with temporary Resonance". Shown only where held.
@@ -249,8 +274,9 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.label(f"Permanent {lim}: {character.limit_permanent} "
                                  f"/ {perm_cap} (capped at Essence)").classes(
                             "text-xs mt-1")
-                        ui.label(f"Cumulative with temporary {lim}; total "
-                                 f"{cur.limit + character.limit_permanent}.").classes(
+                        ui.label(f"Cumulative with temporary {lim}: it occupies "
+                                 f"{character.limit_permanent} of the {merits.LIMIT_MAX}, "
+                                 f"so the track above runs to {lim_max}.").classes(
                             "text-xs text-gray-500")
                         ui.label(f"Permanent {lim} is a permanent trait — gain or shed "
                                  f"it on the XP tab, not here.").classes(
