@@ -547,3 +547,34 @@ either:
    SPLAT's starting Essence rather than on a character trait, and its named exception is
    a splat that does not exist yet. Best authored alongside Dragon Kings, with Prodigy's
    "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" override.
+
+## The optional-`ruleset` audit (2026-07-31)
+
+1,394 tests. `derive.soak`, `derive.willpower` and `derive.health_track` take an
+OPTIONAL `RuleSet` because without one there is no way to know a Flaw is held. That
+shape is deliberate and documented — but it makes **every omission a silent bug rather
+than a TypeError**: the call succeeds and quietly returns the pre-Flaw number.
+`advancement.raise_willpower` was one such omission, found and fixed earlier. This was
+the sweep for the rest.
+
+**Three more callers were omitting it**, all reading Willpower:
+
+* `advancement.lower_willpower` — its "already at 1" floor guard and its ledger row
+  both read the current value. Blind to the Flaw, a Weak-Willed character reads 4 where
+  the truth is 2: the guard lets through a reduction it should refuse, and the log
+  records a drop that did not happen. Now takes `ruleset` as an optional keyword,
+  matching its `lower_*` siblings rather than breaking their signature.
+* `ui/xp.py` (the raise row) — the WORST of the three, because it was user-visible and
+  self-contradictory. `wp` drove both the button's label and
+  `costs.willpower_step(rs, character, wp)`, while `advancement.raise_willpower` (already
+  fixed) priced from the true value. A Weak-Willed character was **quoted 8 XP for a
+  dot that was then charged at 4**.
+* `ui/xp.py` (the Reduce-a-Trait dropdown) — wrong current value in the label.
+
+`soak` and `health_track` have no external callers that omit it.
+
+**The guard is source-level** (`test_no_caller_omits_the_ruleset_when_reading_willpower`),
+which is the only kind that works here: there is nothing to observe at runtime, since the
+blind call returns a plausible number. Verified against the previous commit — it flags
+both `ui/xp.py` sites. If a future reading legitimately cannot supply a RuleSet, the
+answer is to widen the test deliberately, not to route around it.

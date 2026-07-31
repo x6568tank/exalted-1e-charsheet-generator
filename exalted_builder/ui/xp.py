@@ -74,7 +74,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         elif kind == "virtue":
             advancement.lower_virtue(character, VirtueName(name), reason)
         elif kind == "willpower":
-            advancement.lower_willpower(character, reason)
+            advancement.lower_willpower(character, reason, ruleset=rs)
         elif kind == "essence":
             advancement.lower_essence(character, reason)
 
@@ -216,7 +216,8 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                        lambda: advancement.raise_virtue(rs, character, sel["virtue"]),
                        cap=5)
 
-            wp = derive.willpower(character)
+            wp = derive.willpower(character, rs)   # rs, or a Flaw-held
+            # character is QUOTED one price and CHARGED another
             ess = character.essence_rating
             with ui.row().classes("w-full items-center gap-4 no-wrap"):
                 ui.button(f"Willpower {wp}→{wp + 1}  ·  {costs.willpower_step(rs, character, wp)} XP",
@@ -406,7 +407,7 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                 lower_opts[f"ability:{ab.value}"] = f"Ability · {_label(ab.value)} ({character.abilities.get(ab, 0)})"
             for vir in VirtueName:
                 lower_opts[f"virtue:{vir.value}"] = f"Virtue · {_label(vir.value)} ({character.virtues[vir]})"
-            lower_opts["willpower"] = f"Willpower ({derive.willpower(character)})"
+            lower_opts["willpower"] = f"Willpower ({derive.willpower(character, rs)})"
             lower_opts["essence"] = f"Essence ({character.essence_rating})"
             with ui.row().classes("w-full items-center gap-2 no-wrap"):
                 ui.select(lower_opts, value=sel["lower_target"],

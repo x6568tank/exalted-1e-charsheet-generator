@@ -1994,3 +1994,47 @@ def test_the_check_needs_no_merit_id(rs):
     c.attributes[A.WITS] = 1
     patched = rs.model_copy(update={"merits_flaws": dict(rs.merits_flaws, **{CALLOUS: invented})})
     assert _codes(validate.validate_chargen(patched, c), "merit-trait-required")
+
+
+# --- the optional-`ruleset` audit (2026-07-31) ------------------------------ #
+# `derive.soak`, `derive.willpower` and `derive.health_track` take an OPTIONAL RuleSet
+# because without one there is no way to know a Flaw is held. That shape is deliberate,
+# but it makes every omission a silent bug rather than a TypeError — `raise_willpower`
+# was one, found earlier. This is the sweep for the rest.
+
+def test_no_caller_omits_the_ruleset_when_reading_willpower():
+    """A source-level guard, because the failure is invisible at runtime: the call
+    SUCCEEDS and quietly returns the pre-Flaw number. Three callers were omitting it
+    (`advancement.lower_willpower` and two in the XP tab), which quoted a Weak-Willed
+    character 8 XP for a Willpower dot that `raise_willpower` then charged 4 for."""
+    import re
+    pkg = Path(exalted_builder.__file__).parent
+    offenders = []
+    for path in pkg.rglob("*.py"):
+        if path.name == "derive.py":
+            continue                       # defines it; its internal calls pass it
+        for i, line in enumerate(path.read_text().splitlines(), 1):
+            if re.search(r"derive\.willpower\(\s*\w+\s*\)", line):
+                offenders.append(f"{path.relative_to(pkg)}:{i}")
+    assert offenders == [], (
+        "these read Willpower without a RuleSet and so cannot see a Flaw: "
+        + ", ".join(offenders))
+
+
+def test_lowering_willpower_sees_a_flaw_that_moved_it(rs):
+    """`lower_willpower`'s floor guard and its ledger row both read the current value.
+    Blind to the Flaw, a Weak-Willed character reads 4 where the truth is 2 — so the
+    guard lets a reduction through that should have been refused, and the log records
+    a drop that did not happen."""
+    def weak(**kw):
+        c = _solar(MP(merit_id="mf.weak-willed", points=2), **kw)   # 2 WP dots sold
+        c.virtues = {v: 2 for v in V}
+        lifecycle.lock_chargen(c)
+        return c
+    c = weak()
+    assert derive.willpower(c, rs) == 2 and derive.willpower(c) == 4
+    entry = advancement.lower_willpower(c, "curse", ruleset=rs)
+    assert (entry.from_rating, entry.to_rating) == (2, 1), "the ledger must record the truth"
+    # and at the floor it refuses, where the blind read would have allowed it
+    with pytest.raises(advancement.AdvancementError, match="already at 1"):
+        advancement.lower_willpower(c, "curse", ruleset=rs)

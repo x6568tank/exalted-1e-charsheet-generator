@@ -274,13 +274,19 @@ def lower_virtue(character: Character, virtue: VirtueName, reason: str = "") -> 
     return _log_reduction(character, f"virtues.{virtue.value}", frm, frm - 1, reason)
 
 
-def lower_willpower(character: Character, reason: str = "") -> XpEntry:
+def lower_willpower(character: Character, reason: str = "", *,
+                    ruleset: RuleSet | None = None) -> XpEntry:
     """Reduce permanent Willpower one dot (a curse). Decrements the purchased
     component, which may go negative — permanent Willpower = pinned Virtue component
     + purchased, so a curse below the Virtue floor is represented as net-negative
     purchased. Floored at a permanent Willpower of 1."""
     _ensure_locked(character)
-    frm = derive.willpower(character)
+    # `ruleset` is optional to match its `lower_*` siblings, but OMITTING IT IS A BUG
+    # for any character holding a Flaw that moves Willpower — Weak-Willed sells dots,
+    # Callous keeps tracking the Virtues. Without it the "already at 1" guard tests the
+    # wrong number and the ledger records a reduction that never happened. Same class
+    # as the `raise_willpower` omission fixed earlier.
+    frm = derive.willpower(character, ruleset)
     if frm <= 1:
         raise AdvancementError("Willpower is already at 1 (the minimum).")
     character.willpower_purchased -= 1
