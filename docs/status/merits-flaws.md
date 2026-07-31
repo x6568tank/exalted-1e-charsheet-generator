@@ -537,11 +537,13 @@ one the catalogue has never heard of.
 Both were found in the same sweep and are the human's call — nothing is authored for
 either:
 
-1. **Chimera** (p.38): "True chimerae cannot have the Renown Background." A NEGATIVE
-   prerequisite, which the model cannot currently express — but the harder problem is
-   scope. The preceding sentence distinguishes "actual chimerae — those who have lost
-   themselves to the Wyld" from a Lunar merely holding the Flaw, so it is unclear
-   whether the bar applies to every holder or only to that subset.
+1. **Chimera** (p.38) — **RULED 2026-07-31: not modelled, deliberately.** "True chimerae
+   cannot have the Renown Background." The human's call: *"an ST-tell, since the
+   description is hedging."* The preceding sentence distinguishes "actual chimerae —
+   those who have lost themselves to the Wyld" from a Lunar merely holding the Flaw, and
+   that hedge is the tell — the page is describing a Storyteller judgement, not a
+   purchase gate. **Do not author a `trait_prerequisites` row for it**, and do not add
+   negative trait prerequisites to the model on its account: it was the only candidate.
 2. **Weak Essence** (p.41): "Other magical beings may take this Flaw, provided that they
    normally have a starting Essence of 2. Dragon Kings are an exception." A gate on the
    SPLAT's starting Essence rather than on a character trait, and its named exception is
@@ -578,3 +580,75 @@ which is the only kind that works here: there is nothing to observe at runtime, 
 blind call returns a plausible number. Verified against the previous commit — it flags
 both `ui/xp.py` sites. If a future reading legitimately cannot supply a RuleSet, the
 answer is to widen the test deliberately, not to route around it.
+
+## Weak Essence's hole, and Prodigy's two halves (2026-07-31)
+
+1,403 tests. **Not browser-verified.**
+
+### Weak Essence was a live 6-point exploit on Mortals
+
+Not the Dragon Kings question it was first filed as. Weak Essence is a **6-point Flaw
+whose entire cost is "reduces the character's starting Essence rating to 1"** — and a
+Mortal is pinned at Essence 1 already. So it cost them nothing and paid 6 bonus points
+against a 21-point budget, a 29% increase for no drawback. It also handed 5
+withheld-Charm credits to a splat with no Charms. Nothing complained.
+
+The printed clause exists precisely to close this: *"Other magical beings may take this
+Flaw, provided that they normally have a starting Essence of 2"* (p.41). New
+`MeritFlaw.min_starting_essence`, read against `ChargenBudgets.essence_start` (Solar 2,
+DB 2, Mortal 1), so it excludes Mortals and nothing else currently shipped. The Dragon
+Kings exception stays unauthored until that splat exists.
+
+The gate also filters both dropdowns. Its argument is **optional and omitting it is
+permissive** — a caller without the budgets to hand can only fail to hide, never wrongly
+hide.
+
+### Prodigy: one entry, two independent purchases
+
+**RULED 2026-07-31: the aptitude half escapes the splat bar**, and it stays a single
+catalogue entry.
+
+The page prices two things that the 2/3/4/5 menu had squashed into one axis: the Favored
+Ability grant (3 points, 2 for Dragon Kings and God-Blooded) and "increased aptitude"
+(+2), which "may be stacked onto the cost of purchasing the Trait as Favored with
+Prodigy **or paid separately** for characters who innately gain Favored Abilities as part
+of character creation" — which describes exactly the four splats the entry is otherwise
+barred to.
+
+* **Semantic tiers** replace the numeric menu: `{favored: 3, favored_aptitude: 5,
+  aptitude: 2}`. The old menu could not express this — **"aptitude only" and "Dragon King
+  grant only" are both 2 points**, so the price could not say which had been bought. A
+  trap that would have sprung exactly when Dragon Kings landed. Distinct keys, whatever
+  they cost.
+* **`MeritFlaw.tier_barred_exalt_types`** — splat bars per OPTION rather than per entry.
+  `barred_exalt_types` is now unused by the catalogue. The whole-entry answer is
+  DERIVED from the per-option ones (barred at every option = barred outright), so the
+  two can never disagree.
+* **One Ability per purchase.** The page stacks the aptitude cost "onto the cost of
+  purchasing *the Trait* as Favored" or has it "paid separately" for an already-favored
+  Trait — singular, and the same Trait in both branches. So `detail` suffices and no
+  second slot is needed. `detail_choices` supplies the Ability list (Craft excluded: it
+  is taken per focus).
+* **The gated dropdown is "Buying", not the Ability one.** A Solar buying the aptitude
+  half still has to say which Ability; they simply cannot buy the grant for it.
+* **`MeritEffects.ability_xp_discount`** is `{ability: XP subtracted}` — the AMOUNT, not
+  just the fact, so `costs.ability_step` reads a number and names nothing. A constant
+  called `PRODIGY_*` imported into costs.py would have satisfied the letter of decision
+  0011 while breaking its point. Keyed per Ability, so buying it twice for the same
+  Trait cannot stack. The subtraction sits beside the Calling discount, which is the
+  same shape.
+* Its bonus die stays out of scope (dice, decision 0009).
+
+**Browser follow-up (2026-07-31).** A fresh Prodigy row on a Solar opened on `favored`
+and flagged itself immediately: `add_merit`/`set_merit` defaulted the tier to the first
+AUTHORED option, unfiltered by splat. (The disappearing "Favored" entry the human saw
+afterwards was correct behaviour — the retained-tier guard stops offering it once a
+legal tier is chosen — but it exposed the bad default.) Both now default to the first
+tier `merit_tiers_available` returns. Pinned two ways: the specific shape of the
+mistake, and a generic invariant over every menu-priced entry × every splat, so an entry
+that grows a per-option bar later cannot reintroduce it.
+
+**Bug found on the way:** Prodigy was authored `repeatable_by: ""`, i.e. once-only,
+against "one additional Favored Ability for **every time this Merit is purchased**". Now
+`"ability"`; the five-Favored cap is enforced by `favored_ability_count`, not by
+forbidding the repeat.

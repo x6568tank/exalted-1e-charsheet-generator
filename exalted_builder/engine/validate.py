@@ -2714,6 +2714,14 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
             continue
         held[definition.id] = held.get(definition.id, 0) + 1
 
+        if purchase.tier and exalt_type_barred_from_tier(definition, character.exalt_type,
+                                                         purchase.tier):
+            issues.append(Issue(
+                code="merit-barred-splat-tier", where=definition.id,
+                message=(f"{definition.name} at {purchase.tier!r} is not available to "
+                         f"{character.exalt_type}; open options are "
+                         f"{', '.join(merit_tiers_available(definition, character.exalt_type))}."),
+            ))
         if definition.cost_options and purchase.tier not in definition.cost_options:
             issues.append(Issue(
                 code="merit-bad-tier", where=definition.id,
@@ -2758,6 +2766,16 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                          f"{', '.join(choices)} it applies to; got "
                          f"{purchase.detail or '(nothing)'!r}."),
             ))
+        if definition.min_starting_essence:
+            start = effective_budgets(ruleset, character).essence_start
+            if start < definition.min_starting_essence:
+                issues.append(Issue(
+                    code="merit-starting-essence", where=definition.id,
+                    message=(f"{definition.name} is only open to characters whose splat "
+                             f"starts at Essence {definition.min_starting_essence} or "
+                             f"more; {character.exalt_type} starts at {start}, so the "
+                             f"Flaw would cost nothing and still pay its points."),
+                ))
         if definition.thaumaturges_only and not has_thaum:
             issues.append(Issue(
                 code="merit-thaumaturges-only", where=definition.id,
@@ -2821,7 +2839,26 @@ def effective_merit_kind(definition, purchase) -> str:
     return purchase.taken_as if purchase.taken_as in ("merit", "flaw") else "merit"
 
 
-def merit_available_to(definition, exalt_type: str, caste: str = "") -> bool:
+def merit_tiers_available(definition, exalt_type: str) -> tuple[str, ...]:
+    """The options of a menu-priced entry this splat may actually choose.
+
+    Almost every entry offers all of them; Prodigy is the exception the field exists
+    for, being barred to four splats for the half that grants a Favored Ability while
+    its "increased aptitude" half stays open to exactly those splats. Returns () for an
+    entry with no menu at all — callers should treat that as "no tier to choose", not
+    as "nothing available".
+    """
+    return tuple(t for t in definition.cost_options
+                 if exalt_type not in definition.tier_barred_exalt_types.get(t, ()))
+
+
+def exalt_type_barred_from_tier(definition, exalt_type: str, tier: str) -> bool:
+    """Whether this splat is barred from one named option of a menu-priced entry."""
+    return exalt_type in definition.tier_barred_exalt_types.get(tier, ())
+
+
+def merit_available_to(definition, exalt_type: str, caste: str = "", *,
+                       starting_essence: int | None = None) -> bool:
     """Whether the catalogue opens this entry to this character at all.
 
     The printed restrictions only — splat allow-list, splat bar, caste bar — which are
@@ -2839,6 +2876,16 @@ def merit_available_to(definition, exalt_type: str, caste: str = "") -> bool:
     if exalt_type in definition.barred_exalt_types:
         return False
     if caste and caste in definition.barred_castes:
+        return False
+    # A splat-level floor on starting Essence. Optional because not every caller has
+    # the budgets to hand; when it is not supplied the entry is NOT hidden, so a
+    # missing argument can only ever be permissive — validation still reports it.
+    if (starting_essence is not None and definition.min_starting_essence
+            and starting_essence < definition.min_starting_essence):
+        return False
+    # Barred at every option of its own menu = barred outright. Derived rather than
+    # duplicated, so a per-tier bar can never disagree with the whole-entry one.
+    if definition.cost_options and not merit_tiers_available(definition, exalt_type):
         return False
     return True
 

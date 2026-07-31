@@ -931,6 +931,20 @@ class MeritFlaw(BaseModel):
     # generically and so needs no Merit id, which is the whole point of putting them
     # here rather than in a table over there.
     trait_prerequisites: list["TraitPrerequisite"] = Field(default_factory=list)
+    # A floor on the SPLAT's starting Essence, as opposed to a character trait. Weak
+    # Essence is "6-PT." and its entire cost is reducing starting Essence to 1, so a
+    # splat that already starts at 1 would collect the points for nothing: "Other
+    # magical beings may take this Flaw, provided that they normally have a starting
+    # Essence of 2" (p.41). 0 = no floor. Read against `ChargenBudgets.essence_start`.
+    min_starting_essence: int = 0
+    # Splat bars that apply to ONE option of a menu rather than to the whole entry.
+    # Prodigy is barred to Solars/Abyssals/Lunars/Alchemicals only for the half that
+    # grants a Favored Ability — "not available to Solars, Abyssals or Lunars (who
+    # already reach these limits)" — while its +2 "increased aptitude" half is
+    # explicitly open to "characters who innately gain Favored Abilities as part of
+    # character creation", which is exactly those splats (p.20-21, ruled 2026-07-31).
+    # {tier: [exalt_type, ...]}. An entry barred at EVERY tier is barred outright.
+    tier_barred_exalt_types: dict[str, list[str]] = Field(default_factory=dict)
     prerequisite_note: str = ""            # printed prereq this build cannot check
     repeatable_by: str = ""                # "" = once only
     # "VARIABLE COST SUPERNATURAL FLAW, THAUMATURGES ONLY" — the Merit is only open to

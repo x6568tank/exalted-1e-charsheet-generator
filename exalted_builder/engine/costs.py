@@ -59,6 +59,11 @@ def ability_step(ruleset: RuleSet, character: Character, ability: AbilityName,
     # applied after the rate, not a third rate. 0 for every splat without Callings.
     if ability in validate.calling_abilities(ruleset, character):
         total -= xp.calling_ability_discount
+    # Prodigy's "increased aptitude": "(current rating x 2) - 2". Another subtraction
+    # after the rate, so it stacks with the two above exactly as the Calling discount
+    # does — and, like it, only ever reduces. Read as a field, never by Merit id.
+    total -= merits.merits_and_flaws_calc(ruleset, character).ability_xp_discount.get(
+        ability.value, 0)
     return max(0, total)
 
 

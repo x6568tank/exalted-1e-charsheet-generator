@@ -43,6 +43,12 @@ def _label(value: str) -> str:
     return value.replace("_", " ").title()
 
 
+def _tier_label(t: str) -> str:
+    """A tier key is either a bare point value ("4") or a semantic name
+    ("favored_aptitude"). Renders both readably. Mirrors the editor's helper."""
+    return t.replace("_", " + ").title() if not t.isdigit() else t.title()
+
+
 def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
              *, with_header: bool = True) -> None:
     """Render the XP advancement tab. Inert until chargen is locked."""
@@ -256,8 +262,10 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                                   "detail": ""}
                     opts = {m.id: f"{m.name} {m.cost_note or ''}".strip()
                             for m in sorted(rs.merits_flaws.values(), key=lambda m: m.name)
-                            if validate.merit_available_to(m, character.exalt_type,
-                                                           character.caste)}
+                            if validate.merit_available_to(
+                                m, character.exalt_type, character.caste,
+                                starting_essence=validate.effective_budgets(
+                                    rs, character).essence_start)}
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):
                         # NB: not named `sel` — `panel()` already binds that for the
                         # raise-a-trait selectors, and shadowing it makes the whole
@@ -320,10 +328,16 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                         # this refreshable so they can rebuild when the entry changes.
                         with ui.row().classes("w-full items-center gap-2 flex-wrap"):
                             if definition.cost_options:
-                                ui.select({t: f"{t.title()} ({v})"
-                                           for t, v in definition.cost_options.items()},
+                                # Same per-splat filtering as the editor: Prodigy's
+                                # Favored-granting halves are closed to four splats
+                                # while its aptitude half stays open to them.
+                                tiers = validate.merit_tiers_available(
+                                    definition, character.exalt_type)
+                                ui.select({t: f"{_tier_label(t)} ({v})"
+                                           for t, v in definition.cost_options.items()
+                                           if t in tiers},
                                           value=gain_state.get("tier") or None,
-                                          label="Oath" if meritsmod.uses_arena(definition) else "Points",
+                                          label="Oath" if meritsmod.uses_arena(definition) else "Buying",
                                           on_change=lambda e: _mf_changed(
                                               gain_state, tier=e.value or "")
                                           ).classes("w-40").props("dense")

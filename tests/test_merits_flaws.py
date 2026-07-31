@@ -89,8 +89,9 @@ def test_merit_definitions_carry_no_mechanical_effect(rs):
                       "cost_options_by_exalt_type", "cost_options_by_caste", "cost_by_kind",
                       "variable_cost", "exalt_types", "barred_exalt_types",
                       "barred_castes", "cost_note",
-                      "prerequisites", "trait_prerequisites", "prerequisite_note",
-                      "repeatable_by", "thaumaturges_only", "description", "source"}
+                      "prerequisites", "trait_prerequisites", "min_starting_essence",
+                      "tier_barred_exalt_types", "prerequisite_note", "repeatable_by",
+                      "thaumaturges_only", "description", "source"}
 
 
 # --- the catalogue ---------------------------------------------------------- #
@@ -1427,7 +1428,7 @@ def test_prodigy_grants_an_extra_favored_ability(rs):
     """"...gaining one additional Favored Ability for every time this Merit is
     purchased" (p.21). Feeds the count the existing favored-count check uses."""
     db = Character(id="c.db", exalt_type="Dragon-Blooded", caste="air",
-                   merits_flaws=[MP(merit_id=PRODIGY, tier="3")])
+                   merits_flaws=[MP(merit_id=PRODIGY, tier="favored", detail="Melee")])
     plain = Character(id="c.db2", exalt_type="Dragon-Blooded", caste="air")
     assert (validate.favored_ability_count(rs, db)
             == validate.favored_ability_count(rs, plain) + 1)
@@ -1436,24 +1437,53 @@ def test_prodigy_grants_an_extra_favored_ability(rs):
 def test_prodigy_never_exceeds_five_favored_abilities(rs):
     """"Characters may not have more than five Favored Abilities in total"."""
     db = Character(id="c.db", exalt_type="Dragon-Blooded", caste="air",
-                   merits_flaws=[MP(merit_id=PRODIGY, tier="3")] * 6)
+                   merits_flaws=[MP(merit_id=PRODIGY, tier="favored",
+                                    detail=a.value)
+                                 for a in list(AbilityName)[:6]])
     assert validate.favored_ability_count(rs, db) == merits.PRODIGY_FAVORED_CAP
 
 
-def test_prodigy_is_barred_from_the_splats_already_at_the_limit(rs):
+BARRED_FROM_FAVORED = {"Solar", "Abyssal", "Lunar", "Alchemical"}
+
+
+def test_prodigy_is_barred_per_HALF_not_as_a_whole_entry(rs):
     """"...so Prodigy is not available to Solars, Abyssals or Lunars ... Alchemical
-    Exalted may not take this Merit at all." A printed restriction is inert catalogue
-    data, like a cost — it lives on MeritFlaw, not in engine.merits."""
-    assert set(rs.merits_flaws[PRODIGY].barred_exalt_types) == {
-        "Solar", "Abyssal", "Lunar", "Alchemical"}
-    c = _solar(MP(merit_id=PRODIGY, tier="3"))
-    assert _codes(validate.validate_chargen(rs, c), "merit-barred-splat")
+    Exalted may not take this Merit at all" (p.20) bars the half that GRANTS a Favored
+    Ability. Its +2 "increased aptitude" half is explicitly "paid separately for
+    characters who innately gain Favored Abilities as part of character creation" —
+    which is exactly those four splats. Ruled 2026-07-31: the aptitude half escapes the
+    bar, so the restriction is per-option, not per-entry."""
+    d = rs.merits_flaws[PRODIGY]
+    assert set(d.tier_barred_exalt_types["favored"]) == BARRED_FROM_FAVORED
+    assert set(d.tier_barred_exalt_types["favored_aptitude"]) == BARRED_FROM_FAVORED
+    assert "aptitude" not in d.tier_barred_exalt_types          # open to everyone
+    assert not d.barred_exalt_types, "the ENTRY is no longer barred outright"
+
+    assert validate.merit_tiers_available(d, "Solar") == ("aptitude",)
+    assert set(validate.merit_tiers_available(d, "Dragon-Blooded")) == set(d.cost_options)
 
 
-def test_a_splat_that_may_take_prodigy_is_not_flagged(rs):
+def test_a_barred_splat_is_flagged_on_the_favored_half_only(rs):
+    grant = _solar(MP(merit_id=PRODIGY, tier="favored", detail="Melee"))
+    assert _codes(validate.validate_chargen(rs, grant), "merit-barred-splat-tier")
+    aptitude = _solar(MP(merit_id=PRODIGY, tier="aptitude", detail="Melee"))
+    assert not _codes(validate.validate_chargen(rs, aptitude), "merit-barred-splat-tier")
+
+
+def test_a_splat_that_may_take_either_half_is_not_flagged(rs):
     db = Character(id="c.db", exalt_type="Dragon-Blooded", caste="air",
-                   merits_flaws=[MP(merit_id=PRODIGY, tier="3")])
-    assert not _codes(validate.validate_chargen(rs, db), "merit-barred-splat")
+                   merits_flaws=[MP(merit_id=PRODIGY, tier="favored", detail="Melee")])
+    assert not _codes(validate.validate_chargen(rs, db), "merit-barred-splat-tier")
+
+
+def test_an_entry_barred_at_every_option_is_barred_outright(rs):
+    """The whole-entry answer is DERIVED from the per-option ones, so the two can never
+    disagree. Prodigy keeps one open option for a Solar and so stays offered."""
+    d = rs.merits_flaws[PRODIGY]
+    assert validate.merit_available_to(d, "Solar", "dawn")
+    everywhere = d.model_copy(update={"tier_barred_exalt_types":
+                                      {t: ["Solar"] for t in d.cost_options}})
+    assert not validate.merit_available_to(everywhere, "Solar", "dawn")
 
 
 def test_cost_modifiers_are_not_reported_as_narrative_only(rs):
@@ -1642,9 +1672,13 @@ def test_merit_available_to_reads_the_three_printed_restrictions(rs):
     assert validate.merit_available_to(chimera, "Lunar")
     assert not validate.merit_available_to(chimera, "Solar")
 
-    prodigy = rs.merits_flaws["mf.prodigy"]            # barred to Solar/Abyssal/...
-    assert validate.merit_available_to(prodigy, "Dragon-Blooded")
-    assert not validate.merit_available_to(prodigy, "Solar")
+    # `barred_exalt_types` is unused by the catalogue since Prodigy's bar became
+    # per-option (2026-07-31), so the whole-entry case is exercised on a constructed
+    # definition rather than by pinning whichever entry happens to use it.
+    barred = rs.merits_flaws["mf.large-size"].model_copy(
+        update={"barred_exalt_types": ["Solar"]})
+    assert validate.merit_available_to(barred, "Dragon-Blooded")
+    assert not validate.merit_available_to(barred, "Solar")
 
     beacon = rs.merits_flaws["mf.beacon-of-power"]     # not for Night or Day caste
     assert validate.merit_available_to(beacon, "Solar", "dawn")
@@ -1685,8 +1719,10 @@ async def test_editor_merit_dropdown_filters_by_splat_and_caste(user) -> None:
     await user.open('/mf-side')
     options = {o for sel in user.find(ui.select).elements for o in (sel.options or {})}
     assert "mf.chimera" not in options          # LUNARS ONLY
-    assert "mf.prodigy" not in options          # barred to Solars
     assert "mf.eternal-vow" in options          # open to this Solar
+    # Prodigy IS offered to a Solar: its aptitude half escapes the bar (2026-07-31),
+    # and an entry is only hidden when every option of its menu is closed.
+    assert "mf.prodigy" in options
 
 
 @pytest.mark.asyncio
@@ -2038,3 +2074,122 @@ def test_lowering_willpower_sees_a_flaw_that_moved_it(rs):
     # and at the floor it refuses, where the blind read would have allowed it
     with pytest.raises(advancement.AdvancementError, match="already at 1"):
         advancement.lower_willpower(c, "curse", ruleset=rs)
+
+
+def test_weak_essence_is_closed_to_a_splat_that_already_starts_at_essence_one(rs):
+    """A live exploit until 2026-07-31, not a theoretical one. Weak Essence is a 6-point
+    Flaw whose ENTIRE cost is "reduces the character's starting Essence rating to 1" — so
+    on a Mortal, pinned at Essence 1 already, it cost nothing and paid 6 bonus points
+    against a 21-point budget. It also handed 5 withheld-Charm credits to a splat with no
+    Charms. The printed clause exists precisely to close this: "Other magical beings may
+    take this Flaw, provided that they normally have a starting Essence of 2" (p.41)."""
+    assert rs.merits_flaws["mf.weak-essence"].min_starting_essence == 2
+    mortal = _mortal(MP(merit_id=WEAK_ESSENCE))
+    assert _codes(validate.validate_chargen(rs, mortal), "merit-starting-essence")
+    # ...and it still pays nothing for the Flaw's own effect, which is why it is barred
+    assert validate.effective_budgets(rs, mortal).essence_start == 1
+    solar = _solar(MP(merit_id=WEAK_ESSENCE))
+    assert not _codes(validate.validate_chargen(rs, solar), "merit-starting-essence")
+
+
+def test_the_starting_essence_gate_hides_the_entry_but_only_when_supplied(rs):
+    """Filtered in both dropdowns, like the splat and caste bars — a Mortal should never
+    be offered it. The argument is OPTIONAL and omitting it is permissive, so a caller
+    without the budgets to hand can only ever fail to hide, never wrongly hide."""
+    we = rs.merits_flaws["mf.weak-essence"]
+    assert not validate.merit_available_to(we, "Mortal", starting_essence=1)
+    assert validate.merit_available_to(we, "Solar", "dawn", starting_essence=2)
+    assert validate.merit_available_to(we, "Mortal")          # unsupplied -> shown
+
+
+def test_the_aptitude_half_lowers_that_ability_s_xp_and_only_that_one(rs):
+    """"The increased aptitude lowers the cost of raising the Trait with experience to
+    (current rating x 2) - 2" (p.21). A subtraction after the rate, the same shape as a
+    Calling Ability's discount — which is why `costs.ability_step` can carry both."""
+    plain = _db()
+    bought = _db(MP(merit_id=PRODIGY, tier="aptitude", detail="Melee"))
+    for c in (plain, bought):
+        c.chargen_locked = True
+    before = costs.ability_step(rs, plain, AbilityName.MELEE, 3)
+    after = costs.ability_step(rs, bought, AbilityName.MELEE, 3)
+    assert after == before - 2
+    # ...and no other Ability moves
+    assert (costs.ability_step(rs, bought, AbilityName.ARCHERY, 3)
+            == costs.ability_step(rs, plain, AbilityName.ARCHERY, 3))
+
+
+def test_the_aptitude_discount_does_not_stack_on_one_ability(rs):
+    """Keyed per Ability rather than counted, so buying it twice for the same Trait
+    cannot double the discount."""
+    twice = _db(MP(merit_id=PRODIGY, tier="aptitude", detail="Melee"),
+                MP(merit_id=PRODIGY, tier="aptitude", detail="Melee"))
+    once = _db(MP(merit_id=PRODIGY, tier="aptitude", detail="Melee"))
+    for c in (twice, once):
+        c.chargen_locked = True
+    assert (costs.ability_step(rs, twice, AbilityName.MELEE, 3)
+            == costs.ability_step(rs, once, AbilityName.MELEE, 3))
+
+
+def test_only_the_favored_granting_halves_raise_the_favored_count(rs):
+    """A Solar buying aptitude alone gains no Favored slot — which is the whole reason
+    the bar is per-option rather than per-entry."""
+    base = validate.favored_ability_count(rs, _db())
+    grant = _db(MP(merit_id=PRODIGY, tier="favored", detail="Melee"))
+    both = _db(MP(merit_id=PRODIGY, tier="favored_aptitude", detail="Melee"))
+    apt = _db(MP(merit_id=PRODIGY, tier="aptitude", detail="Melee"))
+    assert validate.favored_ability_count(rs, grant) == base + 1
+    assert validate.favored_ability_count(rs, both) == base + 1
+    assert validate.favored_ability_count(rs, apt) == base
+
+
+def test_prodigy_is_repeatable_per_ability(rs):
+    """"one additional Favored Ability for every time this Merit is purchased" — it was
+    authored once-only, so a second purchase was reported as an illegal repeat. The
+    five-Favored cap is enforced by `favored_ability_count`, not by forbidding it."""
+    assert rs.merits_flaws[PRODIGY].repeatable_by == "ability"
+    twice = _db(MP(merit_id=PRODIGY, tier="favored", detail="Melee"),
+                MP(merit_id=PRODIGY, tier="favored", detail="Archery"))
+    assert not _codes(validate.validate_chargen(rs, twice), "merit-repeated")
+
+
+def test_the_tier_menu_no_longer_collides_on_price(rs):
+    """The reason the 2/3/4/5 menu had to go: "aptitude only" and "Dragon King grant
+    only" are BOTH 2 points, so a numeric tier could not say which was bought. Harmless
+    while Dragon Kings do not exist, and a trap that springs exactly when they land.
+    Semantic keys are distinct whatever they cost."""
+    opts = rs.merits_flaws[PRODIGY].cost_options
+    assert set(opts) == {"favored", "favored_aptitude", "aptitude"}
+    assert opts["aptitude"] == 2 and opts["favored"] == 3 and opts["favored_aptitude"] == 5
+    assert len(set(opts)) == len(opts), "keys must be distinct even where prices are not"
+
+
+def test_the_naive_tier_default_would_have_been_illegal_for_a_solar(rs):
+    """The bug reported 2026-07-31: a fresh Prodigy row on a Solar opened on `favored`
+    and flagged itself immediately, because the editor defaulted to the first AUTHORED
+    option rather than the first this splat may choose. Pinned as the shape of the
+    mistake, so re-introducing it fails here rather than in a browser."""
+    d = rs.merits_flaws[PRODIGY]
+    naive = next(iter(d.cost_options))
+    assert naive == "favored"
+    assert validate.exalt_type_barred_from_tier(d, "Solar", naive), (
+        "this test is only meaningful while the first authored tier IS barred")
+    correct = next(iter(validate.merit_tiers_available(d, "Solar")))
+    assert correct == "aptitude"
+    assert not validate.exalt_type_barred_from_tier(d, "Solar", correct)
+
+
+@pytest.mark.parametrize("exalt_type", ["Solar", "Abyssal", "Lunar", "Alchemical",
+                                        "Dragon-Blooded", "Sidereal", "Mortal"])
+def test_every_menu_priced_entry_has_a_legal_default_for_every_splat(rs, exalt_type):
+    """The invariant the editor now relies on: the first available tier is never a
+    barred one, for any entry and any splat. Generic, so an entry that grows a
+    per-option bar later cannot quietly reintroduce the same bug."""
+    for m in rs.merits_flaws.values():
+        if not m.cost_options:
+            continue
+        tiers = validate.merit_tiers_available(m, exalt_type)
+        if not tiers:
+            assert not validate.merit_available_to(m, exalt_type), (
+                f"{m.id} offers no tier to {exalt_type} but is still listed as available")
+            continue
+        assert not validate.exalt_type_barred_from_tier(m, exalt_type, tiers[0]), m.id

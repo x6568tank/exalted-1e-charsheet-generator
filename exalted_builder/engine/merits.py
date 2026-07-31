@@ -32,7 +32,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from ..models.character import Character
-from ..models.rules import AttributeName, MeritFlaw, RuleSet, SpellCircle
+from ..models.rules import AbilityName, AttributeName, MeritFlaw, RuleSet, SpellCircle
 
 # --------------------------------------------------------------------------- #
 # The ids this module knows. Nothing outside engine/merits.py may name these.
@@ -245,6 +245,14 @@ class MeritEffects:
     # count `validate.favored_ability_count` requires, so the existing favored-count
     # check does the work.
     extra_favored_abilities: int = 0
+    # {`AbilityName.value`: XP subtracted per dot} where a Merit has lowered the cost of
+    # raising an Ability. Prodigy's "increased aptitude" is the only source today.
+    # Carries the AMOUNT, not just the fact, so the caller reads a number and names
+    # nothing — a constant called PRODIGY_* imported into costs.py would satisfy the
+    # letter of decision 0011 while breaking its point. Keyed per Ability because the
+    # discount attaches to one named Ability per purchase; buying it twice for the same
+    # Ability does not stack, which a dict gives for free.
+    ability_xp_discount: dict[str, int] = field(default_factory=dict)
 
     # The MOST chargen Charm picks a Flaw lets the character bank for post-lock use,
     # XP-free. A ceiling, not an entitlement: how many were actually withheld is the
@@ -457,6 +465,13 @@ def detail_choices(definition) -> tuple[str, ...]:
         return ("Physical", "Mental", "Social")
     if definition.id == LEGENDARY_ATTRIBUTE:
         return tuple(a.value.title() for a in AttributeName)
+    if definition.id == PRODIGY:
+        # Which Ability this purchase applies to. ONE per purchase: the page stacks the
+        # aptitude cost "onto the cost of purchasing the Trait as Favored" or has it
+        # "paid separately" for an already-favored Trait — singular, and the same Trait
+        # in both branches. Craft is excluded: it is taken per focus (core p.136) and so
+        # is not a single rateable Ability here.
+        return tuple(a.value.title() for a in AbilityName if a != AbilityName.CRAFT)
     return ()
 
 
@@ -487,11 +502,18 @@ def _forfeited_dots(ruleset: RuleSet, character: Character) -> dict[str, int]:
     rounds DOWN — the player-unfavourable direction, so a mis-entered value can never
     conjure budget out of nothing.
 
-    That rounding is currently reachable through the DATA, not just through bad input:
-    `mf.callous` is authored with a 2..10 tier menu, but its own text prices it at "two
-    bonus points for every dot of Virtues", so the odd tiers 3/5/7/9 buy no extra dot
-    while still granting their points. Flagged for the human — see
-    docs/status/merits-flaws-triage.md — rather than silently re-authored here.
+    That rounding is currently UNREACHABLE, and the note here that used to claim
+    otherwise was wrong about its own data (human, 2026-07-31): it read `mf.callous`'s
+    "2- TO 10-PT." as every integer in the range, but the authored menu is
+    {2, 4, 6, 8, 10} — every tier an exact multiple of the 2-point rate, which is
+    precisely how the drop-down avoids the problem. The other three forfeits close it
+    from the other end: Unskilled and Weak-Willed convert at 1, and Diminished
+    Attributes' editor collects DOTS and multiplies by 3, so its points are always a
+    whole multiple too.
+
+    The floor therefore only bites on a hand-edited save, and it rounds DOWN — the
+    player-unfavourable direction, so a mis-entered value can never conjure budget out
+    of nothing. Kept as a guard, not as a live concern.
     """
     from .validate import merit_points                    # validate imports merits
 
@@ -578,6 +600,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
     extra_favored = 0
     nature_unmet: list[str] = []
     trait_unmet: list[str] = []
+    aptitude_abilities: dict[str, int] = {}
     breeding_override: int | None = None
     single_pool = False
     for definition, purchase in _held(ruleset, character):
@@ -623,7 +646,14 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
             spell_cost_halved = True
             effects_from.add(definition.id)
         elif definition.id == PRODIGY:
-            extra_favored += 1
+            # Only the halves that actually GRANT a Favored Ability raise the count —
+            # a Solar buying aptitude alone gains no Favored slot, which is the whole
+            # reason the bar is per-option.
+            if purchase.tier in PRODIGY_GRANTS_FAVORED:
+                extra_favored += 1
+            if purchase.tier in PRODIGY_GRANTS_APTITUDE and purchase.detail.strip():
+                aptitude_abilities[purchase.detail.strip().casefold()] = \
+                    PRODIGY_APTITUDE_XP_DISCOUNT
             effects_from.add(definition.id)
         elif definition.id == WEAK_ESSENCE:
             essence_start_override = WEAK_ESSENCE_START
@@ -684,6 +714,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         charm_cost_doubled=charm_cost_doubled,
         spell_cost_halved=spell_cost_halved,
         extra_favored_abilities=extra_favored,
+        ability_xp_discount=dict(aptitude_abilities),
         nature_requirement_unmet=tuple(nature_unmet),
         trait_requirement_unmet=tuple(trait_unmet),
         health_levels_granted=tuple(granted_levels),
@@ -723,6 +754,17 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
 
 BRIGIDS_HEIR = "mf.brigid-s-heir"
 PRODIGY = "mf.prodigy"
+# Prodigy's two independent halves, as its semantic cost tiers. The 2/3/4/5 menu it
+# used to carry conflated them: "aptitude only" and "Dragon King grant only" are both
+# 2 points, so the price could not say which had been bought — a collision that would
+# have detonated exactly when Dragon Kings landed.
+PRODIGY_GRANTS_FAVORED = ("favored", "favored_aptitude")
+PRODIGY_GRANTS_APTITUDE = ("aptitude", "favored_aptitude")
+# "The increased aptitude lowers the cost of raising the Trait with experience to
+# (current rating x 2) - 2" (p.21) — a SUBTRACTION after the rate, the same shape as a
+# Calling Ability's discount, which is why costs.ability_step can take both. Its bonus
+# die is out of scope (dice).
+PRODIGY_APTITUDE_XP_DISCOUNT = 2
 
 # "may not have more than five Favored Abilities in total" (p.21).
 PRODIGY_FAVORED_CAP = 5

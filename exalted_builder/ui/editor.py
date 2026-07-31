@@ -606,6 +606,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         if ruleset.merits_flaws:
             # Label carries the sign so a Flaw reads as a grant, not a charge; a
             # variable-cost entry shows its range instead of a single number.
+            # A tier key is either a bare point value ("4") or a semantic name
+            # ("favored_aptitude"). Render both readably without the caller caring.
+            def _tier_label(t: str) -> str:
+                return t.replace("_", " + ").title() if not t.isdigit() else t.title()
+
             def _merit_label(m) -> str:
                 if m.cost_options:
                     lo, hi = min(m.cost_options.values()), max(m.cost_options.values())
@@ -623,7 +628,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             merit_opts = {m.id: _merit_label(m) for m in sorted(
                 ruleset.merits_flaws.values(),
                 key=lambda m: (m.kind != "merit", m.name))
-                if validate.merit_available_to(m, character.exalt_type, character.caste)}
+                if validate.merit_available_to(m, character.exalt_type, character.caste,
+                                               starting_essence=b.essence_start)}
             eff = merits.merits_and_flaws_calc(ruleset, character)
             spent = validate.merit_bonus_point_cost(ruleset, character)
             grant = eff.bonus_point_grant
@@ -656,10 +662,25 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         # the menu MEANS, not "Oath" — 36 entries price by menu and
                         # only one of them is an oath.
                         if definition is not None and definition.cost_options:
-                            ui.select({t: f"{t.title()} ({v})"
-                                       for t, v in definition.cost_options.items()},
+                            # Only the options this splat may actually choose. Prodigy
+                            # bars its Favored-granting halves to four splats while
+                            # leaving the aptitude half open to exactly them, so the
+                            # menu is filtered rather than the entry hidden. A tier
+                            # already recorded stays selectable, like the merit row's
+                            # own off-catalogue guard.
+                            tiers = validate.merit_tiers_available(
+                                definition, character.exalt_type)
+                            tier_opts = {t: f"{_tier_label(t)} ({v})"
+                                         for t, v in definition.cost_options.items()
+                                         if t in tiers}
+                            if mp.tier:
+                                tier_opts.setdefault(
+                                    mp.tier,
+                                    f"{_tier_label(mp.tier)} "
+                                    f"({definition.cost_options.get(mp.tier, '?')})")
+                            ui.select(tier_opts,
                                       value=mp.tier or None,
-                                      label="Oath" if merits.uses_arena(definition) else "Points",
+                                      label="Oath" if merits.uses_arena(definition) else "Buying",
                                       on_change=lambda e, mp=mp: (setattr(mp, "tier", e.value or ""),
                                                                   body.refresh(), changed())
                                       ).classes("w-40").props("dense")
@@ -1064,6 +1085,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         del character.backgrounds[idx]
         body.refresh(); changed()
 
+    def _default_tier(definition) -> str:
+        """The option a fresh row should open on: the first this SPLAT may choose, not
+        merely the first authored. Prodigy's menu leads with `favored`, which four
+        splats are barred from — so a Solar's new row opened on an illegal tier and
+        flagged itself immediately (reported 2026-07-31)."""
+        if definition is None or not definition.cost_options:
+            return ""
+        return next(iter(validate.merit_tiers_available(
+            definition, character.exalt_type)), "")
+
     def add_merit() -> None:
         # Default to the cheapest Merit so a fresh row is always a legal selection —
         # which means picking from the same filtered set the dropdown offers, or the
@@ -1075,17 +1106,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         if first is None:
             return
         character.merits_flaws.append(
-            MeritFlawPurchase(merit_id=first.id,
-                              tier=next(iter(first.cost_options), "") if first.cost_options else ""))
+            MeritFlawPurchase(merit_id=first.id, tier=_default_tier(first)))
         body.refresh(); changed()
 
     def set_merit(mp: MeritFlawPurchase, merit_id: str) -> None:
         mp.merit_id = merit_id
         # The old tier belongs to the old Merit; reset it to the new one's first
-        # option (or clear it) so a variable-cost row is never left on a dead tier.
-        definition = ruleset.merits_flaws.get(merit_id)
-        mp.tier = (next(iter(definition.cost_options), "")
-                   if definition and definition.cost_options else "")
+        # AVAILABLE option (or clear it) so a row is never left on a dead tier — or on
+        # one this splat is barred from.
+        mp.tier = _default_tier(ruleset.merits_flaws.get(merit_id))
         # Same for the side: a choice made for the old entry says nothing about the
         # new one, and a stale "flaw" on a single-sided Merit would be read by
         # `effective_merit_kind` as nothing at all — better to make it re-chosen.
