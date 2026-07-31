@@ -174,7 +174,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1360 tests passing)
+## Status (1411 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -199,6 +199,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Custom content — DONE** (user-authored Charms/styles/spells: library, `/custom` page, saves that carry homebrew) | `docs/status/custom-content.md` |
 | **Mortals & Heroic Mortals — DONE** (one splat, two origins; casteless, no Charms, Essence pinned at 1; magic via M&F) | `docs/status/mortals.md` |
 | **Merits & Flaws — DONE** (centralized calc per decision 0011; all 98 M&F authored; mortal magic unlock; editor + sheet + ST Options UI) | `docs/status/merits-flaws.md` |
+| **Rated artifacts — DEFERRED, sourced** (the E:Ab p.131 Artifact budget table, transcribed; per-specific-artifact Damaged Artifact) | `docs/status/rated-artifacts.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -229,9 +230,28 @@ below for what's actually next.
 ### Deferred (still open, just not now)
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond
   what's authored — optional, loader falls back to model defaults.
-- A per-session XP-grant ledger and the "training time" rule
-  (`XpEntry.training_complete` is a dormant hook); state-reconciliation of
-  hand-edited current-vs-snapshot drift (the read-only lock guards normal use).
+- A per-session XP-grant ledger; state-reconciliation of hand-edited
+  current-vs-snapshot drift (the read-only lock guards normal use).
+
+### ⚠️ Training times are almost certainly NEVER being added
+**Human, 2026-07-30: "training times will probably never be added — that goes out of the
+dumb-tracker scope, in my opinion."** Not a numbered decision record, because the human
+hedged it rather than closing it — but treat it as a no unless they reopen it, and
+**do not propose it, plan around it, or offer it as a follow-up.**
+
+`XpEntry.training_complete` stays as a dormant hook and nothing more. Several printed
+rules hang off it and are shipped deliberately incomplete as a result; that is accepted,
+not a gap to close:
+- Weak Essence's withheld Charms "still require the same training time" — the XP waiver
+  ships without its counterweight (`docs/status/merits-flaws-triage.md`).
+- Brigid's Heir doubles/halves "the bonus/experience cost **and training time**" — only
+  the point costs move.
+- Death's Taint's Harrowing, the story requirement attached to shedding permanent
+  Resonance, is the same class of rule.
+
+The reasoning is the tracker's, and it generalises: this build is a **character builder
+and validator**, not a chronicle simulator. Anything that needs the passage of in-game
+time to resolve is out for the same reason `PlayState` is a dumb manual tracker.
 
 ### Permanently out of scope
 Recorded as decision records, not restated here — read them before proposing any of it:
@@ -239,6 +259,28 @@ Recorded as decision records, not restated here — read them before proposing a
 **the Fair Folk** (`0010`).
 
 ## TODO
+
+### 👉 START HERE (session handoff, end of 2026-07-30)
+**The Merits & Flaws triage's whole A-list is IMPLEMENTED — A1 through A7 plus cluster 7
+(trait prerequisites). Nothing on it is left to build.** 1,411 tests pass; the tree is
+**uncommitted**.
+
+What is actually next is **browser click-through**, of the four things that landed after
+the human's last verification pass:
+
+1. **A6** — Backgrounds (Heir Apparent's enlarged pool + cap waiver, Innocuous' caps and
+   bars, the three point-limit Flaws).
+2. **Cluster 7** — trait prerequisites, and the new "Requires: …" line in the editor's
+   Merit rows.
+3. **A7** — the Abyssal "Resonance" rename, Greater Curse's shortened track, the luck
+   pools.
+4. **The permanent-Resonance move** — it touched `models/character.py`, `ui/play.py` and
+   `ui/xp.py`, so it is the most likely of the four to have a UI bug.
+
+A1-A5 are verified and need no re-testing. After the click-through, the open items are
+the three known UI gaps listed further down (two-sided entries, the editor's unfiltered
+Merit dropdown, the XP tab's double-duty tier field), then `docs/status/rated-artifacts.md`.
+
 **Done:** M&F removal, repeatable Ox-Body, Nature dropdown, Caste info box,
 editable custom weapons/armor, magical materials, Craft as per-focus Abilities,
 chargen BP-spend log, free background/equipment editing on the XP tab, the
@@ -343,9 +385,9 @@ homebrew-only with no printed use: `CharmCost.health_type` and
   target so the audit does not re-price them). A4: point-cost modifiers (Brigid's Heir,
   Prodigy) — `merits.adjust_charm_cost`/`adjust_spell_cost` are the read, since the
   sorcery-line exemption makes it per-Charm rather than a flat multiplier.
-  **None is browser-verified, and A4 carries two open rules questions** (is Terrestrial
-  Circle Sorcery itself exempt; how does an odd spell cost halve) — both recorded in
-  `docs/status/merits-flaws-triage.md`.
+  **A1-A5 ARE browser-verified** (human, 2026-07-30). **A4 still carries two open rules
+  questions** (is Terrestrial Circle Sorcery itself exempt; how does an odd spell cost
+  halve) — both recorded in `docs/status/merits-flaws-triage.md`.
   Three engine functions now take an OPTIONAL `ruleset` so they can see Merits —
   `derive.soak`, `derive.willpower`, `derive.health_track`. Follow that shape rather
   than threading MeritEffects through call sites.
@@ -355,10 +397,35 @@ homebrew-only with no printed use: `CharmCost.health_type` and
   merges the pools after every other effect**. `DerivedTraits.essence_single_pool`
   carries the shape so a sheet can tell "Personal 0 by rule" from "no Essence at all",
   and `MeritFlaw.barred_castes` is A4's splat-bar precedent one level down.
-  **Next cluster is A6** (Background budget and rating restrictions), then
-  A7 in the order the triage doc gives. Do them one at a time —
-  the human's instruction, and each is architecturally small but touches a different
-  derivation.
+  A6: Backgrounds — **Heir Apparent is the mirror of A1**, a budget delta with the
+  opposite sign, so it went in `validate.effective_budgets` beside them; its cap
+  exemption is a TRANSFER (a waived above-cap dot consumes a pool dot instead of paying
+  BP, or it would have been free), and `validate.background_pool_spend` is now the one
+  place that arithmetic lives. Three of A6's five entries turned out not to be effects
+  at all — Damaged Artifact, Known Anathema and Debt all bound their own point value
+  against a Background rating, which is inert catalogue data
+  (`MeritFlaw.points_limited_by`), the A4/A5 precedent a third time.
+  Cluster 7 (trait prerequisites) is DONE: `MeritFlaw.trait_prerequisites`, keyed by
+  TIER (Innocuous gates only its 2-pt version) and AND-of-OR inside (Cache is
+  "Resources 4 or Salary 2"), with `validate.trait_rating` resolving a trait NAME across
+  Attributes/Abilities/Virtues/Backgrounds — the six entries span all four. Large Size
+  was deliberately NOT given one ("*Most* characters…" is descriptive) and a test says so.
+  A7 (play-state pools) is DONE, and with it **the triage's whole A-list**: the Abyssal
+  `limit_label` rename to "Resonance" landed first, Greater Curse is a subtraction from
+  the constant `merits.LIMIT_MAX` (the tracker's hardcoded 10s now read
+  `derive.limit_max`), Sidereal Lucky is the band `min(5, max(3, points + 2))`, and
+  Death's Taint's starting permanent Resonance comes out of its price (`points − 4`,
+  the A1 trick).
+  **CORRECTED the same day: `limit_permanent` is on `Character`, not `PlayState`.**
+  Permanent Resonance is a permanent trait — decision 0006's own last bullet routes
+  permanent trait movement to the XP ledger — so it moves through
+  `advancement.gain_permanent_resonance` (free) and `shed_permanent_resonance` (5 XP),
+  both logged, priced per DIRECTION off `validate.PERMANENT_RESONANCE_TARGET` because
+  the audit's generic "a reduction is free" rule would otherwise zero the shed. The play
+  tracker shows it read-only and points at the XP tab. **Rerolling is out (0009); so is
+  the Harrowing, which is training-time-class and out permanently.**
+  **What is left on M&F is the browser click-through** — A1-A5 are verified, A6,
+  cluster 7 and A7 are NOT.
 - **Browser click-through of Merits & Flaws** — NOT done, and it is the highest-value
   thing outstanding. The Mortal pass earned its keep this morning: it found three bugs
   1,200 tests missed, and a further four surfaced during the M&F work (a picker crash

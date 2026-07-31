@@ -297,6 +297,52 @@ def lower_essence(character: Character, reason: str = "") -> XpEntry:
 
 
 # --------------------------------------------------------------------------- #
+# Permanent Resonance (Death's Taint, PG p.41)
+#
+# The Abyssal Curse's lasting half moves in BOTH directions, and the two directions
+# have different prices, which is why it needs its own pair of functions rather than
+# riding the curse path:
+#
+#   * GAINING a dot is a story event — "whenever the character's Resonance pool exceeds
+#     a rating of 10 … she gains a point of permanent Resonance" — and costs nothing.
+#   * SHEDDING one costs five experience points and a Harrowing.
+#
+# Both are logged, so the ledger is the audit trail for a permanent trait exactly as
+# decision 0006 requires. The Harrowing itself is a story requirement no engine can
+# check; see `XpEntry.training_complete` for the class of rule it belongs to.
+# --------------------------------------------------------------------------- #
+
+def gain_permanent_resonance(ruleset: RuleSet, character: Character,
+                             reason: str = "") -> XpEntry:
+    """Add one dot of permanent Resonance. Free — it is inflicted, not bought."""
+    _ensure_locked(character)
+    cap = derive.permanent_limit_cap(ruleset, character)
+    if not cap:
+        raise AdvancementError(
+            "This character has no permanent Resonance track.")
+    frm = character.limit_permanent
+    if frm >= cap:
+        raise AdvancementError(
+            f"Permanent Resonance may not exceed Essence ({cap}).")
+    entry = _commit(character, validate.PERMANENT_RESONANCE_TARGET, reason, frm, frm + 1, 0)
+    character.limit_permanent = frm + 1
+    return entry
+
+
+def shed_permanent_resonance(ruleset: RuleSet, character: Character,
+                             reason: str = "") -> XpEntry:
+    """Remove one dot of permanent Resonance for five experience points."""
+    _ensure_locked(character)
+    frm = character.limit_permanent
+    if frm <= 0:
+        raise AdvancementError("Permanent Resonance is already 0.")
+    cost = merits.PERMANENT_RESONANCE_SHED_XP
+    entry = _commit(character, validate.PERMANENT_RESONANCE_TARGET, reason, frm, frm - 1, cost)
+    character.limit_permanent = frm - 1
+    return entry
+
+
+# --------------------------------------------------------------------------- #
 # New traits
 # --------------------------------------------------------------------------- #
 
@@ -867,6 +913,8 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
         character.willpower_purchased -= (entry.to_rating - entry.from_rating)
     elif domain == "essence":
         character.essence_rating = entry.from_rating
+    elif domain == validate.PERMANENT_RESONANCE_TARGET:
+        character.limit_permanent = entry.from_rating
     elif domain == validate.WITHHELD_CHARM_TARGET:
         # Removing the row restores the credit, since credits are counted from the log.
         if entry.detail in character.charms:
@@ -1008,6 +1056,12 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
     cannot be priced (e.g. an id no longer in the rule set)."""
     domain, _, key = entry.target.partition(".")
     frm = entry.from_rating
+    # Permanent Resonance is priced per DIRECTION and must be tested before the generic
+    # reduction rule below, which would otherwise make the five-point shed free.
+    if domain == validate.PERMANENT_RESONANCE_TARGET:
+        if frm is not None and entry.to_rating is not None and entry.to_rating < frm:
+            return merits.PERMANENT_RESONANCE_SHED_XP      # shed: five XP and a Harrowing
+        return 0                                          # gained: inflicted, not bought
     # A permanent reduction (curse / Charm cost) is free and refunds no XP.
     if frm is not None and entry.to_rating is not None and entry.to_rating < frm:
         return 0

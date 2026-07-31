@@ -79,6 +79,15 @@ class MeritFlawPurchase(BaseModel):
     # for the single-sided majority; "" on an either-entry defaults to merit and is
     # flagged by validate, so the choice is never silently made for the player.
     taken_as: str = ""
+    # Major conditions attached to an inheritance — Heir Apparent's "add an extra dot
+    # to the pool of invested Backgrounds for every major stipulation applied to the
+    # Inheritance, up to a maximum of three conditions" (PG p.24). A COUNT, because the
+    # dots follow from the number and the wording is the player's business (`detail`).
+    # Unlike the trait-forfeit Flaws, this cannot be recovered from the point value —
+    # stipulations cost nothing, so they leave no trace in the price. 0 for every other
+    # entry; the printed maximum is clamped in engine.merits, not here, so an old save
+    # with a stray value loads rather than failing.
+    stipulations: int = Field(default=0, ge=0)
 
 
 class CraftRating(BaseModel):
@@ -544,6 +553,21 @@ class Character(BaseModel):
 
     # --- current, canonical traits ---
     essence_rating: int = Field(default=2, ge=1)
+    # PERMANENT Resonance — the Abyssal Curse's lasting half, which exists only for a
+    # character holding Death's Taint (PG p.41): "Whenever the character's Resonance
+    # pool exceeds a rating of 10, her pool resets to zero, and she gains a point of
+    # permanent Resonance."
+    #
+    # This is a PERMANENT trait, not play-state, and it lives here for the reason
+    # decision 0006 gives in its own last bullet: "permanent trait *reductions* (curses)
+    # are a different thing and live on the XP ledger, not here". It is bought at
+    # chargen (out of the Flaw's price), gained in play as a story event, shed for five
+    # experience points, and capped at Essence — only the second of those is play-state.
+    # Its TEMPORARY counterpart is PlayState.limit, which is correctly ephemeral.
+    #
+    # Post-lock movement in either direction goes through engine.advancement so the
+    # ledger records it, exactly as a curse does. 0 for every character without the Flaw.
+    limit_permanent: int = Field(default=0, ge=0)
     attributes: dict[AttributeName, int] = Field(
         default_factory=lambda: {a: 1 for a in AttributeName}
     )

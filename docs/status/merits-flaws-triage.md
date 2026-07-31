@@ -203,9 +203,9 @@ Bit by bit, per ruling 4. Each cluster is self-contained; do not batch them.
 | 3 | **A3** trait caps | Same shape as A1 — a per-trait delta, chargen and XP side. |
 | 4 | **A4** cost modifiers | Cost tables are already data. |
 | 5 | **A5** Essence pools | Legendary Breeding hooks `_breeding_bonus`; Beacon of Power needs more care. |
-| 6 | **A6** Background restrictions | Plain validation rules. |
-| 7 | **Trait prerequisites** | Catalogue data, not effects — independent of everything above. |
-| 8 | **A7** play-state pools | Needs the Abyssal `limit_label` rename first. |
+| 6 | **A6** Background restrictions | Plain validation rules. **DONE 2026-07-30.** |
+| 7 | **Trait prerequisites** | Catalogue data, not effects — independent of everything above. **DONE 2026-07-30.** |
+| 8 | **A7** play-state pools | Needs the Abyssal `limit_label` rename first. **DONE 2026-07-30.** |
 
 ## A1 — COMPLETE 2026-07-30 (all four)
 
@@ -323,9 +323,10 @@ row and the credit returns, since credits are counted from the log rather than s
 The XP tab shows "N of M withheld Charm(s) still in reserve".
 
 **Still out: the training-time half.** "They still require the same training time" hangs
-on `XpEntry.training_complete`, a dormant hook for a rule parked project-wide. So the XP
-waiver ships without its counterweight — deliberate, and worth remembering if training
-time is ever implemented.
+on `XpEntry.training_complete`, a dormant hook. **Training times are almost certainly
+never being added** (human, 2026-07-30 — "that goes out of the dumb-tracker scope"), so
+this is not a gap awaiting a fix: the XP waiver ships without its counterweight, and that
+is the final state unless the human reopens it. See CLAUDE.md.
 
 **A robustness note found while testing:** credits are counted against the FROZEN
 chargen pick list. A character locked *without* a `ChargenSnapshot` would count every
@@ -410,6 +411,204 @@ Legendary Breeding and Beacon of Power. 1360 tests pass. **Not browser-verified.
 * **Beacon's caste bar is catalogue DATA**, the A4 precedent one level down: new
   `MeritFlaw.barred_castes` and a `merit-barred-caste` issue. Caste ids are unique
   across splats, so `["night", "day"]` needs no splat qualifier.
+
+## A6 — COMPLETE 2026-07-30 (Background budget and rating restrictions)
+
+Heir Apparent, Innocuous, Damaged Artifact, Known Anathema, Debt. 1377 tests pass
+(was 1360). **Not browser-verified.**
+
+**Five entries, but only TWO are effects.** Damaged Artifact, Known Anathema and Debt
+all say the same thing in different words — *this entry's point value is bounded by a
+Background rating* — which is a restriction on what may be BOUGHT, not something the
+entry does. So they are inert catalogue data, the A4/A5 precedent a third time: new
+`MeritFlaw.points_limited_by`, a `BackgroundPointLimit` of
+`(background, mode, offset)`.
+
+| Entry | Row |
+|---|---|
+| Known Anathema | `Influence`, `max` — "may not … take more points of this Flaw than their rating in Influence" |
+| Damaged Artifact | `Artifact`, `max`, offset −1 — "at least one more dot of Artifact than the points obtained" |
+| Debt | `Resources`, `above` — "provided the former exceeds the latter" |
+
+`mode="above"` is the only reason the field is not a plain integer cap: Debt is a FLOOR.
+It needs no special case for a character with no Resources — any Debt exceeds 0.
+New issues: `merit-points-above-background`, `merit-points-below-background`.
+
+**Damaged Artifact's per-artifact half is NOT modelled — and the human ruled it should
+be** (2026-07-30: "worth closing; it should work on a *specific* Artifact"). It needs
+individual artifacts as rated objects, which this build does not have — Artifact is one
+Background rating, and the check as shipped sums every Artifact row. That turned out to
+be a splat feature rather than an M&F cluster: the source page (E:Ab p.131, supplied by
+the human) shows the Abyssal Artifact Background is a **combined-rating budget with
+per-item caps**, not the cost curve it was assumed to be. Transcribed, planned and
+**deferred behind cluster 7 by the human's call** — see `docs/status/rated-artifacts.md`.
+The rating check ships as it is until then.
+
+* **Heir Apparent is a budget delta with the opposite sign to A1's forfeits**, and
+  lives in the same place: `effective_budgets` now also ADDS
+  `MeritEffects.bonus_background_dots`. That symmetry is the whole argument for where
+  it went.
+* **Stipulations needed a new purchase field** — `MeritFlawPurchase.stipulations`.
+  Unlike A1's forfeits, they cannot be recovered from the point value, because they
+  cost nothing and so leave no trace in the price. Clamped to the printed 3 in
+  `engine/merits.py` rather than on the model, so an old save with a stray value loads
+  instead of failing. The UI offers the control off a new inert catalogue flag,
+  `MeritFlaw.takes_stipulations` — the `repeatable_by` precedent: a field that says what
+  a purchase may RECORD is not a field that says what the Merit does, and it keeps the
+  editor from naming an id.
+* **The cap exemption is where the trap was.** "Background dots obtained with this
+  Merit … may raise a Background above a rating of three" — waiving the bonus-point
+  charge on those dots would have made them FREE, since an above-cap dot does not
+  consume the pool either. It is now a *transfer*: a waived dot consumes one pool dot
+  (out of the enlarged pool the Merit granted) instead of paying bonus points. Pinned by
+  `test_the_waived_dots_still_consume_the_pool`.
+* Which Background received the inheritance is not recorded, so the waiver goes to the
+  **dearest** above-cap dots the character has — player-favourable, matching how free
+  dots are already assigned.
+* `validate.background_pool_spend` is new and is now the ONE place the Background pool
+  arithmetic lives. The unspent-dot warning and `bonus_point_breakdown` had two copies
+  of it; they would have drifted the moment the waiver landed in only one.
+* **Innocuous is the four-point version only.** Its two-point tier is entirely dice
+  (bucket B). `background_caps` (Allies/Contacts/Mentor at 2) and `barred_backgrounds`
+  (Followers, Henchmen, Cult, Command) are keyed by lowercased NAME, because Backgrounds
+  are free text and there is no id to key on. Its "or any other socially dependent
+  Backgrounds" and "other Backgrounds contingent on being widely known" clauses are
+  Storyteller adjudication and are deliberately not guessed at — only what the page
+  names. New issues: `background-barred-by-merit`, `background-above-merit-cap`.
+* **Innocuous' Sidereal bar is catalogue data** (`barred_exalt_types`), and the editor's
+  Background dot rows now read the per-Background cap, applying A3's rule that a ceiling
+  the player can still click past is not a ceiling.
+* **Its Appearance 2 prerequisite for the two-point version is still unchecked** — that
+  is the trait-prerequisites item (cluster 7), deliberately not done here.
+
+## Cluster 7 — COMPLETE 2026-07-30 (trait prerequisites)
+
+1389 tests pass (was 1377). **Not browser-verified.** Catalogue data, not effects —
+`engine/merits.py` was not touched at all.
+
+**Every entry was re-read for a prerequisite rather than trusting the triage's list of
+six.** A scan of all 99 descriptions for requirement language found the same set, and
+settled two the triage had left as maybes:
+
+| Entry | Requirement | Namespace |
+|---|---|---|
+| `mf.innocuous` (2-pt tier ONLY) | Appearance 2 | Attribute |
+| `mf.hidden-manse` | Manse (any rating) | Background |
+| `mf.cache` | Resources 4 **or** Salary 2 | Background |
+| `mf.legendary-breeding` | Breeding 5 | Background |
+| `thaum.celestial-travel-permit` | Celestial Patron 2 | Background |
+| `mf.alternative-divination` | at most **Occult** purchases | Ability (repeat cap) |
+
+* **`mf.large-size` was NOT given one.** "**Most** characters with this Merit have both
+  Strength and Stamina rated at 3 or higher" (p.20) is descriptive, and
+  `test_large_size_is_not_given_a_prerequisite` exists to stop a later pass promoting it
+  into a rule.
+* **`mf.damaged-artifact` was NOT given one either** — its "at least one more dot of
+  Artifact" is the SAME rule A6 already ships as `points_limited_by`, and encoding it
+  twice would report it twice.
+* **`mf.destiny`'s "Destiny 4 or better"** is flavour about how Sidereals come by it,
+  not a purchase gate. Skipped.
+
+**Shape.** `MeritFlaw.trait_prerequisites` is `{tier: [[TraitRequirement]]}`:
+
+* **Keyed by TIER**, because Innocuous' Appearance gate applies to its two-point version
+  and not its four-point one. `""` is the requirement every tier carries.
+* **AND-of-OR inside**, the same shape `Charm.prerequisites` uses and for the same
+  reason — Cache is one OR group of two.
+* **`TraitRequirement.trait` is a NAME, not an id**, resolved by `validate.trait_rating`
+  across Attributes → Abilities → Virtues → Backgrounds. The six entries span all four,
+  and Backgrounds are free text with no id to reference in the first place. An
+  unresolvable name reads as 0 and the requirement fails, per the graceful-unresolvable
+  rule. No 1e trait name collides across those namespaces.
+* Alternative Divination is a REPEAT cap rather than a rating floor, so it is its own
+  field, `max_purchases_from_trait`. New issues: `merit-trait-prerequisite`,
+  `merit-repeats-above-trait`.
+
+**The one real interaction, and it is pinned:** Legendary Breeding grants an effective
+Breeding of 6 and REQUIRES Breeding 5. `trait_rating` reads the purchased rating, so the
+Merit cannot satisfy its own prerequisite —
+`test_legendary_breeding_does_not_satisfy_its_own_prerequisite`. This closes the gap A5
+recorded explicitly.
+
+**The editor now shows the requirement in the Merit row.** It had never displayed
+prerequisites of any kind — not the Merit-id ones, not `prerequisite_note` — so the only
+feedback was an issue after the fact.
+
+## A7 — COMPLETE 2026-07-30 (play-state pools and tracks). **The A-list is DONE.**
+
+Lucky, Unlucky, Greater Curse, Death's Taint. 1403 tests pass (was 1389).
+**Not browser-verified** (nor is A6 or cluster 7; A1-A5 were verified by the human).
+
+**The blocking rename landed first:** `data/exalts.json` gives Abyssal
+`limit_label: "Resonance"`, exactly as Sidereal reads "Paradox". A label, not a second
+mechanic — `derive.limit_label` already existed and needed no change.
+
+* `MeritEffects` gained `luck_pool`, `bad_luck_pool`, `limit_max` and
+  `permanent_limit_start`. Four new `derive` reads: `limit_max`,
+  `permanent_limit_cap`, `permanent_limit_start`, `luck_pools`.
+* **Greater Curse is a subtraction from the constant 10**, per ruling 5 — no derivation
+  of the maximum was needed. `merits.LIMIT_MAX` is the one source, and the play
+  tracker's three hardcoded `10`s now read `derive.limit_max`. The page's own worked
+  example is the test: three points → Limit Break at seven.
+* **Sidereal Lucky is a band, not a bonus**: `min(5, max(3, points + 2))`. Its
+  "1- TO 3-PT. FOR SIDEREALS" price was already authored as a per-splat cost override,
+  so nothing was needed there.
+* **Death's Taint's starting permanent Resonance comes out of the price** — `points − 4`,
+  the same trick A1 established, so no new field. `permanent_limit_start` is
+  `None`/`0`-distinct on purpose: a character may hold the Flaw and start clean, which
+  is what its base four-point value buys, and a sheet must be able to tell that from not
+  holding it at all.
+* `Character.limit_permanent` is the only new stored field, capped at Essence by the page
+  (`derive.permanent_limit_cap`). **It was first written onto `PlayState` — see the
+  CORRECTION below for why that was wrong.**
+* **The tracker does NOT seed itself.** It reports "began play with N permanent
+  Resonance" instead. Seeding would reset a chronicle already in progress every time the
+  tab was opened, and the tracker is deliberately dumb (`ui/play.py` docstring).
+* **`ui/play.py` imports `engine.merits` for `LIMIT_MAX` only.** Reading a constant is
+  not branching on a Merit id, which is what decision 0011 forbids; the containment test
+  greps for ids and is unaffected.
+
+**Deliberately out, all of it decision 0009:** spending luck to reroll, the 10%-per-point
+game-of-chance rule, and the Storyteller's forced rerolls. The pools are counters.
+
+**Death's Taint's five-XP shed IS modelled** — see the correction below. Only the
+**Harrowing** is out, and permanently: it is a story requirement of the same class as
+training time, which is almost certainly never being added (human, 2026-07-30).
+
+### CORRECTION (2026-07-30, same day): permanent Resonance was in the wrong layer
+
+`limit_permanent` was first written onto `PlayState` beside the temporary track, and the
+five-XP shed was written off as forbidden by decision 0006. **Both were wrong, and 0006
+says so in its own last bullet:** "permanent trait *reductions* (curses) are a different
+thing and live on the XP ledger, not here."
+
+Permanent Resonance is bought at chargen, gained in play, shed for XP and capped at
+Essence — only the second of those is play-state. Its temporary counterpart
+(`PlayState.limit`) was correct all along; the two share a name, not a layer.
+
+Now: `Character.limit_permanent`, with `advancement.gain_permanent_resonance` (free —
+inflicted, not bought) and `advancement.shed_permanent_resonance` (five XP), both logged
+so the trait has an audit trail like every other permanent one. The play tracker shows it
+READ-ONLY, because it is "cumulative with temporary Resonance" and the ST needs the total
+at the table, and points at the XP tab, which has the controls.
+
+**The trap, and why it needs its own target.** `_expected_cost` prices any row whose
+`to_rating` is below its `from_rating` at 0 — the curse rule — which would have reported
+the five-point shed as `xp-cost-mismatch` on every later validation.
+`validate.PERMANENT_RESONANCE_TARGET` is tested BEFORE that rule and prices per
+direction. Same distinct-target pattern as `charms_withheld`, for the same reason.
+
+**The GHOST half of Death's Taint is unauthored** ("Ghosts with this Flaw do not contend
+with Resonance in any form, but instead suffer the tainting of their Passions by the
+Whisper of Oblivion"). Passions and Whispers arrive with the Ghost splat, which is one of
+the four non-Exalt splats still blocked on source material.
+
+---
+
+**The triage's A-list is complete.** A1-A7 plus trait prerequisites: 26 entries, 8
+mechanisms, all shipped. What remains on M&F is the **browser click-through** (A6,
+cluster 7 and A7 are unverified) and the three known UI gaps listed at the top of this
+file.
 
 ## Source-fidelity pass (2026-07-30)
 

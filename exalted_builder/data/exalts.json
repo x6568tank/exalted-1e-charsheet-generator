@@ -49,6 +49,7 @@
   {
     "id": "Abyssal",
     "label": "Abyssal Exalted",
+    "limit_label": "Resonance",
     "essence": {
       "personal_essence_coeff": 3,
       "peripheral_essence_coeff": 7,

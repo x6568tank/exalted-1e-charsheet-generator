@@ -1590,6 +1590,101 @@ def background_rating(backgrounds, name: str) -> int:
     return sum(bg.rating for bg in backgrounds if bg.name.strip().lower() == key)
 
 
+def trait_rating(character: Character, name: str, backgrounds=None) -> int:
+    """The character's rating in the trait called `name`, whatever kind of trait it is.
+
+    Merit prerequisites (cluster 7) name traits across four namespaces — Appearance is
+    an Attribute, Occult an Ability, Manse and Breeding and Celestial Patron are
+    Backgrounds — and the printed text gives only a name. So this resolves by name in
+    a fixed order: Attributes, Abilities, Virtues, then Backgrounds.
+
+    An unresolvable name reads as 0 rather than raising, the same graceful handling
+    unresolvable Charm and Background references already get. The order matters only if
+    a name ever collides across namespaces; none of the 1e trait names does.
+
+    Craft resolves through `craft_rating` (the best of the per-focus instances), since
+    the single AbilityName.CRAFT dot is unused.
+    """
+    key = name.strip().lower()
+    if not key:
+        return 0
+    for attr in AttributeName:
+        if attr.value == key:
+            return character.attributes.get(attr, 0)
+    for ab in AbilityName:
+        if ab.value == key:
+            return ability_rating(character, ab)
+    for v in VirtueName:
+        if v.value == key:
+            return character.virtues.get(v, 0)
+    return background_rating(
+        character.backgrounds if backgrounds is None else backgrounds, name)
+
+
+def unmet_trait_prerequisites(character: Character, definition, purchase,
+                              backgrounds=None) -> list[list]:
+    """The OR groups of `definition.trait_prerequisites` this purchase does NOT satisfy.
+
+    Empty for the great majority, which require no rated trait. The "" key holds the
+    requirements every tier carries; a named tier adds its own on top (Innocuous' two-
+    point version needs Appearance 2, its four-point version needs nothing).
+
+    A group is satisfied when ANY member of it is met — Cache's "Resources 4+ or
+    Salary 2+" — matching the AND-of-OR shape Charm prerequisites already use.
+    """
+    groups: list[list] = []
+    groups += definition.trait_prerequisites.get("", [])
+    if purchase.tier:
+        groups += definition.trait_prerequisites.get(purchase.tier, [])
+    return [g for g in groups
+            if not any(trait_rating(character, r.trait, backgrounds) >= r.rating
+                       for r in g)]
+
+
+def background_pool_spend(ruleset: RuleSet, character: Character, b, backgrounds,
+                          bp_costs=None) -> tuple[int, list[int]]:
+    """(pool dots consumed, per-dot bonus-point rates still owed) for the character's
+    Backgrounds. The single arithmetic both the unspent-dot warning and
+    `bonus_point_breakdown` read, so the two can never disagree about what "spent from
+    the pool" means.
+
+    Ordinarily a dot at or below `background_cap_pre_bp` consumes a pool dot and a dot
+    above it is paid in bonus points at `background_above_3` (plus any per-Background
+    surcharge — Lookshy Breeding, p.66).
+
+    Heir Apparent (A6, p.24) moves some of the second group into the first: its
+    inherited dots "may raise a Background above a rating of three", so that many
+    above-cap dots are paid out of the ENLARGED pool the Merit granted instead of out
+    of bonus points. They are not free — `effective_budgets` added exactly as many pool
+    dots as are waived here, so the character pays for them once, through the pool.
+
+    Which Background received the inheritance is the player's choice and is not
+    recorded, so the waiver goes to the DEAREST above-cap dots the character actually
+    has: the player-favourable reading, matching how free dots are already assigned.
+    A waived dot counts as ONE pool dot rather than going back through
+    `background_pool_dots`, whose expensive-upper-dot rules are Alchemical-only.
+    """
+    if bp_costs is None:
+        bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin,
+                                           character.upbringing)
+    within = 0
+    above_rates: list[int] = []
+    for bg in backgrounds:
+        rule = background_rule(b, bg.name)
+        cap = bg.rating if (rule and rule.cap_pre_bp_exempt) else b.background_cap_pre_bp
+        within += background_pool_dots(rule, min(bg.rating, cap))
+        rate = bp_costs.background_above_3 + (rule.bp_surcharge_per_dot if rule else 0)
+        above_rates += [rate] * max(0, bg.rating - cap)
+
+    exempt = merits.merits_and_flaws_calc(ruleset, character).background_cap_exempt_dots
+    if exempt:
+        above_rates.sort(reverse=True)
+        waived = min(exempt, len(above_rates))
+        within += waived
+        above_rates = above_rates[waived:]
+    return within, above_rates
+
+
 def background_issues(budgets, backgrounds) -> list[Issue]:
     """Chargen legality for Backgrounds that carry mechanics (`background_rules`).
     Empty for every splat with none — which is all of them but the Alchemical, whose
@@ -2342,11 +2437,7 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
                         for r in virtues.values())
     warn("Virtue", b.virtue_dots - virtue_within, b.virtue_dots)
 
-    bg_within = 0
-    for bg in backgrounds:
-        rule = background_rule(b, bg.name)
-        cap = bg.rating if (rule and rule.cap_pre_bp_exempt) else b.background_cap_pre_bp
-        bg_within += background_pool_dots(rule, min(bg.rating, cap))
+    bg_within, _above = background_pool_spend(ruleset, character, b, backgrounds)
     warn("Background", b.background_dots - bg_within, b.background_dots)
 
     return issues
@@ -2540,17 +2631,9 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     # --- Backgrounds: N free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
     # `background_rules` (empty for every splat but the Alchemical) can exempt a
     # Background from the cap and make its upper dots cost more than one pool dot each.
-    bg_within = bg_above_bp = 0
-    for bg in backgrounds:
-        rule = background_rule(b, bg.name)
-        cap = bg.rating if (rule and rule.cap_pre_bp_exempt) else b.background_cap_pre_bp
-        bg_within += background_pool_dots(rule, min(bg.rating, cap))
-        above = max(0, bg.rating - cap)
-        # A per-Background bonus-point surcharge rides on top of the above-cap rate
-        # (Lookshy Breeding, p.66). Dots at or below the cap pay their half of the
-        # same surcharge through the pool, via background_pool_dots.
-        rate = bp_costs.background_above_3 + (rule.bp_surcharge_per_dot if rule else 0)
-        bg_above_bp += above * rate
+    bg_within, above_rates = background_pool_spend(ruleset, character, b, backgrounds,
+                                                   bp_costs)
+    bg_above_bp = sum(above_rates)
     bg_overflow = max(0, bg_within - b.background_dots)
     bg_bp = bg_above_bp + bg_overflow * bp_costs.background
 
@@ -2703,6 +2786,9 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
     thaum = (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character)
     has_thaum = bool(thaum.arts or thaum.sciences or thaum.rituals or thaum.formulas
                      or thaum.art_specialties)
+    # Read through the snapshot for the same reason: a purchase whose legality depends
+    # on a Background rating must keep the answer the locked sheet was built with.
+    backgrounds = snap.backgrounds if snap else character.backgrounds
 
     for purchase in character.merits_flaws:
         definition = ruleset.merits_flaws.get(purchase.merit_id)
@@ -2746,6 +2832,33 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"{definition.name} is not available to the "
                         f"{caste.label if caste else character.caste} caste.",
             ))
+        limit = definition.points_limited_by
+        if limit is not None:
+            points = merit_points(definition, purchase, character.exalt_type,
+                                  character.caste)
+            rating = background_rating(backgrounds, limit.background) + limit.offset
+            if limit.mode == "max" and points > rating:
+                issues.append(Issue(
+                    code="merit-points-above-background", where=definition.id,
+                    message=f"{definition.name} may not be worth more than "
+                            f"{max(0, rating)} point(s) at {limit.background} "
+                            f"{background_rating(backgrounds, limit.background)}; "
+                            f"this purchase is worth {points}.",
+                ))
+            elif limit.mode == "above" and points <= rating:
+                issues.append(Issue(
+                    code="merit-points-below-background", where=definition.id,
+                    message=f"{definition.name} must exceed {limit.background} "
+                            f"{background_rating(backgrounds, limit.background)}; "
+                            f"this purchase is worth {points}.",
+                ))
+        for group in unmet_trait_prerequisites(character, definition, purchase,
+                                               backgrounds):
+            want = " or ".join(f"{r.trait} {r.rating}" for r in group)
+            issues.append(Issue(
+                code="merit-trait-prerequisite", where=definition.id,
+                message=f"{definition.name} requires {want}.",
+            ))
         if definition.thaumaturges_only and not has_thaum:
             issues.append(Issue(
                 code="merit-thaumaturges-only", where=definition.id,
@@ -2760,12 +2873,47 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                 code="merit-repeated", where=mid,
                 message=f"{definition.name} may only be taken once; found {count}.",
             ))
+        # A repeatable entry may still be capped by a trait — "characters may not
+        # purchase this Merit more times than their Occult rating" (p.17).
+        if definition.max_purchases_from_trait:
+            limit = trait_rating(character, definition.max_purchases_from_trait,
+                                 backgrounds)
+            if count > limit:
+                issues.append(Issue(
+                    code="merit-repeats-above-trait", where=mid,
+                    message=f"{definition.name} may not be taken more times than "
+                            f"{definition.max_purchases_from_trait} "
+                            f"({limit}); found {count}.",
+                ))
         for pid in definition.prerequisites:
             if pid not in held:
                 name = ruleset.merits_flaws[pid].name if pid in ruleset.merits_flaws else pid
                 issues.append(Issue(
                     code="merit-prerequisite", where=mid,
                     message=f"{definition.name} requires {name}.",
+                ))
+
+    # Backgrounds a held entry caps or forbids (A6 — Innocuous' veiled tier, p.22).
+    # Asked of engine.merits, so no Merit id is named here.
+    effects = merits.merits_and_flaws_calc(ruleset, character)
+    if effects.background_caps or effects.barred_backgrounds:
+        for bg in backgrounds:
+            key = bg.name.strip().lower()
+            if not key or bg.rating <= 0:
+                continue
+            if key in effects.barred_backgrounds:
+                issues.append(Issue(
+                    code="background-barred-by-merit", where=bg.name,
+                    message=f"{bg.name} is closed to this character by a Merit or "
+                            f"Flaw they hold.",
+                ))
+            cap = effects.background_caps.get(key)
+            if cap is not None and bg.rating > cap:
+                issues.append(Issue(
+                    code="background-above-merit-cap", where=bg.name,
+                    message=f"{bg.name} may not exceed {cap} for this character "
+                            f"(a Merit or Flaw they hold caps it); rating is "
+                            f"{bg.rating}.",
                 ))
     return issues
 
@@ -2839,6 +2987,13 @@ def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attribu
 
 WITHHELD_CHARM_TARGET = "charms_withheld"
 
+# Permanent Resonance (Death's Taint) moves on the XP ledger like a curse, but with its
+# own prices in each direction — free to gain, five to shed — so it needs a target the
+# audit can recognise. `_expected_cost` must test this BEFORE its general "a reduction
+# is free" rule, which would otherwise price the shed at 0 and report a mismatch on
+# every later validation.
+PERMANENT_RESONANCE_TARGET = "limit_permanent"
+
 
 def withheld_charm_credits(ruleset: RuleSet, character: Character) -> tuple[int, int]:
     """(granted, remaining) chargen Charm picks banked for XP-free use after the lock.
@@ -2888,14 +3043,20 @@ def effective_budgets(ruleset: RuleSet, character: Character):
     matched to categories by spend rather than declared, so the forfeit has to be taken
     off the pool that its category actually receives, at the point the two are zipped.
     `MeritEffects.forfeited_attribute_dots` carries it; nothing consumes it yet.
+
+    A budget may also be ENLARGED the same way (A6): Heir Apparent's inheritance adds
+    Background dots. Same delta, opposite sign — that symmetry is why it belongs here
+    rather than anywhere the Background pool is read.
     """
     b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     effects = merits.merits_and_flaws_calc(ruleset, character)
-    if not (effects.forfeited_ability_dots or effects.forfeited_virtue_dots):
+    if not (effects.forfeited_ability_dots or effects.forfeited_virtue_dots
+            or effects.bonus_background_dots):
         return b
     return b.model_copy(update={
         "ability_dots": max(0, b.ability_dots - effects.forfeited_ability_dots),
         "virtue_dots": max(0, b.virtue_dots - effects.forfeited_virtue_dots),
+        "background_dots": b.background_dots + effects.bonus_background_dots,
     })
 
 

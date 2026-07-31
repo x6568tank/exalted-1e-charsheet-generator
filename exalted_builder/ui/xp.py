@@ -62,7 +62,16 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
         "add_amount": 5,
         "lower_target": f"attr:{AttributeName.STRENGTH.value}",   # what to reduce
         "lower_reason": "",                                       # curse / charm-cost note
+        "resonance_reason": "",                                   # Death's Taint note
     }
+
+    def _gain_resonance() -> None:
+        advancement.gain_permanent_resonance(rs, character,
+                                             sel["resonance_reason"].strip())
+
+    def _shed_resonance() -> None:
+        advancement.shed_permanent_resonance(rs, character,
+                                             sel["resonance_reason"].strip())
 
     def _reduce() -> None:
         tgt, reason = sel["lower_target"], sel["lower_reason"].strip()
@@ -347,6 +356,34 @@ def build_xp(ruleset: RuleSet, character: Character, save_path: Path,
                          ).props("dense").classes("flex-1")
                 ui.button("Reduce", icon="arrow_downward",
                           on_click=lambda: _do(_reduce)).props("dense color=negative")
+
+        # --- permanent Resonance (Death's Taint) --------------------------- #
+        # Its own panel rather than a row in "Reduce a Trait", because it moves in BOTH
+        # directions and the two have different prices: gaining is inflicted and free,
+        # shedding costs five XP and a Harrowing. Shown only for a character who has
+        # the track at all — asked of the engine, so no Merit id is named here.
+        perm_cap = derive.permanent_limit_cap(rs, character)
+        if perm_cap:
+            lim = derive.limit_label(rs, character)
+            with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+                ui.label(f"Permanent {lim}").classes(
+                    "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                ui.label(f"{character.limit_permanent} of {perm_cap} "
+                         f"(capped at Essence). Gained when the temporary track "
+                         f"overflows; shed with a Harrowing.").classes(
+                    "text-xs text-gray-600")
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.input(value=sel["resonance_reason"],
+                             placeholder="reason (e.g. Resonance overflowed)",
+                             on_change=lambda e: sel.__setitem__(
+                                 "resonance_reason", e.value)
+                             ).props("dense").classes("flex-1")
+                    ui.button("Gain (free)", icon="arrow_upward",
+                              on_click=lambda: _do(_gain_resonance)
+                              ).props("dense color=negative")
+                    ui.button(f"Shed ({meritsmod.PERMANENT_RESONANCE_SHED_XP} XP)",
+                              icon="arrow_downward",
+                              on_click=lambda: _do(_shed_resonance)).props("dense")
 
         # --- specialty ----------------------------------------------------- #
         # Charms, spells, Ox-Body packages and Combos are NOT bought here: they are

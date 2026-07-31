@@ -488,6 +488,53 @@ CHAR_MERITS.merits_flaws = [
 def page_merits():
     editor.build_editor(RS, CHAR_MERITS, Path("x.json"), with_header=False)
 
+# A6: a Solar holding Heir Apparent (whose purchase records STIPULATIONS, a control no
+# other entry gets) and Innocuous' veiled tier (which caps Allies and closes Cult, so
+# the Background dot rows must stop where the Flaw says).
+CHAR_BG_MERITS = Character(id="mfbg", name="Heir", exalt_type="Solar", caste="dawn",
+                           essence_rating=1)
+CHAR_BG_MERITS.merits_flaws = [
+    MeritFlawPurchase(merit_id="mf.heir-apparent", tier="3", stipulations=2),
+    MeritFlawPurchase(merit_id="mf.innocuous", tier="4"),
+    # Cluster 7: an entry whose trait prerequisite must be VISIBLE in the row, not just
+    # reported as an issue after the player has already picked it.
+    MeritFlawPurchase(merit_id="mf.cache", points=2),
+]
+CHAR_BG_MERITS.backgrounds = [
+    BackgroundEntry(name="Allies", rating=2),
+    BackgroundEntry(name="Resources", rating=5),
+]
+
+@ui.page('/merits-backgrounds')
+def page_merits_backgrounds():
+    editor.build_editor(RS, CHAR_BG_MERITS, Path("x.json"), with_header=False)
+
+# A7: an Abyssal whose Resonance track is BOTH renamed and shortened, who has a
+# permanent Resonance counter, and who holds both luck pools at once.
+CHAR_PLAY_MERITS = Character(id="mfplay", name="Ashen", exalt_type="Abyssal",
+                             caste="dusk", essence_rating=3, limit_permanent=2)
+CHAR_PLAY_MERITS.merits_flaws = [
+    MeritFlawPurchase(merit_id="mf.greater-curse", tier="3"),
+    MeritFlawPurchase(merit_id="mf.death-taint", points=6),
+    MeritFlawPurchase(merit_id="mf.lucky", tier="2"),
+    MeritFlawPurchase(merit_id="mf.unlucky", tier="1"),
+]
+
+@ui.page('/merits-play')
+def page_merits_play():
+    play.build_play(RS, CHAR_PLAY_MERITS, Path("x.json"), with_header=False)
+
+# The same character, locked, so the XP tab's permanent-Resonance panel renders — the
+# tracker tells the ST to come here, so this must actually exist.
+CHAR_RESONANCE_XP = CHAR_PLAY_MERITS.model_copy(deep=True)
+CHAR_RESONANCE_XP.id = "mfxp"
+CHAR_RESONANCE_XP.chargen_locked = True
+CHAR_RESONANCE_XP.xp_earned = 20
+
+@ui.page('/merits-resonance-xp')
+def page_merits_resonance_xp():
+    xp.build_xp(RS, CHAR_RESONANCE_XP, Path("x.json"), with_header=False)
+
 @ui.page('/merits-sheet')
 def page_merits_sheet():
     sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_MERITS))

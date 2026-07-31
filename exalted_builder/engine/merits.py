@@ -133,6 +133,71 @@ PARAGON_NATURE = "Paragon"
 WEAK_WILLED_FLOOR_EXALTED = 4
 WEAK_WILLED_FLOOR_MORTAL = 2
 
+# Background budget and rating restrictions (A6). Two entries: one that ENLARGES the
+# chargen Background pool, one that restricts which Backgrounds may be held at all. The
+# other three A6 entries (Damaged Artifact, Known Anathema, Debt) restrict their own
+# POINT VALUE against a Background rating, which is a printed purchase restriction and
+# therefore inert catalogue data — `MeritFlaw.points_limited_by`, checked by validate.
+HEIR_APPARENT = "mf.heir-apparent"
+INNOCUOUS = "mf.innocuous"
+
+# "Every point invested in this Merit grants two dots of Backgrounds that the character
+# will ultimately gain, but characters may not spend more than five points in this
+# fashion. Add an extra dot to the pool of invested Backgrounds for every major
+# stipulation applied to the Inheritance, up a maximum of three conditions" (p.24).
+HEIR_APPARENT_DOTS_PER_POINT = 2
+HEIR_APPARENT_MAX_POINTS = 5
+HEIR_APPARENT_MAX_STIPULATIONS = 3
+
+# Innocuous' FOUR-point version only: "magically cloaked characters have obvious
+# difficulties forming lasting relationships and may not have more than two dots each of
+# Allies, Contacts, Mentor … Veiled characters may not have Followers, Henchman, a Cult,
+# any form of Command" (p.22). The two-point version is dice and is out (bucket B).
+#
+# Its "or any other socially dependent Backgrounds" / "other Backgrounds contingent on
+# being widely known" clauses are Storyteller adjudication and are deliberately NOT
+# guessed at — only the Backgrounds the page names by name are modelled. Names are
+# lowercased because Backgrounds are free text, matched by name and never by id.
+INNOCUOUS_VEILED_TIER = "4"
+_INNOCUOUS_CAPS: dict[str, int] = {"allies": 2, "contacts": 2, "mentor": 2}
+_INNOCUOUS_BARRED: frozenset[str] = frozenset(
+    {"followers", "henchmen", "henchman", "cult", "command"})
+
+# Play-state pools and tracks (A7). Four entries whose whole effect is a counter the
+# Storyteller manages during play. Decision 0006 governs everything here: these may be
+# tracked and displayed, and must NEVER enter chargen validation or the XP audit.
+LUCKY = "mf.lucky"
+UNLUCKY = "mf.unlucky"
+GREATER_CURSE = "mf.greater-curse"
+DEATH_TAINT = "mf.death-taint"
+
+# The Limit/Paradox/Resonance track is 0..10 for every splat that has one — "a bare
+# 0..10 counter (Limit Break at 10)". Ruling 5 of the triage: that maximum is the
+# CONSTANT 10 rather than something derived, so Greater Curse is a subtraction from it.
+LIMIT_MAX = 10
+# "reduces their maximum Limit pool by one dot per point invested in the Flaw, to a
+# maximum reduction of five dots" (p.40).
+GREATER_CURSE_MAX_REDUCTION = 5
+
+# "Sidereal characters receive two more luck points than the number of points invested
+# in the Merit, though they may not have a luck pool greater than five … and may not
+# have a luck pool smaller than three" (p.27).
+SIDEREAL = "Sidereal"
+SIDEREAL_LUCK_BONUS = 2
+SIDEREAL_LUCK_MAX = 5
+SIDEREAL_LUCK_MIN = 3
+
+# Death's Taint: "This deepened taint provides four bonus points … The base value of
+# this Flaw assumes the character does not begin play with any permanent Resonance.
+# Characters who actually start with this greater taint add one additional bonus point
+# per dot" (p.41). So the starting permanent Resonance is recoverable from the price —
+# `points - 4` — exactly the way A1's forfeits are, and needs no new field.
+DEATH_TAINT_BASE_POINTS = 4
+# "Characters wishing to reduce their permanent Resonance by one dot must spend five
+# experience points and undergo a Harrowing deep in the Labyrinth" (p.41). The Harrowing
+# is a story requirement no engine can check; the price is not.
+PERMANENT_RESONANCE_SHED_XP = 5
+
 # Essence-pool shape (A5). Two entries that change the pools themselves rather than any
 # term feeding them.
 LEGENDARY_BREEDING = "mf.legendary-breeding"
@@ -294,6 +359,51 @@ class MeritEffects:
     # Natures a held Flaw forbids. Callous bars Paragon (p.35); True Paragon requires
     # it, which is why this is a set of names rather than a Callous-shaped boolean.
     barred_natures: frozenset[str] = frozenset()
+
+    # --- Backgrounds (A6) ---------------------------------------------------- #
+    # Extra dots ADDED to the chargen Background pool — the mirror image of the
+    # forfeits above, and applied the same way, as a delta on `effective_budgets`
+    # rather than a rewritten budget. Heir Apparent's inheritance (p.24) is the only
+    # source. Whether the inherited Backgrounds are usable YET is narrative: the page
+    # is explicit that the character "need only wait for the current owner to die",
+    # which no engine can adjudicate.
+    bonus_background_dots: int = 0
+    # How many Background dots may sit ABOVE `background_cap_pre_bp` without being
+    # charged bonus points — "Background dots obtained with this Merit … may raise a
+    # Background above a rating of three". WHICH Background is the player's choice and
+    # is not recorded, so the waiver is applied to the dearest above-cap dots the
+    # character actually has, the player-favourable reading. Never more dots than the
+    # Merit granted.
+    background_cap_exempt_dots: int = 0
+    # Per-Background ceilings a Flaw imposes, keyed by lowercased Background NAME
+    # (Backgrounds are free text — there is no id to key on). Absent = no ceiling
+    # beyond the ordinary 5.
+    background_caps: dict[str, int] = field(default_factory=dict)
+    # Backgrounds a held entry forbids outright, lowercased names. Innocuous' veiled
+    # tier is the only source.
+    barred_backgrounds: frozenset[str] = frozenset()
+
+    # --- Play-state pools and tracks (A7) ------------------------------------ #
+    # Everything in this block is PLAY-STATE (decision 0006): displayed and tracked,
+    # never read by chargen validation or the XP audit. Spending any of it is dice
+    # (decision 0009) and stays out — these are counters, not mechanics.
+    #
+    # Lucky's pool, "equal to the number of points invested in the Merit" (p.27), after
+    # the Sidereal adjustment. 0 = not held.
+    luck_pool: int = 0
+    # Unlucky's "negative luck pool equal to the points invested in the Flaw" (p.39),
+    # held by the Storyteller. Stored positive; it is a count of bad-luck points. A
+    # character may hold BOTH — "characters may be simultaneously Lucky and Unlucky".
+    bad_luck_pool: int = 0
+    # The maximum of the Limit / Paradox / Resonance track, when a Flaw has lowered it
+    # from the constant 10 — Greater Curse "reduces their maximum Limit pool by one dot
+    # per point invested" (p.40). None = the ordinary 10.
+    limit_max: int | None = None
+    # Death's Taint gives the Abyssal Curse a PERMANENT counterpart to its temporary
+    # track, and this is the rating the character begins play with. None = the Flaw is
+    # not held, which is NOT the same as 0 — a character may hold it and start clean,
+    # which is what its base four-point value buys.
+    permanent_limit_start: int | None = None
 
     # --- Cross-Merit effects ----------------------------------------------- #
     # Merits held FREE because another Merit grants them (Holy Mien -> Priest at the
@@ -484,6 +594,15 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
     nature_unmet: list[str] = []
     breeding_override: int | None = None
     single_pool = False
+    bonus_background_dots = 0
+    background_cap_exempt = 0
+    background_caps: dict[str, int] = {}
+    barred_backgrounds: set[str] = set()
+    luck_pool = 0
+    bad_luck_pool = 0
+    limit_max: int | None = None
+    permanent_limit_start: int | None = None
+    from .validate import merit_points                        # validate imports merits
     for definition, purchase in _held(ruleset, character):
         if definition.id == LEGENDARY_ATTRIBUTE:
             # "a rating one dot higher than the normal limit imposed by their Essence
@@ -528,6 +647,59 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
             effects_from.add(definition.id)
         elif definition.id == BEACON_OF_POWER:
             single_pool = True
+            effects_from.add(definition.id)
+        elif definition.id == HEIR_APPARENT:
+            # "characters may not spend more than five points in this fashion" — the
+            # catalogue's 1..5 tier menu already says so, but the clamp costs nothing
+            # and makes the printed ceiling visible where the rate is applied.
+            points = min(HEIR_APPARENT_MAX_POINTS,
+                         merit_points(definition, purchase, character.exalt_type,
+                                      character.caste))
+            stipulations = min(HEIR_APPARENT_MAX_STIPULATIONS,
+                               max(0, purchase.stipulations))
+            dots = max(0, points) * HEIR_APPARENT_DOTS_PER_POINT + stipulations
+            bonus_background_dots += dots
+            # Every dot the Merit grants is one that may exceed the rating-3 cap.
+            background_cap_exempt += dots
+            effects_from.add(definition.id)
+        elif definition.id == LUCKY:
+            points = merit_points(definition, purchase, character.exalt_type,
+                                  character.caste)
+            if character.exalt_type == SIDEREAL:
+                # "receive two more luck points than the number of points invested …
+                # may not have a luck pool greater than five … nor smaller than three".
+                luck_pool += min(SIDEREAL_LUCK_MAX,
+                                 max(SIDEREAL_LUCK_MIN, points + SIDEREAL_LUCK_BONUS))
+            else:
+                luck_pool += max(0, points)
+            effects_from.add(definition.id)
+        elif definition.id == UNLUCKY:
+            bad_luck_pool += max(0, merit_points(definition, purchase,
+                                                 character.exalt_type, character.caste))
+            effects_from.add(definition.id)
+        elif definition.id == GREATER_CURSE:
+            points = merit_points(definition, purchase, character.exalt_type,
+                                  character.caste)
+            reduction = min(GREATER_CURSE_MAX_REDUCTION, max(0, points))
+            # Lowest wins if it were ever held twice, matching how the trait caps of A3
+            # resolve: a ceiling never rises because an entry was processed later.
+            lowered = LIMIT_MAX - reduction
+            limit_max = lowered if limit_max is None else min(limit_max, lowered)
+            effects_from.add(definition.id)
+        elif definition.id == DEATH_TAINT:
+            # points = 4 base + 1 per dot of permanent Resonance started with, so the
+            # starting rating comes back out of the price. Same trick as A1's forfeits.
+            points = merit_points(definition, purchase, character.exalt_type,
+                                  character.caste)
+            start = max(0, points - DEATH_TAINT_BASE_POINTS)
+            permanent_limit_start = (start if permanent_limit_start is None
+                                     else permanent_limit_start + start)
+            effects_from.add(definition.id)
+        elif definition.id == INNOCUOUS and purchase.tier == INNOCUOUS_VEILED_TIER:
+            for name, cap in _INNOCUOUS_CAPS.items():
+                current = background_caps.get(name)
+                background_caps[name] = cap if current is None else min(current, cap)
+            barred_backgrounds |= _INNOCUOUS_BARRED
             effects_from.add(definition.id)
 
     # --- Health levels ----------------------------------------------------- #
@@ -586,6 +758,14 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         willpower_virtue_margin=CALLOUS_WILLPOWER_MARGIN if callous_active else None,
         willpower_floor=willpower_floor,
         barred_natures=frozenset({PARAGON_NATURE}) if callous_active else frozenset(),
+        bonus_background_dots=bonus_background_dots,
+        background_cap_exempt_dots=background_cap_exempt,
+        background_caps=background_caps,
+        barred_backgrounds=frozenset(barred_backgrounds),
+        luck_pool=luck_pool,
+        bad_luck_pool=bad_luck_pool,
+        limit_max=limit_max,
+        permanent_limit_start=permanent_limit_start,
         granted_merits=granted_merits,
         merit_cost_overrides=cost_overrides,
         essence_pool_unlocked=has_native_pool or awareness or mastery,

@@ -63,6 +63,16 @@
     "category": "Supernatural",
     "cost": 3,
     "prerequisite_note": "Celestial Patron of at least 2",
+    "trait_prerequisites": {
+      "": [
+        [
+          {
+            "trait": "Celestial Patron",
+            "rating": 2
+          }
+        ]
+      ]
+    },
     "description": "The thaumaturge has limited permission to travel to Yu-Shan while on the direct business of her patron deity — usually from a single gateway to the god's place of business or residence and back. While in Yu-Shan she has no rights, but enjoys some protection based on her god's status, usually enough to prevent her being unduly molested, though official interference through misapplied regulations is possible. The permit can be revoked at any time, even over the patron's wishes, should she abuse it.",
     "source": {
       "book": "Exalted 1e Player's Guide",
@@ -527,6 +537,19 @@
       "4": 4
     },
     "cost_note": "(2- OR 4-PT. MERIT)",
+    "barred_exalt_types": [
+      "Sidereal"
+    ],
+    "trait_prerequisites": {
+      "2": [
+        [
+          {
+            "trait": "Appearance",
+            "rating": 2
+          }
+        ]
+      ]
+    },
     "description": "Characters with the two-point version of this Merit have an eerily unremarkable visage. Height, weight and build are all average, all plain. No one is apt to pick them from a crowd unless their skin and hair is dramatically different in hue than all the locals — and, possibly, not even then. People are less likely to remember them at all if they do nothing to draw attention to themselves. Such everyman anonymity adds one die to pertinent Larceny and Stealth rolls and adds one to the difficulty of any casual pursuit or investigation of the character. This will not foil any serious inquiry, nor does it grant any bonus if the character is alone or does something memorable (such as showing any level of an anima banner). Characters must have Appearance 2 in order to purchase this version of Innocuous. The four-point version of Innocuous is a Supernatural Merit rather than Social. The character is not simply ordinary, but cloaked in an aura of subtle obscurity. Those who witness and even interact with her find their memories blurred. They may recall the conversation, but not the person with whom they spoke. More astute characters might remember “that girl” or maybe even “that redhaired girl” if they are especially insightful, but that’s about the best most can hope for. Mechanically, this more powerful version doubles the bonuses afforded by the lesser version of this Merit. Additionally, onlookers do not remember more than superficial details from interactions with the character without a Wits + Essence roll. The base difficulty of this roll is 6, reduced by 1 for every significant interaction the observer had with the character in the previous week. Roll at the conclusion of each encounter. Once a witness pierces the anonymity, the difficulty of subsequent memory checks is the number of full weeks she has gone without interacting with the obscured character. This roll is made once a week, starting with the first full week of no contact. On a failure, existing memories of previous encounters with the obscured character blur and fade regardless of their significance. Magical beings (those with Essence 2+) indefinitely ignore the aura of anonymity after they pierce it once, but only if the hidden character has a lower permanent Essence. Unfortunately, magically cloaked characters have obvious difficulties forming lasting relationships and may not have more than two dots each of Allies, Contacts, Mentor or any other socially dependent Backgrounds unless their associates are powerful magical beings assumed to have pierced the veil. Veiled characters may not have Followers, Henchman, a Cult, any form of Command or other Backgrounds contingent on being widely known without extremely unusual circumstances approved by the Storyteller. Sidereals may not purchase Innocuous in either version, as their innate Arcane Fate surpasses and supersedes the Merit’s effects. The effects of Innocuous do not stack with Charms and other magic that conceal identity. Only the most powerful effect applies.",
     "source": {
       "book": "Exalted 1e Player's Guide",
@@ -569,6 +592,16 @@
       "2": 2
     },
     "cost_note": "(1- OR 2-PT. MERIT)",
+    "trait_prerequisites": {
+      "": [
+        [
+          {
+            "trait": "Manse",
+            "rating": 1
+          }
+        ]
+      ]
+    },
     "description": "The character controls a Manse forgotten to history and geomantic maps or perhaps a Manse in a more public area shrouded by some mysterious property of its arcane nature. Such a hidden place of power makes an excellent base of operations or secret lair, provided that the character and those trusted with the secret don’t compromise the location with their actions. Assuming the character is properly discrete, no one need ever know about his magical lair. This Merit costs one point for a hidden Demesne or two for an actual Manse. Characters must have the Manse Background to purchase this Merit.",
     "source": {
       "book": "Exalted 1e Player's Guide",
@@ -588,6 +621,7 @@
       "5": 5
     },
     "cost_note": "(1- TO 5-PT. MERIT)",
+    "takes_stipulations": true,
     "description": "Characters with this Merit will receive an inheritance left by their parents or another benefactor. They need only wait for the current owner to die — or find some way to hasten that process along without getting caught (which would forfeit the gain at the very least). Every point invested in this Merit grants two dots of Backgrounds that the character will ultimately gain, but characters may not spend more than five points in this fashion. Add an extra dot to the pool of invested Backgrounds for every major stipulation applied to the Inheritance, up a maximum of three conditions. This can include requirements that the character be married or unmarried, serve in the military for a defined number of years, etc. Background dots obtained with this Merit are cumulative with Backgrounds the character already possesses and may raise a Background above a rating of three. Although Heir Apparent is typically used to transfer resources, artifacts, followers and other tangible goods or servants, but it may also include business partners and associates in the form of contacts, allies and the like. Still more exotic selections rely on situation and Storyteller approval, such as a necromancer whose blood-inscribed will bestows her Whispers to an heir.",
     "source": {
       "book": "Exalted 1e Player's Guide",
@@ -614,6 +648,20 @@
     "category": "Property",
     "variable_cost": true,
     "cost_note": "(VARIABLE COST MERIT)",
+    "trait_prerequisites": {
+      "": [
+        [
+          {
+            "trait": "Resources",
+            "rating": 4
+          },
+          {
+            "trait": "Salary",
+            "rating": 2
+          }
+        ]
+      ]
+    },
     "description": "The character has wealth hidden or legally stored in banks in many locations, for a cost of one bonus point per city beyond the character’s home. The character has full access to the value of his full Resources or Salary at any of these locations and their surrounding regions. Characters with five points of Cache are assumed to have access to their wealth in any settlement town-sized or larger in a selected direction of Creation or the Blessed Isle, though it may take up to a week for the money to arrive in smaller towns. Each additional point beyond five extends this domain by another direction. Characters must have Resources 4+ or Salary 2+ to purchase this Merit.",
     "source": {
       "book": "Exalted 1e Player's Guide",
@@ -627,6 +675,7 @@
     "category": "Supernatural",
     "cost": 1,
     "cost_note": "(1-PT. MERIT)",
+    "max_purchases_from_trait": "Occult",
     "description": "Characters with this Merit can crudely divine the workings of fate through methods other than astrology. Some read destiny in the pattern of tea leaves or the entrails of birds or upon the symbolic threads of a spider’s web, while others spout disjointed verses of prophecy from a drug-induced trance or read palms or gaze into crystals. Whatever the method, the rolls and effectiveness of divination remain the same as for conventional astrology (see Exalted, p. 251). Any divination ritual should take a minimum of one scene to complete, though most will be considerably longer. Methods less complicated and quicker than astrology suffer an increased difficulty assigned by the Storyteller, while complicated, well-described rituals should benefit from a stunt bonus. Characters may purchase this Merit multiple times, with each purchase granting knowledge of one effective ritual beyond astrology (or two rituals per purchase for Sidereal Exalted). However, characters may not purchase this Merit more times than their Occult rating. Alternative Divination methods exploit the tendency of a powerful fate to inscribe its marks upon certain unfolding patterns in Creation (or in the Underworld, for those who seek the shadowed destiny of that realm). Such patterns are never as reliable as the confluence of stars and almost never allow glimpses of the future beyond the diviner’s Occult rating in years.",
     "source": {
       "book": "Exalted 1e Player's Guide",
@@ -792,6 +841,16 @@
       "Dragon-Blooded"
     ],
     "cost_note": "(3-PT. MERIT, DRAGON-BLOODED ONLY)",
+    "trait_prerequisites": {
+      "": [
+        [
+          {
+            "trait": "Breeding",
+            "rating": 5
+          }
+        ]
+      ]
+    },
     "description": "A Dragon-Blood with this Merit is the pinnacle of physical perfection, a veritable avatar of those ideals and qualities associated with her aspect. As a result, her Breeding Background (see E:DB, p. 158) has a rating of 6. This superb ancestry adds 6 motes to her Personal Essence pool and 11 motes to her Peripheral Essence pool. In addition, she reduces the cost of activating her anima banner by 3 and adds 3 to the roll to determine if her children Exalt. The physical signs of Legendary Breeding are patently obvious, conferring an additional die on most Social rolls with other Dragon-Blooded and mortals who respect or fear the majesty of those chosen by the Dragons. However, the distinctiveness of such breeding adds two to the difficulty of all attempts for such an Exalt to disguise herself as someone else. Characters must already have Breeding 5 to purchase this Merit.",
     "source": {
       "book": "Exalted 1e Player's Guide",
@@ -1449,6 +1508,10 @@
       "Abyssal"
     ],
     "cost_note": "(1- TO 5-PT. FLAW, CELESTIAL EXALTED ONLY)",
+    "points_limited_by": {
+      "background": "Influence",
+      "mode": "max"
+    },
     "description": "The character’s Exaltation and deeds as one of the Chosen have not gone unnoticed. Even in the wake of the Empress’ disappearance, such a reputation carries considerable danger. The Wyld Hunt cannot hope to match the glory and power of its past, but Immaculate brotherhoods still pose a deadly threat to unwary Exalted. The value of this Flaw depends on how widely the character’s name and true nature are known. One point indicates regional notoriety. The Wyld Hunt does not actually know of the character, but it could certainly discover him if it passed through the nation and listened to tavern gossip. Two points indicates more widespread fame. The Wyld Hunt knows the character’s name and a very crude idea of his deeds, but it does not know his present whereabouts. Three points indicates the character is regarded as a great threat. A brotherhood has already been tasked with his execution, and it is only a matter of time before it finds its quarry unless he keeps moving. Four points indicates the Wyld Hunt regards the character as a terrible demon who has likely slain the first hunters sent to destroy him, perhaps even marshaling military forces against the Realm. Such a character can expect an experienced Wyld Hunt dogging his heels or, worse yet, a Sidereal assassin of the Bronze Faction. At five points, the character is considered one of the greatest threats presently facing the Realm, on par with the Bull of the North and the Deathlords. The Mouth of Peace and Chejop Kejak personally discuss such dire menaces in order to plan their eradication. Barring exceptional story explanations, characters may not generally take more points of this Flaw than their rating in Influence or a Background granting comparable fame.",
     "source": {
       "book": "Exalted 1e Player's Guide",
@@ -1530,6 +1593,11 @@
       "3": 3
     },
     "cost_note": "(1- TO 3-PT. FLAW)",
+    "points_limited_by": {
+      "background": "Artifact",
+      "mode": "max",
+      "offset": -1
+    },
     "description": "One of the mystical wonders owned by the character through purchase of the Artifact Background has suffered damage, either in the distant past or since it has fallen into her possession. The extent of this damage and the effect of that damage on the artifact’s ability to function depend on the number of points invested in this Flaw. One point indicates minor damage. A weapon may lose a point of damage or accuracy or some other characteristic, while armor loses an equivalent number of points from its lethal and bashing soak or other ratings. More complicated artifacts will function correctly most of the time or with slightly reduced function all of the time (as arbitrated by the Storyteller). Two points indicates major damage, costing six points from weapons and armor or resulting in half effectiveness or half consistency from complicated devices. Three points indicates near-total damage. The artifact is presently useless, though it may be repaired. Fixing a damaged artifact requires a proportionally complex and expensive process appropriate to the damage and the nature of the object. Repairing a shattered daiklave is considerably easier and cheaper than repairing a long-abandoned First Age warstrider. Players may not gain more points from this Flaw than the rating of the artifact it modifies or the number of Background and/or bonus points spent obtaining the artifact, whichever is less. If so desired, characters may begin play with artifacts damaged to a degree beyond the number of points received, though they receive no benefit for doing so. Characters must have at least one more dot of Artifact than the points obtained with this Flaw. The Solar craftsman Velgash found tattered wings of the raptor in a tomb (see BoTC, p. 95). Using the Artifact Background available to Solars, Velgash’s player had to spend four points to obtain this artifact. He may thus gain the full three points from Damaged Artifact to represent a presently useless set of wings. If Velgash’s player instead wished a bent and mangled daiklave, he could not gain more than two points from the Flaw, even if the daiklave were all-but completely ruined. However, if the Abyssal tomb robber Clutching Owl began play with the same tattered wings, he could not receive more than two points from their condition, since it would cost only two Background points to obtain the wings with the Abyssal version of the Artifact Background (see E:Ab, p. 131).",
     "source": {
       "book": "Exalted 1e Player's Guide",
@@ -1549,6 +1617,10 @@
       "5": 5
     },
     "cost_note": "(1- TO 5-PT. FLAW)",
+    "points_limited_by": {
+      "background": "Resources",
+      "mode": "above"
+    },
     "description": "The character owes money or goods to an individual or organization of substantial power, such as a wealthy Dynast or even the Guild itself. The character must either pay regular installments with interest or promise a full repayment as of a certain date agreed upon by both parties. If the character fails to meet her obligations on schedule, unpleasant consequences will follow. The creditor may send hunters or the militia after her or worse. Wise creditors will avoid killing the character, if only to ensure they ultimately receive payment, but others may accept the loss to set an example for other debtors. This Flaw functions as an inverse of the Resources Background with an identical rating system. Thus, a character with four points of Debt owes a sum equal to Resources 4. It is possible for characters to have both Debt and Resources, provided the former exceeds the latter. Such characters must pay small installments over time, no doubt accruing terrible interest all the while. Players who buy off Debt with Resources accumulated in play or borrowed from another lender do not need to spend experience points to do so.",
     "source": {
       "book": "Exalted 1e Player's Guide",

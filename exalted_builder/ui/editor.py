@@ -571,6 +571,17 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         bg_catalog = ruleset.backgrounds_for(character.exalt_type)
         bg_names = [b.name for b in bg_catalog]
         bg_descriptions = {b.name: b.description for b in bg_catalog}
+
+        def _bg_cap(name: str) -> int:
+            """The highest rating this Background may be clicked to. Ordinarily 5; a
+            held Flaw may lower it (Innocuous caps Allies/Contacts/Mentor at 2) or close
+            it outright (Followers, Cult, Command). Asked of engine.merits, so no Merit
+            id is named here."""
+            key = (name or "").strip().lower()
+            if key in mf_effects.barred_backgrounds:
+                return 0
+            return min(merits.DOT_MAX, mf_effects.background_caps.get(key, merits.DOT_MAX))
+
         with panel(f"Backgrounds ({b.background_dots} dots; ≤{b.background_cap_pre_bp} pre-bonus)"):
             for idx, bg in enumerate(character.backgrounds):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
@@ -581,7 +592,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                      .classes("flex-1"))
                     ui.input(value=bg.note, placeholder="note",
                              on_change=lambda e, bg=bg: setattr(bg, "note", e.value)).classes("flex-1")
-                    dots(lambda bg=bg: bg.rating, lambda v, bg=bg: setattr(bg, "rating", v), 0, 5)
+                    # A Flaw may cap or close a Background (Innocuous' veiled tier).
+                    # Same treatment the Attribute rows already give a Merit cap: a
+                    # ceiling the player can still click past is not a ceiling.
+                    dots(lambda bg=bg: bg.rating, lambda v, bg=bg: setattr(bg, "rating", v),
+                         0, _bg_cap(bg.name))
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_bg(idx)).props("flat dense round")
             ui.button("Add background", icon="add", on_click=add_bg).props("flat dense")
 
@@ -634,6 +649,18 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                      on_change=lambda e, mp=mp: (setattr(mp, "arena", e.value),
                                                                  body.refresh(), changed())
                                      ).classes("w-40").props("dense")
+                        # Stipulations are dots, so they need a number rather than a
+                        # note — "an extra dot ... for every major stipulation applied
+                        # to the Inheritance, up a maximum of three" (p.24). Offered
+                        # only where the catalogue says the entry takes them.
+                        if definition is not None and definition.takes_stipulations:
+                            ui.number(value=mp.stipulations, label="Stipulations",
+                                      min=0, max=3, precision=0,
+                                      on_change=lambda e, mp=mp: (
+                                          setattr(mp, "stipulations",
+                                                  max(0, int(e.value or 0))),
+                                          body.refresh(), changed())
+                                      ).classes("w-32").props("dense")
                         ui.input(value=mp.detail,
                                  placeholder=(definition.repeatable_by if definition
                                               and definition.repeatable_by else "note"),
@@ -651,6 +678,19 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 "text-xs font-mono opacity-60 pl-1")
                         if definition.exalt_types:
                             ui.label("Restricted to: " + ", ".join(definition.exalt_types)
+                                     ).classes("text-xs italic opacity-70 pl-1")
+                        # What the entry requires, so a player sees the gate BEFORE the
+                        # issues panel tells them they failed it. The tier-keyed groups
+                        # are shown whole — which tier needs what is the point of
+                        # Innocuous, and hiding the other tier's line would hide it.
+                        wants = [" or ".join(f"{r.trait} {r.rating}" for r in group)
+                                 for groups in definition.trait_prerequisites.values()
+                                 for group in groups]
+                        if definition.max_purchases_from_trait:
+                            wants.append(f"at most {definition.max_purchases_from_trait} "
+                                         f"purchases")
+                        if wants:
+                            ui.label("Requires: " + "; ".join(wants)
                                      ).classes("text-xs italic opacity-70 pl-1")
                         if definition.description:
                             ui.label(definition.description).classes("text-xs opacity-70 pl-1")

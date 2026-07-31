@@ -21,7 +21,9 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import derive
+# `merits` is imported for its LIMIT_MAX constant only. Reading a constant is not
+# branching on a Merit id, which is what decision 0011 forbids.
+from ..engine import derive, merits
 from ..models.character import Character, Damage, PlayState
 from ..models.rules import RuleSet
 from . import theme
@@ -221,11 +223,52 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                 # Sidereals call the same 0-10 track "Paradox" (p.253) — a rename
                 # carried on ExaltDefinition.limit_label, not a second mechanic.
                 lim = derive.limit_label(ruleset, character)
-                with _panel(f"{lim}  ({cur.limit} / 10"
-                            f"{f'  — {lim.upper()} BREAK' if cur.limit >= 10 else ''})", pal):
+                # Greater Curse lowers the maximum, so Limit Break arrives sooner —
+                # the track is drawn to the derived maximum, not a hardcoded 10.
+                lim_max = derive.limit_max(ruleset, character)
+                with _panel(f"{lim}  ({cur.limit} / {lim_max}"
+                            f"{f'  — {lim.upper()} BREAK' if cur.limit >= lim_max else ''})",
+                            pal):
                     with ui.row().classes("gap-1 flex-wrap"):
-                        for i in range(10):
-                            count_box(character, i, i < cur.limit, "limit", 10, body.refresh)
+                        for i in range(lim_max):
+                            count_box(character, i, i < cur.limit, "limit", lim_max,
+                                      body.refresh)
+                    if lim_max < merits.LIMIT_MAX:
+                        ui.label(f"Maximum {lim} reduced from "
+                                 f"{merits.LIMIT_MAX} by a Flaw.").classes(
+                            "text-xs text-amber-700")
+                    # Death's Taint gives the Abyssal Curse a permanent counterpart,
+                    # "cumulative with temporary Resonance". Shown only where held.
+                    perm_cap = derive.permanent_limit_cap(ruleset, character)
+                    if perm_cap:
+                        # READ-ONLY here. Permanent Resonance is a permanent trait, not
+                        # play-state: it is gained and shed through the XP ledger so the
+                        # change has an audit trail, exactly as decision 0006 requires of
+                        # a curse. The tracker shows it because it is "cumulative with
+                        # temporary Resonance" and the ST needs the total at the table.
+                        ui.label(f"Permanent {lim}: {character.limit_permanent} "
+                                 f"/ {perm_cap} (capped at Essence)").classes(
+                            "text-xs mt-1")
+                        ui.label(f"Cumulative with temporary {lim}; total "
+                                 f"{cur.limit + character.limit_permanent}.").classes(
+                            "text-xs text-gray-500")
+                        ui.label(f"Permanent {lim} is a permanent trait — gain or shed "
+                                 f"it on the XP tab, not here.").classes(
+                            "text-xs text-gray-500")
+
+            # Luck pools exist only because Lucky / Unlucky do. Spending them is
+            # rerolling (decision 0009) and stays out — these are counters.
+            luck, bad_luck = derive.luck_pools(ruleset, character)
+            if luck or bad_luck:
+                with _panel("Luck", pal):
+                    if luck:
+                        ui.label(f"Luck pool: {luck}").classes("text-sm")
+                    if bad_luck:
+                        ui.label(f"Bad luck pool (Storyteller): {bad_luck}").classes(
+                            "text-sm")
+                    ui.label("Refreshes at the end of each story. Spending luck is a "
+                             "reroll, which this build does not model.").classes(
+                        "text-xs text-gray-500")
 
             _curse = ("Clarity" if derive.uses_clarity(ruleset, character)
                       else derive.limit_label(ruleset, character))

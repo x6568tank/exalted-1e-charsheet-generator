@@ -76,13 +76,21 @@ def test_no_module_outside_engine_merits_names_a_merit_id():
 
 def test_merit_definitions_carry_no_mechanical_effect(rs):
     """rules.MeritFlaw is inert by design: printed text, cost, prerequisites. A field
-    describing what a Merit DOES belongs in engine.merits, not the data."""
+    describing what a Merit DOES belongs in engine.merits, not the data.
+
+    Restrictions on what may be BOUGHT are the one thing that does live here, because
+    a restriction is inert in exactly the way a cost is — `barred_exalt_types`,
+    `barred_castes` and `points_limited_by` (Known Anathema against Influence, Damaged
+    Artifact against Artifact, Debt against Resources) are all of that kind.
+    """
     fields = set(type(next(iter(rs.merits_flaws.values()))).model_fields)
     assert fields == {"id", "name", "kind", "category", "cost", "cost_options",
                       "cost_options_by_exalt_type", "cost_options_by_caste", "cost_by_kind",
                       "variable_cost", "exalt_types", "barred_exalt_types",
-                      "barred_castes", "cost_note",
+                      "barred_castes", "cost_note", "points_limited_by",
                       "prerequisites", "prerequisite_note", "repeatable_by",
+                      "takes_stipulations", "trait_prerequisites",
+                      "max_purchases_from_trait",
                       "thaumaturges_only", "description", "source"}
 
 
@@ -1521,3 +1529,530 @@ def test_the_pool_shape_entries_are_not_reported_as_narrative_only(rs):
                                              MP(merit_id=BEACON)))
     assert LEGENDARY_BREEDING not in e.narrative_only
     assert BEACON not in e.narrative_only
+
+
+# --- A6: Background budget and rating restrictions (PG pp.22, 24, 37-38) ----- #
+#
+# Five entries, two mechanisms. Heir Apparent and Innocuous change what the character's
+# Backgrounds may BE, so they are effects; Damaged Artifact, Known Anathema and Debt
+# constrain how many points the entry itself may be worth against a Background rating,
+# which is a purchase restriction and therefore inert catalogue data.
+
+HEIR_APPARENT = "mf.heir-apparent"
+INNOCUOUS = "mf.innocuous"
+DAMAGED_ARTIFACT = "mf.damaged-artifact"
+KNOWN_ANATHEMA = "mf.known-anathema"
+DEBT = "mf.debt"
+
+
+def _bg(**ratings) -> list[BackgroundEntry]:
+    return [BackgroundEntry(name=n.replace("_", " ").title(), rating=r)
+            for n, r in ratings.items()]
+
+
+def test_heir_apparent_grants_two_background_dots_per_point(rs):
+    """"Every point invested in this Merit grants two dots of Backgrounds" (p.24)."""
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=HEIR_APPARENT, tier="3")))
+    assert e.bonus_background_dots == 6
+
+
+def test_heir_apparent_adds_a_dot_per_stipulation(rs):
+    """"Add an extra dot ... for every major stipulation applied to the Inheritance"."""
+    e = merits.merits_and_flaws_calc(
+        rs, _solar(MP(merit_id=HEIR_APPARENT, tier="2", stipulations=3)))
+    assert e.bonus_background_dots == 2 * 2 + 3
+
+
+def test_heir_apparent_clamps_stipulations_at_the_printed_three(rs):
+    """"up a maximum of three conditions". Clamped in engine.merits, not on the model,
+    so an old save carrying a stray value still loads."""
+    e = merits.merits_and_flaws_calc(
+        rs, _solar(MP(merit_id=HEIR_APPARENT, tier="1", stipulations=9)))
+    assert e.bonus_background_dots == 2 + 3
+
+
+def test_heir_apparent_raises_the_background_budget(rs):
+    """The mechanism: the grant is a budget delta, the mirror of a forfeit."""
+    plain = validate.effective_budgets(rs, _solar())
+    heir = validate.effective_budgets(rs, _solar(MP(merit_id=HEIR_APPARENT, tier="2")))
+    assert heir.background_dots == plain.background_dots + 4
+
+
+def test_heir_apparent_lets_a_background_pass_three_without_bonus_points(rs):
+    """"Background dots obtained with this Merit ... may raise a Background above a
+    rating of three" (p.24). The dot is NOT free — it comes out of the enlarged pool
+    instead of out of bonus points."""
+    without = _solar(backgrounds=_bg(resources=5))
+    with_heir = _solar(MP(merit_id=HEIR_APPARENT, tier="1"),
+                       backgrounds=_bg(resources=5))
+    lines = {l.domain: l.points
+             for l in validate.bonus_point_breakdown(rs, without).lines}
+    heir_lines = {l.domain: l.points
+                  for l in validate.bonus_point_breakdown(rs, with_heir).lines}
+    assert lines.get("Backgrounds", 0) > heir_lines.get("Backgrounds", 0)
+
+
+def test_the_waived_dots_still_consume_the_pool(rs):
+    """The double-dip guard. Two above-cap dots waived means two pool dots spent, so
+    the unspent-dot warning must fall by exactly two rather than staying put."""
+    b = validate.effective_budgets(rs, _solar(MP(merit_id=HEIR_APPARENT, tier="1")))
+    c = _solar(MP(merit_id=HEIR_APPARENT, tier="1"), backgrounds=_bg(resources=5))
+    spent, owed = validate.background_pool_spend(rs, c, b, c.backgrounds)
+    assert (spent, owed) == (5, [])
+
+
+def test_the_waiver_never_covers_more_dots_than_the_merit_granted(rs):
+    """One point of Heir Apparent waives two dots; a third above-cap dot still pays."""
+    b = validate.effective_budgets(rs, _solar(MP(merit_id=HEIR_APPARENT, tier="1")))
+    c = _solar(MP(merit_id=HEIR_APPARENT, tier="1"),
+               backgrounds=_bg(resources=5, artifact=5))
+    spent, owed = validate.background_pool_spend(rs, c, b, c.backgrounds)
+    assert spent == 3 + 3 + 2 and len(owed) == 2
+
+
+def test_no_merit_leaves_the_background_arithmetic_untouched(rs):
+    """The neutral case: nothing held, nothing waived, every dot above three pays."""
+    b = validate.effective_budgets(rs, _solar())
+    c = _solar(backgrounds=_bg(resources=5))
+    spent, owed = validate.background_pool_spend(rs, c, b, c.backgrounds)
+    assert spent == 3 and len(owed) == 2
+
+
+def test_innocuous_caps_the_socially_dependent_backgrounds(rs):
+    """"may not have more than two dots each of Allies, Contacts, Mentor" (p.22).
+    The FOUR-point version only — the two-point one is dice and is out of scope."""
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=INNOCUOUS, tier="4")))
+    assert e.background_caps == {"allies": 2, "contacts": 2, "mentor": 2}
+    c = _solar(MP(merit_id=INNOCUOUS, tier="4"), backgrounds=_bg(allies=4))
+    assert _codes(validate.merit_issues(rs, c), "background-above-merit-cap")
+
+
+def test_innocuous_two_point_version_restricts_nothing(rs):
+    """Its whole printed effect at that tier is dice and difficulty."""
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=INNOCUOUS, tier="2")))
+    assert not e.background_caps and not e.barred_backgrounds
+
+
+def test_innocuous_bars_the_backgrounds_that_need_to_be_known(rs):
+    """"Veiled characters may not have Followers, Henchman, a Cult, any form of
+    Command" (p.22). Only the Backgrounds the page NAMES — its "or other Backgrounds
+    contingent on being widely known" is Storyteller adjudication, not modelled."""
+    c = _solar(MP(merit_id=INNOCUOUS, tier="4"), backgrounds=_bg(cult=1))
+    assert _codes(validate.merit_issues(rs, c), "background-barred-by-merit")
+    ok = _solar(MP(merit_id=INNOCUOUS, tier="4"), backgrounds=_bg(resources=3))
+    assert not _codes(validate.merit_issues(rs, ok), "background-barred-by-merit")
+
+
+def test_innocuous_is_barred_from_sidereals(rs):
+    """"Sidereals may not purchase Innocuous in either version, as their innate Arcane
+    Fate surpasses and supersedes the Merit's effects." Catalogue data, like Prodigy."""
+    assert rs.merits_flaws[INNOCUOUS].barred_exalt_types == ["Sidereal"]
+
+
+def test_known_anathema_may_not_exceed_the_influence_rating(rs):
+    """"characters may not generally take more points of this Flaw than their rating
+    in Influence" (p.37)."""
+    c = _solar(MP(merit_id=KNOWN_ANATHEMA, tier="4"), backgrounds=_bg(influence=2))
+    assert _codes(validate.merit_issues(rs, c), "merit-points-above-background")
+    ok = _solar(MP(merit_id=KNOWN_ANATHEMA, tier="2"), backgrounds=_bg(influence=2))
+    assert not _codes(validate.merit_issues(rs, ok), "merit-points-above-background")
+
+
+def test_damaged_artifact_needs_one_more_dot_than_it_is_worth(rs):
+    """"Characters must have at least one more dot of Artifact than the points obtained
+    with this Flaw" (p.38) — the offset -1 that makes it the same shape as the others."""
+    c = _solar(MP(merit_id=DAMAGED_ARTIFACT, tier="3"), backgrounds=_bg(artifact=3))
+    assert _codes(validate.merit_issues(rs, c), "merit-points-above-background")
+    ok = _solar(MP(merit_id=DAMAGED_ARTIFACT, tier="3"), backgrounds=_bg(artifact=4))
+    assert not _codes(validate.merit_issues(rs, ok), "merit-points-above-background")
+
+
+def test_debt_must_exceed_resources(rs):
+    """"It is possible for characters to have both Debt and Resources, provided the
+    former exceeds the latter" (p.38) — a floor, not a ceiling."""
+    c = _solar(MP(merit_id=DEBT, tier="2"), backgrounds=_bg(resources=3))
+    assert _codes(validate.merit_issues(rs, c), "merit-points-below-background")
+    ok = _solar(MP(merit_id=DEBT, tier="4"), backgrounds=_bg(resources=3))
+    assert not _codes(validate.merit_issues(rs, ok), "merit-points-below-background")
+
+
+def test_debt_alone_is_always_legal(rs):
+    """No Resources at all means any Debt exceeds it; the rule needs no special case."""
+    assert not _codes(validate.merit_issues(rs, _solar(MP(merit_id=DEBT, tier="1"))),
+                      "merit-points-below-background")
+
+
+def test_the_background_entries_are_not_reported_as_narrative_only(rs):
+    e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=HEIR_APPARENT, tier="2"),
+                                                MP(merit_id=INNOCUOUS, tier="4")))
+    assert HEIR_APPARENT not in e.narrative_only
+    assert INNOCUOUS not in e.narrative_only
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_editor_offers_stipulations_and_shows_the_raised_budget(user) -> None:
+    """A6's two visible halves. The Stipulations control exists only where the
+    catalogue says the entry takes them, and the Backgrounds header reports the budget
+    the engine actually charges against — 7 + (3 points x 2) + 2 stipulations = 15."""
+    await user.open('/merits-backgrounds')
+    await user.should_see("Stipulations")
+    await user.should_see("Backgrounds (15 dots")
+
+
+# --- Cluster 7: trait prerequisites (PG pp.17, 22, 25, 28, 121) -------------- #
+#
+# `MeritFlaw.prerequisites` held Merit ids only; every RATED prerequisite was unchecked
+# printed prose. Six entries want one, across four trait namespaces.
+
+HIDDEN_MANSE = "mf.hidden-manse"
+CACHE = "mf.cache"
+ALT_DIVINATION = "mf.alternative-divination"
+TRAVEL_PERMIT = "thaum.celestial-travel-permit"
+
+
+def test_trait_rating_resolves_every_namespace(rs):
+    """The whole reason the requirement names a trait rather than an id: the six
+    entries span Attributes, Abilities, Virtues and Backgrounds."""
+    c = _solar(backgrounds=_bg(manse=3))
+    c.attributes[A.APPEARANCE] = 4
+    c.abilities[AbilityName.OCCULT] = 2
+    c.virtues[V.VALOR] = 5
+    assert validate.trait_rating(c, "Appearance") == 4
+    assert validate.trait_rating(c, "occult") == 2
+    assert validate.trait_rating(c, "Valor") == 5
+    assert validate.trait_rating(c, "Manse") == 3
+
+
+def test_an_unresolvable_trait_name_reads_as_zero(rs):
+    """Graceful, like every other unresolvable reference in the build — never a crash."""
+    assert validate.trait_rating(_solar(), "Nonexistent Trait") == 0
+
+
+def test_legendary_breeding_requires_breeding_five(rs):
+    """"Characters must already have Breeding 5 to purchase this Merit" (p.28) — the
+    gap A5 left open explicitly."""
+    low = _db(MP(merit_id=LEGENDARY_BREEDING), breeding=2)
+    assert _codes(validate.merit_issues(rs, low), "merit-trait-prerequisite")
+    assert not _codes(validate.merit_issues(rs, _db(MP(merit_id=LEGENDARY_BREEDING))),
+                      "merit-trait-prerequisite")
+
+
+def test_legendary_breeding_does_not_satisfy_its_own_prerequisite(rs):
+    """It grants an EFFECTIVE Breeding of 6, which must not feed back into the check
+    that gates buying it — the prerequisite reads the PURCHASED rating."""
+    c = _db(MP(merit_id=LEGENDARY_BREEDING), breeding=2)
+    assert merits.merits_and_flaws_calc(rs, c).breeding_rating_override == 6
+    assert _codes(validate.merit_issues(rs, c), "merit-trait-prerequisite")
+
+
+def test_cache_accepts_either_side_of_its_or(rs):
+    """"Resources 4+ or Salary 2+" (p.25) — one OR group, the AND-of-OR shape Charm
+    prerequisites already use."""
+    assert not _codes(validate.merit_issues(
+        rs, _solar(MP(merit_id=CACHE), backgrounds=_bg(resources=4))),
+        "merit-trait-prerequisite")
+    assert not _codes(validate.merit_issues(
+        rs, _solar(MP(merit_id=CACHE), backgrounds=_bg(salary=2))),
+        "merit-trait-prerequisite")
+    assert _codes(validate.merit_issues(
+        rs, _solar(MP(merit_id=CACHE), backgrounds=_bg(resources=3, salary=1))),
+        "merit-trait-prerequisite")
+
+
+def test_hidden_manse_needs_the_manse_background(rs):
+    """"Characters must have the Manse Background to purchase this Merit" — no rating
+    named, so any rating at all satisfies it."""
+    assert _codes(validate.merit_issues(rs, _solar(MP(merit_id=HIDDEN_MANSE, tier="1"))),
+                  "merit-trait-prerequisite")
+    ok = _solar(MP(merit_id=HIDDEN_MANSE, tier="1"), backgrounds=_bg(manse=1))
+    assert not _codes(validate.merit_issues(rs, ok), "merit-trait-prerequisite")
+
+
+def test_innocuous_appearance_gate_applies_to_the_two_point_version_only(rs):
+    """"Characters must have Appearance 2 in order to purchase this version" (p.22).
+    The four-point version carries no such line — which is why the requirement is keyed
+    by TIER rather than sitting on the entry."""
+    low = _solar(MP(merit_id=INNOCUOUS, tier="2"))
+    low.attributes[A.APPEARANCE] = 1
+    assert _codes(validate.merit_issues(rs, low), "merit-trait-prerequisite")
+
+    veiled = _solar(MP(merit_id=INNOCUOUS, tier="4"))
+    veiled.attributes[A.APPEARANCE] = 1
+    assert not _codes(validate.merit_issues(rs, veiled), "merit-trait-prerequisite")
+
+
+def test_alternative_divination_is_capped_by_occult(rs):
+    """"characters may not purchase this Merit more times than their Occult rating"
+    (p.17). A REPEAT limit, not a rating floor, so it is its own field."""
+    c = _solar(*[MP(merit_id=ALT_DIVINATION)] * 3)
+    c.abilities[AbilityName.OCCULT] = 2
+    assert _codes(validate.merit_issues(rs, c), "merit-repeats-above-trait")
+    c.abilities[AbilityName.OCCULT] = 3
+    assert not _codes(validate.merit_issues(rs, c), "merit-repeats-above-trait")
+
+
+def test_the_travel_permit_prose_prerequisite_is_now_checked(rs):
+    """Its printed "Celestial Patron of at least 2" was `prerequisite_note` — shown to
+    the player and machine-checked by nothing. Both now."""
+    assert rs.merits_flaws[TRAVEL_PERMIT].prerequisite_note
+    c = _mortal(MP(merit_id=TRAVEL_PERMIT), backgrounds=_bg(celestial_patron=1))
+    assert _codes(validate.merit_issues(rs, c), "merit-trait-prerequisite")
+    ok = _mortal(MP(merit_id=TRAVEL_PERMIT), backgrounds=_bg(celestial_patron=2))
+    assert not _codes(validate.merit_issues(rs, ok), "merit-trait-prerequisite")
+
+
+def test_large_size_is_not_given_a_prerequisite(rs):
+    """"MOST characters with this Merit have both Strength and Stamina rated at 3 or
+    higher" (p.20) is descriptive, not a requirement — the triage said so and the data
+    must not quietly promote it into one."""
+    assert not rs.merits_flaws[LARGE_SIZE].trait_prerequisites
+    weak = _solar(MP(merit_id=LARGE_SIZE, tier="4"))
+    assert not _codes(validate.merit_issues(rs, weak), "merit-trait-prerequisite")
+
+
+def test_entries_without_a_trait_prerequisite_are_never_flagged(rs):
+    """The neutral case, across the whole catalogue: a character holding one of each
+    entry that requires no rated trait raises no prerequisite issue."""
+    for definition in rs.merits_flaws.values():
+        if definition.trait_prerequisites:
+            continue
+        c = _solar(MP(merit_id=definition.id))
+        assert not _codes(validate.merit_issues(rs, c), "merit-trait-prerequisite"), \
+            definition.id
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_editor_shows_a_trait_prerequisite_in_the_row(user) -> None:
+    """A gate the player cannot see until they have already failed it is a bad gate.
+    Cache is "Resources 4+ or Salary 2+", rendered from the data rather than the prose."""
+    await user.open('/merits-backgrounds')
+    await user.should_see("Requires: Resources 4 or Salary 2")
+
+
+# --- A7: play-state pools and tracks (PG pp.27, 39, 40, 41) ----------------- #
+#
+# Four entries whose whole effect is a counter the Storyteller manages. Decision 0006
+# governs all of it: displayed and tracked, NEVER read by chargen validation or the XP
+# audit. Spending any of it is a reroll, which is decision 0009 and stays out.
+
+LUCKY = "mf.lucky"
+UNLUCKY = "mf.unlucky"
+GREATER_CURSE = "mf.greater-curse"
+DEATH_TAINT = "mf.death-taint"
+
+
+def _abyssal(*purchases, **kw) -> Character:
+    c = Character(id="c.ab", exalt_type="Abyssal", caste="dusk", essence_rating=2,
+                  merits_flaws=list(purchases))
+    for k, v in kw.items():
+        setattr(c, k, v)
+    return c
+
+
+def _sidereal(*purchases, **kw) -> Character:
+    c = Character(id="c.sid", exalt_type="Sidereal", caste="journeys", essence_rating=2,
+                  merits_flaws=list(purchases))
+    for k, v in kw.items():
+        setattr(c, k, v)
+    return c
+
+
+def test_abyssals_call_their_limit_track_resonance(rs):
+    """The rename A7 was blocked on. A pure label, exactly as the Sidereal's "Paradox"
+    is — same 0-10 mechanic, no second code path."""
+    assert derive.limit_label(rs, _abyssal()) == "Resonance"
+    assert derive.limit_label(rs, _solar()) == "Limit"
+    assert derive.limit_label(rs, _sidereal()) == "Paradox"
+
+
+def test_lucky_grants_a_pool_equal_to_the_points(rs):
+    """"Lucky characters receive a luck pool equal to the number of points invested"."""
+    assert derive.luck_pools(rs, _solar(MP(merit_id=LUCKY, tier="3"))) == (3, 0)
+
+
+def test_sidereals_get_two_more_luck_within_a_three_to_five_band(rs):
+    """"Sidereal characters receive two more luck points than the number of points
+    invested … may not have a luck pool greater than five … nor smaller than three"."""
+    assert derive.luck_pools(rs, _sidereal(MP(merit_id=LUCKY, tier="1")))[0] == 3
+    assert derive.luck_pools(rs, _sidereal(MP(merit_id=LUCKY, tier="2")))[0] == 4
+    assert derive.luck_pools(rs, _sidereal(MP(merit_id=LUCKY, tier="3")))[0] == 5
+
+
+def test_the_sidereal_price_is_capped_at_three_points(rs):
+    """"Sidereals with this Merit pay a maximum of three points for a luck pool of
+    five" — catalogue data, a per-splat cost override."""
+    assert set(rs.merits_flaws[LUCKY].cost_options_by_exalt_type["Sidereal"]) == {
+        "1", "2", "3"}
+
+
+def test_a_character_may_be_both_lucky_and_unlucky(rs):
+    """"Strangely enough, characters may be simultaneously Lucky and Unlucky" (p.39).
+    The two do not cancel — the player and the ST spend them independently."""
+    c = _solar(MP(merit_id=LUCKY, tier="2"), MP(merit_id=UNLUCKY, tier="4"))
+    assert derive.luck_pools(rs, c) == (2, 4)
+
+
+def test_greater_curse_lowers_the_limit_maximum(rs):
+    """"a character with three points of this Flaw suffers Limit Break when his Limit
+    reaches seven dots" (p.40) — the page's own worked example."""
+    assert derive.limit_max(rs, _solar(MP(merit_id=GREATER_CURSE, tier="3"))) == 7
+    assert derive.limit_max(rs, _solar()) == merits.LIMIT_MAX
+
+
+def test_greater_curse_reduction_stops_at_five(rs):
+    """"to a maximum reduction of five dots"."""
+    assert derive.limit_max(rs, _solar(MP(merit_id=GREATER_CURSE, tier="5"))) == 5
+
+
+def test_greater_curse_reduces_a_sidereals_paradox_the_same_way(rs):
+    """"This reduces a character's maximum Paradox pool in the same manner as Limit" —
+    the label differs, the track does not."""
+    assert derive.limit_max(rs, _sidereal(MP(merit_id=GREATER_CURSE, tier="2"))) == 8
+
+
+def test_death_taint_starting_resonance_comes_from_the_price(rs):
+    """"This deepened taint provides four bonus points … Characters who actually start
+    with this greater taint add one additional bonus point per dot" (p.41), so the
+    starting rating is `points - 4` — the A1 trick, no new field."""
+    clean = _abyssal(MP(merit_id=DEATH_TAINT, points=4))
+    assert merits.merits_and_flaws_calc(rs, clean).permanent_limit_start == 0
+    tainted = _abyssal(MP(merit_id=DEATH_TAINT, points=6))
+    assert merits.merits_and_flaws_calc(rs, tainted).permanent_limit_start == 2
+
+
+def test_holding_death_taint_is_not_the_same_as_not_holding_it(rs):
+    """None vs 0: a character may hold the Flaw and start clean, which is what its base
+    four-point value buys. The sheet must be able to tell those apart."""
+    assert merits.merits_and_flaws_calc(rs, _abyssal()).permanent_limit_start is None
+    assert merits.merits_and_flaws_calc(
+        rs, _abyssal(MP(merit_id=DEATH_TAINT, points=4))).permanent_limit_start == 0
+
+
+def test_permanent_resonance_is_capped_at_essence(rs):
+    """"Characters may not have a permanent Resonance higher than their Essence"."""
+    c = _abyssal(MP(merit_id=DEATH_TAINT, points=4), essence_rating=3)
+    assert derive.permanent_limit_cap(rs, c) == 3
+    assert derive.permanent_limit_cap(rs, _abyssal()) == 0
+
+
+def test_the_play_pools_never_reach_chargen_or_the_xp_audit(rs):
+    """Decision 0006. All four are play-state; none may produce a chargen issue or move
+    a bonus-point total beyond the ordinary Flaw grant every Flaw gets."""
+    plain = _solar()
+    played = _solar(MP(merit_id=LUCKY, tier="2"), MP(merit_id=UNLUCKY, tier="2"),
+                    MP(merit_id=GREATER_CURSE, tier="2"))
+    codes = {i.code for i in validate.validate_chargen(rs, played)}
+    assert not codes & {"merit-trait-prerequisite", "merit-unknown"}
+    # The only chargen-visible difference is the bonus points the Flaws grant, which is
+    # the ordinary Flaw rule and not an A7 effect.
+    assert (validate.bonus_point_breakdown(rs, played).available
+            > validate.bonus_point_breakdown(rs, plain).available)
+
+
+def test_the_play_entries_are_not_reported_as_narrative_only(rs):
+    e = merits.merits_and_flaws_calc(rs, _abyssal(
+        MP(merit_id=LUCKY, tier="1"), MP(merit_id=UNLUCKY, tier="1"),
+        MP(merit_id=GREATER_CURSE, tier="1"), MP(merit_id=DEATH_TAINT, points=4)))
+    for mid in (LUCKY, UNLUCKY, GREATER_CURSE, DEATH_TAINT):
+        assert mid not in e.narrative_only
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_play_tracker_shows_the_shortened_renamed_resonance_track(user) -> None:
+    """A7's whole visible surface on one character: the Abyssal rename, Greater Curse
+    shortening the track to 7, Death's Taint's permanent counter capped at Essence 3,
+    and both luck pools."""
+    await user.open('/merits-play')
+    await user.should_see("Resonance")
+    await user.should_see("0 / 7")                    # 10 − 3 points of Greater Curse
+    await user.should_see("Permanent Resonance: 2 / 3")
+    await user.should_see("Luck pool: 2")
+    await user.should_see("Bad luck pool (Storyteller): 1")
+    # Read-only: permanent Resonance is a permanent trait and moves on the XP ledger.
+    await user.should_see("gain or shed it on the XP tab")
+
+
+# --- Permanent Resonance on the XP ledger ----------------------------------- #
+#
+# Corrected 2026-07-30: this was first written onto PlayState alongside the temporary
+# track, which was wrong. Decision 0006's own last bullet routes permanent trait
+# movement to the XP ledger — "permanent trait *reductions* (curses) are a different
+# thing and live on the XP ledger, not here". Only the TEMPORARY half is play-state.
+
+def _locked_abyssal(*purchases, xp=0, essence=3, permanent=0) -> Character:
+    c = _abyssal(*purchases, essence_rating=essence)
+    c.limit_permanent = permanent
+    c.chargen_locked = True
+    advancement.add_xp(c, xp)
+    return c
+
+
+def test_permanent_resonance_is_a_character_trait_not_play_state(rs):
+    """The correction itself: the field is on Character, and PlayState no longer has
+    one. The temporary track (PlayState.limit) is untouched and still ephemeral."""
+    from exalted_builder.models.character import PlayState
+    assert "limit_permanent" in Character.model_fields
+    assert "limit_permanent" not in PlayState.model_fields
+    assert "limit" in PlayState.model_fields
+
+
+def test_gaining_permanent_resonance_is_free_and_logged(rs):
+    """"she gains a point of permanent Resonance" — inflicted by the Curse, not bought,
+    so it costs nothing. It is still logged, so the trait has an audit trail."""
+    c = _locked_abyssal(MP(merit_id=DEATH_TAINT, points=4))
+    entry = advancement.gain_permanent_resonance(rs, c, "Resonance overflowed")
+    assert (entry.cost, c.limit_permanent) == (0, 1)
+    assert entry.target == validate.PERMANENT_RESONANCE_TARGET
+
+
+def test_shedding_permanent_resonance_costs_five_experience(rs):
+    """"must spend five experience points and undergo a Harrowing" (p.41)."""
+    c = _locked_abyssal(MP(merit_id=DEATH_TAINT, points=6), xp=10, permanent=2)
+    entry = advancement.shed_permanent_resonance(rs, c, "Harrowing in the Labyrinth")
+    assert (entry.cost, c.limit_permanent) == (merits.PERMANENT_RESONANCE_SHED_XP, 1)
+
+
+def test_the_audit_prices_each_direction_separately(rs):
+    """The trap this target exists to avoid: `_expected_cost` prices any row whose
+    to_rating is below its from_rating at 0, which would report the five-point shed as
+    a mismatch on every later validation."""
+    c = _locked_abyssal(MP(merit_id=DEATH_TAINT, points=6), xp=10, permanent=2)
+    advancement.gain_permanent_resonance(rs, c, "overflow")   # 2 -> 3, free
+    advancement.shed_permanent_resonance(rs, c, "Harrowing")  # 3 -> 2, five XP
+    assert not [i for i in advancement.validate_xp(rs, c) if i.code == "xp-cost-mismatch"]
+
+
+def test_permanent_resonance_cannot_exceed_essence(rs):
+    """"Characters may not have a permanent Resonance higher than their Essence"."""
+    c = _locked_abyssal(MP(merit_id=DEATH_TAINT, points=4), essence=2, permanent=2)
+    with pytest.raises(advancement.AdvancementError):
+        advancement.gain_permanent_resonance(rs, c, "overflow")
+
+
+def test_a_character_without_the_flaw_has_no_track_to_gain(rs):
+    c = _locked_abyssal()
+    with pytest.raises(advancement.AdvancementError):
+        advancement.gain_permanent_resonance(rs, c, "overflow")
+
+
+def test_undo_reverses_a_permanent_resonance_row(rs):
+    """Append-only with LIFO undo, exactly like every other ledger row."""
+    c = _locked_abyssal(MP(merit_id=DEATH_TAINT, points=6), xp=10, permanent=2)
+    advancement.shed_permanent_resonance(rs, c, "Harrowing")
+    assert c.limit_permanent == 1
+    advancement.undo_last(rs, c)
+    assert c.limit_permanent == 2 and not c.xp_log
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_xp_tab_offers_the_permanent_resonance_controls(user) -> None:
+    """The play tracker tells the ST to come here, so the panel must exist. Both
+    directions, each labelled with its own price."""
+    await user.open('/merits-resonance-xp')
+    await user.should_see("Permanent Resonance")
+    await user.should_see("Gain (free)")
+    await user.should_see("Shed (5 XP)")

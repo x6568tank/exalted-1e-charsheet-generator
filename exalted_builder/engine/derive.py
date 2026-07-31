@@ -163,6 +163,58 @@ def limit_label(ruleset: RuleSet, character: Character) -> str:
     return (exalt.limit_label if exalt and exalt.limit_label else "Limit")
 
 
+def limit_max(ruleset: RuleSet, character: Character) -> int:
+    """The maximum of this character's Limit / Paradox / Resonance track.
+
+    Ordinarily the constant 10 — the triage's ruling 5 is that this is a constant rather
+    than something derived, so there is exactly one Flaw that moves it: Greater Curse
+    "reduces their maximum Limit pool by one dot per point invested in the Flaw, to a
+    maximum reduction of five dots" (p.40), which makes Limit Break arrive sooner.
+
+    Play-state (decision 0006): read by the tracker and the sheet, never by chargen
+    validation or the XP audit.
+    """
+    from . import merits                                   # merits imports validate
+    effects = merits.merits_and_flaws_calc(ruleset, character)
+    return merits.LIMIT_MAX if effects.limit_max is None else effects.limit_max
+
+
+def permanent_limit_cap(ruleset: RuleSet, character: Character) -> int:
+    """The ceiling on PERMANENT Resonance — "Characters may not have a permanent
+    Resonance higher than their Essence" (p.41). 0 for a character without the Flaw,
+    which is also what the field should read for them."""
+    from . import merits
+    effects = merits.merits_and_flaws_calc(ruleset, character)
+    if effects.permanent_limit_start is None:
+        return 0
+    return character.essence_rating
+
+
+def permanent_limit_start(ruleset: RuleSet, character: Character) -> int:
+    """The permanent Resonance the character BEGAN play with, bought with Death's Taint
+    ("Characters who actually start with this greater taint add one additional bonus
+    point per dot", p.41). 0 without the Flaw, and 0 with its base four-point version.
+
+    Distinct from `Character.limit_permanent`, which is where it stands NOW — the Flaw
+    buys a starting rating, and play moves it from there through the XP ledger."""
+    from . import merits
+    effects = merits.merits_and_flaws_calc(ruleset, character)
+    return effects.permanent_limit_start or 0
+
+
+def luck_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
+    """(luck, bad luck) — the two pools Lucky and Unlucky create, which exist only
+    because those entries do. A character may hold both: "characters may be
+    simultaneously Lucky and Unlucky" (p.39), and the two do not cancel here because
+    the player and the Storyteller spend them independently.
+
+    SPENDING them is rerolling, which is decision 0009 and stays out. These are
+    counters for the tracker to display and nothing more."""
+    from . import merits
+    effects = merits.merits_and_flaws_calc(ruleset, character)
+    return effects.luck_pool, effects.bad_luck_pool
+
+
 def has_virtue_flaw(ruleset: RuleSet, character: Character) -> bool:
     """Whether this character's splat has a Virtue Flaw at all. False for the
     Dragon-Blooded, Sidereals and Alchemicals — see `ExaltDefinition.has_virtue_flaw`.

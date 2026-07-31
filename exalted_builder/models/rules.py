@@ -821,6 +821,59 @@ class BackgroundType(BaseModel):
     excluded_exalt_types: list[str] = Field(default_factory=list)
 
 
+class TraitRequirement(BaseModel):
+    """A rated trait a Merit or Flaw requires before it may be bought (cluster 7 of the
+    M&F triage) — "Characters must have Appearance 2 in order to purchase this version"
+    (Innocuous, p.22), "must already have Breeding 5" (Legendary Breeding, p.28).
+
+    `trait` is a NAME, not an id, and is resolved across Attributes, Abilities, Virtues
+    and Backgrounds in that order by `validate.trait_rating`. That is not laziness: the
+    six entries that want this span all four namespaces (Appearance, Occult, Manse,
+    Resources, Salary, Breeding, Celestial Patron), and Backgrounds are free text with
+    no id to reference in the first place. A name that resolves nowhere reads as 0 and
+    the requirement simply fails, which is the graceful-unresolvable-reference rule the
+    rest of the build already follows.
+    """
+    model_config = ConfigDict(frozen=True)
+
+    trait: str
+    rating: int = Field(default=1, ge=0)
+
+
+class BackgroundPointLimit(BaseModel):
+    """A printed rule tying how many POINTS a Merit or Flaw may be worth to a
+    Background the character holds (A6, PG pp.37-38). Three of the general chapter's
+    entries say the same thing in different words:
+
+      * Known Anathema — "may not generally take more points of this Flaw than their
+        rating in Influence" (`background="Influence"`, `mode="max"`),
+      * Damaged Artifact — "must have at least one more dot of Artifact than the points
+        obtained with this Flaw" (`background="Artifact"`, `mode="max"`, `offset=-1`),
+      * Debt — "provided the former exceeds the latter" (`background="Resources"`,
+        `mode="above"`).
+
+    Inert catalogue data, exactly like `barred_exalt_types` and `barred_castes`: a
+    printed restriction on what may be BOUGHT, not something the entry does. Validate
+    checks it; engine.merits never sees it.
+
+    Backgrounds are free text, so `background` is matched by lowercased name.
+    """
+    model_config = ConfigDict(frozen=True)
+
+    background: str
+    # "max"   — points may not exceed (rating + offset)
+    # "above" — points must exceed (rating + offset)
+    mode: str = "max"
+    offset: int = 0
+
+    @field_validator("mode")
+    @classmethod
+    def _check_mode(cls, v: str) -> str:
+        if v not in ("max", "above"):
+            raise ValueError(f"mode must be 'max' or 'above', got {v!r}")
+        return v
+
+
 class MeritFlaw(BaseModel):
     """One purchasable Merit or Flaw.
 
@@ -901,7 +954,30 @@ class MeritFlaw(BaseModel):
     barred_castes: list[str] = Field(default_factory=list)
     prerequisites: list[str] = Field(default_factory=list)       # other MeritFlaw ids
     prerequisite_note: str = ""            # printed prereq this build cannot check
+    # Rated traits required before this entry may be bought, keyed by TIER — "" is the
+    # requirement every tier carries, and a named tier adds its own. Innocuous is why:
+    # "Characters must have Appearance 2 in order to purchase this version" applies to
+    # the two-point version and not the four-point one.
+    #
+    # The value is AND-of-OR, the same shape `Charm.prerequisites` uses and for the same
+    # reason: Cache is "Resources 4+ OR Salary 2+" (p.25). Every inner list is one OR
+    # group; every group must be satisfied.
+    trait_prerequisites: dict[str, list[list[TraitRequirement]]] = Field(default_factory=dict)
+    # A trait that caps how many TIMES this entry may be taken — Alternative Divination's
+    # "characters may not purchase this Merit more times than their Occult rating"
+    # (p.17). A repeat limit, not a rating floor, so it is its own field. "" = no limit
+    # beyond `repeatable_by`.
+    max_purchases_from_trait: str = ""
+    # A ceiling (or floor) on this entry's point value set by a Background rating —
+    # Known Anathema, Damaged Artifact and Debt. None for everything else.
+    points_limited_by: BackgroundPointLimit | None = None
     repeatable_by: str = ""                # "" = once only
+    # Whether a purchase of this entry may record STIPULATIONS — Heir Apparent's "add
+    # an extra dot to the pool of invested Backgrounds for every major stipulation
+    # applied to the Inheritance" (p.24). Inert in exactly the way `repeatable_by` is:
+    # it says what a purchase may RECORD, never what the entry does. The UI reads it to
+    # decide whether to offer the field, so no id is named outside engine.merits.
+    takes_stipulations: bool = False
     # "VARIABLE COST SUPERNATURAL FLAW, THAUMATURGES ONLY" — the Merit is only open to
     # a character who actually holds thaumaturgy. False for everything else.
     thaumaturges_only: bool = False
