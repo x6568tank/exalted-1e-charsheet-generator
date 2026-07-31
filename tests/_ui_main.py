@@ -11,7 +11,7 @@ from exalted_builder.models.character import (
     HouseRules, PlayState, RitualEntry, ScienceRating, ThaumaturgyState, Weapon)
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.models.rules import AbilityName, Orientation
-from exalted_builder.ui import app as sheet_app
+from exalted_builder.ui import advantages, app as sheet_app
 from exalted_builder.ui import (builder, combos, custom, editor, gm, picker,
                                 play, storyteller, view, xp)
 
@@ -61,6 +61,16 @@ def page_xp():
 @ui.page('/db')
 def page_db():
     editor.build_editor(RS, CHAR_DB, Path("x.json"), with_header=False)
+
+# Backgrounds live on the Advantages tab, so the splat-aware autofill list is checked
+# there — a Dragon-Blooded gains Breeding/Connections and loses Contacts.
+@ui.page('/db-advantages')
+def page_db_advantages():
+    advantages.build_advantages(RS, CHAR_DB, Path("x.json"), with_header=False)
+
+@ui.page('/custom-advantages')
+def page_custom_advantages():
+    advantages.build_advantages(RS, CHAR_CUSTOM, Path("x.json"), with_header=False)
 
 @ui.page('/dbpicker')
 def page_dbpicker():
@@ -486,7 +496,7 @@ CHAR_MERITS.merits_flaws = [
 
 @ui.page('/merits')
 def page_merits():
-    editor.build_editor(RS, CHAR_MERITS, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MERITS, Path("x.json"), with_header=False)
 
 # A6: a Solar holding Heir Apparent (whose purchase records STIPULATIONS, a control no
 # other entry gets) and Innocuous' veiled tier (which caps Allies and closes Cult, so
@@ -507,7 +517,7 @@ CHAR_BG_MERITS.backgrounds = [
 
 @ui.page('/merits-backgrounds')
 def page_merits_backgrounds():
-    editor.build_editor(RS, CHAR_BG_MERITS, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_BG_MERITS, Path("x.json"), with_header=False)
 
 # A7: an Abyssal whose Resonance track is BOTH renamed and shortened, who has a
 # permanent Resonance counter, and who holds both luck pools at once.
@@ -535,6 +545,68 @@ CHAR_RESONANCE_XP.xp_earned = 20
 def page_merits_resonance_xp():
     xp.build_xp(RS, CHAR_RESONANCE_XP, Path("x.json"), with_header=False)
 
+# Ruling 1 of the Advantages plan: the shared bonus-point readout. A Solar with a
+# 5-point Merit has spent bonus points on THIS tab, and the total must be visible here
+# rather than only on the Edit tab the player cannot see from here.
+CHAR_ADV_BP = Character(id="advbp", name="Spender", exalt_type="Solar", caste="dawn",
+                        essence_rating=1)
+CHAR_ADV_BP.merits_flaws = [MeritFlawPurchase(merit_id="mf.legendary-attribute",
+                                              detail="Strength")]
+
+@ui.page('/advantages-bp')
+def page_advantages_bp():
+    advantages.build_advantages(RS, CHAR_ADV_BP, Path("x.json"), with_header=False)
+
+@ui.page('/advantages-bp-edit')
+def page_advantages_bp_edit():
+    editor.build_editor(RS, CHAR_ADV_BP, Path("x.json"), with_header=False)
+
+# A save whose structured detail is off-list — "strength", not "Strength". validate
+# accepts it (it title-cases before comparing), so nothing else in the build objects,
+# and `ui.select` would raise at BUILD time and blank the whole tab.
+CHAR_ADV_ODD = Character(id="advodd", name="Oddly", exalt_type="Solar", caste="dawn",
+                         essence_rating=1)
+CHAR_ADV_ODD.merits_flaws = [
+    MeritFlawPurchase(merit_id="mf.legendary-attribute", detail="strength"),
+    MeritFlawPurchase(merit_id="mf.diminished-attributes", points=3, detail="nonsense"),
+]
+
+@ui.page('/advantages-odd-detail')
+def page_advantages_odd_detail():
+    advantages.build_advantages(RS, CHAR_ADV_ODD, Path("x.json"), with_header=False)
+
+# Render-matrix shapes for the Advantages tab. A CASTELESS splat (Mortal) unlocked —
+# every caste-keyed lookup on this tab takes `character.caste == ""` — and a save
+# holding an id the catalogue has never heard of, which is what opening a character
+# without its homebrew looks like.
+CHAR_ADV_MORTAL = Character(id="advm", name="Villager", exalt_type="Mortal", caste="",
+                            origin="ordinary", essence_rating=1)
+CHAR_ADV_MORTAL.backgrounds = [BackgroundEntry(name="Resources", rating=2)]
+CHAR_ADV_MORTAL.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness")]
+
+@ui.page('/advantages-mortal')
+def page_advantages_mortal():
+    advantages.build_advantages(RS, CHAR_ADV_MORTAL, Path("x.json"), with_header=False)
+
+CHAR_ADV_UNKNOWN = Character(id="advu", name="Stranger", exalt_type="Solar",
+                             caste="dawn", essence_rating=1)
+CHAR_ADV_UNKNOWN.merits_flaws = [MeritFlawPurchase(merit_id="homebrew.not-in-catalogue",
+                                                   tier="7")]
+CHAR_ADV_UNKNOWN.backgrounds = [BackgroundEntry(name="A Thing Nobody Authored", rating=2)]
+
+@ui.page('/advantages-unknown')
+def page_advantages_unknown():
+    advantages.build_advantages(RS, CHAR_ADV_UNKNOWN, Path("x.json"), with_header=False)
+
+CHAR_ADV_UNKNOWN_XP = CHAR_ADV_UNKNOWN.model_copy(deep=True)
+CHAR_ADV_UNKNOWN_XP.id = "advux"
+CHAR_ADV_UNKNOWN_XP.chargen_locked = True
+CHAR_ADV_UNKNOWN_XP.xp_earned = 20
+
+@ui.page('/advantages-unknown-xp')
+def page_advantages_unknown_xp():
+    advantages.build_advantages(RS, CHAR_ADV_UNKNOWN_XP, Path("x.json"), with_header=False)
+
 @ui.page('/merits-sheet')
 def page_merits_sheet():
     sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_MERITS))
@@ -549,7 +621,7 @@ CHAR_MF_XP.chargen_locked = True
 
 @ui.page('/mf-xp')
 def page_mf_xp():
-    xp.build_xp(RS, CHAR_MF_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_XP, Path("x.json"), with_header=False)
 
 
 # A Solar holding a two-sided entry (Eternal Vow, "3-PT. MERIT OR 1-PT. FLAW"). The
@@ -562,7 +634,7 @@ CHAR_MF_SIDE.merits_flaws = [MeritFlawPurchase(merit_id="mf.eternal-vow")]
 
 @ui.page('/mf-side')
 def page_mf_side():
-    editor.build_editor(RS, CHAR_MF_SIDE, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_SIDE, Path("x.json"), with_header=False)
 
 
 # The same entry on the XP tab, locked and in funds, so the gain card renders its
@@ -573,7 +645,7 @@ CHAR_MF_SIDE_XP.chargen_locked = True
 
 @ui.page('/mf-side-xp')
 def page_mf_side_xp():
-    xp.build_xp(RS, CHAR_MF_SIDE_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_SIDE_XP, Path("x.json"), with_header=False)
 
 
 # 14 points of Flaws against the 10-point cap (p.17), so both surfaces have to say
@@ -588,7 +660,7 @@ CHAR_MF_CAPPED.merits_flaws = [
 
 @ui.page('/mf-capped')
 def page_mf_capped():
-    editor.build_editor(RS, CHAR_MF_CAPPED, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_CAPPED, Path("x.json"), with_header=False)
 
 
 # The same overload on the XP tab, locked, where the cap truncates the XP AWARD.
@@ -598,4 +670,4 @@ CHAR_MF_CAPPED_XP.chargen_locked = True
 
 @ui.page('/mf-capped-xp')
 def page_mf_capped_xp():
-    xp.build_xp(RS, CHAR_MF_CAPPED_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_CAPPED_XP, Path("x.json"), with_header=False)

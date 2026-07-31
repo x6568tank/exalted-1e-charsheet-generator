@@ -32,6 +32,7 @@ from ..engine import lifecycle, validate
 from ..models.character import Character
 from ..models.party import Party
 from ..models.rules import RuleSet
+from . import advantages
 from . import app as sheet_app
 from . import combos as combos_mod
 from . import custom as custom_mod
@@ -47,14 +48,17 @@ from .assets import cytoscape_head_html
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 
-_TABS = ("Edit", "Charms", "Combos", "XP", "Play", "ST", "Custom", "Sheet")
+_TABS = ("Edit", "Advantages", "Charms", "Combos", "XP", "Play", "ST", "Custom", "Sheet")
 
 
 def visible_tabs(locked: bool) -> tuple[str, ...]:
     """The tabs for a character at this stage of its life. Edit and XP are the same
     slot seen from two sides — chargen builds the baseline, XP spends against it —
-    so exactly one of them is ever on the bar. Charms and Combos stay on both sides:
-    they switch from picking (free, within the chargen budget) to buying (with XP).
+    so exactly one of them is ever on the bar. Charms, Combos and Advantages stay on
+    both sides: they switch from picking (free, within the chargen budget) to buying
+    (with XP). Advantages is deliberately in the second group, not the first —
+    Backgrounds and Merits & Flaws are one list under two budget regimes, and filing
+    them with Edit/XP is what made each of them exist twice.
 
     Play is locked-only. The tracker overlays spent motes, marked health and Willpower
     onto capacities derived from the finished character, and every one of those moves
@@ -173,6 +177,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         if state["tab"] == "Edit":
             editor.build_editor(ruleset, char, path, with_header=False,
                                 on_theme_change=_apply_chrome)
+        elif state["tab"] == "Advantages":
+            advantages.build_advantages(ruleset, char, path, with_header=False)
         elif state["tab"] == "Charms":
             state["select"] = picker.build_picker(
                 ruleset, char, path, with_header=False, register_events=False)
@@ -383,7 +389,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         tabs["Combos"].props(
             f'label={"Arrays" if viewmod.uses_arrays(ruleset, ctx["char"]) else "Combos"}')
 
-    _ICONS = {"Edit": "edit", "Charms": "account_tree", "Combos": "bolt",
+    _ICONS = {"Edit": "edit", "Advantages": "workspace_premium",
+              "Charms": "account_tree", "Combos": "bolt",
               "XP": "trending_up", "Play": "casino", "ST": "gavel",
               "Custom": "construction", "Sheet": "description"}
     # Tab names are identifiers (state, visible_tabs, resolve_tab all key off them);

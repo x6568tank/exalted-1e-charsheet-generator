@@ -72,12 +72,12 @@ async def test_db_editor_offers_breeding_not_solar(user: User) -> None:
     # a Dragon-Blooded editor autofills Breeding/Connections and drops Contacts;
     # a Solar editor does the opposite. (The harness characters carry a Background
     # row so the autofill Select renders.)
-    await user.open('/db')
+    await user.open('/db-advantages')
     db_opts = _background_options(user)
     assert "Breeding" in db_opts and "Connections" in db_opts
     assert "Contacts" not in db_opts
 
-    await user.open('/custom')
+    await user.open('/custom-advantages')
     solar_opts = _background_options(user)
     assert "Contacts" in solar_opts
     assert "Breeding" not in solar_opts
@@ -236,7 +236,7 @@ async def test_background_select_options_carry_their_descriptions(user: User) ->
     because `_props` is observable: writing options schedules an update that rebuilds
     them from the labels, so a naive assignment is silently discarded."""
     from exalted_builder.ui.editor import DescribedSelect
-    await user.open('/custom')
+    await user.open('/custom-advantages')
     sels = [e for e in user.client.elements.values() if isinstance(e, DescribedSelect)]
     bg = next(s for s in sels if s._props.get('label') == 'Background')
     described = {o['label']: o.get('description') for o in bg._props['options']}

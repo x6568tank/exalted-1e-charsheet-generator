@@ -174,7 +174,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1475 tests passing)
+## Status (1485 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -201,7 +201,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Merits & Flaws — DONE, browser-verified** (centralized calc per decision 0011; all 99 authored; every A-list mechanism; mortal magic unlock) | `docs/status/merits-flaws.md` |
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
 | **Rated artifacts — DEFERRED, sourced** (the E:Ab p.131 Artifact budget table, transcribed; per-specific-artifact Damaged Artifact) | `docs/status/rated-artifacts.md` |
-| **Advantages tab — PLAN ONLY, unblocked** (Backgrounds + M&F onto one both-sides tab) | `docs/status/advantages-tab.md` |
+| **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted) | `docs/status/advantages-tab.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -220,7 +220,9 @@ chargen is complete, and so is their magic: **Merits & Flaws came back the same 
 (99 entries, one centralized calc — `docs/status/merits-flaws.md`), which is what opens
 Terrestrial Martial Arts and Sorcery to a mortal — and as of 2026-07-31 every mechanical
 effect on the M&F triage's A-list is implemented and browser-verified, so the subsystem is
-closed. **Four non-Exalt splats remain** (Godblooded,
+closed. **Backgrounds and M&F now live on their own both-sides Advantages tab**
+(2026-07-31, v0.7.6), which deleted the two duplicate implementations of each
+(`docs/status/advantages-tab.md`). **Four non-Exalt splats remain** (Godblooded,
 Ghosts, Dragon-Kings, Mountain Folk), all blocked on source material. See **TODO**
 below for what's actually next.
 
@@ -266,7 +268,7 @@ Recorded as decision records, not restated here — read them before proposing a
 
 ### 👉 START HERE (session handoff, 2026-07-31)
 **Merits & Flaws are DONE — every mechanism on the triage's A-list is implemented AND
-browser-verified.** A1 through A7 plus cluster 7 (trait prerequisites). 1,475 tests pass.
+browser-verified.** A1 through A7 plus cluster 7 (trait prerequisites).
 `docs/status/merits-flaws.md` is the record; read it before touching M&F.
 
 **The desktop and work-machine branches were merged 2026-07-31** and the merged tree was
@@ -281,10 +283,14 @@ occupies the Resonance track rather than riding beside it, and Innocuous' two op
 Background clauses now name eight more Backgrounds. Both are written up in
 `merits-flaws.md`; the second is the kind of thing to re-read before touching Innocuous.
 
-**What is next is the human's call.** The obvious candidates are the **Advantages tab**
-(`docs/status/advantages-tab.md` — agreed, planned, and no longer blocked now that A6 has
-landed) and `docs/status/rated-artifacts.md`. The four remaining non-Exalt splats are all
-still blocked on source material.
+**The Advantages tab shipped 2026-07-31** (v0.7.6), browser-verified: Backgrounds and
+Merits & Flaws moved off the Edit⇄XP split onto one both-sides tab, deleting the two
+duplicate implementations of each. `docs/status/advantages-tab.md`. Preflight caught a
+`ui.select` build-time crash on the way, latent since before the move.
+
+**What is next is the human's call.** The candidates are the **M&F filter/search** (99
+entries in a flat dropdown, now solvable in one place) and `docs/status/rated-artifacts.md`.
+The four remaining non-Exalt splats are all still blocked on source material.
 
 **Done:** M&F removal, repeatable Ox-Body, Nature dropdown, Caste info box,
 editable custom weapons/armor, magical materials, Craft as per-focus Abilities,

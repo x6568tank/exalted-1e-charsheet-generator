@@ -76,11 +76,17 @@ def test_every_background_has_a_description(rs):
     assert not missing, missing
 
 
-def test_background_selects_are_described_in_editor_and_xp():
-    """Both places a Background is chosen must show the descriptions — the chargen
-    editor and the post-lock XP tab, where Backgrounds stay freely editable."""
+def test_backgrounds_are_chosen_in_exactly_one_place():
+    """Backgrounds used to be picked on the chargen editor AND on the XP tab, in two
+    near-identical panels that drifted. They now live once, on the Advantages tab, which
+    carries both budget regimes. The described select is asserted there — and the two
+    old homes are asserted NOT to have grown one back, which is the half of this test
+    that will actually fail one day."""
     import inspect
-    from exalted_builder.ui import editor, xp
+    from exalted_builder.ui import advantages, editor, xp
+    assert "DescribedSelect(_opts_with(bg_names" in inspect.getsource(advantages)
     for module in (editor, xp):
         src = inspect.getsource(module)
-        assert "DescribedSelect(_opts_with(bg_names" in src, module.__name__
+        assert "bg_names" not in src, (
+            f"{module.__name__} has grown a second Background panel; there is one, "
+            f"in ui/advantages.py")

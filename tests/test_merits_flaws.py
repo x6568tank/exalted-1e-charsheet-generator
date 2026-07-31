@@ -832,17 +832,29 @@ def test_the_granted_merit_is_reported_for_display(rs):
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
-async def test_xp_tab_offers_merit_gain_and_loss(user) -> None:
-    """The post-lock M&F controls. This page also guards a shadowing bug that took the
-    WHOLE XP tab down: the card's select was first named `sel`, which Python then
-    treated as local throughout `panel()`, leaving the raise-a-trait selectors
-    unassigned."""
+async def test_advantages_tab_offers_merit_gain_and_loss_in_play(user) -> None:
+    """The post-lock M&F controls, which moved from the XP tab to Advantages on
+    2026-07-31 along with their chargen counterpart."""
     await user.open('/mf-xp')
     await user.should_see("Merits & Flaws")
     await user.should_see("Gain")
-    await user.should_see("Raise a Trait")      # the card the shadowing bug killed
+    await user.should_see("Lose / buy off")
     # the preview renders before anything is selected, rather than being absent
     await user.should_see("Select an entry to see its rules text.")
+    # Post-lock the budget on this tab is experience, not bonus points.
+    await user.should_see("XP available")
+    await user.should_see("The ledger and undo are on the XP tab.")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_xp_tab_still_stands_without_the_merit_card(user) -> None:
+    """Guards the shadowing bug that took the WHOLE XP tab down: the M&F card's select
+    was first named `sel`, which Python then treated as local throughout `panel()`,
+    leaving the raise-a-trait selectors unassigned. The card has since moved to
+    Advantages — this pins that the tab it left is still standing."""
+    await user.open('/xp')
+    await user.should_see("Raise a Trait")
 
 
 @pytest.mark.asyncio
@@ -2220,6 +2232,131 @@ def test_a_re_lock_never_undoes_a_harrowing(rs):
     assert c.limit_permanent == 1, "the ledger owns the track once it has moved it"
 
 
+# --- the Advantages tab (2026-07-31) ---------------------------------------- #
+#
+# Backgrounds and M&F moved off the Edit⇄XP split onto one both-sides tab. The value of
+# the move is DELETION — two implementations of each became one — so the tests that
+# matter are the ones that fail if a second one ever grows back.
+
+def test_backgrounds_and_merits_have_exactly_one_implementation():
+    """The editor and the XP tab must not grow their panels back. This is the whole
+    point of the refactor: the splat-filter bug, the `drop_merit` kind bug and the
+    `cost_by_kind` pricing bug were all one module knowing something the other did not."""
+    import inspect
+    from exalted_builder.ui import advantages, editor, xp as xp_mod
+    adv = inspect.getsource(advantages)
+    for module in (editor, xp_mod):
+        src = inspect.getsource(module)
+        assert "merits_flaws" not in src, (
+            f"{module.__name__} touches Merits & Flaws; they live in ui/advantages.py")
+        assert "backgrounds_for" not in src, (
+            f"{module.__name__} has a Background panel; they live in ui/advantages.py")
+    assert "backgrounds_for" in adv and "merits_flaws" in adv
+
+
+def test_advantages_is_a_both_sides_tab_not_half_of_the_edit_xp_pair():
+    """The crux of the plumbing. Advantages behaves like Charms/Combos — on the bar
+    throughout, switching mode at the lock — and NOT like Edit/XP, which are one slot
+    seen from two sides. Putting it in the wrong branch rebuilds the split being
+    removed."""
+    from exalted_builder.ui import builder
+    assert "Advantages" in builder.visible_tabs(locked=False)
+    assert "Advantages" in builder.visible_tabs(locked=True)
+    # and it never needs mapping to a counterpart, because it never hides
+    assert builder.resolve_tab("Advantages", locked=True) == "Advantages"
+    assert builder.resolve_tab("Advantages", locked=False) == "Advantages"
+    # the pair it is NOT part of still behaves as before
+    assert builder.resolve_tab("Edit", locked=True) == "XP"
+    assert builder.resolve_tab("XP", locked=False) == "Edit"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_shared_bonus_point_total_is_visible_on_the_advantages_tab(user) -> None:
+    """Ruling 1 of the plan, and its stated acceptance: Backgrounds and M&F draw on the
+    SHARED chargen bonus-point pool, so spending here must move a number shown HERE.
+    Without it a player spends 6 BP on Merits and the total that changed is on a tab
+    they cannot see."""
+    await user.open('/advantages-bp')
+    await user.should_see("Bonus Points")
+    await user.should_see("Merits & Flaws")     # the Merit that spent them
+    await user.should_see("−3 BP")              # Legendary Attribute, 3 pts for a Solar
+    await user.should_see("3 / 15 spent")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_two_tabs_agree_about_the_bonus_points(user) -> None:
+    """The other half of the acceptance: "switch to Edit and it agrees". Both readouts
+    are driven from `validate.bonus_point_breakdown`, so the same character must produce
+    the same spent/available line on either tab."""
+    def _bp_lines(u):
+        # The bonus-point line specifically. The Edit tab carries other "... spent"
+        # tallies (ability dots, the per-category Attribute pools) that have no
+        # counterpart here, so the sets are not expected to be equal.
+        return {e.text for e in u.client.elements.values()
+                if getattr(e, "text", "").endswith("bonus points spent")
+                or getattr(e, "text", "").endswith("/ 15 spent")}
+
+    await user.open('/advantages-bp')
+    adv = _bp_lines(user)
+    await user.open('/advantages-bp-edit')
+    edit = _bp_lines(user)
+    assert adv, "the Advantages tab shows no bonus-point total"
+    assert adv <= edit, (adv, edit)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_an_off_list_structured_detail_does_not_blank_the_tab(user) -> None:
+    """Found by preflight, 2026-07-31. `ui.select` raises at BUILD time when its value
+    is not among its options, and the raise takes every sibling with it — the crash
+    class that blanked two picker tabs. A stored detail can legitimately be off-list:
+    validate compares `detail.strip().title()`, so "strength" passes validation and
+    never matches the title-cased option. The row keeps it as its own option instead."""
+    await user.open('/advantages-odd-detail')
+    await user.should_see("Merits & Flaws")          # the tab built at all
+    await user.should_see("Applies to")              # the select that would have raised
+    await user.should_see("not a choice")            # the unmatched value, kept visible
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_advantages_tab_builds_for_a_casteless_splat(user) -> None:
+    """Mortals have no caste, and every caste-keyed lookup on this tab is handed
+    `character.caste == ""` — `merit_cost_options`, `merit_tiers_available` and
+    `merit_available_to` all take one. The casteless shape has broken UI before."""
+    await user.open('/advantages-mortal')
+    await user.should_see("Backgrounds")
+    await user.should_see("Merits & Flaws")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+@pytest.mark.parametrize("route", ['/advantages-unknown', '/advantages-unknown-xp'])
+async def test_an_off_catalogue_id_does_not_take_the_tab_down(user, route) -> None:
+    """What opening a save without its homebrew looks like: a Merit id and a Background
+    name the catalogue has never heard of, plus a tier that belongs to neither. Both
+    regimes must render it rather than raising — the graceful-unresolvable-reference
+    rule, and the same select-value crash class as the off-list detail."""
+    await user.open(route)
+    await user.should_see("Backgrounds")
+    await user.should_see("Merits & Flaws")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_advantages_tab_switches_regime_at_the_lock(user) -> None:
+    """One component, two budget regimes, chosen from the character rather than the
+    caller. Unlocked it reports bonus points; locked it reports experience."""
+    await user.open('/merits-backgrounds')                 # unlocked
+    await user.should_see("Bonus Points")
+    await user.should_see("pre-bonus")                     # the chargen Background cap
+    await user.open('/mf-xp')                              # locked
+    await user.should_see("XP available")
+    await user.should_see("free — no XP")                  # Backgrounds are story-driven
+
+
 # --- Permanent Resonance on the XP ledger ----------------------------------- #
 #
 # Corrected 2026-07-30: this was first written onto PlayState alongside the temporary
@@ -2629,8 +2766,17 @@ async def test_xp_tab_collects_values_through_the_same_controls_as_the_editor(us
     exactly the shape that produced the splat-filter bug. The free-text box is gone."""
     await user.open('/mf-side-xp')
     await user.should_see("Merits & Flaws")
-    labels = {(e.props.get("label") or "") for e in user.find(ui.input).elements}
+    # Not via user.find(ui.input): with nothing held, the page legitimately renders no
+    # text input at all, and find() raises rather than returning empty.
+    labels = {(getattr(e, "props", {}) or {}).get("label") or ""
+              for e in user.client.elements.values()}
     assert "tier / points" not in labels, "the double-duty free-text field is still there"
+    # Both regimes now run through ONE implementation, so "the same controls as the
+    # editor" is structural rather than a thing two modules have to agree about.
+    from exalted_builder.ui import advantages, xp as xp_mod
+    import inspect
+    assert "merit_cost_options" not in inspect.getsource(xp_mod)
+    assert "merit_cost_options" in inspect.getsource(advantages)
 
 
 @pytest.mark.asyncio
