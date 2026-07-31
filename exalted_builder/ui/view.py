@@ -461,6 +461,14 @@ def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> s
     if domain == "charms":
         charm = ruleset.charms.get(entry.detail)
         return f"Charm: {charm.name if charm else entry.detail}"
+    # A Charm redeemed against a Weak Essence credit. Its own target keeps the audit
+    # from re-pricing it, but the target has no dot in it, so `domain` was the whole
+    # string and the row fell through to the raw "charms_withheld" — the charm's own
+    # name never appeared. Keeps the "Charm:" prefix the ordinary rows use so the
+    # ledger still sorts and scans as one thing.
+    if domain == validate.WITHHELD_CHARM_TARGET:
+        charm = ruleset.charms.get(entry.detail)
+        return f"Charm: {charm.name if charm else entry.detail} (withheld, no XP)"
     if domain == "spells":
         spell = ruleset.spells.get(entry.detail)
         return f"Spell: {spell.name if spell else entry.detail}"
@@ -1654,6 +1662,12 @@ class PlayView:
     personal_max: int
     peripheral_max: int
     willpower_max: int
+    # The two pools merged into one (Beacon of Power). Carried rather than inferred
+    # from `personal_max == 0`, which cannot tell "merged by rule" from "this splat
+    # has no Personal pool" — the same distinction `essence_single_pool` draws for
+    # the sheet. Without it the tracker rendered a Personal box reading 0/0, which
+    # looks like a bug rather than a rule (reported 2026-07-31).
+    single_pool: bool = False
 
 
 def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
@@ -1666,6 +1680,7 @@ def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
         personal_max=d.essence_personal,
         peripheral_max=d.essence_peripheral,
         willpower_max=d.willpower,
+        single_pool=d.essence_single_pool,
     )
 
 

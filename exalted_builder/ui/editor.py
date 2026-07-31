@@ -684,14 +684,6 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 # chooses ("three points for every Physical Attribute
                                 # dot"), and entering points directly can silently lose
                                 # a remainder. Human's ruling, 2026-07-31.
-                                cats = merits.forfeit_categories(definition)
-                                if cats:
-                                    ui.select({c: c for c in cats},
-                                              value=(mp.detail or cats[0]), label="From",
-                                              on_change=lambda e, mp=mp: (
-                                                  setattr(mp, "detail", e.value or ""),
-                                                  body.refresh(), changed())
-                                              ).classes("w-32").props("dense")
                                 ui.number(value=mp.points // rate, min=0, max=20, format="%d",
                                           label=f"{merits.forfeit_trait_label(definition)} dots",
                                           on_change=lambda e, mp=mp, r=rate: (
@@ -705,9 +697,21 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                               setattr(mp, "points", int(e.value or 0)),
                                               body.refresh(), changed())
                                           ).classes("w-28").props("dense")
-                        # The category dropdown above already IS the detail for a
-                        # categorised forfeit; a second free-text box would fight it.
-                        if definition is None or not merits.forfeit_categories(definition):
+                        # A structured detail is a CLOSED set, not free text: which
+                        # Attribute category a forfeit comes from, which Attribute gets
+                        # Legendary Attribute's raised ceiling. Both were free-text, and
+                        # both failed silently — a typo became a fourth category, and an
+                        # empty box left Legendary Attribute inert with no complaint.
+                        choices = (merits.detail_choices(definition)
+                                   if definition is not None else ())
+                        if choices:
+                            ui.select({c: c for c in choices},
+                                      value=mp.detail or None, label="Applies to",
+                                      on_change=lambda e, mp=mp: (
+                                          setattr(mp, "detail", e.value or ""),
+                                          body.refresh(), changed())
+                                      ).classes("w-40").props("dense")
+                        else:
                             ui.input(value=mp.detail,
                                      placeholder=(definition.repeatable_by if definition
                                                   and definition.repeatable_by else "note"),

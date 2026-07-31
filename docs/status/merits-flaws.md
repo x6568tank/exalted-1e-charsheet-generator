@@ -376,3 +376,99 @@ row read it.
 **Still open**, and the last of the three: the XP tab's tier/points field is one
 free-text input doing double duty — a tier key for a menu-priced entry, a point value
 for a variable-cost one. Works; crude.
+
+## Browser click-through, 2026-07-31 — 13 findings, 10 real bugs
+
+The first click-through of the M&F work, done by the human against a served app. **1,370
+tests were passing throughout**; every bug below was invisible to all of them. 1,386
+tests now.
+
+**The pattern, and the reason a click-through keeps paying:** almost every one is a rule
+that WAS implemented, sitting somewhere that does not run when it matters. Nothing was
+missing; things were mis-placed. Unit tests assert the implemented thing directly and so
+never notice.
+
+### Engine
+
+* **Callous's Willpower exception did not exist.** `willpower_virtue_margin` was read in
+  exactly one place — `validate`, as a CHARGEN CEILING — and the comment there claimed
+  it was the decision-0005 exception. A ceiling does nothing post-lock, so raising a
+  Virtue on a locked Callous character moved nothing. New
+  `MeritEffects.willpower_tracks_virtues`; `derive.willpower` re-derives from the
+  current Virtues when set. Writing the test found the neighbouring rule: raising a
+  Virtue far enough EXPIRES Callous (9 dots, p.35), after which Willpower correctly
+  re-pins. Both are now tested.
+* **All 11 variable-cost entries were inert at chargen.** `grep -c variable_cost
+  ui/editor.py` was 0 — no points field existed, so `MeritFlawPurchase.points` stayed 0,
+  and at 0 points a variable-cost entry is legal, costless and effectless. Nothing could
+  fail. Three of the four trait-forfeit Flaws are variable-cost, which is exactly why
+  Callous (the one with a printed tier menu) worked and Diminished Attributes appeared
+  to do nothing at all.
+* **Legendary Attribute was silently inert without a `detail`**, and
+  `_attribute_forfeits`' docstring claimed validate flagged a missing category. No such
+  check existed. Both details are now closed sets (`merits.detail_choices`) with a
+  `merit-detail-unchosen` issue.
+* **Legendary Breeding's Breeding-5 prerequisite was unchecked** — it paid its full
+  rating-6 row to a character with no Breeding Background at all. Found on an Outcaste,
+  who is precisely that character. New `MeritEffects.trait_requirement_unmet` +
+  `merit-trait-required`, following the `nature_requirement_unmet` shape. **Reported,
+  not enforced**: the override still applies so the sheet stays internally consistent.
+
+### Data — and why the fidelity test could not see it
+
+Two defects spotted by eye turned into **eight** entries once grepped for structurally:
+
+* 5 descriptions opened with the second line of a MULTI-LINE printed cost note
+  (`"DRAGON KINGS OR GOD-BLOODED) The character excels at..."`). Each strip was verified
+  against that entry's own `cost_note` rather than applied blind.
+* 1 had the next section's markdown headers glued on (`"... Legacy of Hesiesh. ## FLAWS
+  ### PHYSICAL"`). The first pass stripped only the last header — `## FLAWS ###
+  PHYSICAL` is two, so the regex needed a repeated group.
+* 2 names were mangled by naive title-casing of a SHOUTED source header: `Brigid'S Heir`.
+
+**`test_every_description_matches_the_source_text` provably could not catch any of it.**
+It fails a description below 92% of its source length; all of these make a description
+LONGER, and by so little that every ratio stayed within 1.5% of 1.0. Structure, not
+length, separates debris from prose — hence
+`test_no_description_carries_extraction_debris` and
+`test_no_name_was_mangled_by_title_casing`, which assert the SHAPE rather than an
+allowlist of the eight then known. That is what turned 2 sightings into 8.
+
+### UI
+
+* The editor's **25-dot tally summed raw ratings**. The human ruled 2026-07-31 that dots
+  above the pre-bonus cap are BP-only, and **the engine already had this right** (the
+  `within_by_tier`/`above_by_tier` split), so one Ability at 4 read 25/25 while a free
+  dot was genuinely unspent. Display-only fix, with a test pinning the tally's
+  arithmetic to the engine's so they cannot drift.
+* **The Nature select never refreshed validation** (`setattr` with no `changed()`), so
+  the Live Validation box reported a stale empty Nature — which read as True Paragon's
+  requirement being broken when it was fine.
+* **Disfigured at 4 points caps Appearance at 0**, and the per-category attribute tally
+  discounted a flat one free dot per Attribute, so a legal Social row read "−1 spent".
+  The baseline is now `min(1, cap)`.
+* **Beacon of Power's merged pool rendered a 0/0 Personal track** on the Play tab.
+  `PlayView.single_pool` now carries the shape (not inferred from `personal_max == 0`,
+  which cannot tell "merged by rule" from "no Personal pool"), and the tracker renders
+  one track.
+* **The tier select was labelled "Oath" for all 36 menu-priced entries** and the arena
+  box appeared beside every one of them — only Oathbound Magic's stacking rule reads it
+  (`merits.uses_arena`).
+* The XP ledger showed the raw target `charms_withheld` instead of the Charm's name: the
+  target has no dot in it, so `domain` was the whole string and the row fell through.
+
+### Confirmed NOT bugs
+
+* `10/23` on an Outcaste DB with Legendary Breeding is the Breeding-6 row on the DB
+  formula, verified against Breeding 5 → 8/17 and Breeding 5 + LB → 9/19.
+* Unspent attribute dots never convert to bonus points.
+
+### Decisions taken (human, 2026-07-31)
+
+* **Dots above the pre-bonus Ability cap are BP-only** and do not draw on the 25.
+* **The forfeit Flaws collect DOTS, not points** — the dots are what a player chooses
+  ("three points for every Physical Attribute dot") and entering points directly can
+  silently lose a remainder. `merits.forfeit_rate()` is the accessor that lets the UI
+  multiply without naming a Merit id.
+* The other 8 variable-cost entries take a plain points field.
+* Mortals may take Prodigy; they are its main audience.

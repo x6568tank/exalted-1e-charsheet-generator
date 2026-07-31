@@ -610,6 +610,40 @@ def test_every_description_matches_the_source_text(rs):
     assert not short, "descriptions shorter than their source: " + ", ".join(short)
 
 
+def test_no_description_carries_extraction_debris(rs):
+    """The other half of the fidelity guard, and the one that was missing.
+
+    The length test above only fails a description that is too SHORT, so it could not
+    see either defect the 2026-07-31 click-through found — both make a description
+    LONGER, and by so little that every ratio stayed within 1.5% of 1.0. Structure, not
+    length, is what separates them from prose:
+
+      * a multi-line printed cost note, whose second line the extractor left at the
+        head of the description ("DRAGON KINGS OR GOD-BLOODED) The character excels
+        at..."). Five entries;
+      * the next section's markdown headers glued on the end ("... called Legacy of
+        Hesiesh. ## FLAWS ### PHYSICAL"). One entry.
+
+    Spotting two of these by eye is what found the other four — so this asserts the
+    shape rather than an allowlist of the six then known.
+    """
+    import re
+    for m in rs.merits_flaws.values():
+        assert not re.search(r"#{2,}", m.description), (
+            f"{m.id}: markdown header bled into the description")
+        lead = re.match(r"^[A-Z0-9 ,\-\.]{4,}\)", m.description.lstrip())
+        assert lead is None, (
+            f"{m.id}: description opens with a cost-note fragment {lead.group(0)!r}")
+
+
+def test_no_name_was_mangled_by_title_casing(rs):
+    """The source headers are SHOUTED ("#### BRIGID'S HEIR"), and naive title-casing
+    capitalises the letter after an apostrophe: "Brigid'S Heir". Two entries."""
+    import re
+    for m in rs.merits_flaws.values():
+        assert not re.search(r"[A-Za-z]'S\b", m.name), f"{m.id}: mangled name {m.name!r}"
+
+
 def test_every_entry_keeps_its_printed_cost_line(rs):
     """`cost_note` is verbatim, because a few qualifiers cannot be modelled at all
     (a per-caste price, a relative one) and dropping them would lose printed rules."""
@@ -785,7 +819,7 @@ def test_sheet_rows_carry_the_rules_text_for_the_tooltip(rs):
     name, points, _detail, _kind, tip = rows["Essence Mastery"]
     assert points == "−5"
     assert "Root of the Perfected Lotus" in tip          # the rules text
-    assert rows["Brigid'S Heir"][4].startswith("(5-PT.")  # ...and the printed cost line
+    assert rows["Brigid's Heir"][4].startswith("(5-PT.")  # ...and the printed cost line
 
 
 def test_an_unresolvable_row_explains_itself_in_the_tooltip(rs):
@@ -1803,12 +1837,29 @@ def test_diminished_attributes_shrinks_the_pool_its_category_received(rs):
     assert physical == ("Physical", 8, 6), "the forfeit must come off the matched pool"
 
 
-def test_the_category_is_a_closed_set_not_free_text(rs):
-    """`_attribute_forfeits` title-cases `detail` and defaults to Physical, so a typo
-    silently became a fourth category. The editor now offers only these three."""
-    assert merits.forfeit_categories(rs.merits_flaws[DIMINISHED]) == (
+def test_a_structured_detail_is_a_closed_set_not_free_text(rs):
+    """Two entries structure their `detail`, and free text broke both: a typo became a
+    fourth Attribute category (it is title-cased and defaults to Physical), and an
+    empty box left Legendary Attribute inert with no complaint at all."""
+    assert merits.detail_choices(rs.merits_flaws[DIMINISHED]) == (
         "Physical", "Mental", "Social")
-    assert merits.forfeit_categories(rs.merits_flaws[CALLOUS]) == ()
+    assert merits.detail_choices(rs.merits_flaws[LEGENDARY_ATTR])[0] == "Strength"
+    assert len(merits.detail_choices(rs.merits_flaws[LEGENDARY_ATTR])) == 9
+    assert merits.detail_choices(rs.merits_flaws[CALLOUS]) == ()
+
+
+def test_an_unchosen_structured_detail_is_reported(rs):
+    """It used to fail SILENTLY — Legendary Attribute with no Attribute named granted
+    no cap and said nothing. `_attribute_forfeits`' docstring claimed validate flagged
+    the omission; no such check existed until now."""
+    for mid in (LEGENDARY_ATTR, DIMINISHED):
+        blank = _codes(validate.validate_chargen(rs, _solar(MP(merit_id=mid))),
+                       "merit-detail-unchosen")
+        assert blank, f"{mid} with no detail must be reported"
+    ok = _solar(MP(merit_id=LEGENDARY_ATTR, detail="Strength"))
+    assert not _codes(validate.validate_chargen(rs, ok), "merit-detail-unchosen")
+    # and the cap it was silently failing to grant now lands
+    assert merits.merits_and_flaws_calc(rs, ok).attribute_caps.get("strength") == 6
 
 
 def test_arena_belongs_only_to_the_entry_with_the_stacking_rule(rs):
@@ -1817,3 +1868,29 @@ def test_arena_belongs_only_to_the_entry_with_the_stacking_rule(rs):
     assert merits.uses_arena(rs.merits_flaws[OATH])
     assert not merits.uses_arena(rs.merits_flaws[CALLOUS])
     assert not merits.uses_arena(rs.merits_flaws["mf.large-size"])
+
+
+def test_legendary_breeding_reports_its_unmet_background_prerequisite(rs):
+    """"requires the Breeding 5 Background" (p.28) — a TRAIT prerequisite, which
+    `MeritFlaw.prerequisites` cannot express (it holds Merit ids only). Nothing checked
+    it, so the Merit paid its full rating-6 row to a character with no Breeding at all.
+    Found on an Outcaste in the 2026-07-31 click-through — precisely the character who
+    would not have the Background."""
+    none_held = _db(MP(merit_id=LEGENDARY_BREEDING), breeding=0)
+    assert merits.merits_and_flaws_calc(rs, none_held).trait_requirement_unmet
+    assert _codes(validate.validate_chargen(rs, none_held), "merit-trait-required")
+
+    too_low = _db(MP(merit_id=LEGENDARY_BREEDING), breeding=2)
+    assert _codes(validate.validate_chargen(rs, too_low), "merit-trait-required")
+
+    legal = _db(MP(merit_id=LEGENDARY_BREEDING), breeding=5)
+    assert not merits.merits_and_flaws_calc(rs, legal).trait_requirement_unmet
+    assert not _codes(validate.validate_chargen(rs, legal), "merit-trait-required")
+
+
+def test_the_prerequisite_is_reported_not_enforced(rs):
+    """The rating-6 override still applies when the prerequisite is unmet, so the sheet
+    stays internally consistent and the Storyteller decides. Enforcing it would silently
+    change a pool the player can see."""
+    none_held = _db(MP(merit_id=LEGENDARY_BREEDING), breeding=0)
+    assert merits.merits_and_flaws_calc(rs, none_held).breeding_rating_override == 6

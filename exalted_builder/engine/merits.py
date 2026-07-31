@@ -32,7 +32,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from ..models.character import Character
-from ..models.rules import MeritFlaw, RuleSet, SpellCircle
+from ..models.rules import AttributeName, MeritFlaw, RuleSet, SpellCircle
 
 # --------------------------------------------------------------------------- #
 # The ids this module knows. Nothing outside engine/merits.py may name these.
@@ -146,6 +146,11 @@ BEACON_OF_POWER = "mf.beacon-of-power"
 # data/exalts.json like every other Breeding rating's do. Requires Breeding 5 to buy,
 # which is a trait prerequisite and not yet checked anywhere (see the triage doc).
 LEGENDARY_BREEDING_RATING = 6
+# "requires the Breeding 5 Background" (p.28). A TRAIT prerequisite, not a Merit one —
+# `MeritFlaw.prerequisites` only holds other Merit ids — so it is checked here. Until
+# 2026-07-31 nothing checked it at all, and the Merit paid its full rating-6 row to a
+# character with no Breeding Background whatsoever, which an Outcaste typically is.
+LEGENDARY_BREEDING_REQUIRES = 5
 
 
 @dataclass(frozen=True)
@@ -249,6 +254,11 @@ class MeritEffects:
     # met — True Paragon is "only characters with the Paragon Nature may purchase or
     # retain this Merit". Names so the UI can report without naming an id.
     nature_requirement_unmet: tuple[str, ...] = ()
+    # Display NAMES of held entries whose printed TRAIT prerequisite is not met — a
+    # Background rating, as opposed to `MeritFlaw.prerequisites`, which holds only other
+    # Merit ids. Same shape as the Nature check above, and for the same reason: the UI
+    # must be able to report it without learning which Merit it is.
+    trait_requirement_unmet: tuple[str, ...] = ()
 
     # --- Health track ------------------------------------------------------ #
     # Levels a Merit adds, as (wound penalty, source label) — the label is the Merit's
@@ -423,18 +433,30 @@ def uses_arena(definition) -> bool:
     return definition.id == OATHBOUND_MAGIC
 
 
-def forfeit_categories(definition) -> tuple[str, ...]:
-    """The Attribute categories this forfeit may be taken from, or () if the choice
-    does not arise. Only Diminished Attributes has one: the page prints three versions
-    of the one Flaw, the Mental and Social variants being "considered Mental and Social
-    Flaws rather than falling into the Physical category" (p.36).
+def detail_choices(definition) -> tuple[str, ...]:
+    """The closed set of values `MeritFlawPurchase.detail` may take for this entry, or
+    () where the detail is genuinely free text (a note, an oath's wording).
 
-    `_attribute_forfeits` reads that choice off `MeritFlawPurchase.detail`, so this is
-    what lets the editor offer a dropdown instead of free text — where a typo silently
-    became a fourth category and a default of Physical.
+    Two entries structure their detail, and BOTH were broken by being free text:
+
+      * Diminished Attributes — which Attribute category the dots come out of. The page
+        prints three versions of one Flaw, the Mental and Social variants being
+        "considered Mental and Social Flaws rather than falling into the Physical
+        category" (p.36). `_attribute_forfeits` title-cases whatever was typed and
+        defaults to Physical, so a typo silently became a fourth category.
+      * Legendary Attribute — which Attribute gets the raised ceiling. Read as an
+        `AttributeName.value`, so anything else left the Merit inert with no complaint
+        at all (reported 2026-07-31).
+
+    Returned as display strings; the caller stores them verbatim. Values are matched
+    case-insensitively downstream, which is why the Attribute names may be Title Case
+    here while `AttributeName.value` is lower.
     """
-    return (("Physical", "Mental", "Social")
-            if definition.id == DIMINISHED_ATTRIBUTES else ())
+    if definition.id == DIMINISHED_ATTRIBUTES:
+        return ("Physical", "Mental", "Social")
+    if definition.id == LEGENDARY_ATTRIBUTE:
+        return tuple(a.value.title() for a in AttributeName)
+    return ()
 
 
 def _forfeited_dots(ruleset: RuleSet, character: Character) -> dict[str, int]:
@@ -536,6 +558,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
     spell_cost_halved = False
     extra_favored = 0
     nature_unmet: list[str] = []
+    trait_unmet: list[str] = []
     breeding_override: int | None = None
     single_pool = False
     for definition, purchase in _held(ruleset, character):
@@ -580,6 +603,17 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
             # rating is a ceiling on ancestry, not something that accumulates.
             breeding_override = max(breeding_override or 0, LEGENDARY_BREEDING_RATING)
             effects_from.add(definition.id)
+            # The Background this Merit upgrades must already be at its printed
+            # minimum. Reported, not enforced: the override still applies, so the
+            # sheet stays internally consistent and the ST decides.
+            bg_name = exalt.essence.breeding_background
+            held_rating = max((b.rating for b in character.backgrounds
+                               if bg_name and b.name.strip().casefold()
+                               == bg_name.casefold()), default=0)
+            if held_rating < LEGENDARY_BREEDING_REQUIRES:
+                trait_unmet.append(
+                    f"{definition.name} requires {bg_name or 'Breeding'} "
+                    f"{LEGENDARY_BREEDING_REQUIRES}; this character has {held_rating}")
         elif definition.id == BEACON_OF_POWER:
             single_pool = True
             effects_from.add(definition.id)
@@ -631,6 +665,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         spell_cost_halved=spell_cost_halved,
         extra_favored_abilities=extra_favored,
         nature_requirement_unmet=tuple(nature_unmet),
+        trait_requirement_unmet=tuple(trait_unmet),
         health_levels_granted=tuple(granted_levels),
         health_levels_removed=tuple(removed_levels),
         forfeited_ability_dots=forfeits.get(UNSKILLED, 0),

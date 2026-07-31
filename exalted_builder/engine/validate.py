@@ -2746,6 +2746,18 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"{definition.name} is not available to the "
                         f"{caste.label if caste else character.caste} caste.",
             ))
+        # A structured `detail` (which Attribute category a forfeit comes from, which
+        # Attribute Legendary Attribute raises) is a CLOSED set. Unset or off-list, the
+        # effect silently does not happen — Legendary Attribute grants no cap at all,
+        # and a forfeit falls back to Physical. Reported rather than defaulted.
+        choices = merits.detail_choices(definition)
+        if choices and purchase.detail.strip().title() not in choices:
+            issues.append(Issue(
+                code="merit-detail-unchosen", where=definition.id,
+                message=(f"{definition.name} must name which of "
+                         f"{', '.join(choices)} it applies to; got "
+                         f"{purchase.detail or '(nothing)'!r}."),
+            ))
         if definition.thaumaturges_only and not has_thaum:
             issues.append(Issue(
                 code="merit-thaumaturges-only", where=definition.id,
@@ -3336,6 +3348,12 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                      f"requires; this character's Nature is "
                      f"{character.nature or 'unset'}."),
         ))
+    # A printed TRAIT prerequisite (a Background rating), as opposed to the Merit-id
+    # prerequisites handled above. The message is built in engine.merits, which is the
+    # only module allowed to know which trait belongs to which entry.
+    for message in mf.trait_requirement_unmet:
+        issues.append(Issue(code="merit-trait-required", where=message.split(" requires")[0],
+                            message=message + "."))
 
     # --- Essence forced by a Flaw --------------------------------------------- #
     # Weak Essence "reduces the character's starting Essence rating to 1", which is a

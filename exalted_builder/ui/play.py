@@ -172,11 +172,18 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                         "flat dense").classes("text-xs")
 
             # --- Motes (numeric; capacities derived, spend is user input) - #
-            with _panel("Essence (motes spent — manual)", pal):
+            # A merged pool is ONE track: "all of which is considered Peripheral"
+            # (p.41), so the Personal box would be a permanent 0/0 that reads as
+            # broken. Say the rule in the header instead of rendering a dead input.
+            title = ("Essence — single pool (motes spent — manual)" if pv.single_pool
+                     else "Essence (motes spent — manual)")
+            with _panel(title, pal):
                 with ui.row().classes("gap-6 flex-wrap items-end"):
-                    _mote_input("Personal", "motes_personal_spent",
-                                cur.motes_personal_spent, pv.personal_max)
-                    _mote_input("Peripheral", "motes_peripheral_spent",
+                    if not pv.single_pool:
+                        _mote_input("Personal", "motes_personal_spent",
+                                    cur.motes_personal_spent, pv.personal_max)
+                    _mote_input("Peripheral" if not pv.single_pool else "All motes",
+                                "motes_peripheral_spent",
                                 cur.motes_peripheral_spent, pv.peripheral_max)
 
             # --- Temporary Willpower ------------------------------------- #
