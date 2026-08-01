@@ -1,4 +1,4 @@
-# Elder Exalts — DONE (engine + UI), not browser-verified
+# Elder Exalts — DONE (engine + UI), browser-verified
 
 **Shipped 2026-07-31.** Source: `images/Elder Exalts/Player's Guide.md` (PG pp.258-259),
 the whole of the printed rules — two pages, and the shortest source any feature in this
@@ -18,7 +18,7 @@ one entry point, following the containment shape decision 0011 set for Merits & 
 | Virtues never pass 5 | Already true; pinned by a test |
 | Terrestrials never pass Essence 7 without "outside energies" | **DONE**, as an ST toggle |
 | Training times for elder raises | **NOT SHIPPED** — see below |
-| Annual downtime XP awards + the 4:3:2:1 split | **NOT SHIPPED** — see below |
+| Annual downtime XP awards + the 4:3:2:1 split | **DONE 2026-08-01**, as a calculator — see below |
 
 ## The rules, in the order they resolve
 
@@ -60,7 +60,7 @@ it is the Storyteller's business.
 | `HouseRules.terrestrial_essence_transcendence` | `models/character.py` |
 | Essence / Ability / Attribute / Craft ceilings on the buy path | `engine/advancement.py` |
 | `essence-above-elder-chargen-cap` | `engine/validate.py` |
-| "Exalted years" input + dot tracks built from the ceilings | `ui/editor.py` |
+| The age input (inside the Downtime dialog) + dot tracks built from the ceilings | `ui/editor.py` |
 | The ST Options row, with a "no effect" note off-tier and under 500 years | `ui/view.py` |
 
 `ElderCaps` carries a third field, `terrestrial_limited`, purely so the error a player
@@ -78,13 +78,10 @@ deliberately, and `raise_college` says so at the site.
   passage of in-game time (CLAUDE.md: almost certainly never), so **the age chart is the
   whole gate**. A known, accepted incompleteness, in the same family as Weak Essence's
   withheld Charms and Brigid's Heir.
-* **The p.259 downtime experience awards and their 4:3:2:1 split.** Annual XP for skipped
-  decades, which "cannot be hoarded", spent across four mandated categories. This is a
-  Storyteller's downtime bookkeeping across years of unplayed time, not a sheet
-  calculation — the same reason `PlayState` is a dumb manual tracker. **Not refused, not
-  scheduled**: if it comes back, the in-scope version is a *calculator* in the Adjust XP
-  control (enter years → print "200 XP → 80/60/40/20") that the ST grants manually.
-  Enforcing the split would mean earmarking every ledger row by category.
+* **Enforcement of the p.259 4:3:2:1 split.** The awards themselves shipped
+  2026-08-01 (below); what stayed out is *policing* how they are spent. Earmarking every
+  ledger row by category would touch the whole advancement system to enforce a rule the
+  page itself frames as an injunction to Storytellers. Human's call.
 
 ## Verification
 
@@ -99,11 +96,12 @@ field in it is caught. Three render routes were added to `tests/_ui_main.py`
 character in the build whose ratings legally exceed the pip count every dot track was
 written against, which is exactly the shape that has blanked panels before.
 
-**NOT browser-verified.** What to click, in priority order:
+**Browser-verified 2026-07-31**, and again on 2026-08-01 for the downtime calculator.
+What was clicked, in priority order:
 
-1. A **locked Solar**, age set to 1000 — Essence should click to 9, and Abilities and
-   Attributes to whatever Essence then is. The "Exalted years" box is beside Concept and
-   is disabled until the lock.
+1. A **locked Solar**, age set to 1000 — Essence clicks to 9, and Abilities and
+   Attributes to whatever Essence then is. **The age box now lives in the Downtime
+   dialog**, not in Identity (see below); it is post-lock, like the age itself.
 2. The **dot tracks past 5**. The ceilings are correct in the engine; whether nine pips
    in a row still *fit* the panel is the open question, and only a browser answers it.
    Same for the Sheet's read-only rendering of a 9.
@@ -111,3 +109,73 @@ written against, which is exactly the shape that has blanked panels before.
    ("Terrestrial may pass Essence 7") lifting it to 9.
 4. **Any young character**, to confirm nothing moved: the ceilings are 5/5 below 100
    years, which is every character in every existing save.
+
+
+## The downtime calculator (2026-08-01)
+
+**Shipped as a calculator that grants, never as an enforcement** — the human's call
+between three scopes. `engine/elder.downtime_award` totals p.259's annual experience for
+a stretch of skipped years and reports the 4:3:2:1 split; the UI is a **Downtime…**
+dialog in the Edit tab's sticky XP column, beside Adjust XP, **post-lock only** like
+`Character.age` itself.
+
+### The two things the page does not settle, and the rulings taken
+
+1. **A downtime that crosses an age band.** The annual rate falls as the character ages
+   (5/4/3/2 at 100/250/500/1,000), and the page never says what to do when a stretch
+   spans a boundary. **Ruling (human, 2026-08-01): walk it year by year**, applying the
+   rate for the age *reached* in each year — the page describes the award as "a
+   year-by-year stream of individual incidents", and a flat rate at either end of the
+   stretch over- or under-pays. Age 90 + 40 years pays **155**, not the 200 a
+   final-age flat rate would give nor the 0 a starting-age one would.
+2. **A lump sum that is not a multiple of ten.** The page's shortcut ("divide by 10, then
+   multiply by 4, 3, 2 and 1") only divides cleanly on multiples of ten. Ours floors each
+   share and gives the remainder to the largest category, so **the four parts always sum
+   back to the lump**. That last step is ours, not the page's, and is marked so at the
+   site.
+
+### Two behaviours worth knowing
+
+* **The chart begins at 100 years and this build invents no row beneath it**, so a year
+  lived under 100 years of Exaltation awards zero here. The dialog *says so* rather than
+  printing a bare 0, which would read as a bug.
+* **Granting advances the age by the same years.** They are the same downtime, and
+  letting them drift would let a player collect a century of maturation experience
+  without ever reaching the century that raises their Essence ceiling.
+
+### What it deliberately is not
+
+The grant is **not a ledger row** — this build logs *purchases*, not grants (Adjust XP
+does not log either; a per-session XP-grant ledger is a standing deferred item in
+CLAUDE.md). It moves `xp_earned` and reports what it did.
+
+Training times remain absent, so an elder raise is still cheaper in table-time than
+printed. Unchanged by this.
+
+Ten tests in `tests/test_elder.py`: the chart, the band walk, band coalescing, the
+sub-100 floor, the split ratio, a rounding sweep over 400 totals, and both UI halves
+(`/editor-downtime-view` reads, `/editor-downtime` grants — separate routes, because a
+route builds once per session and the granting test mutates).
+
+
+## The age box moved out of Identity (2026-08-01)
+
+Human's call, at the browser: once Downtime grants advance the age, an "Exalted years"
+box in the Identity panel is **a second control reaching the same state** — and the two
+disagree by construction. A player could age a century in Identity and then collect that
+century's maturation experience from Downtime, or grant the downtime and wonder why
+Identity's number had changed under them.
+
+So Identity lost the box and the Downtime dialog gained it. **Setting the age and
+granting the award stay separate gestures**, deliberately: a character who was *already*
+ancient when play began did not earn that maturation experience at this table, so the
+age field writes immediately and Grant is its own press.
+
+The elder ceilings readout followed the control — it was a tooltip on the Identity box,
+and it is now a line in the dialog ("Now: Essence up to 9, Abilities and Attributes up to
+9"), along with the Terrestrial note and a "this downtime reaches Essence N" cue when the
+years being considered would cross a band. The one number that governs every track on the
+sheet must not be settable with nothing on screen saying what it does.
+
+`test_the_editor_builds_for_an_elder` now asserts "Exalted years" is **absent** from the
+editor page, so the box cannot quietly come back.

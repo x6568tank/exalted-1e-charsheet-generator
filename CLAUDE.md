@@ -175,7 +175,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1584 tests passing)
+## Status (1601 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -204,7 +204,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Rated artifacts — DEFERRED, sourced** (the E:Ab p.131 Artifact budget table, transcribed; per-specific-artifact Damaged Artifact) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted) | `docs/status/advantages-tab.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
-| **Elder Exalts — DONE, NOT browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only) | `docs/status/elder-exalts.md` |
+| **Elder Exalts — DONE, browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -274,19 +274,23 @@ Recorded as decision records, not restated here — read them before proposing a
 ## TODO
 
 ### 👉 START HERE (session handoff, 2026-07-31)
-**One item is tests-green but NOT browser-verified — Elder Exalts, below. Everything
-under it is DONE and browser-verified. Nothing is half-finished.**
+**Everything below is DONE and browser-verified. Nothing is half-finished.**
 
 The last four items, newest first — read the linked file before touching that area:
 
-* **Elder Exalts** (`docs/status/elder-exalts.md`) — **NEEDS A CLICK-THROUGH.** PG
+* **Elder Exalts** (`docs/status/elder-exalts.md`) — **DONE, browser-verified.** PG
   pp.258-259, shipped 2026-07-31: age raises Essence past 5 (100/6, 250/7, 500/8,
   1,000/9), Essence in turn raises Abilities and Attributes past 5, and Terrestrials are
   held at 7 without an ST toggle. Not a splat — an axis, one module (`engine/elder.py`),
   one entry point. **`Character.age` is post-lock only**, the inverse of the frozen
-  chargen choices below: a character may never leave creation with Essence above 5. The
-  open question is visual, not mechanical — whether a nine-pip dot track still fits the
-  panel. Training times and the p.259 downtime XP awards are deliberately absent.
+  chargen choices below: a character may never leave creation with Essence above 5.
+  **The p.259 downtime awards shipped 2026-08-01** as a *calculator that grants* — a
+  Downtime… dialog beside Adjust XP; it walks the age bands year by year (human's
+  ruling) and advances the age along with the XP. Enforcing the 4:3:2:1 split was
+  rejected: it would earmark every ledger row. Training times are still absent.
+  **The age box lives in that dialog, not in Identity** (human, at the browser): once
+  the grant moved age, a second control reaching the same state could only disagree
+  with it. A test asserts "Exalted years" is absent from the editor page.
 * **The Edit⇄XP merge** (`docs/status/edit-xp-merge.md`, decision 0013). There is **no XP
   tab**; `ui/xp.py` is deleted. One trait surface on both sides of the lock: the dot
   tracks are free setters pre-lock and XP steppers post-lock, and a downward click opens
@@ -308,8 +312,10 @@ audit reports single-site fields as if they were healthy — **a single read sit
 suspect as none when the read sits in the phase that wrote it.** Test the buy path, not
 the effect.
 
-**What is next is the human's call.** Candidates: the **M&F filter/search** (99 entries in
-a flat dropdown, now solvable in one place) and `docs/status/rated-artifacts.md`. The four
+**What is next is the human's call.** The **M&F filter/search** is DONE (2026-08-01 —
+side/category/free-text over name AND rules text, one filter serving both regimes;
+`docs/status/advantages-tab.md`). The standing candidate is
+`docs/status/rated-artifacts.md`, which is already sourced and transcribed. The four
 remaining non-Exalt splats are all still blocked on source material.
 
 **Three rulings landed 2026-07-31** (human, rules authority — written up in

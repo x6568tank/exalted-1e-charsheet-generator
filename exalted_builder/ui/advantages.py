@@ -249,6 +249,68 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         del character.merits_flaws[idx]
         refresh_all()
 
+    # ---- Merits & Flaws: the filter bar ----------------------------------- #
+    # 99 entries in one flat dropdown, which is how both regimes shipped: the chargen
+    # row select had no type-ahead at all, and the play one had type-ahead over a label
+    # that leads with the name, so "combat" found nothing. One filter, used by both —
+    # the same discipline as the rest of this module, since a second copy is what put
+    # the splat filter on one panel and not the other.
+    #
+    # The controls do NOT refresh the body. A `ui.input` fires per keystroke and a
+    # rebuilt input has lost focus, so the search box would eat every character after
+    # the first. The filter reaches into the live selects with `set_options` instead.
+    _MF_SIDES = {"": "All", "merit": "Merits", "flaw": "Flaws"}
+    mf_filter: dict[str, str] = {"text": "", "kind": "", "category": ""}
+
+    def _mf_categories() -> dict[str, str]:
+        return {"": "All", **{c: c for c in sorted(
+            {m.category for m in rs.merits_flaws.values() if m.category})}}
+
+    def _mf_matches(m) -> bool:
+        """Does this entry survive the filter bar? A two-sided entry answers to BOTH
+        side filters — it is genuinely either, and hiding it from both is how a player
+        loses Prodigy. Text matches name, category and rules text, so a search for
+        "combat" or "essence" finds entries whose NAME says neither."""
+        want = mf_filter["kind"]
+        if want and m.kind not in (want, "either"):
+            return False
+        if mf_filter["category"] and m.category != mf_filter["category"]:
+            return False
+        text = mf_filter["text"].strip().lower()
+        if text:
+            hay = f"{m.name} {m.category or ''} {m.description or ''}".lower()
+            if text not in hay:
+                return False
+        return True
+
+    def _available_merits(essence_start: int | None = None) -> list:
+        """Every entry this character may take, Merits before Flaws then by name. The
+        splat/caste/Essence filter is the engine's, never restated here."""
+        return [m for m in sorted(rs.merits_flaws.values(),
+                                  key=lambda m: (m.kind != "merit", m.name))
+                if validate.merit_available_to(m, character.exalt_type, character.caste,
+                                               starting_essence=essence_start)]
+
+    def _mf_filter_bar(apply_filter) -> None:
+        def _set(**kw) -> None:
+            mf_filter.update(kw)
+            apply_filter()
+
+        with ui.row().classes("w-full items-center gap-2 flex-wrap"):
+            ui.input(value=mf_filter["text"], placeholder="search name or rules text…",
+                     on_change=lambda e: _set(text=e.value or "")
+                     ).props("dense clearable").classes("flex-1 min-w-48")
+            ui.select(_MF_SIDES, value=mf_filter["kind"], label="Side",
+                      on_change=lambda e: _set(kind=e.value or "")
+                      ).props("dense").classes("w-32")
+            ui.select(_mf_categories(), value=mf_filter["category"], label="Category",
+                      on_change=lambda e: _set(category=e.value or "")
+                      ).props("dense").classes("w-40")
+
+    def _mf_count_label(shown: int, total: int) -> str:
+        return (f"{total} available" if shown == total
+                else f"{shown} of {total} shown — clear the filter to see the rest")
+
     def _merit_label(m) -> str:
         # The sign so a Flaw reads as a grant, not a charge; a variable-cost entry
         # shows its range instead of a single number.
@@ -266,13 +328,34 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         #
         # Filtered to what this character may actually take: offering a Solar Chimera
         # only to answer with a validation error is a worse experience than not offering
-        # it. Held rows survive the filter via the `row_opts.setdefault` guard, so an
-        # entry that became illegal (a caste change) stays visible and flagged rather
-        # than vanishing.
-        merit_opts = {m.id: _merit_label(m) for m in sorted(
-            rs.merits_flaws.values(), key=lambda m: (m.kind != "merit", m.name))
-            if validate.merit_available_to(m, character.exalt_type, character.caste,
-                                           starting_essence=b.essence_start)}
+        # it. Held rows survive both this filter and the search bar's via `_row_opts`,
+        # so an entry that became illegal (a caste change) stays visible and flagged
+        # rather than vanishing.
+        available = _available_merits(b.essence_start)
+        merit_opts = {m.id: _merit_label(m) for m in available}
+        # (select, purchase) for every row on screen, so the filter bar can re-option
+        # them in place without rebuilding — and so a row's own held entry survives a
+        # filter that would otherwise exclude it.
+        row_selects: list = []
+
+        def _row_opts(mp) -> dict:
+            """The options ONE row offers: the filtered set, plus whatever that row
+            already holds. An off-catalogue id (a save opened without its data) stays
+            selectable rather than 500ing the select — the same guard the caste and
+            college dropdowns use — and so does an entry the filter excludes, because
+            `ui.select` raises when its value is not among its options."""
+            opts = {m.id: _merit_label(m) for m in available if _mf_matches(m)}
+            if mp.merit_id:
+                opts.setdefault(mp.merit_id,
+                                merit_opts.get(mp.merit_id, mp.merit_id))
+            return opts
+
+        def _apply_filter() -> None:
+            for sel, mp in row_selects:
+                sel.set_options(_row_opts(mp), value=mp.merit_id)
+            shown = sum(1 for m in available if _mf_matches(m))
+            count.text = _mf_count_label(shown, len(available))
+
         eff = meritsmod.merits_and_flaws_calc(rs, character)
         spent = validate.merit_bonus_point_cost(rs, character)
         grant = eff.bonus_point_grant
@@ -289,6 +372,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                          f"{eff.flaw_points_raw - eff.bonus_point_grant} is lost to the "
                          f"{meritsmod.FLAW_POINT_CAP}-point cap (p.17). The Flaws still "
                          f"apply.").classes("text-xs font-semibold text-amber-700")
+            _mf_filter_bar(_apply_filter)
+            count = ui.label(_mf_count_label(
+                sum(1 for m in available if _mf_matches(m)), len(available))
+            ).classes("text-xs opacity-60")
             for idx, mp in enumerate(character.merits_flaws):
                 definition = rs.merits_flaws.get(mp.merit_id)
                 # flex-wrap, NOT no-wrap: the merge of the two old panels put more
@@ -300,11 +387,11 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                     # An off-catalogue id (a save opened without its data) stays
                     # selectable rather than 500ing the select — the same guard the
                     # caste and college dropdowns use.
-                    row_opts = dict(merit_opts)
-                    row_opts.setdefault(mp.merit_id, mp.merit_id)
-                    ui.select(row_opts, value=mp.merit_id, label="Merit / Flaw",
-                              on_change=lambda e, mp=mp: set_merit(mp, e.value)
-                              ).classes("flex-1 min-w-64").props("dense")
+                    sel = ui.select(_row_opts(mp), value=mp.merit_id,
+                                    label="Merit / Flaw", with_input=True,
+                                    on_change=lambda e, mp=mp: set_merit(mp, e.value)
+                                    ).classes("flex-1 min-w-64").props("dense")
+                    row_selects.append((sel, mp))
                     # Which side a two-sided entry was taken on. No blank option: the
                     # value decides whether this charges bonus points or grants them, so
                     # it must be a deliberate pick. An unrecorded choice shows empty and
@@ -528,17 +615,34 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                          f"still applies, but pays no XP."
                          ).classes("text-xs font-semibold text-amber-700")
             # --- gain ------------------------------------------------------ #
-            opts = {m.id: f"{m.name} {m.cost_note or ''}".strip()
-                    for m in sorted(rs.merits_flaws.values(), key=lambda m: m.name)
-                    if validate.merit_available_to(
-                        m, character.exalt_type, character.caste,
-                        starting_essence=validate.effective_budgets(
-                            rs, character).essence_start)}
+            available = _available_merits(
+                validate.effective_budgets(rs, character).essence_start)
+
+            def _gain_opts() -> dict:
+                opts = {m.id: f"{m.name} {m.cost_note or ''}".strip()
+                        for m in available if _mf_matches(m)}
+                # The pending selection stays selectable even once the filter excludes
+                # it — narrowing the search must not silently change what Gain buys.
+                pending = gain_state.get("id") or ""
+                if pending:
+                    opts.setdefault(pending, pending)
+                return opts
+
+            def _apply_filter() -> None:
+                gain_sel.set_options(_gain_opts(), value=gain_state.get("id") or None)
+                count.text = _mf_count_label(
+                    sum(1 for m in available if _mf_matches(m)), len(available))
+
+            _mf_filter_bar(_apply_filter)
+            count = ui.label(_mf_count_label(
+                sum(1 for m in available if _mf_matches(m)), len(available))
+            ).classes("text-xs opacity-60")
             with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                ui.select(opts, label="Merit / Flaw", with_input=True,
-                          on_change=lambda e: _mf_changed(
-                              id=e.value or "", taken_as="", tier="", points=0, detail="")
-                          ).classes("flex-1").props("dense")
+                gain_sel = ui.select(
+                    _gain_opts(), label="Merit / Flaw", with_input=True,
+                    on_change=lambda e: _mf_changed(
+                        id=e.value or "", taken_as="", tier="", points=0, detail="")
+                ).classes("flex-1").props("dense")
                 ui.button("Gain", on_click=_gain_mf).props(f"dense color={pal.button}")
 
             # What the selected entry actually IS — printed cost line, any splat

@@ -103,9 +103,40 @@ Render-matrix routes added for the shapes this change can produce: a casteless s
 Merit id and Background name in both regimes (`/advantages-unknown`,
 `/advantages-unknown-xp`), and the off-list detail above.
 
-## Next, if wanted
+## The M&F filter/search — DONE 2026-08-01
 
-**The M&F filter/search** (kind, category, free-text). 99 entries in a flat dropdown is
-the real usability problem, and there is now one place to solve it instead of two. Note
-the availability filter prunes ~11 of 99 at best, so kind + category + search is what
-does the work.
+The usability problem this tab inherited: **99 entries in a flat dropdown.** The chargen
+row select had no type-ahead at all, and the play "gain" select had type-ahead over a
+label that leads with the name, so a search for a *category* or for what an entry *does*
+found nothing on either side.
+
+**One filter serves both regimes** (`_mf_matches` in `ui/advantages.py`) — the same
+discipline as the rest of the module, since a second copy is exactly what put the splat
+filter on one panel and not the other.
+
+* **Free text** matches name, category **and rules text**, so "combat" or "essence"
+  finds entries whose *name* says neither.
+* **Side** — All / Merits / Flaws. A `kind: "either"` entry answers to **both**, because
+  it is genuinely either; hiding it from both is how a player loses Eternal Vow.
+* **Category** — the five authored ones (Physical, Mental, Social, Supernatural,
+  Property), read off the data rather than listed here.
+* A **"N of M shown"** counter, so a filter that hides everything reads as a filter and
+  not as an empty catalogue.
+
+**The controls do not refresh the panel.** A `ui.input` fires per keystroke and a rebuilt
+input has lost focus, so a refreshing search box eats every character after the first.
+The filter reaches into the live selects with `set_options` instead — which is why every
+select it touches must re-add its own current value:
+
+> `ui.select` **raises at build time** when its value is not among its options, and the
+> raise takes the whole tab with it. A held entry that the filter excludes is the easiest
+> way to trigger that, so `_row_opts` and `_gain_opts` both `setdefault` their own value.
+> `test_a_held_entry_survives_a_filter_that_excludes_it` pins it.
+
+Six tests in `tests/test_merits_flaws.py`, driving **both** routes (`/mf-side`,
+`/mf-side-xp`) — a filter that works at chargen and not in play is precisely the drift
+this module exists to prevent.
+
+**Not done, deliberately:** the availability filter still prunes only ~11 of 99, so
+side + category + search is what does the work. That is by design — an entry this
+character cannot take is hidden, not greyed.

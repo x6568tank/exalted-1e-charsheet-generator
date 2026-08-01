@@ -382,6 +382,119 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             return
         refresh_all()
 
+    _downtime = {"years": 10}
+
+    def _downtime_dialog() -> None:
+        """The p.259 downtime calculator: years of skipped time → the experience it
+        awards and the 4:3:2:1 split it must be spent across.
+
+        A CALCULATOR that grants, never an enforcement — the split prints as advice and
+        nothing downstream polices it (see engine.elder). Post-lock only, because it
+        sits with the other XP controls and `Character.age` is post-lock only.
+
+        Granting also ADVANCES THE AGE by the same years. The two are the same downtime,
+        and letting them drift would let a player collect a century of maturation
+        experience without ever reaching the century that raises their Essence ceiling.
+
+        This is ALSO the only place age is set (2026-08-01). It was a second box in the
+        Identity panel until the grant existed, and then it was a way to reach the same
+        state by two routes that disagreed. Setting it here is still needed and is not
+        the same gesture as granting: a character who was ALREADY ancient when play
+        began did not earn that maturation experience at this table, so age is written
+        immediately and the award is a separate, deliberate press.
+        """
+        with ui.dialog() as dialog, ui.card().classes("w-[28rem] gap-2"):
+            ui.label("Downtime").classes("text-lg font-bold")
+            ui.label("Annual experience for skipped years (Player's Guide p.259). The "
+                     "award depends on the character's age, so a downtime that crosses "
+                     "100, 250, 500 or 1,000 years changes rate partway."
+                     ).classes("text-xs text-gray-600")
+
+            @ui.refreshable
+            def preview() -> None:
+                award = elder.downtime_award(character.age, _downtime["years"])
+                ui.label(f"Age {award.from_age} → {award.to_age}").classes(
+                    "text-sm font-semibold")
+                # The ceilings age has unlocked. This readout used to be a tooltip on
+                # the Identity age box; it follows the control that replaced it, or the
+                # one number that governs every track on the sheet would be settable
+                # with nothing on screen saying what it did.
+                caps = elder.elder_caps(ruleset, character)
+                if caps.is_elder:
+                    ui.label(f"Now: Essence up to {caps.essence}, Abilities and "
+                             f"Attributes up to {caps.trait}."
+                             ).classes("text-xs opacity-70")
+                if caps.terrestrial_limited:
+                    ui.label("Held at the Terrestrial ceiling of 7 — age alone would "
+                             "allow more (ST Options can lift it).").classes(
+                        "text-xs text-amber-700")
+                unlocked = elder.essence_cap_for_age(award.to_age)
+                if unlocked > caps.essence and not caps.terrestrial_limited:
+                    ui.label(f"This downtime reaches Essence {unlocked}."
+                             ).classes("text-xs font-semibold").style(
+                        f"color:{pal.accent}")
+                for band in award.bands:
+                    span = (f"{band.from_age}" if band.years == 1
+                            else f"{band.from_age}–{band.to_age}")
+                    ui.label(f"age {span}: {band.years} yr × {band.rate} = "
+                             f"{band.experience} XP").classes("text-xs font-mono opacity-70")
+                ui.separator()
+                ui.label(f"{award.total} XP").classes("text-xl font-bold").style(
+                    f"color:{pal.accent}")
+                if not award.total and _downtime["years"]:
+                    # The chart starts at 100 years and the build never invents the rows
+                    # below it. Say so, or a zero reads as a bug.
+                    ui.label("The p.259 chart begins at 100 years of Exaltation — a "
+                             "younger character earns no maturation experience from it. "
+                             "Ordinary play awards are the Storyteller's."
+                             ).classes("text-xs text-amber-700")
+                for label, points in award.split:
+                    with ui.row().classes("w-full justify-between no-wrap items-baseline"):
+                        ui.label(label).classes("text-xs")
+                        ui.label(str(points)).classes("text-xs font-semibold")
+                ui.label("The split is what p.259 requires the experience be spent on. "
+                         "It is printed as guidance — nothing here enforces it."
+                         ).classes("text-xs italic opacity-60")
+
+            def _set_years(value) -> None:
+                _downtime["years"] = max(0, int(value or 0))
+                preview.refresh()
+
+            def _set_age(value) -> None:
+                character.age = max(0, int(value or 0))
+                preview.refresh()
+
+            with ui.row().classes("w-full gap-2 no-wrap"):
+                # Years of EXALTED existence, counted from the Exaltation — the elder
+                # rules' only input (PG pp.258-259).
+                age_field = ui.number("Exalted years so far", value=character.age, min=0,
+                                      format="%d", on_change=lambda e: _set_age(e.value)
+                                      ).props("dense").classes("flex-1")
+                # The dot tracks' ceilings are built from age, so the body has to be
+                # rebuilt when it moves — but on BLUR, not per keystroke: refreshing
+                # mid-type would tear the field out from under someone typing "1000"
+                # one digit at a time.
+                age_field.on("blur", lambda _: refresh_all())
+                ui.number("Years of downtime", value=_downtime["years"], min=0,
+                          format="%d", on_change=lambda e: _set_years(e.value)
+                          ).props("dense").classes("flex-1")
+            preview()
+
+            def _grant() -> None:
+                award = elder.downtime_award(character.age, _downtime["years"])
+                character.age = award.to_age
+                advancement.add_xp(character, award.total)
+                dialog.close()
+                ui.notify(f"Granted {award.total} XP — age is now {award.to_age}.",
+                          type="positive")
+                refresh_all()
+
+            with ui.row().classes("w-full justify-end gap-2"):
+                ui.button("Cancel", on_click=dialog.close).props("flat dense")
+                ui.button("Grant", icon="check", on_click=_grant
+                          ).props(f"dense color={pal.button}")
+        dialog.open()
+
     def xp_controls() -> None:
         """Adjust XP, and the one control the read-only log would otherwise strand.
 
@@ -399,6 +512,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 _adjust.__setitem__("amount", int(amount.value or 0)),
                 advancement.add_xp(character, int(amount.value or 0)),
                 changed())).props(f"dense color={pal.button}")
+        ui.button("Downtime…", icon="hourglass_bottom", on_click=_downtime_dialog
+                  ).props("dense flat size=sm").classes("w-full")
         rows = viewmod.build_xp_log(ruleset, character)
         if rows:
             ui.button(f"Undo last: {rows[-1].label}", icon="undo", on_click=_do_undo
@@ -699,28 +814,13 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                  on_change=lambda e: (setattr(character, "name", e.value), changed())).classes("flex-1")
                         ui.input("Concept", value=character.concept,
                                  on_change=lambda e: setattr(character, "concept", e.value)).classes("flex-1")
-                        # Years of EXALTED existence — the elder rules' only input
-                        # (Player's Guide pp.258-259). The inverse of every other
-                        # control in this panel: disabled UNTIL the lock, because a
-                        # character may not leave creation with Essence above 5, so
-                        # age can do nothing there but mislead.
-                        _age = ui.number(
-                            "Exalted years", value=character.age, min=0, format="%d",
-                            on_change=lambda e: (
-                                setattr(character, "age", int(e.value or 0)), changed()),
-                        ).classes("w-32")
-                        # The dot tracks' ceilings are built from age, so they have to
-                        # be rebuilt when it changes — but on BLUR, not per keystroke:
-                        # refreshing mid-type would tear the field out from under
-                        # someone typing "1000" one digit at a time.
-                        _age.on("blur", lambda _: body.refresh())
-                        if not locked:
-                            _age.props("disable")
-                            _age.tooltip("Set in play — age is not a chargen choice.")
-                        elif e_caps.is_elder:
-                            _age.tooltip(
-                                f"Essence up to {e_caps.essence}; "
-                                f"Abilities and Attributes up to {e_caps.trait}.")
+                        # Exalted years used to be a box here. It moved into the
+                        # Downtime dialog (2026-08-01, human's call): age and the
+                        # maturation experience of PG p.259 are the same passage of
+                        # time, and two controls for it invited them to drift — a
+                        # player could age a century in Identity and collect the
+                        # century's experience again from Downtime. One control now
+                        # does both, and it is post-lock like the age itself.
                     # Wraps (no `no-wrap`) so the identity controls flow onto a second
                     # line rather than squashing to truncated labels ("C…"); each gets
                     # a min width so its label always shows in full.

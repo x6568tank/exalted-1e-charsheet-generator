@@ -940,3 +940,26 @@ CHAR_ELDER_DB.essence_rating = 7
 @ui.page('/editor-elder-terrestrial')
 def page_editor_elder_terrestrial():
     editor.build_editor(RS, CHAR_ELDER_DB, Path("x.json"), with_header=False)
+
+
+# The p.259 downtime calculator, on its OWN character: the Grant button mutates age and
+# xp_earned, and a route that shares CHAR_ELDER would leak that into every other elder
+# test. Age 90 so the preview has to cross the 100-year band boundary.
+CHAR_DOWNTIME = Character(id="dwn", name="Sleeper", caste="dawn")
+lifecycle.lock_chargen(CHAR_DOWNTIME, RS)
+CHAR_DOWNTIME.age = 90
+
+@ui.page('/editor-downtime')
+def page_editor_downtime():
+    editor.build_editor(RS, CHAR_DOWNTIME, Path("x.json"), with_header=False)
+
+# The read-only half of the same panel, on its own character and route: a route builds
+# once per session, so the test that GRANTS must not share one with the test that only
+# looks. Age 240 so the preview crosses 250 and prints two bands.
+CHAR_DOWNTIME_VIEW = Character(id="dwnv", name="Dreamer", caste="dawn")
+lifecycle.lock_chargen(CHAR_DOWNTIME_VIEW, RS)
+CHAR_DOWNTIME_VIEW.age = 240
+
+@ui.page('/editor-downtime-view')
+def page_editor_downtime_view():
+    editor.build_editor(RS, CHAR_DOWNTIME_VIEW, Path("x.json"), with_header=False)

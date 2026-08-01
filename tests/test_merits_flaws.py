@@ -3158,3 +3158,108 @@ def test_the_engine_allows_both_ceilings_the_xp_tab_was_hiding(rs):
     advancement.add_xp(c, 200)
     assert advancement.raise_attribute(rs, c, A.STRENGTH).to_rating == 6
     assert advancement.raise_virtue(rs, c, V.VALOR).to_rating == 6
+
+
+# --- the M&F filter bar (2026-08-01) ---------------------------------------- #
+# 99 entries in one flat dropdown was the last standing usability complaint. Both
+# regimes get ONE filter (`_mf_matches`), so these tests drive both routes; a filter
+# that works on chargen and not in play is exactly the drift this module exists to
+# prevent.
+
+def _mf_search_box(user):
+    """The filter bar's search input. Found by placeholder, because the Backgrounds
+    panel on the same tab also renders `ui.input`s."""
+    boxes = [el for el in user.find(ui.input).elements
+             if "search" in (el.props.get("placeholder") or "")]
+    assert boxes, "no M&F search box rendered"
+    return boxes[0]
+
+
+def _mf_side_select(user):
+    return next(sel for sel in user.find(ui.select).elements
+                if set(sel.options or {}) == {"", "merit", "flaw"})
+
+
+def _merit_row_options(user) -> set[str]:
+    """The options offered by the entry dropdowns — the ones keyed by merit id."""
+    return {o for sel in user.find(ui.select).elements
+            for o in (sel.options or {}) if str(o).startswith(("mf.", "thaum."))}
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_merit_dropdown_ships_a_search_box(user) -> None:
+    """The complaint itself: 99 entries, no way to narrow them."""
+    await user.open('/mf-side')
+    _mf_search_box(user)
+    _mf_side_select(user)
+    await user.should_see("available")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_searching_narrows_the_chargen_merit_dropdown(user) -> None:
+    """Typing re-options the live select rather than rebuilding the panel — a rebuilt
+    `ui.input` loses focus, which would eat every keystroke after the first."""
+    await user.open('/mf-side')
+    before = _merit_row_options(user)
+    assert len(before) > 50, "the dropdown was already narrow — test proves nothing"
+    _mf_search_box(user).set_value("vow")
+    after = _merit_row_options(user)
+    assert after < before
+    assert "mf.eternal-vow" in after
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_search_matches_rules_text_not_only_the_name(user) -> None:
+    """A player looking for a Merit knows what it DOES, not what it is called."""
+    await user.open('/mf-side')
+    _mf_search_box(user).set_value("essence")
+    hits = _merit_row_options(user)
+    assert hits, "searching rules text found nothing at all"
+    names = {exalted_builder.rules_db.load_app_ruleset(
+        Path(exalted_builder.__file__).parent / "data").merits_flaws[h].name.lower()
+        for h in hits}
+    assert any("essence" not in n for n in names), \
+        "every hit had 'essence' in its NAME — the description was not searched"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_held_entry_survives_a_filter_that_excludes_it(user) -> None:
+    """`ui.select` RAISES when its value is not among its options, and the raise takes
+    the whole tab with it. Filtering to something the held row does not match is the
+    easiest way to trigger that, so the held id is always re-added."""
+    await user.open('/mf-side')
+    _mf_search_box(user).set_value("zzzz-matches-nothing")
+    held = [sel for sel in user.find(ui.select).elements
+            if sel.value == "mf.eternal-vow"]
+    assert held, "the held entry vanished from its own dropdown"
+    assert "mf.eternal-vow" in (held[0].options or {})
+    await user.should_see("of")          # the "N of M shown" counter
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_side_filter_keeps_two_sided_entries(user) -> None:
+    """An `either` entry is genuinely both, so hiding it from both side filters is how
+    a player loses Eternal Vow and Prodigy."""
+    await user.open('/mf-side')
+    _mf_side_select(user).set_value("flaw")
+    assert "mf.eternal-vow" in _merit_row_options(user)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_play_gain_dropdown_filters_too(user) -> None:
+    """The same filter on the other side of the lock. The play select already had
+    type-ahead, but over a label that leads with the name — so a category or a rules-
+    text search found nothing there either."""
+    await user.open('/mf-side-xp')
+    before = _merit_row_options(user)
+    assert len(before) > 50
+    _mf_search_box(user).set_value("vow")
+    after = _merit_row_options(user)
+    assert after < before
+    assert "mf.eternal-vow" in after
