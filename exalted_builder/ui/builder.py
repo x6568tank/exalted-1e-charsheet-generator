@@ -50,7 +50,7 @@ _DATA_DIR = _PKG / "data"
 _TABS = ("Edit", "Advantages", "Charms", "Combos", "Play", "ST", "Custom", "Sheet")
 
 
-def visible_tabs(locked: bool) -> tuple[str, ...]:
+def visible_tabs(locked: bool, *, combos: bool = True) -> tuple[str, ...]:
     """The tabs for a character at this stage of its life.
 
     **Edit is on the bar on BOTH sides of the lock** (decision 0013). It used to be
@@ -76,17 +76,23 @@ def visible_tabs(locked: bool) -> tuple[str, ...]:
     the lock silently mean nothing to the point accounting.
     """
     hidden = {"Play"} if not locked else set()
+    # A splat that may never learn Combos and builds no Arrays either (ghosts, E:Ab
+    # p.234) loses the tab rather than being given an empty one that refuses every
+    # attempt. Asked of `view.has_combos_tab` by the caller, so the rule lives with
+    # the engine and this stays a pure function of two booleans.
+    if not combos:
+        hidden.add("Combos")
     return tuple(t for t in _TABS if t not in hidden)
 
 
-def resolve_tab(name: str, locked: bool) -> str:
+def resolve_tab(name: str, locked: bool, *, combos: bool = True) -> str:
     """`name`, or a sensible landing tab when locking/unlocking just hid it.
 
     Edit survives the lock now, so it is the answer in both directions — a player who
     locks while editing traits stays where they were, looking at the same dots, which
     is the point of the merge.
     """
-    if name in visible_tabs(locked):
+    if name in visible_tabs(locked, combos=combos):
         return name
     return "Edit"
 
@@ -397,8 +403,9 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         # A Charm-Slot splat builds Arrays instead of Combos (p.89), so the tab is
         # relabelled for them. Only the LABEL changes — the tab keeps its "Combos"
         # name, so tab state, visibility and resolve_tab are untouched.
-        tabs["Combos"].props(
-            f'label={"Arrays" if viewmod.uses_arrays(ruleset, ctx["char"]) else "Combos"}')
+        if viewmod.has_combos_tab(ruleset, ctx["char"]):
+            tabs["Combos"].props(
+                f'label={"Arrays" if viewmod.uses_arrays(ruleset, ctx["char"]) else "Combos"}')
 
     _ICONS = {"Edit": "edit", "Advantages": "workspace_premium",
               "Charms": "account_tree", "Combos": "bolt",
@@ -417,9 +424,10 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         locked. If the tab we are on is the one that just disappeared, land on its
         counterpart instead of rendering a tab that is no longer on the bar."""
         locked = ctx["char"].chargen_locked
+        combos = viewmod.has_combos_tab(ruleset, ctx["char"])
         for name in _TABS:
-            tabs[name].set_visibility(name in visible_tabs(locked))
-        state["tab"] = resolve_tab(state["tab"], locked)
+            tabs[name].set_visibility(name in visible_tabs(locked, combos=combos))
+        state["tab"] = resolve_tab(state["tab"], locked, combos=combos)
         if tab_bar.value != state["tab"]:
             state["syncing"] = True
             tab_bar.set_value(state["tab"])

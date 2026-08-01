@@ -413,9 +413,12 @@ def test_ranged_weapons_carry_range_and_bows_max_strength():
 def test_virtue_flaw_is_splat_gated():
     """The Dragon-Blooded, Sidereals and Alchemicals have no Virtue Flaw (human,
     rules authority, 2026-07-30). Independent of the Limit track: the Sidereal still
-    has Paradox, it just has no flawed Virtue naming it."""
+    has Paradox, it just has no flawed Virtue naming it.
+
+    Ghosts join the list from the page rather than by ruling — E:Ab p.148: ghosts "are
+    not subject to the effects of the Great Curse or the influence of the Malfeans"."""
     rs = rules_db.load_ruleset(DATA_DIR)
-    without = {"Dragon-Blooded", "Sidereal", "Alchemical", "Mortal"}
+    without = {"Dragon-Blooded", "Sidereal", "Alchemical", "Mortal", "Ghost"}
     for eid, ex in rs.exalts.items():
         assert ex.has_virtue_flaw is (eid not in without), eid
     # the derivation agrees, and a Sidereal keeps its renamed Limit track regardless

@@ -727,7 +727,11 @@ def test_the_whole_general_chapter_is_authored(rs):
     by diffing every description against the source .md rather than by reading — see
     docs/status/merits-flaws-triage.md.
     """
-    general = [m for m in rs.merits_flaws.values() if m.id.startswith("mf.")]
+    # Scoped by PAGE, not by the "mf." prefix: Fighter in Life (2026-08-01) shares
+    # the prefix but comes from PG p.234, outside this chapter entirely. Counting by
+    # prefix silently folded it into the chapter's total.
+    general = [m for m in rs.merits_flaws.values()
+               if m.id.startswith("mf.") and m.source and 16 <= m.source.page <= 41]
     assert len(general) == 88
     # Three entries are printed as BOTH ("MERIT OR FLAW"), so they carry kind
     # "either" and sit in neither count — 43/44 is how the chapter PRINTS them.
@@ -2807,10 +2811,14 @@ def test_every_variable_cost_entry_is_inert_at_zero_points(rs):
     variable-cost entry is legal, costless and effectless. Nothing was ever going to
     fail — it just quietly did nothing."""
     variable = [m for m in rs.merits_flaws.values() if m.variable_cost]
-    assert len(variable) == 11
+    assert len(variable) == 12          # 11 from the general chapter + Fighter in Life
     for m in variable:
+        # Priced against a splat the entry is actually open to — Fighter in Life is
+        # Ghosts only (PG p.234), and asking a Solar for its price is meaningless.
+        splat = m.exalt_types[0] if m.exalt_types else "Solar"
+        caste = "" if splat == "Ghost" else "dawn"
         c = _solar(MP(merit_id=m.id))
-        assert validate.merit_points(m, c.merits_flaws[0], "Solar", "dawn") == 0
+        assert validate.merit_points(m, c.merits_flaws[0], splat, caste) == 0
 
 
 def test_the_forfeit_rate_accessor_converts_dots_to_points(rs):

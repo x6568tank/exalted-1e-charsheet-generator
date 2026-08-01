@@ -11,6 +11,12 @@
     "description": "Aides and friends who help you in tasks \u2014 close, capable companions; each Ally is a Storyteller character."
   },
   {
+    "id": "background.ancestor-cult",
+    "name": "Ancestor Cult",
+    "exalt_type": "Ghost",
+    "description": "Mortals who pay you homage after death, burning valuables and effigies in your memory; their prayers and offerings give you Essence. \u2022 a wife or a few children (the most any ghost on the Blessed Isle can expect without Immaculate persecution); \u2022\u2022 an honoured ancestor of a family line; \u2022\u2022\u2022 a large family or a small nation, with a mortal occultist sending a grave good no more than once a year; \u2022\u2022\u2022\u2022 an altar and a part-time priest, and the ghost regains 1 Willpower daily at the moment of her death; \u2022\u2022\u2022\u2022\u2022 a full temple with full-time priests, 1 Willpower daily and an extra 2 motes per hour. The living expect guidance in return, and a cult can be attacked by local gods, the Immaculate Order or a rival's cult. Cult \u2022 and \u2022\u2022 are folded into the \u2022\u2022\u2022\u2022 and \u2022\u2022\u2022\u2022\u2022 levels (p.152)."
+  },
+  {
     "id": "background.arsenal",
     "name": "Arsenal",
     "description": "Weapons or equipment issued from the Lookshy armories for your use. The gear remains the property of the Seventh Legion and must be turned in, in working order, when demanded \u2014 a temporary loan rather than part of your panoply."
@@ -70,7 +76,10 @@
   {
     "id": "background.familiar",
     "name": "Familiar",
-    "description": "An animal companion bonded to you and sustained by your Essence, rated by capability. (Autochthonia has almost no conventional fauna, so Alchemicals bond not animals but the animate constructs of their world, telepathically requisitioning an entity whose properties they define. Mortal Autochthonians may not take Familiar.)"
+    "description": "An animal companion bonded to you and sustained by your Essence, rated by capability. (Autochthonia has almost no conventional fauna, so Alchemicals bond not animals but the animate constructs of their world, telepathically requisitioning an entity whose properties they define. Mortal Autochthonians may not take Familiar.)",
+    "excluded_exalt_types": [
+      "Ghost"
+    ]
   },
   {
     "id": "background.family",
@@ -84,6 +93,12 @@
     "excluded_exalt_types": [
       "Dragon-Blooded"
     ]
+  },
+  {
+    "id": "background.grave-goods",
+    "name": "Grave Goods",
+    "exalt_type": "Ghost",
+    "description": "The value of your funeral spread \u2014 your outfit in the Underworld, which does NOT replenish itself the way Resources do; once it is gone you are naked and alone. \u2022 fine clothing, a weapon and some food; \u2022\u2022 armour, several suits, jewellery, books and several weapons; \u2022\u2022\u2022 a princely panoply, a dozen exceptional weapons and 100 Essence/10 Willpower in burnt offerings, with up to three sacrificed animals and a sacrificial servant; \u2022\u2022\u2022\u2022 a funeral fit for a queen, a tomb that entered the Underworld with you, 150 Essence/15 Willpower; \u2022\u2022\u2022\u2022\u2022 a national effort, yachts with effigy crews, 1,000 warrior effigies and 250 Essence/25 Willpower. High Resources cannot substitute \u2014 bought gear wears out, and it cannot justify grave-bound servants or sacrificed animals."
   },
   {
     "id": "background.hearts-blood",
@@ -111,12 +126,18 @@
     "id": "background.liege",
     "name": "Liege",
     "description": "The interest and favor your Deathlord takes in you, standing in for both Mentor and Backing (which loyal deathknights may not take). Grants extra bonus points at creation (2 at \u2022, 4 at \u2022\u2022, 6 at \u2022\u2022\u2022, 9 at \u2022\u2022\u2022\u2022, 12 at \u2022\u2022\u2022\u2022\u2022) spendable on Abyssal Command, Artifact, Followers, Influence, Manse, Necromancy, Resources, Underworld Manse, Whispers, Caste/Favored Abilities or Charms. Renegade deathknights on the run from their masters may not buy Liege.",
-    "exalt_type": "Abyssal"
+    "exalt_type": "Abyssal",
+    "excluded_exalt_types": [
+      "Ghost"
+    ]
   },
   {
     "id": "background.manse",
     "name": "Manse",
-    "description": "A geomantic structure over a demesne that produces Essence and houses a Hearthstone. (Autochthonia contains no Manses, so this Background is off limits to Alchemicals in any story where the Seal of the Eight Divinities is unbroken; once the Locust Crusade begins they use and build Manses in conquered Creation, purchasing this Trait exactly as a Solar does. Mortal Autochthonians may not take Manse.)"
+    "description": "A geomantic structure over a demesne that produces Essence and houses a Hearthstone. (Autochthonia contains no Manses, so this Background is off limits to Alchemicals in any story where the Seal of the Eight Divinities is unbroken; once the Locust Crusade begins they use and build Manses in conquered Creation, purchasing this Trait exactly as a Solar does. Mortal Autochthonians may not take Manse.)",
+    "excluded_exalt_types": [
+      "Ghost"
+    ]
   },
   {
     "id": "background.mentor",
@@ -166,6 +187,12 @@
     "name": "Spies",
     "description": "A share of your Deathlord's espionage apparatus of demons, ghosts and informants \u2014 from five spies (\u2022) up to a network spanning an entire Direction in both the living and dead worlds (\u2022\u2022\u2022\u2022\u2022). You may use it to spy on foes and draw on its resources for protection, but have no discretionary access to its budget.",
     "exalt_type": "Abyssal"
+  },
+  {
+    "id": "background.underworld-cult",
+    "name": "Underworld Cult",
+    "exalt_type": "Ghost",
+    "description": "Worship from your fellow DEAD \u2014 ghostly peasants venerating their ritual kings, citizens of Stygia their district's ruler. Provides no Willpower, but considerable Essence: \u2022 your peers and household, 1 Essence per hour; \u2022\u2022 perhaps a hundred spirit-clients, 2 per hour; \u2022\u2022\u2022 several hundred, the level of the average nephwrack temple or the ritual ruler of a city-state of the dead, 3 per hour; \u2022\u2022\u2022\u2022 several thousand, or the ambient reverence paid to an ancient hero, 4 per hour; \u2022\u2022\u2022\u2022\u2022 tens of thousands \u2014 a spectral religion or a Deathlord's following \u2014 5 per hour."
   },
   {
     "id": "background.underworld-manse",

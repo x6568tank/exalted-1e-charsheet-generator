@@ -1,0 +1,260 @@
+[
+  {
+    "id": "ghost.shifting-ghost-clay.waxen-ghostly-flesh",
+    "name": "Waxen Ghostly Flesh",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One scene",
+    "description": "With Waxen Ghostly Flesh, a ghost can adjust his form. Features can be lengthened or eradicated, appearances changed, height and girth added or decreased, and skin or hair color altered. Ghosts can assume improbable colors and shapes through the use of this Arcanos, and those whose appearance has been altered through the use of this Charm may be iridescent, inwardly glowing or painted with flawless funeral makeup. The ghost using the Charm spends Essence and then, molding his flesh as a potter would mold clay, adjusts the aspects of his appearance that he wishes to change. A Dexterity + Craft (Moliation) roll indicates the success level of the attempt, with the amount of change the ghost is attempting to render determining the difficulty. Note that using this power restricts the ghost to a roughly human form of mass roughly equivalent to the ghost’s own, and it does not grant useful armor, fangs or claws (though it can create the appearance of such). The ghost is simply reshaping himself, not drawing new ghostly matter from elsewhere. After a scene, the ghost’s flesh begins to melt back toward its customary form. The process is visible to anyone observing the ghost closely (Perception + Awareness roll) and is a useful and time-honored method of flushing out ghostly impostors. A ghost thus reshaped can spend a Willpower point to arrest the slide back to his usual form for an hour, at which point the process picks up where it left off. This process can be repeated as long as the ghost has the Willpower to spend",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  },
+  {
+    "id": "ghost.shifting-ghost-clay.nine-terrors-visage",
+    "name": "Nine Terrors Visage",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "ghost.shifting-ghost-clay.waxen-ghostly-flesh"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes",
+      "motes": 6
+    },
+    "duration": "One hour",
+    "description": "With Nine Terrors Visage, a ghost can instantly assume another face without so much as moving a muscle. The ghost’s image simply shifts and changes. The mask remains in place for an hour, at which point it melts and shifts back to the ghost’s original appearance. The change in visage can be maintained for an additional day by the expenditure of a Willpower point. Many ghosts have a series of visages they use on a regular basis, ranging from the horrifying to the alluring. Creating a visage requires a day’s effort, a successful Dexterity + Craft (Moliation) roll to plan and a Dexterity + Compassion (difficulty 2 for normal visages) roll to create. If the rolls are successful, the visage is now available for the ghost to use whenever she pleases. Some visages may be so horrifying and/or alluring that they may have an additional affect beyond simply changing the ghost’s appearance. These Visages are +2 difficulty on the roll to create (planning difficulty as normal). Some visage effects include: Fear: The players of all who see the ghost’s face must make a successful Valor roll (difficulty 1) or have their characters flee in terror for the duration of a scene. They will not be able to fight except in self-defense, and then, all rolls will still be at +2 difficulty. Entrancement: Those who see the ghost’s face are so smitten with its otherworldly beauty that their players must succeed on a Temperance roll (difficulty 1) or have their characters become enraptured with the spirit. Such smitten souls are prone to follow the ghost’s suggestions or to do whatever they think will please the ghost of their own initiative. Disgust: The ghost’s visage is so repulsive that the player of any observer must succeed on a Willpower roll (difficulty 1), or his character is caught in the throes of a brief bout of nausea. Players of those thus afflicted are at +1 difficulty on their rolls for any physical activity. This effect persists for the remainder of the scene, but the character can only suffer from it once at a given time. Once a character has successfully overcome the effects of a Nine Terrors Visage, she is immune to the ghost using that particular visage on her ever thereafter. However, those mortals who fail to resist are at +1 difficulty to resist it the next time. Four consecutive failures means that the character will never be able to resist the effects of that visage without a dramatic change in her mental makeup. This limitation does not apply to the Exalted, who are too mighty for such ghostly tricks.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  },
+  {
+    "id": "ghost.shifting-ghost-clay.yielding-spirit-form",
+    "name": "Yielding Spirit Form",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Reflexive",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "ghost.shifting-ghost-clay.waxen-ghostly-flesh"
+      ]
+    ],
+    "cost": {
+      "raw": "4 motes",
+      "motes": 4
+    },
+    "duration": "Instant",
+    "description": "The ghost’s spirit form becomes soft and pliable upon impact, rendering her more resistant to damage. The impact of a blow (or slash or stab) is still felt, but the ghost’s body simply distends, adjusting to the effects of the strike. The player of a ghost who activates this Charm may roll her character’s full Dexterity + Craft (Moliation) pool against any attack the ghost is aware of. Every success subtracts one from the damage of a single lethal or bashing attack. This roll is made after the attack is resolved but before soak is applied. Even if the blow does no damage, the ghost will usually be deformed by it in some way. A strike to the head will crush the shape of the ghost’s skull; a slash to the arm may deform it beyond recognition. The effects are merely cosmetic, however, and the deformation quickly heals itself. For every level of damage sopped up by the Yielding Spirit Form, it takes one turn for the ghost’s unliving tissue to restore itself to its original form This process is constant, but additional damage absorbed during this time adds to the duration of the recovery.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  },
+  {
+    "id": "ghost.shifting-ghost-clay.steeling-the-spirit",
+    "name": "Steeling The Spirit",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.shifting-ghost-clay.yielding-spirit-form"
+      ]
+    ],
+    "cost": {
+      "raw": "7 motes, 1 Willpower",
+      "motes": 7,
+      "willpower": 1
+    },
+    "duration": "One day/success",
+    "description": "Steeling the Spirit lets a ghost fix in place his altered features or form. A Willpower roll determines how many days the steeled flesh remains. The effect is extended for one day for each success. This power, however, can only be used by the ghost on himself. In addition, when used in conjunction with GhostDevil Form to harden protrusions such as fangs, claws and the like, such accouterments are treated as if they are exceptional weapons and gain the same number of bonus points.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  },
+  {
+    "id": "ghost.shifting-ghost-clay.ghost-devil-form",
+    "name": "Ghost-Devil Form",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.shifting-ghost-clay.nine-terrors-visage"
+      ],
+      [
+        "ghost.shifting-ghost-clay.steeling-the-spirit"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes",
+      "motes": 10
+    },
+    "duration": "One scene",
+    "description": "Ghost-Devil Form allows the ghost to adopt not just a new face, but rather, a new form entirely. This form can be human or otherwise and can sport working claws, talons, fangs and the like. A Ghost-Devil Form can be up to twice the ghost’s normal size and can feature such extras as additional working limbs, armor and so forth. It does not need to be human in the slightest, and the change from regular form to Ghost-Devil Form is effectively instantaneous. Like Nine Terrors Visage, a Ghost-Devil Form must be conceptualized beforehand. Crafting a Ghost-Devil Form takes longer than making a Nine Terrors Visage, however, and is more difficult. Building a form requires an Intelligence + Craft (Moliation) roll to design and then a Dexterity + Compassion roll (Difficulty 3) to execute. Each damage-dealing or similar aspect of the form (claws, fangs, extra arms) requires an additional day of design work and an additional Craft (Moliation) roll at difficulty 2 to build. Ghost-Devil Form is also similar to Nine Terrors Visage in its duration and effects on observers. This Arcanos almost always has its effect extended through the use of Steeling the Spirit or some other, more powerful Charm of permanency. Only ghosts and ghostly beings can be reshaped with the power of this Charm.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  },
+  {
+    "id": "ghost.shifting-ghost-clay.weighted-with-the-anchor-of-flesh",
+    "name": "Weighted With The Anchor Of Flesh",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.shifting-ghost-clay.ghost-devil-form"
+      ]
+    ],
+    "cost": {
+      "raw": "20 motes, 2 Willpower (no Willpower in the shadowlands)",
+      "motes": 20,
+      "willpower": 2
+    },
+    "duration": "One hour",
+    "description": "When Weighted With the Anchor of Flesh, a ghost obtains the ability to materialize in the lands of the living. If he does so when in Ghost-Devil Form, then all of the weaponry available to him in that shape retains its potency. In short, the ghost materializes and can affect the living world normally, for good or for ill, until the Anchor lifts and he fades back to insubstantiality. While held by the Anchor of Flesh, the ghost can be wounded by material weapons and is otherwise normal and material. If wounded, he will bleed (though the blood will fade as he does), and if struck down, he will fall before dissipating back into the Underworld. The Anchor’s duration is one hour. However, the ghost can extend this by expending another point of Willpower for each additional hour he wishes to remain. Ghosts who have materialized thus are still vulnerable to banishment and to effects that specifically target materialized spirits.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  },
+  {
+    "id": "ghost.shifting-ghost-clay.stolen-wax-discipline",
+    "name": "Stolen Wax Discipline",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.shifting-ghost-clay.waxen-ghostly-flesh"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes, one lethal health level",
+      "motes": 5,
+      "health": 1,
+      "health_type": "x"
+    },
+    "duration": "One hour per permanent Essence",
+    "description": "Stolen Wax Discipline allows a ghost to reshape the unliving tissues of another ghost. It only works on willing subjects but is useful for disguising friends, theatrical performances and the like. Using Stolen Wax Discipline requires the laying of hands upon the target, as well as a successful Dexterity + Compassion roll. The difficulty of the roll depends on the degree of change being attempted (see Waxen Ghostly Flesh for a guideline to appropriate difficulties). The effects of the Arcanos last one hour per point of the shaping ghost’s permanent Essence and cannot be extended through the use of Willpower. To extend its effects, either the ghost doing the shaping must use Prison of the New Form, or the ghost receiving the changes must use Steeling the Spirit.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  },
+  {
+    "id": "ghost.shifting-ghost-clay.broken-mold-strike",
+    "name": "Broken Mold Strike",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Supplemental",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.shifting-ghost-clay.stolen-wax-discipline"
+      ]
+    ],
+    "cost": {
+      "raw": "7 motes",
+      "motes": 7
+    },
+    "duration": "Instant or one hour",
+    "description": "Unlike Stolen Wax Discipline, Broken Mold Strike allows a ghost to inflict the horrors of reshaped flesh on an unwilling target. Using Broken Mold Strike requires a successful Brawl attack, which need do no damage, followed by a reflexive Strength + Compassion roll. A ghost attacking with Broken Mold Strike shreds and boils off the target’s ectoplasm doing a base lethal damage equal to the ghost’s Willpower + (successes on the Strength + Compassion roll) + any extra successes on the attack. This attack works only against other ghosts or against creatures that partake of ghostly nature and can be subjected to the Shifting Ghost-Clay Path. This does not include deathknights, whose physical substance shields them from this attack.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  },
+  {
+    "id": "ghost.shifting-ghost-clay.shaping-the-obedient-servant",
+    "name": "Shaping The Obedient Servant",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Supplemental",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.shifting-ghost-clay.ghost-devil-form"
+      ],
+      [
+        "ghost.shifting-ghost-clay.stolen-wax-discipline"
+      ]
+    ],
+    "cost": {
+      "raw": "9 motes, 1 Willpower",
+      "motes": 9,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "Shaping the Obedient Servant is the means by which a ghost can use the powers associated with Ghost-Devil Form on another. Frequently used by servants of the Deathlords to create monstrous ghostly warriors for battles among the dead, this power is also a favorite of artisans, costumers and others among the dead who depend on disguise as part of their livelihood. Shaping the Obedient Servant requires the expenditure of the Arcanos cost, followed by the regular difficulty 3 Dexterity + Compassion roll for Ghost-Devil Form. Obedient Servant shapes must be planned ahead of time, just like Ghost-Devil Form, but if all the results are going to look the same, only one roll needs to be made to plan the change Often, the Deathlords and their more powerful seneschals wish to make the effects of Shaping the Obedient Servant permanent. This can be accomplished through a successful Willpower roll and the expenditure of experience points on the part of the character being reshaped. The more experience points expended, the longer the effect lasts. A single experience point freezes it for a month, 2 points for a year, and 3 points extend the effect indefinitely. Essence is no longer committed to the effect once experience points are spent to extend it. This Arcanos works only on the dead.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  },
+  {
+    "id": "ghost.shifting-ghost-clay.prison-of-the-new-form",
+    "name": "Prison Of The New Form",
+    "category": "shifting_ghost_clay",
+    "exalt_type": "Ghost",
+    "type": "Supplemental",
+    "min_virtue": "compassion",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.shifting-ghost-clay.broken-mold-strike"
+      ]
+    ],
+    "cost": {
+      "raw": "12 motes, 1 Willpower",
+      "motes": 12,
+      "willpower": 1
+    },
+    "duration": "One week per success",
+    "description": "Prison of the New Form enables a ghost to seal her target into his current form, willing or no. The character must touch the target or make a successful unarmed Brawl or Martial Arts attack that need not do damage. A successful contested roll of the attacking ghost’s Stamina + Compassion against the target’s Conviction enables the ghost to lock down the victim’s form for one week per extra success. During this time, he cannot be affected by any other spirit-flesh crafting power that alters his form, but he remains vulnerable to damage from powers such as Broken Mold Strike. Prison of the New Form is often used to keep prisoners in an eyeless, mouthless or limbless state. Obviously, this Arcanos works only against ghosts or ghostly creatures.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 234
+    }
+  }
+]

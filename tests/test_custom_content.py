@@ -698,14 +698,26 @@ def test_library_list_marks_a_rejected_row_invalid_with_its_reason(tmp_path):
 # health-cost damage type (CharmCost.health_type)
 # --------------------------------------------------------------------------- #
 
-def test_health_type_is_optional_and_absent_on_every_printed_charm():
-    """The 52 printed Charms with a health cost all just say "1 health level". The
-    field must therefore default to unset and change nothing about how they read."""
+def test_health_type_is_unset_wherever_the_page_does_not_name_a_damage_type():
+    """`health_type` shipped with custom content as a homebrew-only field: every
+    printed Charm with a health cost just said "1 health level", so the field had to
+    default to unset and change nothing about how they read.
+
+    **That stopped being true on 2026-08-01.** Stolen Wax Discipline (E:Ab p.238) is
+    the first PRINTED Charm to name the type — "5 motes, one lethal health level" —
+    so the field now has exactly one book-data consumer. The invariant that still
+    holds, and the one worth testing, is the narrower one: the field is set only where
+    the page actually names a type, and unset everywhere else."""
     rs, _ = _shipped()
     with_health = [c for c in rs.charms.values() if c.cost.health]
+    typed = [c for c in with_health if c.cost.health_type is not None]
 
     assert with_health                                   # the corpus still has them
-    assert all(c.cost.health_type is None for c in with_health)
+    assert [c.id for c in typed] == ["ghost.shifting-ghost-clay.stolen-wax-discipline"]
+    for c in typed:
+        # Whatever names a type must say so in its printed cost line.
+        assert "lethal" in c.cost.raw or "bashing" in c.cost.raw \
+            or "aggravated" in c.cost.raw, c.id
 
 
 def test_cost_string_names_the_damage_type_only_when_set():

@@ -6,15 +6,22 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 2},
+    "cost": {
+      "motes": 2
+    },
     "duration": "Five turns or until used",
     "description": "The Immaculate perceives the patterns of a victim's soul and finds the place to strike for the most damage: when she next makes a successful martial arts attack, she rolls her Essence as extra damage dice (added after the attack's own damage is soaked, ignoring armor but soakable normally). May affect dematerialized spirits as if material. Effective only against living beings and spirits. Grants the Wood Dragon signature weapon (bow) training with the Path's first Charm.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 259}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 259
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.mind-over-body-meditation",
@@ -23,15 +30,27 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.wood-dragon.eyes-of-the-wood-dragon"]],
-    "cost": {"motes": 0, "raw": "2 motes per health level healed"},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.eyes-of-the-wood-dragon"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "raw": "2 motes per health level healed"
+    },
     "duration": "Instant",
     "description": "By concentrating for a moment, the Immaculate heals herself: for every 2 motes spent she instantly heals one level of bashing damage. Cannot heal lethal or aggravated damage.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 260}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 260
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.wood-dragon-vitality",
@@ -40,15 +59,26 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.wood-dragon.mind-over-body-meditation"]],
-    "cost": {"motes": 2},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.mind-over-body-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
     "duration": "One turn",
     "description": "Essence bolsters the Immaculate's life force with that of the Wood Dragon: for the rest of the turn her bashing soak is boosted by her Martial Arts rating, and she may soak lethal damage with her normal bashing soak.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 260}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 260
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.soul-marking-strike",
@@ -57,15 +87,26 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Supplemental",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.wood-dragon.wood-dragon-vitality"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.wood-dragon-vitality"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "One scene",
     "description": "A caress (part of a successful attack) marks the target's soul. For the rest of the scene, any attack the Immaculate makes against the Soul-Marked target gains an automatic success added before the target's defense roll. Multiple marks are cumulative; on spirits each mark also reduces their dice pools by -1 for the scene. For 24 hours she can sense a marked being within her Essence in yards.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 260}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 260
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.wood-dragon-form",
@@ -74,15 +115,26 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.wood-dragon.soul-marking-strike"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.soul-marking-strike"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "One scene",
     "description": "The Elemental Dragon Form of Wood (requires a Dexterity + Martial Arts roll to invoke). For the scene the Immaculate regenerates one health level of bashing damage per turn and one health level of lethal every two turns until killed (levels return at the start of the turn); health lost to aggravated damage cannot be regenerated this way. Only one Form-type Charm at a time.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 260}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 260
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.unbreakable-fascination-kata",
@@ -91,15 +143,26 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.wood-dragon.wood-dragon-form"]],
-    "cost": {"motes": 4},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.wood-dragon-form"
+      ]
+    ],
+    "cost": {
+      "motes": 4
+    },
     "duration": "Until abandoned",
     "description": "A sinuous series of moves fascinates and distracts onlookers, transfixing them in place. While she maintains the series, anyone wishing to take any action other than watch must win a reflexive opposed check of their Wits vs the Immaculate's Martial Arts + Charisma. The Exalt may speak, move at half pace, and dodge; anything else (including an attack) breaks the Charm.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 261}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 261
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.spirit-wracking-method",
@@ -108,15 +171,27 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.wood-dragon.wood-dragon-form"]],
-    "cost": {"motes": 4, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.wood-dragon-form"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Channels Essence into a spirit's form to disrupt it. A successful martial arts attack (armed or unarmed) affects a spirit as if materialized and does normal damage; if it wounds the spirit, the Dynast reflexively rolls Essence + Martial Arts (difficulty = the spirit's Essence). For every success the spirit subtracts one die from all its pools, fading at one die per turn.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 262}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 262
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.death-pattern-sensing-attitude",
@@ -125,15 +200,28 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.wood-dragon.wood-dragon-form"]],
-    "cost": {"motes": 5, "willpower": 1, "raw": "5 motes, 1 Willpower, +1 mote per attack dodged"},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.wood-dragon-form"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "raw": "5 motes, 1 Willpower, +1 mote per attack dodged"
+    },
     "duration": "One scene",
     "description": "Attuned to the patterns of death directed at her, the Immaculate may make a full dodge against any hand-to-hand attack by a living being (or a spirit- or death-animated being), even ranged attacks within her Essence in yards. Each dodge costs 1 mote; the maximum dodged per turn equals her Essence. The dodge does not cost her action and may be made after she has acted. Ineffective against traps, automata, and attacks from outside the radius.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 263}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 263
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.enthralling-blow-attack",
@@ -142,15 +230,27 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.wood-dragon.unbreakable-fascination-kata"]],
-    "cost": {"motes": 8, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.unbreakable-fascination-kata"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "On a successful martial arts attack (no damage rolled), the Immaculate's player and the target both make a reflexive opposed roll: the martial artist's Essence + Martial Arts vs the victim's Essence + Willpower. If the Immaculate wins, the target is enthralled: it loses its action for the rest of the turn and may do nothing but stand slack-jawed. Each subsequent turn it may attempt to shake off the effect (Essence + Willpower vs difficulty 1 + the Immaculate's successes). Living creatures only.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 261}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 261
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.spirit-rending-technique",
@@ -159,15 +259,27 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.wood-dragon.spirit-wracking-method"]],
-    "cost": {"motes": 8, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.spirit-wracking-method"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "A normal martial arts attack (armed or unarmed) that, on a hit, does no normal damage; instead the Immaculate rolls a reflexive Essence + Willpower. If successes equal or exceed the spirit's permanent Essence it takes one automatic aggravated health level; exceeding multiples of its Essence deals multiple levels. If the roll does not equal the spirit's Essence, the Charm has no effect.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 262}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 262
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.wood-dragon-succor",
@@ -176,15 +288,27 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.wood-dragon.death-pattern-sensing-attitude"]],
-    "cost": {"motes": 0, "raw": "3 motes per health level drawn out"},
+    "prerequisites": [
+      [
+        "dragonblooded.wood-dragon.death-pattern-sensing-attitude"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "raw": "3 motes per health level drawn out"
+    },
     "duration": "Instant",
     "description": "Heals the wounds of others by taking them onto the Immaculate's own body. She touches the target; for every 3 motes invested she draws one health level of damage out of the target and into herself (the target's wounds close, the injuries appearing on her). She immediately assumes the proper impairment but can heal that damage with Wood Dragon Form, provided it is not aggravated.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 263}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 263
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.wood-dragon.soul-mastery",
@@ -193,18 +317,33 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Wood",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 4,
     "prerequisites": [
-      ["dragonblooded.wood-dragon.spirit-rending-technique"],
-      ["dragonblooded.wood-dragon.enthralling-blow-attack"],
-      ["dragonblooded.wood-dragon.wood-dragon-succor"]
+      [
+        "dragonblooded.wood-dragon.spirit-rending-technique"
+      ],
+      [
+        "dragonblooded.wood-dragon.enthralling-blow-attack"
+      ],
+      [
+        "dragonblooded.wood-dragon.wood-dragon-succor"
+      ]
     ],
-    "cost": {"motes": 10, "health": 1, "raw": "10 motes, 1 health level"},
+    "cost": {
+      "motes": 10,
+      "health": 1,
+      "raw": "10 motes, 1 health level"
+    },
     "duration": "Essence in turns or until discharged",
     "description": "The highest mystery of the Wood Dragon. Invoking it absorbs the turn's action and leaves a sizzling green-and-black aura on the hands; to discharge it the Immaculate must land a successful attack (touching an unsuspecting victim works). On discharge the attack does normal damage plus a contested reflexive Essence + Martial Arts vs the target's Stamina + Endurance: if the target loses, her soul is severed and she dies instantly; even on a tie/win the shock deals aggravated dice equal to the Immaculate's Essence. Any spirit of equal or lower Essence struck is annihilated. She has her Essence in turns to unleash the Charm or must resist its effects herself.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 263}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 263
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   }
 ]

@@ -358,11 +358,18 @@ def _breeding_bonus(character: Character, name: str, table: list[int],
 
 
 def essence_pool_is_merged(ruleset: RuleSet, character: Character) -> bool:
-    """Are the two Essence pools a single Peripheral pool (Beacon of Power)? Separate
-    from `essence_pools` because that returns motes and this is about their SHAPE — a
+    """Are the two Essence pools a single Peripheral pool? Separate from
+    `essence_pools` because that returns motes and this is about their SHAPE — a
     sheet showing "Personal 0" needs to know whether it is reporting a rule or a
-    character with no Essence at all."""
+    character with no Essence at all.
+
+    TWO sources, deliberately one read site: a Merit (Beacon of Power, p.41) and the
+    splat itself (ghosts, E:Ab p.126). Ask here, never either source directly, or the
+    next splat with a merged pool has to be added in as many places as there are
+    callers."""
     from . import merits as _merits
+    if ruleset.exalt_for(character.exalt_type).single_essence_pool:
+        return True
     return _merits.merits_and_flaws_calc(ruleset, character).essence_single_pool
 
 
@@ -449,10 +456,15 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
                   + (_peripheral_virtue_term(spec.peripheral_virtue_mode, character.virtues)
                      * spec.peripheral_virtue_coeff)
                   + breeding_pp)
-    if effects.essence_single_pool:
+    if essence_pool_is_merged(ruleset, character):
         # "a single Essence pool equal to the sum of their Personal and Peripheral
         # Essence, all of which is considered Peripheral" (p.41). Merged AFTER both
         # are computed, so every term above still contributes exactly what it did.
+        #
+        # Asked of `essence_pool_is_merged` rather than of `effects` directly: a ghost's
+        # pool is merged by its SPLAT, not by a Merit, and reading the Merit field here
+        # would have reported the right shape on the sheet while returning the wrong
+        # motes from this function — the exact split-brain this build keeps finding.
         peripheral += personal
         personal = 0
     return personal, peripheral
@@ -595,3 +607,69 @@ def derive(ruleset: RuleSet, character: Character) -> DerivedTraits:
         health_levels=health_track(character, ruleset),
         soak=soak(character, ruleset),
     )
+
+
+# --------------------------------------------------------------------------- #
+# Ghost traits: Fetters and Passions (Exalted: The Abyssals p.126-127, p.283)
+#
+# Two rated traits no other splat has. They are here rather than in `validate`
+# because both are DERIVATIONS that hold on both sides of the lock — the Passion
+# pool most of all, and that is the whole risk in this area.
+# --------------------------------------------------------------------------- #
+
+def passion_pool(character: Character) -> dict[VirtueName, int]:
+    """How many dots of Passion the character may distribute, PER VIRTUE.
+
+    p.126: "Choose a number of dots of Passions for each Virtue equal to the number of
+    dots the character has in that Virtue." The pools are per-Virtue, not one
+    aggregate — Compassion 3 buys three dots of Compassion Passions and nothing else.
+
+    ⚠ THIS IS A LIVE DERIVATION, NOT A CHARGEN BUDGET, and the distinction is the
+    whole reason it lives in `derive`. p.283: "Ghosts increase their Passions when they
+    increase their Virtues. There is no other way for these Traits to increase" — and
+    the human confirmed (rules authority, 2026-08-01) that this holds post-lock, so
+    buying a Virtue dot with experience immediately makes another Passion dot
+    available. Snapshotting this at the lock, the way Willpower's Virtue component is
+    snapshotted under decision 0005, would be the exact opposite of what the page says.
+
+    Reads the CURRENT Virtues for that reason, and takes no `ChargenSnapshot`.
+    """
+    return {v: character.virtues.get(v, 0) for v in VirtueName}
+
+
+def passion_dots_spent(character: Character) -> dict[VirtueName, int]:
+    """How many dots of Passion the character has actually distributed, per Virtue."""
+    out: dict[VirtueName, int] = {v: 0 for v in VirtueName}
+    for p in character.passions:
+        out[p.virtue] = out.get(p.virtue, 0) + p.rating
+    return out
+
+
+def passion_dots_unspent(character: Character) -> dict[VirtueName, int]:
+    """Pool minus spent, per Virtue. A negative value means over-distributed, which
+    validate reports; this function does not clamp, so the sheet can show the overrun
+    rather than silently hiding it."""
+    pool = passion_pool(character)
+    spent = passion_dots_spent(character)
+    return {v: pool[v] - spent[v] for v in VirtueName}
+
+
+def fetter_dots_spent(character: Character) -> int:
+    """Total dots across every Fetter — what both the chargen pool and the hard cap
+    are measured against."""
+    return sum(f.rating for f in character.fetters)
+
+
+def fetter_cap(character: Character, ruleset: Optional[RuleSet] = None) -> int:
+    """The hard ceiling on TOTAL Fetter dots: "A ghost can never have more dots of
+    Fetters than his Willpower + Essence" (p.127; restated as the p.283 footnote
+    "Total dots of Fetters cannot exceed Willpower + Essence").
+
+    Unlike the chargen pool this binds forever, so it is derived rather than budgeted —
+    a ghost who buys Willpower or Essence with experience may hold more Fetters, and
+    one cursed down to a lower Willpower is over the cap and told so.
+
+    `ruleset` is optional and only ever lowers the answer, the same shape `soak` and
+    `willpower` use: without it a Flaw that sells Willpower dots cannot be seen.
+    """
+    return willpower(character, ruleset) + character.essence_rating

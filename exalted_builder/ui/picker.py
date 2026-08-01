@@ -354,8 +354,21 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     # on the Martial Arts page — including the enlightenment tree
     # ('martial_arts:enlightenment'), which is the Dragon-Path initiation rather
     # than a style, but is martial arts and is looked for among them.
+    # The six ghost Arcanoi paths get their own page, like Thaumaturgy's — they are
+    # not Abilities and grouping them there would put "Shifting Ghost-Clay Path" in a
+    # dropdown of Ability names (human, 2026-08-01).
+    #
+    # Identified by `min_virtue` rather than by a hardcoded list of the six category
+    # strings: being Virtue-keyed is what MAKES a Charm an Arcanos, so a seventh path
+    # (or another Virtue-keyed splat) needs no edit here.
+    _arcanoi_categories = {c.category for c in ruleset.charms.values() if c.min_virtue}
+
     def _group_of(cat: str) -> str:
-        return "styles" if cat.startswith("martial_arts:") else "abilities"
+        if cat.startswith("martial_arts:"):
+            return "styles"
+        if cat in _arcanoi_categories:
+            return "arcanoi"
+        return "abilities"
 
     def _visible_category_options(group: str | None = None) -> dict[str, str]:
         """Category-dropdown options for the CURRENT character state: the categories
@@ -403,7 +416,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
              # keyed "art_id:aspect" (see set_thaum_narrow).
              "thaum_tab": "arts", "orientation": Orientation.REALM.value,
              "thaum_narrow": {}}
+    _has_abilities = any(_group_of(c) == "abilities" for c in _all_categories)
     _has_styles = any(_group_of(c) == "styles" for c in _all_categories)
+    _has_arcanoi = any(_group_of(c) == "arcanoi" for c in _all_categories)
     # Which circles this character could ever reach is fixed by their splat's Occult
     # tree, so the Spells page — and its Circle dropdown — either exists for them or
     # never does. Ordered globally (sorcery Terrestrial→Solar, then necromancy
@@ -413,15 +428,31 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     _has_spells = bool(_spell_circles)
     _exalt_def = ruleset.exalt_for(character.exalt_type)
     _has_forms = bool(_exalt_def and _exalt_def.form_library)
-    # The Charm-tree page exists only for a splat that HAS Charms. A mortal has none
-    # (core p.103), so `_all_categories` is empty and every widget on this page would
-    # render blank — and the Category dropdown would raise outright, taking the whole
-    # picker down with it (its value cannot be in an empty option list).
+    # Each page exists only when this character has categories IN THAT GROUP. Asking
+    # `_all_categories` instead — as the Abilities line did until 2026-08-01 — is true
+    # for a splat with Charms of ANY kind, so a ghost got an Abilities page listing
+    # nothing (found in the browser). An empty Charm-tree page is not merely blank: its
+    # Category dropdown raises outright when its options are empty, taking the whole
+    # picker down with it (adding-a-splat.md trap #3).
     GROUPS: dict[str, str] = {}
-    if _all_categories:
-        GROUPS["abilities"] = "Abilities"
+    if _has_abilities:
+        # Labelled "Charms", not "Abilities" (human, 2026-08-01) — so the tab bar reads
+        # Charms > Charms, the default page taking the section's name while its
+        # siblings are named for what makes them special.
+        #
+        # The old label was not merely redundant, it was WRONG for two splats: this
+        # page holds the splat's own main Charm trees whatever they are keyed to, and
+        # Lunar's are Attribute-keyed while Alchemical's are mixed. A Lunar player
+        # clicking "Abilities" got twelve Attribute-keyed trees.
+        #
+        # The GROUP KEY stays "abilities" — it is an identifier that `_group_of`,
+        # `_GRAPH_GROUPS` and the page state all key off, and renaming it would touch
+        # game-facing logic to change a caption.
+        GROUPS["abilities"] = "Charms"
     if _has_styles:
         GROUPS["styles"] = "Martial Arts"
+    if _has_arcanoi:
+        GROUPS["arcanoi"] = "Arcanoi"
     if _has_spells:
         GROUPS["spells"] = "Spells"
         state["circle"] = _spell_circles[0].value
@@ -446,12 +477,18 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         return (_augment_category is not None and state["group"] == "abilities"
                 and state["category"] == _augment_category)
 
+    # Every group that renders the Charm-tree canvas and owns the category dropdown.
+    # Named once, because it was hardcoded in four places and adding the Arcanoi page
+    # to three of them left the fourth rendering a blank tab (found in the browser,
+    # 2026-08-01 — the Arcanoi page showed nothing at all).
+    _GRAPH_GROUPS = ("abilities", "styles", "arcanoi")
+
     def _is_graph_page() -> bool:
-        """The Charm-tree groups (Abilities / Martial Arts) own the category dropdown;
-        the Spells and Form Library groups render a plain panel in its place. The
-        Augmentation category is still an Abilities page (so it keeps the dropdown) but
-        swaps the CANVAS for pop-up cards — see _is_augment_page."""
-        return state["group"] in ("abilities", "styles")
+        """The Charm-tree groups (Abilities / Martial Arts / Arcanoi) own the category
+        dropdown; the Spells and Form Library groups render a plain panel in its place.
+        The Augmentation category is still an Abilities page (so it keeps the dropdown)
+        but swaps the CANVAS for pop-up cards — see _is_augment_page."""
+        return state["group"] in _GRAPH_GROUPS
 
     # `state["group"]` defaulted to "abilities" before GROUPS was known. If this splat
     # has no Charm-tree page, land on whatever its first real page is (Thaumaturgy for
@@ -1773,9 +1810,15 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if value == state["splat"]:
             return
         state["splat"] = value
-        if _is_graph_page() and not _visible_category_options() and state["group"] == "styles":
-            set_group("abilities")      # re-enters here for the categories below
-            return
+        if _is_graph_page() and not _visible_category_options():
+            # Fall back to whichever OTHER graph page this character actually has —
+            # naming "abilities" outright strands a splat that has no Abilities page
+            # (a ghost has only Arcanoi and Martial Arts).
+            other = next((g for g in _GRAPH_GROUPS
+                          if g in GROUPS and g != state["group"]), "")
+            if other:
+                set_group(other)        # re-enters here for the categories below
+                return
         opts = _visible_category_options()
         first = next(iter(opts), "")
         sel = widgets.get("category")
@@ -1843,7 +1886,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return                     # only the graph pages own a category dropdown
         opts = _visible_category_options()
         if not opts:                   # every category in this group just got hidden
-            set_group("abilities" if state["group"] == "styles" else "styles")
+            other = next((g for g in _GRAPH_GROUPS
+                          if g in GROUPS and g != state["group"]), "")
+            if other:
+                set_group(other)
             return
         if state["category"] in opts:
             sel.set_options(opts, value=state["category"])

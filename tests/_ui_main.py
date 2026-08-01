@@ -8,7 +8,8 @@ from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
     MeritFlawPurchase,
     Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
-    HouseRules, PlayState, RitualEntry, ScienceRating, ThaumaturgyState, Weapon)
+    FetterEntry, HouseRules, PassionEntry, PlayState, RitualEntry, ScienceRating,
+    ThaumaturgyState, Weapon)
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.models.rules import (AbilityName, AttributeName, Orientation,
                                           VirtueName)
@@ -963,3 +964,97 @@ CHAR_DOWNTIME_VIEW.age = 240
 @ui.page('/editor-downtime-view')
 def page_editor_downtime_view():
     editor.build_editor(RS, CHAR_DOWNTIME_VIEW, Path("x.json"), with_header=False)
+
+
+# --- Ghosts (E:Ab) ---------------------------------------------------------- #
+# The render matrix for the seventh splat, one route per SHAPE rather than per known
+# bug. The shapes that have blanked panels before and all apply here: a CASTELESS
+# splat (every caste-grouped UI), a splat barred from other people's Charms (the
+# picker's category dropdown), and two brand-new rated traits with their own panels.
+def _ghost(cid: str, name: str, *, origin: str = "heroic", upbringing: str = "") -> Character:
+    c = Character(id=cid, name=name, exalt_type="Ghost", caste="",
+                  origin=origin, upbringing=upbringing, essence_rating=2)
+    c.virtues = {VirtueName.COMPASSION: 3, VirtueName.CONVICTION: 2,
+                 VirtueName.TEMPERANCE: 1, VirtueName.VALOR: 1}
+    c.fetters = [FetterEntry(name="my widowed wife", rating=3),
+                 FetterEntry(name="the sword I died on", rating=2)]
+    c.passions = [PassionEntry(name="avenge my murder",
+                               virtue=VirtueName.COMPASSION, rating=3),
+                  PassionEntry(name="finish the work",
+                               virtue=VirtueName.CONVICTION, rating=2)]
+    return c
+
+CHAR_GHOST = _ghost("gh", "Sighing Reed")
+
+@ui.page('/ghost-advantages')
+def page_ghost_advantages():
+    advantages.build_advantages(RS, CHAR_GHOST, Path("x.json"), with_header=False)
+
+@ui.page('/ghost-editor')
+def page_ghost_editor():
+    editor.build_editor(RS, CHAR_GHOST, Path("x.json"), with_header=False)
+
+@ui.page('/ghost-picker')
+def page_ghost_picker():
+    picker.build_picker(RS, CHAR_GHOST, Path("x.json"), with_header=False)
+
+@ui.page('/ghost-sheet')
+def page_ghost_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_GHOST))
+
+# The Immaculate-region upbringing: 5 Background dots and the Ancestor Cult ceiling.
+CHAR_GHOST_IMM = _ghost("ghi", "Ash On The Wind", upbringing="immaculate")
+CHAR_GHOST_IMM.backgrounds = [BackgroundEntry(name="Ancestor Cult", rating=3)]
+
+@ui.page('/ghost-advantages-immaculate')
+def page_ghost_advantages_immaculate():
+    advantages.build_advantages(RS, CHAR_GHOST_IMM, Path("x.json"), with_header=False)
+
+# The mundane dead — the other origin, and the smaller budgets.
+CHAR_GHOST_MUNDANE = _ghost("ghm", "Nobody", origin="mundane")
+
+@ui.page('/ghost-editor-mundane')
+def page_ghost_editor_mundane():
+    editor.build_editor(RS, CHAR_GHOST_MUNDANE, Path("x.json"), with_header=False)
+
+# LOCKED: the post-lock half of both panels — the Fetter buy controls and the Shift
+# Passion control, neither of which exists pre-lock.
+CHAR_GHOST_XP = _ghost("ghx", "Long Dead")
+lifecycle.lock_chargen(CHAR_GHOST_XP, RS)
+CHAR_GHOST_XP.xp_earned = 100
+
+@ui.page('/ghost-advantages-xp')
+def page_ghost_advantages_xp():
+    advantages.build_advantages(RS, CHAR_GHOST_XP, Path("x.json"), with_header=False)
+
+@ui.page('/ghost-sheet-xp')
+def page_ghost_sheet_xp():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_GHOST_XP))
+
+# A locked ghost with NO Fetters and NO Passions: the empty-options shape. `ui.select`
+# raises at BUILD time when its value is not among its options, and an empty option
+# list is the easiest way there — adding-a-splat.md trap #3, which has blanked whole
+# tabs twice. Both post-lock controls build their dropdowns from the character's own
+# lists, so this is the route that proves an empty one is survivable.
+CHAR_GHOST_EMPTY = Character(id="ghe", name="Forgotten", exalt_type="Ghost", caste="",
+                             origin="heroic", essence_rating=2)
+CHAR_GHOST_EMPTY.virtues = {VirtueName.COMPASSION: 1, VirtueName.CONVICTION: 1,
+                            VirtueName.TEMPERANCE: 1, VirtueName.VALOR: 1}
+lifecycle.lock_chargen(CHAR_GHOST_EMPTY, RS)
+
+@ui.page('/ghost-advantages-empty')
+def page_ghost_advantages_empty():
+    advantages.build_advantages(RS, CHAR_GHOST_EMPTY, Path("x.json"), with_header=False)
+
+@ui.page('/ghost-sheet-empty')
+def page_ghost_sheet_empty():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_GHOST_EMPTY))
+
+# The whole builder for a ghost — the tab bar is only assembled here, so neither the
+# missing Arcanoi canvas nor the stray Combos tab was reachable from the per-tab
+# routes above. Both were found in the browser (2026-08-01) with 1,684 tests passing.
+CHAR_GHOST_APP = _ghost("gha", "Tab Test")
+
+@ui.page('/ghost-app')
+def page_ghost_app():
+    builder.build_app(RS, CHAR_GHOST_APP, Path("gha.json"))

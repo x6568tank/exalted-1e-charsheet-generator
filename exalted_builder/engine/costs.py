@@ -120,6 +120,28 @@ def college_step(ruleset: RuleSet, character: Character, from_rating: int) -> in
     return ruleset.xp_costs_for(character.exalt_type).college.at(from_rating)
 
 
+def _fighter_in_life_covers(ruleset: RuleSet, character: Character,
+                            charm: Charm) -> bool:
+    """Whether this Terrestrial Martial Arts Charm falls inside the character's Fighter
+    in Life allowance (PG p.234).
+
+    The Merit grants a COUNT, and the page does not say which Charms it applies to, so
+    it covers the cheapest reading for the player: the first N such Charms bought. A
+    Charm already held is counted, so buying the (N+1)th pays the penalty rate.
+
+    No Merit id is named here (decision 0011) — the count is a `MeritEffects` field.
+    Charms are counted through `validate.charm_picks`, never off `character.charms`.
+    """
+    picks = merits.merits_and_flaws_calc(ruleset, character).terrestrial_ma_picks
+    if not picks:
+        return False
+    held = sum(1 for pick in validate.charm_picks(ruleset, character)
+               if (c := ruleset.charms.get(pick.charm_id)) is not None
+               and validate.is_terrestrial_martial_arts(c)
+               and pick.charm_id != charm.id)
+    return held < picks
+
+
 def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     """XP to learn a Charm: discounted when its gating Ability is Caste/Favoured
     (Ability-keyed Charms), or when its gating Attribute's category matches the
@@ -139,12 +161,28 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     else:
         ability = validate._category_ability(charm.category)
         favored = ability is not None and ability in validate.caste_favored_abilities(ruleset, character)
+    # A splat whose martial-arts access is the PG p.234 exception (ghosts) prices every
+    # Terrestrial style off that page, and this branch comes first — ahead of the
+    # Immaculate rate below, which is Dragon-Blooded's own (p.292) and has no meaning
+    # for a ghost. Without the ordering a ghost learning an Immaculate Dragon Path was
+    # charged the DB Immaculate rate, which its cost row does not even author.
+    if (ruleset.exalt_for(character.exalt_type).terrestrial_martial_arts
+            and validate.is_terrestrial_martial_arts(charm)):
+        if _fighter_in_life_covers(ruleset, character, charm):
+            # "the cost of developing a regular Arcanos (14 experience points)".
+            cost = xp.new_charm_favored_caste if favored else xp.new_charm
+        else:
+            # "the same cost per Charm that they would pay for inventing a new
+            # Arcanos (20 experience points)" — the penalty every ghost otherwise pays.
+            cost = (xp.new_martial_arts_charm
+                    if xp.new_martial_arts_charm is not None else xp.new_charm)
     # Immaculate Order Charms (Dragon-Blooded) have their own, higher rate (p.292).
-    if validate.is_immaculate_charm(charm):
+    elif validate.is_immaculate_charm(charm):
         cost = xp.new_immaculate_charm_favored_caste if favored else xp.new_immaculate_charm
     elif charm.category.startswith("martial_arts"):
         # Sidereal Martial Arts is a distinct rate (12/10, p.265); other splats leave
-        # both MA fields None and fall back to the ordinary new_charm rate.
+        # both MA fields None and fall back to the ordinary new_charm rate. For ghosts
+        # it is the p.234 penalty rate (20) — see _fighter_in_life_covers above.
         if favored:
             cost = xp.new_martial_arts_charm_favored_caste
             if cost is None:
@@ -408,3 +446,26 @@ def thaum_science_step_xp(ruleset: RuleSet, character: Character, from_rating: i
     step = (costs.thaum_new_science if from_rating <= 0
             else costs.thaum_science.at(from_rating))
     return step * _thaum_multiplier(ruleset, character)
+
+
+def fetter_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
+    """XP to raise one Fetter a dot (E:Ab p.283: "Fetter | current rating x 3")."""
+    return ruleset.xp_costs_for(character.exalt_type).fetter.at(from_rating)
+
+
+def new_fetter_cost(ruleset: RuleSet, character: Character) -> int:
+    """XP for a brand-new Fetter — 20, or 15 for a character who knows the Arcanos the
+    table names (p.283: "New Fetter (Relentless Hunter) | 15").
+
+    The Charm is named by DATA (`ExperienceCosts.new_fetter_discount_charm_id`) and
+    never spelled out here, so a printing that attaches the discount to a different
+    Arcanos is a data edit. Asked of `validate.charm_picks` rather than
+    `character.charms` directly: Charms live on four lists and reading one of them is
+    how four call sites each missed Gifts the day Gifts landed.
+    """
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    cid = xp.new_fetter_discount_charm_id
+    if cid and xp.new_fetter_discounted:
+        if any(pick.charm_id == cid for pick in validate.charm_picks(ruleset, character)):
+            return xp.new_fetter_discounted
+    return xp.new_fetter

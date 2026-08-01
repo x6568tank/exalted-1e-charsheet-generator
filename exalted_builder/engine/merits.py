@@ -46,6 +46,8 @@ FLAW_POINT_CAP = 10
 
 ESSENCE_AWARENESS = "thaum.essence-awareness"
 ESSENCE_MASTERY = "thaum.essence-mastery"
+# PG p.234, ghosts only. One Terrestrial Martial Arts Charm per point.
+FIGHTER_IN_LIFE = "mf.fighter-in-life"
 OATHBOUND_MAGIC = "thaum.oathbound-magic"
 HOLY_MIEN = "thaum.holy-mien"
 # Holy Mien "grants the character possessing it the Priest Merit at the one-point level
@@ -278,6 +280,15 @@ class MeritEffects:
     # 2026-07-30). Consistent with barring Spirit Walking — the Dragon Paths are
     # exactly what Spirit Walking exists to unlock.
     bar_immaculate_charms: bool = False
+    # How many Terrestrial Martial Arts Charms this character may buy at the price of
+    # an ordinary Arcanos — 6 bonus points at creation, 14 experience in play — rather
+    # than at the p.234 penalty rate every ghost otherwise pays (20). One per point of
+    # Fighter in Life (PG p.234, ghosts only).
+    #
+    # A COUNT, not a permission: access to the Terrestrial styles is the SPLAT's
+    # (`ExaltDefinition.terrestrial_martial_arts`), granted to every ghost by p.234's
+    # main text. This Merit only changes the price and opens them at creation.
+    terrestrial_ma_picks: int = 0
     # Spell circles granted outright, without the initiating Charm the engine normally
     # requires. Mortals cannot hold Charms, so a Merit-granted circle is the only way
     # they reach sorcery at all.
@@ -892,6 +903,9 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         essence_cap_override=cap_override,
         breeding_rating_override=breeding_override,
         essence_single_pool=single_pool,
+        terrestrial_ma_picks=sum(
+            mp.points for mp in character.merits_flaws
+            if mp.merit_id == FIGHTER_IN_LIFE and mp.points > 0),
         open_charm_categories=open_categories,
         barred_charm_ids=barred,
         bar_immaculate_charms=bar_immaculate,

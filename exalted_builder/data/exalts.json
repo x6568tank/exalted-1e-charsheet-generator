@@ -144,5 +144,35 @@
       "peripheral_willpower_coeff": 0,
       "peripheral_virtue_mode": "none"
     }
+  },
+  {
+    "id": "Ghost",
+    "label": "Ghost",
+    "essence": {
+      "personal_essence_coeff": 10,
+      "personal_willpower_coeff": 3,
+      "personal_virtue_mode": "all",
+      "personal_virtue_coeff": 2,
+      "peripheral_essence_coeff": 0,
+      "peripheral_willpower_coeff": 0,
+      "peripheral_virtue_mode": "none"
+    },
+    "single_essence_pool": true,
+    "magic_track": "necromancy",
+    "highest_magic_circle_id": "",
+    "ox_body_charm_id": "",
+    "gift_charm_id": "",
+    "caste_noun": "Caste",
+    "tier": "Ghost",
+    "has_virtue_flaw": false,
+    "charms_available": true,
+    "combos_available": false,
+    "essence_cap": 5,
+    "thaumaturgy_usable": false,
+    "foreign_charms_barred": true,
+    "terrestrial_martial_arts": true,
+    "barred_charm_ids": [
+      "dragonblooded.martial-arts.spirit-walking"
+    ]
   }
 ]

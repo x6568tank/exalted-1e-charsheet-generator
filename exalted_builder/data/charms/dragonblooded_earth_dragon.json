@@ -6,15 +6,22 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"motes": 2},
+    "cost": {
+      "motes": 2
+    },
     "duration": "Instant",
     "description": "Channels the weight of Creation into a blow: the Exalt adds her Essence to the damage of her next Melee, Brawl, or Martial Arts attack. Adding it to a weapon attack costs 1 extra mote (free with the Earth Dragon signature weapon, the tetsubo).",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 247}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 247
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.unmoving-mountain-stance",
@@ -23,15 +30,22 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"motes": 3},
+    "cost": {
+      "motes": 3
+    },
     "duration": "Martial Arts in minutes",
     "description": "The Immaculate takes on the stillness of stone. For holding ground or resisting knockdown, treat her permanent Essence as automatic successes in any contested roll to displace her; she is immune to all knockback and knockdown. While totally still and hidden, any attempt to locate her must overcome her Essence in automatic opposing successes.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 248}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 248
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.stone-dragons-skin",
@@ -40,15 +54,22 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Reflexive",
     "min_ability": 4,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 2},
+    "cost": {
+      "motes": 2
+    },
     "duration": "One turn",
     "description": "The Exalt's skin becomes as hard as the Earth Dragon's hide. Her Martial Arts Ability acts as armor against both lethal and bashing damage for the rest of the turn, and she may parry weapons barehanded. Usable once per turn.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 249}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 249
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.earth-dragon-form",
@@ -57,19 +78,32 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
     "prerequisites": [
-      ["dragonblooded.earth-dragon.force-of-the-mountain"],
-      ["dragonblooded.earth-dragon.unmoving-mountain-stance"],
-      ["dragonblooded.earth-dragon.stone-dragons-skin"]
+      [
+        "dragonblooded.earth-dragon.force-of-the-mountain"
+      ],
+      [
+        "dragonblooded.earth-dragon.unmoving-mountain-stance"
+      ],
+      [
+        "dragonblooded.earth-dragon.stone-dragons-skin"
+      ]
     ],
-    "cost": {"motes": 4},
+    "cost": {
+      "motes": 4
+    },
     "duration": "One scene",
     "description": "The Elemental Dragon Form of Earth (requires a Dexterity + Martial Arts roll to invoke). For the scene the Exalt adds her Martial Arts to her bashing and lethal soaks against any attack; this armor even soaks aggravated damage. Cumulative with other Charms, but only one Form-type Charm may be active at a time.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 249}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 249
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.shattering-fist-strike",
@@ -78,15 +112,26 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["dragonblooded.earth-dragon.earth-dragon-form"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "dragonblooded.earth-dragon.earth-dragon-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Martial Arts in turns",
     "description": "Doubles the Exalt's raw damage for the purpose of destroying objects (no effect on living things) for her Martial Arts in turns. Stacks with other object-damage effects.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 249}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 249
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.stillness-of-stone",
@@ -95,15 +140,26 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.earth-dragon.earth-dragon-form"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "dragonblooded.earth-dragon.earth-dragon-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Special",
     "description": "A precise strike at nerve junctures that instills Earth Essence: the target is paralyzed and unable to act for one turn per health level of damage suffered in the attack. A target reduced below Incapacitated is turned to stone forever. Cannot be channeled through a weapon; the martial artist must hit barehanded.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 250}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 250
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.earthshaker-attack",
@@ -112,15 +168,26 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.earth-dragon.earth-dragon-form"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "dragonblooded.earth-dragon.earth-dragon-form"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "Instant",
     "description": "A mighty stomp (the Exalt must be standing on earth or an earthen surface). Everyone within the invoker's Essence x 10 feet makes a reflexive Dexterity + Resistance roll (difficulty = the Exalt's Essence); on a failure they are thrown off their feet and take one die of bashing damage per point of the Exalt's Martial Arts.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 250}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 250
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.weapon-breaking-defense-technique",
@@ -129,15 +196,28 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.earth-dragon.shattering-fist-strike"]],
-    "cost": {"motes": 0, "willpower": 1, "raw": "Special (motes = the difficulty to break the weapon), plus 1 Willpower"},
+    "prerequisites": [
+      [
+        "dragonblooded.earth-dragon.shattering-fist-strike"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 1,
+      "raw": "Special (motes = the difficulty to break the weapon), plus 1 Willpower"
+    },
     "duration": "Instant",
     "description": "Roll normally to parry an attack, barehanded or with martial arts weapons. On success the weapon is captured; the Exalt's player makes a reflexive Strength + Martial Arts roll (difficulty 1 for normal weapons, 3 for exceptional, 5 for the Five Magical Materials). On success the weapon is broken (repairable). Even on a failed break, the owner must win a reflexive opposed Strength + Athletics test or be disarmed. The mote cost equals the break difficulty and is paid before the parry.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 249}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 249
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.avalanche-method",
@@ -146,15 +226,26 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.earth-dragon.stillness-of-stone"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "dragonblooded.earth-dragon.stillness-of-stone"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "Until line of sight is broken or the character is incapacitated",
     "description": "A flurry driving the target into an inferior posture. On a hit, make a reflexive opposed Strength + Martial Arts vs the target's Stamina + Athletics: if the Exalt ties or wins, Earth Essence weighs the target down with a -1 penalty to all physical tasks per success so long as the Exalt maintains line of sight (only the highest result applies, not cumulative). Accruing more impairment than the target's Stamina 'buries' them, immobilized until released; the Exalt must maintain physical contact to hold them.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 250}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 250
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.hungry-earth-strike",
@@ -163,15 +254,28 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["dragonblooded.earth-dragon.earthshaker-attack"]],
-    "cost": {"motes": 5, "willpower": 1, "raw": "5+ motes, 1 Willpower"},
+    "prerequisites": [
+      [
+        "dragonblooded.earth-dragon.earthshaker-attack"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "raw": "5+ motes, 1 Willpower"
+    },
     "duration": "Instant",
     "description": "An open-palm strike to the ground opens the earth beneath a target (who must be standing on the ground). The Exalt's player rolls Strength + Martial Arts vs the target's Wits + Athletics; each success adds +1 difficulty to the target's physical activity and +1 to the earth's grip strength. Exceeding the target's Strength sucks them into the ground. Extra targets cost 1 mote each; maximum targets = double the Exalt's Essence.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 250}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 250
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.ghost-grounding-blow",
@@ -180,19 +284,33 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 3,
     "prerequisites": [
-      ["dragonblooded.earth-dragon.weapon-breaking-defense-technique"],
-      ["dragonblooded.earth-dragon.avalanche-method"],
-      ["dragonblooded.earth-dragon.hungry-earth-strike"]
+      [
+        "dragonblooded.earth-dragon.weapon-breaking-defense-technique"
+      ],
+      [
+        "dragonblooded.earth-dragon.avalanche-method"
+      ],
+      [
+        "dragonblooded.earth-dragon.hungry-earth-strike"
+      ]
     ],
-    "cost": {"motes": 5, "willpower": 1},
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Infuses a melee strike with Earth Essence to materialize a spirit. The Exalt must first be Spirit Walking; on a successful martial arts attack she rolls Wits + Martial Arts in a reflexive opposed contest against the spirit's permanent Willpower. If she wins, the spirit takes no damage but is dragged into the material world, forced to materialize for hours equal to her Martial Arts, unable to dematerialize. No effect on spirits with permanent Essence higher than the Exalt's.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 251}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 251
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "dragonblooded.earth-dragon.perfection-of-earth-body",
@@ -201,14 +319,26 @@
     "exalt_type": "Dragon-Blooded",
     "element": "Earth",
     "immaculate": true,
-    "open_to_all": true,
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 5,
-    "prerequisites": [["dragonblooded.earth-dragon.ghost-grounding-blow"]],
-    "cost": {"motes": 10, "willpower": 1},
+    "prerequisites": [
+      [
+        "dragonblooded.earth-dragon.ghost-grounding-blow"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "The pinnacle of the Earth Dragon Path: the Exalt becomes living stone for the scene. Strength is doubled; unarmed blows gain Accuracy, Parry and Damage equal to permanent Essence and Speed equal to twice permanent Essence, and deal lethal damage. Lethal and bashing soaks rise by permanent Essence and she soaks lethal with her whole Stamina (incompatible with armor). She ignores all wound penalties, though damage is still taken.",
-    "source": {"book": "Exalted 1e Dragon-Blooded", "page": 252}
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 252
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   }
 ]

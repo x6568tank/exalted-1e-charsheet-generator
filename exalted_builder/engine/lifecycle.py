@@ -33,6 +33,11 @@ def lock_chargen(character: Character, ruleset=None) -> Character:
         virtues=dict(character.virtues),
         specialties=list(character.specialties),
         backgrounds=list(character.backgrounds),
+        # Fetters freeze like any other bought trait. Passions deliberately do NOT
+        # appear here — they are a live derivation of the Virtues on both sides of the
+        # lock (E:Ab p.283), so a snapshot would be decision 0005's Willpower treatment
+        # applied to a rule that says the opposite.
+        fetters=[f.model_copy(deep=True) for f in character.fetters],
         # Merits bought at creation freeze with everything else, or the XP audit would
         # re-price them against a moving baseline (decision 0004).
         merits_flaws=[m.model_copy(deep=True) for m in character.merits_flaws],

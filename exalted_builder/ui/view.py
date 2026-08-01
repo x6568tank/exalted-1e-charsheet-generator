@@ -435,6 +435,19 @@ def uses_arrays(ruleset: RuleSet, character: Character) -> bool:
     return validate.uses_charm_slots(ruleset, character)
 
 
+def has_combos_tab(ruleset: RuleSet, character: Character) -> bool:
+    """Whether this character gets the Combos tab at all.
+
+    A splat barred from Combos outright (the dead — E:Ab p.234, "The dead may never
+    learn Combos") has nothing to put on it, and an empty tab that answers every
+    attempt with a validation error is worse than no tab. Arrays keep it: a Charm-Slot
+    splat has no Combos either, but it builds Arrays on the same tab (`uses_arrays`),
+    so the tab has content.
+    """
+    return (ruleset.exalt_for(character.exalt_type).combos_available
+            or uses_arrays(ruleset, character))
+
+
 @dataclass
 class XpLogRow:
     index: int           # position in character.xp_log
@@ -1042,6 +1055,17 @@ class SheetView:
     xp_spent: int = 0
     xp_available: int = 0
     xp_log: list[XpLogRow] = field(default_factory=list)
+    # --- Ghosts only (E:Ab p.126-127) --------------------------------------- #
+    # Empty for every other splat, which is what keeps the panels off their sheets.
+    fetters: list[tuple[str, int, str]] = field(default_factory=list)   # name, rating, note
+    fetter_cap: int = 0                               # Willpower + Essence (p.127)
+    # (virtue, name, rating) — each Passion belongs to the Virtue whose pool it draws on.
+    passions: list[tuple[str, str, int]] = field(default_factory=list)
+    # (virtue, distributed, pool) per Virtue. DERIVED from the CURRENT Virtues on both
+    # sides of the lock, never snapshotted: p.283 says Passions rise whenever the
+    # Virtues do, so a sheet that froze this would go stale the first time a locked
+    # ghost bought a Virtue.
+    passion_pools: list[tuple[str, int, int]] = field(default_factory=list)
 
     def essence_pool_label(self) -> str:
         """The Essence pools as one line. A merged pool is named as one rather than
@@ -1657,6 +1681,16 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         soak=d.soak,
         health=[_health_label(hl) for hl in d.health_levels],
         backgrounds=[(b.name, b.rating, b.note) for b in character.backgrounds],
+        fetters=[(f.name, f.rating, f.note) for f in character.fetters],
+        fetter_cap=(derive.fetter_cap(character, ruleset) if character.fetters else 0),
+        passions=[(p.virtue.value.title(), p.name, p.rating)
+                  for p in character.passions],
+        passion_pools=([(v.value.title(),
+                         derive.passion_pool(character)[v]
+                         - derive.passion_dots_unspent(character)[v],
+                         derive.passion_pool(character)[v])
+                        for v in VirtueName if derive.passion_pool(character)[v]]
+                       if character.passions else []),
         merits_flaws=merit_rows(ruleset, character),
         colleges=college_rows(ruleset, character),
         thaumaturgy=thaumaturgy_rows(ruleset, character),

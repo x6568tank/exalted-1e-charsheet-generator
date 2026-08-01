@@ -126,6 +126,17 @@ _MORTAL = Palette(
     bg="#f0ebe1", node_bg="#fbf9f5", button="brown-8", fam="stone",
 )
 
+# Ghost: pale grey-green — grave-mould, cold and bloodless. The two palettes it could
+# be confused with are the ones it sits nearest in tone, so it is deliberately pushed
+# off both: green out of the Abyssal's cold neutral ash, and desaturated out of the
+# Mortal's warm earth. `fam` is `zinc`, the coolest of the Tailwind greys, which tints
+# the cards toward slate rather than either of those.
+_GHOST = Palette(
+    splat_label="Ghost",
+    accent="#5f7268", accent_dark="#42514a", ink="#232a26",
+    bg="#eceeec", node_bg="#f8faf9", button="blue-grey-7", fam="zinc",
+)
+
 _BY_SPLAT: dict[str, Palette] = {
     "Solar": _SOLAR,
     "Dragon-Blooded": _DRAGON_BLOODED,
@@ -134,6 +145,7 @@ _BY_SPLAT: dict[str, Palette] = {
     "Sidereal": _SIDEREAL,
     "Alchemical": _ALCHEMICAL,
     "Mortal": _MORTAL,
+    "Ghost": _GHOST,
 }
 
 

@@ -45,15 +45,30 @@ def _ma_char(splat: str, caste: str) -> Character:
     return c
 
 
-def test_dragon_styles_are_open_to_all(rs):
+def test_the_immaculate_dragon_paths_are_celestial(rs):
+    """Corrected 2026-08-01 (human, rules authority): the five Immaculate Dragon Paths
+    are CELESTIAL styles, not the `open_to_all` Terrestrial ones the data claimed. A
+    Solar still reaches them — by tier now rather than by open_to_all — but a splat
+    with Terrestrial-only martial arts no longer does."""
     for cid in _DRAGON_STYLE:
-        assert rs.charms[cid].open_to_all is True
+        assert rs.charms[cid].open_to_all is False
+        assert rs.charms[cid].open_to_tiers == ["Celestial"]
 
 
-def test_solar_can_see_a_terrestrial_style(rs):
-    # the picker/graph visibility filter now admits the cross-splat Charm
+def test_solar_can_see_a_dragon_path_by_tier(rs):
+    # the picker/graph visibility filter still admits it — through the Celestial tier
     charm = rs.charms[_DRAGON_STYLE[0]]
-    assert validate.charm_matches_splat(_solar(), charm) is True
+    assert validate.charm_matches_splat(_solar(), charm, rs) is True
+
+
+def test_five_dragon_style_is_the_terrestrial_one(rs):
+    """The other half of the same correction, and the reason it mattered twice: the
+    style that IS cross-splat Terrestrial was the one tagged Celestial-only."""
+    five = [c for c in rs.charms.values()
+            if c.category == "martial_arts:five-dragon"]
+    assert five
+    assert all(c.open_to_all for c in five)
+    assert validate.charm_matches_splat(_solar(), five[0], rs) is True
 
 
 def test_solar_holding_a_dragon_style_gets_no_wrong_splat_error(rs):

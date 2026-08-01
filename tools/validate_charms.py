@@ -36,6 +36,9 @@ sys.path.insert(0, str(ROOT))
 # ---------------------------------------------------------------- expectations
 
 VALID_TYPES = {"Reflexive", "Supplemental", "Simple", "Extra Action", "Permanent", "Special"}
+# The four Virtues, for `min_virtue` (the ghosts' Virtue-keyed Arcanoi). Spelled out
+# rather than imported so this tool stays runnable without the package importable.
+_VIRTUES = {"compassion", "conviction", "temperance", "valor"}
 
 # Terms that are 2e/2.5e-only or are a 2e rename of a 1e trait. Their presence in a
 # 1e description usually means the author reached for training data, not the page.
@@ -172,11 +175,18 @@ def check_charm(c: dict, path: Path, rep: Report) -> None:
     # A repeatable Charm (Ox-Body and friends) legitimately has no minimum — its
     # `repeatable_cap_ability` names the capping trait and min_attribute may echo it.
     repeatable = bool(c.get("repeatable_cap_ability"))
-    if c.get("min_attribute") and not c.get("min_ability") and not repeatable:
-        rep.error(where, "min_attribute is set but min_ability is 0 — min_ability RATES the attribute")
-    if not c.get("min_attribute") and not c.get("min_ability") and not repeatable:
+    _keys = [k for k in ("min_attribute", "min_virtue") if c.get(k)]
+    if len(_keys) > 1:
+        # A Charm keyed two ways silently loses one gate: `_min_trait_rating` returns
+        # the FIRST match and never looks at the second.
+        rep.error(where, f"keyed on more than one axis ({', '.join(_keys)}) — set at most one")
+    if _keys and not c.get("min_ability") and not repeatable:
+        rep.error(where, f"{_keys[0]} is set but min_ability is 0 — min_ability RATES it")
+    if c.get("min_virtue") and c["min_virtue"] not in _VIRTUES:
+        rep.error(where, f"min_virtue {c['min_virtue']!r} is not one of {sorted(_VIRTUES)}")
+    if not _keys and not c.get("min_ability") and not repeatable:
         if c.get("type") not in {"Permanent", "Special"}:
-            rep.warn(where, "no min_ability and no min_attribute — is this Charm really ungated?")
+            rep.warn(where, "no min_ability and no keying trait — is this Charm really ungated?")
     if c.get("min_essence", 1) < 1:
         rep.error(where, "min_essence must be >= 1")
 
@@ -189,7 +199,7 @@ def check_charm(c: dict, path: Path, rep: Report) -> None:
         rep.error(where, "extra_min_abilities must be a list of {abilities, rating} objects")
     else:
         primary = None
-        if not c.get("min_attribute"):
+        if not _keys:
             cat = c.get("category", "")
             primary = cat if not cat.startswith("martial_arts") else None
         for req in extras:
@@ -241,7 +251,12 @@ def check_charm(c: dict, path: Path, rep: Report) -> None:
             rep.error(where, f"cost.raw {raw!r} has 'I' where '1' belongs (OCR)")
         for key, unit in (("motes", "mote"), ("willpower", "Willpower"), ("health", "health level")):
             n = cost.get(key, 0)
-            if n and not re.search(rf"\b{n}\b", raw) and "per" not in raw.lower():
+            # A printed cost may spell the number ("one lethal health level",
+            # E:Ab p.238) — that is the raw mentioning it, not omitting it.
+            spelled = {1: "one", 2: "two", 3: "three"}.get(n, "")
+            written = re.search(rf"\b{n}\b", raw) or (
+                spelled and re.search(rf"\b{spelled}\b", raw, re.I))
+            if n and not written and "per" not in raw.lower():
                 rep.warn(where, f"cost.{key}={n} but cost.raw={raw!r} does not mention it")
 
     # A long duration is legitimate ("Until the character applies Mercury's bridle").

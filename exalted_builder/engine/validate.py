@@ -821,14 +821,25 @@ def _category_ability(category: str) -> AbilityName | None:
 
 def _min_trait_rating(character: Character, charm: Charm) -> tuple[str, int] | None:
     """The (trait name, character's rating) `charm.min_ability` is checked
-    against — an Attribute for Lunar's Attribute-keyed Charms (`min_attribute`
+    against — a Virtue for the ghosts' Virtue-keyed Arcanoi (`min_virtue` set,
+    E:Ab p.234), an Attribute for Lunar's Attribute-keyed Charms (`min_attribute`
     set, p.122), otherwise the Ability `category` resolves to. None if the Charm
-    gates on neither (e.g. a `category` like 'sorcery' with no `min_attribute`).
+    gates on none of them (e.g. a `category` like 'sorcery' with no key).
 
-    `min_attribute` takes priority: some categories (e.g. 'melee') are ALSO
-    valid AbilityName values, and a Lunar Melee Charm must gate on the Dexterity/
-    Strength/etc. `min_attribute` names, never on the character's Melee Ability
-    rating — the two happen to collide by name, not by meaning."""
+    The named keys take priority over the category, and for the same reason in both
+    cases: some categories (e.g. 'melee') are ALSO valid AbilityName values, and a
+    Lunar Melee Charm must gate on the Dexterity/Strength/etc. `min_attribute` names,
+    never on the character's Melee Ability rating — the two collide by name, not by
+    meaning. An Arcanos is keyed the same way against its path's category.
+
+    A Charm sets at most one of the three; the order here is the tiebreak if data ever
+    sets two, and it is the order the model documents."""
+    if charm.min_virtue:
+        try:
+            virtue = VirtueName(charm.min_virtue)
+        except ValueError:
+            return None
+        return virtue.value, character.virtues.get(virtue, 0)
     if charm.min_attribute:
         try:
             attr = AttributeName(charm.min_attribute)
@@ -881,7 +892,9 @@ def charm_ability_requirements(charm: Charm) -> list[tuple[str, int]]:
     this instead of reading `min_ability` alone, so a multi-gate Charm cannot show only
     half its requirements on the sheet or in the picker."""
     out: list[tuple[str, int]] = []
-    if charm.min_attribute:
+    if charm.min_virtue:
+        out.append((charm.min_virtue, charm.min_ability))
+    elif charm.min_attribute:
         out.append((charm.min_attribute, charm.min_ability))
     else:
         ability = _category_ability(charm.category)
@@ -1227,6 +1240,16 @@ def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
     issues: list[Issue] = []
     known = set(character.charms)
     where = combo.name or "(unnamed combo)"
+    # A splat barred from Combos outright (the dead — E:Ab p.234, "The dead may never
+    # learn Combos and so may never use more than one Charm per turn"). Reported first
+    # and alone: every other finding below is about how this Combo is BUILT, which is
+    # noise for a character who may not have one at all.
+    if not ruleset.exalt_for(character.exalt_type).combos_available:
+        return [Issue(
+            code="combo-splat-barred", where=where,
+            message=(f"{ruleset.exalt_for(character.exalt_type).label} characters may "
+                     f"never learn Combos (E:Ab p.234)."),
+        )]
     if len(combo.charm_ids) < 2:
         issues.append(Issue(
             code="combo-too-small", where=where,
@@ -1584,9 +1607,9 @@ def background_pool_dots(rule, rating: int) -> int:
         return rating
     if rule.expensive_above and rating > rule.expensive_above:
         cheap = rule.expensive_above
-        paid = cheap + (rating - cheap) * rule.expensive_dot_cost
+        paid = cheap * rule.dot_cost + (rating - cheap) * rule.expensive_dot_cost
     else:
-        paid = rating
+        paid = rating * rule.dot_cost
     return max(0, paid - rule.free_rating)
 
 
@@ -1737,6 +1760,14 @@ def background_issues(budgets, backgrounds) -> list[Issue]:
                 code="background-below-minimum", where=name,
                 message=f"{name.title()} is automatically {rule.min_rating} at character "
                         f"creation; this character has {rating}.",
+            ))
+        if rule.max_rating and rating > rule.max_rating:
+            # A HARD ceiling, so an error rather than the bonus-point surcharge a
+            # soft cap produces: no amount of bonus points buys past it.
+            issues.append(Issue(
+                code="background-above-origin-cap", where=name,
+                message=f"{name.title()} may not exceed {rule.max_rating} for this "
+                        f"origin; this character has {rating}.",
             ))
         if rule.requires and rating > 0:
             have = background_rating(backgrounds, rule.requires)
@@ -2461,6 +2492,12 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
     bg_within, _above = background_pool_spend(ruleset, character, b, backgrounds)
     warn("Background", b.background_dots - bg_within, b.background_dots)
 
+    # Fetters, for the splats that have them. Same arithmetic as the pools above.
+    if b.fetter_dots:
+        fetter_within = sum(min(f.rating, b.fetter_cap_pre_bp)
+                            for f in character.fetters)
+        warn("Fetter", b.fetter_dots - fetter_within, b.fetter_dots)
+
     return issues
 
 
@@ -2745,6 +2782,19 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         ruleset, character, thaum_purchases_cg,
         free_picks=magic_for_everyone_grant(ruleset, character)))
 
+    # --- Fetters (ghosts only, E:Ab p.126-127) -------------------------------- #
+    # Same `within`/`above` shape as Backgrounds: dots at or below the pre-BP cap come
+    # out of the pool, dots above it are bonus points, and pool overflow is bonus
+    # points too. 0 for every other splat, whose fetter list is empty and whose
+    # `fetter_dots` budget is 0.
+    #
+    # There is deliberately no Passion line. Passions are derived from the Virtues and
+    # cost nothing at any point (p.283) — see models.character.PassionEntry.
+    f_within = sum(min(f.rating, b.fetter_cap_pre_bp) for f in character.fetters)
+    f_above = sum(max(0, f.rating - b.fetter_cap_pre_bp) for f in character.fetters)
+    f_overflow = max(0, f_within - b.fetter_dots)
+    fetter_bp = (f_above + f_overflow) * bp_costs.fetter
+
     # --- Willpower / Essence -------------------------------------------------- #
     wp_bp = wp_purchased * bp_costs.willpower
     essence_bp = max(0, essence - b.essence_start) * bp_costs.essence
@@ -2772,6 +2822,10 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     # entirely otherwise so every other splat's breakdown is unchanged.
     if b.college_dots > 0 or colleges:
         lines.insert(3, BonusPointLine(domain="Colleges", points=college_bp))
+    # Fetters, on the same terms: only for splats that have them (ghosts), so every
+    # other breakdown is byte-identical to before.
+    if b.fetter_dots > 0 or character.fetters:
+        lines.insert(3, BonusPointLine(domain="Fetters", points=fetter_bp))
     # Thaumaturgy is cross-splat but optional for every splat, so the line appears
     # only once a character has bought something — a Solar who never touches it sees
     # the same breakdown as before. thaum_bp is 0 whenever the line is omitted.
@@ -3743,6 +3797,11 @@ def charm_matches_splat(character: Character, charm: Charm,
     cross-splat Charms whose minimums an Essence-1 character can actually meet. A
     Merit can reopen part of that (Essence Mastery grants Terrestrial Martial Arts),
     which is asked of engine.merits and never decided here."""
+    # A Charm this splat may never hold, whatever else permits it (ghosts and Spirit
+    # Walking). First, and above every grant below — including the splat's own Charms —
+    # because a bar a later branch can talk past is not a bar.
+    if ruleset is not None and charm.id in ruleset.exalt_for(character.exalt_type).barred_charm_ids:
+        return False
     if ruleset is not None and not charms_available(ruleset, character):
         eff = merits.merits_and_flaws_calc(ruleset, character)
         if charm.id in eff.barred_charm_ids:
@@ -3757,6 +3816,19 @@ def charm_matches_splat(character: Character, charm: Charm,
         # Within an opened category the ordinary splat/tier rules still apply — the
         # Merit grants access to Terrestrial styles, not to every splat's Charms.
         return charm.open_to_all or "Terrestrial" in charm.open_to_tiers
+    # A splat barred from other people's Charms (the dead, E:Ab p.126: "Ghosts may not
+    # learn Exalted Charms"). Checked BEFORE `open_to_all`, which would otherwise hand
+    # them the cross-splat Terrestrial styles — the same ordering trap the mortal bar
+    # above documents. Their own Arcanoi are unaffected.
+    if ruleset is not None and ruleset.exalt_for(character.exalt_type).foreign_charms_barred:
+        if splat_of(charm) == character.exalt_type:
+            return True
+        # …with one printed exception: the Terrestrial supernatural martial arts
+        # (PG p.234). Same shape as the mortal Essence Mastery branch above, and for
+        # the same reason — a `martial_arts:<style>` category matches on its prefix so
+        # one rule covers every Terrestrial style.
+        return (ruleset.exalt_for(character.exalt_type).terrestrial_martial_arts
+                and is_terrestrial_martial_arts(charm))
     if charm.open_to_all or splat_of(charm) == character.exalt_type:
         return True
     if ruleset is not None and charm.open_to_tiers:
@@ -3831,14 +3903,38 @@ def is_foreign_charm(ruleset: RuleSet, character: Character, charm: Charm) -> bo
     return not charm_matches_splat(character, charm, ruleset)
 
 
+def is_terrestrial_martial_arts(charm: Charm) -> bool:
+    """A Terrestrial-tier supernatural martial-arts Charm — the class of Charm the
+    otherwise-Charmless and the otherwise-barred are repeatedly allowed to reach
+    (mortals via Essence Mastery, ghosts via PG p.234). One definition, so the two
+    routes cannot drift apart."""
+    return (charm.category.split(":", 1)[0] == "martial_arts"
+            and (charm.open_to_all or "Terrestrial" in charm.open_to_tiers))
+
+
 def charm_learnable_by_splat(ruleset: RuleSet, character: Character, charm: Charm) -> bool:
     """The picker/graph filter and the `charm-wrong-splat` check: `charm` is either
     natively available (charm_matches_splat) or reachable through the caste's
     foreign-Charm privilege. Kept separate from charm_matches_splat so that
     accessible_circles — which asks what the character's OWN splat can initiate —
     keeps its narrower question."""
+    # The per-splat Charm bar, restated at this entry point rather than left to
+    # charm_matches_splat. This function does not merely delegate — it falls THROUGH a
+    # False answer into two further grants, so a bar checked only in the callee is one
+    # this route walks straight past. Same shape as the bug preflight caught here on
+    # 2026-08-01, one grant earlier.
+    if charm.id in ruleset.exalt_for(character.exalt_type).barred_charm_ids:
+        return False
     if charm_matches_splat(character, charm, ruleset):
         return True
+    # A splat barred from other people's Charms outright (the dead, E:Ab p.126) is
+    # refused HERE as well, not only in charm_matches_splat. The generalist privilege
+    # below is a second route to the same permission, and a bar enforced on only one
+    # of two routes is this build's most-repeated bug — a ghost given the Eclipse
+    # privilege by a house rule would otherwise walk straight past p.126.
+    if ruleset.exalt_for(character.exalt_type).foreign_charms_barred:
+        return (ruleset.exalt_for(character.exalt_type).terrestrial_martial_arts
+                and is_terrestrial_martial_arts(charm))
     # A Charm flagged no_foreign_learning is never reachable through the generalist
     # rule (the Alchemical Weaving Engines — CH4, "Non-Alchemicals cannot learn
     # weaving Charms"): only its own splat, caught by the match above, may hold it.
@@ -3932,6 +4028,59 @@ def check_specialties(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def check_fetters_and_passions(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """The two ghost-only rated traits (E:Ab p.126-127, p.283).
+
+    Runs on BOTH sides of the lock, deliberately, because both rules do:
+
+      * the Fetter ceiling is "Willpower + Essence", which MOVES — a ghost who buys
+        Willpower may hold more Fetters, and one cursed down to a lower Willpower is
+        over the cap and has to be told. A chargen-only check would have gone quiet at
+        exactly the moment the cap started changing.
+      * the Passion pool tracks the Virtues forever (p.283: "There is no other way for
+        these Traits to increase"), so raising a Virtue with experience opens a dot to
+        distribute and leaving it undistributed is a live finding, not a chargen one.
+
+    Empty for every splat but the ghosts, whose lists are empty and whose Fetter budget
+    is 0 — the check costs nothing for anyone else.
+    """
+    issues: list[Issue] = []
+    if not character.fetters and not character.passions:
+        return issues
+
+    # --- Fetters: the hard cap ------------------------------------------------ #
+    spent = derive.fetter_dots_spent(character)
+    cap = derive.fetter_cap(character, ruleset)
+    if spent > cap:
+        issues.append(Issue(
+            severity="error", code="fetter-over-cap", where="Fetters",
+            message=(f"{spent} dots of Fetters exceeds the cap of {cap} "
+                     f"(Willpower + Essence, p.127)."),
+        ))
+
+    # --- Passions: distribution against the live per-Virtue pool -------------- #
+    # Reported per Virtue rather than in aggregate: the pools do not pool. A ghost
+    # with Compassion 3 and Valor 1 who has put four dots into Compassion Passions is
+    # over on one and under on the other, and one net-zero number would hide both.
+    unspent = derive.passion_dots_unspent(character)
+    for virtue, left in unspent.items():
+        if left < 0:
+            issues.append(Issue(
+                severity="error", code="passion-over-pool", where=virtue.value.title(),
+                message=(f"{-left} more dot(s) of {virtue.value.title()} Passions than "
+                         f"{virtue.value.title()} allows — the pool is that Virtue's "
+                         f"rating (p.126)."),
+            ))
+        elif left > 0:
+            issues.append(Issue(
+                severity="warning", code="passion-undistributed",
+                where=virtue.value.title(),
+                message=(f"{left} dot(s) of {virtue.value.title()} Passions still to "
+                         f"distribute."),
+            ))
+    return issues
+
+
 def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Run all *implemented* checks and return the combined issues. Chargen
     predicates are excluded until designed."""
@@ -3949,4 +4098,5 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_ox_body(ruleset, character)
     issues += check_beastman_gifts(ruleset, character)
     issues += check_specialties(ruleset, character)
+    issues += check_fetters_and_passions(ruleset, character)
     return issues

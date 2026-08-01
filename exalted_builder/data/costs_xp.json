@@ -64,5 +64,45 @@
       "2": 20,
       "3": 40
     }
+  },
+  "Ghost": {
+    "attribute": {
+      "coeff": 8
+    },
+    "attribute_caste_favored": {
+      "coeff": 8
+    },
+    "attribute_favored_caste": {
+      "coeff": 8
+    },
+    "ability": {
+      "coeff": 4
+    },
+    "ability_favored_caste": {
+      "coeff": 4,
+      "offset": -1
+    },
+    "essence": {
+      "coeff": 12
+    },
+    "virtue": {
+      "coeff": 6
+    },
+    "willpower": {
+      "coeff": 5
+    },
+    "fetter": {
+      "coeff": 3
+    },
+    "new_ability": 12,
+    "new_charm": 14,
+    "new_charm_favored_caste": 14,
+    "new_fetter": 20,
+    "new_fetter_discounted": 15,
+    "new_fetter_discount_charm_id": "ghost.tangled-web.mark-of-the-relentless-hunter",
+    "shift_passion": 20,
+    "shift_fetter": 10,
+    "new_martial_arts_charm": 20,
+    "new_martial_arts_charm_favored_caste": 20
   }
 }

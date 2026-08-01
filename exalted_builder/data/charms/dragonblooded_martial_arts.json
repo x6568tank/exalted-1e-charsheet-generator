@@ -18,9 +18,7 @@
       "book": "Exalted 1e Dragon-Blooded",
       "page": 197
     },
-    "open_to_tiers": [
-      "Celestial"
-    ]
+    "open_to_all": true
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-blocking-technique",
@@ -46,9 +44,7 @@
       "book": "Exalted 1e Dragon-Blooded",
       "page": 197
     },
-    "open_to_tiers": [
-      "Celestial"
-    ]
+    "open_to_all": true
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-claw",
@@ -69,9 +65,7 @@
       "book": "Exalted 1e Dragon-Blooded",
       "page": 198
     },
-    "open_to_tiers": [
-      "Celestial"
-    ]
+    "open_to_all": true
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-force-blow",
@@ -96,9 +90,7 @@
       "book": "Exalted 1e Dragon-Blooded",
       "page": 198
     },
-    "open_to_tiers": [
-      "Celestial"
-    ]
+    "open_to_all": true
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-form",
@@ -126,9 +118,7 @@
       "book": "Exalted 1e Dragon-Blooded",
       "page": 199
     },
-    "open_to_tiers": [
-      "Celestial"
-    ]
+    "open_to_all": true
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-fist",
@@ -156,9 +146,7 @@
       "book": "Exalted 1e Dragon-Blooded",
       "page": 199
     },
-    "open_to_tiers": [
-      "Celestial"
-    ]
+    "open_to_all": true
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-invulnerability",
@@ -184,9 +172,7 @@
       "book": "Exalted 1e Dragon-Blooded",
       "page": 199
     },
-    "open_to_tiers": [
-      "Celestial"
-    ]
+    "open_to_all": true
   },
   {
     "id": "dragonblooded.martial-arts.five-dragon-wrath",
@@ -215,9 +201,7 @@
       "book": "Exalted 1e Dragon-Blooded",
       "page": 199
     },
-    "open_to_tiers": [
-      "Celestial"
-    ]
+    "open_to_all": true
   },
   {
     "id": "dragonblooded.martial-arts.spirit-sight",

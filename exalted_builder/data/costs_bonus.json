@@ -100,5 +100,20 @@
     "calling_ability_favored_caste_dots_per_point": 2,
     "calling_charm": 4,
     "calling_charm_favored_caste": 3
+  },
+  "Ghost": {
+    "attribute": 4,
+    "ability": 2,
+    "ability_favored_caste": 1,
+    "background": 1,
+    "background_above_3": 2,
+    "specialty": 1,
+    "specialty_favored_caste_dots_per_point": 2,
+    "virtue": 5,
+    "willpower": 3,
+    "essence": 12,
+    "charm": 6,
+    "charm_favored_caste": 6,
+    "fetter": 3
   }
 }

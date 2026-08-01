@@ -64,7 +64,7 @@ its own chargen/data work:
 | Mortals | `images/Mortals/Mortals & Heroic Mortals/` | **DONE 2026-07-30** — chargen, engine, UI, tests. Magic access deferred to M&F. Not browser-verified yet. `docs/status/mortals.md` |
 | Heroic Mortals | *(same, core p.103)* | **DONE 2026-07-30** — NOT a separate splat after all: the `heroic`/`ordinary` origin axis on `Mortal`. See below |
 | Godblooded | — | NOT STARTED |
-| Ghosts | — | NOT STARTED |
+| Ghosts | `images/Non-Exalts/Ghosts/` | **DONE 2026-08-01** — data, engine, UI, 91 tests. Not browser-verified yet. `docs/status/ghosts.md` |
 | Dragon-Kings | — | NOT STARTED |
 | Mountain Folk | — | NOT STARTED |
 | ~~Fair Folk / Fae~~ | — | **NEVER — permanently out of scope** (human, 2026-07-29) |
@@ -97,7 +97,8 @@ finished splats needed BEYOND data (Charm Slots, Colleges, Attribute-keyed Charm
 | Lunar | Moonsilver blue (`slate`) | DONE (chargen, full Charm catalogue, Combos, Gifts, Form Library; UI clicked through 2026-07-22) |
 | Sidereal | Purple | DONE (shipped 2026-07-24): chargen + Colleges + 193-Charm catalogue + SMA cost/cap wiring + UI click-through |
 | Alchemical | Brass | DONE (shipped 2026-07-23): chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker); UI clicked through 2026-07-23 |
-| Mortal | Muddy brown | DONE (shipped 2026-07-30): `stone` family, the deliberately dullest palette of the seven. Whether the other four non-Exalt splats share it or get their own is UNDECIDED |
+| Mortal | Muddy brown | DONE (shipped 2026-07-30): `stone` family, the deliberately dullest palette of the seven. Whether the remaining non-Exalt splats share it or get their own is UNDECIDED |
+| Ghost | Pale grey-green | DONE (shipped 2026-08-01): `zinc` — grave-mould, deliberately pushed off both Abyssal ash and Mortal earth, the two it could be confused with |
 
 **Dragon-Blooded sub-sources:** the Outcaste book's four origins and all five Aspect
 Books shipped 2026-07-29 (`docs/status/dragonblooded-origins.md`,
@@ -175,7 +176,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1601 tests passing)
+## Status (1695 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -204,6 +205,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Rated artifacts — DEFERRED, sourced** (the E:Ab p.131 Artifact budget table, transcribed; per-specific-artifact Damaged Artifact) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted) | `docs/status/advantages-tab.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
+| **Ghosts — DONE, NOT browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
 | **Elder Exalts — DONE, browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
@@ -225,8 +227,11 @@ Terrestrial Martial Arts and Sorcery to a mortal — and as of 2026-07-31 every 
 effect on the M&F triage's A-list is implemented and browser-verified, so the subsystem is
 closed. **Backgrounds and M&F now live on their own both-sides Advantages tab**
 (2026-07-31, v0.7.6), which deleted the two duplicate implementations of each
-(`docs/status/advantages-tab.md`). **Four non-Exalt splats remain** (Godblooded,
-Ghosts, Dragon-Kings, Mountain Folk), all blocked on source material. See **TODO**
+(`docs/status/advantages-tab.md`). **The GHOST splat shipped 2026-08-01** — the seventh
+splat and second non-Exalt one, the day its pages landed: Virtue-keyed Arcanoi, Fetters
+and Passions, two chargen axes at once (`docs/status/ghosts.md`); tests-green and
+preflight-clean but not yet browser-verified. **Three non-Exalt splats remain**
+(Godblooded, Dragon-Kings, Mountain Folk), all blocked on source material. See **TODO**
 below for what's actually next.
 
 ### Removed
@@ -274,9 +279,38 @@ Recorded as decision records, not restated here — read them before proposing a
 ## TODO
 
 ### 👉 START HERE (session handoff, 2026-07-31)
-**Everything below is DONE and browser-verified. Nothing is half-finished.**
+**One item is tests-green and preflight-clean but NOT browser-verified — the Ghost
+splat, 2026-08-01. Everything else below is browser-verified. Nothing is half-finished.**
 
-The last four items, newest first — read the linked file before touching that area:
+The last five items, newest first — read the linked file before touching that area:
+
+* **Ghosts** (`docs/status/ghosts.md`) — **NEEDS A CLICK-THROUGH.** The seventh splat and
+  the second non-Exalt one. Four things are new: **Virtue-keyed Charms** (`min_virtue`,
+  the third and last keying axis, after Ability and Lunar's Attribute); **Fetters and
+  Passions**; **two independent chargen axes at once** (origin heroic/mundane ×
+  upbringing ancestor-worship/immaculate); and three bars — no Combos ever, thaumaturgy
+  held but never usable, and no other splat's Charms **except the Terrestrial
+  supernatural martial arts**, which PG p.234 grants every ghost at a 20-XP penalty rate
+  (the **Fighter in Life** Merit, ghosts only, buys N of them at the Arcanos rate
+  instead). That page landed AFTER the splat shipped and overturned a reading the status
+  doc had flagged as a question — which is why it was flagged.
+  **That same question exposed a pre-existing DATA BUG with nothing to do with ghosts**
+  (human, 2026-08-01): **Five-Dragon Style is Terrestrial and the five Immaculate Dragon
+  Paths are Celestial**, and the catalogue had both exactly backwards — so every splat
+  with Terrestrial-only martial arts (mortals via Essence Mastery, ghosts via p.234) was
+  denied Five-Dragon and offered all five Paths. Fixed in the data. **Follow-up left for
+  the human: the mortal `bar_immaculate_charms` ruling is now redundant** — with the
+  Paths correctly Celestial a mortal cannot reach them anyway — but it is a recorded
+  ruling and was left in place. **Ghosts are also barred from Spirit Walking** (human,
+  2026-08-01), via the new data-driven `ExaltDefinition.barred_charm_ids`.
+  **The rule to be careful with is Passions.** They are a LIVE DERIVATION of the
+  Virtues on both sides of the lock, per-Virtue, never bought with BP or XP (E:Ab p.283,
+  confirmed by the human): raise a Virtue with experience and a Passion dot opens up.
+  They are deliberately absent from `ChargenSnapshot`. Fetters, by contrast, are bought
+  normally — but their cap (Willpower + Essence) MOVES, so it is checked post-lock too.
+  Preflight caught one real bug here that 1,668 tests did not: the foreign-Charm bar was
+  enforced in `charm_matches_splat` but `charm_learnable_by_splat` fell through it to the
+  p.127 generalist privilege.
 
 * **Elder Exalts** (`docs/status/elder-exalts.md`) — **DONE, browser-verified.** PG
   pp.258-259, shipped 2026-07-31: age raises Essence past 5 (100/6, 250/7, 500/8,
@@ -312,7 +346,9 @@ audit reports single-site fields as if they were healthy — **a single read sit
 suspect as none when the read sits in the phase that wrote it.** Test the buy path, not
 the effect.
 
-**What is next is the human's call.** The **M&F filter/search** is DONE (2026-08-01 —
+**What is next is the human's call.** Three non-Exalt splats remain — **Godblooded,
+Dragon-Kings, Mountain Folk** — all still blocked on source material; Ghosts shipped
+2026-08-01 once their pages landed. The **M&F filter/search** is DONE (2026-08-01 —
 side/category/free-text over name AND rules text, one filter serving both regimes;
 `docs/status/advantages-tab.md`). The standing candidate is
 `docs/status/rated-artifacts.md`, which is already sourced and transcribed. The four
@@ -347,8 +383,9 @@ browser-verified — the `custom/` library merged over the book data (non-fatall
 data errors stay fatal), the `/custom` authoring page and builder tab, the ✎/⚠
 provenance markers, and saves that carry the homebrew they depend on.
 `docs/status/custom-content.md`. Two additive model fields came out of it, both
-homebrew-only with no printed use: `CharmCost.health_type` and
-`Charm.extra_min_attributes`.
+homebrew-only with no printed use AT THE TIME: `CharmCost.health_type` and
+`Charm.extra_min_attributes`. **`health_type` acquired its first printed consumer on
+2026-08-01** — Stolen Wax Discipline (E:Ab p.238), "5 motes, one lethal health level".
 
 **Next:**
 - **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
@@ -387,8 +424,8 @@ homebrew-only with no printed use: `CharmCost.health_type` and
   Also recorded there: the p.116 Step Four errata ("5 in addition to recorded
   **Knowledge**", not Inheritance) — read it before building mortal chargen or the
   Knowledge BP pool.
-- **The four remaining non-Exalt splats** — **Godblooded, Ghosts, Dragon-Kings,
-  Mountain Folk**. Separate splats scattered across different books (human,
+- **The three remaining non-Exalt splats** — **Godblooded, Dragon-Kings,
+  Mountain Folk** (Ghosts shipped 2026-08-01). Separate splats scattered across different books (human,
   2026-07-29); **all four are blocked on source material** — none exists yet — per the
   never-author-from-memory rule. Order is the human's call. See **Next Exalt Types**.
   Mortals + Heroic Mortals are DONE (2026-07-30) and were the exception to the

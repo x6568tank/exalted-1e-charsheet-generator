@@ -149,6 +149,42 @@ def render_sheet(view: viewmod.SheetView) -> None:
                     with ui.row().classes("w-full items-center gap-1 no-wrap"):
                         ui.label(f"{name}{' · ' + note if note else ''}").classes("text-sm flex-1 truncate")
                         ui.label(_dots(rating)).classes("text-sm font-mono")
+            # Fetters and Passions — ghosts only, dropped entirely for everyone else,
+            # the same rule Merits, Colleges and Thaumaturgy follow.
+            if view.fetters:
+                with _panel().classes("flex-1 min-w-[14rem]"):
+                    with ui.row().classes("w-full items-baseline gap-2 no-wrap"):
+                        ui.label("Fetters").classes("text-xs font-semibold").style(
+                            f"color:{pal.accent}")
+                        # The cap MOVES with Willpower and Essence, so it is printed
+                        # beside the dots rather than left to the rulebook.
+                        total = sum(r for _n, r, _t in view.fetters)
+                        ui.label(f"{total}/{view.fetter_cap}").classes(
+                            "text-xs font-mono " +
+                            ("text-red-600" if total > view.fetter_cap else "text-gray-500"))
+                    for name, rating, note in view.fetters:
+                        with ui.row().classes("w-full items-center gap-1 no-wrap"):
+                            ui.label(f"{name}{' · ' + note if note else ''}"
+                                     ).classes("text-sm flex-1 truncate")
+                            ui.label(_dots(rating)).classes("text-sm font-mono")
+            if view.passions:
+                with _panel().classes("flex-1 min-w-[14rem]"):
+                    ui.label("Passions").classes("text-xs font-semibold").style(
+                        f"color:{pal.accent}")
+                    for virtue, distributed, pool in view.passion_pools:
+                        rows = [(n, r) for v, n, r in view.passions if v == virtue]
+                        if not rows and distributed == pool:
+                            continue
+                        with ui.row().classes("w-full items-baseline gap-2 no-wrap"):
+                            ui.label(virtue).classes("text-xs font-semibold flex-1")
+                            ui.label(f"{distributed}/{pool}").classes(
+                                "text-xs font-mono " +
+                                ("text-gray-500" if distributed == pool
+                                 else "text-amber-700"))
+                        for name, rating in rows:
+                            with ui.row().classes("w-full items-center gap-1 no-wrap pl-2"):
+                                ui.label(name).classes("text-sm flex-1 truncate")
+                                ui.label(_dots(rating)).classes("text-sm font-mono")
             with _panel().classes("flex-1 min-w-[14rem]"):
                 ui.label("Specialties").classes("text-xs font-semibold").style(f"color:{pal.accent}")
                 if not view.specialties:

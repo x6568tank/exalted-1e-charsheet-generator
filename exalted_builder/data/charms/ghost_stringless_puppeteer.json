@@ -1,0 +1,208 @@
+[
+  {
+    "id": "ghost.stringless-puppeteer.spirit-catching-eye-technique",
+    "name": "Spirit-Catching Eye Technique",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes",
+      "motes": 2
+    },
+    "duration": "Instant",
+    "description": "Death sharpens a ghost’s perceptions. Ghosts can see better than mortals, can spot flaws more easily and can pick out the living from the dead at great distances. Some ghosts, however, have acquired even better methods of perception, and Spirit-Catching Eye Technique is one of them. This power lets a ghost see other ghosts who might normally be hidden from the eye. Ghosts who possess mortals or travel inside the bodies of other ghosts may be able to hide from normal observers, but Spirit-Catching Eye Technique reveals them. When invoked, any ghosts or other spirits within view suddenly seem to glow with a pale white light. If the ghost is possessing a mortal, the ghost’s face overlays the host’s. If ghosts are traveling in another ghost’s body, each is distinctly illuminated through the host’s ectoplasmic flesh, which becomes transparent. The power lasts only an instant, and the ghost may or may not (reflexive Perception + Awareness roll, difficulty 2) be able to recognize the ghostly faces she sees hiding in mortal or unliving flesh. Those spotted by use of this power are not aware they’ve been noticed, unless the ghost doing the spotting gives the game away through a reaction of some sort.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 248
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.soul-whispering-empathy-discipline",
+    "name": "Soul-Whispering Empathy Discipline",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.spirit-catching-eye-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes, 1 Willpower",
+      "motes": 3,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "This technique allows a ghost to sense a target’s surface thoughts and feelings, picking up the rough gist of what the target is thinking about, as well as any strong emotions he might be experiencing. While this power does not allow the ghost to go rummaging through a victim’s subconscious, it does allow her to go “along for the ride,” as it were, and pick up knowledge pertaining to what the victim is doing at the moment. If the victim is reciting a password to pass an enchanted guardian, the ghost will hear it, but if the victim is trying on various pairs of shoes, it’s highly unlikely the password will come to the surface of his mind. The use of Soul-Whispering Empathy Discipline first requires the acquisition of a target. The victim must be within sight of the ghost, though no physical contact is required. (Once psychic contact is made, the ghost no longer needs to maintain proximity.) After a target has been identified, the next step is a Manipulation + Awareness roll (difficulty equal to the target’s Essence). Success on this roll allows the ghost to make contact. While contact is established, the ghost “hears” the target’s thoughts. She does not see through his eyes or hear through his ears. However, the victim’s thoughts are easily distinguishable from the ghost’s own. Contact lasts for a single scene, though the ghost can extend it for another scene by spending a Willpower point. The ghost can continue to do this until she runs out of Willpower, if she so chooses. The victim does not know that his thoughts are being eavesdropped on, although Exalted and anyone with a Compassion of 3 or above may (Perception + Awareness, difficulty 1) have the distinct feeling he’s being watched. Contact with the target is broken at the end of the scene, if the target is killed or rendered unconscious or if the ghost doing the eavesdropping is wounded or otherwise distracted (including any expenditure of Willpower for any other reason than to extend this Charm). This Arcanos works on ghosts as well as mortals.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 248
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.skin-riding-prana",
+    "name": "Skin-Riding Prana",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.soul-whispering-empathy-discipline"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes, 1 Willpower",
+      "motes": 6,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Skin-Riding Prana builds upon the base established by Soul-Whispering Empathy Discipline. However, in addition to allowing a ghost to simply skim the surface of the target’s mind, he can now make full use of the target’s senses. He can see through the victim’s eyes, hear through her ears and even catch the scent of whatever the target sniffs. While Skin-Riding Prana is active, the input from the target overlays what the ghost himself sees and hears in a distant, transparent fashion. If the ghost concentrates, he can easily make out what the target is seeing and hearing. If there are distractions around the character, paying attention to both sensory inputs requires a Willpower roll, difficulty 1. Many practitioners of this power prefer to retreat to specially prepared chambers or tents if they can once contact has been established, the better to protect themselves from any outside input. Other than the obvious, Skin-Riding Prana functions in the same way as does Soul-Whispering Empathy Discipline. The victim must be within sight of the ghost, though no touch is required. After a target has been identified, the next step is a Manipulation + Awareness roll (difficulty equal to the target’s Essence). Success on this roll allows the ghost to make contact, and once psychic contact is made, the ghost no longer needs to maintain proximity. This Arcanos works on ghosts as well as mortals.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 248
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.six-demon-bag",
+    "name": "Six Demon Bag",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.spirit-catching-eye-technique"
+      ],
+      [
+        "ghost.stringless-puppeteer.skin-riding-prana"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes, 1 Willpower to create; 3 motes to eject",
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "A Six Demon Bag is a boon to ghostly smugglers, assassins and couriers of all persuasions. It is equally the bane of border patrols, bodyguards and customs agents. This power allows a ghost to create a hollow within herself in which she can store small items without a hint of evidence. When using a Six Demon Bag, the ghost tears open a gap in her flesh and inserts the item to be carried there — be it cash, a dagger, a scroll or anything else inert and up to one cubic foot in area — into the hollow thus created. The ghost’s flesh is then sealed up around it, and the item rests more or less comfortably within the ghost herself. Experienced couriers know to sheathe weapons and the like, lest a smuggled knife cut its way out during a particularly energetic moment. The mechanical effect of this Charm is to add +4 difficulty to a searching character’s player’s Perception + Awareness roll when contesting the Wits + Larceny roll the smuggler’s player makes to conceal an object. Removing the object from the Six Demon Bag costs an additional 3 motes of Essence. The ghost can eject the item from her body at any time, or she can wait for the Arcanos to expire, at which point the item pops out on its own. The item can be cut out of the ghost in question as well. This doesn’t cost the additional 3 motes, but it does inflict damage on the ghost — three health levels of unsoakable lethal damage. Items carried in a Six Demon Bag do show up when the ghost is viewed with SpiritCatching Eye Technique. This negates the Charm’s bonus, but the ghost’s player can still make a Wits + Larceny roll for the ghost to shield the compartment.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 248
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.mortal-shadowing-technique",
+    "name": "Mortal-Shadowing Technique",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Supplemental",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.soul-whispering-empathy-discipline"
+      ]
+    ],
+    "cost": {
+      "raw": "7 motes, 1 Willpower",
+      "motes": 7,
+      "willpower": 1
+    },
+    "duration": "One hour",
+    "description": "Mortal-Shadowing Technique is the next step on the road to possession. A ghost using Mortal-Shadowing Technique can literally meld into a mortal’s body, journeying with him and experiencing all that he experiences. This includes everything from ecstasy to death, though the latter forces the ghost out of the host’s body. Activation of this power requires, first of all, finding a target. Once the ghost has a target, she has merely to touch him or make an unarmed Brawl or Martial Arts attack that need do no damage. Her player then makes a Dexterity + Awareness roll, with a difficulty equal to the target’s permanent Essence. If the roll is successful, the ghost sinks into the flesh of her host and will journey with him wherever he goes and whatever he does. The host is unaware of the ghost unless she breaks her silence or otherwise gives herself away, but once he is aware, he can spend a Willpower point for his player to make a contested Willpower roll against the ghost. If the ghost loses, she is ejected from the body. If not, she remains. If the host is killed, the ghost is immediately forced out of the body. Note that while using Mortal-Shadowing Technique, the ghost cannot control or otherwise affect the body that she is “possessing.” She is merely a passenger, albeit an awake and aware one. Interestingly enough, any damage done to the host body manifests as bashing damage on the ghost. Spending an additional Willpower point extends the effect for a day. More than one ghost at a time can use Mortal-Shadowing Technique, but if one extends control to the level of Puppeteer’s Masterful Hand, the rest are ejected instantly, with the host none the wiser.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 248
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.puppeteers-masterful-hand",
+    "name": "Puppeteer’s Masterful Hand",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Supplemental",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.mortal-shadowing-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "7 motes, 2 Willpower",
+      "motes": 7,
+      "willpower": 2
+    },
+    "duration": "One hour",
+    "description": "Unlike Mortal Shadowing Technique, this Arcanos allows for true possession. Once in command of the mortal body, the ghost truly controls it. She can use any of the body’s Attributes and Abilities, but she is not privy to the host’s secrets or knowledge. If the victim is Exalted, she can use all his attunements and automatic effects, and any reflexive effects the Exalt activates to preserve his frame, but the ghost has no access to the Exalt’s Charms. The ghost can also use her Arcanoi, including those involving effects to the ghost’s body such as Ghost-Devil Form. Any transformation and reshaping lapses the instant the ghost departs the victim’s frame. The puppeteer uses her own Essence and not the host’s to power any Arcanoi she activates. Puppeteer’s Masterful Hand requires a Dexterity + Compassion roll with a difficulty equal to twice the target’s permanent Essence. The possessing ghost may extend the effects of this Charm for an additional hour by expending 1 Willpower per hour, but her player must succeed at the possession roll again each time the duration is extended. During the possession, the body’s native intelligence is removed from authority and has no awareness of what his body does while it is possessed unless the ghost wants to let him watch. Needless to say, this can produce some awkward situations, as the ghost is under no obligation to leave the host in better shape than she found him. If so possessed, the reflexive Charms of one of the Exalted continue to defend his body. The Exalt’s player should decide intelligently what reflexives activate when, but the consciousness of the Exalt is not making the decisions, the player is just portraying the character’s supernatural combat training.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 248
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.nemissarys-ride",
+    "name": "Nemissary’s Ride",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.mortal-shadowing-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes, 1 Willpower (+ 1 experience point)",
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "This Arcanos allows a ghost to acquire a host more pliable and convenient than a living human. Instead of a living host, he possesses a corpse and manipulates its dead flesh as a ghost using Puppeteer’s Masterful Hand manipulates the living. Because there is no resistance, the character’s player need only succeed in a difficulty 1 Strength + Compassion roll for the ghost to inhabit the corpse. The only limitation is that the magic animating the body isn’t strong enough to hold disarticulated bones together, so there must be enough flesh remaining to actually move the corpse. A ghost using this Charm may extend the duration by paying the activation cost again. His player may spend an experience point to make the possession permanent. This locks the ghost in the body, free of charge, until he chooses to leave. When he abandons it, it can never be inhabited again. As a corpse will decay to the point of uselessness in just a few weeks, most nemissaries are very hard on permanently possessed bodies. Ghosts who know this Arcanos and have access to their own corpse can possess it permanently without the cost of an experience point.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 248
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.dead-fur-cloak-method",
+    "name": "Dead Fur Cloak Method",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.nemissarys-ride"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes, 1 Willpower",
+      "motes": 6,
+      "willpower": 1
+    },
+    "duration": "Indefinite",
+    "description": "The possession of the human form is easiest for the dead, as they were themselves once human. Yet, with refinement of their skills, the dead can also possess animals as well. This Arcanos allows a ghost to possess the corpse of any beast no larger than a wolf. It is most typically used on raitons, because they mummify naturally and can be made to fly even when long dead. The Deathlords use veritable legions of such spies. When in possession of an animal’s body, the ghost has all of its Physical Attributes but otherwise uses his own Traits. As with Nemissary’s Ride, the character’s player need only make a difficulty 1 Strength + Compassion roll to effect the possession.",
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 248
+    }
+  }
+]

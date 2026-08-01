@@ -438,18 +438,23 @@ def test_only_the_outcaste_origins_offer_an_upbringing(rs):
 def test_every_offered_upbringing_resolves_to_an_authored_row(rs):
     """The dropdown and the data must not drift: every key the editor offers has to
     reach a row, and the first key of each origin is the origin's own default (which
-    deliberately has NO ':<upbringing>' row and falls back)."""
+    deliberately has NO ':<upbringing>' row and falls back).
+
+    Reads the SPLAT out of each key rather than assuming Dragon-Blooded. The Outcaste
+    book was the only source of upbringings until the ghosts arrived (2026-08-01) with
+    their ancestor-worship/Immaculate axis, and a hardcoded splat here silently checked
+    the ghosts' rows against Dragon-Blooded's budgets."""
     from exalted_builder.ui import editor
 
-    for origin, options in [(o.split(":", 1)[1], opts)
-                            for o, opts in editor._ORIGIN_UPBRINGINGS.items()]:
-        origin_row = rs.budgets_for(DB, origin)
+    for key, options in editor._ORIGIN_UPBRINGINGS.items():
+        splat, _, origin = key.partition(":")
+        origin_row = rs.budgets_for(splat, origin)
         keys = list(options)
-        assert keys[0] == "", f"{origin}: first option must be the origin default"
-        assert rs.budgets_for(DB, origin, keys[0]) is origin_row
-        for key in keys[1:]:
-            row = rs.budgets_for(DB, origin, key)
-            assert row is not origin_row, f"{origin}:{key} resolved to the origin row"
+        assert keys[0] == "", f"{key}: first option must be the origin default"
+        assert rs.budgets_for(splat, origin, keys[0]) is origin_row
+        for sub in keys[1:]:
+            row = rs.budgets_for(splat, origin, sub)
+            assert row is not origin_row, f"{key}:{sub} resolved to the origin row"
 
 
 def test_every_offered_origin_has_a_budget_row(rs):

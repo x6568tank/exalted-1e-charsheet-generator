@@ -4,7 +4,10 @@ Two styles are open wider than their authoring splat, but NOT to everyone:
 
 * **Hungry Ghost Style** (Abyssal) — any *Celestial* Exalt may learn it (Solar,
   Abyssal, and later Lunar/Sidereal), but not the Terrestrial Dragon-Blooded.
-* **Five-Dragon Style** (Dragon-Blooded) — its own splat plus any Celestial.
+* ~~**Five-Dragon Style**~~ — **corrected 2026-08-01**: Five-Dragon Style is
+  TERRESTRIAL (human, rules authority), so it is `open_to_all` and belongs with the
+  cross-splat styles, not here. The five Immaculate Dragon Paths are the Celestial
+  ones, and the data had both backwards.
 
 This is the middle ground between `Charm.exalt_type` (one splat) and
 `Charm.open_to_all` (every splat): `Charm.open_to_tiers` names Exalt *tiers*, and
@@ -26,6 +29,7 @@ DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
 _HUNGRY_GHOST = "abyssal.martial-arts.essence-discerning-glance"
 _FIVE_DRAGON = "dragonblooded.martial-arts.five-dragon-fortitude"
+_AIR_DRAGON = "dragonblooded.air-dragon.air-dragons-sight"
 _ENLIGHTENMENT = "dragonblooded.martial-arts.spirit-sight"
 
 
@@ -49,14 +53,30 @@ def test_exalt_tiers_authored(rs):
 
 
 def test_styles_flagged_celestial(rs):
-    for cid in (_HUNGRY_GHOST, _FIVE_DRAGON):
+    for cid in (_HUNGRY_GHOST, _AIR_DRAGON):
         assert rs.charms[cid].open_to_tiers == ["Celestial"]
         # tier-opening is narrower than open_to_all — these stay splat-limited
         assert rs.charms[cid].open_to_all is False
 
 
+def test_five_dragon_style_is_terrestrial_not_celestial(rs):
+    """Corrected 2026-08-01 (human, rules authority). The data had the two Dragon-
+    Blooded style families exactly backwards: Five-Dragon was tagged Celestial-only and
+    the five Immaculate Dragon Paths were tagged `open_to_all` (i.e. Terrestrial).
+
+    It is the wrong way round in BOTH directions, so it cost twice: splats with
+    Terrestrial-only martial arts (mortals via Essence Mastery, ghosts via PG p.234)
+    were denied Five-Dragon and offered the Immaculate Paths."""
+    style = [c for c in rs.charms.values() if c.category == "martial_arts:five-dragon"]
+    assert style
+    assert all(c.open_to_all is True for c in style)
+    assert all(c.open_to_tiers == [] for c in style)
+
+
 def test_whole_style_trees_are_open_not_just_the_roots(rs):
-    for cat in ("martial_arts:hungry-ghost", "martial_arts:five-dragon"):
+    for cat in ("martial_arts:hungry-ghost", "martial_arts:air-dragon",
+                "martial_arts:earth-dragon", "martial_arts:fire-dragon",
+                "martial_arts:water-dragon", "martial_arts:wood-dragon"):
         style = [c for c in rs.charms.values() if c.category == cat]
         assert style, cat
         assert all(c.open_to_tiers == ["Celestial"] for c in style), cat

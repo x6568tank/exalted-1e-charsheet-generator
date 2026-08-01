@@ -324,12 +324,23 @@ def test_thaumaturgy_round_trips_through_json(minimal_character):
 # --------------------------------------------------------------------------- #
 
 def test_every_shipped_splat_may_use_thaumaturgy_at_normal_cost(ruleset):
-    """p.114 — the Exalted learn it "without any difficulty". The two exceptions
-    (the dead cannot use it; spirits pay double) belong to splats that do not exist
-    yet, so every shipped splat must sit on the defaults."""
+    """p.114 — the Exalted learn it "without any difficulty". Two exceptions are
+    printed: the dead cannot USE it, and spirits pay double.
+
+    The dead arrived 2026-08-01 with the Ghost splat, so `thaumaturgy_usable` now has
+    a real consumer. The spirit multiplier still has none — no playable spirit splat
+    exists — so it stays on the default for every shipped row.
+
+    Note what the exception does NOT do: a ghost still buys, holds and displays its
+    Arts, because p.114 bars use and not possession ("the dead retain knowledge of what
+    they learned in Creation … can act as tutors for thaumaturges"). So this is the only
+    splat-level flag here, and every other thaumaturgy rule stays splat-blind."""
     for exalt in ruleset.exalts.values():
-        assert exalt.thaumaturgy_usable is True, exalt.id
         assert exalt.thaumaturgy_cost_multiplier == 1, exalt.id
+        if exalt.id == "Ghost":
+            assert exalt.thaumaturgy_usable is False
+            continue
+        assert exalt.thaumaturgy_usable is True, exalt.id
 
 
 def test_a_science_level_above_its_own_max_rating_is_rejected_at_load(tmp_path):

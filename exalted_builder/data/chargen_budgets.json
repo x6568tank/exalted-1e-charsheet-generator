@@ -892,5 +892,129 @@
     "essence_start": 1,
     "essence_start_cap": 1,
     "bonus_points": 21
+  },
+  "Ghost": {
+    "attribute_pools": [
+      6,
+      4,
+      3
+    ],
+    "ability_dots": 22,
+    "ability_min_caste_favored": 0,
+    "ability_cap_pre_bp": 3,
+    "favored_count": 0,
+    "optional_favored_ability": true,
+    "background_dots": 8,
+    "background_cap_pre_bp": 3,
+    "charm_count": 6,
+    "charm_min_caste_favored": 0,
+    "virtue_dots": 5,
+    "virtue_cap_pre_bp": 3,
+    "fetter_dots": 5,
+    "fetter_cap_pre_bp": 3,
+    "essence_start": 2,
+    "bonus_points": 21,
+    "background_rules": {
+      "whispers": {
+        "dot_cost": 2,
+        "bp_surcharge_per_dot": 2
+      }
+    }
+  },
+  "Ghost:heroic:immaculate": {
+    "attribute_pools": [
+      6,
+      4,
+      3
+    ],
+    "ability_dots": 22,
+    "ability_min_caste_favored": 0,
+    "ability_cap_pre_bp": 3,
+    "favored_count": 0,
+    "optional_favored_ability": true,
+    "background_dots": 5,
+    "background_cap_pre_bp": 3,
+    "charm_count": 6,
+    "charm_min_caste_favored": 0,
+    "virtue_dots": 5,
+    "virtue_cap_pre_bp": 3,
+    "fetter_dots": 5,
+    "fetter_cap_pre_bp": 3,
+    "essence_start": 2,
+    "bonus_points": 21,
+    "background_rules": {
+      "whispers": {
+        "dot_cost": 2,
+        "bp_surcharge_per_dot": 2
+      },
+      "ancestor cult": {
+        "max_rating": 1
+      },
+      "grave goods": {
+        "max_rating": 1
+      }
+    }
+  },
+  "Ghost:mundane": {
+    "attribute_pools": [
+      4,
+      3,
+      3
+    ],
+    "ability_dots": 16,
+    "ability_min_caste_favored": 0,
+    "ability_cap_pre_bp": 3,
+    "favored_count": 0,
+    "optional_favored_ability": false,
+    "background_dots": 8,
+    "background_cap_pre_bp": 3,
+    "charm_count": 2,
+    "charm_min_caste_favored": 0,
+    "virtue_dots": 5,
+    "virtue_cap_pre_bp": 3,
+    "fetter_dots": 5,
+    "fetter_cap_pre_bp": 3,
+    "essence_start": 2,
+    "bonus_points": 15,
+    "background_rules": {
+      "whispers": {
+        "dot_cost": 2,
+        "bp_surcharge_per_dot": 2
+      }
+    }
+  },
+  "Ghost:mundane:immaculate": {
+    "attribute_pools": [
+      4,
+      3,
+      3
+    ],
+    "ability_dots": 16,
+    "ability_min_caste_favored": 0,
+    "ability_cap_pre_bp": 3,
+    "favored_count": 0,
+    "optional_favored_ability": false,
+    "background_dots": 5,
+    "background_cap_pre_bp": 3,
+    "charm_count": 2,
+    "charm_min_caste_favored": 0,
+    "virtue_dots": 5,
+    "virtue_cap_pre_bp": 3,
+    "fetter_dots": 5,
+    "fetter_cap_pre_bp": 3,
+    "essence_start": 2,
+    "bonus_points": 15,
+    "background_rules": {
+      "whispers": {
+        "dot_cost": 2,
+        "bp_surcharge_per_dot": 2
+      },
+      "ancestor cult": {
+        "max_rating": 1
+      },
+      "grave goods": {
+        "max_rating": 1
+      }
+    }
   }
 }

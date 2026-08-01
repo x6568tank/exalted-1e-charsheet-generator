@@ -54,6 +54,47 @@ class BackgroundEntry(BaseModel):
     note: str = ""                         # the specific descriptor
 
 
+class FetterEntry(BaseModel):
+    """One Fetter — a person, place or object anchoring a ghost to the world
+    (Exalted: The Abyssals p.126). Ghosts only; every other splat's list is empty.
+
+    Shaped like `BackgroundEntry` because it behaves like one: an open-ended NAME the
+    player writes, rated 0-5, spent out of a chargen pool and raisable afterwards. It
+    is a separate model rather than a Background because it has its own pool, its own
+    bonus-point and experience rates, and a hard cap no Background has — "A ghost can
+    never have more dots of Fetters than his Willpower + Essence" (p.127, restated in
+    the p.283 footnote)."""
+    name: str                              # "my widowed wife", "the sword I died on"
+    rating: int = Field(ge=0, le=5)
+    note: str = ""
+
+
+class PassionEntry(BaseModel):
+    """One Passion — a driving emotional attachment, each belonging to a VIRTUE
+    (E:Ab p.126: "Choose a number of dots of Passions for each Virtue equal to the
+    number of dots the character has in that Virtue").
+
+    ⚠ A Passion is NOT bought, at creation or afterwards. Its dots are DERIVED from
+    the owning Virtue and merely distributed by the player: p.283 — "Ghosts increase
+    their Passions when they increase their Virtues. There is no other way for these
+    Traits to increase." Confirmed by the human (rules authority, 2026-08-01) to hold
+    on BOTH sides of the lock: buy a Virtue dot with experience and one more Passion
+    dot of that Virtue becomes available to distribute.
+
+    So there is no `passion` row in the bonus-point or experience tables, and none in
+    `BonusPointCosts`/`ExperienceCosts` either. The only experience operation is Shift
+    Passion (p.283, 20 XP), which moves a dot BETWEEN Passions of the same Virtue and
+    leaves the total where the Virtues put it.
+
+    `virtue` is which Virtue's pool this Passion draws on — the pools are per-Virtue,
+    not one aggregate, so Compassion 3 buys three dots of Compassion Passions and
+    nothing else."""
+    name: str                              # "avenge my murder", "see my son crowned"
+    virtue: VirtueName
+    rating: int = Field(ge=0, le=5)
+    note: str = ""
+
+
 class MeritFlawPurchase(BaseModel):
     """One Merit or Flaw the character holds, referencing rules.MeritFlaw by id.
 
@@ -449,6 +490,12 @@ class ChargenSnapshot(BaseModel):
     virtues: dict[VirtueName, int]
     specialties: list[Specialty]
     backgrounds: list[BackgroundEntry]
+    # Fetters are frozen like any other bought trait. Passions are NOT — they are a
+    # live derivation of the Virtues on both sides of the lock (p.283), so freezing
+    # them would be the decision-0005 Willpower treatment applied to a rule that
+    # explicitly does not work that way. Only the DISTRIBUTION is the player's, and
+    # the XP audit re-derives the pool rather than comparing against a snapshot.
+    fetters: list[FetterEntry] = Field(default_factory=list)
     merits_flaws: list[MeritFlawPurchase] = Field(default_factory=list)
     charms: list[str]
     spells: list[str]
@@ -637,6 +684,13 @@ class Character(BaseModel):
     wp_virtue_component: Optional[int] = None
 
     backgrounds: list[BackgroundEntry] = Field(default_factory=list)
+    # Ghosts only (E:Ab p.126-127). Fetters are bought out of their own chargen pool
+    # and with their own BP/XP rates; Passions are DERIVED from the Virtues and only
+    # distributed here — see PassionEntry for why neither cost table has a row for
+    # them. Empty for every other splat, which is what keeps the panels off their
+    # sheets.
+    fetters: list[FetterEntry] = Field(default_factory=list)
+    passions: list[PassionEntry] = Field(default_factory=list)
     # Merits & Flaws (decision 0011). Effects are computed in engine.merits from these
     # ids and never stored; an empty list is every character who has bought none.
     merits_flaws: list[MeritFlawPurchase] = Field(default_factory=list)

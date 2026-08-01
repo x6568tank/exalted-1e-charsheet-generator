@@ -304,6 +304,21 @@ class Charm(BaseModel):
     # (default) means the Charm gates on `category`'s Ability as usual. A Charm
     # should set at most one of min_attribute / an Ability-resolving category.
     min_attribute: str = ""
+    # For splats whose Charms are VIRTUE-keyed (ghosts, E:Ab p.234-253 — every one of
+    # the 56 Arcanoi prints exactly one "Minimum Compassion/Conviction/Temperance/
+    # Valor" alongside its Minimum Essence, and none prints an Ability at all). The
+    # VirtueName value `min_ability` is the required rating in, exactly as
+    # `min_attribute` works — the third and last of the three keyings.
+    #
+    # Reusing `min_ability` as the rating rather than adding a fourth number is
+    # deliberate, and is the same trade `min_attribute` made: everything downstream
+    # (pricing, the picker's tree layout, Combo cost) already keys off `min_ability`,
+    # so a Charm keyed a new way costs nothing to price. The field is misnamed for
+    # this case and correctly named for the common one.
+    #
+    # A Charm sets AT MOST ONE of min_virtue / min_attribute / an Ability-resolving
+    # category. `validate._min_trait_rating` resolves them in that order.
+    min_virtue: str = ""
     min_essence: int = Field(default=1, ge=1)
     # ADDITIONAL Ability minimums beyond `min_ability`, for the rare Charm the page
     # gates on more than one Ability. Ascendant Battle Visage (Cult of the Illuminated,
@@ -1099,6 +1114,11 @@ class BonusPointCosts(BaseModel):
     thaum_science_first_dot: int = 5
     thaum_science_additional_dot: int = 7
     virtue: int = 3
+    # Bonus points per dot of Fetter (E:Ab p.127 BP table: "Fetter | 3"). Only ghosts
+    # have Fetters at all; the value is inert for every other splat. Passions have no
+    # row on that table and none here — see ChargenBudgets.fetter_dots for why the
+    # omission is the printed rule rather than a gap.
+    fetter: int = 3
     willpower: int = 2
     essence: int = 7
     charm: int = 5
@@ -1160,6 +1180,24 @@ class ExperienceCosts(BaseModel):
     # Essence 2") are prerequisites, NOT prices, and are enforced elsewhere.
     essence_by_rating: dict[int, int] = Field(default_factory=dict)
     virtue: LinearCost = Field(default_factory=lambda: LinearCost(coeff=3))   # does NOT raise Willpower
+    # --- Fetters and Passions (ghosts only, E:Ab p.283) --------------------- #
+    # Inert for every other splat, which holds no Fetters to price. Raising a Fetter is
+    # an ordinary linear cost; the other three are operations no other splat has.
+    fetter: LinearCost = Field(default_factory=lambda: LinearCost(coeff=3))
+    new_fetter: int = 20
+    # "New Fetter (Relentless Hunter) | 15" — a discount conditional on the character
+    # KNOWING a particular Arcanos, which no other cost in this build is. The Charm is
+    # named as data rather than in code, the same way `ox_body_charm_id` and
+    # `gift_charm_id` are; "" disables the discount entirely.
+    new_fetter_discounted: int = 0
+    new_fetter_discount_charm_id: str = ""
+    # p.283 "Special": a ghost may move a Passion's or a Fetter's FOCUS without
+    # changing its rating. Shifting a Passion "decreases a Passion by one dot [and] in
+    # turn … increases an existing Passion by one dot or creates a new one-dot Passion"
+    # — a transfer, not a purchase, which is why it has its own flat price and why the
+    # total may not move.
+    shift_passion: int = 20
+    shift_fetter: int = 10
     willpower: LinearCost = Field(default_factory=lambda: LinearCost(coeff=2))
     # flat "new trait" costs
     new_ability: int = 3
@@ -1252,7 +1290,17 @@ class BackgroundRule(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     cap_pre_bp_exempt: bool = False
-    expensive_above: int = 0               # 0 = every dot costs one pool dot
+    # Pool dots consumed by EVERY dot of this Background. 1 for all but the ghosts'
+    # Whispers (E:Ab p.151), which costs "twice the cost … The first 3 dots cost 2
+    # Background or bonus points each".
+    #
+    # Distinct from `expensive_above`/`expensive_dot_cost`, which make only the dots
+    # ABOVE a threshold dearer. That pair cannot express "all of them": its threshold
+    # is also its disabled sentinel, so `expensive_above: 0` means "no expensive dots"
+    # rather than "expensive from the first". The two compose — a Background could be
+    # 2/dot up to a threshold and 3/dot beyond it — though nothing printed needs that.
+    dot_cost: int = Field(default=1, ge=1)
+    expensive_above: int = 0               # 0 = no threshold; see dot_cost
     expensive_dot_cost: int = Field(default=1, ge=1)
     min_rating: int = Field(default=0, ge=0)
     # Dots granted FREE, i.e. on top of the pool rather than out of it. Distinct from
@@ -1272,6 +1320,12 @@ class BackgroundRule(BaseModel):
     bp_surcharge_per_dot: int = Field(default=0, ge=0)
     requires: str = ""                     # another Background's NAME, lowercased
     requires_rating: int = Field(default=0, ge=0)
+    # A hard ceiling this ORIGIN/UPBRINGING puts on the Background, which bonus points
+    # cannot buy past — unlike `background_cap_pre_bp`, which they can. E:Ab p.126:
+    # "ghosts from Immaculate dominated areas cannot buy Ancestor Cult or Grave Goods
+    # above •", a consequence of living where the Order suppresses ancestor worship.
+    # 0 = no ceiling, which is every other Background in the build.
+    max_rating: int = Field(default=0, ge=0)
 
 
 class ChargenBudgets(BaseModel):
@@ -1354,6 +1408,19 @@ class ChargenBudgets(BaseModel):
     virtue_dots: int = 5                   # spent over a base of 1 each
     virtue_base: int = 1
     virtue_cap_pre_bp: int = 3
+
+    # Fetters — the anchors that hold a ghost to the world (E:Ab p.126, "All players'
+    # ghosts start with 5 dots worth of Fetters. No Fetter can be higher than 3 without
+    # the expenditure of bonus points"). 0 for every other splat, which is what keeps
+    # the panel off their sheets.
+    #
+    # There is NO `passion_dots` twin. Passions are not a budget: "Choose a number of
+    # dots of Passions for each Virtue equal to the number of dots the character has in
+    # that Virtue" (p.126), and p.283 closes it — "Ghosts increase their Passions when
+    # they increase their Virtues. There is no other way for these Traits to increase."
+    # They are DERIVED from the Virtues, so they are a derivation, not a pool.
+    fetter_dots: int = 0
+    fetter_cap_pre_bp: int = 3
 
     charm_count: int = 10
     charm_min_caste_favored: int = 5
@@ -1571,6 +1638,53 @@ class ExaltDefinition(BaseModel):
     # experience (or bonus) points"). No playable spirit splat exists yet — this
     # is authored and wired but exercised by nothing.
     thaumaturgy_cost_multiplier: int = Field(default=1, ge=1)
+    # Does this splat have ONE Essence pool rather than a Personal/Peripheral pair?
+    # True for ghosts (E:Ab p.126): "Ghosts do not have separate Personal and
+    # Peripheral Essence pools, instead having a single Essence pool that serves all
+    # of the character's needs."
+    #
+    # The merge itself already existed for Beacon of Power, a MERIT — so it was
+    # reachable only through `merits_and_flaws_calc`. A splat whose pool is merged by
+    # its own nature cannot express that as a Merit, hence a second, splat-level
+    # source OR'd into the same one read site (`derive.essence_pool_is_merged`). Two
+    # sources, one consumer: adding a third here must not add a third read.
+    single_essence_pool: bool = False
+    # May this splat learn Charms belonging to ANYONE ELSE — including the
+    # `open_to_all` Terrestrial martial-arts styles every other splat may pick up?
+    # False for the dead: "Ghosts may not learn Exalted Charms" (E:Ab p.126), a flat
+    # clause with no Merit or Background reopening it.
+    #
+    # Distinct from `charms_available`, which bars Charms ENTIRELY (mortals): a ghost
+    # has a full Charm economy of its own in the Arcanoi and is barred only from other
+    # people's. Without this the `open_to_all` styles reach them, because open_to_all
+    # is checked before the splat comparison.
+    foreign_charms_barred: bool = False
+    # ONE exception to `foreign_charms_barred`: the supernatural martial arts. PG p.234
+    # — "Ghosts may learn supernatural martial-arts techniques as well. Like
+    # thaumaturges and God-Blooded, they can learn only Terrestrial styles."
+    #
+    # UNCONDITIONAL, and that is the point: p.234's main text grants this to every
+    # ghost at a penalty price (`new_martial_arts_charm`), and the Fighter in Life
+    # Merit only makes some of them cheaper and reachable at creation. Modelling the
+    # access itself as the Merit's would have barred it from every ghost without one.
+    terrestrial_martial_arts: bool = False
+    # Individual Charms this splat may never hold, by id, even when the rules above
+    # would otherwise reach them. Ghosts are barred from Spirit Walking (human, rules
+    # authority, 2026-08-01) — the Charm that opens the Immaculate Dragon Paths, and
+    # the same one the Essence Mastery Merit withholds from mortals for the same
+    # reason.
+    #
+    # DATA rather than code, so barring a Charm from a splat is a JSON edit and no
+    # module has to name a Charm id to do it. Checked FIRST in charm_matches_splat, so
+    # it outranks every grant — a bar that any later branch can talk past is not a bar.
+    barred_charm_ids: list[str] = Field(default_factory=list)
+    # May this splat learn Combos at all? False for the dead (E:Ab p.234): "The dead
+    # may never learn Combos and so may never use more than one Charm per turn."
+    #
+    # A flat bar, not a budget of zero — the same distinction `charms_available`
+    # draws. Ghosts hold Arcanoi freely; it is only their COMBINATION that is barred,
+    # so this cannot be expressed by withholding Charms.
+    combos_available: bool = True
 
 
 # The canonical Solar definition — the existing hardcoded formula moved into data

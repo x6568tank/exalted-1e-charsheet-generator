@@ -87,6 +87,16 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     # no `Mortal:heroic` row — it falls back to the plain "Mortal" row, the same trick
     # "dynastic" and "loyal" use above.
     "Mortal": {"heroic": "Heroic Mortal", "ordinary": "Ordinary Mortal"},
+    # E:Ab p.126 and its "THE MUNDANE DEAD" sidebar: the heroic dead get 6/4/3
+    # Attributes, 22 Ability dots, six Arcanoi and 21 bonus points; the mundane dead
+    # 4/3/3, 16, two and 15. Everything else (Virtues, Essence 2, Fetters, the Essence
+    # pool) is shared, which is why this is an origin and not two splats — the same
+    # shape the mortal line above takes.
+    #
+    # Unlike every origin above it, "heroic" is NOT a bare default: ghosts also carry
+    # an UPBRINGING, and `_keyed_row` only consults the ":origin:upbringing" key when
+    # the origin is non-empty. See _ORIGIN_UPBRINGINGS.
+    "Ghost": {"heroic": "Heroic Dead", "mundane": "Mundane Dead"},
 }
 
 # The second axis, keyed by "<exalt_type>:<origin>". Only origins that HAVE variants
@@ -112,6 +122,15 @@ _ORIGIN_UPBRINGINGS: dict[str, dict[str, str]] = {
         "threshold": "Threshold outcaste"},
     # p.96: Dynast or born outcaste; both need Sail.
     "Dragon-Blooded:pirate": {"": "Dynast", "outcaste": "Born outcaste"},
+    # E:Ab p.126: where the ghost is FROM decides the Background pool — "Ghosts from
+    # areas that uphold the Immaculate Philosophy have five (5) dots to spend on
+    # Backgrounds, while those from areas with active ancestor worship have eight (8)",
+    # and an Immaculate-region ghost may not buy Ancestor Cult or Grave Goods above •.
+    # Independent of heroic/mundane, so both origins carry it.
+    "Ghost:heroic": {"": "Ancestor-worshipping region",
+                     "immaculate": "Immaculate-dominated region"},
+    "Ghost:mundane": {"": "Ancestor-worshipping region",
+                      "immaculate": "Immaculate-dominated region"},
 }
 
 

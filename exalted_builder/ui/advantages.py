@@ -36,9 +36,11 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import advancement, merits as meritsmod, validate
-from ..models.character import BackgroundEntry, Character, MeritFlawPurchase
-from ..models.rules import RuleSet
+from ..engine import (advancement, costs as costsmod, derive as derivemod,
+                      merits as meritsmod, validate)
+from ..models.character import (BackgroundEntry, Character, FetterEntry,
+                                MeritFlawPurchase, PassionEntry)
+from ..models.rules import RuleSet, VirtueName
 from . import theme
 from . import view as viewmod
 from .editor import DescribedSelect, _opts_with, dot_track, panel_card
@@ -751,17 +753,184 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label(f"Granted free by another Merit: {names}").classes(
                     "text-xs italic opacity-70")
 
+    # ---- Fetters and Passions (ghosts only, E:Ab p.126-127, p.283) --------- #
+    # On this tab rather than Edit (human, 2026-08-01): they are lists edited under
+    # two budget regimes, which is exactly the shape this tab exists for, not the one
+    # slot seen from two sides that the Edit/XP dot tracks are.
+    #
+    # The two behave very differently and the panels must not blur that:
+    #   * a FETTER is bought — pool dots, then bonus points, then experience;
+    #   * a PASSION is not bought at ANY point. Its dots come from the Virtues and the
+    #     player only distributes them (p.283). So its "pool" readout is a derivation
+    #     that keeps moving after the lock, and there is no price anywhere on it.
+
+    def _has_fetters() -> bool:
+        b = rs.budgets_for(character.exalt_type, character.origin, character.upbringing)
+        return bool(b.fetter_dots or character.fetters)
+
+    def _has_passions() -> bool:
+        return bool(character.passions or _has_fetters())
+
+    def add_fetter_row() -> None:
+        character.fetters.append(FetterEntry(name="", rating=1))
+        refresh_all()
+
+    def remove_fetter(idx: int) -> None:
+        del character.fetters[idx]
+        refresh_all()
+
+    def _fetters_panel(b) -> None:
+        spent = derivemod.fetter_dots_spent(character)
+        cap = derivemod.fetter_cap(character, rs)
+        title = (f"Fetters ({b.fetter_dots} dots; ≤{b.fetter_cap_pre_bp} pre-bonus)"
+                 if not _in_play() else "Fetters")
+        with panel_card(pal, title):
+            # The cap is Willpower + Essence and it MOVES, so it is stated as a live
+            # number on both sides of the lock rather than as a chargen note.
+            over = spent > cap
+            ui.label(f"{spent} of {cap} dots (cap = Willpower + Essence, p.127)"
+                     ).classes("text-xs font-semibold" if over else "text-xs").style(
+                f"color:{'#b91c1c' if over else 'inherit'}")
+            for idx, f in enumerate(character.fetters):
+                with ui.row().classes("w-full items-center gap-2 flex-wrap"):
+                    ui.input(value=f.name, placeholder="what anchors you",
+                             on_change=lambda e, f=f: (setattr(f, "name", e.value),
+                                                       changed())
+                             ).props("dense").classes("flex-1 min-w-48")
+                    if _in_play():
+                        # Post-lock a Fetter is bought, so the rating is read-only here
+                        # and moves through the priced controls below.
+                        ui.label("●" * f.rating + "○" * (5 - f.rating)
+                                 ).classes("text-sm tracking-widest").style(
+                            f"color:{pal.accent}")
+                    else:
+                        dots(lambda f=f: f.rating,
+                             lambda v, f=f: setattr(f, "rating", v), 0, 5)
+                    ui.input(value=f.note, placeholder="note",
+                             on_change=lambda e, f=f: setattr(f, "note", e.value)
+                             ).props("dense").classes("flex-1 min-w-32")
+                    if not _in_play():
+                        ui.button(icon="delete",
+                                  on_click=lambda e=None, idx=idx: remove_fetter(idx)
+                                  ).props("flat dense round")
+            if not _in_play():
+                ui.button("Add Fetter", icon="add", on_click=add_fetter_row
+                          ).props("flat dense")
+            else:
+                _fetter_play_controls()
+
+    def _fetter_play_controls() -> None:
+        """Post-lock: raise, form and shift, each at its printed price (p.283)."""
+        names = {f.name: f.name for f in character.fetters if f.name}
+        with ui.row().classes("w-full items-center gap-2 flex-wrap"):
+            sel = ui.select(_opts_with(list(names), None), label="Fetter",
+                            with_input=True).props("dense").classes("flex-1 min-w-40")
+            ui.button("Raise", on_click=lambda: _do(
+                lambda: advancement.raise_fetter(rs, character, sel.value or "")
+            )).props(f"dense color={pal.button}")
+            shift_to = ui.input(placeholder="shift focus to…"
+                                ).props("dense").classes("flex-1 min-w-40")
+            ui.button(f"Shift ({rs.xp_costs_for(character.exalt_type).shift_fetter} XP)",
+                      on_click=lambda: _do(
+                          lambda: advancement.shift_fetter(
+                              rs, character, sel.value or "", shift_to.value or ""))
+                      ).props("dense flat")
+        with ui.row().classes("w-full items-center gap-2 flex-wrap"):
+            new_name = ui.input(placeholder="form a new Fetter…"
+                                ).props("dense").classes("flex-1 min-w-48")
+            ui.button(f"Form ({costsmod.new_fetter_cost(rs, character)} XP)",
+                      on_click=lambda: _do(
+                          lambda: advancement.add_fetter(
+                              rs, character, new_name.value or ""))
+                      ).props(f"dense color={pal.button}")
+
+    def add_passion_row(virtue) -> None:
+        character.passions.append(PassionEntry(name="", virtue=virtue, rating=1))
+        refresh_all()
+
+    def remove_passion(idx: int) -> None:
+        del character.passions[idx]
+        refresh_all()
+
+    def _passions_panel() -> None:
+        pool = derivemod.passion_pool(character)
+        left = derivemod.passion_dots_unspent(character)
+        with panel_card(pal, "Passions"):
+            # Said plainly, because it is the single most surprising rule on the sheet
+            # and the one a player will otherwise try to "buy".
+            ui.label("Passion dots come from the Virtues and are never bought — "
+                     "raise a Virtue and a dot of that Virtue's Passions opens up "
+                     "(p.283). Distribute them here."
+                     ).classes("text-xs text-gray-600")
+            for virtue in VirtueName:
+                if not pool[virtue] and not any(p.virtue == virtue
+                                                for p in character.passions):
+                    continue
+                remaining = left[virtue]
+                colour = ("#b91c1c" if remaining < 0
+                          else "#a16207" if remaining > 0 else "#15803d")
+                with ui.row().classes("w-full items-baseline gap-2"):
+                    ui.label(virtue.value.title()).classes(
+                        "text-sm font-bold").style(f"color:{pal.accent}")
+                    ui.label(f"{pool[virtue] - remaining} of {pool[virtue]} distributed"
+                             ).classes("text-xs font-semibold").style(f"color:{colour}")
+                for idx, p in enumerate(character.passions):
+                    if p.virtue != virtue:
+                        continue
+                    with ui.row().classes("w-full items-center gap-2 flex-wrap pl-3"):
+                        ui.input(value=p.name, placeholder="what drives you",
+                                 on_change=lambda e, p=p: (setattr(p, "name", e.value),
+                                                           changed())
+                                 ).props("dense").classes("flex-1 min-w-48")
+                        # A free setter on BOTH sides of the lock, deliberately: this
+                        # distributes a derived pool, it does not buy anything, so the
+                        # post-lock XP stepper the Edit tab uses would be wrong here.
+                        dots(lambda p=p: p.rating,
+                             lambda v, p=p: setattr(p, "rating", v), 0, 5)
+                        ui.button(icon="delete",
+                                  on_click=lambda e=None, idx=idx: remove_passion(idx)
+                                  ).props("flat dense round")
+                ui.button(f"Add {virtue.value.title()} Passion", icon="add",
+                          on_click=lambda v=virtue: add_passion_row(v)
+                          ).props("flat dense").classes("ml-3")
+            if _in_play():
+                _passion_shift_controls()
+
+    def _passion_shift_controls() -> None:
+        """The one experience operation on a Passion (p.283, 20 XP): move a dot from
+        one to another. The TOTAL cannot change — the Virtues set it."""
+        names = [p.name for p in character.passions if p.name]
+        with ui.row().classes("w-full items-center gap-2 flex-wrap"):
+            frm = ui.select(_opts_with(names, None), label="Shift from",
+                            with_input=True).props("dense").classes("flex-1 min-w-40")
+            to = ui.input(placeholder="…to (new or existing)"
+                          ).props("dense").classes("flex-1 min-w-40")
+            ui.button(f"Shift ({rs.xp_costs_for(character.exalt_type).shift_passion} XP)",
+                      on_click=lambda: _do(
+                          lambda: advancement.shift_passion(
+                              rs, character, frm.value or "", to.value or ""))
+                      ).props("dense flat")
+
     # ---- body ------------------------------------------------------------- #
     @ui.refreshable
     def body() -> None:
+        b = validate.effective_budgets(rs, character)
         if _in_play():
             _play_backgrounds()
+            if _has_fetters():
+                _fetters_panel(b)
+            if _has_passions():
+                _passions_panel()
             if rs.merits_flaws:
                 _play_merits()
             return
-        b = validate.effective_budgets(rs, character)
         mf_effects = meritsmod.merits_and_flaws_calc(rs, character)
         _chargen_backgrounds(b, mf_effects)
+        # Ghosts only; every other splat has an empty Fetter budget and empty lists.
+        if _has_fetters():
+            _fetters_panel(b)
+        if _has_passions():
+            _passions_panel()
         # Shown only when the rule set ships any (decision 0011: the data file is
         # optional).
         if rs.merits_flaws:
