@@ -290,6 +290,22 @@ def render_sheet(view: viewmod.SheetView) -> None:
                 ui.separator()
                 ui.label(f"Experience: {view.experience}").classes("text-xs")
 
+        # --- experience ledger (history; the live controls are on Edit) ----- #
+        # Rendered from the SheetView alone — no ruleset, no character, no callbacks —
+        # which is what keeps `render_sheet` usable by the GM party screen and the
+        # render tests. Adjust XP and Undo live on the Edit tab, next to the buying.
+        if view.chargen_locked:
+            _heading(f"Experience — {view.xp_available} available")
+            with _panel():
+                ui.label(f"earned {view.xp_earned} · spent {view.xp_spent}").classes(
+                    "text-xs text-gray-500")
+                if not view.xp_log:
+                    ui.label("No XP spent yet.").classes("text-sm text-gray-400")
+                for r in view.xp_log:
+                    with ui.row().classes("w-full justify-between no-wrap items-baseline"):
+                        ui.label(r.label).classes("text-sm")
+                        ui.label(f"{r.cost} XP").classes("text-sm text-gray-600")
+
         # --- validation --------------------------------------------------- #
         errors = [i for i in view.issues if i.severity == "error"]
         _heading(f"Validation — {'OK' if not errors else str(len(errors)) + ' error(s)'}")

@@ -7,7 +7,7 @@ and the running available-XP must all stay consistent, and undo must reverse the
 import pytest
 
 from exalted_builder.engine import advancement, derive, lifecycle
-from exalted_builder.models.character import Character
+from exalted_builder.models.character import Character, Specialty
 from exalted_builder.models.rules import (
     AbilityName,
     AttributeName,
@@ -445,3 +445,515 @@ def test_raise_to_rejects_an_unknown_target():
     rs, c = _ruleset(), _locked(xp=200)
     with pytest.raises(advancement.AdvancementError, match="willpower"):
         advancement.raise_to(rs, c, "willpower", 5)
+
+
+# ---- the two downward branches (the dialog's, one function each) ----------- #
+
+def test_refund_to_unwinds_exactly_the_dots_asked_for():
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_to(rs, c, "attributes.dexterity", 5)     # 3 -> 5, two rows
+    spent = advancement.xp_spent(c)
+    advancement.refund_to(rs, c, "attributes.dexterity", 4)    # give back one
+    assert c.attributes[AT.DEXTERITY] == 4
+    assert advancement.xp_spent(c) < spent
+    assert advancement.refundable_depth(c, "attributes.dexterity") == 1
+
+
+def test_refund_to_refuses_what_the_tail_cannot_give_back():
+    """The guard that makes `refundable_depth` load-bearing rather than advisory: a
+    raise buried under another purchase is not refundable, and asking anyway must
+    fail loudly rather than unwinding the innocent purchase on top of it."""
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_attribute(rs, c, AT.DEXTERITY)
+    advancement.raise_ability(rs, c, A.MELEE)
+    melee = c.abilities[A.MELEE]
+    with pytest.raises(advancement.AdvancementError):
+        advancement.refund_to(rs, c, "attributes.dexterity", 3)
+    assert c.attributes[AT.DEXTERITY] == 4
+    assert c.abilities[A.MELEE] == melee            # the purchase on top is untouched
+
+
+def test_lower_to_logs_one_reduction_per_dot_and_refunds_nothing():
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.lower_to(c, "attributes.dexterity", 1, "a curse")
+    assert c.attributes[AT.DEXTERITY] == 1
+    assert advancement.xp_spent(c) == 0                        # reductions are free
+    assert [e.detail for e in c.xp_log] == ["a curse", "a curse"]
+
+
+def test_lower_to_may_go_below_the_chargen_snapshot():
+    """The difference from refund that matters: a curse is not bounded by what was
+    bought. Dexterity 3 was a chargen dot, and a curse can still take it."""
+    rs, c = _ruleset(), _locked(xp=200)
+    assert advancement.refundable_depth(c, "attributes.dexterity") == 0
+    advancement.lower_to(c, "attributes.dexterity", 2, "a curse")
+    assert c.attributes[AT.DEXTERITY] == 2
+
+
+def test_lower_to_refuses_the_whole_click_at_the_floor():
+    rs, c = _ruleset(), _locked(xp=200)
+    with pytest.raises(advancement.AdvancementError):
+        advancement.lower_to(c, "attributes.dexterity", 0, "a curse")   # floor is 1
+    assert c.attributes[AT.DEXTERITY] == 3
+    assert c.xp_log == []
+
+
+def test_lower_to_is_a_no_op_at_or_above_the_current_rating():
+    rs, c = _ruleset(), _locked(xp=200)
+    assert advancement.lower_to(c, "attributes.dexterity", 3, "x") == []
+    assert advancement.lower_to(c, "attributes.dexterity", 5, "x") == []
+    assert c.xp_log == []
+
+
+# --------------------------------------------------------------------------- #
+# The merged surface, rendered (decision 0013 / P1)
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_editor_builds_post_lock(user) -> None:
+    """The editor has only ever been rendered pre-lock, so every post-lock branch in
+    it is new and unbuilt. Until P2 puts the Edit tab back on the locked tab bar this
+    route is the only thing that would catch a build-time crash in the buy path."""
+    await user.open('/editor-locked')
+    await user.should_see("Attributes")
+    await user.should_see("Virtues")
+    await user.should_see("Essence")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_downward_dialog_offers_both_branches_when_both_are_legal(user) -> None:
+    """Decision 0013's core gesture. A dot bought with XP can be taken back OR cursed
+    away, and the dialog must name both, with the refund's actual value."""
+    await user.open('/editor-lower-both')
+    await user.should_see("Lower by 1 dot")
+    await user.should_see("Undo purchase")
+    await user.should_see("Permanent loss")
+    await user.should_see("reason")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_downward_dialog_explains_an_unrefundable_dot(user) -> None:
+    """A chargen dot with no purchase on top: there is nothing to refund, and saying
+    so beats a greyed button with no reason given. The curse branch stays live —
+    that is the whole difference between the two."""
+    await user.open('/editor-lower-curse-only')
+    await user.should_see("Permanent loss")
+    await user.should_see("last-in-first-out")
+
+
+# ---- detail-carrying dot tracks: Crafts and Colleges (P2) ------------------ #
+# These are the two tracks where "not owned" and "owned at 1" are one gesture but two
+# different engine operations at two different prices.
+
+def test_raise_to_learns_a_craft_it_does_not_own_yet():
+    rs, c = _ruleset(), _locked(xp=200)
+    entries = advancement.raise_to(rs, c, "crafts", 3, detail="Smithing")
+    assert [(e.from_rating, e.to_rating) for e in entries] == [(0, 1), (1, 2), (2, 3)]
+    assert [(cr.focus, cr.rating) for cr in c.crafts] == [("Smithing", 3)]
+    # the first dot is the flat "new ability" price, the rest are scaled
+    assert entries[0].cost != entries[2].cost
+
+
+def test_two_crafts_do_not_share_a_refund_tail():
+    """`detail` is what keeps them apart. Without it, buying Smithing then Tailoring
+    would make Smithing look refundable — it is the same log target."""
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_to(rs, c, "crafts", 1, detail="Smithing")
+    advancement.raise_to(rs, c, "crafts", 1, detail="Tailoring")
+    assert advancement.refundable_depth(c, "crafts", "Smithing") == 0
+    assert advancement.refundable_depth(c, "crafts", "Tailoring") == 1
+
+
+def test_refunding_a_craft_removes_it_when_it_goes_back_to_zero():
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_to(rs, c, "crafts", 2, detail="Smithing")
+    advancement.refund_to(rs, c, "crafts", 0, detail="Smithing")
+    assert c.crafts == []
+    assert advancement.xp_spent(c) == 0
+
+
+def test_a_craft_reduction_refunds_nothing():
+    """Superseded 2026-07-31: Crafts CAN be reduced now (human — "a misclick can
+    always happen"). What stays true is that a reduction is not a refund: the dots go
+    and the experience does not come back. `refund_to` is the path that returns XP."""
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_to(rs, c, "crafts", 2, detail="Smithing")
+    spent = advancement.xp_spent(c)
+    advancement.lower_to(c, "crafts", 1, "misclick", "Smithing")
+    assert advancement.xp_spent(c) == spent
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_locked_editor_shows_experience_not_bonus_points(user) -> None:
+    """P2: the chargen budget headers and the bonus-point card are frozen history once
+    locked — showing them beside dots that now cost XP names the wrong currency."""
+    await user.open('/editor-locked')
+    await user.should_see("Experience")
+    await user.should_see("XP available")
+    await user.should_not_see("Bonus Points")
+    # the Attribute panel header drops its 8/6/4 chargen pool
+    await user.should_not_see("prioritise")
+
+
+# ---- P3: the in-play sticky column ---------------------------------------- #
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_in_play_column_leads_with_experience_and_a_read_only_log(user) -> None:
+    """Adjust XP on top, the log below it, and NO validation card on a clean
+    character — the layout the human asked for."""
+    await user.open('/column-clean')
+    await user.should_see("Adjust XP")
+    await user.should_see("XP available")
+    await user.should_see("No XP spent yet.")
+    await user.should_not_see("Live Validation")
+    await user.should_not_see("Bonus Points")
+    # nothing is wrong, so the validation card is not on the page at all
+    await user.should_not_see("Validation")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_demoted_validation_card_still_appears_when_it_matters(user) -> None:
+    """The reason validation was demoted rather than deleted. A curse that drops an
+    Ability below a known Charm's requirement is a real post-lock finding, and the
+    downward-click dialog is what makes it easy to cause — hiding it outright would
+    blind the player exactly where the new gesture can hurt them."""
+    await user.open('/column-broken')
+    await user.should_see("Validation")
+    await user.should_see("requires melee 2")
+    # ...still below the ledger, not above it
+    await user.should_see("Adjust XP")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_chargen_column_is_unchanged(user) -> None:
+    """The other side of the same refreshable. Pre-lock must still lead with Live
+    Validation and carry the bonus-point card."""
+    await user.open('/custom')
+    await user.should_see("Live Validation")
+    await user.should_see("Bonus Points")
+    await user.should_not_see("Adjust XP")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_undo_names_the_purchase_it_will_reverse_and_reverses_it(user) -> None:
+    """The control that stops a read-only log from stranding every non-trait
+    purchase. "Undo" alone would be a guess; it names the row."""
+    await user.open('/column-undo')
+    label = "Undo last: Charm: Excellent Strike"
+    await user.should_see(label)
+    await user.should_see("earned 100 · spent 8")     # Melee is Caste -> 8
+    user.find(label).click()
+    await user.should_see("earned 100 · spent 0")
+    await user.should_see("No XP spent yet.")
+    await user.should_not_see(label)                  # nothing left to undo
+
+
+# ---- chargen choices are frozen at the lock (P3) --------------------------- #
+# Making Edit a both-sides tab exposed every free setter on it to a locked character.
+# The dot tracks became steppers; these controls are not traits to buy at all — they
+# set the RATES every later purchase is priced at.
+
+def _disabled_labels(user) -> set[str]:
+    """Labels of every disabled select on the page."""
+    from nicegui.elements.select import Select
+    return {el.props.get("label") for el in user.client.elements.values()
+            if isinstance(el, Select) and el.props.get("disable")}
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_chargen_choices_are_frozen_once_locked(user) -> None:
+    """Re-picking Favoured Abilities in play would silently re-rate every future
+    purchase; changing caste, Exalt type or origin would swap the budget row the
+    snapshot was written from. Reported by the human at the browser, 2026-07-31."""
+    await user.open('/identity-frozen')
+    frozen = _disabled_labels(user)
+    assert "Favored abilities (pick 5)" in frozen
+    assert "Exalt type" in frozen
+    assert "Caste" in frozen
+    assert "Origin" in frozen
+    assert "Training camp" in frozen
+    assert "Calling" in frozen
+    # Nature joined them 2026-07-31 (human): no XP effect, but it is True Paragon's
+    # prerequisite, so changing it in play invalidates a held Merit after the fact.
+    assert "Nature" in frozen
+    # ...and the panel says WHY, so a greyed control is not a mystery
+    await user.should_see("fixed at the lock")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_none_of_them_are_frozen_during_chargen(user) -> None:
+    """The other half: freezing must not leak backwards into the tab's day job."""
+    await user.open('/identity-open')
+    assert _disabled_labels(user) == set()
+    await user.should_not_see("fixed at the lock")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_descriptive_identity_fields_stay_editable_in_play(user) -> None:
+    """Freezing is aimed at what PRICES things, not at the character sheet's prose.
+    Renaming a character in play is normal — persistence even derives the filename
+    from it."""
+    from nicegui.elements.input import Input
+    await user.open('/identity-frozen')
+    editable = {el.props.get("label") for el in user.client.elements.values()
+                if isinstance(el, Input) and not el.props.get("disable")}
+    assert {"Name", "Concept"} <= editable
+
+
+# ---- P3 rehoming: the cards that lived only on the XP tab ------------------ #
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_willpower_gets_explicit_controls_in_play(user) -> None:
+    """Willpower cannot be a dot track — decision 0005 pins its Virtue component, so
+    only `willpower_purchased` moves and pips would misrepresent the total. It keeps
+    the explicit pair decision 0013 promised it."""
+    await user.open('/editor-locked')
+    await user.should_see("Willpower")
+    await user.should_not_see("Willpower purchased")     # the chargen control is gone
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_specialties_are_bought_not_appended_in_play(user) -> None:
+    """Appending a blank row and editing it in place is a chargen gesture; post-lock
+    the row would already have cost XP before it had a name."""
+    await user.open('/editor-locked')
+    await user.should_see("Specialty in")               # the named+priced buy form
+    await user.should_not_see("Add specialty")          # the free append is gone
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_permanent_resonance_and_withheld_credits_have_a_home(user) -> None:
+    """Both cards existed ONLY on the XP tab. Deleting that tab without moving them
+    would have silently removed Death's Taint's whole play-time mechanic."""
+    await user.open('/rehomed')
+    await user.should_see("Permanent Resonance")
+    await user.should_see("Gain (free)")
+    await user.should_see("Shed")
+    # Weak Essence's banked chargen Charms, beside the XP accounting
+    await user.should_see("withheld Charm(s) in reserve")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_resonance_panel_is_absent_during_chargen_and_for_other_splats(user) -> None:
+    await user.open('/identity-open')                    # a Solar, unlocked
+    await user.should_not_see("Permanent Resonance")
+    await user.open('/editor-locked')                    # a Solar, locked
+    await user.should_not_see("Permanent Resonance")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+@pytest.mark.parametrize("route", ['/editor-locked-mortal', '/editor-locked-alchemical'])
+async def test_the_merged_editor_builds_for_the_awkward_splats(user, route) -> None:
+    """P5 render matrix. A Mortal has no castes and no Charms; an Alchemical picks
+    Favored ATTRIBUTES rather than Abilities. Both are shapes that have crashed or
+    blanked an editor before, and the editor had never been rendered post-lock at all
+    until decision 0013."""
+    await user.open(route)
+    await user.should_see("Attributes")
+    await user.should_see("Experience")        # the in-play column built
+    await user.should_see("fixed at the lock")  # the freeze notice built
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_mortals_favored_picks_are_frozen_too(user) -> None:
+    """A heroic mortal's single Favoured Ability is an ST toggle rather than a budget,
+    so it comes through a different code path than every other splat's."""
+    await user.open('/editor-locked-mortal')
+    from nicegui.elements.select import Select
+    labels = {el.props.get("label") for el in user.client.elements.values()
+              if isinstance(el, Select) and not el.props.get("disable")}
+    assert not any(str(l).startswith("Favored") for l in labels)
+
+
+# ---- P4: the ledger's read-only copy on the sheet -------------------------- #
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_sheet_prints_the_xp_ledger(user) -> None:
+    await user.open('/sheet-ledger')
+    await user.should_see("Experience")
+    await user.should_see("Charm: Excellent Strike")
+    await user.should_see("earned 100")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_sheet_ledger_carries_no_controls(user) -> None:
+    """The constraint that shaped P4: `render_sheet` takes only a SheetView — no
+    ruleset, no character, no callbacks — and the GM party screen and every render
+    test depend on it. A ledger with working buttons would have been the first thing
+    to break that, so the sheet's copy is history and the live one stays on Edit."""
+    await user.open('/sheet-ledger')
+    await user.should_not_see("Adjust XP")
+    await user.should_not_see("Undo last")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_chargen_sheet_has_no_experience_section(user) -> None:
+    """Empty pre-lock by construction, but suppressed explicitly: an "Experience"
+    heading with nothing under it reads as a bug on a character still being built."""
+    await user.open('/sheet-desc')
+    await user.should_not_see("No XP spent yet.")
+
+
+def test_build_sheet_view_carries_the_ledger_without_a_character(rs=None):
+    """The purity contract itself, asserted on the dataclass rather than through a
+    page: everything the sheet needs to print the ledger is IN the SheetView."""
+    from dataclasses import fields
+    from exalted_builder.ui import view as viewmod
+    names = {f.name for f in fields(viewmod.SheetView)}
+    assert {"xp_earned", "xp_spent", "xp_available", "xp_log"} <= names
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_merged_editor_builds_for_a_lunar(user) -> None:
+    """Lunar castes carry no caste-Abilities, so the Ability panel groups differently
+    from every other splat — a shape that has blanked panels before."""
+    await user.open('/editor-locked-lunar')
+    await user.should_see("Abilities")
+    await user.should_see("Experience")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_merged_editor_builds_with_off_catalogue_gear_and_nature(user) -> None:
+    """`ui.select` raises at BUILD time when its value is not among its options, and
+    the freeze now wraps several selects — a frozen select still has to build with
+    whatever the save happens to hold."""
+    await user.open('/editor-locked-odd')
+    await user.should_see("Grandpa's Axe")
+    await user.should_see("Scrap Plate")
+    await user.should_see("Not In The Catalog")
+
+
+# ---- Crafts and Colleges can be reduced (human, 2026-07-31) ---------------- #
+# Not a printed rule — a usability one: "a misclick can always happen", and undo is
+# LIFO so it cannot always reach the mistake. These are the escape hatch.
+
+def test_a_craft_can_be_reduced():
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_to(rs, c, "crafts", 3, detail="Smithing")
+    advancement.lower_to(c, "crafts", 1, "misclick", "Smithing")
+    assert [(cr.focus, cr.rating) for cr in c.crafts] == [("Smithing", 1)]
+    # a reduction refunds nothing — the XP for those dots stays spent
+    assert advancement.xp_spent(c) == sum(e.cost for e in c.xp_log)
+
+
+def test_reducing_a_craft_to_zero_removes_it():
+    """Rating 0 is not a state a Craft has — `learn_craft` starts it at 1 and the
+    focus is the identity. Matches what `refund_to` already does."""
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_to(rs, c, "crafts", 2, detail="Smithing")
+    advancement.lower_to(c, "crafts", 0, "misclick", "Smithing")
+    assert c.crafts == []
+
+
+def test_reducing_a_craft_never_touches_a_different_one():
+    """`detail` is the identity. A lowerer that looked the row up by TARGET alone
+    would find the first Craft in the list and quietly reduce the wrong one."""
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.raise_to(rs, c, "crafts", 2, detail="Smithing")
+    advancement.raise_to(rs, c, "crafts", 2, detail="Tailoring")
+    advancement.lower_to(c, "crafts", 1, "misclick", "Tailoring")
+    assert [(cr.focus, cr.rating) for cr in c.crafts] == [("Smithing", 2), ("Tailoring", 1)]
+
+
+# ---- specialties: instances, not ratings (human, 2026-07-31) --------------- #
+# "You don't raise specialties, you just take the same one multiple times, and you can
+# only have 3 specialties per ability — you can have Melee 4 with two specialties in
+# swords and one in parrying, but you can't buy two dots of sword specialties."
+# So: every specialty is worth 1, duplicates are how you stack, and the cap is 3 rows
+# per Ability (not per name).
+
+def test_a_specialty_is_always_worth_one():
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.add_specialty(rs, c, A.MELEE, "Swords")
+    assert [s.rating for s in c.specialties] == [1]
+
+
+def test_the_same_specialty_may_be_taken_more_than_once():
+    """That is the stacking mechanism — two rows, not one row at 2."""
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.add_specialty(rs, c, A.MELEE, "Swords")
+    advancement.add_specialty(rs, c, A.MELEE, "Swords")
+    assert [(s.name, s.rating) for s in c.specialties] == [("Swords", 1), ("Swords", 1)]
+
+
+def test_three_specialties_per_ability_is_the_cap():
+    """The human's own example: Melee with two Swords and one Parrying is legal and
+    full. Counted per ABILITY, not per name."""
+    rs, c = _ruleset(), _locked(xp=200)
+    advancement.add_specialty(rs, c, A.MELEE, "Swords")
+    advancement.add_specialty(rs, c, A.MELEE, "Swords")
+    advancement.add_specialty(rs, c, A.MELEE, "Parrying")
+    with pytest.raises(advancement.AdvancementError, match="three"):
+        advancement.add_specialty(rs, c, A.MELEE, "Feints")
+    assert len(c.specialties) == 3
+    # ...and the cap is per ability, so another Ability is untouched by it
+    advancement.add_specialty(rs, c, A.OCCULT, "Spirits")
+    assert len(c.specialties) == 4
+
+
+def test_validation_flags_an_over_capped_ability(rs=None):
+    """Chargen has no `add_specialty` gate — the editor writes the list directly — so
+    the cap has to be a validation rule too, not only an advancement guard."""
+    from exalted_builder.engine import validate as v
+    rs = _ruleset()
+    c = Character(id="c", caste="dawn")
+    c.specialties = [Specialty(ability=A.MELEE, name=n, rating=1)
+                     for n in ("a", "b", "c", "d")]
+    codes = [i.code for i in v.validate(rs, c)]
+    assert "specialty-cap" in codes
+
+
+def test_validation_flags_a_rating_above_one(rs=None):
+    """A legacy save (or a hand-edit) can still hold one; the loader splits them, but
+    validation says so rather than silently pricing a thing that cannot exist."""
+    from exalted_builder.engine import validate as v
+    rs = _ruleset()
+    c = Character(id="c", caste="dawn")
+    c.specialties = [Specialty(ability=A.MELEE, name="Swords", rating=2)]
+    assert "specialty-rating" in [i.code for i in v.validate(rs, c)]
+
+
+def test_a_legacy_rated_specialty_is_split_into_instances_on_load(tmp_path):
+    """Mechanically identical (a rating-2 Swords WAS two dice) and it makes every
+    later rule — the cap, the BP sum, the buy path — see one shape."""
+    from exalted_builder import persistence
+    p = tmp_path / "legacy.character.json"
+    p.write_text('{"id": "l", "name": "Legacy", "caste": "dawn", "specialties": '
+                 '[{"ability": "melee", "name": "Daiklaves", "rating": 3}]}',
+                 encoding="utf-8")
+    c = persistence.load_character(p)
+    assert [(s.name, s.rating) for s in c.specialties] == [
+        ("Daiklaves", 1), ("Daiklaves", 1), ("Daiklaves", 1)]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_specialty_panel_has_no_rating_control(user) -> None:
+    """The UI half of the same ruling. A dot track here would offer a rating that does
+    not exist — and it was the one dot track left as a free setter in play, which is
+    now moot rather than deferred."""
+    await user.open('/editor-locked')
+    await user.should_see("max 3 per Ability")
+    await user.should_see("take one twice to stack it")

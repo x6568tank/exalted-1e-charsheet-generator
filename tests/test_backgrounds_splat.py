@@ -83,9 +83,9 @@ def test_backgrounds_are_chosen_in_exactly_one_place():
     old homes are asserted NOT to have grown one back, which is the half of this test
     that will actually fail one day."""
     import inspect
-    from exalted_builder.ui import advantages, editor, xp
+    from exalted_builder.ui import advantages, editor
     assert "DescribedSelect(_opts_with(bg_names" in inspect.getsource(advantages)
-    for module in (editor, xp):
+    for module in (editor,):        # the XP tab, the other old home, is gone (0013)
         src = inspect.getsource(module)
         assert "bg_names" not in src, (
             f"{module.__name__} has grown a second Background panel; there is one, "

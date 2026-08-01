@@ -6,10 +6,10 @@ a Charms tab (the Cytoscape charm-tree picker), a Combos tab, a Play tab, an ST
 Options tab (the table's optional-rule switches) and a Sheet tab (the read-only
 viewer). A top bar provides Save, Load, and Finish & Lock.
 
-The tab bar tracks the character's stage. Edit and XP occupy one slot: Edit while
-chargen is open, XP once it is locked (see `visible_tabs`). Charms and Combos are on
-the bar throughout and change mode instead of going read-only — before the lock they
-pick against the chargen budget, after it they buy with experience.
+The tab bar tracks the character's stage, but every tab that edits the character is on
+it throughout and changes MODE rather than going read-only or being swapped out: before
+the lock they spend the chargen budget, after it they spend experience. Play is the one
+locked-only tab. See `visible_tabs`, and decision 0013 for why there is no XP tab.
 
 Only the active tab's content is mounted (a single refreshable area), which keeps
 the Cytoscape container visible when it builds and avoids stale hidden canvases.
@@ -40,7 +40,6 @@ from . import editor, picker, theme
 from . import play as play_mod
 from . import storyteller as st_mod
 from . import view as viewmod
-from . import xp as xp_mod
 from .assets import cytoscape_head_html
 
 # Package-relative so it resolves in a dev checkout and a packaged (PyInstaller)
@@ -48,17 +47,26 @@ from .assets import cytoscape_head_html
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 
-_TABS = ("Edit", "Advantages", "Charms", "Combos", "XP", "Play", "ST", "Custom", "Sheet")
+_TABS = ("Edit", "Advantages", "Charms", "Combos", "Play", "ST", "Custom", "Sheet")
 
 
 def visible_tabs(locked: bool) -> tuple[str, ...]:
-    """The tabs for a character at this stage of its life. Edit and XP are the same
-    slot seen from two sides — chargen builds the baseline, XP spends against it —
-    so exactly one of them is ever on the bar. Charms, Combos and Advantages stay on
-    both sides: they switch from picking (free, within the chargen budget) to buying
-    (with XP). Advantages is deliberately in the second group, not the first —
-    Backgrounds and Merits & Flaws are one list under two budget regimes, and filing
-    them with Edit/XP is what made each of them exist twice.
+    """The tabs for a character at this stage of its life.
+
+    **Edit is on the bar on BOTH sides of the lock** (decision 0013). It used to be
+    chargen-only, swapped for XP once locked, and that split is what let the two tabs
+    implement the same traits twice and disagree — a hardcoded trait ceiling on the XP
+    side made Legendary Attribute unbuyable there while chargen honoured it. The dot
+    tracks now change mode instead of being replaced: free setters pre-lock, steppers
+    that spend XP post-lock. Same treatment Charms, Combos and Advantages already had,
+    and for the same reason — Advantages is deliberately in that group, because filing
+    Backgrounds and M&F under the Edit/XP split is what made each of them exist twice.
+
+    There is no longer an XP tab at all. Everything it held moved to where the thing
+    it acts on already lives: traits to the dot tracks, the ledger and Adjust XP to
+    Edit's sticky column, permanent Resonance and the withheld-Charm note beside the
+    traits they belong to, and Crafts/Colleges/Specialties/equipment onto the panels
+    that already existed here in duplicate.
 
     Play is locked-only. The tracker overlays spent motes, marked health and Willpower
     onto capacities derived from the finished character, and every one of those moves
@@ -67,15 +75,20 @@ def visible_tabs(locked: bool) -> tuple[str, ...]:
     validation-isolated (decision 0006) and never enters chargen, so marks made before
     the lock silently mean nothing to the point accounting.
     """
-    hidden = {"XP", "Play"} if not locked else {"Edit"}
+    hidden = {"Play"} if not locked else set()
     return tuple(t for t in _TABS if t not in hidden)
 
 
 def resolve_tab(name: str, locked: bool) -> str:
-    """`name`, or its counterpart when locking/unlocking just hid it."""
+    """`name`, or a sensible landing tab when locking/unlocking just hid it.
+
+    Edit survives the lock now, so it is the answer in both directions — a player who
+    locks while editing traits stays where they were, looking at the same dots, which
+    is the point of the merge.
+    """
     if name in visible_tabs(locked):
         return name
-    return "XP" if locked else "Edit"
+    return "Edit"
 
 
 def _native_window():
@@ -184,8 +197,6 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
                 ruleset, char, path, with_header=False, register_events=False)
         elif state["tab"] == "Combos":
             combos_mod.build_combos(ruleset, char, path, with_header=False)
-        elif state["tab"] == "XP":
-            xp_mod.build_xp(ruleset, char, path, with_header=False)
         elif state["tab"] == "Play":
             play_mod.build_play(ruleset, char, path, with_header=False)
         elif state["tab"] == "ST":

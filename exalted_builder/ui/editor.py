@@ -23,7 +23,7 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import derive, merits, validate
+from ..engine import advancement, costs, derive, elder, merits, validate
 from ..models.character import (
     Armor, BackgroundEntry, Character, CollegeRating, CraftRating, HealthLevel,
     MeritFlawPurchase, Specialty, VirtueFlaw, Weapon)
@@ -189,7 +189,17 @@ class DescribedSelect(ui.select):
             self._props["options"] = described
 
 
-def dot_track(pal, on_change=None):
+# XP-log targets whose change moves OTHER rows' ceilings, so buying one has to rebuild
+# the whole editor body rather than its own dot row. Module-level and named so the rule
+# is greppable: the browser found it missing (human, 2026-07-31 — Essence clicked up to
+# 6 but the Ability tracks kept five pips until the tab was left and re-entered).
+#
+# Essence is the only member: past 5 it IS the ceiling on every Ability and Attribute
+# (engine.elder). Add a target here if a new rule makes one trait govern another's cap.
+BODY_REBUILD_TARGETS = {"essence"}
+
+
+def dot_track(pal, on_change=None, *, buy=None):
     """Build the clickable dot-track rating control, bound to a palette.
 
     Module-level and parameterised rather than a closure inside `build_editor`, because
@@ -197,10 +207,19 @@ def dot_track(pal, on_change=None):
     have two implementations in the first place. `on_change` fires after any click, for
     the caller's live readout.
 
-    Returns `dots(get, setv, lo, hi)` — `get`/`setv` read and write the rating, and
-    clicking the current top pip steps it back down.
+    Returns `dots(get, setv, lo, hi, target=None)` — `get`/`setv` read and write the
+    rating, and clicking the current top pip steps it back down.
+
+    `buy` is decision 0013's post-lock mode: ONE track on both sides of the lock,
+    pre-lock a free setter and post-lock a stepper that spends XP. It stays opt-in per
+    CALL, not per control — a track only changes behaviour when the caller names a
+    `target` (an `XpEntry` target like `attributes.strength`), so the Advantages tab's
+    Background rows and the editor's rating controls that have no XP counterpart keep
+    the free setter untouched. This control decides nothing: when both are present it
+    hands the click to `buy` and does what it is told.
     """
-    def dots(get, setv, lo: int, hi: int):
+    def dots(get, setv, lo: int, hi: int, target: str | None = None,
+             detail: str = ""):
         @ui.refreshable
         def show() -> None:
             v = get()
@@ -214,8 +233,13 @@ def dot_track(pal, on_change=None):
 
         def click(i: int) -> None:
             cur = get()
-            new = i - 1 if i == cur else i      # click the current top pip to step down
-            setv(max(lo, min(hi, new)))
+            new = max(lo, min(hi, i - 1 if i == cur else i))
+            # Post-lock, the click is a purchase, a refund or a curse — never a write.
+            # `buy` returns True when it has taken responsibility for it.
+            if buy is not None and target is not None:
+                if buy(target, cur, new, show.refresh, detail):
+                    return
+            setv(new)
             show.refresh()
             if on_change is not None:
                 on_change()
@@ -235,37 +259,52 @@ def panel_card(pal, title: str):
 
 
 def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
-                 *, with_header: bool = True, on_theme_change=None) -> None:
+                 *, with_header: bool = True, on_theme_change=None):
     """Render the whole editor for `character`. Pure-ish wiring: every control
     mutates the Character and refreshes the live readout. With `with_header=False`
     the title/Save bar is omitted (the embedding app provides one). `on_theme_change`
     (if given) is called after the Exalt type changes so an embedding app can re-paint
-    its own chrome (header bar / page background) to the new splat's palette."""
+    its own chrome (header bar / page background) to the new splat's palette.
+
+    Returns the post-lock downward-click dialog opener, `(target, current, wanted,
+    refresh)`, so tests can build it. Callers ignore it."""
     pal = theme.palette(character.exalt_type)
 
     # ---- live readout (recomputes the engine each refresh) ---------------- #
-    @ui.refreshable
+    # Plain builders, not individually refreshable: the whole sticky column is one
+    # refreshable (`side_column`) because WHICH cards exist there changes at the lock.
     def readout() -> None:
+        """The chargen column's card: the running bonus-point line, the derived pools
+        a builder watches move, then the findings."""
         view = viewmod.build_sheet_view(ruleset, character)
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
-        errors = [i for i in view.issues if i.severity == "error"]
         ui.label(bp).classes("text-sm font-semibold").style(f"color:{pal.accent}")
         with ui.row().classes("gap-4 text-sm"):
             ui.label(f"Willpower {view.willpower}")
             ui.label(view.essence_pool_label())
         ui.label(f"Soak  B{view.soak.bashing} / L{view.soak.lethal} / A{view.soak.aggravated}").classes("text-sm")
         ui.separator()
-        status = "✓ Legal chargen" if not errors else f"✗ {len(errors)} error(s)"
+        _issues(view, "✓ Legal chargen")
+
+    def _issues(view, ok_text: str) -> None:
+        """Just the findings. Split out because the in-play card shows ONLY these —
+        the derived pools belong to a character being built, and post-lock they live
+        on the Sheet where they are not competing with a ledger for the eye."""
+        errors = [i for i in view.issues if i.severity == "error"]
+        status = ok_text if not errors else f"✗ {len(errors)} error(s)"
         ui.label(status).classes("text-sm font-bold").style(
             "color:#15803d" if not errors else "color:#b91c1c")
         for issue in view.issues:
-            if issue.code == "bonus-points":
+            if issue.code in ("bonus-points", "xp-summary"):
                 continue
             color = {"error": "text-red-600", "warning": "text-amber-600"}.get(issue.severity, "text-gray-500")
             ui.label(f"• {issue.message}").classes(f"text-xs {color}")
 
-    # ---- bonus-point spend log (per-domain; lives under the caste box) ----- #
-    @ui.refreshable
+    # ---- bonus points (chargen) / experience (in play) --------------------- #
+    # One card, two regimes — the same shape the dot tracks take. Bonus points stop
+    # being a live budget at the lock (they are frozen into the ChargenSnapshot), so
+    # showing a bonus-point tally beside dots that now cost XP would name the wrong
+    # currency. The full ledger and Adjust XP arrive here in P3.
     def bp_log() -> None:
         bd = validate.bonus_point_breakdown(ruleset, character)
         ui.label("Bonus Points").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
@@ -277,6 +316,145 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             with ui.row().classes("w-full justify-between no-wrap items-baseline"):
                 ui.label(line.domain).classes(f"text-xs {muted}")
                 ui.label(str(line.points)).classes(f"text-xs {muted}")
+
+    def _do_trait(action) -> None:
+        """Run a post-lock trait change that is NOT a dot click (Willpower, permanent
+        Resonance), then rebuild — those controls display derived values that the
+        change moves."""
+        try:
+            action()
+        except advancement.AdvancementError as ex:
+            ui.notify(str(ex), type="warning")
+            return
+        refresh_all()
+
+    def _lower_willpower() -> None:
+        """Willpower's half of the downward dialog. A one-field prompt rather than the
+        two-branch one: there is no refund branch to offer, because Willpower has no
+        dot track and so no upward click of its own to reverse — undo reaches it from
+        the ledger instead."""
+        with ui.dialog() as dialog, ui.card().classes(f"w-[26rem] p-4 gap-2 {pal.card_solid}"):
+            ui.label("Permanent Willpower loss").classes("text-base font-bold")
+            ui.label("Free, refunds no XP, logged and undoable. To take back a "
+                     "PURCHASE instead, use Undo in the Experience card."
+                     ).classes("text-xs text-gray-600")
+            reason = ui.input(placeholder="reason (e.g. a curse)").props("dense").classes("w-full")
+
+            def _go() -> None:
+                try:
+                    advancement.lower_willpower(character, reason.value.strip(), ruleset=ruleset)
+                except advancement.AdvancementError as ex:
+                    ui.notify(str(ex), type="warning")
+                    return
+                dialog.close()
+                refresh_all()
+
+            ui.button("Lower by 1", icon="trending_down", on_click=_go).props("dense outline")
+        dialog.open()
+
+    # ---- chargen choices are frozen at the lock --------------------------- #
+    # Making Edit a both-sides tab (decision 0013) exposed every free setter on it to a
+    # locked character, and some of them are not traits to be bought — they are the
+    # chargen choices the whole point accounting is measured against. Re-picking
+    # Favoured Abilities in play would silently re-rate every future purchase; changing
+    # caste, Exalt type or origin would swap the budget row the snapshot was written
+    # from. Decision 0004 already says chargen is a snapshot; this is that made visible.
+    #
+    # Applied per control rather than by hiding the panel, so the values stay READABLE
+    # in play — which is what they are for.
+    def _frozen(el):
+        """Disable `el` once chargen is locked; pass it through untouched before."""
+        if character.chargen_locked:
+            el.props("disable")
+        return el
+
+    # ---- the sticky column, in play (decision 0013 / P3) ------------------ #
+    # Post-lock the column is: what you can spend, what you spent it on, and only then
+    # anything wrong. Pre-lock it is validation first, because a half-built character
+    # is mostly a list of things not yet done.
+    _adjust = {"amount": 5}
+
+    def _do_undo() -> None:
+        try:
+            advancement.undo_last(ruleset, character)
+        except advancement.AdvancementError as ex:
+            ui.notify(str(ex), type="warning")
+            return
+        refresh_all()
+
+    def xp_controls() -> None:
+        """Adjust XP, and the one control the read-only log would otherwise strand.
+
+        Traits are un-bought by clicking their dots down (the P1 dialog), but a Charm,
+        Combo, spell, specialty or thaumaturgy purchase has no downward gesture of its
+        own — the ledger's per-row undo button was the only way to reverse one. Keeping
+        the log a printout means that button has to live here instead, and naming the
+        row it will reverse is what stops "Undo" being a guess.
+        """
+        ui.label("Experience").classes("text-sm font-bold tracking-widest").style(
+            f"color:{pal.accent}")
+        with ui.row().classes("w-full items-center gap-1 no-wrap"):
+            amount = ui.number(value=_adjust["amount"], format="%d").props("dense").classes("w-20")
+            ui.button("Adjust XP", icon="add", on_click=lambda: (
+                _adjust.__setitem__("amount", int(amount.value or 0)),
+                advancement.add_xp(character, int(amount.value or 0)),
+                changed())).props(f"dense color={pal.button}")
+        rows = viewmod.build_xp_log(ruleset, character)
+        if rows:
+            ui.button(f"Undo last: {rows[-1].label}", icon="undo", on_click=_do_undo
+                      ).props("dense flat size=sm color=negative").classes("w-full")
+        # Chargen Charm picks banked by a Flaw (Weak Essence, p.41). Beside the XP
+        # accounting rather than only on the Charms tab, because it is experience the
+        # player does NOT have to spend — a number that belongs with the budget.
+        granted, remaining = validate.withheld_charm_credits(ruleset, character)
+        if granted:
+            ui.label(f"{remaining} of {granted} withheld Charm(s) in reserve — the next "
+                     f"{remaining or 'no'} cost no XP.").classes(
+                "text-xs font-semibold").style(f"color:{pal.accent}")
+
+    def xp_log_card() -> None:
+        spent = advancement.xp_spent(character)
+        available = advancement.xp_available(character)
+        with ui.row().classes("w-full items-baseline gap-2"):
+            ui.label(str(available)).classes("text-2xl font-bold").style(
+                f"color:{'#15803d' if available >= 0 else '#b91c1c'}")
+            ui.label("XP available").classes("text-xs text-gray-600")
+        ui.label(f"earned {character.xp_earned} · spent {spent}").classes(
+            "text-xs text-gray-600")
+        ui.separator()
+        rows = viewmod.build_xp_log(ruleset, character)
+        if not rows:
+            ui.label("No XP spent yet.").classes("text-xs text-gray-400")
+        for r in rows:
+            with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
+                ui.label(r.label).classes("text-xs")
+                ui.label(f"{r.cost} XP").classes("text-xs text-gray-600")
+
+    @ui.refreshable
+    def side_column() -> None:
+        if character.chargen_locked:
+            with ui.card().classes(f"w-full p-3 {pal.card}"):
+                xp_controls()
+            with ui.card().classes(f"w-full p-3 {pal.card}"):
+                xp_log_card()
+            # Validation is DEMOTED post-lock, not deleted. A clean character shows no
+            # card at all — but a curse that drops an Ability below a known Charm's
+            # requirement is a real post-lock finding (`charm-min-ability`), and the
+            # downward dialog is what makes it easy to cause. Hiding it outright would
+            # blind the player exactly where the new gesture can hurt them.
+            view = viewmod.build_sheet_view(ruleset, character)
+            if any(i.code != "xp-summary" for i in view.issues):
+                with ui.card().classes(f"w-full p-3 {pal.card}"):
+                    ui.label("Validation").classes(
+                        "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                    _issues(view, "✓ Legal")
+            return
+        with ui.card().classes(f"w-full p-3 {pal.card}"):
+            ui.label("Live Validation").classes(
+                "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+            readout()
+        with ui.card().classes(f"w-full p-3 {pal.card}"):
+            bp_log()
 
     # ---- live tally of ability dots spent (updates on every dot click) ----- #
     @ui.refreshable
@@ -301,12 +479,133 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             f"color:{'#b91c1c' if over else pal.accent}")
 
     def changed() -> None:
-        readout.refresh()
-        bp_log.refresh()
+        side_column.refresh()
         ability_tally.refresh()
 
+    def refresh_all() -> None:
+        """A change that can move any trait on the page — undo is the only one, since
+        it reverses a purchase the player made somewhere else entirely and the dot
+        tracks have no idea which."""
+        body.refresh()
+        changed()
+
+    # ---- post-lock buying (decision 0013) --------------------------------- #
+    # The dot tracks are the trait surface on BOTH sides of the lock. Pre-lock they
+    # are free setters against the chargen budget; post-lock a click is an XP
+    # transaction and every one of them goes through engine.advancement. Nothing here
+    # prices or gates anything — `raise_to`, `refund_to` and `lower_to` do, and each
+    # validates the whole click before committing any of it.
+    def _refresh_after(target: str, refresh) -> None:
+        """Redraw what the change actually moved.
+
+        A dot click normally only has to redraw its own row, and `refresh` is that
+        row's. ESSENCE is the exception: it is the ceiling on every Ability and
+        Attribute track once it passes 5 (engine.elder), so the pips those rows were
+        built with are stale the moment it moves — the whole body has to rebuild.
+
+        One or the other, never both: rebuilding the body replaces the very row
+        `refresh` belongs to, and calling a refresher for a discarded element is how
+        this control gets its "nothing happened" bugs.
+        """
+        if target in BODY_REBUILD_TARGETS:
+            body.refresh()
+        else:
+            refresh()
+
+    def _buy(target: str, current: int, wanted: int, refresh, detail: str = "") -> bool:
+        """Handle a post-lock dot click. Returns False pre-lock, so the track falls
+        through to its ordinary free-setter behaviour."""
+        if not character.chargen_locked:
+            return False
+        if wanted > current:
+            try:
+                advancement.raise_to(ruleset, character, target, wanted, detail)
+            except advancement.AdvancementError as ex:
+                ui.notify(str(ex), type="warning")
+            else:
+                _refresh_after(target, refresh)
+                changed()
+            return True
+        if wanted < current:
+            _downward_dialog(target, current, wanted, refresh, detail)
+        return True
+
+    def _downward_dialog(target: str, current: int, wanted: int, refresh,
+                         detail: str = "") -> None:
+        """Ask which downward event this is. The application genuinely cannot infer
+        it: taking XP back and suffering a curse both move the same dots, and they
+        differ in price, in what they log and in how far down they may go.
+
+        Refund is capped by `refundable_depth` — undo is LIFO across the WHOLE log,
+        so a raise buried under a later purchase is not refundable here and the branch
+        says so rather than silently unwinding the purchase on top of it.
+        """
+        dots_down = current - wanted
+        depth = advancement.refundable_depth(character, target, detail)
+        can_refund = depth >= dots_down
+        # A curse reaches chargen dots, so its only limit is the trait's own floor —
+        # asked of the engine by trying it on a throwaway copy rather than restated.
+        try:
+            advancement.lower_to(character.model_copy(deep=True), target, wanted,
+                                 "probe", detail)
+            can_reduce = True
+        except advancement.AdvancementError:
+            can_reduce = False
+        if not can_refund and not can_reduce:
+            ui.notify("Nothing to take back here — no recent purchase of this trait, "
+                      "and it is already at its minimum.", type="info")
+            return
+
+        refund_xp = sum(e.cost for e in character.xp_log[len(character.xp_log) - dots_down:]) \
+            if can_refund else 0
+        noun = "dot" if dots_down == 1 else "dots"
+        with ui.dialog() as dialog, ui.card().classes(f"w-[28rem] p-4 gap-2 {pal.card_solid}"):
+            ui.label(f"Lower by {dots_down} {noun}").classes("text-base font-bold")
+            ui.label("Taking experience back and suffering a permanent loss are "
+                     "different events. Which is this?").classes("text-xs text-gray-600")
+
+            def _do(action) -> None:
+                try:
+                    action()
+                except advancement.AdvancementError as ex:
+                    ui.notify(str(ex), type="warning")
+                    return
+                dialog.close()
+                # Essence coming back DOWN lowers the same ceilings — a body rebuild
+                # for the same reason as the raise. See _refresh_after.
+                _refresh_after(target, refresh)
+                changed()
+
+            with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                btn = ui.button(f"Undo purchase — refund {refund_xp} XP",
+                                icon="undo",
+                                on_click=lambda: _do(lambda: advancement.refund_to(
+                                    ruleset, character, target, wanted, detail))
+                                ).props(f"dense color={pal.button}").classes("flex-1")
+                if not can_refund:
+                    btn.props("disable")
+            if not can_refund:
+                ui.label(f"Only {depth} recent purchase(s) of this trait can be refunded — "
+                         f"undo is last-in-first-out, so anything bought since must go "
+                         f"first.").classes("text-xs italic text-gray-500")
+
+            ui.separator()
+            reason = ui.input(placeholder="reason (e.g. a curse, a Charm's permanent cost)"
+                              ).props("dense").classes("w-full")
+            with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                red = ui.button("Permanent loss — free, refunds no XP",
+                                icon="trending_down",
+                                on_click=lambda: _do(lambda: advancement.lower_to(
+                                    character, target, wanted, reason.value.strip(), detail))
+                                ).props("dense outline").classes("flex-1")
+                if not can_reduce:
+                    red.props("disable")
+            ui.label("A permanent loss is logged and undoable, reaches chargen dots, "
+                     "and gives back no experience.").classes("text-xs text-gray-500")
+        dialog.open()
+
     # ---- shared controls (module-level; the Advantages tab uses the same) --- #
-    dots = dot_track(pal, changed)
+    dots = dot_track(pal, changed, buy=_buy)
 
     def panel(title: str):
         return panel_card(pal, title)
@@ -314,6 +613,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     # ---- the editor body (refreshes on structural changes) ---------------- #
     @ui.refreshable
     def body() -> None:
+        # Which side of the lock this render is on. Read once per body build, not per
+        # widget, so a single character cannot produce a half-chargen, half-XP page.
+        locked = character.chargen_locked
         caste_def = ruleset.castes.get(character.caste)
         caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
         caste_attributes = set(caste_def.caste_attributes) if caste_def else set()
@@ -327,8 +629,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # Trait ceilings a Merit or Flaw has moved, read once for the dot rows below.
         mf_effects = merits.merits_and_flaws_calc(ruleset, character)
 
+        # Ceilings age has moved (Player's Guide pp.258-259), read once alongside the
+        # Merit ones. Both are 5/5 for every character under 100 years of Exalted
+        # existence, which is every character pre-lock — `Character.age` cannot be set
+        # until then — so this changes nothing for an ordinary sheet.
+        e_caps = elder.elder_caps(ruleset, character)
+
         def _attr_cap(a) -> int:
-            return mf_effects.attribute_caps.get(a.value, merits.DOT_MAX)
+            return max(mf_effects.attribute_caps.get(a.value, merits.DOT_MAX),
+                       e_caps.trait)
 
         virtue_cap = (mf_effects.virtue_cap if mf_effects.virtue_cap is not None
                       else merits.DOT_MAX)
@@ -381,11 +690,37 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
             with ui.column().classes("flex-1 gap-2 min-w-0"):
                 with panel("Identity"):
+                    if locked:
+                        ui.label("Caste, Exalt type, origin and Favoured picks are fixed "
+                                 "at the lock — they set the rates every later purchase "
+                                 "is priced at.").classes("text-xs italic text-gray-500")
                     with ui.row().classes("w-full gap-3 no-wrap"):
                         ui.input("Name", value=character.name,
                                  on_change=lambda e: (setattr(character, "name", e.value), changed())).classes("flex-1")
                         ui.input("Concept", value=character.concept,
                                  on_change=lambda e: setattr(character, "concept", e.value)).classes("flex-1")
+                        # Years of EXALTED existence — the elder rules' only input
+                        # (Player's Guide pp.258-259). The inverse of every other
+                        # control in this panel: disabled UNTIL the lock, because a
+                        # character may not leave creation with Essence above 5, so
+                        # age can do nothing there but mislead.
+                        _age = ui.number(
+                            "Exalted years", value=character.age, min=0, format="%d",
+                            on_change=lambda e: (
+                                setattr(character, "age", int(e.value or 0)), changed()),
+                        ).classes("w-32")
+                        # The dot tracks' ceilings are built from age, so they have to
+                        # be rebuilt when it changes — but on BLUR, not per keystroke:
+                        # refreshing mid-type would tear the field out from under
+                        # someone typing "1000" one digit at a time.
+                        _age.on("blur", lambda _: body.refresh())
+                        if not locked:
+                            _age.props("disable")
+                            _age.tooltip("Set in play — age is not a chargen choice.")
+                        elif e_caps.is_elder:
+                            _age.tooltip(
+                                f"Essence up to {e_caps.essence}; "
+                                f"Abilities and Attributes up to {e_caps.trait}.")
                     # Wraps (no `no-wrap`) so the identity controls flow onto a second
                     # line rather than squashing to truncated labels ("C…"); each gets
                     # a min width so its label always shows in full.
@@ -393,8 +728,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     with ui.row().classes("w-full gap-3 items-end"):
                         exalt_opts = {ex.id: ex.label for ex in ruleset.exalts.values()}
                         exalt_opts.setdefault(character.exalt_type, character.exalt_type)
-                        ui.select(exalt_opts, label="Exalt type", value=character.exalt_type,
-                                  on_change=lambda e: set_exalt_type(e.value)).classes(_field)
+                        _frozen(ui.select(exalt_opts, label="Exalt type", value=character.exalt_type,
+                                  on_change=lambda e: set_exalt_type(e.value)).classes(_field))
                         caste_opts = {cd.id: cd.label for cd in ruleset.castes.values()
                                       if cd.exalt_type == character.exalt_type}
                         # A splat with NO castes at all doesn't get the control: mortals
@@ -404,28 +739,32 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                             # keep the current caste selectable even if off-splat (NiceGUI 3.x
                             # ui.select raises if value ∉ options — see the select-value gotcha)
                             caste_opts.setdefault(character.caste, character.caste)
-                            ui.select(caste_opts, label=caste_noun, value=character.caste,
-                                      on_change=lambda e: set_caste(e.value)).classes(_field)
+                            _frozen(ui.select(caste_opts, label=caste_noun, value=character.caste,
+                                      on_change=lambda e: set_caste(e.value)).classes(_field))
                         origins = _SPLAT_ORIGINS.get(character.exalt_type)
                         if origins:
-                            ui.select(origins, label="Origin",
+                            _frozen(ui.select(origins, label="Origin",
                                       value=character.origin or next(iter(origins)),
-                                      on_change=lambda e: set_origin(e.value)).classes(_field)
+                                      on_change=lambda e: set_origin(e.value)).classes(_field))
                             # Second axis, and only for the origins that have one — see
                             # _ORIGIN_UPBRINGINGS. Everything else renders exactly as before.
                             ups = upbringing_options(
                                 character.exalt_type, character.origin or next(iter(origins)))
                             if ups:
-                                ui.select(ups, label="Upbringing",
+                                _frozen(ui.select(ups, label="Upbringing",
                                           value=character.upbringing if character.upbringing in ups
                                           else next(iter(ups)),
-                                          on_change=lambda e: set_upbringing(e.value)).classes(_field)
+                                          on_change=lambda e: set_upbringing(e.value)).classes(_field))
                         nature_names = [n.name for n in ruleset.nature_catalog.values()]
-                        ui.select(_opts_with(nature_names, character.nature), label="Nature",
+                        # Frozen with the other chargen choices (human, rules authority,
+                        # 2026-07-31). It has no XP effect, but it IS True Paragon's
+                        # prerequisite, and a Nature changed in play would invalidate a
+                        # held Merit after the fact.
+                        _frozen(ui.select(_opts_with(nature_names, character.nature), label="Nature",
                                   value=character.nature or None,
                                   with_input=True, new_value_mode="add-unique",
                                   on_change=lambda e: (setattr(character, "nature", e.value or ""),
-                                                       changed())).classes(_field)
+                                                       changed())).classes(_field))
                         ui.input("Anima", value=character.anima,
                                  on_change=lambda e: setattr(character, "anima", e.value)).classes(_field)
                     # Favored ABILITIES (most splats) or Favored ATTRIBUTES (Alchemical,
@@ -435,15 +774,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     # mortal's single Favoured Ability is an ST toggle, not a budget.
                     fav_n = validate.favored_ability_count(ruleset, character)
                     if fav_n:
-                        ui.select({a: _label(a.value) for a in AbilityName},
+                        _frozen(ui.select({a: _label(a.value) for a in AbilityName},
                                   label=f"Favored abilities (pick {fav_n})",
                                   value=list(character.favored_abilities), multiple=True,
-                                  on_change=lambda e: set_favored(e.value)).classes("w-full").props("use-chips")
+                                  on_change=lambda e: set_favored(e.value)).classes("w-full").props("use-chips"))
                     if cf_attr_mode:
-                        ui.select({a: _label(a.value) for a in AttributeName},
+                        _frozen(ui.select({a: _label(a.value) for a in AttributeName},
                                   label=f"Favored Attributes (pick {b.attribute_favored_count})",
                                   value=list(character.favored_attributes), multiple=True,
-                                  on_change=lambda e: set_favored_attributes(e.value)).classes("w-full").props("use-chips")
+                                  on_change=lambda e: set_favored_attributes(e.value)).classes("w-full").props("use-chips"))
 
         # Training camp + Calling (Cult of the Illuminated, p.89-93). Its own full-width
         # panel between Identity and Attributes rather than inside the caste-info card:
@@ -456,9 +795,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 with ui.row().classes("w-full gap-3 items-start"):
                     # left: the camp, its floors and its free-Charm package
                     with ui.column().classes("flex-1 gap-1 min-w-0"):
-                        ui.select({cid: label for cid, label in camp_view.camp_options},
+                        _frozen(ui.select({cid: label for cid, label in camp_view.camp_options},
                                   label="Training camp", value=camp_view.camp_id or None,
-                                  on_change=lambda e: set_camp(e.value)).classes("w-full")
+                                  on_change=lambda e: set_camp(e.value)).classes("w-full"))
                         if camp_view.camp_description:
                             ui.label(camp_view.camp_description).classes("text-xs")
                         if camp_view.minimums:
@@ -476,10 +815,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                             opts = {o.key: (o.label if o.available
                                             else f"{o.label} — {o.reason}")
                                     for o in choice.options}
-                            ui.select(opts, label=choice.label + suffix,
+                            _frozen(ui.select(opts, label=choice.label + suffix,
                                       value=choice.chosen_key or None,
                                       on_change=lambda e, i=idx: set_camp_choice(i, e.value)
-                                      ).classes("w-full")
+                                      ).classes("w-full"))
                             # Picking the style is only half the choice — the package is
                             # "two Charms from ONE of four martial arts" (p.90), so the
                             # player chooses WHICH. Multi-select, capped at `pick`.
@@ -487,18 +826,18 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 copts = {o.charm_id: (o.label if o.meets_minimums
                                                       else f"{o.label} — {o.reason}")
                                          for o in choice.charm_options}
-                                ui.select(copts, multiple=True,
+                                _frozen(ui.select(copts, multiple=True,
                                           label=f"Which {choice.pick}?",
                                           value=list(choice.chosen_charm_ids),
                                           on_change=lambda e, i=idx: set_camp_choice_charms(
                                               i, list(e.value or []))
-                                          ).props("use-chips").classes("w-full")
+                                          ).props("use-chips").classes("w-full"))
                     # right: the Calling and what it discounts
                     with ui.column().classes("flex-1 gap-1 min-w-0"):
                         if camp_view.calling_options:
-                            ui.select({cid: label for cid, label in camp_view.calling_options},
+                            _frozen(ui.select({cid: label for cid, label in camp_view.calling_options},
                                       label="Calling", value=camp_view.calling_id or None,
-                                      on_change=lambda e: set_calling(e.value)).classes("w-full")
+                                      on_change=lambda e: set_calling(e.value)).classes("w-full"))
                             if camp_view.calling_description:
                                 ui.label(camp_view.calling_description).classes("text-xs")
                             if camp_view.calling_abilities:
@@ -509,8 +848,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                          f"discounted at chargen and in play").classes("text-xs italic")
 
         # attributes
+        # Post-lock the chargen pools are frozen history — the budget that governs a
+        # click is experience, and a header still counting 8/6/4 would contradict the
+        # dots beside it. Same for the Ability and Virtue panels below.
         attr_header = viewmod.attribute_budget_summary(ruleset, character) or f"prioritise {ap}"
-        with panel(f"Attributes ({attr_header})"):
+        with panel("Attributes" if locked else f"Attributes ({attr_header})"):
             with ui.row().classes("w-full gap-2 no-wrap"):
                 for category, members in validate.ATTRIBUTE_CATEGORIES.items():
                     with ui.column().classes("flex-1 gap-1"):
@@ -526,7 +868,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                         for a in members)
                             label.set_text(f"{category} — {spent} spent")
 
-                        show_spent()
+                        if not locked:
+                            show_spent()
                         for a in members:
                             with ui.row().classes("w-full items-center gap-2 no-wrap"):
                                 # Caste Attributes (●) are the parallel to other splats'
@@ -543,11 +886,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 dots(lambda a=a: character.attributes[a],
                                      lambda v, a=a, upd=show_spent: (
                                          character.attributes.__setitem__(a, v), upd()),
-                                     min(1, _attr_cap(a)), _attr_cap(a))
+                                     min(1, _attr_cap(a)), _attr_cap(a),
+                                     target=f"attributes.{a.value}")
 
         # abilities (by ability-caste group)
-        with panel(f"Abilities ({b.ability_dots} dots; ≥{b.ability_min_caste_favored} caste/favoured; ≤{b.ability_cap_pre_bp} each pre-bonus)"):
-            ability_tally()
+        with panel("Abilities" if locked else
+                   f"Abilities ({b.ability_dots} dots; ≥{b.ability_min_caste_favored} caste/favoured; ≤{b.ability_cap_pre_bp} each pre-bonus)"):
+            if not locked:
+                ability_tally()
             groups = viewmod.ability_group_defs(ruleset, character.exalt_type)
             calling_marks = viewmod.calling_ability_marks(ruleset, character)
             for start in range(0, len(groups), 3):
@@ -573,7 +919,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                         continue
                                     ui.label(_label(a.value)).classes("text-sm flex-1 truncate")
                                     dots(lambda a=a: character.abilities[a],
-                                         lambda v, a=a: character.abilities.__setitem__(a, v), 0, 5)
+                                         lambda v, a=a: character.abilities.__setitem__(a, v),
+                                         0, e_caps.trait,
+                                         target=f"abilities.{a.value}")
 
         # crafts — each focus is its own rated Ability (core p.136)
         craft_cf = AbilityName.CRAFT in caste_abilities or AbilityName.CRAFT in character.favored_abilities
@@ -583,26 +931,50 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.input(value=cr.focus, placeholder="craft (e.g. Smithing)",
                              on_change=lambda e, cr=cr: (setattr(cr, "focus", e.value), changed())).classes("flex-1")
-                    dots(lambda cr=cr: cr.rating, lambda v, cr=cr: setattr(cr, "rating", v), 0, 5)
+                    dots(lambda cr=cr: cr.rating, lambda v, cr=cr: setattr(cr, "rating", v),
+                         0, e_caps.trait, target="crafts", detail=cr.focus)
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_craft(idx)).props("flat dense round")
             ui.button("Add craft", icon="add", on_click=add_craft).props("flat dense")
 
         # virtues + essence + willpower
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
-            with panel(f"Virtues ({b.virtue_dots} dots; ≤{b.virtue_cap_pre_bp} pre-bonus)").classes("flex-1"):
+            with panel("Virtues" if locked else
+                       f"Virtues ({b.virtue_dots} dots; ≤{b.virtue_cap_pre_bp} pre-bonus)").classes("flex-1"):
                 for v in VirtueName:
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):
                         ui.label(_label(v.value)).classes("text-sm w-28")
                         dots(lambda v=v: character.virtues[v],
                              lambda val, v=v: character.virtues.__setitem__(v, val),
-                             1, virtue_cap)
+                             1, virtue_cap, target=f"virtues.{v.value}")
             with panel("Essence & Willpower").classes("flex-1"):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.label("Essence").classes("text-sm w-28")
+                    # The dot row runs to whatever AGE permits (p.259's chart), not a
+                    # flat 5 — the same reasoning as the Attribute rows above: a
+                    # ceiling the player cannot click to is a ceiling they cannot use.
+                    # Pre-lock this is always 5, because age cannot be set until lock.
                     dots(lambda: character.essence_rating,
-                         lambda v: setattr(character, "essence_rating", v), 1, 5)
-                ui.number("Willpower purchased", value=character.willpower_purchased, min=0, max=10, format="%d",
-                          on_change=lambda e: (setattr(character, "willpower_purchased", int(e.value or 0)), changed())).classes("w-full")
+                         lambda v: setattr(character, "essence_rating", v),
+                         1, e_caps.essence, target="essence")
+                if locked:
+                    # Willpower is the one reducible trait that is NOT a dot track and
+                    # cannot become one: decision 0005 pins its Virtue component at the
+                    # lock, so only `willpower_purchased` moves and a pip row would
+                    # misrepresent the total. Decision 0013 keeps it an explicit pair.
+                    wp = derive.willpower(character, ruleset)
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.label(f"Willpower {wp}").classes("text-sm w-28")
+                        ui.button(f"+1 · {costs.willpower_step(ruleset, character, wp)} XP",
+                                  on_click=lambda: _do_trait(
+                                      lambda: advancement.raise_willpower(ruleset, character))
+                                  ).props(f"dense color={pal.button}")
+                        ui.button(icon="arrow_downward",
+                                  on_click=lambda: _lower_willpower()
+                                  ).props("dense flat round color=negative").tooltip(
+                            "Permanent loss (a curse) — free, refunds no XP")
+                else:
+                    ui.number("Willpower purchased", value=character.willpower_purchased, min=0, max=10, format="%d",
+                              on_change=lambda e: (setattr(character, "willpower_purchased", int(e.value or 0)), changed())).classes("w-full")
 
         # Backgrounds and Merits & Flaws are NOT here — they live on the Advantages
         # tab (`ui/advantages.py`), which is on the bar on both sides of the lock. They
@@ -632,22 +1004,49 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.select(row_opts, value=cr.college_id,
                                   on_change=lambda e, cr=cr: (setattr(cr, "college_id", e.value), changed())
                                   ).classes("flex-1")
-                        dots(lambda cr=cr: cr.rating, lambda v, cr=cr: setattr(cr, "rating", v), 0, 5)
+                        dots(lambda cr=cr: cr.rating, lambda v, cr=cr: setattr(cr, "rating", v), 0, 5,
+                             target="colleges", detail=cr.college_id)
                         ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_college(idx)
                                   ).props("flat dense round")
                 ui.button("Add college", icon="add", on_click=add_college).props("flat dense")
 
         # specialties
-        with panel("Specialties"):
+        # A specialty is an INSTANCE, not a rated trait (human, rules authority,
+        # 2026-07-31): "you don't raise specialties, you just take the same one
+        # multiple times, and you can only have 3 specialties per ability". So there is
+        # no dot track here at all — taking Swords twice means two rows — and the cap
+        # counts rows per Ability, which the header shows live.
+        with panel("Specialties (max 3 per Ability; take one twice to stack it)"):
+            # Post-lock a specialty is a PURCHASE, so it is named and priced up front
+            # rather than appended blank and edited in place — an empty row would
+            # already have cost XP. Existing rows go read-only for the same reason the
+            # Charms tab's do: removal in play is undo, not deletion.
             for idx, sp in enumerate(character.specialties):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    if locked:
+                        ui.label(f"{_label(sp.ability.value)} — {sp.name}").classes("text-sm flex-1")
+                        continue
                     ui.select({a: _label(a.value) for a in AbilityName}, value=sp.ability,
                               on_change=lambda e, sp=sp: setattr(sp, "ability", e.value)).classes("flex-1")
                     ui.input(value=sp.name, placeholder="Specialty",
                              on_change=lambda e, sp=sp: setattr(sp, "name", e.value)).classes("flex-1")
-                    dots(lambda sp=sp: sp.rating, lambda v, sp=sp: setattr(sp, "rating", v), 1, 3)
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_spec(idx)).props("flat dense round")
-            ui.button("Add specialty", icon="add", on_click=add_spec).props("flat dense")
+            if locked:
+                _spec = {"ability": AbilityName.MELEE, "name": ""}
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.select({a: _label(a.value) for a in AbilityName},
+                              value=_spec["ability"], label="Specialty in",
+                              on_change=lambda e: _spec.__setitem__("ability", e.value)
+                              ).props("dense").classes("w-40")
+                    name_in = ui.input(placeholder="specialty name").props("dense").classes("flex-1")
+                    ui.label(f"{costs.specialty_cost(ruleset, character)} XP").classes(
+                        "text-xs w-12")
+                    ui.button("Buy", icon="add", on_click=lambda: _do_trait(
+                        lambda: advancement.add_specialty(
+                            ruleset, character, _spec["ability"], name_in.value.strip()))
+                        ).props(f"dense color={pal.button}")
+            else:
+                ui.button("Add specialty", icon="add", on_click=add_spec).props("flat dense")
 
         # equipment — inline copies; the catalog autofills, then every stat is
         # editable per item (custom or tweaked artifact/masterwork). Each item's
@@ -744,15 +1143,44 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                      on_change=lambda e, wp=wp: (setattr(wp, "notes", e.value), changed())).classes("w-full").props("dense")
                 ui.button("Add weapon", icon="add", on_click=lambda: add_item("weapons")).props("flat dense")
 
+        # Permanent Resonance / Limit (Death's Taint, PG p.41). Its own panel rather
+        # than a dot track, because it moves in BOTH directions at DIFFERENT prices:
+        # gaining is inflicted and free, shedding costs XP and a Harrowing. Locked-only
+        # — it is a play-time trait — and shown only for a character who has the track
+        # at all, which is asked of the engine so no Merit id is named here.
+        perm_cap = derive.permanent_limit_cap(ruleset, character) if locked else 0
+        if perm_cap:
+            lim = derive.limit_label(ruleset, character)
+            with panel(f"Permanent {lim}"):
+                ui.label(f"{character.limit_permanent} of {perm_cap} (capped at Essence). "
+                         f"Gained when the temporary track overflows; shed with a "
+                         f"Harrowing.").classes("text-xs text-gray-600")
+                _res = {"reason": ""}
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.input(placeholder="reason (e.g. Resonance overflowed)",
+                             on_change=lambda e: _res.__setitem__("reason", e.value)
+                             ).props("dense").classes("flex-1")
+                    ui.button("Gain (free)", icon="arrow_upward",
+                              on_click=lambda: _do_trait(
+                                  lambda: advancement.gain_permanent_resonance(
+                                      ruleset, character, _res["reason"].strip()))
+                              ).props("dense color=negative")
+                    ui.button(f"Shed ({merits.PERMANENT_RESONANCE_SHED_XP} XP)",
+                              icon="arrow_downward",
+                              on_click=lambda: _do_trait(
+                                  lambda: advancement.shed_permanent_resonance(
+                                      ruleset, character, _res["reason"].strip()))
+                              ).props("dense")
+
         # virtue flaw + bonus health levels (e.g. Ox-Body Technique). The Virtue Flaw
         # half is splat-gated: the Dragon-Blooded, Sidereals and Alchemicals have none.
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
             if derive.has_virtue_flaw(ruleset, character):
                 with panel("Virtue Flaw").classes("flex-1"):
                     vf = character.virtue_flaw
-                    ui.select({v: _label(v.value) for v in VirtueName}, label="Flawed Virtue",
+                    _frozen(ui.select({v: _label(v.value) for v in VirtueName}, label="Flawed Virtue",
                               value=vf.virtue if vf else None,
-                              on_change=lambda e: set_virtue_flaw_virtue(e.value)).classes("w-full")
+                              on_change=lambda e: set_virtue_flaw_virtue(e.value)).classes("w-full"))
                     ui.input("Description", value=vf.description if vf else "",
                              on_change=lambda e: set_virtue_flaw_desc(e.value)).classes("w-full")
             with panel("Bonus health levels per tier (charms raise, curses lower)").classes("flex-1"):
@@ -945,6 +1373,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         body.refresh(); changed()
 
     def add_spec() -> None:
+        """A blank chargen row. The per-Ability cap is not enforced here — the row
+        starts on Melee and the player retargets it, so blocking the ADD would block
+        it on the wrong Ability. `validate.check_specialties` reports an over-capped
+        Ability instead, which is also what covers a save that arrives over the cap."""
         character.specialties.append(Specialty(ability=AbilityName.MELEE, name="", rating=1))
         body.refresh(); changed()
 
@@ -1029,11 +1461,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
             body()
         with ui.column().classes("w-80 gap-2 sticky top-4"):
-            with ui.card().classes(f"w-full p-3 {pal.card}"):
-                ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
-                readout()
-            with ui.card().classes(f"w-full p-3 {pal.card}"):
-                bp_log()
+            side_column()
+
+    # Returned so a test can open the post-lock downward dialog without simulating a
+    # tap on a specific pip — the same trick `build_picker` uses to reach its detail
+    # card. The dialog is the one part of decision 0013's trait surface that a render
+    # test cannot otherwise build, and an unbuilt NiceGUI branch is this project's
+    # most-repeated UI bug.
+    return _downward_dialog
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:

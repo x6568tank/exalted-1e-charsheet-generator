@@ -20,13 +20,27 @@ from ..models.character import (
     FormulaEntry, MeritFlawPurchase, OxBodyPurchase, RitualEntry, ScienceRating, Specialty, SubmodulePurchase,
     ThaumaturgyState, XpEntry)
 from ..models.rules import AbilityName, AttributeName, Orientation, RuleSet, VirtueName
-from . import costs, derive, merits, validate
+from . import costs, derive, elder, merits, validate
 
 # Conventional maxima for raises. The 1-5 dot cap is the universal trait cap used
-# throughout chargen; Willpower's permanent maximum is 10. (Essence is capped here
-# at the core Solar 5; raise this constant if higher-Essence rules are added.)
+# throughout chargen; Willpower's permanent maximum is 10.
+#
+# It is a FLOOR under the elder ceilings rather than the last word: age lifts Essence
+# past it and Essence lifts Abilities and Attributes past it (Player's Guide pp.258-259).
+# Every such raise asks engine.elder — the constant itself never moves.
 _DOT_MAX = 5
 _WILLPOWER_MAX = 10
+
+# "You can only have 3 specialties per ability" (human, rules authority, 2026-07-31).
+# Counts ROWS, not distinct names — two Swords and one Parrying fills Melee.
+SPECIALTIES_PER_ABILITY = 3
+
+
+def specialty_count(character: Character, ability: AbilityName) -> int:
+    """How many specialty rows this Ability holds. Duplicated names each count: taking
+    the same specialty twice is how a specialty stacks, since it has no rating to
+    raise."""
+    return sum(1 for s in character.specialties if s.ability == ability)
 
 
 class AdvancementError(ValueError):
@@ -101,6 +115,10 @@ def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName)
     # Attribute explicitly applies "during character creation or after it".
     cap = merits.merits_and_flaws_calc(ruleset, character).attribute_caps.get(
         attr.value, _DOT_MAX)
+    # An elder's Attributes follow permanent Essence up past 5 (p.258). Whichever
+    # ceiling is HIGHER wins: both are permissions, and neither is written as a limit
+    # on the other, so a Legendary Attribute never holds an elder down and vice versa.
+    cap = max(cap, elder.elder_caps(ruleset, character).trait)
     if frm >= cap:
         raise AdvancementError(f"{attr.value} is already at {cap}.")
     cost = costs.attribute_step(ruleset, character, frm, attr)
@@ -112,8 +130,10 @@ def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName)
 def raise_ability(ruleset: RuleSet, character: Character, ability: AbilityName) -> XpEntry:
     _ensure_locked(character)
     frm = character.abilities.get(ability, 0)
-    if frm >= _DOT_MAX:
-        raise AdvancementError(f"{ability.value} is already at {_DOT_MAX}.")
+    # p.258 caps an elder's Abilities at permanent Essence, the same as Attributes.
+    cap = elder.elder_caps(ruleset, character).trait
+    if frm >= cap:
+        raise AdvancementError(f"{ability.value} is already at {cap}.")
     cost = costs.ability_step(ruleset, character, ability, frm)
     entry = _commit(character, f"abilities.{ability.value}", "", frm, frm + 1, cost)
     character.abilities[ability] = frm + 1
@@ -142,8 +162,10 @@ def raise_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
     cr = next((c for c in character.crafts if c.focus == focus), None)
     if cr is None:
         raise AdvancementError(f"No Craft ({focus}) to raise; learn it first.")
-    if cr.rating >= _DOT_MAX:
-        raise AdvancementError(f"Craft ({focus}) is already at {_DOT_MAX}.")
+    # A per-focus Craft IS an Ability (core p.136), so the elder ceiling reaches it.
+    cap = elder.elder_caps(ruleset, character).trait
+    if cr.rating >= cap:
+        raise AdvancementError(f"Craft ({focus}) is already at {cap}.")
     cost = costs.ability_step(ruleset, character, AbilityName.CRAFT, cr.rating)
     entry = _commit(character, "crafts", focus, cr.rating, cr.rating + 1, cost)
     cr.rating += 1
@@ -165,7 +187,11 @@ def learn_college(ruleset: RuleSet, character: Character, college_id: str) -> Xp
 
 
 def raise_college(ruleset: RuleSet, character: Character, college_id: str) -> XpEntry:
-    """Raise an existing College one dot, scaled (current × 3, p.265)."""
+    """Raise an existing College one dot, scaled (current × 3, p.265).
+
+    NOT lifted by the elder ceiling: p.258 names "Abilities and Attributes", and a
+    College is neither — it is a rated Advantage with its own chargen pool. Held at
+    `_DOT_MAX` deliberately; do not "fix" it without a page saying otherwise."""
     _ensure_locked(character)
     cr = next((c for c in character.colleges if c.college_id == college_id), None)
     if cr is None:
@@ -208,8 +234,23 @@ def raise_willpower(ruleset: RuleSet, character: Character) -> XpEntry:
 def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
     _ensure_locked(character)
     frm = character.essence_rating
-    if frm >= _DOT_MAX:
-        raise AdvancementError(f"Essence is already at {_DOT_MAX}.")
+    # AGE is what lets Essence pass 5 (p.258-259) — `_DOT_MAX` until 100 years of
+    # Exalted existence, then the chart, and 7 for a Terrestrial without the ST's
+    # "outside energies". Asked of engine.elder, never decided here.
+    caps = elder.elder_caps(ruleset, character)
+    if frm >= caps.essence:
+        if caps.essence == _DOT_MAX:
+            raise AdvancementError(
+                f"Essence is already at {_DOT_MAX}. Passing it needs 100 years of "
+                f"Exalted existence (this character: {character.age}).")
+        if caps.terrestrial_limited:
+            raise AdvancementError(
+                f"Essence is already at {caps.essence}. Terrestrial Exalts may never "
+                f"raise permanent Essence higher without outside energies — a "
+                f"Storyteller option (see house rules).")
+        raise AdvancementError(
+            f"Essence is already at {caps.essence}, the ceiling at "
+            f"{character.age} years of Exalted existence.")
     # A splat-wide lifetime ceiling, which for a mortal is 1 — they have "no way to
     # gain access to their Essence pool" (PG p.11) until the Essence Mastery Merit
     # opens it. See ExaltDefinition.essence_cap.
@@ -244,12 +285,55 @@ def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
 # is a number input, not a track, because decision 0005 pins its Virtue component and
 # only `willpower_purchased` moves. Crafts and Colleges are absent because they carry
 # a `detail` (the focus / college id) and are their own controls.
+def _step_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
+    """One dot of a per-focus Craft, whichever side of 0 it starts on. A dot track
+    spans "not owned" and "owned at 1" as one gesture, but the engine prices those
+    differently (a new Ability vs a scaled raise), so the split lives here rather
+    than in the UI."""
+    known = any(cr.focus == focus for cr in character.crafts)
+    return raise_craft(ruleset, character, focus) if known \
+        else learn_craft(ruleset, character, focus)
+
+
+def _step_college(ruleset: RuleSet, character: Character, college_id: str) -> XpEntry:
+    known = any(cr.college_id == college_id for cr in character.colleges)
+    return raise_college(ruleset, character, college_id) if known \
+        else learn_college(ruleset, character, college_id)
+
+
+# Callables take (ruleset, character, key, detail): `key` is the part of the target
+# after the dot (an Attribute/Ability/Virtue name), `detail` the XpEntry detail that
+# identifies WHICH craft or college. Most targets use one or the other, never both.
 _DOT_TRACK_RAISES = {
-    "attributes": lambda rs, c, key: raise_attribute(rs, c, AttributeName(key)),
-    "abilities": lambda rs, c, key: raise_ability(rs, c, AbilityName(key)),
-    "virtues": lambda rs, c, key: raise_virtue(rs, c, VirtueName(key)),
-    "essence": lambda rs, c, key: raise_essence(rs, c),
+    "attributes": lambda rs, c, key, detail: raise_attribute(rs, c, AttributeName(key)),
+    "abilities": lambda rs, c, key, detail: raise_ability(rs, c, AbilityName(key)),
+    "virtues": lambda rs, c, key, detail: raise_virtue(rs, c, VirtueName(key)),
+    "essence": lambda rs, c, key, detail: raise_essence(rs, c),
+    "crafts": lambda rs, c, key, detail: _step_craft(rs, c, detail),
+    "colleges": lambda rs, c, key, detail: _step_college(rs, c, detail),
 }
+
+
+# The same four targets going down, for `lower_to`. Reductions take no ruleset (they
+# are priced at nothing and gated only by each trait's floor), which is why this is a
+# separate table rather than a direction flag on the one above.
+# Crafts and Colleges reduce too (human, 2026-07-31) — a usability escape hatch rather
+# than a printed rule, because undo is LIFO and cannot always reach a misclick. Their
+# lowerers need no ruleset either, so the whole table keeps one signature; `lower_college`
+# takes one only for its error message and is adapted here.
+_DOT_TRACK_LOWERS = {
+    "attributes": lambda c, key, reason: lower_attribute(c, AttributeName(key), reason),
+    "abilities": lambda c, key, reason: lower_ability(c, AbilityName(key), reason),
+    "virtues": lambda c, key, reason: lower_virtue(c, VirtueName(key), reason),
+    "essence": lambda c, key, reason: lower_essence(c, reason),
+    "crafts": lambda c, key, reason: lower_craft(c, key, reason),
+    "colleges": lambda c, key, reason: _lower_college_by_id(c, key, reason),
+}
+
+
+def _lower_college_by_id(character: Character, college_id: str, reason: str) -> XpEntry:
+    """`lower_college` without the ruleset, which it uses only for a message."""
+    return lower_college(None, character, college_id, reason)   # type: ignore[arg-type]
 
 
 def _dot_track_step(target: str):
@@ -258,7 +342,7 @@ def _dot_track_step(target: str):
     return _DOT_TRACK_RAISES.get(domain)
 
 
-def _dot_track_rating(character: Character, target: str) -> int:
+def _dot_track_rating(character: Character, target: str, detail: str = "") -> int:
     domain, _, key = target.partition(".")
     if domain == "attributes":
         return character.attributes[AttributeName(key)]
@@ -266,6 +350,11 @@ def _dot_track_rating(character: Character, target: str) -> int:
         return character.abilities.get(AbilityName(key), 0)
     if domain == "virtues":
         return character.virtues[VirtueName(key)]
+    if domain == "crafts":
+        return next((cr.rating for cr in character.crafts if cr.focus == detail), 0)
+    if domain == "colleges":
+        return next((cr.rating for cr in character.colleges
+                     if cr.college_id == detail), 0)
     return character.essence_rating
 
 
@@ -297,7 +386,7 @@ def refundable_depth(character: Character, target: str, detail: str = "") -> int
 
 
 def raise_to(ruleset: RuleSet, character: Character, target: str,
-             to_rating: int) -> list[XpEntry]:
+             to_rating: int, detail: str = "") -> list[XpEntry]:
     """Raise a dot-tracked trait to `to_rating`, one logged step per dot.
 
     The stepper behind an upward click on a post-lock dot track. Every step goes
@@ -321,7 +410,7 @@ def raise_to(ruleset: RuleSet, character: Character, target: str,
         raise AdvancementError(
             f"{target!r} is not a dot-tracked trait; raise it with its own control.")
     _domain, _, key = target.partition(".")
-    steps = to_rating - _dot_track_rating(character, target)
+    steps = to_rating - _dot_track_rating(character, target, detail)
     if steps <= 0:
         return []
 
@@ -329,9 +418,62 @@ def raise_to(ruleset: RuleSet, character: Character, target: str,
     # unaffordable raises here, before the real character has been touched.
     probe = character.model_copy(deep=True)
     for _ in range(steps):
-        step(ruleset, probe, key)
+        step(ruleset, probe, key, detail)
 
-    return [step(ruleset, character, key) for _ in range(steps)]
+    return [step(ruleset, character, key, detail) for _ in range(steps)]
+
+
+def refund_to(ruleset: RuleSet, character: Character, target: str,
+              to_rating: int, detail: str = "") -> list[XpEntry]:
+    """Give back dots of a trait by UNDOING the purchases that bought them — the
+    dialog's refund branch. XP comes back; the log rows go away.
+
+    Bounded by `refundable_depth`, and that bound is a hard error rather than a
+    truncation: undo is LIFO across the whole log, so unwinding more rows than this
+    trait owns at the tail would silently reverse somebody else's purchase. A caller
+    that wants to go further is asking for a reduction, not a refund.
+    """
+    _ensure_locked(character)
+    if _dot_track_step(target) is None:
+        raise AdvancementError(f"{target!r} is not a dot-tracked trait.")
+    steps = _dot_track_rating(character, target, detail) - to_rating
+    if steps <= 0:
+        return []
+    depth = refundable_depth(character, target, detail)
+    if steps > depth:
+        raise AdvancementError(
+            f"Only {depth} recent purchase(s) of this trait can be refunded — undo is "
+            f"last-in-first-out, so anything bought since must be undone first.")
+    return [undo_last(ruleset, character) for _ in range(steps)]
+
+
+def lower_to(character: Character, target: str, to_rating: int,
+             reason: str = "", detail: str = "") -> list[XpEntry]:
+    """Reduce a trait by `curse` — the dialog's other branch. Free, refunds nothing,
+    one logged reduction per dot.
+
+    Unlike `refund_to` this is NOT bounded by what was bought: a curse reaches chargen
+    dots too, and goes below the snapshot. The only floor is each trait's own.
+    Probe-validated like `raise_to`, so a click that runs past the floor is refused
+    whole rather than lowering as far as it can.
+    """
+    _ensure_locked(character)
+    domain, _, key = target.partition(".")
+    step = _DOT_TRACK_LOWERS.get(domain)
+    if step is None:
+        raise AdvancementError(f"{target!r} is not a dot-tracked trait.")
+    steps = _dot_track_rating(character, target, detail) - to_rating
+    if steps <= 0:
+        return []
+
+    # Crafts and Colleges carry their identity in `detail`, not in the target; every
+    # other dot track is the other way round. One of the two is always empty.
+    ident = detail or key
+    probe = character.model_copy(deep=True)
+    for _ in range(steps):
+        step(probe, ident, reason)
+
+    return [step(character, ident, reason) for _ in range(steps)]
 
 
 # --------------------------------------------------------------------------- #
@@ -396,6 +538,46 @@ def lower_willpower(character: Character, reason: str = "", *,
         raise AdvancementError("Willpower is already at 1 (the minimum).")
     character.willpower_purchased -= 1
     return _log_reduction(character, "willpower", frm, frm - 1, reason)
+
+
+def lower_craft(character: Character, focus: str, reason: str = "") -> XpEntry:
+    """Reduce a per-focus Craft one dot, removing it entirely at 0.
+
+    Not a printed rule but a usability one (human, rules authority, 2026-07-31): undo
+    is LIFO and so cannot always reach a mistake, and "a misclick can always happen".
+    Like every reduction it refunds nothing — this is an escape hatch, not a refund
+    path, and `refund_to` remains the way to get experience back.
+    """
+    _ensure_locked(character)
+    cr = next((c for c in character.crafts if c.focus == focus), None)
+    if cr is None:
+        raise AdvancementError(f"No Craft ({focus}) to reduce.")
+    frm = cr.rating
+    if frm <= 0:
+        raise AdvancementError(f"Craft ({focus}) is already at 0.")
+    cr.rating = frm - 1
+    if cr.rating <= 0:
+        # A Craft IS its focus; rating 0 is not a state it has (learn_craft starts it
+        # at 1), so the row goes rather than lingering as an empty Ability.
+        character.crafts.remove(cr)
+    return _log_reduction(character, "crafts", frm, frm - 1, reason or focus)
+
+
+def lower_college(ruleset: RuleSet, character: Character, college_id: str,
+                  reason: str = "") -> XpEntry:
+    """Reduce an Astrological College one dot, removing it entirely at 0. Same
+    reasoning as `lower_craft`."""
+    _ensure_locked(character)
+    cr = next((c for c in character.colleges if c.college_id == college_id), None)
+    if cr is None:
+        raise AdvancementError(f"No college {college_id!r} to reduce.")
+    frm = cr.rating
+    if frm <= 0:
+        raise AdvancementError("That college is already at 0.")
+    cr.rating = frm - 1
+    if cr.rating <= 0:
+        character.colleges.remove(cr)
+    return _log_reduction(character, "colleges", frm, frm - 1, reason or college_id)
 
 
 def lower_essence(character: Character, reason: str = "") -> XpEntry:
@@ -819,9 +1001,19 @@ def learn_gift(ruleset: RuleSet, character: Character, gift_keys: list[str]) -> 
 
 def add_specialty(ruleset: RuleSet, character: Character, ability: AbilityName,
                   name: str) -> XpEntry:
+    """Buy one specialty. Always worth 1 — a specialty is not a rated trait.
+
+    "You don't raise specialties, you just take the same one multiple times, and you
+    can only have 3 specialties per ability" (human, rules authority, 2026-07-31):
+    Melee with two Swords and one Parrying is legal and full. So duplicates are the
+    stacking mechanism, and the cap counts ROWS in an Ability, not distinct names.
+    """
     _ensure_locked(character)
     if not name.strip():
         raise AdvancementError("A specialty needs a name.")
+    if specialty_count(character, ability) >= SPECIALTIES_PER_ABILITY:
+        raise AdvancementError(
+            f"{ability.value} already has three specialties, which is the maximum.")
     cost = costs.specialty_cost(ruleset, character)
     entry = _commit(character, "specialties", f"{ability.value}:{name}", None, None, cost)
     character.specialties.append(Specialty(ability=ability, name=name, rating=1))

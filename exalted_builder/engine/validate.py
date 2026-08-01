@@ -40,7 +40,7 @@ from ..models.rules import (
     SpellCircle,
     VirtueName,
 )
-from . import derive, merits
+from . import derive, elder, merits
 
 # Attribute categories and the order Strength/Dexterity/Stamina etc. (core p.104).
 # Which category receives which of the 8/6/4 pools is the player's priority and is
@@ -3615,6 +3615,16 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # A hard ceiling AFTER bonus points, where an origin sets one: the Illuminated
     # Solar starts at 3 and may buy higher, but "under no circumstances" begins at 6+
     # (p.90). 0 = no ceiling, which is every other splat.
+    # The universal creation ceiling, under every splat's own: passing Essence 5 takes
+    # a century of Exalted existence (Player's Guide p.258-259), which no character has
+    # at creation. Separate from `essence_start_cap` below, which is a narrower origin
+    # rule — this one holds even for a splat that sets no origin ceiling at all.
+    if essence > elder.DOT_MAX:
+        issues.append(Issue(
+            code="essence-above-elder-chargen-cap",
+            message=(f"Essence {essence} exceeds 5. Passing 5 takes 100 years of "
+                     f"Exalted existence and cannot be done at creation."),
+        ))
     if b.essence_start_cap and essence > b.essence_start_cap:
         issues.append(Issue(
             code="essence-above-chargen-cap",
@@ -3890,6 +3900,38 @@ def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issu
     return issues
 
 
+def check_specialties(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """A specialty is an instance, not a rated trait (human, rules authority,
+    2026-07-31): "you don't raise specialties, you just take the same one multiple
+    times, and you can only have 3 specialties per ability".
+
+    Both halves need checking HERE and not only in `advancement.add_specialty`,
+    because chargen writes the list directly from the editor — an advancement guard
+    alone would leave the whole pre-lock path unchecked, which is the mis-placed-rule
+    shape this project keeps hitting.
+    """
+    from collections import Counter
+    from . import advancement as adv
+    issues: list[Issue] = []
+    counts = Counter(s.ability for s in character.specialties)
+    for ability, n in sorted(counts.items(), key=lambda kv: kv[0].value):
+        if n > adv.SPECIALTIES_PER_ABILITY:
+            issues.append(Issue(
+                code="specialty-cap", where=ability.value,
+                message=(f"{ability.value.title()} has {n} specialties; the maximum is "
+                         f"{adv.SPECIALTIES_PER_ABILITY} per Ability."),
+            ))
+    for spec in character.specialties:
+        if spec.rating > 1:
+            issues.append(Issue(
+                code="specialty-rating", where=f"{spec.ability.value}:{spec.name}",
+                message=(f"{spec.name} ({spec.ability.value}) is rated {spec.rating}. "
+                         f"Specialties are not raised — take the same one again "
+                         f"instead, up to {adv.SPECIALTIES_PER_ABILITY} per Ability."),
+            ))
+    return issues
+
+
 def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Run all *implemented* checks and return the combined issues. Chargen
     predicates are excluded until designed."""
@@ -3906,4 +3948,5 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += validate_submodules(ruleset, character)
     issues += check_ox_body(ruleset, character)
     issues += check_beastman_gifts(ruleset, character)
+    issues += check_specialties(ruleset, character)
     return issues

@@ -28,7 +28,12 @@ PKG = ROOT / "exalted_builder"
 # Effects dataclasses this project computes centrally, and the module that owns
 # each. A field read ONLY inside its owning module is fine when a helper there is
 # the public read (merits.adjust_charm_cost); it is dead when nothing reads it.
-OWNERS = {"MeritEffects": PKG / "engine" / "merits.py"}
+OWNERS = {
+    "MeritEffects": PKG / "engine" / "merits.py",
+    # The elder-Exalt ceilings (Player's Guide pp.258-259). Same shape as MeritEffects
+    # — one central calc, fields read everywhere else — so it is audited the same way.
+    "ElderCaps": PKG / "engine" / "elder.py",
+}
 
 
 def fields_of(src: str, cls: str) -> list[str]:

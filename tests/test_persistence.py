@@ -33,7 +33,13 @@ def _rich_character() -> Character:
     c.abilities[AbilityName.OCCULT] = 5
     c.virtues[VirtueName.CONVICTION] = 3
     c.favored_abilities = [AbilityName.OCCULT, AbilityName.LORE]
-    c.specialties = [Specialty(ability=AbilityName.OCCULT, name="Demons", rating=2)]
+    # Two rows rather than one at rating 2: a specialty is an instance, not a rated
+    # trait (human, 2026-07-31), and taking the same one twice is how it stacks. A
+    # legacy rating-2 save no longer round-trips unchanged BY DESIGN — the loader
+    # splits it — which `test_a_legacy_rated_specialty_is_split_into_instances_on_load`
+    # covers in test_advancement.
+    c.specialties = [Specialty(ability=AbilityName.OCCULT, name="Demons", rating=1),
+                     Specialty(ability=AbilityName.OCCULT, name="Demons", rating=1)]
     c.backgrounds = [BackgroundEntry(name="Manse", rating=3, note="Mountain retreat")]
     c.charms = ["solar.occult.terrestrial-circle"]
     c.spells = ["solar.spell.death-of-obsidian-butterflies"]

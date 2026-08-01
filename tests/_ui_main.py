@@ -14,7 +14,7 @@ from exalted_builder.models.rules import (AbilityName, AttributeName, Orientatio
                                           VirtueName)
 from exalted_builder.ui import advantages, app as sheet_app
 from exalted_builder.ui import (builder, combos, custom, editor, gm, picker,
-                                play, storyteller, view, xp)
+                                play, storyteller, view)
 
 RS = rules_db.load_ruleset(Path("exalted_builder/data"))
 
@@ -57,7 +57,7 @@ def page_play():
 
 @ui.page('/xp')
 def page_xp():
-    xp.build_xp(RS, CHAR_XP, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_XP, Path("x.json"), with_header=False)
 
 @ui.page('/db')
 def page_db():
@@ -217,7 +217,7 @@ CHAR_SID_XP.xp_earned = 40
 
 @ui.page('/sidxp')
 def page_sid_xp():
-    xp.build_xp(RS, CHAR_SID_XP, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_SID_XP, Path("x.json"), with_header=False)
 
 # (g) an Illuminated Solar (Cult of the Illuminated) — the editor's Training Camp +
 # Calling panel, the ✧ Calling marks on the Abilities panel, the granted-Charm rows on
@@ -417,7 +417,7 @@ picker.add_thaum_orientation(RS, CHAR_THAUM_XP, "ritual",
 
 @ui.page('/thaum-xp')
 def page_thaum_xp():
-    xp.build_xp(RS, CHAR_THAUM_XP, Path("th6.json"), with_header=False)
+    editor.build_editor(RS, CHAR_THAUM_XP, Path("th6.json"), with_header=False)
 
 
 # Its own character for the ST-tab test, so clicking a toggle here cannot leak into
@@ -572,7 +572,7 @@ CHAR_RESONANCE_XP.xp_earned = 20
 
 @ui.page('/merits-resonance-xp')
 def page_merits_resonance_xp():
-    xp.build_xp(RS, CHAR_RESONANCE_XP, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_RESONANCE_XP, Path("x.json"), with_header=False)
 
 # Ruling 1 of the Advantages plan: the shared bonus-point readout. A Solar with a
 # 5-point Merit has spent bonus points on THIS tab, and the total must be visible here
@@ -720,4 +720,223 @@ CHAR_XP_CAPS.xp_earned = 200
 
 @ui.page('/xp-caps')
 def page_xp_caps():
-    xp.build_xp(RS, CHAR_XP_CAPS, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_XP_CAPS, Path("x.json"), with_header=False)
+
+
+# Decision 0013 / P1: the editor rendered POST-LOCK, where its dot tracks are steppers
+# that spend XP rather than free setters. The Edit tab does not reach this state on the
+# tab bar until P2, so this route is what keeps the new code path from being written and
+# never built — the failure mode docs/status/edit-xp-merge.md calls out.
+CHAR_EDIT_XP = Character(id="exp", name="Locked Editor", caste="dawn")
+CHAR_EDIT_XP.abilities[AbilityName.MELEE] = 3
+lifecycle.lock_chargen(CHAR_EDIT_XP, RS)
+CHAR_EDIT_XP.xp_earned = 100
+
+@ui.page('/editor-locked')
+def page_editor_locked():
+    editor.build_editor(RS, CHAR_EDIT_XP, Path("x.json"), with_header=False)
+
+# The downward-click dialog itself, built for each of the three states it can be in.
+# A render test cannot reach it — it exists only in response to a click on a pip — and
+# an unbuilt NiceGUI branch is exactly the bug class that keeps surviving this suite.
+CHAR_DIALOG = Character(id="dlg", name="Cursed", caste="dawn")
+CHAR_DIALOG.attributes[AttributeName.STRENGTH] = 3
+lifecycle.lock_chargen(CHAR_DIALOG, RS)
+CHAR_DIALOG.xp_earned = 100
+
+@ui.page('/editor-lower-both')       # bought a dot: refund AND reduce both offered
+def page_editor_lower_both():
+    from exalted_builder.engine import advancement as adv
+    if adv.refundable_depth(CHAR_DIALOG, "attributes.strength") == 0:
+        adv.raise_to(RS, CHAR_DIALOG, "attributes.strength", 4)
+    open_dialog = editor.build_editor(RS, CHAR_DIALOG, Path("x.json"), with_header=False)
+    open_dialog("attributes.strength", 4, 3, lambda: None)
+
+# A chargen dot with nothing bought on top: refund is impossible, a curse is not.
+CHAR_DIALOG_CURSE = Character(id="dlg2", name="Only Cursable", caste="dawn")
+CHAR_DIALOG_CURSE.attributes[AttributeName.STRENGTH] = 3
+lifecycle.lock_chargen(CHAR_DIALOG_CURSE, RS)
+
+@ui.page('/editor-lower-curse-only')
+def page_editor_lower_curse_only():
+    open_dialog = editor.build_editor(RS, CHAR_DIALOG_CURSE, Path("x.json"),
+                                      with_header=False)
+    open_dialog("attributes.strength", 3, 2, lambda: None)
+
+
+# P3: the in-play sticky column — Adjust XP, then a read-only log, then validation
+# ONLY when it has something to say. Two characters, because the demotion is a
+# behaviour, not a layout: one clean, one whose curse broke a Charm it still knows.
+CHAR_COL_CLEAN = Character(id="col1", name="Clean Veteran", caste="dawn")
+CHAR_COL_CLEAN.abilities[AbilityName.MELEE] = 3
+lifecycle.lock_chargen(CHAR_COL_CLEAN, RS)
+CHAR_COL_CLEAN.xp_earned = 40
+
+@ui.page('/column-clean')
+def page_column_clean():
+    editor.build_editor(RS, CHAR_COL_CLEAN, Path("x.json"), with_header=False)
+
+CHAR_COL_BROKEN = Character(id="col2", name="Cursed Veteran", caste="dawn")
+CHAR_COL_BROKEN.abilities[AbilityName.MELEE] = 3
+CHAR_COL_BROKEN.charms = ["solar.melee.excellent-strike",
+                          "solar.melee.hungry-tiger-technique"]
+lifecycle.lock_chargen(CHAR_COL_BROKEN, RS)
+CHAR_COL_BROKEN.xp_earned = 40
+
+@ui.page('/column-broken')
+def page_column_broken():
+    from exalted_builder.engine import advancement as adv
+    if CHAR_COL_BROKEN.abilities[AbilityName.MELEE] > 1:
+        adv.lower_to(CHAR_COL_BROKEN, "abilities.melee", 1, "a curse")
+    editor.build_editor(RS, CHAR_COL_BROKEN, Path("x.json"), with_header=False)
+
+# The Undo control. A read-only log has no per-row undo button, so this is the ONLY
+# way to reverse a Charm/Combo/spell/specialty purchase — traits have their dot-track
+# dialog, those do not. It must name the row it will reverse.
+CHAR_COL_UNDO = Character(id="col3", name="Buyer", caste="dawn")
+CHAR_COL_UNDO.abilities[AbilityName.MELEE] = 3
+lifecycle.lock_chargen(CHAR_COL_UNDO, RS)
+CHAR_COL_UNDO.xp_earned = 100
+
+@ui.page('/column-undo')
+def page_column_undo():
+    from exalted_builder.engine import advancement as adv
+    if not CHAR_COL_UNDO.charms:
+        adv.learn_charm(RS, CHAR_COL_UNDO, "solar.melee.excellent-strike")
+    editor.build_editor(RS, CHAR_COL_UNDO, Path("x.json"), with_header=False)
+
+
+# Chargen choices frozen at the lock. An Illuminated Solar, so the Training Camp and
+# Calling selects exist too — they are chargen picks with mechanical consequences
+# (free Charms, discounted Calling Abilities) and were exposed the moment Edit became
+# a both-sides tab.
+CHAR_FROZEN = Character(id="frz", name="Fixed", caste="dawn", origin="illuminated")
+CHAR_FROZEN.favored_abilities = [AbilityName.OCCULT, AbilityName.DODGE,
+                                 AbilityName.ATHLETICS, AbilityName.RESISTANCE,
+                                 AbilityName.ENDURANCE]
+CHAR_FROZEN.camp = "sequestered-tabernacle"     # a camp is what makes Callings exist
+lifecycle.lock_chargen(CHAR_FROZEN, RS)
+CHAR_FROZEN.xp_earned = 40
+
+@ui.page('/identity-frozen')
+def page_identity_frozen():
+    editor.build_editor(RS, CHAR_FROZEN, Path("x.json"), with_header=False)
+
+CHAR_UNFROZEN = Character(id="ufz", name="Still Building", caste="dawn",
+                          origin="illuminated")
+CHAR_UNFROZEN.camp = "sequestered-tabernacle"
+
+@ui.page('/identity-open')
+def page_identity_open():
+    editor.build_editor(RS, CHAR_UNFROZEN, Path("x.json"), with_header=False)
+
+
+# P3 rehoming: an Abyssal with Death's Taint (permanent Resonance track) and Weak
+# Essence (withheld Charm credits), locked. Both cards lived only on the XP tab.
+CHAR_REHOMED = Character(id="rhm", name="Rehomed", exalt_type="Abyssal", caste="dusk",
+                         origin="loyal", essence_rating=3)
+CHAR_REHOMED.merits_flaws = [MeritFlawPurchase(merit_id="mf.death-taint", tier="5"),
+                             MeritFlawPurchase(merit_id="mf.weak-essence")]
+lifecycle.lock_chargen(CHAR_REHOMED, RS)
+CHAR_REHOMED.xp_earned = 60
+
+@ui.page('/rehomed')
+def page_rehomed():
+    editor.build_editor(RS, CHAR_REHOMED, Path("x.json"), with_header=False)
+
+
+# P5 render matrix for the merged trait surface: the two splat shapes that have
+# broken editors before. A Mortal has NO castes and NO Charms (so the caste select is
+# absent and Essence is pinned at 1); an Alchemical allocates FAVORED ATTRIBUTES
+# instead of favored Abilities, a different control on the same panel.
+CHAR_MORTAL_LOCKED = Character(id="mlk", name="Locked Mortal", exalt_type="Mortal",
+                               caste="", origin="heroic", essence_rating=1)
+lifecycle.lock_chargen(CHAR_MORTAL_LOCKED, RS)
+CHAR_MORTAL_LOCKED.xp_earned = 30
+
+@ui.page('/editor-locked-mortal')
+def page_editor_locked_mortal():
+    editor.build_editor(RS, CHAR_MORTAL_LOCKED, Path("x.json"), with_header=False)
+
+CHAR_ALCH_LOCKED = Character(id="alk", name="Locked Alchemical",
+                             exalt_type="Alchemical", caste="orichalcum")
+lifecycle.lock_chargen(CHAR_ALCH_LOCKED, RS)
+CHAR_ALCH_LOCKED.xp_earned = 30
+
+@ui.page('/editor-locked-alchemical')
+def page_editor_locked_alchemical():
+    editor.build_editor(RS, CHAR_ALCH_LOCKED, Path("x.json"), with_header=False)
+
+
+# P4: the sheet's read-only copy of the ledger. Built from the SheetView alone, so
+# the same route proves both that it renders and that `render_sheet` still needs
+# nothing but the dataclass.
+CHAR_SHEET_LEDGER = Character(id="shl", name="Spent Solar", caste="dawn")
+CHAR_SHEET_LEDGER.abilities[AbilityName.MELEE] = 3
+lifecycle.lock_chargen(CHAR_SHEET_LEDGER, RS)
+CHAR_SHEET_LEDGER.xp_earned = 100
+
+@ui.page('/sheet-ledger')
+def page_sheet_ledger():
+    from exalted_builder.engine import advancement as adv
+    if not CHAR_SHEET_LEDGER.xp_log:
+        adv.raise_to(RS, CHAR_SHEET_LEDGER, "attributes.strength", 3)
+        adv.learn_charm(RS, CHAR_SHEET_LEDGER, "solar.melee.excellent-strike")
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_SHEET_LEDGER))
+
+
+# P5 matrix, continued: a LUNAR (castes carry no caste-abilities, so the Ability panel
+# groups differently) and a locked character carrying OFF-CATALOGUE gear and a custom
+# Nature — the `ui.select` value-not-in-options trap, which the freeze now also touches
+# because a frozen select still has to build with whatever the save holds.
+CHAR_LUNAR_LOCKED = Character(id="lnk", name="Locked Lunar", exalt_type="Lunar",
+                              caste="full-moon", origin="society")
+lifecycle.lock_chargen(CHAR_LUNAR_LOCKED, RS)
+CHAR_LUNAR_LOCKED.xp_earned = 30
+
+@ui.page('/editor-locked-lunar')
+def page_editor_locked_lunar():
+    editor.build_editor(RS, CHAR_LUNAR_LOCKED, Path("x.json"), with_header=False)
+
+CHAR_ODD_LOCKED = Character(id="odd", name="Odd Kit", caste="dawn",
+                            nature="Not In The Catalog")
+CHAR_ODD_LOCKED.weapons.append(Weapon(name="Grandpa's Axe", accuracy=2, damage=6))
+CHAR_ODD_LOCKED.armor.append(Armor(name="Scrap Plate", soak_lethal=3))
+lifecycle.lock_chargen(CHAR_ODD_LOCKED, RS)
+CHAR_ODD_LOCKED.xp_earned = 30
+
+@ui.page('/editor-locked-odd')
+def page_editor_locked_odd():
+    editor.build_editor(RS, CHAR_ODD_LOCKED, Path("x.json"), with_header=False)
+
+
+# Elder Exalts (Player's Guide pp.258-259): the first characters in the build whose
+# Essence, Abilities and Attributes legally sit above 5. Three shapes, because the dot
+# tracks are BUILT from the ceilings and a too-high value has to render as well as a
+# too-high ceiling: a Celestial past 5 on every track, a Terrestrial held at the tier's
+# 7, and the sheet's read-only view of the same character.
+CHAR_ELDER = Character(id="eld", name="Elder Solar", caste="dawn")
+lifecycle.lock_chargen(CHAR_ELDER, RS)
+CHAR_ELDER.xp_earned = 500
+CHAR_ELDER.age = 1000
+CHAR_ELDER.essence_rating = 8
+CHAR_ELDER.abilities[AbilityName.MELEE] = 7
+
+@ui.page('/editor-elder')
+def page_editor_elder():
+    editor.build_editor(RS, CHAR_ELDER, Path("x.json"), with_header=False)
+
+@ui.page('/sheet-elder')
+def page_sheet_elder():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_ELDER))
+
+CHAR_ELDER_DB = Character(id="elddb", name="Elder Dragon", exalt_type="Dragon-Blooded",
+                          caste="fire", origin="dynastic")
+lifecycle.lock_chargen(CHAR_ELDER_DB, RS)
+CHAR_ELDER_DB.xp_earned = 500
+CHAR_ELDER_DB.age = 1000
+CHAR_ELDER_DB.essence_rating = 7
+
+@ui.page('/editor-elder-terrestrial')
+def page_editor_elder_terrestrial():
+    editor.build_editor(RS, CHAR_ELDER_DB, Path("x.json"), with_header=False)

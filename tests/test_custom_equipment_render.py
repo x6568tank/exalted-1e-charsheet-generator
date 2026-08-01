@@ -37,10 +37,14 @@ async def test_play_tab_renders(user: User) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_xp_tab_shows_reduce_card(user: User) -> None:
-    # the post-lock XP tab renders the new trait-reduction card
+async def test_equipment_is_editable_after_the_lock(user: User) -> None:
+    # Was `test_xp_tab_shows_reduce_card`. Trait reduction is no longer a card at all —
+    # it is the dot track's downward dialog (decision 0013), covered in
+    # test_advancement. What this route still usefully proves is that equipment, which
+    # is free on BOTH sides of the lock, survived the XP tab's deletion.
     await user.open('/xp')
-    await user.should_see("Reduce a Trait")
+    await user.should_see("Armor")
+    await user.should_see("Weapons")
 
 
 @pytest.mark.asyncio

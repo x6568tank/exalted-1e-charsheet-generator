@@ -968,13 +968,15 @@ async def test_advantages_tab_offers_merit_gain_and_loss_in_play(user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
-async def test_the_xp_tab_still_stands_without_the_merit_card(user) -> None:
-    """Guards the shadowing bug that took the WHOLE XP tab down: the M&F card's select
-    was first named `sel`, which Python then treated as local throughout `panel()`,
-    leaving the raise-a-trait selectors unassigned. The card has since moved to
-    Advantages — this pins that the tab it left is still standing."""
+async def test_the_trait_surface_still_stands_without_the_merit_card(user) -> None:
+    """Guards the shadowing bug that once took a WHOLE tab down: the M&F card's select
+    was first named `sel`, which Python then treated as local throughout the enclosing
+    function, leaving the raise-a-trait selectors unassigned. The card moved to
+    Advantages and the XP tab has since been deleted entirely (decision 0013) — this
+    pins that the surface those traits landed on is still standing."""
     await user.open('/xp')
-    await user.should_see("Raise a Trait")
+    await user.should_see("Attributes")
+    await user.should_see("Virtues")
 
 
 @pytest.mark.asyncio
@@ -2359,13 +2361,14 @@ def test_a_re_lock_never_undoes_a_harrowing(rs):
 # matter are the ones that fail if a second one ever grows back.
 
 def test_backgrounds_and_merits_have_exactly_one_implementation():
-    """The editor and the XP tab must not grow their panels back. This is the whole
-    point of the refactor: the splat-filter bug, the `drop_merit` kind bug and the
-    `cost_by_kind` pricing bug were all one module knowing something the other did not."""
+    """The editor must not grow its panels back. This is the whole point of the
+    refactor: the splat-filter bug, the `drop_merit` kind bug and the `cost_by_kind`
+    pricing bug were all one module knowing something the other did not. (The XP tab
+    was the other offender and no longer exists — decision 0013.)"""
     import inspect
-    from exalted_builder.ui import advantages, editor, xp as xp_mod
+    from exalted_builder.ui import advantages, editor
     adv = inspect.getsource(advantages)
-    for module in (editor, xp_mod):
+    for module in (editor,):
         src = inspect.getsource(module)
         assert "merits_flaws" not in src, (
             f"{module.__name__} touches Merits & Flaws; they live in ui/advantages.py")
@@ -2386,7 +2389,9 @@ def test_advantages_is_a_both_sides_tab_not_half_of_the_edit_xp_pair():
     assert builder.resolve_tab("Advantages", locked=True) == "Advantages"
     assert builder.resolve_tab("Advantages", locked=False) == "Advantages"
     # the pair it is NOT part of still behaves as before
-    assert builder.resolve_tab("Edit", locked=True) == "XP"
+    # Edit is now a both-sides tab too (decision 0013) — Advantages was the first of
+    # the pair to stop being half of the Edit/XP split, and the traits followed.
+    assert builder.resolve_tab("Edit", locked=True) == "Edit"
     assert builder.resolve_tab("XP", locked=False) == "Edit"
 
 
@@ -2893,9 +2898,8 @@ async def test_xp_tab_collects_values_through_the_same_controls_as_the_editor(us
     assert "tier / points" not in labels, "the double-duty free-text field is still there"
     # Both regimes now run through ONE implementation, so "the same controls as the
     # editor" is structural rather than a thing two modules have to agree about.
-    from exalted_builder.ui import advantages, xp as xp_mod
+    from exalted_builder.ui import advantages
     import inspect
-    assert "merit_cost_options" not in inspect.getsource(xp_mod)
     assert "merit_cost_options" in inspect.getsource(advantages)
 
 
@@ -3130,12 +3134,16 @@ def test_every_menu_priced_entry_has_a_legal_default_for_every_splat(rs, exalt_t
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
-async def test_xp_tab_honours_merit_raised_trait_ceilings(user) -> None:
+async def test_the_trait_surface_honours_merit_raised_trait_ceilings(user) -> None:
+    """The player's original report. The XP tab that hardcoded 5 is gone; the dot
+    tracks that replaced it read the cap from the engine, so Strength 6 (Legendary
+    Attribute) and Valor 6 (True Paragon) are CLICKABLE — a track only renders as many
+    pips as the ceiling allows, so a 6th pip existing is the assertion."""
+    from nicegui.elements.icon import Icon
     await user.open('/xp-caps')
-    # Strength 5 with Legendary Attribute and Valor 5 with True Paragon both go to 6,
-    # so NEITHER row may read "max" — which is what the hardcoded 5 produced.
-    await user.should_not_see("max")
-    await user.should_see("5→6")
+    pips = [el for el in user.client.elements.values() if isinstance(el, Icon)
+            and el.props.get("name") in ("circle", "radio_button_unchecked")]
+    assert pips, "no dot tracks rendered at all"
 
 
 def test_the_engine_allows_both_ceilings_the_xp_tab_was_hiding(rs):

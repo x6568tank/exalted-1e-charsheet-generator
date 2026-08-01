@@ -75,10 +75,34 @@ def character_to_json(character: Character) -> str:
     return character.model_dump_json(indent=2)
 
 
+def _split_rated_specialties(character: Character) -> None:
+    """Migrate a legacy rated specialty into instances, in place.
+
+    A specialty is not a rated trait (human, rules authority, 2026-07-31): "you don't
+    raise specialties, you just take the same one multiple times". A saved
+    `Daiklaves 3` therefore becomes three `Daiklaves` rows — mechanically identical
+    (it was always three dice) and it means the cap, the bonus-point sum and the buy
+    path all see ONE shape instead of two.
+
+    Migrating rather than rejecting: these saves are legal history, not corruption.
+    `validate.check_specialties` still reports any rating > 1 that reaches it by
+    another route (a hand-edit, a Character built in code).
+    """
+    if not any(s.rating > 1 for s in character.specialties):
+        return
+    split = []
+    for spec in character.specialties:
+        for _ in range(max(1, spec.rating)):
+            split.append(spec.model_copy(update={"rating": 1}))
+    character.specialties = split
+
+
 def character_from_json(data: str) -> Character:
     """Parse a Character from a JSON string. Raises pydantic.ValidationError if
     the data is structurally invalid."""
-    return Character.model_validate_json(data)
+    character = Character.model_validate_json(data)
+    _split_rated_specialties(character)
+    return character
 
 
 def atomic_write(path: str | os.PathLike, payload: str) -> Path:

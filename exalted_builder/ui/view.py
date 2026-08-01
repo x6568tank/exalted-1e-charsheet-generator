@@ -16,7 +16,7 @@ from dataclasses import dataclass, field, field as dc_field
 from typing import Optional
 
 from .. import custom_content
-from ..engine import advancement, costs, derive, validate
+from ..engine import advancement, costs, derive, elder, validate
 from ..models.character import Armor, Character, HouseRules, Weapon, XpEntry
 from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, CharmCost,
                             Damage, RuleSet, SpellCircle, TRACK_CIRCLES, VirtueName,
@@ -907,6 +907,11 @@ _HOUSE_RULES = [
      "Exalted p.103",
      "Grants one Favored Ability, discount included. The price is a ceiling: no other "
      "Ability may be rated above it. Only affects splats with no castes."),
+    ("terrestrial_essence_transcendence", "Terrestrial may pass Essence 7", "character",
+     "Player's Guide p.258",
+     "Terrestrial Exalts are held at Essence 7 without 'outside energies' — dietary "
+     "and meditational regimens, powerful Hearthstones and the like. None of that is "
+     "on the sheet, so this is the Storyteller asserting it happened."),
     ("mf_change_method", "Merits & Flaws after character creation", "table",
      "Player's Guide p.17",
      "How a Merit or Flaw gained or lost in play is accounted for. The book offers "
@@ -949,6 +954,15 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                         f"{'/' + character.origin if character.origin else ''}.")
             elif getattr(rules, fld):
                 note = "Granting 1 Favored Ability, which must stay the highest-rated."
+        elif fld == "terrestrial_essence_transcendence":
+            if ruleset.exalt_for(character.exalt_type).tier != "Terrestrial":
+                note = (f"No effect: the Essence 7 ceiling is a Terrestrial rule, and "
+                        f"{ruleset.exalt_for(character.exalt_type).label} are not "
+                        f"Terrestrial.")
+            elif elder.essence_cap_for_age(character.age) <= 7:
+                note = ("Nothing to lift yet: age permits at most Essence "
+                        f"{elder.essence_cap_for_age(character.age)} regardless. The "
+                        "ceiling first bites at 500 years of Exalted existence.")
         elif fld == "magic_for_everyone" and getattr(rules, fld):
             grant = validate.magic_for_everyone_grant(ruleset, character)
             note = (f"Currently granting {grant} free purchase(s)." if grant else
@@ -1018,6 +1032,16 @@ class SheetView:
     experience: int
     issues: list[validate.Issue]
     chargen_locked: bool
+    # The XP ledger, as HISTORY. `app.render_sheet` takes only this dataclass — no
+    # ruleset, no character, no callbacks — and the GM party screen and the render
+    # tests depend on that purity, so the sheet's copy of the ledger is a printout and
+    # the live one (Adjust XP, Undo) stays on the Edit tab where the buying happens.
+    # Empty pre-lock: there is nothing spent yet and a chargen sheet should not imply
+    # otherwise. See decision 0013.
+    xp_earned: int = 0
+    xp_spent: int = 0
+    xp_available: int = 0
+    xp_log: list[XpLogRow] = field(default_factory=list)
 
     def essence_pool_label(self) -> str:
         """The Essence pools as one line. A merged pool is named as one rather than
@@ -1651,6 +1675,12 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         experience=character.xp_earned,
         issues=issues,
         chargen_locked=character.chargen_locked,
+        xp_earned=character.xp_earned,
+        xp_spent=advancement.xp_spent(character),
+        xp_available=advancement.xp_available(character),
+        # Pre-lock the log is empty by construction, but say so explicitly: a chargen
+        # sheet showing an "Experience" section with nothing in it reads as a bug.
+        xp_log=build_xp_log(ruleset, character) if character.chargen_locked else [],
     )
 
 

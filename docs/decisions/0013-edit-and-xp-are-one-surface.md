@@ -1,6 +1,7 @@
 # 0013 — Edit and XP are one surface; the dot track is the buy control
 
-**Status:** Accepted 2026-07-31, not yet implemented.
+**Status:** Accepted and implemented 2026-07-31; browser-verified the same day.
+Build record: `docs/status/edit-xp-merge.md`.
 
 ## Problem
 
@@ -86,3 +87,11 @@ next to the buying, which is buy-where-you-browse extended to undo-where-you-bou
 * A downward click on a chargen dot with nothing bought above it does nothing. That is
   correct — there is no XP to refund and no curse to record — but it is the one gesture
   that will read as a dead control.
+
+* **Discovered while implementing:** making Edit a both-sides tab exposes every free
+  setter on it to a locked character, and eight of them are chargen *choices* rather
+  than traits to buy — Favoured Abilities/Attributes, caste, Exalt type, origin,
+  upbringing, training camp, its choices, Calling, and the flawed Virtue. They set the
+  rates every later purchase is priced at, so they are disabled once locked (readable,
+  not hidden). Nature is deliberately left editable: no XP effect, and it changes through
+  story. This consequence was not foreseen when the decision was taken.

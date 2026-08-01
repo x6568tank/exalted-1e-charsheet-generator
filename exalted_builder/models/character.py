@@ -414,6 +414,23 @@ class HouseRules(BaseModel):
     # not because the engine does anything different. Do not "simplify" them into one.
     mf_change_method: str = "experience"
 
+    # PER-CHARACTER. Storyteller permission for a TERRESTRIAL Exalt to pass the
+    # Essence 7 ceiling of Player's Guide p.258: "Terrestrial Exalts may never raise
+    # their permanent Essence above 7 without resorting to the use of outside energies
+    # such as complex dietary and meditational regimens, powerful Hearthstones and
+    # other, similar effects."
+    #
+    # A flag rather than a derivation because none of those things is on the sheet —
+    # a Hearthstone Background dot does not tell the engine a regimen is in progress,
+    # and the book's "and other, similar effects" is open-ended. So it is the ST
+    # asserting the fiction happened, granted to one character, not the series.
+    #
+    # Post-lock only in effect (nothing can reach Essence 7 at chargen), so unlike the
+    # accounting toggles above it changes no chargen price and is harmless in the
+    # snapshot. Ignored entirely for any splat whose ExaltDefinition.tier is not
+    # "Terrestrial".
+    terrestrial_essence_transcendence: bool = False
+
     @field_validator("mf_change_method")
     @classmethod
     def _check_mf_method(cls, v: str) -> str:
@@ -550,6 +567,22 @@ class Character(BaseModel):
     # at their defaults.
     totem: str = ""
     animal_forms: list[AnimalForm] = Field(default_factory=list)
+
+    # Years of EXALTED existence — not the character's age in years lived, which the
+    # sheet does not track (Player's Guide p.258 counts from the Exaltation). Drives
+    # the elder ceilings in engine.elder: age alone is what lets Essence pass 5, and
+    # Essence is in turn what lets an Ability or Attribute pass 5.
+    #
+    # POST-LOCK ONLY (human, rules authority, 2026-07-31). Age is not a chargen
+    # choice — a character may never leave creation with Essence above 5 — so the
+    # editor greys this until the sheet locks. It is the inverse of the eight frozen
+    # chargen choices of decision 0013, and the reason it is not a plain chargen field.
+    #
+    # It is NOT play-state despite only moving in play: decision 0006 keeps PlayState
+    # out of every permanent derivation, and this feeds trait ceilings. Same reasoning
+    # as `limit_permanent` above. 0 = age untracked, which is every young character
+    # and every save written before elder rules existed.
+    age: int = Field(default=0, ge=0)
 
     # --- current, canonical traits ---
     essence_rating: int = Field(default=2, ge=1)

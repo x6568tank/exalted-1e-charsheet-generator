@@ -1,7 +1,8 @@
 # 0011 — Merits & Flaws return as one centralized calculation
 
-**Status:** Accepted, not yet implemented. Removed 2026-06-15; return scheduled after the
-non-Exalt splats.
+**Status:** Accepted and implemented 2026-07-30 — pulled FORWARD of the non-Exalt splats
+rather than following them, because mortals shipped with no route to magic and that route
+runs through Merits. Build record: `docs/status/merits-flaws.md`.
 
 ## Problem
 

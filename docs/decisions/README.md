@@ -24,6 +24,6 @@ status log says so rather than guessing.
 | [0008](0008-no-combat-derivation.md) | No combat or attack derivation | Accepted |
 | [0009](0009-no-dice-rolling.md) | No dice rolling, ever | Accepted |
 | [0010](0010-fair-folk-out-of-scope.md) | The Fair Folk are permanently out of scope | Accepted |
-| [0011](0011-merits-and-flaws-return-centralized.md) | Merits & Flaws return as one centralized calculation | Accepted, not yet implemented |
+| [0011](0011-merits-and-flaws-return-centralized.md) | Merits & Flaws return as one centralized calculation | Accepted |
 | [0012](0012-homebrew-library-plus-carried-copies.md) | Homebrew: a library is the store, saves carry copies | Accepted |
-| [0013](0013-edit-and-xp-are-one-surface.md) | Edit and XP are one surface; the dot track is the buy control | Accepted, not yet implemented |
+| [0013](0013-edit-and-xp-are-one-surface.md) | Edit and XP are one surface; the dot track is the buy control | Accepted |

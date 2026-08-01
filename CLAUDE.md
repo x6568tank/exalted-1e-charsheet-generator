@@ -148,6 +148,7 @@ costs — read the record before proposing anything that contradicts it.
 | 0010 | The Fair Folk are permanently out of scope — six non-Exalt splats left, not seven |
 | 0011 | Merits & Flaws return as ONE centralized calc, never the old per-file hooks |
 | 0012 | Homebrew: the `custom/` library is the store, saves carry copies, homebrew errors are non-fatal |
+| 0013 | **Edit and XP are ONE surface** — the dot track is the buy control; there is no XP tab |
 
 ## Stack
 - Python + pydantic v2 + pytest.
@@ -174,7 +175,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1496 tests passing)
+## Status (1584 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -202,6 +203,8 @@ touching that area**; the summaries below are pointers, not the full record.
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
 | **Rated artifacts — DEFERRED, sourced** (the E:Ab p.131 Artifact budget table, transcribed; per-specific-artifact Damaged Artifact) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted) | `docs/status/advantages-tab.md` |
+| **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
+| **Elder Exalts — DONE, NOT browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only) | `docs/status/elder-exalts.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -254,6 +257,10 @@ not a gap to close:
   the point costs move.
 - Death's Taint's Harrowing, the story requirement attached to shedding permanent
   Resonance, is the same class of rule.
+- The **elder-Exalt** ceilings (PG p.258) are gated on training time as well as age; only
+  the age chart shipped, so an elder raise is cheaper in table-time than printed. Same
+  page's annual downtime XP awards are out for the same reason —
+  `docs/status/elder-exalts.md`.
 
 The reasoning is the tracker's, and it generalises: this build is a **character builder
 and validator**, not a chronicle simulator. Anything that needs the passage of in-game
@@ -267,43 +274,55 @@ Recorded as decision records, not restated here — read them before proposing a
 ## TODO
 
 ### 👉 START HERE (session handoff, 2026-07-31)
-**Merits & Flaws are DONE — every mechanism on the triage's A-list is implemented AND
-browser-verified.** A1 through A7 plus cluster 7 (trait prerequisites).
-`docs/status/merits-flaws.md` is the record; read it before touching M&F.
+**One item is tests-green but NOT browser-verified — Elder Exalts, below. Everything
+under it is DONE and browser-verified. Nothing is half-finished.**
 
-**The desktop and work-machine branches were merged 2026-07-31** and the merged tree was
-clicked through the same day. The one thing to know about the merge: both branches had
-implemented cluster 7 independently under the SAME field name, and the desktop's richer
-`TraitRequirement` shape (tier-keyed, AND-of-OR, four namespaces) was kept while the work
-machine's `TraitPrerequisite` was dropped. Everything else was unioned. Full detail and
-the two silent breakages git caused on its own: `docs/status/merits-flaws.md`.
+The last four items, newest first — read the linked file before touching that area:
 
-**The click-through found five bugs and produced two rulings** — permanent Resonance
-occupies the Resonance track rather than riding beside it, and Innocuous' two open-ended
-Background clauses now name eight more Backgrounds. Both are written up in
-`merits-flaws.md`; the second is the kind of thing to re-read before touching Innocuous.
+* **Elder Exalts** (`docs/status/elder-exalts.md`) — **NEEDS A CLICK-THROUGH.** PG
+  pp.258-259, shipped 2026-07-31: age raises Essence past 5 (100/6, 250/7, 500/8,
+  1,000/9), Essence in turn raises Abilities and Attributes past 5, and Terrestrials are
+  held at 7 without an ST toggle. Not a splat — an axis, one module (`engine/elder.py`),
+  one entry point. **`Character.age` is post-lock only**, the inverse of the frozen
+  chargen choices below: a character may never leave creation with Essence above 5. The
+  open question is visual, not mechanical — whether a nine-pip dot track still fits the
+  panel. Training times and the p.259 downtime XP awards are deliberately absent.
+* **The Edit⇄XP merge** (`docs/status/edit-xp-merge.md`, decision 0013). There is **no XP
+  tab**; `ui/xp.py` is deleted. One trait surface on both sides of the lock: the dot
+  tracks are free setters pre-lock and XP steppers post-lock, and a downward click opens
+  a dialog asking *undo (refund) or permanent loss (curse)?* — the app cannot infer which.
+  The ledger lives in Edit's sticky column (Adjust XP + "Undo last: <row>") and prints
+  read-only on the Sheet. **Eight chargen choices are frozen once locked** (Favoured
+  picks, caste, Exalt type, origin, upbringing, camp, Calling, flawed Virtue) — greyed but
+  readable. That last one came from the human at the browser, not the suite.
+* **Merits & Flaws** (`docs/status/merits-flaws.md`). All 99 authored, every A-list
+  mechanism implemented. **No module outside `engine/merits.py` may name a Merit id** — a
+  test greps for it; add a `MeritEffects` FIELD, never an allowlist.
+* **The Advantages tab** (`docs/status/advantages-tab.md`, v0.7.6). Backgrounds and M&F on
+  one both-sides tab, two duplicate implementations deleted.
 
-**The Advantages tab shipped 2026-07-31** (v0.7.6), browser-verified: Backgrounds and
-Merits & Flaws moved off the Edit⇄XP split onto one both-sides tab, deleting the two
-duplicate implementations of each. `docs/status/advantages-tab.md`. Preflight caught a
-`ui.select` build-time crash on the way, latent since before the move.
+**The recurring bug in this build, stated once:** a rule that IS implemented, sitting
+where it does not run when it matters. Three M&F instances, then mortal magic access
+wired to chargen only, then the XP tab's hardcoded trait ceiling. `preflight`'s read-site
+audit reports single-site fields as if they were healthy — **a single read site is as
+suspect as none when the read sits in the phase that wrote it.** Test the buy path, not
+the effect.
 
-**A player report on 2026-07-31 found mortal magic access wired to chargen only** — three
-gates (`advancement.learn_charm`, `check_splat_consistency`, `granted_circles`) asked the
-flat per-splat `charms_available` / Charm-only circle question instead of asking whether
-Essence Mastery had reopened this Charm or granted this circle. All three fixed, tested
-and written up in `merits-flaws.md`; **not browser-verified.** The generalisable lesson is
-there too: a single-read-site effect field is as suspect as a zero-read one when the read
-sits in the phase that wrote it. **Test the buy path, not the effect.**
+**What is next is the human's call.** Candidates: the **M&F filter/search** (99 entries in
+a flat dropdown, now solvable in one place) and `docs/status/rated-artifacts.md`. The four
+remaining non-Exalt splats are all still blocked on source material.
 
-**What is next is the human's call.** The candidates are the **M&F filter/search** (99
-entries in a flat dropdown, now solvable in one place) and `docs/status/rated-artifacts.md`.
-The four remaining non-Exalt splats are all still blocked on source material.
+**Three rulings landed 2026-07-31** (human, rules authority — written up in
+`edit-xp-merge.md`). The first changes a model assumption, so read it before touching
+specialties: **a specialty is an INSTANCE, not a rated trait** — you take the same one
+again rather than raising it, capped at **3 per Ability** (two Swords + one Parrying
+fills Melee). Legacy rated specialties are split on load. Also: **Crafts and Colleges can
+be reduced** (a usability escape hatch, not a printed rule — undo is LIFO and misclicks
+happen), and **Nature freezes at the lock** with the other chargen choices.
 
 **Done:** M&F removal, repeatable Ox-Body, Nature dropdown, Caste info box,
 editable custom weapons/armor, magical materials, Craft as per-focus Abilities,
-chargen BP-spend log, free background/equipment editing on the XP tab, the
-in-play tracker, the multi-splat engine (P0-P4), tier-gated cross-splat Martial Arts,
+chargen BP-spend log, the in-play tracker, the multi-splat engine (P0-P4), tier-gated cross-splat Martial Arts,
 the picker's three-page Abilities/Martial Arts/Spells split, GM mode + the ST
 reference screen, **all five non-Solar Exalt splats** (Dragon-Blooded, Abyssal, Lunar,
 Alchemical, Sidereal — data, engine and UI, each browser-verified), the Cult of the
