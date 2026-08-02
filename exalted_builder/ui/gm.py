@@ -34,6 +34,7 @@ from ..engine import derive
 from ..models.character import Character, Damage, PlayState
 from ..models.party import Party, PartyMember
 from ..models.rules import RuleSet
+from . import adversaries as adversaries_mod
 from . import app as sheet_app
 from . import builder as builder_mod
 from . import play as play_mod
@@ -455,6 +456,11 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
                         "grid-template-columns:repeat(auto-fit,minmax(20rem,1fr))"):
                     for index, member in enumerate(p.members):
                         _card(index, member)
+
+            # The opposition, below the party they are fighting. Same page on
+            # purpose: a GM tracking a fight is tracking both sides of it.
+            adversaries_mod.build_roster(ruleset, ctx.get("adversary_catalog", {}),
+                                         party, pal, body.refresh)
 
             ui.label("SESSION NOTES").classes("text-xs font-bold tracking-widest mt-2")
             # Same no-refresh rule as the per-character notes above.

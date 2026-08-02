@@ -145,9 +145,15 @@ def make_context(character: Character, save_path: Path) -> dict:
     time, so renaming the character renames its file). `party` is the GM roster and
     `member` the index within it that `char` came from, or None when editing a
     standalone character that is not in the party.
+
+    `adversary_catalog` is the Storyteller's template list (rules_db.
+    load_adversary_catalog). It sits here rather than on the RuleSet because it is
+    not rules — see that function. Defaults to empty so a caller that never loads
+    it still gets a working roster, offering blank entries only.
     """
     return {"char": character, "path": save_path, "dir": Path(save_path).parent,
-            "party": Party(id="party.new"), "party_path": None, "member": None}
+            "party": Party(id="party.new"), "party_path": None, "member": None,
+            "adversary_catalog": {}}
 
 
 def open_member(ctx: dict, index: int) -> None:
@@ -449,6 +455,12 @@ def register_pages(ruleset: RuleSet, ctx: dict) -> None:
     # shared context and the file-dialog helpers, so a top-level import would be
     # circular.
     from . import gm as gm_mod
+
+    # The adversary templates, loaded once for whichever entry point got here, so
+    # neither main() has to remember to. Left alone if a caller (a test) supplied
+    # its own catalogue.
+    if not ctx.get("adversary_catalog"):
+        ctx["adversary_catalog"] = rules_db.load_adversary_catalog(_DATA_DIR)
 
     @ui.page("/")
     def index() -> None:

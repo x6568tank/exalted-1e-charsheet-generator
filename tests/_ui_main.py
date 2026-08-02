@@ -10,6 +10,9 @@ from exalted_builder.models.character import (
     Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
     FetterEntry, HouseRules, PassionEntry, PlayState, RitualEntry, ScienceRating,
     ThaumaturgyState, Weapon)
+from exalted_builder.engine import adversaries as adversaries_engine
+from exalted_builder.models.adversary import (Adversary, AdversaryAttack,
+                                              AdversaryTrait)
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.models.rules import (AbilityName, AttributeName, Orientation,
                                           VirtueName)
@@ -198,6 +201,103 @@ GM_PENALTY = _gm_ctx(Character(id="pn", name="Wounded", caste="dawn"))
 @ui.page('/gm-penalty')
 def page_gm_penalty():
     gm.build_gm(RS, GM_PENALTY, with_header=False)
+
+# (k2) the adversary roster. Its own party again, and its own catalogue: the
+# templates are passed through the context, so a test can hand the page exactly
+# the rows it wants to assert on rather than depending on data/adversaries.json.
+ADV_TEMPLATE = Adversary(
+    id="adv.tpl.thug", name="Hired Thug", category="Extra", base_initiative=4,
+    willpower=3, virtues={"valor": 2},
+    health_levels=adversaries_engine.expand_health("-1/-3/I"))
+
+def _adv_ctx(*entries, catalog=True):
+    ctx = _gm_ctx(Character(id="pc", name="Player One", caste="dawn"))
+    ctx["adversary_catalog"] = {ADV_TEMPLATE.id: ADV_TEMPLATE} if catalog else {}
+    ctx["party"].adversaries = list(entries)
+    return ctx
+
+# an empty roster — the section must invite rather than render a bare grid
+GM_ADV_EMPTY = _adv_ctx()
+
+@ui.page('/gm-adv-empty')
+def page_gm_adv_empty():
+    gm.build_gm(RS, GM_ADV_EMPTY, with_header=False)
+
+# a populated roster: a beast with no dodge and an armoured NPC, so the card's
+# stat line is asserted on both branches of the nullable dodge.
+GM_ADV = _adv_ctx(
+    Adversary(id="adv.1", name="Bear", category="Beast", base_initiative=5,
+              dodge=None, soak_lethal=3, soak_bashing=6, willpower=3,
+              attributes={"strength": 7, "dexterity": 2, "stamina": 6},
+              abilities=[AdversaryTrait(name="Brawl", rating=3)],
+              attacks=[AdversaryAttack(name="Bite", speed=2, accuracy=6, damage=8,
+                                       damage_type="L")],
+              health_levels=adversaries_engine.expand_health("-0/-1 x 2/-2/-4/I")),
+    Adversary(id="adv.2", name="Sad Ivory", category="NPC", base_initiative=8,
+              dodge=9, willpower=8, essence=4, personal_essence=16,
+              peripheral_essence=47, nature="Bravo",
+              charms="Adds dice to Melee and Archery as a supplemental action.",
+              health_levels=adversaries_engine.expand_health("-0/-1/-1/-2/-4/I")))
+
+@ui.page('/gm-adv')
+def page_gm_adv():
+    gm.build_gm(RS, GM_ADV, with_header=False)
+
+# its own roster for the click tests, so its marks and duplicates are its alone
+GM_ADV_CLICK = _adv_ctx(
+    Adversary(id="adv.c", name="Bandit", category="Extra", base_initiative=4,
+              willpower=3, health_levels=adversaries_engine.expand_health("-1/-3/I")))
+
+@ui.page('/gm-adv-click')
+def page_gm_adv_click():
+    gm.build_gm(RS, GM_ADV_CLICK, with_header=False)
+
+GM_ADV_ADD = _adv_ctx()
+
+@ui.page('/gm-adv-add')
+def page_gm_adv_add():
+    gm.build_gm(RS, GM_ADV_ADD, with_header=False)
+
+# a BARE entry: no health track, no Willpower, no motes, no attacks. Every
+# tracker on the card is conditional, so this is the shape that finds a card
+# which only renders when it happens to have something to render.
+GM_ADV_BARE = _adv_ctx(Adversary(id="adv.bare", name="Nameless Thing"))
+
+@ui.page('/gm-adv-bare')
+def page_gm_adv_bare():
+    gm.build_gm(RS, GM_ADV_BARE, with_header=False)
+
+# an entry using the SPIRIT mote shape (one pool) rather than the Exalted split
+GM_ADV_SPIRIT = _adv_ctx(
+    Adversary(id="adv.sp", name="Hungry Ghost", category="Undead", essence=1,
+              essence_pool=39, cost_to_materialize=40, willpower=5,
+              powers="Cunning Thief, Measure the Wind",
+              health_levels=adversaries_engine.expand_health("-0/-1/-2/I")))
+
+@ui.page('/gm-adv-spirit')
+def page_gm_adv_spirit():
+    gm.build_gm(RS, GM_ADV_SPIRIT, with_header=False)
+
+# NO catalogue at all: the Add dialog must still work, offering a blank only.
+GM_ADV_NOCAT = _adv_ctx(catalog=False)
+
+@ui.page('/gm-adv-nocat')
+def page_gm_adv_nocat():
+    gm.build_gm(RS, GM_ADV_NOCAT, with_header=False)
+
+# the REAL shipped catalogue, loaded off disk — proves the authored data renders,
+# which no hand-built fixture can.
+GM_ADV_REAL = _adv_ctx()
+GM_ADV_REAL["adversary_catalog"] = rules_db.load_adversary_catalog(
+    Path("exalted_builder/data"))
+GM_ADV_REAL["party"].adversaries = [
+    adversaries_engine.instantiate(GM_ADV_REAL["adversary_catalog"][k], f"adv.r{i}")
+    for i, k in enumerate(("adv.extra_weak", "adv.beast_bear", "adv.militia",
+                           "adv.zephyr", "adv.elite_troops"))]
+
+@ui.page('/gm-adv-real')
+def page_gm_adv_real():
+    gm.build_gm(RS, GM_ADV_REAL, with_header=False)
 
 # (f) a Sidereal with Astrological Colleges — the sheet panel and the XP tab's
 # College buy/raise rows (both are Sidereal-only, gated on b.college_dots).

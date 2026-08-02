@@ -790,6 +790,18 @@ class ArmorType(BaseModel):
     # key in armor.json was silently DROPPED on load before this.
     notes: str = ""
     tags: list[str] = Field(default_factory=list)
+    # SHIELDS ride on this model rather than getting one of their own. They are
+    # worn equipment with a mobility penalty and no soak, and a character's armour
+    # is already a LIST, so a shield is simply another row — no second slot, no
+    # second catalogue, and characters get shields for free. `tags: ["shield"]` is
+    # the discriminator; RuleSet.shields / .body_armor split on it.
+    #
+    # These two are the only shield-specific numbers, 0 on every real armour: the
+    # p.335 shields differ on them (a buckler "does nothing to protect the
+    # character from missile fire", a tower shield raises ranged difficulty by 2).
+    # Display only — decision 0008 keeps attack resolution out of this build.
+    difficulty_melee: int = 0          # +N to hit the bearer hand-to-hand
+    difficulty_ranged: int = 0         # +N to hit the bearer with missile fire
 
 
 class WeaponType(BaseModel):
@@ -1798,6 +1810,17 @@ class RuleSet(BaseModel):
     # per dropped row. Book-data problems are fatal and never reach here — these are
     # non-fatal by design, so the UI shows them as a warning and the app still runs.
     custom_problems: list[str] = Field(default_factory=list)
+
+    # Shields live in armor_catalog tagged "shield" (see ArmorType). These two
+    # split it so a caller never has to know the tag string, and so "the armour
+    # list" and "the shield list" are one source of truth with two views.
+    def body_armor(self) -> list[ArmorType]:
+        """Armour proper — everything in the catalogue that is not a shield."""
+        return [a for a in self.armor_catalog.values() if "shield" not in a.tags]
+
+    def shields(self) -> list[ArmorType]:
+        """The shields. p.335 describes three; all are mundane."""
+        return [a for a in self.armor_catalog.values() if "shield" in a.tags]
 
     def exalt_for(self, exalt_type: str) -> ExaltDefinition:
         """The ExaltDefinition for `exalt_type`, falling back to Solar if the type

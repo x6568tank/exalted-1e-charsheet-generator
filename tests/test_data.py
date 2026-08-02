@@ -288,8 +288,12 @@ def test_weapon_and_armor_catalogs_load():
     # Water p.80, Air p.81 — the last being the Lightning Corona's two modes).
     assert len(rs.weapon_catalog) == 87
     # 17 corebook + the artifact Chain Shirt (Dawn p.81), Cloak of Vanishing
-    # Escape (Night p.81) and the Most Terrifying Armor of the Air Dragon (Air p.81).
-    assert len(rs.armor_catalog) == 20
+    # Escape (Night p.81) and the Most Terrifying Armor of the Air Dragon (Air p.81),
+    # + the three p.335 SHIELDS, which are armour rows tagged "shield" rather than a
+    # model of their own (see ArmorType). rs.body_armor() / rs.shields() split them.
+    assert len(rs.armor_catalog) == 23
+    assert len(rs.body_armor()) == 20
+    assert len(rs.shields()) == 3
 
 
 def test_mundane_melee_weapons_present():

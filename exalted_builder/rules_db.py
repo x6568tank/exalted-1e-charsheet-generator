@@ -42,6 +42,7 @@ from typing import Any, Type, TypeVar
 from pydantic import BaseModel, ValidationError
 
 from . import custom_content
+from .models.adversary import Adversary
 from .models.rules import (
     AttributeName,
     ArmorType,
@@ -528,6 +529,29 @@ def reload_custom_layer(ruleset: RuleSet, custom_dir: str | Path | None = None) 
         if target.is_dir() else []
     ruleset.custom_problems = problems
     return problems
+
+
+def load_adversary_catalog(data_dir: str | Path) -> dict[str, Adversary]:
+    """Load the Storyteller's adversary templates (data/adversaries.json).
+
+    Deliberately NOT part of the RuleSet, and loaded by its own call. The
+    templates are book data, but they are not rules: nothing resolves a
+    prerequisite through them, nothing link-checks them, and no character is ever
+    validated against one. Keeping them out also keeps models/rules.py from
+    importing the character-domain Adversary, which would be an import cycle.
+
+    Raises RuleDataError on malformed rows, the same as the rest of the book data
+    — a template with a broken stat line is an authoring bug, not a user's
+    homebrew. A missing file is fine and yields an empty catalogue: the roster
+    still works, offering blank entries only.
+    """
+    data_dir = Path(data_dir)
+    problems: list[str] = []
+    rows = _load_array(data_dir / "adversaries.json", Adversary, problems)
+    catalog = _index(rows, "id", "adversary", problems)
+    if problems:
+        raise RuleDataError(problems)
+    return catalog
 
 
 def load_app_ruleset(data_dir: str | Path) -> RuleSet:

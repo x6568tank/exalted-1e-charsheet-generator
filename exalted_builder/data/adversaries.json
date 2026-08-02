@@ -1,0 +1,4395 @@
+[
+  {
+    "id": "adv.extra_weak",
+    "name": "Weak Opponent",
+    "category": "Extra",
+    "notes": "Militia, hired thugs, city watch. Extras have only three health levels and die instantly if knocked below Incapacitated by lethal damage. Damage is not rolled against them: every three dice remaining after soak deals one automatic health level (nine or more dice incapacitates outright), and any remainder of one or two dice is rolled normally. Extras do not count 10s as two successes. Exalted p.241.",
+    "base_initiative": 4,
+    "combat_pool": 4,
+    "virtues": {
+      "valor": 2
+    },
+    "willpower": 3,
+    "health_levels": [
+      -1,
+      -3,
+      -99
+    ]
+  },
+  {
+    "id": "adv.extra_competent",
+    "name": "Competent Opponent",
+    "category": "Extra",
+    "notes": "Trained troops, professional legbreakers, city guard. Three health levels only; damage is not rolled against extras (three dice past soak = one automatic health level) and they do not count 10s as two successes. Exalted p.241.",
+    "base_initiative": 5,
+    "combat_pool": 5,
+    "virtues": {
+      "valor": 3
+    },
+    "willpower": 4,
+    "health_levels": [
+      -1,
+      -3,
+      -99
+    ]
+  },
+  {
+    "id": "adv.extra_elite",
+    "name": "Elite Opponent",
+    "category": "Extra",
+    "notes": "Crack troops, professional assassins, praetorian guard. Three health levels only; damage is not rolled against extras (three dice past soak = one automatic health level) and they do not count 10s as two successes. Exalted p.241.",
+    "base_initiative": 6,
+    "combat_pool": 6,
+    "virtues": {
+      "valor": 4
+    },
+    "willpower": 6,
+    "health_levels": [
+      -1,
+      -3,
+      -99
+    ]
+  },
+  {
+    "id": "adv.typical_citizen",
+    "name": "Typical Citizen",
+    "category": "Mortal",
+    "notes": "Almost always an extra. Exalted p.276.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 2,
+      "stamina": 2,
+      "charisma": 2,
+      "manipulation": 2,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 2,
+      "wits": 2
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 1,
+      "temperance": 2,
+      "valor": 1
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 1
+      },
+      {
+        "name": "Craft",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 1
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      }
+    ],
+    "base_initiative": 4,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 4,
+        "accuracy": 3,
+        "damage": 2,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Kick",
+        "speed": 0,
+        "accuracy": 2,
+        "damage": 4,
+        "damage_type": "B",
+        "defense": 2
+      }
+    ],
+    "dodge": 3,
+    "soak_lethal": 0,
+    "soak_bashing": 2,
+    "willpower": 3,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.heretic",
+    "name": "Heretic",
+    "category": "Mortal",
+    "notes": "Almost always an extra. A religious outcast. Wears a buff jacket. Exalted p.277.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 3,
+      "stamina": 2,
+      "charisma": 2,
+      "manipulation": 3,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 2,
+      "temperance": 2,
+      "valor": 2
+    },
+    "abilities": [
+      {
+        "name": "Archery",
+        "rating": 1
+      },
+      {
+        "name": "Athletics",
+        "rating": 1
+      },
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2
+      },
+      {
+        "name": "Occult",
+        "rating": 1,
+        "specialties": "Her Religion +1"
+      },
+      {
+        "name": "Performance",
+        "rating": 1,
+        "specialties": "Religious Oration +1"
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 2
+      }
+    ],
+    "base_initiative": 6,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 6,
+        "accuracy": 4,
+        "damage": 2,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 3,
+        "accuracy": 3,
+        "damage": 4,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Short Sword",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 6
+      },
+      {
+        "name": "Self Bow",
+        "speed": 6,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "L"
+      }
+    ],
+    "dodge": 5,
+    "soak_lethal": 0,
+    "soak_bashing": 2,
+    "armor_id": "armor.buff_jacket",
+    "willpower": 4,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.partisan",
+    "name": "Partisan",
+    "category": "Mortal",
+    "notes": "Almost always an extra. A political outcast fighting a guerilla war. Wears a buff jacket. Exalted p.277.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 3,
+      "stamina": 2,
+      "charisma": 2,
+      "manipulation": 3,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 2,
+      "temperance": 2,
+      "valor": 3
+    },
+    "abilities": [
+      {
+        "name": "Archery",
+        "rating": 1
+      },
+      {
+        "name": "Athletics",
+        "rating": 1
+      },
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 1
+      },
+      {
+        "name": "Bureaucracy",
+        "rating": 1
+      },
+      {
+        "name": "Larceny",
+        "rating": 1
+      },
+      {
+        "name": "Medicine",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2
+      },
+      {
+        "name": "Performance",
+        "rating": 2
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 2
+      }
+    ],
+    "base_initiative": 6,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 6,
+        "accuracy": 4,
+        "damage": 2,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 3,
+        "accuracy": 3,
+        "damage": 4,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Short Sword",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 6
+      },
+      {
+        "name": "Self Bow",
+        "speed": 6,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "L"
+      }
+    ],
+    "dodge": 5,
+    "soak_lethal": 0,
+    "soak_bashing": 2,
+    "armor_id": "armor.buff_jacket",
+    "willpower": 5,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.bandit",
+    "name": "Bandit",
+    "category": "Mortal",
+    "notes": "Almost always an extra. As a criminal, but working the countryside rather than a city. Wears a buff jacket. Exalted p.277.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 3,
+      "stamina": 2,
+      "charisma": 2,
+      "manipulation": 3,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 2,
+      "temperance": 2,
+      "valor": 2
+    },
+    "abilities": [
+      {
+        "name": "Archery",
+        "rating": 1
+      },
+      {
+        "name": "Athletics",
+        "rating": 1
+      },
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 1
+      },
+      {
+        "name": "Bureaucracy",
+        "rating": 1
+      },
+      {
+        "name": "Larceny",
+        "rating": 1
+      },
+      {
+        "name": "Medicine",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2
+      },
+      {
+        "name": "Performance",
+        "rating": 2
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 2
+      }
+    ],
+    "base_initiative": 6,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 6,
+        "accuracy": 4,
+        "damage": 2,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 3,
+        "accuracy": 3,
+        "damage": 4,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Short Sword",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 6
+      },
+      {
+        "name": "Self Bow",
+        "speed": 6,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "L"
+      }
+    ],
+    "dodge": 5,
+    "soak_lethal": 0,
+    "soak_bashing": 2,
+    "armor_id": "armor.buff_jacket",
+    "willpower": 5,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.criminal",
+    "name": "Criminal",
+    "category": "Mortal",
+    "notes": "Almost always an extra. A social outcast profiting from the current situation. Wears a buff jacket. Criminals have no Archery Ability, so the self bow line does not apply to them. Exalted p.277.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 3,
+      "stamina": 2,
+      "charisma": 2,
+      "manipulation": 3,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 1,
+      "conviction": 3,
+      "temperance": 2,
+      "valor": 2
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 2
+      },
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Larceny",
+        "rating": 2,
+        "specialties": "Her Particular Brand of Crime +1"
+      },
+      {
+        "name": "Melee",
+        "rating": 1
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 2
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 1
+      }
+    ],
+    "base_initiative": 6,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 6,
+        "accuracy": 5,
+        "damage": 2,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 3,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Short Sword",
+        "speed": 6,
+        "accuracy": 5,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 6
+      }
+    ],
+    "dodge": 5,
+    "soak_lethal": 0,
+    "soak_bashing": 2,
+    "armor_id": "armor.buff_jacket",
+    "willpower": 5,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.militia",
+    "name": "Militia",
+    "category": "Soldier",
+    "notes": "Almost always an extra. The average militiaman: patrols streets and markets and makes up the bulk of conscript armies. Wears a buff jacket. Exalted p.278.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 2,
+      "stamina": 2,
+      "charisma": 2,
+      "manipulation": 2,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 2,
+      "wits": 2
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 2,
+      "temperance": 2,
+      "valor": 2
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 1
+      },
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Endurance",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Resistance",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 1
+      },
+      {
+        "name": "Survival",
+        "rating": 1
+      }
+    ],
+    "base_initiative": 4,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 4,
+        "accuracy": 4,
+        "damage": 2,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 1,
+        "accuracy": 3,
+        "damage": 4,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Knife",
+        "speed": 7,
+        "accuracy": 4,
+        "damage": 3,
+        "damage_type": "L",
+        "defense": 2
+      },
+      {
+        "name": "Short Sword",
+        "speed": 4,
+        "accuracy": 5,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 5
+      },
+      {
+        "name": "Spear",
+        "speed": 7,
+        "accuracy": 5,
+        "damage": 3,
+        "damage_type": "L",
+        "defense": 4
+      }
+    ],
+    "dodge": 4,
+    "soak_lethal": 0,
+    "soak_bashing": 2,
+    "armor_id": "armor.buff_jacket",
+    "willpower": 4,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.infantry",
+    "name": "Infantry",
+    "category": "Soldier",
+    "notes": "Trained for battle rather than police duty. Wears a reinforced buff jacket and carries a target shield, which together give -3 mobility and +1 difficulty to attack them. Exalted p.278.",
+    "attributes": {
+      "strength": 3,
+      "dexterity": 2,
+      "stamina": 3,
+      "charisma": 2,
+      "manipulation": 2,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 2,
+      "wits": 2
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 3,
+      "temperance": 2,
+      "valor": 3
+    },
+    "abilities": [
+      {
+        "name": "Archery",
+        "rating": 2
+      },
+      {
+        "name": "Athletics",
+        "rating": 2
+      },
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 1
+      },
+      {
+        "name": "Endurance",
+        "rating": 2
+      },
+      {
+        "name": "Medicine",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2,
+        "specialties": "Chopping Sword +1"
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Resistance",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 1
+      },
+      {
+        "name": "Survival",
+        "rating": 1
+      }
+    ],
+    "base_initiative": 4,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 4,
+        "accuracy": 4,
+        "damage": 3,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 1,
+        "accuracy": 3,
+        "damage": 5,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Knife",
+        "speed": 7,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 2
+      },
+      {
+        "name": "Chopping Sword",
+        "speed": 4,
+        "accuracy": 6,
+        "damage": 7,
+        "damage_type": "L",
+        "defense": 6
+      },
+      {
+        "name": "Spear",
+        "speed": 7,
+        "accuracy": 5,
+        "damage": 5,
+        "damage_type": "L",
+        "defense": 4
+      },
+      {
+        "name": "Self Bow",
+        "speed": 4,
+        "accuracy": 4,
+        "damage": 5,
+        "damage_type": "L"
+      }
+    ],
+    "dodge": 3,
+    "soak_lethal": 0,
+    "soak_bashing": 3,
+    "armor_id": "armor.reinforced_buff_jacket",
+    "willpower": 6,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "shield_id": "shield.target"
+  },
+  {
+    "id": "adv.elite_troops",
+    "name": "Elite Troops",
+    "category": "Soldier",
+    "notes": "Often an extra. Career soldiers, often raised from childhood for military service. Wears lamellar armour and carries a target shield, which together give -3 mobility and +1 difficulty to attack them. Exalted p.278.",
+    "attributes": {
+      "strength": 3,
+      "dexterity": 3,
+      "stamina": 4,
+      "charisma": 2,
+      "manipulation": 2,
+      "appearance": 2,
+      "perception": 3,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 3,
+      "temperance": 2,
+      "valor": 4
+    },
+    "abilities": [
+      {
+        "name": "Archery",
+        "rating": 2
+      },
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Endurance",
+        "rating": 3,
+        "specialties": "Marches +1"
+      },
+      {
+        "name": "Medicine",
+        "rating": 2
+      },
+      {
+        "name": "Melee",
+        "rating": 3
+      },
+      {
+        "name": "Presence",
+        "rating": 2
+      },
+      {
+        "name": "Resistance",
+        "rating": 2,
+        "specialties": "Disease +1"
+      },
+      {
+        "name": "Socialize",
+        "rating": 2
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 1
+      }
+    ],
+    "base_initiative": 6,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 3,
+        "damage_type": "B",
+        "defense": 6
+      },
+      {
+        "name": "Kick",
+        "speed": 3,
+        "accuracy": 5,
+        "damage": 5,
+        "damage_type": "B",
+        "defense": 5
+      },
+      {
+        "name": "Knife",
+        "speed": 9,
+        "accuracy": 6,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 5
+      },
+      {
+        "name": "Chopping Sword",
+        "speed": 6,
+        "accuracy": 7,
+        "damage": 7,
+        "damage_type": "L",
+        "defense": 6
+      },
+      {
+        "name": "Self Bow",
+        "speed": 6,
+        "accuracy": 5,
+        "damage": 5,
+        "damage_type": "L"
+      }
+    ],
+    "dodge": 5,
+    "soak_lethal": 0,
+    "soak_bashing": 4,
+    "armor_id": "armor.lamellar",
+    "willpower": 7,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "shield_id": "shield.target"
+  },
+  {
+    "id": "adv.merchant_prince",
+    "name": "Merchant Prince",
+    "category": "Guild",
+    "nature": "",
+    "notes": "A Guild syndic's delegate in a caravan. Wears a reinforced buff jacket. Exalted p.279.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 2,
+      "stamina": 2,
+      "charisma": 3,
+      "manipulation": 4,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 3,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 3,
+      "temperance": 4,
+      "valor": 2
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 1
+      },
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Bureaucracy",
+        "rating": 3,
+        "specialties": "Business +2"
+      },
+      {
+        "name": "Endurance",
+        "rating": 2,
+        "specialties": "Resisting Disease +2"
+      },
+      {
+        "name": "Investigation",
+        "rating": 2,
+        "specialties": "Pilferage +1"
+      },
+      {
+        "name": "Linguistics",
+        "rating": 3
+      },
+      {
+        "name": "Medicine",
+        "rating": 2
+      },
+      {
+        "name": "Melee",
+        "rating": 2
+      },
+      {
+        "name": "Occult",
+        "rating": 2
+      },
+      {
+        "name": "Presence",
+        "rating": 3,
+        "specialties": "Appearing Trustworthy +2"
+      },
+      {
+        "name": "Resistance",
+        "rating": 2,
+        "specialties": "Resisting Disease +2"
+      },
+      {
+        "name": "Ride",
+        "rating": 2
+      },
+      {
+        "name": "Socialize",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 1
+      }
+    ],
+    "base_initiative": 5,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 4,
+        "accuracy": 4,
+        "damage": 2,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 1,
+        "accuracy": 3,
+        "damage": 4,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Knife",
+        "speed": 7,
+        "accuracy": 4,
+        "damage": 3,
+        "damage_type": "L",
+        "defense": 2
+      },
+      {
+        "name": "Baton",
+        "speed": 4,
+        "accuracy": 5,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 5
+      }
+    ],
+    "dodge": 3,
+    "soak_lethal": 0,
+    "soak_bashing": 2,
+    "armor_id": "armor.reinforced_buff_jacket",
+    "willpower": 8,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.wyld_barbarian",
+    "name": "Wyld Barbarian",
+    "category": "Wyld",
+    "notes": "Usually an extra. Wears pangolin scale armour (a buff jacket) and carries a target shield, together -2 mobility and +1 difficulty to attack. Exalted p.281-282.",
+    "attributes": {
+      "strength": 3,
+      "dexterity": 2,
+      "stamina": 3,
+      "charisma": 2,
+      "manipulation": 2,
+      "appearance": 2,
+      "perception": 3,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 3,
+      "temperance": 2,
+      "valor": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 2
+      },
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Endurance",
+        "rating": 2,
+        "specialties": "Wilderness +1"
+      },
+      {
+        "name": "Medicine",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2,
+        "specialties": "Axe +1"
+      },
+      {
+        "name": "Performance",
+        "rating": 1
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Resistance",
+        "rating": 2
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 1
+      },
+      {
+        "name": "Survival",
+        "rating": 2,
+        "specialties": "Native Environment +1"
+      }
+    ],
+    "base_initiative": 5,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 4,
+        "accuracy": 4,
+        "damage": 3,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 2,
+        "accuracy": 3,
+        "damage": 5,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Knife",
+        "speed": 8,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 2
+      },
+      {
+        "name": "Axe",
+        "speed": 5,
+        "accuracy": 5,
+        "damage": 8,
+        "damage_type": "L",
+        "defense": 5
+      },
+      {
+        "name": "Short Spear",
+        "speed": 7,
+        "accuracy": 5,
+        "damage": 5,
+        "damage_type": "L",
+        "defense": 4
+      }
+    ],
+    "dodge": 4,
+    "soak_lethal": 0,
+    "soak_bashing": 3,
+    "armor_id": "armor.buff_jacket",
+    "willpower": 6,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "shield_id": "shield.target"
+  },
+  {
+    "id": "adv.wyld_shaman",
+    "name": "Wyld Shaman",
+    "category": "Wyld",
+    "notes": "Often an extra. Generally quite mad; usually has at least one affliction and two poxes. Printed soak is 4L/8B, which includes scars and tattoos worth 4L/4B — there is no catalogue armour for those, so the whole figure is recorded as natural soak. Exalted p.282-283.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 2,
+      "stamina": 2,
+      "charisma": 3,
+      "manipulation": 3,
+      "appearance": 1,
+      "perception": 3,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 2,
+      "temperance": 1,
+      "valor": 4
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 2
+      },
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Endurance",
+        "rating": 2,
+        "specialties": "Wilderness +1"
+      },
+      {
+        "name": "Medicine",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2
+      },
+      {
+        "name": "Occult",
+        "rating": 1,
+        "specialties": "Local Spirits +2"
+      },
+      {
+        "name": "Performance",
+        "rating": 1
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Resistance",
+        "rating": 2
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 2,
+        "specialties": "Native Environment +1"
+      }
+    ],
+    "base_initiative": 5,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 5,
+        "accuracy": 4,
+        "damage": 3,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 2,
+        "accuracy": 3,
+        "damage": 5,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Knife",
+        "speed": 7,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 2
+      },
+      {
+        "name": "Short Spear",
+        "speed": 5,
+        "accuracy": 5,
+        "damage": 5,
+        "damage_type": "L",
+        "defense": 4
+      }
+    ],
+    "dodge": 2,
+    "soak_lethal": 4,
+    "soak_bashing": 8,
+    "willpower": 5,
+    "essence": 2,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.wolfman",
+    "name": "Wolfman",
+    "category": "Wyld",
+    "notes": "Usually an extra. A commonly occurring beastman of the Northeast, with the afflictions Fangs and the poxes Fur, Eye Color (wolf-like, can see in the dark), Hair Color (red wolf-pelt), Acute Smell and Large. Printed soak is 6L/10B from a battered chain hauberk (-3 mobility penalty); recorded here as natural soak because the battered version is not the catalogue item. Exalted p.283.",
+    "attributes": {
+      "strength": 4,
+      "dexterity": 2,
+      "stamina": 4,
+      "charisma": 3,
+      "manipulation": 2,
+      "appearance": 1,
+      "perception": 3,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 3,
+      "temperance": 2,
+      "valor": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 4
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Endurance",
+        "rating": 3,
+        "specialties": "Wilderness +2"
+      },
+      {
+        "name": "Medicine",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2,
+        "specialties": "Great Sword +2"
+      },
+      {
+        "name": "Performance",
+        "rating": 1,
+        "specialties": "Howling +2"
+      },
+      {
+        "name": "Presence",
+        "rating": 2
+      },
+      {
+        "name": "Resistance",
+        "rating": 2
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 2,
+        "specialties": "Native Environment +1"
+      }
+    ],
+    "base_initiative": 5,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 4,
+        "accuracy": 4,
+        "damage": 3,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 2,
+        "accuracy": 3,
+        "damage": 5,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Bite",
+        "speed": 5,
+        "accuracy": 4,
+        "damage": 5,
+        "damage_type": "L",
+        "defense": 2
+      },
+      {
+        "name": "Knife",
+        "speed": 8,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 2
+      },
+      {
+        "name": "Great Sword",
+        "speed": 5,
+        "accuracy": 5,
+        "damage": 8,
+        "damage_type": "L",
+        "defense": 4
+      }
+    ],
+    "dodge": 4,
+    "soak_lethal": 6,
+    "soak_bashing": 10,
+    "willpower": 6,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.buck_ogre",
+    "name": "Buck-Ogre",
+    "category": "Wyld",
+    "notes": "Probably not an extra. A two-headed scourge of the northeast Threshold, with the poxes Eye Color (+2 on visual Awareness rolls) and Hair Color (Elk Pelt), the afflictions Huge and Tusks/Horns, and the blights Armored Hide, Beast Form and Multiple Heads. Wields a great axe in each hand and must split its dice pool normally to act twice. Printed soak is 9L/14B, hide plus salvaged armour equal to a reinforced buff jacket (5L/6B, -2 mobility); recorded whole as natural soak. Exalted p.284-285.",
+    "attributes": {
+      "strength": 7,
+      "dexterity": 2,
+      "stamina": 6,
+      "charisma": 2,
+      "manipulation": 2,
+      "appearance": 1,
+      "perception": 4,
+      "intelligence": 2,
+      "wits": 4
+    },
+    "virtues": {
+      "compassion": 1,
+      "conviction": 2,
+      "temperance": 1,
+      "valor": 4
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 4
+      },
+      {
+        "name": "Brawl",
+        "rating": 4
+      },
+      {
+        "name": "Dodge",
+        "rating": 3
+      },
+      {
+        "name": "Endurance",
+        "rating": 2
+      },
+      {
+        "name": "Medicine",
+        "rating": 2
+      },
+      {
+        "name": "Melee",
+        "rating": 3,
+        "specialties": "Axe +2"
+      },
+      {
+        "name": "Presence",
+        "rating": 1,
+        "specialties": "Intimidation +3"
+      },
+      {
+        "name": "Resistance",
+        "rating": 2,
+        "specialties": "Poison +2"
+      },
+      {
+        "name": "Stealth",
+        "rating": 3
+      },
+      {
+        "name": "Survival",
+        "rating": 5
+      }
+    ],
+    "base_initiative": 6,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 7,
+        "damage_type": "B",
+        "defense": 6
+      },
+      {
+        "name": "Kick",
+        "speed": 3,
+        "accuracy": 5,
+        "damage": 9,
+        "damage_type": "B",
+        "defense": 5
+      },
+      {
+        "name": "Gore",
+        "speed": 3,
+        "accuracy": 7,
+        "damage": 12,
+        "damage_type": "L",
+        "defense": 5
+      },
+      {
+        "name": "Great Axe",
+        "speed": 6,
+        "accuracy": 7,
+        "damage": 14,
+        "damage_type": "L",
+        "defense": 6,
+        "note": "one axe in each hand; must split its dice pool normally to act twice"
+      }
+    ],
+    "dodge": 5,
+    "soak_lethal": 9,
+    "soak_bashing": 14,
+    "willpower": 6,
+    "health_levels": [
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.common_zombie",
+    "name": "Common Zombie",
+    "category": "Undead",
+    "notes": "Wounds inflicted by a zombie are extraordinarily likely to become infected: the difficulty of the Stamina + Resistance roll to resist infection from a zombie-inflicted wound is increased by 2. Characters fighting zombies hand-to-hand must succeed at a Stamina + Resistance roll at difficulty 2 each turn or suffer -2 on all dice pools that turn from nausea; the stench loses its impact after several encounters. Virtues are not applicable — a zombie never fails Valor rolls and never succeeds at any other rolls. Exalted p.299.",
+    "attributes": {
+      "strength": 5,
+      "dexterity": 2,
+      "stamina": 3,
+      "charisma": 0,
+      "manipulation": 0,
+      "appearance": 0,
+      "perception": 2,
+      "intelligence": 1,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 1
+      },
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 1
+      },
+      {
+        "name": "Endurance",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 1
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Resistance",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 1
+      },
+      {
+        "name": "Survival",
+        "rating": 1
+      }
+    ],
+    "base_initiative": 5,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 5,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 4,
+        "note": "wounds likely to infect: +2 difficulty to resist"
+      },
+      {
+        "name": "Bite",
+        "speed": 3,
+        "accuracy": 5,
+        "damage": 5,
+        "damage_type": "L",
+        "defense": 3,
+        "note": "wounds likely to infect: +2 difficulty to resist"
+      }
+    ],
+    "dodge": 2,
+    "soak_lethal": 1,
+    "soak_bashing": 3,
+    "willpower": 10,
+    "essence": 1,
+    "health_levels": [
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -4
+    ]
+  },
+  {
+    "id": "adv.spine_chain",
+    "name": "Spine Chain",
+    "category": "Undead",
+    "notes": "Several dozen corpses cleaved at the midriff and sewn into a long chain. Health levels are per link: one each of -0, -1 and -2 for every link, so the track here is one link only — add three boxes per additional link. When the first link is damaged or the spine is severed, the closest link pulls the stitching loose from the damaged portion, discards it and assumes control. Breaking apart and joining with other spine chains takes too much time to occur in combat. Virtues are not applicable — never fails Valor rolls, never succeeds at any other rolls. Exalted p.300.",
+    "attributes": {
+      "strength": 4,
+      "dexterity": 2,
+      "stamina": 3,
+      "charisma": 0,
+      "manipulation": 0,
+      "appearance": 0,
+      "perception": 2,
+      "intelligence": 1,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 1
+      },
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Endurance",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Resistance",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 1
+      },
+      {
+        "name": "Survival",
+        "rating": 0
+      }
+    ],
+    "base_initiative": 5,
+    "attacks": [
+      {
+        "name": "Harness Sideswipe",
+        "speed": 7,
+        "accuracy": 5,
+        "damage": 7,
+        "damage_type": "L",
+        "defense": 5,
+        "note": "wounds likely to infect: +2 difficulty to resist"
+      }
+    ],
+    "dodge": 4,
+    "soak_lethal": 1,
+    "soak_bashing": 2,
+    "willpower": 10,
+    "essence": 1,
+    "health_levels": [
+      0,
+      -1,
+      -2
+    ]
+  },
+  {
+    "id": "adv.hungry_ghost",
+    "name": "Hungry Ghost",
+    "category": "Undead",
+    "notes": "Often an extra. Naturally material, rising from its corpse at nightfall and dematerialising at sunrise (at no Essence cost) to sleep in its body. A hungry ghost must be at its body by sunrise or the sun's rays will blast it to ash, and it cannot cross an unbroken line of salt or germinated grain. Exalted p.300-301.",
+    "attributes": {
+      "strength": 4,
+      "dexterity": 3,
+      "stamina": 3,
+      "charisma": 1,
+      "manipulation": 1,
+      "appearance": 1,
+      "perception": 3,
+      "intelligence": 1,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 1,
+      "conviction": 2,
+      "temperance": 1,
+      "valor": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Brawl",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 3
+      }
+    ],
+    "powers": "Cunning Thief, Measure the Wind",
+    "base_initiative": 6,
+    "attacks": [
+      {
+        "name": "Claw",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 1,
+        "damage_type": "L",
+        "defense": 5
+      },
+      {
+        "name": "Bite",
+        "speed": 0,
+        "accuracy": 5,
+        "damage": 3,
+        "damage_type": "L",
+        "defense": 4
+      }
+    ],
+    "dodge": 5,
+    "soak_lethal": 1,
+    "soak_bashing": 2,
+    "willpower": 5,
+    "essence": 1,
+    "essence_pool": 39,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.war_ghost",
+    "name": "War Ghost",
+    "category": "Undead",
+    "notes": "Usually an extra. Wears field soldier's armour of black iron and carries a shield (chain hauberk, -3 mobility penalty, +1 difficulty to attack). For less violent ghosts use the Typical Citizen, save that one of their Virtues is 3 and they have an Essence Pool of 41. Exalted p.301.",
+    "attributes": {
+      "strength": 3,
+      "dexterity": 2,
+      "stamina": 3,
+      "charisma": 2,
+      "manipulation": 2,
+      "appearance": 2,
+      "perception": 2,
+      "intelligence": 2,
+      "wits": 2
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 3,
+      "temperance": 2,
+      "valor": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 2
+      },
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Endurance",
+        "rating": 2
+      },
+      {
+        "name": "Medicine",
+        "rating": 1
+      },
+      {
+        "name": "Melee",
+        "rating": 2,
+        "specialties": "Axe +1"
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Resistance",
+        "rating": 1
+      },
+      {
+        "name": "Socialize",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 1
+      },
+      {
+        "name": "Survival",
+        "rating": 1
+      }
+    ],
+    "powers": "Materialize, Measure the Wind",
+    "cost_to_materialize": 40,
+    "base_initiative": 4,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 4,
+        "accuracy": 4,
+        "damage": 3,
+        "damage_type": "B",
+        "defense": 4
+      },
+      {
+        "name": "Kick",
+        "speed": 1,
+        "accuracy": 3,
+        "damage": 5,
+        "damage_type": "B",
+        "defense": 3
+      },
+      {
+        "name": "Knife",
+        "speed": 7,
+        "accuracy": 4,
+        "damage": 4,
+        "damage_type": "L",
+        "defense": 2
+      },
+      {
+        "name": "Axe",
+        "speed": 4,
+        "accuracy": 5,
+        "damage": 8,
+        "damage_type": "L",
+        "defense": 5
+      },
+      {
+        "name": "Pole Axe",
+        "speed": 1,
+        "accuracy": 4,
+        "damage": 11,
+        "damage_type": "L",
+        "defense": 5
+      }
+    ],
+    "dodge": 4,
+    "soak_lethal": 1,
+    "soak_bashing": 3,
+    "armor_id": "armor.chain_hauberk",
+    "willpower": 6,
+    "essence": 1,
+    "essence_pool": 58,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.nemissary",
+    "name": "Nemissary",
+    "category": "Undead",
+    "notes": "Usually an extra. A ghost that possesses and animates corpses other than its own, riding them for several days at a stretch. Its attacks are infectious like a zombie's, adding +2 to the difficulty of the Stamina + Resistance roll to resist infection. Wears a breastplate (-1 mobility penalty). Exalted p.301.",
+    "attributes": {
+      "strength": 4,
+      "dexterity": 3,
+      "stamina": 3,
+      "charisma": 2,
+      "manipulation": 2,
+      "appearance": 3,
+      "perception": 3,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 3,
+      "temperance": 2,
+      "valor": 4
+    },
+    "abilities": [
+      {
+        "name": "Archery",
+        "rating": 2
+      },
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 4
+      },
+      {
+        "name": "Brawl",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Endurance",
+        "rating": 3,
+        "specialties": "Marches +1"
+      },
+      {
+        "name": "Medicine",
+        "rating": 2
+      },
+      {
+        "name": "Melee",
+        "rating": 3
+      },
+      {
+        "name": "Presence",
+        "rating": 2
+      },
+      {
+        "name": "Resistance",
+        "rating": 2
+      },
+      {
+        "name": "Socialize",
+        "rating": 2
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 1
+      }
+    ],
+    "powers": "Cunning Thief, Measure the Wind, Possession",
+    "base_initiative": 6,
+    "attacks": [
+      {
+        "name": "Fist",
+        "speed": 7,
+        "accuracy": 7,
+        "damage": 6,
+        "damage_type": "L",
+        "defense": 7
+      },
+      {
+        "name": "Kick",
+        "speed": 4,
+        "accuracy": 6,
+        "damage": 8,
+        "damage_type": "L",
+        "defense": 6
+      },
+      {
+        "name": "Knife",
+        "speed": 10,
+        "accuracy": 7,
+        "damage": 5,
+        "damage_type": "L",
+        "defense": 6
+      },
+      {
+        "name": "Pole Axe",
+        "speed": 3,
+        "accuracy": 5,
+        "damage": 12,
+        "damage_type": "L",
+        "defense": 6
+      }
+    ],
+    "dodge": 5,
+    "soak_lethal": 2,
+    "soak_bashing": 10,
+    "armor_id": "armor.breastplate",
+    "willpower": 7,
+    "essence": 2,
+    "essence_pool": 63,
+    "health_levels": [
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.zephyr",
+    "name": "Zephyr",
+    "category": "Elemental",
+    "notes": "An air elemental: elusive, whimsical, and an excellent scout, messenger or assassin. Its natural state is the physical one, so it pays to DEmaterialize rather than to materialize. Printed soak 5L/7B includes an air barrier worth 4L/4B. Exalted p.298.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 4,
+      "stamina": 3,
+      "charisma": 4,
+      "manipulation": 2,
+      "appearance": 0,
+      "perception": 3,
+      "intelligence": 2,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 4,
+      "conviction": 4,
+      "temperance": 4,
+      "valor": 4
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 4,
+        "specialties": "Aerobatics +3"
+      },
+      {
+        "name": "Awareness",
+        "rating": 4
+      },
+      {
+        "name": "Dodge",
+        "rating": 3
+      },
+      {
+        "name": "Endurance",
+        "rating": 5
+      },
+      {
+        "name": "Linguistics",
+        "rating": 1
+      },
+      {
+        "name": "Lore",
+        "rating": 1
+      },
+      {
+        "name": "Martial Arts",
+        "rating": 1
+      },
+      {
+        "name": "Presence",
+        "rating": 1,
+        "specialties": "Beautiful +3"
+      },
+      {
+        "name": "Resistance",
+        "rating": 3
+      },
+      {
+        "name": "Stealth",
+        "rating": 4
+      }
+    ],
+    "charms": "Cunning Thief, Dematerialize, Essence Bite, Measure the Wind, Principle of Motion, Words of Power",
+    "powers": "Elemental Powers: Dragon's Suspire, Element's Domain, Enshroud, Mobility, Rejuvenation",
+    "cost_to_dematerialize": 50,
+    "base_initiative": 7,
+    "attacks": [
+      {
+        "name": "Punch",
+        "speed": 7,
+        "accuracy": 5,
+        "damage": 1,
+        "damage_type": "L",
+        "defense": 5
+      },
+      {
+        "name": "Dragon's Suspire",
+        "speed": 7,
+        "accuracy": 8,
+        "damage": 4,
+        "damage_type": "L"
+      }
+    ],
+    "dodge": 7,
+    "soak_lethal": 5,
+    "soak_bashing": 7,
+    "willpower": 8,
+    "essence": 5,
+    "essence_pool": 106,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.beast_austrech",
+    "name": "Austrech",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A flightless runner some seven feet tall, with a bone-cracking hooked beak. Known to eat its own eggs and offspring. Exalted p.316-317.",
+    "attributes": {
+      "strength": 4,
+      "dexterity": 4,
+      "stamina": 4,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 4
+      },
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Stealth",
+        "rating": 1
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 6,
+        "accuracy": 7,
+        "damage": 1,
+        "damage_type": "L"
+      },
+      {
+        "name": "Kick",
+        "speed": 5,
+        "accuracy": 6,
+        "damage": 3,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 0,
+    "soak_bashing": 4,
+    "willpower": 2,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 6
+  },
+  {
+    "id": "adv.beast_bear",
+    "name": "Bear",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). No dodge is printed for the bear. Their strongest sense is smell; their weakest is sight. Exalted p.316-317.",
+    "attributes": {
+      "strength": 7,
+      "dexterity": 2,
+      "stamina": 6,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 1
+      },
+      {
+        "name": "Brawl",
+        "rating": 3
+      },
+      {
+        "name": "Intimidation",
+        "rating": 3
+      },
+      {
+        "name": "Stealth",
+        "rating": 1
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 2,
+        "accuracy": 6,
+        "damage": 8,
+        "damage_type": "L"
+      },
+      {
+        "name": "Claw",
+        "speed": 5,
+        "accuracy": 5,
+        "damage": 7,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 3,
+    "soak_bashing": 6,
+    "willpower": 3,
+    "health_levels": [
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.beast_boar",
+    "name": "Boar",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A surly woodland hog, fierce and short-tempered. Exalted p.316-317.",
+    "attributes": {
+      "strength": 4,
+      "dexterity": 2,
+      "stamina": 4,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 2
+      },
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Presence",
+        "rating": 2
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Gore",
+        "speed": 5,
+        "accuracy": 4,
+        "damage": 6,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 2,
+    "soak_bashing": 4,
+    "willpower": 3,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 4
+  },
+  {
+    "id": "adv.beast_camel",
+    "name": "Camel",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A foul-tempered herbivore and a common mount in the South. Exalted p.316-317.",
+    "attributes": {
+      "strength": 3,
+      "dexterity": 2,
+      "stamina": 4,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 5,
+        "accuracy": 5,
+        "damage": 1,
+        "damage_type": "L"
+      },
+      {
+        "name": "Kick",
+        "speed": 2,
+        "accuracy": 5,
+        "damage": 6,
+        "damage_type": "B"
+      }
+    ],
+    "soak_lethal": 1,
+    "soak_bashing": 4,
+    "willpower": 3,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 4
+  },
+  {
+    "id": "adv.beast_coral_snake",
+    "name": "Coral Snake",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Nocturnal, up to five feet long, red, white and black banded. Sought after by assassins for its venom. Exalted p.316-317.",
+    "attributes": {
+      "strength": 1,
+      "dexterity": 3,
+      "stamina": 1,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 1
+      },
+      {
+        "name": "Dodge",
+        "rating": 1
+      },
+      {
+        "name": "Intimidation",
+        "rating": 2
+      },
+      {
+        "name": "Martial Arts",
+        "rating": 3
+      },
+      {
+        "name": "Stealth",
+        "rating": 3
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 1,
+        "damage_type": "L",
+        "note": "+venom"
+      }
+    ],
+    "soak_lethal": 0,
+    "soak_bashing": 1,
+    "willpower": 2,
+    "health_levels": [
+      -3,
+      -99
+    ],
+    "dodge": 5
+  },
+  {
+    "id": "adv.beast_dog_war",
+    "name": "Dog (War)",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Keen senses of smell and hearing make them excellent hunters and trackers. Exalted p.316-317.",
+    "attributes": {
+      "strength": 3,
+      "dexterity": 3,
+      "stamina": 3,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Athletics",
+        "rating": 2
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Dodge",
+        "rating": 1
+      },
+      {
+        "name": "Intimidation",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 3,
+        "specialties": "Tracking +3"
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 6,
+        "accuracy": 5,
+        "damage": 4,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 0,
+    "soak_bashing": 3,
+    "willpower": 3,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 4
+  },
+  {
+    "id": "adv.beast_giant_wolf_spider",
+    "name": "Giant Wolf Spider",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Two feet high and five feet long, hiding in trees or deep jungle burrows. Not poisonous. Exalted p.316-317.",
+    "attributes": {
+      "strength": 3,
+      "dexterity": 3,
+      "stamina": 2,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Stealth",
+        "rating": 3
+      },
+      {
+        "name": "Survival",
+        "rating": 2,
+        "specialties": "Tracking +2"
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 3,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 1,
+    "soak_bashing": 2,
+    "willpower": 2,
+    "health_levels": [
+      0,
+      -1,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 5
+  },
+  {
+    "id": "adv.beast_great_cat",
+    "name": "Great Cat",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Superb hunters, up to five feet at the shoulder. Difficult to train, but they can be domesticated. Exalted p.316-317.",
+    "attributes": {
+      "strength": 6,
+      "dexterity": 3,
+      "stamina": 5,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 2
+      },
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Intimidation",
+        "rating": 5
+      },
+      {
+        "name": "Stealth",
+        "rating": 3
+      },
+      {
+        "name": "Survival",
+        "rating": 3
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 7,
+        "damage_type": "L"
+      },
+      {
+        "name": "Claw",
+        "speed": 6,
+        "accuracy": 7,
+        "damage": 6,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 2,
+    "soak_bashing": 5,
+    "willpower": 5,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 5
+  },
+  {
+    "id": "adv.beast_horse",
+    "name": "Horse",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). The riding animal of mortal society, with many subspecies bred for purity, speed and loyalty. Exalted p.316-317.",
+    "attributes": {
+      "strength": 4,
+      "dexterity": 2,
+      "stamina": 3,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 1
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 5,
+        "accuracy": 3,
+        "damage": 1,
+        "damage_type": "L"
+      },
+      {
+        "name": "Kick",
+        "speed": 2,
+        "accuracy": 2,
+        "damage": 6,
+        "damage_type": "B"
+      }
+    ],
+    "soak_lethal": 0,
+    "soak_bashing": 3,
+    "willpower": 2,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 4
+  },
+  {
+    "id": "adv.beast_horse_war",
+    "name": "Horse (War)",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
+    "attributes": {
+      "strength": 6,
+      "dexterity": 2,
+      "stamina": 5,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 4
+      },
+      {
+        "name": "Brawl",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Intimidation",
+        "rating": 2
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 5,
+        "accuracy": 5,
+        "damage": 2,
+        "damage_type": "L"
+      },
+      {
+        "name": "Kick",
+        "speed": 2,
+        "accuracy": 5,
+        "damage": 8,
+        "damage_type": "B"
+      }
+    ],
+    "soak_lethal": 2,
+    "soak_bashing": 5,
+    "willpower": 4,
+    "health_levels": [
+      0,
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 3
+  },
+  {
+    "id": "adv.beast_hybroc",
+    "name": "Hybroc",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A scaled bird with a 50-75 foot wingspan, able to carry off a horse. Hybrocs are control rating 5 to ride; attempts to domesticate them have failed so far. Exalted p.316-317.",
+    "attributes": {
+      "strength": 12,
+      "dexterity": 3,
+      "stamina": 8,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 1
+      },
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Brawl",
+        "rating": 4
+      },
+      {
+        "name": "Dodge",
+        "rating": 3
+      },
+      {
+        "name": "Presence",
+        "rating": 7
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Claw",
+        "speed": 6,
+        "accuracy": 7,
+        "damage": 10,
+        "damage_type": "L"
+      },
+      {
+        "name": "Beak",
+        "speed": 5,
+        "accuracy": 6,
+        "damage": 13,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 4,
+    "soak_bashing": 8,
+    "willpower": 4,
+    "health_levels": [
+      0,
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 6
+  },
+  {
+    "id": "adv.beast_ichneumon_hunter",
+    "name": "Ichneumon Hunter",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A giant wasp a metre long, whose ovipositor deposits eggs into a host. Emerging larvae inflict one level of lethal damage per day, no soak allowed; the larvae may be killed through herbal remedies. Exalted p.316-317.",
+    "attributes": {
+      "strength": 1,
+      "dexterity": 3,
+      "stamina": 1,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Sting",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 1,
+        "damage_type": "L",
+        "note": "+egg"
+      }
+    ],
+    "soak_lethal": 0,
+    "soak_bashing": 1,
+    "willpower": 2,
+    "health_levels": [
+      0,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 5
+  },
+  {
+    "id": "adv.beast_mammoth",
+    "name": "Mammoth",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Fourteen feet at the shoulder. Guild caravans use mammoths for transport; hunters seek them for meat and ivory. Exalted p.316-317.",
+    "attributes": {
+      "strength": 14,
+      "dexterity": 3,
+      "stamina": 10,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 4
+      },
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Presence",
+        "rating": 6
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Gore",
+        "speed": 6,
+        "accuracy": 5,
+        "damage": 10,
+        "damage_type": "L"
+      },
+      {
+        "name": "Trample",
+        "speed": 3,
+        "accuracy": 6,
+        "damage": 15,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 5,
+    "soak_bashing": 10,
+    "willpower": 5,
+    "health_levels": [
+      0,
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 0
+  },
+  {
+    "id": "adv.beast_mospid",
+    "name": "Mospid",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A small scaled bird favoured by nobility as a sport hunter, capable of quick, tight aerial manoeuvres. Exalted p.316-317.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 3,
+      "stamina": 2,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 5
+      },
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 5
+      },
+      {
+        "name": "Martial Arts",
+        "rating": 2
+      },
+      {
+        "name": "Stealth",
+        "rating": 3
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Claw",
+        "speed": 6,
+        "accuracy": 5,
+        "damage": 2,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 0,
+    "soak_bashing": 2,
+    "willpower": 3,
+    "health_levels": [
+      -1,
+      -2,
+      -99
+    ],
+    "dodge": 8
+  },
+  {
+    "id": "adv.beast_omen_dogs",
+    "name": "Omen Dogs",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
+    "attributes": {
+      "strength": 5,
+      "dexterity": 3,
+      "stamina": 4,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 2
+      },
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 4
+      },
+      {
+        "name": "Dodge",
+        "rating": 2
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 6,
+        "accuracy": 7,
+        "damage": 6,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 2,
+    "soak_bashing": 4,
+    "willpower": 5,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 5
+  },
+  {
+    "id": "adv.beast_raiton",
+    "name": "Raiton",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Printed as \"Athletic 3\" in the table; read as Athletics. Exalted p.316-317.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 3,
+      "stamina": 2,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 1
+      },
+      {
+        "name": "Dodge",
+        "rating": 3
+      },
+      {
+        "name": "Presence",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 3
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Claw",
+        "speed": 6,
+        "accuracy": 4,
+        "damage": 2,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 0,
+    "soak_bashing": 2,
+    "willpower": 3,
+    "health_levels": [
+      0,
+      -1,
+      -2,
+      -99
+    ],
+    "dodge": 6
+  },
+  {
+    "id": "adv.beast_river_dragon",
+    "name": "River Dragon",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
+    "attributes": {
+      "strength": 14,
+      "dexterity": 2,
+      "stamina": 12,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 3
+      },
+      {
+        "name": "Presence",
+        "rating": 3
+      },
+      {
+        "name": "Stealth",
+        "rating": 1,
+        "specialties": "Swimming +3"
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 5,
+        "accuracy": 5,
+        "damage": 14,
+        "damage_type": "L"
+      },
+      {
+        "name": "Claw",
+        "speed": 6,
+        "accuracy": 5,
+        "damage": 10,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 6,
+    "soak_bashing": 12,
+    "willpower": 4,
+    "health_levels": [
+      0,
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 0
+  },
+  {
+    "id": "adv.beast_sand_swimmers",
+    "name": "Sand Swimmers",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). No Dodge/Soak figures are printed for this row. Exalted p.316-317.",
+    "attributes": {
+      "strength": 3,
+      "dexterity": 2,
+      "stamina": 2,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 2
+      },
+      {
+        "name": "Intimidation",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 5,
+        "accuracy": 4,
+        "damage": 2,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 0,
+    "soak_bashing": 0,
+    "willpower": 3,
+    "health_levels": [
+      0,
+      -1,
+      -2,
+      -99
+    ]
+  },
+  {
+    "id": "adv.beast_siaka",
+    "name": "Siaka",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
+    "attributes": {
+      "strength": 12,
+      "dexterity": 3,
+      "stamina": 8,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 4
+      },
+      {
+        "name": "Endurance",
+        "rating": 5
+      },
+      {
+        "name": "Presence",
+        "rating": 5
+      },
+      {
+        "name": "Resistance",
+        "rating": 5
+      },
+      {
+        "name": "Stealth",
+        "rating": 3
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 5,
+        "accuracy": 7,
+        "damage": 12,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 4,
+    "soak_bashing": 8,
+    "willpower": 3,
+    "health_levels": [
+      0,
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -2,
+      -4,
+      -4,
+      -99
+    ],
+    "dodge": 3
+  },
+  {
+    "id": "adv.beast_strix",
+    "name": "Strix",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
+    "attributes": {
+      "strength": 8,
+      "dexterity": 3,
+      "stamina": 8,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Athletics",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 4
+      },
+      {
+        "name": "Brawl",
+        "rating": 4,
+        "specialties": "Grappling +2"
+      },
+      {
+        "name": "Dodge",
+        "rating": 3
+      },
+      {
+        "name": "Stealth",
+        "rating": 5
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Grab",
+        "speed": 6,
+        "accuracy": 9,
+        "note": "Clinch"
+      },
+      {
+        "name": "Bite",
+        "speed": 6,
+        "accuracy": 7,
+        "damage": 6,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 4,
+    "soak_bashing": 8,
+    "willpower": 5,
+    "health_levels": [
+      0,
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -99
+    ],
+    "dodge": 5
+  },
+  {
+    "id": "adv.beast_squid",
+    "name": "Squid",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
+    "attributes": {
+      "strength": 10,
+      "dexterity": 3,
+      "stamina": 10,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 3,
+        "specialties": "Grappling +2"
+      },
+      {
+        "name": "Dodge",
+        "rating": 1
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Grab",
+        "speed": 6,
+        "accuracy": 8,
+        "note": "Clinch"
+      },
+      {
+        "name": "Bite",
+        "speed": 6,
+        "accuracy": 6,
+        "damage": 8,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 5,
+    "soak_bashing": 10,
+    "willpower": 2,
+    "health_levels": [
+      0,
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 4
+  },
+  {
+    "id": "adv.beast_tyrant_lizard",
+    "name": "Tyrant Lizard",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
+    "attributes": {
+      "strength": 14,
+      "dexterity": 3,
+      "stamina": 12,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 4,
+        "specialties": "Biting +2"
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Bite",
+        "speed": 6,
+        "accuracy": 9,
+        "damage": 14,
+        "damage_type": "L"
+      }
+    ],
+    "soak_lethal": 6,
+    "soak_bashing": 12,
+    "willpower": 5,
+    "health_levels": [
+      0,
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -2,
+      -4,
+      -4,
+      -99
+    ],
+    "dodge": 0
+  },
+  {
+    "id": "adv.beast_yeddim",
+    "name": "Yeddim",
+    "category": "Beast",
+    "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A giant pack mammal; Guild caravans use them to draw their Conestogas. Its Trample attack has no printed statistics — see the attack's own note. Exalted p.316-317.",
+    "attributes": {
+      "strength": 14,
+      "dexterity": 2,
+      "stamina": 11,
+      "intelligence": 1,
+      "perception": 2,
+      "wits": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Brawl",
+        "rating": 1
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Trample",
+        "note": "no attack values are printed — the Attack column reads \"-2x3/-4/I\", which is health-level notation, not Speed/Accuracy/Damage. Human's ruling 2026-08-01: a misprint, almost certainly the health track's own continuation typeset into the wrong column. Nothing was guessed"
+      }
+    ],
+    "soak_lethal": 5,
+    "soak_bashing": 10,
+    "willpower": 3,
+    "health_levels": [
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -4,
+      -99
+    ],
+    "dodge": 0
+  },
+  {
+    "id": "adv.dynasty_noble",
+    "name": "Dynasty Noble",
+    "category": "Exalt",
+    "caste": "Wood",
+    "nature": "Hedonist",
+    "notes": "A Dragon-Blooded lord of the Realm's vice trade — a Dynast who has fallen far from the warrior ideal and rules through money, blackmail and favours. Attack: Charms only. Relies on a retinue of guards equivalent to elite troops. Terrestrial Exalted are never extras. Exalted p.306-307.",
+    "attributes": {
+      "strength": 2,
+      "dexterity": 1,
+      "stamina": 4,
+      "charisma": 4,
+      "manipulation": 5,
+      "appearance": 1,
+      "perception": 4,
+      "intelligence": 3,
+      "wits": 3
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 4,
+      "temperance": 1,
+      "valor": 3
+    },
+    "abilities": [
+      {
+        "name": "Awareness",
+        "rating": 3
+      },
+      {
+        "name": "Bureaucracy",
+        "rating": 4
+      },
+      {
+        "name": "Endurance",
+        "rating": 3
+      },
+      {
+        "name": "Interrogation",
+        "rating": 2
+      },
+      {
+        "name": "Larceny",
+        "rating": 2,
+        "specialties": "Drugs and Vice +2"
+      },
+      {
+        "name": "Linguistics",
+        "rating": 2,
+        "specialties": "Native: High Realm; Guild Cant, Riverspeak"
+      },
+      {
+        "name": "Lore",
+        "rating": 3
+      },
+      {
+        "name": "Presence",
+        "rating": 4,
+        "specialties": "Command +1"
+      },
+      {
+        "name": "Resistance",
+        "rating": 4
+      },
+      {
+        "name": "Socialize",
+        "rating": 5
+      }
+    ],
+    "backgrounds": [
+      {
+        "name": "Allies",
+        "rating": 3
+      },
+      {
+        "name": "Backing",
+        "rating": 5
+      },
+      {
+        "name": "Contacts",
+        "rating": 5
+      },
+      {
+        "name": "Followers",
+        "rating": 5
+      },
+      {
+        "name": "Influence",
+        "rating": 4
+      },
+      {
+        "name": "Manse",
+        "rating": 3
+      },
+      {
+        "name": "Resources",
+        "rating": 5
+      }
+    ],
+    "charms": "Still remembers the military Charms he once knew but is long too obese to use them; relies on his honeyed tongue instead. Assume Charms that increase any of his Social Abilities at a cost of one mote per two dice. Can spend 5 motes to double his Socialize or Presence for the rest of the scene. Can reroll failed Presence and Larceny attempts at a cost of 3 motes. For 3 motes per roll and a Willpower, can reroll any Presence roll until he succeeds. Has a Combo combining the doubled Presence pool and the reroll — useful only for emergencies. Also possesses minor healing abilities, due to his Wood aspect.",
+    "base_initiative": null,
+    "attacks": [],
+    "dodge": null,
+    "soak_lethal": 2,
+    "soak_bashing": 4,
+    "willpower": 8,
+    "essence": 3,
+    "personal_essence": 11,
+    "peripheral_essence": 27,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.ambitious_young_officer",
+    "name": "Ambitious Young Officer",
+    "category": "Exalt",
+    "caste": "Fire",
+    "nature": "Architect",
+    "notes": "The book's own words: \"could be any ambitious young Dragon-Blooded warrior. Such foes typically travel in groups of two to six, usually leading detachments of elite troops. Terrestrial Exalted are never extras.\" Carries a jade reaver daiklave. Wears articulated plate with a target shield. Exalted p.307-308.",
+    "attributes": {
+      "strength": 3,
+      "dexterity": 4,
+      "stamina": 3,
+      "charisma": 3,
+      "manipulation": 3,
+      "appearance": 3,
+      "perception": 3,
+      "intelligence": 3,
+      "wits": 4
+    },
+    "virtues": {
+      "compassion": 2,
+      "conviction": 3,
+      "temperance": 3,
+      "valor": 4
+    },
+    "abilities": [
+      {
+        "name": "Archery",
+        "rating": 3
+      },
+      {
+        "name": "Awareness",
+        "rating": 2
+      },
+      {
+        "name": "Bureaucracy",
+        "rating": 2
+      },
+      {
+        "name": "Craft (Blacksmith)",
+        "rating": 1
+      },
+      {
+        "name": "Dodge",
+        "rating": 3,
+        "specialties": "When Unarmored +2"
+      },
+      {
+        "name": "Endurance",
+        "rating": 3
+      },
+      {
+        "name": "Martial Arts",
+        "rating": 2
+      },
+      {
+        "name": "Medicine",
+        "rating": 2,
+        "specialties": "Treating Wounds +2"
+      },
+      {
+        "name": "Melee",
+        "rating": 4,
+        "specialties": "Swords +2"
+      },
+      {
+        "name": "Performance",
+        "rating": 2,
+        "specialties": "Commanding Troops +2"
+      },
+      {
+        "name": "Presence",
+        "rating": 2,
+        "specialties": "Underlings +1"
+      },
+      {
+        "name": "Resistance",
+        "rating": 3
+      },
+      {
+        "name": "Ride",
+        "rating": 3,
+        "specialties": "In Battle +2"
+      },
+      {
+        "name": "Socialize",
+        "rating": 3,
+        "specialties": "Military Politics +2"
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 2
+      }
+    ],
+    "backgrounds": [
+      {
+        "name": "Allies",
+        "rating": 2
+      },
+      {
+        "name": "Backing",
+        "rating": 2
+      },
+      {
+        "name": "Followers",
+        "rating": 4
+      },
+      {
+        "name": "Influence",
+        "rating": 2
+      },
+      {
+        "name": "Resources",
+        "rating": 4
+      }
+    ],
+    "charms": "A large number of military Charms, focused mainly on his Melee. He can increase his Melee Ability at a cost of 1 mote per two dice, or spend 5 motes to double it for the whole scene. He can reroll failed Melee rolls for 3 motes. He can also increase his Awareness, Performance and Medicine Abilities at a cost of one mote per two dice. Roll his Dexterity + Archery to throw bolts of fire, with a range in yards equal to 10 times his Essence; for every 3 motes he spends, the bolt does lethal damage equal to his Essence, and extra successes add to the damage as normal. He cannot spend more motes powering this attack than (his Stamina x 3).",
+    "base_initiative": 8,
+    "attacks": [
+      {
+        "name": "Punch",
+        "speed": 8,
+        "accuracy": 6,
+        "damage": 3,
+        "damage_type": "B",
+        "defense": 6
+      },
+      {
+        "name": "Kick",
+        "speed": 5,
+        "accuracy": 5,
+        "damage": 5,
+        "damage_type": "B",
+        "defense": 5
+      },
+      {
+        "name": "Jade Reaver Daiklave",
+        "speed": 11,
+        "accuracy": 7,
+        "damage": 10,
+        "damage_type": "L",
+        "defense": 7
+      },
+      {
+        "name": "Long Bow",
+        "speed": 8,
+        "accuracy": 8,
+        "damage": 5,
+        "damage_type": "L"
+      }
+    ],
+    "dodge": 9,
+    "soak_lethal": 1,
+    "soak_bashing": 3,
+    "armor_id": "armor.articulated_plate",
+    "shield_id": "shield.target",
+    "willpower": 7,
+    "essence": 3,
+    "personal_essence": 10,
+    "peripheral_essence": 28,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.bronze_faction_functionary",
+    "name": "Bronze Faction Functionary",
+    "category": "Exalt",
+    "caste": "Favored of Saturn",
+    "nature": "Bravo",
+    "notes": "A Sidereal agent of the Bronze Faction: assassin and executioner first, administrator second, charged with observing events, manipulating local politics and carrying out the Solar Purge. Fights in the most efficient fashion available and prefers to slay her targets in single combat, but puts her mission first. Exalted p.311-312.",
+    "attributes": {
+      "strength": 4,
+      "dexterity": 4,
+      "stamina": 4,
+      "charisma": 4,
+      "manipulation": 3,
+      "appearance": 4,
+      "perception": 4,
+      "intelligence": 5,
+      "wits": 4
+    },
+    "virtues": {
+      "compassion": 3,
+      "conviction": 5,
+      "temperance": 3,
+      "valor": 4
+    },
+    "abilities": [
+      {
+        "name": "Archery",
+        "rating": 4,
+        "specialties": "Surprise Shots +2"
+      },
+      {
+        "name": "Awareness",
+        "rating": 5
+      },
+      {
+        "name": "Bureaucracy",
+        "rating": 4
+      },
+      {
+        "name": "Craft (Scrimshaw)",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 5,
+        "specialties": "Other Exalted +3"
+      },
+      {
+        "name": "Endurance",
+        "rating": 4
+      },
+      {
+        "name": "Linguistics",
+        "rating": 3,
+        "specialties": "Native: Forest-tongue; High Realm, Old Realm, Riverspeak"
+      },
+      {
+        "name": "Lore",
+        "rating": 5
+      },
+      {
+        "name": "Martial Arts",
+        "rating": 5
+      },
+      {
+        "name": "Medicine",
+        "rating": 3,
+        "specialties": "Poison +2"
+      },
+      {
+        "name": "Melee",
+        "rating": 5,
+        "specialties": "One-on-One +3"
+      },
+      {
+        "name": "Occult",
+        "rating": 4,
+        "specialties": "Demonology +2"
+      },
+      {
+        "name": "Performance",
+        "rating": 3,
+        "specialties": "Intimidating +1"
+      },
+      {
+        "name": "Presence",
+        "rating": 3,
+        "specialties": "Blackmail Targets +2"
+      },
+      {
+        "name": "Resistance",
+        "rating": 3
+      },
+      {
+        "name": "Ride",
+        "rating": 5,
+        "specialties": "Moving Quickly +2"
+      },
+      {
+        "name": "Socialize",
+        "rating": 4,
+        "specialties": "Threshold Politics +2"
+      },
+      {
+        "name": "Stealth",
+        "rating": 5
+      },
+      {
+        "name": "Survival",
+        "rating": 4,
+        "specialties": "Finding Boltholes +1, When Alone +2"
+      }
+    ],
+    "backgrounds": [
+      {
+        "name": "Allies",
+        "rating": 5
+      },
+      {
+        "name": "Backing",
+        "rating": 3
+      },
+      {
+        "name": "Influence",
+        "rating": 5
+      },
+      {
+        "name": "Mentor",
+        "rating": 5
+      },
+      {
+        "name": "Resources",
+        "rating": 4
+      }
+    ],
+    "charms": "Adds dice to her Melee and Archery attacks as a supplemental action, to Presence, Performance, Endurance and Survival rolls as a simple action, and to Dodge as a reflexive action. Can lower the difficulty of her Melee and Archery attacks on a per-roll basis to as low as 4, at a cost of 2 motes for each point by which she reduces the difficulty; can reduce the difficulty of all her Melee rolls during the scene by 1 for 10 motes and 1 Willpower; can reduce the difficulty on Dodge rolls as a reflexive action at 1 mote per point. For 10 motes, 2 Willpower and 1 health level she can make a perfect strike — an attack in which all her dice come up successes — which she holds in a Combo with her two Dodge Charms and the Charms that add dice to Melee and lower their difficulty. She has a Charm that allows her to roll half her Essence (rounded up) and take as many extra attacks during that turn as she rolls successes. She can triple her jumping distance for a single leap at a cost of 1 mote. She can increase her lethal and bashing soaks by an amount equal to her Essence for a scene for 5 motes, and against a single attack for 2 motes; these two Charms stack.",
+    "spells": "Terrestrial and Celestial Circle sorcery, and a large number of spells.",
+    "base_initiative": 8,
+    "attacks": [
+      {
+        "name": "Punch",
+        "speed": 8,
+        "accuracy": 9,
+        "damage": 4,
+        "damage_type": "B",
+        "defense": 9
+      },
+      {
+        "name": "Kick",
+        "speed": 5,
+        "accuracy": 8,
+        "damage": 7,
+        "damage_type": "B",
+        "defense": 8
+      },
+      {
+        "name": "Slashing Sword",
+        "speed": 8,
+        "accuracy": 10,
+        "damage": 7,
+        "damage_type": "L",
+        "defense": 10
+      },
+      {
+        "name": "Starmetal Long Powerbow",
+        "speed": 8,
+        "accuracy": 11,
+        "damage": 13,
+        "damage_type": "L",
+        "note": "usually loaded with frog-crotch arrows, which double the target's lethal soak"
+      }
+    ],
+    "dodge": 9,
+    "soak_lethal": 2,
+    "soak_bashing": 4,
+    "willpower": 8,
+    "essence": 4,
+    "personal_essence": 16,
+    "peripheral_essence": 47,
+    "health_levels": [
+      0,
+      0,
+      0,
+      0,
+      -1,
+      -1,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  },
+  {
+    "id": "adv.deathknight",
+    "name": "Deathknight",
+    "category": "Exalt",
+    "caste": "Day",
+    "nature": "Thrillseeker",
+    "notes": "An Abyssal Exalted in a Deathlord's service, sent to study the cities of the living and report on their weaknesses. A Melee specialist. Printed soak is 7L/10B from a reinforced buff jacket (5L/6B, -2 mobility penalty), but he always has the Abyssal equivalent of Front-Line Warrior's Stamina active and so suffers NO mobility penalty and no fatigue from his armour — which is why the armour is recorded as natural soak here and the dodge pool is left unreduced. Exalted p.314-315.",
+    "attributes": {
+      "strength": 4,
+      "dexterity": 4,
+      "stamina": 4,
+      "charisma": 5,
+      "manipulation": 4,
+      "appearance": 3,
+      "perception": 3,
+      "intelligence": 4,
+      "wits": 4
+    },
+    "virtues": {
+      "compassion": 3,
+      "conviction": 4,
+      "temperance": 3,
+      "valor": 4
+    },
+    "abilities": [
+      {
+        "name": "Archery",
+        "rating": 4,
+        "specialties": "On the Battlefield +1"
+      },
+      {
+        "name": "Awareness",
+        "rating": 3,
+        "specialties": "Surreptitious Observation"
+      },
+      {
+        "name": "Bureaucracy",
+        "rating": 2
+      },
+      {
+        "name": "Craft (Necromancer)",
+        "rating": 3
+      },
+      {
+        "name": "Dodge",
+        "rating": 4,
+        "specialties": "In Battle +2"
+      },
+      {
+        "name": "Endurance",
+        "rating": 4
+      },
+      {
+        "name": "Lore",
+        "rating": 4
+      },
+      {
+        "name": "Martial Arts",
+        "rating": 3
+      },
+      {
+        "name": "Medicine",
+        "rating": 2,
+        "specialties": "Treating Own Wounds +2"
+      },
+      {
+        "name": "Melee",
+        "rating": 3,
+        "specialties": "Mass Combat +3"
+      },
+      {
+        "name": "Occult",
+        "rating": 4
+      },
+      {
+        "name": "Performance",
+        "rating": 3,
+        "specialties": "Lyre +1"
+      },
+      {
+        "name": "Presence",
+        "rating": 4,
+        "specialties": "Noble +1"
+      },
+      {
+        "name": "Resistance",
+        "rating": 4
+      },
+      {
+        "name": "Ride",
+        "rating": 3,
+        "specialties": "In Battle +2"
+      },
+      {
+        "name": "Socialize",
+        "rating": 3,
+        "specialties": "Threshold Politics +2"
+      },
+      {
+        "name": "Stealth",
+        "rating": 2
+      },
+      {
+        "name": "Survival",
+        "rating": 3,
+        "specialties": "The Underworld +2"
+      }
+    ],
+    "backgrounds": [
+      {
+        "name": "Allies",
+        "rating": 5
+      },
+      {
+        "name": "Backing",
+        "rating": 3
+      },
+      {
+        "name": "Influence",
+        "rating": 3
+      },
+      {
+        "name": "Mentor",
+        "rating": 4
+      },
+      {
+        "name": "Resources",
+        "rating": 5
+      }
+    ],
+    "charms": "A Melee specialist — knows the Abyssal versions of most Melee Charms, as well as the Abyssal equivalents of Dipping Swallow Defense and Iron Kettle Body. The latter Charm does not increase soak, but instead decreases the damage the attacker does before soak is applied, and can totally dissipate the effects of weak blows.",
+    "spells": "Terrestrial Circle and Celestial Circle sorcery; knows Incomparable Body Arsenal as well as a number of Terrestrial spells.",
+    "base_initiative": 8,
+    "attacks": [
+      {
+        "name": "Punch",
+        "speed": 8,
+        "accuracy": 7,
+        "damage": 4,
+        "damage_type": "B",
+        "defense": 7
+      },
+      {
+        "name": "Kick",
+        "speed": 5,
+        "accuracy": 6,
+        "damage": 6,
+        "damage_type": "B",
+        "defense": 6
+      },
+      {
+        "name": "Battle-Axe",
+        "speed": 8,
+        "accuracy": 7,
+        "damage": 9,
+        "damage_type": "L",
+        "defense": 7
+      },
+      {
+        "name": "Long Bow",
+        "speed": 8,
+        "accuracy": 8,
+        "damage": 6,
+        "damage_type": "L"
+      }
+    ],
+    "dodge": 8,
+    "soak_lethal": 7,
+    "soak_bashing": 10,
+    "willpower": 8,
+    "essence": 3,
+    "personal_essence": 17,
+    "peripheral_essence": 44,
+    "health_levels": [
+      0,
+      -1,
+      -1,
+      -1,
+      -1,
+      -2,
+      -2,
+      -2,
+      -2,
+      -4,
+      -99
+    ]
+  }
+]

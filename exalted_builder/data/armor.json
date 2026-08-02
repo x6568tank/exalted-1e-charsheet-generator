@@ -245,5 +245,50 @@
       "artifact",
       "dragon-armor"
     ]
+  },
+  {
+    "id": "shield.buckler",
+    "name": "Buckler",
+    "weight": "Light",
+    "soak_lethal": 0,
+    "soak_bashing": 0,
+    "mobility_penalty": 0,
+    "fatigue": 0,
+    "difficulty_melee": 1,
+    "difficulty_ranged": 0,
+    "tags": [
+      "shield"
+    ],
+    "notes": "A small shield, between one and two feet across, used to actively parry incoming blows. It raises the difficulty to attack the character in hand-to-hand combat by 1 but does nothing to protect the character from missile fire. Exalted p.335."
+  },
+  {
+    "id": "shield.target",
+    "name": "Target Shield",
+    "weight": "Light",
+    "soak_lethal": 0,
+    "soak_bashing": 0,
+    "mobility_penalty": -1,
+    "fatigue": 0,
+    "difficulty_melee": 1,
+    "difficulty_ranged": 1,
+    "tags": [
+      "shield"
+    ],
+    "notes": "A large shield, able to effectively block missile fire; usually round or roundly triangular and often emblazoned with a device. Raises the difficulty of hitting the character in hand-to-hand combat or with missile fire by 1. Adds 1 to the mobility penalty of her armour, or inflicts a 1 point mobility penalty if she is using no other armour. Exalted p.335."
+  },
+  {
+    "id": "shield.tower",
+    "name": "Tower Shield",
+    "weight": "Light",
+    "soak_lethal": 0,
+    "soak_bashing": 0,
+    "mobility_penalty": -2,
+    "fatigue": 0,
+    "difficulty_melee": 1,
+    "difficulty_ranged": 2,
+    "tags": [
+      "shield"
+    ],
+    "notes": "Twice as tall as a target shield and at least as wide. Increases the difficulty of hitting the character in hand-to-hand combat by 1 and of hitting him with ranged attacks by 2. Adds 2 to the mobility penalty of the character's armour, or inflicts a 2 point mobility penalty if he is using no other armour. Most tower shields have straps allowing the user to attach the shield to his body: in that configuration it protects as a target shield and leaves both hands free, but adds 1 to the fatigue value of the character's armour. Exalted p.335."
   }
 ]

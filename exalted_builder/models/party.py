@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from .adversary import Adversary
 from .character import Character
 
 
@@ -31,8 +32,15 @@ class PartyMember(BaseModel):
 
 
 class Party(BaseModel):
-    """A named group of characters and the GM's session notes."""
+    """A named group of characters and the GM's session notes.
+
+    `adversaries` is the other half of the table: the extras, beasts and NPCs the
+    GM is running against the party. They live in the same bundle because they
+    are session state — the opposition in tonight's fight belongs with the notes
+    about tonight's fight, not in a separate file. Old bundles load with the list
+    empty."""
     id: str
     name: str = ""
     session_notes: str = ""
     members: list[PartyMember] = Field(default_factory=list)
+    adversaries: list[Adversary] = Field(default_factory=list)

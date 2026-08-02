@@ -176,7 +176,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1695 tests passing)
+## Status (1794 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -207,6 +207,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, NOT browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
 | **Elder Exalts — DONE, browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
+| **Adversary roster — DONE, NOT browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -278,11 +279,24 @@ Recorded as decision records, not restated here — read them before proposing a
 
 ## TODO
 
-### 👉 START HERE (session handoff, 2026-07-31)
-**One item is tests-green and preflight-clean but NOT browser-verified — the Ghost
-splat, 2026-08-01. Everything else below is browser-verified. Nothing is half-finished.**
+### 👉 START HERE (session handoff)
+**TWO items are tests-green and preflight-clean but NOT browser-verified — the Ghost
+splat and the adversary roster, both 2026-08-01. Everything else below is
+browser-verified. Nothing is half-finished.**
 
-The last five items, newest first — read the linked file before touching that area:
+The last six items, newest first — read the linked file before touching that area:
+
+* **The adversary roster** (`docs/status/adversary-roster.md`) — **NEEDS A
+  CLICK-THROUGH.** Nothing is open on it. GM-mode extras/beasts/NPCs, 49 generic
+  templates, named individuals excluded — **except four Exalt blocks that sit under ROLE
+  headings** (Dynasty Noble, Ambitious Young Officer, Bronze Faction Functionary,
+  Deathknight), which are in with their names stripped because the book itself says one
+  "could be any ambitious young Dragon-Blooded warrior" (p.308). The Lunar Trickster is
+  deliberately absent: alternate forms are unmodelled. **The thing to know from outside the area:** an `Adversary` is
+  NOT a `Character` and must never become one — a test asserts it. **The dead-field bug
+  fired again here** (three fields authored into the catalogue, printed nowhere and
+  absent from the editor, so saving would have wiped them); two tests now force every
+  stat field to be both editable and displayed.
 
 * **Ghosts** (`docs/status/ghosts.md`) — **NEEDS A CLICK-THROUGH.** The seventh splat and
   the second non-Exalt one. Four things are new: **Virtue-keyed Charms** (`min_virtue`,
@@ -350,8 +364,9 @@ the effect.
 Dragon-Kings, Mountain Folk** — all still blocked on source material; Ghosts shipped
 2026-08-01 once their pages landed. The **M&F filter/search** is DONE (2026-08-01 —
 side/category/free-text over name AND rules text, one filter serving both regimes;
-`docs/status/advantages-tab.md`). The standing candidate is
-`docs/status/rated-artifacts.md`, which is already sourced and transcribed. The four
+`docs/status/advantages-tab.md`). The **GM-mode adversary roster** shipped 2026-08-01
+(`docs/status/adversary-roster.md`) — tests-green, NOT browser-verified. The standing
+candidate is `docs/status/rated-artifacts.md`, already sourced and transcribed. The three
 remaining non-Exalt splats are all still blocked on source material.
 
 **Three rulings landed 2026-07-31** (human, rules authority — written up in
@@ -362,7 +377,14 @@ fills Melee). Legacy rated specialties are split on load. Also: **Crafts and Col
 be reduced** (a usability escape hatch, not a printed rule — undo is LIFO and misclicks
 happen), and **Nature freezes at the lock** with the other chargen choices.
 
-**Done:** M&F removal, repeatable Ox-Body, Nature dropdown, Caste info box,
+**Done:** the **GM-mode adversary roster** (2026-08-01 — extras/beasts/NPCs on `/gm`,
+one small model that is deliberately NOT a `Character`, 49 generic templates, template
+instantiation and duplication; `docs/status/adversary-roster.md`. **NOT browser-verified.**
+Brought **SHIELDS** into the build on the way — the three p.335 shields, which live in the
+armour chapter's PROSE and appear in no table. They are **`armor.json` rows tagged
+"shield"**, NOT a model of their own: a character's armour is already a list, so a shield
+is just another row and characters get them for free. `RuleSet.body_armor()` /
+`.shields()` are the two views), M&F removal, repeatable Ox-Body, Nature dropdown, Caste info box,
 editable custom weapons/armor, magical materials, Craft as per-focus Abilities,
 chargen BP-spend log, the in-play tracker, the multi-splat engine (P0-P4), tier-gated cross-splat Martial Arts,
 the picker's three-page Abilities/Martial Arts/Spells split, GM mode + the ST
