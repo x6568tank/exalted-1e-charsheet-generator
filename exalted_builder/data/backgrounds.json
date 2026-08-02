@@ -211,5 +211,17 @@
     "name": "Whispers",
     "description": "Your attunement to the dead gods, letting you tap the lore lost in the Underworld's darkness. Once per night, roll Perception + Whispers to uncover a lost secret, be drawn toward where a death would matter most, or substitute Whispers for a single Ability (this last costs 1 temporary Willpower). At \u2022\u2022\u2022\u2022\u2022 you are one with the Malfeans.",
     "exalt_type": "Abyssal"
+  },
+  {
+    "id": "background.inheritance",
+    "name": "Inheritance",
+    "exalt_type": "God-Blooded",
+    "description": "The potency of your magical birthright (PG p.61). Though still mortal, one of your parents was a powerful magical being, and this mystical parentage has left its mark on body and soul. Characters without the Inheritance Background may not purchase Traits exclusive to the God-Blooded. Each dot grants additional bonus points and Flaw capacity: \u2022 Thin blood +6 BP / 10 Flaws; \u2022\u2022 Good blood +12 / 15; \u2022\u2022\u2022 Notable ancestry +18 / 15; \u2022\u2022\u2022\u2022 Impeccable scion +24 / 20; \u2022\u2022\u2022\u2022\u2022 Divine +30 / 20. These bonus points may not be spent on Backgrounds. The Storyteller assigns a consistent rating to set the series' power level; where it needs calculating, Inheritance equals half the sum of the parents' Essence ratings, rounded down."
+  },
+  {
+    "id": "background.patron",
+    "name": "Patron",
+    "exalt_type": "God-Blooded",
+    "description": "The privileges and obligations imposed by your magical parent (PG p.61). Every dot invested in Patron counts as a dot of Mentor and awards additional Background dots that can raise Traits above 3; Patron also substitutes for Backing in representing rank within the parent's dominion or area of influence."
   }
 ]

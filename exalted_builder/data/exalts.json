@@ -174,5 +174,34 @@
     "barred_charm_ids": [
       "dragonblooded.martial-arts.spirit-walking"
     ]
+  },
+  {
+    "id": "God-Blooded",
+    "label": "God-Blooded",
+    "essence": {
+      "personal_essence_coeff": 0,
+      "personal_willpower_coeff": 0,
+      "peripheral_essence_coeff": 0,
+      "peripheral_willpower_coeff": 0,
+      "peripheral_virtue_mode": "none"
+    },
+    "single_essence_pool": true,
+    "magic_track": "sorcery",
+    "highest_magic_circle_id": "",
+    "ox_body_charm_id": "godblooded.general-arcanoi.ox-body-technique",
+    "caste_noun": "Heritage",
+    "tier": "Terrestrial",
+    "has_virtue_flaw": false,
+    "charms_available": true,
+    "combos_available": false,
+    "essence_cap": 1,
+    "foreign_charms_barred": true,
+    "terrestrial_martial_arts": true,
+    "barred_spell_ids": [
+      "spell.terrestrial.demon-of-the-first-circle",
+      "spell.terrestrial.summon-elemental",
+      "spell.celestial.demon-of-the-second-circle",
+      "spell.solar.demon-of-the-third-circle"
+    ]
   }
 ]

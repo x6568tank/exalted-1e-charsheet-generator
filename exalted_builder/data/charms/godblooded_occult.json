@@ -1,0 +1,30 @@
+[
+  {
+    "id": "godblooded.general-arcanoi.shadowlands-circle-necromancy",
+    "name": "Shadowlands Circle Necromancy",
+    "category": "general_arcanoi",
+    "exalt_type": "God-Blooded",
+    "type": "Simple",
+    "min_essence": 3,
+    "extra_min_abilities": [
+      {
+        "abilities": [
+          "occult"
+        ],
+        "rating": 5
+      }
+    ],
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 Willpower",
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "grants_circle": "Shadowlands",
+    "description": "The necromancy of the First Circle, binding the dark energies of the Underworld — potent but limited in scope. Invoking this Charm enables the character to cast a single Shadowlands Circle Necromancy spell; the spell's own Essence cost (listed in its description) must also be paid. Shadowlands Circle Necromancy can never be part of a Combo. Ghost-Blooded may learn this initiation but no greater circle (PG p.48); the initiation requires Essence 3 and Occult 5 and costs 10 bonus points or 25 experience. ⚠ the Occult 5 reading is the PG's generic 'Terrestrial initiation' requirement applied to the necromancy path — confirm with the rules authority.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 48
+    }
+  }
+]

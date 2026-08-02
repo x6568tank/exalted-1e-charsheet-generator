@@ -893,8 +893,10 @@ class HouseRuleRow:
     citation: str
     description: str
     # bool for a plain toggle; a str for a multiple-choice rule, whose `options` maps
-    # stored value -> label. `options` empty means it renders as a checkbox.
-    value: bool | str
+    # stored value -> label. `options` empty means it renders as a checkbox. The
+    # Inheritance-rating row is an int (1-5) on the model, shown in the select as its
+    # option key (a str), with "per-character" standing in for None.
+    value: bool | str | int | None
     options: dict[str, str] = dc_field(default_factory=dict)
     note: str = ""          # why it currently does nothing, when it doesn't
 
@@ -930,6 +932,12 @@ _HOUSE_RULES = [
      "Player's Guide p.17",
      "How a Merit or Flaw gained or lost in play is accounted for. The book offers "
      "three methods and lets the Storyteller pick, or combine them per situation."),
+    ("godblooded_inheritance_rating", "God-Blooded Inheritance rating", "table",
+     "Player's Guide p.61",
+     "How many dots of the Inheritance Background the table's God-Blooded hold. The "
+     "book leaves the rating to the Storyteller — 'assigns a consistent rating to set "
+     "the series' power level' — and the rating sets each God-Blooded's bonus-point "
+     "pool and Flaw capacity. Per character: each uses their own Inheritance dots."),
 ]
 
 # Multiple-choice house rules: field -> {stored value: label}. Everything absent here
@@ -939,6 +947,17 @@ _HOUSE_RULE_OPTIONS: dict[str, dict[str, str]] = {
         "experience": "Experience — pay/receive twice the point value (default)",
         "backgrounds": "Like Backgrounds — changes cost and reward nothing",
         "swap": "Equal-value swap — a lost Trait is replaced, a gained one erodes another",
+    },
+    # Keys are the select's option values; "per-character" maps to None on the model
+    # (each God-Blooded uses their own Inheritance dots). The p.61 dot names are the
+    # labels — Thin blood through Divine.
+    "godblooded_inheritance_rating": {
+        "per-character": "Per character — each uses their own Inheritance dots",
+        "1": "1 • Thin blood",
+        "2": "2 •• Good blood",
+        "3": "3 ••• Notable ancestry",
+        "4": "4 •••• Impeccable scion",
+        "5": "5 ••••• Divine",
     },
 }
 
@@ -981,9 +1000,29 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
             grant = validate.magic_for_everyone_grant(ruleset, character)
             note = (f"Currently granting {grant} free purchase(s)." if grant else
                     "Granting nothing yet: the allowance is Occult ÷ 2, rounded down.")
+        elif fld == "godblooded_inheritance_rating":
+            b = ruleset.budgets_for(character.exalt_type, character.origin,
+                                    character.upbringing)
+            if not b.inheritance_bonus_points:
+                note = (f"No effect: Inheritance bonus points are a God-Blooded rule, "
+                        f"and this character is {character.exalt_type}.")
+            elif getattr(rules, fld) is not None:
+                rating = getattr(rules, fld)
+                # The ST's pick is how many Inheritance DOTS are FREE, not the rating
+                # itself (human 2026-08-02) — the bonus points always follow the sheet.
+                note = (f"Setting the first {rating} dot(s) of Inheritance free for "
+                        f"every God-Blooded: no pool dots, no above-cap bonus points. "
+                        f"The bonus points and Flaw capacity still follow each "
+                        f"character's own sheet rating.")
+        value = getattr(rules, fld)
+        if fld == "godblooded_inheritance_rating":
+            # The select's option keys are the strings "1".."5" plus a sentinel for
+            # None, so an int rating must become its key (and None its sentinel) or
+            # the select's build-time value check fails.
+            value = "per-character" if value is None else str(value)
         rows.append(HouseRuleRow(field=fld, label=label, scope=scope,
                                  citation=citation, description=description,
-                                 value=getattr(rules, fld),
+                                 value=value,
                                  options=dict(_HOUSE_RULE_OPTIONS.get(fld, {})),
                                  note=note))
     return rows

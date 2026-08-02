@@ -7,9 +7,10 @@ Scope is deliberately smaller than EdExalted (which is 2e/2.5e only); **1e is
 unserved, which is the entire point of building this.** Initial target was
 **Solar** Exalted from the core rulebook; **Dragon-Blooded, Abyssal, Lunar,
 Sidereal and Alchemical are now also fully supported.** Every *Exalt* splat is done,
-and **Mortals + Heroic Mortals shipped 2026-07-30** (one splat, two origins);
-what's left is the four remaining **non-Exalt** splats (Godblooded, Ghosts,
-Dragon-Kings, Mountain Folk) — see **Next Exalt Types** below.
+and **Mortals + Heroic Mortals shipped 2026-07-30** (one splat, two origins).
+**Ghosts shipped 2026-08-01 and Godblooded 2026-08-02** (the latter's first two
+heritages, Ghost-Blooded and Half-Caste); what's left is the two remaining **non-Exalt**
+splats (Dragon-Kings, Mountain Folk) — see **Next Exalt Types** below.
 
 ## ⚠️ EDITION: 1e ONLY — never substitute 2e/2.5e rules
 This is the single most important constraint. 2e is far better represented than
@@ -63,7 +64,7 @@ its own chargen/data work:
 |---|---|---|
 | Mortals | `images/Mortals/Mortals & Heroic Mortals/` | **DONE 2026-07-30**, browser-verified 2026-08-01 — chargen, engine, UI, tests. Magic access arrived later via M&F. `docs/status/mortals.md` |
 | Heroic Mortals | *(same, core p.103)* | **DONE 2026-07-30** — NOT a separate splat after all: the `heroic`/`ordinary` origin axis on `Mortal`. See below |
-| Godblooded | — | NOT STARTED |
+| Godblooded | `images/Non-Exalts/Godblooded/` | **DONE 2026-08-02** — Phases A+B, Phase C review fixes, the Inheritance ST option, the bar-list ruling, Phase D **Fae-Blooded** (no Charms, no spells, `Ess×8`, Noble/Commoner origin, 23 glamour Merits) and the same-day code-review fixes (set_caste origin re-seed, attuned-Virtue free-pool order, `heritage-foreign-origin`, the Fae `charms_available` flag) — all browser-verified. `docs/status/godblooded.md` |
 | Ghosts | `images/Non-Exalts/Ghosts/` | **DONE 2026-08-01**, browser-verified the same day — data, engine, UI, 91 tests. `docs/status/ghosts.md` |
 | Dragon-Kings | — | NOT STARTED |
 | Mountain Folk | — | NOT STARTED |
@@ -74,12 +75,12 @@ a single procedure through both, varying only 6/4/3·22 vs 4/3/3·16). That is a
 of the 2026-07-29 "six separate splats" note *for those two only* — it says nothing
 about the other four, which remain unstarted, sourceless and presumed unrelated.
 
-**No source exists for the remaining four.** Do not start them, and do not
+**No source exists for the remaining two.** Do not start them, and do not
 assume they share budgets, a Charm economy, or even a common shape — treat each as its
 own splat until the pages say otherwise.
 
 The **Fair Folk are the one splat that is never being implemented** — see *Deferred /
-permanently out of scope*. Six to go, not seven.
+permanently out of scope*. Two to go.
 
 Work on a given splat starts only once its rulebook images land in
 `images/<ExaltName>/` — never author data from memory, per the Workflow rule below.
@@ -99,6 +100,7 @@ finished splats needed BEYOND data (Charm Slots, Colleges, Attribute-keyed Charm
 | Alchemical | Brass | DONE (shipped 2026-07-23): chargen + Charm Slots + Arrays + Submodules + CH3 catalogue (121 Charms) + CH4 weaving (38 protocols) + XP/advancement (slot economy, retainer Panoply, per-circle protocols, Eclipse crossover) + Clarity + Backgrounds + brass theme + full UI (favored-Attribute panel, Charm-Slot budgets, weaving Spells page, Arrays tab, Submodules panel, Vat Refit, Clarity tracker); UI clicked through 2026-07-23 |
 | Mortal | Muddy brown | DONE (shipped 2026-07-30): `stone` family, the deliberately dullest palette of the seven. Whether the remaining non-Exalt splats share it or get their own is UNDECIDED |
 | Ghost | Pale grey-green | DONE (shipped 2026-08-01): `zinc` — grave-mould, deliberately pushed off both Abyssal ash and Mortal earth, the two it could be confused with |
+| God-Blooded | Pale celestial blue-grey | DONE (shipped 2026-08-02): `teal` — a placeholder, since whether the remaining non-Exalts share the Mortal `stone` or each get their own is UNDECIDED |
 
 **Dragon-Blooded sub-sources:** the Outcaste book's four origins and all five Aspect
 Books shipped 2026-07-29 (`docs/status/dragonblooded-origins.md`,
@@ -176,7 +178,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1848 tests passing)
+## Status (1929 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -188,6 +190,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Why** (closed decisions, one record each) | `docs/decisions/` |
 | **The rules data** (conventions, what the loader checks) | `docs/content.md` |
 | **Implementing a splat** (honest cost, from the six done) | `docs/adding-a-splat.md` |
+| **Delegating a splat to a cheap model** (the four-check audit, from the Godblooded run) | `docs/delegated-authoring.md` |
 | Models, loader, persistence, `engine/`, NiceGUI UI | `docs/status/engine-and-ui.md` |
 | Core data files, Charm counts, `tools/` | `docs/status/data-and-tooling.md` |
 | Solar castebooks (Dawn/Eclipse/Night/Twilight/Zenith) | `docs/status/solar-castebooks.md` |
@@ -206,6 +209,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted) | `docs/status/advantages-tab.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
+| **Godblooded — DONE** (8th splat, 3rd non-Exalt; all three heritages browser-verified: Ghost-Blooded + Half-Caste — the parent-in-Origin axis, heritage Charm bars, Inheritance→BP pool; then Phase C review fixes, the Inheritance ST option, the bar-list ruling, Fae-Blooded Phase D and the same-day code-review fixes, clicked through 2026-08-02) | `docs/status/godblooded.md` |
 | **Elder Exalts — DONE, browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 | **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
@@ -230,10 +234,23 @@ closed. **Backgrounds and M&F now live on their own both-sides Advantages tab**
 (2026-07-31, v0.7.6), which deleted the two duplicate implementations of each
 (`docs/status/advantages-tab.md`). **The GHOST splat shipped 2026-08-01** — the seventh
 splat and second non-Exalt one, the day its pages landed: Virtue-keyed Arcanoi, Fetters
-and Passions, two chargen axes at once (`docs/status/ghosts.md`); tests-green and
-preflight-clean but not yet browser-verified. **Three non-Exalt splats remain**
-(Godblooded, Dragon-Kings, Mountain Folk), all blocked on source material. See **TODO**
-below for what's actually next.
+and Passions, two chargen axes at once (`docs/status/ghosts.md`); browser-verified
+2026-08-01. **Godblooded shipped 2026-08-02** — the eighth splat, third non-Exalt, in
+two phases: the **Ghost-Blooded** heritage (Arcanoi, necromancy) and the **Half-Caste**
+heritage (the parent-Exalt type in the Origin dropdown, cross-splat Charm access, the
+perfect/persistent + Maiden bars, the Lunar 2-form cap), both browser-verified — plus a
+**Phase C** of review fixes the same day (the p.48 magic track, the summon-and-bind bar,
+load-time link-checking for id-bearing fields), the **Inheritance ST option**, the
+**bar-list ruling**, and **Phase D: Fae-Blooded** (2026-08-02) — no Charms, no spells,
+`Ess×8` pool, the Noble/Commoner origin axis, 23 glamour Merits — all clicked through
+2026-08-02 (the click-through surfaced and fixed four things: the Virtue Attunement
+dropdown, the Commoner's second-attunement refusal, the Inheritance ST-option redesign
+to free dots, and the greater-circle bar); the same-day code-review fixes (the
+set_caste origin re-seed, the attuned-Virtue free-pool order, Prince of Chaos's
+Essence prereq, `heritage-foreign-origin`, and the Fae `charms_available` flag) were
+clicked through too (`docs/status/godblooded.md`). **Two non-Exalt splats remain**
+(Dragon-Kings, Mountain Folk), both blocked on source material. See **TODO** below for
+what's actually next.
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled
@@ -280,10 +297,26 @@ Recorded as decision records, not restated here — read them before proposing a
 ## TODO
 
 ### 👉 START HERE (session handoff)
-**ONE ITEM IS WAITING ON THE HUMAN'S EYES: rated artifacts** (2026-08-02, tests green
-and preflight clean, `docs/status/rated-artifacts.md`). Everything else was
-browser-verified on 2026-08-01 — the Ghost splat, the adversary roster and Mortals were
-the last three, all clicked through with no findings.
+**THE ITEMS WAITING ON THE HUMAN'S EYES:**
+
+1. **Rated artifacts** (2026-08-02, tests green and preflight clean,
+   `docs/status/rated-artifacts.md`).
+
+Everything else was browser-verified on 2026-08-01/02 — the Ghost splat, the adversary
+roster, Mortals, and all of Godblooded (Phases A+B, Phase C, the Inheritance ST option,
+the bar-list ruling, Fae-Blooded Phase D and the same-day code-review fixes), all
+clicked through.
+
+**⚠ Godblooded was authored end to end by a cheap model (DeepSeek V4 Flash) and
+code-reviewed afterwards.** The review found four defects, all of them the house bug:
+a rule described in a docstring, authored into data, never wired to a read site. Two
+were live rules violations. **The audit that catches this class is
+`docs/delegated-authoring.md`** — read it before delegating a splat, and run its four
+checks before booking browser time. The one finding that generalises beyond delegation:
+**correct behaviour is not evidence the mechanism exists.** `magic_track` was dead and
+Ghost-Blooded still behaved correctly, because Charm access happened to do its job for
+that one heritage; the Abyssal and Solar Half-Castes, which it did not cover, were both
+broken.
 
 **Nothing is open on it** — Damaged Artifact's third cap ("the number of Background
 and/or bonus points spent obtaining the artifact", PG p.38) shipped too, as
@@ -384,15 +417,29 @@ audit reports single-site fields as if they were healthy — **a single read sit
 suspect as none when the read sits in the phase that wrote it.** Test the buy path, not
 the effect.
 
-**What is next is the human's call.** Three non-Exalt splats remain — **Godblooded,
-Dragon-Kings, Mountain Folk** — all still blocked on source material; Ghosts shipped
-2026-08-01 once their pages landed. The **M&F filter/search** is DONE (2026-08-01 —
+**It fired twice more in Godblooded (2026-08-02), and taught the sharpest version of
+itself yet: a ZERO-site field can still look healthy, because something else may be
+doing its job by accident.** `heritage_traits.magic_track` had no reader at all, and
+Ghost-Blooded behaved correctly regardless — the Ghost catalogue holds no sorcery, so
+Charm access happened to produce the p.48 answer. The Abyssal and Solar Half-Castes,
+whose borrowed catalogues hold both tracks, were both broken. **Correct behaviour in the
+case you tested is not evidence the mechanism exists.** The mechanical sweep for this is
+`docs/delegated-authoring.md`.
+
+**What is next is the human's call.** Two non-Exalt splats remain — **Dragon-Kings,
+Mountain Folk** — both still blocked on source material. **Godblooded shipped 2026-08-02**
+(`docs/status/godblooded.md`) — the eighth splat, with the Ghost-Blooded, Half-Caste
+and **Fae-Blooded** heritages done (Fae-Blooded: no Charms, no spells, `Ess×8` pool,
+the Noble/Commoner origin axis, 23 glamour Merits — the review brief's three items are
+all closed); Phases A+B are browser-verified, the Phase C fixes, the Inheritance ST
+option, the bar-list ruling and Phase D are not. **God/Demon-Blooded** are the last two
+heritages, waiting on the Games-of-Divinity spirit-Charm pages. The **M&F filter/search** is DONE (2026-08-01 —
 side/category/free-text over name AND rules text, one filter serving both regimes;
 `docs/status/advantages-tab.md`). The **GM-mode adversary roster** shipped 2026-08-01
 (`docs/status/adversary-roster.md`) — browser-verified 2026-08-01. **Rated artifacts,
 the standing candidate, SHIPPED 2026-08-02** and is the one thing awaiting a
-click-through (`docs/status/rated-artifacts.md`). The three remaining non-Exalt splats
-are all still blocked on source material, so there is no obvious next item — it is the
+click-through (`docs/status/rated-artifacts.md`). The two remaining non-Exalt splats
+are both still blocked on source material, so there is no obvious next item — it is the
 human's call.
 
 **Three rulings landed 2026-07-31** (human, rules authority — written up in
@@ -472,15 +519,12 @@ homebrew-only with no printed use AT THE TIME: `CharmCost.health_type` and
   Also recorded there: the p.116 Step Four errata ("5 in addition to recorded
   **Knowledge**", not Inheritance) — read it before building mortal chargen or the
   Knowledge BP pool.
-- **The three remaining non-Exalt splats** — **Godblooded, Dragon-Kings,
-  Mountain Folk** (Ghosts shipped 2026-08-01). Separate splats scattered across different books (human,
-  2026-07-29); **all four are blocked on source material** — none exists yet — per the
-  never-author-from-memory rule. Order is the human's call. See **Next Exalt Types**.
-  Mortals + Heroic Mortals are DONE (2026-07-30) and were the exception to the
-  "six separate splats" note: p.103 runs one procedure through both, so they shipped as
-  one splat with a `heroic`/`ordinary` origin axis. Do not generalise that to the other
-  four. `docs/status/mortals.md`. Two hooks recorded when they turn up: PG p.114 says
-  "mortals that exceed Essence 3 become gods, in the same way the God-Blooded do", and
+- **The two remaining non-Exalt splats** — **Dragon-Kings, Mountain Folk**
+  (Ghosts shipped 2026-08-01, Godblooded 2026-08-02). Separate splats scattered across
+  different books (human, 2026-07-29); **both are blocked on source material** — none
+  exists yet — per the never-author-from-memory rule. Order is the human's call. See
+  **Next Exalt Types**. Two hooks recorded when they turn up: PG p.114 says "mortals
+  that exceed Essence 3 become gods, in the same way the God-Blooded do", and
   Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" cost override is deliberately
   unauthored and should be added with those splats.
 - **Merits & Flaws — DONE.** Decision 0011's centralized `merits_and_flaws_calc` exists

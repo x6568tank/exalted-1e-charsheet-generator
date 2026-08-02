@@ -97,6 +97,14 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     # an UPBRINGING, and `_keyed_row` only consults the ":origin:upbringing" key when
     # the origin is non-empty. See _ORIGIN_UPBRINGINGS.
     "Ghost": {"heroic": "Heroic Dead", "mundane": "Mundane Dead"},
+    # The God-Blooded Half-Caste heritage (p.47): "learn the Charms of their parents",
+    # where the parent's Exalt type IS the origin. Only the Half-Caste heritage uses it —
+    # the origin select is gated on heritage_traits.charm_access_parent, so a Ghost-
+    # Blooded never sees these. The values are the Exalt type strings themselves, so
+    # validate.heritage_charm_access returns character.origin directly.
+    # The God-Blooded have no entry HERE — their origin is HERITAGE-keyed
+    # (`GodbloodedHeritage.origin_options`: the Half-Caste's five parents, the
+    # Fae-Blooded's Noble/Commoner), read by `_origin_options` from the data.
 }
 
 # The second axis, keyed by "<exalt_type>:<origin>". Only origins that HAVE variants
@@ -132,6 +140,30 @@ _ORIGIN_UPBRINGINGS: dict[str, dict[str, str]] = {
     "Ghost:mundane": {"": "Ancestor-worshipping region",
                       "immaculate": "Immaculate-dominated region"},
 }
+
+
+def _heritage_uses_origin(ruleset: RuleSet, character) -> bool:
+    """Whether the character's heritage keys off the origin axis. Two God-Blooded
+    heritages do: the Half-Caste's parent Exalt type (p.47) and the Fae-Blooded's
+    Noble/Commoner (p.73-79). `GodbloodedHeritage.origin_options` is the single source
+    — the editor renders the Origin dropdown from it."""
+    cd = ruleset.castes.get(character.caste)
+    return bool(cd is not None and cd.heritage_traits is not None
+                and cd.heritage_traits.origin_options)
+
+
+def _origin_options(ruleset: RuleSet, character) -> dict[str, str]:
+    """The Origin dropdown options for this character: the splat's origins, EXCEPT
+    the God-Blooded, whose origin is their HERITAGE's own axis — the Half-Caste's
+    parent Exalt type, the Fae-Blooded's Noble/Commoner — and appears only for that
+    heritage (a Ghost-Blooded never sees a meaningless Solar origin). Every other
+    splat's origins are unconditional, so they render exactly as before."""
+    if character.exalt_type == "God-Blooded":
+        cd = ruleset.castes.get(character.caste)
+        opts = cd.heritage_traits.origin_options if (
+            cd is not None and cd.heritage_traits is not None) else []
+        return {o: o for o in opts} if opts else {}
+    return _SPLAT_ORIGINS.get(character.exalt_type, {})
 
 
 def upbringing_options(exalt_type: str, origin: str) -> dict[str, str]:
@@ -775,7 +807,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
         virtue_cap = (mf_effects.virtue_cap if mf_effects.virtue_cap is not None
                       else merits.DOT_MAX)
-        ap = "/".join(str(p) for p in b.attribute_pools)
+        ap = "/".join(str(p) for p in validate.effective_attribute_pools(ruleset, character))
         # Attribute pools are matched to categories by SPEND, so a Diminished
         # Attributes forfeit cannot be folded into the printed 8/6/4 the way the
         # Ability and Virtue budgets can — name the shortfall alongside it instead.
@@ -860,8 +892,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                             caste_opts.setdefault(character.caste, character.caste)
                             _frozen(ui.select(caste_opts, label=caste_noun, value=character.caste,
                                       on_change=lambda e: set_caste(e.value)).classes(_field))
-                        origins = _SPLAT_ORIGINS.get(character.exalt_type)
+                        origins = _origin_options(ruleset, character)
                         if origins:
+                            # keep a STALE origin selectable (NiceGUI 3.x ui.select raises
+                            # if value ∉ options — the same fold-in the caste select does a
+                            # few lines up), so a Fae-Blooded saved with another heritage's
+                            # "Solar" parent renders and is reported by
+                            # heritage-foreign-origin instead of taking the editor down.
+                            if (character.origin
+                                    and character.origin not in origins):
+                                origins = {**origins, character.origin: character.origin}
                             _frozen(ui.select(origins, label="Origin",
                                       value=character.origin or next(iter(origins)),
                                       on_change=lambda e: set_origin(e.value)).classes(_field))
@@ -1340,8 +1380,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             # keeps a Solar caste's Abilities discounted.
             character.caste = valid[0] if valid else ""
         # keep the origin coherent: default to the splat's first origin, or clear it
-        # for splats that have no intra-splat origin variants.
-        origins = _SPLAT_ORIGINS.get(value)
+        # for splats that have no intra-splat origin variants. For the God-Blooded this
+        # is HERITAGE-aware (`_origin_options` reads `heritage_traits.origin_options`):
+        # switching to a Fae-Blooded must default to Noble, not the Solar parent that
+        # `_SPLAT_ORIGINS` would hand a Ghost-Blooded.
+        origins = _origin_options(ruleset, character)
         character.origin = next(iter(origins)) if origins else ""
         # ...and pull Essence into the new splat's legal chargen range. A Solar sits at
         # 2, a mortal is pinned at 1 and an Illuminated Solar starts at 3, so without
@@ -1362,6 +1405,22 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     def set_caste(value: str) -> None:
         character.caste = value
+        # The heritage determines the origin axis (`_origin_options` reads
+        # `heritage_traits.origin_options`), so switching heritage can strand the OLD
+        # heritage's origin — a Fae-Blooded's "Solar" parent, a Half-Caste's "Noble".
+        # Re-seed it the same way set_exalt_type does, or ui.select raises ValueError
+        # on a value that is not among the new heritage's options and the editor dies.
+        # Changing the origin is what set_origin does, so when it actually changes,
+        # finish the job the way set_origin does: clear the upbringing (scoped to the
+        # origin) and re-seed camp/Calling (they belong to the origin) — a stale one
+        # would resolve against the wrong row. Latent today (no splat has both castes
+        # and an intra-splat origin that set_caste re-seeds) but a trap for the next
+        # splat that does.
+        origins = _origin_options(ruleset, character)
+        if character.origin not in origins:
+            character.origin = next(iter(origins)) if origins else ""
+            character.upbringing = ""
+            _reset_camp_for_origin()
         body.refresh(); changed()
 
     def set_origin(value: str) -> None:

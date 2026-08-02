@@ -1114,5 +1114,30 @@
         "max_rating": 1
       }
     }
+  },
+  "God-Blooded": {
+    "attribute_pools": [6, 4, 3],
+    "ability_dots": 22,
+    "ability_min_caste_favored": 1,
+    "ability_cap_pre_bp": 3,
+    "favored_count": 1,
+    "background_dots": 6,
+    "background_cap_pre_bp": 3,
+    "background_rules": {
+      "inheritance": {
+        "min_rating": 1,
+        "max_rating": 5,
+        "free_rating": 5
+      }
+    },
+    "charm_count": 0,
+    "charm_min_caste_favored": 0,
+    "virtue_dots": 5,
+    "virtue_cap_pre_bp": 3,
+    "essence_start": 1,
+    "essence_start_cap": 3,
+    "bonus_points": 21,
+    "inheritance_bonus_points": [0, 6, 12, 18, 24, 30],
+    "inheritance_flaw_cap": [0, 10, 15, 15, 20, 20]
   }
 }

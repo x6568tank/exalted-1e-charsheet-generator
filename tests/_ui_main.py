@@ -1232,3 +1232,119 @@ CHAR_ARTIFACTS_STALE.merits_flaws.append(
 def page_artifacts_advantages_stale():
     advantages.build_advantages(RS, CHAR_ARTIFACTS_STALE, Path("x.json"),
                                 with_header=False)
+
+
+# --- God-Blooded (Phase A: core + the Ghost-Blooded heritage) ---------------- #
+
+def _godblooded(cid: str, name: str) -> Character:
+    c = Character(id=cid, name=name, exalt_type="God-Blooded",
+                  caste="ghost-blooded", essence_rating=2)
+    c.virtues = {VirtueName.COMPASSION: 2, VirtueName.CONVICTION: 3,
+                 VirtueName.TEMPERANCE: 2, VirtueName.VALOR: 2}
+    c.merits_flaws = [MeritFlawPurchase(merit_id="mf.awakened-essence")]
+    c.backgrounds = [BackgroundEntry(name="Inheritance", rating=3),
+                     BackgroundEntry(name="Patron", rating=2)]
+    c.favored_abilities = [AbilityName.MELEE]
+    c.charms = ["ghost.savage-ghost-tamer.taste-the-demon-wind"]
+    return c
+
+CHAR_GODBLOODED = _godblooded("gdb", "Sighing Willow")
+
+@ui.page('/godblooded-advantages')
+def page_godblooded_advantages():
+    advantages.build_advantages(RS, CHAR_GODBLOODED, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-editor')
+def page_godblooded_editor():
+    editor.build_editor(RS, CHAR_GODBLOODED, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-picker')
+def page_godblooded_picker():
+    picker.build_picker(RS, CHAR_GODBLOODED, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-sheet')
+def page_godblooded_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_GODBLOODED))
+
+
+def _half_caste(cid: str, name: str, parent: str) -> Character:
+    c = Character(id=cid, name=name, exalt_type="God-Blooded",
+                  caste="half-caste", origin=parent, essence_rating=2)
+    c.virtues = {VirtueName.COMPASSION: 2, VirtueName.CONVICTION: 3,
+                 VirtueName.TEMPERANCE: 2, VirtueName.VALOR: 2}
+    c.merits_flaws = [MeritFlawPurchase(merit_id="mf.awakened-essence")]
+    c.charms = ["solar.melee.fire-and-stones-strike"]
+    return c
+
+CHAR_HALF_CASTE = _half_caste("hc", "Golden Child", "Solar")
+
+@ui.page('/godblooded-halfcaste-advantages')
+def page_godblooded_halfcaste_advantages():
+    advantages.build_advantages(RS, CHAR_HALF_CASTE, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-halfcaste-editor')
+def page_godblooded_halfcaste_editor():
+    editor.build_editor(RS, CHAR_HALF_CASTE, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-halfcaste-picker')
+def page_godblooded_halfcaste_picker():
+    picker.build_picker(RS, CHAR_HALF_CASTE, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-halfcaste-sheet')
+def page_godblooded_halfcaste_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_HALF_CASTE))
+
+
+def _fae(cid: str, name: str, origin: str) -> Character:
+    c = Character(id=cid, name=name, exalt_type="God-Blooded",
+                  caste="fae-blooded", origin=origin, essence_rating=2)
+    c.virtues = {VirtueName.COMPASSION: 2, VirtueName.CONVICTION: 3,
+                 VirtueName.TEMPERANCE: 2, VirtueName.VALOR: 2}
+    c.merits_flaws = [MeritFlawPurchase(merit_id="mf.awakened-essence"),
+                      MeritFlawPurchase(merit_id="mf.fae-virtue-attunement",
+                                        detail="compassion"),
+                      MeritFlawPurchase(merit_id="mf.fae-wyld-sense")]
+    return c
+
+CHAR_FAE_NOBLE = _fae("fae-n", "Sidhe-Spun", "Noble")
+CHAR_FAE_COMMONER = _fae("fae-c", "Changling", "Commoner")
+# A Commoner holding TWO Virtue Attunements is illegal (p.74: once only) — the
+# advantages tab must render the refusal without crashing.
+CHAR_FAE_COMMONER_2X = _fae("fae-c2", "Illegally Attuned", "Commoner")
+CHAR_FAE_COMMONER_2X.merits_flaws.append(
+    MeritFlawPurchase(merit_id="mf.fae-virtue-attunement", detail="valor"))
+
+@ui.page('/godblooded-fae-advantages')
+def page_godblooded_fae_advantages():
+    advantages.build_advantages(RS, CHAR_FAE_NOBLE, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-fae-editor')
+def page_godblooded_fae_editor():
+    editor.build_editor(RS, CHAR_FAE_NOBLE, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-fae-picker')
+def page_godblooded_fae_picker():
+    picker.build_picker(RS, CHAR_FAE_NOBLE, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-fae-sheet')
+def page_godblooded_fae_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_FAE_NOBLE))
+
+@ui.page('/godblooded-fae-commoner-2x-advantages')
+def page_godblooded_fae_commoner_2x_advantages():
+    advantages.build_advantages(RS, CHAR_FAE_COMMONER_2X, Path("x.json"), with_header=False)
+
+# Review repro (Fix 1): a Fae-Blooded SAVED with a stale origin — the Half-Caste's
+# "Solar" parent, and a blank — must render the editor, not raise ValueError on the
+# Origin select (whose options are Noble/Commoner). The stale value is reported by
+# validation (heritage-foreign-origin) instead.
+CHAR_FAE_STALE_ORIGIN = _fae("fae-stale", "Mis-Saved Changeling", "Solar")
+CHAR_FAE_NO_ORIGIN = _fae("fae-none", "Originless Changeling", "")
+
+@ui.page('/godblooded-fae-stale-origin-editor')
+def page_godblooded_fae_stale_origin_editor():
+    editor.build_editor(RS, CHAR_FAE_STALE_ORIGIN, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-fae-no-origin-editor')
+def page_godblooded_fae_no_origin_editor():
+    editor.build_editor(RS, CHAR_FAE_NO_ORIGIN, Path("x.json"), with_header=False)

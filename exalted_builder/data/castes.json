@@ -273,5 +273,128 @@
     "caste_attributes": ["stamina", "manipulation", "perception"],
     "description": "The Grim Watch (Sentinels): the fearsome, all-seeing enforcers of law and dogma, tasked with hunting down and eliminating Autochthonian dissidents and gremlins.",
     "anima_powers": "By reflexively spending 5 motes, a Soulsteel Caste may stir the souls trapped in their frame, generating an aura of numbing dread for a scene. This power adds (the Exalt's Essence / 2, rounded up) to the difficulty of all attacks targeting the Alchemical. Even automatons and the walking dead suffer this penalty; only living beings with perfect immunity to fear may ignore it."
+  },
+  {
+    "id": "ghost-blooded",
+    "exalt_type": "God-Blooded",
+    "label": "Ghost-Blooded",
+    "description": "The living children of the Restless Dead. Half-Dead grow up in the shadowlands, surrounded from birth by the cycles of life and death, and learn the Arcanoi of their ghostly parents exactly as the dead do. (PG p.55)",
+    "anima_powers": "God-Blooded do not display an anima banner; the single exception is a character with the Aura of Power Flaw (p.67), who must contend with an aura like the Exalted. Ghost-Blooded become increasingly ghostly and translucent, lit from within by a cold spectral fire that spills from their eyes and mouth.",
+    "heritage_traits": {
+      "unlocked_essence": {
+        "personal_essence_coeff": 5,
+        "personal_willpower_coeff": 2,
+        "personal_virtue_mode": "all",
+        "personal_virtue_coeff": 1,
+        "peripheral_essence_coeff": 0,
+        "peripheral_willpower_coeff": 0,
+        "peripheral_virtue_mode": "none"
+      },
+      "charm_access": ["Ghost"],
+      "magic_track": "necromancy",
+      "heritage_power": "Half-Dead may attune their senses to the Essence of the Underworld as a basic dice action for a cost of 1 Willpower point or 3 motes of Essence, perceiving all shadowland borders and immaterial ghosts within the range of her normal senses for one scene. (PG p.55)"
+    }
+  },
+  {
+    "id": "half-caste",
+    "exalt_type": "God-Blooded",
+    "label": "Half-Caste",
+    "description": "The descendants of the Chosen, born of an Exalt's union with a mortal. Half-Caste learn the Charms of their parent's Exalted type but may not master any Charms that provide a perfect defense or persistent scene-length defense, and they receive no Charms at character creation. (PG p.47)",
+    "anima_powers": "God-Blooded do not display an anima banner; the single exception is a character with the Aura of Power Flaw (p.67). Half-Caste with the Anima Powers Merit receive the basic anima powers of their parent's Exalted type: Golden Children may spend motes to determine the time of day or illuminate their pale Caste Marks, Shadewalkers may grow fangs to consume blood for Essence, and Lunar Half-Caste illuminate only their Caste Mark (they have no Tell).",
+    "heritage_traits": {
+      "unlocked_essence": {
+        "personal_essence_coeff": 5,
+        "personal_willpower_coeff": 0,
+        "personal_virtue_mode": "all",
+        "personal_virtue_coeff": 1,
+        "peripheral_essence_coeff": 0,
+        "peripheral_willpower_coeff": 0,
+        "peripheral_virtue_mode": "none"
+      },
+      "attribute_pools": [6, 5, 4],
+      "charm_access_parent": true,
+      "origin_options": ["Solar", "Dragon-Blooded", "Lunar", "Sidereal", "Abyssal"],
+      "magic_track": "",
+      "magic_track_by_parent": {
+        "Solar": "sorcery",
+        "Dragon-Blooded": "sorcery",
+        "Lunar": "sorcery",
+        "Sidereal": "sorcery",
+        "Abyssal": "necromancy"
+      },
+      "gift_charm_ids": {
+        "Lunar": "lunar.shapeshifting.deadly-beastman-transformation"
+      },
+      "gift_caps": {
+        "Lunar": 2
+      },
+      "ox_body_charm_ids": {
+        "Solar": "solar.endurance.ox-body-technique",
+        "Dragon-Blooded": "dragonblooded.endurance.ox-body-technique",
+        "Lunar": "lunar.endurance.ox-body-technique",
+        "Sidereal": "sidereal.endurance.ox-body-technique",
+        "Abyssal": "abyssal.endurance.ox-body-technique"
+      },
+      "barred_charm_ids": [
+        "godblooded.death-in-life.transubstantiation-of-flesh",
+        "godblooded.death-in-life.lower-soul-ascendant",
+        "godblooded.death-in-life.spiteful-essence-onslaught",
+        "godblooded.death-in-life.wraith-form-transformation",
+        "godblooded.death-in-life.ghost-body-evasion",
+        "godblooded.death-in-life.restless-spirit-sojourn",
+        "godblooded.general-arcanoi.shadowlands-circle-necromancy",
+        "godblooded.general-arcanoi.ox-body-technique",
+        "solar.melee.heavenly-guardian-defense",
+        "solar.dodge.seven-shadow-evasion",
+        "solar.resistance.adamant-skin-technique",
+        "abyssal.melee.incomparable-sentinel-stance",
+        "abyssal.resistance.flowing-wound-defense",
+        "lunar.defensive.flowing-body-evasion",
+        "sidereal.melee.serenity-in-blood",
+        "solar.melee.fivefold-bulwark-stance",
+        "solar.dodge.flow-like-blood",
+        "dragonblooded.dodge.arrow-consuming-flame-defense",
+        "dragonblooded.dodge.smoke-obscuring-effect",
+        "abyssal.dodge.incomparable-phantom-form",
+        "abyssal.melee.eye-of-the-tempest",
+        "lunar.defensive.hide-toughening-essence",
+        "lunar.unarmed-combat.snake-head-defense",
+        "sidereal.performance.defense-of-shining-joy",
+        "sidereal.violet-bier-of-sorrows.blade-of-the-battle-maiden",
+        "sidereal.resistance.storms-eye-stance",
+        "sidereal.endurance.optimistic-security-practice",
+        "sidereal.bureaucracy.terminal-sanction",
+        "sidereal.bureaucracy.underling-invisibility-practice",
+        "sidereal.craft.elemental-vision",
+        "sidereal.occult.mark-of-exaltation",
+        "sidereal.occult.incite-decorum",
+        "sidereal.occult.innocuous-maneuver",
+        "sidereal.stealth.walking-outside-fate"
+      ],
+      "heritage_power": "Half-Caste receive additional dots of Attributes during character creation (6/5/4, per the prose on p.47) but otherwise exhibit no mystical birthright of their heritage. (PG p.60)"
+    }
+  },
+  {
+    "id": "fae-blooded",
+    "exalt_type": "God-Blooded",
+    "label": "Fae-Blooded",
+    "description": "The children of the Fair Folk do not use Charms, but instead, wield gifts of glamour to beguile and enchant and bend reality according to their half-Wyld nature. These powers take the form of proprietary Merits. (PG p.47)",
+    "anima_powers": "God-Blooded do not display an anima banner; the single exception is a character with the Aura of Power Flaw (p.67). Fae-Blooded regaining Essence only while resting in the Wyld or within an uncapped Demesne rated at 3+ (p.66).",
+    "heritage_traits": {
+      "unlocked_essence": {
+        "personal_essence_coeff": 8,
+        "personal_willpower_coeff": 0,
+        "personal_virtue_mode": "none",
+        "personal_virtue_coeff": 0,
+        "peripheral_essence_coeff": 0,
+        "peripheral_willpower_coeff": 0,
+        "peripheral_virtue_mode": "none"
+      },
+      "origin_options": ["Noble", "Commoner"],
+      "charm_access": [],
+      "magic_track": "none",
+      "heritage_power": "Like their inchoate parents, Fae-Blooded have nothing to fear from the maddening and warping power of the Wyld. Changelings may journey into the deepest chaos and retain their form and sanity, though the same protection does not extend to their possessions. This constant aegis duplicates the effects of the Solar Charm Integrity-Protecting Prana (Exalted p.186), save that it does not protect against glamour and other willfully directed uses of Wyld energies. (PG p.60)",
+      "charms_available": false
+    }
   }
 ]

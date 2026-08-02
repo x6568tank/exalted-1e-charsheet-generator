@@ -298,7 +298,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         # an entry that is not in its own options.
         first = min((m for m in rs.merits_flaws.values()
                      if validate.merit_available_to(m, character.exalt_type,
-                                                    character.caste)),
+                                                    character.caste,
+                                                    origin=character.origin)),
                     key=lambda m: (m.kind != "merit", m.cost, m.name), default=None)
         if first is None:
             return
@@ -360,6 +361,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         return [m for m in sorted(rs.merits_flaws.values(),
                                   key=lambda m: (m.kind != "merit", m.name))
                 if validate.merit_available_to(m, character.exalt_type, character.caste,
+                                               origin=character.origin,
                                                starting_essence=essence_start)]
 
     def _mf_filter_bar(apply_filter) -> None:

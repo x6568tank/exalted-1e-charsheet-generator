@@ -676,6 +676,10 @@ def test_extra_min_abilities_is_empty_for_every_other_charm(rs):
         "dragonblooded.melee.style-countering-meditation",
         # Aspect Book: Air — "Minimum Stealth: 4 / Minimum Larceny: 2".
         "dragonblooded.stealth.empty-hand-posture",
+        # God-Blooded (PG p.48) — "Essence 3 and Occult 5 to undergo the Terrestrial
+        # initiation": the necromancy initiation groups with the Arcanoi on the
+        # General Arcanoi page, so Occult is its ONLY ability gate and lives here.
+        "godblooded.general-arcanoi.shadowlands-circle-necromancy",
         "solar.brawl.ascendant-battle-visage",
         # Caste Book: Eclipse p.73 — "Minimum Linguistics: 5 / Minimum Lore: 3".
         "solar.linguistics.masterful-training-manual",
@@ -1030,6 +1034,11 @@ def test_every_origin_offered_by_the_editor_resolves_to_a_budget(rs):
     from exalted_builder.ui.editor import _SPLAT_ORIGINS
     for splat, origins in _SPLAT_ORIGINS.items():
         for i, key in enumerate(origins):
+            # The God-Blooded "origins" are the Half-Caste's parent Exalt types; every
+            # parent shares the single God-Blooded budget (the parent decides Charm
+            # access, not the dot budget), so none of them needs its own row.
+            if splat == "God-Blooded":
+                continue
             keyed = rs.budgets.get(f"{splat}:{key}")
             assert keyed is not None or i == 0, (
                 f"{splat}:{key} has no budget row and is not the default origin")

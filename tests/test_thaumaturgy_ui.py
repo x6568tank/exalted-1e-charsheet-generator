@@ -19,6 +19,7 @@ from exalted_builder.models.character import (ArtSpecialty, Character, FormulaEn
 from exalted_builder.models.rules import AbilityName, Orientation
 from exalted_builder.ui import builder as buildermod
 from exalted_builder.ui import picker as pickermod
+from exalted_builder.ui import storyteller as storytellermod
 from exalted_builder.ui import view as viewmod
 
 _DATA = Path(__file__).resolve().parents[1] / "exalted_builder" / "data"
@@ -77,12 +78,17 @@ def test_house_rule_rows_reflect_stored_values(ruleset) -> None:
 def test_absent_house_rules_read_as_the_model_defaults(ruleset) -> None:
     # An old save has house_rules None; the tab must still render every row, each at
     # its model default. Every TOGGLE defaults off; a multiple-choice rule (the M&F
-    # change method) defaults to the option the model declares, not to False.
+    # change method) defaults to the option the model declares, not to False; the
+    # Inheritance-rating select renders its None default as the "per-character" key.
     char = _character()
     assert char.house_rules is None
     defaults = HouseRules()
     for row in viewmod.build_house_rules(ruleset, char):
-        assert row.value == getattr(defaults, row.field), row.field
+        if row.field == "godblooded_inheritance_rating":
+            assert row.value == "per-character"
+            assert defaults.godblooded_inheritance_rating is None
+        else:
+            assert row.value == getattr(defaults, row.field), row.field
         if not row.options:
             assert row.value is False, row.field
 
@@ -111,6 +117,45 @@ def test_foreign_charm_toggle_has_no_note_for_an_eclipse(ruleset) -> None:
     char = Character(id="c", name="E", exalt_type="Solar", caste="eclipse")
     rows = {r.field: r for r in viewmod.build_house_rules(ruleset, char)}
     assert rows["st_foreign_charms"].note == ""
+
+
+# --------------------------------------------------------------------------- #
+# set_rule — the ST tab's write path (and the Inheritance-rating row)
+# --------------------------------------------------------------------------- #
+
+def test_set_rule_stores_the_inheritance_rating() -> None:
+    """The rating select sends an option key ("1".."5", or the "per-character"
+    sentinel for None); set_rule must land it on the model as an int or None."""
+    char = _character()
+    storytellermod.set_rule(char, "godblooded_inheritance_rating", "3")
+    assert char.house_rules.godblooded_inheritance_rating == 3
+    storytellermod.set_rule(char, "godblooded_inheritance_rating", "per-character")
+    assert char.house_rules.godblooded_inheritance_rating is None
+
+
+def test_set_rule_keeps_the_mf_method_string() -> None:
+    """set_rule used to bool() every value, silently turning a selected M&F method
+    ("backgrounds") into True. A multiple-choice rule must store its string."""
+    char = _character()
+    storytellermod.set_rule(char, "mf_change_method", "backgrounds")
+    assert char.house_rules.mf_change_method == "backgrounds"
+
+
+def test_inheritance_rating_row_is_annotated_inert_for_an_exalt(ruleset) -> None:
+    rows = {r.field: r for r in viewmod.build_house_rules(ruleset, _character())}
+    assert "No effect" in rows["godblooded_inheritance_rating"].note
+
+
+def test_inheritance_rating_row_offers_the_granting_rating(ruleset) -> None:
+    char = Character(id="gb", name="Willow", exalt_type="God-Blooded",
+                     caste="ghost-blooded")
+    char.house_rules = HouseRules(godblooded_inheritance_rating=4)
+    rows = {r.field: r for r in viewmod.build_house_rules(ruleset, char)}
+    row = rows["godblooded_inheritance_rating"]
+    assert row.value == "4"                    # the select's option key
+    # The ST's pick is how many Inheritance dots are FREE, not the rating (human
+    # 2026-08-02) — the bonus points still follow the sheet background.
+    assert "first 4 dot(s) of Inheritance free" in row.note
 
 
 # --------------------------------------------------------------------------- #

@@ -38,6 +38,7 @@ from ..models.rules import (
     CharmType,
     RuleSet,
     SpellCircle,
+    TRACK_CIRCLES,
     VirtueName,
 )
 from . import artifacts, derive, elder, merits
@@ -60,7 +61,14 @@ ATTRIBUTE_CATEGORIES: dict[str, tuple[AttributeName, ...]] = {
 
 def ox_body_charm_id(ruleset: RuleSet, character: Character) -> str:
     """The id of this character's splat's repeatable Ox-Body-equivalent Charm (from
-    its ExaltDefinition), or '' if the splat defines none."""
+    its ExaltDefinition), or the heritage's parent-keyed one for a Half-Caste (a
+    Half-Caste learns their parent's Charms and uses the parent's Ox-Body, p.47 —
+    the God-Blooded's own is the spirit/Arcanos version), or '' if neither defines one."""
+    caste = ruleset.castes.get(character.caste)
+    if caste is not None and caste.heritage_traits is not None:
+        parent_ox = caste.heritage_traits.ox_body_charm_ids.get(character.origin)
+        if parent_ox:
+            return parent_ox
     return ruleset.exalt_for(character.exalt_type).ox_body_charm_id
 
 
@@ -70,9 +78,29 @@ def ox_body_charm(ruleset: RuleSet, character: Character) -> Charm | None:
     return ruleset.charms.get(ox_body_charm_id(ruleset, character))
 
 
+def heritage_gift_spec(ruleset: RuleSet, character: Character):
+    """The heritage's parent-keyed Gift-granting Charm (id, purchase-cap) for the
+    character's `origin` — the Half-Caste's parent Exalt type. Only the Lunar parent
+    sets these: a Lunar Half-Caste may gain up to TWO alternate forms via Deadly
+    Beastman Transformation (p.47), so the cap is 2 regardless of Essence. None for
+    every heritage without a gift economy, which falls back to the splat's."""
+    caste = ruleset.castes.get(character.caste)
+    if caste is None or caste.heritage_traits is None:
+        return None
+    traits = caste.heritage_traits
+    if character.origin in traits.gift_charm_ids:
+        return (traits.gift_charm_ids[character.origin],
+                traits.gift_caps.get(character.origin))
+    return None
+
+
 def gift_charm_id(ruleset: RuleSet, character: Character) -> str:
     """The id of this character's splat's repeatable Gift-granting Charm (Deadly
-    Beastman Transformation for Lunar, p.124-127), or '' if the splat defines none."""
+    Beastman Transformation for Lunar, p.124-127), or the heritage's parent-keyed one
+    for a Lunar Half-Caste (p.47), or '' if neither defines one."""
+    spec = heritage_gift_spec(ruleset, character)
+    if spec is not None:
+        return spec[0]
     return ruleset.exalt_for(character.exalt_type).gift_charm_id
 
 
@@ -262,6 +290,12 @@ def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
             if rate is None:
                 rate = bp_costs.charm_favored_caste if cf else bp_costs.charm
             costs.append(rate)
+        elif charm.grants_circle is not None and bp_costs.magic_charm:
+            # The sorcery/necromancy INITIATION Charms (God-Blooded, p.50: "Charm/Spell*
+            # | 7 (10 for Sorcery or Necro-mancy Charms)"). Flat — the table prints no
+            # favoured variant. `magic_charm` 0 (every other splat) falls through to the
+            # ordinary rate below.
+            costs.append(bp_costs.magic_charm)
         else:
             costs.append(bp_costs.charm_favored_caste if cf else bp_costs.charm)
         # Brigid's Heir doubles the BONUS-point cost as well as the XP one, outside the
@@ -744,11 +778,19 @@ def _repeatable_purchase_cap(charm: Charm, character: Character) -> int:
     an Ability, an Attribute, or the special value 'essence' (Deadly Beastman
     Transformation, p.124 — "no more times than he has points of Essence"; Essence
     isn't an Ability or Attribute, so it can't come through the normal lookups).
-    0 if the Charm isn't repeatable or the trait name resolves to none of these."""
-    if not charm.repeatable_cap_ability:
+    Or a Virtue, via `repeatable_cap_virtue` (the God-Blooded Ox-Body Technique, PG
+    p.83 — "no more times than their Conviction rating"; the same retarget `min_virtue`
+    performs for Charm minimums). 0 if the Charm isn't repeatable or the trait name
+    resolves to none of these."""
+    if not charm.repeatable_cap_ability and not charm.repeatable_cap_virtue:
         return 0
     if charm.repeatable_cap_ability == "essence":
         return character.essence_rating
+    if charm.repeatable_cap_virtue:
+        try:
+            return character.virtues[VirtueName(charm.repeatable_cap_virtue)]
+        except ValueError:
+            return 0
     try:
         return character.abilities[AbilityName(charm.repeatable_cap_ability)]
     except ValueError:
@@ -1178,6 +1220,8 @@ def meets_spell_requirements(ruleset: RuleSet, character: Character, spell,
     """Whether the character could learn `spell` right now: a known Charm must grant
     its circle, and at chargen the Exalt type's highest circle is barred (Solars:
     Solar Circle, core p.100). Forward-looking counterpart to check_spell_access."""
+    if spell.id in ruleset.exalt_for(character.exalt_type).barred_spell_ids:
+        return False
     if chargen and spell.circle == chargen_barred_circle(ruleset, character):
         return False
     return spell.circle in granted_circles(ruleset, character)
@@ -1195,10 +1239,22 @@ def check_spell_access(ruleset: RuleSet, character: Character) -> list[Issue]:
     needed here; the prerequisite chain provides it.
     """
     granted = granted_circles(ruleset, character)
+    barred = ruleset.exalt_for(character.exalt_type).barred_spell_ids
     issues: list[Issue] = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
         if spell is None:
+            continue
+        # The splat-level spell bar, restated here as well as in
+        # meets_spell_requirements: the picker route and the already-held route are
+        # two ways to the same permission, and a bar on only one of them is this
+        # build's most-repeated bug.
+        if sid in barred:
+            issues.append(Issue(
+                code="spell-barred", where=sid,
+                message=(f"{spell.name}: {ruleset.exalt_for(character.exalt_type).label} "
+                         f"may never learn this spell."),
+            ))
             continue
         if spell.circle not in granted:
             issues.append(Issue(
@@ -1716,6 +1772,18 @@ def background_pool_spend(ruleset: RuleSet, character: Character, b, backgrounds
     for bg in backgrounds:
         rule = background_rule(b, bg.name)
         cap = bg.rating if (rule and rule.cap_pre_bp_exempt) else b.background_cap_pre_bp
+        # The God-Blooded Inheritance Background's FREE dots — the ST's series option
+        # (PG p.61, human 2026-08-02) — waive BOTH the pool cost and the above-cap
+        # bonus points: a free dot that sits above the cap must not appear in
+        # above_rates either, or "Inheritance 4 with the ST option at 4" still charges
+        # the two points for the fourth dot, which is exactly the complaint.
+        if bg.name.strip().lower() == "inheritance":
+            free = merits.inheritance_free_rating(ruleset, character)
+            within += max(0, min(bg.rating, cap) - free)
+            free_above = max(0, min(bg.rating, free) - cap)
+            rate = bp_costs.background_above_3
+            above_rates += [rate] * max(0, bg.rating - cap - free_above)
+            continue
         within += background_pool_dots(rule, min(bg.rating, cap))
         rate = bp_costs.background_above_3 + (rule.bp_surcharge_per_dot if rule else 0)
         above_rates += [rate] * max(0, bg.rating - cap)
@@ -2147,7 +2215,11 @@ def check_ox_body(ruleset: RuleSet, character: Character) -> list[Issue]:
 def gift_purchase_cap(ruleset: RuleSet, character: Character) -> int:
     """Max purchases of the splat's Gift-granting Charm: Character.essence_rating
     for Deadly Beastman Transformation ("no more times than he has points of
-    Essence", p.124). 0 if the splat has no such Charm."""
+    Essence", p.124). 0 if the splat has no such Charm. A heritage that sets its own
+    cap (the Lunar Half-Caste's two forms, p.47) wins over the Charm's own trait cap."""
+    spec = heritage_gift_spec(ruleset, character)
+    if spec is not None and spec[1] is not None:
+        return spec[1]
     charm = gift_charm(ruleset, character)
     if charm is None:
         return 0
@@ -2326,7 +2398,7 @@ def _attr_bp_caste_favored(ruleset: RuleSet, character: Character, b, bp_costs,
     on the caste and favored sets is charged the discounted
     `attribute_caste_favored` rate, and the remaining set the flat `attribute` rate."""
     caste, favored, remaining = _caste_favored_attribute_sets(ruleset, character)
-    pools = list(b.attribute_pools)
+    pools = list(effective_attribute_pools(ruleset, character))
 
     def spend(group: set) -> int:
         return sum(attributes.get(a, b.attribute_base) - b.attribute_base for a in group)
@@ -2534,7 +2606,7 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
         groups = _caste_favored_attribute_sets(ruleset, character)   # caste/favored/rest
         spends = [sum(attributes.get(a, b.attribute_base) - b.attribute_base for a in g)
                   for g in groups]
-        pools = list(b.attribute_pools)                              # FIXED order here
+        pools = list(effective_attribute_pools(ruleset, character))                              # FIXED order here
     else:
         assignment = attribute_pool_assignment(ruleset, character, b, attributes)
         spends = [spend for _cat, spend, _pool in assignment]
@@ -2759,12 +2831,30 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     bg_bp = bg_above_bp + bg_overflow * bp_costs.background
 
     # --- Virtues: 5 free dots over base 1, pre-BP cap 3 ----------------------- #
-    v_within = v_above = 0
+    # A Fae-Blooded's ATTUNED Virtue (Virtue Attunement, PG p.74) is priced at two
+    # bonus points per dot instead of the splat's three. Attuned dots draw on the free
+    # pool LAST (the player-favourable reading), so the discount lands on as many of
+    # their priced dots as possible: the pool absorbs the non-attuned dots first, and
+    # every attuned dot it cannot then hide is priced at the discounted rate.
+    favored = merits.merits_and_flaws_calc(ruleset, character).favored_virtues
+    v_within = v_above = attuned_within = attuned_above = 0
     for v, rating in virtues.items():
-        v_within += max(0, min(rating, b.virtue_cap_pre_bp) - b.virtue_base)
-        v_above += max(0, rating - b.virtue_cap_pre_bp)
+        within = max(0, min(rating, b.virtue_cap_pre_bp) - b.virtue_base)
+        above = max(0, rating - b.virtue_cap_pre_bp)
+        v_within += within
+        v_above += above
+        if v.value in favored:
+            attuned_within += within
+            attuned_above += above
     v_overflow = max(0, v_within - b.virtue_dots)
-    virtue_bp = (v_above + v_overflow) * bp_costs.virtue
+    # The free pool goes to the NON-attuned within-cap dots first; whatever is left
+    # then hides attuned dots, and the remaining attuned ones are priced (and get
+    # the discount): min(attuned_within, v_overflow) of the attuned within-cap dots.
+    # The free_left bookkeeping keeps that exact when the non-attuned dots do not
+    # themselves fill the pool.
+    free_left = max(0, b.virtue_dots - (v_within - attuned_within))
+    attuned_paid = attuned_above + max(0, attuned_within - free_left)
+    virtue_bp = (v_above + v_overflow) * bp_costs.virtue - attuned_paid
 
     # --- Charms & Spells ------------------------------------------------------ #
     if uses_charm_slots(ruleset, character):
@@ -2860,7 +2950,13 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
 
     # --- Willpower / Essence -------------------------------------------------- #
     wp_bp = wp_purchased * bp_costs.willpower
-    essence_bp = max(0, essence - b.essence_start) * bp_costs.essence
+    # Essence is usually linear (dot × rate); a splat whose BP table prices it by
+    # DESTINATION instead (God-Blooded, p.50: Essence 2* = 5, Essence 3** = 15) sets
+    # `essence_by_rating` and the exact-rating price wins.
+    if bp_costs.essence_by_rating and essence in bp_costs.essence_by_rating:
+        essence_bp = bp_costs.essence_by_rating[essence]
+    else:
+        essence_bp = max(0, essence - b.essence_start) * bp_costs.essence
 
     lines = [
         BonusPointLine(domain="Attributes", points=attr_bp),
@@ -2905,8 +3001,16 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     if character.merits_flaws or merit_bp:
         lines.append(BonusPointLine(domain="Merits", points=merit_bp))
     total = sum(line.points for line in lines)
+    # Inheritance (God-Blooded, p.61): the Background's rating adds bonus points on
+    # top of the budget's flat pool — Thin blood +6 … Divine +30. Indexed by rating,
+    # empty for every other splat (the term is then 0).
+    inheritance_bp = 0
+    if b.inheritance_bonus_points:
+        rating = min(merits.inheritance_rating(character),
+                     len(b.inheritance_bonus_points) - 1)
+        inheritance_bp = b.inheritance_bonus_points[rating]
     return BonusPointBreakdown(lines=lines, total=total,
-                               available=b.bonus_points + granted)
+                               available=b.bonus_points + granted + inheritance_bp)
 
 
 def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -2980,6 +3084,13 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                 code="merit-barred-caste", where=definition.id,
                 message=f"{definition.name} is not available to the "
                         f"{caste.label if caste else character.caste} caste.",
+            ))
+        if definition.required_origins and character.origin not in definition.required_origins:
+            issues.append(Issue(
+                code="merit-wrong-origin", where=definition.id,
+                message=f"{definition.name} is restricted to "
+                        f"{', '.join(definition.required_origins)}; this character "
+                        f"is a {character.origin or 'blank'} {character.caste}.",
             ))
         for limit in definition.points_limits:
             points = merit_points(definition, purchase, character.exalt_type,
@@ -3075,6 +3186,16 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                     message=f"{definition.name} may not be taken more times than "
                             f"{definition.max_purchases_from_trait} "
                             f"({limit}); found {count}.",
+                ))
+        # ...or by origin — Virtue Attunement is once for a commoner Fae-Blooded,
+        # twice for a noble (PG p.74). An origin with no entry in the map is uncapped.
+        if character.origin in definition.max_purchases_by_origin:
+            limit = definition.max_purchases_by_origin[character.origin]
+            if count > limit:
+                issues.append(Issue(
+                    code="merit-repeats-above-origin", where=mid,
+                    message=f"{definition.name} may be taken at most {limit} time(s) "
+                            f"as a {character.origin}; found {count}.",
                 ))
         for pid in definition.prerequisites:
             if pid not in held:
@@ -3186,14 +3307,14 @@ def exalt_type_barred_from_tier(definition, exalt_type: str, tier: str) -> bool:
 
 
 def merit_available_to(definition, exalt_type: str, caste: str = "", *,
-                       starting_essence: int | None = None) -> bool:
+                       origin: str = "", starting_essence: int | None = None) -> bool:
     """Whether the catalogue opens this entry to this character at all.
 
-    The printed restrictions only — splat allow-list, splat bar, caste bar — which are
-    inert catalogue DATA rather than effects, so no Merit id is named and
-    `engine.merits` is not consulted. Prerequisites, tiers and "thaumaturges only" are
-    NOT checked here: those depend on the rest of the sheet and change as it is built,
-    so hiding an entry for them would make the dropdown flicker.
+    The printed restrictions only — splat allow-list, splat bar, caste bar, origin
+    gate — which are inert catalogue DATA rather than effects, so no Merit id is named
+    and `engine.merits` is not consulted. Prerequisites, tiers and "thaumaturges only"
+    are NOT checked here: those depend on the rest of the sheet and change as it is
+    built, so hiding an entry for them would make the dropdown flicker.
 
     Shares its three conditions with the `merit-wrong-splat` / `merit-barred-splat` /
     `merit-barred-caste` issues above, so a UI that filters on this can never offer
@@ -3204,6 +3325,8 @@ def merit_available_to(definition, exalt_type: str, caste: str = "", *,
     if exalt_type in definition.barred_exalt_types:
         return False
     if caste and caste in definition.barred_castes:
+        return False
+    if definition.required_origins and origin not in definition.required_origins:
         return False
     # A splat-level floor on starting Essence. Optional because not every caller has
     # the budgets to hand; when it is not supplied the entry is NOT hidden, so a
@@ -3241,7 +3364,7 @@ def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attribu
          for cat, attrs in ATTRIBUTE_CATEGORIES.items()),
         key=lambda cs: cs[1], reverse=True,
     )
-    pools = sorted(b.attribute_pools, reverse=True)
+    pools = sorted(effective_attribute_pools(ruleset, character), reverse=True)
     return [(cat, spend, max(0, pool - forfeits.get(cat, 0)))
             for (cat, spend), pool in zip(cat_spends, pools)]
 
@@ -3334,6 +3457,95 @@ def merit_points(definition, purchase, exalt_type: str = "", caste: str = "") ->
     if options:
         return options.get(purchase.tier, options.get("", 0))
     return definition.cost
+
+
+def pool_requires_unlocking(ruleset: RuleSet, character: Character) -> bool:
+    """Whether the splat's Essence pool exists only after a Merit unlocks it — the
+    God-Blooded's (Awakened Essence, PG p.66; the per-heritage formula sits on the
+    caste's heritage_traits, not on the ExaltDefinition) and the mortal's (Essence
+    Awareness / Essence Mastery). True exactly when the splat has no NATIVE pool and
+    some unlocked spec exists to replace the empty one. One read site, shared by the
+    chargen gate (magic_gate_issues) and the advancement-side refusals, so the two
+    cannot disagree about which splats are gated."""
+    exalt = ruleset.exalt_for(character.exalt_type)
+    if exalt.essence.personal_essence_coeff or exalt.essence.personal_willpower_coeff:
+        return False                       # a native pool needs no unlocking
+    caste = ruleset.castes.get(character.caste)
+    if caste is not None and caste.heritage_traits is not None \
+            and caste.heritage_traits.unlocked_essence is not None:
+        return True
+    return exalt.unlocked_essence is not None
+
+
+def magic_gate_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """A splat whose Essence pool must be UNLOCKED (see `pool_requires_unlocking` —
+    the God-Blooded's pool comes from the Awakened Essence Merit, PG p.66) may not
+    hold Charms, spells, or Essence above its start until the pool is unlocked:
+    p.49, "Only God-Blooded with the Awakened Essence Merit may purchase or increase
+    magical Traits."
+
+    Mortals are deliberately skipped (`charms_available` False) — their bars already
+    live in charm_matches_splat and essence_start_cap, and this would double-report
+    the same Charm. God-Blooded hold Charms freely once unlocked (charms_available
+    True), so this gate is what stops an Awakened-Essence-less build from keeping the
+    seven-BP Charms. Mirrors the advancement-side refusal in learn_charm/learn_spell."""
+    exalt = ruleset.exalt_for(character.exalt_type)
+    if not pool_requires_unlocking(ruleset, character) or not exalt.charms_available:
+        return []
+    if merits.merits_and_flaws_calc(ruleset, character).essence_pool_unlocked:
+        return []
+    b = ruleset.budgets_for(character.exalt_type, character.origin,
+                            character.upbringing)
+    issues: list[Issue] = []
+    if list(charm_picks(ruleset, character)):
+        issues.append(Issue(
+            code="magic-requires-awakened-essence", where="charms",
+            message=f"{exalt.label} may not purchase Charms without the Awakened "
+                    "Essence Merit (PG p.49).",
+        ))
+    if character.spells:
+        issues.append(Issue(
+            code="magic-requires-awakened-essence", where="spells",
+            message=f"{exalt.label} may not learn spells without the Awakened Essence "
+                    "Merit (PG p.49).",
+        ))
+    if character.essence_rating > b.essence_start:
+        issues.append(Issue(
+            code="magic-requires-awakened-essence", where="essence",
+            message="Essence above the starting rating requires the Awakened Essence "
+                    "Merit (PG p.48).",
+        ))
+    return issues
+
+
+def heritage_origin_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """A heritage that keys off the origin axis must actually choose one of its
+    options, and the value must BE one of them. Two heritages key off it: the
+    Half-Caste's parent Exalt type (p.47: "learn the Charms of their parents") and
+    the Fae-Blooded's Noble/Commoner (the nobility axis the powers on pp.73-79 gate
+    on, human 2026-08-02). Without one the heritage is half-formed — a Half-Caste
+    with no parent learns nothing, a Fae-Blooded with no nobility cannot be gated.
+    A value from ANOTHER heritage is just as broken (a Fae-Blooded carrying a
+    "Solar" parent), and is reported distinctly so the stale choice is visible
+    rather than merely fatal in the editor."""
+    caste = ruleset.castes.get(character.caste)
+    if caste is None or caste.heritage_traits is None \
+            or not caste.heritage_traits.origin_options:
+        return []
+    options = list(caste.heritage_traits.origin_options)
+    if character.origin in options:
+        return []
+    if not character.origin:
+        return [Issue(
+            code="heritage-requires-origin", where="origin",
+            message=f"A {caste.label} must choose an origin "
+                    f"({', '.join(options)}).",
+        )]
+    return [Issue(
+        code="heritage-foreign-origin", where="origin",
+        message=f"{character.origin!r} is not a {caste.label} origin; "
+                f"choose one of {', '.join(options)}.",
+    )]
 
 
 def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -3769,6 +3981,12 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                     f"{b.essence_start_cap} for this origin.",
         ))
 
+    # A Merit-gated splat's magical purchases require the pool unlocked (God-Blooded
+    # + Awakened Essence); otherwise Charms, spells and Essence above start are all
+    # illegal together, and each reports on its own domain.
+    issues += magic_gate_issues(ruleset, character)
+    issues += heritage_origin_issues(ruleset, character)
+
     # Unallocated free dots — warnings, so they never block, but "✓ Legal" no longer
     # claims a blank sheet is finished.
     issues.extend(unspent_budget_issues(ruleset, character))
@@ -3882,8 +4100,16 @@ def charm_matches_splat(character: Character, charm: Charm,
     which is asked of engine.merits and never decided here."""
     # A Charm this splat may never hold, whatever else permits it (ghosts and Spirit
     # Walking). First, and above every grant below — including the splat's own Charms —
-    # because a bar a later branch can talk past is not a bar.
+    # because a bar a later branch can talk past is not a bar. The HERITAGE bar (the
+    # Half-Caste's perfect/persistent defense ban) sits beside the splat-level one, so
+    # the two cannot disagree about ordering.
     if ruleset is not None and charm.id in ruleset.exalt_for(character.exalt_type).barred_charm_ids:
+        return False
+    if ruleset is not None and charm.id in heritage_barred_charm_ids(ruleset, character):
+        return False
+    # …and the heritage's magic TRACK, which bars the other discipline's initiation
+    # Charms (p.48). Same position, for the same reason.
+    if ruleset is not None and heritage_bars_initiation(ruleset, character, charm):
         return False
     if ruleset is not None and not charms_available(ruleset, character):
         eff = merits.merits_and_flaws_calc(ruleset, character)
@@ -3904,7 +4130,18 @@ def charm_matches_splat(character: Character, charm: Charm,
     # them the cross-splat Terrestrial styles — the same ordering trap the mortal bar
     # above documents. Their own Arcanoi are unaffected.
     if ruleset is not None and ruleset.exalt_for(character.exalt_type).foreign_charms_barred:
-        if splat_of(charm) == character.exalt_type:
+        # ...gated on the heritage allowing native Charms at all: a Fae-Blooded's
+        # "do not use Charms" (p.47) closes the God-Blooded's own Arcanoi wholesale
+        # (heritage_charms_available False) rather than deny-listing today's eight —
+        # a list a ninth Charm, authored for a later heritage, would silently outrun.
+        if (splat_of(charm) == character.exalt_type
+                and heritage_charms_available(ruleset, character)):
+            return True
+        # …the heritage's borrowed catalogue (God-Blooded, PG p.47): a Ghost-Blooded
+        # learns the Ghost Arcanoi "exactly as their parents". Still a NATIVE match —
+        # this sits inside the foreign-bar, so it is not the p.127 generalist privilege
+        # and is not restated separately in charm_learnable_by_splat's foreign branch.
+        if splat_of(charm) in heritage_charm_access(ruleset, character):
             return True
         # …with one printed exception: the Terrestrial supernatural martial arts
         # (PG p.234). Same shape as the mortal Essence Mastery branch above, and for
@@ -3958,6 +4195,117 @@ def foreign_charms_caste(ruleset: RuleSet, character: Character):
     return caste if caste is not None and caste.foreign_charms else None
 
 
+def heritage_charm_access(ruleset: RuleSet, character: Character) -> frozenset[str]:
+    """The exalt_types whose Charm catalogues the character's heritage may learn
+    natively — the God-Blooded "learn the Charms of their magical parents, exactly
+    as their parents" (PG p.47). A Ghost-Blooded's heritage borrows the Ghost Arcanoi
+    catalogue; the Half-Caste heritage borrows its parent EXALT type, which rides the
+    `origin` axis (the Origin dropdown, human 2026-08-02). Read off the caste's
+    `heritage_traits`: the static `charm_access` list, or `character.origin` when
+    `charm_access_parent` is set (empty when no parent chosen). Empty for every
+    non-God-Blooded caste. One read site, so adding a heritage's catalogue is a data
+    edit."""
+    caste = ruleset.castes.get(character.caste)
+    if caste is None or caste.heritage_traits is None:
+        return frozenset()
+    if caste.heritage_traits.charm_access_parent:
+        return frozenset({character.origin}) if character.origin else frozenset()
+    return frozenset(caste.heritage_traits.charm_access)
+
+
+def heritage_charms_available(ruleset: RuleSet, character: Character) -> bool:
+    """Whether this heritage may hold its OWN splat's native Charms
+    (`GodbloodedHeritage.charms_available`). The one False heritage is the Fae-Blooded,
+    "The children of the Fair Folk do not use Charms" (p.47) — the whole native
+    catalogue is closed, not the eight Arcanoi individually, so a Charm authored for a
+    later heritage (God/Demon-Blooded's spirit Charms) cannot silently become legal
+    here. The gate sits at the native match in charm_matches_splat, the one site it can
+    be walked past: the foreign `charm_access` catalogue and the p.234 Terrestrial arts
+    are separate grants and survive it."""
+    if ruleset is None:
+        return True
+    caste = ruleset.castes.get(character.caste)
+    if caste is None or caste.heritage_traits is None:
+        return True
+    return caste.heritage_traits.charms_available
+
+
+def heritage_barred_charm_ids(ruleset: RuleSet, character: Character) -> frozenset[str]:
+    """Charm ids this heritage may never hold (`GodbloodedHeritage.barred_charm_ids`) —
+    the Half-Caste's "may not master any Charms that provide a perfect defense or
+    persistent scene-length defense" list plus the Sidereal Maiden-approval Charms
+    (p.47). Empty for every non-God-Blooded caste. Checked FIRST in both charm gates,
+    exactly like `ExaltDefinition.barred_charm_ids`, so a bar a later grant branch can
+    talk past is not a bar."""
+    caste = ruleset.castes.get(character.caste)
+    if caste is None or caste.heritage_traits is None:
+        return frozenset()
+    return frozenset(caste.heritage_traits.barred_charm_ids)
+
+
+def heritage_magic_track(ruleset: RuleSet, character: Character) -> str:
+    """The ONE magic track this heritage may be initiated into ("sorcery" /
+    "necromancy"), "" for no restriction, or "none" for a heritage that may initiate
+    into NOTHING. PG p.48: "Terrestrial Circle Sorcery is available to all the
+    remaining heritages save Ghost-Blooded and Abyssal Half-Caste. Conversely, only
+    these heritages may learn Shadowlands Circle Necromancy." — and the Fae-Blooded,
+    whose magic is glamour Merits rather than spells: "All God-Blooded with the
+    Awakened Essence Merit APART FROM Fae-Blooded may also learn to cast spells."
+    "none" is the third state the Phase C machinery needs; "" would mean no restriction,
+    which is the OPPOSITE for a Fae-Blooded (that trap is why the sentinel exists).
+
+    Read off the caste's `heritage_traits`: the parent-keyed map wins where the parent
+    has an entry (the Half-Caste's track follows their PARENT, not their heritage),
+    otherwise the scalar. Empty for every non-God-Blooded caste."""
+    caste = ruleset.castes.get(character.caste)
+    if caste is None or caste.heritage_traits is None:
+        return ""
+    traits = caste.heritage_traits
+    return traits.magic_track_by_parent.get(character.origin) or traits.magic_track
+
+
+def heritage_bars_initiation(ruleset: RuleSet, character: Character, charm: Charm) -> bool:
+    """Whether the heritage's magic track bars this Charm — true only for an
+    INITIATION Charm (one with `grants_circle`) whose circle belongs to the other
+    track. A heritage with no track restriction bars nothing, and an ordinary Charm is
+    never touched: this restricts which magic a heritage may unlock, not which Charms
+    it may hold.
+
+    Charm ACCESS alone does not express the rule. A Ghost-Blooded happens to land on
+    necromancy because the Ghost catalogue holds no sorcery, but an Abyssal Half-Caste
+    borrows a catalogue holding BOTH and would otherwise reach Terrestrial Sorcery,
+    and a Solar Half-Caste's catalogue holds Shadowlands Circle Necromancy."""
+    if charm.grants_circle is None:
+        return False
+    track = heritage_magic_track(ruleset, character)
+    if track == "none":
+        # The Fae-Blooded: no spell initiation at all, Awakened Essence or not (p.48).
+        return True
+    if not track:
+        return False
+    allowed = TRACK_CIRCLES.get(track, ())
+    # God-Blooded are limited to the FIRST circle of their track (p.48: "Greater
+    # circles of sorcery and necromancy lie beyond the purview of the God-Blooded").
+    # This is the real bar — the Essence-3 cap was never enough, because the
+    # splat-access gate does not consult min_essence, so a Celestial/Solar (or
+    # Labyrinth/Void) initiation was OFFERED even though the buy path would refuse.
+    return charm.grants_circle not in allowed[:1]
+
+
+def effective_attribute_pools(ruleset: RuleSet, character: Character) -> tuple[int, int, int]:
+    """The character's attribute pools — the budget's, unless the heritage overrides
+    them. The Half-Caste heritage sets `attribute_pools` to (6, 5, 4) (PG p.47 prose;
+    the p.50 summary's 6/5/3 is a printing error), where every other heritage keeps
+    the God-Blooded 6/4/3. One read site so a heritage override cannot land in some
+    of the six attribute-pool readers and not the rest."""
+    caste = ruleset.castes.get(character.caste)
+    heritage = caste.heritage_traits if caste is not None else None
+    if heritage is not None and heritage.attribute_pools is not None:
+        return tuple(heritage.attribute_pools)
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    return tuple(b.attribute_pools)
+
+
 def foreign_charms_permitted(character: Character) -> bool:
     """The stored Storyteller permission alone, ignoring caste and lock state — what
     the chargen checkbox reflects. `foreign_charms_open` is the question the engine
@@ -4008,6 +4356,13 @@ def charm_learnable_by_splat(ruleset: RuleSet, character: Character, charm: Char
     # 2026-08-01, one grant earlier.
     if charm.id in ruleset.exalt_for(character.exalt_type).barred_charm_ids:
         return False
+    # The heritage-level bar is restated at THIS entry point too — the generalist
+    # privilege below is a second route to the same permission, and a bar on only one
+    # of two routes is the build's most-repeated bug.
+    if charm.id in heritage_barred_charm_ids(ruleset, character):
+        return False
+    if heritage_bars_initiation(ruleset, character, charm):
+        return False
     if charm_matches_splat(character, charm, ruleset):
         return True
     # A splat barred from other people's Charms outright (the dead, E:Ab p.126) is
@@ -4016,8 +4371,9 @@ def charm_learnable_by_splat(ruleset: RuleSet, character: Character, charm: Char
     # of two routes is this build's most-repeated bug — a ghost given the Eclipse
     # privilege by a house rule would otherwise walk straight past p.126.
     if ruleset.exalt_for(character.exalt_type).foreign_charms_barred:
-        return (ruleset.exalt_for(character.exalt_type).terrestrial_martial_arts
-                and is_terrestrial_martial_arts(charm))
+        return (splat_of(charm) in heritage_charm_access(ruleset, character)
+                or (ruleset.exalt_for(character.exalt_type).terrestrial_martial_arts
+                    and is_terrestrial_martial_arts(charm)))
     # A Charm flagged no_foreign_learning is never reachable through the generalist
     # rule (the Alchemical Weaving Engines — CH4, "Non-Alchemicals cannot learn
     # weaving Charms"): only its own splat, caught by the match above, may hold it.
@@ -4059,6 +4415,20 @@ def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issu
                 message=f"Charm {charm.name!r} is {splat_of(charm)} and cannot be "
                         f"learned by another Exalt type even under the generalist "
                         f"rule (CH4: non-Alchemicals cannot learn weaving Charms).",
+            ))
+            continue
+        if splat_of(charm) == character.exalt_type:
+            # The Charm belongs to the character's OWN splat yet charm_matches_splat
+            # refused it — a heritage bar (a God-Blooded holding a God-Blooded Arcanos,
+            # p.47 "do not use Charms"), not a splat mismatch. "Wrong splat" would be
+            # actively misleading, the same call the mortal branch above makes. Checked
+            # before the ST foreign-charm privilege: the toggle waives the p.127
+            # generalist rule, not a bar on the character's own catalogue.
+            issues.append(Issue(
+                code="charm-wrong-splat", where=cid,
+                message=f"Charm {charm.name!r} belongs to the character's own "
+                        f"{character.exalt_type} splat but is barred for this "
+                        f"character; remove {cid!r}.",
             ))
             continue
         if permissive:

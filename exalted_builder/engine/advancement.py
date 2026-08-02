@@ -214,7 +214,7 @@ def raise_virtue(ruleset: RuleSet, character: Character, virtue: VirtueName) -> 
     cap = mf_cap if mf_cap is not None else _DOT_MAX
     if frm >= cap:
         raise AdvancementError(f"{virtue.value} is already at {cap}.")
-    cost = costs.virtue_step(ruleset, character, frm)
+    cost = costs.virtue_step(ruleset, character, frm, virtue)
     entry = _commit(character, f"virtues.{virtue.value}", "", frm, frm + 1, cost)
     character.virtues[virtue] = frm + 1
     return entry
@@ -669,6 +669,25 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
         raise AdvancementError(
             f"{ruleset.exalt_for(character.exalt_type).label} characters cannot "
             f"purchase Charms (core p.103).")
+    # A splat whose Essence pool requires unlocking (God-Blooded, PG p.66 — the pool
+    # comes from the Awakened Essence Merit) may not purchase Charms until it is:
+    # p.49, "Only God-Blooded with the Awakened Essence Merit may purchase or increase
+    # magical Traits." The pool unlock IS the gate. Mirrored in validate for chargen.
+    if (validate.pool_requires_unlocking(ruleset, character)
+            and not validate.merits.merits_and_flaws_calc(
+                ruleset, character).essence_pool_unlocked):
+        raise AdvancementError(
+            f"{ruleset.exalt_for(character.exalt_type).label} characters must hold "
+            f"the Awakened Essence Merit to purchase Charms (PG p.49).")
+    # A Charm of the character's OWN splat that charm_learnable_by_splat still refuses
+    # is a heritage bar (a Fae-Blooded holding a God-Blooded Arcanos, p.47 "do not use
+    # Charms"), not a foreign Charm — "belongs to another Exalt type" would be actively
+    # misleading for a God-Blooded, the same call the mortal branch above makes.
+    if (validate.splat_of(charm) == character.exalt_type
+            and not validate.charm_learnable_by_splat(ruleset, character, charm)):
+        raise AdvancementError(
+            f"{charm.name} belongs to the {character.exalt_type} splat but is barred "
+            f"for this character.")
     # Another splat's Charm is buyable only by an Eclipse-style caste (p.127), and
     # then at the doubled price costs.charm_cost applies.
     if not validate.charm_learnable_by_splat(ruleset, character, charm):
@@ -706,6 +725,15 @@ def learn_spell(ruleset: RuleSet, character: Character, spell_id: str) -> XpEntr
         raise AdvancementError(f"Unknown spell {spell_id!r}.")
     if spell_id in character.spells:
         raise AdvancementError(f"{spell.name} is already known.")
+    # The same Merit gate as learn_charm: a God-Blooded may not buy spells without the
+    # unlocked pool (p.49). The Spell itself is cross-splat, so the splat check has to
+    # live here rather than on any spell.
+    if (validate.pool_requires_unlocking(ruleset, character)
+            and not validate.merits.merits_and_flaws_calc(
+                ruleset, character).essence_pool_unlocked):
+        raise AdvancementError(
+            f"{ruleset.exalt_for(character.exalt_type).label} characters must hold "
+            f"the Awakened Essence Merit to purchase spells (PG p.49).")
     # Post-lock the chargen Solar-Circle bar lifts; only circle access is required.
     if not validate.meets_spell_requirements(ruleset, character, spell, chargen=False):
         raise AdvancementError(f"{spell.name}: no known Charm grants its Circle.")
@@ -1417,7 +1445,8 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         return (costs.college_new_cost(ruleset, character) if frm <= 0
                 else costs.college_step(ruleset, character, frm))
     if domain == "virtues" and frm is not None:
-        return costs.virtue_step(ruleset, character, frm)
+        return costs.virtue_step(ruleset, character, frm,
+                                 VirtueName(key) if key else None)
     if domain == "willpower" and frm is not None:
         return costs.willpower_step(ruleset, character, frm)
     if domain == "essence" and frm is not None:
@@ -1578,6 +1607,15 @@ def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
     held = [p.merit_id for p in character.merits_flaws]
     if merit_id in held and not definition.repeatable_by:
         raise AdvancementError(f"{definition.name} is already held.")
+    # An origin-keyed repeat cap (Virtue Attunement: once for a commoner Fae-Blooded,
+    # twice for a noble, PG p.74) must hold on the buy path too, or a Commoner could
+    # buy a second copy with XP past what validate refuses.
+    if character.origin in definition.max_purchases_by_origin:
+        limit = definition.max_purchases_by_origin[character.origin]
+        if held.count(merit_id) >= limit:
+            raise AdvancementError(
+                f"{definition.name} may be taken at most {limit} time(s) "
+                f"as a {character.origin}.")
     for pid in definition.prerequisites:
         if pid not in held:
             name = ruleset.merits_flaws[pid].name if pid in ruleset.merits_flaws else pid

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "godblooded.general-arcanoi.ox-body-technique",
+    "name": "Ox-Body Technique",
+    "category": "general_arcanoi",
+    "exalt_type": "God-Blooded",
+    "type": "Special",
+    "min_virtue": "conviction",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "repeatable_cap_virtue": "conviction",
+    "variants": [
+      {
+        "key": "two-minus-two",
+        "label": "Two -2 levels",
+        "health_levels": [
+          -2,
+          -2
+        ],
+        "description": "Gain two extra -2 health levels."
+      }
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "Like the Exalted, the children of spirits may also exhibit superhuman resilience. Each time this Charm is purchased, the character gains two additional -2 health levels. Characters cannot purchase this Charm more times than their Conviction rating. Actual gods, elementals and demons do not normally use this Charm, but instead manifest health levels appropriate to their nature. As the souls of mortals, ghosts require this Arcanos to surpass mortal limits of resilience. (PG p.83)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 83
+    }
+  }
+]

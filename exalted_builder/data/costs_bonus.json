@@ -115,5 +115,19 @@
     "charm": 6,
     "charm_favored_caste": 6,
     "fetter": 3
+  },
+  "God-Blooded": {
+    "attribute": 4,
+    "ability": 2,
+    "ability_favored_caste": 1,
+    "background": 1,
+    "background_above_3": 2,
+    "specialty": 1,
+    "virtue": 3,
+    "willpower": 2,
+    "essence_by_rating": { "2": 5, "3": 15 },
+    "charm": 7,
+    "charm_favored_caste": 7,
+    "magic_charm": 10
   }
 }

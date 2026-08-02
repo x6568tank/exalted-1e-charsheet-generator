@@ -405,6 +405,14 @@ def essence_freely_accessible(ruleset: RuleSet, character: Character) -> Optiona
     return (personal + peripheral) // 3
 
 
+def _heritage_traits(ruleset: RuleSet, character: Character):
+    """The character's `CasteDefinition.heritage_traits` (a God-Blooded heritage), or
+    None for every non-God-Blooded caste. One read site for the heritage-keyed bits
+    this module derives (the Awakened-Essence pool formula, PG p.66)."""
+    caste = ruleset.castes.get(character.caste)
+    return caste.heritage_traits if caste is not None else None
+
+
 def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
     """(personal, peripheral) motes, from the character's Exalt-type formula
     (RuleSet.exalt_for → EssencePoolSpec), a pure data lookup rather than a per-splat
@@ -436,8 +444,14 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
     effects = _merits.merits_and_flaws_calc(ruleset, character)
     exalt = ruleset.exalt_for(character.exalt_type)
     spec = exalt.essence
-    if exalt.unlocked_essence is not None and effects.essence_pool_unlocked:
-        spec = exalt.unlocked_essence
+    if effects.essence_pool_unlocked:
+        heritage = _heritage_traits(ruleset, character)
+        if heritage is not None and heritage.unlocked_essence is not None:
+            # A God-Blooded's Awakened-Essence pool is per-heritage (PG p.66), so the
+            # caste's formula wins over the Exalt-level one (which no God-Blooded sets).
+            spec = heritage.unlocked_essence
+        elif exalt.unlocked_essence is not None:
+            spec = exalt.unlocked_essence
     essence = character.essence_rating
     wp = willpower(character, ruleset)
     override = effects.breeding_rating_override

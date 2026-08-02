@@ -57,13 +57,25 @@ def house_rules(character: Character) -> HouseRules:
     return character.house_rules
 
 
-def set_rule(character: Character, field: str, value: bool) -> None:
-    """Set one toggle. Pure state; the caller refreshes. Guarded against unknown
+def set_rule(character: Character, field: str,
+             value: bool | str | int | None) -> None:
+    """Set one house rule. Pure state; the caller refreshes. Guarded against unknown
     field names so a renamed field fails loudly here rather than silently writing an
-    attribute nothing reads."""
+    attribute nothing reads.
+
+    The stored type varies by control: a checkbox sends a bool, the M&F-method select
+    sends the option's stored string (NOT bool(value) — that would turn "backgrounds"
+    into True), and the Inheritance-rating select sends an option key ("per-character"
+    or "1".."5") that lands on the model as None or an int."""
     if field not in HouseRules.model_fields:
         raise KeyError(f"{field!r} is not a HouseRules field")
-    setattr(house_rules(character), field, bool(value))
+    target = house_rules(character)
+    if field == "mf_change_method":
+        setattr(target, field, value)
+    elif field == "godblooded_inheritance_rating":
+        setattr(target, field, None if value == "per-character" else int(value))
+    else:
+        setattr(target, field, bool(value))
 
 
 def build_storyteller(ruleset: RuleSet, character: Character, save_path: Path,

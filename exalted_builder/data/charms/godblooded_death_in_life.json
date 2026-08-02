@@ -1,0 +1,142 @@
+[
+  {
+    "id": "godblooded.death-in-life.transubstantiation-of-flesh",
+    "name": "Transubstantiation of Flesh",
+    "category": "death_in_life",
+    "exalt_type": "God-Blooded",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes per hour (plus 1 Willpower in Creation)"
+    },
+    "duration": "Varies",
+    "description": "With this Arcanos, a Ghost-Blood may suffuse his body with necrotic Essence, blurring the distinction between flesh and corpus. This effect lasts one hour for every 5 motes spent. During that time, the ghost-blood's body becomes fully malleable to the Arcanoi of the Shifting Ghost-Clay Path. In addition, the character gains the ability to soak lethal damage with half Stamina and otherwise resists injury, poison and disease like one of the Exalted. When the duration ends, however, the spectral flesh overrides all changes and reverts to its original state. Characters employing this Arcanos can perceive incorporeal ghosts clearly, though other types of spirits remain hidden to their senses. (PG p.84)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 84
+    }
+  },
+  {
+    "id": "godblooded.death-in-life.lower-soul-ascendant",
+    "name": "Lower Soul Ascendant",
+    "category": "death_in_life",
+    "exalt_type": "God-Blooded",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "godblooded.death-in-life.transubstantiation-of-flesh"
+      ]
+    ],
+    "cost": {
+      "raw": "7 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "Unlike their ghostly parents, the Half-Dead retain both higher and lower souls. Although both halves remain conjoined until death, a Ghost-Blood with this Arcanos may briefly subsume his higher consciousness to the bestial power of his bloated po. For the rest of the scene, the character loses all morality and embraces psychopathic behavior such as that imposed by the Deliberate Cruelty Virtue Flaw (see Exalted, p. 132). In addition, the character suffers no wound penalties and adds his Essence rating to all Physical Attributes. When the Arcanos ends, his player must roll Conviction + Essence; the character remains trapped in his inhuman cruelty for a number of hours equal to the successes rolled. Incapacitated or mortally wounded Ghost-Blooded may explicitly activate Lower Soul Ascendant as a reflexive action regardless of whether they are conscious or have already used a Charm during the turn. (PG p.84)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 84
+    }
+  },
+  {
+    "id": "godblooded.death-in-life.spiteful-essence-onslaught",
+    "name": "Spiteful Essence Onslaught",
+    "category": "death_in_life",
+    "exalt_type": "God-Blooded",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "godblooded.death-in-life.lower-soul-ascendant"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per 1L per target"
+    },
+    "duration": "Instant",
+    "description": "Building on the principles of Lower Soul Ascendant, a Ghost-Blood can manifest the wrath of her swollen po in rays of pale, searing Essence. As the Arcanos activates, dancing sparks of cold light ignite around the character like will-o-wisps, brightly visible to material and immaterial onlookers alike. The Ghost-Blood's player makes one attack roll of Charisma + Conviction, with a base difficulty of the number of separate targets included in the barrage. The character cannot attack more targets in a single use of this Arcanos than her Essence rating. The base damage is 1L per mote spent powering the blast, plus successes on the attack roll, but the character must spend motes for each target separately, allocating at least 1 mote to each. Characters cannot spend more motes on all uses of this Charm in a single turn than their Conviction + Essence. (PG p.84)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 84
+    }
+  },
+  {
+    "id": "godblooded.death-in-life.wraith-form-transformation",
+    "name": "Wraith Form Transformation",
+    "category": "death_in_life",
+    "exalt_type": "God-Blooded",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "godblooded.death-in-life.transubstantiation-of-flesh"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes per hour, plus 1 Willpower"
+    },
+    "duration": "Varies",
+    "description": "A Ghost-Blood employing Wraith Form Transformation ripples and fades away with a rustling whisper, her flesh wholly subsumed into the corpus of her Half-Dead soul. This Arcanos duplicates the effects of Transubstantiation of Flesh, including the resistance conferred and susceptibility to Arcanoi of the Shifting Ghost-Clay Path. Furthermore, she does not need air, food or water for the duration of the effect. However, the Arcanos also causes the Ghost-Blood to dematerialize as per the spirit Charm of the same name. Unlike elementals, Ghost-Blooded may still regain Essence through respiration and pay no upkeep while dematerialized with this Arcanos. However, it still requires a dice action for a Ghost-Blood to prematurely end the effect to rematerialize, and wards intended to bar the passage of ghosts can stop her. A character who dies while under the effects of Wraith Form Transformation always becomes a ghost. (PG p.85)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 85
+    }
+  },
+  {
+    "id": "godblooded.death-in-life.ghost-body-evasion",
+    "name": "Ghost Body Evasion",
+    "category": "death_in_life",
+    "exalt_type": "God-Blooded",
+    "type": "Reflexive",
+    "min_virtue": "conviction",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "godblooded.death-in-life.wraith-form-transformation"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes"
+    },
+    "duration": "One turn",
+    "description": "A Ghost-Blood with this Arcanos may dissolve into an incorporeal form in response to physical danger, perceived or otherwise. He remains visible to onlookers as a luminous translucent phantom, but all physical attacks pass through his incorporeal body. Use of this Arcanos is not considered a type of dodge or soak, but may preempt damage by allowing the character to become immaterial in the instant before an attack strikes. Obviously, Ghost Body Evasion provides no defense against attacks that function against immaterial beings. Characters may rematerialize prior to the end of the turn if so desired by reflexively spending one Willpower point. The immaterial state granted by this Arcanos duplicates the effects of Wraith Form Transformation. (PG p.85)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 85
+    }
+  },
+  {
+    "id": "godblooded.death-in-life.restless-spirit-sojourn",
+    "name": "Restless Spirit Sojourn",
+    "category": "death_in_life",
+    "exalt_type": "God-Blooded",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "godblooded.death-in-life.wraith-form-transformation"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes, 1 Willpower"
+    },
+    "duration": "Indefinite",
+    "description": "With the activation of this Arcanos, a Ghost-Blood's body falls into a deep coma, and her soul flows from her mouth as an immaterial cloud of Essence. The soul reforms over the next turn into the dematerialized semblance of the character, as if she had used Wraith Form Transformation. This spirit body begins with a number of -0 health levels equal to the character's permanent Willpower plus any levels obtained with Ox-Body Technique. The soul keeps track of health separate from the actual body. A Ghost-Blood using Restless Spirit Sojourn may return her soul to her body across any distance by reflexively spending a Willpower point and accepting a level of unsoakable aggravated damage to her flesh. No Essence or Willpower is required if the soul can touch its flesh in an attempt to rejoin. If a character's spirit body dies, she loses one point of permanent Essence, and her scarred soul returns to its flesh. If a Ghost-Blood's body dies in its soul's absence, the character becomes a full ghost with her body's usual health levels minus any spiritual damage already sustained. (PG p.85)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 85
+    }
+  }
+]

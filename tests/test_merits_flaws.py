@@ -91,9 +91,11 @@ def test_merit_definitions_carry_no_mechanical_effect(rs):
     assert fields == {"id", "name", "kind", "category", "cost", "cost_options",
                       "cost_options_by_exalt_type", "cost_options_by_caste", "cost_by_kind",
                       "variable_cost", "exalt_types", "barred_exalt_types",
-                      "cost_note", "barred_castes", "prerequisites", "min_starting_essence",
+                      "cost_note", "barred_castes", "required_origins",
+                      "prerequisites", "min_starting_essence",
                       "tier_barred_exalt_types", "prerequisite_note", "trait_prerequisites",
-                      "max_purchases_from_trait", "points_limits", "repeatable_by",
+                      "max_purchases_from_trait", "max_purchases_by_origin",
+                      "points_limits", "repeatable_by",
                       "takes_stipulations",
                       "thaumaturges_only", "description", "source"}
 
@@ -2811,7 +2813,7 @@ def test_every_variable_cost_entry_is_inert_at_zero_points(rs):
     variable-cost entry is legal, costless and effectless. Nothing was ever going to
     fail — it just quietly did nothing."""
     variable = [m for m in rs.merits_flaws.values() if m.variable_cost]
-    assert len(variable) == 12          # 11 from the general chapter + Fighter in Life
+    assert len(variable) == 14          # 11 general + Fighter in Life + 2 Fae-Blooded forms
     for m in variable:
         # Priced against a splat the entry is actually open to — Fighter in Life is
         # Ghosts only (PG p.234), and asking a Solar for its price is meaningless.

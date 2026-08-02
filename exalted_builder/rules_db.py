@@ -278,6 +278,41 @@ def _check_thaumaturgy(arts, sciences, formulas, problems: list[str]) -> None:
                 f"above that Science's max_rating of {science.max_rating}")
 
 
+def _check_charm_references(exalts, castes, charms, spells, problems: list[str]) -> None:
+    """Every Charm or Spell id named by an ExaltDefinition or a CasteDefinition's
+    `heritage_traits` must exist. These are the quietest dangling ids in the build:
+    a `barred_charm_ids`/`barred_spell_ids` entry that resolves to nothing BARS
+    NOTHING — the bar reads as satisfied and the Charm or Spell stays learnable — and
+    a heritage's parent-keyed Ox-Body/Gift id that misses silently drops that parent's
+    repeatable-purchase cap. None of it raises, and none of it is visible to a test
+    asserting the field's contents, so the check has to live at load.
+
+    `ExaltDefinition.ox_body_charm_id`/`gift_charm_id` are deliberately NOT checked
+    here: the loader's own synthetic fixtures name splat Charms outside their
+    miniature catalogues, and the two are already exercised through real characters."""
+    for exalt in exalts.values():
+        for cid in exalt.barred_charm_ids:
+            if cid not in charms:
+                problems.append(f"exalt {exalt.id!r}: barred charm {cid!r} does not exist")
+        for sid in exalt.barred_spell_ids:
+            if sid not in spells:
+                problems.append(f"exalt {exalt.id!r}: barred spell {sid!r} does not exist")
+    for caste in castes.values():
+        heritage = getattr(caste, "heritage_traits", None)
+        if heritage is None:
+            continue
+        for cid in heritage.barred_charm_ids:
+            if cid not in charms:
+                problems.append(f"caste {caste.id!r}: barred charm {cid!r} does not exist")
+        # The parent-keyed maps (Half-Caste, PG p.47) — same silent failure, keyed by
+        # the parent Exalt type rather than named once.
+        for field in ("ox_body_charm_ids", "gift_charm_ids"):
+            for parent, cid in getattr(heritage, field, {}).items():
+                if cid not in charms:
+                    problems.append(
+                        f"caste {caste.id!r}: {field}[{parent!r}] {cid!r} does not exist")
+
+
 def _check_camps_and_callings(camps, callings, charms, problems: list[str]) -> None:
     """Every Charm a TrainingCamp grants or a Calling discounts must exist, and every
     Calling must belong to a real camp. A dangling id here is silent in a way the
@@ -466,6 +501,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     # referential integrity — only meaningful once the rows themselves parsed
     _check_prereqs(charms, problems)
     _check_sorcery_reachable(charms, spells, problems)
+    _check_charm_references(exalts, castes, charms, spells, problems)
     _check_camps_and_callings(camps, callings, charms, problems)
     _check_thaumaturgy(thaum_arts, thaum_sciences, thaum_formulas, problems)
     _check_merits_flaws(merits_flaws, problems)

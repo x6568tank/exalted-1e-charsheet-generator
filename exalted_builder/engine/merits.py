@@ -32,7 +32,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from ..models.character import Character
-from ..models.rules import AbilityName, AttributeName, MeritFlaw, RuleSet, SpellCircle
+from ..models.rules import AbilityName, AttributeName, MeritFlaw, RuleSet, SpellCircle, VirtueName
 
 # --------------------------------------------------------------------------- #
 # The ids this module knows. Nothing outside engine/merits.py may name these.
@@ -44,12 +44,49 @@ from ..models.rules import AbilityName, AttributeName, MeritFlaw, RuleSet, Spell
 # (p.17). One constant for both.
 FLAW_POINT_CAP = 10
 
+
+def inheritance_rating(character: Character) -> int:
+    """The God-Blooded Inheritance rating that drives the bonus-point pool and Flaw
+    cap (Player's Guide p.61) — the index into `ChargenBudgets.inheritance_bonus_points`
+    / `inheritance_flaw_cap`. ALWAYS the character's own Inheritance Background rating
+    (human, 2026-08-02: the ST option sets how many dots are FREE, never the rating
+    itself — a character "only gets the extra BP if they have the background set on
+    their sheet"). Defined here (merits imports only the models) so this module's Flaw
+    cap and validate.bonus_point_breakdown share one definition."""
+    return max((bg.rating for bg in character.backgrounds
+                if bg.name.strip().lower() == "inheritance"), default=0)
+
+
+def inheritance_free_rating(ruleset: RuleSet, character: Character) -> int:
+    """How many dots of the Inheritance Background are FREE — no Background-pool dots,
+    no above-cap bonus points (human, 2026-08-02). The Storyteller's series option
+    (HouseRules.godblooded_inheritance_rating, 1-5) when set — "the Storyteller
+    assigns a consistent rating to set the series' power level" (p.61) — else the
+    budget's own `free_rating` for the Inheritance background. The free grant does not
+    change the rating itself: a character takes the dots on their sheet and gets the
+    printed bonus points for THAT rating."""
+    granted = (character.house_rules.godblooded_inheritance_rating
+               if character.house_rules is not None else None)
+    if granted is not None:
+        return granted
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    rule = b.background_rules.get("inheritance")
+    return rule.free_rating if rule is not None else 0
+
+
 ESSENCE_AWARENESS = "thaum.essence-awareness"
 ESSENCE_MASTERY = "thaum.essence-mastery"
+# God-Blooded (PG p.66), the mortal Essence-Mastery parallel for the God-Blooded:
+# unlocks the heritage's Essence pool and the purchases that require it.
+AWAKENED_ESSENCE = "mf.awakened-essence"
 # PG p.234, ghosts only. One Terrestrial Martial Arts Charm per point.
 FIGHTER_IN_LIFE = "mf.fighter-in-life"
 OATHBOUND_MAGIC = "thaum.oathbound-magic"
 HOLY_MIEN = "thaum.holy-mien"
+# Fae-Blooded (PG p.74): the attuned Virtue is priced like a FAVORED trait — 2 BP/dot,
+# (current rating x 2) XP. The attuned Virtue(s) are recorded on the purchase's
+# `detail`, exactly as a repeatable Merit names its Attribute group.
+FAE_VIRTUE_ATTUNEMENT = "mf.fae-virtue-attunement"
 # Holy Mien "grants the character possessing it the Priest Merit at the one-point level
 # at no extra cost and reduces the cost of the seven-point level to six bonus points"
 # (PG p.121). Priest itself is in the general chapter (p.24), which is why this could
@@ -338,11 +375,17 @@ class MeritEffects:
     charm_cost_doubled: bool = False
     spell_cost_halved: bool = False
 
-    # --- Favored Abilities (A4) --------------------------------------------- #
+    # --- Favored Abilities / Virtues (A4) ------------------------------------ #
     # Extra Favored Abilities granted, one per purchase of Prodigy (p.21). Added to the
     # count `validate.favored_ability_count` requires, so the existing favored-count
     # check does the work.
     extra_favored_abilities: int = 0
+    # Virtues a Merit prices like a FAVORED trait. Virtue Attunement (PG p.74, the
+    # Fae-Blooded): the attuned Virtue "may be increased for a cost of two bonus points
+    # per dot or (current rating x 2) experience points" instead of the ordinary
+    # three-per-dot / (current x 3). Keyed by VirtueName.value. Read by the Virtue BP
+    # and XP cost functions; a dead field here would silently overcharge a Fae-Blooded.
+    favored_virtues: frozenset[str] = frozenset()
     # {`AbilityName.value`: XP subtracted per dot} where a Merit has lowered the cost of
     # raising an Ability. Prodigy's "increased aptitude" is the only source today.
     # Carries the AMOUNT, not just the fact, so the caller reads a number and names
@@ -630,6 +673,11 @@ def detail_choices(definition) -> tuple[str, ...]:
         # in both branches. Craft is excluded: it is taken per focus (core p.136) and so
         # is not a single rateable Ability here.
         return tuple(a.value.title() for a in AbilityName if a != AbilityName.CRAFT)
+    if definition.id == FAE_VIRTUE_ATTUNEMENT:
+        # WHICH Virtue is attuned (PG p.74). A dropdown rather than free text so the
+        # purchase can never name a Virtue the calc cannot resolve — a typo would leave
+        # the favored-Virtue discount silently not applying.
+        return tuple(v.value.title() for v in VirtueName)
     return ()
 
 
@@ -700,15 +748,38 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
     has_native_pool = bool(exalt.essence.personal_essence_coeff
                            or exalt.essence.personal_willpower_coeff)
     raw_flaw_points = flaw_points(ruleset, character)
+    # A splat that authors `inheritance_flaw_cap` (God-Blooded, p.61: the Flaw
+    # capacity rises with the Inheritance Background's rating — 10/15/15/20/20) replaces
+    # the universal FLAW_POINT_CAP for that character. Index 0 (no Inheritance) is 0 —
+    # a character with no heritage is not really a God-Blood, and one must take at least
+    # a dot by ruling. Every other splat keeps the constant.
+    flaw_cap = FLAW_POINT_CAP
+    budgets = ruleset.budgets_for(character.exalt_type, character.origin,
+                                  character.upbringing)
+    if budgets.inheritance_flaw_cap:
+        rating = min(inheritance_rating(character), len(budgets.inheritance_flaw_cap) - 1)
+        flaw_cap = budgets.inheritance_flaw_cap[rating]
 
     held_ids = {d.id for d, _p in _held(ruleset, character)}
     effects_from: set[str] = set()
 
-    # --- Essence Awareness / Mastery --------------------------------------- #
+    # --- Virtue Attunement (PG p.74, Fae-Blooded) ---------------------------- #
+    # The attuned Virtue(s) are priced like a FAVORED trait. Read off the purchases'
+    # `detail` (the player's free-text Virtue name), matched against the VirtueName
+    # table so "compassion" and "Compassion" both land.
+    favored_virtues = frozenset(
+        VirtueName(purchase.detail.strip().lower()).value
+        for _d, purchase in _held(ruleset, character)
+        if purchase.merit_id == FAE_VIRTUE_ATTUNEMENT
+        and purchase.detail.strip().lower() in {v.value for v in VirtueName})
+
+    # --- Essence Awareness / Mastery / Awakened Essence -------------------- #
     awareness = ESSENCE_AWARENESS in held_ids
     mastery = ESSENCE_MASTERY in held_ids
-    if awareness or mastery:
-        effects_from.update({ESSENCE_AWARENESS, ESSENCE_MASTERY} & held_ids)
+    awakened = AWAKENED_ESSENCE in held_ids
+    if awareness or mastery or awakened:
+        effects_from.update(
+            {ESSENCE_AWARENESS, ESSENCE_MASTERY, AWAKENED_ESSENCE} & held_ids)
 
     open_categories: frozenset[str] = frozenset()
     barred: frozenset[str] = frozenset()
@@ -731,6 +802,16 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
             circles = frozenset({SpellCircle.TERRESTRIAL})
         # Only meaningful where the splat is capped below 3 to begin with; an Exalt's
         # cap is 0 (uncapped) and must not be LOWERED to 3 by holding this Merit.
+        if exalt.essence_cap and exalt.essence_cap < 3:
+            cap_override = 3
+
+    if awakened:
+        # God-Blooded (PG p.66): the pool is "determined by their heritage", fully
+        # drawable — no mortal-style 1/3 Willpower-roll restriction — and its
+        # existence is what permits Essence 2/3 ("Raising this Trait to Essence 2
+        # requires the character to purchase the Awakened Essence Merit"). No
+        # open_charm_categories: a God-Blooded's Charm access runs through their
+        # HERITAGE (heritage_traits.charm_access), not through a Merit grant.
         if exalt.essence_cap and exalt.essence_cap < 3:
             cap_override = 3
 
@@ -924,6 +1005,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         spell_cost_halved=spell_cost_halved,
         extra_favored_abilities=extra_favored,
         ability_xp_discount=dict(aptitude_abilities),
+        favored_virtues=favored_virtues,
         nature_requirement_unmet=tuple(nature_unmet),
         health_levels_granted=tuple(granted_levels),
         health_levels_removed=tuple(removed_levels),
@@ -945,8 +1027,8 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         permanent_limit_start=permanent_limit_start,
         granted_merits=granted_merits,
         merit_cost_overrides=cost_overrides,
-        essence_pool_unlocked=has_native_pool or awareness or mastery,
-        essence_pool_unrestricted=has_native_pool or mastery,
+        essence_pool_unlocked=has_native_pool or awareness or mastery or awakened,
+        essence_pool_unrestricted=has_native_pool or mastery or awakened,
         essence_cap_override=cap_override,
         breeding_rating_override=breeding_override,
         essence_single_pool=single_pool,
@@ -957,7 +1039,7 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         barred_charm_ids=barred,
         bar_immaculate_charms=bar_immaculate,
         granted_circles=circles,
-        bonus_point_grant=min(raw_flaw_points, FLAW_POINT_CAP),
+        bonus_point_grant=min(raw_flaw_points, flaw_cap),
         flaw_points_raw=raw_flaw_points,
         narrative_only=tuple(sorted(
             held_ids - effects_from - {OATHBOUND_MAGIC})),

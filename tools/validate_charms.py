@@ -184,7 +184,8 @@ def check_charm(c: dict, path: Path, rep: Report) -> None:
         rep.error(where, f"{_keys[0]} is set but min_ability is 0 — min_ability RATES it")
     if c.get("min_virtue") and c["min_virtue"] not in _VIRTUES:
         rep.error(where, f"min_virtue {c['min_virtue']!r} is not one of {sorted(_VIRTUES)}")
-    if not _keys and not c.get("min_ability") and not repeatable:
+    if (not _keys and not c.get("min_ability") and not c.get("extra_min_abilities")
+            and not repeatable):
         if c.get("type") not in {"Permanent", "Special"}:
             rep.warn(where, "no min_ability and no keying trait — is this Charm really ungated?")
     if c.get("min_essence", 1) < 1:

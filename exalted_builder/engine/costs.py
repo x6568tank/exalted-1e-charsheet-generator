@@ -14,8 +14,10 @@ engine.advancement call them, and the UI shows them as a price before buying.
 
 from __future__ import annotations
 
+from typing import Optional
+
 from ..models.character import Character, MeritFlawPurchase
-from ..models.rules import AbilityName, AttributeName, Charm, RuleSet
+from ..models.rules import AbilityName, AttributeName, Charm, RuleSet, VirtueName
 from . import merits, validate
 
 # A trait's first dot (an Ability bought from 0) has no `from_rating` to scale; it
@@ -67,9 +69,20 @@ def ability_step(ruleset: RuleSet, character: Character, ability: AbilityName,
     return max(0, total)
 
 
-def virtue_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
+def virtue_step(ruleset: RuleSet, character: Character, from_rating: int,
+                virtue: Optional[VirtueName] = None) -> int:
     """XP to raise a Virtue one dot. (Does not raise Willpower — that is pinned at
-    lock; see derive.willpower.)"""
+    lock; see derive.willpower.)
+
+    A Fae-Blooded's ATTUNED Virtue (Virtue Attunement, PG p.74) is priced "for a cost
+    of ... (current rating x 2) experience points" instead of the splat's (current x 3).
+    Which Virtues are attuned is the Merit effect (`MeritEffects.favored_virtues`,
+    read by field, never by id); the x2 rate is the page's own, so it is stated here
+    once rather than threaded through a second cost table."""
+    if (virtue is not None
+            and virtue.value in merits.merits_and_flaws_calc(
+                ruleset, character).favored_virtues):
+        return from_rating * 2
     return ruleset.xp_costs_for(character.exalt_type).virtue.at(from_rating)
 
 
@@ -189,6 +202,12 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
                 cost = xp.new_charm_favored_caste
         else:
             cost = xp.new_martial_arts_charm if xp.new_martial_arts_charm is not None else xp.new_charm
+    elif charm.grants_circle is not None and xp.new_magic_charm:
+        # The sorcery/necromancy INITIATION Charms for the God-Blooded (p.49): 25 XP,
+        # "regardless of whether the character favors the Trait", with training time
+        # measured in weeks rather than days. Flat — no favoured variant is printed.
+        # `new_magic_charm` 0 (every other splat) falls through to the ordinary rate.
+        cost = xp.new_magic_charm
     else:
         cost = xp.new_charm_favored_caste if favored else xp.new_charm
     # A Calling Charm is 2 XP cheaper, stacking with Caste/Favoured (p.102): "a

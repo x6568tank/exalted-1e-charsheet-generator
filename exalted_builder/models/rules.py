@@ -355,6 +355,11 @@ class Charm(BaseModel):
     # Attribute, so it can't resolve through the normal AbilityName/AttributeName
     # lookup validate.py otherwise uses). None = not repeatable.
     repeatable_cap_ability: Optional[str] = None
+    # The God-Blooded Ox-Body Technique (PG p.83) caps on CONVICTION: "Characters
+    # cannot purchase this Charm more times than their Conviction rating" — a Virtue,
+    # which `repeatable_cap_ability` cannot express (Ability/Attribute/"essence" only).
+    # Mirrors the `min_virtue` retarget pattern: the VirtueName value, else None.
+    repeatable_cap_virtue: Optional[str] = None
     variants: list[CharmVariant] = Field(default_factory=list)
     # How many variants a single purchase selects. Ox-Body: always 1 (the default
     # for both fields below). Deadly Beastman Transformation (p.124): the FIRST
@@ -426,6 +431,90 @@ class Spell(BaseModel):
 
 
 
+class GodbloodedHeritage(BaseModel):
+    """The heritage-keyed mechanics of one God-Blooded heritage (Player's Guide CH2,
+    pp.45-60). Attached to a `CasteDefinition` via `CasteDefinition.heritage_traits`
+    — a heritage IS the Godblooded caste slot (`caste_noun: "Heritage"`) — and None on
+    every caste of every other splat, so the shared class carries one optional block
+    rather than six flat fields (see docs/status/godblooded.md).
+
+    What the five heritages actually differ on (God / Demon / Ghost / Half-Caste / Fae):
+
+    * `unlocked_essence` — the Awakened-Essence pool formula, per-heritage (p.66):
+      God/Demon/Ghost = Ess×5 + WP×2 + ΣVirtues; Half-Caste = Ess×5 + ΣVirtues;
+      Fae = Ess×8. Mirrors ExaltDefinition.unlocked_essence (the mortal shape), keyed
+      by heritage because the formula varies within one splat.
+    * `charm_access` — which OTHER splat's Charm catalogue this heritage learns
+      "exactly as their parents" (p.47): Ghost-Blooded → ["Ghost"] (the Arcanoi);
+      Half-Caste → the parent Exalt's catalogue (later phase); Fae → none.
+    * `magic_track` / `magic_track_by_parent` — the ONE magic track this heritage may
+      be initiated into, restricting which `grants_circle` Charms it can hold (p.48:
+      "Terrestrial Circle Sorcery is available to all the remaining heritages save
+      Ghost-Blooded and Abyssal Half-Caste. Conversely, only these heritages may learn
+      Shadowlands Circle Necromancy."). "" = no restriction beyond Charm access.
+    * `attribute_pools` — the Half-Caste 6/5/4 override (p.47; prose wins over the
+      p.50 summary's 6/5/3). None = the splat's 6/4/3.
+    * `allowed_backgrounds` — the heritage-gated specialised Backgrounds (p.50), e.g.
+      Abyssal Command / Underworld Manse / Whispers for Ghost-Blooded. Lowercased
+      NAMEs, matching ChargenBudgets.allowed_backgrounds.
+    * `heritage_power` — the per-heritage perception power (p.51-60). Display-only."""
+    model_config = ConfigDict(frozen=True)
+
+    unlocked_essence: Optional[EssencePoolSpec] = None
+    charm_access: list[str] = Field(default_factory=list)
+    # When True, `charm_access` is ignored and the heritage learns the catalogue of the
+    # character's PARENT Exalt type instead (Half-Caste, p.47: "The descendents of
+    # Exalted learn the Charms of their parents"). The parent rides the `Character.origin` axis (the Origin dropdown);
+    # every other heritage leaves this False and uses the static `charm_access` list.
+    charm_access_parent: bool = False
+    magic_track: str = ""
+    # The same restriction keyed by the PARENT Exalt type, for the Half-Caste — whose
+    # track is not a property of the heritage but of who their parent was (p.48: only
+    # Ghost-Blooded and the ABYSSAL Half-Caste get necromancy; every other parent gets
+    # sorcery). Read exactly like `magic_track`, which it overrides when the parent
+    # has an entry. Empty for every heritage without a parent axis.
+    magic_track_by_parent: dict[str, str] = Field(default_factory=dict)
+    attribute_pools: Optional[tuple[int, int, int]] = None
+    allowed_backgrounds: list[str] = Field(default_factory=list)
+    heritage_power: str = ""
+    # The Origin-dropdown choices this heritage offers, when it keys off the origin
+    # axis at all. Two heritages do: the Half-Caste's origin is their parent Exalt type
+    # (Solar/DB/Lunar/Sidereal/Abyssal, p.47) and the Fae-Blooded's is Noble vs
+    # Commoner (the nobility axis p.73-79 gates powers on, human 2026-08-02). Empty
+    # for every heritage that leaves Character.origin blank (Ghost-Blooded, and the
+    # God/Demon-Blooded until their pages land). The editor renders the Origin
+    # dropdown from this, so the options travel with the heritage.
+    origin_options: list[str] = Field(default_factory=list)
+    # Heritage-level Charm bars, the parallel to ExaltDefinition.barred_charm_ids: a
+    # Charm this heritage may never hold even when charm access would reach it. For the
+    # Half-Caste this is the "no perfect defense or persistent scene-length defense"
+    # list (p.47) plus the Sidereal Maiden-approval Charms — a single list is enough
+    # because a Half-Caste can only reach their own parent's catalogue, so a bar from
+    # another parent is unreachable anyway. Checked first in both charm gates.
+    barred_charm_ids: list[str] = Field(default_factory=list)
+    # Whether this heritage may hold its OWN splat's native Charms at all — the mirror
+    # of ExaltDefinition.charms_available. The one False heritage is the Fae-Blooded,
+    # "The children of the Fair Folk do not use Charms" (p.47), and it is a FLAG, not a
+    # deny-list, because a deny-list of today's God-Blooded Arcanoi silently admits the
+    # ninth one the day God/Demon-Blooded's spirit Charms are authored. With the flag
+    # False the native catalogue is closed wholesale and only the explicit grants
+    # survive: the p.234 Terrestrial martial arts, the foreign `charm_access`
+    # catalogue. Checked where the native match happens in charm_matches_splat.
+    charms_available: bool = True
+    # The repeatable Gift-granting Charm for a parent type, and its purchase cap — keyed
+    # by `Character.origin` (the parent Exalt type). Only the Lunar parent sets these (a Lunar Half-Caste
+    # may take up to TWO alternate forms via Deadly Beastman Transformation, p.47).
+    # Empty for every other heritage, which has no gift economy.
+    gift_charm_ids: dict[str, str] = Field(default_factory=dict)
+    gift_caps: dict[str, int] = Field(default_factory=dict)
+    # The repeatable Ox-Body Technique for a parent type, keyed by `Character.origin`.
+    # A Half-Caste learns their PARENT's Charms (p.47), and the God-Blooded's own Ox-Body
+    # is the SPIRIT/ARCANOS version for the spirit-descended heritages — so a Half-Caste
+    # uses their parent Exalt's Ox-Body instead (the splat-level `ox_body_charm_id` stays
+    # the God-Blooded one for the ghost-blooded heritage). Empty for every other heritage.
+    ox_body_charm_ids: dict[str, str] = Field(default_factory=dict)
+
+
 class CasteDefinition(BaseModel):
     """One caste (Solar) / aspect (Dragon-Blooded) / etc. `id` is the stable
     lowercase key it is stored under in RuleSet.castes and on Character.caste
@@ -474,6 +563,12 @@ class CasteDefinition(BaseModel):
     foreign_panoply_charm_xp: Optional[int] = None
     description: str = ""                   # a quick flavour blurb for the caste
     anima_powers: str = ""
+    # The heritage-keyed mechanics of a God-Blooded heritage (which IS the Godblooded
+    # caste slot — `caste_noun: "Heritage"`), or None for every caste of every other
+    # splat. ONE optional block rather than six flat fields so the shared class is not
+    # widened for a single splat; named `heritage_traits` rather than `godblooded` so
+    # the Exalted-God-Blooded crossover can reuse it if ever built. See GodbloodedHeritage.
+    heritage_traits: Optional[GodbloodedHeritage] = None
 
 
 class GrantedCharmChoice(BaseModel):
@@ -1002,6 +1097,14 @@ class MeritFlaw(BaseModel):
     # may not take this Flaw" (p.41), the two castes whose whole point is concealment.
     # Caste ids are unique across splats, so no splat qualifier is needed.
     barred_castes: list[str] = Field(default_factory=list)
+    # Origins this entry is restricted TO — one level down from barred_castes, for a
+    # heritage that splits along the origin axis. The Fae-Blooded's "nobles only"
+    # (Prince of Chaos, Transcendent Dream Shape) / "commoners only" (Goblin Body),
+    # where both are the same caste (fae-blooded) distinguished by origin (human,
+    # 2026-08-02). Empty = open to every origin of the caste. Enforced beside
+    # barred_castes in both the validation and the picker, so a UI that hides on this
+    # can never offer something validation rejects.
+    required_origins: list[str] = Field(default_factory=list)
     prerequisites: list[str] = Field(default_factory=list)       # other MeritFlaw ids
     # A floor on the SPLAT's starting Essence, as opposed to a character trait. Weak
     # Essence is "6-PT." and its entire cost is reducing starting Essence to 1, so a
@@ -1032,6 +1135,13 @@ class MeritFlaw(BaseModel):
     # (p.17). A repeat limit, not a rating floor, so it is its own field. "" = no limit
     # beyond `repeatable_by`.
     max_purchases_from_trait: str = ""
+    # A repeat limit that varies by ORIGIN — the Fae-Blooded's Virtue Attunement:
+    # "Fae-Blooded born of any of these fae types may only purchase this Merit once.
+    # Children of fairy nobles may purchase this Merit up to twice" (PG p.74). {origin:
+    # max purchases}; an origin with no entry is uncapped (the page's "once" is the
+    # Commoner entry here). Enforced wherever the repeat count is — validate and the
+    # post-lock buy path — so a Commoner cannot buy a second copy with XP either.
+    max_purchases_by_origin: dict[str, int] = Field(default_factory=dict)
     # Ceilings (or floors) on this entry's point value set by a Background rating —
     # Known Anathema, Damaged Artifact and Debt. Empty for everything else.
     #
@@ -1163,8 +1273,19 @@ class BonusPointCosts(BaseModel):
     fetter: int = 3
     willpower: int = 2
     essence: int = 7
+    # Flat per-step Essence prices keyed by the TARGET rating, overriding `essence`
+    # for the steps listed — the exact BP mirror of ExperienceCosts.essence_by_rating.
+    # The God-Blooded table (p.50) prices Essence by destination: Essence 2* = 5,
+    # Essence 3** = 15 (the starred footnotes are the Awakened-Essence / Essence-2
+    # gates, enforced in validate). Empty for every splat whose Essence is linear.
+    essence_by_rating: dict[int, int] = Field(default_factory=dict)
     charm: int = 5
     charm_favored_caste: int = 4
+    # The sorcery/necromancy INITIATION Charms — those whose `grants_circle` is set —
+    # cost a distinct rate for the God-Blooded (p.50: "Charm/Spell* | 7 (10 for
+    # Sorcery or Necro-mancy Charms)"). 0 = every other splat, whose circle-granting
+    # Charms keep the ordinary `charm` rate.
+    magic_charm: int = 0
     # Immaculate Order Charms (Dragon-Blooded, p.153) cost more than ordinary DB
     # Charms. Unused by splats without an Immaculate package (Solar); the discount
     # applies when the Charm's Ability is Favoured/Caste, same as `charm`.
@@ -1278,6 +1399,12 @@ class ExperienceCosts(BaseModel):
     new_immaculate_charm_favored_caste: int = 8
     new_spell: int = 10
     new_spell_occult_favored_caste: int = 8
+    # The sorcery/necromancy INITIATION Charms for the God-Blooded (p.49): Terrestrial
+    # Circle Sorcery / Shadowlands Circle Necromancy cost 25 XP, "training time
+    # measured in weeks rather than days". Keyed off `grants_circle`, so no charm id is
+    # named in code. 0 = every other splat, whose circle-granting Charms keep the
+    # ordinary new_charm rate.
+    new_magic_charm: int = 0
     # Per-circle spell costs (Lunar, p.251 — Terrestrial 12, Celestial 15). When a
     # spell's circle is in this map the map wins and the discount becomes the
     # learner's CASTE discount (CasteDefinition.spell_cost_discount), NOT the
@@ -1563,6 +1690,17 @@ class ChargenBudgets(BaseModel):
     requires_camp: bool = False
     requires_calling: bool = False
     bonus_points: int = 15
+    # God-Blooded Inheritance (Player's Guide p.61): the Inheritance Background's
+    # rating adds to the bonus-point pool — • Thin blood +6, •• Good +12, ••• Notable
+    # +18, •••• Impeccable +24, ••••• Divine +30. Indexed by the Inheritance rating
+    # (0..5); empty for every other splat, which has no such Background and keeps the
+    # flat `bonus_points` above. Read by validate.bonus_point_breakdown.
+    inheritance_bonus_points: list[int] = Field(default_factory=list)
+    # The Flaw-point cap per Inheritance rating (p.61: 10 / 15 / 15 / 20 / 20). Read
+    # by engine.merits.merits_and_flaws_calc instead of its FLAW_POINT_CAP constant
+    # when the splat authors it. Index 0 is 0 — a character with no Inheritance is not
+    # really a God-Blood (p.61) and, by human ruling, must take at least one dot.
+    inheritance_flaw_cap: list[int] = Field(default_factory=list)
 
     willpower_start_cap: int = 8           # may not start above this...
     willpower_cap_exception_virtue: int = 4   # ...unless at least
@@ -1768,6 +1906,15 @@ class ExaltDefinition(BaseModel):
     # module has to name a Charm id to do it. Checked FIRST in charm_matches_splat, so
     # it outranks every grant — a bar that any later branch can talk past is not a bar.
     barred_charm_ids: list[str] = Field(default_factory=list)
+    # Spell ids this splat may never learn, whatever Circle it has been initiated
+    # into — the spell-side parallel to `barred_charm_ids`, and read in the same
+    # two-routes-or-it-is-not-a-bar way (meets_spell_requirements AND
+    # check_spell_access). The God-Blooded, PG p.48: "No God-Blood can learn spells
+    # to summon and bind elementals or demons, as the workings of these spells are
+    # designed to operate in conjunction with certain privileges of the Exalted."
+    # Circle access alone cannot express that — the bar names individual spells
+    # inside Circles the splat legitimately holds. Empty for every other splat.
+    barred_spell_ids: list[str] = Field(default_factory=list)
     # May this splat learn Combos at all? False for the dead (E:Ab p.234): "The dead
     # may never learn Combos and so may never use more than one Charm per turn."
     #

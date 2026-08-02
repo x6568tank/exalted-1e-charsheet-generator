@@ -137,6 +137,18 @@ _GHOST = Palette(
     bg="#eceeec", node_bg="#f8faf9", button="blue-grey-7", fam="zinc",
 )
 
+# God-Blooded: half-divine — children of gods, elementals, demons, ghosts, Exalted
+# and fae. Celestial sky, deliberately off the three palettes that could swallow it:
+# the Mortal's warm stone, the Ghost's cold zinc and the Lunar's slate. `fam` is
+# `teal`, a cool blue-green no other splat claims.
+# ⚠ Colour-scheme decision for the remaining non-Exalts is UNDECIDED (shared Mortal
+# `stone` vs per-splat) — this is a placeholder that reads clearly and can change.
+_GODBLOODED = Palette(
+    splat_label="God-Blooded",
+    accent="#5a7d7a", accent_dark="#3d5754", ink="#22302e",
+    bg="#eef1f0", node_bg="#f9fbfa", button="teal-7", fam="teal",
+)
+
 _BY_SPLAT: dict[str, Palette] = {
     "Solar": _SOLAR,
     "Dragon-Blooded": _DRAGON_BLOODED,
@@ -146,6 +158,7 @@ _BY_SPLAT: dict[str, Palette] = {
     "Alchemical": _ALCHEMICAL,
     "Mortal": _MORTAL,
     "Ghost": _GHOST,
+    "God-Blooded": _GODBLOODED,
 }
 
 

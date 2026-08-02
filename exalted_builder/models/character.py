@@ -504,6 +504,18 @@ class HouseRules(BaseModel):
     # "Terrestrial".
     terrestrial_essence_transcendence: bool = False
 
+    # TABLE-WIDE. How many dots of the God-Blooded Inheritance Background are FREE
+    # (Player's Guide p.61). The same paragraph that lists the bonus points — Thin
+    # blood +6 BP / 10 Flaws up to Divine +30 / 20 — makes the Storyteller the
+    # arbiter: "the Storyteller assigns a consistent rating to set the series' power
+    # level." The ST's pick (1-5) is how many Inheritance dots a God-Blooded is charged
+    # nothing for (no Background-pool dots, no above-cap bonus points). It does NOT set
+    # the rating itself: the character still takes the dots on their sheet and gets the
+    # printed bonus points for THAT rating (human 2026-08-02). When unset (None) the
+    # budget's own `free_rating` governs. An accounting toggle, so it freezes into the
+    # ChargenSnapshot at lock like the rest.
+    godblooded_inheritance_rating: Optional[int] = Field(default=None, ge=1, le=5)
+
     @field_validator("mf_change_method")
     @classmethod
     def _check_mf_method(cls, v: str) -> str:
