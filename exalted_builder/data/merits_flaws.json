@@ -343,16 +343,31 @@
       "3": 3
     },
     "cost_note": "(1- TO 3-PT. FLAW)",
-    "points_limited_by": {
-      "background": "Artifact",
-      "mode": "max",
-      "offset": -1
-    },
     "description": "One of the mystical wonders owned by the character through purchase of the Artifact Background has suffered damage, either in the distant past or since it has fallen into her possession. The extent of this damage and the effect of that damage on the artifact’s ability to function depend on the number of points invested in this Flaw. One point indicates minor damage. A weapon may lose a point of damage or accuracy or some other characteristic, while armor loses an equivalent number of points from its lethal and bashing soak or other ratings. More complicated artifacts will function correctly most of the time or with slightly reduced function all of the time (as arbitrated by the Storyteller). Two points indicates major damage, costing six points from weapons and armor or resulting in half effectiveness or half consistency from complicated devices. Three points indicates near-total damage. The artifact is presently useless, though it may be repaired. Fixing a damaged artifact requires a proportionally complex and expensive process appropriate to the damage and the nature of the object. Repairing a shattered daiklave is considerably easier and cheaper than repairing a long-abandoned First Age warstrider. Players may not gain more points from this Flaw than the rating of the artifact it modifies or the number of Background and/or bonus points spent obtaining the artifact, whichever is less. If so desired, characters may begin play with artifacts damaged to a degree beyond the number of points received, though they receive no benefit for doing so. Characters must have at least one more dot of Artifact than the points obtained with this Flaw. The Solar craftsman Velgash found tattered wings of the raptor in a tomb (see BoTC, p. 95). Using the Artifact Background available to Solars, Velgash’s player had to spend four points to obtain this artifact. He may thus gain the full three points from Damaged Artifact to represent a presently useless set of wings. If Velgash’s player instead wished a bent and mangled daiklave, he could not gain more than two points from the Flaw, even if the daiklave were all-but completely ruined. However, if the Abyssal tomb robber Clutching Owl began play with the same tattered wings, he could not receive more than two points from their condition, since it would cost only two Background points to obtain the wings with the Abyssal version of the Artifact Background (see E:Ab, p. 131).",
     "source": {
       "book": "Exalted 1e Player's Guide",
       "page": 38
-    }
+    },
+    "points_limits": [
+      {
+        "background": "Artifact",
+        "mode": "max",
+        "offset": 0,
+        "per_entry": true
+      },
+      {
+        "background": "Artifact",
+        "mode": "max",
+        "offset": 0,
+        "per_entry": true,
+        "measure": "acquisition_cost"
+      },
+      {
+        "background": "Artifact",
+        "mode": "max",
+        "offset": -1
+      }
+    ]
   },
   {
     "id": "mf.daredevil",
@@ -417,15 +432,17 @@
       "5": 5
     },
     "cost_note": "(1- TO 5-PT. FLAW)",
-    "points_limited_by": {
-      "background": "Resources",
-      "mode": "above"
-    },
     "description": "The character owes money or goods to an individual or organization of substantial power, such as a wealthy Dynast or even the Guild itself. The character must either pay regular installments with interest or promise a full repayment as of a certain date agreed upon by both parties. If the character fails to meet her obligations on schedule, unpleasant consequences will follow. The creditor may send hunters or the militia after her or worse. Wise creditors will avoid killing the character, if only to ensure they ultimately receive payment, but others may accept the loss to set an example for other debtors. This Flaw functions as an inverse of the Resources Background with an identical rating system. Thus, a character with four points of Debt owes a sum equal to Resources 4. It is possible for characters to have both Debt and Resources, provided the former exceeds the latter. Such characters must pay small installments over time, no doubt accruing terrible interest all the while. Players who buy off Debt with Resources accumulated in play or borrowed from another lender do not need to spend experience points to do so.",
     "source": {
       "book": "Exalted 1e Player's Guide",
       "page": 38
-    }
+    },
+    "points_limits": [
+      {
+        "background": "Resources",
+        "mode": "above"
+      }
+    ]
   },
   {
     "id": "mf.derangement",
@@ -856,15 +873,17 @@
       "Abyssal"
     ],
     "cost_note": "(1- TO 5-PT. FLAW, CELESTIAL EXALTED ONLY)",
-    "points_limited_by": {
-      "background": "Influence",
-      "mode": "max"
-    },
     "description": "The character’s Exaltation and deeds as one of the Chosen have not gone unnoticed. Even in the wake of the Empress’ disappearance, such a reputation carries considerable danger. The Wyld Hunt cannot hope to match the glory and power of its past, but Immaculate brotherhoods still pose a deadly threat to unwary Exalted. The value of this Flaw depends on how widely the character’s name and true nature are known. One point indicates regional notoriety. The Wyld Hunt does not actually know of the character, but it could certainly discover him if it passed through the nation and listened to tavern gossip. Two points indicates more widespread fame. The Wyld Hunt knows the character’s name and a very crude idea of his deeds, but it does not know his present whereabouts. Three points indicates the character is regarded as a great threat. A brotherhood has already been tasked with his execution, and it is only a matter of time before it finds its quarry unless he keeps moving. Four points indicates the Wyld Hunt regards the character as a terrible demon who has likely slain the first hunters sent to destroy him, perhaps even marshaling military forces against the Realm. Such a character can expect an experienced Wyld Hunt dogging his heels or, worse yet, a Sidereal assassin of the Bronze Faction. At five points, the character is considered one of the greatest threats presently facing the Realm, on par with the Bull of the North and the Deathlords. The Mouth of Peace and Chejop Kejak personally discuss such dire menaces in order to plan their eradication. Barring exceptional story explanations, characters may not generally take more points of this Flaw than their rating in Influence or a Background granting comparable fame.",
     "source": {
       "book": "Exalted 1e Player's Guide",
       "page": 37
-    }
+    },
+    "points_limits": [
+      {
+        "background": "Influence",
+        "mode": "max"
+      }
+    ]
   },
   {
     "id": "mf.large-size",

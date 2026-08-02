@@ -1,9 +1,10 @@
 # Merits & Flaws
 
-**Status: DONE (2026-07-30) — engine, UI, and the WHOLE chapter authored. 98 Merits &
-Flaws: the 11 Thaumaturgy ones (`thaum.*`, pp.120-122) and all 87 of the general
-chapter (`mf.*`, pp.16-41).** NOT browser-verified — that is the human's step. 31 tests in
-`tests/test_merits_flaws.py`. NOT browser-verified — that is the human's step.
+**Status: DONE (2026-07-30) — engine, UI, and the WHOLE chapter authored. 100 Merits &
+Flaws: the 11 Thaumaturgy ones (`thaum.*`, pp.120-122) and all 89 of the general
+chapter (`mf.*`, pp.16-41). BROWSER-VERIFIED 2026-07-31** — every A-list mechanism
+clicked through; see the A-list section below. 290 tests in
+`tests/test_merits_flaws.py`.
 
 M&F were ripped out 2026-06-15 because the old implementation scattered their
 mechanical effects across every file they touched. **Decision 0011** is that they come

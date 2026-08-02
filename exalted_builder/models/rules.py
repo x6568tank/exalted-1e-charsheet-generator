@@ -892,6 +892,29 @@ class BackgroundPointLimit(BaseModel):
     # "above" — points must exceed (rating + offset)
     mode: str = "max"
     offset: int = 0
+    # Read the rating of ONE named item rather than the character's summed Background.
+    # Damaged Artifact only, whose limit is "the rating of the artifact it modifies"
+    # (PG p.38): a character with a 4-dot and a 2-dot artifact may take three points of
+    # the Flaw against the daiklave and one against the wings, never three against the
+    # wings — which is what the summed reading permitted. The item is named by
+    # `MeritFlawPurchase.artifact_key`; `background` still identifies which Background
+    # governs, so a per-entry limit stays self-describing in the catalogue.
+    per_entry: bool = False
+    # WHAT to measure on that entry. "rating" is the item's own dots; "acquisition_cost"
+    # is what it cost to obtain — Damaged Artifact caps its points at BOTH ("may not
+    # gain more points from this Flaw than the rating of the artifact it modifies OR the
+    # number of Background and/or bonus points spent obtaining the artifact, whichever
+    # is less", PG p.38). The two diverge for any splat whose Artifact Background buys
+    # more than one dot of artifact per dot spent.
+    measure: str = "rating"
+
+    @field_validator("measure")
+    @classmethod
+    def _check_measure(cls, v: str) -> str:
+        if v not in ("rating", "acquisition_cost"):
+            raise ValueError(
+                f"measure must be 'rating' or 'acquisition_cost', got {v!r}")
+        return v
 
     @field_validator("mode")
     @classmethod
@@ -1009,9 +1032,16 @@ class MeritFlaw(BaseModel):
     # (p.17). A repeat limit, not a rating floor, so it is its own field. "" = no limit
     # beyond `repeatable_by`.
     max_purchases_from_trait: str = ""
-    # A ceiling (or floor) on this entry's point value set by a Background rating —
-    # Known Anathema, Damaged Artifact and Debt. None for everything else.
-    points_limited_by: BackgroundPointLimit | None = None
+    # Ceilings (or floors) on this entry's point value set by a Background rating —
+    # Known Anathema, Damaged Artifact and Debt. Empty for everything else.
+    #
+    # PLURAL because Damaged Artifact prints TWO constraints and they measure different
+    # things (PG p.38): "may not gain more points from this Flaw than the rating of the
+    # artifact it modifies" is per-item, while "characters must have at least one more
+    # dot of Artifact than the points obtained" is against the summed Background. They
+    # were collapsed into one summed check with offset -1, which let a character with a
+    # 4-dot daiklave and 2-dot wings take the full three points against the wings.
+    points_limits: tuple[BackgroundPointLimit, ...] = ()
     repeatable_by: str = ""                # "" = once only
     # Whether a purchase of this entry may record STIPULATIONS — Heir Apparent's "add
     # an extra dot to the pool of invested Backgrounds for every major stipulation
@@ -1282,6 +1312,36 @@ class ExperienceCosts(BaseModel):
     calling_charm_discount: int = 0
 
 
+class BackgroundBudgetTier(BaseModel):
+    """One row of a Background that BUYS A BUDGET rather than rating a trait directly
+    (`BackgroundRule.budget_tiers`).
+
+    The Abyssal Artifact Background (E:Ab p.131) is the first of these and the reason
+    the shape exists: its dots do not describe how good your artifact is, they buy a
+    pool of combined artifact rating plus a ceiling on any single item —
+
+        •     Trinkets            combined ≤ 3
+        ••    Sound Gear          combined ≤ 5,  none individually above 3
+        •••   Well-Equipped       combined ≤ 7,  none individually above 4
+        ••••  Supremely Appointed combined ≤ 10, no individual ceiling
+        ••••• Divine Regalia      combined ≤ 13, no individual ceiling
+
+    `individual_max` is 0 for "no ceiling" — the two top rows print no limit "other
+    than it cannot be N/A", and an N/A artifact has no rating to record in the first
+    place (see character.ArtifactEntry). The one-dot row prints no individual cap
+    either, because a combined maximum of 3 already is one.
+
+    The per-item ceilings are ST-overridable in the text ("without Storyteller
+    permission"); they are reported as ordinary chargen issues, which is how every
+    other soft printed limit in this build behaves."""
+    model_config = ConfigDict(frozen=True)
+
+    rating: int = Field(ge=0, le=5)        # dots of the owning Background
+    name: str = ""                         # the printed label ("Well-Equipped")
+    combined_max: int = Field(default=0, ge=0)
+    individual_max: int = Field(default=0, ge=0)   # 0 = no per-item ceiling
+
+
 class BackgroundRule(BaseModel):
     """Mechanical rules attached to ONE Background for ONE splat (see
     `ChargenBudgets.background_rules`).
@@ -1338,6 +1398,24 @@ class BackgroundRule(BaseModel):
     # above •", a consequence of living where the Order suppresses ancestor worship.
     # 0 = no ceiling, which is every other Background in the build.
     max_rating: int = Field(default=0, ge=0)
+    # Rows of a Background that buys a BUDGET of rated items rather than rating one
+    # trait — see BackgroundBudgetTier. Empty for every Background but the loyal
+    # Abyssal's Artifact, and empty is what makes the check a no-op everywhere else:
+    # the core rulebook's Artifact Background has no budget table, which is exactly why
+    # `Abyssal:fugitive` ("Renegade Abyssals use the Artifact Background found in
+    # Chapter Four: Traits of the main Exalted rulebook", p.131) must NOT carry these.
+    budget_tiers: tuple[BackgroundBudgetTier, ...] = ()
+    # How much RATING of the thing this Background buys arrives per dot bought — the
+    # other shape a budgeting Background takes, and the simpler one. The Artifact
+    # Background's own text carries two: "Dragon-Blooded receive twice the dots' worth
+    # of artifacts" (2) and "Alchemicals receive THREE dots of artifacts per dot
+    # bought" (3). 1 is the core rulebook's one-for-one and every other Background.
+    #
+    # Read by `engine.artifacts.acquisition_cost`, which is what Damaged Artifact's
+    # "the number of Background and/or bonus points spent obtaining the artifact"
+    # measures against. Mutually exclusive with `budget_tiers` in practice: a splat
+    # prints one shape or the other, and the tiers win where both appear.
+    rating_per_dot: int = Field(default=1, ge=1)
 
 
 class ChargenBudgets(BaseModel):

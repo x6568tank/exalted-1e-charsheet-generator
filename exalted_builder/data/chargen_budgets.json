@@ -64,7 +64,12 @@
         ],
         "rating": 2
       }
-    ]
+    ],
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:outcaste": {
     "attribute_pools": [
@@ -80,7 +85,12 @@
     "charm_min_caste_favored": 4,
     "virtue_dots": 5,
     "essence_start": 2,
-    "bonus_points": 15
+    "bonus_points": 15,
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:lookshy": {
     "attribute_pools": [
@@ -164,6 +174,9 @@
         "expensive_above": 2,
         "expensive_dot_cost": 2,
         "bp_surcharge_per_dot": 1
+      },
+      "artifact": {
+        "rating_per_dot": 2
       }
     }
   },
@@ -192,6 +205,9 @@
         "expensive_above": 2,
         "expensive_dot_cost": 2,
         "bp_surcharge_per_dot": 1
+      },
+      "artifact": {
+        "rating_per_dot": 2
       }
     }
   },
@@ -260,7 +276,12 @@
         ],
         "rating": 2
       }
-    ]
+    ],
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:forest-witch:outcaste": {
     "attribute_pools": [
@@ -276,7 +297,12 @@
     "charm_min_caste_favored": 4,
     "virtue_dots": 6,
     "essence_start": 2,
-    "bonus_points": 15
+    "bonus_points": 15,
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:forest-witch:oreithyia": {
     "attribute_pools": [
@@ -336,7 +362,12 @@
         ],
         "rating": 2
       }
-    ]
+    ],
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:lost-egg": {
     "attribute_pools": [
@@ -352,7 +383,12 @@
     "charm_min_caste_favored": 4,
     "virtue_dots": 5,
     "essence_start": 2,
-    "bonus_points": 15
+    "bonus_points": 15,
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:lost-egg:graduate": {
     "attribute_pools": [
@@ -414,7 +450,12 @@
         ],
         "rating": 1
       }
-    ]
+    ],
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:lost-egg:patrician": {
     "attribute_pools": [
@@ -481,7 +522,12 @@
         ],
         "rating": 2
       }
-    ]
+    ],
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:lost-egg:threshold": {
     "attribute_pools": [
@@ -497,7 +543,12 @@
     "charm_min_caste_favored": 4,
     "virtue_dots": 5,
     "essence_start": 2,
-    "bonus_points": 15
+    "bonus_points": 15,
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:pirate": {
     "attribute_pools": [
@@ -570,7 +621,12 @@
         ],
         "rating": 1
       }
-    ]
+    ],
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Dragon-Blooded:pirate:outcaste": {
     "attribute_pools": [
@@ -594,7 +650,12 @@
         ],
         "rating": 1
       }
-    ]
+    ],
+    "background_rules": {
+      "artifact": {
+        "rating_per_dot": 2
+      }
+    }
   },
   "Abyssal": {
     "attribute_pools": [
@@ -610,7 +671,43 @@
     "charm_min_caste_favored": 5,
     "virtue_dots": 5,
     "essence_start": 2,
-    "bonus_points": 15
+    "bonus_points": 15,
+    "background_rules": {
+      "artifact": {
+        "budget_tiers": [
+          {
+            "rating": 1,
+            "name": "Trinkets",
+            "combined_max": 3,
+            "individual_max": 0
+          },
+          {
+            "rating": 2,
+            "name": "Sound Gear",
+            "combined_max": 5,
+            "individual_max": 3
+          },
+          {
+            "rating": 3,
+            "name": "Well-Equipped",
+            "combined_max": 7,
+            "individual_max": 4
+          },
+          {
+            "rating": 4,
+            "name": "Supremely Appointed",
+            "combined_max": 10,
+            "individual_max": 0
+          },
+          {
+            "rating": 5,
+            "name": "Divine Regalia",
+            "combined_max": 13,
+            "individual_max": 0
+          }
+        ]
+      }
+    }
   },
   "Abyssal:fugitive": {
     "attribute_pools": [
@@ -823,7 +920,8 @@
       "artifact": {
         "cap_pre_bp_exempt": true,
         "expensive_above": 3,
-        "expensive_dot_cost": 2
+        "expensive_dot_cost": 2,
+        "rating_per_dot": 3
       }
     }
   },

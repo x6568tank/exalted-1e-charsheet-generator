@@ -1,8 +1,11 @@
 # Mortals & Heroic Mortals
 
-**Status: chargen DONE (2026-07-30), engine + UI, tests green. NOT browser-verified —
-that is the human's step 5.3 and has not happened yet. Magic access is deliberately
-absent (see *Deferred*).**
+**Status: chargen DONE (2026-07-30), engine + UI, tests green. BROWSER-VERIFIED
+2026-08-01**, no findings. Note the gap between those dates: magic access was
+deliberately absent when this shipped (see *Deferred*) and arrived later via Merits &
+Flaws, so the click-through covered more than this document describes — Essence
+Awareness, Essence Mastery, Terrestrial Martial Arts and Terrestrial Sorcery are all
+part of a mortal now. `docs/status/merits-flaws.md` is the record for that half.
 
 The first **non-Exalt** splat, and the first that is **casteless** and **barred from
 Charms**. One splat, two origins — not two splats.

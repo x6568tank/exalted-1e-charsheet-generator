@@ -16,7 +16,8 @@ from dataclasses import dataclass, field, field as dc_field
 from typing import Optional
 
 from .. import custom_content
-from ..engine import advancement, costs, derive, elder, validate
+from ..engine import (advancement, artifacts as artifactsmod, costs, derive, elder,
+                      merits as meritsmod, validate)
 from ..models.character import Armor, Character, HouseRules, Weapon, XpEntry
 from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, CharmCost,
                             Damage, RuleSet, SpellCircle, TRACK_CIRCLES, VirtueName,
@@ -1021,6 +1022,12 @@ class SheetView:
     health: list[str]                                 # formatted level labels
     # advantages / gear
     backgrounds: list[tuple[str, int, str]]           # (name, rating, note)
+    # Individually rated artifacts (E:Ab p.131), as (name, rating, note, damaged) —
+    # every one the character owns, folded from the standalone list AND from artifact
+    # weapons and armour, so the sheet's combined total matches the one the budget
+    # check reads. `damaged` is points of Damaged Artifact against that item, 0 for
+    # sound ones. Empty for the many characters who own none, which drops the panel.
+    artifacts: list[tuple[str, int, str, int]]
     # (name, printed cost with sign, detail, "merit"|"flaw"|"either", tooltip) — the
     # sign carries the direction so a Flaw never reads as something the character paid
     # for. The tooltip is the printed cost line plus the rules text: the sheet has no
@@ -1536,6 +1543,25 @@ def _cost_str(cost: CharmCost) -> str:
     return ", ".join(parts) if parts else "—"
 
 
+def _artifact_rows(ruleset: RuleSet, character: Character
+                   ) -> list[tuple[str, int, str, int]]:
+    """Every rated artifact for the sheet, as (name, rating, source label, damage).
+
+    Reads `engine.artifacts.artifact_items` rather than `character.artifacts` so an
+    artifact daiklave appears here as well as in the weapons table — the p.131 budget
+    counts it, so a sheet that omitted it would disagree with the validator about what
+    the character owns.
+
+    The damage figure comes from `MeritEffects`, not from any Merit id: this module
+    may not name one (decision 0011).
+    """
+    damaged = meritsmod.merits_and_flaws_calc(ruleset, character).damaged_artifacts
+    return [(i.name, i.rating,
+             "" if i.source == artifactsmod.SOURCE_ARTIFACT else i.source,
+             damaged.get(i.key, 0))
+            for i in artifactsmod.artifact_items(character)]
+
+
 def _health_label(hl: derive.HealthLevelView) -> str:
     if hl.incapacitated:
         base = "Incap"
@@ -1681,6 +1707,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         soak=d.soak,
         health=[_health_label(hl) for hl in d.health_levels],
         backgrounds=[(b.name, b.rating, b.note) for b in character.backgrounds],
+        artifacts=_artifact_rows(ruleset, character),
         fetters=[(f.name, f.rating, f.note) for f in character.fetters],
         fetter_cap=(derive.fetter_cap(character, ruleset) if character.fetters else 0),
         passions=[(p.virtue.value.title(), p.name, p.rating)

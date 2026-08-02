@@ -149,6 +149,23 @@ def render_sheet(view: viewmod.SheetView) -> None:
                     with ui.row().classes("w-full items-center gap-1 no-wrap"):
                         ui.label(f"{name}{' · ' + note if note else ''}").classes("text-sm flex-1 truncate")
                         ui.label(_dots(rating)).classes("text-sm font-mono")
+            # Artifacts — dropped for the many characters who own none, the same rule
+            # Fetters, Merits, Colleges and Thaumaturgy follow below.
+            if view.artifacts:
+                with _panel().classes("flex-1 min-w-[14rem]"):
+                    ui.label("Artifacts").classes("text-xs font-semibold").style(
+                        f"color:{pal.accent}")
+                    for name, rating, source, damage in view.artifacts:
+                        with ui.row().classes("w-full items-center gap-1 no-wrap"):
+                            label = f"{name}{' · ' + source if source else ''}"
+                            ui.label(label).classes("text-sm flex-1 truncate")
+                            # A damaged artifact says so on the sheet: its soak is
+                            # already reduced in the numbers above, and an unexplained
+                            # low figure reads as a bug.
+                            if damage:
+                                ui.label(f"−{damage}").classes(
+                                    "text-xs font-mono text-red-600")
+                            ui.label(_dots(rating)).classes("text-sm font-mono")
             # Fetters and Passions — ghosts only, dropped entirely for everyone else,
             # the same rule Merits, Colleges and Thaumaturgy follow.
             if view.fetters:

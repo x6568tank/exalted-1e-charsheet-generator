@@ -40,7 +40,7 @@ from ..models.rules import (
     SpellCircle,
     VirtueName,
 )
-from . import derive, elder, merits
+from . import artifacts, derive, elder, merits
 
 # Attribute categories and the order Strength/Dexterity/Stamina etc. (core p.104).
 # Which category receives which of the 8/6/4 pools is the player's priority and is
@@ -1780,6 +1780,69 @@ def background_issues(budgets, backgrounds) -> list[Issue]:
     return issues
 
 
+def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """The p.131 Artifact BUDGET: combined rating and per-item ceiling, keyed by the
+    character's Artifact Background rating (E:Ab p.131).
+
+    Runs on BOTH sides of the lock, following `check_fetters_and_passions` — and for
+    the same reason. The budget is keyed to a Background that experience can raise, so
+    the ceiling MOVES: a loyal Abyssal who buys Artifact ••• with XP may hold a combined
+    7, and one who has an artifact taken away is under budget rather than over. A
+    chargen-only check would go quiet exactly when the cap started changing. This is
+    also why artifacts are absent from `ChargenSnapshot`, which weapons and armour
+    already are.
+
+    A no-op for every splat whose Artifact `BackgroundRule` prints no `budget_tiers`,
+    which is all of them but the loyal Abyssal — renegades "use the Artifact Background
+    found in Chapter Four" (p.131), and their `Abyssal:fugitive` budget row carries no
+    rules at all, so `budget_tier` returns None and nothing below runs. It is also a
+    no-op for anyone owning no artifacts, which is most characters.
+
+    Three findings:
+      * owning artifacts with no Artifact Background at all,
+      * combined rating over the row's `combined_max`,
+      * a single item over the row's `individual_max` (the lower rows only). The page
+        makes these ST-overridable — "without Storyteller permission" — so they are
+        reported as warnings rather than errors; the combined budget is not.
+    """
+    issues: list[Issue] = []
+    items = artifacts.artifact_items(character)
+    if not items:
+        return issues
+    budgets = effective_budgets(ruleset, character)
+    rule = artifacts.artifact_rule(budgets)
+    if rule is None or not rule.budget_tiers:
+        return issues
+    rating = background_rating(character.backgrounds, artifacts.ARTIFACT_BACKGROUND)
+    tier = artifacts.budget_tier(budgets, rating)
+    if tier is None:
+        issues.append(Issue(
+            code="artifact-without-background", where="Artifact",
+            message=f"This character owns {len(items)} artifact(s) but has no Artifact "
+                    f"Background; artifacts are bought with its dots.",
+        ))
+        return issues
+    combined = sum(i.rating for i in items)
+    if combined > tier.combined_max:
+        issues.append(Issue(
+            code="artifact-combined-over-budget", where="Artifact",
+            message=f"Artifact {rating} ({tier.name}) allows a combined rating no "
+                    f"higher than {tier.combined_max}; this character owns "
+                    f"{combined}.",
+        ))
+    if tier.individual_max:
+        for item in items:
+            if item.rating > tier.individual_max:
+                issues.append(Issue(
+                    severity="warning",
+                    code="artifact-item-over-cap", where=item.name,
+                    message=f"Artifact {rating} ({tier.name}) allows no single artifact "
+                            f"above {tier.individual_max} without Storyteller "
+                            f"permission; {item.name} is {item.rating}.",
+                ))
+    return issues
+
+
 def eligible_array_charms(ruleset: RuleSet, character: Character) -> list[str]:
     """Ids of the character's known Charms that may legally be linked into an Array
     (p.89) — Attribute-based and `arrayable`, which excludes the Ability-based
@@ -2918,24 +2981,44 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"{definition.name} is not available to the "
                         f"{caste.label if caste else character.caste} caste.",
             ))
-        limit = definition.points_limited_by
-        if limit is not None:
+        for limit in definition.points_limits:
             points = merit_points(definition, purchase, character.exalt_type,
                                   character.caste)
-            rating = background_best(backgrounds, limit.background) + limit.offset
+            if limit.per_entry:
+                # The limit measures ONE named artifact, not the character's holdings.
+                # An unresolved key is reported rather than defaulted: choosing the
+                # best artifact on the character's behalf would make an illegal
+                # purchase legal without anyone deciding to.
+                item = artifacts.find_item(character, purchase.artifact_key)
+                if item is None:
+                    issues.append(Issue(
+                        code="merit-artifact-unchosen", where=definition.id,
+                        message=f"{definition.name} must name which artifact it "
+                                f"modifies; its point limit is the rating of that "
+                                f"artifact.",
+                    ))
+                    continue
+                if limit.measure == "acquisition_cost":
+                    budgets = effective_budgets(ruleset, character)
+                    have = artifacts.acquisition_cost(budgets, item.rating)
+                    shown = f"the {have} Background point(s) {item.name} cost"
+                else:
+                    have, shown = item.rating, f"{item.name} {item.rating}"
+            else:
+                have = background_best(backgrounds, limit.background)
+                shown = f"{limit.background} {have}"
+            rating = have + limit.offset
             if limit.mode == "max" and points > rating:
                 issues.append(Issue(
                     code="merit-points-above-background", where=definition.id,
                     message=f"{definition.name} may not be worth more than "
-                            f"{max(0, rating)} point(s) at {limit.background} "
-                            f"{background_best(backgrounds, limit.background)}; "
+                            f"{max(0, rating)} point(s) at {shown}; "
                             f"this purchase is worth {points}.",
                 ))
             elif limit.mode == "above" and points <= rating:
                 issues.append(Issue(
                     code="merit-points-below-background", where=definition.id,
-                    message=f"{definition.name} must exceed {limit.background} "
-                            f"{background_best(backgrounds, limit.background)}; "
+                    message=f"{definition.name} must exceed {shown}; "
                             f"this purchase is worth {points}.",
                 ))
         for group in unmet_trait_prerequisites(character, definition, purchase,
@@ -4099,4 +4182,5 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_beastman_gifts(ruleset, character)
     issues += check_specialties(ruleset, character)
     issues += check_fetters_and_passions(ruleset, character)
+    issues += check_artifacts(ruleset, character)
     return issues

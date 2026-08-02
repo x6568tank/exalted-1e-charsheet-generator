@@ -1,4 +1,4 @@
-# Ghosts — DONE (data, engine, UI), NOT browser-verified
+# Ghosts — DONE (data, engine, UI), browser-verified 2026-08-01
 
 **Shipped 2026-08-01.** The **seventh splat** and the **second non-Exalt** one, after
 Mortals. Source, all human-pasted into `images/Non-Exalts/Ghosts/`:
@@ -281,7 +281,7 @@ permission checked in one function is not checked.**
 warnings). Preflight ran and found the `charm_learnable_by_splat` bug above.
 `tests/test_ghost.py` is 76 tests.
 
-**NOT browser-verified.** What to click, in priority order:
+**Browser-verified 2026-08-01** — clicked through, no findings. The list below is kept as the regression walk-through, in priority order:
 
 1. **The Advantages tab, pre-lock** (`/ghost-advantages`) — the Fetter pool against the
    live Willpower+Essence cap, and the per-Virtue Passion distribution.

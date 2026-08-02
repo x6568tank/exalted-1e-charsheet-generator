@@ -184,9 +184,25 @@ def test_alchemical_backgrounds_are_in_the_catalog(rs):
 
 
 def test_other_splats_have_no_background_mechanics(rs):
-    """The rules are opt-in per splat; nothing may change for anyone else."""
-    for splat in ("Solar", "Abyssal", "Dragon-Blooded", "Lunar"):
+    """The rules are opt-in per splat; nothing may change for anyone else.
+
+    The loyal Abyssal is the second splat to opt in (E:Ab p.131 budgets the Artifact
+    Background), so it is checked separately below rather than listed here — but its
+    rule must be budget_tiers ONLY, since none of the Alchemical chargen mechanics
+    this module tests apply to it."""
+    for splat in ("Solar", "Lunar"):
         assert rs.budgets_for(splat).background_rules == {}
+    # The loyal Abyssal and the Dragon-Blooded both opted in for the Artifact
+    # Background (E:Ab p.131's budget table; "twice the dots' worth" respectively), and
+    # neither may pick up any of the Alchemical chargen mechanics this module tests.
+    for splat in ("Abyssal", "Dragon-Blooded"):
+        rules = rs.budgets_for(splat).background_rules
+        assert set(rules) == {"artifact"}
+        rule = rules["artifact"]
+        assert (rule.min_rating, rule.requires, rule.max_rating,
+                rule.expensive_above, rule.free_rating) == (0, "", 0, 0, 0)
+    assert rs.budgets_for("Abyssal").background_rules["artifact"].budget_tiers
+    assert rs.budgets_for("Dragon-Blooded").background_rules["artifact"].rating_per_dot == 2
 
 
 def test_class_is_automatic_at_three(rs):

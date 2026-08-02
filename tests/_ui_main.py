@@ -8,7 +8,7 @@ from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
     MeritFlawPurchase,
     Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
-    FetterEntry, HouseRules, PassionEntry, PlayState, RitualEntry, ScienceRating,
+    ArtifactEntry, FetterEntry, HouseRules, PassionEntry, PlayState, RitualEntry, ScienceRating,
     ThaumaturgyState, Weapon)
 from exalted_builder.engine import adversaries as adversaries_engine
 from exalted_builder.models.adversary import (Adversary, AdversaryAttack,
@@ -1158,3 +1158,77 @@ CHAR_GHOST_APP = _ghost("gha", "Tab Test")
 @ui.page('/ghost-app')
 def page_ghost_app():
     builder.build_app(RS, CHAR_GHOST_APP, Path("gha.json"))
+
+# --------------------------------------------------------------------------- #
+# Rated artifacts (E:Ab p.131) — a loyal Abyssal with all three kinds of artifact
+# and a Damaged Artifact Flaw pointed at the armour. The panel and the picker are
+# the read sites that stop `Character.artifacts` and `MeritFlawPurchase.artifact_key`
+# becoming dead fields; see tests/test_rated_artifacts.py.
+# --------------------------------------------------------------------------- #
+CHAR_ARTIFACTS = Character(id="art", name="Clutching Owl", exalt_type="Abyssal",
+                           caste="Dusk", essence_rating=2)
+CHAR_ARTIFACTS.backgrounds.append(BackgroundEntry(name="Artifact", rating=3))
+CHAR_ARTIFACTS.artifacts.append(ArtifactEntry(name="Tattered Wings", rating=2,
+                                              note="of the raptor"))
+CHAR_ARTIFACTS.weapons.append(Weapon(name="Soulsteel Daiklave", accuracy=2, damage=5,
+                                     artifact_rating=3))
+CHAR_ARTIFACTS.armor.append(Armor(name="Grave Plate", soak_lethal=8, soak_bashing=10,
+                                  artifact_rating=2))
+CHAR_ARTIFACTS.merits_flaws.append(
+    MeritFlawPurchase(merit_id="mf.damaged-artifact", tier="1",
+                      artifact_key="armor:grave plate"))
+
+@ui.page('/artifacts-advantages')
+def page_artifacts_advantages():
+    advantages.build_advantages(RS, CHAR_ARTIFACTS, Path("x.json"), with_header=False)
+
+@ui.page('/artifacts-sheet')
+def page_artifacts_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_ARTIFACTS))
+
+# The same character past the lock: artifacts are equipment, so the panel is on the
+# bar both sides and must not vanish or turn read-only.
+CHAR_ARTIFACTS_XP = CHAR_ARTIFACTS.model_copy(deep=True)
+CHAR_ARTIFACTS_XP.id = "artxp"
+lifecycle.lock_chargen(CHAR_ARTIFACTS_XP, RS)
+CHAR_ARTIFACTS_XP.xp_earned = 20
+
+@ui.page('/artifacts-advantages-xp')
+def page_artifacts_advantages_xp():
+    advantages.build_advantages(RS, CHAR_ARTIFACTS_XP, Path("x.json"), with_header=False)
+
+# A splat with no budget table: the panel still edits artifacts, but prints no budget.
+CHAR_ARTIFACTS_SOLAR = Character(id="arts", name="Velgash", caste="dawn")
+CHAR_ARTIFACTS_SOLAR.backgrounds.append(BackgroundEntry(name="Artifact", rating=4))
+CHAR_ARTIFACTS_SOLAR.artifacts.append(ArtifactEntry(name="Tattered Wings", rating=4))
+
+@ui.page('/artifacts-advantages-solar')
+def page_artifacts_advantages_solar():
+    advantages.build_advantages(RS, CHAR_ARTIFACTS_SOLAR, Path("x.json"), with_header=False)
+
+# Damaged Artifact held by a character owning NO artifacts — the empty-options case
+# for the artifact picker, which is the NiceGUI build-time crash class (a ui.select
+# whose value is not among its options takes the whole tab down, siblings included).
+CHAR_ARTIFACTS_NONE = Character(id="artn", name="Owns Nothing", exalt_type="Abyssal",
+                                caste="Dusk", essence_rating=2)
+CHAR_ARTIFACTS_NONE.merits_flaws.append(
+    MeritFlawPurchase(merit_id="mf.damaged-artifact", tier="1"))
+
+@ui.page('/artifacts-advantages-none')
+def page_artifacts_advantages_none():
+    advantages.build_advantages(RS, CHAR_ARTIFACTS_NONE, Path("x.json"),
+                                with_header=False)
+
+# ...and one whose stored key resolves to nothing, because the artifact was renamed.
+CHAR_ARTIFACTS_STALE = Character(id="arts2", name="Renamed", exalt_type="Abyssal",
+                                 caste="Dusk", essence_rating=2)
+CHAR_ARTIFACTS_STALE.backgrounds.append(BackgroundEntry(name="Artifact", rating=3))
+CHAR_ARTIFACTS_STALE.artifacts.append(ArtifactEntry(name="New Name", rating=3))
+CHAR_ARTIFACTS_STALE.merits_flaws.append(
+    MeritFlawPurchase(merit_id="mf.damaged-artifact", tier="1",
+                      artifact_key="artifact:old name"))
+
+@ui.page('/artifacts-advantages-stale')
+def page_artifacts_advantages_stale():
+    advantages.build_advantages(RS, CHAR_ARTIFACTS_STALE, Path("x.json"),
+                                with_header=False)

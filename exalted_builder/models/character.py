@@ -54,6 +54,28 @@ class BackgroundEntry(BaseModel):
     note: str = ""                         # the specific descriptor
 
 
+class ArtifactEntry(BaseModel):
+    """One individually rated artifact the character owns (E:Ab p.131).
+
+    Exists because the Artifact Background is a BUDGET, not a cost curve: the Abyssal
+    table caps both the COMBINED rating of everything owned and the rating of any
+    SINGLE item, and neither can be checked against a `BackgroundEntry`, which carries
+    one summed number. It is also what Damaged Artifact points at — the Flaw's printed
+    limit is "the rating of the artifact it modifies", per-item, not the total.
+
+    ⚠ This list is for artifacts that are NEITHER a weapon NOR armour — the book's own
+    worked example is the tattered wings of the raptor. Weapons and armour already
+    carry `artifact_rating` and are folded in by `engine.artifacts.artifact_items`;
+    re-entering a daiklave here would double-count it against the budget.
+
+    `rating` is the artifact's own dots (1-5), not the Background's. N/A artifacts are
+    unrepresentable on purpose: the p.131 table's only universal rule is that an item
+    "cannot be N/A", so there is no rating to record for one."""
+    name: str
+    rating: int = Field(ge=1, le=5)
+    note: str = ""
+
+
 class FetterEntry(BaseModel):
     """One Fetter — a person, place or object anchoring a ghost to the world
     (Exalted: The Abyssals p.126). Ghosts only; every other splat's list is empty.
@@ -129,6 +151,16 @@ class MeritFlawPurchase(BaseModel):
     # entry; the printed maximum is clamped in engine.merits, not here, so an old save
     # with a stray value loads rather than failing.
     stipulations: int = Field(default=0, ge=0)
+    # Which artifact this Flaw modifies, for a `points_limited_by.per_entry` entry —
+    # Damaged Artifact, whose printed limit is "the rating of the artifact it modifies"
+    # rather than the character's summed Artifact Background. The value is an
+    # `engine.artifacts` item KEY ("artifact:tattered wings", "weapon:grand daiklave"),
+    # so it can name a standalone artifact, a weapon or a suit of armour alike.
+    #
+    # "" on every other entry, and on a Damaged Artifact whose owner has not yet chosen
+    # — which validate reports rather than defaulting, because picking the character's
+    # best artifact for them would silently make an illegal purchase legal.
+    artifact_key: str = ""
 
 
 class CraftRating(BaseModel):
@@ -490,6 +522,12 @@ class ChargenSnapshot(BaseModel):
     virtues: dict[VirtueName, int]
     specialties: list[Specialty]
     backgrounds: list[BackgroundEntry]
+    # ⚠ Artifacts are deliberately NOT frozen here, for the same reason Passions are
+    # not (below) and weapons and armour never were: the p.131 budget is keyed to the
+    # Artifact Background, which experience can RAISE, so the ceiling moves after the
+    # lock and a snapshot would pin it to what the character started with. It is
+    # checked live on both sides instead — see engine.validate.check_artifacts, which
+    # follows the Fetter-cap precedent.
     # Fetters are frozen like any other bought trait. Passions are NOT — they are a
     # live derivation of the Virtues on both sides of the lock (p.283), so freezing
     # them would be the decision-0005 Willpower treatment applied to a rule that
@@ -684,6 +722,11 @@ class Character(BaseModel):
     wp_virtue_component: Optional[int] = None
 
     backgrounds: list[BackgroundEntry] = Field(default_factory=list)
+    # Individually rated artifacts that are neither weapon nor armour (E:Ab p.131).
+    # Bought with the Artifact Background rather than out of a pool of their own, so
+    # there is no BP or XP row for them — what they cost is the Background dots, which
+    # the existing rows already price. See ArtifactEntry.
+    artifacts: list[ArtifactEntry] = Field(default_factory=list)
     # Ghosts only (E:Ab p.126-127). Fetters are bought out of their own chargen pool
     # and with their own BP/XP rates; Passions are DERIVED from the Virtues and only
     # distributed here — see PassionEntry for why neither cost table has a row for

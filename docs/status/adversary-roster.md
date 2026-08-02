@@ -1,8 +1,8 @@
-# The adversary roster — DONE, NOT browser-verified (2026-08-01)
+# The adversary roster — DONE, browser-verified 2026-08-01
 
 A Storyteller's list of extras, beasts and NPCs on `/gm`, beside the party they are
-fighting. 1,794 tests. **NOT browser-verified** — nothing here has been clicked
-through; see *What to click* at the bottom.
+fighting. 1,794 tests. **Browser-verified 2026-08-01** — clicked through, no findings.
+The *What to click* list at the bottom is kept as the regression walk-through.
 
 Requested by the human 2026-08-01: *"a way for a GM in GM mode to add and track
 extras/beasts/whatever. Just a list of them with relevant stats pre-filled and

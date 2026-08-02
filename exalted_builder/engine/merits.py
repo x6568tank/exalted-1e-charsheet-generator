@@ -139,9 +139,20 @@ WEAK_WILLED_FLOOR_MORTAL = 2
 # chargen Background pool, one that restricts which Backgrounds may be held at all. The
 # other three A6 entries (Damaged Artifact, Known Anathema, Debt) restrict their own
 # POINT VALUE against a Background rating, which is a printed purchase restriction and
-# therefore inert catalogue data — `MeritFlaw.points_limited_by`, checked by validate.
+# therefore inert catalogue data — `MeritFlaw.points_limits`, checked by validate.
 HEIR_APPARENT = "mf.heir-apparent"
 INNOCUOUS = "mf.innocuous"
+
+# Damaged Artifact is the exception among those three: its point limit is inert
+# catalogue data like the others, but the Flaw also DOES something derivable, so it
+# needs an id here as well. See MeritEffects.damaged_artifacts.
+DAMAGED_ARTIFACT = "mf.damaged-artifact"
+
+# Soak lost by a damaged suit of armour, by points of the Flaw taken against it
+# (PG p.38). Both tracks lose the same amount — see MeritEffects.damaged_artifacts for
+# whose ruling that is. None = "presently useless": no soak at all, which is not a
+# subtraction and must not be modelled as one.
+DAMAGED_ARTIFACT_SOAK: dict[int, int | None] = {1: 1, 2: 3, 3: None}
 
 # "Every point invested in this Merit grants two dots of Backgrounds that the character
 # will ultimately gain, but characters may not spend more than five points in this
@@ -447,6 +458,26 @@ class MeritEffects:
     # not held, which is NOT the same as 0 — a character may hold it and start clean,
     # which is what its base four-point value buys.
     permanent_limit_start: int | None = None
+
+    # --- Damaged artifacts (PG p.38) ---------------------------------------- #
+    # How badly each damaged artifact is damaged, keyed by `engine.artifacts` item key
+    # ("armor:soulsteel articulated plate"), valued by the points of Damaged Artifact
+    # taken against it. Empty for everyone holding none, which is nearly everyone.
+    #
+    # Only the ARMOUR consequence is derivable here. A weapon "may lose a point of
+    # damage or accuracy or some other characteristic" and complicated artifacts work
+    # "most of the time … as arbitrated by the Storyteller" — both are combat
+    # derivation or narrative, and decision 0008 keeps them out. `derive.soak` exists,
+    # so armour's "loses an equivalent number of points from its lethal and bashing
+    # soak" is the one clause that can be honoured, and it is.
+    #
+    # The points→soak reading is the human's (rules authority): 2 points is the printed
+    # "six points from weapons and armor", ruled 2026-07-30 to split evenly as 3 and 3
+    # across the two tracks, and 1 point was confirmed 2026-08-02 to scale the same way
+    # — 1 off each track, not 1 shared between them. 3 points is "presently useless",
+    # which is no soak at all rather than an arithmetic reduction. See
+    # DAMAGED_ARTIFACT_SOAK.
+    damaged_artifacts: dict[str, int] = field(default_factory=dict)
 
     # --- Cross-Merit effects ----------------------------------------------- #
     # Merits held FREE because another Merit grants them (Holy Mien -> Priest at the
@@ -868,7 +899,23 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         cost_overrides = {PRIEST: {"1": 0, "7": 6}}
         effects_from.add(HOLY_MIEN)
 
+    # Damaged Artifact, keyed by the item each purchase names. The Flaw is repeatable
+    # across DIFFERENT artifacts, so several purchases may coexist; two against the
+    # same item take the worse of the two rather than summing, since the printed tiers
+    # describe one artifact's condition and "presently useless" cannot be exceeded.
+    # A purchase naming nothing is skipped — validate reports it as unchosen.
+    damaged: dict[str, int] = {}
+    for definition, purchase in _held(ruleset, character):
+        if definition.id != DAMAGED_ARTIFACT:
+            continue
+        key = purchase.artifact_key
+        points = merit_points(definition, purchase, character.exalt_type,
+                              character.caste)
+        if key and points > 0:
+            damaged[key] = max(damaged.get(key, 0), points)
+
     return MeritEffects(
+        damaged_artifacts=damaged,
         attribute_caps=attribute_caps,
         virtue_cap=virtue_cap,
         essence_start_override=essence_start_override,

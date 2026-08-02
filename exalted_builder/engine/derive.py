@@ -563,6 +563,38 @@ def effective_armor(ruleset: RuleSet, character: Character, armor: Armor) -> Arm
     })
 
 
+def damaged_armor(ruleset: RuleSet, character: Character, armor: Armor) -> Armor:
+    """A copy of `armor` with any Damaged Artifact reduction applied (PG p.38).
+
+    Applied AFTER the magical-material bonus, deliberately: the Flaw describes an item
+    that "has suffered damage", and what it lost is points off what the item actually
+    provides, moonsilver reinforcement included. Doing it the other way round would let
+    a magical material repair the damage.
+
+    Soak floors at 0 in every case — a damaged artifact never soaks negatively — and
+    the three-point tier is not a subtraction at all: "the artifact is presently
+    useless", so both tracks go to zero however good the armour was.
+
+    Untouched for mundane armour, undamaged artifacts, and every character holding no
+    Merits, which is the overwhelming majority of calls.
+    """
+    from . import artifacts, merits          # local: both import derive at module load
+    effects = merits.merits_and_flaws_calc(ruleset, character)
+    if not effects.damaged_artifacts:
+        return armor.model_copy()
+    key = artifacts.item_key(artifacts.SOURCE_ARMOR, armor.name)
+    points = effects.damaged_artifacts.get(key)
+    if not points:
+        return armor.model_copy()
+    lost = merits.DAMAGED_ARTIFACT_SOAK.get(points, 0)
+    if lost is None:                          # "presently useless"
+        return armor.model_copy(update={"soak_lethal": 0, "soak_bashing": 0})
+    return armor.model_copy(update={
+        "soak_lethal": max(0, armor.soak_lethal - lost),
+        "soak_bashing": max(0, armor.soak_bashing - lost),
+    })
+
+
 def soak(character: Character, ruleset: Optional[RuleSet] = None) -> SoakView:
     """Per-damage-type soak (bashing / lethal / aggravated), Exalted 1e pp.231-232.
 
@@ -570,10 +602,16 @@ def soak(character: Character, ruleset: Optional[RuleSet] = None) -> SoakView:
     common case is one suit). Only magical beings add half-Stamina to lethal soak;
     aggravated never benefits from Stamina. Mortals (exalt_type "Mortal") get no
     Stamina contribution to lethal. When `ruleset` is given, magical-material
-    bonuses are folded into the armour soak via effective_armor (Exalt-gated)."""
+    bonuses are folded into the armour soak via effective_armor (Exalt-gated) and any
+    Damaged Artifact reduction is taken off afterwards via damaged_armor.
+
+    ⚠ Both of those need the RuleSet, so a call that omits it returns armour soak
+    UNDAMAGED as well as unenchanted — the optional parameter makes an omission a
+    silent wrong answer rather than an error. Pass it."""
     stamina = character.attributes[AttributeName.STAMINA]
     pieces = (
-        [effective_armor(ruleset, character, a) for a in character.armor]
+        [damaged_armor(ruleset, character, effective_armor(ruleset, character, a))
+         for a in character.armor]
         if ruleset is not None else character.armor
     )
     armor_bashing = sum(a.soak_bashing for a in pieces)

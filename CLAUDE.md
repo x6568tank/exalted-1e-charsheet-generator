@@ -61,10 +61,10 @@ its own chargen/data work:
 
 | Splat | Source images | Status |
 |---|---|---|
-| Mortals | `images/Mortals/Mortals & Heroic Mortals/` | **DONE 2026-07-30** — chargen, engine, UI, tests. Magic access deferred to M&F. Not browser-verified yet. `docs/status/mortals.md` |
+| Mortals | `images/Mortals/Mortals & Heroic Mortals/` | **DONE 2026-07-30**, browser-verified 2026-08-01 — chargen, engine, UI, tests. Magic access arrived later via M&F. `docs/status/mortals.md` |
 | Heroic Mortals | *(same, core p.103)* | **DONE 2026-07-30** — NOT a separate splat after all: the `heroic`/`ordinary` origin axis on `Mortal`. See below |
 | Godblooded | — | NOT STARTED |
-| Ghosts | `images/Non-Exalts/Ghosts/` | **DONE 2026-08-01** — data, engine, UI, 91 tests. Not browser-verified yet. `docs/status/ghosts.md` |
+| Ghosts | `images/Non-Exalts/Ghosts/` | **DONE 2026-08-01**, browser-verified the same day — data, engine, UI, 91 tests. `docs/status/ghosts.md` |
 | Dragon-Kings | — | NOT STARTED |
 | Mountain Folk | — | NOT STARTED |
 | ~~Fair Folk / Fae~~ | — | **NEVER — permanently out of scope** (human, 2026-07-29) |
@@ -108,7 +108,7 @@ open — see **TODO**.
 **Merits & Flaws are BACK, as of 2026-07-30** — pulled forward of the remaining
 non-Exalt splats because mortals shipped with no route to magic and that route runs
 through Merits. They returned as decision 0011 demanded: ONE centralized calculation
-(`engine/merits.py`), never the per-file hooks that got them ripped out. 99 entries
+(`engine/merits.py`), never the per-file hooks that got them ripped out. 100 entries
 authored. `docs/status/merits-flaws.md`.
 
 ## Architecture, layout and data conventions → `docs/ARCHITECTURE.md`
@@ -176,7 +176,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1794 tests passing)
+## Status (1848 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -200,14 +200,14 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Thaumaturgy — DONE** (cross-splat Arts/Sciences/Rituals/Formulas; engine + UI, browser-verified) | `docs/status/thaumaturgy.md` |
 | **Custom content — DONE** (user-authored Charms/styles/spells: library, `/custom` page, saves that carry homebrew) | `docs/status/custom-content.md` |
 | **Mortals & Heroic Mortals — DONE** (one splat, two origins; casteless, no Charms, Essence pinned at 1; magic via M&F) | `docs/status/mortals.md` |
-| **Merits & Flaws — DONE, browser-verified** (centralized calc per decision 0011; all 99 authored; every A-list mechanism; mortal magic unlock) | `docs/status/merits-flaws.md` |
+| **Merits & Flaws — DONE, browser-verified** (centralized calc per decision 0011; all 100 authored; every A-list mechanism; mortal magic unlock) | `docs/status/merits-flaws.md` |
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
-| **Rated artifacts — DEFERRED, sourced** (the E:Ab p.131 Artifact budget table, transcribed; per-specific-artifact Damaged Artifact) | `docs/status/rated-artifacts.md` |
+| **Rated artifacts — DONE, NOT yet browser-verified** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted) | `docs/status/advantages-tab.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
-| **Ghosts — DONE, NOT browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
+| **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
 | **Elder Exalts — DONE, browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
-| **Adversary roster — DONE, NOT browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
+| **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
 **One-paragraph state of the world:** Models/persistence/engine/UI foundation is
 done (`engine-and-ui.md`). Every splat's data, engine and UI is shipped and
@@ -223,7 +223,7 @@ it uses (`docs/status/custom-content.md`). **Every Exalt splat is done, and the 
 non-Exalt splat shipped 2026-07-30**: Mortals + Heroic Mortals, which turned out to be
 one splat with two origins rather than two splats (`docs/status/mortals.md`). Their
 chargen is complete, and so is their magic: **Merits & Flaws came back the same day**
-(99 entries, one centralized calc — `docs/status/merits-flaws.md`), which is what opens
+(100 entries, one centralized calc — `docs/status/merits-flaws.md`), which is what opens
 Terrestrial Martial Arts and Sorcery to a mortal — and as of 2026-07-31 every mechanical
 effect on the M&F triage's A-list is implemented and browser-verified, so the subsystem is
 closed. **Backgrounds and M&F now live on their own both-sides Advantages tab**
@@ -280,14 +280,38 @@ Recorded as decision records, not restated here — read them before proposing a
 ## TODO
 
 ### 👉 START HERE (session handoff)
-**TWO items are tests-green and preflight-clean but NOT browser-verified — the Ghost
-splat and the adversary roster, both 2026-08-01. Everything else below is
-browser-verified. Nothing is half-finished.**
+**ONE ITEM IS WAITING ON THE HUMAN'S EYES: rated artifacts** (2026-08-02, tests green
+and preflight clean, `docs/status/rated-artifacts.md`). Everything else was
+browser-verified on 2026-08-01 — the Ghost splat, the adversary roster and Mortals were
+the last three, all clicked through with no findings.
 
-The last six items, newest first — read the linked file before touching that area:
+**Nothing is open on it** — Damaged Artifact's third cap ("the number of Background
+and/or bonus points spent obtaining the artifact", PG p.38) shipped too, as
+`engine.artifacts.acquisition_cost`. **⚠ It deliberately contradicts the book:** p.38's
+worked example prices 4-dot wings at two Abyssal Background points by ignoring its own
+table's per-item ceiling one line up; the table says three. Human's ruling 2026-08-02 —
+*"if the book disregards its own table, fuck em"* — so this build answers 3. A test pins
+it. Do not "fix" it toward the printed example.
 
-* **The adversary roster** (`docs/status/adversary-roster.md`) — **NEEDS A
-  CLICK-THROUGH.** Nothing is open on it. GM-mode extras/beasts/NPCs, 49 generic
+The last seven items, newest first — read the linked file before touching that area:
+
+* **Rated artifacts** (`docs/status/rated-artifacts.md`) — **DONE 2026-08-02, awaiting
+  click-through.** Individual artifacts are rated objects now. Four things to know from
+  outside the area: (1) **`engine.artifacts.artifact_items` is the ONE enumeration** —
+  it folds `Character.artifacts`, artifact weapons and artifact armour into one keyed
+  list, and every rule reads it, so never count any single one of the three; (2) the
+  p.131 budget **runs on both sides of the lock** and artifacts are deliberately NOT in
+  `ChargenSnapshot`, following the Fetter-cap precedent, because the Background that
+  keys the budget can be raised with XP; (3) **`MeritFlaw.points_limited_by` is gone,
+  replaced by the plural `points_limits`** — Damaged Artifact prints two constraints
+  measuring different things and collapsing them was the original bug; (4) the armour
+  soak effect is the only mechanical half that could ship, decision 0008 keeping the
+  weapon half out. **The trap it hit:** the Dragon-Blooded artifact multiplier had to be
+  authored on all 13 DB budget rows, because `_keyed_row`'s cascade REPLACES rather than
+  merges — the `highest_magic_circle_id` trap in another costume.
+
+* **The adversary roster** (`docs/status/adversary-roster.md`) — **DONE,
+  browser-verified.** Nothing is open on it. GM-mode extras/beasts/NPCs, 49 generic
   templates, named individuals excluded — **except four Exalt blocks that sit under ROLE
   headings** (Dynasty Noble, Ambitious Young Officer, Bronze Faction Functionary,
   Deathknight), which are in with their names stripped because the book itself says one
@@ -298,7 +322,7 @@ The last six items, newest first — read the linked file before touching that a
   absent from the editor, so saving would have wiped them); two tests now force every
   stat field to be both editable and displayed.
 
-* **Ghosts** (`docs/status/ghosts.md`) — **NEEDS A CLICK-THROUGH.** The seventh splat and
+* **Ghosts** (`docs/status/ghosts.md`) — **DONE, browser-verified.** The seventh splat and
   the second non-Exalt one. Four things are new: **Virtue-keyed Charms** (`min_virtue`,
   the third and last keying axis, after Ability and Lunar's Attribute); **Fetters and
   Passions**; **two independent chargen axes at once** (origin heroic/mundane ×
@@ -347,7 +371,7 @@ The last six items, newest first — read the linked file before touching that a
   read-only on the Sheet. **Eight chargen choices are frozen once locked** (Favoured
   picks, caste, Exalt type, origin, upbringing, camp, Calling, flawed Virtue) — greyed but
   readable. That last one came from the human at the browser, not the suite.
-* **Merits & Flaws** (`docs/status/merits-flaws.md`). All 99 authored, every A-list
+* **Merits & Flaws** (`docs/status/merits-flaws.md`). All 100 authored, every A-list
   mechanism implemented. **No module outside `engine/merits.py` may name a Merit id** — a
   test greps for it; add a `MeritEffects` FIELD, never an allowlist.
 * **The Advantages tab** (`docs/status/advantages-tab.md`, v0.7.6). Backgrounds and M&F on
@@ -365,9 +389,11 @@ Dragon-Kings, Mountain Folk** — all still blocked on source material; Ghosts s
 2026-08-01 once their pages landed. The **M&F filter/search** is DONE (2026-08-01 —
 side/category/free-text over name AND rules text, one filter serving both regimes;
 `docs/status/advantages-tab.md`). The **GM-mode adversary roster** shipped 2026-08-01
-(`docs/status/adversary-roster.md`) — tests-green, NOT browser-verified. The standing
-candidate is `docs/status/rated-artifacts.md`, already sourced and transcribed. The three
-remaining non-Exalt splats are all still blocked on source material.
+(`docs/status/adversary-roster.md`) — browser-verified 2026-08-01. **Rated artifacts,
+the standing candidate, SHIPPED 2026-08-02** and is the one thing awaiting a
+click-through (`docs/status/rated-artifacts.md`). The three remaining non-Exalt splats
+are all still blocked on source material, so there is no obvious next item — it is the
+human's call.
 
 **Three rulings landed 2026-07-31** (human, rules authority — written up in
 `edit-xp-merge.md`). The first changes a model assumption, so read it before touching
@@ -379,7 +405,7 @@ happen), and **Nature freezes at the lock** with the other chargen choices.
 
 **Done:** the **GM-mode adversary roster** (2026-08-01 — extras/beasts/NPCs on `/gm`,
 one small model that is deliberately NOT a `Character`, 49 generic templates, template
-instantiation and duplication; `docs/status/adversary-roster.md`. **NOT browser-verified.**
+instantiation and duplication; `docs/status/adversary-roster.md`. **Browser-verified.**
 Brought **SHIELDS** into the build on the way — the three p.335 shields, which live in the
 armour chapter's PROSE and appear in no table. They are **`armor.json` rows tagged
 "shield"**, NOT a model of their own: a character's armour is already a list, so a shield
@@ -458,8 +484,8 @@ homebrew-only with no printed use AT THE TIME: `CharmCost.health_type` and
   Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" cost override is deliberately
   unauthored and should be added with those splats.
 - **Merits & Flaws — DONE.** Decision 0011's centralized `merits_and_flaws_calc` exists
-  (`exalted_builder/engine/merits.py`) and **99 M&F are authored**: the 11 Thaumaturgy
-  ones (PG pp.120-122) and all 88 of the general chapter (pp.16-41). Pulled forward of
+  (`exalted_builder/engine/merits.py`) and **100 M&F are authored**: the 11 Thaumaturgy
+  ones (PG pp.120-122) and all 89 of the general chapter (pp.16-41). Pulled forward of
   the remaining non-Exalt splats because mortals shipped with no route to magic and that
   route runs entirely through Merits. **Mortal magic access is part of it:** Essence
   Awareness unlocks the pool, Essence Mastery unlocks it fully and opens Terrestrial

@@ -36,10 +36,10 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import (advancement, costs as costsmod, derive as derivemod,
-                      merits as meritsmod, validate)
-from ..models.character import (BackgroundEntry, Character, FetterEntry,
-                                MeritFlawPurchase, PassionEntry)
+from ..engine import (advancement, artifacts as artifactsmod, costs as costsmod,
+                      derive as derivemod, merits as meritsmod, validate)
+from ..models.character import (ArtifactEntry, BackgroundEntry, Character,
+                                FetterEntry, MeritFlawPurchase, PassionEntry)
 from ..models.rules import RuleSet, VirtueName
 from . import theme
 from . import view as viewmod
@@ -209,6 +209,75 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 value=bg.rating, min=0, max=5, format="%d",
                 on_change=lambda e, bg=bg: setattr(bg, "rating", int(e.value or 0))
             ).props("dense").classes("w-16"))
+
+    # ---- Artifacts: individually rated items ------------------------------- #
+    def add_artifact() -> None:
+        character.artifacts.append(ArtifactEntry(name="", rating=1))
+        refresh_all()
+
+    def remove_artifact(idx: int) -> None:
+        del character.artifacts[idx]
+        refresh_all()
+
+    def _artifacts_panel() -> None:
+        """The standalone artifacts — those that are neither weapon nor armour.
+
+        On the Advantages tab because artifacts are bought with the Artifact Background
+        and budgeted by it (E:Ab p.131), so the two belong under one eye. Weapons and
+        armour keep their own `artifact_rating` on the equipment surface and are NOT
+        editable here — they are only counted, in the budget line below, which is what
+        stops a daiklave being entered twice.
+
+        One panel, both regimes: an artifact is equipment, and equipment has never been
+        XP-priced or log-tracked on either side of the lock.
+        """
+        items = artifactsmod.artifact_items(character)
+        rule = artifactsmod.artifact_rule(validate.effective_budgets(rs, character))
+        budgeted = rule is not None and bool(rule.budget_tiers)
+        header = "Artifacts"
+        if budgeted:
+            rating = sum(bg.rating for bg in character.backgrounds
+                         if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
+            tier = artifactsmod.budget_tier(
+                validate.effective_budgets(rs, character), rating)
+            combined = sum(i.rating for i in items)
+            if tier is not None:
+                header = (f"Artifacts ({combined}/{tier.combined_max} combined — "
+                          f"Artifact {rating}, {tier.name})")
+            else:
+                header = f"Artifacts ({combined} combined — no Artifact Background)"
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+            with ui.row().classes("w-full items-baseline gap-2"):
+                ui.label(header).classes(
+                    "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                ui.label("bought with the Artifact Background").classes(
+                    "text-xs text-gray-500")
+            for idx, art in enumerate(character.artifacts):
+                with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                    ui.input(value=art.name, placeholder="artifact",
+                             on_change=lambda e, art=art: (setattr(art, "name", e.value),
+                                                           changed())
+                             ).props("dense").classes("flex-1")
+                    ui.input(value=art.note, placeholder="note",
+                             on_change=lambda e, art=art: setattr(art, "note", e.value)
+                             ).props("dense").classes("flex-1")
+                    ui.number(value=art.rating, min=1, max=5, format="%d", label="Rating",
+                              on_change=lambda e, art=art: (
+                                  setattr(art, "rating", max(1, min(5, int(e.value or 1)))),
+                                  refresh_all())
+                              ).props("dense").classes("w-24")
+                    ui.button(icon="delete",
+                              on_click=lambda e=None, idx=idx: remove_artifact(idx)
+                              ).props("flat dense round")
+            # Artifact weapons and armour count against the same budget but are edited
+            # on the equipment surface. Listed read-only so the combined total above is
+            # accounted for rather than looking wrong.
+            gear = [i for i in items if i.source != artifactsmod.SOURCE_ARTIFACT]
+            if gear:
+                ui.label("Also counted, from equipment: "
+                         + ", ".join(f"{i.name} ({i.rating})" for i in gear)
+                         ).classes("text-xs italic opacity-70")
+            ui.button("Add artifact", icon="add", on_click=add_artifact).props("flat dense")
 
     # ---- Merits & Flaws: chargen ------------------------------------------ #
     def set_merit(mp, merit_id: str) -> None:
@@ -456,6 +525,29 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                                           setattr(mp, "points", int(e.value or 0)),
                                           refresh_all())
                                       ).classes("w-28").props("dense")
+                    # WHICH artifact a per-entry limit measures (Damaged Artifact). The
+                    # condition is the catalogue's `per_entry` flag, never the entry's
+                    # id — decision 0011 again. Without this control the Flaw's limit
+                    # could never be satisfied and its soak effect never fired, which is
+                    # the dead-field bug this build keeps re-finding.
+                    if definition is not None and any(l.per_entry
+                                                      for l in definition.points_limits):
+                        items = artifactsmod.artifact_items(character)
+                        art_opts = {i.key: f"{i.name} ({i.rating})" for i in items}
+                        # A key that no longer resolves — the artifact was renamed or
+                        # deleted — stays selectable and is labelled as broken rather
+                        # than vanishing silently or crashing the select.
+                        if mp.artifact_key and mp.artifact_key not in art_opts:
+                            art_opts[mp.artifact_key] = f"{mp.artifact_key}  (missing)"
+                        ui.select(art_opts, value=mp.artifact_key or None,
+                                  label="Artifact",
+                                  on_change=lambda e, mp=mp: (
+                                      setattr(mp, "artifact_key", e.value or ""),
+                                      refresh_all())
+                                  ).classes("w-48").props("dense")
+                        if not items:
+                            ui.label("no artifacts owned").classes(
+                                "text-xs italic text-amber-700")
                     # Stipulations are dots, so they need a number rather than a note —
                     # "an extra dot … for every major stipulation applied to the
                     # Inheritance, up a maximum of three" (p.24).
@@ -917,6 +1009,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         b = validate.effective_budgets(rs, character)
         if _in_play():
             _play_backgrounds()
+            _artifacts_panel()
             if _has_fetters():
                 _fetters_panel(b)
             if _has_passions():
@@ -926,6 +1019,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             return
         mf_effects = meritsmod.merits_and_flaws_calc(rs, character)
         _chargen_backgrounds(b, mf_effects)
+        _artifacts_panel()
         # Ghosts only; every other splat has an empty Fetter budget and empty lists.
         if _has_fetters():
             _fetters_panel(b)

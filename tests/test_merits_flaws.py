@@ -93,7 +93,7 @@ def test_merit_definitions_carry_no_mechanical_effect(rs):
                       "variable_cost", "exalt_types", "barred_exalt_types",
                       "cost_note", "barred_castes", "prerequisites", "min_starting_essence",
                       "tier_barred_exalt_types", "prerequisite_note", "trait_prerequisites",
-                      "max_purchases_from_trait", "points_limited_by", "repeatable_by",
+                      "max_purchases_from_trait", "points_limits", "repeatable_by",
                       "takes_stipulations",
                       "thaumaturges_only", "description", "source"}
 
