@@ -140,3 +140,32 @@ this module exists to prevent.
 **Not done, deliberately:** the availability filter still prunes only ~11 of 99, so
 side + category + search is what does the work. That is by design — an entry this
 character cannot take is hidden, not greyed.
+
+## Background descriptions under the row — DONE, browser-verified 2026-08-05
+
+The Backgrounds panel was "a little barebones" (human, 2026-08-05): the catalogue
+descriptions already existed and the dropdown already showed them as hover tooltips
+(`DescribedSelect`), but a picked Background row showed nothing — unlike the M&F rows,
+which print their rules text under the row. Each Background now prints its catalogue
+description beneath its row, in **both regimes** (it lives in the shared
+`_background_rows`, so play gets it for free). 1,933 tests. **Browser-verified
+2026-08-05** (clicked through on the default example — Artifact 3 / Manse 2 /
+Resources 2, all three blurbs printing; a pick swapped a blurb live; a free-text name
+hid its blurb with no crash).
+
+**Two implementation notes, both learnings from doing it the wrong way first:**
+
+* **The row's own select updates only its own label, synchronously.** The first version
+  used a per-row `@ui.refreshable`; its `refresh()` is fire-and-forget async, and the
+  refresh body read the LOOP variable `bg` (every row's handler would have re-rendered
+  the last row's description). The shipped version is a plain `ui.label` set by a
+  `_sync()` helper, with `bg` and the label **default-captured** so each row's handler
+  binds to ITS row. Picking a Background swaps the blurb immediately, and a free-text
+  name no catalogue entry covers just hides the label — no crash, since Backgrounds are
+  free text.
+* **No full-panel rebuild on pick.** A rebuilt input eats every keystroke after the
+  first (the filter bar's lesson, again). The label is updated in place instead.
+
+Three tests in `tests/test_backgrounds_splat.py`, driving `/merits-backgrounds` and the
+new locked route `/backgrounds-description-xp`: the descriptions render at chargen, a
+pick swaps them live, and they print in play too.

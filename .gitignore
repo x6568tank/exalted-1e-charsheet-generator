@@ -24,6 +24,7 @@ venv/
 .vscode/
 *.swp
 .DS_Store
+.envrc
 
 # The user's own homebrew library (custom_content.py) — theirs, not the project's
 custom/

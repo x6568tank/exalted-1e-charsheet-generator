@@ -7,6 +7,7 @@ Availability is autofill-only (backgrounds stay free text; nothing is hard-valid
 from pathlib import Path
 
 import pytest
+from nicegui import ui
 
 import exalted_builder
 from exalted_builder import rules_db
@@ -90,3 +91,40 @@ def test_backgrounds_are_chosen_in_exactly_one_place():
         assert "bg_names" not in src, (
             f"{module.__name__} has grown a second Background panel; there is one, "
             f"in ui/advantages.py")
+
+
+# The picker descriptions also print PERSISTENTLY under each row (2026-08-05), the way
+# the M&F rows print their rules text — a picked Background is no longer a bare row.
+# `/merits-backgrounds` holds Allies and Resources, both of which have descriptions.
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_picked_background_prints_its_catalogue_description(user) -> None:
+    await user.open('/merits-backgrounds')
+    await user.should_see("each Ally is a Storyteller character")      # Allies
+    await user.should_see("destitute to fabulously wealthy")           # Resources
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_picking_a_background_swaps_its_description_live(user) -> None:
+    """A pick swaps the blurb without rebuilding the panel — a rebuilt input eats every
+    keystroke after the first (the M&F filter bar's lesson), so the row's own select
+    refreshes only its own description."""
+    await user.open('/merits-backgrounds')
+    bg_selects = [sel for sel in user.find(ui.select).elements
+                  if (sel.props.get("label") or "") == "Background"]
+    assert bg_selects, "no Background selects on the Advantages tab"
+    bg_selects[0].set_value("Manse")
+    await user.should_see("geomantic structure over a demesne")        # Manse's blurb
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_descriptions_print_in_play_too(user) -> None:
+    """The whole point of `_background_rows` being shared: the same row body, both
+    regimes. Post-lock the dot track becomes a plain number, but the description under
+    the row must still print."""
+    await user.open('/backgrounds-description-xp')
+    await user.should_see("each Ally is a Storyteller character")      # Allies
+    await user.should_see("destitute to fabulously wealthy")           # Resources

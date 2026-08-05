@@ -649,6 +649,16 @@ CHAR_BG_MERITS.backgrounds = [
 def page_merits_backgrounds():
     advantages.build_advantages(RS, CHAR_BG_MERITS, Path("x.json"), with_header=False)
 
+# The same character, locked — the per-row Background descriptions print in play too,
+# where the rows swap the dot track for a plain number.
+CHAR_BG_MERITS_XP = CHAR_BG_MERITS.model_copy(deep=True)
+CHAR_BG_MERITS_XP.id = "bgx"
+CHAR_BG_MERITS_XP.chargen_locked = True
+
+@ui.page('/backgrounds-description-xp')
+def page_backgrounds_description_xp():
+    advantages.build_advantages(RS, CHAR_BG_MERITS_XP, Path("x.json"), with_header=False)
+
 # A7: an Abyssal whose Resonance track is BOTH renamed and shortened, who has a
 # permanent Resonance counter, and who holds both luck pools at once.
 CHAR_PLAY_MERITS = Character(id="mfplay", name="Ashen", exalt_type="Abyssal",

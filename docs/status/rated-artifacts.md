@@ -1,4 +1,4 @@
-# Rated artifacts — DONE (2026-08-02), not yet browser-verified
+# Rated artifacts — DONE (2026-08-02), browser-verified 2026-08-05
 
 Individual artifacts are now rated objects. Two printed rules that could not be
 expressed before are implemented: the loyal Abyssal's Artifact **budget** (E:Ab p.131)
@@ -6,7 +6,12 @@ and Damaged Artifact's **per-item** point limit (PG p.38), plus the one mechanic
 effect of that Flaw this build can derive.
 
 **1,835 tests** (was 1,794). 41 new in `tests/test_rated_artifacts.py`.
-Preflight clean; **the human has not clicked it through yet.**
+Preflight clean; **browser-verified 2026-08-05** (clicked through, no findings).
+
+**One wish for later, from the click-through:** the standalone-artifact rows currently
+use a free-text name input. A **drop-down of the catalog** would be nicer — but no
+artifact catalogue exists in `data/` yet (artifacts are free text, like Backgrounds),
+so that needs authoring an artifact list before it can be wired. Not started.
 
 ## Why it came up
 

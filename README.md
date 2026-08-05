@@ -11,10 +11,10 @@ If you like 2.5E more and want it to support that, fork the project. Docs should
 enough to help you modify it to your liking.
 
 The chargen rules, xp rules, etc etc all live in JSONs under data/, not in the Python code.
-There are 1,470 Charms, 92 spells, 18 Martial Arts styles, full cost/budget tables, equipment
+There are 1,534 Charms, 92 spells, 18 Martial Arts styles, full cost/budget tables, equipment
 lists and more all there, sorted into their own JSONs. Engine is modular and split off from the
 UI, and contains no I/O -- and the UI is similar in that it has no game logic of its own. In
-practice, this makes it mcuh easier to add homebrew Charms, Spells, or Martial Arts 
+practice, this makes it much easier to add homebrew Charms, Spells, or Martial Arts 
 (see [Homebrew](#homebrew)).
 
 > Fan project, unaffiliated with White Wolf / Onyx Path. Exalted is their
@@ -40,23 +40,43 @@ Every **Exalted** splat, complete — chargen, Charms, advancement and UI:
 | Sidereal | 193 | Astrological Colleges, Sidereal Martial Arts, Paradox |
 | Alchemical | 121 | Charm Slots, Arrays, Submodules, Clarity, vat refit |
 
-Plus **Thaumaturgy** (the cross-splat Arts, Sciences, Rituals and Formulas), sorcery
-and necromancy at every circle, Combos, Ox-Body and the other repeatable Charms,
-per-focus Crafts, magical materials, and a manual in-play tracker for motes, health,
-Willpower and Limit.
+Plus the non-Exalt splats, all browser-verified:
 
-**Not yet supported:** the seven non-Exalt splats -- Mortals, Heroic Mortals,
-Godblooded, Ghosts, Dragon-Kings, Mountain Folk, and the Fae. The first six will eventually
-be implemented; the Fae can go fuck themselves. Merits & Flaws come back after them.
+| Splat | Notes |
+|---|---|
+| Mortals & Heroic Mortals | One splat, two origins; no Charms, Essence pinned at 1; magic comes via Merits & Flaws |
+| Ghosts | 56 Arcanoi across the six paths, Fetters and Passions, two chargen axes |
+| Godblooded | The Ghost-Blooded, Half-Caste and Fae-Blooded heritages |
+
+And the subsystems: **Merits & Flaws** (the whole chapter, including the Fae-Blooded
+glamour Merits — and the thing that opens Terrestrial Martial Arts and Sorcery to a
+mortal), **rated artifacts** (individual artifacts priced against the E:Ab p.131
+Artifact budget, damaged artifacts and all), **Thaumaturgy** (the cross-splat Arts,
+Sciences, Rituals and Formulas), sorcery and necromancy at every circle, Combos, Ox-Body
+and the other repeatable Charms, per-focus Crafts, magical materials, **Elder Exalts**
+(age raises Essence and traits past 5, with a downtime XP calculator), a **GM adversary
+roster** (49 generic extras, beasts and NPCs), and a manual in-play tracker for motes,
+health, Willpower and Limit.
+
+**Not yet supported:** just **Dragon-Kings** and **Mountain Folk**, both waiting on
+source material. The **Fae** can go fuck themselves, as ever.
 
 ## Features
 
 * Chargen validated against the sourcebooks with live, in-app validation of characters.
-* Post-chargen XP advancement with an append-only ledger the engine audits against a
-  frozen chargen snapshot, so the sheet can always show how the character was paid for
+* Editing and XP are one surface: the same dot tracks buy at chargen and spend
+  experience after the lock, against an append-only ledger the engine audits against a
+  frozen chargen snapshot — so the sheet can always show how the character was paid for
 * An interactive Charm tree (Cytoscape) that draws prerequisites, including the ones
   reaching in from other Ability trees, and marks what you can afford right now
 * Combo and Array builders, priced by the engine
+* **Merits & Flaws** — the whole chapter, calculated in one place; the mortal route to
+  Terrestrial Martial Arts and Sorcery
+* **Rated artifacts** — artifacts as rated objects against the Artifact budget, with
+  damaged-artifact rules
+* **Elder Exalts** — age raises Essence and traits past 5, plus a downtime XP calculator
+* A **GM adversary roster** — generic extras, beasts and NPCs, instanced and ready for
+  the Storyteller page
 * A read-only character sheet view, and a Storyteller party page tracking the whole
   group at once
 * An in-play tracker for motes, marked health, temporary Willpower and Limit, kept
@@ -143,10 +163,10 @@ Three things worth knowing:
 * **Faithful to the page, not to what feels right.** Values come from the 1e books.
   Where the books are ambiguous or errata'd, the ambiguity is recorded rather than
   quietly resolved.
-* **Honest about the cracks.** A new *splat* is not just data — six of them are
-  implemented and every one needed engine work for its own subsystem (Charm Slots,
-  Colleges, Attribute-keyed Charms). The data-driven promise covers content, not
-  mechanics nobody has modelled yet.
+* **Honest about the cracks.** A new *splat* is not just data — every one shipped so
+  far needed engine work for its own subsystem (Charm Slots, Colleges, Attribute-keyed
+  Charms, Virtue-keyed Arcanoi, the heritage axis). The data-driven promise covers
+  content, not mechanics nobody has modelled yet.
 * **NO FUCKING DICE.** I will not be modeling any sort of dice-rolling into this.
   If I do, kill me. This is not, and will not, be a CRPG. This is a character builder
   and tracker, and *nothing else*.
@@ -167,7 +187,7 @@ exalted_builder/
 docs/status/        What is built, splat by splat
 pack/               PyInstaller packaging and build instructions
 tools/              Data authoring spec and a validator for hand-written Charm files
-tests/              ~1,180 tests, engine-first
+tests/              ~1,900 tests, engine-first
 ```
 
 Dependencies run one way only: `ui → engine → models`.

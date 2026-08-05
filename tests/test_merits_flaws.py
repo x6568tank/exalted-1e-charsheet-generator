@@ -745,42 +745,86 @@ def test_the_whole_general_chapter_is_authored(rs):
         "Physical", "Mental", "Social", "Property", "Supernatural"}
 
 
+def _pasted_merit_chapters():
+    """The pasted M&F source chapters present in this checkout. CH 1 is the general
+    chapter (Player's Guide pp.16-41); the Godblooded and Ghosts chapters are picked
+    up from the same directories when present. `images/` is gitignored, so a clone
+    may hold any subset — the test must cope with whatever is here."""
+    roots = [Path("images/Merits & Flaws")]
+    for sub in ("Godblooded", "Ghosts"):
+        roots.append(Path("images/Non-Exalts") / sub)
+    return sorted({f for root in roots for f in root.glob("*.md")})
+
+
+def _chapter_page_range(text):
+    """The pages a pasted chapter covers, read from its header comment
+    (`* Pages: 16 - 41 *`) or, failing that, its <!--PAGE n--> markers.
+    (None, None) when neither is present — such a chapter is treated as covering
+    every entry."""
+    import re
+    m = re.search(r"\*\s*Pages\s*:\s*(\d+)\s*[-–]\s*(\d+)\s*\*", text)
+    if m:
+        return int(m.group(1)), int(m.group(2))
+    pages = [int(p) for p in re.findall(r"<!--\s*PAGE\s+(\d+)\s*-->", text)]
+    return (min(pages), max(pages)) if pages else (None, None)
+
+
 def test_every_description_matches_the_source_text(rs):
     """Guards the failure that hid Dying for a month: a description silently truncated
     mid-sentence, with the next entry's tail glued on. Compares each authored
     description against its section of the pasted chapter by normalised length, which
     is what caught Amputee at 12% of its printed body.
 
-    Skipped when the source is absent — `images/` is gitignored and does not travel
+    Each entry is routed to the pasted chapter whose declared page range covers its
+    `source.page`. Entries whose source page no present chapter covers — the
+    Godblooded (PG pp.65-80) and ghost (p.234) merits before those chapters are pasted
+    — are deferred and listed, not failed: their fidelity check resumes the moment the
+    covering chapter lands in `images/`.
+
+    Skipped when no source is present — `images/` is gitignored and does not travel
     with a clone, so this cannot be a hard dependency of the suite.
     """
     import re, unicodedata
-    src = Path("images/Merits & Flaws/CH 1 - Merits and Flaws.md")
-    if not src.exists():
+    files = _pasted_merit_chapters()
+    if not files:
         pytest.skip("source chapter not present (images/ is gitignored)")
-
-    secs = {}
-    for part in re.split(r"\n#{3,4} +", src.read_text())[1:]:
-        head, _, body = part.partition("\n")
-        name = re.sub(r"\s*\([^)]*\)\s*$", "", head).strip()   # cost may share the line
-        secs[name.upper()] = body
 
     def norm(s: str) -> str:
         s = unicodedata.normalize("NFKD", s).replace("’", "'").replace("—", " ")
         return re.sub(r"[^a-z0-9]", "", s.lower())
 
-    by_name = {norm(k): v for k, v in secs.items()}
-    short = []
+    chapters = []  # (filename, lo, hi, {norm(name): body})
+    for f in files:
+        lo, hi = _chapter_page_range(f.read_text())
+        secs = {}
+        for part in re.split(r"\n#{3,4} +", f.read_text())[1:]:
+            head, _, body = part.partition("\n")
+            name = re.sub(r"\s*\([^)]*\)\s*$", "", head).strip()   # cost may share the line
+            secs[norm(name)] = body
+        chapters.append((f.name, lo, hi, secs))
+
+    deferred, short = [], []
     for m in rs.merits_flaws.values():
         if not m.id.startswith("mf."):
             continue
-        body = by_name.get(norm(m.name))
+        page = getattr(m.source, "page", None)
+        covers = [c for c in chapters
+                  if page is not None and (c[1] is None or c[1] <= page <= c[2])]
+        if not covers:
+            deferred.append(f"{m.name} (p.{page})")
+            continue
+        body = next((c[3].get(norm(m.name)) for c in covers if c[3].get(norm(m.name))), None)
         assert body is not None, f"{m.name} has no section in the source chapter"
         body = re.sub(r"^\s*\([^)]*\)\s*", "", body.strip(), flags=re.S)
         ratio = len(norm(m.description)) / max(1, len(norm(body)))
         if ratio < 0.92:
             short.append(f"{m.name} ({ratio:.0%} of source)")
     assert not short, "descriptions shorter than their source: " + ", ".join(short)
+    if deferred:
+        # Coverage loss must be visible, not silent: these entries get their fidelity
+        # check back once a chapter covering their source page is pasted.
+        print(f"{len(deferred)} mf.* entries deferred (no pasted chapter covers their "
+              f"source page): {', '.join(sorted(deferred))}")
 
 
 def test_no_description_carries_extraction_debris(rs):

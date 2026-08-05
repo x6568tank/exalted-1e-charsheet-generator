@@ -160,12 +160,11 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         bg_descriptions = {b.name: b.description for b in bg_catalog}
         for idx, bg in enumerate(character.backgrounds):
             with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                (DescribedSelect(_opts_with(bg_names, bg.name),
-                                 descriptions=bg_descriptions,
-                                 value=bg.name or None, label="Background",
-                                 with_input=True, new_value_mode="add-unique",
-                                 on_change=lambda e, bg=bg: setattr(bg, "name", e.value or ""))
-                 .props("dense").classes("flex-1"))
+                sel = (DescribedSelect(_opts_with(bg_names, bg.name),
+                                       descriptions=bg_descriptions,
+                                       value=bg.name or None, label="Background",
+                                       with_input=True, new_value_mode="add-unique")
+                       .props("dense").classes("flex-1"))
                 ui.input(value=bg.note, placeholder="note",
                          on_change=lambda e, bg=bg: setattr(bg, "note", e.value)
                          ).props("dense").classes("flex-1")
@@ -173,6 +172,23 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button(icon="delete",
                           on_click=lambda e=None, idx=idx: remove_bg(idx)
                           ).props("flat dense round")
+            # The catalogue description under the row — the dropdown tooltip made
+            # persistent, the way the M&F rows print their rules text. Refreshed by the
+            # row's own select WITHOUT rebuilding the panel: a rebuilt input eats every
+            # keystroke after the first (the filter bar's lesson). `bg` and `desc` are
+            # default-captured because the loop would otherwise bind every row's sync to
+            # the LAST row's. A free-text name no catalogue entry covers gets nothing —
+            # the label just hides. Backgrounds are free text, so this must never crash.
+            desc = ui.label("").classes("text-xs opacity-70 pl-1")
+
+            def _sync(bg=bg, desc=desc) -> None:
+                text = bg_descriptions.get(bg.name, "")
+                desc.set_text(text)
+                desc.set_visibility(bool(text))
+
+            sel.on_value_change(lambda e, bg=bg, sync=_sync: (
+                setattr(bg, "name", e.value or ""), sync()))
+            _sync()
         ui.button("Add background", icon="add", on_click=add_bg).props("flat dense")
 
     def _chargen_backgrounds(b, mf_effects) -> None:
