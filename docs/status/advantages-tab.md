@@ -148,7 +148,7 @@ descriptions already existed and the dropdown already showed them as hover toolt
 (`DescribedSelect`), but a picked Background row showed nothing — unlike the M&F rows,
 which print their rules text under the row. Each Background now prints its catalogue
 description beneath its row, in **both regimes** (it lives in the shared
-`_background_rows`, so play gets it for free). 1,933 tests. **Browser-verified
+`_background_rows`, so play gets it for free). 1,934 tests. **Browser-verified
 2026-08-05** (clicked through on the default example — Artifact 3 / Manse 2 /
 Resources 2, all three blurbs printing; a pick swapped a blurb live; a free-text name
 hid its blurb with no crash).
@@ -166,6 +166,18 @@ hid its blurb with no crash).
 * **No full-panel rebuild on pick.** A rebuilt input eats every keystroke after the
   first (the filter bar's lesson, again). The label is updated in place instead.
 
-Three tests in `tests/test_backgrounds_splat.py`, driving `/merits-backgrounds` and the
-new locked route `/backgrounds-description-xp`: the descriptions render at chargen, a
-pick swaps them live, and they print in play too.
+**The tests are deliberately discriminating — the review caught this.** The first
+version asserted `user.should_see(description)`; that passes against code with NO
+persistent label, because the catalogue text also rides inside the dropdown options as
+hover-tooltip data (`DescribedSelect`). Every assertion now reads the label found by its
+`data-testid="bg-desc"` prop (the one prop that distinguishes it from the M&F rules-text
+labels sharing its classes), and asserts visibility too — the hidden-label path is read
+via `user.client.elements`, since the harness's `find` filters to visible elements. The
+negative control is real: all four tests fail when `advantages.py` is reverted to the
+pre-feature version. `user.find` does not return elements in model order either, so the
+live-swap test identifies its row by the select's value, never by position.
+
+Four tests in `tests/test_backgrounds_splat.py`, driving `/merits-backgrounds`, the
+locked `/backgrounds-description-xp` and `/advantages-unknown`: the descriptions render
+at chargen, a pick swaps them live, they print in play too, and a free-text name hides
+its blurb instead of crashing.

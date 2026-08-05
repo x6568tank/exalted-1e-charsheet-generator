@@ -179,7 +179,12 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             # default-captured because the loop would otherwise bind every row's sync to
             # the LAST row's. A free-text name no catalogue entry covers gets nothing —
             # the label just hides. Backgrounds are free text, so this must never crash.
-            desc = ui.label("").classes("text-xs opacity-70 pl-1")
+            # `data-testid` is the only prop that distinguishes this label from the M&F
+            # rules-text labels below (which share its styling classes) — without it a
+            # `should_see(description)` assertion matches the dropdown option tooltips
+            # and passes against code with no persistent label at all.
+            desc = ui.label("").classes("text-xs opacity-70 pl-1"
+                                        ).props('data-testid="bg-desc"')
 
             def _sync(bg=bg, desc=desc) -> None:
                 text = bg_descriptions.get(bg.name, "")

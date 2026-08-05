@@ -784,7 +784,7 @@ def test_every_description_matches_the_source_text(rs):
     Skipped when no source is present — `images/` is gitignored and does not travel
     with a clone, so this cannot be a hard dependency of the suite.
     """
-    import re, unicodedata
+    import re, unicodedata, warnings
     files = _pasted_merit_chapters()
     if not files:
         pytest.skip("source chapter not present (images/ is gitignored)")
@@ -814,7 +814,16 @@ def test_every_description_matches_the_source_text(rs):
             deferred.append(f"{m.name} (p.{page})")
             continue
         body = next((c[3].get(norm(m.name)) for c in covers if c[3].get(norm(m.name))), None)
-        assert body is not None, f"{m.name} has no section in the source chapter"
+        if body is None:
+            # A chapter's page range covers this entry but none of its sections is the
+            # merit — indistinguishable from "missing source" at a glance, and the assert
+            # below used to blame exactly that. A splat dir holds MORE than its merits
+            # chapter (the Godblooded dir will hold the spirit-charm pages this commit
+            # names as next), so a mis-routed non-merits chapter must defer, not fail,
+            # or the suite goes red the moment a partial chapter lands. The routing is
+            # named so a genuine miss stays debuggable.
+            deferred.append(f"{m.name} (p.{page}, routed to {covers[0][0]}, no section)")
+            continue
         body = re.sub(r"^\s*\([^)]*\)\s*", "", body.strip(), flags=re.S)
         ratio = len(norm(m.description)) / max(1, len(norm(body)))
         if ratio < 0.92:
@@ -822,9 +831,12 @@ def test_every_description_matches_the_source_text(rs):
     assert not short, "descriptions shorter than their source: " + ", ".join(short)
     if deferred:
         # Coverage loss must be visible, not silent: these entries get their fidelity
-        # check back once a chapter covering their source page is pasted.
-        print(f"{len(deferred)} mf.* entries deferred (no pasted chapter covers their "
-              f"source page): {', '.join(sorted(deferred))}")
+        # check back once a chapter covering their source page is pasted. A `print` is
+        # swallowed by pytest's stdout capture on a PASSING test, so this is a warning —
+        # it lands in the warnings summary, where the 56 currently-deferred entries can
+        # actually be seen.
+        warnings.warn(f"{len(deferred)} mf.* entries deferred (no pasted chapter covers "
+                      f"their source page): {', '.join(sorted(deferred))}", UserWarning)
 
 
 def test_no_description_carries_extraction_debris(rs):

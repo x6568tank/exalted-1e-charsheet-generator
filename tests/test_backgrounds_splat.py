@@ -96,13 +96,34 @@ def test_backgrounds_are_chosen_in_exactly_one_place():
 # The picker descriptions also print PERSISTENTLY under each row (2026-08-05), the way
 # the M&F rows print their rules text — a picked Background is no longer a bare row.
 # `/merits-backgrounds` holds Allies and Resources, both of which have descriptions.
+#
+# These tests are DELIBERATELY discriminating, and must stay so: the catalogue text also
+# ships inside the dropdown options as hover-tooltip data (`DescribedSelect`), so a bare
+# `should_see(description)` would pass against code with NO persistent label at all.
+# Every assertion reads the label element found by its `data-testid`, never the page text.
+
+def _bg_desc_labels(user) -> list:
+    """The per-row Background description labels — found by `data-testid`, the one prop
+    that distinguishes them from the M&F rules-text labels sharing their styling classes.
+    Empty (not None) when the feature is absent, which is what makes these tests fail
+    against code that does not have it."""
+    return [el for el in user.find(ui.label).elements
+            if el.props.get("data-testid") == "bg-desc"]
+
+
+def _bg_desc_texts(user) -> list[str]:
+    return [el.text or "" for el in _bg_desc_labels(user)]
+
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_a_picked_background_prints_its_catalogue_description(user) -> None:
     await user.open('/merits-backgrounds')
-    await user.should_see("each Ally is a Storyteller character")      # Allies
-    await user.should_see("destitute to fabulously wealthy")           # Resources
+    texts = _bg_desc_texts(user)
+    assert any("each Ally is a Storyteller character" in t for t in texts), texts
+    assert any("destitute to fabulously wealthy" in t for t in texts), texts
+    assert all(el.visible for el in _bg_desc_labels(user)), \
+        "a description label is hidden though its Background has one"
 
 
 @pytest.mark.asyncio
@@ -110,13 +131,21 @@ async def test_a_picked_background_prints_its_catalogue_description(user) -> Non
 async def test_picking_a_background_swaps_its_description_live(user) -> None:
     """A pick swaps the blurb without rebuilding the panel — a rebuilt input eats every
     keystroke after the first (the M&F filter bar's lesson), so the row's own select
-    refreshes only its own description."""
+    refreshes only its own description.
+
+    The row is found by its select's VALUE ("Allies"), not by position — `user.find`
+    does not return elements in model/creation order, so `[0]` is not the first row."""
     await user.open('/merits-backgrounds')
-    bg_selects = [sel for sel in user.find(ui.select).elements
-                  if (sel.props.get("label") or "") == "Background"]
-    assert bg_selects, "no Background selects on the Advantages tab"
-    bg_selects[0].set_value("Manse")
-    await user.should_see("geomantic structure over a demesne")        # Manse's blurb
+    allies_sel = next(sel for sel in user.find(ui.select).elements
+                      if (sel.props.get("label") or "") == "Background"
+                      and sel.value == "Allies")
+    allies_sel.set_value("Manse")
+    texts = [el.text or "" for el in _bg_desc_labels(user)]
+    assert any("geomantic structure over a demesne" in t for t in texts), texts
+    assert not any("Aides and friends" in t for t in texts), \
+        "the swapped row still shows its old blurb"
+    assert any("destitute to fabulously wealthy" in t for t in texts), \
+        "switching one row clobbered the other row's blurb"
 
 
 @pytest.mark.asyncio
@@ -126,5 +155,22 @@ async def test_the_descriptions_print_in_play_too(user) -> None:
     regimes. Post-lock the dot track becomes a plain number, but the description under
     the row must still print."""
     await user.open('/backgrounds-description-xp')
-    await user.should_see("each Ally is a Storyteller character")      # Allies
-    await user.should_see("destitute to fabulously wealthy")           # Resources
+    texts = _bg_desc_texts(user)
+    assert any("each Ally is a Storyteller character" in t for t in texts), texts
+    assert any("destitute to fabulously wealthy" in t for t in texts), texts
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_free_text_background_name_hides_its_description(user) -> None:
+    """A name no catalogue entry covers gets nothing — the label exists but hides (the
+    `set_visibility(bool(text))` path). `/advantages-unknown` holds just such a name.
+
+    Read via `user.client.elements`, not `user.find`: the harness's `find` filters to
+    visible elements (`only_visible=True`), and this label is invisible by design."""
+    await user.open('/advantages-unknown')
+    labels = [el for el in user.client.elements.values()
+              if getattr(el, 'props', {}).get("data-testid") == "bg-desc"]
+    assert len(labels) == 1, f"expected one (hidden) description label, got {len(labels)}"
+    assert not labels[0].visible, "an unknown Background still shows a description"
+    assert not (labels[0].text or ""), labels[0].text

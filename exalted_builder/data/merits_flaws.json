@@ -711,7 +711,7 @@
   ],
   "description": "The character was a supernatural martial artist in life. For every point spent on this Merit, the character can choose to have known one Terrestrial-level Martial Arts Charm during her life. This Merit does not grant actual knowledge of the Charm. It merely allows the ghost to purchase it at character creation for 6 bonus points or during play for the cost of developing a regular Arcanos (14 experience points). The character does not need a tutor for these Charms, and training time is as normal for a ghostly Arcanos.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 234
   }
  },
@@ -1847,7 +1847,7 @@
   ],
   "description": "Characters with this Merit gain an Essence pool determined by their heritage. God-Blooded, Demon-Blooded and Ghost-Blooded pools equal (Essence x 5) + (Willpower x 2) + (sum of Virtues). Half-Caste pools equal (Essence x 5) + (the sum of Virtues). Fae-Blooded pools equal (Essence x 8). Only characters with the Aura of Power Flaw display any type of anima banner as they spend Essence. In general, God-Blooded regain Essence through respiration according to the same rate and restrictions as their parents. God-Blooded begin with Essence 1; raising Essence to 2 requires this Merit and 5 bonus points, and Essence 3 (the upper limit for most heritages) costs another 15.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 66
   }
  },
@@ -1863,7 +1863,7 @@
   ],
   "description": "God-Blooded with this Merit may attune themselves to magical artifacts, Manses and Demesnes like other magical beings, but they cannot receive a Magical Material bonus from artifacts regardless of how many motes they spend.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 66
   }
  },
@@ -1879,7 +1879,7 @@
   ],
   "description": "God-Blooded with this Merit will live for a century, plus a number of additional decades equal to (Inheritance + Essence). After this allotment, their players must roll Stamina + Endurance at standard difficulty, gaining another five years on a success. The roll repeats every five years, cumulatively increasing in difficulty by 1. Failure means the character dies of natural causes during the upcoming five-year period. The physical aging of long-lived God-Blooded slows to its proportional rate during late adolescence.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 65
   }
  },
@@ -1900,7 +1900,7 @@
   ],
   "description": "The character has gained a measure of her parent's resilience. Higher-cost versions encompass the powers bestowed at lesser levels. For three points, the character may soak lethal damage with half Stamina. At five points, the character's bleeding rapidly slows as an Exalt. For seven points, the character resists disease, poison and infection as though Exalted. For 10 points, the character heals as one of the Exalted, including the slow regeneration of mangled bones and so forth.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 65
   }
  },
@@ -1920,7 +1920,7 @@
   ],
   "description": "Every time they purchase this Merit, God-Blooded characters receive two -2 health levels. Characters may not purchase this Merit more times than the rating of their controlling Trait for toughness (Stamina for Lunar Half-Caste, Conviction for descendents of all spirit types or Fair Folk and Endurance for all other heritages). Each purchase counts against the total number of times a character may purchase Ox-Body Technique, if applicable. Divine Resilience is offered as an option for characters incapable of learning Charms to gain superhuman toughness.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 65
   }
  },
@@ -1942,7 +1942,7 @@
   ],
   "description": "A God-Blood with this Merit may freely pass the celestial lions guarding the gates of Heaven. Characters must have a sibling or parent living in Yu-Shan to purchase this Merit, which generally restricts it to divine God-Blooded and Sidereal Half-Caste. Under no circumstances may Demon-Blooded, Ghost-Blooded, Abyssal Half-Caste or Fae-Blooded purchase this Merit. Note that this Merit does not confer any actual rights in Heaven.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 65
   }
  },
@@ -1958,7 +1958,7 @@
   ],
   "description": "Some heritages exist at the edge of fate on account of their parentage. Add 2 to the difficulty of any attempt to read the future of characters with this Merit in the stars of Creation (see Exalted, p. 251). If simultaneous observations can be made in both the skies of the living and the dead, do not apply a difficulty penalty to the combined reading. The listed protection against divination extends to all magic of any potency.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 65
   }
  },
@@ -1974,7 +1974,7 @@
   ],
   "description": "Once Essence enters a bloodline, its mark often endures for several generations. When God-Blooded with this Merit reproduce with normal mortal partners, their children share their heritage with a halved Inheritance rating, rounded down. If two God-Blooded with Dynasty of Inheritance mate, their offspring will have an Inheritance equal to half the sum of their parents' combined rating. Characters without this Merit do not yield any subsequent generations of God-Blooded.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 65
   }
  },
@@ -1998,7 +1998,7 @@
   ],
   "description": "At will, the character's eyes magically dilate to reveal visions of the impossible geometry and horror of Malfeas or the jagged chaos of the Wyld. Mortals who gaze into such visions flee in terror unless their players make a successful Valor roll at difficulty 2. Characters may alternately purchase this Trait as a three-point Flaw, in which case the fear gaze is constant and may not be suppressed.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 66
   }
  },
@@ -2014,7 +2014,7 @@
   ],
   "description": "The character gains an intuitive sense whenever she stands in the presence of a magical being of the same type as her parent. Half-Caste can only sense the specific type of Exalt they claim descent from, while those born of spirits or fae sense all gods, demons, elementals, ghosts or Fair Folk, as appropriate. Sensing a magical being with this Merit requires a brief moment of concentration and a successful Perception + Occult roll at a difficulty of 6 minus the target's Essence rating, minimum difficulty 1. This sense does not identify or locate sensed beings.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 66
   }
  },
@@ -2034,7 +2034,7 @@
   ],
   "description": "By overt sin or simple misfortune, a God-Blood with this Flaw has offended her magical parent. For one point, the offense was slight and the character must report more regularly and serve more dutifully in atonement (only characters with Patron through may take this level). For three points, the God-Blood has committed a great offense, either running away or being banished; runaways face relentless pursuit, and banished characters face stiff social penalties with allies of their parent. For five points, the character is one of the most heinous criminals in magical society (kinslayers and traitors); a quick death is the best they can hope for. Characters with the three- or five-point versions may not have the Patron Background.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 66
   }
  },
@@ -2050,7 +2050,7 @@
   ],
   "description": "A God-Blood with this Flaw was raised entirely by her magical parent or a closely monitored caretaker, and has never known anything but the inhuman politics of spirit, demon or fae courts. God-Blooded who experienced an Alien Upbringing have difficulty relating with ordinary mortals and add 1 to the difficulty of all pertinent Social rolls requiring human empathy or understanding.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 67
   }
  },
@@ -2066,7 +2066,7 @@
   ],
   "description": "Some God-Blooded slip through the cracks: the sons of incubi trysts or forgotten dalliances, the bastards of divinity, left to their own devices. Characters with this Flaw cannot begin play with the Patron Background, nor with any magical powers that require disciplined training (such as sorcery and all but the simplest Charms). Likewise, such characters may not have Artifact, Manse or other Backgrounds based on active supernatural involvement. Assuming they have any idea of what they are, they have no way of discerning their specific parentage without extensive magical aid.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 67
   }
  },
@@ -2085,7 +2085,7 @@
   ],
   "description": "God-Blooded with this Flaw may be affected by wards and talismans designed to impede their parents. The vulnerability also extends to other magic specifically dedicated to affect the parent's type of being, such as a Zenith anima flare against a Demon-Blood. Half-Caste may not take this Flaw.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 67
   }
  },
@@ -2104,7 +2104,7 @@
   ],
   "description": "While most God-Blooded capable of channeling Essence may spend motes without any display of light or power, a character with this Flaw must contend with an aura like the Exalted. Such characters divide their Essence pool, placing one third into Personal (rounded down) and the remaining two thirds into Peripheral. Expenditures of Peripheral Essence feed such characters' animas according to heritage: Ghost-Blooded become increasingly ghostly and translucent, lit from within by a cold spectral fire that spills from their eyes and mouth.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 67
   }
  },
@@ -2128,7 +2128,7 @@
   ],
   "description": "Characters with this Flaw wither in Creation, losing 1 mote of Essence each day spent outside of their native environment. For Ghost-Blooded, this environment includes the shadowlands, the Underworld and any Manse or Demesne with an Abyssal aspect. This deterioration continues until a character depletes her Essence pool, at which point she begins losing dots of permanent Essence at the same rate; a character whose permanent Essence drops to 0 dies. Characters with this Flaw cannot regain Essence from stunts away from their native environment. A character must have an Essence pool to purchase this Flaw.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 68
   }
  },
@@ -2150,7 +2150,7 @@
   ],
   "description": "Ghost-Blooded with this Merit display the pallor associated with life in the shadowlands, appearing wan and sickly regardless of their true health. Even characters at the peak of human strength, speed and vitality look emaciated and weak, leading others to grossly underestimate their actual prowess.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 70
   }
  },
@@ -2182,7 +2182,7 @@
   ],
   "description": "For whom death is less remarkable than life, morbid indifference is strangely liberating: the character may reflexively spend a point of temporary Conviction to regain Willpower with a Conviction roll (as though following a night's rest). This roll may only be attempted in dramatically appropriate moments when all hope is gone.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 70
   }
  },
@@ -2214,7 +2214,7 @@
   ],
   "description": "Many Ghost-Blooded assassins and mercenaries understand that death is only the beginning. These hardened zealots fight without any mercy or regard for life, especially their own. Provided the Ghost-Blood does not dodge or parry, mortal opponents facing the character subtract 3 from their base initiative and lose one die from all attack and defense rolls as a result of lowered morale. This penalty does not affect God-Blooded, Exalted or other magical beings.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 70
   }
  },
@@ -2236,7 +2236,7 @@
   ],
   "description": "Ghost-Blooded with this Merit gain the same visual acuity and eye for sickness as their undead parents (see E:Ab, p. 148).",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 71
   }
  },
@@ -2258,7 +2258,7 @@
   ],
   "description": "Characters with this Merit are always considered to be on the same level of material reality as ghosts. They may freely engage in combat or intimacy with the dead, even as the ghosts remain invisible and incorporeal to everyone else. This Merit does not alter interactions with other types of spirits, nor does it allow Ghost-Blooded to perceive incorporeal ghosts without calling upon their heritage power.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 71
   }
  },
@@ -2280,7 +2280,7 @@
   ],
   "description": "Half-Dead with this Merit may recognize an object or individual as a ghost's Fetter with a simple touch. Fetter Sense does not allow Ghost-Blooded to identify the ghost to whom the Fetter belongs, nor to gauge the strength of the bond.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 71
   }
  },
@@ -2302,7 +2302,7 @@
   ],
   "description": "Not all Ghost-Blooded linger beyond death; some rare few find a place of enlightened peace to carry them through life and death into the gentle repose of Lethe. As such, no magic short of Void Circle Necromancy may compel their souls to linger after death. In addition, such characters may add one automatic success to every Virtue roll to recover Willpower or to resist fear and depression.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 71
   }
  },
@@ -2327,7 +2327,7 @@
   ],
   "description": "A Ghost-Blood with this Flaw belongs to an Underworld clan that practices ritual suicide as a rite of passage, and he is expected to carry on this tradition at the appointed time. Most commonly, this ritual must be carried out at twilight on the character's 30th birthday. Failure to obey shames and embarrasses the clan; fugitives lose all backing associated with their family and must contend with ghostly hunters sent to bring them into righteous unlife by force. Characters who have already passed their allotted lifespan and chosen the path of a hunted fugitive may take this Flaw for five points, provided they do not purchase any Traits dependent on Underworld family ties.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 71
   }
  },
@@ -2349,7 +2349,7 @@
   ],
   "description": "Owing to their dim Half-Dead souls, Ghost-Blooded with this Flaw make excellent hosts. As a result, ghosts using Arcanoi of the Stringless Puppeteer Art add one automatic success to activation rolls when targeting such characters. This Flaw provides no additional susceptibility to possession by demons or spirits of Creation.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 71
   }
  },
@@ -2371,7 +2371,7 @@
   ],
   "description": "A Ghost-Blood with this Flaw radiates a faint nepenthe of Essence that attracts hungry ghosts and spectres. Such beings can smell this radiance out to a maximum radius of a mile with a Perception + Occult roll (difficulty 6 minus the character's Essence rating). Spectres of all types gain 3 motes for every health level of blood consumed from the character.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 71
   }
  },
@@ -2393,7 +2393,7 @@
   ],
   "description": "Whenever a Ghost-Blood with this Flaw sleeps at night, her lower soul emerges invisibly from her mouth as a terrible hungry ghost. It will not harm its sleeping body, but suffers no compunctions about attacking her friends or lovers. This shade has the same statistics as the character, with the following exceptions: its Intelligence equals half the character's own rating, rounded up, and it only has one dot in all Social Attributes. No force can permanently destroy it so long as the Ghost-Blood lives. Characters with this Flaw do not automatically know of their condition.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 71
   }
  },
@@ -2418,7 +2418,7 @@
   ],
   "description": "Beastmen with this Merit represent a new and viable species. Such characters may sire or bear beastmen of the same breed by mating with their own kind or with normal humans, though a beastman-human coupling has an equal likelihood of producing a human child. More importantly, beastmen with Breed True do not lose Inheritance with each generation of mutated offspring. (The beastmen parent gate — Lunar Half-Caste — is not enforced in this build.)",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 73
   }
  },
@@ -2440,7 +2440,7 @@
   ],
   "description": "A Solar Half-Caste with this Merit has reunited with one of her kind's ancestral playmates, a chillikin — a simian automaton capable of eating nightmares and bringing dreams to life as material phantasms. It may be a bit crazy and apt to regard her as a young child regardless of her age, but it loves her fiercely and will use all its powers in her defense. (The Solar-parent gate is not enforced in this build.)",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 73
   }
  },
@@ -2465,7 +2465,7 @@
   ],
   "description": "Half-Caste with this Merit receive the basic anima powers associated with their parent's Exalted type. For example, Golden Children may spend motes to determine the time of day or to illuminate their pale Caste Marks, while Shadewalkers may grow fangs to consume blood for Essence, sense Underworld energies, etc. Lacking tattoos, Lunar Half-Caste only illuminate their Caste Mark and, likewise, may not display a Tell (which they do not possess).",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 73
   }
  },
@@ -2490,7 +2490,7 @@
   ],
   "description": "A Half-Caste with this Merit may fully attune to objects of the Magical Material associated with his parent's Exalted type, thereby receiving the same special benefits. Characters without the ability to channel Essence may purchase this Merit to reflect a latent capacity that will emerge if and when they gain an Essence pool. ⚠ the source prints the prerequisite as 'Artifact Attunement'; the p.66 merit is 'Magical Attunement', and that is the one enforced here — flagged.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 73
   }
  },
@@ -2512,7 +2512,7 @@
   ],
   "description": "A Half-Caste with this Flaw bears the stain of the Great Curse gnawing at his soul, a cruel legacy of his Exalted forbears. Solar and Lunar Half-Caste have a Limit Trait and a Virtue Flaw determined exactly as if they were Exalted, but they only receive half the usual number of Limit points from any occasion or condition that would increase their rating (rounded up). Abyssal Half-Caste accumulate Resonance instead of Limit but at the same halved rate. Terrestrial Half-Caste suffer the same Virtue Flaws as actual Dragon-Blooded and must also have the Aura of Power Flaw. Sidereal Half-Caste may not take this Flaw.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 73
   }
  },
@@ -2525,7 +2525,7 @@
   "cost_note": "(3-PT. MENTAL MERIT)",
   "description": "The character feels a particular resonance with one of the four Virtues, depending on the type of Fair Folk she claims descent from: Entertainers (Compassion), Diplomats (Conviction), Workers (Temperance) or Warriors (Valor). Changelings may draw on their attunement to gauge a Virtue's strength in another, rolling Perception + the attuned Virtue against the target's Wits. Virtues selected for attunement are considered favored and may be increased for a cost of two bonus points per dot or (current rating x 2) experience points. Record the attuned Virtue in the purchase detail. Fae-Blooded born of any fae type may only purchase this Merit once; children of fairy nobles may purchase it up to twice, selecting whichever Virtue(s) they desire (human 2026-08-02: nobility rides the Origin axis).",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 74
   },
   "exalt_types": [
@@ -2552,7 +2552,7 @@
   "cost_note": "(2-PT. SUPERNATURAL MERIT)",
   "description": "The character can gauge the ambient strength of the Wyld with a Perception + Awareness roll at standard difficulty, determining the area's category of Wyld region (Creation, Tainted Lands, Bordermarches, Middlemarches, Wyld, Deep Wyld or Pure Chaos). The sense also detects Wyld beasts, Fair Folk, mutants or other Fae-Blooded within the character's normal senses at difficulty 5 - the target's Essence.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 74
   },
   "exalt_types": [
@@ -2574,7 +2574,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "The character may feed on ambient emotion appropriate to her attuned Virtue(s), absorbing Essence from the intensity of passion. Each success on the appropriate Virtue roll (reflexive) restores 1 mote to the pool. The difficulty of all feeding rolls cumulatively increases by two for every successive attempt in the same scene.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 74
   },
   "exalt_types": [
@@ -2600,7 +2600,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "The character may implant a dream in a target's mind that she experiences when she next sleeps. Building the dream requires uninterrupted daydreaming and a Manipulation + Craft (Glamour) extended roll, one attempt per minute of real-time work. Sending a copy to a target requires eye contact or touch, a Willpower point or 2 motes, and a Manipulation + Socialize roll against the target's Essence.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 75
   },
   "exalt_types": [
@@ -2626,7 +2626,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "By making eye contact with, touching or engaging in conversation with a target, the character may project an emotion connected to a Virtue she favors with Virtue Attunement. This requires 1 Willpower or 2 motes and a Manipulation + the appropriate Virtue roll against the target's opposing Virtue. Each success gained grants or costs the target one die from all actions for the rest of the scene.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 75
   },
   "exalt_types": [
@@ -2651,7 +2651,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "The character may suffuse herself in an almost-palpable aura of raw emotion, spending 1 Willpower or 3 motes and rolling the appropriate Virtue (claimed as favored with Virtue Attunement). Successes last until the end of the scene, adding or subtracting dice from all pertinent Social rolls. Only one mien may be radiated at a time.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 75
   },
   "exalt_types": [
@@ -2676,7 +2676,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "The character may inspire others to greatness, observing her target attempting or preparing to attempt an action that could benefit from channeling a Virtue she favors through Virtue Attunement. Spending 1 Willpower and rolling the appropriate Virtue, the target adds the character's successes to her own roll. The character regains 1 mote of Essence for every success contributed.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 75
   },
   "exalt_types": [
@@ -2701,7 +2701,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "The character may command any mutant in his line of sight, spending 1 Willpower or 3 motes and rolling Charisma + Inheritance against the target's (Willpower - total mutation points). Only 'normal' mutants may be commanded, not Exalted or other magical beings. With Inheritance 3+ the character may also command hobgoblins and the lowliest Wyld creatures. Only Fae-Blooded children of Fair Folk nobles may learn this power (human 2026-08-02: nobility rides the Origin axis).",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 76
   },
   "exalt_types": [
@@ -2730,7 +2730,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "The character may devour souls, rolling the appropriate Virtue or Willpower to devour that Trait from a willing or beguiled victim within touching distance. Each success permanently reduces the targeted Trait by one dot and adds 10 motes to the pool. Changelings may only devour the Virtue(s) they favor with Virtue Attunement, though any may drain a target's Willpower. Mortals reduced to zero in a Virtue or Willpower never recover; Exalted and beings with Essence 2+ cannot lose their last dot. Most characters with this Merit also suffer the Flaw Denizen of Beyond.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 76
   },
   "exalt_types": [
@@ -2755,7 +2755,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "For a cost of 5 motes and 1 Willpower, the character may tell a lie of such power that it may enchant a single target against all bounds of common sense or reality.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 76
   },
   "exalt_types": [
@@ -2781,7 +2781,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "The character may see past deceptions and read the truth of a target's heart, soul and even mind. The player spends 1 Willpower or 2 motes and rolls Perception + Socialize against the target's Essence, allocating successes to reveal the rating of any one Virtue (1), permanent or temporary Willpower (1 each), Nature (2), dominant emotion for the turn (3) or surface thoughts for the turn (5). Magic completely warding against Wyld energies blocks any use of this power.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 76
   },
   "exalt_types": [
@@ -2806,7 +2806,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "For a cost of 4 motes and a Willpower point, the character may conjure illusions that onlookers experience as a mass hallucination, rolling Wits + Craft (Glamour) against the highest Wits among all witnesses. Successes scale the illusion from a simple single-sense effect, to illusions of any complexity affecting any or all senses, to phantasms that may exert force or damage with a maximum dice pool of the character's Essence. Illusions last one scene.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 76
   },
   "exalt_types": [
@@ -2832,7 +2832,7 @@
   "cost_note": "(7-PT. SUPERNATURAL MERIT)",
   "description": "The character may briefly imbue others with her innate protection from the Wyld, spending 10 motes and a Willpower point and rolling Manipulation + Craft (Glamour) against the target's Essence. The target remains completely shielded from the Wyld for a number of days equal to the successes rolled plus one, duplicating the Fae-Blooded heritage power. Requires touching the target for a full turn.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 77
   },
   "exalt_types": [
@@ -2858,7 +2858,7 @@
   "cost_note": "(8-PT. SUPERNATURAL MERIT)",
   "description": "The character may create objects of the finest quality as though she had the very best raw materials to work with, assured of creating exceptional items without exceptional materials or any additional effort. Only purely mystical crafts (Fate, Glamour, etc.) are beyond enhancement. The power automatically fails to function in the immediate presence of cold iron.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 77
   },
   "exalt_types": [
@@ -2883,7 +2883,7 @@
   "cost_note": "(9-PT. SUPERNATURAL MERIT)",
   "description": "For a cost of 10 motes of Essence and one Willpower point, the character may assume a mantle of preternaturally overwhelming charm that affects everyone in earshot. Beguiled characters may be fed from using the Ravish Merit.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 77
   },
   "exalt_types": [
@@ -2909,7 +2909,7 @@
   "cost_note": "(10-PT. SUPERNATURAL MERIT)",
   "description": "The character may exploit the inconstant fluctuations of space and time in the Wyld to traverse vast distances in a comparatively brief time. The player spends 15 motes and rolls Wits + Craft (Glamour); the difficulty depends on the total distance (standard for 100 miles or less, +1 per additional 20 miles). The journey reaches a rural or wilderness destination in the Threshold with one day of walking.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 77
   },
   "exalt_types": [
@@ -2935,7 +2935,7 @@
   "cost_note": "(12-PT. MERIT)",
   "description": "The character may alter the specific properties of an object no larger than herself within a number of yards equal to her Essence, so long as its fundamental nature does not change. The player spends 1 to 5 motes and rolls Wits + Craft (Glamour). Remaining successes determine the complexity of the enchantment, from minor cosmetic alterations, to changing quality, to granting or removing a single dot from a Physical Attribute. Enchantments last one hour or one scene, whichever is longer; the touch of cold iron prematurely ends any enchantment.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 78
   },
   "exalt_types": [
@@ -2960,7 +2960,7 @@
   "cost_note": "(VARIABLE COST SUPERNATURAL MERIT)",
   "description": "The character may reshape his flesh with the energies of his own half-Wyld soul, assuming a form of raw nightmare. The Goblin Body form is built using Wyld mutations (E:L pp.212-222) at two bonus points per mutation point. In Goblin Body form the character drops to Appearance 0 and suffers the effects of the five-point version of Iron Vulnerability. Changelings touching cold iron cannot assume the form. The children of Fair Folk nobles may not learn this power (human 2026-08-02: nobility rides the Origin axis). Storyteller agrees the point value at purchase; the mutation form itself is not modelled (no mutation catalogue in this build).",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 79
   },
   "exalt_types": [
@@ -2988,7 +2988,7 @@
   "cost_note": "(VARIABLE COST SUPERNATURAL MERIT)",
   "description": "With this Merit, a noble-born Changeling may briefly call upon her fae heritage to become a being of deadly beauty for a scene. The Transcendent Dream Shape adds bonus Physical and/or Social Attribute dots (two points each) according to the allocation decided when the Merit is purchased; no Attribute may be raised above 7. In fae form the character suffers the effects of the five-point version of Iron Vulnerability. Only Fae-Blooded descended from Fair Folk nobles may learn this power (human 2026-08-02: nobility rides the Origin axis). Storyteller agrees the point value at purchase; the scene-long form's Attribute bonuses are not modelled.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 79
   },
   "exalt_types": [
@@ -3017,7 +3017,7 @@
   "cost_note": "(2-PT. PHYSICAL FLAW)",
   "description": "The character appears unnaturally attractive in a way that is also faintly disturbing, her angular features sculpted with exacting symmetry. As such, the character adds one to the difficulty of all Charisma rolls. Requires an Appearance of 3+.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 80
   },
   "exalt_types": [
@@ -3049,7 +3049,7 @@
   "cost_note": "(3-, 5- OR 6-PT. MENTAL FLAW)",
   "description": "The character is mercurial to the point of insanity, involuntarily shifting her motivations and persona at regular or irregular intervals. For three points, the shift occurs each month at the full moon. For five points, the interval is measured in weeks or occurs whenever the character's player botches a roll. For six points, the shift takes place every time the character awakens from sleep. Whenever a shift takes place, the Storyteller assigns a new Nature to the character.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 80
   },
   "exalt_types": [
@@ -3076,7 +3076,7 @@
   "cost_note": "(3-PT. SUPERNATURAL FLAW)",
   "description": "The character cannot break a sworn promise. They can lie and even go back on their casually spoken words, but once they give a promise, it is inviolate. Any breach of a sworn promise causes the character to suffer a catastrophic botch at the worst and most poetically appropriate moment, exactly as though an Eclipse Caste Solar had sanctified the oath.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 80
   },
   "exalt_types": [
@@ -3098,7 +3098,7 @@
   "cost_note": "(3- OR 5-PT. SUPERNATURAL FLAW)",
   "description": "Changelings with the three-point version of this Flaw suffer aggravated damage from weapons made of cold iron, and even the touch of iron adds 1 to the difficulty of all actions performed while contact is maintained. Fae-Blooded with the five-point version take one die of aggravated damage per turn that iron sears their flesh.",
   "source": {
-   "book": "Player's Guide",
+   "book": "Exalted 1e Player's Guide",
    "page": 80
   },
   "exalt_types": [
