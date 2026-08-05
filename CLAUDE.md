@@ -196,7 +196,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
-| **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages) | `docs/status/godblooded.md` |
+| **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages — God/Demon-Blooded pending, see Blocked) | `docs/status/godblooded.md` |
 | **Elder Exalts — DONE, browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 | **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
@@ -256,9 +256,18 @@ Recorded as decision records, not restated here — read them before proposing a
 ## TODO
 
 ### 👉 START HERE (session handoff)
-**Nothing is waiting on the human's eyes** — rated artifacts (2026-08-05) and the
-Advantages-tab Background descriptions (2026-08-05) are both clicked through. Start
-here for the newest shipped area's reference notes and its one open thread:
+**UP NEXT: Dragon-Kings and Mountain Folk.** The human is gathering their pages
+(2026-08-05 — "Dragon Kings/Mountain Folk are the easiest, let me get the pages").
+They land in `images/Mortals/Dragon Kings/` and `images/Mortals/Mountain Folk/` (both
+dirs exist, empty). When they arrive, run the `add-splat` skill. Two hooks to add when
+they turn up: PG p.114's "mortals that exceed Essence 3 become gods, in the same way the
+God-Blooded do", and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" cost
+override. Both splats are scattered across books — the human curates the source, never
+author from memory.
+
+Everything that was waiting on the human's eyes is clicked through (rated artifacts and
+the Advantages-tab Background descriptions, both 2026-08-05). Below, the newest shipped
+area's reference notes and its one open thread:
 
 1. **Rated artifacts** — DONE 2026-08-02, **browser-verified 2026-08-05** (clicked
    through, no findings) (`docs/status/rated-artifacts.md`). If you touch the area,
@@ -380,13 +389,21 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
   `images/Dragonblooded/`, and the text also points at *Games of Divinity* p.127 and
   *Exalted: The Lunars* p.98 for Cult. Author nothing until those land.
 * **Dragon-Kings, Mountain Folk** — the two remaining non-Exalt splats; separate splats
-  scattered across different books (human, 2026-07-29); **both blocked on source
-  material** — none exists yet. Order is the human's call. Two hooks to add when they
-  turn up: PG p.114's "mortals that exceed Essence 3 become gods, in the same way the
-  God-Blooded do", and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" cost
-  override.
-* **God/Demon-Blooded** — the last two Godblooded heritages, waiting on the
-  Games-of-Divinity spirit-Charm pages.
+  scattered across different books (human, 2026-07-29). **UP NEXT as of 2026-08-05** —
+  the human called them the easiest and is gathering their pages; they land in
+  `images/Mortals/Dragon Kings/` and `images/Mortals/Mountain Folk/`. See START HERE.
+  Two hooks to add when they turn up: PG p.114's "mortals that exceed Essence 3 become
+  gods, in the same way the God-Blooded do", and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS
+  OR GOD-BLOODED" cost override.
+* **God/Demon-Blooded** — the last two Godblooded heritages. The spirit-Charm catalogue
+  they draw from is scattered across **six books** — Storyteller's Companion, the
+  corebook, Lunars, the Player's Guide, Ruin of Rathess, Games of Divinity (human's
+  charmtrees survey 2026-08-05); only the GoD appendix (pp.125-127, 7 templates) is
+  pasted. **PG p.48 rule:** both learn spirit Charms, neither may learn Wyld Shield,
+  Portal is a lesser (God-Blooded) / Malfeas-only (Demon-Blooded) variant. Scoped:
+  generic appendix + Wyld Shield/Portal flags, the other five books deferred. **Blocked
+  on the human's home PC:** the two heritages' chargen sections + their M&F, plus the
+  Wyld Shield/Portal pages. `docs/status/godblooded.md`.
 
 ### Rulings that bite when touched
 **Three rulings landed 2026-07-31** (human, rules authority — written up in

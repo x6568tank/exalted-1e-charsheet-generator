@@ -484,3 +484,47 @@ resolved and can be dropped on the next edit that touches them.
 ruled by the human — **34 ids**, the five non-defenses cut and the mis-inclusion
 Visionary removed (see the bar-list section above) — and **Inheritance is an ST option**
 (see its section above). Nothing on that pair is open anymore.
+
+## God/Demon-Blooded — the last two heritages (2026-08-05 status)
+
+**The spirit-Charm catalogue is scattered across SIX books.** The human surveyed the
+charmtrees PDF and reported (2026-08-05): the spirit Charms a God-Blooded / Demon-Blooded
+draw from live in the **Storyteller's Companion, the corebook, Exalted: The Lunars, the
+Player's Guide, Ruin of Rathess, and Games of Divinity**. Only the GoD appendix
+(pp.125-127, "Appendix: Spirit Charms") is pasted so far — **7 template Charms**,
+Virtue-keyed (Conviction: Soul Rapt, Worldly Illusion; Temperance: Donning Spiritual
+Armor, Essence Inveigle; Valor: Uncanny Prowess, Creation of Perfection, Spirit-Cutting;
+**no Compassion set**). Even those reference prerequisites not in the set (Possession,
+Harrow the Mind, Sustenance). The other five books hold mostly named gods' signature
+Charms, not the generic set.
+
+**The charm-access rule (PG p.48, human-pasted 2026-08-05):**
+* **God-Blooded** "learn spirit Charms, exactly as their parents." **Cannot learn Wyld
+  Shield**; **Portal** is only a lesser variant (permanent Willpower instead of
+  temporary, ≥1 success per use).
+* **Demon-Blooded** "follow the same rules regarding Charm selection as God-Blooded" (so
+  the Wyld Shield ban carries); their Portal is Malfeas-only (can only enter Malfeas /
+  return to the exact spot in Creation; escape difficulty = own Essence).
+* **The parentage gate is an ST judgment, not a mechanic** — "limit or deny access to
+  those Charms obviously inappropriate to a God-Blood's parentage." Not builder-
+  enforceable, which is why authoring all six books is low-return for a builder.
+
+**Scoped plan (human's call 2026-08-05: "check the rule, then scope"):** native
+catalogue = the **GoD appendix generic set** (7 Charms now; any appendix pages past
+p.127 if they exist), plus **Wyld Shield** and **Portal** as catalogue entries flagged by
+the existing data-driven `barred_charm_ids` (the Ghosts/Spirit-Walking hook) so the two
+rule exceptions are representable. **The other five books are deferred** — mostly
+ST-gated god-specific Charms; pages get authored as the human pastes them.
+
+**Still blocked on source (all on the human's home PC):**
+1. The God-Blooded and Demon-Blooded **chargen sections** (PG CH2, ~pp.44-59 —
+   attribute pools, abilities, backgrounds, essence pools, BP budget, Awakened Essence
+   handling) to define the two heritage rows in `castes.json`.
+2. Their **specific Merits & Flaws**.
+3. **Wyld Shield** and **Portal** pages (for the two rule exceptions).
+4. The rest of the **GoD appendix** past p.127, if it exists (Compassion set?).
+
+**Engine readiness:** the Virtue-keyed Charm mechanism (`min_virtue`, Ghosts' Arcanoi),
+`barred_charm_ids`, the heritage `charms_available` flag and the `magic_track` sentinels
+are all in place — the day the pages land, God/Demon-Blooded is a data + one-flag flip,
+not a modelling job.
