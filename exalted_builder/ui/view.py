@@ -17,7 +17,7 @@ from typing import Optional
 
 from .. import custom_content
 from ..engine import (advancement, artifacts as artifactsmod, costs, derive, elder,
-                      merits as meritsmod, validate)
+                      merits as meritsmod, paths as engine_paths, validate)
 from ..models.character import Armor, Character, HouseRules, Weapon, XpEntry
 from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, CharmCost,
                             Damage, RuleSet, SpellCircle, TRACK_CIRCLES, VirtueName,
@@ -58,6 +58,27 @@ class SpellRow:
     description: str = ""
     custom: bool = False                   # see CharmRow.custom
     missing: bool = False                  # see CharmRow.missing
+
+
+@dataclass
+class PathPowerRow:
+    """One dot-level power of a Dragon-King Path, as the sheet shows it (PG pp.177-191)."""
+    dot: int
+    name: str
+    cost: str
+    type: str
+    duration: str
+    text: str
+
+
+@dataclass
+class PathRow:
+    """One Dragon-King Path on the sheet, with the powers its rating grants."""
+    name: str
+    element_label: str
+    favored: str              # "" | "★" (breed) | "✚" (the player's choice)
+    rating: int
+    powers: list[PathPowerRow]
 
 
 @dataclass
@@ -1083,6 +1104,17 @@ class SheetView:
     thaumaturgy_note: str                             # "" unless the splat may not use it
     specialties: list[tuple[str, str, int]]           # (ability label, name, rating)
     charms: list[CharmRow]
+    # The same charm holdings grouped by subsystem — (label, rows) for "Charms",
+    # "Arcanoi" (Ghost), "Gifts" (Lunar), "Ox-Body Technique" — so the sheet can head
+    # each panel the way the picker's tabs do instead of one undifferentiated list.
+    # `charms` above stays the flat concatenation (the GM party view and tests read it).
+    charm_sections: list[tuple[str, list[CharmRow]]]
+    # Dragon-King Paths of Prehuman Mastery — one row per owned Path, rated 1-6, with
+    # the powers its dots grant. Empty for every splat that ships no paths.
+    paths: list[PathRow]
+    # Combos the character holds — (name, resolved member names, cost = member count).
+    # Empty for characters with none; the sheet renders the panel only when non-empty.
+    combos: list[tuple[str, list[str], int]]
     spells: list[SpellRow]
     weapons: list[Weapon]
     armor: list[Armor]
@@ -1661,8 +1693,23 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     own_caste_abilities = set(own_caste.caste_abilities) if own_caste else set()
     favored = set(character.favored_abilities)
 
+    # Dragon-King breed attribute bonuses (PG pp.167-174): the breed grants free dots
+    # ON TOP of the pool, so the sheet shows the EFFECTIVE value (stored + bonus) with
+    # the bonus called out — a Pterok's Dexterity reads as its real 5, not the 3 it
+    # cost to buy. Stored values stay what pools and validation read; this is display
+    # only, and a no-op for every splat whose caste has no breed_traits.
+    _breed_traits = own_caste.breed_traits if own_caste else None
+    _breed_bonus = _breed_traits.attribute_bonuses if _breed_traits else {}
+
+    def _attribute_row(a: AttributeName) -> TraitRow:
+        bonus = _breed_bonus.get(a, 0)
+        if bonus:
+            return TraitRow(f"{_label(a.value)} (+{bonus} breed)",
+                            character.attributes[a] + bonus)
+        return TraitRow(_label(a.value), character.attributes[a])
+
     attributes = [
-        (category, [TraitRow(_label(a.value), character.attributes[a]) for a in members])
+        (category, [_attribute_row(a) for a in members])
         for category, members in validate.ATTRIBUTE_CATEGORIES.items()
     ]
 
@@ -1691,10 +1738,27 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     # .granted_charms itself. `charm_picks` already labels repeatable purchases with
     # their chosen variant(s) and tags granted Charms "(granted)".
     charms = []
+    _sections: dict[str, list[CharmRow]] = {}
+
+    def _section_label(pick, charm) -> str:
+        """Which subsystem panel a charm pick belongs on — the same distinctions the
+        picker's tabs draw. Gifts are the Lunar DBT list, Ox-Body its own repeatable
+        purchase, Arcanoi are the Ghost Virtue-keyed Charms (identified by `min_virtue`,
+        exactly as the picker does); everything else is an ordinary Charm."""
+        if pick.source == "beastman_gifts":
+            return "Gifts"
+        if pick.source == "ox_body":
+            return "Ox-Body Technique"
+        if charm is not None and charm.min_virtue:
+            return "Arcanoi"
+        return "Charms"
+
     for pick in validate.charm_picks(ruleset, character):
         charm = ruleset.charms.get(pick.charm_id)
         if charm is None:
-            charms.append(CharmRow(pick.label, "?", "—", "—", missing=True))
+            row = CharmRow(pick.label, "?", "—", "—", missing=True)
+            charms.append(row)
+            _sections.setdefault("Charms", []).append(row)
             continue
         # A repeatable purchase shows the Charm's own text rather than the
         # prerequisite-annotated one, and Ox-Body has no per-purchase activation cost.
@@ -1704,8 +1768,45 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         else:
             cost = _cost_str(charm.cost)
             description = _charm_description(charm)
-        charms.append(CharmRow(pick.label, charm.category, cost, charm.duration,
-                               description, custom=charm.custom))
+        row = CharmRow(pick.label, charm.category, cost, charm.duration,
+                       description, custom=charm.custom)
+        charms.append(row)
+        _sections.setdefault(_section_label(pick, charm), []).append(row)
+    # A character who holds no Charm of any kind still gets a "Charms (0)" panel —
+    # the sheet has always said so, and the render tests pin it. Sections only appear
+    # when they have rows (an empty Arcanoi panel must not sit on every sheet).
+    charm_sections = list(_sections.items()) or [("Charms", [])]
+
+    # Dragon-King Paths (PG pp.175-191): the rated-track truth, not the virtual Charm
+    # projection. Only owned Paths appear; each lists the powers its rating grants.
+    paths = []
+    for path in ruleset.paths.values():
+        rating = next((p.rating for p in character.paths if p.path_id == path.id), 0)
+        if rating <= 0:
+            continue
+        if path.element and path.element == engine_paths.breed_element(ruleset, character):
+            fav = "★"
+        elif path.id == character.favored_path:
+            fav = "✚"
+        else:
+            fav = ""
+        paths.append(PathRow(
+            name=path.name, element_label=path.element_label, favored=fav, rating=rating,
+            powers=[PathPowerRow(p.dot, p.name, _cost_str(p.cost), p.type.value,
+                                 p.duration, p.text)
+                    for p in path.powers[:rating]],
+        ))
+
+    # Combos — the sheet never rendered them before; member names resolve through
+    # ruleset.charms, which includes the Dragon-King Path powers' virtual rows, so a
+    # DK Combo's members read as their power names.
+    combos = []
+    for combo in character.combos:
+        members = []
+        for cid in combo.charm_ids:
+            ch = ruleset.charms.get(cid)
+            members.append(ch.name if ch else cid)
+        combos.append((combo.name, members, len(combo.charm_ids)))
     spells = []
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
@@ -1767,6 +1868,9 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
                                "never use it (p.114)."),
         specialties=[(_label(s.ability.value), s.name, s.rating) for s in character.specialties],
         charms=charms,
+        charm_sections=charm_sections,
+        paths=paths,
+        combos=combos,
         spells=spells,
         # Effective stats: material bonuses folded in, Exalt-gated (core p.341).
         weapons=[derive.effective_weapon(ruleset, character, w) for w in character.weapons],

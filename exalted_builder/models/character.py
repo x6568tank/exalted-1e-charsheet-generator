@@ -182,6 +182,18 @@ class CollegeRating(BaseModel):
     rating: int = Field(ge=0, le=5)
 
 
+class PathRating(BaseModel):
+    """One Dragon-King Path instance on a character (PG pp.175-177). `path_id`
+    references a RuleSet Path by id; `rating` is its dots (1-6). A Path is a rated
+    Advantage with its own chargen pool and an Essence gate (max rating 1/3/5/6 at
+    Essence 1/2/3-5/6, p.177), so it lives as a list exactly like CollegeRating.
+    The dot-level POWERS the rating grants are display data on the Path; the engine
+    also projects them into the charm catalogue as virtual rows so Combos can name
+    them (see rules_db.load_ruleset) — the rating here is the truth."""
+    path_id: str
+    rating: int = Field(ge=0, le=6)
+
+
 # --------------------------------------------------------------------------- #
 # Thaumaturgy holdings (Player's Guide CH3). See models/rules.py for the
 # catalogue side and docs/status/thaumaturgy.md for the design.
@@ -531,6 +543,8 @@ class ChargenSnapshot(BaseModel):
     abilities: dict[AbilityName, int]
     crafts: list[CraftRating] = Field(default_factory=list)
     colleges: list[CollegeRating] = Field(default_factory=list)
+    paths: list[PathRating] = Field(default_factory=list)
+    favored_path: str = ""
     virtues: dict[VirtueName, int]
     specialties: list[Specialty]
     backgrounds: list[BackgroundEntry]
@@ -710,6 +724,13 @@ class Character(BaseModel):
     # Astrological Colleges (Sidereal, p.98): a rated Advantage with its own chargen
     # pool; each entry references a RuleSet College by id. Empty for non-Sidereals.
     colleges: list[CollegeRating] = Field(default_factory=list)
+    # Dragon-King Paths (PG p.175-177): a rated Advantage with its own chargen pool,
+    # exactly the College shape. Each entry references a RuleSet Path by id. Empty
+    # for non-Dragon-Kings. The ONE player-chosen Favoured Path rides beside them —
+    # the two Breed Paths are auto-favoured by `Path.element == breed element`, and
+    # this is the third (any of the other eight Paths, human ruling 2026-08-05).
+    paths: list[PathRating] = Field(default_factory=list)
+    favored_path: str = ""
     favored_abilities: list[AbilityName] = Field(default_factory=list)
     # The player-chosen Favored ATTRIBUTES — used only by splats whose attribute
     # budget is partitioned by caste/favored attribute set rather than by category

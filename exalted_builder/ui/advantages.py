@@ -155,7 +155,9 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         """The Background list itself — identical in both regimes but for the rating
         control, which is `bg_cap`'s business. This body is the whole reason the tab
         exists: it used to be two functions that differed only in their header."""
-        bg_catalog = rs.backgrounds_for(character.exalt_type)
+        # The origin matters for `excluded_origins` (the ancient-only Savant): a
+        # modern Dragon King must not see it, an ancient one must.
+        bg_catalog = rs.backgrounds_for(character.exalt_type, character.origin)
         bg_names = [b.name for b in bg_catalog]
         bg_descriptions = {b.name: b.description for b in bg_catalog}
         for idx, bg in enumerate(character.backgrounds):

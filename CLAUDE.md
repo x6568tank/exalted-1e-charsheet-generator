@@ -6,11 +6,11 @@ generation, point validation, and XP advancement, with a character-sheet view.
 Scope is deliberately smaller than EdExalted (which is 2e/2.5e only); **1e is
 unserved, which is the entire point.** All six **Exalt** splats are done (Solar,
 Dragon-Blooded, Abyssal, Lunar, Sidereal, Alchemical) — chargen, Charms, XP and UI,
-each browser-verified. Three non-Exalt splats have shipped since: **Mortals + Heroic
-Mortals** (2026-07-30; one splat, two origins), **Ghosts** (2026-08-01), and
-**Godblooded** (2026-08-02; Ghost-Blooded, Half-Caste and Fae-Blooded heritages).
-What's left is **Dragon-Kings and Mountain Folk**, both blocked on source material —
-see **Splats** and **TODO**.
+each browser-verified. Four non-Exalt splats have shipped since: **Mortals + Heroic
+Mortals** (2026-07-30; one splat, two origins), **Ghosts** (2026-08-01),
+**Godblooded** (2026-08-02; Ghost-Blooded, Half-Caste and Fae-Blooded heritages), and
+**Dragon-Kings** (2026-08-05; the ten Paths of Prehuman Mastery). What's left is
+**Mountain Folk**, still blocked on source material — see **Splats** and **TODO**.
 
 ## ⚠️ EDITION: 1e ONLY — never substitute 2e/2.5e rules
 This is the single most important constraint. 2e is far better represented than
@@ -56,7 +56,7 @@ clicked through in a browser. Per-splat detail lives in the **Status** table bel
 | Mortals + Heroic Mortals | `images/Mortals/Mortals & Heroic Mortals/` | **DONE 2026-07-30**, browser-verified 2026-08-01 — one splat, two origins (the `heroic`/`ordinary` axis); no Charms, Essence pinned at 1, magic via M&F. `docs/status/mortals.md` |
 | Ghosts | `images/Non-Exalts/Ghosts/` | **DONE 2026-08-01**, browser-verified same day — Virtue-keyed Arcanoi, Fetters + Passions, two chargen axes, Terrestrial MA + Fighter in Life. `docs/status/ghosts.md` |
 | Godblooded | `images/Non-Exalts/Godblooded/` | **DONE 2026-08-02** — Ghost-Blooded + Half-Caste (parent-Exalt origin axis, heritage Charm bars, Inheritance→BP pool) + Fae-Blooded (no Charms, no spells, `Ess×8`, Noble/Commoner origin, 23 glamour Merits), all browser-verified. `docs/status/godblooded.md` |
-| Dragon-Kings | — | NOT STARTED — blocked on source material |
+| Dragon-Kings | `images/Mortals/Dragon Kings/` | **DONE 2026-08-05** — modern/ancient origins; the ten Paths of Prehuman Mastery (a rated subsystem, 60 powers); four Breeds; single Essence pool; Essence-gated trait ceilings; Terrestrial sorcery. `docs/status/dragon-kings.md` |
 | Mountain Folk | — | NOT STARTED — blocked on source material |
 | ~~Fair Folk / Fae~~ | — | **NEVER — permanently out of scope** (decision 0010) |
 
@@ -65,8 +65,8 @@ scattered across different books, each needing its own sources and chargen work.
 Mortals + Heroic Mortals turned out to be ONE splat with two origins (core p.103 runs
 a single procedure through both, varying only 6/4/3·22 vs 4/3/3·16). That revision says
 nothing about the other four — treat each as its own splat with its own budgets, Charm
-economy and shape until the pages say otherwise. **No source exists for Dragon-Kings or
-Mountain Folk; do not start them.**
+economy and shape until the pages say otherwise. **No source exists for Mountain
+Folk; do not start it.**
 
 Work on a splat starts only once its rulebook images land in `images/<ExaltName>/` —
 never author data from memory (see **Workflow expectations**). **Read
@@ -87,6 +87,7 @@ needed BEYOND data (Charm Slots, Colleges, Attribute-keyed Charms, the `origin` 
 | Mortal | Muddy brown (`stone`) | DONE — the deliberately dullest palette of the shipped splats |
 | Ghost | Pale grey-green (`zinc`) | DONE — grave-mould, pushed off both Abyssal ash and Mortal earth, the two it could be confused with |
 | God-Blooded | Pale celestial blue-grey (`teal`) | DONE — a placeholder; whether the remaining non-Exalts share the Mortal `stone` or each get their own is UNDECIDED |
+| Dragon-Kings | Jade/emerald (`emerald`) | DONE — the living green of their vegetative technology; whether Mountain Folk shares it or gets its own is UNDECIDED |
 
 ### Dragon-Blooded sub-sources
 The Outcaste book's four origins and all five Aspect Books shipped 2026-07-29
@@ -165,7 +166,7 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1,934 tests passing)
+## Status (1,964 tests passing)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -197,6 +198,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
 | **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages — God/Demon-Blooded pending, see Blocked) | `docs/status/godblooded.md` |
+| **Dragon-Kings — DONE, browser-verified** (9th splat, 4th non-Exalt; the ten Paths of Prehuman Mastery as a rated subsystem, four Breeds, single Essence pool, Essence-gated trait ceilings, Terrestrial sorcery) | `docs/status/dragon-kings.md` |
 | **Elder Exalts — DONE, browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 | **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
@@ -205,11 +207,14 @@ touching that area**; the summaries below are pointers, not the full record.
 1,470 Charms across the six Exalt splats, plus 56 ghost Arcanoi (`data-and-tooling.md`).
 Thaumaturgy and custom content shipped 2026-07-29, Merits & Flaws 2026-07-30, the
 Edit⇄XP merge and Advantages tab 2026-07-31, Elder Exalts 2026-07-31, Ghosts and the
-GM-mode adversary roster 2026-08-01, Godblooded 2026-08-02 — all browser-verified.
+GM-mode adversary roster 2026-08-01, Godblooded 2026-08-02, **Dragon-Kings
+2026-08-05** (the ten Paths of Prehuman Mastery) — all browser-verified.
 **Rated artifacts browser-verified 2026-08-05** — the one open wish from the click-through
 is a **drop-down of the artifact catalogue** on the standalone-artifact rows, which is
 blocked on authoring that catalogue (artifacts are currently free text, like
-Backgrounds). Not started.
+Backgrounds). Not started. ⚠ One Dragon-Kings artifact check (the
+`artifact-two-flagships` finding) needs a browser re-verify — the engine flags it but
+the click-through saw a stale server; see `docs/status/dragon-kings.md`.
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled
@@ -256,14 +261,15 @@ Recorded as decision records, not restated here — read them before proposing a
 ## TODO
 
 ### 👉 START HERE (session handoff)
-**UP NEXT: Dragon-Kings and Mountain Folk.** The human is gathering their pages
-(2026-08-05 — "Dragon Kings/Mountain Folk are the easiest, let me get the pages").
-They land in `images/Mortals/Dragon Kings/` and `images/Mortals/Mountain Folk/` (both
-dirs exist, empty). When they arrive, run the `add-splat` skill. Two hooks to add when
-they turn up: PG p.114's "mortals that exceed Essence 3 become gods, in the same way the
-God-Blooded do", and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" cost
-override. Both splats are scattered across books — the human curates the source, never
-author from memory.
+**UP NEXT: Mountain Folk.** The human is gathering their pages (2026-08-05 — "Dragon
+Kings/Mountain Folk are the easiest, let me get the pages"); they land in
+`images/Mortals/Mountain Folk/` (the dir exists, empty). When they arrive, run the
+`add-splat` skill. Two hooks still to add (both named when Dragon-Kings landed):
+PG p.114's "mortals that exceed Essence 3 become gods, in the same way the God-Blooded
+do", and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" cost override —
+**Dragon-Kings and God-Blooded now exist, so Prodigy's DK rate is authorable today.**
+The splat is scattered across books — the human curates the source, never author from
+memory. (Dragon-Kings: DONE 2026-08-05, browser-verified — `docs/status/dragon-kings.md`.)
 
 Everything that was waiting on the human's eyes is clicked through (rated artifacts and
 the Advantages-tab Background descriptions, both 2026-08-05). Below, the newest shipped
@@ -388,13 +394,14 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
   blight or affliction (p.132). The numen effect list is on **p.118**, which is not in
   `images/Dragonblooded/`, and the text also points at *Games of Divinity* p.127 and
   *Exalted: The Lunars* p.98 for Cult. Author nothing until those land.
-* **Dragon-Kings, Mountain Folk** — the two remaining non-Exalt splats; separate splats
-  scattered across different books (human, 2026-07-29). **UP NEXT as of 2026-08-05** —
-  the human called them the easiest and is gathering their pages; they land in
-  `images/Mortals/Dragon Kings/` and `images/Mortals/Mountain Folk/`. See START HERE.
-  Two hooks to add when they turn up: PG p.114's "mortals that exceed Essence 3 become
-  gods, in the same way the God-Blooded do", and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS
-  OR GOD-BLOODED" cost override.
+* **Mountain Folk** — the last remaining non-Exalt splat; separate splats scattered
+  across different books (human, 2026-07-29). **UP NEXT as of 2026-08-05** — the human
+  called it the easiest and is gathering its pages; they land in
+  `images/Mortals/Mountain Folk/`. See START HERE. Two hooks still to add (named when
+  Dragon-Kings landed): PG p.114's "mortals that exceed Essence 3 become gods, in the
+  same way the God-Blooded do", and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR
+  GOD-BLOODED" cost override — **Dragon-Kings and God-Blooded now exist, so Prodigy's
+  DK rate is authorable today** (Dragon-Kings itself: DONE 2026-08-05).
 * **God/Demon-Blooded** — the last two Godblooded heritages. The spirit-Charm catalogue
   they draw from is scattered across **six books** — Storyteller's Companion, the
   corebook, Lunars, the Player's Guide, Ruin of Rathess, Games of Divinity (human's

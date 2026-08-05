@@ -396,5 +396,69 @@
       "heritage_power": "Like their inchoate parents, Fae-Blooded have nothing to fear from the maddening and warping power of the Wyld. Changelings may journey into the deepest chaos and retain their form and sanity, though the same protection does not extend to their possessions. This constant aegis duplicates the effects of the Solar Charm Integrity-Protecting Prana (Exalted p.186), save that it does not protect against glamour and other willfully directed uses of Wyld energies. (PG p.60)",
       "charms_available": false
     }
+  },
+  {
+    "id": "pterok",
+    "exalt_type": "Dragon-Kings",
+    "label": "Pterok",
+    "caste_abilities": ["athletics", "lore", "occult"],
+    "description": "The winged Northern Dragon Kings, rulers of the upper air. Brilliant and meticulous scholars and occultists, they deal with spirits more easily than any other breed and craft the most elegant of the Dragon Kings' crystal artefacts. (PG p.167)",
+    "anima_powers": "Dragon Kings do not display anima banners — they are fully harmonized to their Essence pool.",
+    "breed_traits": {
+      "element": "air",
+      "attribute_bonuses": {"dexterity": 2, "perception": 2},
+      "innate_soak_bashing": 1,
+      "innate_soak_lethal": 1,
+      "bonus_health_levels": [],
+      "innate_weapons": ["Bite", "Wing Buffet"]
+    }
+  },
+  {
+    "id": "raptok",
+    "exalt_type": "Dragon-Kings",
+    "label": "Raptok",
+    "caste_abilities": ["craft", "socialize", "linguistics"],
+    "description": "The lithe and swift Eastern Dragon Kings, the most human of the breeds and the finest crafters of the Dragon Kings' vegetative technology. They are the most numerous Dragon Kings and the most comfortable around humanity. (PG p.169)",
+    "anima_powers": "Dragon Kings do not display anima banners — they are fully harmonized to their Essence pool.",
+    "breed_traits": {
+      "element": "wood",
+      "attribute_bonuses": {"strength": 1, "dexterity": 1, "stamina": 1, "perception": 1},
+      "innate_soak_bashing": 3,
+      "innate_soak_lethal": 3,
+      "bonus_health_levels": [],
+      "innate_weapons": ["Bite", "Claw"]
+    }
+  },
+  {
+    "id": "anklok",
+    "exalt_type": "Dragon-Kings",
+    "label": "Anklok",
+    "caste_abilities": ["endurance", "resistance", "survival"],
+    "description": "The large, hulking Southern Dragon Kings, the most aggressive and solitary of the breeds and the finest priests of their kind. They excel at Paths that make them inhumanly fast and agile. (PG p.171)",
+    "anima_powers": "Dragon Kings do not display anima banners — they are fully harmonized to their Essence pool.",
+    "breed_traits": {
+      "element": "fire",
+      "attribute_bonuses": {"strength": 2, "stamina": 2},
+      "innate_soak_bashing": 6,
+      "innate_soak_lethal": 6,
+      "bonus_health_levels": [0],
+      "innate_weapons": ["Bite", "Claw", "Tail"]
+    }
+  },
+  {
+    "id": "mosok",
+    "exalt_type": "Dragon-Kings",
+    "label": "Mosok",
+    "caste_abilities": ["brawl", "larceny", "survival"],
+    "description": "The large, amphibious Western Dragon Kings. Changeable and extremely adaptable, they excel at all forms of deception and make premier assassins and thieves. (PG p.173)",
+    "anima_powers": "Dragon Kings do not display anima banners — they are fully harmonized to their Essence pool.",
+    "breed_traits": {
+      "element": "water",
+      "attribute_bonuses": {"strength": 2, "stamina": 2},
+      "innate_soak_bashing": 4,
+      "innate_soak_lethal": 4,
+      "bonus_health_levels": [0],
+      "innate_weapons": ["Bite", "Claw", "Tail"]
+    }
   }
 ]

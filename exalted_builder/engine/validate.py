@@ -42,6 +42,7 @@ from ..models.rules import (
     VirtueName,
 )
 from . import artifacts, derive, elder, merits
+from . import paths as paths_mod   # aliased: `paths` is the local PathRating list in chargen accounting
 
 # Attribute categories and the order Strength/Dexterity/Stamina etc. (core p.104).
 # Which category receives which of the 8/6/4 pools is the player's priority and is
@@ -1294,7 +1295,10 @@ def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
     Extra Action Charm. `where` is the Combo's name. The picker uses this per-Combo;
     validate_combos aggregates it over the character."""
     issues: list[Issue] = []
-    known = set(character.charms)
+    # The Dragon-King Path powers are Combo members (p.177 "Dragon Kings may purchase
+    # and use Combos normally") — their virtual Charm rows resolve via ruleset.charms
+    # in the loop below, so the only change is folding them into the "known" set.
+    known = set(character.charms) | set(paths_mod.path_power_ids(ruleset, character))
     where = combo.name or "(unnamed combo)"
     # A splat barred from Combos outright (the dead — E:Ab p.234, "The dead may never
     # learn Combos and so may never use more than one Charm per turn"). Reported first
@@ -1374,9 +1378,15 @@ def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
 def eligible_combo_charms(ruleset: RuleSet, character: Character) -> list[str]:
     """Ids of the character's known Charms that may legally go in a Combo — i.e.
     those of instant duration (core p.213). Order follows the character's Charm
-    list. The picker offers these when adding a Charm to a Combo."""
+    list, then the Dragon-King Path powers (owned dots projected into virtual Charm
+    rows; only instant-duration powers are Combo-legal, p.177). The picker offers
+    these when adding a Charm to a Combo."""
     out: list[str] = []
     for cid in character.charms:
+        charm = ruleset.charms.get(cid)
+        if charm is not None and charm.duration == _COMBO_DURATION:
+            out.append(cid)
+    for cid in paths_mod.path_power_ids(ruleset, character):
         charm = ruleset.charms.get(cid)
         if charm is not None and charm.duration == _COMBO_DURATION:
             out.append(cid)
@@ -1879,35 +1889,89 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
         return issues
     budgets = effective_budgets(ruleset, character)
     rule = artifacts.artifact_rule(budgets)
-    if rule is None or not rule.budget_tiers:
+    # A splat with no Artifact rule at all (Solar, Abyssal renegade) prices artifacts
+    # by free text and imposes no budget — nothing to check.
+    if rule is None:
         return issues
     rating = background_rating(character.backgrounds, artifacts.ARTIFACT_BACKGROUND)
-    tier = artifacts.budget_tier(budgets, rating)
-    if tier is None:
-        issues.append(Issue(
-            code="artifact-without-background", where="Artifact",
-            message=f"This character owns {len(items)} artifact(s) but has no Artifact "
-                    f"Background; artifacts are bought with its dots.",
-        ))
+    if rule.budget_tiers:
+        tier = artifacts.budget_tier(budgets, rating)
+        if tier is None:
+            issues.append(Issue(
+                code="artifact-without-background", where="Artifact",
+                message=f"This character owns {len(items)} artifact(s) but has no Artifact "
+                        f"Background; artifacts are bought with its dots.",
+            ))
+            return issues
+        combined = sum(i.rating for i in items)
+        if combined > tier.combined_max:
+            issues.append(Issue(
+                code="artifact-combined-over-budget", where="Artifact",
+                message=f"Artifact {rating} ({tier.name}) allows a combined rating no "
+                        f"higher than {tier.combined_max}; this character owns "
+                        f"{combined}.",
+            ))
+        if tier.individual_max:
+            for item in items:
+                if item.rating > tier.individual_max:
+                    issues.append(Issue(
+                        severity="warning",
+                        code="artifact-item-over-cap", where=item.name,
+                        message=f"Artifact {rating} ({tier.name}) allows no single artifact "
+                                f"above {tier.individual_max} without Storyteller "
+                                f"permission; {item.name} is {item.rating}.",
+                    ))
         return issues
-    combined = sum(i.rating for i in items)
-    if combined > tier.combined_max:
-        issues.append(Issue(
-            code="artifact-combined-over-budget", where="Artifact",
-            message=f"Artifact {rating} ({tier.name}) allows a combined rating no "
-                    f"higher than {tier.combined_max}; this character owns "
-                    f"{combined}.",
-        ))
-    if tier.individual_max:
-        for item in items:
-            if item.rating > tier.individual_max:
+    # The multiplier rule (DB/DK "twice the dots' worth" p.176, Alchemical three):
+    # each Background dot buys `rating_per_dot` dots of artifact, capping the combined
+    # rating at background × rating_per_dot. This was data-only — never enforced —
+    # before this check; a Dragon King with Artifact • and a 3-dot artifact passed
+    # silently. rating_per_dot 1 (a rule with no multiplier) is the Solar default and
+    # imposes nothing.
+    if rule.rating_per_dot > 1:
+        combined = artifacts.combined_rating(character)
+        if rating == 0:
+            issues.append(Issue(
+                code="artifact-without-background", where="Artifact",
+                message=f"This character owns {len(items)} artifact(s) but has no Artifact "
+                        f"Background; artifacts are bought with its dots.",
+            ))
+        else:
+            cap = rating * rule.rating_per_dot
+            if combined > cap:
                 issues.append(Issue(
-                    severity="warning",
-                    code="artifact-item-over-cap", where=item.name,
-                    message=f"Artifact {rating} ({tier.name}) allows no single artifact "
-                            f"above {tier.individual_max} without Storyteller "
-                            f"permission; {item.name} is {item.rating}.",
+                    code="artifact-over-background-dots", where="Artifact",
+                    message=f"Artifact {rating} buys {cap} dots of artifacts "
+                            f"({rule.rating_per_dot} per dot, p.176); this character "
+                            f"owns combined rating {combined}.",
                 ))
+            # Human ruling 2026-08-05 (via a 1e-experienced source): the doubled rule
+            # is "you get (Rating x 2) artifact dots to spread around, with no one
+            # artifact having a rating higher than (Background rating)". So a 4-dot
+            # artifact needs Artifact 4 even though the doubled budget would fit it.
+            # Applies to the doubled rule (DB/DK, rating_per_dot 2); Alchemical's
+            # "three dots per dot" is left to the combined cap, whose per-item shape
+            # this code does not have a source for.
+            if rule.rating_per_dot == 2:
+                for item in items:
+                    if item.rating > rating:
+                        issues.append(Issue(
+                            code="artifact-item-over-background", where=item.name,
+                            message=f"Artifact {rating} permits no single artifact rated "
+                                    f"above {rating} (p.176); {item.name} is "
+                                    f"{item.rating}.",
+                        ))
+                # Human correction 2026-08-05: only ONE artifact may be rated AT the
+                # Background rating (the flagship) — the rest are smaller. Artifact 5
+                # + [5,5] is two flagships and invalid; Artifact 5 + [4,1] is the
+                # intended shape (flagship plus smaller artifacts).
+                if sum(1 for i in items if i.rating == rating) > 1:
+                    issues.append(Issue(
+                        code="artifact-two-flagships", where="Artifact",
+                        message=f"Artifact {rating} permits only one artifact rated at "
+                                f"{rating}; {sum(1 for i in items if i.rating == rating)} "
+                                f"are rated {rating}.",
+                    ))
     return issues
 
 
@@ -2728,6 +2792,7 @@ def _chargen_source(character: Character):
         snap.submodules if snap else character.submodules,
         snap.colleges if snap else character.colleges,
         (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character),
+        snap.paths if snap else character.paths,
     )
 
 
@@ -2746,7 +2811,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin, character.upbringing)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased,
-     beastman_gifts, arrays, submodules, colleges, thaumaturgy) = _chargen_source(character)
+     beastman_gifts, arrays, submodules, colleges, thaumaturgy, paths) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
@@ -2924,6 +2989,29 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                   + col_overflow_cheap * bp_costs.college_own_house
                   + (col_overflow - col_overflow_cheap) * bp_costs.college)
 
+    # --- Dragon-King Paths (PG p.176): own pool, favoured discount, above-3 ---- #
+    # The same within/above/overflow shape as Colleges, with two DK differences: the
+    # cheap/dear split is per-dot FAVOURED (a Path is favoured by breed element or by
+    # `favored_path`, not by house), and the above-3 rate is DOUBLED ("Path | 5 (10
+    # if the Path is being raised above 3)", "Breed Path | 4 (8 if raised above 3)").
+    # Unused for every splat with `path_dots` 0, which is every non-Dragon-King.
+    path_cap = b.path_cap_pre_bp
+    path_cheap_within = path_dear_within = path_above_bp = 0
+    for pr in paths:
+        fav = paths_mod.path_is_favored(ruleset, character, pr.path_id)
+        within = min(pr.rating, path_cap)
+        above = max(0, pr.rating - path_cap)
+        path_above_bp += above * (bp_costs.path_breed_above_3 if fav else bp_costs.path_above_3)
+        if fav:
+            path_cheap_within += within
+        else:
+            path_dear_within += within
+    path_overflow = max(0, (path_cheap_within + path_dear_within) - b.path_dots)
+    path_overflow_cheap = min(path_overflow, path_cheap_within)
+    path_bp = (path_above_bp
+               + path_overflow_cheap * bp_costs.path_breed
+               + (path_overflow - path_overflow_cheap) * bp_costs.path)
+
     # --- Thaumaturgy: every purchase priced individually, no free pool -------- #
     # Unlike every domain above, thaumaturgy has no chargen allowance: "Thaumaturges
     # may spend their bonus points on any combination of these without limitation"
@@ -2981,6 +3069,9 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     # entirely otherwise so every other splat's breakdown is unchanged.
     if b.college_dots > 0 or colleges:
         lines.insert(3, BonusPointLine(domain="Colleges", points=college_bp))
+    # Paths, on the same terms: only for splats that have them (Dragon-Kings).
+    if b.path_dots > 0 or paths:
+        lines.insert(3, BonusPointLine(domain="Paths", points=path_bp))
     # Fetters, on the same terms: only for splats that have them (ghosts), so every
     # other breakdown is byte-identical to before.
     if b.fetter_dots > 0 or character.fetters:
@@ -3566,7 +3657,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     b = effective_budgets(ruleset, character)
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
-     beastman_gifts, arrays, _submodules, colleges, thaumaturgy) = _chargen_source(character)
+     beastman_gifts, arrays, _submodules, colleges, thaumaturgy, paths) = _chargen_source(character)
 
     # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
     # for every splat whose Backgrounds are purely narrative.
@@ -3661,6 +3752,26 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 code="attribute-range", where=name.value,
                 message=f"Attribute {name.value} = {attr}; must be {span} at creation.",
             ))
+
+    # Dragon-King breed attribute bonuses (PG pp.167-174): free dots on top of the
+    # pools — they do not consume them — and the effective total (pool + bonus) is
+    # capped at 5 at creation (human ruling 2026-08-05, per the p.167 note "Even
+    # after these modifiers are applied, Dragon Kings cannot have any Attributes
+    # higher than 5 without spending bonus or experience points"). Since the
+    # universal stored-attribute ceiling is 5 (the range check above), the effective
+    # cap is the only DK-specific bound here; exceeding it is the post-lock XP path.
+    cd = ruleset.castes.get(character.caste)
+    breed = cd.breed_traits if (cd and cd.breed_traits) else None
+    if breed and breed.attribute_bonuses:
+        for aname, bonus in breed.attribute_bonuses.items():
+            stored = attributes.get(aname, 0)
+            if bonus and stored + bonus > 5:
+                issues.append(Issue(
+                    code="attribute-breed-bonus-cap", where=aname.value,
+                    message=f"{aname.value.title()} = {stored} (+{bonus} breed) = "
+                            f"{stored + bonus}; a Dragon King may not exceed 5 at "
+                            "creation without spending bonus or experience points.",
+                ))
 
     # --- caste_favored attribute legality (Alchemical, p.60) ------------------ #
     # The three attribute pools go to disjoint SETS: 3 Caste Attributes, 3 chosen
@@ -3763,6 +3874,88 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             message=f"At least {b.college_min_own_house} College dots must be in the "
                     f"character's Maiden's Colleges; only {own_house_dots} are.",
         ))
+
+    # --- Dragon-King Paths (PG p.175-177): reference, favour, Essence gate ----- #
+    # Paths are a rated Advantage with their own pool. A Dragon King may not start a
+    # Path above the pre-BP cap, must put `path_min_breed_favored` dots in Breed or
+    # Favoured Paths ("at least 3 must be from Favored or Breed Paths"), may not
+    # exceed the Essence gate, and the chosen Favoured Path must not already be one
+    # of the breed's two. The gate resolves against the CHARGEN Essence (snapshot or
+    # live pre-lock), never `essence_start` — a BP-bought Essence raise lifts it.
+    path_max = b.path_max_by_essence.get(essence, 0)
+    favored_dots = 0
+    for pr in paths:
+        path = ruleset.paths.get(pr.path_id)
+        if path is None:
+            issues.append(Issue(
+                code="path-unknown", where=pr.path_id,
+                message=f"Path {pr.path_id} is not in the RuleSet.",
+            ))
+            continue
+        if not (0 <= pr.rating <= 6):
+            issues.append(Issue(
+                code="path-range", where=pr.path_id,
+                message=f"Path {path.name} = {pr.rating}; must be 0-6 at creation.",
+            ))
+        if path_max and pr.rating > path_max:
+            issues.append(Issue(
+                code="path-essence-cap", where=pr.path_id,
+                message=f"{path.name} = {pr.rating}; at Essence {essence} a Dragon King "
+                        f"cannot develop a Path above {path_max}.",
+            ))
+        if paths_mod.path_is_favored(ruleset, character, pr.path_id):
+            favored_dots += pr.rating
+    if b.path_dots > 0 and favored_dots < b.path_min_breed_favored:
+        issues.append(Issue(
+            code="path-min-breed-favored",
+            message=f"At least {b.path_min_breed_favored} Path dots must be in Breed or "
+                    f"Favoured Paths; only {favored_dots} are.",
+        ))
+    if character.favored_path:
+        fp = ruleset.paths.get(character.favored_path)
+        if fp is None:
+            issues.append(Issue(
+                code="favored-path-unknown", where=character.favored_path,
+                message=f"Favoured Path {character.favored_path} is not in the RuleSet.",
+            ))
+        elif fp.element and fp.element == paths_mod.breed_element(ruleset, character):
+            issues.append(Issue(
+                code="favored-path-is-breed-path", where=character.favored_path,
+                message=f"{fp.name} is one of your breed's Paths; the chosen Favoured "
+                        "Path must be one of the other eight.",
+            ))
+
+    # --- Essence-gated trait ceilings + required Virtues (Dragon-Kings) ------- #
+    # p.177 "Maximum Intelligence and Path Level": Intelligence caps at 1/3/5/6 by
+    # Essence (binds at chargen: modern Essence 2 → Int ≤ 3), and row 6 lets a Dragon
+    # King raise Abilities, Virtues and Paths to 6. The Ability half is already
+    # delivered post-lock by elder_caps.trait and needs no chargen check; Virtue-6 is
+    # a post-lock unlock (row 6 only), and the ≥1-Valor floor ("at least 1 of which
+    # must be put into Valor", p.175) is a required-virtue floor. All no-op for every
+    # splat that authors none of these tables.
+    int_cap = b.intelligence_max_by_essence.get(essence, 0)
+    if int_cap and attributes[AttributeName.INTELLIGENCE] > int_cap:
+        issues.append(Issue(
+            code="intelligence-essence-cap",
+            message=f"Intelligence = {attributes[AttributeName.INTELLIGENCE]}; at "
+                    f"Essence {essence} a Dragon King's Intelligence cannot exceed "
+                    f"{int_cap}.",
+        ))
+    virt_cap = b.virtue_max_by_essence.get(essence, 0)
+    for vname, rating in virtues.items():
+        if virt_cap and rating > virt_cap:
+            issues.append(Issue(
+                code="virtue-essence-cap", where=vname.value,
+                message=f"{vname.value.title()} = {rating}; at Essence {essence} a "
+                        f"Dragon King's Virtues cannot exceed {virt_cap}.",
+            ))
+        need = b.required_virtue_dots.get(vname, 0)
+        if need and rating < need:
+            issues.append(Issue(
+                code="required-virtue-dots", where=vname.value,
+                message=f"Dragon Kings must put at least {need} dot in "
+                        f"{vname.value.title()}; it is {rating}.",
+            ))
 
     # --- Charms & Spells ------------------------------------------------------ #
     # The top spell circle is barred at creation for every splat; the Charm legality
@@ -4098,6 +4291,13 @@ def charm_matches_splat(character: Character, charm: Charm,
     cross-splat Charms whose minimums an Essence-1 character can actually meet. A
     Merit can reopen part of that (Essence Mastery grants Terrestrial Martial Arts),
     which is asked of engine.merits and never decided here."""
+    # Virtual rows are never learnable, whatever else would reach them. They are the
+    # Dragon-King Path powers projected into the charm catalogue so Combos and the
+    # sheet can name them (rules_db._virtual_path_charms); the real Path state is the
+    # rated track, and no Charm path buys a Path dot. First, above every grant below,
+    # so a later branch can never talk past it.
+    if charm.virtual:
+        return False
     # A Charm this splat may never hold, whatever else permits it (ghosts and Spirit
     # Walking). First, and above every grant below — including the splat's own Charms —
     # because a bar a later branch can talk past is not a bar. The HERITAGE bar (the

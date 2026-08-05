@@ -252,25 +252,27 @@ def render_sheet(view: viewmod.SheetView) -> None:
                             ui.label(item).classes("text-sm")
 
         # --- charms / spells ---------------------------------------------- #
-        # Most characters are not sorcerers, so an empty Spells panel would sit there
-        # taking half the band to say "—". Drop it entirely when there are no spells
-        # and let Charms (already flex-1) have the width.
+        # The charm holdings are grouped by subsystem — Charms / Arcanoi (Ghost) /
+        # Gifts (Lunar) / Ox-Body Technique — so each gets its own headed panel,
+        # mirroring the picker's tabs. An empty Spells panel would sit there taking
+        # half the band to say "—", so it is dropped entirely when there are no spells.
         _heading("Charms & Sorcery" if view.spells else "Charms")
         with ui.row().classes("w-full gap-2 items-start no-wrap"):
-            with _panel().classes("flex-1"):
-                ui.label(f"Charms ({len(view.charms)})").classes("text-xs font-semibold").style(f"color:{pal.accent}")
-                if not view.charms:
-                    ui.label("—").classes("text-sm text-gray-400")
-                for c in view.charms:
-                    with ui.column().classes("w-full gap-0"):
-                        with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                            ui.label(c.name).classes("text-sm flex-1 truncate")
-                            _content_mark(c)
-                            ui.label(c.category).classes("text-xs text-gray-500")
-                            ui.label(c.duration).classes("text-xs text-gray-500 w-24 text-right")
-                            ui.label(c.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
-                        if c.description:
-                            ui.label(c.description).classes("text-xs text-gray-600 mb-1")
+            for section_name, section_rows in view.charm_sections:
+                with _panel().classes("flex-1"):
+                    ui.label(f"{section_name} ({len(section_rows)})").classes("text-xs font-semibold").style(f"color:{pal.accent}")
+                    if not section_rows:
+                        ui.label("—").classes("text-sm text-gray-400")
+                    for c in section_rows:
+                        with ui.column().classes("w-full gap-0"):
+                            with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                                ui.label(c.name).classes("text-sm flex-1 truncate")
+                                _content_mark(c)
+                                ui.label(c.category).classes("text-xs text-gray-500")
+                                ui.label(c.duration).classes("text-xs text-gray-500 w-24 text-right")
+                                ui.label(c.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
+                            if c.description:
+                                ui.label(c.description).classes("text-xs text-gray-600 mb-1")
             if view.spells:
                 with _panel().classes("flex-1"):
                     ui.label(f"Spells ({len(view.spells)})").classes("text-xs font-semibold").style(f"color:{pal.accent}")
@@ -283,6 +285,37 @@ def render_sheet(view: viewmod.SheetView) -> None:
                                 ui.label(s.cost).classes("text-xs font-mono text-gray-600 w-20 text-right")
                             if s.description:
                                 ui.label(s.description).classes("text-xs text-gray-600 mb-1")
+
+        # --- Dragon-King Paths (PG pp.175-191) ------------------------------ #
+        # A rated-track subsystem with its own pool, shown only for a character who
+        # owns Paths. Each Path lists the powers its rating grants, with the ★/✚
+        # favour markers (breed Paths vs the player's choice).
+        if view.paths:
+            _heading("Paths of Prehuman Mastery")
+            with ui.row().classes("w-full gap-2 items-start no-wrap"):
+                for p in view.paths:
+                    with _panel().classes("flex-1"):
+                        ui.label(f"{p.favored}{p.name} · {p.element_label} · {p.rating} dots").classes("text-xs font-semibold").style(f"color:{pal.accent}")
+                        for power in p.powers:
+                            with ui.column().classes("w-full gap-0 min-w-0"):
+                                ui.label(f"• {power.name} — {power.duration} · {power.cost}").classes("text-xs font-semibold")
+                                if power.text:
+                                    ui.label(power.text).classes(
+                                        "text-xs text-gray-600 mb-1").style(
+                                        "overflow-wrap:anywhere; word-break:break-word")
+
+        # --- Combos ---------------------------------------------------------- #
+        # Previously absent from the sheet entirely; each Combo lists its member
+        # Charm names — a Dragon-King's Path powers included, since the members
+        # resolve through ruleset.charms' virtual rows.
+        if view.combos:
+            _heading("Combos")
+            with ui.row().classes("w-full gap-2 items-start no-wrap"):
+                for cname, members, cost in view.combos:
+                    with _panel().classes("flex-1"):
+                        ui.label(f"{cname} · {cost} Charm{'s' if cost != 1 else ''}").classes("text-xs font-semibold").style(f"color:{pal.accent}")
+                        for m in members:
+                            ui.label(f"· {m}").classes("text-xs text-gray-600")
 
         # --- bottom band: gear | willpower+health | virtues+essence ------- #
         with ui.row().classes("w-full gap-2 items-stretch no-wrap"):

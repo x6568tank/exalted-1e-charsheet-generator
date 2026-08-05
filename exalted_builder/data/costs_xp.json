@@ -119,5 +119,22 @@
     "new_magic_charm": 25,
     "new_martial_arts_charm": 15,
     "new_martial_arts_charm_favored_caste": 15
+  },
+  "Dragon-Kings": {
+    "attribute": { "coeff": 4 },
+    "ability": { "coeff": 2 },
+    "ability_favored_caste": { "coeff": 2, "offset": -1 },
+    "essence": { "coeff": 8 },
+    "virtue": { "coeff": 3 },
+    "willpower": { "coeff": 2 },
+    "new_ability": 3,
+    "new_charm": 10,
+    "new_charm_favored_caste": 8,
+    "new_magic_charm": 12,
+    "new_spell": 12,
+    "new_path": 7,
+    "new_path_breed": 6,
+    "path": { "coeff": 5 },
+    "path_breed": { "coeff": 4 }
   }
 }

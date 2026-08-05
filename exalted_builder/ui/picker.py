@@ -31,11 +31,11 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import advancement, costs, refit, validate
+from ..engine import advancement, costs, paths as engine_paths, refit, validate
 from ..models.character import (AnimalForm, ArtSpecialty, BeastmanGiftPurchase,
                                 Character, FormulaEntry, OxBodyPurchase,
-                                RitualEntry, ScienceRating, SubmodulePurchase,
-                                ThaumaturgyState)
+                                PathRating, RitualEntry, ScienceRating,
+                                SubmodulePurchase, ThaumaturgyState)
 from ..models.rules import Orientation, RuleSet, circle_kind
 from . import theme
 from . import view as viewmod
@@ -466,6 +466,10 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     _has_panoply = refit.supports_refit(ruleset, character)
     if _has_panoply:
         GROUPS["panoply"] = "Vat Refit"
+    # The Dragon-King Paths page: a rated-track subsystem with its own pool — not
+    # Charms at all (PG pp.175-177). Shown only for a splat that ships paths.
+    if ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing).path_dots > 0:
+        GROUPS["paths"] = "Paths"
 
     # The Alchemical "general" category (the 18 Augmentation templates) renders as two
     # per-type pop-ups instead of an 18-node graph. None for every other splat.
@@ -1596,6 +1600,109 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             for cid in character.retainer_charms:
                 _refit_row(cid, installed=False)
 
+    # ---- Dragon-King Paths (PG pp.175-177) ---------------------------------- #
+    # A rated-track subsystem with its own chargen pool, NOT Charms: each Path is
+    # rated 1-6 (learned in fixed order, gated by Essence), and each dot grants that
+    # level's power. Pre-lock the rating is a free setter into character.paths;
+    # post-lock it becomes XP +/- via advancement. The breed's two element Paths are
+    # auto-favoured (★) and the player chooses one more (✚) from the other eight.
+
+    def _set_path_rating(pid: str, rating: int) -> None:
+        """Pre-lock free setter into character.paths (validation via validate_chargen)."""
+        existing = next((p for p in character.paths if p.path_id == pid), None)
+        if rating <= 0:
+            if existing:
+                character.paths.remove(existing)
+        elif existing:
+            existing.rating = rating
+        else:
+            character.paths.append(PathRating(path_id=pid, rating=rating))
+        paths_panel.refresh(); readout.refresh()
+
+    def _path_adv(pid: str, direction: int) -> None:
+        """Post-lock XP raise/lower of one Path dot."""
+        def action() -> None:
+            if direction > 0:
+                if any(p.path_id == pid for p in character.paths):
+                    advancement.raise_path(ruleset, character, pid)
+                else:
+                    advancement.learn_path(ruleset, character, pid)
+            else:
+                advancement.lower_path(ruleset, character, pid)
+        if _buy(action):
+            paths_panel.refresh(); readout.refresh()
+
+    @ui.refreshable
+    def paths_panel() -> None:
+        if state["group"] != "paths":
+            return
+        b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+        ratings = {p.path_id: p.rating for p in character.paths}
+        breed_el = engine_paths.breed_element(ruleset, character)
+        breed_path_ids = {p.id for p in ruleset.paths.values() if p.element == breed_el}
+        fav_opts = {p.id: p.name for p in ruleset.paths.values() if p.id not in breed_path_ids}
+        with ui.card().classes(f"w-full p-3 gap-2 {pal.card}"):
+            with ui.row().classes("w-full items-baseline gap-3"):
+                ui.label("Paths of Prehuman Mastery").classes(
+                    "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                ui.label(f"{b.path_dots} free dots · ≥{b.path_min_breed_favored} from "
+                         f"Breed/Favoured Paths · none above {b.path_cap_pre_bp} without "
+                         "bonus points").classes("text-xs text-gray-500")
+            with ui.row().classes("w-full items-center gap-3"):
+                ui.label("Favoured Path").classes("text-xs font-semibold")
+                if in_play():
+                    chosen = ruleset.paths.get(character.favored_path)
+                    ui.label(chosen.name if chosen else "—").classes("text-xs text-gray-600")
+                else:
+                    # Trap #3 guard: a saved `favored_path` that is one of the breed's
+                    # two (an illegal-but-possible state) must not be a value the select
+                    # cannot offer — a ui.select whose value is absent from its options
+                    # raises at BUILD time and takes every sibling tab with it.
+                    _fav_opts = {**{"": "— none —"}, **fav_opts}
+                    _fav_opts.setdefault(character.favored_path or "",
+                                         character.favored_path or "— none —")
+                    ui.select(_fav_opts,
+                              value=character.favored_path or "", label="Favoured Path",
+                              on_change=lambda e: (setattr(character, "favored_path",
+                                                           e.value or ""),
+                                                   paths_panel.refresh(),
+                                                   readout.refresh())).classes("w-56")
+                ui.label("★ breed · ✚ your choice").classes("text-xs text-gray-400 italic")
+            ui.separator()
+            for path in ruleset.paths.values():
+                rating = ratings.get(path.id, 0)
+                marker = "★ " if (path.element and path.element == breed_el) \
+                    else ("✚ " if path.id == character.favored_path else "")
+                with ui.row().classes("w-full items-center gap-3 no-wrap"):
+                    ui.label(f"{marker}{path.name}").classes("text-sm font-semibold flex-1")
+                    ui.label(path.element_label).classes("text-xs text-gray-400 w-12")
+                    if in_play():
+                        with ui.row().classes("items-center gap-1"):
+                            ui.button(icon="remove", on_click=lambda pid=path.id:
+                                      _path_adv(pid, -1)).props(f"dense flat round color={pal.button}")
+                            ui.label(str(rating)).classes("text-sm font-mono w-6 text-center")
+                            ui.button(icon="add", on_click=lambda pid=path.id:
+                                      _path_adv(pid, +1)).props(f"dense flat round color={pal.button}")
+                    else:
+                        ui.select({str(i): str(i) for i in range(0, 7)},
+                                  value=str(rating), label="",
+                                  on_change=lambda e, pid=path.id:
+                                  _set_path_rating(pid, int(e.value))).classes("w-16")
+                if rating:
+                    # `pl-5` (padding) not `ml-5` (margin): a `w-full` column with a
+                    # margin is 100% + margin wide and overruns the card. The label
+                    # gets an explicit wrap style — `overflow-wrap: anywhere` breaks
+                    # even inside long runs, which the prose needs.
+                    with ui.column().classes("w-full gap-0 pl-5 min-w-0"):
+                        for power in path.powers[:rating]:
+                            with ui.column().classes("w-full gap-0 min-w-0"):
+                                ui.label(f"• {power.name} — {power.duration}").classes(
+                                    "text-xs font-semibold")
+                                if power.text:
+                                    ui.label(power.text).classes(
+                                        "text-xs text-gray-600 mb-1").style(
+                                        "overflow-wrap:anywhere; word-break:break-word")
+
     # ---- Augmentation pop-ups (Alchemical 'general') ---------------------- #
     # The 18 Augmentation Charms stay distinct ids (82 other Charms name a specific one
     # as a prerequisite); the picker just collapses them into two per-type cards, each
@@ -1854,6 +1961,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         forms_panel.refresh()
         augment_panel.refresh()
         panoply_panel.refresh()
+        paths_panel.refresh()
         thaum_panel.refresh()
 
     def set_group(value: str) -> None:
@@ -1911,7 +2019,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         ui.add_head_html(pal.head_style())
 
     with ui.row().classes("w-full max-w-7xl mx-auto gap-4 p-4 items-start no-wrap"):
-        with ui.column().classes("flex-1 gap-2"):
+        # `min-w-0` lets this column shrink below its content's intrinsic width — a
+        # flex item defaults to min-width:auto, so the long Path-power prose would
+        # otherwise force the whole picker row to overflow the viewport no matter how
+        # the text itself is told to wrap.
+        with ui.column().classes("flex-1 gap-2 min-w-0"):
             with ui.row().classes("w-full items-center justify-between"):
                 if with_header:
                     ui.label("Charm-Tree Picker").classes("text-xl font-bold")
@@ -1981,6 +2093,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             forms_panel()
             augment_panel()
             panoply_panel()
+            paths_panel()
             thaum_panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes(f"w-full p-3 {pal.card}"):

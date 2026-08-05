@@ -223,5 +223,24 @@
     "name": "Patron",
     "exalt_type": "God-Blooded",
     "description": "The privileges and obligations imposed by your magical parent (PG p.61). Every dot invested in Patron counts as a dot of Mentor and awards additional Background dots that can raise Traits above 3; Patron also substitutes for Backing in representing rank within the parent's dominion or area of influence."
+  },
+  {
+    "id": "background.celestial-manse",
+    "name": "Celestial Manse",
+    "exalt_type": "Dragon-Kings",
+    "description": "You have a dwelling in the Celestial City (see Exalted: The Sidereals, p.106). Only for characters living or working in Yu-Shan, and may not exceed two dots even if bonus points are used."
+  },
+  {
+    "id": "background.salary",
+    "name": "Salary",
+    "exalt_type": "Dragon-Kings",
+    "description": "The size of your celestial pay packet (see Exalted: The Sidereals, pp.107-108). Only for characters living or working in Yu-Shan, and may not exceed two dots even if bonus points are used."
+  },
+  {
+    "id": "background.savant",
+    "name": "Savant",
+    "exalt_type": "Dragon-Kings",
+    "excluded_origins": ["Dragon-Kings"],
+    "description": "Memories of the First Age and its lost secrets (see Exalted: The Sidereals, pp.108-109). Only ancient Dragon Kings may possess this Background at character creation."
   }
 ]

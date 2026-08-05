@@ -1,0 +1,572 @@
+[
+  {
+    "id": "dk.celestial-air",
+    "name": "Celestial Air",
+    "element": "air",
+    "element_label": "Air",
+    "description": "This Path allows the adept to see and communicate with unmanifested spirits, to strike them with weapons, to enter a spirit's sanctum (or even the sacred city of Yu-Shan) and, eventually, to summon and command the obedience of both elementals and demons. (PG p.177)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "Piercing the Celestial Veil",
+        "type": "Simple",
+        "cost": {"motes": 2},
+        "duration": "One scene",
+        "text": "This power allows the character to see gods, demons and other spirits that have not materialized. These spirits appear just as they do when materialized, and while using this power, the Dragon King may not know if the spirit she sees has materialized or not. The religion of the Dragon Kings involved possession by spirits, and characters using this power can also see possessing spirits, but they do this at the expense of seeing the possessed character. If an elemental dragon possesses a mortal, characters using this power would simply see the elemental dragon. The Dragon King cannot instead see the mortal being possessed without ending this power. (PG p.178)"
+      },
+      {
+        "dot": 2,
+        "name": "Touch the Celestial Form",
+        "type": "Supplemental",
+        "cost": {"raw": "3 motes or 3 motes, 1 Willpower"},
+        "duration": "Instant or one scene",
+        "text": "This power allows the character to physically attack any type of unmanifested spirit. If the character only spends 3 motes, the power only affects a single attack. If he also spends a point of Willpower, its effects last for an entire scene. In addition to being able to use any physical attack on an unmanifested spirit, the character can also attack any spirit that possesses someone without harming the person who is possessed. The damage only affects the possessing spirit, it does not damage to the person who is possessed. If the character does not use Piercing the Celestial Veil or have some other way to see an unmanifested spirit, he will be attacking blind — a +2 difficulty modifier. Attacking a spirit possessing someone suffers no such negative modifier. (PG p.178)"
+      },
+      {
+        "dot": 3,
+        "name": "Open the Celestial Doorway",
+        "type": "Simple",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "Instant",
+        "text": "This power allows the character to freely enter the immaterial sanctum of any spirit who has an Essence less than the character's. The character can take along a number of other characters equal to her Essence. The Dragon King can also use this power to enter the sanctums of more powerful spirits, but only with the owner's permission. This power does allow the Dragon King to dematerialize, it can only be used to enter a small god's sanctum, and the user reappears in Creation the instant that she leaves the sanctum. To locate a sanctum, the Dragon King can ask a spirit, use Piercing the Celestial Veil or perform a complex divination. This divination requires several hours, a set of specialized but easily made crystalline tools and a Perception + Occult roll of difficulty 3. If the Dragon King's player succeeds in this roll, the character can locate all sanctum entrances within a 100-yard radius. Once the entrance has been found, the Dragon King and her companions need only stand before it and activate this power. In the next instant, they all find themselves on the threshold of the sanctum. The character and everyone she brings along can interact physically with the sanctum and all of its inhabitants and furnishings. To leave the sanctum, the character and anyone she brought with her need only walk out the door of the sanctum. The character and everyone with her reappear exactly where they entered the sanctum. This power cannot be used to intangibly move through space. Anyone using this power can carry out items and furnishings from the sanctum so long as she can pick up and carry them. Spirits generally object strongly to having their sanctums invaded by greedy or aggressive Dragon Kings. Anyone who is known to make a habit of attacking the sanctums of small gods will eventually have to deal with the wrath of more powerful spirits who object to their underlings being harmed or robbed. If the character has an Essence of 3 or more, she can also use this power to gain entrance to the Celestial City of Yu-Shan. (PG p.178)"
+      },
+      {
+        "dot": 4,
+        "name": "Summon Celestial Servant",
+        "type": "Simple",
+        "cost": {"raw": "10+ motes, 1 Willpower"},
+        "duration": "Indefinite",
+        "text": "The power calls up an elemental with an Essence that is no greater than the character's. Using this power requires a ritual that takes four hours to perform. The actual power itself costs 10 motes of Essence to open the portal to call forth the desired elemental. Once summoned, the sorcerer and elemental engage in a contest of wills, reflected by opposed Willpower + Essence rolls. When activating this power, the Dragon King may spend temporary Essence in 5-mote increments to decrease the elemental's dice pool. Every 5 motes of Essence so spent decreases the elemental's Willpower + Essence pool by one die. Continue to roll, once per turn, until one of them accumulates three more successes than the other. If the Dragon King gains three or more successes, the elemental will serve him loyally for one month. If the elemental wins, the character's player may make a Wits + Occult roll at difficulty 1 to banish the elemental. If he fails, the elemental is free to do as it wishes. The elemental will either attack the Dragon King for daring to summon it or demand some form of payment, such as an artifact, to leave the Dragon King in peace. Mistreating an elemental can outrage the Celestial Hierarchy and can call the summoner to the attention of one of the Celestial Censors. Powerful elementals typically send nominees to serve in their place. (PG p.178)"
+      },
+      {
+        "dot": 5,
+        "name": "Walk the Celestial Road",
+        "type": "Simple",
+        "cost": {"raw": "Half temporary Essence (round down), 1 Willpower"},
+        "duration": "Indefinite",
+        "text": "This power allows the character to dematerialize exactly like an elemental. Rematerializing also requires one complete turn, but it does not cost the Dragon King any Essence or Willpower. The character can take along a number of other characters equal to her Essence. However, these characters automatically rematerialize when the Dragon King that brought them does. When dematerialized, the Dragon King does not need to eat, drink or breathe. (PG p.179)"
+      },
+      {
+        "dot": 6,
+        "name": "Bar the Doorway of the Gods",
+        "type": "Simple",
+        "cost": {"motes": 15, "willpower": 1},
+        "duration": "Indefinite",
+        "text": "The Dragon King can perform a ritual lasting an hour that allows her to ward a region against gods, demons and other naturally immaterial beings. She can either create wards that do not allow any immaterial creature to materialize within this region or wards that cause any immaterial creature to automatically materialize in this region. Both types of wards cannot operate simultaneously. In the first case, no beings, including naturally material entities such as elementals, can materialize within this space. In addition, while naturally material creatures can enter the space normally, creatures such as gods or demons that use the Materialize Charm to exist in Creation dematerialize the instant they cross the boundary of the warded area. In the second case, all immaterial beings instantly materialize the instant that they cross the boundary of the warded area. Warding an area requires the Dragon King to place at least four flat palm-sized crystals around the border of this region. Although they can be buried in the ground or placed inside of a wall, if any of these crystals are moved or destroyed, the wards are instantly canceled. Spirits instantly notice either sort of ward, and Dragon Kings who regularly use these wards to bar spirits from regions will rapidly earn their ire. Using these wards to prevent the servants of a powerful god from entering a region will soon come to the attention of the god that these spirits serve. To see if this ward affects the spirit, make an Essence + Valor roll for the spirit must with a difficulty equal to the Dragon King's permanent Essence. Unless the spirit wins by one or more successes, the ward functions normally. Spirits who fail to resist the wards cannot touch any of the warding crystals. Reroll each time a spirit attempts to enter the warded region. However, unless the Dragon King invests its Essence in these wards, the wards collapse after a number of spirits equal to the Dragon King's permanent Essence have successfully resisted the wards. If the caster is willing to invest her Essence in these wards, they last until the crystals are disturbed or the Dragon King who created them dies. These wards have no effect on beings whose permanent Essence is greater than the Dragon King's. A Dragon King can ward an area no more than (Willpower x 20) yards on a side. (PG p.179)"
+      }
+    ]
+  },
+  {
+    "id": "dk.clear-air",
+    "name": "Clear Air",
+    "element": "air",
+    "element_label": "Air",
+    "description": "This Path concerns knowledge and perception. The Dragon King hones his mind and senses so that he can perceive all forms of magic and the flows of Essence or overhear a whispered conversation taking place 100 yards away. At higher levels, the Dragon King can touch an object and know its history, discover someone's inner secrets or learn the most critical flaws in a wall or a suit of armor. (PG p.180)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "Clarity of Sense",
+        "type": "Simple",
+        "cost": {"motes": 2},
+        "duration": "One scene",
+        "text": "This power allows the Dragon King to use the air around her to significantly enhance her sense of sight, of hearing or of smell. For the duration of this power, the character adds a number of dice equal to her level with this Path to whichever of these three senses she chooses to enhance. The Dragon King can only enhance a single sense at a time. Activating this power twice cancels out the first use. (PG p.180)"
+      },
+      {
+        "dot": 2,
+        "name": "See the Winds of Essence",
+        "type": "Simple",
+        "cost": {"motes": 4},
+        "duration": "One scene",
+        "text": "The Dragon King can perceive the flows of Essence. He can see the powerful wellsprings of Manses and Demesnes, the openings of spirit's sanctums and the complex swirls of Essence that distinguish artifacts and talismans from ordinary objects. He can also see the Essence contained in Dragon Kings, gods and Exalts and, so, can instantly tell them from ordinary mortals. He can also see all active Charms. (PG p.180)"
+      },
+      {
+        "dot": 3,
+        "name": "Visions of Attack and Defense",
+        "type": "Reflexive",
+        "cost": {"motes": 4, "willpower": 1},
+        "duration": "Path level in turns",
+        "text": "This power uses the wind to heighten the Dragon King's senses to the point that he can both strike more surely with a missile weapon and avoid attacks more easily. The power adds a number of dice equal to the Dragon King's level with this Path to any Archery or Thrown attacks and to any Dodge attempts. If the Dragon King is not expecting the attack or otherwise has no defense, this power grants him a reflexive dodge with a number of dice equal to his Path rating. Dragon Kings cannot gain the bonus from this power more often than twice per turn. (PG p.180)"
+      },
+      {
+        "dot": 4,
+        "name": "Perception of Subtle Flaws",
+        "type": "Supplemental",
+        "cost": {"motes": 4},
+        "duration": "Instant",
+        "text": "The Dragon King can sense both the weak point in any single object and the best way to strike the object so as to do the maximum possible damage. When the Dragon King strikes a target, her attack ignores half of the target's armor (round up). In addition, this power doubles the damage the Dragon King does when attacking inanimate objects. This power can only be used with Melee, Brawl and Martial Arts attacks. It does not work with any sort of ranged weapon. (PG p.180)"
+      },
+      {
+        "dot": 5,
+        "name": "Ancient Understanding",
+        "type": "Simple",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "Instant",
+        "text": "The Dragon King touches a person or object and learns its secrets. The Dragon King touches the object or person, and his player makes a Perception + Lore roll. Success on this roll allows the Dragon King to know the answer to one relatively short question about the person or object. The answer to the question can contain no more than a dozen words. The difficulty for questions about mortals and mundane objects is 1. Questions about Exalts, gods and other Essence users have a difficulty equal to the being touched's permanent Essence, while questions about Manses, Hearthstones or artifacts have a difficulty equal to half of the dots of the touched place or object (round up). The question is answered in an instant, but the Dragon King must always touch the target to ask the question. (PG p.180)"
+      },
+      {
+        "dot": 6,
+        "name": "Inhuman Clarity of Perception Technique",
+        "type": "Simple",
+        "cost": {"motes": 7, "willpower": 1},
+        "duration": "Day",
+        "text": "Dragon Kings who use this power gain the ultimate clarity of their senses. Their senses become preternaturally acute, and they can instantly pierce all forms of mundane deception and disguise. Everyone using any sort of mundane disguise is seen in their true form. Everyone who is hiding is revealed to the character's gaze. Everyone and everything that was deliberately disguised or hidden by non-magical means can be clearly seen. In addition, the Dragon King reduces the difficulty of all Awareness rolls by 3. (PG p.180)"
+      }
+    ]
+  },
+  {
+    "id": "dk.solid-earth",
+    "name": "Solid Earth",
+    "element": "earth",
+    "element_label": "Earth",
+    "description": "This Path was used to construct the Dragon Kings' vast cyclopean cities and enormous pyramidal temples. Practitioners learn to shape stone, earth and crystal solely by thought and to temporarily transform themselves into beings of living stone. They also learn to create inhumanly fine items and to unlock the powers inherent in various crystals and the Five Magical Materials. This Path is the origin of the Dragon Kings' crystal technology. (PG p.181)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "Lithic Understanding",
+        "type": "Simple",
+        "cost": {"motes": 5},
+        "duration": "One scene",
+        "text": "This power grants the Dragon King the ability to communicate with the small god associated with each rock or crystal. His player gains a number of dice equal to the Dragon King's score in this Path to all Lore rolls to understand the properties of a rock or crystal and to all Craft rolls to work with stone and crystal, whether the character is compounding a mineral poison, carving a stone statue or faceting a jewel. When using this power, the Dragon King can identify the basic properties and potential uses of a mineral he has never seen before by his player making a successful Perception + Lore roll with a difficulty of 2. Add 1 to this difficulty if this mineral comes from the Wyld. When working with such substances, this power removes the +1 difficulty that Pterok, Anklok and Mosok players suffer from when making normal Craft rolls for their characters. Also, a Dragon King using Lithic Understanding does not require tools beyond his natural claws when working with stone or crystal. This power provides no bonuses for working with any type of metal. (PG p.181)"
+      },
+      {
+        "dot": 2,
+        "name": "Shape the Earth",
+        "type": "Simple",
+        "cost": {"motes": 4},
+        "duration": "One scene",
+        "text": "The Dragon King can shape stone or crystal with her bare hands as easily and swiftly as she can mold mud or clay. She can instantly create handholds in rock that allow her to climb any surface made of stone or brick twice as rapidly as normal, and reduce the difficulty of the associated Athletics roll by her permanent Essence. In addition, the Dragon King can swiftly shape doorways in rock walls or repair broken walls with her bare hands. Using this power, she ignores all of the stone's soak and applies her full claw damage to the wall every turn. However, she can only use her claws in this fashion. This power cannot be used with her teeth or with any weapons she is carrying. She can repair walls equally rapidly, using her strength and claws to repair breaches in a wall by shaping it like soft clay. Each turn, she can repair as many levels of damage to a stone wall or other stone structure as she could normally cause with her claws. (PG p.181)"
+      },
+      {
+        "dot": 3,
+        "name": "Empower Crystal",
+        "type": "Simple",
+        "cost": {"motes": 6, "willpower": 1},
+        "duration": "Varies",
+        "text": "The character learns the secret of creating the various pieces of crystal technology that the Dragon Kings use. She requires no tools and suffers no penalties when creating such items. Use the rules for creating artifacts in The Book of Three Circles (pp. 88-89). This power adds a number of automatic successes equal to the Dragon King's level with this Path. Because the Dragon King can now sense the flows of Essence travel through the earth, this power also adds a number of dice equal to the Dragon King's level with this Path to any attempts to build Manses or craft Hearthstones. This power can only be used to create the crystal artifacts used by the Dragon Kings. Without this power, only the mighty Solar Exalted can create such items. Because of the Dragon Kings' close connection to the Unconquered Sun, this power also allows them to create artifacts from orichalcum, but they are not capable of working any of the other Magical Materials. Essence spent on this power remains committed throughout the creation process. (PG p.181)"
+      },
+      {
+        "dot": 4,
+        "name": "Become Stone",
+        "type": "Simple",
+        "cost": {"motes": 4, "willpower": 1},
+        "duration": "One day",
+        "text": "The Dragon King's body temporarily turns to living stone. The character gains +4 soak against both lethal and bashing damage. Moreover, if the damage is totally absorbed by his skin (that is, under four dice of lethal or bashing), the attacker rolls no damage dice at all. The character does lethal damage with his unarmed attacks, may block attacks with weapons as if he was armed and inflicts an extra die of bashing damage in barehanded combat. He also weighs an extra 100 pounds. Becoming a walking statue also protects the character from heat or cold and all other environmental hazards. In addition, the character does not need to eat, drink or breathe in this state. However, he cannot sprint, swim or fly and halves his running movement rate. The Dragon King looks like a living statue, and if he holds perfectly still (requires a successful Dexterity + Stealth roll with a difficulty of 2), he can easily be mistaken for an ordinary statue, especially since he does not need to breathe. (PG p.181)"
+      },
+      {
+        "dot": 5,
+        "name": "Command the Earth",
+        "type": "Simple",
+        "cost": {"motes": 7, "willpower": 1},
+        "duration": "Instant",
+        "text": "The Dragon King can cause large amounts of stone and earth to obey her command. She can cause the earth within 30 yards to shake enough that the player of anyone standing must make a successful reflexive Dexterity + Athletics roll for his character or have him fall over. The roll happens on the Dragon King's initiative. Players whose characters are running at this time increase the difficulty of this roll by 2. The Dragon King can also cause non-enchanted stone structures the size of a small stadium or a large palace to fall. They can open huge breaks in even the thickest stone, earth or brick walls and can create stone structures the size of a small palace or temple ([Essence x 20] feet on a side and up to [Essence] stories tall). Several Dragon Kings who all know this power can work together to create fairly substantial structures. However, such pavilions or towers will have a very rough appearance unless finished. The primary limit on this power is that the Dragon King must touch anything he is affecting and that this power is relatively slow. To destroy a structure, the Dragon King's player rolls his character's permanent Essence and adds a number of automatic successes equal to his Path level. He does this many health levels of damage to a structure each turn. Doing a number of health levels equal to twice that necessary to destroy a portion of a brick or stone wall brings the entire structure tumbling down. Weapons, spells, artifacts and Charms cannot add to the damage done by this power, nor can this power be part of a Combo. However, multiple Dragon Kings who all know this power canwork together. Unfortunately, any Dragon King attempting to destroy a structure must keep touching it for the entire time. If she stops touching the structure, she must reactivate the power to use it again. (PG p.182)"
+      },
+      {
+        "dot": 6,
+        "name": "Unity With Earth and Stone",
+        "type": "Simple",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "Scene",
+        "text": "The Dragon King attunes her body to the nature of earth and stone. She can move through it freely, and it cannot harm her. She can walk through earth and stone as easily as a mortal can move through air. She can even see through a yard or two of earth and stone so that she can easily navigate when walking through walls. Unless she wishes for them to harm her, weapons of stone pass through her body without harm, and so long as she lands on earth or stone, even the highest falls cannot harm her. In addition to being able to run or sprint through earth or rock, the Dragon King can also move up and down as easily as forward or backward. Also, if she stands near a stone wall during a battle, she can instantly retreat within every turn after she strikes her blow, thus adding the wall's soak to her own against all attacks delivered after her initiative. This power does not protect the Dragon King from weapons made from enchanted jade or from any of the other Five Magical Materials. (PG p.182)"
+      }
+    ]
+  },
+  {
+    "id": "dk.yielding-earth",
+    "name": "Yielding Earth",
+    "element": "earth",
+    "element_label": "Earth",
+    "description": "This Path concerns healing the living, curing disease and repairing that which has been broken. It cannot be used to create new objects, but Dragon Kings who follow this Path eventually learn to transform maimed and plague-ridden individuals into healthy ones or a handful of fragments into a complete and functional artifact. (PG p.182)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "Balm of Health",
+        "type": "Simple",
+        "cost": {"motes": 3},
+        "duration": "Instant",
+        "text": "When cast on anyone who is not Exalted, this power allows the patient to make his next Endurance roll to recover from disease or infection as if he were one of the Exalted. If used on one of the Exalted, the player gains two additional dice to the next Endurance roll for his character to recover from disease or infection. (PG p.182)"
+      },
+      {
+        "dot": 2,
+        "name": "Repair",
+        "type": "Simple",
+        "cost": {"motes": 3},
+        "duration": "Instant",
+        "text": "The Dragon King can repair any broken object simply by fitting all of the pieces back together and using this power. This power can repair anything from a cracked goblet or a torn gown to a broken sword. However, this power will not work if the object has any significant pieces missing, it does not repair the effects of age and wear, and it does not work on talismans, items containing the Magical Materials or otherwise ensorcelled objects. (PG p.182)"
+      },
+      {
+        "dot": 3,
+        "name": "Speed Healing",
+        "type": "Simple",
+        "cost": {"motes": 3, "willpower": 1},
+        "duration": "Instant",
+        "text": "This power can be used on both the Dragon King who performs it and on others to speed ordinary healing so that each day of healing is equal to five days of ordinary healing. The Dragon King can use this power on both herself and on others, but she must touch the patient to use it. Although the Essence spent on this power is recovered normally, the improved healing lasts until the patient's wounds heal completely. This healing only works on wounds that occurred before the Dragon King used this power. (PG p.182)"
+      },
+      {
+        "dot": 4,
+        "name": "Restore",
+        "type": "Simple",
+        "cost": {"motes": 3, "willpower": 1},
+        "duration": "One scene",
+        "text": "So long as the Dragon King possesses almost all of the pieces of a broken non-magical item, she can repair it. This power allows the Dragon King to both remove the ravages of age and wear and to fill in any small missing pieces of an object or device. However, this power cannot be used on magical artifacts. Also, to understand an item sufficiently to know how it should go together, the Dragon King's player must make a successful Intelligence + Lore roll for her character. The difficulty for all simple objects such as swords or plates is 1. Complex mechanisms or especially intricate objects such as elaborate pieces of jewelry range from 2 to 4. Performing this repair requires between 15 minutes and an hour, depending on the size and complexity of the object. (PG p.183)"
+      },
+      {
+        "dot": 5,
+        "name": "Empower Healing",
+        "type": "Simple",
+        "cost": {"raw": "5 motes and 1 Willpower per health level healed"},
+        "duration": "Instant",
+        "text": "The Dragon King's player makes a Wits + Medicine roll for her character to focus the living energy she has learned to tap. Every success on this roll allows her patient (who can either be the Dragon King or someone else) to instantly recover one level of bashing or lethal damage. This power also heals aggravated damage, but such damage heals at a rate of one health level per day. This power also allows the patient to regrow lost or crippled body parts. However, this regrowth requires a full week to complete. (PG p.183)"
+      },
+      {
+        "dot": 6,
+        "name": "Regain the Glory of the Past",
+        "type": "Simple",
+        "cost": {"raw": "10 motes, 1 Willpower, 1-5 experience points"},
+        "duration": "Instant",
+        "text": "This power allows the Dragon King to repair any magical artifact so that all of its powers are fully restored. These repairs are especially intricate and require a successful Intelligence + Occult roll. Repairing a relatively simply item such as a daiklave would be difficulty 1, repairing damage to a complex device such as a warbird would be difficulty 3, and repairing a large vehicle or an exceptionally complicated device such as a warstrider would be difficulty 5. This power can be used to reduce age and wear as well as damage, but in all cases, the Dragon King must possess almost all of the pieces of the broken artifact. The number of experience points required to activate this power is the Artifact rating of the item to be restored. (PG p.183)"
+      }
+    ]
+  },
+  {
+    "id": "dk.blazing-fire",
+    "name": "Blazing Fire",
+    "element": "fire",
+    "element_label": "Fire",
+    "description": "This Path involves the creation and control of both light and flame. As worshipers of the Unconquered Sun, the Dragon Kings deemed this Path sacred — their priests were all highly skilled in it. (PG p.183)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "First Light",
+        "type": "Simple",
+        "cost": {"motes": 1},
+        "duration": "One scene",
+        "text": "The character can conjure a small light sufficient to illuminate an area 10 yards on a side. This light can be cast on any object the character can touch, including on other characters. A character who is a recipient of this light cannot effectively hide until the effect ends. (PG p.183)"
+      },
+      {
+        "dot": 2,
+        "name": "Lesser Conjuration of Flame",
+        "type": "Simple",
+        "cost": {"motes": 3},
+        "duration": "One scene or until extinguished",
+        "text": "The character can cause any flammable object she touches to burst into flame. This flame is as intense as a campfire. In addition, the character can apply the flame to a nonflammable object, which will be unharmed but will remain covered in flame for the duration of the spell. When used on the blade of a weapon, or even on a cestus, this power adds a number of dice of damage equal to the character's permanent Essence score. This flame will not harm its creator, although other fires created by it may do so. (PG p.183)"
+      },
+      {
+        "dot": 3,
+        "name": "Bolt of Fire",
+        "type": "Simple",
+        "cost": {"raw": "1 mote per 1L damage"},
+        "duration": "Instant",
+        "text": "The Dragon King hurls a bolt of blazing fire at a single opponent. The Dragon King's player rolls Dexterity + Thrown to hit, plus a number of dice equal to the character's Essence. This attack has a range of (the character's permanent Essence x 20) yards and does a base damage of 1L for every mote of Essence spent. A character cannot spend more motes on this power than her permanent Essence + her rank with this Path. (PG p.183)"
+      },
+      {
+        "dot": 4,
+        "name": "Command Fire",
+        "type": "Simple",
+        "cost": {"motes": 4, "willpower": 1},
+        "duration": "One scene",
+        "text": "This power allows Dragon Kings to command and control large fires. A Dragon King can control a fire the size of a large bonfire or a burning hut, or she can command a portion of a larger fire that is approximately as large. For the duration of this power, the Dragon King can keep the fire away from people or objects that it would otherwise consume — she and her companions can walk through such a fire without fear of getting burned or being troubled by smoke. The Dragon King can protect a number of individuals equal to her permanent Essence. However, all of these beings must be visible to the Dragon King. So long as there is sufficient fuel in the desired direction, she can also cause such fires to move as rapidly as a sprinting person in any direction that she desires. Also, while this power is active, she can, as a simple action, make the fire lash out at anyone who is within (her level with this Path x 5) yards of it simply by expending an additional 2 motes of Essence. She can produce this lash of flame no more often than once a turn, but doing so counts as a reflexive action. She may also act normally on the same turn with no penalty. When used in this fashion, it does the damage listed for a bonfire (6L, 2L if the target resists, see Exalted, p. 244). Armor soaks this damage normally. This huge tongue of flame strikes its target if the Dragon King's player can make a successful attack roll using her character's Manipulation + Occult + Essence. This attack can be parried and dodged normally. (PG p.183)"
+      },
+      {
+        "dot": 5,
+        "name": "Immolation",
+        "type": "Simple",
+        "cost": {"motes": 4},
+        "duration": "Instant",
+        "text": "The Dragon King can hurl fist-sized balls of fire that burst into bonfire-sized conflagrations. His player rolls the Dragon King's Dexterity + Thrown with an accuracy bonus equal to his permanent Essence to strike in the vicinity of the target. When the ball hits, flame engulfs a region with a radius equal to the Dragon King's permanent Essence in yards. This attack has a range of 100 yards, and the fire started by this attack burns for at least one full scene — longer if it finds something to catch. This attack cannot be parried, only dodged. Anyone who is in the region and does not manage to successfully dodge this attack takes 6L damage the first turn, and her player must roll in subsequent turns for the character to resist the damage from this fire exactly like a normal bonfire. This fire is exceptionally hot and will completely destroy any flammable objects such as wood or bone by the end of the scene. (PG p.184)"
+      },
+      {
+        "dot": 6,
+        "name": "Touch of Blazing Fire",
+        "type": "Simple",
+        "cost": {"motes": 7, "willpower": 1},
+        "duration": "One scene",
+        "text": "The Dragon King can create a blazing inferno by touch. She can strike a target with either her bare hands or with a melee weapon and cause it to burst into flames, or she can sprint along a path and cause a wall of flame to spring up in her footsteps. She can even walk forward with her hands extended, and so long as she moves no faster than a normal walk, all flammable obstacles, such as heavy oak doors, wooden stockades or even thick jungles, will burn away extremely rapidly. The Dragon King's fire does a base lethal damage equal to her permanent Essence + her Willpower every turn. Any walls of flame that she creates are as tall as the Dragon King and last until the end of the scene. For the duration of this power, the Dragon King is also immune to all heat and fire, including all fire-based attacks by other beings. (PG p.185)"
+      }
+    ]
+  },
+  {
+    "id": "dk.flickering-fire",
+    "name": "Flickering Fire",
+    "element": "fire",
+    "element_label": "Fire",
+    "description": "This is the Path of physical prowess. Students of the Flickering Fire Path learn to jump, climb and fight with great ability. At higher levels, they learn to move with unparalleled speed and to battle multiple opponents at once. (PG p.185)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "Flashing Agility",
+        "type": "Simple",
+        "cost": {"motes": 2},
+        "duration": "Permanent Essence in hours",
+        "text": "The character can add a number of dice equal to her level with this Path to all Athletics rolls involving jumping, climbing or balance. All of the character's initiative totals are increased by the same amount. (PG p.185)"
+      },
+      {
+        "dot": 2,
+        "name": "Fiery Prowess",
+        "type": "Reflexive",
+        "cost": {"motes": 3},
+        "duration": "Instant",
+        "text": "The character's jumping distance is multiplied by his level with this Path. Also, the character's score in this Path is also added to all of his player's attack and parry rolls for this turn. This bonus is only added to Brawl, Martial Arts or Melee attacks. (PG p.185)"
+      },
+      {
+        "dot": 3,
+        "name": "One Fire, Many Flames",
+        "type": "Extra Action",
+        "cost": {"raw": "3 motes per additional action"},
+        "duration": "Instant",
+        "text": "The character can spend 3 motes of Essence to perform an extra action. The Dragon King can perform no more extra actions in any given turn than her Essence. The cost for this effect must be paid for each additional action the character takes. The character cannot split her dice pools on the extra actions but may abort to parry, perform a full dodge or refresh a dodge pool. (PG p.185)"
+      },
+      {
+        "dot": 4,
+        "name": "Speed of Flame",
+        "type": "Simple",
+        "cost": {"motes": 3},
+        "duration": "One scene",
+        "text": "The Dragon King can now run as swiftly and lightly as a racing fire. This power multiplies the Dragon King's movement speeds by her level with this Path. A Dragon King with five dots in this Path would quintuple the distance she could move and still perform an action, as well as quintupling the distance she can run or sprint. Because it is powered by Essence, moving in this fashion is no more tiring than ordinary walking — a Dragon King can run for the entire scene, and when the scene ends, she is well-rested. She also runs lightly enough that she can run over water without falling in and does not suffer injury or need to slow her pace when running over uneven or jagged terrain. (PG p.185)"
+      },
+      {
+        "dot": 5,
+        "name": "Twice-Flickering Flame",
+        "type": "Extra Action",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "One scene",
+        "text": "This power allows the character to can take two normal actions a turn without any penalties. By taking both actions as movements, the character can also walk, run or sprint twice as fast as normal. The only limitations on using this power are that sorcery still takes the normal time to cast and that using these additional actions makes the character appear to move inhumanly fast. The Dragon King can split her dice pools for each action normally while using this power. However, the additional action gained from using this power is incompatible with all other extra-actions-type effects, including One Fire, Many Flames. The character can utilize other effects but must forfeit her extra actions for the turn to do so. (PG p.185)"
+      },
+      {
+        "dot": 6,
+        "name": "Perfection of Movement",
+        "type": "Supplemental",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "One scene",
+        "text": "For the duration of this power, the Dragon King can fight and move with perfect confidence. The difficulty of all Athletics rolls involving movement are reduced to 1, and the Dragon King never risks falling, slipping or tripping when moving or fighting on an unstable surface such as an ice-covered tightrope in a hurricane. She can also climb or swim just as easily as she can run. So long as she does no more than half her running speed, she can move in any fashion and still act normally and without penalty. She can also use other powers to enhance her speed and still benefit from this power. In addition, the Dragon King takes no penalties for fighting due to movement or position. She can attack mounted opponents or opponents at different heights without penalty and can attack normally while prone, hanging upside down, underwater or standing in deep mud. Because her ability to control her movements is so exact, she also ignores all penalties due to shields or cover when making hand-to-hand attacks. The Dragon King can even evade magical shields and spells or artifacts that provide protection similar to shields. She can always find the precise way to move her attack past the wall an opponent is hiding behind or to evade a protective barrier. However, her skill does not allow her to ignore or reduce the protection provided by parries or dodges. (PG p.185)"
+      }
+    ]
+  },
+  {
+    "id": "dk.flowing-water",
+    "name": "Flowing Water",
+    "element": "water",
+    "element_label": "Water",
+    "description": "This Path involves learning the secrets of movement. First, the Dragon King learns to walk up walls or even across empty space as easily as she could walk across a floor. Eventually, she learns how to walk through walls and how to cross distances with only a thought. (PG p.186)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "Clinging Puddle Style",
+        "type": "Reflexive",
+        "cost": {"motes": 2},
+        "duration": "One scene",
+        "text": "The Dragon King bonds herself to the earth so that she cannot slip or fall. She is immune to knockdown and knockback and can also walk along a narrow ice-coated ledge without fear of falling. She can walk up walls and across ceilings with no chance of falling. The surface must be able to support the Dragon Kings weight, but it can be at any angle. (PG p.186)"
+      },
+      {
+        "dot": 2,
+        "name": "Air Walking Style",
+        "type": "Reflexive",
+        "cost": {"motes": 4},
+        "duration": "Path level in turns",
+        "text": "This power allows the Dragon King to walk on or climb surfaces far too flimsy to support her weight, such as paper, water, clouds or even smoke. The Dragon King can even walk or run on air like a roadway or climb it like a set of stairs. While moving on water, air or smoke, the Dragon Kings moves at his normal rate. This power is compatible with powers that allow the Dragon King to increase her rate of movement. (PG p.186)"
+      },
+      {
+        "dot": 3,
+        "name": "Vault-Breaching Method",
+        "type": "Simple",
+        "cost": {"motes": 6},
+        "duration": "One turn",
+        "text": "By concentrating for a turn, the Dragon King can move his head and arm through any non-magical barrier. While he cannot also perform any vigorous action such as attacking someone on the other side of a wall, he can performs simple tasks like taking a brief look around a room, grabbing an item inside a safe or turning a latch. This power does not allow the Dragon King to move all the way through the barrier, and at the end of the turn, he is automatically forced back through the barrier. The character can carry any item he can easily hold in one hand back through the barrier with him. This power does not allow the character to reach or see through barriers more than one foot thick. A Dragon King using this power is effectively in 75 percent cover if someone attempts to attack him when he sticks his head and arm through a wall. (PG p.186)"
+      },
+      {
+        "dot": 4,
+        "name": "Barrier-Breaching Method",
+        "type": "Reflexive",
+        "cost": {"motes": 3, "willpower": 1},
+        "duration": "Instant",
+        "text": "The Dragon King can walk through walls or other barriers. To do this, the character must place her hand against the wall or door, and an instant later, she is on the other side of this barrier. If the character cannot see what is on the other side of the barrier, she has no guarantee that she will not end up surrounded by armed guards or even standing underwater or in midair, with nothing underneath her. Also, this power will only allow the character to move through barriers no thicker than her Essence in feet. If used on thicker barriers, the power cannot be activated. (PG p.186)"
+      },
+      {
+        "dot": 5,
+        "name": "Distance Ignoring Technique",
+        "type": "Reflexive",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "Instant",
+        "text": "This power allows the Dragon King to teleport short distances though space. So long as he can clearly see where he is going, he can instantly move up to (Essence x 30) yards. The Dragon King vanishes and reappears in a new location. He can bring along anything he can normally carry, up to (Essence x 50) pounds. The Dragon King only needs a glimpse of his destination to teleport there. A Dragon King who is locked in a cell and can only see out a tiny crack in the wall can easily transport himself outside of the cell and onto the distant hill he can barely see. (PG p.186)"
+      },
+      {
+        "dot": 6,
+        "name": "Create Gateway",
+        "type": "Simple",
+        "cost": {"motes": 10, "willpower": 1},
+        "duration": "One turn",
+        "text": "The Dragon King can alter the Essence flows of a place sufficiently to create a temporary portal to a nearby location. Instead of merely being able to transport himself a few dozen yards, the Dragon King can open a portal up to six yards in diameter that lasts for one minute after the Dragon King creates it. Although a Dragon King can activate this power in only one turn if she is inside a Manse or Demesne that she is attuned to, otherwise she must perform a complex ritual where she draws arcane symbols on the ground and marks the location of the gateway with small stones. Performing this ritual takes 10 minutes. Once she completes the ritual, the Dragon King opens a portal that will transport anyone who goes through it a number of miles equal to her permanent Essence. The portal is simply a glowing circle in the air. No one can see though it, and touching the portal instantly draws the individual through it. Individuals going through the portal need not go through willingly. The Dragon King must either have visited or be able to clearly see the destination. Otherwise, the portal will merely transport everyone who goes through it to a location approximately the desired distance and direction away. No roll is needed if the Dragon King can clearly see the destination. Otherwise, her player must make a Perception + Occult roll for the character. The difficulty is 1 if the Dragon King has been to the exact location before and 3 if the Dragon King is trying to create a portal to an unfamiliar location. Failure on this roll results in the portal opening to a different location within range. Even if this roll is successful, a Dragon King who created a gateway to allow her and her companions to enter a nearby fortress would create a portal that emerged somewhere on the desired floor of the fortress. However, it might emerge in the central banquet hall amidst dozens of feasting quests or in a corner closet that servants use to store mops and buckets. (PG p.187)"
+      }
+    ]
+  },
+  {
+    "id": "dk.shimmering-water",
+    "name": "Shimmering Water",
+    "element": "water",
+    "element_label": "Water",
+    "description": "This Path involves the control of stealth, illusion and deceptive appearances. At low levels, practitioners can disguise themselves or hide more effectively. Eventually, they learn to become nearly invisible or to create multisensory illusions that can fool pursuers or entertain a crowd. (PG p.187)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "Averting the Eyes",
+        "type": "Simple",
+        "cost": {"raw": "1 mote for every +1 in difficulty"},
+        "duration": "One scene",
+        "text": "This power causes others to look away from the Dragon King. While it does not render the character invisible, this power enhances the user's Stealth. Every mote the character spends on this power increases the difficulty of all Perception + Awareness rolls to notice the Dragon King by +1. This increased difficulty only applies so long as the Dragon King is attempting to be stealthy. If the Dragon King enters combat or does anything else to draw attention to herself, the power immediately ends. Dragon Kings cannot use this power when they are being observed. Also, they cannot spend more motes on this power than their permanent Essences. (PG p.187)"
+      },
+      {
+        "dot": 2,
+        "name": "Visage of Another Face",
+        "type": "Simple",
+        "cost": {"motes": 3},
+        "duration": "One day",
+        "text": "The Dragon King can use her growing powers of illusion to disguise herself as someone else. The character changes his appearance, voice, scent and even the feeling of her skin into that of any reptilian creature that looks vaguely similar. A Raptok could disguise himself as a Pterok, as one of the hounds of the Endless Hunt or a half-grown claw strider. Charms or artifacts that allow characters to pierce illusions can penetrate this disguise. However, without such magics, this disguise is exceptionally believable and can only be penetrated if the character examines the Dragon King closely and his player succeeds at a Perception + Awareness roll with a difficulty equal to the Dragon King's Wits + her rating with this Path. However, this power does not allow the Dragon King to gain any of the abilities or advantages of the form she has temporarily assumed. It only changes her appearance. (PG p.187)"
+      },
+      {
+        "dot": 3,
+        "name": "Guise of the New Form",
+        "type": "Simple",
+        "cost": {"motes": 3, "willpower": 1},
+        "duration": "Permanent Essence in hours",
+        "text": "The character changes his appearance, voice, scent and even the feeling of her skin into that of any other vaguely humanoid creature. A Dragon King could disguise himself as a Western Dragon King, a green-haired Haltan, a bandy-legged Arczeckhi barbarian or a beastman. While his illusionary abilities are not sufficient to imitate a specific individual, he can alter his apparent height by as much as one foot. This disguise is exceptionally believable and can only be penetrated by Charms designed to pierce illusions or if the observer examines the Dragon King closely and her player succeeds at a Perception + Awareness roll with a difficulty equal to the Dragon King's Wits + his rating with this Path. This power also does not allow the Dragon King to gain any of the abilities or advantages of the form he has temporarily assumed. It only changes his appearance. In addition to being useful for disguise, this power also allows the Dragon King to alter his voice and appearance so that he becomes far more effective at singing, acting or storytelling. The Dragon King's player adds a number of dice equal to his character's level with this Path to any appropriate Performance roll made while this power is active. When the duration of this power runs out, the Dragon King can continue it simply by spending 5 more motes. (PG p.187)"
+      },
+      {
+        "dot": 4,
+        "name": "Unseen Form Technique",
+        "type": "Simple",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "Path level in minutes",
+        "text": "This power allows the Dragon King to become invisible. In fact, she can literally vanish from sight. Characters can perform any activity while invisible, even combat. However, this power does not render the Dragon King immaterial. She can be detected normally by touch, by scent or by hearing. Players of enemies may attempt a reflexive Perception + Awareness roll each turn for their characters to spot the Dragon King. If an observer saw the Dragon King disappear, noticed the Dragon King last turn or witnessed an action performed by the character, the difficulty for the check is only 1. However, the difficulty increases by one for every turn that the character remains undetected, to a maximum of 5. If the observer has some reason to believe that someone is around (a knocked over vase, footprints in the sand) the difficulty for spotting the character starts at 3 and scales up. Just looking casually for the invisible Dragon King has a difficulty of 5. Even when spotted, any actions taken against the character are at a +2 difficulty. Dragon Kings who engage in hand-to-hand combat are always considered to be spotted. (PG p.188)"
+      },
+      {
+        "dot": 5,
+        "name": "Veil of Deception",
+        "type": "Simple",
+        "cost": {"motes": 6, "willpower": 1},
+        "duration": "One scene",
+        "text": "Dragon Kings can disguise both themselves and others as any other creature or object of approximately the same size. A Dragon King could disguise herself as a rock, the Perfect of Paragon or a giant wolf spider. Dragon Kings can also disguise others with this same power but must touch them to do so. This power alters the subject's appearance, voice and scent but not the feel of her skin. Anyone who touches a rock and feels the Dragon King's scaled skin will be instantly aware that some deception is occurring. Also, all Charms, spells and artifacts that allow their users to see through illusions instantly penetrate this power. If desired, the Dragon King can maintain the illusion for additional scenes by simply spending 5 more motes of Essence for every illusion she wishes to maintain. Using this power to disguise anyone as a specific person is more difficult than simply looking like a rock. While this power normally does not require a roll, attempting to imitate someone without carefully observing the person for a full day requires an Intelligence + Larceny roll with a difficulty of 3. However, such observation lowers the difficulty to 1. A failed roll means that the disguised character does not believably pass as the target although she looks similar to this person. (PG p.188)"
+      },
+      {
+        "dot": 6,
+        "name": "Perfection of Illusion",
+        "type": "Simple",
+        "cost": {"motes": 7, "willpower": 1},
+        "duration": "Willpower in turns",
+        "text": "The Dragon King can create exceptionally subtle illusions. She can cause these illusions to be visible to everyone watching or only to one or a small number of observers. The Dragon King must be able to clearly see everyone she wishes to perceive the illusion. This power can be used to cause the targets to hear the details of a conversation differently, to not see someone pouring poison in a goblet or even to see someone else nearby pouring the poison. Although this power only lasts for a short time, it can subtly alter as few or as many details of the targets' environment as the Dragon King wishes to change. The Dragon King can affect any portion of her environment that is within (permanent Essence x 5) yards. This adds a number of dice equal to the Dragon King's permanent Essence to Presence, Socialize, Larceny or other rolls that benefit from this deception. When used in combat, this power can add or subtract a number of dice equal to the Dragon King's permanent Essence from all attack, parry or dodge rolls by everyone attacking or being attacked by a single target. All deceptions created by this power can be detected with the appropriate illusion-piercing Charms, spells or artifacts. Alternately, anyone who carefully observes the scene and whose player succeeds at a Perception + Awareness roll with a difficulty equal to the Dragon King's Essence can also see what's actually occurring. (PG p.189)"
+      }
+    ]
+  },
+  {
+    "id": "dk.growing-wood",
+    "name": "Growing Wood",
+    "element": "wood",
+    "element_label": "Wood",
+    "description": "This Path allows the Dragon King to communicate with and eventually shape and control all manner of plants. Adepts of this Path were the ones who created the Dragon Kings' powerful vegetative technology. (PG p.189)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "Verdant Understanding",
+        "type": "Simple",
+        "cost": {"motes": 5},
+        "duration": "One scene",
+        "text": "This power grants the Dragon King the ability to communicate with the small god associated with each individual plant. The Dragon King's player gains a number of dice equal to his character's score in this Path to all Lore rolls to understand the properties of a plant, to all Survival rolls where the Dragon King is attempting to gather edible plants and to all Craft rolls to work with plants or plant products, whether the character is compounding poison or medicine, carving wood or gardening. When using this power, the Dragon King can identify the basic properties and potential uses of a plant he has never seen before by his player making a successful Perception + Lore roll with a difficulty of 2. Add 1 to this difficulty if this plant comes from the Wyld. When working with wood and living plants, this power removes the +1 difficulty that players of Anklok and Mosok suffer when making normal Craft rolls. Also, the Dragon King does not require tools beyond his natural claws when working such substances. (PG p.189)"
+      },
+      {
+        "dot": 2,
+        "name": "Empower Cultivation",
+        "type": "Simple",
+        "cost": {"motes": 3},
+        "duration": "Instant",
+        "text": "This power allows the Dragon King to cause even the most exotic plants to sprout and grow. While they grow no faster than normal and require normal care, this power allows the character to grow exotic plants such as life flowers, coca or swordstick bushes anywhere in Creation, so long as the plant receives approximately the correct amounts of warmth, light soil and water. The Dragon King can even use this power to keep plants alive that otherwise only grow in the Wyld. Once this power has been used, the plant will continue to grow and thrive so long as it receives regular care. (PG p.189)"
+      },
+      {
+        "dot": 3,
+        "name": "Empower Plants",
+        "type": "Simple",
+        "cost": {"motes": 3, "willpower": 1},
+        "duration": "Indefinite",
+        "text": "The character learns the secrets of creating the various pieces of vegetative technology that the Dragon Kings use. She requires no tools and suffers no penalties when creating such items. Use the rule for creating artifacts in The Book of Three Circles (pp. 88-89). This power adds a number of automatic successes equal to the Dragon King's level with this Path to all rolls to create such artifacts. This power can only be used to create the vegetative artifacts used by the Dragon Kings. Without this power, only the mighty Solar Exalted can create vegetative items. This power even allows the Dragon King to produce plants such as the swordstick bush that actually grow new swordsticks. However, none of these plants can produce more than one or two new artifacts each year. (PG p.189)"
+      },
+      {
+        "dot": 4,
+        "name": "Shape Plants",
+        "type": "Simple",
+        "cost": {"motes": 5},
+        "duration": "One scene",
+        "text": "For the duration of this power, the Dragon King can touch any living plant and shape it to her desires. She can cause a tree to reshape itself into a comfortable shelter, cause vines to become easy to use bridges and ladders through the jungle, turn a bent branch into an exceptional club or spear or transform a piece of bamboo into an exceptional blowgun. The character can only use this power to create weapons and other item than can normally be made of wood. It can be used to create an exceptional javelin, but it cannot be used to create a chakram or an axe because both of these weapons require other materials to make. Creating any weapon or other useful item using this power requires a complete turn and a successful Intelligence + Craft (Vegetation) roll. The affects of all changes produced using this power are permanent unless the Dragon King later decides to reverse them. The Dragon King can also use this power to move swiftly and easily through any forest or field. The plants both move out of her way and aid her progress, allowing her to safely sprint through a dense jungle. In any location with thick vegetation, pursuers are at +2 difficulty to track her. In addition, the Dragon King's player gains a number of dice equal to her character's level in this Path to any Athletics roll involving climbing, jumping or balancing on trees, vines or other large plants while this power is active. (PG p.189)"
+      },
+      {
+        "dot": 5,
+        "name": "Alter Plants",
+        "type": "Simple",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "One scene",
+        "text": "The Dragon King must spend several hours touching a living plant. During this time, he contacts the spirit of the plant and causes profound changes to the plant. He can cause the plant to undergo a year's growth in this time or to bloom or to produce ripe and delicious fruit at the end of the scene. The Dragon King can also touch a plant and cause it to be animate for the next day. Although the plant cannot uproot itself, trees, bushes or vines can attack anyone within reach. Using this power to animate a plant is a reflexive action requiring only a brief touch and can be performed once a turn for the duration of this power. Animate plants remain animate until the sun next crosses the horizon. The attack pool of all animate plants equals the Dragon King's Wits + Craft (Vegetation). Animate plants can clinch or hold an opponent with a Strength equal to the Dragon King's Willpower. Alternately, they can perform hand-to-hand attacks that do damage equal to the Dragon King's Willpower + Craft (Vegetation). Trees and woody plants do lethal damage. Vines and softer plants do only bashing damage. However, animate plants are extremely slow. Their initiative is equal to the Dragon King's Wits + the results of a 10-sided die roll. Each turn, animate plants must be commanded to attack their targets. Controlling these plants is a reflexive action. However, Dragon Kings can only control a number of plants equal to their permanent Essence. Attacking and damaging an animate plant is handled just like attacking any other animate target. Most trees and woody plants have a soak of 3L/5B. Plants that take more than 10 levels of damage cannot attack anymore. Regardless of how it is used, this power cannot be used more often than once a month on any plant. Using this power more often on a single plant causes the plant to die before it can complete the desired changes. Also, Dragon Kings cannot use this power on any enchanted plants, such as those found in the Wyld or those that grow artifacts such as swordsticks. (PG p.190)"
+      },
+      {
+        "dot": 6,
+        "name": "Plant Walk",
+        "type": "Simple",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "Scene",
+        "text": "The Dragon King can move into and through both living and dead wood as easily as a wood elemental. The Dragon King attunes her body to the nature of wood and other plant material. She can then move through it freely, and it cannot harm her. She can walk through a tree or a wooden wall as easily as a mortal can move through air. She can even see through a yard or two of solid wood so that she can easily navigate when walking through unusually thick trees. Also, because all trees in a dense forest have roots that come quite close to one another, she can walk in one tree and emerge from a neighboring one during the same turn, so long as they are within the distance that she can move within a turn. Unless she wishes for them to harm her, wooden weapons pass through her body without harm, and so long as she lands on a tree branch, even the highest fall cannot hurt her. In addition to being able to run or sprint through plant material, the Dragon King can also move up and down as easily as forward or backward. Also, if she stands near a tree during a battle, she can instantly retreat within it every turn after she strikes her blow, thus adding the tree's soak to her own against all attacks delivered after her initiative. This power does not protect the Dragon King from enchanted wooden weapons such as swordsticks. (PG p.190)"
+      }
+    ]
+  },
+  {
+    "id": "dk.shaping-wood",
+    "name": "Shaping Wood",
+    "element": "wood",
+    "element_label": "Wood",
+    "description": "This Path concerns the control of the adept's physical form. Practitioners can shape their bodies in a multitude of ways and can eventually learn to temporarily transform themselves into other creatures. (PG p.190)",
+    "powers": [
+      {
+        "dot": 1,
+        "name": "Shaping the Bark",
+        "type": "Simple",
+        "cost": {"raw": "3 motes (and an additional mote to remove)"},
+        "duration": "Indefinite",
+        "text": "The Dragon King can alter the structure of her hide and claws, adding 1 to both her lethal and her bashing soak and 1L to all attacks made with her claws and teeth. With three or more dots in this Path, these bonuses rise to +2 and +2L. Although the changes made using this ability last until the committed Essence is released, civilized Dragon Kings did not keep them active at all time, since the alterations make both fine manipulation and social interactions more difficult (+1 difficulty on all rolls for either). The penalty to fine manipulation is cumulative with those that some Dragon Kings experience because of their breed. (PG p.190)"
+      },
+      {
+        "dot": 2,
+        "name": "Alter the Trunk",
+        "type": "Simple",
+        "cost": {"motes": 3},
+        "duration": "One scene",
+        "text": "The Dragon King can stretch and shape her body to fit into narrow spaces or to extend her reach. The Dragon King can extend the reach of her arms, her legs, her tail or even her neck by up to an additional two yards. In addition to being able to reach out and grab objects, the character can also flatten her body so that she can fit through spaces no more than four inches wide. She may attack and defend normally while her body is altered by this power. (PG p.190)"
+      },
+      {
+        "dot": 3,
+        "name": "Adaptation",
+        "type": "Simple",
+        "cost": {"motes": 3, "willpower": 1},
+        "duration": "One day",
+        "text": "This power allows the Dragon King to adapt himself to almost any environment. The Dragon King can endure cold, heat, thick smoke, frozen fog, parching deserts and even freezing arctic waters. The Dragon King experiences no penalties on survival roles due to environmental conditions. He still requires air, water and food to survive, but he can safely drink mineral-tainted water and breathe air filled with thick smoke and noxious gases without harm. (PG p.190)"
+      },
+      {
+        "dot": 4,
+        "name": "Form of Another Breed",
+        "type": "Simple",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "One scene",
+        "text": "A Dragon King using this power can temporarily transform herself into another breed. A Northern Dragon King, for instance, could transform herself into an Eastern, Southern or Western Dragon King. While transformed, the Dragon King gains all of the abilities of her new form, including all Attribute modifications. (PG p.191)"
+      },
+      {
+        "dot": 5,
+        "name": "Form of the Terrible Ancestors",
+        "type": "Simple",
+        "cost": {"motes": 5, "willpower": 1},
+        "duration": "One scene",
+        "text": "The Dragon King can transform himself into a primal dinosaur-like form suitable for combat. The Dragon King's Dexterity, Mental Attributes, Charisma and Manipulation are unchanged. However, his Strength and Stamina both become 7. Also, he now has a natural Soak of 5L/10B, but he cannot wear armor. A Dragon King who is wearing armor or clothing when he transforms is unharmed, but these items are ripped to shreds. The Dragon King cannot use any weapons, but he does gain formidable claws and teeth. Also, all worn artifacts alter themselves to fit the Dragon King's new form. Artifact armors cease to provide any other soak benefit but may provide other effects such as Hearthstones, harsh-environmental survival and so on. In this primal form, the Dragon King cannot speak, and the difficulty of all Valor rolls is reduced by one. Dragon Kings using this power cannot deliberately attempt to fail Valor rolls — they become ravening predators who yearn to kill their enemies. (PG p.191)"
+      },
+      {
+        "dot": 6,
+        "name": "Transformation of the New Form",
+        "type": "Simple",
+        "cost": {"motes": 10, "willpower": 1},
+        "duration": "One scene",
+        "text": "The Dragon King can temporarily transform herself into any creature of approximately the same weight. She could become a human, a lion, a dolphin, a strix or even a disturbingly huge giant wolf spider. If one of the larger Dragon Kings (such as an Anklok) becomes a human, she will become an unusually large human. Except for her Appearance, her Attributes do not change. However, she gains all of the innate capabilities of the creature, including poison, flight or the ability to breathe water. The Dragon King cannot become any creature that is innately magical such as a god or an Exalt. She also cannot transform herself into a duplicate of any beast that is so tied to the Wyld that it cannot actually live in Creation without periodic visits to the Wyld. (PG p.191)"
+      }
+    ]
+  }
+]

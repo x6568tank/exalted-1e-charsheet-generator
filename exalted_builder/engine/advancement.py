@@ -19,10 +19,10 @@ from typing import Optional
 
 from ..models.character import (
     Array, ArtSpecialty, BeastmanGiftPurchase, Character, CollegeRating, Combo, CraftRating,
-    FetterEntry, FormulaEntry, MeritFlawPurchase, OxBodyPurchase, PassionEntry, RitualEntry,
-    ScienceRating, Specialty, SubmodulePurchase, ThaumaturgyState, XpEntry)
+    FetterEntry, FormulaEntry, MeritFlawPurchase, OxBodyPurchase, PassionEntry, PathRating,
+    RitualEntry, ScienceRating, Specialty, SubmodulePurchase, ThaumaturgyState, XpEntry)
 from ..models.rules import AbilityName, AttributeName, Orientation, RuleSet, VirtueName
-from . import costs, derive, elder, merits, validate
+from . import costs, derive, elder, merits, paths, validate
 
 # Conventional maxima for raises. The 1-5 dot cap is the universal trait cap used
 # throughout chargen; Willpower's permanent maximum is 10.
@@ -121,6 +121,16 @@ def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName)
     # ceiling is HIGHER wins: both are permissions, and neither is written as a limit
     # on the other, so a Legendary Attribute never holds an elder down and vice versa.
     cap = max(cap, elder.elder_caps(ruleset, character).trait)
+    # The Dragon-King Essence gate (PG p.177 "Maximum Intelligence and Path Level")
+    # is a CEILING on Intelligence specifically — 1/3/5/6 at Essence 1/2/3-5/6 — so
+    # unlike the permission ceilings above, it can only LOWER the cap, and it binds
+    # post-lock too (the chargen check alone would let XP raise Intelligence past it).
+    if attr == AttributeName.INTELLIGENCE:
+        int_cap = (ruleset.budgets_for(character.exalt_type, character.origin,
+                                       character.upbringing)
+                   .intelligence_max_by_essence.get(character.essence_rating, 0))
+        if int_cap:
+            cap = min(cap, int_cap)
     if frm >= cap:
         raise AdvancementError(f"{attr.value} is already at {cap}.")
     cost = costs.attribute_step(ruleset, character, frm, attr)
@@ -212,6 +222,16 @@ def raise_virtue(ruleset: RuleSet, character: Character, virtue: VirtueName) -> 
     # True Paragon lets Virtues be raised to 6 "with bonus or experience points".
     mf_cap = merits.merits_and_flaws_calc(ruleset, character).virtue_cap
     cap = mf_cap if mf_cap is not None else _DOT_MAX
+    # The Dragon-King Essence-gated Virtue ceiling (PG p.177 row 6: at Essence 6 a
+    # Dragon King may raise Virtues to 6). A PERMISSION like the Merit's — the
+    # higher wins — because below Essence 6 the table is 5 (the default) and only
+    # row 6 exceeds it. Without this, `_DOT_MAX` (5) would make the Essence-6
+    # Virtue-6 unlock unreachable.
+    virt_cap = (ruleset.budgets_for(character.exalt_type, character.origin,
+                                    character.upbringing)
+                .virtue_max_by_essence.get(character.essence_rating, 0))
+    if virt_cap:
+        cap = max(cap, virt_cap)
     if frm >= cap:
         raise AdvancementError(f"{virtue.value} is already at {cap}.")
     cost = costs.virtue_step(ruleset, character, frm, virtue)
@@ -313,6 +333,7 @@ _DOT_TRACK_RAISES = {
     "essence": lambda rs, c, key, detail: raise_essence(rs, c),
     "crafts": lambda rs, c, key, detail: _step_craft(rs, c, detail),
     "colleges": lambda rs, c, key, detail: _step_college(rs, c, detail),
+    "paths": lambda rs, c, key, detail: _step_path(rs, c, detail),
 }
 
 
@@ -330,6 +351,7 @@ _DOT_TRACK_LOWERS = {
     "essence": lambda c, key, reason: lower_essence(c, reason),
     "crafts": lambda c, key, reason: lower_craft(c, key, reason),
     "colleges": lambda c, key, reason: _lower_college_by_id(c, key, reason),
+    "paths": lambda c, key, reason: _lower_path_by_id(c, key, reason),
 }
 
 
@@ -357,6 +379,9 @@ def _dot_track_rating(character: Character, target: str, detail: str = "") -> in
     if domain == "colleges":
         return next((cr.rating for cr in character.colleges
                      if cr.college_id == detail), 0)
+    if domain == "paths":
+        return next((pr.rating for pr in character.paths
+                     if pr.path_id == detail), 0)
     return character.essence_rating
 
 
@@ -580,6 +605,78 @@ def lower_college(ruleset: RuleSet, character: Character, college_id: str,
     if cr.rating <= 0:
         character.colleges.remove(cr)
     return _log_reduction(character, "colleges", frm, frm - 1, reason or college_id)
+
+
+def learn_path(ruleset: RuleSet, character: Character, path_id: str) -> XpEntry:
+    """Begin a new Dragon-King Path at rating 1 (PG pp.175-177). Flat cost — 7 XP, or
+    6 for a Breed/Favoured Path (p.176). The id must be a real Path and not already
+    owned. The Essence gate (max rating 1 at Essence 1) never binds the first dot for
+    a playable Dragon King (they start at Essence 2+), but is checked for the same
+    reason every other gate is."""
+    _ensure_locked(character)
+    if path_id not in ruleset.paths:
+        raise AdvancementError(f"Unknown path {path_id!r}.")
+    if any(p.path_id == path_id for p in character.paths):
+        raise AdvancementError(f"{ruleset.paths[path_id].name} is already known; raise it instead.")
+    if paths.path_essence_max(ruleset, character) < 1:
+        raise AdvancementError(
+            f"{ruleset.paths[path_id].name} cannot be learned at Essence "
+            f"{character.essence_rating}.")
+    cost = costs.path_new_cost(ruleset, character, path_id)
+    entry = _commit(character, "paths", path_id, 0, 1, cost)
+    character.paths.append(PathRating(path_id=path_id, rating=1))
+    return entry
+
+
+def raise_path(ruleset: RuleSet, character: Character, path_id: str) -> XpEntry:
+    """Raise an existing Path one dot, scaled on the current rating (p.176: ×5, ×4
+    for a Breed/Favoured Path). Capped by the Essence gate (p.177: a Path may not
+    exceed 1/3/5/6 at Essence 1/2/3-5/6) — which is also the Path's whole ceiling,
+    since Essence 6 is the life cap and admits Path 6. Deliberately NOT lifted by the
+    elder ceiling: `elder_caps.trait` raises Abilities and Attributes, and a Path is
+    a rated Advantage with its own gate."""
+    _ensure_locked(character)
+    pr = next((p for p in character.paths if p.path_id == path_id), None)
+    if pr is None:
+        raise AdvancementError(f"No path {path_id!r} to raise; learn it first.")
+    cap = paths.path_essence_max(ruleset, character)
+    if pr.rating >= cap:
+        raise AdvancementError(
+            f"{ruleset.paths[path_id].name} is already at {cap} (the Essence-"
+            f"{character.essence_rating} ceiling).")
+    cost = costs.path_step(ruleset, character, path_id, pr.rating)
+    entry = _commit(character, "paths", path_id, pr.rating, pr.rating + 1, cost)
+    pr.rating += 1
+    return entry
+
+
+def lower_path(ruleset: RuleSet, character: Character, path_id: str,
+               reason: str = "") -> XpEntry:
+    """Reduce a Path one dot, removing it entirely at 0. Same reasoning as
+    `lower_craft`/`lower_college` (a usability escape hatch, not a printed rule)."""
+    _ensure_locked(character)
+    pr = next((p for p in character.paths if p.path_id == path_id), None)
+    if pr is None:
+        raise AdvancementError(f"No path {path_id!r} to reduce.")
+    frm = pr.rating
+    if frm <= 0:
+        raise AdvancementError("That path is already at 0.")
+    pr.rating = frm - 1
+    if pr.rating <= 0:
+        character.paths.remove(pr)
+    return _log_reduction(character, "paths", frm, frm - 1, reason or path_id)
+
+
+def _step_path(ruleset: RuleSet, character: Character, path_id: str) -> XpEntry:
+    """One dot of a Path, whichever side of 0 it starts on (the dot-track split)."""
+    known = any(p.path_id == path_id for p in character.paths)
+    return raise_path(ruleset, character, path_id) if known \
+        else learn_path(ruleset, character, path_id)
+
+
+def _lower_path_by_id(character: Character, path_id: str, reason: str) -> XpEntry:
+    """`lower_path` without the ruleset, which it uses only for a message."""
+    return lower_path(None, character, path_id, reason)   # type: ignore[arg-type]
 
 
 def lower_essence(character: Character, reason: str = "") -> XpEntry:

@@ -323,18 +323,27 @@ def _peripheral_virtue_term(mode: str, virtues: dict[VirtueName, int]) -> int:
 
 
 def _named_virtue_term(spec, virtues: dict[VirtueName, int]) -> int:
-    """A single NAMED Virtue added flat to the Personal pool — the "+ Conviction" in
-    the unlocked mortal's pool (PG p.114). Zero for every splat that names none, which
-    is all of them; an unrecognised name contributes nothing rather than raising, so a
-    typo in the data degrades to a wrong number rather than a crash the loader would
-    not have caught."""
-    if not spec.personal_named_virtue:
-        return 0
-    try:
-        virtue = VirtueName(spec.personal_named_virtue)
-    except ValueError:
-        return 0
-    return virtues.get(virtue, 0) * spec.personal_named_virtue_coeff
+    """The NAMED Virtues added flat to the Personal pool — the "+ Conviction" in the
+    unlocked mortal's pool (PG p.114), and the Dragon-Kings' "+ Conviction + Valor"
+    (PG p.177), which no virtue_mode can express (two SPECIFIC named Virtues, not the
+    two highest). Sums the single `personal_named_virtue` and the list
+    `personal_named_virtues`, each at `personal_named_virtue_coeff` — backwards
+    compatible, since the list defaults empty. Zero for every splat that names none,
+    which is all of them; an unrecognised name contributes nothing rather than
+    raising, so a typo in the data degrades to a wrong number rather than a crash the
+    loader would not have caught."""
+    names = []
+    if spec.personal_named_virtue:
+        names.append(spec.personal_named_virtue)
+    names.extend(spec.personal_named_virtues)
+    total = 0
+    for name in names:
+        try:
+            virtue = VirtueName(name)
+        except ValueError:
+            continue
+        total += virtues.get(virtue, 0) * spec.personal_named_virtue_coeff
+    return total
 
 
 def _breeding_rating(character: Character, name: str, override: Optional[int]) -> int:
@@ -511,6 +520,14 @@ def health_track(character: Character,
         effects = merits.merits_and_flaws_calc(ruleset, character)
         levels += [HealthLevelView(penalty=penalty, source=label)
                    for penalty, label in effects.health_levels_granted]
+        # Dragon-King breed extra levels (Anklok and Mosok gain one additional -0
+        # level, PG pp.171/174), read from the caste's breed_traits. The stable sort
+        # below places the -0 level correctly.
+        cd = ruleset.castes.get(character.caste)
+        breed = cd.breed_traits if (cd and cd.breed_traits) else None
+        if breed and breed.bonus_health_levels:
+            levels += [HealthLevelView(penalty=p, source="Breed")
+                       for p in breed.bonus_health_levels]
 
     def _remove(penalty: int) -> None:
         """Drop one level of this penalty, base first — base levels lead the list, so
@@ -631,9 +648,31 @@ def soak(character: Character, ruleset: Optional[RuleSet] = None) -> SoakView:
     armor_bashing = sum(a.soak_bashing for a in pieces)
     armor_lethal = sum(a.soak_lethal for a in pieces)
 
-    magical_being = character.exalt_type != "Mortal"
-    natural_bashing = stamina
-    natural_lethal = stamina // 2 if magical_being else 0
+    # Dragon-Kings (PG p.165 "Dragon King Physiology" sidebar): the breed's innate
+    # armour adds to BOTH natural numbers, and Stamina adds NOTHING to lethal ("their
+    # bashing soak equals [their Stamina + their innate armor] and their lethal soak
+    # equals their innate armor"). The breed traits live on the caste, so this half
+    # needs the ruleset; without one the innate armour is unknown and contributes 0.
+    breed = None
+    if ruleset is not None:
+        cd = ruleset.castes.get(character.caste)
+        breed = cd.breed_traits if (cd and cd.breed_traits) else None
+    innate_b = breed.innate_soak_bashing if breed else 0
+    innate_l = breed.innate_soak_lethal if breed else 0
+
+    # The Exalt "magical beings add half-Stamina to lethal soak" rule, data-driven via
+    # ExaltDefinition.stamina_adds_to_lethal_soak (False for Dragon-Kings p.165, and
+    # for Mortals who never got the term at all). The no-ruleset fallback keeps the
+    # historical `exalt_type != "Mortal"` behaviour; every caller that passes the
+    # ruleset reads the field instead, so one mechanism decides the number.
+    add_sta = character.exalt_type != "Mortal"
+    if ruleset is not None:
+        ex = ruleset.exalts.get(character.exalt_type)
+        if ex is not None:
+            add_sta = ex.stamina_adds_to_lethal_soak
+
+    natural_bashing = stamina + innate_b
+    natural_lethal = innate_l + (stamina // 2 if add_sta else 0)
 
     return SoakView(
         bashing=natural_bashing + armor_bashing,

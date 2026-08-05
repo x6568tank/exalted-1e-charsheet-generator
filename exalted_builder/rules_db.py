@@ -58,6 +58,11 @@ from .models.rules import (
     ExperienceCosts,
     MagicalMaterial,
     MeritFlaw,
+    # Alias: `pathlib.Path` is already imported above, and the Dragon-King Path
+    # catalogue class collides with it. models.rules.py itself has no pathlib import,
+    # so the class is named `Path` there and aliased at every consumer that uses
+    # pathlib too — this is the only one today.
+    Path as DragonKingPath,
     SOLAR_EXALT,
     NatureType,
     RuleSet,
@@ -175,6 +180,43 @@ def _index(items: list[M], key: str, kind: str, problems: list[str]) -> dict:
         if k in out:
             problems.append(f"duplicate {kind} id: {k}")
         out[k] = it
+    return out
+
+
+# The Essence gate on Path rating (PG p.177 "Maximum Intelligence and Path Level"):
+# dot 1 needs Essence 1, dots 2-3 Essence 2, dots 4-5 Essence 3, dot 6 Essence 6.
+# Mirrors ChargenBudgets.path_max_by_essence; this table is what the VIRTUAL Charm
+# rows carry so the Combo/sheet display agrees with the rated-track gate.
+_PATH_DOT_ESSENCE_GATE = {1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 6}
+
+
+def _virtual_path_charms(paths: list[DragonKingPath]) -> list[Charm]:
+    """Project each PathPower into a virtual Charm row (Charm.virtual=True) so the
+    Combo machinery and the sheet can name a Path power's type/duration/cost. Not
+    purchasable — the picker hides virtual rows, and the rated-track truth lives on
+    Character.paths. `prerequisites` chain the dots in fixed order ("each Path must
+    be learned in a fixed order", p.177); `min_essence` encodes the Essence gate."""
+    out: list[Charm] = []
+    for path in paths:
+        for power in path.powers:
+            pid = f"dk.path.{path.id}.dot{power.dot}"
+            out.append(Charm(
+                id=pid,
+                name=power.name,
+                category=f"path:{path.id}",
+                exalt_type="Dragon-Kings",
+                type=power.type,
+                min_essence=_PATH_DOT_ESSENCE_GATE.get(power.dot, 6),
+                prerequisites=(
+                    [[f"dk.path.{path.id}.dot{power.dot - 1}"]]
+                    if power.dot > 1 else []
+                ),
+                cost=power.cost,
+                duration=power.duration,
+                keywords=power.keywords,
+                description=power.text,
+                virtual=True,
+            ))
     return out
 
 
@@ -454,6 +496,17 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     if charm_dir.is_dir():
         for f in sorted(charm_dir.glob("*.json")):
             charm_list.extend(_load_array(f, Charm, problems))
+    # Dragon-King Paths of Prehuman Mastery (PG pp.177-191). The rated-track
+    # catalogue (10 Paths x 6 dot-level powers) loads here; then each PathPower is
+    # PROJECTED into the charm list as a virtual Charm row so the Combo machinery
+    # and the sheet have names/types/durations for the powers. The real state stays
+    # the rated track on Character.paths — virtual rows are not purchasable (the
+    # picker hides Charm.virtual) and every OTHER read site decides explicitly
+    # whether to skip or include them (see the read-site inventory in the
+    # Dragon-Kings plan).
+    paths = _index(_load_array(data_dir / "paths.json", DragonKingPath, problems),
+                   "id", "path", problems)
+    charm_list.extend(_virtual_path_charms(paths.values()))
     charms = _index(charm_list, "id", "charm", problems)
 
     spells = _index(_load_array(data_dir / "spells.json", Spell, problems), "id", "spell", problems)
@@ -526,6 +579,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         nature_catalog=natures,
         material_catalog=materials,
         colleges=colleges,
+        paths=paths,
         merits_flaws=merits_flaws,
         thaum_arts=thaum_arts,
         thaum_sciences=thaum_sciences,

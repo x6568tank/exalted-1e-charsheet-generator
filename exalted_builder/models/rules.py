@@ -415,6 +415,14 @@ class Charm(BaseModel):
     # must be easily distinguishable from printed Charms) and so the authoring page
     # knows which rows it is allowed to edit or delete.
     custom: bool = False
+    # Stamped by the loader on rows GENERATED from another data shape rather than
+    # authored — the Dragon-King Path powers: each dot-level power of a Path
+    # (`Path.powers`) becomes a virtual Charm row so the Combo machinery and the
+    # sheet have names/types/durations for them, while the real Path state stays the
+    # rated track on Character.paths. The picker hides virtual rows (they are not
+    # purchasable); every OTHER read site must decide explicitly whether to skip or
+    # include them (see the load_ruleset inventory in the Dragon-Kings plan).
+    virtual: bool = False
 
 
 class Spell(BaseModel):
@@ -515,6 +523,39 @@ class GodbloodedHeritage(BaseModel):
     ox_body_charm_ids: dict[str, str] = Field(default_factory=dict)
 
 
+class BreedTraits(BaseModel):
+    """The breed-keyed mechanics of one Dragon-King breed (PG pp.167-174). Attached
+    to a `CasteDefinition` via `CasteDefinition.breed_traits` — a breed IS the
+    Dragon-King caste slot (`caste_noun: "Breed"`) — and None on every caste of every
+    other splat, exactly the `heritage_traits` pattern.
+
+    * `element` — the breed's element ("air"/"wood"/"fire"/"water"); the two Paths
+      whose `Path.element` matches are the breed's auto-favoured Breed Paths.
+    * `attribute_bonuses` — free dots ON TOP of the attribute pools (p.167: "The
+      Pterok gain +2 to Dexterity and +2 to Perception"). They do not consume the
+      pool, and the effective total (pool-spent + bonus) is capped at 5 at chargen
+      unless bonus/experience points were spent on that attribute (human ruling
+      2026-08-05; the book says "Even after these modifiers are applied, Dragon Kings
+      cannot have any Attributes higher than 5 without spending bonus or experience
+      points").
+    * `innate_soak_bashing` / `innate_soak_lethal` — the breed's innate armour
+      (Pterok +1B/1L, Raptok +3B/3L, Anklok +6B/6L, Mosok +4B/4L), folded into
+      derive.soak. Read together with ExaltDefinition.stamina_adds_to_lethal_soak
+      (p.165: Dragon-King Stamina does not add to lethal soak).
+    * `bonus_health_levels` — wound-penalty levels the breed adds to the health
+      track (Anklok and Mosok get one extra -0 level, p.171/174).
+    * `innate_weapons` — display-only (decision 0008 keeps attack derivation out).
+    """
+    model_config = ConfigDict(frozen=True)
+
+    element: str = ""
+    attribute_bonuses: dict[AttributeName, int] = Field(default_factory=dict)
+    innate_soak_bashing: int = Field(default=0, ge=0)
+    innate_soak_lethal: int = Field(default=0, ge=0)
+    bonus_health_levels: list[int] = Field(default_factory=list)
+    innate_weapons: list[str] = Field(default_factory=list)
+
+
 class CasteDefinition(BaseModel):
     """One caste (Solar) / aspect (Dragon-Blooded) / etc. `id` is the stable
     lowercase key it is stored under in RuleSet.castes and on Character.caste
@@ -569,6 +610,10 @@ class CasteDefinition(BaseModel):
     # widened for a single splat; named `heritage_traits` rather than `godblooded` so
     # the Exalted-God-Blooded crossover can reuse it if ever built. See GodbloodedHeritage.
     heritage_traits: Optional[GodbloodedHeritage] = None
+    # The breed-keyed mechanics of a Dragon-King breed (which IS the Dragon-King
+    # caste slot — `caste_noun: "Breed"`), or None for every caste of every other
+    # splat. The same optional-block pattern as `heritage_traits`. See BreedTraits.
+    breed_traits: Optional[BreedTraits] = None
 
 
 class GrantedCharmChoice(BaseModel):
@@ -667,6 +712,41 @@ class College(BaseModel):
     name: str
     house: str                              # caste id of the governing Maiden
     house_label: str = ""                   # printed astrological house name (display)
+
+
+class PathPower(BaseModel):
+    """One dot-level power of a Dragon-King Path (PG pp.177-191). Each Path has
+    exactly six, one per dot 1..6; the dot IS the Path rating at which the power is
+    gained ("Each Path must be learned in a fixed order" p.177). `cost` is the
+    in-play activation cost (CharmCost — use `raw` for the variable-cost powers like
+    "1 mote per 1L damage"), `type` reuses CharmType, `text` is the printed prose."""
+    model_config = ConfigDict(frozen=True)
+
+    dot: int = Field(ge=1, le=6)
+    name: str
+    type: CharmType
+    cost: CharmCost = Field(default_factory=CharmCost)
+    duration: str = "Instant"
+    keywords: list[str] = Field(default_factory=list)
+    text: str = ""
+
+
+class Path(BaseModel):
+    """One of the ten Dragon-King Paths of Prehuman Mastery (PG pp.177-191) — a
+    rated trait (dots 1-6) bought in fixed order, distinct from Abilities and with
+    its own chargen pool, BP/XP tables and Essence gate (see docs/status/
+    dragon-kings.md and the plan). `element` is the Path's element ("air"/"wood"/
+    "fire"/"water"/"earth"); the two Paths whose element matches a breed's
+    `BreedTraits.element` are that breed's auto-favoured Breed Paths. `powers` are
+    the six dot-level powers, in order."""
+    model_config = ConfigDict(frozen=True)
+
+    id: str                                  # stable lowercase key, e.g. "dk.celestial-air"
+    name: str                                # e.g. "Celestial Air"
+    element: str = ""                        # "air" | "wood" | "fire" | "water" | "earth"
+    element_label: str = ""                  # display, e.g. "Air"
+    description: str = ""
+    powers: list[PathPower] = Field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #
@@ -941,6 +1021,14 @@ class BackgroundType(BaseModel):
     description: str = ""
     exalt_type: str = ""                          # "" = all splats; else only this one
     excluded_exalt_types: list[str] = Field(default_factory=list)
+    # Origins of the owning splat that may NOT take this Background, matching the
+    # origin half of the "E:o:u" budget cascade. Used for the ancient-only Savant
+    # (PG p.176: "Only ancient Dragon Kings may possess this Background at character
+    # creation"): the value is the MODERN/default origin, i.e. `["Dragon-Kings"]`,
+    # NOT the ancient key — excluding the ancient row would bar the wrong half. Read
+    # by RuleSet.backgrounds_for as a soft autofill filter (backgrounds are free
+    # text, never hard-validated).
+    excluded_origins: list[str] = Field(default_factory=list)
 
 
 class TraitRequirement(BaseModel):
@@ -1303,6 +1391,15 @@ class BonusPointCosts(BaseModel):
     # one of the character's own Maiden's. Unused by splats without colleges.
     college: int = 8
     college_own_house: int = 6
+    # Dragon-King Paths (PG p.176 BP table): "Path | 5 (10 if the Path is being
+    # raised above 3)" and "Breed Path | 4 (8 if raised above 3)". `path_breed` is
+    # the discount rate for a Breed or Favoured Path (the breed's two element Paths
+    # plus the one the player chooses). 0 for every splat without Paths, which is
+    # every splat except the Dragon-Kings (guarded by ChargenBudgets.path_dots > 0).
+    path: int = 0
+    path_breed: int = 0
+    path_above_3: int = 0
+    path_breed_above_3: int = 0
     # Calling discounts (Cult of the Illuminated, p.90 and the p.93 table). A Calling
     # is a DISCOUNT AXIS layered on top of Caste/Favoured, not a second Favored list,
     # so these rates replace `ability`/`charm` for a trait named by the character's
@@ -1389,6 +1486,14 @@ class ExperienceCosts(BaseModel):
     # scales at current rating × 3. Unused by splats without colleges.
     new_college: int = 5
     college: LinearCost = Field(default_factory=lambda: LinearCost(coeff=3))
+    # Dragon-King Paths (PG p.176 XP table): "New Path | 7", "New Favored or Breed
+    # Path | 6", "Path | current rating x 5", "Favored or Breed Path | current
+    # rating x 4". 0/inert for every splat without Paths (guarded by
+    # ChargenBudgets.path_dots > 0).
+    new_path: int = 0
+    new_path_breed: int = 0
+    path: LinearCost = Field(default_factory=lambda: LinearCost(coeff=0))
+    path_breed: LinearCost = Field(default_factory=lambda: LinearCost(coeff=0))
     new_charm: int = 10
     new_charm_favored_caste: int = 8
     # Immaculate Order Charms (Dragon-Blooded, p.292 — "15, 12 if Favored"). Only
@@ -1622,6 +1727,31 @@ class ChargenBudgets(BaseModel):
     college_min_own_house: int = 0
     college_cap_pre_bp: int = 3
 
+    # Dragon-King Paths (PG p.175-177) — a rated Advantage with its OWN point pool,
+    # separate from Abilities and Backgrounds, exactly the College shape. `path_dots`
+    # 0 (the default) means the splat has no Paths (every non-Dragon-King).
+    # `path_min_breed_favored` is how many of those dots must be in Breed or Favoured
+    # Paths ("at least 3 must be from Favored or Breed Paths" for a modern DK, 5 for
+    # an ancient); `path_cap_pre_bp` is the per-Path chargen cap ("none may be higher
+    # than 3 without spending bonus points"). `path_max_by_essence` is the Essence
+    # gate (p.177: Paths cap at 1/3/5/6 at Essence 1/2/3-5/6) — resolved against the
+    # character's CURRENT Essence rating, never `essence_start`.
+    path_dots: int = 0
+    path_min_breed_favored: int = 0
+    path_cap_pre_bp: int = 3
+    path_max_by_essence: dict[int, int] = Field(default_factory=dict)
+    # The p.177 "Maximum Intelligence and Path Level" column's OTHER half: the same
+    # Essence-gated ceiling over Intelligence (max 1/3/5/6), resolved against current
+    # Essence. `ability_max_by_essence` is deliberately ABSENT — Abilities-to-6 at
+    # Essence 6 is already delivered by the elder-Exalt `elder_caps.trait` mechanism.
+    # `virtue_max_by_essence` (row 6 unlocks 6) exists because the elder machinery
+    # never covers Virtues — Dragon-Kings are the first splat with a Virtue above 5.
+    intelligence_max_by_essence: dict[int, int] = Field(default_factory=dict)
+    virtue_max_by_essence: dict[int, int] = Field(default_factory=dict)
+    # Virtue floors spent from `virtue_dots` (the dragon-kings must put at least one
+    # of their five Virtue dots into Valor, p.175). Empty for every other splat.
+    required_virtue_dots: dict[VirtueName, int] = Field(default_factory=dict)
+
     virtue_dots: int = 5                   # spent over a base of 1 each
     virtue_base: int = 1
     virtue_cap_pre_bp: int = 3
@@ -1762,6 +1892,14 @@ class EssencePoolSpec(BaseModel):
     personal_virtue_coeff: int = 1
     personal_named_virtue: str = ""
     personal_named_virtue_coeff: int = 1
+    # Additional named Virtues added flat, the same shape as the single
+    # `personal_named_virtue`. The Dragon-Kings (PG p.177) are the first consumer:
+    # their single pool is Essence x 4 + Willpower x 2 + Conviction + Valor — TWO
+    # specific named Virtues, which no virtue_mode can express ("two_highest" is the
+    # two highest, not Conviction+Valor specifically). `_named_virtue_term` sums the
+    # single + the list, so the mortal's existing single-named-virtue formula is
+    # unchanged (the list defaults empty).
+    personal_named_virtues: list[str] = Field(default_factory=list)
 
     @field_validator("peripheral_virtue_mode", "personal_virtue_mode")
     @classmethod
@@ -1922,6 +2060,15 @@ class ExaltDefinition(BaseModel):
     # draws. Ghosts hold Arcanoi freely; it is only their COMBINATION that is barred,
     # so this cannot be expressed by withholding Charms.
     combos_available: bool = True
+    # Does this splat's natural Stamina add half its rating to LETHAL soak, the
+    # Exalt rule ("magical beings soak lethal with Stamina//2")? False only for the
+    # Dragon-Kings (PG p.165 physiology sidebar: "unlike Exalts, their Stamina does
+    # not assist them in soaking lethal damage… their bashing soak equals [their
+    # Stamina + their innate armor] and their lethal soak equals their innate
+    # armor"). Read by derive.soak, which is also where the breed's innate armour
+    # (CasteDefinition.breed_traits) is folded in. This field is the data-driven
+    # replacement for the retired `exalt_type != "Mortal"` string compare.
+    stamina_adds_to_lethal_soak: bool = True
 
 
 # The canonical Solar definition — the existing hardcoded formula moved into data
@@ -2012,6 +2159,12 @@ class RuleSet(BaseModel):
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
     colleges: dict[str, College] = Field(default_factory=dict)   # Astrological Colleges (Sidereal)
+    # Dragon-King Paths of Prehuman Mastery (PG pp.177-191), keyed by Path.id. The
+    # 60 dot-level powers are ALSO projected into `charms` as virtual rows (see
+    # rules_db.load_ruleset) so Combos and the sheet can name them; `paths` is the
+    # rated-track truth the real state (Character.paths) lives against. Empty for
+    # every splat that ships no paths.json.
+    paths: dict[str, Path] = Field(default_factory=dict)
     # Merits & Flaws. Cross-splat like thaumaturgy, and inert data: what a Merit DOES
     # lives in engine.merits, never here (decision 0011). Empty when the file is absent.
     merits_flaws: dict[str, MeritFlaw] = Field(default_factory=dict)
@@ -2067,17 +2220,24 @@ class RuleSet(BaseModel):
     def xp_costs_for(self, exalt_type: str) -> ExperienceCosts:
         return self.xp_costs.get(exalt_type, self.xp_costs["default"])
 
-    def backgrounds_for(self, exalt_type: str) -> list[BackgroundType]:
+    def backgrounds_for(self, exalt_type: str, origin: str = "") -> list[BackgroundType]:
         """The Backgrounds a character of `exalt_type` may pick from (the editor's
         autofill list). A splat-restricted Background (`exalt_type` set) shows only
         for that splat; a Background listing `exalt_type` in `excluded_exalt_types`
-        is hidden from it (DB bar Contacts/Influence/Followers). Universal ones (no
-        restriction) show for everyone. Order follows the catalog's insertion order."""
+        is hidden from it (DB bar Contacts/Influence/Followers). A Background listing
+        the character's effective budget cascade key in `excluded_origins` is hidden
+        from that ORIGIN — the ancient-only Savant excludes the modern key
+        `"Dragon-Kings"`, never `"Dragon-Kings:ancient"` (barring the ancient row
+        would bar the wrong half). Universal ones (no restriction) show for everyone.
+        Order follows the catalog's insertion order."""
+        key = f"{exalt_type}:{origin}" if (origin and f"{exalt_type}:{origin}" in self.budgets) else exalt_type
         out: list[BackgroundType] = []
         for bg in self.background_catalog.values():
             if bg.exalt_type and bg.exalt_type != exalt_type:
                 continue
             if exalt_type in bg.excluded_exalt_types:
+                continue
+            if key in bg.excluded_origins:
                 continue
             out.append(bg)
         return out

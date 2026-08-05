@@ -8,8 +8,8 @@ from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
     MeritFlawPurchase,
     Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
-    ArtifactEntry, FetterEntry, HouseRules, PassionEntry, PlayState, RitualEntry, ScienceRating,
-    ThaumaturgyState, Weapon)
+    ArtifactEntry, FetterEntry, HouseRules, PassionEntry, PathRating, PlayState,
+    RitualEntry, ScienceRating, ThaumaturgyState, Weapon)
 from exalted_builder.engine import adversaries as adversaries_engine
 from exalted_builder.models.adversary import (Adversary, AdversaryAttack,
                                               AdversaryTrait)
@@ -121,6 +121,24 @@ CHAR_AB = Character(id="ab", name="Ash", exalt_type="Abyssal", caste="dusk", ori
 @ui.page('/abpicker')
 def page_abpicker():
     picker.build_picker(RS, CHAR_AB, Path("x.json"), with_header=True)
+
+# (h2) a modern Dragon-King — the Paths page (breed ★ + favoured ✚ + a rating), the
+# breed soak/health, and the sheet's Paths / sectioned-charms panels.
+CHAR_DK = Character(id="dk", name="Karn the Winged", exalt_type="Dragon-Kings",
+                    caste="pterok", essence_rating=2)
+CHAR_DK.virtues.update({"conviction": 3, "valor": 2, "compassion": 2, "temperance": 2})
+CHAR_DK.favored_abilities = [AbilityName.MELEE, AbilityName.DODGE, AbilityName.SURVIVAL]
+CHAR_DK.favored_path = "dk.solid-earth"
+CHAR_DK.paths = [PathRating(path_id="dk.celestial-air", rating=3),
+                 PathRating(path_id="dk.solid-earth", rating=2)]
+
+@ui.page('/dksheet')
+def page_dksheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_DK))
+
+@ui.page('/dkpicker')
+def page_dkpicker():
+    picker.build_picker(RS, CHAR_DK, Path("x.json"), with_header=True)
 
 # (i) an in-play (locked) Solar with XP in hand — the Charms and Combos tabs switch
 # from picking to BUYING once chargen locks, so these pages exercise that mode.

@@ -18,7 +18,7 @@ from typing import Optional
 
 from ..models.character import Character, MeritFlawPurchase
 from ..models.rules import AbilityName, AttributeName, Charm, RuleSet, VirtueName
-from . import merits, validate
+from . import merits, paths, validate
 
 # A trait's first dot (an Ability bought from 0) has no `from_rating` to scale; it
 # is the flat new_ability cost. Attributes/Virtues never start below 1, so they are
@@ -131,6 +131,25 @@ def college_new_cost(ruleset: RuleSet, character: Character) -> int:
 def college_step(ruleset: RuleSet, character: Character, from_rating: int) -> int:
     """XP to raise a College one dot, scaled on the current rating (p.265: ×3)."""
     return ruleset.xp_costs_for(character.exalt_type).college.at(from_rating)
+
+
+def path_new_cost(ruleset: RuleSet, character: Character, path_id: str) -> int:
+    """XP for a new Dragon-King Path at rating 1 (PG p.176): flat new_path (7), or
+    new_path_breed (6) when the Path is one of the character's Breed or Favoured
+    Paths (the breed's two element Paths plus the one the player chose)."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    return xp.new_path_breed if paths.path_is_favored(ruleset, character, path_id) \
+        else xp.new_path
+
+
+def path_step(ruleset: RuleSet, character: Character, path_id: str,
+              from_rating: int) -> int:
+    """XP to raise a Path one dot, scaled on the current rating (p.176: ×5, or ×4
+    for a Breed/Favoured Path)."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    rate = xp.path_breed if paths.path_is_favored(ruleset, character, path_id) \
+        else xp.path
+    return rate.at(from_rating)
 
 
 def _fighter_in_life_covers(ruleset: RuleSet, character: Character,

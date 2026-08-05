@@ -149,6 +149,17 @@ _GODBLOODED = Palette(
     bg="#eef1f0", node_bg="#f9fbfa", button="teal-7", fam="teal",
 )
 
+# Dragon-Kings: the prehuman sun-worshipers — jade and emerald, the living green of
+# their vegetative technology and the lush Eastern heart of their empire. `fam` is
+# `emerald`, unclaimed by any other splat; it sits off the Mortal's warm stone, the
+# Ghost's cold zinc and the God-Blooded's teal. Colour scheme for the remaining
+# non-Exalts beyond this splat is UNDECIDED (see the God-Blooded note above).
+_DRAGON_KINGS = Palette(
+    splat_label="Dragon Kings",
+    accent="#2f7d5c", accent_dark="#1f5c42", ink="#1d2a24",
+    bg="#eef2ee", node_bg="#f8faf8", button="green-7", fam="emerald",
+)
+
 _BY_SPLAT: dict[str, Palette] = {
     "Solar": _SOLAR,
     "Dragon-Blooded": _DRAGON_BLOODED,
@@ -159,6 +170,7 @@ _BY_SPLAT: dict[str, Palette] = {
     "Mortal": _MORTAL,
     "Ghost": _GHOST,
     "God-Blooded": _GODBLOODED,
+    "Dragon-Kings": _DRAGON_KINGS,
 }
 
 

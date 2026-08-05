@@ -105,6 +105,10 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     # The God-Blooded have no entry HERE — their origin is HERITAGE-keyed
     # (`GodbloodedHeritage.origin_options`: the Half-Caste's five parents, the
     # Fae-Blooded's Noble/Commoner), read by `_origin_options` from the data.
+    # The Dragon-Kings (PG p.159-160): two origins with different budgets, Path pools,
+    # Backgrounds and mandatory abilities. "modern" has no `Dragon-Kings:modern` budget
+    # row, so it falls back to the plain "Dragon-Kings" row — the dynastic trick.
+    "Dragon-Kings": {"modern": "Modern", "ancient": "Ancient"},
 }
 
 # The second axis, keyed by "<exalt_type>:<origin>". Only origins that HAVE variants
@@ -785,6 +789,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         caste_def = ruleset.castes.get(character.caste)
         caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
         caste_attributes = set(caste_def.caste_attributes) if caste_def else set()
+        # Dragon-King breed attribute bonuses (PG pp.167-174): free dots on top of the
+        # pools. The dot tracks below buy the STORED value; this badge shows the bonus
+        # the breed adds on top, so a Pterok's +2 Dexterity is visible.
+        breed_bonus = (caste_def.breed_traits.attribute_bonuses
+                       if caste_def and caste_def.breed_traits else {})
         # Alchemical allocates Attributes to Caste/Favored/remaining SETS, not to
         # prioritised categories, and its Favored slot is Attributes, not Abilities.
         cf_attr_mode = viewmod.uses_caste_favored_attributes(ruleset, character)
@@ -1036,7 +1045,13 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 # its player-chosen Favored Attributes (✦, p.60).
                                 mark = "●" if a in caste_attributes else ("✦" if a in favored_attrs else "")
                                 ui.label(mark).classes("text-xs w-3").style(f"color:{pal.accent}")
-                                ui.label(_label(a.value)).classes("text-sm w-28")
+                                ui.label(_label(a.value)).classes("text-sm w-24")
+                                _breed_pts = breed_bonus.get(a, 0)
+                                if _breed_pts:
+                                    ui.label(f"+{_breed_pts} breed").classes(
+                                        "text-xs text-gray-500 italic w-14")
+                                else:
+                                    ui.label("").classes("w-14")
                                 # update this column's tally live as its dots change
                                 # The dot row's ceiling is the trait's, not a flat 5:
                                 # Legendary Attribute raises one Attribute and

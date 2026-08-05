@@ -1139,5 +1139,62 @@
     "bonus_points": 21,
     "inheritance_bonus_points": [0, 6, 12, 18, 24, 30],
     "inheritance_flaw_cap": [0, 10, 15, 15, 20, 20]
+  },
+  "Dragon-Kings": {
+    "attribute_pools": [7, 5, 4],
+    "ability_dots": 25,
+    "ability_min_caste_favored": 10,
+    "favored_count": 3,
+    "background_dots": 7,
+    "background_cap_pre_bp": 3,
+    "background_rules": {
+      "artifact": { "rating_per_dot": 2 },
+      "celestial manse": { "max_rating": 2 },
+      "salary": { "max_rating": 2 }
+    },
+    "virtue_dots": 5,
+    "required_virtue_dots": { "valor": 1 },
+    "essence_start": 2,
+    "essence_start_cap": 3,
+    "bonus_points": 15,
+    "charm_count": 0,
+    "charm_min_caste_favored": 0,
+    "path_dots": 6,
+    "path_min_breed_favored": 3,
+    "path_cap_pre_bp": 3,
+    "path_max_by_essence": { "1": 1, "2": 3, "3": 5, "4": 5, "5": 5, "6": 6 },
+    "intelligence_max_by_essence": { "1": 1, "2": 3, "3": 5, "4": 5, "5": 5, "6": 6 },
+    "virtue_max_by_essence": { "1": 5, "2": 5, "3": 5, "4": 5, "5": 5, "6": 6 }
+  },
+  "Dragon-Kings:ancient": {
+    "attribute_pools": [8, 6, 5],
+    "ability_dots": 35,
+    "ability_min_caste_favored": 10,
+    "favored_count": 3,
+    "background_dots": 12,
+    "background_cap_pre_bp": 3,
+    "background_rules": {
+      "artifact": { "rating_per_dot": 2 },
+      "celestial manse": { "max_rating": 2 },
+      "salary": { "max_rating": 2 }
+    },
+    "virtue_dots": 5,
+    "required_virtue_dots": { "valor": 1 },
+    "essence_start": 3,
+    "essence_start_cap": 5,
+    "bonus_points": 25,
+    "charm_count": 0,
+    "charm_min_caste_favored": 0,
+    "path_dots": 10,
+    "path_min_breed_favored": 5,
+    "path_cap_pre_bp": 3,
+    "path_max_by_essence": { "1": 1, "2": 3, "3": 5, "4": 5, "5": 5, "6": 6 },
+    "intelligence_max_by_essence": { "1": 1, "2": 3, "3": 5, "4": 5, "5": 5, "6": 6 },
+    "virtue_max_by_essence": { "1": 5, "2": 5, "3": 5, "4": 5, "5": 5, "6": 6 },
+    "required_min_abilities": [
+      { "abilities": ["linguistics"], "rating": 1 },
+      { "abilities": ["lore"], "rating": 2 },
+      { "abilities": ["occult"], "rating": 2 }
+    ]
   }
 }

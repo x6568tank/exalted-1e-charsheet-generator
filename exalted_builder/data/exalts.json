@@ -133,6 +133,7 @@
     "has_virtue_flaw": false,
     "charms_available": false,
     "essence_cap": 1,
+    "stamina_adds_to_lethal_soak": false,
     "unlocked_essence": {
       "personal_essence_coeff": 1,
       "personal_willpower_coeff": 1,
@@ -203,5 +204,31 @@
       "spell.celestial.demon-of-the-second-circle",
       "spell.solar.demon-of-the-third-circle"
     ]
+  },
+  {
+    "id": "Dragon-Kings",
+    "label": "Dragon Kings",
+    "essence": {
+      "personal_essence_coeff": 4,
+      "personal_willpower_coeff": 2,
+      "personal_named_virtues": [
+        "conviction",
+        "valor"
+      ],
+      "peripheral_essence_coeff": 0,
+      "peripheral_willpower_coeff": 0,
+      "peripheral_virtue_mode": "none"
+    },
+    "single_essence_pool": true,
+    "magic_track": "sorcery",
+    "highest_magic_circle_id": "",
+    "ox_body_charm_id": "",
+    "caste_noun": "Breed",
+    "tier": "Terrestrial",
+    "has_virtue_flaw": false,
+    "essence_cap": 6,
+    "foreign_charms_barred": true,
+    "combos_available": true,
+    "stamina_adds_to_lethal_soak": false
   }
 ]

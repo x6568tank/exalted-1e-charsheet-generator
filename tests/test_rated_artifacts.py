@@ -151,14 +151,36 @@ def test_renegade_abyssals_use_the_core_background(rs):
 
 
 @pytest.mark.parametrize("splat,caste", [
-    ("Solar", "Dawn"), ("Dragon-Blooded", "Fire"), ("Lunar", "Full Moon"),
+    ("Solar", "Dawn"), ("Lunar", "Full Moon"),
 ])
 def test_other_splats_have_no_artifact_budget(rs, splat, caste):
-    """Opt-in per splat, like every other Background mechanic."""
+    """Opt-in per splat, like every other Background mechanic. Solar and Lunar have
+    no Artifact rule at all; the multiplier splats (DB/DK/Alchemical) DO have a budget
+    — the double/triple-dots rule — and are covered by the test below."""
     c = Character(id="c.x", exalt_type=splat, caste=caste, essence_rating=2,
                   backgrounds=[_bg("Artifact", 1)],
                   artifacts=[_art(name="Wings", rating=5)])
     assert validate.check_artifacts(rs, c) == []
+
+
+def test_the_dragon_blooded_double_dots_rule_is_enforced(rs):
+    """The DB/DK 'twice the dots' worth' Artifact rule was data-only — never enforced
+    — until the multiplier branch of check_artifacts; a DB with Artifact • and a
+    5-dot artifact was silently legal. Now it is flagged, same as the Dragon-Kings
+    (test_dragonkings.py) and Alchemical (three dots per dot). The rule is a
+    STRUCTURE (E:DB p.157): one flagship equal to the Background + smaller artifacts
+    totaling no more than it — so a single 4-dot artifact needs Artifact 4, and the
+    valid Artifact-2 build is a 2-dot flagship plus two 1-dot extras."""
+    c = Character(id="c.x", exalt_type="Dragon-Blooded", caste="Fire", essence_rating=2,
+                  backgrounds=[_bg("Artifact", 1)],
+                  artifacts=[_art(name="Wings", rating=5)])
+    codes = {i.code for i in validate.check_artifacts(rs, c)}
+    assert "artifact-over-background-dots" in codes
+    ok = Character(id="c.ok", exalt_type="Dragon-Blooded", caste="Fire", essence_rating=2,
+                   backgrounds=[_bg("Artifact", 2)],
+                   artifacts=[_art(name="Wings", rating=2), _art(name="Orb", rating=1),
+                              _art(name="Charm", rating=1)])
+    assert validate.check_artifacts(rs, ok) == []
 
 
 def test_budget_is_checked_on_both_sides_of_the_lock(rs):

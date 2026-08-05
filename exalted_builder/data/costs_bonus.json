@@ -129,5 +129,24 @@
     "charm": 7,
     "charm_favored_caste": 7,
     "magic_charm": 10
+  },
+  "Dragon-Kings": {
+    "attribute": 4,
+    "ability": 2,
+    "ability_favored_caste": 1,
+    "background": 1,
+    "background_above_3": 2,
+    "specialty": 1,
+    "specialty_favored_caste_dots_per_point": 2,
+    "virtue": 3,
+    "willpower": 2,
+    "essence": 8,
+    "charm": 7,
+    "charm_favored_caste": 7,
+    "magic_charm": 7,
+    "path": 5,
+    "path_breed": 4,
+    "path_above_3": 10,
+    "path_breed_above_3": 8
   }
 }
