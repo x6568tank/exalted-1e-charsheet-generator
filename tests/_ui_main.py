@@ -646,6 +646,36 @@ CHAR_MASTERY_XP.xp_earned = 60
 def page_mastery_picker_xp():
     picker.build_picker(RS, CHAR_MASTERY_XP, Path("x.json"), with_header=False)
 
+# A mortal at the Essence-3 human ceiling with an unlocked pool. The editor shows
+# PG p.114's "limit of human potential — mortals that exceed Essence 3 become gods"
+# beside the track there and only there: a plain mortal (no unlock), an unlocked
+# mortal still below 3, and an AWARENESS-ONLY mortal (pool unlocked but no cap
+# override — real ceiling 1) must all stay silent. One route per character.
+CHAR_GOD_CEILING = _mastery_mortal("mgc", "Glorious Once-Born")
+CHAR_GOD_CEILING.essence_rating = 3
+lifecycle.lock_chargen(CHAR_GOD_CEILING, RS)
+
+@ui.page('/editor-god-ceiling')
+def page_editor_god_ceiling():
+    editor.build_editor(RS, CHAR_GOD_CEILING, Path("x.json"), with_header=False)
+
+CHAR_MASTERY_EDITOR = _mastery_mortal("mm3", "Unbound Below")
+
+@ui.page('/editor-mastery-mortal')
+def page_editor_mastery_mortal():
+    editor.build_editor(RS, CHAR_MASTERY_EDITOR, Path("x.json"), with_header=False)
+
+# The wrong-field regression: Awareness-only, pool unlocked but no cap override, its
+# free-setter dot track clicked to 3 pre-lock. The god-transition clause must NOT
+# blame itself — the real ceiling here is 1, and the +1 would be refused at 1.
+CHAR_AWARENESS_ONLY = Character(id="maw", name="Glimmering", exalt_type="Mortal",
+                                caste="", origin="heroic", essence_rating=3)
+CHAR_AWARENESS_ONLY.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness")]
+
+@ui.page('/editor-awareness-only')
+def page_editor_awareness_only():
+    editor.build_editor(RS, CHAR_AWARENESS_ONLY, Path("x.json"), with_header=False)
+
 # A6: a Solar holding Heir Apparent (whose purchase records STIPULATIONS, a control no
 # other entry gets) and Innocuous' veiled tier (which caps Allies and closes Cult, so
 # the Background dot rows must stop where the Flaw says).

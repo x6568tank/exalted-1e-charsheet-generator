@@ -1130,6 +1130,24 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     dots(lambda: character.essence_rating,
                          lambda v: setattr(character, "essence_rating", v),
                          1, e_caps.essence, target="essence")
+                # A mortal whose pool is unlocked hits the human ceiling at Essence 3.
+                # The book explains that ceiling in-world rather than mechanically:
+                # "the limit of human potential — mortals that exceed Essence 3 become
+                # gods" (PG p.114). Display only — the cap is enforced in
+                # advancement.raise_essence (which reads `essence_cap_override`), and
+                # the mortal XP table prices nothing past 3, so this is why the +1 is
+                # refused, not a second rule. The trigger is that SAME field, so the
+                # note only fires where the cap is actually a Merit-raised 3: an
+                # Awareness-only mortal (pool unlocked, no override) has a ceiling of
+                # 1 and must not be blamed on the god-transition clause. Read off the
+                # calc so no Merit id is named here.
+                if character.exalt_type == "Mortal":
+                    mf = merits.merits_and_flaws_calc(ruleset, character)
+                    cap = mf.essence_cap_override
+                    if cap is not None and character.essence_rating >= cap:
+                        ui.label("the limit of human potential — mortals that exceed "
+                                 "Essence 3 become gods (PG p.114)"
+                                 ).classes("text-xs opacity-70")
                 if locked:
                     # Willpower is the one reducible trait that is NOT a dot track and
                     # cannot become one: decision 0005 pins its Virtue component at the

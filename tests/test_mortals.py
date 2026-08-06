@@ -270,6 +270,41 @@ async def test_mortal_editor_renders_without_a_caste_control(user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_mortal_at_the_essence_3_ceiling_shows_the_pg114_note(user) -> None:
+    """PG p.114: "the limit of human potential — mortals that exceed Essence 3 become
+    gods". The one Merit-raised cap the book explains in-world rather than mechanically,
+    so a mortal whose pool is unlocked and sits at the ceiling sees the clause beside
+    the track — the "why" behind the +1 being refused."""
+    await user.open('/editor-god-ceiling')
+    await user.should_see("mortals that exceed Essence 3 become gods")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_note_shows_only_at_the_ceiling(user) -> None:
+    """Neither a plain mortal (no unlocked pool) nor an unlocked mortal still below 3
+    has hit the wall, so neither sees the note — it is tied to the ceiling, not to the
+    splat."""
+    await user.open('/mortal')
+    await user.should_not_see("mortals that exceed Essence 3 become gods")
+    await user.open('/editor-mastery-mortal')
+    await user.should_not_see("mortals that exceed Essence 3 become gods")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_note_does_not_fire_for_an_awareness_only_mortal(user) -> None:
+    """The trigger is `essence_cap_override`, not `essence_pool_unlocked`. Essence
+    Awareness alone unlocks part of the pool but leaves the cap at the splat's 1 — so
+    an Awareness-only mortal whose pre-lock free-setter was clicked to 3 is at an
+    ILLEGAL rating, not at the human limit, and the god-transition clause must not
+    claim credit for a refusal that would in fact happen at 1."""
+    await user.open('/editor-awareness-only')
+    await user.should_not_see("mortals that exceed Essence 3 become gods")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_mortal_sheet_renders(user) -> None:
     await user.open('/mortal-sheet')
     await user.should_see("Nine Cups")

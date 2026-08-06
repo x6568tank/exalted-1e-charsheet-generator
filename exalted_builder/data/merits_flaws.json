@@ -1217,6 +1217,18 @@
    "favored_aptitude": 5,
    "aptitude": 2
   },
+  "cost_options_by_exalt_type": {
+   "Dragon-Kings": {
+    "favored": 2,
+    "favored_aptitude": 4,
+    "aptitude": 2
+   },
+   "God-Blooded": {
+    "favored": 2,
+    "favored_aptitude": 4,
+    "aptitude": 2
+   }
+  },
   "cost_note": "(2- TO 5-PT. MERIT, 2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED)",
   "description": "The character excels at a particular skill or knowledge, gaining one additional Favored Ability for every time this Merit is purchased. Characters may not have more than five Favored Abilities in total, so Prodigy is not available to Solars, Abyssals or Lunars (who already reach these limits as part of their Exaltation). Similarly, Alchemical Exalted may not take this Merit at all, as they favor Attributes instead of Abilities. Heroic mortals and ghosts may only take this Merit with express Storyteller approval, and it is assumed that these characters already favor one Ability if they receive permission. All characters must abide by normal rules of Ability allocation regarding Favored Abilities: Exalted and most magical beings must have one dot in each, while mortals and ghosts cannot have a non-Favored Ability rated higher than any of their Favored Abilities. Purchasing a Favored Ability with this Merit costs three bonus points for most characters and two points for Dragon Kings and God-Blooded of all heritages. Players of characters who already favor an Ability or treat it as a Caste/Aspect/Auspicious Ability may pay an extra two bonus points to increase their characters’ aptitude even further. This cost may be stacked onto the cost of purchasing the Trait as Favored with Prodigy or paid separately for characters who innately gain Favored Abilities as part of character creation. The increased aptitude lowers the cost of raising the Trait with experience to (current rating x 2) - 2 and adds one die to all rolls involving the Ability. This bonus die does not actually adjust the character’s rating and, therefore, does not count for determining the experience cost to raise the Ability, but the bonus does permit superhuman mastery for characters who purchase their fifth dot.",
   "source": {

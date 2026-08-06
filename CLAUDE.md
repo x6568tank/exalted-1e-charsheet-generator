@@ -174,9 +174,9 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1,968 passing, 1 known failure)
+## Status (1,972 passing, 1 known failure)
 
-⚠ The count is 1,968 PASSING with ONE KNOWN FAILURE —
+⚠ The count is 1,972 PASSING with ONE KNOWN FAILURE —
 `tests/test_merits_flaws.py::test_every_description_matches_the_source_text` (M&F
 descriptions shorter than their source text, mostly the Godblooded/Fae-Blooded
 entries). It is pre-existing on `main` (1,963) and `deepseek-experiment` (1,965 at
@@ -280,12 +280,14 @@ Recorded as decision records, not restated here — read them before proposing a
 **UP NEXT: Mountain Folk.** The human is gathering their pages (2026-08-05 — "Dragon
 Kings/Mountain Folk are the easiest, let me get the pages"); they land in
 `images/Mortals/Mountain Folk/` (the dir exists, empty). When they arrive, run the
-`add-splat` skill. Two hooks still to add (both named when Dragon-Kings landed):
-PG p.114's "mortals that exceed Essence 3 become gods, in the same way the God-Blooded
-do", and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" cost override —
-**Dragon-Kings and God-Blooded now exist, so Prodigy's DK rate is authorable today.**
-The splat is scattered across books — the human curates the source, never author from
-memory. (Dragon-Kings: DONE 2026-08-05, browser-verified — `docs/status/dragon-kings.md`.)
+`add-splat` skill. The two hooks that waited on Dragon-Kings/God-Blooded are DONE
+2026-08-05: PG p.114's "mortals that exceed Essence 3 become gods" ships as a UI note
+at the Essence-3 ceiling (the cap stays enforced; the clause is display-only — human
+ruling 2026-08-05), and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" rate
+is authored. The one sibling still open is the **Weak Essence DK exception** — see
+`docs/status/merits-flaws.md`. The splat is scattered across books — the human curates
+the source, never author from memory. (Dragon-Kings: DONE 2026-08-05, browser-verified
+— `docs/status/dragon-kings.md`.)
 
 Everything that was waiting on the human's eyes is clicked through (rated artifacts and
 the Advantages-tab Background descriptions, both 2026-08-05). Below, the newest shipped
@@ -413,11 +415,10 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
 * **Mountain Folk** — the last remaining non-Exalt splat; separate splats scattered
   across different books (human, 2026-07-29). **UP NEXT as of 2026-08-05** — the human
   called it the easiest and is gathering its pages; they land in
-  `images/Mortals/Mountain Folk/`. See START HERE. Two hooks still to add (named when
-  Dragon-Kings landed): PG p.114's "mortals that exceed Essence 3 become gods, in the
-  same way the God-Blooded do", and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR
-  GOD-BLOODED" cost override — **Dragon-Kings and God-Blooded now exist, so Prodigy's
-  DK rate is authorable today** (Dragon-Kings itself: DONE 2026-08-05).
+  `images/Mortals/Mountain Folk/`. See START HERE. The Dragon-Kings-era Merit hooks
+  are DONE 2026-08-05 (Prodigy's DK/God-Blooded rate; the PG p.114 mortal-god UI note);
+  the one sibling still open is the **Weak Essence DK exception** —
+  `docs/status/merits-flaws.md`. (Dragon-Kings itself: DONE 2026-08-05.)
 * **God/Demon-Blooded** — the last two Godblooded heritages. The spirit-Charm catalogue
   they draw from is scattered across **six books** — Storyteller's Companion, the
   corebook, Lunars, the Player's Guide, Ruin of Rathess, Games of Divinity (human's

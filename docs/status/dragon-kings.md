@@ -127,9 +127,11 @@ they simply don't display a permanent "required" indicator once satisfied.
   DK-only for now.
 * Source discrepancy for the status doc: the p.160 ancient sidebar cites Savant at
   E:S pp.109-110, the p.176 footnote at pp.108-109. Plan uses 108-109.
-* The Prodigy "2-pt for Dragon Kings" and Weak Essence DK exception (both noted in
-  the repo as "author alongside Dragon Kings") — **not yet wired**; the Merit
-  catalogue is unchanged.
+* The Prodigy "2-pt for Dragon Kings" (and God-Blooded) override is **DONE 2026-08-05**
+  — `cost_options_by_exalt_type` on `mf.prodigy` prices `favored` 2 / `favored_aptitude`
+  4. The **Weak Essence DK exception** is still open — see `docs/status/merits-flaws.md`.
+  (The PG p.114 "mortals that exceed Essence 3 become gods" hook, named beside it, is
+  also DONE 2026-08-05 as a UI note at the mortal's Essence-3 ceiling.)
 
 ## Verification
 

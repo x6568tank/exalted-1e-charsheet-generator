@@ -6,6 +6,12 @@ chapter (`mf.*`, pp.16-41). BROWSER-VERIFIED 2026-07-31** — every A-list mecha
 clicked through; see the A-list section below. 290 tests in
 `tests/test_merits_flaws.py`.
 
+**2026-08-05** — the two Dragon-Kings-era hooks shipped: Prodigy's DK/God-Blooded rate
+(`cost_options_by_exalt_type`) and the PG p.114 mortal-god note (a UI note at the
+mortal's Essence-3 ceiling; see "Rulings and traps"). Suite at **1,972 passing**.
+**Not browser-verified** — a click-through of the Prodigy picker on a Dragon-King and a
+God-Blooded, and a pool-unlocked mortal at Essence 3 seeing the note, is still owed.
+
 M&F were ripped out 2026-06-15 because the old implementation scattered their
 mechanical effects across every file they touched. **Decision 0011** is that they come
 back as one centralized calculation. This is that calculation, built early — ahead of
@@ -78,8 +84,14 @@ govern artifact and Manse attunement. If attunement is ever modelled, they attac
   and mortals may hold no Charms, so `accessible_circles` unions
   `MeritEffects.granted_circles` directly. Terrestrial only.
 * **Essence 3 is printed, not inferred**: "the limit of human potential — mortals that
-  exceed Essence 3 become gods, in the same way the God-Blooded do" (PG p.114). A hook
-  into the Godblooded splat when it lands.
+  exceed Essence 3 become gods, in the same way the God-Blooded do" (PG p.114). **DONE
+  2026-08-05** — human ruling: the clause is a UI note, not a transition mechanic. The
+  cap stays enforced (`essence_cap_override` 3; the mortal XP table prices nothing past
+  3), and the editor shows the book's clause beside the Essence track when
+  `essence_cap_override` is set and the mortal sits at it. The trigger is the OVERRIDE,
+  not `essence_pool_unlocked` (review fix 2026-08-05): an Awareness-only mortal has the
+  pool unlocked but no override — real ceiling 1 — and must not be blamed on the god
+  clause. **Do not build a "mortal → god" splat transition without reopening this.**
 * **The unlocked mortal pool needed a model extension.** PG p.114 gives
   `Essence + Willpower + Conviction + (highest Virtue × 2)` — a NAMED Virtue added flat
   alongside a scaled highest-Virtue term, which `EssencePoolSpec` could not express.
@@ -555,9 +567,15 @@ either:
    negative trait prerequisites to the model on its account: it was the only candidate.
 2. **Weak Essence** (p.41): "Other magical beings may take this Flaw, provided that they
    normally have a starting Essence of 2. Dragon Kings are an exception." A gate on the
-   SPLAT's starting Essence rather than on a character trait, and its named exception is
-   a splat that does not exist yet. Best authored alongside Dragon Kings, with Prodigy's
-   "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" override.
+   SPLAT's starting Essence rather than on a character trait. **Prodigy's DK/God-Blooded
+   override shipped alongside Dragon Kings (2026-08-05); the DK exception itself is
+   still open.** The `min_starting_essence: 2` floor already admits both DK origins
+   (modern 2, ancient 3), so the current data permits Dragon Kings to take the Flaw —
+   what the exception clause actually adds is a **rules question for the human**: the
+   "feral predators unsuitable for players" reasoning reads like an ST warning against
+   dropping a Dragon King to Essence 1, but nothing in the build expresses a
+   "playable only above Essence 1" gate, and the exception could equally be a bar. No
+   interpretation chosen.
 
 ## The optional-`ruleset` audit (2026-07-31)
 
@@ -656,6 +674,14 @@ legal tier is chosen — but it exposed the bad default.) Both now default to th
 tier `merit_tiers_available` returns. Pinned two ways: the specific shape of the
 mistake, and a generic invariant over every menu-priced entry × every splat, so an entry
 that grows a per-option bar later cannot reintroduce it.
+
+**The DK/God-Blooded rate shipped 2026-08-05**, the day both splats existed:
+`cost_options_by_exalt_type` keys `favored: 2` / `favored_aptitude: 4` / `aptitude: 2`
+for Dragon-Kings and God-Blooded (all heritages) — "three bonus points for most
+characters and two points for Dragon Kings and God-Blooded of all heritages" (p.20),
+with the "+2" aptitude half unchanged. Resolved through the same `merit_cost_options`
+cascade, so Solar/DB/etc. still price 3/5/2 and the tier bar is untouched. Pinned by
+`test_prodigy_s_dragon_king_and_god_blooded_rate_is_2_and_4`.
 
 **Bug found on the way:** Prodigy was authored `repeatable_by: ""`, i.e. once-only,
 against "one additional Favored Ability for **every time this Merit is purchased**". Now

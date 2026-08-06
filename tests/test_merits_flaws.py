@@ -3159,6 +3159,26 @@ def test_the_tier_menu_no_longer_collides_on_price(rs):
     assert len(set(opts)) == len(opts), "keys must be distinct even where prices are not"
 
 
+def test_prodigy_s_dragon_king_and_god_blooded_rate_is_2_and_4(rs):
+    """"Purchasing a Favored Ability with this Merit costs three bonus points for most
+    characters and two points for Dragon Kings and God-Blooded of all heritages"
+    (p.20), the "(2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED)" of the cost line. The
+    rate was unauthorable until both splats existed; it is a per-splat menu override,
+    resolved through the same merit_cost_options cascade as every other splat. The
+    aptitude half (the +2) is unchanged for them — only the grant reprices."""
+    d = rs.merits_flaws[PRODIGY]
+    grant = MP(merit_id=PRODIGY, tier="favored", detail="Melee")
+    assert validate.merit_points(d, grant, "Dragon-Kings") == 2
+    assert validate.merit_points(d, grant, "God-Blooded") == 2
+    assert validate.merit_points(d, grant, "Dragon-Blooded") == 3   # the general rate
+    both = MP(merit_id=PRODIGY, tier="favored_aptitude", detail="Melee")
+    assert validate.merit_points(d, both, "Dragon-Kings") == 4
+    assert validate.merit_points(d, both, "God-Blooded") == 4
+    apt = MP(merit_id=PRODIGY, tier="aptitude", detail="Melee")
+    assert validate.merit_points(d, apt, "Dragon-Kings") == 2
+    assert validate.merit_points(d, apt, "God-Blooded") == 2
+
+
 def test_the_naive_tier_default_would_have_been_illegal_for_a_solar(rs):
     """The bug reported 2026-07-31: a fresh Prodigy row on a Solar opened on `favored`
     and flagged itself immediately, because the editor defaulted to the first AUTHORED
