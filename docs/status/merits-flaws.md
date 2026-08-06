@@ -569,13 +569,13 @@ either:
    normally have a starting Essence of 2. Dragon Kings are an exception." A gate on the
    SPLAT's starting Essence rather than on a character trait. **Prodigy's DK/God-Blooded
    override shipped alongside Dragon Kings (2026-08-05); the DK exception itself is
-   still open.** The `min_starting_essence: 2` floor already admits both DK origins
-   (modern 2, ancient 3), so the current data permits Dragon Kings to take the Flaw —
-   what the exception clause actually adds is a **rules question for the human**: the
-   "feral predators unsuitable for players" reasoning reads like an ST warning against
-   dropping a Dragon King to Essence 1, but nothing in the build expresses a
-   "playable only above Essence 1" gate, and the exception could equally be a bar. No
-   interpretation chosen.
+   RULED and shipped 2026-08-06 as a BAR.** The "since those with Essence 1 are feral
+   predators unsuitable for players" reasoning reads as a prohibition — a Dragon King
+   reduced to Essence 1 would be unplayable — so the Flaw now carries
+   `barred_exalt_types: ["Dragon-Kings"]` (the existing mechanism, enforced by
+   `merit-barred-splat` + `merit_available_to`). The `min_starting_essence: 2` floor
+   would otherwise have admitted both DK origins (modern 2, ancient 3); the bar is the
+   exception clause itself. A test pins the DK bar and the Solar floor together.
 
 ## The optional-`ruleset` audit (2026-07-31)
 

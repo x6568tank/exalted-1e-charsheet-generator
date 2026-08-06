@@ -3760,26 +3760,16 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"Attribute {name.value} = {attr}; must be {span} at creation.",
             ))
 
-    # Dragon-King breed attribute bonuses (PG pp.167-174): free dots on top of the
-    # pools — they do not consume them — and the effective total (pool + bonus) is
-    # capped at 5 at creation (human ruling 2026-08-05, per the p.167 note "Even
-    # after these modifiers are applied, Dragon Kings cannot have any Attributes
-    # higher than 5 without spending bonus or experience points"). Since the
-    # universal stored-attribute ceiling is 5 (the range check above), the effective
-    # cap is the only DK-specific bound here; exceeding it is the post-lock XP path.
-    cd = ruleset.castes.get(character.caste)
-    breed = cd.breed_traits if (cd and cd.breed_traits) else None
-    if breed and breed.attribute_bonuses:
-        for aname, bonus in breed.attribute_bonuses.items():
-            stored = attributes.get(aname, 0)
-            if bonus and stored + bonus > 5:
-                issues.append(Issue(
-                    code="attribute-breed-bonus-cap", where=aname.value,
-                    message=f"{aname.value.title()} = {stored} (+{bonus} breed) = "
-                            f"{stored + bonus}; a Dragon King may not exceed 5 at "
-                            "creation without spending bonus or experience points.",
-                ))
-
+    # Dragon-King breed attribute bonuses (PG pp.167-174): free dots ON TOP of the
+    # stored value — they do not consume the pools, and they may push the EFFECTIVE
+    # total past 5 (a Pterok's stored Dexterity 5 reads as an effective 7 at 0 BP).
+    # p.175's "cannot have any Attributes higher than 5 without spending bonus or
+    # experience points" is a gate on the STORED value only — and the stored
+    # 5-ceiling (the range check above) already satisfies it at creation, because
+    # the trait cap is Essence (max(5, Essence)), which at chargen Essence 2/3/5 is
+    # 5. Past 5 is the post-lock XP path at Essence 6 (see raise_attribute), which
+    # is why this chargen check needs no breed-specific predicate at all.
+    #
     # --- caste_favored attribute legality (Alchemical, p.60) ------------------ #
     # The three attribute pools go to disjoint SETS: 3 Caste Attributes, 3 chosen
     # Favored Attributes (distinct from Caste), and the rest. Each Caste Attribute
@@ -3936,7 +3926,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # p.177 "Maximum Intelligence and Path Level": Intelligence caps at 1/3/5/6 by
     # Essence (binds at chargen: modern Essence 2 → Int ≤ 3), and row 6 lets a Dragon
     # King raise Abilities, Virtues and Paths to 6. The Ability half is already
-    # delivered post-lock by elder_caps.trait and needs no chargen check; Virtue-6 is
+    # delivered post-lock by elder.trait_ceiling and needs no chargen check; Virtue-6 is
     # a post-lock unlock (row 6 only), and the ≥1-Valor floor ("at least 1 of which
     # must be put into Valor", p.175) is a required-virtue floor. All no-op for every
     # splat that authors none of these tables.
@@ -4164,15 +4154,16 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # A hard ceiling AFTER bonus points, where an origin sets one: the Illuminated
     # Solar starts at 3 and may buy higher, but "under no circumstances" begins at 6+
     # (p.90). 0 = no ceiling, which is every other splat.
-    # The universal creation ceiling, under every splat's own: passing Essence 5 takes
-    # a century of Exalted existence (Player's Guide p.258-259), which no character has
-    # at creation. Separate from `essence_start_cap` below, which is a narrower origin
-    # rule — this one holds even for a splat that sets no origin ceiling at all.
+    # The universal creation ceiling, under every splat's own: no character may leave
+    # creation with Essence above 5 — Essence is XP-purchasable past it only after the
+    # lock (see advancement.raise_essence). Separate from `essence_start_cap` below,
+    # which is a narrower origin rule — this one holds even for a splat that sets no
+    # origin ceiling at all.
     if essence > elder.DOT_MAX:
         issues.append(Issue(
             code="essence-above-elder-chargen-cap",
-            message=(f"Essence {essence} exceeds 5. Passing 5 takes 100 years of "
-                     f"Exalted existence and cannot be done at creation."),
+            message=(f"Essence {essence} exceeds 5. No character may leave creation "
+                     f"with Essence above 5; raise it with experience after the lock."),
         ))
     if b.essence_start_cap and essence > b.essence_start_cap:
         issues.append(Issue(

@@ -120,7 +120,7 @@ def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName)
     # An elder's Attributes follow permanent Essence up past 5 (p.258). Whichever
     # ceiling is HIGHER wins: both are permissions, and neither is written as a limit
     # on the other, so a Legendary Attribute never holds an elder down and vice versa.
-    cap = max(cap, elder.elder_caps(ruleset, character).trait)
+    cap = max(cap, elder.trait_ceiling(character))
     # The Dragon-King Essence gate (PG p.177 "Maximum Intelligence and Path Level")
     # is a CEILING on Intelligence specifically — 1/3/5/6 at Essence 1/2/3-5/6 — so
     # unlike the permission ceilings above, it can only LOWER the cap, and it binds
@@ -143,7 +143,7 @@ def raise_ability(ruleset: RuleSet, character: Character, ability: AbilityName) 
     _ensure_locked(character)
     frm = character.abilities.get(ability, 0)
     # p.258 caps an elder's Abilities at permanent Essence, the same as Attributes.
-    cap = elder.elder_caps(ruleset, character).trait
+    cap = elder.trait_ceiling(character)
     if frm >= cap:
         raise AdvancementError(f"{ability.value} is already at {cap}.")
     cost = costs.ability_step(ruleset, character, ability, frm)
@@ -175,7 +175,7 @@ def raise_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
     if cr is None:
         raise AdvancementError(f"No Craft ({focus}) to raise; learn it first.")
     # A per-focus Craft IS an Ability (core p.136), so the elder ceiling reaches it.
-    cap = elder.elder_caps(ruleset, character).trait
+    cap = elder.trait_ceiling(character)
     if cr.rating >= cap:
         raise AdvancementError(f"Craft ({focus}) is already at {cap}.")
     cost = costs.ability_step(ruleset, character, AbilityName.CRAFT, cr.rating)
@@ -256,33 +256,21 @@ def raise_willpower(ruleset: RuleSet, character: Character) -> XpEntry:
 def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
     _ensure_locked(character)
     frm = character.essence_rating
-    # AGE is what lets Essence pass 5 (p.258-259) — `_DOT_MAX` until 100 years of
-    # Exalted existence, then the chart, and 7 for a Terrestrial without the ST's
-    # "outside energies". Asked of engine.elder, never decided here.
-    caps = elder.elder_caps(ruleset, character)
-    if frm >= caps.essence:
-        if caps.essence == _DOT_MAX:
-            raise AdvancementError(
-                f"Essence is already at {_DOT_MAX}. Passing it needs 100 years of "
-                f"Exalted existence (this character: {character.age}).")
-        if caps.terrestrial_limited:
-            raise AdvancementError(
-                f"Essence is already at {caps.essence}. Terrestrial Exalts may never "
-                f"raise permanent Essence higher without outside energies — a "
-                f"Storyteller option (see house rules).")
-        raise AdvancementError(
-            f"Essence is already at {caps.essence}, the ceiling at "
-            f"{character.age} years of Exalted existence.")
-    # A splat-wide lifetime ceiling, which for a mortal is 1 — they have "no way to
-    # gain access to their Essence pool" (PG p.11) until the Essence Mastery Merit
-    # opens it. See ExaltDefinition.essence_cap.
-    cap = ruleset.exalt_for(character.exalt_type).essence_cap
-    # A Merit can raise it: Essence Mastery takes a mortal from 1 to 3, "the limit of
-    # human potential" (PG p.114). Asked of engine.merits, never decided here.
+    # The permanent-Essence ceiling is the splat's `essence_cap` (0 → the flat 9,
+    # p.258's chart max), then the p.258 Terrestrial-7 hold. Asked of engine.elder,
+    # never decided here. A Merit can override it — Essence Mastery takes a mortal
+    # from 1 to 3, "the limit of human potential" (PG p.114) — so the override is
+    # applied on top, and it names no Terrestrial hold.
+    cap, terrestrial_limited = elder.essence_cap(ruleset, character)
     override = validate.merits.merits_and_flaws_calc(ruleset, character).essence_cap_override
     if override is not None:
-        cap = override
-    if cap and frm >= cap:
+        cap, terrestrial_limited = override, False
+    if frm >= cap:
+        if terrestrial_limited:
+            raise AdvancementError(
+                f"Essence is already at {cap}. Terrestrial Exalts may never raise "
+                f"permanent Essence higher without outside energies — a Storyteller "
+                f"option (see house rules).")
         raise AdvancementError(
             f"{ruleset.exalt_for(character.exalt_type).label} characters cannot raise "
             f"Essence above {cap}.")
@@ -633,8 +621,8 @@ def raise_path(ruleset: RuleSet, character: Character, path_id: str) -> XpEntry:
     for a Breed/Favoured Path). Capped by the Essence gate (p.177: a Path may not
     exceed 1/3/5/6 at Essence 1/2/3-5/6) — which is also the Path's whole ceiling,
     since Essence 6 is the life cap and admits Path 6. Deliberately NOT lifted by the
-    elder ceiling: `elder_caps.trait` raises Abilities and Attributes, and a Path is
-    a rated Advantage with its own gate."""
+    trait ceiling: `elder.trait_ceiling` raises Abilities and Attributes, and a Path
+    is a rated Advantage with its own gate."""
     _ensure_locked(character)
     pr = next((p for p in character.paths if p.path_id == path_id), None)
     if pr is None:

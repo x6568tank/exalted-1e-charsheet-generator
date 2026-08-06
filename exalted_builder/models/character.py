@@ -679,22 +679,6 @@ class Character(BaseModel):
     totem: str = ""
     animal_forms: list[AnimalForm] = Field(default_factory=list)
 
-    # Years of EXALTED existence — not the character's age in years lived, which the
-    # sheet does not track (Player's Guide p.258 counts from the Exaltation). Drives
-    # the elder ceilings in engine.elder: age alone is what lets Essence pass 5, and
-    # Essence is in turn what lets an Ability or Attribute pass 5.
-    #
-    # POST-LOCK ONLY (human, rules authority, 2026-07-31). Age is not a chargen
-    # choice — a character may never leave creation with Essence above 5 — so the
-    # editor greys this until the sheet locks. It is the inverse of the eight frozen
-    # chargen choices of decision 0013, and the reason it is not a plain chargen field.
-    #
-    # It is NOT play-state despite only moving in play: decision 0006 keeps PlayState
-    # out of every permanent derivation, and this feeds trait ceilings. Same reasoning
-    # as `limit_permanent` above. 0 = age untracked, which is every young character
-    # and every save written before elder rules existed.
-    age: int = Field(default=0, ge=0)
-
     # --- current, canonical traits ---
     essence_rating: int = Field(default=2, ge=1)
     # PERMANENT Resonance — the Abyssal Curse's lasting half, which exists only for a

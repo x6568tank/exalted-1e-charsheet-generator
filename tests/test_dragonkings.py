@@ -10,7 +10,7 @@ Human rulings baked in (2026-08-05): each breed auto-favours its two element Pat
 plus one player-chosen Path from the other eight; breed attribute bonuses are free
 dots capped at an effective total of 5 unless BP/XP spent; DK Combos work (the
 virtual-Charm bridge); the Intelligence cap by Essence IS modelled; Essence 6 raises
-Abilities (via elder_caps) and Virtues (DK-only table) to 6.
+Abilities (via elder.trait_ceiling) and Virtues (DK-only table) to 6.
 """
 
 from pathlib import Path
@@ -31,7 +31,7 @@ def rs():
 from exalted_builder.engine import (advancement, costs, derive, lifecycle,  # noqa: E402
                                     paths as engine_paths, validate)
 from exalted_builder.models.character import (Character, Combo,  # noqa: E402
-                                              PathRating)
+                                              MeritFlawPurchase, PathRating)
 from exalted_builder.models.rules import (AbilityName, AttributeName,  # noqa: E402
                                           InnateWeapon, VirtueName)
 
@@ -373,14 +373,83 @@ def test_the_favoured_path_must_not_be_a_breed_path(rs) -> None:
                for i in validate.validate_chargen(rs, c))
 
 
-def test_the_breed_attribute_bonus_is_capped_at_an_effective_five(rs) -> None:
-    """p.167: even after the breed modifiers, no Attribute may exceed 5 at creation
-    without spending bonus or experience points. Anklok +2 Str → stored Str 4 is an
-    effective 6, which flags."""
+def test_a_breed_bonus_stacks_on_top_for_free(rs) -> None:
+    """p.175: the breed modifier is a free bonus ON TOP of the stored value, so the
+    effective total may pass 5 at 0 BP — a Pterok's stored Dexterity 5 reads as an
+    effective 7. Only the STORED value past 5 is the BP/XP gate."""
+    c = _dk()                                # Pterok: +2 Dexterity
+    c.attributes[AttributeName.DEXTERITY] = 5
+    codes = {i.code for i in validate.validate_chargen(rs, c)}
+    assert "attribute-breed-bonus-cap" not in codes
+    assert "attribute-range" not in codes
+    assert not any(i.code == "bonus-points-exceeded"
+                   for i in validate.validate_chargen(rs, c))
+    attr_line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                     if l.domain == "Attributes")
+    assert attr_line.points == 0
+
+
+def test_a_breed_bonus_attribute_at_four_is_free(rs) -> None:
+    """Anklok +2 Str → stored 4 is an effective 6, free: the free cap is stored 5
+    for every Attribute, not reduced by the breed bonus."""
     c = _dk(caste="anklok")
     c.attributes[AttributeName.STRENGTH] = 4
-    assert any(i.code == "attribute-breed-bonus-cap"
+    codes = {i.code for i in validate.validate_chargen(rs, c)}
+    assert "attribute-breed-bonus-cap" not in codes
+    assert not any(i.code == "bonus-points-exceeded"
+                   for i in validate.validate_chargen(rs, c))
+    attr_line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                     if l.domain == "Attributes")
+    assert attr_line.points == 0
+
+
+def test_a_stored_six_stays_illegal_at_chargen(rs) -> None:
+    """The trait cap is Essence (max(5, Essence)); a chargen Dragon King sits at
+    Essence 2/3, so stored 6 — even on an unaugmented Attribute — is out of range.
+    Past 5 is the post-lock XP path, and it needs Essence 6."""
+    c = _dk()                                # Pterok: no Charisma bonus
+    c.attributes[AttributeName.CHARISMA] = 6
+    assert any(i.code == "attribute-range"
                for i in validate.validate_chargen(rs, c))
+
+
+def test_an_essence_six_dragon_king_can_xp_raise_an_attribute_to_six(rs) -> None:
+    """Essence is the trait cap, so at Essence 6 stored reaches 6 — and the breed
+    modifier stacks on top for an effective 8 (Anklok +2 Str)."""
+    elder = _dk(caste="anklok", essence=6)
+    elder.attributes[AttributeName.STRENGTH] = 5
+    lifecycle.lock_chargen(elder, rs)
+    advancement.add_xp(elder, 100)
+    advancement.raise_attribute(rs, elder, AttributeName.STRENGTH)
+    assert elder.attributes[AttributeName.STRENGTH] == 6
+
+
+def test_a_young_dragon_king_cannot_xp_raise_an_attribute_past_five(rs) -> None:
+    """Same cap from the other side: at Essence 2 the trait ceiling is max(5, 2) = 5,
+    so XP cannot push a modern Dragon King's Strength past 5."""
+    modern = _dk(essence=2)
+    modern.attributes[AttributeName.STRENGTH] = 5
+    lifecycle.lock_chargen(modern, rs)
+    advancement.add_xp(modern, 100)
+    with pytest.raises(advancement.AdvancementError):
+        advancement.raise_attribute(rs, modern, AttributeName.STRENGTH)
+
+
+def test_a_dragon_king_cannot_hold_weak_essence(rs) -> None:
+    """PG p.41: 'Dragon Kings are an exception to this rule [the starting-Essence-2
+    gate], since those with Essence 1 are feral predators unsuitable for players' — a
+    BAR, not a waiver: a Dragon King reduced to Essence 1 would be unplayable. The
+    `min_starting_essence: 2` floor alone would admit both DK origins (2/3); the
+    `barred_exalt_types` row is the exception clause."""
+    c = _dk()
+    c.merits_flaws = [MeritFlawPurchase(merit_id="mf.weak-essence", points=6)]
+    assert any(i.code == "merit-barred-splat"
+               for i in validate.validate_chargen(rs, c))
+    # A Solar still qualifies via the floor — the bar is Dragon-Kings only.
+    sol = Character(id="sol.we", exalt_type="Solar", caste="dawn")
+    sol.merits_flaws = [MeritFlawPurchase(merit_id="mf.weak-essence", points=6)]
+    assert not any(i.code == "merit-barred-splat"
+                   for i in validate.validate_chargen(rs, sol))
 
 
 # --------------------------------------------------------------------------- #
@@ -502,6 +571,16 @@ async def test_the_dragon_king_picker_builds_with_a_paths_tab(user) -> None:
     """The picker builds for a DK (no trap-3 blank) and offers the Paths page."""
     await user.open('/dkpicker')
     await user.should_see("Paths")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_dragon_king_sheet_shows_a_breed_attribute_above_five(user) -> None:
+    """p.175: the breed bonus stacks ON TOP of a free stored 5 — the sheet draws the
+    Pterok's stored Dexterity 5 as an effective 7, not a 5 clamped to the old cap."""
+    await user.open('/dksheet-big')
+    await user.should_see("Dexterity (+2 breed)")
+    await user.should_see("●●●●● +2")
 
 
 @pytest.mark.asyncio

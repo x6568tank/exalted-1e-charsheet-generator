@@ -1633,7 +1633,8 @@
    "book": "Exalted 1e Player's Guide",
    "page": 41
   },
-  "min_starting_essence": 2
+  "min_starting_essence": 2,
+  "barred_exalt_types": ["Dragon-Kings"]
  },
  {
   "id": "mf.weak-immune-system",

@@ -1013,10 +1013,9 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                 note = (f"No effect: the Essence 7 ceiling is a Terrestrial rule, and "
                         f"{ruleset.exalt_for(character.exalt_type).label} are not "
                         f"Terrestrial.")
-            elif elder.essence_cap_for_age(character.age) <= 7:
-                note = ("Nothing to lift yet: age permits at most Essence "
-                        f"{elder.essence_cap_for_age(character.age)} regardless. The "
-                        "ceiling first bites at 500 years of Exalted existence.")
+            elif character.essence_rating < 7:
+                note = ("Nothing to lift yet: Essence is below the Terrestrial "
+                        "ceiling of 7. The toggle matters once it reaches 7.")
         elif fld == "magic_for_everyone" and getattr(rules, fld):
             grant = validate.magic_for_everyone_grant(ruleset, character)
             note = (f"Currently granting {grant} free purchase(s)." if grant else

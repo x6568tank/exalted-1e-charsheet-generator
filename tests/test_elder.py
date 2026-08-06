@@ -1,10 +1,12 @@
-"""Tests for engine.elder — the elder-Exalt ceilings of Player's Guide pp.258-259.
+"""Tests for engine.elder — Essence and trait ceilings, and the p.259 downtime
+calculator (Player's Guide pp.258-259).
 
-Age lets Essence pass 5; Essence lets Abilities and Attributes pass 5. Both are tested
-through `advancement.raise_to`, the merged trait surface the UI actually calls, rather
-than through the per-dot `raise_*` alone: this build's recurring bug is a rule that IS
-implemented sitting where it does not run when it matters (CLAUDE.md), and the buy path
-is what matters here.
+Human ruling 2026-08-06: Essence is XP-purchasable to the splat's ceiling (9 for an
+Exalt, the Terrestrial-7 held), and Essence in turn lets Abilities and Attributes pass
+5. Both are tested through `advancement.raise_to`, the merged trait surface the UI
+actually calls, rather than through the per-dot `raise_*` alone: this build's
+recurring bug is a rule that IS implemented sitting where it does not run when it
+matters (CLAUDE.md), and the buy path is what matters here.
 """
 
 import pytest
@@ -40,10 +42,9 @@ def _ruleset() -> RuleSet:
     )
 
 
-def _locked(xp: int = 500, *, exalt_type: str = "solar", essence: int = 5,
-            age: int = 0) -> Character:
+def _locked(xp: int = 500, *, exalt_type: str = "solar", essence: int = 5) -> Character:
     """A locked character at the top of the ordinary range — Essence 5, Melee 5 — which
-    is where every elder rule starts to bite. Locked BEFORE the Essence is raised: a
+    is where every ceiling starts to bite. Locked BEFORE the Essence is raised: a
     character may not leave creation above 5, and the tests must not smuggle one out."""
     c = Character(id="char.elder", exalt_type=exalt_type, caste="dawn")
     c.attributes[AT.DEXTERITY] = 5
@@ -54,64 +55,44 @@ def _locked(xp: int = 500, *, exalt_type: str = "solar", essence: int = 5,
     # Post-lock state, set directly: the point of these tests is the ceiling, not the
     # ledger that got the character here.
     c.essence_rating = essence
-    c.age = age
     return c
 
 
 # --------------------------------------------------------------------------- #
-# The p.259 chart
+# The ceilings
 # --------------------------------------------------------------------------- #
-
-@pytest.mark.parametrize("age,cap", [
-    (0, 5), (1, 5), (99, 5),
-    (100, 6), (249, 6),
-    (250, 7), (499, 7),
-    (500, 8), (999, 8),
-    (1000, 9), (10_000, 9),          # "9+" ships as a flat 9 — see engine.elder
-])
-def test_essence_cap_for_age(age, cap):
-    assert elder.essence_cap_for_age(age) == cap
-
 
 def test_young_character_gets_the_ordinary_ceilings():
-    """The regression guard: nothing about an ordinary sheet changes."""
-    caps = elder.elder_caps(_ruleset(), _locked())
-    assert (caps.essence, caps.trait) == (5, 5)
-    assert not caps.is_elder
-
-
-# --------------------------------------------------------------------------- #
-# Age → Essence
-# --------------------------------------------------------------------------- #
-
-def test_essence_stops_at_5_before_a_century():
-    rs, c = _ruleset(), _locked(age=99)
-    with pytest.raises(advancement.AdvancementError) as ex:
-        advancement.raise_to(rs, c, "essence", 6)
-    assert "100 years" in str(ex.value)
-    assert c.essence_rating == 5
-
-
-def test_a_century_of_exalted_existence_buys_essence_6():
-    rs, c = _ruleset(), _locked(age=100)
-    advancement.raise_to(rs, c, "essence", 6)
-    assert c.essence_rating == 6
-
-
-def test_essence_stops_at_the_age_bracket_not_at_9():
-    """250 years permits 7 and no more, however much XP is banked."""
-    rs, c = _ruleset(), _locked(age=250, essence=7)
-    with pytest.raises(advancement.AdvancementError) as ex:
-        advancement.raise_to(rs, c, "essence", 8)
-    assert "250 years" in str(ex.value)
+    """The regression guard: nothing about an ordinary sheet changes — the trait
+    ceiling is 5 at Essence 5, and a Solar's Essence ceiling is the flat 9."""
+    c = _locked()
+    assert elder.trait_ceiling(c) == 5
+    assert elder.essence_cap(_ruleset(), c) == (9, False)
 
 
 # --------------------------------------------------------------------------- #
 # Essence → Abilities and Attributes
 # --------------------------------------------------------------------------- #
 
+def test_essence_is_purchasable_past_5_with_xp():
+    """p.175 for the Dragon-Kings, and the general ruling for everyone: past 5 the only
+    gate on Essence is the splat's ceiling — no age chart."""
+    rs, c = _ruleset(), _locked(essence=5)
+    advancement.raise_to(rs, c, "essence", 6)
+    assert c.essence_rating == 6
+
+
+def test_essence_stops_at_the_splat_cap():
+    """A Solar's ceiling is 9, the p.258 chart's printed max taken flat — however much
+    XP is banked."""
+    rs, c = _ruleset(), _locked(essence=9)
+    with pytest.raises(advancement.AdvancementError) as ex:
+        advancement.raise_to(rs, c, "essence", 10)
+    assert "above 9" in str(ex.value)
+
+
 def test_abilities_and_attributes_follow_essence_past_5():
-    rs, c = _ruleset(), _locked(age=500, essence=8)
+    rs, c = _ruleset(), _locked(essence=8)
     advancement.raise_to(rs, c, "abilities.melee", 6)
     advancement.raise_to(rs, c, "attributes.dexterity", 6)
     assert c.abilities[A.MELEE] == 6
@@ -119,29 +100,29 @@ def test_abilities_and_attributes_follow_essence_past_5():
 
 
 def test_a_trait_may_not_pass_permanent_essence():
-    """The ceiling is Essence itself, not the Essence age would have permitted."""
-    rs, c = _ruleset(), _locked(age=1000, essence=6)
+    """The ceiling is Essence itself."""
+    rs, c = _ruleset(), _locked(essence=6)
     advancement.raise_to(rs, c, "abilities.melee", 6)
     with pytest.raises(advancement.AdvancementError) as ex:
         advancement.raise_to(rs, c, "abilities.melee", 7)
     assert "already at 6" in str(ex.value)
 
 
-def test_low_essence_never_lowers_the_ordinary_5(monkeypatch):
+def test_low_essence_never_lowers_the_ordinary_5():
     """The human's ruling, 2026-07-31: the Essence ceiling binds only ABOVE 5. Read
     literally it would cap an Essence 2 character's Melee at 2, which is nonsense."""
     rs, c = _ruleset(), _locked(essence=2)
     c.abilities[A.MELEE] = 4
     advancement.raise_to(rs, c, "abilities.melee", 5)
     assert c.abilities[A.MELEE] == 5
-    assert elder.elder_caps(rs, c).trait == 5
+    assert elder.trait_ceiling(c) == 5
 
 
 def test_crafts_follow_essence():
     """p.258 names "Abilities and Attributes", and a per-focus Craft IS an Ability
     (core p.136). An Astrological College is not one, and stays at 5 — see
     advancement.raise_college."""
-    rs, c = _ruleset(), _locked(age=500, essence=8)
+    rs, c = _ruleset(), _locked(essence=8)
     advancement.learn_craft(rs, c, "Smithing")
     for _ in range(5):
         advancement.raise_craft(rs, c, "Smithing")
@@ -149,8 +130,8 @@ def test_crafts_follow_essence():
 
 
 def test_virtues_never_pass_5():
-    """"Exalted cannot raise their Virtues above 5" — no elder exception."""
-    rs, c = _ruleset(), _locked(age=1000, essence=9)
+    """"Exalted cannot raise their Virtues above 5" — no exception."""
+    rs, c = _ruleset(), _locked(essence=9)
     c.virtues[V.VALOR] = 5
     with pytest.raises(advancement.AdvancementError):
         advancement.raise_to(rs, c, "virtues.valor", 6)
@@ -160,32 +141,28 @@ def test_virtues_never_pass_5():
 # The Terrestrial clause
 # --------------------------------------------------------------------------- #
 
-def test_terrestrial_held_at_7_however_old():
-    rs, c = _ruleset(), _locked(exalt_type="dragon-blooded", age=1000, essence=7)
-    caps = elder.elder_caps(rs, c)
-    assert caps.essence == 7 and caps.terrestrial_limited
+def test_terrestrial_held_at_7():
+    """p.258: "Terrestrial Exalts may never raise their permanent Essence above 7
+    without outside energies". The hold is the splat's ceiling, and the flag names it
+    as the rule that stopped the raise."""
+    rs, c = _ruleset(), _locked(exalt_type="dragon-blooded", essence=7)
+    assert elder.essence_cap(rs, c) == (7, True)
     with pytest.raises(advancement.AdvancementError) as ex:
         advancement.raise_to(rs, c, "essence", 8)
     assert "outside energies" in str(ex.value)
 
 
 def test_the_storyteller_can_lift_the_terrestrial_ceiling():
-    rs, c = _ruleset(), _locked(exalt_type="dragon-blooded", age=1000, essence=7)
+    rs, c = _ruleset(), _locked(exalt_type="dragon-blooded", essence=7)
     c.house_rules = HouseRules(terrestrial_essence_transcendence=True)
-    assert elder.elder_caps(rs, c).essence == 9
+    assert elder.essence_cap(rs, c) == (9, False)
     advancement.raise_to(rs, c, "essence", 8)
     assert c.essence_rating == 8
 
 
-def test_a_young_terrestrial_is_not_flagged_as_limited():
-    """The flag means "held BELOW what age allowed", so it must stay off when age is
-    the binding rule — otherwise the error names the wrong one."""
-    caps = elder.elder_caps(_ruleset(), _locked(exalt_type="dragon-blooded", age=100))
-    assert caps.essence == 6 and not caps.terrestrial_limited
-
-
 def test_the_celestial_splats_are_untouched_by_the_terrestrial_clause():
-    assert elder.elder_caps(_ruleset(), _locked(age=1000, essence=8)).essence == 9
+    rs, c = _ruleset(), _locked(essence=8)
+    assert elder.essence_cap(rs, c) == (9, False)
 
 
 # --------------------------------------------------------------------------- #
@@ -218,9 +195,9 @@ async def test_the_editor_builds_for_an_elder(user) -> None:
     """Essence 8, Melee 7: the first ratings in the build that legally exceed the pip
     count every track was written against.
 
-    "Exalted years" is deliberately NOT on this page — the age box left Identity on
-    2026-08-01 and lives in the Downtime dialog, so that the age and the maturation
-    experience of the same passage of time cannot be set by two controls that disagree.
+    Age is not a character trait at all — the "Exalted years" box lives inside the
+    Downtime dialog as the p.259 calculator's input, and nothing on the editor page
+    itself mentions it.
     """
     await user.open('/editor-elder')
     await user.should_see("Abilities")
@@ -228,19 +205,16 @@ async def test_the_editor_builds_for_an_elder(user) -> None:
     await user.should_not_see("Exalted years")
     user.find("Downtime…").click()
     await user.should_see("Exalted years so far")
-    # The ceilings readout that used to be a tooltip on the Identity box.
-    await user.should_see("Essence up to 9")
 
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_editor_builds_for_an_elder_terrestrial(user) -> None:
+    """A Terrestrial at the 7-hold renders; the hold is now purely an Essence ceiling,
+    so the editor builds and the Essence track tops out at 7."""
     await user.open('/editor-elder-terrestrial')
     await user.should_see("Abilities")
-    # A 1,000-year-old Dragon-Blood: age alone would reach 9, the tier holds it at 7,
-    # and the dialog must name the rule that actually stopped them.
-    user.find("Downtime…").click()
-    await user.should_see("Terrestrial ceiling")
+    await user.should_see("Essence")
 
 
 @pytest.mark.asyncio
@@ -330,6 +304,18 @@ def test_a_zero_year_downtime_is_inert() -> None:
     assert award.to_age == 500
 
 
+def _set_calculator_age(user, value: int) -> None:
+    """Type a start-age into the Downtime calculator's 'Exalted years so far' field —
+    a calculator-local input, not a character trait, so the tests drive it through the
+    widget rather than presetting a character."""
+    from nicegui import ui
+
+    num = next(e for e in user.client.elements.values()
+               if isinstance(e, ui.number)
+               and (e.props.get("label") or "") == "Exalted years so far")
+    num.set_value(value)
+
+
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_downtime_calculator_shows_its_working(user) -> None:
@@ -339,6 +325,7 @@ async def test_the_downtime_calculator_shows_its_working(user) -> None:
     await user.open('/editor-downtime-view')
     await user.should_see("Downtime…")
     user.find("Downtime…").click()
+    _set_calculator_age(user, 240)
     await user.should_see("Age 240 → 250")
     await user.should_see("× 5 =")
     await user.should_see("× 4 =")
@@ -349,26 +336,25 @@ async def test_the_downtime_calculator_shows_its_working(user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
-async def test_granting_a_downtime_awards_xp_and_advances_the_age(user) -> None:
-    """The grant half. Age and experience move TOGETHER — the two are the same
-    downtime, and letting them drift would let a player collect a century of maturation
-    experience without reaching the century that raises their Essence ceiling.
+async def test_granting_a_downtime_awards_xp_and_advances_the_calculator_age(user) -> None:
+    """The grant half. Age 90 + the default 10 years = one paid year, the one that
+    reaches 100. The grant advances the calculator's LOCAL age (a pure input, not a
+    character trait), so a later grant is priced from where the last one ended.
 
     Asserted THROUGH THE UI, not by reaching into `_ui_main` for the character: under
     the main-file fixture that module is not always the same object the route was built
     from, so a direct read passes alone and fails in the suite.
-
-    Age 90 + the default 10 years = one paid year, the one that reaches 100.
     """
     await user.open('/editor-downtime')
     user.find("Downtime…").click()
+    _set_calculator_age(user, 90)
     await user.should_see("Age 90 → 100")
     user.find("Grant").click()
     await user.should_see("Granted 5 XP")
     await user.should_see("age is now 100")
     # The award landed in the column, not only in the notification.
     await user.should_see("XP available")
-    # Reopening reads the character back: the age the calculator now starts from is the
-    # one the grant wrote.
+    # Reopening reads the calculator back: the local age it now starts from is the one
+    # the grant wrote.
     user.find("Downtime…").click()
     await user.should_see("Age 100 → 110")

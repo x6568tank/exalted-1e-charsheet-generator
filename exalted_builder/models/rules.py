@@ -1759,7 +1759,7 @@ class ChargenBudgets(BaseModel):
     # The p.177 "Maximum Intelligence and Path Level" column's OTHER half: the same
     # Essence-gated ceiling over Intelligence (max 1/3/5/6), resolved against current
     # Essence. `ability_max_by_essence` is deliberately ABSENT — Abilities-to-6 at
-    # Essence 6 is already delivered by the elder-Exalt `elder_caps.trait` mechanism.
+    # Essence 6 is already delivered by the `elder.trait_ceiling` mechanism.
     # `virtue_max_by_essence` (row 6 unlocks 6) exists because the elder machinery
     # never covers Virtues — Dragon-Kings are the first splat with a Virtue above 5.
     intelligence_max_by_essence: dict[int, int] = Field(default_factory=dict)
@@ -1982,7 +1982,10 @@ class ExaltDefinition(BaseModel):
     charms_available: bool = True
     # Hard ceiling on Essence for the whole of the character's life, XP included — as
     # opposed to ChargenBudgets.essence_start_cap, which only binds until the sheet is
-    # locked. 0 (every Exalt splat) means no ceiling beyond _DOT_MAX.
+    # locked. 0 = no printed cap, which the six Exalts now resolve to 9 (the p.258
+    # chart's max, via engine.elder); a Terrestrial is further held at 7 by the same
+    # module. Chargen Essence is separately held at 5 (see validate's
+    # `essence-above-elder-chargen-cap`) — this field is the post-lock ceiling.
     # 1 for mortals: Player's Guide p.11, "Mortal characters have an Essence of 1, but
     # no way to gain access to their Essence pool." The way UP is the Essence Mastery
     # Merit (5-pt Supernatural, PG p.121), which "unlock[s] her Essence pool completely"

@@ -11,9 +11,9 @@ as pasted markdown (`images/Mortals/Dragon Kings/CH 4 - The Dragon Kings.md`).
   10 ancient), its own BP/XP tables, and an Essence gate (max 1/3/5/6). The 60
   dot-level powers are data attached to each Path; the loader also projects them into
   the charm catalogue as **virtual Charm rows** so Combos and the sheet can name them.
-* **Four Breeds** instead of castes, each with attribute modifiers (free dots, capped
-  at an effective 5), innate soak, a +0 health level (Anklok/Mosok), breed abilities,
-  and display-only innate weapons.
+* **Four Breeds** instead of castes, each with attribute modifiers (free dots ON TOP
+  of the stored value — the effective total may pass 5, per ruling 2), innate soak,
+  a +0 health level (Anklok/Mosok), breed abilities, and display-only innate weapons.
 * **A custom Essence pool**: `(Essence×4) + (Willpower×2) + Conviction + Valor`, ONE
   pool (fully harmonized), no anima banner — the first use of the
   `personal_named_virtues` pool field (two specific named Virtues).
@@ -27,8 +27,8 @@ as pasted markdown (`images/Mortals/Dragon Kings/CH 4 - The Dragon Kings.md`).
 * **Terrestrial Circle Sorcery** only, gated like every initiation Charm; Combos work
   (p.177) via the virtual-Charm bridge.
 * **Essence-gated trait ceilings**: Intelligence and Paths cap at 1/3/5/6 by Essence;
-  at Essence 6 Abilities (via the existing `elder_caps.trait`) and Virtues (a
-  DK-only table — the first splat with a Virtue above 5) raise to 6.
+  at Essence 6 Abilities (via `elder.trait_ceiling`) and Virtues (a DK-only table —
+  the first splat with a Virtue above 5) raise to 6.
 
 ## Human rulings (2026-08-05)
 
@@ -36,8 +36,17 @@ as pasted markdown (`images/Mortals/Dragon Kings/CH 4 - The Dragon Kings.md`).
    Celestial Air + Clear Air, etc.); the player picks ONE more from any of the other
    eight. The breed→element mapping is NOT in the book — it is an interpretation
    (confirmed by the human) backed by the flavour text.
-2. **Breed attribute modifiers** are free dots on top of the pools; the effective
-   total is capped at 5 at creation unless bonus/experience points were spent.
+2. **Breed attribute modifiers** are free dots ON TOP of the stored value, and they
+   may push the EFFECTIVE total past 5 at 0 BP (a Pterok's stored Dexterity 5 reads
+   as an effective 7). p.175's "cannot have any Attributes higher than 5 without
+   spending bonus or experience points" is a gate on the STORED value only — and
+   the stored ceiling at creation is 5 because the trait cap is Essence
+   (`max(5, Essence)`, an interpretation a friend's 1E reading confirmed 2026-08-06:
+   "Essence being the normal Trait cap isn't just an Exalt rule"), and chargen
+   Essence is 2/3/5. Past 5 is the post-lock XP path at Essence 6 (stored 6,
+   effective 8 for the +2 breeds). The old `attribute-breed-bonus-cap` chargen
+   predicate is deleted — nothing needs it once the stored-5 range check is the
+   whole bound.
 3. **DK Combos are in scope** (p.177 is printed, not a ruling — the virtual-Charm
    bridge is required by the book).
 4. **Intelligence cap by Essence IS modelled** (an earlier "skip" was reversed).
@@ -45,9 +54,9 @@ as pasted markdown (`images/Mortals/Dragon Kings/CH 4 - The Dragon Kings.md`).
    is an equality test on one circle; nothing is barred, access comes from
    `granted_circles`. A test pins it with the reasoning in the docstring.
 6. **Essence 6 raises Abilities AND Virtues to 6** — Abilities already delivered by
-   `elder_caps.trait` (no new field); Virtues via a DK-only
-   `virtue_max_by_essence` table (decided over extending `elder_caps` to Virtues,
-   which would silently let every splat's elders raise Virtues past 5).
+   `elder.trait_ceiling` (no new field); Virtues via a DK-only
+   `virtue_max_by_essence` table (decided over extending the trait ceiling to Virtues,
+   which would silently let every splat raise Virtues past 5).
 7. **The DB/DK Artifact rule** (E:DB p.157 / PG p.176) — "twice the dots' worth":
    **total artifact dots ≤ Background × 2, no single artifact above the Background
    rating, and at most ONE artifact rated AT the Background rating** (the flagship;
@@ -121,8 +130,9 @@ they simply don't display a permanent "required" indicator once satisfied.
   half of the unspent `path_dots` pool may instead buy Terrestrial spells at the
   printed price. Not implemented.
 * `essence_start_cap` 3 (modern) / 5 (ancient) — an interpretation: moderns "can
-  never regain Essence 4+" without ancient aid (chargen-appropriate), and Essence 6 is
-  age-gated post-lock. The BP budget alone would otherwise let an ancient start at 6.
+  never regain Essence 4+" without ancient aid (chargen-appropriate). The BP budget
+  alone would otherwise let an ancient start at 6; post-lock Essence 6 is XP-purchasable
+  (the age gate that used to hold it is gone, 2026-08-06).
 * Whether Celestial Manse/Salary should also open to Sidereals (E:S backgrounds) —
   DK-only for now.
 * Source discrepancy for the status doc: the p.160 ancient sidebar cites Savant at
@@ -135,18 +145,19 @@ they simply don't display a permanent "required" indicator once satisfied.
 
 ## Verification
 
-* **Test count**: **1,968 passing** — the landing claimed 1,934 → +30 = 1,964,
-  which was never the real number (main had 1,963; this branch 1,965). The suite
-  also has ONE KNOWN FAILURE, `test_every_description_matches_the_source_text` — a
-  pre-existing M&F description shortfall (mostly Godblooded/Fae-Blooded entries),
-  unrelated to this splat and not fixed here; see CLAUDE.md. Includes
-  `tests/test_dragonkings.py` (32 tests: every keyed-row number, the buy-path gates,
-  the Combos bridge, the derivations, the artifact budget, and render smokes
-  through the NiceGUI harness). Charm linter clean for `dragon-kings`.
+* **Test count**: **1,966 passing** (the earlier "1 known failure" M&F description
+  note is stale — that test passes as of 2026-08-06). Includes
+  `tests/test_dragonkings.py` (39 tests: every keyed-row number, the buy-path gates,
+  the Combos bridge, the derivations, the artifact budget, the effective-over-5
+  attribute-cap model, and render smokes through the NiceGUI harness). Charm linter
+  clean for `dragon-kings`.
 * **Browser click-through**: DONE 2026-08-05 for most surfaces (Paths page, breeds,
   backgrounds, Combos, sorcery, sheet sections). The other click findings
   (Path-description wrap, breed-bonus display, ancient floors, artifact
-  combined/per-item caps) are fixed and confirmed. **The Artifact
+  combined/per-item caps) are fixed and confirmed. **The 2026-08-06 attribute-cap
+  correction was re-verified in a browser**: a locked Pterok bought stored Dexterity 5
+  (effective 7) at 0 BP, and a Dragon-Blooded at Essence 7 was held there until the ST
+  Options "Terrestrial may pass Essence 7" toggle lifted the ceiling to 9. **The Artifact
   `artifact-two-flagships` finding is RESOLVED 2026-08-05.** The engine was never
   wrong: the first click-through missed it because the server was stale mid-restart,
   and the re-verify surfaced a UI bug that masked it. The rating input's `on_change`

@@ -437,7 +437,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             return
         refresh_all()
 
-    _downtime = {"years": 10}
+    _downtime = {"years": 10, "age": 0}
 
     def _downtime_dialog() -> None:
         """The p.259 downtime calculator: years of skipped time → the experience it
@@ -445,49 +445,26 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
         A CALCULATOR that grants, never an enforcement — the split prints as advice and
         nothing downstream polices it (see engine.elder). Post-lock only, because it
-        sits with the other XP controls and `Character.age` is post-lock only.
+        sits with the other XP controls.
 
-        Granting also ADVANCES THE AGE by the same years. The two are the same downtime,
-        and letting them drift would let a player collect a century of maturation
-        experience without ever reaching the century that raises their Essence ceiling.
-
-        This is ALSO the only place age is set (2026-08-01). It was a second box in the
-        Identity panel until the grant existed, and then it was a way to reach the same
-        state by two routes that disagreed. Setting it here is still needed and is not
-        the same gesture as granting: a character who was ALREADY ancient when play
-        began did not earn that maturation experience at this table, so age is written
-        immediately and the award is a separate, deliberate press.
+        The chart's rate depends on years of Exalted existence, so the calculator takes
+        an AGE INPUT — a pure calculator field, not a character trait (human ruling
+        2026-08-06: `Character.age` is gone and age gates nothing). Granting advances
+        that local age so a later grant is priced from where the last one ended; the
+        character itself only receives the XP.
         """
         with ui.dialog() as dialog, ui.card().classes("w-[28rem] gap-2"):
             ui.label("Downtime").classes("text-lg font-bold")
             ui.label("Annual experience for skipped years (Player's Guide p.259). The "
-                     "award depends on the character's age, so a downtime that crosses "
+                     "award depends on the age entered, so a downtime that crosses "
                      "100, 250, 500 or 1,000 years changes rate partway."
                      ).classes("text-xs text-gray-600")
 
             @ui.refreshable
             def preview() -> None:
-                award = elder.downtime_award(character.age, _downtime["years"])
+                award = elder.downtime_award(_downtime["age"], _downtime["years"])
                 ui.label(f"Age {award.from_age} → {award.to_age}").classes(
                     "text-sm font-semibold")
-                # The ceilings age has unlocked. This readout used to be a tooltip on
-                # the Identity age box; it follows the control that replaced it, or the
-                # one number that governs every track on the sheet would be settable
-                # with nothing on screen saying what it did.
-                caps = elder.elder_caps(ruleset, character)
-                if caps.is_elder:
-                    ui.label(f"Now: Essence up to {caps.essence}, Abilities and "
-                             f"Attributes up to {caps.trait}."
-                             ).classes("text-xs opacity-70")
-                if caps.terrestrial_limited:
-                    ui.label("Held at the Terrestrial ceiling of 7 — age alone would "
-                             "allow more (ST Options can lift it).").classes(
-                        "text-xs text-amber-700")
-                unlocked = elder.essence_cap_for_age(award.to_age)
-                if unlocked > caps.essence and not caps.terrestrial_limited:
-                    ui.label(f"This downtime reaches Essence {unlocked}."
-                             ).classes("text-xs font-semibold").style(
-                        f"color:{pal.accent}")
                 for band in award.bands:
                     span = (f"{band.from_age}" if band.years == 1
                             else f"{band.from_age}–{band.to_age}")
@@ -516,32 +493,27 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 preview.refresh()
 
             def _set_age(value) -> None:
-                character.age = max(0, int(value or 0))
+                _downtime["age"] = max(0, int(value or 0))
                 preview.refresh()
 
             with ui.row().classes("w-full gap-2 no-wrap"):
-                # Years of EXALTED existence, counted from the Exaltation — the elder
-                # rules' only input (PG pp.258-259).
-                age_field = ui.number("Exalted years so far", value=character.age, min=0,
-                                      format="%d", on_change=lambda e: _set_age(e.value)
-                                      ).props("dense").classes("flex-1")
-                # The dot tracks' ceilings are built from age, so the body has to be
-                # rebuilt when it moves — but on BLUR, not per keystroke: refreshing
-                # mid-type would tear the field out from under someone typing "1000"
-                # one digit at a time.
-                age_field.on("blur", lambda _: refresh_all())
+                # Years of EXALTED existence, counted from the Exaltation — the p.259
+                # chart's only input (PG pp.258-259). A calculator field, not a trait.
+                ui.number("Exalted years so far", value=_downtime["age"], min=0,
+                          format="%d", on_change=lambda e: _set_age(e.value)
+                          ).props("dense").classes("flex-1")
                 ui.number("Years of downtime", value=_downtime["years"], min=0,
                           format="%d", on_change=lambda e: _set_years(e.value)
                           ).props("dense").classes("flex-1")
             preview()
 
             def _grant() -> None:
-                award = elder.downtime_award(character.age, _downtime["years"])
-                character.age = award.to_age
+                award = elder.downtime_award(_downtime["age"], _downtime["years"])
+                _downtime["age"] = award.to_age
                 advancement.add_xp(character, award.total)
                 dialog.close()
-                ui.notify(f"Granted {award.total} XP — age is now {award.to_age}.",
-                          type="positive")
+                ui.notify(f"Granted {award.total} XP — age is now {award.to_age} "
+                          "(for the next award).", type="positive")
                 refresh_all()
 
             with ui.row().classes("w-full justify-end gap-2"):
@@ -804,15 +776,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # Trait ceilings a Merit or Flaw has moved, read once for the dot rows below.
         mf_effects = merits.merits_and_flaws_calc(ruleset, character)
 
-        # Ceilings age has moved (Player's Guide pp.258-259), read once alongside the
-        # Merit ones. Both are 5/5 for every character under 100 years of Exalted
-        # existence, which is every character pre-lock — `Character.age` cannot be set
-        # until then — so this changes nothing for an ordinary sheet.
-        e_caps = elder.elder_caps(ruleset, character)
+        # The permanent-Essence ceiling (splat cap, Terrestrial-7 held) — post-lock
+        # the Essence track and the trait ceilings run to it; pre-lock both stop at 5
+        # (no character leaves creation with Essence above it). The trait ceiling is
+        # max(5, Essence), the same p.258 rule the raises read.
+        essence_cap, _ = elder.essence_cap(ruleset, character)
+        trait_cap = elder.trait_ceiling(character)
 
         def _attr_cap(a) -> int:
             return max(mf_effects.attribute_caps.get(a.value, merits.DOT_MAX),
-                       e_caps.trait)
+                       trait_cap)
 
         virtue_cap = (mf_effects.virtue_cap if mf_effects.virtue_cap is not None
                       else merits.DOT_MAX)
@@ -1094,7 +1067,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                     ui.label(_label(a.value)).classes("text-sm flex-1 truncate")
                                     dots(lambda a=a: character.abilities[a],
                                          lambda v, a=a: character.abilities.__setitem__(a, v),
-                                         0, e_caps.trait,
+                                         0, trait_cap,
                                          target=f"abilities.{a.value}")
 
         # crafts — each focus is its own rated Ability (core p.136)
@@ -1106,7 +1079,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.input(value=cr.focus, placeholder="craft (e.g. Smithing)",
                              on_change=lambda e, cr=cr: (setattr(cr, "focus", e.value), changed())).classes("flex-1")
                     dots(lambda cr=cr: cr.rating, lambda v, cr=cr: setattr(cr, "rating", v),
-                         0, e_caps.trait, target="crafts", detail=cr.focus)
+                         0, trait_cap, target="crafts", detail=cr.focus)
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_craft(idx)).props("flat dense round")
             ui.button("Add craft", icon="add", on_click=add_craft).props("flat dense")
 
@@ -1123,13 +1096,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             with panel("Essence & Willpower").classes("flex-1"):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.label("Essence").classes("text-sm w-28")
-                    # The dot row runs to whatever AGE permits (p.259's chart), not a
-                    # flat 5 — the same reasoning as the Attribute rows above: a
-                    # ceiling the player cannot click to is a ceiling they cannot use.
-                    # Pre-lock this is always 5, because age cannot be set until lock.
+                    # The dot row runs to the splat's Essence ceiling post-lock (9 for
+                    # an Exalt, 6 for a Dragon King, the Terrestrial-7 held), and stops
+                    # at 5 pre-lock — no character leaves creation with Essence above
+                    # it. A ceiling the player cannot click to is a ceiling they
+                    # cannot use.
                     dots(lambda: character.essence_rating,
                          lambda v: setattr(character, "essence_rating", v),
-                         1, e_caps.essence, target="essence")
+                         1, essence_cap if locked else min(elder.DOT_MAX, essence_cap),
+                         target="essence")
                 # A mortal whose pool is unlocked hits the human ceiling at Essence 3.
                 # The book explains that ceiling in-world rather than mechanically:
                 # "the limit of human potential — mortals that exceed Essence 3 become

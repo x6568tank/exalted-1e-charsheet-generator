@@ -1,41 +1,34 @@
 """
-engine/elder.py — the ONE place age moves a trait ceiling (Player's Guide pp.258-259).
+engine/elder.py — Essence and trait ceilings, and the p.259 downtime calculator.
 
-An elder Exalt is not a splat and not an origin: it is an axis on a character already
-built, the same way Thaumaturgy is a capability layer rather than a character type. All
-it does is raise ceilings, so it is one small calculation with one entry point,
-`elder_caps`, following the containment shape decision 0011 set for Merits & Flaws.
+Human ruling 2026-08-06 (simplifying the shipped elder-age axis): Essence is
+XP-purchasable, and the age-chart gate is gone. What survives of Player's Guide
+pp.258-259:
 
-The rule, in the order it actually resolves (p.258, "Essence and Maximums"):
+  1. ESSENCE is the ceiling on Abilities and Attributes: "Abilities and Attributes
+     may not be raised above the level of the character's permanent Essence through
+     the use of experience points." Read (as ever) as binding only ABOVE 5 — the
+     ceiling is `max(5, Essence)`, so it never lowers the ordinary maximum, it only
+     follows Essence upward past it. `trait_ceiling` is the one read site.
+  2. A splat's permanent Essence is capped by its own `ExaltDefinition.essence_cap`
+     (0 = no printed cap; the six Exalts set 9, the p.258 chart's printed max), and
+     the p.258 Terrestrial-7 hold caps a Terrestrial at 7 without the ST's "outside
+     energies". `essence_cap` is the one read site; a Merit's `essence_cap_override`
+     is applied by `advancement.raise_essence`, which owns the Merit read.
+  3. "Exalted cannot raise their Virtues above 5" — no exception, ever.
 
-  1. AGE alone lets permanent Essence pass 5, per the chart on p.259 — 100 years for
-     Essence 6, 250 for 7, 500 for 8, 1,000 for 9.
-  2. ESSENCE in turn is the ceiling on Abilities and Attributes: "Abilities and
-     Attributes may not be raised above the level of the character's permanent Essence
-     through the use of experience points."
-  3. "Exalted cannot raise their Virtues above 5" — no elder exception, ever.
+The p.259 downtime awards stay, as of 2026-08-01 — a CALCULATOR (`downtime_award`),
+not an enforcement: it totals the annual experience for a stretch of skipped years and
+reports the 4:3:2:1 split the page mandates; granting it and policing how it is spent
+stay the Storyteller's. The chart is keyed on years of Exalted existence, so the
+calculator takes an AGE INPUT — but it is a pure calculator field (human ruling
+2026-08-06); there is no `Character.age` and age gates nothing. Earmarking ledger rows
+by category was considered and rejected (human's call): it would touch every purchase
+in the build to enforce a rule the page itself frames as an injunction to
+Storytellers.
 
-Two rulings from the human (rules authority, 2026-07-31), because the printed text is
-ambiguous and this build never guesses:
-
-  * Rule 2 binds ONLY ABOVE 5. Read literally it would cap an Essence 2 Solar's Melee
-    at 2, which is nonsense at any age — so the ceiling is `max(5, Essence)`, i.e. it
-    never LOWERS the ordinary maximum, it only follows Essence upward past it.
-  * AGE IS NOT A CHARGEN CHOICE. A character may never leave creation with Essence
-    above 5 (see validate's `essence-above-elder-chargen-cap`), so nothing here can
-    bind before the lock. `Character.age` is post-lock-editable and greyed until then.
-
-Training times are the one part of p.258 deliberately absent. The page calculates them
-"using the same formulas as is usual for that Exalt type" and gates the elder ceilings
-behind them; this build does not model the passage of in-game time (CLAUDE.md), so the
-age chart is the whole gate here. That is a known, accepted incompleteness.
-
-The p.259 downtime awards ARE modelled, as of 2026-08-01 — but as a CALCULATOR, not as
-an enforcement (`downtime_award`). It totals the annual experience for a stretch of
-skipped years and reports the 4:3:2:1 split the page mandates; granting it and policing
-how it is spent stay the Storyteller's. Earmarking ledger rows by category was
-considered and rejected (human's call): it would touch every purchase in the build to
-enforce a rule the page itself frames as an injunction to Storytellers.
+Training times are the one part of p.258 deliberately absent, unchanged from before:
+this build does not model the passage of in-game time (CLAUDE.md).
 """
 
 from __future__ import annotations
@@ -45,20 +38,16 @@ from dataclasses import dataclass
 from ..models.character import Character
 from ..models.rules import RuleSet
 
-# The ordinary ceiling on any rated trait, and the floor under every elder ceiling —
+# The ordinary ceiling on any rated trait, and the floor under every higher ceiling —
 # `_DOT_MAX` in engine.advancement, which is where the rest of the build reads it.
 DOT_MAX = 5
 
-# p.259's chart, richest row first so the first match wins. "Age" is years of EXALTED
-# existence, not years lived. The printed max for 1,000 years is "9+"; it ships as a
-# flat 9 because the build never invents a number the page does not give, and the "+"
-# names no value. A character who should exceed it is the Storyteller's business.
-_AGE_TABLE: tuple[tuple[int, int], ...] = (
-    (1000, 9),
-    (500, 8),
-    (250, 7),
-    (100, 6),
-)
+# The flat permanent-Essence ceiling for a splat with no printed cap (`essence_cap`
+# 0 in the data). This is the p.258 chart's printed max ("9+" for 1,000 years) taken
+# as a flat number once the age chart is gone — the build never invents a value the
+# page does not give, and a character who should exceed it is the Storyteller's
+# business. The six Exalts set `essence_cap` to this.
+_ESSENCE_MAX = 9
 
 # The third column of the SAME p.259 chart: experience per year of downtime, by the age
 # band the character is in. It falls as the character ages — an old Exalt learns less
@@ -95,42 +84,31 @@ _TERRESTRIAL_CAP = 7
 _TERRESTRIAL_TIER = "Terrestrial"
 
 
-@dataclass(frozen=True)
-class ElderCaps:
-    """What age has unlocked for one character. Both fields are floored at `DOT_MAX`,
-    so a young character gets the ordinary ceilings and no caller needs to special-case
-    the elder rules out."""
-
-    # Ceiling on permanent Essence from AGE alone. Splat and Merit ceilings are
-    # narrower and are applied by the caller (engine.advancement.raise_essence), which
-    # already owns both — this object must not duplicate that logic.
-    essence: int
-
-    # Ceiling on any one Ability or Attribute: `max(5, permanent Essence)`. Reads the
-    # character's CURRENT Essence, not `essence`, because it is the rating actually
-    # bought that lifts traits, not the rating age would permit.
-    trait: int
-
-    # True when `essence` is the Terrestrial 7 holding the character below what age
-    # alone would have allowed — the one case where the ST can lift the ceiling by
-    # granting HouseRules.terrestrial_essence_transcendence. Exists so the error the
-    # player sees names the rule that actually stopped them, rather than their age.
-    terrestrial_limited: bool = False
-
-    @property
-    def is_elder(self) -> bool:
-        """True once age has moved anything — the UI's cue to show the elder ceilings
-        at all, so an ordinary character's sheet is unchanged."""
-        return self.essence > DOT_MAX or self.trait > DOT_MAX
+def trait_ceiling(character: Character) -> int:
+    """Ceiling on any one Ability or Attribute: `max(5, permanent Essence)` (p.258
+    "Essence and Maximums", read as binding only above 5). Reads the character's
+    CURRENT Essence, so a splat that can raise Essence past 5 — every Exalt to 9, a
+    Dragon King to 6 — lifts its traits the same way. The one read site; every raise
+    and every dot-track ceiling goes through it."""
+    return max(DOT_MAX, character.essence_rating)
 
 
-def essence_cap_for_age(age: int) -> int:
-    """The p.259 chart: years of Exalted existence → the highest permanent Essence age
-    permits. `DOT_MAX` below 100 years, which is every ordinary character."""
-    for years, cap in _AGE_TABLE:
-        if age >= years:
-            return cap
-    return DOT_MAX
+def essence_cap(ruleset: RuleSet, character: Character) -> tuple[int, bool]:
+    """`(cap, terrestrial_limited)` — the permanent-Essence ceiling for the whole of
+    the character's life: the splat's `ExaltDefinition.essence_cap` (0 = no printed
+    cap, so `_ESSENCE_MAX`), then the p.258 Terrestrial-7 hold — "Terrestrial Exalts
+    may never raise their permanent Essence above 7 without outside energies" — unless
+    the ST lifts it via `HouseRules.terrestrial_essence_transcendence`. `terrestrial_
+    limited` is True exactly when that hold is the binding constraint, so the error the
+    player sees can name the rule that stopped them. A Merit's `essence_cap_override`
+    is applied by the caller (advancement.raise_essence), which owns the Merit read."""
+    ex = ruleset.exalt_for(character.exalt_type)
+    cap = ex.essence_cap or _ESSENCE_MAX
+    if ex.tier == _TERRESTRIAL_TIER:
+        hr = character.house_rules
+        if not (hr and hr.terrestrial_essence_transcendence) and cap > _TERRESTRIAL_CAP:
+            return _TERRESTRIAL_CAP, True
+    return cap, False
 
 
 @dataclass(frozen=True)
@@ -222,24 +200,3 @@ def downtime_award(from_age: int, years: int) -> DowntimeAward:
             bands.append(DowntimeBand(age, age, rate, 1))
     return DowntimeAward(from_age=from_age, to_age=from_age + years, total=total,
                          bands=tuple(bands), split=split_downtime_experience(total))
-
-
-def elder_caps(ruleset: RuleSet, character: Character) -> ElderCaps:
-    """The one entry point. Safe on any character: age 0 returns the ordinary 5/5."""
-    essence = essence_cap_for_age(character.age)
-    terrestrial_limited = False
-
-    # The Terrestrial clause. Applied after the age chart rather than inside it because
-    # it is a ceiling on the RESULT — a 1,000-year-old Dragon-Blood is held at 7, not
-    # advanced to 9 and then clipped by a different rule elsewhere.
-    if ruleset.exalt_for(character.exalt_type).tier == _TERRESTRIAL_TIER:
-        hr = character.house_rules
-        if not (hr and hr.terrestrial_essence_transcendence) and essence > _TERRESTRIAL_CAP:
-            essence = _TERRESTRIAL_CAP
-            terrestrial_limited = True
-
-    return ElderCaps(
-        essence=essence,
-        trait=max(DOT_MAX, character.essence_rating),
-        terrestrial_limited=terrestrial_limited,
-    )

@@ -56,7 +56,7 @@ clicked through in a browser. Per-splat detail lives in the **Status** table bel
 | Mortals + Heroic Mortals | `images/Mortals/Mortals & Heroic Mortals/` | **DONE 2026-07-30**, browser-verified 2026-08-01 — one splat, two origins (the `heroic`/`ordinary` axis); no Charms, Essence pinned at 1, magic via M&F. `docs/status/mortals.md` |
 | Ghosts | `images/Non-Exalts/Ghosts/` | **DONE 2026-08-01**, browser-verified same day — Virtue-keyed Arcanoi, Fetters + Passions, two chargen axes, Terrestrial MA + Fighter in Life. `docs/status/ghosts.md` |
 | Godblooded | `images/Non-Exalts/Godblooded/` | **DONE 2026-08-02** — Ghost-Blooded + Half-Caste (parent-Exalt origin axis, heritage Charm bars, Inheritance→BP pool) + Fae-Blooded (no Charms, no spells, `Ess×8`, Noble/Commoner origin, 23 glamour Merits), all browser-verified. `docs/status/godblooded.md` |
-| Dragon-Kings | `images/Mortals/Dragon Kings/` | **DONE 2026-08-05** — modern/ancient origins; the ten Paths of Prehuman Mastery (a rated subsystem, 60 powers); four Breeds; single Essence pool; Essence-gated trait ceilings; Terrestrial sorcery. `docs/status/dragon-kings.md` |
+| Dragon-Kings | `images/Mortals/Dragon Kings/` | **DONE 2026-08-05** — modern/ancient origins; the ten Paths of Prehuman Mastery (a rated subsystem, 60 powers); four Breeds; single Essence pool; Essence-gated trait ceilings; Terrestrial sorcery. **2026-08-06:** breed attribute modifiers are free ON TOP of a stored 5 (effective may pass 5 at 0 BP); stored past 5 is the BP/XP gate. `docs/status/dragon-kings.md` |
 | Mountain Folk | — | NOT STARTED — blocked on source material |
 | ~~Fair Folk / Fae~~ | — | **NEVER — permanently out of scope** (decision 0010) |
 
@@ -174,15 +174,11 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1,972 passing, 1 known failure)
+## Status (1,966 passing)
 
-⚠ The count is 1,972 PASSING with ONE KNOWN FAILURE —
-`tests/test_merits_flaws.py::test_every_description_matches_the_source_text` (M&F
-descriptions shorter than their source text, mostly the Godblooded/Fae-Blooded
-entries). It is pre-existing on `main` (1,963) and `deepseek-experiment` (1,965 at
-the Dragon-Kings landing), NOT caused by recent work, and not yet fixed — fixing it
-means re-transcribing M&F descriptions from source pages, which is the human's call.
-Do not count the suite as green while it fails.
+The suite is green: **1,966 passing**. (The earlier "1 known failure" M&F
+description test — `test_every_description_matches_the_source_text` — passes as of
+2026-08-06; the note was stale.)
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -215,16 +211,17 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
 | **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages — God/Demon-Blooded pending, see Blocked) | `docs/status/godblooded.md` |
 | **Dragon-Kings — DONE, browser-verified** (9th splat, 4th non-Exalt; the ten Paths of Prehuman Mastery as a rated subsystem, four Breeds, single Essence pool, Essence-gated trait ceilings, Terrestrial sorcery) | `docs/status/dragon-kings.md` |
-| **Elder Exalts — DONE, browser-verified** (age → Essence → trait ceilings; an axis, not a splat; post-lock only; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
+| **Elder Exalts — DONE, browser-verified** (simplified 2026-08-06: Essence XP-purchasable to the splat cap — 9 flat, Terrestrial-7 held; trait ceilings follow Essence; age chart removed; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 | **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
 **State of the world:** the foundation (models, persistence, engine, UI) is done
 (`engine-and-ui.md`); every shipped splat's data, engine and UI is browser-verified.
 1,470 Charms across the six Exalt splats, plus 56 ghost Arcanoi (`data-and-tooling.md`).
 Thaumaturgy and custom content shipped 2026-07-29, Merits & Flaws 2026-07-30, the
-Edit⇄XP merge and Advantages tab 2026-07-31, Elder Exalts 2026-07-31, Ghosts and the
-GM-mode adversary roster 2026-08-01, Godblooded 2026-08-02, **Dragon-Kings
-2026-08-05** (the ten Paths of Prehuman Mastery) — all browser-verified.
+Edit⇄XP merge and Advantages tab 2026-07-31, Elder Exalts 2026-07-31 (**simplified
+2026-08-06** — Essence XP-purchasable, age chart removed), Ghosts and the GM-mode
+adversary roster 2026-08-01, Godblooded 2026-08-02, **Dragon-Kings 2026-08-05** (the ten
+Paths of Prehuman Mastery) — all browser-verified.
 **Rated artifacts browser-verified 2026-08-05** — the one open wish from the click-through
 is a **drop-down of the artifact catalogue** on the standalone-artifact rows, which is
 blocked on authoring that catalogue (artifacts are currently free text, like
@@ -260,10 +257,10 @@ not a gap to close:
   the point costs move.
 - Death's Taint's Harrowing, the story requirement attached to shedding permanent
   Resonance, is the same class of rule.
-- The **elder-Exalt** ceilings (PG p.258) are gated on training time as well as age; only
-  the age chart shipped, so an elder raise is cheaper in table-time than printed. Same
-  page's annual downtime XP awards are out for the same reason —
-  `docs/status/elder-exalts.md`.
+- The **elder-Exalt** ceilings (PG p.258) are gated on training time; only the XP cost
+  shipped, so an elder raise is cheaper in table-time than printed. (The age chart that
+  used to be the other half of that gate is GONE — 2026-08-06, Essence is XP-purchasable
+  — see `docs/status/elder-exalts.md`.)
 
 The reasoning is the tracker's, and it generalises: this build is a **character builder
 and validator**, not a chronicle simulator. Anything that needs the passage of in-game
@@ -283,11 +280,11 @@ Kings/Mountain Folk are the easiest, let me get the pages"); they land in
 `add-splat` skill. The two hooks that waited on Dragon-Kings/God-Blooded are DONE
 2026-08-05: PG p.114's "mortals that exceed Essence 3 become gods" ships as a UI note
 at the Essence-3 ceiling (the cap stays enforced; the clause is display-only — human
-ruling 2026-08-05), and Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" rate
-is authored. The one sibling still open is the **Weak Essence DK exception** — see
-`docs/status/merits-flaws.md`. The splat is scattered across books — the human curates
-the source, never author from memory. (Dragon-Kings: DONE 2026-08-05, browser-verified
-— `docs/status/dragon-kings.md`.)
+ruling 2026-08-05), Prodigy's "2- OR 4-PT. FOR DRAGON KINGS OR GOD-BLOODED" rate is
+authored, and the **Weak Essence DK exception is DONE 2026-08-06 as a bar** (Dragon
+Kings cannot take the Flaw — see `docs/status/merits-flaws.md`). The splat is
+scattered across books — the human curates the source, never author from memory.
+(Dragon-Kings: DONE 2026-08-05, browser-verified — `docs/status/dragon-kings.md`.)
 
 Everything that was waiting on the human's eyes is clicked through (rated artifacts and
 the Advantages-tab Background descriptions, both 2026-08-05). Below, the newest shipped
@@ -379,13 +376,14 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
   Dragon Paths are Celestial, and the catalogue had both exactly backwards — fixed in
   the data; don't re-break it.
 * **Elder Exalts** (`docs/status/elder-exalts.md`) — not a splat, an axis: one module
-  (`engine/elder.py`), one entry point. PG pp.258-259: age raises Essence past 5
-  (100/6, 250/7, 500/8, 1,000/9), Essence in turn raises traits past 5, Terrestrials
-  held at 7 without an ST toggle. **`Character.age` is post-lock only** — a character
-  may never leave creation with Essence above 5. The p.259 downtime awards shipped as a
-  *calculator that grants*; **the age box lives in that dialog, not in Identity** (a
-  test asserts "Exalted years" is absent from the editor page). Enforcing the 4:3:2:1
-  split was rejected.
+  (`engine/elder.py`), one entry point. PG pp.258-259, **simplified 2026-08-06**: Essence
+  is **XP-purchasable** to the splat's ceiling (0 → a flat **9**, the chart's max;
+  Terrestrials held at **7** without an ST toggle), and Essence in turn raises traits
+  past 5 (`elder.trait_ceiling`). **The age chart and `Character.age` are GONE** — no
+  character may leave creation with Essence above 5 (`essence-above-elder-chargen-cap`).
+  The p.259 downtime awards shipped as a *calculator that grants*, whose "Exalted years"
+  input is a calculator-local field, not a trait. Enforcing the 4:3:2:1 split was
+  rejected.
 * **The Edit⇄XP merge** (`docs/status/edit-xp-merge.md`, decision 0013) — there is **no
   XP tab**; `ui/xp.py` is deleted. One trait surface on both sides of the lock: the dot
   tracks are free setters pre-lock and XP steppers post-lock, and a downward click opens
@@ -416,9 +414,9 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
   across different books (human, 2026-07-29). **UP NEXT as of 2026-08-05** — the human
   called it the easiest and is gathering its pages; they land in
   `images/Mortals/Mountain Folk/`. See START HERE. The Dragon-Kings-era Merit hooks
-  are DONE 2026-08-05 (Prodigy's DK/God-Blooded rate; the PG p.114 mortal-god UI note);
-  the one sibling still open is the **Weak Essence DK exception** —
-  `docs/status/merits-flaws.md`. (Dragon-Kings itself: DONE 2026-08-05.)
+  are all DONE: Prodigy's DK/God-Blooded rate and the PG p.114 mortal-god UI note
+  (2026-08-05), and the **Weak Essence DK bar** (2026-08-06). (Dragon-Kings itself:
+  DONE 2026-08-05.)
 * **God/Demon-Blooded** — the last two Godblooded heritages. The spirit-Charm catalogue
   they draw from is scattered across **six books** — Storyteller's Companion, the
   corebook, Lunars, the Player's Guide, Ruin of Rathess, Games of Divinity (human's

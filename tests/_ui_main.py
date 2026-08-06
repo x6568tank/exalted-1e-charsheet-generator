@@ -140,6 +140,20 @@ def page_dksheet():
 def page_dkpicker():
     picker.build_picker(RS, CHAR_DK, Path("x.json"), with_header=True)
 
+# (h2b) a modern Dragon-King exercising the p.175 effective-over-5 attribute cap: a
+# free stored Dexterity 5 on the Pterok's +2 breed reads as an effective 7 on the
+# sheet (the breed bonus stacks on top; only the STORED value past 5 is BP/XP-gated).
+CHAR_DK_BIG = Character(id="dkbig", name="Pterok Seer", exalt_type="Dragon-Kings",
+                        caste="pterok", essence_rating=2)
+CHAR_DK_BIG.virtues.update({"conviction": 3, "valor": 2, "compassion": 2, "temperance": 2})
+CHAR_DK_BIG.favored_abilities = [AbilityName.MELEE, AbilityName.DODGE, AbilityName.SURVIVAL]
+CHAR_DK_BIG.favored_path = "dk.solid-earth"
+CHAR_DK_BIG.attributes[AttributeName.DEXTERITY] = 5
+
+@ui.page('/dksheet-big')
+def page_dksheet_big():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_DK_BIG))
+
 # (i) an in-play (locked) Solar with XP in hand — the Charms and Combos tabs switch
 # from picking to BUYING once chargen locks, so these pages exercise that mode.
 CHAR_INPLAY = Character(id="ip", name="Veteran Solar", caste="dawn")
@@ -1069,15 +1083,14 @@ def page_editor_locked_odd():
     editor.build_editor(RS, CHAR_ODD_LOCKED, Path("x.json"), with_header=False)
 
 
-# Elder Exalts (Player's Guide pp.258-259): the first characters in the build whose
-# Essence, Abilities and Attributes legally sit above 5. Three shapes, because the dot
-# tracks are BUILT from the ceilings and a too-high value has to render as well as a
-# too-high ceiling: a Celestial past 5 on every track, a Terrestrial held at the tier's
-# 7, and the sheet's read-only view of the same character.
+# Essence and trait ceilings (Player's Guide pp.258-259): the first characters in the
+# build whose Essence, Abilities and Attributes legally sit above 5. Three shapes,
+# because the dot tracks are BUILT from the ceilings and a too-high value has to render
+# as well as a too-high ceiling: a Celestial past 5 on every track, a Terrestrial held
+# at the tier's 7, and the sheet's read-only view of the same character.
 CHAR_ELDER = Character(id="eld", name="Elder Solar", caste="dawn")
 lifecycle.lock_chargen(CHAR_ELDER, RS)
 CHAR_ELDER.xp_earned = 500
-CHAR_ELDER.age = 1000
 CHAR_ELDER.essence_rating = 8
 CHAR_ELDER.abilities[AbilityName.MELEE] = 7
 
@@ -1093,7 +1106,6 @@ CHAR_ELDER_DB = Character(id="elddb", name="Elder Dragon", exalt_type="Dragon-Bl
                           caste="fire", origin="dynastic")
 lifecycle.lock_chargen(CHAR_ELDER_DB, RS)
 CHAR_ELDER_DB.xp_earned = 500
-CHAR_ELDER_DB.age = 1000
 CHAR_ELDER_DB.essence_rating = 7
 
 @ui.page('/editor-elder-terrestrial')
@@ -1101,12 +1113,12 @@ def page_editor_elder_terrestrial():
     editor.build_editor(RS, CHAR_ELDER_DB, Path("x.json"), with_header=False)
 
 
-# The p.259 downtime calculator, on its OWN character: the Grant button mutates age and
-# xp_earned, and a route that shares CHAR_ELDER would leak that into every other elder
-# test. Age 90 so the preview has to cross the 100-year band boundary.
+# The p.259 downtime calculator, on its OWN character: the Grant button mutates the
+# calculator's local age and the character's xp_earned, and a route that shares
+# CHAR_ELDER would leak that into every other elder test. The start-age is typed in
+# by the test (it is a calculator input, not a trait).
 CHAR_DOWNTIME = Character(id="dwn", name="Sleeper", caste="dawn")
 lifecycle.lock_chargen(CHAR_DOWNTIME, RS)
-CHAR_DOWNTIME.age = 90
 
 @ui.page('/editor-downtime')
 def page_editor_downtime():
@@ -1114,10 +1126,9 @@ def page_editor_downtime():
 
 # The read-only half of the same panel, on its own character and route: a route builds
 # once per session, so the test that GRANTS must not share one with the test that only
-# looks. Age 240 so the preview crosses 250 and prints two bands.
+# looks. The start-age is typed in by the test.
 CHAR_DOWNTIME_VIEW = Character(id="dwnv", name="Dreamer", caste="dawn")
 lifecycle.lock_chargen(CHAR_DOWNTIME_VIEW, RS)
-CHAR_DOWNTIME_VIEW.age = 240
 
 @ui.page('/editor-downtime-view')
 def page_editor_downtime_view():

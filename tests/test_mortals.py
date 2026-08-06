@@ -152,8 +152,8 @@ def test_essence_is_pinned_at_one_through_chargen_and_xp(rs):
     advancement.add_xp(c, 100)
     with pytest.raises(advancement.AdvancementError, match="cannot raise Essence"):
         advancement.raise_essence(rs, c)
-    # an Exalt is untouched by the cap
-    assert rs.exalt_for("Solar").essence_cap == 0
+    # an Exalt is untouched by the mortal cap — their ceiling is the flat 9, not 1
+    assert rs.exalt_for("Solar").essence_cap == 9
 
 
 def test_a_mortal_has_no_essence_pool(rs):
