@@ -7,10 +7,11 @@ asserted one per keyed-table row, because a keyed row that does not exist falls 
 silently at another splat's prices — `adding-a-splat.md` trap #2.
 
 Human rulings baked in (2026-08-05): each breed auto-favours its two element Paths
-plus one player-chosen Path from the other eight; breed attribute bonuses are free
-dots capped at an effective total of 5 unless BP/XP spent; DK Combos work (the
-virtual-Charm bridge); the Intelligence cap by Essence IS modelled; Essence 6 raises
-Abilities (via elder.trait_ceiling) and Virtues (DK-only table) to 6.
+plus one player-chosen Path from the other eight; DK Combos work (the virtual-Charm
+bridge); the Intelligence cap by Essence IS modelled; Essence 6 raises Abilities (via
+elder.trait_ceiling) and Virtues (DK-only table) to 6. **2026-08-06:** breed attribute
+modifiers are free ON TOP of a stored 5 (the effective total may pass 5 at 0 BP); the
+stored-5 ceiling and the BP/XP gate above it are the whole attribute rule.
 """
 
 from pathlib import Path

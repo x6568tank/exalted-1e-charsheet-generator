@@ -779,8 +779,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # The permanent-Essence ceiling (splat cap, Terrestrial-7 held) — post-lock
         # the Essence track and the trait ceilings run to it; pre-lock both stop at 5
         # (no character leaves creation with Essence above it). The trait ceiling is
-        # max(5, Essence), the same p.258 rule the raises read.
+        # max(5, Essence), the same p.258 rule the raises read. A Merit can raise the
+        # ceiling — Essence Mastery takes a mortal to 3, Awakened Essence a
+        # God-Blooded — so the override is applied HERE, mirroring the order in
+        # advancement.raise_essence, or the dot row would cap below what the raise
+        # permits and the pip could not be bought at all.
         essence_cap, _ = elder.essence_cap(ruleset, character)
+        if mf_effects.essence_cap_override is not None:
+            essence_cap = mf_effects.essence_cap_override
         trait_cap = elder.trait_ceiling(character)
 
         def _attr_cap(a) -> int:
@@ -1117,8 +1123,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 # 1 and must not be blamed on the god-transition clause. Read off the
                 # calc so no Merit id is named here.
                 if character.exalt_type == "Mortal":
-                    mf = merits.merits_and_flaws_calc(ruleset, character)
-                    cap = mf.essence_cap_override
+                    cap = mf_effects.essence_cap_override
                     if cap is not None and character.essence_rating >= cap:
                         ui.label("the limit of human potential — mortals that exceed "
                                  "Essence 3 become gods (PG p.114)"

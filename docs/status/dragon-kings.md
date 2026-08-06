@@ -145,7 +145,7 @@ they simply don't display a permanent "required" indicator once satisfied.
 
 ## Verification
 
-* **Test count**: **1,966 passing** (the earlier "1 known failure" M&F description
+* **Test count**: **1,969 passing** (the earlier "1 known failure" M&F description
   note is stale — that test passes as of 2026-08-06). Includes
   `tests/test_dragonkings.py` (39 tests: every keyed-row number, the buy-path gates,
   the Combos bridge, the derivations, the artifact budget, the effective-over-5

@@ -174,9 +174,9 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1,966 passing)
+## Status (1,969 passing)
 
-The suite is green: **1,966 passing**. (The earlier "1 known failure" M&F
+The suite is green: **1,969 passing**. (The earlier "1 known failure" M&F
 description test — `test_every_description_matches_the_source_text` — passes as of
 2026-08-06; the note was stale.)
 

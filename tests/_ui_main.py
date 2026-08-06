@@ -632,6 +632,41 @@ CHAR_MERITS.merits_flaws = [
 def page_merits():
     advantages.build_advantages(RS, CHAR_MERITS, Path("x.json"), with_header=False)
 
+# The Essence dot row's Merit-override pips (2026-08-06 regression fix): post-lock the
+# row is capped by the splat ceiling UNLESS the calc's essence_cap_override lifts it —
+# Essence Mastery on a mortal (p.114), Awakened Essence on a God-Blooded. Three shapes:
+# a mortal with the Merit (3 pips), a God-Blooded with it (3 pips), and a plain locked
+# mortal (still 1 pip, so the override is not leaking into the ordinary case).
+CHAR_MORTAL_ESS = Character(id="me", name="Seer", exalt_type="Mortal", caste="",
+                            origin="heroic", essence_rating=1)
+CHAR_MORTAL_ESS.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-mastery")]
+lifecycle.lock_chargen(CHAR_MORTAL_ESS, RS)
+CHAR_MORTAL_ESS.xp_earned = 200
+
+CHAR_GB_AWAKENED = Character(id="ga", name="Awakened", exalt_type="God-Blooded",
+                             caste="ghost-blooded", essence_rating=1)
+CHAR_GB_AWAKENED.virtues = {VirtueName.COMPASSION: 2, VirtueName.CONVICTION: 3,
+                            VirtueName.TEMPERANCE: 2, VirtueName.VALOR: 2}
+CHAR_GB_AWAKENED.merits_flaws = [MeritFlawPurchase(merit_id="mf.awakened-essence")]
+lifecycle.lock_chargen(CHAR_GB_AWAKENED, RS)
+CHAR_GB_AWAKENED.xp_earned = 200
+
+CHAR_MORTAL_PLAIN = Character(id="mp", name="Plain", exalt_type="Mortal", caste="",
+                              origin="heroic", essence_rating=1)
+lifecycle.lock_chargen(CHAR_MORTAL_PLAIN, RS)
+
+@ui.page('/essence-cap-mortal')
+def page_essence_cap_mortal():
+    editor.build_editor(RS, CHAR_MORTAL_ESS, Path("x.json"), with_header=False)
+
+@ui.page('/essence-cap-gb')
+def page_essence_cap_gb():
+    editor.build_editor(RS, CHAR_GB_AWAKENED, Path("x.json"), with_header=False)
+
+@ui.page('/essence-cap-plain')
+def page_essence_cap_plain():
+    editor.build_editor(RS, CHAR_MORTAL_PLAIN, Path("x.json"), with_header=False)
+
 # The OTHER mortal picker shape: a mortal whose Merits reopen part of the Charm bar.
 # `/mortalpicker` proves the pages vanish when there is nothing to show; these two
 # prove they come BACK — Martial Arts and Spells both, unlocked and locked. The

@@ -75,7 +75,7 @@ deliberately, and `raise_college` says so at the site.
 
 ## Verification
 
-1,966 tests pass. `tests/test_elder.py` covers both ceilings, the Terrestrial clause and
+1,969 tests pass. `tests/test_elder.py` covers both ceilings, the Terrestrial clause and
 its toggle, the chargen bar, the "low Essence never lowers 5" ruling, and the downtime
 calculator — all through `advancement.raise_to`, **the buy path**, not the per-dot
 `raise_*` alone.
@@ -123,3 +123,15 @@ later grant is priced from where the last one ended.
 
 The grant is **not a ledger row** — this build logs *purchases*, not grants (Adjust XP
 does not log either). It moves `xp_earned` and reports what it did.
+
+## The Essence dot-row override bug (found 2026-08-06, another session)
+
+A regression from the 2026-08-06 simplification itself: the editor's Essence dot row was
+built from `elder.essence_cap` alone, so a **mortal with Essence Mastery** and a
+**God-Blooded with Awakened Essence** got a one-pip row and could not spend XP on
+Essence at all — `raise_essence` honoured the `essence_cap_override`, the dot row did
+not. The engine was never wrong; the UI gate was. Fixed by applying the override to the
+row's ceiling in the same order `raise_essence` does, with three render tests through
+the NiceGUI harness (mortal 3 pips, God-Blooded 3 pips, plain mortal still 1 pip). The
+lesson is the buy-path one: a green `raise_essence` test cannot see a UI gate that
+caps below what the engine permits.

@@ -236,6 +236,66 @@ def test_essence_rebuilds_the_whole_editor_body():
 
 
 # --------------------------------------------------------------------------- #
+# The Merit override on the Essence dot row (2026-08-06 regression fix)
+# --------------------------------------------------------------------------- #
+# The dot row's `hi` is the splat ceiling UNLESS the calc's essence_cap_override lifts
+# it — Essence Mastery on a mortal (p.114), Awakened Essence on a God-Blooded. The buy
+# path is the UI gate here: raise_essence already honours the override, so a row that
+# omits it strands the player with one pip and no way to spend the XP. Count the row's
+# pip icons through the harness rather than asserting the engine (which never regressed).
+
+def _essence_pips(user) -> int:
+    """The number of pip icons under the editor's Essence row — the `top` the dot track
+    drew, i.e. the highest rating the row offers."""
+    from nicegui import ui
+
+    ess = next(e for e in user.client.elements.values()
+               if isinstance(e, ui.label) and getattr(e, "text", "") == "Essence")
+    row = getattr(getattr(ess, "parent_slot", None), "parent", None)
+    assert row is not None, "the Essence row did not render"
+    icons = [e for e in user.client.elements.values()
+             if isinstance(e, ui.icon) and _descends_from(e, row)]
+    return len(icons)
+
+
+def _descends_from(el, ancestor) -> bool:
+    cur = el
+    while cur is not None:
+        if cur is ancestor:
+            return True
+        slot = getattr(cur, "parent_slot", None)
+        cur = getattr(slot, "parent", None) if slot is not None else None
+    return False
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_mortal_with_essence_mastery_gets_three_essence_pips(user) -> None:
+    """Essence Mastery (p.114) lifts a mortal's Essence ceiling to 3; the dot row must
+    offer 3 pips post-lock or the player cannot buy Essence 2/3 at all."""
+    await user.open('/essence-cap-mortal')
+    assert _essence_pips(user) == 3
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_godblooded_with_awakened_essence_gets_three_essence_pips(user) -> None:
+    """Same override through the other Merit: Awakened Essence lifts a God-Blooded's
+    ceiling to 3."""
+    await user.open('/essence-cap-gb')
+    assert _essence_pips(user) == 3
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_plain_locked_mortal_stays_at_one_essence_pip(user) -> None:
+    """The ordinary case must not leak the override: a mortal without the Merit keeps a
+    single pip, so the one-Merit rows are the ones with the extra pips."""
+    await user.open('/essence-cap-plain')
+    assert _essence_pips(user) == 1
+
+
+# --------------------------------------------------------------------------- #
 # The p.259 downtime awards (2026-08-01)
 # --------------------------------------------------------------------------- #
 # A CALCULATOR, not an enforcement. These pin the arithmetic and the two rulings the
