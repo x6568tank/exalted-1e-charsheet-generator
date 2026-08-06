@@ -163,7 +163,11 @@ they simply don't display a permanent "required" indicator once satisfied.
   correction was re-verified in a browser — and then corrected AGAIN the same day**:
   the first pass had a locked Pterok buy stored Dexterity 5 (effective 7) at 0 BP,
   which the same-day reverse of ruling #2 (effective past 5 is BP-bought at the
-  attribute rate) made wrong; the corrected build charges that build 8 BP. A
+  attribute rate) made wrong; the corrected build charges that build 8 BP. **The
+  reversed rule was itself clicked through on 2026-08-06**: a friend's Anklok
+  (stored Strength 5 / Stamina 4, effective 7/6) — the very build that surfaced the
+  misunderstanding — now reads **12 BP on Attributes** (8 + 4) with a 13/15 total,
+  and the sheet still draws the effective 7/6. A
   Dragon-Blooded at Essence 7 was still held there until the ST Options "Terrestrial
   may pass Essence 7" toggle lifted the ceiling to 9. **The Artifact
   `artifact-two-flagships` finding is RESOLVED 2026-08-05.** The engine was never

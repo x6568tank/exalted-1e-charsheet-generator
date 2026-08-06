@@ -221,7 +221,9 @@ Thaumaturgy and custom content shipped 2026-07-29, Merits & Flaws 2026-07-30, th
 Edit⇄XP merge and Advantages tab 2026-07-31, Elder Exalts 2026-07-31 (**simplified
 2026-08-06** — Essence XP-purchasable, age chart removed), Ghosts and the GM-mode
 adversary roster 2026-08-01, Godblooded 2026-08-02, **Dragon-Kings 2026-08-05** (the ten
-Paths of Prehuman Mastery) — all browser-verified.
+Paths of Prehuman Mastery) — all browser-verified. **2026-08-06:** the Dragon-Kings
+breed-attribute BP ruling was corrected (effective past 5 is BP-bought at the attribute
+rate, not free) and re-verified.
 **Rated artifacts browser-verified 2026-08-05** — the one open wish from the click-through
 is a **drop-down of the artifact catalogue** on the standalone-artifact rows, which is
 blocked on authoring that catalogue (artifacts are currently free text, like
@@ -353,6 +355,14 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
 `preflight` skill before booking browser time.**
 
 ### Recently shipped, newest first — the traps to remember
+* **Dragon-Kings breed attributes** (`docs/status/dragon-kings.md`) — breed attribute
+  bonuses are free dots ON TOP of the stored value, but each EFFECTIVE dot above 5 is
+  BP-bought at the attribute rate (PG p.175). A same-day ruling that made the effective
+  excess "free past 5" was the OPPOSITE of the human's intention — the friend's Anklok
+  at effective 7/6 with 0 BP surfaced it, and it was reversed in `bonus_point_breakdown`
+  the same day. **Trap: a "free" ruling that contradicts the book's price language
+  ("without spending bonus or experience points") needs the human's intent confirmed
+  before authoring — a mistaken "free" ships as a silent under-charge.**
 * **The adversary roster** (`docs/status/adversary-roster.md`) — GM-mode extras/beasts/
   NPCs, 49 generic templates. **An `Adversary` is NOT a `Character` and must never
   become one** — a test asserts it. Named individuals are excluded, except four Exalt
