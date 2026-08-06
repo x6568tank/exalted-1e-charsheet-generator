@@ -107,11 +107,12 @@ they simply don't display a permanent "required" indicator once satisfied.
 
 ## Open / soft items
 
-* **Breed attribute bonuses are enforced but not yet DISPLAYED** — the editor and
-  sheet show the stored attribute value, not the "+2 breed" effective total, so a
-  Pterok's Dexterity 3 reads as 3 rather than "3 (+2) = 5". The cap is validated
-  (effective ≤ 5), but the bonus is invisible on the sheet. Confirm in the
-  click-through whether to surface it.
+* **Innate-weapon stats: DONE 2026-08-05.** `BreedTraits.innate_weapons` is now a
+  list of `InnateWeapon` rows carrying the printed Spd/Acc/Dmg/Def (PG pp.167-174,
+  transcribed after the pages landed in `images/Non-Exalts/Dragon Kings/`); the
+  sheet renders an **Innate Weapons** section beside the breed's attribute bonuses,
+  display-only per decision 0008. The breed's innate soak and health levels were
+  already in `data/`.
 * Ancient "Linguistics (Old Realm)" — the language has no trait in the model, so the
   floor is a soft note on Linguistics; no language trait.
 * The p.192 half-Path-dots→spells conversion ("buy sorcery with bonus points… up to
@@ -132,15 +133,27 @@ they simply don't display a permanent "required" indicator once satisfied.
 
 ## Verification
 
-* **Test count**: **1,964 passing** (was 1,934 → +30), including
-  `tests/test_dragonkings.py` (30 tests: every keyed-row number, the buy-path gates,
-  the Combos bridge, the derivations, the artifact budget, and two render smokes
+* **Test count**: **1,968 passing** — the landing claimed 1,934 → +30 = 1,964,
+  which was never the real number (main had 1,963; this branch 1,965). The suite
+  also has ONE KNOWN FAILURE, `test_every_description_matches_the_source_text` — a
+  pre-existing M&F description shortfall (mostly Godblooded/Fae-Blooded entries),
+  unrelated to this splat and not fixed here; see CLAUDE.md. Includes
+  `tests/test_dragonkings.py` (32 tests: every keyed-row number, the buy-path gates,
+  the Combos bridge, the derivations, the artifact budget, and render smokes
   through the NiceGUI harness). Charm linter clean for `dragon-kings`.
 * **Browser click-through**: DONE 2026-08-05 for most surfaces (Paths page, breeds,
-  backgrounds, Combos, sorcery, sheet sections). **One finding is UNRESOLVED and
-  needs a re-check:** the Artifact `artifact-two-flagships` enforcement — the engine
-  flags Artifact 2 + two 2-dot artifacts (verified by a direct test), but the human's
-  browser did not show it, almost certainly because the server was stale mid-restart.
-  Re-verify in a browser before calling this splat fully closed. The other click
-  findings (Path-description wrap, breed-bonus display, ancient floors, artifact
-  combined/per-item caps) are fixed and confirmed.
+  backgrounds, Combos, sorcery, sheet sections). The other click findings
+  (Path-description wrap, breed-bonus display, ancient floors, artifact
+  combined/per-item caps) are fixed and confirmed. **The Artifact
+  `artifact-two-flagships` finding is RESOLVED 2026-08-05.** The engine was never
+  wrong: the first click-through missed it because the server was stale mid-restart,
+  and the re-verify surfaced a UI bug that masked it. The rating input's `on_change`
+  called `refresh_all()`, which rebuilt the whole Advantages panel — destroying the
+  `ui.number` mid-interaction, and NiceGUI silently drops events that target a
+  deleted element (`Client.handle_event`), so a rapid 5→4→5 round-trip lost the
+  4→5 click and the stored rating desynced from the number on screen. Fixed by making
+  a rating edit refresh only the panel header (its own refreshable) and the readout,
+  never the body, so the widget survives every click; the Advantages readout also
+  accepts `artifact` issue codes so the two-flagships warning updates live on the tab.
+  Both sides re-verified in a browser — the warning shows, clears on 5→4, and returns
+  on 4→5.

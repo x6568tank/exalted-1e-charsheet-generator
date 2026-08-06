@@ -119,6 +119,14 @@ Two directives that are description-in-disguise, so they live here:
 - UI assets go in `assets/`.
 - `sources/` (rulebook PDFs) and `images/` (rulebook page images) are gitignored and
   are never committed.
+- **⚠ Every `images/…` path written in this file or in `docs/` is a HINT, not a fact.**
+  Because `images/` is gitignored it never travels, and the human's machines organise
+  it differently — the Dragon-Kings pages are `images/Mortals/Dragon Kings/` on the
+  laptop and `images/Non-Exalts/Dragon Kings/` on the main PC, both correct. A
+  recorded path being absent does NOT mean the source is missing, and two docs
+  disagreeing about one is not a defect to reconcile. **Look for the pages before
+  concluding they are unavailable, and never "fix" a path to match the machine you
+  happen to be on.**
 
 ## Decisions already made → `docs/decisions/`
 **Do not relitigate any of these without the human reopening it.** One numbered record
@@ -166,7 +174,15 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1,964 tests passing)
+## Status (1,968 passing, 1 known failure)
+
+⚠ The count is 1,968 PASSING with ONE KNOWN FAILURE —
+`tests/test_merits_flaws.py::test_every_description_matches_the_source_text` (M&F
+descriptions shorter than their source text, mostly the Godblooded/Fae-Blooded
+entries). It is pre-existing on `main` (1,963) and `deepseek-experiment` (1,965 at
+the Dragon-Kings landing), NOT caused by recent work, and not yet fixed — fixing it
+means re-transcribing M&F descriptions from source pages, which is the human's call.
+Do not count the suite as green while it fails.
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before

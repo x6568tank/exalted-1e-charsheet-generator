@@ -28,13 +28,19 @@ def breed_element(ruleset: RuleSet, character: Character) -> str:
     return cd.breed_traits.element if (cd and cd.breed_traits) else ""
 
 
-def path_is_favored(ruleset: RuleSet, character: Character, path_id: str) -> bool:
+def path_is_favored(ruleset: RuleSet, character: Character, path_id: str,
+                    *, favored_path: str | None = None) -> bool:
     """A Path is Favoured when it is the player's chosen `favored_path` OR one of the
     breed's two element-matching Paths (human ruling 2026-08-05: each breed
     auto-favours its two element Paths — Pterok/Air → Celestial Air + Clear Air, etc.
     — plus one player-chosen Path from any of the other eight). Favoured Paths get the
-    Breed/Favoured discount rate on both BP and XP."""
-    if path_id == character.favored_path:
+    Breed/Favoured discount rate on both BP and XP.
+
+    `favored_path` overrides the live character's choice for callers that must read a
+    frozen chargen source — the post-lock bonus-point recompute (decision 0003): the
+    snapshot is the accounting source once locked, and a drift in `character.favored_path`
+    must not re-price creation. Every other caller omits it and gets the live value."""
+    if path_id == (favored_path if favored_path is not None else character.favored_path):
         return True
     path = ruleset.paths.get(path_id)
     if path is None:

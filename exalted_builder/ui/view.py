@@ -1144,6 +1144,11 @@ class SheetView:
     # Virtues do, so a sheet that froze this would go stale the first time a locked
     # ghost bought a Virtue.
     passion_pools: list[tuple[str, int, int]] = field(default_factory=list)
+    # Dragon-King breed innate weapons (PG pp.167-174) as (name, speed, accuracy,
+    # damage, damage_type, defense) — the printed Spd/Acc/Dmg/Def table. Display-only,
+    # decision 0008 keeps attack derivation out. Empty for every splat whose caste has
+    # no `breed_traits`, which drops the section from their sheet.
+    breed_weapons: list[tuple[str, int, int, int, str, int]] = field(default_factory=list)
 
     def essence_pool_label(self) -> str:
         """The Essence pools as one line. A merged pool is named as one rather than
@@ -1232,10 +1237,17 @@ def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, lis
     how their character sheets print. Lunars have no Caste Abilities at all and
     "Abilities are not divided along caste lines" (The Lunars p.90), so their
     castes carry `caste_attributes` instead and grouping by caste yields NOTHING.
-    Those splats fall back to `DEFAULT_ABILITY_GROUPS` (War / Life / Wisdom)."""
+    Those splats fall back to `DEFAULT_ABILITY_GROUPS` (War / Life / Wisdom).
+
+    A splat whose castes list only PART of the roster falls back the same way. The
+    Dragon-Kings' four breeds each name three BREED abilities (12 total), but a DK
+    buys 25 dots across all 25 abilities (PG CH4) — grouping by breed would drop the
+    other 13 from the sheet and editor entirely. Solar/DB/Abyssal castes partition
+    the whole roster (5 × 5 = 25), so they keep their caste columns; the breed
+    abilities are still marked ● by the caste markers, exactly as a caste ability is."""
     groups = [(cd.label, list(cd.caste_abilities)) for cd in ruleset.castes.values()
               if cd.exalt_type == exalt_type and cd.caste_abilities]
-    if groups:
+    if groups and {a for _, abilities in groups for a in abilities} >= set(AbilityName):
         return groups
     return [(label, list(abilities)) for label, abilities in DEFAULT_ABILITY_GROUPS]
 
@@ -1870,6 +1882,8 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         charms=charms,
         charm_sections=charm_sections,
         paths=paths,
+        breed_weapons=[(w.name, w.speed, w.accuracy, w.damage, w.damage_type, w.defense)
+                       for w in _breed_traits.innate_weapons] if _breed_traits else [],
         combos=combos,
         spells=spells,
         # Effective stats: material bonuses folded in, Exalt-gated (core p.341).

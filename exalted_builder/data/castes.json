@@ -410,7 +410,10 @@
       "innate_soak_bashing": 1,
       "innate_soak_lethal": 1,
       "bonus_health_levels": [],
-      "innate_weapons": ["Bite", "Wing Buffet"]
+      "innate_weapons": [
+        {"name": "Bite", "speed": 1, "accuracy": 0, "damage": 3, "damage_type": "L", "defense": -2},
+        {"name": "Wing Buffet", "speed": 1, "accuracy": 1, "damage": 4, "damage_type": "B", "defense": 0}
+      ]
     }
   },
   {
@@ -426,7 +429,10 @@
       "innate_soak_bashing": 3,
       "innate_soak_lethal": 3,
       "bonus_health_levels": [],
-      "innate_weapons": ["Bite", "Claw"]
+      "innate_weapons": [
+        {"name": "Bite", "speed": 0, "accuracy": 0, "damage": 3, "damage_type": "L", "defense": -2},
+        {"name": "Claw", "speed": 1, "accuracy": 1, "damage": 3, "damage_type": "L", "defense": 0}
+      ]
     }
   },
   {
@@ -442,7 +448,11 @@
       "innate_soak_bashing": 6,
       "innate_soak_lethal": 6,
       "bonus_health_levels": [0],
-      "innate_weapons": ["Bite", "Claw", "Tail"]
+      "innate_weapons": [
+        {"name": "Bite", "speed": 0, "accuracy": 0, "damage": 3, "damage_type": "L", "defense": -2},
+        {"name": "Claw", "speed": 1, "accuracy": 1, "damage": 3, "damage_type": "L", "defense": 0},
+        {"name": "Tail", "speed": 1, "accuracy": -1, "damage": 4, "damage_type": "L", "defense": -2}
+      ]
     }
   },
   {
@@ -458,7 +468,11 @@
       "innate_soak_bashing": 4,
       "innate_soak_lethal": 4,
       "bonus_health_levels": [0],
-      "innate_weapons": ["Bite", "Claw", "Tail"]
+      "innate_weapons": [
+        {"name": "Bite", "speed": 0, "accuracy": 0, "damage": 4, "damage_type": "L", "defense": -2},
+        {"name": "Claw", "speed": 1, "accuracy": 1, "damage": 2, "damage_type": "L", "defense": 0},
+        {"name": "Tail", "speed": 0, "accuracy": -1, "damage": 5, "damage_type": "B", "defense": -2}
+      ]
     }
   }
 ]

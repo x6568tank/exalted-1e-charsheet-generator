@@ -517,9 +517,13 @@ def _charm_fields(form: dict, bind, ruleset: RuleSet, pal: theme.Palette,
     _breadth_requirements(form, refresh)
 
     # Prerequisites: every Charm in the rule set, homebrew included, so a custom tree
-    # can hang off a printed Charm or off another custom one.
+    # can hang off a printed Charm or off another custom one. Virtual rows (the
+    # Dragon-King Path powers projected into the catalogue so Combos and the sheet
+    # can name them) are excluded — they are never learnable (`charm_matches_splat`
+    # rejects them first), so a prereq on one would be unsatisfiable.
     prereq_opts = {c.id: (f"✎ {c.name}" if c.custom else c.name)
-                   for c in sorted(ruleset.charms.values(), key=lambda c: c.name)}
+                   for c in sorted(ruleset.charms.values(), key=lambda c: c.name)
+                   if not c.virtual}
     with ui.row().classes("w-full items-center gap-2 no-wrap"):
         ui.select(prereq_opts, value=form["prerequisites"], label="Prerequisites",
                   multiple=True, with_input=True, on_change=bind("prerequisites")) \

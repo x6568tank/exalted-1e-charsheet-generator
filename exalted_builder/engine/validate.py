@@ -2793,6 +2793,7 @@ def _chargen_source(character: Character):
         snap.colleges if snap else character.colleges,
         (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character),
         snap.paths if snap else character.paths,
+        snap.favored_path if snap else character.favored_path,
     )
 
 
@@ -2811,7 +2812,8 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin, character.upbringing)
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased,
-     beastman_gifts, arrays, submodules, colleges, thaumaturgy, paths) = _chargen_source(character)
+     beastman_gifts, arrays, submodules, colleges, thaumaturgy, paths,
+     favored_path) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
@@ -2998,7 +3000,11 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     path_cap = b.path_cap_pre_bp
     path_cheap_within = path_dear_within = path_above_bp = 0
     for pr in paths:
-        fav = paths_mod.path_is_favored(ruleset, character, pr.path_id)
+        # The snapshot's favoured Path, not the live character's: once locked, the
+        # snapshot is the chargen accounting source (decision 0003), and the choice
+        # must not re-price creation if `character.favored_path` ever drifts.
+        fav = paths_mod.path_is_favored(ruleset, character, pr.path_id,
+                                        favored_path=favored_path)
         within = min(pr.rating, path_cap)
         above = max(0, pr.rating - path_cap)
         path_above_bp += above * (bp_costs.path_breed_above_3 if fav else bp_costs.path_above_3)
@@ -3657,7 +3663,8 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     b = effective_budgets(ruleset, character)
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
-     beastman_gifts, arrays, _submodules, colleges, thaumaturgy, paths) = _chargen_source(character)
+     beastman_gifts, arrays, _submodules, colleges, thaumaturgy, paths,
+     _favored_path) = _chargen_source(character)
 
     # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
     # for every splat whose Backgrounds are purely narrative.

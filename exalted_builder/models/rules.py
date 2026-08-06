@@ -523,6 +523,21 @@ class GodbloodedHeritage(BaseModel):
     ox_body_charm_ids: dict[str, str] = Field(default_factory=dict)
 
 
+class InnateWeapon(BaseModel):
+    """One natural weapon a Dragon-King breed attacks with (PG pp.167-174). The four
+    fields are the printed table's Spd / Acc / Dmg / Def; `damage_type` carries the
+    L/B off the damage column. Display-only — decision 0008 keeps attack derivation
+    out, so these never feed a roll."""
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    speed: int = 0
+    accuracy: int = 0
+    damage: int = 0
+    damage_type: str = "L"                 # "L" lethal / "B" bashing
+    defense: int = 0
+
+
 class BreedTraits(BaseModel):
     """The breed-keyed mechanics of one Dragon-King breed (PG pp.167-174). Attached
     to a `CasteDefinition` via `CasteDefinition.breed_traits` — a breed IS the
@@ -544,7 +559,8 @@ class BreedTraits(BaseModel):
       (p.165: Dragon-King Stamina does not add to lethal soak).
     * `bonus_health_levels` — wound-penalty levels the breed adds to the health
       track (Anklok and Mosok get one extra -0 level, p.171/174).
-    * `innate_weapons` — display-only (decision 0008 keeps attack derivation out).
+    * `innate_weapons` — the breed's natural weapons with their printed Spd/Acc/Dmg/Def
+      (see `InnateWeapon`); display-only (decision 0008 keeps attack derivation out).
     """
     model_config = ConfigDict(frozen=True)
 
@@ -553,7 +569,7 @@ class BreedTraits(BaseModel):
     innate_soak_bashing: int = Field(default=0, ge=0)
     innate_soak_lethal: int = Field(default=0, ge=0)
     bonus_health_levels: list[int] = Field(default_factory=list)
-    innate_weapons: list[str] = Field(default_factory=list)
+    innate_weapons: list[InnateWeapon] = Field(default_factory=list)
 
 
 class CasteDefinition(BaseModel):

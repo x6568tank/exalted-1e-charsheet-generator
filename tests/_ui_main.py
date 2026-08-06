@@ -1376,3 +1376,22 @@ def page_godblooded_fae_stale_origin_editor():
 @ui.page('/godblooded-fae-no-origin-editor')
 def page_godblooded_fae_no_origin_editor():
     editor.build_editor(RS, CHAR_FAE_NO_ORIGIN, Path("x.json"), with_header=False)
+
+# Artifact re-verify repro: a Dragon King in the two-flagships shape (Artifact 5 +
+# two 5-dot artifacts) so the live rating-edit round-trip can be driven in a test.
+CHAR_DK_2FLAG = Character(id="dk2f", name="Two Flagships", exalt_type="Dragon-Kings",
+                          caste="pterok", essence_rating=2)
+CHAR_DK_2FLAG.virtues.update({"conviction": 3, "valor": 2, "compassion": 2, "temperance": 2})
+CHAR_DK_2FLAG.favored_abilities = [AbilityName.MELEE, AbilityName.DODGE, AbilityName.SURVIVAL]
+CHAR_DK_2FLAG.favored_path = "dk.solid-earth"
+CHAR_DK_2FLAG.backgrounds.append(BackgroundEntry(name="Artifact", rating=5))
+CHAR_DK_2FLAG.artifacts.append(ArtifactEntry(name="Wings of the Raptor", rating=5))
+CHAR_DK_2FLAG.artifacts.append(ArtifactEntry(name="Wyld-Cutting Blade", rating=5))
+
+@ui.page('/dk-artifacts-2flag-advantages')
+def page_dk_artifacts_2flag_advantages():
+    advantages.build_advantages(RS, CHAR_DK_2FLAG, Path("x.json"), with_header=False)
+
+@ui.page('/dk-artifacts-2flag-sheet')
+def page_dk_artifacts_2flag_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_DK_2FLAG))

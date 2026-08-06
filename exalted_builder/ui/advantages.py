@@ -95,9 +95,13 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         ui.separator()
         # Only the issues this tab can do anything about — the Edit tab reports the
         # rest, and repeating all of them here would make both readouts noise.
+        # Artifact issues belong here too: the Artifacts panel is on THIS tab, so the
+        # two-flagships/budget findings must update live when a rating is edited,
+        # rather than only appearing on the Sheet after a tab switch.
         mine = [i for i in view.issues
                 if i.code != "bonus-points"
-                and ("background" in i.code or "merit" in i.code or "flaw" in i.code)]
+                and ("background" in i.code or "merit" in i.code or "flaw" in i.code
+                     or "artifact" in i.code)]
         if not mine:
             ui.label("No Background or Merit issues.").classes("text-xs text-gray-500")
         for issue in mine:
@@ -254,27 +258,38 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         One panel, both regimes: an artifact is equipment, and equipment has never been
         XP-priced or log-tracked on either side of the lock.
         """
-        items = artifactsmod.artifact_items(character)
-        rule = artifactsmod.artifact_rule(validate.effective_budgets(rs, character))
-        budgeted = rule is not None and bool(rule.budget_tiers)
-        header = "Artifacts"
-        if budgeted:
-            rating = sum(bg.rating for bg in character.backgrounds
-                         if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
-            tier = artifactsmod.budget_tier(
-                validate.effective_budgets(rs, character), rating)
-            combined = sum(i.rating for i in items)
-            if tier is not None:
-                header = (f"Artifacts ({combined}/{tier.combined_max} combined — "
-                          f"Artifact {rating}, {tier.name})")
-            else:
-                header = f"Artifacts ({combined} combined — no Artifact Background)"
-        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+        @ui.refreshable
+        def _artifacts_header() -> None:
+            """The budget line, its own refreshable so a rating edit updates it WITHOUT
+            rebuilding the panel. Rebuilding the body from inside the rating input's
+            on_change destroyed the widget mid-interaction — NiceGUI drops events that
+            target a deleted element (Client.handle_event), so a rapid second click
+            (5→4→5) was silently lost, the stored rating desynced from the number on
+            screen, and the two-flagships warning never came back. The header and the
+            readout are the only things a rating edit moves."""
+            items = artifactsmod.artifact_items(character)
+            rule = artifactsmod.artifact_rule(validate.effective_budgets(rs, character))
+            budgeted = rule is not None and bool(rule.budget_tiers)
+            header = "Artifacts"
+            if budgeted:
+                rating = sum(bg.rating for bg in character.backgrounds
+                             if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
+                tier = artifactsmod.budget_tier(
+                    validate.effective_budgets(rs, character), rating)
+                combined = sum(i.rating for i in items)
+                if tier is not None:
+                    header = (f"Artifacts ({combined}/{tier.combined_max} combined — "
+                              f"Artifact {rating}, {tier.name})")
+                else:
+                    header = f"Artifacts ({combined} combined — no Artifact Background)"
             with ui.row().classes("w-full items-baseline gap-2"):
                 ui.label(header).classes(
                     "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label("bought with the Artifact Background").classes(
                     "text-xs text-gray-500")
+
+        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
+            _artifacts_header()
             for idx, art in enumerate(character.artifacts):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.input(value=art.name, placeholder="artifact",
@@ -287,7 +302,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.number(value=art.rating, min=1, max=5, format="%d", label="Rating",
                               on_change=lambda e, art=art: (
                                   setattr(art, "rating", max(1, min(5, int(e.value or 1)))),
-                                  refresh_all())
+                                  _artifacts_header.refresh(),
+                                  changed())
                               ).props("dense").classes("w-24")
                     ui.button(icon="delete",
                               on_click=lambda e=None, idx=idx: remove_artifact(idx)
@@ -295,7 +311,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             # Artifact weapons and armour count against the same budget but are edited
             # on the equipment surface. Listed read-only so the combined total above is
             # accounted for rather than looking wrong.
-            gear = [i for i in items if i.source != artifactsmod.SOURCE_ARTIFACT]
+            gear = [i for i in artifactsmod.artifact_items(character)
+                    if i.source != artifactsmod.SOURCE_ARTIFACT]
             if gear:
                 ui.label("Also counted, from equipment: "
                          + ", ".join(f"{i.name} ({i.rating})" for i in gear)

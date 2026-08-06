@@ -120,6 +120,16 @@ def render_sheet(view: viewmod.SheetView) -> None:
                     ui.label(category).classes("text-xs font-semibold text-center w-full").style(f"color:{pal.accent}")
                     for r in rows:
                         _trait_row(r)
+        # Dragon-King breed innate weapons (PG pp.167-174) — their own section next
+        # to the breed's attribute bonuses above. Display-only (decision 0008 keeps
+        # attack derivation out), so each row shows the printed Spd/Acc/Dmg/Def like
+        # the Equipment panel does, without ever feeding a roll.
+        if view.breed_weapons:
+            _heading("Innate Weapons")
+            with _panel().classes("w-full"):
+                for name, speed, accuracy, damage, damage_type, defense in view.breed_weapons:
+                    ui.label(f"⚔ {name}  Spd{speed:+d} Acc{accuracy:+d} "
+                             f"Dmg{damage:+d}{damage_type} Def{defense:+d}").classes("text-xs")
 
         # --- abilities (grouped by ability-caste) ------------------------- #
         _heading("Abilities")

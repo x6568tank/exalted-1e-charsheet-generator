@@ -457,6 +457,26 @@ async def test_the_artifacts_panel_edits_and_shows_the_budget(user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_an_artifact_rating_edit_updates_the_budget_header_in_place(user) -> None:
+    """The budget header must track a rating edit on the SAME tab (the half of the
+    dropped-click fix a DK can't show — DK prints no combined line). Raising the
+    Tattered Wings 2→3 takes the combined 7→8, which the header must print as 8/7,
+    and the rating input must survive the edit (a body rebuild would destroy it and
+    NiceGUI drops the next click)."""
+    from nicegui import ui as _ui
+
+    await user.open('/artifacts-advantages')
+    await user.should_see("7/7 combined")
+    number = next(e for e in user.client.elements.values()
+                  if isinstance(e, _ui.number) and e.props.get("label") == "Rating")
+    number.value = 3
+    await user.should_see("8/7 combined")          # header tracked the edit
+    assert next(e for e in user.client.elements.values()
+                if isinstance(e, _ui.number) and e.props.get("label") == "Rating") is number
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_damaged_artifact_offers_an_artifact_picker(user) -> None:
     """Without this control the Flaw's limit could never be satisfied and its soak
     effect never fired. The options must span all three sources — a picker that only

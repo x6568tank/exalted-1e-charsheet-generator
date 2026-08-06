@@ -57,6 +57,22 @@ async def test_the_form_renders_every_dropdown(user: User) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_the_prerequisite_dropdown_excludes_virtual_path_rows(user: User) -> None:
+    """The 60 Dragon-King Path powers are projected into the charm catalogue as
+    VIRTUAL rows so Combos and the sheet can name them — but they are never
+    learnable, so offering one as a custom-Charm prerequisite would build a Charm
+    nobody can ever learn (`charm_matches_splat` rejects virtual rows first)."""
+    from nicegui import ui as _ui
+
+    await user.open('/custom-content')
+    prereq = next(e for e in user.client.elements.values()
+                  if isinstance(e, _ui.select) and e.props.get("label") == "Prerequisites")
+    assert not any(str(opt).startswith("dk.path.") for opt in prereq.options)
+    assert "dk.path.dk.celestial-air.dot1" not in prereq.options
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_the_json_pane_offers_paste_and_upload(user: User) -> None:
     await user.open('/custom-content')
     await user.should_see("JSON")

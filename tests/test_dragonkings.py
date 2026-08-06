@@ -33,7 +33,7 @@ from exalted_builder.engine import (advancement, costs, derive, lifecycle,  # no
 from exalted_builder.models.character import (Character, Combo,  # noqa: E402
                                               PathRating)
 from exalted_builder.models.rules import (AbilityName, AttributeName,  # noqa: E402
-                                          VirtueName)
+                                          InnateWeapon, VirtueName)
 
 
 # --------------------------------------------------------------------------- #
@@ -68,6 +68,35 @@ def test_the_dragon_kings_life_caps(rs) -> None:
     assert dk.foreign_charms_barred is True
     assert dk.combos_available is True   # p.177 "may purchase and use Combos normally"
     assert dk.stamina_adds_to_lethal_soak is False   # p.165 physiology sidebar
+
+
+def test_the_breed_innate_weapons_are_the_printed_tables(rs) -> None:
+    """PG pp.167-174 transcribe the four breeds' natural weapons verbatim. Display-only
+    (decision 0008 keeps attack derivation out), but a wrong value would show on the
+    sheet — the tables were the dead field's only content before this test."""
+    expected = {
+        "pterok": [
+            InnateWeapon(name="Bite", speed=1, accuracy=0, damage=3, damage_type="L", defense=-2),
+            InnateWeapon(name="Wing Buffet", speed=1, accuracy=1, damage=4, damage_type="B", defense=0),
+        ],
+        "raptok": [
+            InnateWeapon(name="Bite", speed=0, accuracy=0, damage=3, damage_type="L", defense=-2),
+            InnateWeapon(name="Claw", speed=1, accuracy=1, damage=3, damage_type="L", defense=0),
+        ],
+        "anklok": [
+            InnateWeapon(name="Bite", speed=0, accuracy=0, damage=3, damage_type="L", defense=-2),
+            InnateWeapon(name="Claw", speed=1, accuracy=1, damage=3, damage_type="L", defense=0),
+            InnateWeapon(name="Tail", speed=1, accuracy=-1, damage=4, damage_type="L", defense=-2),
+        ],
+        "mosok": [
+            InnateWeapon(name="Bite", speed=0, accuracy=0, damage=4, damage_type="L", defense=-2),
+            InnateWeapon(name="Claw", speed=1, accuracy=1, damage=2, damage_type="L", defense=0),
+            InnateWeapon(name="Tail", speed=0, accuracy=-1, damage=5, damage_type="B", defense=-2),
+        ],
+    }
+    for breed_id, weapons in expected.items():
+        bt = rs.castes[breed_id].breed_traits
+        assert bt.innate_weapons == weapons
 
 
 def test_the_modern_dragon_king_budget_is_the_printed_one(rs) -> None:
@@ -247,6 +276,27 @@ def test_overflow_of_the_path_pool_is_priced_at_the_favoured_rate(rs) -> None:
     bb = validate.bonus_point_breakdown(rs, c)
     paths_line = next(l for l in bb.lines if l.domain == "Paths")
     assert paths_line.points == 4          # 1 overflow dot × path_breed (4)
+
+
+def test_the_path_bp_recompute_reads_the_snapshot_favored_path(rs) -> None:
+    """Decision 0003: the post-lock BP recompute prices creation from the frozen
+    snapshot, so a drift in `character.favored_path` after lock must NOT move the
+    total. The overflow dot is favoured because the player's chosen path is
+    solid-earth; the snapshot must remember that even once the live character's
+    `favored_path` is gone (`ChargenSnapshot.favored_path` was written but never
+    read — the recompute read the live character instead)."""
+    c = _dk()
+    c.paths.append(PathRating(path_id="dk.solid-earth", rating=3))   # favoured (choice)
+    c.paths.append(PathRating(path_id="dk.growing-wood", rating=3))  # dear
+    c.paths.append(PathRating(path_id="dk.shaping-wood", rating=1))  # dear → 7 within
+    lifecycle.lock_chargen(c, rs)
+    paths_line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                      if l.domain == "Paths")
+    assert paths_line.points == 4          # 1 overflow dot × path_breed (4)
+    c.favored_path = ""                    # the live choice is gone after lock
+    again = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                 if l.domain == "Paths")
+    assert again.points == 4               # the snapshot still prices solid-earth favoured
 
 
 def test_the_essence_gate_caps_paths(rs) -> None:
@@ -435,10 +485,14 @@ def test_highest_magic_circle_is_unchanged_by_the_initiation(rs) -> None:
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_dragon_king_sheet_renders_paths(user) -> None:
     """The sheet's Paths panel and sectioned charm panels render (they were entirely
-    absent before this splat)."""
+    absent before this splat). The Pterok's breed innate weapons also render —
+    `BreedTraits.innate_weapons` was authored but dead (no read site) until now."""
     await user.open('/dksheet')
     await user.should_see("PATHS OF PREHUMAN MASTERY")   # _heading upper-cases
     await user.should_see("Celestial Air")
+    await user.should_see("INNATE WEAPONS")             # its own section
+    await user.should_see("Wing Buffet")
+    await user.should_see("Dmg+4B")                     # the printed stat, display-only
     await user.should_see("Charms (0)")
 
 
@@ -448,3 +502,53 @@ async def test_the_dragon_king_picker_builds_with_a_paths_tab(user) -> None:
     """The picker builds for a DK (no trap-3 blank) and offers the Paths page."""
     await user.open('/dkpicker')
     await user.should_see("Paths")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_artifact_rating_round_trip_keeps_the_two_flagships_warning(user) -> None:
+    """Browser re-verify repro (2026-08-05): editing an artifact rating 5→4→5 must
+    leave the `artifact-two-flagships` warning live. The engine rebuilt fresh on
+    every tab-switch, so a warning that vanished after the round trip meant the
+    rating input's on_change was rebuilding the whole body, destroying the widget
+    mid-interaction — NiceGUI drops events targeting a deleted element
+    (Client.handle_event), so the 4→5 click was silently lost and the stored rating
+    desynced from the number on screen.
+
+    The fix has three observable consequences, asserted here:
+    1. the rating widget SURVIVES an edit (no body rebuild, so no dropped clicks);
+    2. the warning appears LIVE on the Advantages tab itself (the readout now
+       carries artifact issues), not only on the Sheet after a tab switch.
+    (The combined-budget header line tracks rating edits too, but only splats with
+    a budget-tier table print one — DK uses the multiplier rule, so that half is
+    pinned in test_rated_artifacts against the Abyssal panel.)
+
+    Assertions are UI-driven: `validate` reads the model, so the warning coming and
+    going IS the stored rating persisting. (Asserting on the harness module's
+    character object directly is unreliable — the fixture re-runs the harness file
+    fresh per test, so `M.CHAR_*` is not the object the routes mutate.)"""
+    from nicegui import ui as _ui
+
+    # Advantages tab, two 5-dot artifacts: the warning is live in the readout.
+    await user.open('/dk-artifacts-2flag-advantages')
+    await user.should_see("permits only one artifact rated at 5")
+
+    def ratings() -> list:
+        return [e for e in user.client.elements.values()
+                if isinstance(e, _ui.number) and e.props.get("label") == "Rating"]
+
+    r = ratings()
+    assert len(r) == 2
+    first = r[0]
+    first.value = 4                       # 5 -> 4: one flagship remains
+    await user.should_not_see("permits only one artifact rated at 5")
+    # (1) the widget survived — the same object is still mounted, not a rebuilt one.
+    assert ratings()[0] is first
+
+    first.value = 5                       # 4 -> 5: two flagships again, same widget
+    # (2) the warning is back, on the same tab, without navigating to the Sheet.
+    await user.should_see("permits only one artifact rated at 5")
+
+    # And it is correct on the sheet too.
+    await user.open('/dk-artifacts-2flag-sheet')
+    await user.should_see("permits only one artifact rated at 5")
