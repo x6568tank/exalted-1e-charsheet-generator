@@ -12,8 +12,9 @@ as pasted markdown (`images/Mortals/Dragon Kings/CH 4 - The Dragon Kings.md`).
   dot-level powers are data attached to each Path; the loader also projects them into
   the charm catalogue as **virtual Charm rows** so Combos and the sheet can name them.
 * **Four Breeds** instead of castes, each with attribute modifiers (free dots ON TOP
-  of the stored value — the effective total may pass 5, per ruling 2), innate soak,
-  a +0 health level (Anklok/Mosok), breed abilities, and display-only innate weapons.
+  of the stored value — the effective total may pass 5, but only BP-bought above 5,
+  per ruling 2), innate soak, a +0 health level (Anklok/Mosok), breed abilities, and
+  display-only innate weapons.
 * **A custom Essence pool**: `(Essence×4) + (Willpower×2) + Conviction + Valor`, ONE
   pool (fully harmonized), no anima banner — the first use of the
   `personal_named_virtues` pool field (two specific named Virtues).
@@ -36,17 +37,21 @@ as pasted markdown (`images/Mortals/Dragon Kings/CH 4 - The Dragon Kings.md`).
    Celestial Air + Clear Air, etc.); the player picks ONE more from any of the other
    eight. The breed→element mapping is NOT in the book — it is an interpretation
    (confirmed by the human) backed by the flavour text.
-2. **Breed attribute modifiers** are free dots ON TOP of the stored value, and they
-   may push the EFFECTIVE total past 5 at 0 BP (a Pterok's stored Dexterity 5 reads
-   as an effective 7). p.175's "cannot have any Attributes higher than 5 without
-   spending bonus or experience points" is a gate on the STORED value only — and
-   the stored ceiling at creation is 5 because the trait cap is Essence
-   (`max(5, Essence)`, an interpretation a friend's 1E reading confirmed 2026-08-06:
-   "Essence being the normal Trait cap isn't just an Exalt rule"), and chargen
-   Essence is 2/3/5. Past 5 is the post-lock XP path at Essence 6 (stored 6,
-   effective 8 for the +2 breeds). The old `attribute-breed-bonus-cap` chargen
-   predicate is deleted — nothing needs it once the stored-5 range check is the
-   whole bound.
+2. **Breed attribute modifiers** are free dots ON TOP of the stored value, but each
+   EFFECTIVE dot above 5 must be bought with bonus points at the attribute rate
+   (4 BP/dot) — a Pterok's stored Dexterity 5 reads as an effective 7 that costs
+   (7 − 5) × 4 = 8 BP; an Anklok's stored Strength 5 + Stamina 4 reads as 7/6 and
+   costs 8 + 4 = 12 BP. p.175's "cannot have any Attributes higher than 5 without
+   spending bonus or experience points" is read against the EFFECTIVE value, charged
+   in `bonus_point_breakdown`; the stored ceiling at creation is 5 because the trait
+   cap is Essence (`max(5, Essence)`, an interpretation a friend's 1E reading
+   confirmed 2026-08-06: "Essence being the normal Trait cap isn't just an Exalt
+   rule"), and chargen Essence is 2/3/5. Past stored 5 is the post-lock XP path at
+   Essence 6 (stored 6, effective 8 for the +2 breeds). The same-day "free past 5"
+   reading (an earlier 2026-08-06 pass) was a MISUNDERSTANDING and is reversed —
+   the friend's 7/6-at-0-BP build is exactly the bug it caused. The old
+   `attribute-breed-bonus-cap` chargen predicate stays deleted — effective may pass
+   5, it is simply BP-bought rather than free.
 3. **DK Combos are in scope** (p.177 is printed, not a ruling — the virtual-Charm
    bridge is required by the book).
 4. **Intelligence cap by Essence IS modelled** (an earlier "skip" was reversed).
@@ -155,9 +160,12 @@ they simply don't display a permanent "required" indicator once satisfied.
   backgrounds, Combos, sorcery, sheet sections). The other click findings
   (Path-description wrap, breed-bonus display, ancient floors, artifact
   combined/per-item caps) are fixed and confirmed. **The 2026-08-06 attribute-cap
-  correction was re-verified in a browser**: a locked Pterok bought stored Dexterity 5
-  (effective 7) at 0 BP, and a Dragon-Blooded at Essence 7 was held there until the ST
-  Options "Terrestrial may pass Essence 7" toggle lifted the ceiling to 9. **The Artifact
+  correction was re-verified in a browser — and then corrected AGAIN the same day**:
+  the first pass had a locked Pterok buy stored Dexterity 5 (effective 7) at 0 BP,
+  which the same-day reverse of ruling #2 (effective past 5 is BP-bought at the
+  attribute rate) made wrong; the corrected build charges that build 8 BP. A
+  Dragon-Blooded at Essence 7 was still held there until the ST Options "Terrestrial
+  may pass Essence 7" toggle lifted the ceiling to 9. **The Artifact
   `artifact-two-flagships` finding is RESOLVED 2026-08-05.** The engine was never
   wrong: the first click-through missed it because the server was stale mid-restart,
   and the re-verify surfaced a UI bug that masked it. The rating input's `on_change`

@@ -10,8 +10,10 @@ Human rulings baked in (2026-08-05): each breed auto-favours its two element Pat
 plus one player-chosen Path from the other eight; DK Combos work (the virtual-Charm
 bridge); the Intelligence cap by Essence IS modelled; Essence 6 raises Abilities (via
 elder.trait_ceiling) and Virtues (DK-only table) to 6. **2026-08-06:** breed attribute
-modifiers are free ON TOP of a stored 5 (the effective total may pass 5 at 0 BP); the
-stored-5 ceiling and the BP/XP gate above it are the whole attribute rule.
+modifiers stack ON TOP of a stored 5, but each EFFECTIVE dot above 5 is bought with
+bonus points at the attribute rate (the earlier "free past 5" reading was a
+misunderstanding and is reversed); the stored-5 ceiling is the whole stored-value
+rule.
 """
 
 from pathlib import Path
@@ -374,10 +376,11 @@ def test_the_favoured_path_must_not_be_a_breed_path(rs) -> None:
                for i in validate.validate_chargen(rs, c))
 
 
-def test_a_breed_bonus_stacks_on_top_for_free(rs) -> None:
-    """p.175: the breed modifier is a free bonus ON TOP of the stored value, so the
-    effective total may pass 5 at 0 BP — a Pterok's stored Dexterity 5 reads as an
-    effective 7. Only the STORED value past 5 is the BP/XP gate."""
+def test_a_breed_bonus_stacks_on_top_but_the_effective_excess_costs_bp(rs) -> None:
+    """p.175: the breed modifier stacks ON TOP of the stored value — a Pterok's
+    stored Dexterity 5 reads as an effective 7 — but each effective dot above 5 is
+    bought with bonus points at the attribute rate. (The 2026-08-06 "free past 5"
+    reading was a misunderstanding and is reversed: effective 7 costs 2 × 4 = 8 BP.)"""
     c = _dk()                                # Pterok: +2 Dexterity
     c.attributes[AttributeName.DEXTERITY] = 5
     codes = {i.code for i in validate.validate_chargen(rs, c)}
@@ -387,12 +390,13 @@ def test_a_breed_bonus_stacks_on_top_for_free(rs) -> None:
                    for i in validate.validate_chargen(rs, c))
     attr_line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
                      if l.domain == "Attributes")
-    assert attr_line.points == 0
+    assert attr_line.points == (7 - 5) * 4 == 8
 
 
-def test_a_breed_bonus_attribute_at_four_is_free(rs) -> None:
-    """Anklok +2 Str → stored 4 is an effective 6, free: the free cap is stored 5
-    for every Attribute, not reduced by the breed bonus."""
+def test_a_breed_bonus_attribute_below_five_is_legal_but_costs_the_excess(rs) -> None:
+    """Anklok +2 Str → stored 4 is an effective 6: the stored 5 cap is not reduced by
+    the breed bonus (stored 4 is legal), but the one effective dot above 5 costs 4 BP
+    at the attribute rate."""
     c = _dk(caste="anklok")
     c.attributes[AttributeName.STRENGTH] = 4
     codes = {i.code for i in validate.validate_chargen(rs, c)}
@@ -401,7 +405,7 @@ def test_a_breed_bonus_attribute_at_four_is_free(rs) -> None:
                    for i in validate.validate_chargen(rs, c))
     attr_line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
                      if l.domain == "Attributes")
-    assert attr_line.points == 0
+    assert attr_line.points == (6 - 5) * 4 == 4
 
 
 def test_a_stored_six_stays_illegal_at_chargen(rs) -> None:
@@ -577,8 +581,9 @@ async def test_the_dragon_king_picker_builds_with_a_paths_tab(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_dragon_king_sheet_shows_a_breed_attribute_above_five(user) -> None:
-    """p.175: the breed bonus stacks ON TOP of a free stored 5 — the sheet draws the
-    Pterok's stored Dexterity 5 as an effective 7, not a 5 clamped to the old cap."""
+    """p.175: the breed bonus stacks ON TOP of a stored 5 — the sheet draws the
+    Pterok's stored Dexterity 5 as an effective 7 (BP-bought above 5), not a 5
+    clamped to the old cap."""
     await user.open('/dksheet-big')
     await user.should_see("Dexterity (+2 breed)")
     await user.should_see("●●●●● +2")

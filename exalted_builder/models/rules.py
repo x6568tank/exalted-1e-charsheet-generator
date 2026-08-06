@@ -548,11 +548,12 @@ class BreedTraits(BaseModel):
       whose `Path.element` matches are the breed's auto-favoured Breed Paths.
     * `attribute_bonuses` — free dots ON TOP of the attribute pools (p.167: "The
       Pterok gain +2 to Dexterity and +2 to Perception"). They do not consume the
-      pool, and the effective total (pool-spent + bonus) is capped at 5 at chargen
-      unless bonus/experience points were spent on that attribute (human ruling
-      2026-08-05; the book says "Even after these modifiers are applied, Dragon Kings
-      cannot have any Attributes higher than 5 without spending bonus or experience
-      points").
+      pool, and the effective total (pool-spent + bonus) may pass 5, but each
+      effective dot above 5 is bought with bonus points at the attribute rate
+      (p.175: "Even after these modifiers are applied, Dragon Kings cannot have any
+      Attributes higher than 5 without spending bonus or experience points" — read
+      against the effective value; the 2026-08-06 "free past 5" reading was a
+      misunderstanding and is reversed. Charged in bonus_point_breakdown).
     * `innate_soak_bashing` / `innate_soak_lethal` — the breed's innate armour
       (Pterok +1B/1L, Raptok +3B/3L, Anklok +6B/6L, Mosok +4B/4L), folded into
       derive.soak. Read together with ExaltDefinition.stamina_adds_to_lethal_soak

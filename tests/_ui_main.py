@@ -141,8 +141,9 @@ def page_dkpicker():
     picker.build_picker(RS, CHAR_DK, Path("x.json"), with_header=True)
 
 # (h2b) a modern Dragon-King exercising the p.175 effective-over-5 attribute cap: a
-# free stored Dexterity 5 on the Pterok's +2 breed reads as an effective 7 on the
-# sheet (the breed bonus stacks on top; only the STORED value past 5 is BP/XP-gated).
+# stored Dexterity 5 on the Pterok's +2 breed reads as an effective 7 on the sheet
+# (the breed bonus stacks on top; the two effective dots above 5 are BP-bought at the
+# attribute rate — this fixture is display-only, so no budget is asserted here).
 CHAR_DK_BIG = Character(id="dkbig", name="Pterok Seer", exalt_type="Dragon-Kings",
                         caste="pterok", essence_rating=2)
 CHAR_DK_BIG.virtues.update({"conviction": 3, "valor": 2, "compassion": 2, "temperance": 2})

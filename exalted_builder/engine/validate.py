@@ -2840,6 +2840,23 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                                                               attributes)
         )
 
+    # Dragon-King breed attribute bonuses (PG pp.167-174): the breed's free dots
+    # stack ON TOP of the stored value, but each EFFECTIVE dot above 5 must be
+    # bought with bonus points at the attribute rate (p.175: "Even after these
+    # modifiers are applied, Dragon Kings cannot have any Attributes higher than 5
+    # without spending bonus or experience points"). The 2026-08-06 "free past 5"
+    # reading was a misunderstanding and is reversed; this charge plus the stored-5
+    # range check in validate_chargen is the whole attribute rule. A Pterok's
+    # stored Dexterity 5 reads as an effective 7 that costs (7 − 5) × 4 = 8 BP.
+    caste_def = ruleset.castes.get(character.caste)
+    breed_bonuses = (caste_def.breed_traits.attribute_bonuses
+                     if caste_def and caste_def.breed_traits else {})
+    for aname, bonus in breed_bonuses.items():
+        if bonus:
+            effective = attributes.get(aname, b.attribute_base) + bonus
+            if effective > 5:
+                attr_bp += (effective - 5) * bp_costs.attribute
+
     # --- Abilities: 25 free dots, pre-BP cap 3 -------------------------------- #
     # Four rate tiers, because a Calling (Cult of the Illuminated, p.90) is a discount
     # axis that STACKS with Caste/Favoured rather than replacing it:
@@ -3761,14 +3778,16 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             ))
 
     # Dragon-King breed attribute bonuses (PG pp.167-174): free dots ON TOP of the
-    # stored value — they do not consume the pools, and they may push the EFFECTIVE
-    # total past 5 (a Pterok's stored Dexterity 5 reads as an effective 7 at 0 BP).
-    # p.175's "cannot have any Attributes higher than 5 without spending bonus or
-    # experience points" is a gate on the STORED value only — and the stored
-    # 5-ceiling (the range check above) already satisfies it at creation, because
-    # the trait cap is Essence (max(5, Essence)), which at chargen Essence 2/3/5 is
-    # 5. Past 5 is the post-lock XP path at Essence 6 (see raise_attribute), which
-    # is why this chargen check needs no breed-specific predicate at all.
+    # stored value — they do not consume the pools, and the EFFECTIVE total may pass
+    # 5 (a Pterok's stored Dexterity 5 reads as an effective 7), but each effective
+    # dot above 5 is bought with bonus points at the attribute rate, charged in
+    # bonus_point_breakdown. p.175's "cannot have any Attributes higher than 5
+    # without spending bonus or experience points" is read against the effective
+    # value — the 2026-08-06 "free past 5" reading was a misunderstanding and is
+    # reversed. The stored 5-ceiling (the range check above) is the trait cap Essence
+    # (max(5, Essence)); at chargen Essence 2/3/5 that is 5, so no stored dot above 5
+    # exists here to gate. Past 5 is the post-lock XP path at Essence 6 (see
+    # raise_attribute), and effective past 5 is BP-bought, not free.
     #
     # --- caste_favored attribute legality (Alchemical, p.60) ------------------ #
     # The three attribute pools go to disjoint SETS: 3 Caste Attributes, 3 chosen
