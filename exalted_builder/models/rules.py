@@ -386,14 +386,18 @@ class Charm(BaseModel):
     # The Mountain Folk Ox-Body Technique caps on the character's HIGHEST Virtue
     # (CH6 p.245: "Jadeborn cannot develop Ox-Body Technique more times than their
     # highest Virtue") — not a named Virtue, so `repeatable_cap_virtue` cannot hold
-    # it. Special value "highest_virtue" of `repeatable_cap_ability`, mirroring the
-    # "essence" special value above. None for every other splat's Ox-Body.
+    # it. It is its own bool, mirroring the `repeatable_cap_virtue` retarget pattern
+    # (the "highest" is the MAX of the four, which no single Virtue name can hold).
+    # False for every other splat's Ox-Body.
     repeatable_cap_highest_virtue: bool = False
-    # The Mountain Folk Essence Satiation Method and Stone-Still Lungs are both
-    # "three times", the THIRD purchase gated on Essence 3 (CH6 pp.245-246) — that
-    # gate is `repeatable_cap_ability: "essence"`, which resolves to the Essence
-    # rating (2 → two purchases, 3 → three), so the fixed "three times" needs no
-    # separate field.
+    # A FLAT ceiling on a repeatable Charm's purchases, no trait resolution — the
+    # Mountain Folk Essence Satiation Method and Stone-Still Lungs are both "three
+    # times" (CH6 pp.245-246), with the THIRD purchase gated on Essence 3. That gate
+    # is `repeatable_cap_ability: "essence"`; `repeatable_cap_max` then holds the
+    # printed "three" so an Essence-5 Jadeborn cannot buy five. Resolved as
+    # `min(trait_cap, repeatable_cap_max)` in validate._repeatable_purchase_cap. 0 =
+    # no flat cap, which is every other repeatable Charm.
+    repeatable_cap_max: int = Field(default=0, ge=0)
     variants: list[CharmVariant] = Field(default_factory=list)
     # How many variants a single purchase selects. Ox-Body: always 1 (the default
     # for both fields below). Deadly Beastman Transformation (p.124): the FIRST

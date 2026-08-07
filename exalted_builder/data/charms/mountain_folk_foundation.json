@@ -46,7 +46,8 @@
       "book": "Exalted: The Mountain Folk (CH6)",
       "page": 245
     },
-    "repeatable_cap_ability": "essence"
+    "repeatable_cap_ability": "essence",
+    "repeatable_cap_max": 3
   },
   {
     "id": "mountainfolk.foundation.stone-still-lungs",
@@ -65,7 +66,8 @@
       "book": "Exalted: The Mountain Folk (CH6)",
       "page": 245
     },
-    "repeatable_cap_ability": "essence"
+    "repeatable_cap_ability": "essence",
+    "repeatable_cap_max": 3
   },
   {
     "id": "mountainfolk.foundation.sleepless-rock-emulation",

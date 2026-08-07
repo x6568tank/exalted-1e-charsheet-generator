@@ -176,10 +176,12 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1,984 passing)
+## Status (1,996 passing)
 
-The suite is green: **1,984 passing** — the Mountain Folk splat added 15
-(2026-08-07). (The earlier "1 known failure" M&F description test —
+The suite is green: **1,996 passing** — the Mountain Folk splat added 18 tests at
+ship (2026-08-07, browser-verified) and a further 9 in the Opus code-review fixes
+the same day (the two-pool Ability billing, the foreign-Charm bar, the
+both-phases Pattern bar). (The earlier "1 known failure" M&F description test —
 `test_every_description_matches_the_source_text` — passes as of 2026-08-06; the
 note was stale.)
 

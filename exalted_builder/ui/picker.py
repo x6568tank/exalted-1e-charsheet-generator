@@ -638,6 +638,14 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if in_play():
             _charm_buy_button(d)
         elif d.owned:
+            # A generic repeatable Charm is owned-but-not-full while the copy count
+            # is under its trait cap — offer another purchase alongside Remove (the
+            # Mountain Folk Satiation / Stone-Still, CH6 pp.245-246).
+            _charm = ruleset.charms.get(d.id)
+            _cap = validate._repeatable_purchase_cap(_charm, character) if _charm else 0
+            if _cap and character.charms.count(d.id) < _cap:
+                ui.button("Add another", icon="add",
+                          on_click=lambda: add_another(d.id)).props("dense color=positive")
             ui.button("Remove", icon="remove", on_click=lambda: toggle(d.id)).props("dense color=negative")
         elif d.available:
             ui.button("Add", icon="add", on_click=lambda: toggle(d.id)).props("dense color=positive")
@@ -1886,6 +1894,30 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         detail.refresh()
         spells_panel.refresh()        # a new/removed Sorcery Charm changes spell access
         _refresh_categories()         # learning/dropping DB enlightenment reveals/hides Dragon styles
+
+    def add_another(charm_id: str) -> None:
+        """Pre-lock: buy ONE MORE copy of a generic repeatable Charm the character
+        already owns (the Mountain Folk Essence Satiation Method / Stone-Still Lungs,
+        CH6 pp.245-246). Owned-but-under-cap is the one case `toggle` cannot express —
+        it would REMOVE, not append — so the detail card's "Add another" calls this.
+        The cap is enforced here, mirroring toggle's append branch."""
+        if in_play():
+            return
+        charm = ruleset.charms.get(charm_id)
+        if charm is None or not validate.meets_charm_requirements(ruleset, character, charm):
+            ui.notify(f"{charm.name}: prerequisites not met", type="warning")
+            return
+        cap = validate._repeatable_purchase_cap(charm, character)
+        if cap and character.charms.count(charm_id) >= cap:
+            ui.notify(f"{charm.name}: already bought {cap} times — its maximum.",
+                      type="warning")
+            return
+        character.charms.append(charm_id)
+        ui.notify(f"Learned {charm.name}", type="positive")
+        update_graph()
+        detail.refresh()
+        spells_panel.refresh()
+        _refresh_categories()
 
     def buy_charm(charm_id: str) -> bool:
         """Post-lock half of `toggle`: spend XP on a Charm. Known Charms are not

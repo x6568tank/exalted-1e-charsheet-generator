@@ -256,6 +256,7 @@
     "has_virtue_flaw": false,
     "limit_label": "Divergence",
     "combos_available": true,
+    "foreign_charms_barred": true,
     "essence_cap": 5,
     "stamina_adds_to_lethal_soak": false
   }

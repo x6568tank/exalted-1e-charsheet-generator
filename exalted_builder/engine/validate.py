@@ -789,27 +789,33 @@ def _repeatable_purchase_cap(charm: Charm, character: Character) -> int:
     p.83 — "no more times than their Conviction rating"; the same retarget `min_virtue`
     performs for Charm minimums). The Mountain Folk add `repeatable_cap_highest_virtue`
     (their Ox-Body "cannot develop ... more times than their highest Virtue", CH6
-    p.245 — the MAX of the four, which no single Virtue name can hold). 0 if the
-    Charm isn't repeatable or the trait name resolves to none of these."""
+    p.245 — the MAX of the four, which no single Virtue name can hold). A FLAT
+    `repeatable_cap_max` caps the trait-derived number (the Mountain Folk Satiation /
+    Stone-Still "three times", CH6 pp.245-246 — an Essence-5 Jadeborn still buys at
+    most three, the third gated on Essence 3). 0 if the Charm isn't repeatable or the
+    trait name resolves to none of these."""
+    cap = 0
     if charm.repeatable_cap_highest_virtue:
-        return max(character.virtues.values())
-    if not charm.repeatable_cap_ability and not charm.repeatable_cap_virtue:
-        return 0
-    if charm.repeatable_cap_ability == "essence":
-        return character.essence_rating
-    if charm.repeatable_cap_virtue:
-        try:
-            return character.virtues[VirtueName(charm.repeatable_cap_virtue)]
-        except ValueError:
-            return 0
-    try:
-        return character.abilities[AbilityName(charm.repeatable_cap_ability)]
-    except ValueError:
-        pass
-    try:
-        return character.attributes[AttributeName(charm.repeatable_cap_ability)]
-    except ValueError:
-        return 0
+        cap = max(character.virtues.values())
+    elif charm.repeatable_cap_ability or charm.repeatable_cap_virtue:
+        if charm.repeatable_cap_ability == "essence":
+            cap = character.essence_rating
+        elif charm.repeatable_cap_virtue:
+            try:
+                cap = character.virtues[VirtueName(charm.repeatable_cap_virtue)]
+            except ValueError:
+                return 0
+        else:
+            try:
+                cap = character.abilities[AbilityName(charm.repeatable_cap_ability)]
+            except ValueError:
+                try:
+                    cap = character.attributes[AttributeName(charm.repeatable_cap_ability)]
+                except ValueError:
+                    return 0
+    if charm.repeatable_cap_max and cap:
+        cap = min(cap, charm.repeatable_cap_max)
+    return cap
 
 
 class Issue(BaseModel):
@@ -882,6 +888,22 @@ def _mountain_folk_pattern(charm: Charm) -> str | None:
     if not charm.category.startswith("mountain_folk:"):
         return None
     return charm.category.split(":", 1)[1]
+
+
+def _mountain_folk_unenlightened_bar(character: Character, charm: Charm) -> bool:
+    """True when an Unenlightened Jadeborn may never hold `charm`: "Unenlightened
+    characters can only learn the Charms of their own Caste Pattern or the Foundation
+    Pattern" (CH6 p.244) is a LIFETIME access rule, not a chargen one — it is read
+    here, beside the ghost Spirit-Walking bar in charm_matches_splat and in
+    meets_charm_requirements, so both the chargen picker and the XP buy path enforce
+    it. (A non-Mountain-Folk Charm is not this bar's business — foreign_charms_barred
+    closes those.)"""
+    if character.exalt_type != "Mountain-Folk" or character.origin != "unenlightened":
+        return False
+    pat = _mountain_folk_pattern(charm)
+    if pat is None:
+        return False
+    return pat not in ("foundation", character.caste)
 
 
 def mountain_folk_cross_pattern(ruleset: RuleSet, character: Character,
@@ -1075,6 +1097,54 @@ def _ability_slots(abilities: dict, crafts: list):
         yield AbilityName.CRAFT, cr.rating
 
 
+def two_pool_ability_accounting(b, character, abilities, crafts, bp_costs=None):
+    """The Mountain Folk two-pool Ability accounting (CH6 p.230), and the ONE read
+    site for it — `bonus_point_breakdown`, the unspent warning and the editor's
+    "N / M dots spent" readout all call this, so they cannot disagree.
+
+    The free pool (`ability_dots`) funds ANY Ability's dots up to `ability_cap_pre_bp`
+    (3); the favored pool (`ability_favored_dots`) funds FAVORED Abilities' dots above
+    that and up to the chargen ability ceiling (5 — "can increase Abilities as high as
+    six dots with bonus points", so the sixth dot is bonus points). Dots neither pool
+    covers are bonus points at the existing tier rates: the ordinary rate for a
+    non-Favored Ability's 4th dot, the favored rate for a Favored Ability's 6th.
+
+    Allocation between the pools is the player's choice and is not recorded, so this
+    computes the PLAYER-FAVOURABLE one — the cheapest legal assignment, the same
+    principle `background_pool_spend` uses for Heir Apparent's waived dots: the free
+    pool is spent first (it is free up to its budget), a Favored Ability's remaining
+    dots ride the favored pool, and the favored pool is overflowed (1 BP/dot) rather
+    than the free pool (2 BP/dot) when both run out.
+
+    Returns `(within, ability_bp)`: `within` is how many pool dots are spent (counted
+    against the combined `ability_dots + ability_favored_dots` budget); `ability_bp`
+    is the bonus-point charge (0 when `bp_costs` is None, which is what the unspent
+    warning and the editor readout pass)."""
+    cap = b.ability_cap_pre_bp
+    ceiling = merits.DOT_MAX          # 5 — the chargen ability ceiling (p.230)
+    favored_set = set(character.favored_abilities)
+    nf_free = nf_above = 0
+    fav_free_max = fav_above3 = fav_above_ceiling = 0
+    for ab, rating in _ability_slots(abilities, crafts):
+        if ab in favored_set:
+            fav_free_max += min(rating, cap)
+            fav_above3 += max(0, min(rating, ceiling) - cap)
+            fav_above_ceiling += max(0, rating - ceiling)
+        else:
+            nf_free += min(rating, cap)
+            nf_above += max(0, rating - cap)
+    fav_free = min(max(0, b.ability_dots - nf_free), fav_free_max)
+    free_used = nf_free + fav_free
+    favored_used = (fav_free_max - fav_free) + fav_above3
+    within = free_used + min(favored_used, b.ability_favored_dots)
+    if bp_costs is None:
+        return within, 0
+    ability_bp = (nf_above + max(0, nf_free - b.ability_dots)) * bp_costs.ability
+    ability_bp += fav_above_ceiling * bp_costs.ability_favored_caste
+    ability_bp += max(0, favored_used - b.ability_favored_dots) * bp_costs.ability_favored_caste
+    return within, ability_bp
+
+
 def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Issue]:
     """For each *known* Charm, verify min essence, min ability, and the AND-of-OR
     Charm prerequisite graph against the Charms the character knows. Unknown ids
@@ -1183,6 +1253,11 @@ def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> b
     counterpart to check_charm_prerequisites; used by the charm-tree picker to
     decide which Charms are currently selectable."""
     if _is_dragon_path_style(charm.category) and not db_enlightenment_met(character):
+        return False
+    if _mountain_folk_unenlightened_bar(character, charm):
+        # An Unenlightened Jadeborn may only learn their own Caste Pattern or the
+        # Foundation Pattern (CH6 p.244) — the forward-looking counterpart of the
+        # charm_matches_splat bar, so the picker does not offer it either.
         return False
     if character.essence_rating < charm.min_essence:
         return False
@@ -2752,16 +2827,12 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
     # Abilities/Virtues/Backgrounds: one flat pool each, and only dots at or below the
     # pre-BP cap count toward it — the same `within` arithmetic bonus_point_breakdown
     # uses, so the two can never disagree about what "spent from the pool" means. The
-    # two-pool Mountain Folk shape (CH6 p.230) counts both pools: free dots at or
-    # below the cap plus favored dots above it.
+    # two-pool Mountain Folk shape (CH6 p.230) asks two_pool_ability_accounting, the
+    # single read site, so the warning and the billing cannot drift.
     if b.ability_favored_dots:
-        favored_set = set(character.favored_abilities)
-        free_within = sum(min(r, b.ability_cap_pre_bp)
-                          for _ab, r in _ability_slots(abilities, crafts))
-        fav_within = sum(max(0, r - b.ability_cap_pre_bp)
-                         for ab, r in _ability_slots(abilities, crafts) if ab in favored_set)
+        ability_within, _bp = two_pool_ability_accounting(b, character, abilities, crafts)
         _total = b.ability_dots + b.ability_favored_dots
-        warn("Ability", _total - (free_within + fav_within), _total)
+        warn("Ability", _total - ability_within, _total)
     else:
         ability_within = sum(min(rating, b.ability_cap_pre_bp)
                              for _ab, rating in _ability_slots(abilities, crafts))
@@ -2958,56 +3029,44 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         cf, call = ab in cf_set, ab in call_set
         return "both" if (cf and call) else "cf" if cf else "calling" if call else "neither"
 
-    within_by_tier = {"both": 0, "cf": 0, "calling": 0, "neither": 0}
-    above_by_tier = dict(within_by_tier)
-    # TWO-POOL (Mountain Folk, CH6 p.230): `ability_dots` is the free pool, capped at
-    # `cap` per Ability; `ability_favored_dots` is a SEPARATE pool for Favored
-    # Abilities with no per-Ability cap. A Favored Ability's dots ABOVE the free-pool
-    # cap draw on the favored pool, not on bonus points — that is what lets an
-    # Enlightened Jadeborn reach 5 in a Favored Ability without spending BP. (A
-    # non-Favored Ability's dots above the cap stay bonus points, as in the one-pool
-    # shape.) `ability_favored_dots` 0 keeps every other splat on the one-pool path.
-    favored_set = set(character.favored_abilities)
-    favored_within = 0
-    for ab, rating in _ability_slots(abilities, crafts):
-        tier = _tier(ab)
-        within_by_tier[tier] += min(rating, cap)
-        above_cap = max(0, rating - cap)
-        if b.ability_favored_dots and ab in favored_set:
-            favored_within += above_cap
-        else:
-            above_by_tier[tier] += above_cap
-
-    # Overflow past the free pool is paid cheapest-first (player-favourable), by
-    # EFFECTIVE per-dot rate, so the fractional 'both' tier is spent first.
-    flat_rate = {"cf": bp_costs.ability_favored_caste,
-                 "calling": bp_costs.calling_ability,
-                 "neither": bp_costs.ability}
-    order = sorted(("cf", "calling", "neither"), key=lambda t: flat_rate[t])
-    total_within = sum(within_by_tier.values())
-    overflow = max(0, total_within - b.ability_dots)
-
-    paid = dict(above_by_tier)                # above-cap dots always cost BP
-    remaining = overflow
-    for tier in ["both"] + order:             # 'both' is 0.5/dot, cheapest of all
-        take = min(remaining, within_by_tier[tier])
-        paid[tier] += take
-        remaining -= take
-        if not remaining:
-            break
-
-    # The 'both' tier is charged in bulk and rounds UP, matching how specialties
-    # already handle a dots-per-point rate (rules-authority call: the page does not
-    # say how an odd dot rounds).
-    ability_bp = ((paid["both"] + per_point - 1) // per_point
-                  + sum(paid[t] * flat_rate[t] for t in order))
-
-    # The two-pool favored pool is charged separately, at the favored rate (1 BP/dot),
-    # for whatever of the 10 favored dots the character overspent. A Favored Ability
-    # at 5 is 3 free + 2 favored = no BP; a Favored Ability at 6 needs the extra dot
-    # bought, and favored-pool overflow is where that lands.
     if b.ability_favored_dots:
-        ability_bp += max(0, favored_within - b.ability_favored_dots) * bp_costs.ability_favored_caste
+        # TWO-POOL (Mountain Folk, CH6 p.230): the favored pool funds a Favored
+        # Ability's dots beyond the free-pool cap, allocated player-favourably — see
+        # two_pool_ability_accounting, the ONE read site this, the unspent warning and
+        # the editor readout all share.
+        _within, ability_bp = two_pool_ability_accounting(
+            b, character, abilities, crafts, bp_costs)
+    else:
+        within_by_tier = {"both": 0, "cf": 0, "calling": 0, "neither": 0}
+        above_by_tier = dict(within_by_tier)
+        for ab, rating in _ability_slots(abilities, crafts):
+            tier = _tier(ab)
+            within_by_tier[tier] += min(rating, cap)
+            above_by_tier[tier] += max(0, rating - cap)
+
+        # Overflow past the free pool is paid cheapest-first (player-favourable), by
+        # EFFECTIVE per-dot rate, so the fractional 'both' tier is spent first.
+        flat_rate = {"cf": bp_costs.ability_favored_caste,
+                     "calling": bp_costs.calling_ability,
+                     "neither": bp_costs.ability}
+        order = sorted(("cf", "calling", "neither"), key=lambda t: flat_rate[t])
+        total_within = sum(within_by_tier.values())
+        overflow = max(0, total_within - b.ability_dots)
+
+        paid = dict(above_by_tier)            # above-cap dots always cost BP
+        remaining = overflow
+        for tier in ["both"] + order:         # 'both' is 0.5/dot, cheapest of all
+            take = min(remaining, within_by_tier[tier])
+            paid[tier] += take
+            remaining -= take
+            if not remaining:
+                break
+
+        # The 'both' tier is charged in bulk and rounds UP, matching how specialties
+        # already handle a dots-per-point rate (rules-authority call: the page does
+        # not say how an odd dot rounds).
+        ability_bp = ((paid["both"] + per_point - 1) // per_point
+                      + sum(paid[t] * flat_rate[t] for t in order))
 
     # --- Backgrounds: N free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
     # `background_rules` (empty for every splat but the Alchemical) can exempt a
@@ -3882,8 +3941,10 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         # points is "an Appearance of 0", and the free dot every Attribute starts with
         # is exactly what it takes away. So the floor follows the ceiling down. An
         # origin's FLOOR (Enlightened Mountain Folk: "no Attribute ... lower than
-        # three", CH6 p.230) raises it instead.
-        low = b.attribute_min or min(b.attribute_base, cap)
+        # three", CH6 p.230) raises it — but must still follow a Flaw-lowered ceiling
+        # below itself, or a Disfigured Enlightened Jadeborn gets an unsatisfiable
+        # "3-0" range.
+        low = min(b.attribute_min or b.attribute_base, cap)
         if not (low <= attr <= cap):
             span = f"exactly {cap}" if low == cap else f"{low}-{cap}"
             issues.append(Issue(
@@ -4230,8 +4291,14 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                         "character cannot take the Artisan Caste.",
             ))
         own_pattern = character.caste           # worker / warrior / artisan
+        # The Unenlightened bar (own Caste Pattern + Foundation only) is a LIFETIME
+        # rule — p.244 states it as ACCESS, not chargen — so it lives in
+        # charm_matches_splat / meets_charm_requirements, where both phases read it
+        # (an Unenlightened character holding a cross-Pattern Charm is caught as a
+        # charm-wrong-splat at chargen). What stays here is the chargen-only half:
+        # the Enlightened "no more than three of the six" cap, which counts chargen
+        # picks and cannot be expressed as a per-Charm access bar.
         cross = 0
-        barred: list[str] = []
         for p in chargen_charm_picks(ruleset, character):
             if not p.counts_toward_pool:
                 continue
@@ -4242,16 +4309,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
             other_caste = pat in ("worker", "warrior", "artisan") and pat != own_pattern
             if other_caste:
                 cross += 1
-            if character.origin == "unenlightened" and pat not in ("foundation", own_pattern):
-                barred.append(p.charm_id)
-        if character.origin == "unenlightened" and barred:
-            issues.append(Issue(
-                code="mountain-folk-pattern-barred",
-                message=(f"Unenlightened Mountain Folk may only learn Charms of their own "
-                         f"Caste Pattern or the Foundation Pattern (CH6 p.230); "
-                         f"{len(barred)} cross-Pattern Charms taken."),
-            ))
-        elif character.origin != "unenlightened" and cross > 3:
+        if character.origin != "unenlightened" and cross > 3:
             issues.append(Issue(
                 code="mountain-folk-pattern-cross-cap",
                 message=(f"No more than 3 of the 6 chargen Charms may come from another "
@@ -4506,6 +4564,12 @@ def charm_matches_splat(character: Character, charm: Charm,
     # Half-Caste's perfect/persistent defense ban) sits beside the splat-level one, so
     # the two cannot disagree about ordering.
     if ruleset is not None and charm.id in ruleset.exalt_for(character.exalt_type).barred_charm_ids:
+        return False
+    # An Unenlightened Jadeborn may only learn their own Caste Pattern or the
+    # Foundation Pattern (CH6 p.244) — a LIFETIME access bar, placed beside the ghost
+    # Spirit-Walking bar so neither the chargen picker nor the XP buy path can talk
+    # past it.
+    if _mountain_folk_unenlightened_bar(character, charm):
         return False
     if ruleset is not None and charm.id in heritage_barred_charm_ids(ruleset, character):
         return False

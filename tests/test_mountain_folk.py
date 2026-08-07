@@ -44,8 +44,12 @@ def rs():
 
 from exalted_builder.engine import (advancement, costs, derive, elder,  # noqa: E402
                                     lifecycle, validate)
-from exalted_builder.models.character import Character  # noqa: E402
+from exalted_builder.models.character import (BackgroundEntry,  # noqa: E402
+                                              Character, CraftRating)
 from exalted_builder.models.rules import AbilityName  # noqa: E402
+
+# The 24 non-Craft Abilities, so a test can build a full 25-ability sheet.
+_NON_CRAFT = [a.value for a in AbilityName if a is not AbilityName.CRAFT]
 
 
 def _mf(exalt_type="Mountain-Folk", origin="enlightened", caste="worker", **kw):
@@ -141,11 +145,25 @@ def test_cross_pattern_charm_xp_and_bp(rs):
 # --------------------------------------------------------------------------- #
 
 def test_unenlightened_barred_from_other_patterns(rs):
+    # p.244: an Unenlightened Jadeborn may only learn their own Caste Pattern or the
+    # Foundation Pattern. The bar lives in charm_matches_splat, so the general
+    # validator (which runs the splat-consistency check) catches a Warrior-Pattern
+    # Charm as a wrong-splat pick.
     c = _mf(origin="unenlightened", caste="worker",
             charms=["mountainfolk.worker.harvest-multiplying-labor",
                     "mountainfolk.warrior.arsenal-enhancing-technique"])
-    codes = {i.code for i in _issues(rs, c)}
-    assert "mountain-folk-pattern-barred" in codes
+    codes = {i.code for i in validate.validate(rs, c)}
+    assert "charm-wrong-splat" in codes
+
+
+def test_unenlightened_pattern_bar_binds_post_lock(rs):
+    # p.244 is a LIFETIME rule, not a chargen one: an Unenlightened Worker may not buy
+    # an Artisan-Pattern Charm with XP after the lock. The old implementation only
+    # ran over chargen picks, so this purchase succeeded for 12 points.
+    c = _mf(origin="unenlightened", caste="worker", essence_rating=1)
+    lifecycle.lock_chargen(c, rs)
+    with pytest.raises(advancement.AdvancementError):
+        advancement.learn_charm(rs, c, "mountainfolk.artisan.unfolding-pattern-intuition")
 
 
 def test_enlightened_cross_pattern_cap(rs):
@@ -217,6 +235,10 @@ def test_satiation_repeatable_on_essence(rs):
     assert validate._repeatable_purchase_cap(ch, c) == 2   # third needs Essence 3
     c.essence_rating = 3
     assert validate._repeatable_purchase_cap(ch, c) == 3
+    # The printed "three times" is a FLAT cap: an Essence-5 Jadeborn still buys at
+    # most three (p.245-246), not five.
+    c.essence_rating = 5
+    assert validate._repeatable_purchase_cap(ch, c) == 3
 
 
 # --------------------------------------------------------------------------- #
@@ -229,6 +251,145 @@ def test_cult_background_banned(rs):
                                         name="Cult", rating=1)])
     codes = {i.code for i in _issues(rs, c)}
     assert "background-banned" in codes
+
+
+def _ability_bp(rs, c) -> int:
+    """The bonus-point charge attributable to Abilities alone, so the two-pool tests
+    can assert the pool arithmetic without the other trait lines in the way."""
+    bd = validate.bonus_point_breakdown(rs, c)
+    return next(l.points for l in bd.lines if l.domain == "Abilities")
+
+
+def _full_ability_sheet(rs, origin="enlightened", caste="worker", favored=None,
+                        favored_ratings=None, nonfavored=(), nonfavored_rating=1,
+                        craft_rating=0, **kw):
+    """A chargen-legal Mountain Folk character where ONLY the Ability dots vary: all
+    other traits sit inside their budgets so the Ability BP is the whole bill. Favored
+    abilities (default the six in the book: Craft + five) can be rated per-ability;
+    `nonfavored` names the non-favored abilities to dot at `nonfavored_rating`."""
+    favored = favored or ["craft", "awareness", "bureaucracy", "lore", "occult", "melee"]
+    favored_ratings = favored_ratings or {}
+    abilities = {}
+    for ab in _NON_CRAFT:
+        abilities[ab] = favored_ratings.get(ab, 0) if ab in favored else (
+            nonfavored_rating if ab in nonfavored else 0)
+    crafts = [CraftRating(focus="Smithing", rating=craft_rating)] if craft_rating else []
+    c = Character(
+        id="mf-bp", exalt_type="Mountain-Folk", origin=origin, caste=caste,
+        essence_rating=2 if origin == "enlightened" else 1,
+        attributes={"strength": 3, "dexterity": 3, "stamina": 3, "charisma": 3,
+                    "manipulation": 3, "appearance": 3, "perception": 3,
+                    "intelligence": 3, "wits": 3},
+        abilities=abilities, favored_abilities=favored,
+        virtues={"compassion": 2, "conviction": 3, "temperance": 2, "valor": 2},
+        backgrounds=[BackgroundEntry(name="Resources", rating=2),
+                     BackgroundEntry(name="Mentor", rating=2)],
+        crafts=crafts,
+        charms=("mountainfolk.worker.pillar-of-compassion",
+                "mountainfolk.worker.pillar-of-conviction",
+                "mountainfolk.worker.pillar-of-temperance",
+                "mountainfolk.worker.pillar-of-valor",
+                "mountainfolk.foundation.ox-body-technique",
+                "mountainfolk.foundation.essence-satiation-method")[:6],
+        **kw)
+    # Craft is ALWAYS favored for the Jadeborn (p.230); the _mf default set already
+    # includes it, but keep the assertion explicit so a changed helper cannot drift.
+    assert "craft" in favored
+    return c
+
+
+def test_two_pool_legal_enlightened_sheet_costs_no_bp(rs):
+    # Exactly the printed 10 favored + 25 free: six Favored Abilities at 3 (18 dots,
+    # Craft via a focus) and seventeen non-favored abilities at 1 (17) = 35, nothing
+    # above 3. A legal sheet must cost 0 bonus points — the old billing charged 10.
+    c = _full_ability_sheet(rs, favored_ratings={"awareness": 3, "bureaucracy": 3,
+                                                 "lore": 3, "occult": 3, "melee": 3},
+                            craft_rating=3,
+                            nonfavored=("archery", "athletics", "brawl", "dodge",
+                                        "endurance", "investigation", "larceny",
+                                        "linguistics", "martial_arts", "medicine",
+                                        "performance", "presence", "resistance",
+                                        "ride", "sail", "stealth", "survival"))
+    assert _ability_bp(rs, c) == 0
+
+
+def test_two_pool_legal_unenlightened_sheet_costs_no_bp(rs):
+    # The Unenlightened 14 favored + 8 free shape, all within pools -> 0 BP.
+    # 14 favored dots (Craft 3 + the five chosen at 2/3) + 8 free dots.
+    c = _full_ability_sheet(rs, origin="unenlightened", caste="worker",
+                            favored_ratings={"awareness": 3, "bureaucracy": 2,
+                                             "lore": 2, "occult": 2, "melee": 2},
+                            craft_rating=3,
+                            nonfavored=("archery", "athletics", "brawl", "dodge",
+                                        "endurance", "investigation", "larceny",
+                                        "linguistics"))
+    assert _ability_bp(rs, c) == 0
+
+
+def test_two_pool_favored_ability_at_five_costs_no_bp(rs):
+    # A Favored Ability at 5 is 3 free + 2 favored — both pools, no bonus points.
+    c = _full_ability_sheet(rs, favored_ratings={"melee": 5})
+    assert _ability_bp(rs, c) == 0
+
+
+def test_two_pool_favored_ability_at_six_costs_bp(rs):
+    # The sixth dot is above the chargen ability ceiling (p.230: "as high as six dots
+    # with bonus points"), so it is bought at the favored rate (1 BP).
+    c = _full_ability_sheet(rs, favored_ratings={"melee": 6})
+    assert _ability_bp(rs, c) == 1
+
+
+def test_two_pool_non_favored_ability_at_four_costs_bp(rs):
+    # A non-Favored Ability above the 3-cap is bought at the ordinary rate (2 BP).
+    # Melee is dropped from the favored set so it counts as non-Favored.
+    c = _full_ability_sheet(rs, favored=["craft", "awareness", "bureaucracy",
+                                         "lore", "occult", "endurance"],
+                            nonfavored=("melee",), nonfavored_rating=4)
+    assert _ability_bp(rs, c) == 2
+
+
+def test_two_pool_over_spending_the_combined_pool_charges(rs):
+    # More than 35 ability dots total overflows the pools to bonus points.
+    c = _full_ability_sheet(rs, favored_ratings={"awareness": 3, "bureaucracy": 3,
+                                                 "lore": 3, "occult": 3, "melee": 3},
+                            craft_rating=3,
+                            nonfavored=("archery", "athletics", "brawl", "dodge",
+                                        "endurance", "investigation", "larceny",
+                                        "linguistics", "martial_arts", "medicine",
+                                        "performance", "presence", "resistance",
+                                        "ride", "sail", "stealth", "survival",
+                                        "thrown"))
+    assert _ability_bp(rs, c) > 0
+
+
+def test_no_foreign_charms_for_jadeborn(rs):
+    # p.244: "they cannot learn supernatural martial arts" — the Mountain-Folk row
+    # carries `foreign_charms_barred` (like ghosts/DK/God-Blooded), so no
+    # non-Mountain-Folk Charm satisfies charm_matches_splat for a Jadeborn, while all
+    # 94 native Charms do. Before the review the cross-splat Terrestrial styles
+    # (Five-Dragon, Falling Blossom) and the open_to_tiers styles leaked in.
+    c = _mf()
+    for cid, charm in rs.charms.items():
+        if charm.exalt_type == "Mountain-Folk":
+            assert validate.charm_matches_splat(c, charm, rs), cid
+        else:
+            assert not validate.charm_matches_splat(c, charm, rs), cid
+
+
+def test_attribute_floor_follows_a_flaw_lowered_ceiling(rs):
+    # An Enlightened Jadeborn's "no Attribute below 3" floor (p.230) must still
+    # follow a Flaw-lowered ceiling down: Disfigured at FOUR points caps Appearance at
+    # 0, so an Appearance of 0 is legal — a floor stuck at 3 would demand an
+    # unsatisfiable "3-0" range. The option is selected by TIER ("3"/"4"), not rating:
+    # rating=4 applies no cap and makes this test vacuous (a review finding).
+    from exalted_builder.models.character import MeritFlawPurchase
+    attrs = {"strength": 3, "dexterity": 3, "stamina": 3, "charisma": 3,
+             "manipulation": 3, "appearance": 0, "perception": 3,
+             "intelligence": 3, "wits": 3}
+    c = _mf(attributes=attrs,
+            merits_flaws=[MeritFlawPurchase(merit_id="mf.disfigured", tier="4")])
+    ranges = [i for i in _issues(rs, c) if i.code == "attribute-range"]
+    assert not any(i.where == "appearance" for i in ranges)
 
 
 def test_banned_backgrounds_omitted_from_catalog(rs):

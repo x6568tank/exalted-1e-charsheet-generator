@@ -618,22 +618,17 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # Summing raw ratings here made a character with one Ability at 4 read 25/25
         # while the engine still had a free dot unspent.
         cap = b.ability_cap_pre_bp
-        free_spent = (sum(min(v, cap) for a, v in character.abilities.items()
-                          if a != AbilityName.CRAFT)
-                      + sum(min(cr.rating, cap) for cr in character.crafts))
         if b.ability_favored_dots:
-            # two-pool (Mountain Folk): the favored pool funds a Favored Ability's
-            # dots ABOVE the free-pool cap, so those count too, against the combined
-            # budget — the same arithmetic as _chargen_underflow.
-            favored_set = set(character.favored_abilities)
-            fav_spent = (sum(max(0, v - cap) for a, v in character.abilities.items()
-                             if a != AbilityName.CRAFT and a in favored_set)
-                         + sum(max(0, cr.rating - cap) for cr in character.crafts
-                               if AbilityName.CRAFT in favored_set))
-            spent = free_spent + fav_spent
+            # two-pool (Mountain Folk): ask the engine — the same single read site
+            # bonus_point_breakdown and the unspent warning use, so the readout can
+            # never disagree with the billing (they did, before the review).
+            spent, _bp = validate.two_pool_ability_accounting(
+                b, character, character.abilities, character.crafts)
             total = b.ability_dots + b.ability_favored_dots
         else:
-            spent = free_spent
+            spent = (sum(min(v, cap) for a, v in character.abilities.items()
+                         if a != AbilityName.CRAFT)
+                     + sum(min(cr.rating, cap) for cr in character.crafts))
             total = b.ability_dots
         over = spent > total
         ui.label(f"{spent} / {total} dots spent").classes(
@@ -813,8 +808,18 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         abil_trait_cap = elder.trait_ceiling(character, ruleset, domain="ability")
 
         def _attr_cap(a) -> int:
-            return max(mf_effects.attribute_caps.get(a.value, merits.DOT_MAX),
-                       attr_trait_cap)
+            # A Merit/Flaw that names this Attribute sets its ceiling DIRECTLY —
+            # Legendary raises it, Disfigured lowers it — and it is the chargen
+            # truth, NOT a permission to be maxed against the trait ceiling: maxed,
+            # a Disfigured Appearance reads 7 and the dot track never offers 0 (the
+            # human's click-through finding). An un-merited Attribute gets the trait
+            # ceiling. The ORIGIN's per-Attribute cap (the Unenlightened Mountain
+            # Folk's Intelligence 2, CH6 p.230) then binds on top — a value the
+            # sheet cannot hold is not offered, the same call that omits banned
+            # Backgrounds from the catalog.
+            cap = mf_effects.attribute_caps.get(a.value, attr_trait_cap)
+            origin_cap = b.attribute_caps.get(a.value)
+            return min(cap, origin_cap) if origin_cap else cap
 
         virtue_cap = (mf_effects.virtue_cap if mf_effects.virtue_cap is not None
                       else merits.DOT_MAX)
@@ -1062,7 +1067,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 dots(lambda a=a: character.attributes[a],
                                      lambda v, a=a, upd=show_spent: (
                                          character.attributes.__setitem__(a, v), upd()),
-                                     min(1, _attr_cap(a)), _attr_cap(a),
+                                     min(b.attribute_min or b.attribute_base,
+                                         _attr_cap(a)), _attr_cap(a),
                                      target=f"attributes.{a.value}")
 
         # abilities (by ability-caste group)
