@@ -84,12 +84,26 @@ _TERRESTRIAL_CAP = 7
 _TERRESTRIAL_TIER = "Terrestrial"
 
 
-def trait_ceiling(character: Character) -> int:
+def trait_ceiling(character: Character, ruleset: RuleSet | None = None,
+                  domain: str = "ability") -> int:
     """Ceiling on any one Ability or Attribute: `max(5, permanent Essence)` (p.258
     "Essence and Maximums", read as binding only above 5). Reads the character's
     CURRENT Essence, so a splat that can raise Essence past 5 — every Exalt to 9, a
     Dragon King to 6 — lifts its traits the same way. The one read site; every raise
-    and every dot-track ceiling goes through it."""
+    and every dot-track ceiling goes through it.
+
+    A splat whose ceiling is FIXED rather than Essence-driven overrides it per
+    origin: the Enlightened Mountain Folk cap Attributes at 7 and Abilities at 6
+    (CH6 p.230) regardless of Essence, so `ChargenBudgets.attribute_cap` /
+    `ability_cap` on the origin's row win when present. `ruleset` is optional only
+    for the old no-ruleset callers (tests); without it the override is invisible
+    and the Essence-derived ceiling applies."""
+    if ruleset is not None:
+        b = ruleset.budgets_for(character.exalt_type, character.origin,
+                                character.upbringing)
+        override = b.attribute_cap if domain == "attribute" else b.ability_cap
+        if override:
+            return override
     return max(DOT_MAX, character.essence_rating)
 
 
@@ -104,6 +118,13 @@ def essence_cap(ruleset: RuleSet, character: Character) -> tuple[int, bool]:
     is applied by the caller (advancement.raise_essence), which owns the Merit read."""
     ex = ruleset.exalt_for(character.exalt_type)
     cap = ex.essence_cap or _ESSENCE_MAX
+    # A per-ORIGIN ceiling overrides the splat-wide one — the Unenlightened Mountain
+    # Folk cap at 3 while the splat's own ceiling is 5 (CH6 p.230), and the two are
+    # different characters of the same splat.
+    origin_cap = (ruleset.budgets_for(character.exalt_type, character.origin,
+                                      character.upbringing).essence_cap)
+    if origin_cap:
+        cap = origin_cap
     if ex.tier == _TERRESTRIAL_TIER:
         hr = character.house_rules
         if not (hr and hr.terrestrial_essence_transcendence) and cap > _TERRESTRIAL_CAP:

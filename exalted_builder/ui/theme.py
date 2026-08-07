@@ -160,6 +160,18 @@ _DRAGON_KINGS = Palette(
     bg="#eef2ee", node_bg="#f8faf8", button="green-7", fam="emerald",
 )
 
+# Mountain Folk: the subterranean Jadeborn — the blue-green of deep geothermal jade
+# lit by Manse Essence, off the four palettes it could be swallowed by: the God-
+# Blooded's teal, the Dragon-Kings' emerald, the Ghost's zinc and the Lunar's slate.
+# `fam` is `cyan`, unclaimed by any other splat. ⚠ Colour-scheme decision for the
+# remaining non-Exalts is UNDECIDED (shared Mortal `stone` vs per-splat) — this is a
+# placeholder that reads clearly and can change.
+_MOUNTAIN_FOLK = Palette(
+    splat_label="Mountain Folk",
+    accent="#2d7f8c", accent_dark="#1e5964", ink="#1c2a2e",
+    bg="#eef2f3", node_bg="#f8fafb", button="cyan-7", fam="cyan",
+)
+
 _BY_SPLAT: dict[str, Palette] = {
     "Solar": _SOLAR,
     "Dragon-Blooded": _DRAGON_BLOODED,
@@ -171,6 +183,7 @@ _BY_SPLAT: dict[str, Palette] = {
     "Ghost": _GHOST,
     "God-Blooded": _GODBLOODED,
     "Dragon-Kings": _DRAGON_KINGS,
+    "Mountain-Folk": _MOUNTAIN_FOLK,
 }
 
 

@@ -236,5 +236,27 @@
     "foreign_charms_barred": true,
     "combos_available": true,
     "stamina_adds_to_lethal_soak": false
+  },
+  {
+    "id": "Mountain-Folk",
+    "label": "Mountain Folk",
+    "essence": {
+      "personal_essence_coeff": 10,
+      "personal_willpower_coeff": 0,
+      "peripheral_essence_coeff": 0,
+      "peripheral_willpower_coeff": 0,
+      "peripheral_virtue_mode": "none"
+    },
+    "single_essence_pool": true,
+    "magic_track": "",
+    "highest_magic_circle_id": "",
+    "ox_body_charm_id": "mountainfolk.foundation.ox-body-technique",
+    "caste_noun": "Caste",
+    "tier": "Terrestrial",
+    "has_virtue_flaw": false,
+    "limit_label": "Divergence",
+    "combos_available": true,
+    "essence_cap": 5,
+    "stamina_adds_to_lethal_soak": false
   }
 ]

@@ -45,7 +45,7 @@ def test_each_caste_keyed_by_its_own_id():
 
 def test_every_caste_has_a_description_and_anima_power():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.castes) == 36          # 5 Solar + 5 DB + 5 Abyssal + 4 Lunar + 5 Sidereal + 5 Alchemical + 3 Godblooded heritages + 4 Dragon-King breeds
+    assert len(rs.castes) == 39          # 5 Solar + 5 DB + 5 Abyssal + 4 Lunar + 5 Sidereal + 5 Alchemical + 3 Godblooded heritages + 4 Dragon-King breeds + 3 Mountain Folk
     for cd in rs.castes.values():
         assert cd.description and cd.anima_powers
     assert rs.castes["dawn"].description.startswith("Masters of war")
@@ -423,7 +423,7 @@ def test_virtue_flaw_is_splat_gated():
     Ghosts join the list from the page rather than by ruling — E:Ab p.148: ghosts "are
     not subject to the effects of the Great Curse or the influence of the Malfeans"."""
     rs = rules_db.load_ruleset(DATA_DIR)
-    without = {"Dragon-Blooded", "Sidereal", "Alchemical", "Mortal", "Ghost", "God-Blooded", "Dragon-Kings"}
+    without = {"Dragon-Blooded", "Sidereal", "Alchemical", "Mortal", "Ghost", "God-Blooded", "Dragon-Kings", "Mountain-Folk"}
     for eid, ex in rs.exalts.items():
         assert ex.has_virtue_flaw is (eid not in without), eid
     # the derivation agrees, and a Sidereal keeps its renamed Limit track regardless

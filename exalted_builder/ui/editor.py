@@ -109,6 +109,12 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
     # Backgrounds and mandatory abilities. "modern" has no `Dragon-Kings:modern` budget
     # row, so it falls back to the plain "Dragon-Kings" row — the dynastic trick.
     "Dragon-Kings": {"modern": "Modern", "ancient": "Ancient"},
+    # The Mountain Folk (CH6 pp.230-231): Enlightenment is the origin axis, and it
+    # rewrites nearly every chargen number — 16/13/10 vs 8/4/3 Attributes, a two-pool
+    # Ability budget, per-caste Background dots, trait ceilings, Essence and
+    # Willpower caps. "enlightened" HAS a `Mountain-Folk:enlightened` row (unlike the
+    # dynastic trick above), so it is the default explicitly.
+    "Mountain-Folk": {"enlightened": "Enlightened", "unenlightened": "Unenlightened"},
 }
 
 # The second axis, keyed by "<exalt_type>:<origin>". Only origins that HAVE variants
@@ -612,11 +618,25 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # Summing raw ratings here made a character with one Ability at 4 read 25/25
         # while the engine still had a free dot unspent.
         cap = b.ability_cap_pre_bp
-        spent = (sum(min(v, cap) for a, v in character.abilities.items()
-                     if a != AbilityName.CRAFT)
-                 + sum(min(cr.rating, cap) for cr in character.crafts))
-        over = spent > b.ability_dots
-        ui.label(f"{spent} / {b.ability_dots} dots spent").classes(
+        free_spent = (sum(min(v, cap) for a, v in character.abilities.items()
+                          if a != AbilityName.CRAFT)
+                      + sum(min(cr.rating, cap) for cr in character.crafts))
+        if b.ability_favored_dots:
+            # two-pool (Mountain Folk): the favored pool funds a Favored Ability's
+            # dots ABOVE the free-pool cap, so those count too, against the combined
+            # budget — the same arithmetic as _chargen_underflow.
+            favored_set = set(character.favored_abilities)
+            fav_spent = (sum(max(0, v - cap) for a, v in character.abilities.items()
+                             if a != AbilityName.CRAFT and a in favored_set)
+                         + sum(max(0, cr.rating - cap) for cr in character.crafts
+                               if AbilityName.CRAFT in favored_set))
+            spent = free_spent + fav_spent
+            total = b.ability_dots + b.ability_favored_dots
+        else:
+            spent = free_spent
+            total = b.ability_dots
+        over = spent > total
+        ui.label(f"{spent} / {total} dots spent").classes(
             "text-xs font-semibold").style(
             f"color:{'#b91c1c' if over else pal.accent}")
 
@@ -787,11 +807,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         essence_cap, _ = elder.essence_cap(ruleset, character)
         if mf_effects.essence_cap_override is not None:
             essence_cap = mf_effects.essence_cap_override
-        trait_cap = elder.trait_ceiling(character)
+        # Attribute and Ability ceilings can differ on one splat (the Enlightened
+        # Mountain Folk: 7 and 6, CH6 p.230), so the dot tracks read them separately.
+        attr_trait_cap = elder.trait_ceiling(character, ruleset, domain="attribute")
+        abil_trait_cap = elder.trait_ceiling(character, ruleset, domain="ability")
 
         def _attr_cap(a) -> int:
             return max(mf_effects.attribute_caps.get(a.value, merits.DOT_MAX),
-                       trait_cap)
+                       attr_trait_cap)
 
         virtue_cap = (mf_effects.virtue_cap if mf_effects.virtue_cap is not None
                       else merits.DOT_MAX)
@@ -1073,7 +1096,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                     ui.label(_label(a.value)).classes("text-sm flex-1 truncate")
                                     dots(lambda a=a: character.abilities[a],
                                          lambda v, a=a: character.abilities.__setitem__(a, v),
-                                         0, trait_cap,
+                                         0, abil_trait_cap,
                                          target=f"abilities.{a.value}")
 
         # crafts — each focus is its own rated Ability (core p.136)
@@ -1085,7 +1108,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.input(value=cr.focus, placeholder="craft (e.g. Smithing)",
                              on_change=lambda e, cr=cr: (setattr(cr, "focus", e.value), changed())).classes("flex-1")
                     dots(lambda cr=cr: cr.rating, lambda v, cr=cr: setattr(cr, "rating", v),
-                         0, trait_cap, target="crafts", detail=cr.focus)
+                         0, abil_trait_cap, target="crafts", detail=cr.focus)
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_craft(idx)).props("flat dense round")
             ui.button("Add craft", icon="add", on_click=add_craft).props("flat dense")
 

@@ -1,0 +1,625 @@
+[
+  {
+    "id": "mountainfolk.warrior.arsenal-enhancing-technique",
+    "name": "Arsenal-enhancing Technique",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.compassion-bolstering-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One day",
+    "description": "The Warrior carefully and reverently handles a weapon or suit of armor, reinforcing the object’s pattern with her own Essence. In addition to cleaning and polishing the item, the magic also transforms it into exceptional gear. This upgrade provides bonus points that the Jadeborn may spend to enhance the object. Unless otherwise noted, these points can only improve the same statistic once. Melee weapons receive three points that can add to speed, accuracy, damage or defense. Each point can also subtract one from a minimum. Exceptional bows receive two bonus points to divide among accuracy, rate and range (which adds 50 yards), but crossbows cannot increase their rate. Thrown weapons gain three bonus points to enhance their melee capabilities or distance use (spending a dot on range adds +10 yards). However, improving a thrown weapon’s melee characteristics does not increase its ranged characteristics, and vice versa. Exceptional armor adds two bonus points that can increase soak by +1L/+1B, reduce the mobility penalty by one or reduce the fatigue value by one. Finally, this Charm can make clothing more durable, changing it into a type of makeshift armor with 2L/1B soak and no mobility penalty or fatigue value. Arsenal-Enhancing Technique normally lasts for a day, after which the character must renew the magic. Spending 2 experience points makes the enchantment permanent. This Charm can enchant an already exceptional item to make it a perfect item, in which case the two enhancements stack with one another. Perfect defensive clothing is comfortable in all but the most extreme temperatures, in addition to being extremely durable and light (counts as armor with a soak rating of 3L/2B and no mobility penalty or fatigue value). Only objects that are",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 256
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.battle-trance-focus",
+    "name": "Battle Trance Focus",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.conviction-bolstering-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Warrior silently concentrates, crystallizing his mind toward the singular purpose of violence. In this hardened mental state, the character adds his Essence or half his Conviction rating, rounded up (whichever is higher), to the dice pools of all attacks and defense rolls. However, the character’s single-minded focus also subtracts his Conviction or Essence rating (whichever is higher) from the dice pools of all Ability rolls not involved with combat. Rolls that are indirectly connected with combat (such as movement, hiding for an ambush, etc.) receive no bonus or penalty. The Storyteller remains the final arbiter of whether an action is indirectly combat related or not but should give players ample opportunity to justify associations through clever descriptions (particularly if such descriptions warrant a stunt bonus). Once activated, Battle Trance Focus must run its course. Characters may not prematurely deactivate the Charm before its duration expires. Eclipse and Moonshadow Caste Exalted cannot learn this Charm.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 257
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.precision-onslaught-method",
+    "name": "Precision Onslaught Method",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.temperance-bolstering-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 1,
+      "health": 0,
+      "raw": "4 motes, 1 Willpower"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Warrior adopts a dynamic fighting stance, allowing her to strike with supernatural economy of motion and exacting aim. Her blows and missiles find the weak points in armor and flesh alike, subtracting her Temperance from the soak of any being or object she attacks (to a minimum of 0 soak). In addition, the Jadeborn reduces the difficulty of all called shots by one, to a minimum of difficulty 1. For example, characters can inflict bashing damage with lethal weapons as an attack at standard difficulty. Full information on called shots may be found on pages 238-239 of Exalted.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 257
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.charring-magma-blade",
+    "name": "Charring Magma Blade",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.valor-bolstering-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Jadeborn touches his weapon to the ground, absorbing the destructive wrath of the earth’s blood. A rumble stirs the air as burning Essence erupts from the point of contact, enveloping the weapon in a brightorange radiance that quickly cools into a mottled glow. The energies remain banked and dim, giving off uncomfortable warmth without setting anything aflame. The power roars to life whenever the owner strikes a blow, adding his Valor to the base damage and setting any flammable object alight. Such burning weapons inflict lethal damage and cannot inflict bashing damage. As an added benefit, the enchanted weapon knows its master. If anyone but the weapon’s true owner tries to hold or wield it, the volcanic Essence inflicts lethal damage equal to the Jadeborn’s Valor every turn. The bearer’s player must also make a successful reflexive roll of Stamina + Resistance each turn at difficulty 4, or the character drops the burning weapon in agony. Normally, this Charm can only enchant melee weapons. However, characters using a (Color) Jade Transformation Charm, a Fivefold Embodiment of",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 257
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.living-jewel-armor",
+    "name": "Living Jewel Armor",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.white-jade-transformation"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 0,
+      "health": 0,
+      "raw": "7 motes"
+    },
+    "duration": "Essence hours",
+    "description": "As the character evokes the pattern of her Essence, a lattice of razor-sharp crystal spikes grows from her flesh and weaves itself into a spiked exoskeleton. This transformation assimilates any armor the character is wearing into itself, crystallizing and reweaving the protection into an extension of her being. Living Jewel Armor has a bashing and lethal soak of its creator’s permanent Essence, plus the soak rating of any assimilated armor. It has a mobility penalty and fatigue value each equal to half the penalty/value of any assimilated armor, rounded up. If the exoskeleton did not absorb any armor, it has no mobility penalty or fatigue value. As a final defensive power, the crystal armor partially absorbs and conducts attacks of raw Essence (i.e., those lacking a physical component, such as Solar Spike, Elemental Bolt Attack or blasts from a skirmish pike). The armor has double its usual soak against such attacks and allows the Warrior’s player to roll one die for every point of soaked damage. Each success restores one mote to the Jadeborn’s pool. In addition to its defensive powers, armor created with this Charm serves as a deadly weapon. The lattice of razor sharp blades adds +1 to the accuracy and +2L to the damage of all unarmed attacks, including grappling maneuvers. The spikes also act as quills, inflicting 5L damage to anyone who strikes the character with an unarmed attack. Finally, the reinforced exoskeleton provides the Warrior with an additional dot of Strength that is considered part of the character’s natural rating for the duration of the Charm.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 258
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.reforging-travail-of-the-veteran",
+    "name": "Reforging Travail of the Veteran",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Simple",
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.arsenal-enhancing-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per dot of Essence"
+    },
+    "duration": "One week",
+    "description": "Lesser Warriors augment weapons with Essence. Enlightened generals build upon this principle to augment soldiers as weapons, applying Essence and rigorous training to improve their quality. First, the Warrior gathers the forces she wishes to train, all of whom must have a permanent Essence of 3 or less. Next, she takes these soldiers to a secluded area and commits 1 mote for every dot of permanent Essence possessed by members of the group (or 2 motes per dot for non-Mountain Folk). Trainees study under the Warrior’s rigorous tutelage for at least 15 hours a day, learning the crafts and arts of war. For each day that passes, these soldiers gain 1 phantom experience point. Phantom points are banked separately for those characters who normally keep track of experience totals (i.e., those controlled by players). At the end of the week, graduates of the program must spend the experience points they have earned without regard for training times. The instructor’s player designates and prioritizes how these points must be spent. Valid choices for improvement include Valor, Warrior Pattern Charms, Physical Attributes, Wits or war-related Abilities: Archery, Athletics, Awareness, Brawl, Craft (War), Dodge, Endurance, Martial Arts, Melee, Resistance, Stealth, Survival, Thrown. The curriculum must list the prioritized Traits at the desired value, none of which may exceed the Warrior’s own rating. Affected characters use phantom experience at the normal cost to raise Traits as per the list, ignoring all training times. Characters with any actual experience points banked must first spend these before spending phantom points. Any phantom points leftover after purchasing the prioritized Traits are lost unless the Warrior immediately begins another round of teaching with this Charm. This process repeats with successive weeks of magical training until the teacher stops. Characters may not train under all applications of this Charm for more than (their Willpower + Essence) weeks a year. For the purposes of this Charm, a year spans the time between two Calibrations. Characters who receive normal experience points must note the number of phantom experience spent. These characters do not receive any experience awards until they have paid off this debt in full. They may circumvent standard training times and accumulate as much experience debt as they are willing and able, so the Charm still provides considerable benefit. However, the Charm’s primary purpose is to rapidly train large numbers of Storyteller characters at an accelerated pace.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 259
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.great-maker-s-champion",
+    "name": "Great Maker’s Champion",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.battle-trance-focus"
+      ]
+    ],
+    "cost": {
+      "motes": 20,
+      "willpower": 2,
+      "health": 0,
+      "raw": "20 motes, 2 Willpower"
+    },
+    "duration": "One scene",
+    "description": "The Enlightened Warrior disseminates shards of his will and genius through all the forces he commands, integrating them into a collective engine of war. Ruthlessly and pitilessly efficient, this machine of formations and blades strikes fear into enemy hearts. This effect extends a half mile from the character and incorporates all Mountain Folk with a permanent Essence of 1-3 who regard the Warrior as their military commander (either directly or through an unbroken chain of relayed command). Affected Jadeborn add one die to all attack and defense rolls, as well as adding one automatic success to all Valor rolls. All enemies within a half mile radius of the Warrior who have a permanent Essence of 1 and a Valor of 3 or less suffer a corresponding penalty if they fight the enchanted host, losing one die from all attacks and defense rolls and increasing the difficulty of all Valor rolls by 1. If any of these forces actually try to face the Warrior directly rather than simply engaging his unit, the dice penalties to attacks increase to a rating of the Jadeborn’s Valor.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 259
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.diamond-shattering-blow",
+    "name": "Diamond-shattering Blow",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Supplemental",
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.precision-onslaught-method"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The Enlightened Warrior concentrates, striking with perfect calm in an instant of destructive clarity. If she strikes an inanimate object, she adds her Temperance + Essence to the base damage, and her target receives no soak against the attack. Against an animate target, the attack ignores and destroys any non-magical armor the victim is wearing, but adds no extra dice to damage. The attack also shatters any non-magical weapon used to parry the blow, although the victim’s parry still provides its usual protection. Mountain Folk may also use this Charm to target an opponent’s weapon with a called shot at difficulty 3. This blow may be dodged normally. If the target parries, the attack against the weapon automatically succeeds. Success destroys any non-magical weapon and sends any magical weapon flying out of its owner’s grasp as an automatic disarm attempt. Objects destroyed by this attack spectacularly shatter into hundreds or even thousands of shards. Beings killed with this Charm perish no less spectacularly, cleaved in half or even reduced to a spray of pulped bone and gore, depending on the weapon used. This Charm has less effect on inanimate objects of First Age construction or similar mystical durability (i.e., those that ignore non-magical damage and/or require damage to be rolled). Against such targets, the Warrior adds Temperance + Essence to damage, but the target’s full soak applies. However, the target’s soak cannot reduce the damage dice below the Jadeborn’s Temperance + Essence. If the character uses this Charm to attack a First Age object with a non-magical weapon, the weapon shatters in the process of delivering the blow. By default, this Charm can only augment armed hand-to-hand attacks. However, characters using a (Color) Jade Transformation Charm, a Fivefold Embodiment of (Color) Jade Charm or Living Jewel Armor may use Diamond-Shattering Blow in conjunction with unarmed attacks.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 260
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.inescapable-volcano-stance",
+    "name": "Inescapable Volcano Stance",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Reflexive",
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.charring-magma-blade"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 1,
+      "health": 0,
+      "raw": "4 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The Warrior holds perfectly still for the span of a heartbeat, then launches into a flurry of movement. Upon activating this Charm, the character adds his Valor to his initiative. Additionally, if using the Power Combat rules from the Exalted Players Guide, his hand-to-hand weapons have unlimited rate. Most importantly, the normal rules for multiple actions do not apply to the character for the turn. Instead, his first dice action is made at his full pool, with each subsequent action suffering a cumulative one-die penalty. If the penalty exceeds the dice pool for an action after all modifiers, that action cannot be attempted. Defensive actions occur outside of initiative, allowing the Warrior to dodge or parry whenever needed in response to attacks. He may, in fact, dodge and parry the same attack. For all other actions, the character must wait until his initiative count or later. Mountain Folk can only activate this Charm at the beginning of a turn before initiative is rolled and may not use Inescapable Volcano Stance more than once per turn.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 261
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.warrior-pattern-mastery",
+    "name": "Warrior Pattern Mastery",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Special",
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.arsenal-enhancing-technique"
+      ],
+      [
+        "mountainfolk.warrior.battle-trance-focus"
+      ],
+      [
+        "mountainfolk.warrior.black-jade-transformation"
+      ],
+      [
+        "mountainfolk.warrior.blue-jade-transformation"
+      ],
+      [
+        "mountainfolk.warrior.charring-magma-blade"
+      ],
+      [
+        "mountainfolk.warrior.compassion-bolstering-meditation"
+      ],
+      [
+        "mountainfolk.warrior.conviction-bolstering-meditation"
+      ],
+      [
+        "mountainfolk.warrior.diamond-shattering-blow"
+      ],
+      [
+        "mountainfolk.warrior.fivefold-embodiment-of-black-jade"
+      ],
+      [
+        "mountainfolk.warrior.fivefold-embodiment-of-blue-jade"
+      ],
+      [
+        "mountainfolk.warrior.fivefold-embodiment-of-green-jade"
+      ],
+      [
+        "mountainfolk.warrior.fivefold-embodiment-of-red-jade"
+      ],
+      [
+        "mountainfolk.warrior.fivefold-embodiment-of-white-jade"
+      ],
+      [
+        "mountainfolk.warrior.great-maker-s-champion"
+      ],
+      [
+        "mountainfolk.warrior.green-jade-transformation"
+      ],
+      [
+        "mountainfolk.warrior.inescapable-volcano-stance"
+      ],
+      [
+        "mountainfolk.warrior.living-jewel-armor"
+      ],
+      [
+        "mountainfolk.warrior.precision-onslaught-method"
+      ],
+      [
+        "mountainfolk.warrior.red-jade-transformation"
+      ],
+      [
+        "mountainfolk.warrior.reforging-travail-of-the-veteran"
+      ],
+      [
+        "mountainfolk.warrior.temperance-bolstering-meditation"
+      ],
+      [
+        "mountainfolk.warrior.valor-bolstering-meditation"
+      ],
+      [
+        "mountainfolk.warrior.white-jade-transformation"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "Enlightened Mountain Folk who attain cumulative mastery of the Warrior Pattern may unlock its final revelation with this Charm. These ultimate grandmasters of battle see the web of the Pattern itself and may navigate its interstices more easily or even weave their own threads. Jadeborn with this Charm subtract 2 motes from the activation cost for all the 18 subsidiary Warrior Pattern Charms that require Essence. This cannot reduce the Essence cost of a Charm below 1 mote. Additionally, Mountain Folk grandmasters can spend a Willpower point to simultaneously activate as many Warrior Pattern enchantment-type Charms as desired on a single initiative count. Finally, players of these paragons may design new Warrior Pattern Charms with Storyteller permission and oversight. Each of these custom Charms must have one or more of the 23 subsidiary Pattern Charms as prerequisites, building upon existing themes and motifs of design (especially in terms of elements and Virtues). Only Jadeborn with Warrior Pattern Mastery can learn custom Charms for this Pattern.\n\n### THE ARTISAN PATTERN The Patterns of the undercastes must accommodate their predominantly Unenlightened users. The Charms flexibly encompass a range of power levels, limiting the greater effects to higher orders of mastery. No such limitations bind the exclusively Enlightened Artisans, and this freedom permits their Pattern to expand in dimensions of unsurpassed complexity and sorcerous erudition.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 261
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.compassion-bolstering-meditation",
+    "name": "Compassion-Bolstering Meditation",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "raw": "3 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Warrior clears his mind of distractions with a chant or yell, hardening his spirit against suffering. (Virtue)-Bolstering Meditation is actually four separate Charms, one for each Virtue. Characters who know multiple versions can activate them in conjunction on the same initiative as if they were a single Charm. Additionally, a Jadeborn who masters all four versions reduces the activation cost to 2 motes per Charm instead of 3. Characters can only benefit from one application of each version at a time. Reactivating the Charm before the effect wears off merely resets the duration.\n\nCompassion: The character adds one bonus die to all actions intended to protect or rescue an ally from immediate physical danger. Once per scene, the character may increase this bonus to her Compassion rating for a single turn.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 247
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.conviction-bolstering-meditation",
+    "name": "Conviction-Bolstering Meditation",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "raw": "3 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Warrior clears his mind of distractions with a chant or yell, hardening his spirit against suffering. (Virtue)-Bolstering Meditation is actually four separate Charms, one for each Virtue. Characters who know multiple versions can activate them in conjunction on the same initiative as if they were a single Charm. Additionally, a Jadeborn who masters all four versions reduces the activation cost to 2 motes per Charm instead of 3. Characters can only benefit from one application of each version at a time. Reactivating the Charm before the effect wears off merely resets the duration.\n\nConviction: The character subtracts his Conviction rating from all wound penalties.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 247
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.temperance-bolstering-meditation",
+    "name": "Temperance-Bolstering Meditation",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "raw": "3 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Warrior clears his mind of distractions with a chant or yell, hardening his spirit against suffering. (Virtue)-Bolstering Meditation is actually four separate Charms, one for each Virtue. Characters who know multiple versions can activate them in conjunction on the same initiative as if they were a single Charm. Additionally, a Jadeborn who masters all four versions reduces the activation cost to 2 motes per Charm instead of 3. Characters can only benefit from one application of each version at a time. Reactivating the Charm before the effect wears off merely resets the duration.\n\nTemperance: The character subtracts his Temperance rating from all environmental penalties.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 247
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.valor-bolstering-meditation",
+    "name": "Valor-Bolstering Meditation",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "raw": "3 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Warrior clears his mind of distractions with a chant or yell, hardening his spirit against suffering. (Virtue)-Bolstering Meditation is actually four separate Charms, one for each Virtue. Characters who know multiple versions can activate them in conjunction on the same initiative as if they were a single Charm. Additionally, a Jadeborn who masters all four versions reduces the activation cost to 2 motes per Charm instead of 3. Characters can only benefit from one application of each version at a time. Reactivating the Charm before the effect wears off merely resets the duration.\n\nValor: The character gains one additional dot of Valor, plus one for every five allies in line of sight who are also using the Valor permutation of this Charm. If this results in a Valor rating of 6+, the character's Valor remains at five dots, but she becomes truly fearless, like an automaton. She is incapable of failing Valor rolls and becomes immune to all magic and penalties based on fear. The character immediately loses additional Valor if the number of linked allies in range drops below the number required for the bonus. Valor bonuses gained with this Charm are considered part of the character's natural rating.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 247
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.green-jade-transformation",
+    "name": "Green Jade Transformation",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.compassion-bolstering-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "raw": "8 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Mountain Folk begin and end their lives entombed in stone. Warriors who learn this Charm may call upon that heritage, briefly transmuting their bodies into statues of living jade. Five versions of this Charm exist, one for each color of jade. All versions grant a natural lethal soak equal to the character's Stamina and permit characters to parry lethal attacks unarmed without a stunt. Each version also provides a unique benefit as listed below. Characters who know multiple versions of this Charm may activate multiple versions at the same instant as a single Charm use. The cost to use any of these Charms is (8 - the number of [Color] Jade Transformation Charms the character already has active) motes. While Jadeborn can stack multiple versions of this Charm together, they cannot benefit from more than one application of the same version at a time. Reactivating a Charm before its effect runs out resets the duration.\n\nGreen: The Warrior resonates with the elemental aspect of wood, regenerating one level of bashing damage every turn and one level of lethal damage every hour.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 255
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.red-jade-transformation",
+    "name": "Red Jade Transformation",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.valor-bolstering-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "raw": "8 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Mountain Folk begin and end their lives entombed in stone. Warriors who learn this Charm may call upon that heritage, briefly transmuting their bodies into statues of living jade. Five versions of this Charm exist, one for each color of jade. All versions grant a natural lethal soak equal to the character's Stamina and permit characters to parry lethal attacks unarmed without a stunt. Each version also provides a unique benefit as listed below. Characters who know multiple versions of this Charm may activate multiple versions at the same instant as a single Charm use. The cost to use any of these Charms is (8 - the number of [Color] Jade Transformation Charms the character already has active) motes. While Jadeborn can stack multiple versions of this Charm together, they cannot benefit from more than one application of the same version at a time. Reactivating a Charm before its effect runs out resets the duration.\n\nRed: The character resonates with fire, gaining total immunity to damage from non-magical fire and extreme heat. Against magical sources of flame, the character adds his Valor to his lethal soak. The flickering sparks of Essence also accelerate the character's reflexes, adding half his Valor rating to base initiative (rounded up).",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 255
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.black-jade-transformation",
+    "name": "Black Jade Transformation",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.temperance-bolstering-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "raw": "8 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Mountain Folk begin and end their lives entombed in stone. Warriors who learn this Charm may call upon that heritage, briefly transmuting their bodies into statues of living jade. Five versions of this Charm exist, one for each color of jade. All versions grant a natural lethal soak equal to the character's Stamina and permit characters to parry lethal attacks unarmed without a stunt. Each version also provides a unique benefit as listed below. Characters who know multiple versions of this Charm may activate multiple versions at the same instant as a single Charm use. The cost to use any of these Charms is (8 - the number of [Color] Jade Transformation Charms the character already has active) motes. While Jadeborn can stack multiple versions of this Charm together, they cannot benefit from more than one application of the same version at a time. Reactivating a Charm before its effect runs out resets the duration.\n\nBlack: By resonating with water, the character gains flowing quickness and greater freedom of movement. She adds one to her Dexterity and subtracts her Temperance from the total mobility penalty of any armor and/or encumbering possessions she carries.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 255
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.blue-jade-transformation",
+    "name": "Blue Jade Transformation",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.conviction-bolstering-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "raw": "8 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Mountain Folk begin and end their lives entombed in stone. Warriors who learn this Charm may call upon that heritage, briefly transmuting their bodies into statues of living jade. Five versions of this Charm exist, one for each color of jade. All versions grant a natural lethal soak equal to the character's Stamina and permit characters to parry lethal attacks unarmed without a stunt. Each version also provides a unique benefit as listed below. Characters who know multiple versions of this Charm may activate multiple versions at the same instant as a single Charm use. The cost to use any of these Charms is (8 - the number of [Color] Jade Transformation Charms the character already has active) motes. While Jadeborn can stack multiple versions of this Charm together, they cannot benefit from more than one application of the same version at a time. Reactivating a Charm before its effect runs out resets the duration.\n\nBlue: Through resonance with air, the Warrior becomes light and deft, subtracting his Conviction from the fatigue ratings for armor and similarly encumbering possessions. Furthermore, he doubles his usual leaping distance and halves the actual distance of any fall for the purposes of determining damage sustained on impact.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 255
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.white-jade-transformation",
+    "name": "White Jade Transformation",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.compassion-bolstering-meditation"
+      ],
+      [
+        "mountainfolk.warrior.conviction-bolstering-meditation"
+      ],
+      [
+        "mountainfolk.warrior.temperance-bolstering-meditation"
+      ],
+      [
+        "mountainfolk.warrior.valor-bolstering-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "raw": "8 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "The Mountain Folk begin and end their lives entombed in stone. Warriors who learn this Charm may call upon that heritage, briefly transmuting their bodies into statues of living jade. Five versions of this Charm exist, one for each color of jade. All versions grant a natural lethal soak equal to the character's Stamina and permit characters to parry lethal attacks unarmed without a stunt. Each version also provides a unique benefit as listed below. Characters who know multiple versions of this Charm may activate multiple versions at the same instant as a single Charm use. The cost to use any of these Charms is (8 - the number of [Color] Jade Transformation Charms the character already has active) motes. While Jadeborn can stack multiple versions of this Charm together, they cannot benefit from more than one application of the same version at a time. Reactivating a Charm before its effect runs out resets the duration.\n\nWhite: Embodying the balance and harmony of earth, the character adds (the rating of her highest Virtue + Essence) to her natural bashing and lethal soak values. In addition, her hardened body becomes a deadly weapon, causing all her unarmed attacks to inflict lethal damage unless she deliberately pulls her blows (see Exalted, p. 238). Finally, she cannot be stunned, thrown or otherwise tackled to the ground, nor can she suffer any other form of knockback or knockdown (see Exalted, pp. 234-235). This immunity does not extend to magical effects that induce these conditions, nor does it prevent injuries associated with unsuccessful maneuvers. For example, a tackle still strikes with full force even if it cannot knock the character to the ground.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 255
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.fivefold-embodiment-of-green-jade",
+    "name": "Fivefold Embodiment of Green Jade",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Special",
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.green-jade-transformation"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "Where lesser Warriors may briefly change flesh into enchanted jade, more powerful veterans can permanently sculpt their bodies into armored form. For each purchase of this Charm, the Jadeborn permanently gains the effects of one (Color) Jade Transformation Charm he already knows. Characters with Fivefold Embodiment of Black Jade consider the bonus dot of Dexterity part of their natural rating for all purposes, including raising the Attribute with experience. This effect can raise Dexterity above normal maximums. Note that the temporary and permanent versions of the same effect do not stack, so characters with any version of this Charm have no further use for its prerequisite. Mountain Folk may not learn more versions of this Charm than their permanent Essence. Eclipse and Moonshadow Caste Exalted may not learn any versions of this Charm.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 256
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.fivefold-embodiment-of-red-jade",
+    "name": "Fivefold Embodiment of Red Jade",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Special",
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.red-jade-transformation"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "Where lesser Warriors may briefly change flesh into enchanted jade, more powerful veterans can permanently sculpt their bodies into armored form. For each purchase of this Charm, the Jadeborn permanently gains the effects of one (Color) Jade Transformation Charm he already knows. Characters with Fivefold Embodiment of Black Jade consider the bonus dot of Dexterity part of their natural rating for all purposes, including raising the Attribute with experience. This effect can raise Dexterity above normal maximums. Note that the temporary and permanent versions of the same effect do not stack, so characters with any version of this Charm have no further use for its prerequisite. Mountain Folk may not learn more versions of this Charm than their permanent Essence. Eclipse and Moonshadow Caste Exalted may not learn any versions of this Charm.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 256
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.fivefold-embodiment-of-black-jade",
+    "name": "Fivefold Embodiment of Black Jade",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Special",
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.black-jade-transformation"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "Where lesser Warriors may briefly change flesh into enchanted jade, more powerful veterans can permanently sculpt their bodies into armored form. For each purchase of this Charm, the Jadeborn permanently gains the effects of one (Color) Jade Transformation Charm he already knows. Characters with Fivefold Embodiment of Black Jade consider the bonus dot of Dexterity part of their natural rating for all purposes, including raising the Attribute with experience. This effect can raise Dexterity above normal maximums. Note that the temporary and permanent versions of the same effect do not stack, so characters with any version of this Charm have no further use for its prerequisite. Mountain Folk may not learn more versions of this Charm than their permanent Essence. Eclipse and Moonshadow Caste Exalted may not learn any versions of this Charm.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 256
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.fivefold-embodiment-of-blue-jade",
+    "name": "Fivefold Embodiment of Blue Jade",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Special",
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.blue-jade-transformation"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "Where lesser Warriors may briefly change flesh into enchanted jade, more powerful veterans can permanently sculpt their bodies into armored form. For each purchase of this Charm, the Jadeborn permanently gains the effects of one (Color) Jade Transformation Charm he already knows. Characters with Fivefold Embodiment of Black Jade consider the bonus dot of Dexterity part of their natural rating for all purposes, including raising the Attribute with experience. This effect can raise Dexterity above normal maximums. Note that the temporary and permanent versions of the same effect do not stack, so characters with any version of this Charm have no further use for its prerequisite. Mountain Folk may not learn more versions of this Charm than their permanent Essence. Eclipse and Moonshadow Caste Exalted may not learn any versions of this Charm.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 256
+    }
+  },
+  {
+    "id": "mountainfolk.warrior.fivefold-embodiment-of-white-jade",
+    "name": "Fivefold Embodiment of White Jade",
+    "category": "mountain_folk:warrior",
+    "exalt_type": "Mountain-Folk",
+    "type": "Special",
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "mountainfolk.warrior.white-jade-transformation"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "Where lesser Warriors may briefly change flesh into enchanted jade, more powerful veterans can permanently sculpt their bodies into armored form. For each purchase of this Charm, the Jadeborn permanently gains the effects of one (Color) Jade Transformation Charm he already knows. Characters with Fivefold Embodiment of Black Jade consider the bonus dot of Dexterity part of their natural rating for all purposes, including raising the Attribute with experience. This effect can raise Dexterity above normal maximums. Note that the temporary and permanent versions of the same effect do not stack, so characters with any version of this Charm have no further use for its prerequisite. Mountain Folk may not learn more versions of this Charm than their permanent Essence. Eclipse and Moonshadow Caste Exalted may not learn any versions of this Charm.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 256
+    }
+  }
+]

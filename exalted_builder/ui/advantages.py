@@ -214,7 +214,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             return min(meritsmod.DOT_MAX,
                        mf_effects.background_caps.get(key, meritsmod.DOT_MAX))
 
-        with panel_card(pal, f"Backgrounds ({b.background_dots} dots; "
+        with panel_card(pal, f"Backgrounds ({validate.background_dots_budget(b, character)} dots; "
                              f"≤{b.background_cap_pre_bp} pre-bonus)"):
             # A Flaw may cap or close a Background (Innocuous' veiled tier). Same
             # treatment the Attribute rows give a Merit cap: a ceiling the player can

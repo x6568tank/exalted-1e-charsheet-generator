@@ -474,5 +474,42 @@
         {"name": "Tail", "speed": 0, "accuracy": -1, "damage": 5, "damage_type": "B", "defense": -2}
       ]
     }
+  },
+  {
+    "id": "worker",
+    "exalt_type": "Mountain-Folk",
+    "label": "Worker",
+    "caste_abilities": [],
+    "description": "The Pillars of the Mountain, the most populous caste — miners, farmers, factory labourers and retainers beneath the rule of the Artisans. Humble Gears, Children of Clay, Hammers of Autochthon. (CH6 pp.238-240)",
+    "anima_powers": "Mountain Folk do not display anima banners — they are fully harmonized to their single Essence pool."
+  },
+  {
+    "id": "warrior",
+    "exalt_type": "Mountain-Folk",
+    "label": "Warrior",
+    "caste_abilities": [],
+    "description": "The Myrmidons, Engines of Victory — the clockwork army that shields the Mountain Folk from the Nameless Hordes. Soldiers live and die in the Endless War. (CH6 pp.240-242)",
+    "anima_powers": "Mountain Folk do not display anima banners — they are fully harmonized to their single Essence pool."
+  },
+  {
+    "id": "artisan",
+    "exalt_type": "Mountain-Folk",
+    "label": "Artisan",
+    "caste_abilities": [],
+    "description": "The Jadeweavers, Princes of Adamant — the Enlightened scholar-aristocrats who rule the Mountain Folk, and the only caste that always bears the Enlightenment of Autochthon. (CH6 pp.242-244)",
+    "anima_powers": "Mountain Folk do not display anima banners — they are fully harmonized to their single Essence pool.",
+    "required_min_abilities": [
+      {"abilities": ["awareness"], "rating": 1},
+      {"abilities": ["bureaucracy"], "rating": 2},
+      {"abilities": ["linguistics"], "rating": 2},
+      {"abilities": ["lore"], "rating": 2},
+      {"abilities": ["martial_arts", "melee"], "rating": 1},
+      {"abilities": ["occult"], "rating": 2},
+      {"abilities": ["performance", "presence"], "rating": 1},
+      {"abilities": ["socialize"], "rating": 2}
+    ],
+    "required_min_ability_groups": [
+      {"abilities": ["craft"], "rating": 2}
+    ]
   }
 ]

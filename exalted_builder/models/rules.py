@@ -82,6 +82,15 @@ class CharmType(str, Enum):
     EXTRA_ACTION = "Extra Action"
     PERMANENT = "Permanent"
     SPECIAL = "Special"        # e.g. Ox-Body Technique (repeatable, permanent effect)
+    ENCHANTMENT = "Enchantment"   # Mountain Folk only (CH6 p.244): a simple Charm whose
+    # effect outlasts the instant but needs no committed Essence to sustain — "the new
+    # 'enchantment' type ... treated as simple Charms with a duration longer than
+    # instant. However, characters need not commit Essence to sustain these ongoing
+    # effects." 36 of the 78 Mountain Folk Charms are enchantments.
+    SIMPLE_ENCHANTMENT = "Simple/Enchantment"   # Living Earth Meditation (CH6 p.264),
+    # the one Charm the book prints with a dual Type — usable as either a Simple or an
+    # Enchantment. One entry; kept as a distinct value rather than collapsed, because
+    # the page prints it and the picker should too.
 
 
 class SpellCircle(str, Enum):
@@ -206,6 +215,20 @@ class AbilityMinimum(BaseModel):
     is a specific-ability floor. Used for the Dragon-Blooded Dynastic schooling
     minimums (p.151) and the Sidereal per-house minimums (p.98) — these are a floor
     spent from the pool, NOT free extra dots."""
+    model_config = ConfigDict(frozen=True)
+    abilities: list[AbilityName]
+    rating: int = Field(ge=1)
+
+
+class AbilityGroupMinimum(BaseModel):
+    """A required minimum SUM across a GROUP of Abilities: the character's combined
+    rating across all of `abilities` must be at least `rating`. AbilityMinimum is
+    OR semantics (one of a set); this is sum-over-set, a different shape the
+    Mountain Folk Artisan's College of Divine Enlightenment schooling demands —
+    "an absolute minimum of ... •• divided among Craft Abilities" (CH6 p.230). A
+    single-element group is the same as an AbilityMinimum, so groups are only used
+    where the printed floor is explicitly "divided among" several Abilities. The
+    floor is spent from the pool, NOT free extra dots, like AbilityMinimum."""
     model_config = ConfigDict(frozen=True)
     abilities: list[AbilityName]
     rating: int = Field(ge=1)
@@ -360,6 +383,17 @@ class Charm(BaseModel):
     # which `repeatable_cap_ability` cannot express (Ability/Attribute/"essence" only).
     # Mirrors the `min_virtue` retarget pattern: the VirtueName value, else None.
     repeatable_cap_virtue: Optional[str] = None
+    # The Mountain Folk Ox-Body Technique caps on the character's HIGHEST Virtue
+    # (CH6 p.245: "Jadeborn cannot develop Ox-Body Technique more times than their
+    # highest Virtue") — not a named Virtue, so `repeatable_cap_virtue` cannot hold
+    # it. Special value "highest_virtue" of `repeatable_cap_ability`, mirroring the
+    # "essence" special value above. None for every other splat's Ox-Body.
+    repeatable_cap_highest_virtue: bool = False
+    # The Mountain Folk Essence Satiation Method and Stone-Still Lungs are both
+    # "three times", the THIRD purchase gated on Essence 3 (CH6 pp.245-246) — that
+    # gate is `repeatable_cap_ability: "essence"`, which resolves to the Essence
+    # rating (2 → two purchases, 3 → three), so the fixed "three times" needs no
+    # separate field.
     variants: list[CharmVariant] = Field(default_factory=list)
     # How many variants a single purchase selects. Ox-Body: always 1 (the default
     # for both fields below). Deadly Beastman Transformation (p.124): the FIRST
@@ -602,6 +636,11 @@ class CasteDefinition(BaseModel):
     # floor which is the same for every aspect, so they live here rather than on
     # ChargenBudgets. Empty for every caste with no house-specific floor.
     required_min_abilities: list[AbilityMinimum] = Field(default_factory=list)
+    # Group-sum floors on this CASTE (the "•• divided among Craft Abilities" half of
+    # the Mountain Folk Artisan's College of Divine Enlightenment schooling, CH6
+    # p.230) — the parallel of `required_min_abilities`. Empty for every caste whose
+    # printed floors are all per-ability (every caste but the Artisan).
+    required_min_ability_groups: list[AbilityGroupMinimum] = Field(default_factory=list)
     # The Eclipse Caste generalist rule (core p.127): with a willing tutor, this
     # caste may learn OTHER splats' Charms, at `foreign_charm_xp_multiplier` times
     # the normal experience. False for every other caste, so the ability is data,
@@ -1386,6 +1425,11 @@ class BonusPointCosts(BaseModel):
     essence_by_rating: dict[int, int] = Field(default_factory=dict)
     charm: int = 5
     charm_favored_caste: int = 4
+    # The Mountain Folk surcharge for a chargen Charm from ANOTHER caste's Pattern
+    # (CH6 p.233 BP table: "Charms | 5 (7 if part of another caste's Pattern)"). 0 =
+    # no such surcharge, which is every splat but the Mountain Folk. Mirrors
+    # ExperienceCosts.new_charm_cross_pattern.
+    charm_cross_pattern: int = 0
     # The sorcery/necromancy INITIATION Charms — those whose `grants_circle` is set —
     # cost a distinct rate for the God-Blooded (p.50: "Charm/Spell* | 7 (10 for
     # Sorcery or Necro-mancy Charms)"). 0 = every other splat, whose circle-granting
@@ -1479,6 +1523,15 @@ class ExperienceCosts(BaseModel):
     # flat "new trait" costs
     new_ability: int = 3
     new_specialty: int = 3
+    # The Mountain Folk Superior Craftsmanship rates (CH6 p.237): "may purchase or
+    # improve Craft Abilities and specialties for half the usual experience cost ...
+    # (rounded up). This discount supersedes and replaces the normal discount
+    # awarded to Favored Abilities." A Craft Ability raises at `craft` (current
+    # rating — half the usual current×2) and a Craft specialty costs
+    # `craft_specialty` (2 — half of 3 rounded up). None / 0 = the ordinary rates,
+    # which is every splat but the Mountain Folk.
+    craft: Optional[LinearCost] = None
+    craft_specialty: int = 0
     # --- Thaumaturgy (Player's Guide XP table, p.115) ------------------------ #
     # Note the asymmetry with the BP table: an Art costs 5 either way, but an Art
     # Specialty is 2 BP and 3 XP. Do not "tidy" them into agreement.
@@ -1513,6 +1566,11 @@ class ExperienceCosts(BaseModel):
     path_breed: LinearCost = Field(default_factory=lambda: LinearCost(coeff=0))
     new_charm: int = 10
     new_charm_favored_caste: int = 8
+    # The Mountain Folk surcharge for a New Charm from ANOTHER caste's Pattern (CH6
+    # p.233: "10 (12 if part of another Caste Pattern)"). 0 = no such surcharge,
+    # which is every splat but the Mountain Folk. Mirrors
+    # BonusPointCosts.charm_cross_pattern.
+    new_charm_cross_pattern: int = 0
     # Immaculate Order Charms (Dragon-Blooded, p.292 — "15, 12 if Favored"). Only
     # consulted for a Charm whose `immaculate` flag is set (Dragon-Blooded only);
     # defaults equal to the ordinary new_charm costs so it's a no-op for every splat
@@ -1672,6 +1730,29 @@ class ChargenBudgets(BaseModel):
     # Which category gets which pool is derived from the per-category spend, not stored.
     attribute_pools: tuple[int, int, int] = (8, 6, 4)
     attribute_base: int = 1
+    # A per-ATTRIBUTE floor the pools must be spent up to, on top of
+    # `attribute_base`. Enlightened Mountain Folk (CH6 p.230): "no Attribute can have
+    # a rating ... lower than three (3) dots" — combined with the base-1 start, that
+    # means at least two of the pool must reach every one of the nine Attributes.
+    # 0 = no floor, which is every other splat.
+    attribute_min: int = 0
+    # A per-ORIGIN Attribute ceiling on BOTH sides of the lock, overriding the
+    # universal 5 / essence-derived ceiling. Enlightened Mountain Folk (CH6 p.230):
+    # "no Attribute can have a rating higher than seven (7) dots". 0 = inherit the
+    # normal ceiling, which is every splat but the Enlightened Mountain Folk.
+    attribute_cap: int = 0
+    # Per-ATTRIBUTE ceilings for this origin, on both sides of the lock — the
+    # Unenlightened Mountain Folk's Intelligence bar (CH6 p.230: "cannot have an
+    # Intelligence rating above two (2) dots or any other Attribute above five (5)").
+    # Keyed by AttributeName value; an attribute absent here falls back to
+    # `attribute_cap` or the normal ceiling. Empty = no named caps, which is every
+    # splat but the Unenlightened Mountain Folk.
+    attribute_caps: dict[str, int] = Field(default_factory=dict)
+    # A per-ORIGIN Ability ceiling on both sides of the lock, overriding the
+    # universal 5 / essence-derived ceiling. Enlightened Mountain Folk (CH6 p.230):
+    # "can increase Abilities as high as six dots with bonus points". 0 = inherit
+    # the normal ceiling, which is every splat but the Enlightened Mountain Folk.
+    ability_cap: int = 0
     # How the three attribute_pools are allocated:
     #   "category"      — the default for every prior splat: the pools are matched to
     #                     the three prioritized categories (Physical/Social/Mental) by
@@ -1694,6 +1775,11 @@ class ChargenBudgets(BaseModel):
     # pool, not free extras). Dragon-Blooded Dynastic schooling (p.151); empty for
     # splats/origins with no such floor (Solar, DB Outcaste).
     required_min_abilities: list[AbilityMinimum] = Field(default_factory=list)
+    # Group-sum floors, the "•• divided among Craft Abilities" half of the Mountain
+    # Folk Artisan schooling (CH6 p.230) — the parallel of required_min_abilities,
+    # which is per-ability OR. Empty for every splat without a "divided among" floor
+    # (all but the Mountain Folk Artisan).
+    required_min_ability_groups: list[AbilityGroupMinimum] = Field(default_factory=list)
 
     # Abilities that MUST be among the character's Favored set (not just dotted) —
     # the Lunar rule that Survival is always Favored (p.90). Empty for splats with
@@ -1702,6 +1788,13 @@ class ChargenBudgets(BaseModel):
 
     ability_dots: int = 25
     ability_min_caste_favored: int = 10    # >= 10 of the 25 on caste/favored abilities
+    # The two-pool Ability budget (Mountain Folk, CH6 p.230): `ability_favored_dots`
+    # is a SEPARATE pool spent only on Favored Abilities (a minimum of one dot in
+    # each), and `ability_dots` then becomes the additional/free pool spent on any
+    # Ability, capped per Ability at `ability_cap_pre_bp`. 0 = the one-pool shape
+    # (Solar: 25 total, >= ability_min_caste_favored on caste/favored) every other
+    # splat uses. Enlightened MF: 10 favored + 25 free; Unenlightened: 14 favored + 8.
+    ability_favored_dots: int = 0
     ability_cap_pre_bp: int = 3
     favored_count: int = 5                 # >= 1 dot required in each favored ability
     # May this origin take core p.103's optional Favored Ability, if the Storyteller
@@ -1713,6 +1806,12 @@ class ChargenBudgets(BaseModel):
 
     background_dots: int = 7
     background_cap_pre_bp: int = 3
+    # Background dots by CASTE, for a splat whose aristocrat caste gets a richer
+    # budget than its undercastes (Mountain Folk, CH6 p.230: Artisans 13, Enlightened
+    # undercastes 10, Unenlightened 6). Keyed by CasteDefinition.id; a caste absent
+    # from the map falls back to `background_dots`. Empty = every splat where the
+    # budget does not vary by caste.
+    background_dots_by_caste: dict[str, int] = Field(default_factory=dict)
     # Per-Background mechanical rules, keyed by the Background's NAME lowercased
     # (character.BackgroundEntry.name is free text, not an id, so this cannot key on
     # BackgroundType.id). Empty for every splat whose Backgrounds are purely narrative
@@ -1730,6 +1829,12 @@ class ChargenBudgets(BaseModel):
     # The same paragraph's "no Backing from or Connections with any of the Sidereal
     # factions or Celestial Bureaus" is narrative and is NOT modelled.
     allowed_backgrounds: list[str] = Field(default_factory=list)
+    # Backgrounds this origin may NOT take AT ALL, as lowercased NAMEs — the named
+    # complement of `allowed_backgrounds`, for the one or two bans a book prints on
+    # an otherwise-open list. Mountain Folk: Cult is "explicitly prohibited" by the
+    # Great Geas (CH6 p.234). Empty = no named bans, which is every splat but the
+    # Mountain Folk.
+    banned_backgrounds: list[str] = Field(default_factory=list)
     # Suppress the CASTE's own required_min_abilities for this origin. The ronin
     # "have no minimum required Ability scores" (p.100), but a ronin still HAS a
     # Caste, so the per-house floor on CasteDefinition would otherwise still apply.
@@ -1831,6 +1936,12 @@ class ChargenBudgets(BaseModel):
     # so 5. 0 = no ceiling beyond whatever the BP budget can afford, which is every
     # other splat authored so far.
     essence_start_cap: int = 0
+    # A per-ORIGIN ceiling on post-lock Essence, overriding ExaltDefinition.essence_cap
+    # for this origin only. Enlightened Mountain Folk cap at 5 (splat-wide, on the
+    # ExaltDefinition row); the Unenlightened row caps at 3 ("cannot have an Essence
+    # rating above 3", CH6 p.230). 0 = inherit the splat-wide cap, which is every
+    # other origin.
+    essence_cap: int = 0
     # This origin requires the character to pick a TrainingCamp / Calling (see
     # rules.TrainingCamp). False for every splat without them, which is all of them
     # except the Illuminated Solar.
@@ -1852,6 +1963,11 @@ class ChargenBudgets(BaseModel):
     willpower_start_cap: int = 8           # may not start above this...
     willpower_cap_exception_virtue: int = 4   # ...unless at least
     willpower_cap_exception_count: int = 2    # this many Virtues are >= 4
+    # A HARD ceiling on Willpower that binds after the lock as well (bonus points
+    # and XP cannot buy past it), unlike `willpower_start_cap` which only binds at
+    # creation. Unenlightened Mountain Folk (CH6 p.230): "cannot ever have a
+    # permanent Willpower above 6". 0 = no hard cap, which is every other splat.
+    willpower_hard_cap: int = 0
 
     @field_validator("attribute_mode")
     @classmethod
@@ -2261,6 +2377,14 @@ class RuleSet(BaseModel):
             if key in bg.excluded_origins:
                 continue
             out.append(bg)
+        # A Background this origin is BARRED from entirely is not even offered —
+        # the Mountain Folk may not take Cult (CH6 p.234: "This Background is
+        # explicitly prohibited"). Filtering here (rather than relying on the
+        # engine flag) means the dropdown never shows a name the sheet cannot hold.
+        banned = {n.strip().lower()
+                  for n in self.budgets_for(exalt_type, origin).banned_backgrounds}
+        if banned:
+            out = [bg for bg in out if bg.name.strip().lower() not in banned]
         return out
 
     def camps_for(self, exalt_type: str, origin: str = "") -> list[TrainingCamp]:

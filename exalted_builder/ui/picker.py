@@ -1870,6 +1870,13 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             if charm is None:
                 return
             if validate.meets_charm_requirements(ruleset, character, charm):
+                # A generic repeatable Charm (Mountain Folk Satiation / Stone-Still,
+                # CH6 pp.245-246) is picked once per purchase, up to its trait cap.
+                cap = validate._repeatable_purchase_cap(charm, character)
+                if cap and character.charms.count(charm_id) >= cap:
+                    ui.notify(f"{charm.name}: already bought {cap} times — its maximum.",
+                              type="warning")
+                    return
                 character.charms.append(charm_id)
                 ui.notify(f"Learned {charm.name}", type="positive")
             else:

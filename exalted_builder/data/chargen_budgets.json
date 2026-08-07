@@ -1196,5 +1196,62 @@
       { "abilities": ["lore"], "rating": 2 },
       { "abilities": ["occult"], "rating": 2 }
     ]
+  },
+  "Mountain-Folk:enlightened": {
+    "attribute_pools": [16, 13, 10],
+    "attribute_min": 3,
+    "attribute_cap": 7,
+    "ability_favored_dots": 10,
+    "ability_dots": 25,
+    "ability_cap_pre_bp": 3,
+    "ability_cap": 6,
+    "favored_count": 6,
+    "required_favored": ["craft"],
+    "background_dots": 10,
+    "background_dots_by_caste": { "artisan": 13 },
+    "background_cap_pre_bp": 3,
+    "background_rules": {
+      "artifact": { "rating_per_dot": 2, "cap_pre_bp_exempt": true },
+      "resources": { "max_rating": 3 }
+    },
+    "banned_backgrounds": ["cult"],
+    "virtue_dots": 5,
+    "virtue_base": 1,
+    "virtue_cap_pre_bp": 3,
+    "essence_start": 2,
+    "bonus_points": 15,
+    "charm_count": 6,
+    "charm_min_caste_favored": 0,
+    "willpower_start_cap": 8,
+    "willpower_cap_exception_virtue": 4,
+    "willpower_cap_exception_count": 2
+  },
+  "Mountain-Folk:unenlightened": {
+    "attribute_pools": [8, 4, 3],
+    "attribute_caps": { "intelligence": 2 },
+    "ability_favored_dots": 14,
+    "ability_dots": 8,
+    "ability_cap_pre_bp": 3,
+    "favored_count": 6,
+    "required_favored": ["craft"],
+    "background_dots": 6,
+    "background_cap_pre_bp": 3,
+    "background_rules": {
+      "artifact": { "rating_per_dot": 2, "cap_pre_bp_exempt": true },
+      "resources": { "max_rating": 3 },
+      "backing": { "max_rating": 2 },
+      "influence": { "max_rating": 1 },
+      "mentor": { "max_rating": 3 }
+    },
+    "banned_backgrounds": ["cult", "followers"],
+    "virtue_dots": 5,
+    "virtue_base": 1,
+    "virtue_cap_pre_bp": 3,
+    "essence_start": 1,
+    "essence_cap": 3,
+    "bonus_points": 15,
+    "charm_count": 3,
+    "charm_min_caste_favored": 0,
+    "willpower_hard_cap": 6
   }
 }

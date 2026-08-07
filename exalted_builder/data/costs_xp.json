@@ -136,5 +136,19 @@
     "new_path_breed": 6,
     "path": { "coeff": 5 },
     "path_breed": { "coeff": 4 }
+  },
+  "Mountain-Folk": {
+    "attribute": { "coeff": 4 },
+    "ability": { "coeff": 2 },
+    "ability_favored_caste": { "coeff": 2, "offset": -1 },
+    "craft": { "coeff": 1 },
+    "craft_specialty": 2,
+    "essence": { "coeff": 10 },
+    "virtue": { "coeff": 3 },
+    "willpower": { "coeff": 2 },
+    "new_ability": 3,
+    "new_specialty": 3,
+    "new_charm": 10,
+    "new_charm_cross_pattern": 12
   }
 }

@@ -35,7 +35,7 @@ sys.path.insert(0, str(ROOT))
 
 # ---------------------------------------------------------------- expectations
 
-VALID_TYPES = {"Reflexive", "Supplemental", "Simple", "Extra Action", "Permanent", "Special"}
+VALID_TYPES = {"Reflexive", "Supplemental", "Simple", "Extra Action", "Permanent", "Special", "Enchantment", "Simple/Enchantment"}
 # The four Virtues, for `min_virtue` (the ghosts' Virtue-keyed Arcanoi). Spelled out
 # rather than imported so this tool stays runnable without the package importable.
 _VIRTUES = {"compassion", "conviction", "temperance", "valor"}
@@ -159,6 +159,12 @@ def check_charm(c: dict, path: Path, rep: Report) -> None:
             allowed = {_norm("martial_arts"), _norm(cat.split(":", 1)[1])}
             if _norm(cat_seg) not in allowed:
                 rep.error(where, f"id category segment {cat_seg!r} matches neither 'martial-arts' nor the style in {cat!r}")
+        elif cat.startswith("mountain_folk:"):
+            # Mountain Folk Patterns use the same namespace convention
+            # (`mountain_folk:<pattern>`); the id segment is the Pattern slug
+            # (mountainfolk.foundation.ox-body-technique, etc.).
+            if _norm(cat_seg) != _norm(cat.split(":", 1)[1]):
+                rep.error(where, f"id category segment {cat_seg!r} does not match the Pattern in {cat!r}")
         elif cat and _norm(cat_seg) != _norm(cat):
             rep.error(where, f"id category segment {cat_seg!r} does not match category {cat!r}")
         if c.get("name") and _norm(name_seg) != _norm(c["name"]):
@@ -186,8 +192,12 @@ def check_charm(c: dict, path: Path, rep: Report) -> None:
         rep.error(where, f"min_virtue {c['min_virtue']!r} is not one of {sorted(_VIRTUES)}")
     if (not _keys and not c.get("min_ability") and not c.get("extra_min_abilities")
             and not repeatable):
-        if c.get("type") not in {"Permanent", "Special"}:
-            rep.warn(where, "no min_ability and no keying trait — is this Charm really ungated?")
+        # Mountain Folk Charms are deliberately ungated — "lacks any minimum Trait
+        # requirements apart from Essence" (CH6 p.244) — the one legitimately
+        # ungated catalogue in the build, so the Pattern splat never warns here.
+        if not c.get("category", "").startswith("mountain_folk:"):
+            if c.get("type") not in {"Permanent", "Special"}:
+                rep.warn(where, "no min_ability and no keying trait — is this Charm really ungated?")
     if c.get("min_essence", 1) < 1:
         rep.error(where, "min_essence must be >= 1")
 

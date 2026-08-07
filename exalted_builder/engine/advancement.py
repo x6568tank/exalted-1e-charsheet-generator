@@ -38,6 +38,16 @@ _WILLPOWER_MAX = 10
 SPECIALTIES_PER_ABILITY = 3
 
 
+def specialty_cap(ruleset: RuleSet, character: Character, ability: AbilityName) -> int:
+    """Specialty-row cap for one Ability. The Mountain Folk may have up to five
+    Specialties in any Craft (CH6 p.230: "Jadeborn can have up to five Specialties in
+    any Craft, but they cannot purchase the same specialty more than three times");
+    every other Ability of every splat caps at three (the 2026-07-31 ruling)."""
+    if ability == AbilityName.CRAFT and ruleset.exalt_for(character.exalt_type).id == "Mountain-Folk":
+        return 5
+    return SPECIALTIES_PER_ABILITY
+
+
 def specialty_count(character: Character, ability: AbilityName) -> int:
     """How many specialty rows this Ability holds. Duplicated names each count: taking
     the same specialty twice is how a specialty stacks, since it has no rating to
@@ -120,15 +130,20 @@ def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName)
     # An elder's Attributes follow permanent Essence up past 5 (p.258). Whichever
     # ceiling is HIGHER wins: both are permissions, and neither is written as a limit
     # on the other, so a Legendary Attribute never holds an elder down and vice versa.
-    cap = max(cap, elder.trait_ceiling(character))
+    cap = max(cap, elder.trait_ceiling(character, ruleset, domain="attribute"))
+    # A per-ORIGIN Attribute ceiling (the Unenlightened Mountain Folk's Intelligence
+    # 2, CH6 p.230) is a CEILING on one named Attribute that can only LOWER the cap,
+    # like the Dragon-King Essence gate just below.
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    origin_attr_cap = b.attribute_caps.get(attr.value)
+    if origin_attr_cap:
+        cap = min(cap, origin_attr_cap)
     # The Dragon-King Essence gate (PG p.177 "Maximum Intelligence and Path Level")
     # is a CEILING on Intelligence specifically — 1/3/5/6 at Essence 1/2/3-5/6 — so
     # unlike the permission ceilings above, it can only LOWER the cap, and it binds
     # post-lock too (the chargen check alone would let XP raise Intelligence past it).
     if attr == AttributeName.INTELLIGENCE:
-        int_cap = (ruleset.budgets_for(character.exalt_type, character.origin,
-                                       character.upbringing)
-                   .intelligence_max_by_essence.get(character.essence_rating, 0))
+        int_cap = b.intelligence_max_by_essence.get(character.essence_rating, 0)
         if int_cap:
             cap = min(cap, int_cap)
     if frm >= cap:
@@ -143,7 +158,7 @@ def raise_ability(ruleset: RuleSet, character: Character, ability: AbilityName) 
     _ensure_locked(character)
     frm = character.abilities.get(ability, 0)
     # p.258 caps an elder's Abilities at permanent Essence, the same as Attributes.
-    cap = elder.trait_ceiling(character)
+    cap = elder.trait_ceiling(character, ruleset, domain="ability")
     if frm >= cap:
         raise AdvancementError(f"{ability.value} is already at {cap}.")
     cost = costs.ability_step(ruleset, character, ability, frm)
@@ -175,7 +190,7 @@ def raise_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
     if cr is None:
         raise AdvancementError(f"No Craft ({focus}) to raise; learn it first.")
     # A per-focus Craft IS an Ability (core p.136), so the elder ceiling reaches it.
-    cap = elder.trait_ceiling(character)
+    cap = elder.trait_ceiling(character, ruleset, domain="ability")
     if cr.rating >= cap:
         raise AdvancementError(f"Craft ({focus}) is already at {cap}.")
     cost = costs.ability_step(ruleset, character, AbilityName.CRAFT, cr.rating)
@@ -247,6 +262,12 @@ def raise_willpower(ruleset: RuleSet, character: Character) -> XpEntry:
     frm = derive.willpower(character, ruleset)
     if frm >= _WILLPOWER_MAX:
         raise AdvancementError(f"Willpower is already at {_WILLPOWER_MAX}.")
+    # An origin's HARD cap binds tighter than the universal 10 — Unenlightened
+    # Mountain Folk "can never have a permanent Willpower above 6" (CH6 p.230).
+    hard_cap = (ruleset.budgets_for(character.exalt_type, character.origin,
+                                    character.upbringing).willpower_hard_cap)
+    if hard_cap and frm >= hard_cap:
+        raise AdvancementError(f"Willpower is already at {hard_cap} for this origin.")
     cost = costs.willpower_step(ruleset, character, frm)
     entry = _commit(character, "willpower", "", frm, frm + 1, cost)
     character.willpower_purchased += 1
@@ -732,7 +753,12 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
     if charm is None:
         raise AdvancementError(f"Unknown Charm {charm_id!r}.")
     if charm_id in character.charms:
-        raise AdvancementError(f"{charm.name} is already known.")
+        # A generic repeatable Charm (the Mountain Folk Essence Satiation Method and
+        # Stone-Still Lungs, CH6 pp.245-246) may be learned once per purchase, up to
+        # its trait cap. Every other Charm is single-pick and re-learning is an error.
+        cap = validate._repeatable_purchase_cap(charm, character)
+        if not cap or character.charms.count(charm_id) >= cap:
+            raise AdvancementError(f"{charm.name} is already known.")
     # A Charm-Slot splat (Alchemical) does not learn Charms per-pick: it buys a Slot
     # (buy_charm_slot) or a Panoply Charm (learn_retainer_charm). Route callers there
     # so a Slot is never silently skipped.
@@ -1126,10 +1152,15 @@ def add_specialty(ruleset: RuleSet, character: Character, ability: AbilityName,
     _ensure_locked(character)
     if not name.strip():
         raise AdvancementError("A specialty needs a name.")
-    if specialty_count(character, ability) >= SPECIALTIES_PER_ABILITY:
+    cap = specialty_cap(ruleset, character, ability)
+    if specialty_count(character, ability) >= cap:
+        if cap == 3:
+            raise AdvancementError(
+                f"{ability.value} already has three specialties, which is the maximum.")
         raise AdvancementError(
-            f"{ability.value} already has three specialties, which is the maximum.")
-    cost = costs.specialty_cost(ruleset, character)
+            f"{ability.value} already has {cap} specialties, which is the maximum "
+            "for this ability.")
+    cost = costs.specialty_cost(ruleset, character, ability)
     entry = _commit(character, "specialties", f"{ability.value}:{name}", None, None, cost)
     character.specialties.append(Specialty(ability=ability, name=name, rating=1))
     return entry

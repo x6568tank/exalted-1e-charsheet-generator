@@ -51,11 +51,21 @@ def ability_step(ruleset: RuleSet, character: Character, ability: AbilityName,
     """XP to raise an Ability one dot. Going 0 -> 1 is the flat 'new ability' cost;
     above that it scales, with the Caste/Favoured discount when applicable."""
     xp = ruleset.xp_costs_for(character.exalt_type)
-    if from_rating <= 0:
+    if ability == AbilityName.CRAFT and xp.craft is not None:
+        # Superior Craftsmanship (Mountain Folk, CH6 p.237): Craft Abilities and
+        # specialties cost HALF the usual experience (rounded up), and the discount
+        # "supersedes and replaces the normal discount awarded to Favored Abilities"
+        # — so the favored rate does not apply on top. The initial purchase is half
+        # of the flat new-ability cost (3 → 2).
+        if from_rating <= 0:
+            return max(1, (xp.new_ability + 1) // 2)
+        total = xp.craft.at(from_rating)
+    elif from_rating <= 0:
         return xp.new_ability
-    favored = ability in validate.caste_favored_abilities(ruleset, character)
-    cost = xp.ability_favored_caste if favored else xp.ability
-    total = cost.at(from_rating)
+    else:
+        favored = ability in validate.caste_favored_abilities(ruleset, character)
+        cost = xp.ability_favored_caste if favored else xp.ability
+        total = cost.at(from_rating)
     # A Calling Ability is 1 XP cheaper, and the page is explicit that this "stacks
     # with the benefit of Favored or Caste Abilities" (p.102) — hence a subtraction
     # applied after the rate, not a third rate. 0 for every splat without Callings.
@@ -118,9 +128,16 @@ def merit_cost(ruleset: RuleSet, character: Character, merit, tier: str = "",
     return bp * ruleset.xp_costs_for(character.exalt_type).new_merit_bp_multiplier
 
 
-def specialty_cost(ruleset: RuleSet, character: Character) -> int:
-    """XP for one new specialty dot (flat)."""
-    return ruleset.xp_costs_for(character.exalt_type).new_specialty
+def specialty_cost(ruleset: RuleSet, character: Character,
+                   ability: AbilityName | None = None) -> int:
+    """XP for one new specialty dot (flat). A Mountain Folk Craft specialty costs 2
+    (CH6 p.233) instead of the usual 3 — the Superior Craftsmanship half-price
+    (p.237) — when the specialty's Ability is named as Craft; None keeps the
+    ordinary rate for the display sites that do not know the Ability."""
+    xp = ruleset.xp_costs_for(character.exalt_type)
+    if ability == AbilityName.CRAFT and xp.craft_specialty:
+        return xp.craft_specialty
+    return xp.new_specialty
 
 
 def college_new_cost(ruleset: RuleSet, character: Character) -> int:
@@ -227,6 +244,12 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
         # measured in weeks rather than days. Flat — no favoured variant is printed.
         # `new_magic_charm` 0 (every other splat) falls through to the ordinary rate.
         cost = xp.new_magic_charm
+    elif xp.new_charm_cross_pattern and validate.mountain_folk_cross_pattern(
+            ruleset, character, charm):
+        # A Mountain Folk Charm of another caste's Pattern costs 12 XP (CH6 p.233:
+        # "10 (12 if part of another Caste Pattern)"). Favoured never applies — no
+        # Jadeborn Charm is Caste/Favoured (Patterns replace that axis).
+        cost = xp.new_charm_cross_pattern
     else:
         cost = xp.new_charm_favored_caste if favored else xp.new_charm
     # A Calling Charm is 2 XP cheaper, stacking with Caste/Favoured (p.102): "a

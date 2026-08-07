@@ -24,6 +24,7 @@ correcting the data corrects the engine.
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import Optional
 
 from pydantic import BaseModel
@@ -297,6 +298,11 @@ def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
             # favoured variant. `magic_charm` 0 (every other splat) falls through to the
             # ordinary rate below.
             costs.append(bp_costs.magic_charm)
+        elif bp_costs.charm_cross_pattern and mountain_folk_cross_pattern(
+                ruleset, character, charm):
+            # A Mountain Folk Charm of another caste's Pattern costs 7 BP (CH6 p.233:
+            # "Charms | 5 (7 if part of another caste's Pattern)").
+            costs.append(bp_costs.charm_cross_pattern)
         else:
             costs.append(bp_costs.charm_favored_caste if cf else bp_costs.charm)
         # Brigid's Heir doubles the BONUS-point cost as well as the XP one, outside the
@@ -781,8 +787,12 @@ def _repeatable_purchase_cap(charm: Charm, character: Character) -> int:
     isn't an Ability or Attribute, so it can't come through the normal lookups).
     Or a Virtue, via `repeatable_cap_virtue` (the God-Blooded Ox-Body Technique, PG
     p.83 — "no more times than their Conviction rating"; the same retarget `min_virtue`
-    performs for Charm minimums). 0 if the Charm isn't repeatable or the trait name
-    resolves to none of these."""
+    performs for Charm minimums). The Mountain Folk add `repeatable_cap_highest_virtue`
+    (their Ox-Body "cannot develop ... more times than their highest Virtue", CH6
+    p.245 — the MAX of the four, which no single Virtue name can hold). 0 if the
+    Charm isn't repeatable or the trait name resolves to none of these."""
+    if charm.repeatable_cap_highest_virtue:
+        return max(character.virtues.values())
     if not charm.repeatable_cap_ability and not charm.repeatable_cap_virtue:
         return 0
     if charm.repeatable_cap_ability == "essence":
@@ -860,6 +870,31 @@ def _category_ability(category: str) -> AbilityName | None:
         return AbilityName(base)
     except ValueError:
         return None
+
+
+def _mountain_folk_pattern(charm: Charm) -> str | None:
+    """The Mountain Folk Pattern a Charm belongs to ('foundation' | 'worker' |
+    'warrior' | 'artisan' | 'enlightened'), or None for any non-Mountain-Folk Charm.
+    Categories use the `martial_arts:<style>` namespace convention:
+    'mountain_folk:<pattern>'. The Pattern is the splat's gating axis — no ability
+    prerequisite gates a Jadeborn Charm, only Minimum Essence and Pattern membership
+    (CH6 p.244)."""
+    if not charm.category.startswith("mountain_folk:"):
+        return None
+    return charm.category.split(":", 1)[1]
+
+
+def mountain_folk_cross_pattern(ruleset: RuleSet, character: Character,
+                                charm: Charm) -> bool:
+    """Whether `charm` is a Mountain Folk Charm from ANOTHER caste's Pattern for
+    THIS character — the rule that prices a cross-Pattern Charm at 12 XP / 7 BP
+    (CH6 pp.233-237). A Charm of the character's own Caste Pattern, the Foundation
+    Pattern or the Enlightened Pattern is NOT 'another caste'. False for every
+    non-Mountain-Folk character or Charm, and for every non-caste Pattern."""
+    if ruleset.exalt_for(character.exalt_type).id != "Mountain-Folk":
+        return False
+    pat = _mountain_folk_pattern(charm)
+    return pat in ("worker", "warrior", "artisan") and pat != character.caste
 
 
 def _min_trait_rating(character: Character, charm: Charm) -> tuple[str, int] | None:
@@ -1081,6 +1116,22 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
                 code="charm-prerequisite-count", where=cid,
                 message=(f"{charm.name}: unmet prerequisite — needs "
                          f"{charm_count_requirement_label(req)}, character has {have}."),
+            ))
+    # A generic repeatable Charm (Mountain Folk Essence Satiation Method, Stone-Still
+    # Lungs — CH6 pp.245-246) appears once per purchase; cap the copies at the
+    # trait-derived purchase cap, on both sides of the lock.
+    for cid, n in Counter(character.charms).items():
+        if n < 2:
+            continue
+        charm = ruleset.charms.get(cid)
+        if charm is None:
+            continue
+        cap = _repeatable_purchase_cap(charm, character)
+        if cap and n > cap:
+            issues.append(Issue(
+                code="repeatable-charm-over-cap", where=cid,
+                message=(f"{charm.name} bought {n} times; it may be bought at most "
+                         f"{cap} times."),
             ))
     return issues
 
@@ -1751,6 +1802,17 @@ def unmet_trait_prerequisites(character: Character, definition, purchase,
                        for r in g)]
 
 
+def background_dots_budget(b, character: Character) -> int:
+    """The Background-dot budget for THIS character, honouring a per-caste override
+    (Mountain Folk, CH6 p.230: Artisans 13, Enlightened undercastes 10, Unenlightened
+    6). `background_dots_by_caste` keys on CasteDefinition.id; a caste absent from the
+    map falls back to `background_dots`. Every Background-budget consumer reads this,
+    so the warning and the overflow arithmetic can never disagree."""
+    if b.background_dots_by_caste:
+        return b.background_dots_by_caste.get(character.caste, b.background_dots)
+    return b.background_dots
+
+
 def background_pool_spend(ruleset: RuleSet, character: Character, b, backgrounds,
                           bp_costs=None) -> tuple[int, list[int]]:
     """(pool dots consumed, per-dot bonus-point rates still owed) for the character's
@@ -1830,6 +1892,16 @@ def background_issues(budgets, backgrounds) -> list[Issue]:
                     code="background-not-allowed", where=name,
                     message=f"{name} is not available to this origin; allowed: "
                             f"{', '.join(sorted(n.title() for n in allowed))}.",
+                ))
+    banned = {n.strip().lower() for n in budgets.banned_backgrounds}
+    if banned:
+        for bg in backgrounds:
+            name = bg.name.strip()
+            if name and name.lower() in banned:
+                issues.append(Issue(
+                    code="background-banned", where=name,
+                    message=f"{name.title()} is prohibited for this origin: "
+                            f"{', '.join(sorted(n.title() for n in banned))}.",
                 ))
     for name, rule in budgets.background_rules.items():
         rating = background_rating(backgrounds, name)
@@ -2679,17 +2751,29 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
 
     # Abilities/Virtues/Backgrounds: one flat pool each, and only dots at or below the
     # pre-BP cap count toward it — the same `within` arithmetic bonus_point_breakdown
-    # uses, so the two can never disagree about what "spent from the pool" means.
-    ability_within = sum(min(rating, b.ability_cap_pre_bp)
-                         for _ab, rating in _ability_slots(abilities, crafts))
-    warn("Ability", b.ability_dots - ability_within, b.ability_dots)
+    # uses, so the two can never disagree about what "spent from the pool" means. The
+    # two-pool Mountain Folk shape (CH6 p.230) counts both pools: free dots at or
+    # below the cap plus favored dots above it.
+    if b.ability_favored_dots:
+        favored_set = set(character.favored_abilities)
+        free_within = sum(min(r, b.ability_cap_pre_bp)
+                          for _ab, r in _ability_slots(abilities, crafts))
+        fav_within = sum(max(0, r - b.ability_cap_pre_bp)
+                         for ab, r in _ability_slots(abilities, crafts) if ab in favored_set)
+        _total = b.ability_dots + b.ability_favored_dots
+        warn("Ability", _total - (free_within + fav_within), _total)
+    else:
+        ability_within = sum(min(rating, b.ability_cap_pre_bp)
+                             for _ab, rating in _ability_slots(abilities, crafts))
+        warn("Ability", b.ability_dots - ability_within, b.ability_dots)
 
     virtue_within = sum(max(0, min(r, b.virtue_cap_pre_bp) - b.virtue_base)
                         for r in virtues.values())
     warn("Virtue", b.virtue_dots - virtue_within, b.virtue_dots)
 
     bg_within, _above = background_pool_spend(ruleset, character, b, backgrounds)
-    warn("Background", b.background_dots - bg_within, b.background_dots)
+    warn("Background", background_dots_budget(b, character) - bg_within,
+         background_dots_budget(b, character))
 
     # Fetters, for the splats that have them. Same arithmetic as the pools above.
     if b.fetter_dots:
@@ -2876,10 +2960,23 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
 
     within_by_tier = {"both": 0, "cf": 0, "calling": 0, "neither": 0}
     above_by_tier = dict(within_by_tier)
+    # TWO-POOL (Mountain Folk, CH6 p.230): `ability_dots` is the free pool, capped at
+    # `cap` per Ability; `ability_favored_dots` is a SEPARATE pool for Favored
+    # Abilities with no per-Ability cap. A Favored Ability's dots ABOVE the free-pool
+    # cap draw on the favored pool, not on bonus points — that is what lets an
+    # Enlightened Jadeborn reach 5 in a Favored Ability without spending BP. (A
+    # non-Favored Ability's dots above the cap stay bonus points, as in the one-pool
+    # shape.) `ability_favored_dots` 0 keeps every other splat on the one-pool path.
+    favored_set = set(character.favored_abilities)
+    favored_within = 0
     for ab, rating in _ability_slots(abilities, crafts):
         tier = _tier(ab)
         within_by_tier[tier] += min(rating, cap)
-        above_by_tier[tier] += max(0, rating - cap)
+        above_cap = max(0, rating - cap)
+        if b.ability_favored_dots and ab in favored_set:
+            favored_within += above_cap
+        else:
+            above_by_tier[tier] += above_cap
 
     # Overflow past the free pool is paid cheapest-first (player-favourable), by
     # EFFECTIVE per-dot rate, so the fractional 'both' tier is spent first.
@@ -2905,13 +3002,20 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     ability_bp = ((paid["both"] + per_point - 1) // per_point
                   + sum(paid[t] * flat_rate[t] for t in order))
 
+    # The two-pool favored pool is charged separately, at the favored rate (1 BP/dot),
+    # for whatever of the 10 favored dots the character overspent. A Favored Ability
+    # at 5 is 3 free + 2 favored = no BP; a Favored Ability at 6 needs the extra dot
+    # bought, and favored-pool overflow is where that lands.
+    if b.ability_favored_dots:
+        ability_bp += max(0, favored_within - b.ability_favored_dots) * bp_costs.ability_favored_caste
+
     # --- Backgrounds: N free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
     # `background_rules` (empty for every splat but the Alchemical) can exempt a
     # Background from the cap and make its upper dots cost more than one pool dot each.
     bg_within, above_rates = background_pool_spend(ruleset, character, b, backgrounds,
                                                    bp_costs)
     bg_above_bp = sum(above_rates)
-    bg_overflow = max(0, bg_within - b.background_dots)
+    bg_overflow = max(0, bg_within - background_dots_budget(b, character))
     bg_bp = bg_above_bp + bg_overflow * bp_costs.background
 
     # --- Virtues: 5 free dots over base 1, pre-BP cap 3 ----------------------- #
@@ -3716,7 +3820,9 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"Expected {expected} Favoured abilities, found {len(favored)}.",
             ))
         for ab in sorted(favored, key=lambda a: a.value):
-            if abilities.get(ab, 0) < 1:
+            # Craft is per-focus (core p.136): a character with any Craft focus has
+            # Craft dots, so read through ability_rating, not the flat abilities map.
+            if ability_rating(character, ab) < 1:
                 issues.append(Issue(
                     code="favored-needs-dot", where=ab.value,
                     message=f"Favoured ability {ab.value} must have at least 1 dot.",
@@ -3742,7 +3848,9 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                         f"{sorted(a.value for a in overlap)}.",
             ))
         for ab in sorted(favored, key=lambda a: a.value):
-            if abilities.get(ab, 0) < 1:
+            # Craft is per-focus (core p.136): a character with any Craft focus has
+            # Craft dots, so read through ability_rating, not the flat abilities map.
+            if ability_rating(character, ab) < 1:
                 issues.append(Issue(
                     code="favored-needs-dot", where=ab.value,
                     message=f"Favoured ability {ab.value} must have at least 1 dot.",
@@ -3765,11 +3873,17 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # MeritEffects rather than branching on an entry, per decision 0011.
     mf_caps = merits.merits_and_flaws_calc(ruleset, character)
     for name, attr in attributes.items():
-        cap = mf_caps.attribute_caps.get(name.value, merits.DOT_MAX)
+        # The origin's own ceiling (Enlightened Mountain Folk 7; the Unenlightened's
+        # Intelligence 2, CH6 p.230) is the DEFAULT the Merit machinery raises or
+        # lowers from — an absent origin cap is the universal 5.
+        origin_cap = b.attribute_caps.get(name.value, b.attribute_cap or merits.DOT_MAX)
+        cap = mf_caps.attribute_caps.get(name.value, origin_cap)
         # A Flaw's ceiling can sit BELOW the normal chargen floor — Disfigured at four
         # points is "an Appearance of 0", and the free dot every Attribute starts with
-        # is exactly what it takes away. So the floor follows the ceiling down.
-        low = min(b.attribute_base, cap)
+        # is exactly what it takes away. So the floor follows the ceiling down. An
+        # origin's FLOOR (Enlightened Mountain Folk: "no Attribute ... lower than
+        # three", CH6 p.230) raises it instead.
+        low = b.attribute_min or min(b.attribute_base, cap)
         if not (low <= attr <= cap):
             span = f"exactly {cap}" if low == cap else f"{low}-{cap}"
             issues.append(Issue(
@@ -3853,6 +3967,22 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 code="required-min-ability", where=names,
                 message=f"This origin requires at least {req.rating} dot(s) in {names}; "
                         f"has {best}.",
+            ))
+    # Group-sum floors — the Mountain Folk Artisan's "•• divided among Craft
+    # Abilities" (CH6 p.230), where the SUM over a set of Abilities (each per-focus
+    # Craft counting separately, via _ability_slots) must reach the rating. Distinct
+    # from the per-ability OR floors above.
+    caste_groups = ([] if b.ignore_caste_min_abilities
+                    else (caste_def.required_min_ability_groups if caste_def else []))
+    for req in list(b.required_min_ability_groups) + list(caste_groups):
+        total = sum(rating for ab, rating in _ability_slots(abilities, crafts)
+                    if ab in req.abilities)
+        if total < req.rating:
+            names = " + ".join(sorted(a.value for a in req.abilities))
+            issues.append(Issue(
+                code="required-min-ability-group", where=names,
+                message=f"This origin requires at least {req.rating} dot(s) total "
+                        f"divided among {names}; has {total}.",
             ))
     virtue_cap = (mf_caps.virtue_cap if mf_caps.virtue_cap is not None
                   else merits.DOT_MAX)
@@ -4084,6 +4214,50 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                         "resolve as such.",
             ))
 
+    # --- Mountain Folk Pattern access (CH6 pp.230-231, 244) ------------------- #
+    # Jadeborn Charms live in five Patterns (Foundation / Worker / Warrior / Artisan /
+    # Enlightened). Unenlightened "can only learn the Charms of their own Caste Pattern
+    # or the Foundation Pattern"; Enlightened receive six Charms "no more than three of
+    # which may come from the Pattern of another caste". An Enlightened character may
+    # learn ANY Pattern (Foundation + Enlightened + own-caste don't count toward the
+    # three); only the two OTHER castes' Patterns do. Also the origin/caste coupling:
+    # "All of the Artisan Caste are Enlightened" — an Unenlightened Artisan is illegal.
+    if ruleset.exalt_for(character.exalt_type).id == "Mountain-Folk":
+        if character.caste == "artisan" and character.origin == "unenlightened":
+            issues.append(Issue(
+                code="artisan-must-be-enlightened",
+                message="All Artisans are Enlightened (CH6 p.230); an Unenlightened "
+                        "character cannot take the Artisan Caste.",
+            ))
+        own_pattern = character.caste           # worker / warrior / artisan
+        cross = 0
+        barred: list[str] = []
+        for p in chargen_charm_picks(ruleset, character):
+            if not p.counts_toward_pool:
+                continue
+            charm = ruleset.charms.get(p.charm_id)
+            pat = _mountain_folk_pattern(charm) if charm is not None else None
+            if pat is None:
+                continue
+            other_caste = pat in ("worker", "warrior", "artisan") and pat != own_pattern
+            if other_caste:
+                cross += 1
+            if character.origin == "unenlightened" and pat not in ("foundation", own_pattern):
+                barred.append(p.charm_id)
+        if character.origin == "unenlightened" and barred:
+            issues.append(Issue(
+                code="mountain-folk-pattern-barred",
+                message=(f"Unenlightened Mountain Folk may only learn Charms of their own "
+                         f"Caste Pattern or the Foundation Pattern (CH6 p.230); "
+                         f"{len(barred)} cross-Pattern Charms taken."),
+            ))
+        elif character.origin != "unenlightened" and cross > 3:
+            issues.append(Issue(
+                code="mountain-folk-pattern-cross-cap",
+                message=(f"No more than 3 of the 6 chargen Charms may come from another "
+                         f"caste's Pattern; {cross} do (CH6 p.230)."),
+            ))
+
     # --- Sidereal Martial Arts form cap (p.101) ------------------------------ #
     # "no more than 3 [chargen Charms] may be from a Sidereal Martial Arts form;
     # ronin ... none". A "form" is a supernatural SMA style — a martial_arts Charm
@@ -4116,6 +4290,17 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                          f"{b.willpower_cap_exception_count} Virtues are "
                          f">= {b.willpower_cap_exception_virtue}."),
             ))
+    # A HARD ceiling binds even when the exception clause would let it go higher —
+    # Unenlightened Mountain Folk "can never have a permanent Willpower above 6"
+    # (CH6 p.230), whatever their Virtues. The exception clause above is superseded:
+    # with two Virtues at 4+ an Unenlightened sheet would read 8 and the start-cap
+    # check would pass, but the hard cap still binds.
+    if b.willpower_hard_cap and wp_total > b.willpower_hard_cap:
+        issues.append(Issue(
+            code="willpower-hard-cap",
+            message=(f"Willpower is {wp_total}; this origin may never exceed "
+                     f"{b.willpower_hard_cap}."),
+        ))
 
     # --- Willpower rules imposed by a held Flaw ------------------------------- #
     # Callous ceilings Willpower just above the Virtues it let the player sell off, and
@@ -4681,11 +4866,12 @@ def check_specialties(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues: list[Issue] = []
     counts = Counter(s.ability for s in character.specialties)
     for ability, n in sorted(counts.items(), key=lambda kv: kv[0].value):
-        if n > adv.SPECIALTIES_PER_ABILITY:
+        cap = adv.specialty_cap(ruleset, character, ability)
+        if n > cap:
             issues.append(Issue(
                 code="specialty-cap", where=ability.value,
                 message=(f"{ability.value.title()} has {n} specialties; the maximum is "
-                         f"{adv.SPECIALTIES_PER_ABILITY} per Ability."),
+                         f"{cap} per Ability."),
             ))
     for spec in character.specialties:
         if spec.rating > 1:

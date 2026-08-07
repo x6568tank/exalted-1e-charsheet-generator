@@ -1,0 +1,314 @@
+[
+  {
+    "id": "mountainfolk.enlightened.glorious-prodigy-lesson",
+    "name": "Glorious Prodigy Lesson",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Simple",
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 15,
+      "willpower": 0,
+      "health": 0,
+      "raw": "15 motes, 6 experience points"
+    },
+    "duration": "Instant",
+    "description": "The Jadeborn spends a full day in sequestered isolation contemplating a body of knowledge and skill she has previously studied. In game terms, the player selects an Ability in which the character already has at least one dot. By using this Charm, that Ability becomes Favored (if it wasn’t already). The Jadeborn also gains one additional dot in the Ability. Finally, the character’s maximum potential rating in that Trait increases by one (to seven dots). Characters cannot use this Charm to contemplate the same Ability more than once. Each type of Craft counts as a separate Ability for the purposes of this Charm.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 272
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.upon-strands-lightly",
+    "name": "Upon Strands Lightly",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.glorious-prodigy-lesson"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "(Essence + 1) hours",
+    "description": "This Charm begins the cascade known as the Art of Civilization. The Jadeborn empathically attunes herself to the delicate web of social interactions around her, perceiving each relationship as a thread in the tapestry of civilization itself. She intuitively understands the courtesies expected of her and executes these gestures and mannerisms flawlessly. She may not even fully understand why she must act in a particular manner, only that the actions represent the most harmonious behavior for her situation and company. Just as importantly, her hypersensitivity to intentions warns her whenever anyone intends her immediate harm. Although sensing danger is automatic, she does not know the source without a successful reflexive Perception + Compassion roll at a difficulty of the aggressor’s permanent Essence. This warning comes at least a full turn before the impending attack, ruining any chance of surprise or ambush.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 272
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.studious-erudition-technique",
+    "name": "Studious Erudition Technique",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Simple",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.glorious-prodigy-lesson"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies"
+    },
+    "duration": "Until learned",
+    "description": "This Charm begins the cascade known as the Art of Thought. The Jadeborn focuses Essence on expanding her cognitive faculties or on learning a specific skill or magical secret. She divides the training time required to purchase or improve a Mental Attribute, Ability, specialty or Charm by a third of the number of motes spent. Thus, it costs 6 motes to halve training time, 9 to cut it to a third of normal, 12 for a quarter, etc. This Essence remains committed until the character purchases or advances the Trait. The Charm cannot be voluntarily relinquished before that time.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 274
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.language-and-meaning-discernment",
+    "name": "Language and Meaning Discernment",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Simple",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.studious-erudition-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 0,
+      "health": 0,
+      "raw": "6 motes"
+    },
+    "duration": "Indefinite",
+    "description": "By listening to an unfamiliar language spoken for one hour, a Jadeborn with this Charm may attune her mind to its syntactical structure. She permanently and completely learns the language in question, but this does not improve her Linguistics rating. This Charm’s effects end when the character ceases to commit Essence to it.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 274
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.thought-speech-oration",
+    "name": "Thought Speech Oration",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Simple",
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.language-and-meaning-discernment"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "The Jadeborn concentrates, imprinting her thoughts upon an abstract construct of Essence. She need only glance at a sentient being to silently hurl the construct into his mind. If he resists the sudden intrusion of foreign thoughts, the Jadeborn’s player must successfully roll Willpower (difficulty of the target’s highest Virtue) to override the barrier. If the target receives the telepathic message, he hears the Jadeborn’s own words clearly speaking the message in his mind. This message can have any length, but once sent, the character must use this Charm again to send a new message. Jadeborn can also attune themselves to other sentient beings by using this Charm while maintaining physical contact. Each such attunement costs 1 experience point. Jadeborn can send messages to those are attuned to for a reduced cost of 1 mote and may be out of visual range and as far as a mile away.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 274
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.conference-of-the-mind",
+    "name": "Conference of the Mind",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Simple",
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.thought-speech-oration"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "By touching or making eye contact with a sentient being, a Jadeborn with this Charm can transport their two minds into a shared dreamscape outside of time and space. This virtual construct has whatever terrain and features the Jadeborn imagines, and she can dictate any events, regardless of the laws of reality. However, she cannot affect the ephemeral thought-body of the person contacted, nor may either participant come to any actual harm in the mindscape. If the target also knows this Charm, he can also affect changes to the surroundings and summon unreal objects, but the overall terrain remains dominated by the initiator. This Charm predominantly serves to facilitate private communication. The two can talk and interact for a maximum perceived duration of the initiator’s permanent Willpower in hours. After this duration passes or whenever the Jadeborn so wills, both characters flash back to their bodies. No actual time elapses during the sojourn into thought, so the participants emerge precisely at the moment they left.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 274
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.incomparable-tutoring-method",
+    "name": "Incomparable Tutoring Method",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Simple",
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.conference-of-the-mind"
+      ]
+    ],
+    "cost": {
+      "motes": 20,
+      "willpower": 1,
+      "health": 0,
+      "raw": "20 motes, 1 Willpower, 1+ experience point"
+    },
+    "duration": "Instant",
+    "description": "The Jadeborn lays a hand against a sentient being’s forehead. A white light flashes under the touch, imprinting whatever knowledge the character wishes to share. He can transfer memories, expand consciousness (raising Mental Attributes), teach or improve Abilities and specialties or instruct Mountain Folk in new Charms they are capable of learning. In the case of an actual Trait increase, the target must still spend the appropriate number of experience points to process the lesson; the benefit is simply obviated training time. If the Jadeborn feels particularly generous, he may donate experience points beyond the 1 required to activate the Charm. These points must be immediately used, but it is enough that they merely be earmarked toward a certain end if the character cannot afford the subject taught.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 275
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.enlightened-pattern-mastery",
+    "name": "Enlightened Pattern Mastery",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Special",
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.conference-of-the-mind"
+      ],
+      [
+        "mountainfolk.enlightened.glorious-prodigy-lesson"
+      ],
+      [
+        "mountainfolk.enlightened.incomparable-tutoring-method"
+      ],
+      [
+        "mountainfolk.enlightened.language-and-meaning-discernment"
+      ],
+      [
+        "mountainfolk.enlightened.mien-of-compassion"
+      ],
+      [
+        "mountainfolk.enlightened.mien-of-conviction"
+      ],
+      [
+        "mountainfolk.enlightened.mien-of-temperance"
+      ],
+      [
+        "mountainfolk.enlightened.mien-of-valor"
+      ],
+      [
+        "mountainfolk.enlightened.studious-erudition-technique"
+      ],
+      [
+        "mountainfolk.enlightened.thought-speech-oration"
+      ],
+      [
+        "mountainfolk.enlightened.upon-strands-lightly"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "(11 Charms total) With mastery of the Enlightened Pattern comes a heightened understanding of Enlightenment itself. With this wisdom, a Jadeborn may create custom Charms to augment this Pattern. Only Jadeborn with Enlightened Pattern Mastery can learn these Charms. In addition, the character reduces the Essence cost to activate any Charms of this Pattern by 1 mote.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 275
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.mien-of-compassion",
+    "name": "Mien of Compassion",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.upon-strands-lightly"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2 motes"
+    },
+    "duration": "One scene",
+    "description": "The Conclave of the Mountain Folk is a ruthless sea of treachery and infighting held together by strictures of custom and decorum. Artisans hate and fight one another over factional and personal differences or simply for sport, but they accept that social warfare requires rules in order to preserve the very society they all wish to control. Mien of (Virtue) is one of the most ubiquitous and yet powerful weapons of Jadeborn politics, encompassing the four fundamental Charms that define acceptable social interaction. While under the effects of a mien, characters project a specific emotional archetype that helps them act the part of their assumed role.\n\nAlthough these Charms are enchantment-type, they are designed to be extremely fluid. Characters may be assumed to be able to switch back and forth in a social engagement as often as desired or as the situation demands. The timing restrictions for the enchantment type only matter if these Charms are used during combat.\n\nIn addition to their basic powers, each Charm includes a greater effect for extreme circumstances and emergencies. Characters with Essence 3+ who are wearing a mien can access this power for a reflexive cost of 10 motes or 1 temporary point of the appropriate Virtue. The greater effect lasts until voluntarily relinquished or the Jadeborn ends the mien.\n\nCompassion: The Jadeborn assumes inquisitive or amicable mode, projecting an amount of gregariousness and curiosity appropriate to the situation. This mode is the least common one, predominantly employed in private negotiations and liaisons. In public, it lacks the protective and offensive benefits of the other Charms. Add the character's Compassion rating to all Social rolls based on friendliness and Charm, as well as to all Investigation rolls where he politely attempts to get information from someone else. The greater effect of this mien makes the character irresistibly charming and attractive. He converts the standard mien dice bonus into automatic successes for all seduction attempts.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 273
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.mien-of-conviction",
+    "name": "Mien of Conviction",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.upon-strands-lightly"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2 motes"
+    },
+    "duration": "One scene",
+    "description": "The Conclave of the Mountain Folk is a ruthless sea of treachery and infighting held together by strictures of custom and decorum. Artisans hate and fight one another over factional and personal differences or simply for sport, but they accept that social warfare requires rules in order to preserve the very society they all wish to control. Mien of (Virtue) is one of the most ubiquitous and yet powerful weapons of Jadeborn politics, encompassing the four fundamental Charms that define acceptable social interaction. While under the effects of a mien, characters project a specific emotional archetype that helps them act the part of their assumed role.\n\nAlthough these Charms are enchantment-type, they are designed to be extremely fluid. Characters may be assumed to be able to switch back and forth in a social engagement as often as desired or as the situation demands. The timing restrictions for the enchantment type only matter if these Charms are used during combat.\n\nIn addition to their basic powers, each Charm includes a greater effect for extreme circumstances and emergencies. Characters with Essence 3+ who are wearing a mien can access this power for a reflexive cost of 10 motes or 1 temporary point of the appropriate Virtue. The greater effect lasts until voluntarily relinquished or the Jadeborn ends the mien.\n\nConviction: The Jadeborn assumes defensive mode, projecting stalwart and implacable calm. He is no more or less noticeable than usual, but his motives and emotional state remain obscured. This is the default mood appropriate for most social encounters, particularly in unfamiliar company. While wearing this mien, anyone targeting the character with a Social roll of any kind adds his Conviction rating to the difficulty. He receives no bonus penalty of any sort to his own interactions. The greater effect of this mien grants total immunity to magic intended to alter his thoughts, perceptions or emotions, provided that the aggressor employing the magic has a lower permanent Essence. This specifically does not defend against the lesser effects of any Mien of (Virtue) Charm.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 273
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.mien-of-temperance",
+    "name": "Mien of Temperance",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.upon-strands-lightly"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2 motes"
+    },
+    "duration": "One scene",
+    "description": "The Conclave of the Mountain Folk is a ruthless sea of treachery and infighting held together by strictures of custom and decorum. Artisans hate and fight one another over factional and personal differences or simply for sport, but they accept that social warfare requires rules in order to preserve the very society they all wish to control. Mien of (Virtue) is one of the most ubiquitous and yet powerful weapons of Jadeborn politics, encompassing the four fundamental Charms that define acceptable social interaction. While under the effects of a mien, characters project a specific emotional archetype that helps them act the part of their assumed role.\n\nAlthough these Charms are enchantment-type, they are designed to be extremely fluid. Characters may be assumed to be able to switch back and forth in a social engagement as often as desired or as the situation demands. The timing restrictions for the enchantment type only matter if these Charms are used during combat.\n\nIn addition to their basic powers, each Charm includes a greater effect for extreme circumstances and emergencies. Characters with Essence 3+ who are wearing a mien can access this power for a reflexive cost of 10 motes or 1 temporary point of the appropriate Virtue. The greater effect lasts until voluntarily relinquished or the Jadeborn ends the mien.\n\nTemperance: The Jadeborn assumes passive mode, withdrawing behind a shroud of complete detachment. This mood is the default one of neutral witnesses who do not wish to take part in hostilities. Any roll to notice the character amidst a crowd has its difficulty increased by her Temperance rating, and similarly, add her Temperance to active Stealth rolls in such environs. Most sentient beings ignore her outright. This bonus only applies so long as she does nothing to draw attention to herself. She is not invisible or undetectable, just deliberately unremarkable. As a final benefit, she adds her Temperance rating to the difficulty of all Social rolls targeting her. Unfortunately, characters wearing this mien cannot effectively draw attention to themselves even if they want to, adding their Temperance to the difficulty of their own Social rolls. This mien does not interfere with attempts to understand a social situation or to discern the feelings of a target. Switching from Compassion or Valor to Temperance creates a jarring emotional disconnect that helps end or postpone discussion. Anyone currently interacting with the character must cease doing so unless their players make a successful Willpower roll at a difficulty of the character's Temperance. If this roll fails, the conversation is interrupted, and the Jadeborn can gracefully retreat from the situation. The greater effects of this mien allow a character to retreat even further from social interaction. The player of anyone attempting to speak with her (after succeeding at the difficult task of noticing her in the first place) must make a successful reflexively Willpower roll at a difficulty of the character's Temperance each turn.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 273
+    }
+  },
+  {
+    "id": "mountainfolk.enlightened.mien-of-valor",
+    "name": "Mien of Valor",
+    "category": "mountain_folk:enlightened",
+    "exalt_type": "Mountain-Folk",
+    "type": "Enchantment",
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "mountainfolk.enlightened.upon-strands-lightly"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "raw": "2 motes"
+    },
+    "duration": "One scene",
+    "description": "The Conclave of the Mountain Folk is a ruthless sea of treachery and infighting held together by strictures of custom and decorum. Artisans hate and fight one another over factional and personal differences or simply for sport, but they accept that social warfare requires rules in order to preserve the very society they all wish to control. Mien of (Virtue) is one of the most ubiquitous and yet powerful weapons of Jadeborn politics, encompassing the four fundamental Charms that define acceptable social interaction. While under the effects of a mien, characters project a specific emotional archetype that helps them act the part of their assumed role.\n\nAlthough these Charms are enchantment-type, they are designed to be extremely fluid. Characters may be assumed to be able to switch back and forth in a social engagement as often as desired or as the situation demands. The timing restrictions for the enchantment type only matter if these Charms are used during combat.\n\nIn addition to their basic powers, each Charm includes a greater effect for extreme circumstances and emergencies. Characters with Essence 3+ who are wearing a mien can access this power for a reflexive cost of 10 motes or 1 temporary point of the appropriate Virtue. The greater effect lasts until voluntarily relinquished or the Jadeborn ends the mien.\n\nValor: The Jadeborn dons aggressive mode, projecting arrogance and glorious anger. For all that he retains superficial signs of courtesy, his whispers carry the same stunning force as shouted epithets. Every word is a seething manifestation of epic tyranny. Obviously, this mood draws immediate attention and aids in arguments and attacks. For all its advantages, however, the mood carries a stigma as a weapon of sparing or last resort. Those who overuse its power are viewed as crass and barbaric. This mien adds the character's Valor to all Social rolls involving raw force of personality or intimidation. Also, add half the character's Valor (rounded up) to the difficulty of all Social rolls targeting him. Unfortunately, his aggressive demeanor makes him far less likeable, adding his Valor to the difficulty of all his player's own Social rolls where the Jadeborn cannot triumph through domination. Furthermore, the mien voids all Stealth attempts and makes the character preternaturally conspicuous. The players of all observers receive a reflexive Perception + Awareness roll at standard difficulty for their characters to notice him in any situation, and he cannot hope to blend in to a crowd. The greater effect of this mien converts the standard dice bonus into automatic successes for actual intimidation attempts only. Furthermore, the character's voice carries clearly over any ambient noise. Everyone in line of sight can hear him clearly as if he stood directly before them.",
+    "source": {
+      "book": "Exalted: The Mountain Folk (CH6)",
+      "page": 273
+    }
+  }
+]

@@ -399,6 +399,43 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
                         play_mod.count_box(character, i, i < cur.limit, "limit", 10,
                                            body.refresh)
 
+            # --- The Great Geas (Mountain Folk, CH6 p.235) ---------------- #
+            # Divergence triggers as a reference panel: the Geas is Storyteller-
+            # adjudicated and never engine-enforced (it is an ST call whether an
+            # oath was broken, an Exalt slain, etc.), so the 9-clause table lives
+            # here as the sheet's copy of the page — the human's ruling, 2026-08-07.
+            if derive.limit_label(ruleset, character) == "Divergence":
+                with ui.expansion("The Great Geas — Divergence triggers").classes(
+                        "w-full"):
+                    for clause in (
+                        "Breaking a sworn oath — 5 points (once broken, an oath no "
+                        "longer has power).",
+                        "Fighting against a Celestial Exalt except in self-defense or "
+                        "at the behest of another Celestial Exalt — 5 points at the "
+                        "beginning of hostilities.",
+                        "Slaying one of the Exalted — 5 points for striking the "
+                        "deathblow against a Celestial, 3 against a Terrestrial.",
+                        "Giving aid to an enemy of Creation (the banished and dead "
+                        "Primordials and their servants, denizens of the Wyld, most "
+                        "Darkbroods) — 4 points per instance.",
+                        "Associating with the enemies of Creation in any nonhostile "
+                        "manner — 2 points per week.",
+                        "Accepting worship from mortals — 3 points per week.",
+                        "Asserting authority and leadership over a community of "
+                        "mortals — 1 point per week.",
+                        "Dwelling more than a month aboveground except in service to "
+                        "the Exalted — 1 point per month after the first.",
+                        "Refusing to build an artifact for a Celestial Exalt of higher "
+                        "Essence when properly commanded — 1 point per week of "
+                        "disobedience (Enlightened only)."):
+                        ui.label(f"• {clause}").classes("text-xs text-gray-700")
+                    ui.label("When Divergence reaches 10, the pool resets to 0 and the "
+                             "character suffers misfortune as though they broke an oath "
+                             "sanctified by an Eclipse Caste Solar. For every full "
+                             "month the Jadeborn live underground without gaining "
+                             "Divergence, they lose one point.").classes(
+                        "text-xs italic text-gray-600 mt-1")
+
             # --- permanent numbers worth having at the table -------------- #
             ui.label(f"Soak {cv.soak.bashing}B / {cv.soak.lethal}L / {cv.soak.aggravated}A"
                      f"  ·  Dodge {cv.dodge}  ·  Essence {cv.essence_rating}").classes(
