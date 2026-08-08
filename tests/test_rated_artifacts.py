@@ -89,6 +89,26 @@ def test_unnamed_and_mundane_rows_are_not_artifacts():
     assert artifacts.artifact_items(c) == []
 
 
+def test_zeroing_the_artifact_column_makes_a_dual_nature_device_mundane(rs):
+    """Human's ruling 2026-08-08: a dual-nature device needs no toggle — the player
+    just sets the Background that was paid and zeroes the other. A Mountain Folk
+    crossbow (catalogue row carries BOTH "Resources •• / Artifact ••") with
+    `artifact_rating` left at 2 counts toward the budget; setting it to 0 makes it
+    mundane gear whatever `resources_cost` says, and the budget stops seeing it."""
+    c = _abyssal(backgrounds=[_bg("Artifact", 1)],                    # combined ≤ 3
+                 weapons=[Weapon(name="Crossbow", artifact_rating=2, resources_cost=2),
+                          Weapon(name="Orb", artifact_rating=2)])
+    assert [(i.name, i.rating) for i in artifacts.artifact_items(c)] == [
+        ("Crossbow", 2), ("Orb", 2)]
+    assert artifacts.combined_rating(c) == 4
+    assert _codes(validate.check_artifacts(rs, c), "artifact-combined-over-budget")
+    # The Resources-funded reading: Art 0, Res kept. Mundane gear, not an artifact.
+    c.weapons[0].artifact_rating = 0
+    assert [(i.name, i.rating) for i in artifacts.artifact_items(c)] == [("Orb", 2)]
+    assert artifacts.combined_rating(c) == 2
+    assert validate.check_artifacts(rs, c) == []
+
+
 # --- the p.131 budget ------------------------------------------------------- #
 
 @pytest.mark.parametrize("rating,combined,individual", [
@@ -552,3 +572,68 @@ async def test_a_renamed_artifact_leaves_a_labelled_stale_option(user) -> None:
                   if isinstance(e, _ui.select) and e.props.get("label") == "Artifact")
     assert picker.value == "artifact:old name"
     assert "(missing)" in picker.options["artifact:old name"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_artifact_name_field_is_a_catalogue_combobox(user) -> None:
+    """The name field is fed from `data/artifacts.json` (the click-through wish from
+    2026-08-05). Catalogue names must be selectable, and an off-catalogue stored name
+    ("Tattered Wings") must survive as an option — the `_opts_with` guard against the
+    NiceGUI build-time crash a value-not-among-options would raise."""
+    from nicegui import ui as _ui
+    await user.open('/artifacts-advantages')
+    await user.should_see("Tattered Wings")
+    combobox = next(e for e in user.client.elements.values()
+                    if isinstance(e, _ui.select)
+                    and e.props.get("label") == "Artifact name")
+    assert combobox.value == "Tattered Wings"
+    assert "Tattered Wings" in combobox.options          # the guard folded it in
+    assert "Echo Jewel" in combobox.options              # catalogue names are offered
+    assert "Myrmidon Carapace" in combobox.options
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_picking_a_catalogue_artifact_autofills_its_rating(user) -> None:
+    """A catalogue pick sets name AND rating from the entry (mirrors `set_armor`'s
+    autofill), so the player cannot mis-price a known artifact. Tattered Wings 2 →
+    Echo Jewel 1 takes the combined 7→6, which the header must print in place — and the
+    rating input must survive the change (a body rebuild would drop the next event)."""
+    from nicegui import ui as _ui
+    await user.open('/artifacts-advantages')
+    await user.should_see("7/7 combined")
+    combobox = next(e for e in user.client.elements.values()
+                    if isinstance(e, _ui.select)
+                    and e.props.get("label") == "Artifact name")
+    combobox.value = "Echo Jewel"
+    await user.should_see("Echo Jewel")
+    await user.should_see("6/7 combined")                # header tracked the autofill
+    number = next(e for e in user.client.elements.values()
+                  if isinstance(e, _ui.number) and e.props.get("label") == "Rating")
+    assert number.value == 1                             # rating autofilled from the entry
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_catalogue_pick_fills_the_description_label(user) -> None:
+    """The click-through wish: a persistent description under each standalone-artifact
+    row, mirroring the Background `bg-desc` pattern. An off-catalogue name shows no
+    text; a catalogue pick shows the entry's page-vetted description."""
+    from nicegui import ui as _ui
+    await user.open('/artifacts-advantages')
+    desc = next(e for e in user.client.elements.values()
+                if isinstance(e, _ui.label)
+                and e.props.get("data-testid") == "art-desc")
+    assert desc.text == ""                               # Tattered Wings: off-catalogue
+    combobox = next(e for e in user.client.elements.values()
+                    if isinstance(e, _ui.select)
+                    and e.props.get("label") == "Artifact name")
+    combobox.value = "Echo Jewel"
+    # The `rs` fixture is unavailable in the nicegui async context, so load the
+    # catalogue directly for the expected text (the label is found by data-testid, so
+    # this cannot pass against code with no persistent label — see the bg-desc tests).
+    entry = next(a for a in rules_db.load_ruleset(DATA_DIR).artifact_catalog.values()
+                 if a.name == "Echo Jewel")
+    assert desc.text == entry.description
+    assert desc.visible

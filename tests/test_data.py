@@ -286,15 +286,86 @@ def test_weapon_and_armor_catalogs_load():
     rs = rules_db.load_ruleset(DATA_DIR)
     # 49 corebook + 30 from the Solar castebooks (Dawn p.79/81, Night p.77-81,
     # Zenith p.80-81) + 8 from the Dragon-Blooded Aspect Books (Fire p.81, Wood p.83,
-    # Water p.80, Air p.81 — the last being the Lightning Corona's two modes).
-    assert len(rs.weapon_catalog) == 87
+    # Water p.80, Air p.81 — the last being the Lightning Corona's two modes)
+    # + 9 from the Mountain Folk Technology chapter (Skirmish Pike, Dragon Sigh Wand,
+    # Essence Pulse Grenade, pp.280-282, and the six dual-nature devices — the four
+    # crossbows and the flamecaster + pyromantic grenade, p.278 — which carry BOTH
+    # `artifact_rating` and `resources_cost` so the player funds them either way).
+    assert len(rs.weapon_catalog) == 96
     # 17 corebook + the artifact Chain Shirt (Dawn p.81), Cloak of Vanishing
     # Escape (Night p.81) and the Most Terrifying Armor of the Air Dragon (Air p.81),
     # + the three p.335 SHIELDS, which are armour rows tagged "shield" rather than a
-    # model of their own (see ArmorType). rs.body_armor() / rs.shields() split them.
-    assert len(rs.armor_catalog) == 23
-    assert len(rs.body_armor()) == 20
+    # model of their own (see ArmorType), + the Myrmidon Carapace (Mountain Folk
+    # p.283). rs.body_armor() / rs.shields() split them.
+    assert len(rs.armor_catalog) == 24
+    assert len(rs.body_armor()) == 21
     assert len(rs.shields()) == 3
+
+
+def test_artifact_catalog_loads_the_ten_mountain_folk():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    assert len(rs.artifact_catalog) == 10
+    # Ratings and the printed ranges, from the Technology chapter (pp.279-283).
+    visor = rs.artifact_catalog["artifact.mountain-folk.essence-scrying-visor"]
+    assert visor.rating == 1 and visor.source == "Mountain Folk p.279"
+    assert rs.artifact_catalog["artifact.mountain-folk.myrmidon-carapace"].rating == 3
+    talisman = rs.artifact_catalog["artifact.mountain-folk.talisman-of-suspended-evocation"]
+    assert talisman.rating == 1 and talisman.rating_notes == "• to •••••"
+    # Every entry is readable — "a Merit you cannot read the text of is just a word".
+    assert all(a.name and a.description for a in rs.artifact_catalog.values())
+
+
+def test_mountain_folk_gear_stat_blocks():
+    rs = rules_db.load_ruleset(DATA_DIR)
+    pike = rs.weapon_catalog["weapon.mountain-folk.skirmish_pike"]
+    assert (pike.speed, pike.accuracy, pike.damage) == (4, 1, 4)
+    assert pike.damage_type == "L" and pike.artifact_rating == 1 and pike.attunement == 5
+    wand = rs.weapon_catalog["weapon.mountain-folk.dragon_sigh_wand"]
+    assert (wand.accuracy, wand.damage, wand.rate, wand.range) == (1, 12, 1, 30)
+    assert wand.artifact_rating == 2 and wand.attunement == 5
+    grenade = rs.weapon_catalog["weapon.mountain-folk.essence_pulse_grenade"]
+    assert (grenade.damage, grenade.rate, grenade.range) == (10, 1, 20)
+    assert grenade.artifact_rating == 2
+    # The carapace carries the whole kit: the visor, the echo jewel and the mask of
+    # pure breath are integrated, not listed as separate artifacts.
+    carapace = rs.armor_catalog["armor.mountain-folk.myrmidon_carapace"]
+    assert (carapace.soak_lethal, carapace.soak_bashing) == (8, 8)
+    assert carapace.mobility_penalty == -1 and carapace.fatigue == 1
+    assert carapace.artifact_rating == 3 and carapace.attunement == 5
+
+
+def test_mountain_folk_dual_nature_devices_carry_both_minima():
+    # The four crossbows cost "Resources OR Artifact" (the printed column is exactly
+    # "Resources/Artifact"); the flamecaster and pyromantic grenade print Resources
+    # only, so their Artifact rating is a flagged mirror (the ST sets the real value)
+    # that lets the dual-nature toggle fund them either way. See the notes on each row.
+    rs = rules_db.load_ruleset(DATA_DIR)
+    w = rs.weapon_catalog
+    crossbow = w["weapon.mountain-folk.crossbow"]
+    assert (crossbow.accuracy, crossbow.damage, crossbow.rate, crossbow.range) == (1, 5, 1, 125)
+    assert crossbow.min_strength == 1 and crossbow.resources_cost == 2 and crossbow.artifact_rating == 2
+    mech = w["weapon.mountain-folk.mechanized_crossbow"]
+    assert (mech.damage, mech.range, mech.min_strength) == (7, 200, 2)
+    assert mech.resources_cost == 3 and mech.artifact_rating == 3
+    assault = w["weapon.mountain-folk.assault_crossbow"]
+    assert (assault.accuracy, assault.damage, assault.range) == (3, 8, 250)
+    assert assault.resources_cost == 2 and assault.artifact_rating == 2 and assault.attunement == 5
+    onslaught = w["weapon.mountain-folk.onslaught_crossbow"]
+    assert (onslaught.damage, onslaught.rate, onslaught.range) == (10, 2, 300)
+    assert onslaught.resources_cost == 3 and onslaught.artifact_rating == 3 and onslaught.attunement == 6
+    flame = w["weapon.mountain-folk.flamecaster"]
+    assert (flame.accuracy, flame.damage, flame.rate, flame.range) == (1, 12, 1, 10)
+    assert flame.resources_cost == 3 and flame.artifact_rating == 3
+    grenade = w["weapon.mountain-folk.pyromantic_grenade"]
+    assert (grenade.accuracy, grenade.damage, grenade.range) == (0, 10, 15)
+    assert grenade.resources_cost == 3 and grenade.artifact_rating == 3
+    # The four crossbows are Archery weapons; the flamecaster/grenade are not. And
+    # every dual-nature row flags the Resources/Artifact split in its notes.
+    for key in ("weapon.mountain-folk.crossbow", "weapon.mountain-folk.mechanized_crossbow",
+                "weapon.mountain-folk.assault_crossbow", "weapon.mountain-folk.onslaught_crossbow"):
+        assert "archery" in w[key].tags and "artifact" in w[key].tags
+        assert "Resources" in w[key].notes and "Artifact" in w[key].notes
+    assert "Resources" in flame.notes and flame.notes.count("ST") >= 1
 
 
 def test_mundane_melee_weapons_present():

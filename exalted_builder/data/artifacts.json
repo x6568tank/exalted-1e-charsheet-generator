@@ -1,0 +1,85 @@
+[
+  {
+    "id": "artifact.mountain-folk.essence-scrying-visor",
+    "name": "Essence-Scrying Visor",
+    "rating": 1,
+    "description": "Crystal goggles: 1 mote per scene ignores low-light penalties; 3 motes activates Essence sight, which negates all visual penalties, pierces smoke and darkness, and adds three dice to Awareness rolls to notice illuminated beings and objects. Useless inside Demesnes and Manses. Artifact •• versions provide constant Essence sight for 4 committed motes.",
+    "source": "Mountain Folk p.279",
+    "tags": ["senses", "tool"]
+  },
+  {
+    "id": "artifact.mountain-folk.hammerfist-bracer",
+    "name": "Hammerfist Bracer",
+    "rating": 1,
+    "description": "Bulky jade bracer (4 committed motes) that transmutes the arm below the elbow into indestructible stone until removed: the petrified fist parries lethal attacks without a stunt and inflicts +8L damage against animate targets (+10L against inanimate objects), at speed -2. Predominantly used as an excavation tool by Worker Caste miners.",
+    "source": "Mountain Folk p.279",
+    "tags": ["tool", "combat"]
+  },
+  {
+    "id": "artifact.mountain-folk.mask-of-pure-breath",
+    "name": "Mask of Pure Breath",
+    "rating": 1,
+    "description": "Blue-jade mask that affixes to the face for 1 mote: absorbs and cleanses air, giving complete protection against toxin gases, smoke and airborne hazards; in vacuum it synthesizes breathable air for 2 motes/hour (muting the sense of smell). Distorts the voice: +1 die to intimidation Presence, +2 to the difficulty of identifying the speaker.",
+    "source": "Mountain Folk p.279",
+    "tags": ["protection", "tool"]
+  },
+  {
+    "id": "artifact.mountain-folk.skirmish-pike",
+    "name": "Skirmish Pike",
+    "rating": 1,
+    "description": "Collapsible jade-and-crystal spear (four-foot pike or 18-inch baton, telescoped reflexively once per turn). The slender points puncture armour; any magical being can commit 5 motes to attune; no Hearthstone socket. Officer pikes add features (stun point, shock pulse, Essence capacitor) that raise the rating to •• or •••. Also a weapon — see the equipment catalogue.",
+    "source": "Mountain Folk p.280",
+    "tags": ["weapon"]
+  },
+  {
+    "id": "artifact.mountain-folk.echo-jewel",
+    "name": "Echo Jewel",
+    "rating": 1,
+    "rating_notes": "• or •••",
+    "description": "Crystal disk rimmed in jade: 1 committed mote links it to other echo jewels, relaying every vocal utterance within half a mile (50 yards above ground). Artifact ••• versions are four-foot disk arrays laid in a Manse's central chamber that transmit life-sized images to one another across up to (Manse rating × 1,000) miles.",
+    "source": "Mountain Folk p.280",
+    "tags": ["communication", "tool"]
+  },
+  {
+    "id": "artifact.mountain-folk.talisman-of-suspended-evocation",
+    "name": "Talisman of Suspended Evocation",
+    "rating": 1,
+    "rating_notes": "• to •••••",
+    "description": "Artificial gem (tetrahedron • through icosahedron •••••) that stores Mountain Folk Charms: charging costs the Charm's full cost plus 1 Willpower; it holds Charms whose total minimum Essence is double its Artifact rating. Activation counts as a Charm use and cannot be part of a Combo. Only Mountain Folk can use these devices.",
+    "source": "Mountain Folk p.281",
+    "tags": ["charm-store", "tool"]
+  },
+  {
+    "id": "artifact.mountain-folk.dragon-sigh-wand",
+    "name": "Dragon Sigh Wand",
+    "rating": 2,
+    "description": "Two-foot red-jade firewand that needs no ammunition: 5 motes attune, 2 motes per blast of scarlet flame (12L, range 30, rate 1). A ruby capacitor stores 12 motes as an alternate power source. No Magical Material bonus; the delicate lenses need maintenance after every scene fired. Smaller foot-long variants (Artifact •• single, ••• a pair) trade damage for rate. Also a weapon — see the equipment catalogue.",
+    "source": "Mountain Folk p.281",
+    "tags": ["weapon"]
+  },
+  {
+    "id": "artifact.mountain-folk.essence-pulse-grenade",
+    "name": "Essence Pulse Grenade",
+    "rating": 2,
+    "description": "Reusable jade-and-crystal grenade that detonates on a timer (a turn to an hour) or a dead-man's switch; recharging costs 6 motes and a jewelled key. The jade's colour varies the blast: red 10L fire, blue 20B lightning, white 20B force, black 10L freezing (cutting Dexterity by 2), green poison gas. Also a weapon — see the equipment catalogue.",
+    "source": "Mountain Folk p.282",
+    "tags": ["weapon", "thrown"]
+  },
+  {
+    "id": "artifact.mountain-folk.shieldstone-gauntlet",
+    "name": "Shieldstone Gauntlet",
+    "rating": 2,
+    "rating_notes": "•• or •••",
+    "description": "Fingerless glove (4 committed motes) that projects a luminous force shield (+2 to the difficulty of all attacks against the wearer) when the bearer presents the palm or back-of-hand stone. The Artifact ••• version can instead raise a freestanding wall of raw Essence with 3B/2L soak per mote spent.",
+    "source": "Mountain Folk p.282",
+    "tags": ["protection", "tool"]
+  },
+  {
+    "id": "artifact.mountain-folk.myrmidon-carapace",
+    "name": "Myrmidon Carapace",
+    "rating": 3,
+    "description": "Articulated jade-and-alloy armour (soak 8/8, mobility penalty -1, fatigue 1) for 5 motes of attunement. The masked helmet integrates an Essence-scrying visor (night vision constant, no Essence infusions), an echo jewel and a mask-of-pure-breath filtration and voice system; the suit adds +1 to Strength for damage, lifting and feats. Also armour — see the equipment catalogue.",
+    "source": "Mountain Folk p.283",
+    "tags": ["armor"]
+  }
+]

@@ -337,6 +337,10 @@ class Weapon(BaseModel):
     artifact_rating: int = Field(default=0, ge=0)
     attunement: int = Field(default=0, ge=0)
     resources_cost: int = Field(default=0, ge=0)
+    # A dual-nature device's catalogue row carries BOTH minima (e.g. a Mountain Folk
+    # crossbow: "Resources •• / Artifact ••"); the player just sets the one that was
+    # paid and zeroes the other — Artifact 0 is the mundane default, so a
+    # Resources-funded crossbow is not an artifact. Human's ruling 2026-08-08.
     # Magical material (rules.MagicalMaterial id; "" = mundane). Its stat bonus is
     # applied by engine.derive only when the wielder's Exalt type matches.
     material: str = ""

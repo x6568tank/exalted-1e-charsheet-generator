@@ -290,5 +290,20 @@
       "shield"
     ],
     "notes": "Twice as tall as a target shield and at least as wide. Increases the difficulty of hitting the character in hand-to-hand combat by 1 and of hitting him with ranged attacks by 2. Adds 2 to the mobility penalty of the character's armour, or inflicts a 2 point mobility penalty if he is using no other armour. Most tower shields have straps allowing the user to attach the shield to his body: in that configuration it protects as a target shield and leaves both hands free, but adds 1 to the fatigue value of the character's armour. Exalted p.335."
+  },
+  {
+    "id": "armor.mountain-folk.myrmidon_carapace",
+    "name": "Myrmidon Carapace",
+    "weight": "Medium",
+    "soak_lethal": 8,
+    "soak_bashing": 8,
+    "mobility_penalty": -1,
+    "fatigue": 1,
+    "artifact_rating": 3,
+    "attunement": 5,
+    "tags": [
+      "artifact"
+    ],
+    "notes": "Articulated jade-and-alloy armour for 5 motes of attunement. The masked helmet integrates an Essence-scrying visor (night vision constant, no Essence infusions), an echo jewel and a mask-of-pure-breath filtration and voice system; the suit adds +1 to Strength for damage, lifting and feats. Weight class is not printed on the page — assigned Medium by comparison with the other Medium artifact armors (the Reinforced Buff Jacket Artifact sits at mobility penalty -1). (Mountain Folk p.283)"
   }
 ]

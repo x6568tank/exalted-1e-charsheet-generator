@@ -257,6 +257,13 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
 
         One panel, both regimes: an artifact is equipment, and equipment has never been
         XP-priced or log-tracked on either side of the lock.
+
+        The name field is a combobox fed from `RuleSet.artifact_catalog`
+        (`data/artifacts.json`): picking a catalogue entry fills the name and autofills
+        the rating, and a typed off-catalogue name is free text that renames while
+        preserving the rating. Entering a gear item both here and on the equipment
+        surface counts it twice toward the budget — the same contract free text already
+        has; there is no cross-catalogue dedup.
         """
         @ui.refreshable
         def _artifacts_header() -> None:
@@ -288,26 +295,71 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label("bought with the Artifact Background").classes(
                     "text-xs text-gray-500")
 
+        # The name combobox is fed from the catalogue (`data/artifacts.json`). Option
+        # labels stay plain names so `art.name` stores cleanly; the rating and
+        # description ride the option tooltip.
+        art_names = [a.name for a in rs.artifact_catalog.values()]
+        art_descs = {a.name: f"{a.rating_notes or ('•' * a.rating)} — {a.description}"
+                     for a in rs.artifact_catalog.values()}
         with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
             _artifacts_header()
             for idx, art in enumerate(character.artifacts):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    ui.input(value=art.name, placeholder="artifact",
-                             on_change=lambda e, art=art: (setattr(art, "name", e.value),
-                                                           changed())
-                             ).props("dense").classes("flex-1")
+                    sel = (DescribedSelect(_opts_with(art_names, art.name),
+                                           descriptions=art_descs,
+                                           value=art.name or None, label="Artifact name",
+                                           with_input=True, new_value_mode="add-unique")
+                           .props("dense").classes("flex-1"))
                     ui.input(value=art.note, placeholder="note",
                              on_change=lambda e, art=art: setattr(art, "note", e.value)
                              ).props("dense").classes("flex-1")
-                    ui.number(value=art.rating, min=1, max=5, format="%d", label="Rating",
-                              on_change=lambda e, art=art: (
-                                  setattr(art, "rating", max(1, min(5, int(e.value or 1)))),
-                                  _artifacts_header.refresh(),
-                                  changed())
-                              ).props("dense").classes("w-24")
+                    number = ui.number(value=art.rating, min=1, max=5, format="%d",
+                                       label="Rating",
+                                       on_change=lambda e, art=art: (
+                                           setattr(art, "rating",
+                                                   max(1, min(5, int(e.value or 1)))),
+                                           _artifacts_header.refresh(),
+                                           changed())
+                                       ).props("dense").classes("w-24")
                     ui.button(icon="delete",
                               on_click=lambda e=None, idx=idx: remove_artifact(idx)
                               ).props("flat dense round")
+                # The catalogue description under the row, mirroring the Background rows:
+                # the dropdown tooltip made permanent. Refreshed by the row's own select
+                # WITHOUT rebuilding the panel (a rebuilt input eats every keystroke —
+                # the filter bar's lesson). A free-text name no catalogue entry covers
+                # gets nothing — the label just hides. `data-testid` is the one prop that
+                # distinguishes this label from the M&F rules-text labels, which share its
+                # styling classes.
+                desc = ui.label("").classes("text-xs opacity-70 pl-1"
+                                            ).props('data-testid="art-desc"')
+
+                def _sync(art=art, desc=desc):
+                    entry = next((a for a in rs.artifact_catalog.values()
+                                  if a.name == art.name), None)
+                    text = entry.description if entry else ""
+                    desc.set_text(text)
+                    desc.set_visibility(bool(text))
+
+                def _on_art(e, art=art, number=number, sync=_sync):
+                    # A catalogue pick sets name + autofills rating; any other
+                    # value is free text and only renames, preserving the rating.
+                    entry = next((a for a in rs.artifact_catalog.values()
+                                  if a.name == (e.value or "")), None)
+                    if entry is not None:
+                        art.name, art.rating = entry.name, entry.rating
+                        # Keep the on-screen control in sync: the header refresh
+                        # recomputes the total but must NOT rebuild the body (see
+                        # the header docstring), so the number is pushed directly.
+                        number.value = entry.rating
+                    else:
+                        art.name = e.value or ""
+                    sync()
+                    _artifacts_header.refresh()
+                    changed()
+
+                sel.on_value_change(_on_art)
+                _sync()
             # Artifact weapons and armour count against the same budget but are edited
             # on the equipment surface. Listed read-only so the combined total above is
             # accounted for rather than looking wrong.

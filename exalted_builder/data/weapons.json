@@ -1357,5 +1357,179 @@
       "ranged",
       "artifact"
     ]
+  },
+  {
+    "id": "weapon.mountain-folk.skirmish_pike",
+    "name": "Skirmish Pike",
+    "speed": 4,
+    "accuracy": 1,
+    "damage": 4,
+    "damage_type": "L",
+    "defense": 1,
+    "rate": 3,
+    "min_strength": 1,
+    "artifact_rating": 1,
+    "attunement": 5,
+    "notes": "Collapsible jade-and-crystal spear — full length or an 18-inch baton, telescoped as a reflexive action once per turn. Piercing damage. Mixed alloys give no Magical Material benefit; any magical being can commit 5 motes to attune; no Hearthstone socket. Officer pikes add features (stun point, shock pulse, Essence capacitor) that raise the rating to •• or •••. The standard table prints no Rate — Rate 3 is from the Exalted Power Combat table (Speed +12, Accuracy +2, Damage +5L, Defense +1). (Mountain Folk p.280)",
+    "tags": [
+      "melee",
+      "artifact",
+      "spear"
+    ]
+  },
+  {
+    "id": "weapon.mountain-folk.dragon_sigh_wand",
+    "name": "Dragon Sigh Wand",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 12,
+    "damage_type": "L",
+    "defense": 0,
+    "rate": 1,
+    "range": 30,
+    "artifact_rating": 2,
+    "attunement": 5,
+    "notes": "Standard model: Accuracy +1, Damage 12L, Rate 1, Range 30 (the figures after the slash are the smaller foot-long models: Accuracy +2, Damage 9L, Artifact •• single or ••• a matched pair). No Magical Material bonus; the ruby capacitor stores 12 motes; the lenses require maintenance after every scene in which the wand is fired. A permitted Righteous Devil style weapon (PG pp.253-258). (Mountain Folk p.281)",
+    "tags": [
+      "ranged",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.mountain-folk.essence_pulse_grenade",
+    "name": "Essence Pulse Grenade",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 10,
+    "damage_type": "L",
+    "defense": 0,
+    "rate": 1,
+    "range": 20,
+    "artifact_rating": 2,
+    "notes": "Accuracy +0, Range 20, Rate 1; damage is reduced by one die for every full yard away the victim is from the blast. The jade's colour varies the effect: red 10L fire; blue 20B lightning, ignoring the soak of non-magical metallic armour; white 20B concussive force with a knockdown at difficulty 3; black 10L freezing that temporarily cuts victims' Dexterity by two dots; green poison gas comparable to arrow frog venom. Reusable; recharging costs 6 motes and a jewelled key. (Mountain Folk p.282)",
+    "tags": [
+      "thrown",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.mountain-folk.crossbow",
+    "name": "Crossbow",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 0,
+    "rate": 1,
+    "range": 125,
+    "min_strength": 1,
+    "artifact_rating": 2,
+    "attunement": 0,
+    "resources_cost": 2,
+    "notes": "Accuracy +1, Damage 5 base, Rate 1, Range 125, Minimum Strength 1, Resources •• / Artifact ••. The base damage is modified by the type of ammunition: crystal-tipped armor-piercing bolts (piercing — halve the lethal soak provided by the victim's armor), fowling bolts (+2B bashing), and fléchette bolts (+4L, but the target's armor doubles its lethal soak against them). Uses Archery; not compatible with Charms that fire multiple arrows in a turn. A repeating magazine (Rate 2 until its 10 bolts run out, then a simple action to load a new magazine) adds • to the Resources cost. Exceptional crossbows add +1 Accuracy and 50 Range, but cannot increase Rate. Botching an attack roll jams the magazine, requiring a simple action to fix before it fires again. (Mountain Folk pp.277-278)",
+    "tags": [
+      "archery",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.mountain-folk.mechanized_crossbow",
+    "name": "Mechanized Crossbow",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 7,
+    "damage_type": "L",
+    "defense": 0,
+    "rate": 1,
+    "range": 200,
+    "min_strength": 2,
+    "artifact_rating": 3,
+    "attunement": 0,
+    "resources_cost": 3,
+    "notes": "Accuracy +1, Damage 7 base, Rate 1, Range 200, Minimum Strength 2, Resources ••• / Artifact •••. A lever-loaded pulleys-and-gears model; fires the same three ammunition types as the standard crossbow (armor-piercing, fowling, fléchette) and uses Archery, not compatible with Charms that fire multiple arrows in a turn. Botching an attack roll jams the ENTIRE bow: useless until repaired by a character with Craft (Clockworks) •• or higher, taking at least two minutes. (Mountain Folk pp.277-278)",
+    "tags": [
+      "archery",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.mountain-folk.assault_crossbow",
+    "name": "Assault Crossbow",
+    "speed": 0,
+    "accuracy": 3,
+    "damage": 8,
+    "damage_type": "L",
+    "defense": 0,
+    "rate": 1,
+    "range": 250,
+    "min_strength": 1,
+    "artifact_rating": 2,
+    "attunement": 5,
+    "resources_cost": 2,
+    "notes": "Accuracy +3, Damage 8 base, Rate 1, Range 250, Minimum Strength 1, Resources •• / Artifact ••. A Magical Material in the frame eliminates the risk of catastrophic mechanical failure that mechanized versions are prone to. Jade versions add +2 Speed and 30 yards of range; crossbows built from the other four Magical Materials gain the same benefits as powerbows. Costs 5 motes to attune and has a socket for one Hearthstone. Uses Archery; not compatible with Charms that fire multiple arrows in a turn. (Mountain Folk p.278)",
+    "tags": [
+      "archery",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.mountain-folk.onslaught_crossbow",
+    "name": "Onslaught Crossbow",
+    "speed": 0,
+    "accuracy": 3,
+    "damage": 10,
+    "damage_type": "L",
+    "defense": 0,
+    "rate": 2,
+    "range": 300,
+    "min_strength": 1,
+    "artifact_rating": 3,
+    "attunement": 6,
+    "resources_cost": 3,
+    "notes": "Accuracy +3, Damage 10 base, Rate 2, Range 300, Minimum Strength 1, Resources ••• / Artifact •••. A modified socket that powers additional enchantments; must have a level-2 Hearthstone or better placed in the socket, which provides no other benefit besides powering the bow. Shoots with greater force and generates its own unlimited ammunition of whatever type the bearer desires; cocks itself after every shot using perfected clockwork gears that never jam. Uses Archery. (Mountain Folk p.278)",
+    "tags": [
+      "archery",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.mountain-folk.flamecaster",
+    "name": "Flamecaster",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 12,
+    "damage_type": "L",
+    "defense": 0,
+    "rate": 1,
+    "range": 10,
+    "min_strength": 0,
+    "artifact_rating": 3,
+    "attunement": 0,
+    "resources_cost": 3,
+    "notes": "Accuracy +1, Damage 12L, Rate 1, Range 10 (the upper limit the jet of fire reaches — flamecasters have no range increments), Resources •••. ⚠ The table prints a Resources cost only; the Artifact rating here mirrors it (3) so the dual-nature toggle can fund the weapon with Artifact — the ST sets the real value. Single-shot: reloading requires a standard action and a roll of Dexterity + Archery at standard difficulty, and each canister of pyromantic gel costs Resources • (or ••• if alchemically synthesized outside Mountain Folk territory). Botching an attack roll jams the firing mechanism, requiring a Dexterity + Craft (Clockworks) roll at difficulty 3 before it can fire again. (Mountain Folk p.278)",
+    "tags": [
+      "ranged",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.mountain-folk.pyromantic_grenade",
+    "name": "Pyromantic Grenade",
+    "speed": 0,
+    "accuracy": 0,
+    "damage": 10,
+    "damage_type": "L",
+    "defense": 0,
+    "rate": 1,
+    "range": 15,
+    "min_strength": 0,
+    "artifact_rating": 3,
+    "attunement": 0,
+    "resources_cost": 3,
+    "notes": "Accuracy +0, Damage 10L, Rate 1, Range 15, Resources •••. ⚠ The table prints a Resources cost only; the Artifact rating here mirrors it (3) so the dual-nature toggle can fund the weapon with Artifact — the ST sets the real value. Damage is reduced by one die for every full yard away the victim is from the blast, and all flammable objects within five yards of the explosion immediately catch fire. A clockwork timer can delay detonation up to a full minute. Botching the attack roll means the charge landed somewhere other than intended, almost certainly leaving the thrower inside the blast zone. (Mountain Folk p.278)",
+    "tags": [
+      "thrown",
+      "artifact"
+    ]
   }
 ]

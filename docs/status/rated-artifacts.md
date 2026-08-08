@@ -1,17 +1,21 @@
-# Rated artifacts — DONE (2026-08-02), browser-verified 2026-08-05
+# Rated artifacts — DONE (2026-08-02), browser-verified 2026-08-05, catalogue 2026-08-08
 
 Individual artifacts are now rated objects. Two printed rules that could not be
 expressed before are implemented: the loyal Abyssal's Artifact **budget** (E:Ab p.131)
 and Damaged Artifact's **per-item** point limit (PG p.38), plus the one mechanical
 effect of that Flaw this build can derive.
 
-**1,835 tests** (was 1,794). 41 new in `tests/test_rated_artifacts.py`.
-Preflight clean; **browser-verified 2026-08-05** (clicked through, no findings).
+**2,063 tests** (was 1,835). Preflight clean; **browser-verified 2026-08-05** (clicked
+through, no findings).
 
-**One wish for later, from the click-through:** the standalone-artifact rows currently
-use a free-text name input. A **drop-down of the catalog** would be nicer — but no
-artifact catalogue exists in `data/` yet (artifacts are free text, like Backgrounds),
-so that needs authoring an artifact list before it can be wired. Not started.
+**The click-through wish is SHIPPED 2026-08-08:** the standalone-artifact rows' free-text
+name input is now a **combobox fed from `data/artifacts.json`** — the first slice of the
+rated-artifact catalogue, the ten Mountain Folk Technology-chapter artifacts
+(`docs/status/mountain-folk.md`). The four of those ten that carry weapon/armour stat
+blocks also got equipment-catalogue rows, and the same day the **six dual-nature
+devices** (the four crossbows + Flamecaster + Pyromantic Grenade) shipped as catalogue
+rows you can fund with *Resources OR Artifact* — see **The catalogue & the dropdown**,
+**The dual-nature devices**, and **The description label** below.
 
 ## Why it came up
 
@@ -189,3 +193,114 @@ Everything on the page is now closed.
 authored for acquisition cost ONLY. Neither splat gets a *combined* artifact budget
 enforced, because neither book prints one — "twice the dots' worth" caps nothing on its
 own. If that should become a budget too, it needs a page.
+
+## The catalogue & the dropdown (2026-08-08)
+
+The 2026-08-05 click-through's one wish — a drop-down of the artifact catalogue for the
+standalone-artifact rows — needed a catalogue to exist first. The Mountain Folk source
+pages landed on 2026-08-08 (`images/Non-Exalts/Mountain Folk/CH 6 - The Mountain
+Folk.md`, Technology chapter pp.279-283), which prints **ten rated artifacts**. The
+human's ruling: **all ten go in the standalone catalogue, AND the four with
+weapon/armour stat blocks also get equipment-catalogue rows** — so a player who wants
+the stats can add them as weapons/armour, and the standalone catalogue is complete
+either way.
+
+### `data/artifacts.json` — the new catalogue
+
+New frozen model `ArtifactType` (id/name/rating/rating_notes/description/source/tags)
+on `RuleSet.artifact_catalog`, loaded exactly like weapons/armour (no link-check —
+entries are self-contained). Ten entries, ids `artifact.mountain-folk.<slug>`, every
+name, rating and description from the page text (pp.279-283):
+
+| Artifact | Rating | Source |
+|---|---|---|
+| Essence-Scrying Visor | • | p.279 |
+| Hammerfist Bracer | • | p.279 |
+| Mask of Pure Breath | • | p.279 |
+| Skirmish Pike | • | p.280 |
+| Echo Jewel | • or ••• | p.280 |
+| Talisman of Suspended Evocation | • to ••••• | p.281 |
+| Dragon Sigh Wand | •• | p.281 |
+| Essence Pulse Grenade | •• | p.282 |
+| Shieldstone Gauntlet | •• or ••• | p.282 |
+| Myrmidon Carapace | ••• | p.283 |
+
+### The four gear entries
+
+The four stat-blocked items also live in the equipment catalogues, with their stats from
+the chapter's own tables: **Skirmish Pike** (Spd +4, Acc +1, Dmg 4L piercing, Def +1,
+min Str 1, Art 1, attune 5 — the standard table prints no Rate; Rate 3 is from the
+Exalted Power Combat table), **Dragon Sigh Wand** (Acc +1, Dmg 12L, Rate 1, Range 30,
+Art 2, attune 5), **Essence Pulse Grenade** (Acc +0, Dmg 10L, Rate 1, Range 20, Art 2 —
+no commit cost printed) in `weapons.json`, and the **Myrmidon Carapace** (soak 8/8, mob
+−1, fat 1, Art 3, attune 5) in `armor.json`. **⚠ The carapace's weight class is not
+printed** — assigned **Medium** by comparison with the other Medium artifact armors;
+flagged here for the human at review.
+
+### The dropdown
+
+`_artifacts_panel()`'s name field is now a `DescribedSelect` (option tooltips carry the
+entry's rating + description) with the Background-picker guards: `_opts_with` folds an
+off-catalogue stored name into the options so existing saves keep rendering (the
+empty-options crash class), and `with_input=True, new_value_mode="add-unique"` keeps the
+name free text. Picking a catalogue entry **autofills name + rating** (mirrors
+`set_armor`); typing renames and preserves the rating. The header refreshes in place —
+**and the rating `ui.number` is pushed directly**, because the header-only refresh
+invariant means the body (and the number) must survive; leaving the number stale after
+an autofill would desync it from the model. The combobox is labelled **"Artifact name"**
+so the test that finds the Damaged Artifact picker by `label == "Artifact"` stays
+unambiguous.
+
+**Accepted behaviour:** entering a gear item both as a weapon/armour AND as a standalone
+artifact counts it twice toward the budget — the same contract free text already had; no
+cross-catalogue dedup.
+
+### The description label (2026-08-08)
+
+Each standalone-artifact row now prints a **persistent description under the row**,
+mirroring the Background `bg-desc` pattern: a `ui.label` with `data-testid="art-desc"`,
+synced on pick/rename without rebuilding the panel. A catalogue name shows the entry's
+page-vetted description; an off-catalogue name hides the label. Tests find it by
+`data-testid`, never page text — the dropdown's option tooltips also carry the
+description, so a bare `should_see` could pass against code with no label at all.
+
+### The dual-nature devices (2026-08-08)
+
+The four crossbows (**Crossbow ••, Mechanized •••, Assault ••, Onslaught •••** — MF
+p.278) print a "Resources/Artifact" column, and the **Flamecaster** and **Pyromantic
+Grenade** print Resources ••• only. All six shipped as ordinary equipment-catalogue rows
+(`weapon.mountain-folk.*`, the archery/thrown devices on the Archery skill) carrying
+**both** minima.
+
+**How a player picks the funding — human's ruling 2026-08-08 (no toggle):** the
+Art and Res fields in the Edit-stats expansion already ARE the choice. The player sets
+the Background that was paid and zeroes the other: an Artifact-funded crossbow keeps
+`artifact_rating` 2 (and counts toward the budget); a Resources-funded one drops it to 0
+(and is mundane gear — `artifact_rating` 0 is the mundane default the enumeration
+already skips). The catalogue row's two numbers are the printed minima, not a state to
+choose between. A first pass shipped a `cost_background` field + "Funded by" select and
+the click-through found it unnecessary; both were removed, and the edit boxes are the
+surface.
+
+* **⚠ Flagged, not invented:** the Flamecaster and Pyromantic Grenade have **no printed
+  Artifact cost** — their `artifact_rating` mirrors the Resources value (3) only so the
+  Art field can be used to fund them either way; the notes say the ST sets the real
+  value. The Myrmidon Carapace's weight (Medium) remains the other flagged assignment.
+* `resources_cost` stays **display-only** — there is no Resources-Background enforcement,
+  any more than there is for ordinary mundane gear.
+
+Still a follow-up: the **wider cross-splat catalogue** (the discovery layer — 417
+1E artifacts, per-book page lists — is in `docs/status/artifact-backlog.md`).
+
+### The alchemical goods — deliberately NOT modelled (ruling 2026-08-08)
+
+Godstrike Oil, Pyromantic Gel and Synthetic Leather (MF pp.275-277) were authored
+as a `GoodType` catalogue and **removed the same day on the human's ruling**. The
+reason generalises: **every catalogue in the build feeds a mechanical read site** —
+magical materials → `derive`, artifacts → the Artifact budget + dropdown, weapons/
+armour → the sheet. The goods feed nothing: no owned-list, no derivation, no
+validation, and a "reference card" of them would be the first data in the build with
+no mechanism behind it — the precedent that opens the "why not firedust, lanterns,
+rations?" flood. The full page transcription is preserved in
+`docs/status/artifact-backlog.md` (as its one fully-sourced authorable slice, now
+closed). If a real "possessions" surface is ever built, the source is there.

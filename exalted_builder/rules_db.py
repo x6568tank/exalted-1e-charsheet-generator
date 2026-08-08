@@ -46,6 +46,7 @@ from .models.adversary import Adversary
 from .models.rules import (
     AttributeName,
     ArmorType,
+    ArtifactType,
     BackgroundType,
     BonusPointCosts,
     CasteDefinition,
@@ -529,6 +530,8 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     spells = _index(_load_array(data_dir / "spells.json", Spell, problems), "id", "spell", problems)
     armor = _index(_load_array(data_dir / "armor.json", ArmorType, problems), "id", "armor", problems)
     weapons = _index(_load_array(data_dir / "weapons.json", WeaponType, problems), "id", "weapon", problems)
+    artifacts = _index(_load_array(data_dir / "artifacts.json", ArtifactType, problems),
+                       "id", "artifact", problems)
     backgrounds = _index(_load_array(data_dir / "backgrounds.json", BackgroundType, problems),
                          "id", "background", problems)
     natures = _index(_load_array(data_dir / "natures.json", NatureType, problems),
@@ -598,6 +601,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         spells=spells,
         armor_catalog=armor,
         weapon_catalog=weapons,
+        artifact_catalog=artifacts,
         background_catalog=backgrounds,
         nature_catalog=natures,
         material_catalog=materials,

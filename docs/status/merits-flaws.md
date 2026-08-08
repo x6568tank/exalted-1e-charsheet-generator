@@ -9,8 +9,11 @@ clicked through; see the A-list section below. 290 tests in
 **2026-08-05** — the two Dragon-Kings-era hooks shipped: Prodigy's DK/God-Blooded rate
 (`cost_options_by_exalt_type`) and the PG p.114 mortal-god note (a UI note at the
 mortal's Essence-3 ceiling; see "Rulings and traps"). Suite at **1,972 passing**.
-**Not browser-verified** — a click-through of the Prodigy picker on a Dragon-King and a
-God-Blooded, and a pool-unlocked mortal at Essence 3 seeing the note, is still owed.
+**BROWSER-VERIFIED 2026-08-08** — the human clicked through the Prodigy picker on a
+Dragon-King and a God-Blooded (tier dropdown reading the 2/4/2 rate), and a
+pool-unlocked mortal at Essence 3 seeing the PG p.114 note (an Awareness-only mortal
+seeing no note). No findings. (⚠ This doc previously said "still owed" — that record
+was simply never written down; the click-through had already happened.)
 
 M&F were ripped out 2026-06-15 because the old implementation scattered their
 mechanical effects across every file they touched. **Decision 0011** is that they come

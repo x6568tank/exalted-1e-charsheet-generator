@@ -1097,6 +1097,30 @@ class WeaponType(BaseModel):
     tags: list[str] = Field(default_factory=list)
 
 
+class ArtifactType(BaseModel):
+    """One entry in the rated-artifact catalogue (data/artifacts.json) — the list the
+    standalone-artifact rows' name dropdown is fed from.
+
+    An artifact here is a rated object a character can own that is neither weapon nor
+    armour (the shape `Character.artifacts` stores), plus the book's own gear-statblocked
+    artifacts which ALSO live in weapons.json/armor.json — a Skirmish Pike appears here
+    (so the catalogue is complete) and there (so a player who wants its stats adds it as
+    a weapon). `rating` is the entry's primary printed rating; `rating_notes` carries the
+    ranges some print ("• or •••" — an echo jewel or shieldstone gauntlet). The dropdown
+    autofills `name` and `rating` on a pick, so `rating` is the default the player then
+    edits."""
+
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    name: str
+    rating: int = Field(ge=1, le=5)
+    rating_notes: str = ""                  # e.g. "• or •••", "• to •••••"
+    description: str = ""                   # short, human-vetted from the source page
+    source: str = ""                        # e.g. "MF p.279"
+    tags: list[str] = Field(default_factory=list)   # kind: tool/communication/weapon/...
+
+
 class BackgroundType(BaseModel):
     """A purchasable Background. The catalog of names a character may pick from;
     the per-character rating/descriptor lives on character.BackgroundEntry.
@@ -2328,6 +2352,7 @@ class RuleSet(BaseModel):
     spells: dict[str, Spell] = Field(default_factory=dict)
     armor_catalog: dict[str, ArmorType] = Field(default_factory=dict)
     weapon_catalog: dict[str, WeaponType] = Field(default_factory=dict)
+    artifact_catalog: dict[str, ArtifactType] = Field(default_factory=dict)
     background_catalog: dict[str, BackgroundType] = Field(default_factory=dict)
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)

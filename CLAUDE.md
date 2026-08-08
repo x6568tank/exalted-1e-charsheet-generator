@@ -176,9 +176,19 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (2,056 passing)
+## Status (2,063 passing)
 
-The suite is green: **2,056 passing** — the Elemental Powers catalogue added 17 on
+The suite is green: **2,063 passing** — the dual-nature devices + the artifact
+description label added 3 on 2026-08-08 (the six `weapon.mountain-folk.*` crossbow/
+flamecaster rows with both `artifact_rating` and `resources_cost` in `test_data.py`,
+the `test_rated_artifacts.py` engine test that zeroing the Art field makes a device
+mundane gear — the human's ruling on how the funding is chosen, see the START HERE —
+and the description-label UI test); a first-pass "Funded by" toggle was removed the
+same day on the human's ruling (2,064 → 2,063); the rated-artifact catalogue added 4 on
+2026-08-08 (the ten-entry `data/artifacts.json` catalogue + the four Mountain Folk gear
+stat blocks in `test_data.py`, and the two `test_rated_artifacts.py` UI tests: the
+catalogue combobox offering off-catalogue names, and the pick autofilling name + rating
+in place); the Elemental Powers catalogue added 17 on
 2026-08-08 (12 engine + 5 UI build tests: the locked-XP and empty picker shapes from
 preflight's render matrix, then the sheet-render test from the click-through finding
 that the Charms & Sorcery band did not list owned powers; the 9-power learnable set
@@ -229,8 +239,9 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Mortals & Heroic Mortals — DONE** (one splat, two origins; casteless, no Charms, Essence pinned at 1; magic via M&F) | `docs/status/mortals.md` |
 | **Merits & Flaws — DONE, browser-verified** (centralized calc per decision 0011; all 100 authored; every A-list mechanism; mortal magic unlock) | `docs/status/merits-flaws.md` |
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
-| **Rated artifacts — DONE, browser-verified** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect) | `docs/status/rated-artifacts.md` |
+| **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — first slice the ten Mountain Folk artifacts — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
+| **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM) | `docs/status/artifact-backlog.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
 | **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus God/Demon-Blooded heritage rows + 16 M&F + the 80-Charm spirit catalogue authored 2026-08-07 and the p.48 sorcery initiation 2026-08-08, every printed prereq wired — NOT yet browser-verified) | `docs/status/godblooded.md` |
@@ -252,10 +263,20 @@ adversary roster 2026-08-01, Godblooded 2026-08-02, **Dragon-Kings 2026-08-05** 
 Paths of Prehuman Mastery) — all browser-verified. **2026-08-06:** the Dragon-Kings
 breed-attribute BP ruling was corrected (effective past 5 is BP-bought at the attribute
 rate, not free) and re-verified.
-**Rated artifacts browser-verified 2026-08-05** — the one open wish from the click-through
-is a **drop-down of the artifact catalogue** on the standalone-artifact rows, which is
-blocked on authoring that catalogue (artifacts are currently free text, like
-Backgrounds). Not started. ⚠ One Dragon-Kings artifact check (the
+**Rated artifacts browser-verified 2026-08-05**, and the click-through's one wish —
+a **drop-down of the artifact catalogue** on the standalone-artifact rows — **SHIPPED
+2026-08-08**: `data/artifacts.json` (new `ArtifactType` model + `RuleSet.artifact_catalog`,
+first slice = the ten Mountain Folk Technology-chapter artifacts, pp.279-283), the four
+of them with stat blocks also added to `weapons.json`/`armor.json`, and the name field
+is now a combobox that autofills name + rating, with a per-row description label
+(2026-08-08). The **six dual-nature devices** (Crossbow •• / Mechanized ••• / Assault
+•• / Onslaught ••• / Flamecaster / Pyromantic Grenade, MF p.278) shipped the same day:
+each `weapon.mountain-folk.*` row carries BOTH `artifact_rating` and `resources_cost`,
+and the player picks the funding with the Art/Res edit fields — human's ruling
+2026-08-08 (a first-pass "Funded by" toggle was removed as unnecessary; Art 0 = mundane
+gear). ⚠ The Flamecaster/Grenade print a Resources cost only; their Artifact rating
+mirrors 3 as the ST's call. See `docs/status/rated-artifacts.md` → *The catalogue & the
+dropdown* and *The dual-nature devices*. ⚠ One Dragon-Kings artifact check (the
 `artifact-two-flagships` finding) needs a browser re-verify — the engine flags it but
 the click-through saw a stale server; see `docs/status/dragon-kings.md`.
 
@@ -306,8 +327,34 @@ Recorded as decision records, not restated here — read them before proposing a
 ### 👉 START HERE (session handoff)
 
 **⏸ PICK UP HERE (2026-08-08, branch `deepseek-experiment`, worktree `…-ds`).**
-The suite is at **2,056 passing** (plus the one known machine-only M&F description
-failure — not a regression, see Status). Six commits landed today:
+The suite is at **2,063 passing** (plus the one known machine-only M&F description
+failure — not a regression, see Status). Newest shipped: the **rated-artifact
+catalogue** — `data/artifacts.json` (first slice: the ten Mountain Folk Technology
+artifacts), the four stat-blocked ones also in `weapons.json`/`armor.json`, and the
+standalone-artifact name field is now a catalogue combobox that autofills name + rating
+(`docs/status/rated-artifacts.md` → *The catalogue & the dropdown*). Also shipped the
+same day: the **artifact description label** under each row (mirrors the Background
+`bg-desc` pattern), and the **six dual-nature devices** — the four crossbows (Crossbow
+•• / Mechanized ••• / Assault •• / Onslaught •••) plus the Flamecaster and Pyromantic
+Grenade, all in `weapons.json` carrying BOTH `artifact_rating` and `resources_cost`.
+**The player picks the funding with the Art/Res edit fields** — human's ruling
+2026-08-08 after the click-through: set the Background that was paid and zero the other
+(Art 0 = mundane gear, the default `artifact_items` skips); a first-pass "Funded by"
+toggle was judged unnecessary and removed. **⚠ Flagged, not invented:** the
+Flamecaster/Pyromantic Grenade print a Resources cost only — their Artifact rating
+mirrors 3 so the Art field can fund them either way, and the ST sets the real value.
+The Myrmidon Carapace's weight class is **not printed** — assigned Medium, human
+confirmed fine 2026-08-08. **The alchemical goods were authored and REMOVED the same
+day, human ruling** — Godstrike Oil, Pyromantic Gel and Synthetic Leather (MF
+pp.275-277) as a `GoodType` catalogue, shown in the browser, then deleted: the build
+only catalogues what feeds a mechanical read site (materials → derive, artifacts →
+budget/dropdown, weapons/armour → the sheet); a goods card would be the first data
+with no mechanism behind it, opening the mundane-goods flood. Full transcription
+kept in `docs/status/artifact-backlog.md` (see *The alchemical goods* in
+`docs/status/rated-artifacts.md`). **Mostly
+clicked through 2026-08-08** — the "Funded by" toggle finding closed the dual-nature
+thread; a light click of the Advantages-tab combobox (pick "Echo Jewel" → name +
+rating + description label, then an off-catalogue name) is still owed. Earlier today:
 * **caste gate on `elemental_powers_available`** — the last of the Elemental Powers
   review's "later" items (see below: the `mf.elemental-power` id migration was CLOSED
   without building, human ruling).
@@ -384,10 +431,15 @@ area's reference notes and its one open thread:
    ruling 2026-08-02 — *"if the book disregards its own table, fuck em"* — so this
    build answers 3. A test pins it. Do not "fix" it toward the printed example.
 
-   **One wish from the click-through (not started):** a **drop-down of the artifact
-   catalogue** for the standalone-artifact rows, instead of free text. Blocked on
-   authoring that catalogue — `data/` holds no artifact list, and artifacts are free
-   text like Backgrounds.
+   **The click-through wish is SHIPPED 2026-08-08** — the name field on the
+   standalone-artifact rows is now a **combobox fed from `data/artifacts.json`**
+   (the new rated-artifact catalogue; first slice = the ten Mountain Folk artifacts,
+   and the four stat-blocked ones also landed in `weapons.json`/`armor.json`). See
+   `docs/status/rated-artifacts.md` → *The catalogue & the dropdown* for the contract.
+   The dual-nature devices shipped the same day (see *The dual-nature devices*); the
+   alchemical goods were authored, shown, and **removed on the human's ruling** (see
+   *The alchemical goods* — a goods catalogue would be the first data with no
+   mechanical read site, opening the mundane-goods flood).
 
 Everything else was browser-verified on 2026-08-01/02 — the Ghost splat, the adversary
 roster, Mortals, and all of Godblooded (Phases A+B, Phase C, the Inheritance ST option,
