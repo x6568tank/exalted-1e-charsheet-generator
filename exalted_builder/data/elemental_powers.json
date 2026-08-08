@@ -82,7 +82,7 @@
   "required_merits": [
    "mf.elemental-dominion"
   ],
-  "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts one scene unless prematurely revoked. The character may fly or tunnel up to their normal running speed, or swim/run at double normal speed as appropriate to the element.",
+  "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts one scene unless prematurely revoked.",
   "description": "Based on the elemental's element, it can move more quickly or possesses a new mode of transport. Air imbues flight, earth offers tunneling, water increases swimming speed, while both fire and wood double ground speed.",
   "source": {
    "book": "Exalted 1e Core",
@@ -98,7 +98,7 @@
    "mf.elemental-dominion",
    "mf.primal-restoration"
   ],
-  "activation": "Available only to characters with the Merit Primal Restoration. The God-Blooded variant restores bashing and lethal levels on an hourly basis rather than every turn.",
+  "activation": "3 motes or 1 Willpower to evoke. The God-Blooded variant restores bashing and lethal levels on an hourly basis rather than every turn.",
   "description": "The elemental regenerates one health level per turn when in contact with its relevant element. This ability cannot regenerate aggravated damage.",
   "source": {
    "book": "Exalted 1e Core",

@@ -804,8 +804,18 @@ incident is documented below on exactly this page ("Consume Element" originally 
 invented text). **The human vetted all 9 against the book 2026-08-08** (the JSON is the
 durable copy — `images/` is gitignored). The transcription lives at `images/Non-Exalts/
 Spirit Charms/Elemental Powers - Core p296 + GoD p56.md` (home PC only); re-run the
-pipeline below on another machine if needed. Still un-checked: the `activation` strings
-on Rejuvenation and Mobility (a "later" review item — descriptive-only, see below).
+pipeline below on another machine if needed.
+
+**The Rejuvenation/Mobility `activation` strings are FIXED 2026-08-08** (a "later" review
+item). The activation fields are the God-Blooded usage notes, split from the retired
+`mf.elemental-power` Merit's description (PG p.68 — recovered from git history
+`eba3f87^`), whose blanket rule is "Characters must spend 3 motes or 1 Willpower to evoke
+an elemental power." Rejuvenation was the one power that had lost that opener — its
+string started mid-sentence at the Primal-Restoration gate (which `required_merits`
+already carries) and never stated the activation cost. Mobility's activation duplicated
+its own `description` (the transcription's element-by-element movement text) and was
+trimmed to the shared cost/action/duration shape. Nothing was invented — every remaining
+word traces to the Merit paragraph or the transcription.
 
 **The pipeline recipe (it worked; reuse it):** `pdftoppm -r 300 -png`, page offset **+1
 in both books** (Core p.296 = `Exalted.pdf` p.297; GoD p.56 = `Games of Divinity

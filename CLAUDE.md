@@ -326,10 +326,11 @@ failure — not a regression, see Status). Five commits landed today:
    editor's heritage switch, and the XP ledger — all engine-tested, worth a light
    re-click of the elemental picker + sheet, nothing known-blocked.
 2. **The 9 descriptions in `data/elemental_powers.json`** — **VETTED by the human
-   2026-08-08** (while the review fixes landed) — the last open item. Remaining on the
-   deferred list only: the 3 Opus "later" items (the caste-level gate on
-   `elemental_powers_available`, the Rejuvenation/Mobility activation strings, the
-   `mf.elemental-power` id migration).
+   2026-08-08** (while the review fixes landed); the **Rejuvenation/Mobility activation
+   strings fixed the same day** (sourced from the retired Merit, git history `eba3f87^`;
+   nothing invented). Remaining on the deferred list only: the 2 Opus "later" items (the
+   caste-level gate on `elemental_powers_available`, the `mf.elemental-power` id
+   migration).
 
 **Mountain Folk: DONE 2026-08-07, browser-verified.**
 `images/Mortals/Mountain Folk/CH 6 - The Mountain Folk.md` arrived 2026-08-07 and the
