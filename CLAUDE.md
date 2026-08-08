@@ -306,22 +306,27 @@ Recorded as decision records, not restated here — read them before proposing a
 
 **⏸ PICK UP HERE (2026-08-08, branch `deepseek-experiment`, worktree `…-ds`).**
 The suite is at **2,055 passing** (plus the one known machine-only M&F description
-failure — not a regression, see Status). Four commits landed today:
+failure — not a regression, see Status). Five commits landed today:
 * `33f8f6b` — the God/Demon-Blooded heritage work, reviewed and de-noised.
 * `cab543a` — the PG p.48 sorcery initiation, which CLOSED the last open rules gap.
 * the **Elemental Powers catalogue** (SHIPPED — the 9-power learnable set for
   Elemental-origin God-Blooded, PG p.68, 7 BP / 14 XP, its own picker page;
-  `mf.elemental-power` retired). See the ⚠ next.
+  `mf.elemental-power` retired).
+* `1e43b15` — the click-through's one defect: the Sheet now lists owned powers.
+* `d1d8010` — the four Opus code-review fixes (see `docs/status/godblooded.md` → *The
+  Elemental Powers*): the house bug (post-lock powers never re-validated), unknown
+  power ids now surfaced by `check_references`, the XP-ledger label, and the
+  heritage-switch orphan clear (`validate.legal_elemental_powers` + the three editor
+  mutators). The 3 "later" items are deferred.
 
-**Two things stand between God/Demon-Blooded and done — run the `preflight` skill
-first (read-site audit), then browser-verify:**
-1. **The browser click-through of God/Demon-Blooded** — everything is authored, tested
-   and committed, and NOTHING is blocked. `run-server`, then click through. This is the
-   only thing between the splat and "done".
+**God/Demon-Blooded is DONE except one thing the human must do:**
+1. **The browser click-through** — DONE (human: "1. Works! … 5. Works. Everything works
+   fine"); the one finding (powers absent from the Sheet) was fixed in `1e43b15` and
+   the review-fix commit `d1d8010` touched the picker's Owned-total currency, the
+   editor's heritage switch, and the XP ledger — all engine-tested, worth a light
+   re-click of the elemental picker + sheet, nothing known-blocked.
 2. **⚠ Human: eyeball the 9 descriptions in `data/elemental_powers.json` against the
-   book** (the **Elemental Powers** catalogue, SHIPPED 2026-08-08 — the 9-power
-   learnable set for Elemental-origin God-Blooded, PG p.68, 7 BP chargen / 14 XP, its
-   own page of the Charms picker; `mf.elemental-power` retired). The 7 Core p.296 powers
+   book** — the ONLY thing between the splat and fully done. The 7 Core p.296 powers
    + Consume Element + Plague of Menaces (GoD p.56); every power requires Elemental
    Dominion + Essence 2, Rejuvenation additionally Primal Restoration. The descriptions
    come from the **un-vetted VLM transcription** (the page's fabrication incident is
