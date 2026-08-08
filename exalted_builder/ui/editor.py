@@ -1401,12 +1401,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                           f"(G {_slots.general} · D {_slots.dedicated})")
         else:
             _charm_hdr = f"Charms ({validate.charm_pick_count(ruleset, character)})"
-        with panel(f"{_charm_hdr} & Spells ({len(character.spells)}) — edit via the picker"):
-            view = viewmod.build_sheet_view(ruleset, character)
+        view = viewmod.build_sheet_view(ruleset, character)
+        _ep_hdr = f" & Elemental Powers ({len(view.elemental_powers)})" if view.elemental_powers else ""
+        with panel(f"{_charm_hdr} & Spells ({len(character.spells)}){_ep_hdr} — edit via the picker"):
             for c in view.charms:
                 ui.label(f"{c.name} · {c.category}").classes("text-xs")
             for s in view.spells:
                 ui.label(f"{s.name} · {s.circle}").classes("text-xs")
+            for e in view.elemental_powers:
+                ui.label(f"{e.name} · Elemental Powers").classes("text-xs")
 
     # ---- structural mutators (refresh body + readout) --------------------- #
     def set_exalt_type(value: str) -> None:

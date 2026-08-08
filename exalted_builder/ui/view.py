@@ -1258,6 +1258,13 @@ class SheetView:
     # decision 0008 keeps attack derivation out. Empty for every splat whose caste has
     # no `breed_traits`, which drops the section from their sheet.
     breed_weapons: list[tuple[str, int, int, int, str, int]] = field(default_factory=list)
+    # Elemental Powers (PG p.68) — the Charm-like learnable powers of an
+    # Elemental-origin God-Blooded, as CharmRow-shaped rows (category = the power's
+    # class). They also get their own headed section inside `charm_sections`, so the
+    # Charms & Sorcery band heads them like Arcanoi/Gifts. Empty for every splat that
+    # ships no powers, which drops the section from their sheet. Kept off the flat
+    # `charms` concatenation — tests and the GM party view read that and pin its count.
+    elemental_powers: list[CharmRow] = field(default_factory=list)
 
     def essence_pool_label(self) -> str:
         """The Essence pools as one line. A merged pool is named as one rather than
@@ -1895,6 +1902,20 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
                        description, custom=charm.custom)
         charms.append(row)
         _sections.setdefault(_section_label(pick, charm), []).append(row)
+    # Elemental Powers (PG p.68): the Charm-like learnable powers of an
+    # Elemental-origin God-Blooded, their own headed section in the Charms & Sorcery
+    # band exactly like Arcanoi/Gifts. Missing ids render as lost rows, mirroring the
+    # missing-Charm handling above — a deleted custom power must not vanish silently.
+    elemental_powers = []
+    for pid in character.elemental_powers:
+        power = ruleset.elemental_powers.get(pid)
+        if power is None:
+            elemental_powers.append(CharmRow(pid, "?", "—", "—", missing=True))
+            continue
+        elemental_powers.append(CharmRow(
+            power.name, "Elemental Powers", "", "", power.description))
+    if elemental_powers:
+        _sections["Elemental Powers"] = elemental_powers
     # A character who holds no Charm of any kind still gets a "Charms (0)" panel —
     # the sheet has always said so, and the render tests pin it. Sections only appear
     # when they have rows (an empty Arcanoi panel must not sit on every sheet).
@@ -1997,6 +2018,7 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
                        for w in _breed_traits.innate_weapons] if _breed_traits else [],
         combos=combos,
         spells=spells,
+        elemental_powers=elemental_powers,
         # Effective stats: material bonuses folded in, Exalt-gated (core p.341).
         weapons=[derive.effective_weapon(ruleset, character, w) for w in character.weapons],
         armor=[derive.effective_armor(ruleset, character, a) for a in character.armor],

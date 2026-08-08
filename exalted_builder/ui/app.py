@@ -266,7 +266,7 @@ def render_sheet(view: viewmod.SheetView) -> None:
         # Gifts (Lunar) / Ox-Body Technique — so each gets its own headed panel,
         # mirroring the picker's tabs. An empty Spells panel would sit there taking
         # half the band to say "—", so it is dropped entirely when there are no spells.
-        _heading("Charms & Sorcery" if view.spells else "Charms")
+        _heading("Charms & Sorcery" if (view.spells or view.elemental_powers) else "Charms")
         with ui.row().classes("w-full gap-2 items-start no-wrap"):
             for section_name, section_rows in view.charm_sections:
                 with _panel().classes("flex-1"):

@@ -176,12 +176,13 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (2,051 passing)
+## Status (2,052 passing)
 
-The suite is green: **2,051 passing** — the Elemental Powers catalogue added 16 on
-2026-08-08 (12 engine + 4 UI build tests, the last two the locked-XP and empty
-picker shapes from preflight's render matrix; the 9-power learnable set for
-Elemental-origin God-Blooded, PG p.68, see `docs/status/godblooded.md` → *The
+The suite is green: **2,052 passing** — the Elemental Powers catalogue added 17 on
+2026-08-08 (12 engine + 5 UI build tests: the locked-XP and empty picker shapes from
+preflight's render matrix, then the sheet-render test from the click-through finding
+that the Charms & Sorcery band did not list owned powers; the 9-power learnable set
+for Elemental-origin God-Blooded, PG p.68, see `docs/status/godblooded.md` → *The
 Elemental Powers*); the Mountain Folk splat added 18 tests at
 ship (2026-08-07, browser-verified) and a further 9 in the Opus code-review fixes
 the same day (the two-pool Ability billing, the foreign-Charm bar, the
@@ -302,7 +303,7 @@ Recorded as decision records, not restated here — read them before proposing a
 ### 👉 START HERE (session handoff)
 
 **⏸ PICK UP HERE (2026-08-08, branch `deepseek-experiment`, worktree `…-ds`).**
-The suite is at **2,051 passing** (plus the one known machine-only M&F description
+The suite is at **2,052 passing** (plus the one known machine-only M&F description
 failure — not a regression, see Status). Three commits landed today:
 * `33f8f6b` — the God/Demon-Blooded heritage work, reviewed and de-noised.
 * `cab543a` — the PG p.48 sorcery initiation, which CLOSED the last open rules gap.

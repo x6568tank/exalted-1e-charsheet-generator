@@ -1561,6 +1561,13 @@ def page_godblooded_elemental_picker_empty():
     picker.build_picker(RS, CHAR_ELEMENTAL_EMPTY, Path("eg3.json"), with_header=False,
                         initial_group="elemental")
 
+# The Sheet's Charms & Sorcery band must head an Elemental Powers section for a
+# character who owns any — the click-through found the picker had them but the sheet
+# did not.
+@ui.page('/godblooded-elemental-sheet')
+def page_godblooded_elemental_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_ELEMENTAL_GODBLOODED))
+
 # Artifact re-verify repro: a Dragon King in the two-flagships shape (Artifact 5 +
 # two 5-dot artifacts) so the live rating-edit round-trip can be driven in a test.
 CHAR_DK_2FLAG = Character(id="dk2f", name="Two Flagships", exalt_type="Dragon-Kings",

@@ -815,6 +815,17 @@ async def test_the_elemental_powers_page_lists_all_nine_with_none_owned(user) ->
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_sheet_lists_owned_elemental_powers(user) -> None:
+    """The click-through found the picker had the powers but the Sheet did not — the
+    Charms & Sorcery band must head an Elemental Powers section showing what the
+    character owns (and its description)."""
+    await user.open('/godblooded-elemental-sheet')
+    await user.should_see("Elemental Powers (1)")
+    await user.should_see("Aegis")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_advantages_tab_builds_for_a_demon_blooded(user) -> None:
     await user.open('/godblooded-demon-advantages')
     await user.should_see("Gatekeeper")

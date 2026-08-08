@@ -759,9 +759,12 @@ days equal to the bonus point cost" clause stays descriptive).
 new-Charm rate of 15); `engine.advancement.learn_elemental_power` (learn / audit / undo /
 `drop_merit` dependents scan all extended); the picker's **Elemental Powers** page gated on
 `validate.elemental_powers_available` (God-Blooded AND origin Elemental — every other
-origin/splat's tab bar is unchanged); and `engine.merits.merit_ids_held` for the
+origin/splat's tab bar is unchanged); `engine.merits.merit_ids_held` for the
 required-Merit check (containment rule decision 0011: Merit ids are named only there and
-in data).
+in data); and the **Sheet** now lists owned powers — the click-through found the picker
+had them but the Charms & Sorcery band did not, so `SheetView.elemental_powers` carries
+them as their own headed section (like Arcanoi/Gifts) in `charm_sections` and the editor's
+picker panel, kept off the flat `view.charms` that tests pin.
 
 ⚠ **The 9 descriptions are lifted from the un-vetted VLM transcription** — a fabrication
 incident is documented below on exactly this page ("Consume Element" originally carried
