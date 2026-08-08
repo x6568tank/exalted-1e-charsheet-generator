@@ -296,6 +296,28 @@ Recorded as decision records, not restated here — read them before proposing a
 ## TODO
 
 ### 👉 START HERE (session handoff)
+
+**⏸ PICK UP HERE (2026-08-08, branch `deepseek-experiment`, worktree `…-ds`).**
+Two commits landed today and the suite is at **2,035 passing** (plus the one known
+machine-only M&F description failure — not a regression, see Status):
+* `33f8f6b` — the God/Demon-Blooded heritage work, reviewed and de-noised.
+* `cab543a` — the PG p.48 sorcery initiation, which CLOSED the last open rules gap.
+
+**Two things are owed, in this order:**
+1. **The browser click-through of God/Demon-Blooded** — everything is authored, tested
+   and committed, and NOTHING is blocked. Run the `preflight` skill first, then
+   `run-server`. This is the only thing between the splat and "done".
+2. **The 13 Elemental Powers — a MODELLING RULING is owed by the human, not more
+   transcription.** They were transcribed 2026-08-08 (Core p.296 = 7, GoD p.56 = 6) and
+   the finding is that **they are not Charms at all** — no cost/type/duration/minimum
+   lines, just named powers referenced from elemental stat blocks. So they may belong to
+   the adversary roster rather than the spirit catalogue, and the old "Virtue-keyed or
+   element-keyed?" question may be moot. **Do not author them until that is settled** —
+   the full write-up, the pipeline recipe and the VLM trap it exposed are in
+   `docs/status/godblooded.md` → *The Elemental Powers*. ⚠ The transcription lives at
+   `images/Non-Exalts/Spirit Charms/Elemental Powers - Core p296 + GoD p56.md`, which is
+   **gitignored and therefore exists only on the home PC.**
+
 **Mountain Folk: DONE 2026-08-07, browser-verified.**
 `images/Mortals/Mountain Folk/CH 6 - The Mountain Folk.md` arrived 2026-08-07 and the
 `add-splat` skill ran end to end: the Enlightenment origin axis, the five-Pattern

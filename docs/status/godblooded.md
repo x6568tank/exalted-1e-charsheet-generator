@@ -729,6 +729,59 @@ machine has it (check resumes and the descriptions summarize the fuller printed 
 below 92%). The two new entries were brought to parity and are NOT in the failing list.
 Leave the 46 alone until the human decides; they are not a regression.
 
+## ⚠ The Elemental Powers — TRANSCRIBED 2026-08-08, AWAITING A MODELLING RULING
+
+**Do not author these until the human rules on question 1 below.** They are transcribed
+and cross-checked but NOT vetted, and the finding is that they may not belong here at
+all.
+
+**Where they are:** `images/Non-Exalts/Spirit Charms/Elemental Powers - Core p296 + GoD
+p56.md` — Core p.296 COMMON ELEMENTAL POWERS (7) + GoD p.56 NEW ELEMENTAL POWERS (6),
+the 13 the TODO had been counting. ⚠ **`images/` is gitignored, so that file exists only
+on the machine that made it** (the home PC). It does not travel to the laptop; re-run the
+pipeline there if needed — the recipe is below.
+
+**The finding that changes the question.** Not one of the 13 prints a `Cost:` / `Type:` /
+`Duration:` / `Minimum <Virtue>:` line. They are named powers with inline descriptions,
+referenced by name from elemental stat blocks later in GoD (`Elemental Powers: Aegis,
+Element's Domain, Rejuvenation…`). So the long-standing open question — *are they
+Virtue-keyed or element-keyed?* — has a **third answer: neither.** They are a trait on
+elemental spirits, structurally closer to the adversary roster than to the spirit-Charm
+catalogue. Two consequences:
+
+1. **OPEN, the human's call:** do they belong to God/Demon-Blooded at all? Nothing on
+   either page ties them to the heritages; the God-Blooded route to elemental power is
+   the p.68 M&F set (Respiring Touch → Elemental Dominion → Elemental Power/Immunity),
+   which is already authored. If the answer is "they're elemental NPC traits", they
+   belong to `adversaries`, not `spirit_templates.json`, and the fifth-tree keying
+   question dies with it.
+2. **Decision 0008 limits what could ship anyway** — most of the 13 are pure combat
+   effects (soak bonuses, lethal damage, an attack roll), so even if authored they would
+   be descriptive text, not derivation.
+
+**The pipeline recipe (it worked; reuse it):** `pdftoppm -r 300 -png`, page offset **+1
+in both books** (Core p.296 = `Exalted.pdf` p.297; GoD p.56 = `Games of Divinity
+(oef).pdf` p.57 — offset verified against the already-vetted GoD p.125 transcription,
+not assumed), then `qwen3-vl:8b-instruct` via ollama with `num_ctx: 16384`,
+`temperature: 0` and `tools/VLM_TRANSCRIPTION_PROMPT.md`. ~30s per image.
+
+**⚠ The trap, and the reason the GoD page is transcribed FULL-PAGE:** its sidebar spans
+the full page width. A 50/50 column split — correct for the corebook pages — cut every
+entry in half, and **the VLM bridged the gaps with fluent invented text while reporting
+`UNCERTAIN: none`.** "Consume Element" came out as *"The element burns motes of Essence
+burned (e.g., 10 motes burned = +5 soak) against natural elements such as fire."* It was
+caught only because it was incoherent; the full-page re-run then matched the discarded
+right-column fragments word for word. **A confident `UNCERTAIN: none` is not evidence
+the page was read correctly — check the layout before choosing the crop.** Numbers were
+cross-checked against independent tesseract OCR (Core 5/5 exact; GoD's distinct values
+1/3/5/10/15/16L all agree).
+
+**Two things for the human's vetting pass:** (a) `Immolation` (GoD) still reads oddly —
+*"This power is a dice action… Spends 1 mote of Essence and roll. the bird's Valor +
+Charisma"* — possibly faithful to a badly-set page, needs eyes on the book; (b) the last
+two bullets under Core's COMMON ELEMENTAL POWERS (regeneration, breeding with mortals)
+are **body prose the VLM bulleted**, not named powers — 7 powers plus 2 paragraphs.
+
 **Nothing is blocked.** Everything the earlier drafts of this file listed as blocked has
 landed — the GoD appendix set, the corebook batch, the STC CH3 batch, Wyld Shield,
 Portal, and (2026-08-08) the sorcery initiation. `charm_access: ["Spirit"]` resolves,
