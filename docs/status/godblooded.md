@@ -799,13 +799,13 @@ summed `bp_cost` unconditionally, so post-lock it printed a BP total under an "X
 (two powers rendered as rows of 14 XP above a total of "14 XP"). Now summed in the rows'
 own currency.
 
-⚠ **The 9 descriptions are lifted from the un-vetted VLM transcription** — a fabrication
+⚠ **The 9 descriptions came from the un-vetted VLM transcription** — a fabrication
 incident is documented below on exactly this page ("Consume Element" originally carried
-invented text). **The human must eyeball the 9 descriptions in `data/elemental_powers.json`
-against the book before browser-verify** — the JSON is the durable copy (`images/` is
-gitignored). The transcription lives at `images/Non-Exalts/Spirit Charms/Elemental Powers
-- Core p296 + GoD p56.md` (home PC only); re-run the pipeline below on another machine if
-needed.
+invented text). **The human vetted all 9 against the book 2026-08-08** (the JSON is the
+durable copy — `images/` is gitignored). The transcription lives at `images/Non-Exalts/
+Spirit Charms/Elemental Powers - Core p296 + GoD p56.md` (home PC only); re-run the
+pipeline below on another machine if needed. Still un-checked: the `activation` strings
+on Rejuvenation and Mobility (a "later" review item — descriptive-only, see below).
 
 **The pipeline recipe (it worked; reuse it):** `pdftoppm -r 300 -png`, page offset **+1
 in both books** (Core p.296 = `Exalted.pdf` p.297; GoD p.56 = `Games of Divinity

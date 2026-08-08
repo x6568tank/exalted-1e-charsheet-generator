@@ -319,19 +319,17 @@ failure — not a regression, see Status). Five commits landed today:
   heritage-switch orphan clear (`validate.legal_elemental_powers` + the three editor
   mutators). The 3 "later" items are deferred.
 
-**God/Demon-Blooded is DONE except one thing the human must do:**
+**God/Demon-Blooded is DONE.** 
 1. **The browser click-through** — DONE (human: "1. Works! … 5. Works. Everything works
    fine"); the one finding (powers absent from the Sheet) was fixed in `1e43b15` and
    the review-fix commit `d1d8010` touched the picker's Owned-total currency, the
    editor's heritage switch, and the XP ledger — all engine-tested, worth a light
    re-click of the elemental picker + sheet, nothing known-blocked.
-2. **⚠ Human: eyeball the 9 descriptions in `data/elemental_powers.json` against the
-   book** — the ONLY thing between the splat and fully done. The 7 Core p.296 powers
-   + Consume Element + Plague of Menaces (GoD p.56); every power requires Elemental
-   Dominion + Essence 2, Rejuvenation additionally Primal Restoration. The descriptions
-   come from the **un-vetted VLM transcription** (the page's fabrication incident is
-   documented in `docs/status/godblooded.md` → *The Elemental Powers*) — the JSON is the
-   durable copy (`images/` is gitignored), so the eyeball is what makes it safe.
+2. **The 9 descriptions in `data/elemental_powers.json`** — **VETTED by the human
+   2026-08-08** (while the review fixes landed) — the last open item. Remaining on the
+   deferred list only: the 3 Opus "later" items (the caste-level gate on
+   `elemental_powers_available`, the Rejuvenation/Mobility activation strings, the
+   `mf.elemental-power` id migration).
 
 **Mountain Folk: DONE 2026-08-07, browser-verified.**
 `images/Mortals/Mountain Folk/CH 6 - The Mountain Folk.md` arrived 2026-08-07 and the
