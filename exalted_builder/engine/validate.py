@@ -64,13 +64,17 @@ ATTRIBUTE_CATEGORIES: dict[str, tuple[AttributeName, ...]] = {
 def ox_body_charm_id(ruleset: RuleSet, character: Character) -> str:
     """The id of this character's splat's repeatable Ox-Body-equivalent Charm (from
     its ExaltDefinition), or the heritage's parent-keyed one for a Half-Caste (a
-    Half-Caste learns their parent's Charms and uses the parent's Ox-Body, p.47 —
-    the God-Blooded's own is the spirit/Arcanos version), or '' if neither defines one."""
+    Half-Caste learns their parent's Charms and uses the parent's Ox-Body, p.47),
+    or the heritage's own for God/Demon-Blooded (the SPIRIT Ox-Body — PG p.83 lists
+    it as "(Spirit, Arcanos)" and the human ruled 2026-08-07 that the Arcanos
+    version is Ghost-Blooded-only), or '' if neither defines one."""
     caste = ruleset.castes.get(character.caste)
     if caste is not None and caste.heritage_traits is not None:
         parent_ox = caste.heritage_traits.ox_body_charm_ids.get(character.origin)
         if parent_ox:
             return parent_ox
+        if caste.heritage_traits.ox_body_charm_id:
+            return caste.heritage_traits.ox_body_charm_id
     return ruleset.exalt_for(character.exalt_type).ox_body_charm_id
 
 

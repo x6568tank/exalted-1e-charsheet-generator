@@ -9,7 +9,7 @@ import exalted_builder
 from exalted_builder import persistence, rules_db
 from exalted_builder.models.character import Character, Combo, HealthLevel, XpEntry
 from exalted_builder.models.rules import (
-    AbilityName, CasteDefinition, Charm, CharmType, RuleSet)
+    AbilityName, CasteDefinition, Charm, CharmType, RuleSet, VirtueName)
 from exalted_builder.ui import view as viewmod
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
@@ -205,6 +205,44 @@ def test_charm_graph_shows_only_the_characters_splat():
     db = Character(id="d", exalt_type="Dragon-Blooded")
     db_ids = {n.id for n in viewmod.build_charm_graph(rs, db, "melee").nodes}
     assert db_ids == {"d"}
+
+
+def test_virtue_split_splits_only_multi_virtue_categories():
+    """A category whose Charms span several Virtues (the spirit Charms, all 79 under
+    'spirit_templates') is presented as one sub-category per Virtue, mirroring the
+    ghost Arcanoi where each path is its own tree. Single-virtue or unkeyed
+    categories (a ghost Arcanos path, a Melee tree) stay whole."""
+    rs = RuleSet(castes={}, charms={
+        f"sp-{v}": Charm(id=f"sp-{v}", name=f"Spirit {v}", category="spirit_templates",
+                         type=CharmType.SIMPLE, min_ability=1, min_essence=1,
+                         min_virtue=VirtueName(v))
+        for v in ("compassion", "conviction", "temperance", "valor")})
+    assert viewmod.virtue_split(rs, "spirit_templates") == [
+        "spirit_templates:compassion", "spirit_templates:conviction",
+        "spirit_templates:temperance", "spirit_templates:valor"]
+    assert viewmod.virtue_split(rs, "melee") == []
+    single = RuleSet(castes={}, charms={
+        "ghost.spooky": Charm(id="ghost.spooky", name="Spooky", category="spooky",
+                              type=CharmType.SIMPLE, min_ability=1, min_essence=1,
+                              min_virtue=VirtueName.CONVICTION)})
+    assert viewmod.virtue_split(single, "spooky") == []
+
+
+def test_build_charm_graph_filters_a_virtue_key_to_that_virtue():
+    """A composite 'spirit_templates:<virtue>' category key draws only the Charms
+    locked to that Virtue — one four-Virtue category becomes four trees."""
+    rs = RuleSet(castes={}, charms={
+        f"sp-{v}": Charm(id=f"sp-{v}", name=f"Spirit {v}", category="spirit_templates",
+                         type=CharmType.SIMPLE, min_ability=1, min_essence=1,
+                         min_virtue=VirtueName(v))
+        for v in ("compassion", "conviction", "temperance", "valor")})
+    c = Character(id="s")
+    assert {n.id for n in viewmod.build_charm_graph(
+        rs, c, "spirit_templates:compassion").nodes} == {"sp-compassion"}
+    assert {n.id for n in viewmod.build_charm_graph(
+        rs, c, "spirit_templates:valor").nodes} == {"sp-valor"}
+    # The bare data category still draws the whole catalogue.
+    assert len(viewmod.build_charm_graph(rs, c, "spirit_templates").nodes) == 4
 
 
 # --- Alchemical UI presenters (caste_favored attributes + Charm Slots) ------- #

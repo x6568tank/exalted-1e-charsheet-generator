@@ -225,6 +225,22 @@ def charm_on_splat_page(ruleset: RuleSet, character: Character, charm,
     return charm.exalt_type == splat and not native
 
 
+def virtue_split(ruleset: RuleSet, category: str) -> list[str]:
+    """Sub-category keys for a data category whose Charms span several Virtues.
+
+    The spirit Charms are the one such category: all 79 sit under
+    'spirit_templates', each keyed to one of the four Virtues via `min_virtue`.
+    The picker presents them as four trees ('spirit_templates:compassion', ...)
+    so the Virtue structure is visible, mirroring the ghost Arcanoi where each
+    path is already its own tree. Ghost Arcanoi paths carry a single Virtue per
+    category, so they return [] -- as does anything not Virtue-keyed."""
+    virtues = {c.min_virtue for c in ruleset.charms.values()
+               if c.category == category and c.min_virtue}
+    if len(virtues) < 2:
+        return []
+    return [f"{category}:{v}" for v in sorted(virtues)]
+
+
 def build_charm_graph(ruleset: RuleSet, character: Character, category: str,
                       splat: str = "") -> CharmGraph:
     """Assemble the prerequisite graph for one Charm category, tagging each node
@@ -244,8 +260,22 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str,
     tree. External prerequisites are pulled in by id and are NOT re-filtered: a
     foreign tree's prerequisites are its own splat's Charms by construction."""
     owned = set(character.charms)
-    in_category = [c for c in ruleset.charms.values()
-                   if c.category == category and charm_on_splat_page(ruleset, character, c, splat)]
+    base, sep, virtue = category.partition(":")
+    # A composite key like 'spirit_templates:compassion' (from virtue_split)
+    # selects one Virtue's sub-tree of a category whose Charms span several
+    # Virtues: the data category is `base`, restricted to `min_virtue == virtue`.
+    # The martial-arts keys ('martial_arts:snake') are NOT composites -- the full
+    # string IS the data category, and since no bare 'martial_arts' category
+    # exists this guard keeps them on the direct-equality path.
+    base_is_category = bool(sep) and any(
+        c.category == base for c in ruleset.charms.values())
+    if base_is_category:
+        in_category = [c for c in ruleset.charms.values()
+                       if c.category == base and c.min_virtue == virtue
+                       and charm_on_splat_page(ruleset, character, c, splat)]
+    else:
+        in_category = [c for c in ruleset.charms.values()
+                       if c.category == category and charm_on_splat_page(ruleset, character, c, splat)]
     category_ids = {c.id for c in in_category}
 
     external_ids: set[str] = set()
@@ -1754,13 +1784,15 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     def _section_label(pick, charm) -> str:
         """Which subsystem panel a charm pick belongs on — the same distinctions the
         picker's tabs draw. Gifts are the Lunar DBT list, Ox-Body its own repeatable
-        purchase, Arcanoi are the Ghost Virtue-keyed Charms (identified by `min_virtue`,
-        exactly as the picker does); everything else is an ordinary Charm."""
+        purchase, Arcanoi are the Ghost/God-Blooded Virtue-keyed Charms (identified by
+        `min_virtue` AND a non-Spirit exalt_type, exactly as the picker does — the
+        spirit Charms are Virtue-keyed too but are a different class, not Arcanoi);
+        everything else is an ordinary Charm."""
         if pick.source == "beastman_gifts":
             return "Gifts"
         if pick.source == "ox_body":
             return "Ox-Body Technique"
-        if charm is not None and charm.min_virtue:
+        if charm is not None and charm.min_virtue and charm.exalt_type != "Spirit":
             return "Arcanoi"
         return "Charms"
 

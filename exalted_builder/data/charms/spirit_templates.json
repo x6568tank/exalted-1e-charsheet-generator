@@ -1,0 +1,1877 @@
+[
+  {
+    "id": "spirit.spirit-templates.soul-rapt",
+    "name": "Soul Rapt",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.possession"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 2 Willpower",
+      "motes": 10,
+      "willpower": 2
+    },
+    "duration": "Indefinite",
+    "description": "As the Possession spirit Charm, roll the spirit's Manipulation + Conviction against the target's Willpower in a resisted action. If the spirit gains as many or more successes than the target has temporary Willpower, the initial possession succeeds. The possessing spirit must relinquish control of the victim's body at least once per week, though it isn't necessary to abandon the victim. If it wishes, the spirit may just make the attempt to regain control of the victim by repeating the initial possession roll. After each month of possession, the victim loses one point of Willpower permanently. If a spirit fails in its attempt to regain control of its victim, the spirit is expelled, and the victim cannot be possessed by that spirit again.",
+    "source": {
+      "book": "Exalted 1e Ruins of Rathess",
+      "page": 65
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.worldly-illusion",
+    "name": "Worldly Illusion",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "conviction",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.harrow-the-mind"
+      ]
+    ],
+    "cost": {
+      "raw": "20 motes, 1 Willpower per person",
+      "motes": 20,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "The target of this Charm finds herself in an illusory world of the spirit's design. The illusion is total and covers all senses, according to all of her senses, the target has been transported elsewhere. The illusion has a nearly instant duration but may appear to last for up to one day to the mind of the target. This Charm requires the spirit to touch its target (a nonreflexive Dexterity + Brawl or Martial Arts roll if she's actively evading) or to look in her eyes. The spirit may use this effect on multiple people at once, but all of them must find themselves in the same illusion, and the spirit must touch all of them at once. Any damage the target takes within the hallucination is purely illusory. However, if the target dies within the illusion, then her player must succeed on a Stamina + Resistance roll or have the character fall into a coma for one day per point of the spirit's Essence (or longer, at the Storyteller's discretion, if it suits the dramatic needs of the story).",
+    "source": {
+      "book": "Games of Divinity",
+      "page": 126
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.donning-spiritual-armor",
+    "name": "Donning Spiritual Armor",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One scene",
+    "description": "The small god summons up the forces of the elements or similar powers to protect it from harm. The spirit gains armor equal to Temperance + Essence. This armor can be used to soak any form of bashing or lethal damage, including damage caused by environmental conditions such as excessive heat or cold. Elementals and elementally associated spirits always surround themselves with elemental protections such as a hauberk of tough roots, a shirt of flexible rock or a breastplate of living flame. Other spirits don armor of light or darkness or, occasionally, transform their ordinary garb into supernally beautiful and durable garments of pure magic.",
+    "source": {
+      "book": "Games of Divinity",
+      "page": 126
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.essence-inveigle",
+    "name": "Essence Inveigle",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.sustenance"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes, 2 Willpower",
+      "motes": 6,
+      "willpower": 2
+    },
+    "duration": "One week (at least)",
+    "description": "The spirit has consensual sex with a mortal in order to activate the Charm, so no Brawl or Martial Arts rolls are required. Amidst the merriment, roll the spirit's Manipulation + Temperance. For each success, the spirit devours 1 mote of Essence. What is more, the victim later develops an unquenchable craving for another rendezvous with the spirit. If the victim returns freely, the process is repeated (and any lost Wits suffered from the process below are regained). If the victim does not return within one week, roll his Wits + Conviction minus 1 die for each time the spirit successfully used the Charm against the victim. If the roll yields fewer successes than the spirit's Willpower, the victim loses a point of Wits temporarily. If he does not return to the spirit that day, repeat the process the next day, continuing every day until the victim either returns of his own volition, succeeds in breaking the Charm or reaches 0 Wits (in which case the victim loses all control and will do anything within his power to return to the spirit). If the victim's Wits + Conviction roll succeeds against the spirit's Willpower, the Charm is cancelled, and all temporary Wits losses are regained. This Charm has no effect on beings with an Essence higher than the spirit's.",
+    "source": {
+      "book": "Games of Divinity",
+      "page": 126
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.uncanny-prowess",
+    "name": "Uncanny Prowess",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes",
+      "motes": 2
+    },
+    "duration": "Special",
+    "description": "The spirit may add a number of dice equal to its Valor score to a single Dexterity roll. This roll could be anything from a single blow with a weapon to a single performance or even to the roll to create a single piece of fine jewelry. When used for longer endeavors, this Charm adds dice to each roll of a single extended action. However, it can only be used on one endeavor at a time, the Essence invested in this Charm cannot be regained, and the Charm cannot be recast until the task has been completed or abandoned.",
+    "source": {
+      "book": "Games of Divinity",
+      "page": 126
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.creation-of-perfection",
+    "name": "Creation of Perfection",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes",
+      "motes": 2
+    },
+    "duration": "Special",
+    "description": "This Charm allows spirits to create supernaturally exquisite items or to perform feats of inhuman skill with various crafts. When using this Charm, roll Intelligence + Valor for the spirit. Every success gained on this roll can be added to a single Craft, Medicine, Occult or Larceny roll designed to create an item or to carry out a slow and careful process such as performing surgery, compounding a drug, putting on a disguise or creating a magical talisman. This Charm cannot be used to enhance any task that requires speed or haste such as picking a lock before the guard arrives, stopping someone from bleeding to death or any form of combat. It can also only be used on tasks that require both clear thought and nimble fingers. No activity can simultaneously benefit from both this Charm and the Uncanny Prowess Charm.",
+    "source": {
+      "book": "Games of Divinity",
+      "page": 127
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.spirit-cutting",
+    "name": "Spirit-Cutting",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Supplemental",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote",
+      "motes": 1
+    },
+    "duration": "Instant",
+    "description": "This Charm allows a materialized spirit to launch a single attack at an unmanifested spirit. For the purposes of the individual attack, the small god attacks the immaterial spirit normally.",
+    "source": {
+      "book": "Games of Divinity",
+      "page": 127
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.essence-gifting-method",
+    "name": "Essence-Gifting Method",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.benefaction"
+      ],
+      [
+        "spirit.spirit-templates.dreamspeak"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per mote granted, plus 1 mote committed per 4 motes granted"
+    },
+    "duration": "Until released",
+    "description": "Spirits sometimes use this Charm to aid their mortal servants, granting them some measure of power to wield on their behalf. To use the Charm, the spirit normally marks the mortal in some fashion, this may be as simple as a pendant or pin proclaiming the mortal is aligned with the spirit, or it may be as elaborate as whole-body tattoos, ritual scarification or a stain on the mortal's soul. After doing this, the spirit can channel Essence to the mortal through this Charm. The spirit can channel up to twice the mortal's Willpower + permanent Essence in motes to the mortal, paying 1 mote for each mote transferred and committing 1 additional mote per 4 motes granted. These motes are committed until the spirit chooses to drop the Charm, at which point the mortal loses all Essence granted. Motes granted in this fashion do not regenerate normally, in order to gain more power, the mortal must once again be granted motes by the spirit. Motes gained in this fashion may be used in any way mortals may normally spend Essence, including committing them to attune to artifacts, if the mortal has the right Merits. Artifacts attuned in this fashion function for one week before becoming de-attuned, the motes committed do not regenerate normally, and so, eventually, their power fades.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 123
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.measure-the-wind",
+    "name": "Measure the Wind",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote",
+      "motes": 1
+    },
+    "duration": "Instant",
+    "description": "This power enables the spirit to sense nearby Essence, whether it exists in objects or within Exalted. Rolls the spirit's Perception + Compassion. One success is enough to sense Essence in the vaguest of measures. Three or more successes means the spirit not only senses Essence, but knows its source and potential powers (if possessed by Exalted, for example).",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 291
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.stoic-endurance",
+    "name": "Stoic Endurance",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes per die",
+      "motes": 0
+    },
+    "duration": "Varies",
+    "description": "For each success on the roll, the spirit may improve an individual's Stamina by one dot. More dice than the spirit's Charisma + Compassion may not be rolled, nor may the spirit increase the target's Stamina by more dots than the spirit's Essence. Only one use of this Charm may be active on an individual at any given time. This Charm fades at a rate of one dot per (the spirit's Willpower) turns.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 291
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.touch-of-grace",
+    "name": "Touch of Grace",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "Instant",
+    "description": "The spirit may heal itself or others. Spends the 3 motes of Essence and make a Compassion roll. If the roll succeeds, the Charm heals one health level of bashing or lethal damage.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 291
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.harrow-the-mind",
+    "name": "Harrow the Mind",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "10 motes, 1 Willpower",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Through the use of this Charm, the spirit can create mental illusions that only the target can see. To do it, roll the spirit's Manipulation + Conviction. The first success creates the illusion, while additional successes make the illusion more difficult to penetrate. The target's player must make an Intelligence + Temperance roll and must gain a number of successes at least equal to the number of successes the spirit rolled. If not, the target is unable to tell the illusion from reality. He may make additional Intelligence + Temperance rolls whenever the illusion departs wildly from what the target expects from reality, making believable illusions much more difficult to see through. Once the illusion has been penetrated, it is dispelled, and all further uses of the Charm on that being are at +1 difficulty for the next several days.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 291
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.possession",
+    "name": "Possession",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 4,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes, 1 Willpower",
+      "motes": 3,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Roll the spirit's Manipulation + Conviction in an extended resisted action against the target's Willpower. When the spirit gains more successes than the victim has temporary Willpower, the spirit takes possession of the target for the rest of the scene. Successes accumulate for the duration of the scene. More powerful versions of this Charm exist, which allow spirits to “hollow out” a being's soul and possess him indefinitely.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 291
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.stoke-the-flame",
+    "name": "Stoke the Flame",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote per die",
+      "motes": 0
+    },
+    "duration": "One scene",
+    "description": "The spirit channels Essence into the victim to inflame her emotional state. One success merely aggravates whatever condition is already present, while three or more successes cause the target to completely lose herself in the emotion of the moment. You may roll no more dice that the spirit's Conviction. Used against one of the Exalted, this Charm causes the character's Limit to increase by one point per success.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 291
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.cunning-thief",
+    "name": "Cunning Thief",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote per 2 dice",
+      "motes": 0
+    },
+    "duration": "Instant",
+    "description": "The spirit must touch the target for this Charm to work (resolved by a normal Dexterity + Brawl or Martial Arts check). If the attempt to touch the target is successful, make a reflexive Wits + Temperance roll. For every success the spirit achieves, the target loses two motes of Essence. The spirit cannot steal more motes than twice its Essence.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 292
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.host-of-spirits",
+    "name": "Host of Spirits",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes, 1 Willpower",
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Through the use of this Charm, the spirit forms multiple images of itself to deceive attackers. This ability works much like Harrow the Mind, above. However, there are more images and they are harder to distinguish from reality.\n\nMake an Intelligence + Temperance roll for the spirit, opposed by the target's Perception + Awareness. If the target garners fewer successes than the spirit, he sees many false images of the small god, each virtually indistinguishable from the real being. Attacks by individuals so befuddled have only (their Essence) in 10 chance of actually striking the spirit. Make another Perception + Awareness for those observing the spirit every time the spirit attacks.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 292
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.essence-bite",
+    "name": "Essence Bite",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "The spirit must touch its target for this Charm to work, requiring a successful Dexterity + Brawl or Martial Arts roll. If the touch attempt is successful, make a reflexive Valor + Essence roll for the spirit. For every success on the attack, the spirit does a point of lethal damage. The character's armor soak applies as normal to this damage, and extra successes on the attack roll add to damage as usual.\n\nThis Charm may rely on heat, cold, life-draining or any number of other mechanisms to do damage — almost all have secondary effects that the spirit can manipulate to its advantage. For example, a ghost that can start fires with its fiery touch can burn down a barn with this Charm.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 292
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.materialize",
+    "name": "Materialize",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "Varies",
+      "motes": 0
+    },
+    "duration": "Indefinite",
+    "description": "Through the use of this Charm, the spirit can materialize in the physical world. The cost of this Charm is between 50 percent and 100 percent of the spirit's temporary Essence. The cost varies from spirit to spirit and is listed in the spirit's description or assigned by the Storyteller. Generally, as the power of the spirit grows, the spirit must expend proportionally greater amounts of Essence to materialize.\n\nIn most cases, a spirit that plans to meddle in mortal affairs will materialize in some safe area and then rest, regaining its Essence, before it goes about its business. Spirits that have not materialized cannot affect the physical world, not with Charms, physical attacks or in any other fashion.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 292
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.principle-of-motion",
+    "name": "Principle of Motion",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Extra Action",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes, 1 Willpower",
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "Until used",
+    "description": "When the spirit uses this Charm, it gains a pool of extra actions equal to its Valor. Actions in this pool can be expended for extra attacks on the spirit's initiative or reflexively, to parry or dodge an attack or to refresh the spirit's Dodge pool when using the full dodge maneuver. If the spirit does not use all the actions in its pool, they remain available for it in the following turn. Actions in the pool will persist for many months, and many spirits make sure they retain a full complement of actions in case they are ambushed. A spirit cannot use this Charm again until it has used up all the extra actions granted by the last use of the Charm. While the spirit has extra actions in its pool, the motes of Essence used to power this Charm are considered committed.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 292
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.words-of-power",
+    "name": "Words of Power",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "The spirit may intone blasphemies, keen out the lamentations of the dead or speak the victim's true name, but regardless, its words are like a battering ram. The spirit attacks using Charisma + Valor to hit the opponent and does bashing damage equal to the spirit's Strength, which can be soaked only by the target's Stamina. Extra successes on the attack add to damage, as usual. For every health level of damage the target takes, he is at a -1 penalty to all dice pools for a number of turns equal to the attacking spirit's Essence.\n\nThis attack may be dodged or blocked as normal but has no physical effects except perhaps causing blood to flow from the target's ears or hurling him bodily through light obstructions.",
+    "source": {
+      "book": "Exalted 1e Core",
+      "page": 292
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.dreamspeak",
+    "name": "Dreamspeak",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One scene",
+    "description": "This Charm allows a spirit to speak with the target in his dreams. The target must be asleep, and the spirit must know approximately where he is, although the spirit need not be present there. Roll the spirit's Intelligence + Compassion. The more successes the spirit gets, the more easily it converses with the dreamer. Four or more successes indicates that not only can the spirit appear in the dream, but it will seem to be of extreme significance to the dreamer.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 50
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.dreamscape",
+    "name": "Dreamscape",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.dreamspeak"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 1 Willpower",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "This Charm allows a spirit to govern the dream of a sleeping mortal. It may shape that dream in whatever way it wishes, appearing or not appearing in the dream as it pleases. Roll the spirit's Manipulation + Compassion. The more successes, the more the spirit can manipulate. The spirit must know either the approximate location of the dreamer or his identity. While the spirit may harm the dreamer inside of the dream, no damage carries over to the real world.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 50
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.natural-prognostication",
+    "name": "Natural Prognostication",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes",
+      "motes": 2
+    },
+    "duration": "Instant",
+    "description": "The spirit is naturally in tune with the patterns of destiny and the astrological forces. A simple success on a Perception + Compassion check causes this spirit's behavior (actions, words) to reflect in some small way the path of things to come. Most spirits with this Charm don't notice themselves using it and would shrug if it was pointed out to them; it's simply a part of what they are. The number of successes indicates the importance of the event that is prognosticated and/or the level of detail provided. The words and actions of such spirits are frequently ambiguous and often enigmatic.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 50
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.foretell-the-future",
+    "name": "Foretell the Future",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.natural-prognostication"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes",
+      "motes": 10
+    },
+    "duration": "Variable",
+    "description": "This spirit may deliberately attempt to foresee what may come with a successful Perception + Compassion check. The number of successes determines how long it takes the spirit to glean the information. The spirit must sleep, meditate or in some other way \"go within\" for one day per success. More successes means more information means more time spent \"under.\" This spirit sees what may be, not what must be.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 50
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.hand-of-destiny",
+    "name": "Hand of Destiny",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.foretell-the-future"
+      ]
+    ],
+    "cost": {
+      "raw": "14 motes, 1 Willpower",
+      "motes": 14,
+      "willpower": 1
+    },
+    "duration": "Variable",
+    "description": "This Charm allows a powerful spirit to glimpse the hand of Destiny moving behind the curtains of reality, upon a successful Perception + Compassion check. The number of successes determines how much of Destiny's plan the spirit glimpses. It also determines how much of that plan notices the spirit. The more the spirit sees, the more the spirit becomes caught up in whatever is happening. The spirit may feel compelled to take part in the plan, and not necessarily in the way it would have chosen. Few spirits will use this Charm lightly, and they may require great boons or services in return for its use. If the Storyteller chooses, this Charm may have the same sleep or meditation requirement as Foretell the Future — except that the spirit must go within for at least one week for each success. Spirits can spend months dreaming, trying to comprehend Destiny's plan.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 50
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.landscape-travel",
+    "name": "Landscape Travel",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "4 motes",
+      "motes": 4
+    },
+    "duration": "One scene",
+    "description": "This Charm allows a spirit to travel quickly, comfortably and easily in its natural element. A forest spirit might gain perfect balance and sticky feet to allow it to travel easily along tree limbs and jump from tree to tree. A water spirit might walk on water, or develop gills and fins if it didn't have them already.\n\nThe Wyld extension (Exalted: The Lunars p.222): Those affected by this Charm can move through Wyld areas of the appropriate terrain type without danger of mutation or addiction, so long as they go no deeper than the Bordermarches. The Middlemarches and beyond are too unlike Creation for this Charm to work.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 50
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.landscape-camouflage",
+    "name": "Landscape Camouflage",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.landscape-travel"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One scene",
+    "description": "This Charm allows a spirit to camouflage itself, as long as it is within its natural element (a forest spirit must be within the trees; an earth spirit could camouflage itself against grass, earth, or stone; a fire spirit could camouflage itself within or against a fire, or against hot desert sands). Roll the spirit's Wits + Compassion. Every success adds one to the difficulty of Perception + Awareness checks to notice the spirit.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 51
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.landscape-hide",
+    "name": "Landscape Hide",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.landscape-camouflage"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes, 1 Willpower",
+      "motes": 6,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "This Charm allows a spirit to hide within a solid piece of its natural landscape. A forest spirit might sink into a tree trunk; a spirit of the plains might sink into the ground. During its time within its element, the spirit's senses are muted. Roll the spirit's Stamina + Resistance if the item in which it hides suffers any damage. If the roll fails, the spirit is forced out of the item. If the roll succeeds, the spirit may choose to stay in the item, but it will take any damage that the item takes, health level for health level. If the item is particularly sturdy, it may add up to five health levels to the spirit's total, at the Storyteller's discretion — one health level per success on the original roll.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 51
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.tracking",
+    "name": "Tracking",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One scene",
+    "description": "This Charm allows a spirit to track someone or something on a successful Perception + Compassion check. One success is all that's needed for a spirit to track a normal human in the spirit's natural domain, regardless of the prey's Survival skill. More successes are needed if the spirit wishes to track an Exalted, another spirit or some other supernatural creature capable of supernatural Stealth, or if it wishes to track outside of its natural domain. Other modifiers (such as familiarity with the prey or weather conditions) apply only to tracking beings capable of supernatural misdirection — see the rules in the main Exalted book for details.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 51
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.sense-domain",
+    "name": "Sense Domain",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.measure-the-wind"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes, 1 Willpower",
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "This Charm enables the spirit to get a feel for how things are going within its domain of influence (up to a half mile in diameter per point of Essence, but most often related to a geographical feature — for instance, a single tree and a little land surrounding it might be a spirit's area of influence). Roll the spirit's Perception + Compassion. One success allows the spirit to sense the presence of any direct and immediate danger (to itself or to the domain) in the area. Two successes allow a reasonably thorough catalogue of the influences at work in the area and the intentions they have with regard to the spirit or its domain. Three or more successes allows the spirit to know almost anything currently going on within its domain that isn't protected by some sort of supernatural ward or misdirection. Charms, sorcery and exceptional Ability rolls or stunts may block this insight or remove successes, at the Storyteller's discretion. Some spirits that have no natural domain may be able to use this ability in any area they've spent several days exploring (Storyteller's discretion; two additional successes required).\n\nThe Wyld extension (Exalted: The Lunars p.222): The spirit can use this Charm to determine the presence of the Wyld in his domain or on the edges of it. The exact range is hazy but typically about a quarter of the size of its domain; so, a forest spirit whose domain was a patch of forest 12 miles across would be able to sense the Wyld out about three miles beyond the borders of this domain. More powerful manifestations of the Wyld may be sensed farther away than minor ones.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 51
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.summon-food",
+    "name": "Summon Food",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 or 10 motes",
+      "motes": 0
+    },
+    "duration": "Instant",
+    "description": "Spirits use this Charm to summon food for those who need it. The spirit must succeed at a Stamina + Compassion check. Each success the spirit achieves allows it to summon enough food for a full meal for one person (the spirit may choose to summon less than its successes allow it to). For five motes, the food summoned is edible. For ten motes, the food is some of the finest nourishment ever tasted.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 51
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.tiny-gift",
+    "name": "Tiny Gift",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One day",
+    "description": "The effects of this Charm always fade by the next sunset, and the Charm may not be used more than once per day. Some possible gifts:\n\n- One extra dot added to an Ability of the spirit's choice.\n- The return of two motes of Essence.\n- Good luck: The target gains one extra die to add to all normal Ability checks (not Charms).",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 52
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.benefaction",
+    "name": "Benefaction",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.tiny-gift"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes",
+      "motes": 10
+    },
+    "duration": "One week",
+    "description": "The effects of this Charm last for one week, and the Charm may not be used more than once per week. Some possible benefactions:\n\n- Two dots of Abilities, distributed as the spirit sees fit.\n- One dot added to an Attribute.\n- The return of five motes of Essence.\n- Create a good luck charm, walkaway or other talisman that lasts for a week.\n- Good luck: the target gains one extra die to add to normal Ability checks (not Charms).\n- A mark appears on the target in an obvious place (forehead, hand, etc.) that can be seen only by spirits and Exalted using a sensory Charm that allows them to perceive Essence at work. This power is most often used to grant safe passage through an area or as a mark of favor.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 52
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.largess",
+    "name": "Largess",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.benefaction"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes, 1 Willpower",
+      "motes": 15,
+      "willpower": 1
+    },
+    "duration": "One week",
+    "description": "The effects of this Charm last for one week, and the Charm may not be used more than once every other week. Some possible effects:\n\n- Four dots to Abilities, distributed as the spirit sees fit. This may include Abilities the target does not normally possess, unless he is not physically capable of possessing them. This may not raise a target's Ability score above six.\n- Two dots to Attributes, distributed as the spirit sees fit.\n- The return of one temporary Willpower point. (The target's Willpower may not be raised above his maximum. The returned Willpower may be used up normally, but will not disappear when the week is over.)\n- The return of ten motes of Essence.\n- The effects of one Charm (maximum Virtue 1, Essence 1) that the spirit possesses may be conferred upon the target. These effects last no longer than one week.\n- Good luck: the target gains one extra die to add to normal Ability checks and to Charm checks.\n- Create a good luck charm, walkaway or other talisman of permanent duration.\n- A permanent mark appears on the target in an obvious place. This mark can be seen only by spirits and Exalted using a sensory Charm that allows them to perceive Essence at work. While mortals cannot see the mark, it obviously alters the character's horoscope and can be detected in that fashion. Effects vary, depending on the meaning of the mark.\n\nThe Wyld extension (Exalted: The Lunars p.222): This Charm can be used to render someone resistant to the Wyld, temporarily. While under the effects of its blessing, the recipient gains three additional dice on all attempts to resist Wyld mutation and addiction. These effects lasts one week. This Charm's opposite, Malediction, can reduce a character's pool to resist the Wyld by three dice for one week.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 52
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.endowment",
+    "name": "Endowment",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.largess"
+      ]
+    ],
+    "cost": {
+      "raw": "20 motes, 1 permanent Willpower",
+      "motes": 20,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "This blessing is never given lightly. Great tales are told of the massive quests that lead to such rewards, and the heroes who achieve them. This Charm may only be used once per year.\n\n- One dot added to an Attribute, duration permanent.\n- Two dots to Abilities, distributed as the spirit sees fit, duration permanent. This may include Abilities the target does not normally possess, unless he is not physically capable of possessing them.\n- One permanent Essence point.\n- The return of all temporary Willpower that the target has lost.\n- The effects of one Charm (maximum Virtue 2, Essence 2) that the spirit possesses may be conferred upon the target. These effects last for as long as the effects of the Charm that was conferred would normally last. In rare cases, the effect may be permanent (Storyteller's discretion).\n- Good luck: the target's temporary Willpower is always one higher than her permanent Willpower. The effect is permanent.\n- Create a double- or triple-effect talisman of permanent duration.\n\nThe Wyld extension (Exalted: The Lunars p.222): Like Largess, Endowment can be used to make someone resistant to the effects of the Wyld. It can either add five dice to the recipient's attempts to resist the Wyld for a month or two dice permanently. Endowment's opposite, Scourge, reverses this effect, either subtracting five dice for a month or two dice permanently.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 53
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.confusion",
+    "name": "Confusion",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "6 motes, 1 Willpower",
+      "motes": 6,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Roll the spirit's Manipulation + Conviction with a difficulty equal to the target's Essence. Simple success or one extra success indicates that the target is mildly confused. He might confuse one direction along a path with another. Two or three extra successes indicate that the target is quite confused. He might believe that traveling after dark in the woods without a lantern is a perfectly reasonable thing to do. Four or more extra successes indicate that the target is completely addled and may well do something very dangerous. He could try to scale a cliff face in the dark or go to sleep in a bear's den. Fair Folk are immune to this power.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 53
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.memory-mirror",
+    "name": "Memory Mirror",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "6 motes, 1 Willpower",
+      "motes": 6,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "The spirit must touch its target in order to employ this Charm (normal Dexterity + Brawl or Martial Arts check). If successful, roll the spirit's Manipulation + Conviction with a difficulty equal to the target's Essence. The more successes, the more of the target's memories the spirit absorbs. This may temporarily befuddle the target, but Memory Mirror does not actually remove the target's memories, just duplicates them. With a simple success, the spirit obtains only the most basic details: profession, name and any major life events. Four or more extra successes indicate near-total memory absorption.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 53
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.memory-sponge",
+    "name": "Memory Sponge",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "conviction",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.memory-mirror"
+      ]
+    ],
+    "cost": {
+      "raw": "12 motes, 1 Willpower",
+      "motes": 12,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "This Charm works like Memory Mirror, except that the memories are drained out of the target as they enter the spirit's mind. Roll the spirit's Manipulation + Conviction with a difficulty equal to the target's Essence. The more successes the spirit achieves, the fewer details the target remembers, until only the smallest details remain. Four or more extra successes indicate that the target suffers from near-total amnesia. The memories have actually been removed and cannot be recovered through association or prompting.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 53
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.memory-transference",
+    "name": "Memory Transference",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "conviction",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.memory-sponge"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes, 2 Willpower",
+      "motes": 15,
+      "willpower": 2
+    },
+    "duration": "Instant",
+    "description": "This Charm allows a spirit to transfer memories between two subjects. The spirit must be able to touch both subjects at once, and if they are evading, the spirit must succeed on a Dexterity + Brawl or Martial Arts roll. This is not a reflexive attack, and if the spirit is attempting to touch both targets in the same turn it activates the Charm, split its dice pool at least three ways.\n\nAfter the spirit touches the targets, roll its Manipulation + Conviction with a difficulty equal to the higher of the two target's Essences. The memories are moved from one subject to another, not copied. The spirit gets a vague idea of the shape of the memories — enough to identify blocks of them and figure out what should be moved. The spirit remembers only vague details afterward, not specifics.\n\nThe more successes on the roll, the more precisely the spirit can identify and choose what to move, and the more it can move. Simple success allows the movement of a few random memories, three successes allows large, important memories, and five or more extra successes allow the spirit to transfer an entire lifetime's worth of memories, or just a single dark and hidden secret. Note that the transfer is one way — a spirit that wishes to swap two personalities between bodies has to roll five or more extra success on two uses of the Charm.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 54
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.instill-obedience",
+    "name": "Instill Obedience",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.stoke-the-flame"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 1 Willpower",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "The spirit channels Essence into the target to alter his emotional state, instilling within him a desire to obey the spirit. Roll the spirit's Charisma + Conviction with a difficulty equal to the target's Essence. Simple success merely makes the target slightly more likely to obey, while three successes forces him to obey completely unless such obedience would cause him physical harm. At five successes, the target does anything the spirit commands.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 54
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.geas",
+    "name": "Geas",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.instill-obedience"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per day (Min 15, Max 28), 2 Willpower",
+      "motes": 0,
+      "willpower": 2
+    },
+    "duration": "One to 28 days",
+    "description": "This Charm allows a spirit to lay a Geas, or bond, upon a target. It requires eye contact and a successful Manipulation + Conviction check, with at least three successes. The spirit may order the target to perform one task, which may include such broad orders as \"serve me for one month.\" The spirit may not order the target to do something that would directly harm the target, but it may order him to attempt a difficult or dangerous goal as long as there is a reasonable chance of success (Storyteller's discretion). This Charm has a minimum cost of 15 motes, even if it is to last only one day. This Geas does not completely govern the target's actions; rather, it gives the target a compulsion to work toward the task he has been given. For each day that the target fails to work in good faith toward the task, he loses one temporary Willpower and takes one health level of aggravated damage. For each two days spent working in good faith toward the task, he regains one health level lost from for disobeying the Geas.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 54
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.lend-authority",
+    "name": "Lend Authority",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.instill-obedience"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes",
+      "motes": 15
+    },
+    "duration": "1 day x the spirit's Willpower",
+    "description": "For each success on a Conviction + Presence check, the spirit may raise an individual's Presence by one dot. The spirit may not increase the target's Presence by more dots than the spirit's Essence, although it may increase it above 5. Only one use of this Charm may be active on an individual at any given time. The Presence lasts for one day for each dot of the spirit's Willpower.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 54
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.dreambane",
+    "name": "Dreambane",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.dreamscape"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes, 1 Willpower",
+      "motes": 15,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "This Charm acts exactly as the Compassion Charm Dreamscape, except that the roll made is Manipulation + Conviction, and any harm done to the target within the dream has a chance of leaking through to the target's physical body (as either bashing or lethal damage, as appropriate).\n\nIf the target takes damage in the dream, her player must make a reflexive Wits roll to see how much slips through to harm the character's real body. For every success on the wits roll, one health level is subtracted from the damage that the character took in the hallucination before it is applied to her real body. The character can never take more damage to her real body from a single event in the hallucination than the Essence of the spirit that used Dreambane on her.\n\nEach time damage gets through the soak roll, the target's player may make a Willpower roll. With three or more successes, the character wakes up. The player must also succeed a Willpower roll if the character takes enough damage to kill her in the dream before she wakes up. If the roll botches, the character dies (if mortal) or enters a coma for one week per point of the spirit's Essence (if Exalted). If the roll fails, the character wakes up at Incapacitated and must heal normally. If the roll succeeds, she wakes up with only one additional health level of bashing damage. This Charm may only be used on one target at a time.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 55
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.hoodwink",
+    "name": "Hoodwink",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "8 motes, 1 Willpower",
+      "motes": 8,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "This Charm allows the spirit to temporarily distract the target, causing his attention to focus on something other than the spirit. Roll the spirit's Manipulation + Conviction with a difficulty equal to the target's Essence. Simple success distracts the target for a turn — long enough for the spirit to run away or dematerialize. Three or more extra successes distract the target from anything it was thinking about the spirit, such as suspicions, accusations, anger, etc. Five or more extra successes means the target does not remember the spirit until something or someone reminds him of what he was thinking. This Charm requires extra successes to distract a target who is feeling negative emotions toward the spirit, and it requires at least three additional success to affect someone in combat with it.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 55
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.stillness",
+    "name": "Stillness",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "temperance",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "This Charm allows the spirit to remain absolutely, perfectly still.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 55
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.camouflage",
+    "name": "Camouflage",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.stillness"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes",
+      "motes": 10
+    },
+    "duration": "One scene",
+    "description": "This Charm allows the spirit to camouflage itself within whatever environment it happens to be in. A spirit standing against a rock takes on the coloration of that rock, and its edges might soften a bit, making its outline difficult to make out against the background. Roll the spirit's Wits + Temperance. Successes on this roll are added to any successes on the spirit's Dexterity + Stealth roll if it is attempting to actively hide. The result is the number of successes observers' players must roll on their Wits + Temperance checks (four net successes are required if the spirit is still, three if it moves slowly, two if it moves normally, and one if it moves quickly).",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 55
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.hurry-home",
+    "name": "Hurry Home",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "10 motes, 1 Willpower",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "With a successful Wits + Temperance check, a spirit may escape whatever situation it is in and return to its own home — what exactly constitutes the spirit's home is a matter for Storyteller discretion. The more tense and hurried the situation, the more successes the spirit requires. One success is all that's needed in a relaxed, quiet setting. Five successes take the spirit home even in the middle of a combat.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 56
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.portal",
+    "name": "Portal",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.hurry-home"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes, 1 Willpower",
+      "motes": 15,
+      "willpower": 1
+    },
+    "duration": "One turn",
+    "description": "A successful Intelligence + Temperance check allows the spirit to open up a portal large enough for it to step through. The portal lasts for one turn; during that time, anyone else may step through it as long as they can fit through the opening. With one success, the portal takes the travelers to a random (though not immediately harmful) location. With two successes, the spirit may loosely direct the exit point (\"Southern Deserts, please\") or go directly to its home. Five or more successes allow the spirit to direct the portal wherever it pleases. Extra successes beyond the successes required for pinpointing the portal's exit point allow the spirit to triple the radius of the portal.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 56
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.transport",
+    "name": "Transport",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.portal"
+      ]
+    ],
+    "cost": {
+      "raw": "20 motes, 1 Willpower",
+      "motes": 20,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "A successful Dexterity + Temperance check allows the spirit to transport itself wherever it chooses. For each success, it may transport one passenger (willing or unwilling) as well, though it costs one additional Willpower point if there are passengers involved. All passengers must be within the line of sight of the spirit. The spirit must have been to the destination before.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 56
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.banish",
+    "name": "Banish",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.transport"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 1 Willpower per target",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "With this Charm, a spirit may banish any targets within line of site to a random habitable location up to one mile distant (i.e., a human would not be banished to an underwater location or dumped in a lava flow). Roll the spirit's Perception + Temperance. Each success allows one target to be banished in this manner. The more successes, the farther away the target is likely to be sent. This Charm must be used within the bounds of the spirit's home territory.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 56
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.capture",
+    "name": "Capture",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 5,
+    "min_essence": 6,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.banish"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes, 1 Willpower per target",
+      "motes": 15,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "With this Charm, a spirit may transport any targets within line of site to a location of the spirit's choosing, as long as it isn't immediately deadly to the target (the target could be transported into a cage or into the cave of a dangerous beast, but not into a lava flow or the bottom of the ocean unless the target could survive those places). Roll the spirit's Dexterity + Temperance. Each success allows one target to be captured in this manner.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 57
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.sustenance",
+    "name": "Sustenance",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "Instant",
+    "description": "The spirit must touch a mortal in order to activate this Charm. This does not involve a Brawl or Martial Arts check, as this Charm works only on a sleeping mortal. After the spirit touches the target, roll its Wits + Temperance. For each success, the spirit devours one mote of Essence. This Charm always involves some other method of sustenance as well. The spirit might feed on the dreams and nightmares of the mortal, or on her breath. Whatever the spirit feeds on does not harm the mortal, although it might have mild (and temporary) effects when the mortal wakes up. Even if the spirit does not regain the Essence it spent, it still feels satiated from the other part of its meal.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 57
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.steal-sustenance",
+    "name": "Steal Sustenance",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.sustenance"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes, 1 Willpower",
+      "motes": 6,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "The spirit must touch a sleeping mortal in order to activate this Charm. Roll the spirit's Strength + Temperance. At least two successes are required. Not only does this Charm steal two motes of Essence per success, but it also devours something that leaves the mortal impaired in some way — hearing, sight, etc. — although it leaves the body apparently unharmed. Only supernatural healing of some sort restores the loss; it never heals normally. Even if the spirit does not replenish the Essence it spent, it feels satiated.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 57
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.details",
+    "name": "Details",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "Spirits use the Details Charm to change small details of their physical appearance, upon a successful Charisma + Valor check. Each use of this Charm allows one discrete detail to be changed. The size and complexity of the detail depends on the number of successes the spirit achieves. One or two successes allow a small detail to be changed: hair length, the shape of the spirit's pupils. Three or four allow the spirit to change larger details: the design of a dress, the length of its limbs. Five or more successes allow the spirit to create details from nothing: a bracelet where there was none.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 57
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.form-match",
+    "name": "Form Match",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.details"
+      ]
+    ],
+    "cost": {
+      "raw": "8 motes per day, 1 Willpower",
+      "motes": 0,
+      "willpower": 1
+    },
+    "duration": "Variable",
+    "description": "The spirit may take on another's physical form upon a successful Charisma + Valor check. This requires the spirit to touch the being to be emulated, which may require a successful Dexterity + Brawl or Martial Arts check, depending on the circumstances. The spirit must pay in advance and choose up front how many motes to spend; if it chooses to break the Charm early, those motes are not recovered.\n\nA very successful Perception + Awareness check may see through the disguise. Four successes indicate that small elements of the disguise seem wrong, while five or more indicate that the shapechanging seems patently false.\n\nSome spirits and Exalted may possess Charms designed to see through such trickery.\n\nCertain actions may allow someone to see through such a disguise or may momentarily break through the disguise; superstitions of various areas prescribe different actions. Some of these are: looking at someone's reflection in a fractured mirror, looking at someone through lenses that have been soaked in a special herbal solution, blowing ashes of certain types of wood into someone's face. Which superstitions apply depends on the spirit. Some particularly difficult \"rituals\" may break the disguise entirely.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 58
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.shapechange",
+    "name": "Shapechange",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "12 motes per day",
+      "motes": 0
+    },
+    "duration": "Variable",
+    "description": "The spirit may take on any physical form it wishes upon a successful Charisma + Valor check; it must pay the cost for the full duration in advance (if the spirit breaks the Charm early, the extra motes are not recovered). After that, the spirit must reactivate the Charm if it wishes to continue the masquerade, making the Charisma + Valor check again. The spirit must spend another 10 motes and a Willpower point in advance (once per use of the Charm, not per day) if it wishes its Abilities, Attributes, etc. to change with its form. This latter restriction does not apply if the spirit has a very limited number of forms and knows them very well.\n\nThe Shapechange Charm may be seen through in the same manner as the Form Match Charm, above.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 58
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.will-o-wisp",
+    "name": "Will-o-Wisp",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One turn",
+    "description": "The spirit causes brief, somewhat muddled manifestations of sound, smell, and light, such as a ball of light or indistinct sounds of conversation. Roll the spirit's Manipulation + Valor. The more successes, the more noticeable these manifestations are (louder, brighter) and the longer they may last. This Charm may not be used in precise ways — no writing words or making pictures in light; no speaking distinct phrases.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 58
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.ghostly-presence",
+    "name": "Ghostly Presence",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.will-o-wisp"
+      ]
+    ],
+    "cost": {
+      "raw": "8 motes",
+      "motes": 8
+    },
+    "duration": "One scene",
+    "description": "The spirit may cause the same manifestations as Will-o-Wisp, again making a Manipulation + Valor check. This time, however, it may create distinct patterns. Ghostly writing may be created. This Charm may be used to hold a conversation with a target while the spirit is unmanifested. The number of successes affects how distinct the manifestations are, how precisely controlled they are, and just how thoroughly the spirit may manipulate its medium. With five successes, the spirit may paint simple scenes out of light, sound and smell. These scenes may not be larger than ten feet in any direction, and they are obvious to anyone who is close enough to observe them.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 58
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.paralyze",
+    "name": "Paralyze",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "6 motes",
+      "motes": 6
+    },
+    "duration": "Instant",
+    "description": "Through the use of this Charm, spirits can paralyze targets. It must touch its target for this Charm to work, which may require a successful Dexterity + Brawl or Martial Arts check. If the spirit successfully touches its target, roll its Strength + Valor with a difficulty equal to the target's Stamina. Every extra success the spirit achieves causes the target to suffer a -2 penalty to all rolls involving movement or agility for the rest of the scene.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 58
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.affinity-element-control",
+    "name": "Affinity Element Control",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "6 motes",
+      "motes": 6
+    },
+    "duration": "One scene",
+    "description": "The spirit may use this Charm to affect whichever element(s) it shares an affinity with. For example, a forest spirit could affect Wood, and possibly Earth (Storyteller's discretion). This allows spirits to cause or calm small floods and rainstorms, twist a small torch into a raging inferno or a delicate dance of firelight, create gusts of wind, open a hole in the earth or twist tree limbs into manacles.\n\nRoll the spirit's Manipulation + Valor. The number of successes indicates how fine a level of control the spirit has and how powerful an effect it can create. One success allows a spirit to call forth a mild rain or light a campfire, while three allow a spirit to cause a rainy day or build a torch into a bonfire without any extra fuel. Five successes might allow a spirit to create a phantom lover out of air itself or instantly consume a large wooden structure in flames. The spirit may manipulate a one-yard cube of an element per point of Essence it possesses. In the case of area effects like rain, it could cause the effect in a five-meter radius per permanent Essence point.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 58
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.element-control",
+    "name": "Element Control",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.affinity-element-control"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 1 Willpower",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "The same as Affinity Element Control, except that the spirit can control any element, not just one to which it is attuned.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 59
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.weather-control",
+    "name": "Weather Control",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.affinity-element-control"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes",
+      "motes": 10
+    },
+    "duration": "Instant",
+    "description": "This Charm allows the spirit to control the weather. Note that this may duplicate some effects of the Element Control Charms, but its effects are limited to weather phenomena: rain, fog, floods, storms, heat, cold, etc. This charm affects a larger area as well — a one-mile radius per permanent Essence point. Roll the spirit's Manipulation + Valor; the number of successes determines the size of the effect the spirit can create, and the length of time before the area's natural climate reasserts itself. One success allows small changes — a low wind could be created, or a heavy wind could be downgraded to a moderate wind. Three successes allow the creation of a moderate rainstorm or a mild heat wave. Five successes allow wild changes in local weather patterns, such as high heat in the middle of the month of Ascending Water. It takes one hour per success for the local weather patterns to reassert themselves. Unnatural or one-time meteorological effects that are halted by the use of this Charm can be considered ended.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 59
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.ignite",
+    "name": "Ignite",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 or 5 motes",
+      "motes": 0
+    },
+    "duration": "Instant",
+    "description": "The spirit may, upon a successful Stamina + Valor check, set fire to whatever item it touches. This requires 5 motes if the item is nonflammable.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 59
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.element-touch",
+    "name": "Element Touch",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "10 motes, 1 Willpower",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "One day",
+    "description": "This Charm causes its target to become \"touched\" by the spirit's element. The spirit must touch its target for this Charm to work, possibly requiring a successful Dexterity + Brawl or Martial Arts attack. Roll the spirit's Manipulation + Valor with a difficulty equal to the target's Essence. The more extra successes, the more intense the target's reaction to this Charm. A Fire-aspected spirit causes someone to grow feverish. The target might take on some of the personality traits associated with fire: a hotheaded temper, lusty libido, curiosity, anger, vengeance, forcefulness or willfulness. The effects of this Charm last for one day or until the spirit chooses to release the target, whichever comes sooner. This Charm is a favorite among demons, who use it to bring out the worst in targets.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 59
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.element-kiss",
+    "name": "Element Kiss",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.element-touch"
+      ]
+    ],
+    "cost": {
+      "raw": "20 motes, 1 Willpower",
+      "motes": 20,
+      "willpower": 1
+    },
+    "duration": "One week",
+    "description": "This Charm is the same as Element Touch, but it lasts for one week or until the spirit chooses to release the target, whichever comes sooner. Like Element Touch, this Charm requires the spirit to touch its target. If the spirit achieves three or more successes, the target may have hallucinations that support and intensify his reaction.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 59
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.element-infusion",
+    "name": "Element Infusion",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.element-kiss"
+      ]
+    ],
+    "cost": {
+      "raw": "30 motes, 2 Willpower",
+      "motes": 30,
+      "willpower": 2
+    },
+    "duration": "One month",
+    "description": "This Charm is similar to the lesser Element Kiss and Element Touch Charms, but lasts for one month or until the spirit chooses to release the target (whichever comes sooner). Like the two lesser Charms, the spirit must either touch the target or look into the target's eyes. Roll the spirit's Manipulation + Valor with a difficulty equal to the target's Essence. With two or more successes, the target has the hallucinations described under Element Kiss. At three or more successes, the target may well harm herself under the force of her reaction.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 59
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.tiny-damnation",
+    "name": "Tiny Damnation",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One day",
+    "description": "The effects of this Charm always fade by the next morning's sunrise, and it may not be cast more than once per day on the same target. Some possible curses:\n- One dot lost from an Ability of the spirit's choosing.\n- The loss of one temporary Willpower point.\n- The loss of two motes of Essence.\n- Bad luck: the target loses one die from any normal Ability checks (not Charm checks) that relate to the way in which the target offended the spirit.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 60
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.imprecation",
+    "name": "Imprecation",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 1,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.tiny-damnation"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes",
+      "motes": 10
+    },
+    "duration": "One week",
+    "description": "The effects of this Charm last for one week, and it may not be cast more than once per week on the same target. Some possible curses:\n- Loss of two Ability dots, distributed as the spirit sees fit.\n- The loss of two temporary Willpower points.\n- The loss of one Attribute dot of the spirit's choosing.\n- The loss of five motes of Essence.\n- Bad luck: the target removes one die from normal Ability checks (not Charm checks).\n- A mark appears in an obvious place on the target that only spirits or Exalted with some sort of supernatural sight can see. This may, for example, urge any spirits who meet the target to torment him.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 60
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.malediction",
+    "name": "Malediction",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.imprecation"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes, 1 Willpower",
+      "motes": 15,
+      "willpower": 1
+    },
+    "duration": "One week",
+    "description": "The effects of this Charm last for one week, and it may not be used on a target more than once every two weeks. Some possible effects:\n- Loss of four Ability points, distributed as the spirit sees fit.\n- Loss of two Attribute points, distributed as the spirit sees fit.\n- Loss of three temporary Willpower points.\n- Loss of ten motes of Essence.\n- Bad luck: the target removes one die from both normal Ability checks and Charm checks.\n- The effects of one Charm (of Virtue 1, Essence 1) that the spirit possesses may be conferred upon the target, but that effect is twisted in some way. If Natural Prognostication were conferred, the target might predict only the bad things that will happen to his companions. Or his predictions might be more than a little mixed up. Landscape Travel, if cast on someone traveling through a forest, might force him to travel through the trees and prevent him from ever touching the ground. This twisted Charm lasts for no more than one week.",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 60
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.scourge",
+    "name": "Scourge",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.malediction"
+      ]
+    ],
+    "cost": {
+      "raw": "20 motes, 1 permanent Willpower",
+      "motes": 20,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "This curse is never cast lightly, and it may not be cast more than once per year. Only spirits that have been drastically wronged in heinous ways would consider using this curse (if just because they wouldn't be able to cast it again for another year).\n- Loss of one Attribute point, permanently. It must be bought back up through practice (and experience points). Against a mortal character, this Charm also permanently lowers the character's maximum score in that Ability by one.\n- Loss of two Ability points, permanently, distributed as the spirit sees fit. Only practice and experience points may buy this back up again.\n- Loss of one permanent Willpower point.\n- Loss of one permanent Essence point.\n- Loss of all temporary Willpower.\n- The effects of one Charm (maximum Virtue 2, Essence 2) that the spirit possesses may be conferred upon the target, but the effect is twisted in some way (as Malediction). This lasts for twice as long as the Charm would normally last. In rare cases (Storyteller discretion) the effect may be permanent.\n- Bad luck: the target attracts ill-intentioned spirits wherever he goes. Duration permanent.\n- The spirit may permanently change some physical feature of the target, such as facial hair or eye color. (This alteration may not change any Attributes by more than one point.)",
+    "source": {
+      "book": "Exalted 1e Storyteller's Companion",
+      "page": 60
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.wyld-armor",
+    "name": "Wyld Armor",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.sense-domain"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes + 2 committed motes per additional person protected",
+      "motes": 3
+    },
+    "duration": "Indefinite",
+    "description": "Using this Charm, the spirit can protect a number of people equal to twice it's Essence from the Wyld. Each person protected adds a number of dice equal to the permanent Essence of the spirit protecting her to any rolls to resist the effects of the Wyld (minimum 1 die).",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 223
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.wyld-shield",
+    "name": "Wyld Shield",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.wyld-armor"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes, 1 Willpower",
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "Indefinite",
+    "description": "Using this Charm, a spirit can defend a tribe or other large group from the ravages of the Wyld. The group must be defined in some readily understandable and limited fashion; \"all the people of Farseeker's tribe\" is acceptable, as is \"that war party there\", while \"all of the barbarians who dwell near the Wyld\" is not. So long as the little god maintains this blessing, those who fall under the definition set will gain dice equal to half the little god's permanent Essence on all attempts to withstand Wyld addiction and mutation (minimum bonus of one die).",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 223
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.wyld-barrier",
+    "name": "Wyld Barrier",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.wyld-shield"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 2 Willpower",
+      "motes": 10,
+      "willpower": 2
+    },
+    "duration": "Indefinite",
+    "description": "Using this Charm, the spirit can protect a number of people from the Wyld equal to twice her Essence. The player of anyone so protected adds a number of dice equal to the permanent Essence of the spirit protecting him to any rolls to resist the effects of the Wyld.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 223
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.ride",
+    "name": "Ride",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.possession"
+      ]
+    ],
+    "cost": {
+      "raw": "20 motes, 1 Willpower",
+      "motes": 20,
+      "willpower": 1
+    },
+    "duration": "Indefinite",
+    "description": "This Charm allows a spirit to possess someone indefinitely, riding them as if the host's body were its own and laying the groundwork for a true fusion of spirit and mortal form. In order for this Charm to work, the potential vessel must consent to the spirit's possessing him. Otherwise, it does not function and the spirit must rely on cruder Charms, such as Soul Rapt. The results of the Charm depend on the difference in the Essence of the host and the possessing spirit. If the spirit's Essence exceeds the host's by three or more, the host acquires the spirit's Traits (both Attributes and Abilities). If the host's Essence exceeds the spirit's by three or more, the spirit acquires the host's Traits. If the Essence of host and spirit are within two points of one another, a true fusion is achieved in which the combined entity has the average of the Traits of both halves, rounded up. The fusion also acquires the average of the spirit and the subject's temporary Essence after subtracting the 20 motes needed to trigger the Charm. If the being is an Exalt, add all temporary Essence together before determining the average — the result of a god synthesis with an Exalt has only Peripheral Essence. In addition, it has access to one of the god's Charms per point of total permanent Essence. These Charms cannot include Dematerialize.\n\nThis Charm is exceedingly rare outside of Rathess, the surrounding regions and other backwaters. Gods and spirits hailing from regions close to the Realm generally avoid using it, out of fear that the Immaculates would notice and take offense. The Immaculate Philosophy's adherents consider use of this Charm a grave blasphemy and take harsh measures to suppress its continued use. If the host is slain, the spirit reforms in one-third the normal time, and the spirit will never lose its individual identity as a result. If the host is killed using Charms that have the effect of slaying a spirit forever (as with Ghost-Eating Technique) the spirit and the host's higher soul are both destroyed. Spirits using this Charm are not constantly drained the way those who simply create bodies for themselves out of Essence through the use of the Materialize Charm are.",
+    "source": {
+      "book": "Exalted 1e Ruins of Rathess",
+      "page": 65
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.hollow-out-the-soul",
+    "name": "Hollow Out the Soul",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.ride"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes, 1 Willpower",
+      "motes": 15,
+      "willpower": 1
+    },
+    "duration": "Indefinite",
+    "description": "This Charm allows a spirit to utterly destroy the soul of a being it is riding, thereby creating a host lacking the ability to regain control. The spirit rider may then use the body as a host at will or vacate it, during which time it assumes a comatose state until either the spirit returns or the vessel is destroyed. To attempt to use this Charm, the spirit must be in contact with the target. Make an extended roll of Conviction + Essence against the target's Willpower + Essence, one roll per activation of the Charm. If the spirit accumulates successes equal to the target's Essence, he succeeds, destroying the victim's soul permanently. Failing at any point in this process casts out the spirit, who may never again attempt to use this Charm against the same would-be host.\n\nA soulless body retains all its Physical Attributes (Strength, Dexterity and Stamina), which the spirit may either use as they were before hollowing out the soul or augment with its own Attributes (if higher). However, its Mental and Social Attributes cease to exist. The body now uses its spirit rider's Attributes in these areas, as well all of its other characteristics (such as Willpower, Essence, Abilities, Charms, etc.). Such a body is indeed little more than an empty vessel, and the spirit primarily gains the ability to manifest in a particular physical form on a permanent basis — a valuable ability in some cases.\n\nA body without a soul lasts only two weeks before it begins to show signs of physical corruption, becoming useless to the spirit after an additional week. This decay may be staved off by the commitment of 2 additional motes of Essence per day, each infusion pushing back the start of the two-week period. All Essence spent activating the Charm remains committed until the host body decays.",
+    "source": {
+      "book": "Exalted 1e Ruins of Rathess",
+      "page": 66
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.conditional-blessing",
+    "name": "Conditional Blessing",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.benefaction"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes, 1 Willpower",
+      "motes": 3,
+      "willpower": 1
+    },
+    "duration": "Until Calibration",
+    "description": "With these Charms, a spirit may place a mark of Essence upon a target in its line of sight as a delayed trigger for another Charm. If the delayed effect has a positive intent, the spirit must know and use the Compassion Charm Conditional Blessing. A negative or harmful intent requires the Valor Charm Conditional Curse. A Manipulation + Compassion/Valor roll against a difficulty of the target's Essence is necessary to inscribe the mark. If this roll succeeds, the spirit chooses one Charm it knows that can directly affect that target. If the selected Charm has multiple uses or permutations, the spirit must also select the exact effects the Charm will take. The spirit then establishes the precise actions the target must perform to trigger the delayed Charm.\n\nThe spirit may include as many conditions as desired, any of which may be as elaborate or straightforward as desired. For example, the spirit may decide to heal a loyal shaman with Touch of Grace if she speaks a specific prayer petitioning aid. Conversely, a demon might arrange to summon its Demon-Blooded daughter to a dungeon in Malfeas (via Capture) if she ever disobeys a direct order or reveals her infernal heritage to anyone she is not actively trying to kill.\n\nWhenever the target of a Conditional Blessing or Curse performs the requisite actions, the spirit knows. At any time, it may then immediately activate the triggered Charm as a reflexive action to end the Conditional Blessing/Curse regardless of distance or withhold its benediction/wrath until it can learn more about the target's actions.\n\nThis Charm and its mark also fade without effect if the target does not meet the established conditions by the next Calibration. Only spirits and other beings capable of perceiving Essence at work can see the mark of an extant Conditional Blessing/Curse.",
+    "source": {
+      "book": "Exalted 1e Player's Guide",
+      "page": 82
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.conditional-curse",
+    "name": "Conditional Curse",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "spirit.spirit-templates.imprecation"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes, 1 Willpower",
+      "motes": 3,
+      "willpower": 1
+    },
+    "duration": "Until Calibration",
+    "description": "With these Charms, a spirit may place a mark of Essence upon a target in its line of sight as a delayed trigger for another Charm. If the delayed effect has a positive intent, the spirit must know and use the Compassion Charm Conditional Blessing. A negative or harmful intent requires the Valor Charm Conditional Curse. A Manipulation + Compassion/Valor roll against a difficulty of the target's Essence is necessary to inscribe the mark. If this roll succeeds, the spirit chooses one Charm it knows that can directly affect that target. If the selected Charm has multiple uses or permutations, the spirit must also select the exact effects the Charm will take. The spirit then establishes the precise actions the target must perform to trigger the delayed Charm.\n\nThe spirit may include as many conditions as desired, any of which may be as elaborate or straightforward as desired. For example, the spirit may decide to heal a loyal shaman with Touch of Grace if she speaks a specific prayer petitioning aid. Conversely, a demon might arrange to summon its Demon-Blooded daughter to a dungeon in Malfeas (via Capture) if she ever disobeys a direct order or reveals her infernal heritage to anyone she is not actively trying to kill.\n\nWhenever the target of a Conditional Blessing or Curse performs the requisite actions, the spirit knows. At any time, it may then immediately activate the triggered Charm as a reflexive action to end the Conditional Blessing/Curse regardless of distance or withhold its benediction/wrath until it can learn more about the target's actions.\n\nThis Charm and its mark also fade without effect if the target does not meet the established conditions by the next Calibration. Only spirits and other beings capable of perceiving Essence at work can see the mark of an extant Conditional Blessing/Curse.",
+    "source": {
+      "book": "Exalted 1e Player's Guide",
+      "page": 82
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.dematerialize",
+    "name": "Dematerialize",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "Varies"
+    },
+    "duration": "Indefinite",
+    "description": "Through the use of this Charm, an elemental may transmute its flesh and personal belongings into spiritual Essence, thereby assuming an incorporeal state. Dematerialized elementals may perceive and interact with other incorporeal beings as if both were solid, either magically or with touch. However, immaterial beings are utterly undetectable to physical beings and cannot directly affect the physical world in any way without Charms or other powers intended for such use (such as Possession, Will-o-Wisp etc.).\n\nDematerialized elementals with Essence 2+ can spend 1 mote to manifest for a scene as a translucent phantom of themselves and speak in a quiet voice or whisper, exactly as normally immaterial spirits can do as an innate ability. As always, the Storyteller remains the final arbiter of whether a particular power may affect the physical world from a dematerialized state. This lack of physical interaction also allows an incorporeal elemental to effortlessly pass through solid walls and other material obstructions, though appropriate magical wards can still bar their path.\n\nThe cost of this Charm is normally between 50 percent and 100 percent of the elemental's total available Essence pool. For elementals without a listed cost to dematerialize, the percentage cost of total Essence they must expend equals their (Essence rating x 5) + 45, rounded up. For example, a spirit with Essence 2 and an available pool of 48 motes pays 27 motes (55 percent).\n\nEclipse Caste Solars and Moonshadow Caste Abyssals who learn this Charm also calculate their cost according to the preceding formula without applying the usual double cost modifier for learning spirit Charms, determining the value according to a percentage of their total Essence pool (Personal + Peripheral). The half-spirit descendents of gods, elementals and demons do not pay a percentage of their total pool, instead paying a cost of their (Essence rating x 5) + 5 motes.\n\nUnlike other Charms of non-instant duration, Dematerialize does not require that elementals commit the Essence cost to sustain the magic. However, beings that normally exist in a material state cannot regain Essence through respiration while Dematerialized (and vice versa for immaterial spirits who materialize). Instead of committing Essence, beings using this Charm must pay half the normal cost each day at sunrise as a reflexive upkeep, rounded up. Failure to pay this upkeep immediately ends the effects of the Charm. Otherwise, characters must spend a dice action reverting back to their natural state, though success is automatic.\n\nThe rules printed here expand upon and supersede those for the Materialize Charm in Exalted and apply in reverse for that Charm.",
+    "source": {
+      "book": "Exalted 1e Player's Guide",
+      "page": 82
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.ox-body-technique",
+    "name": "Ox-Body Technique",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Special",
+    "min_virtue": "conviction",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "repeatable_cap_virtue": "conviction",
+    "variants": [
+      {
+        "key": "two-minus-two",
+        "label": "Two -2 levels",
+        "health_levels": [
+          -2,
+          -2
+        ],
+        "description": "Gain two extra -2 health levels."
+      }
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "Like the Exalted, the children of spirits may also exhibit superhuman resilience. Each time this Charm is purchased, the character gains two additional -2 health levels. Characters cannot purchase this Charm more times than their Conviction rating. Actual gods, elementals and demons do not normally use this Charm, but instead manifest health levels appropriate to their nature. As the souls of mortals, ghosts require this Arcanos to surpass mortal limits of resilience. (PG p.83)",
+    "source": {
+      "book": "Exalted 1e Player's Guide",
+      "page": 83
+    }
+  }
+]

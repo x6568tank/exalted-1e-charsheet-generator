@@ -1454,6 +1454,71 @@ def page_godblooded_fae_stale_origin_editor():
 def page_godblooded_fae_no_origin_editor():
     editor.build_editor(RS, CHAR_FAE_NO_ORIGIN, Path("x.json"), with_header=False)
 
+
+def _god_blooded(cid: str, name: str, origin: str) -> Character:
+    c = Character(id=cid, name=name, exalt_type="God-Blooded",
+                  caste="god-blooded", origin=origin, essence_rating=2)
+    c.virtues = {VirtueName.COMPASSION: 2, VirtueName.CONVICTION: 3,
+                 VirtueName.TEMPERANCE: 2, VirtueName.VALOR: 2}
+    # Awakened Essence (shared pool) + a Divine-origin Merit (p.45) whose "Patron at
+    # least 3" prerequisite is satisfied by the background below.
+    c.merits_flaws = [MeritFlawPurchase(merit_id="mf.awakened-essence"),
+                      MeritFlawPurchase(merit_id="mf.divine-apprentice")]
+    c.backgrounds = [BackgroundEntry(name="Patron", rating=3)]
+    # A held spirit Charm (Min Compassion 1 / Essence 1, no prereqs — learnable at
+    # these stats). The sheet must render it under "Charms", never "Arcanoi".
+    c.charms = ["spirit.spirit-templates.measure-the-wind"]
+    return c
+
+
+def _demon_blooded(cid: str, name: str) -> Character:
+    c = Character(id=cid, name=name, exalt_type="God-Blooded",
+                  caste="demon-blooded", essence_rating=2)
+    c.virtues = {VirtueName.COMPASSION: 2, VirtueName.CONVICTION: 3,
+                 VirtueName.TEMPERANCE: 2, VirtueName.VALOR: 2}
+    # A Demon-Blooded Merit with no origin axis (p.52) + the shared pool.
+    c.merits_flaws = [MeritFlawPurchase(merit_id="mf.awakened-essence"),
+                      MeritFlawPurchase(merit_id="mf.gatekeeper")]
+    # Same held spirit Charm — learnable by a Demon-Blooded too ("follow the same
+    # rules regarding Charm selection as God-Blooded", p.48).
+    c.charms = ["spirit.spirit-templates.measure-the-wind"]
+    return c
+
+CHAR_GOD_BLOODED = _god_blooded("gb", "Warden of the Gilded Gate", "Divine")
+CHAR_DEMON_BLOODED = _demon_blooded("dbd", "Silver-Tongued Apostate")
+
+@ui.page('/godblooded-god-advantages')
+def page_godblooded_god_advantages():
+    advantages.build_advantages(RS, CHAR_GOD_BLOODED, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-god-editor')
+def page_godblooded_god_editor():
+    editor.build_editor(RS, CHAR_GOD_BLOODED, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-god-picker')
+def page_godblooded_god_picker():
+    picker.build_picker(RS, CHAR_GOD_BLOODED, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-god-sheet')
+def page_godblooded_god_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_GOD_BLOODED))
+
+@ui.page('/godblooded-demon-advantages')
+def page_godblooded_demon_advantages():
+    advantages.build_advantages(RS, CHAR_DEMON_BLOODED, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-demon-editor')
+def page_godblooded_demon_editor():
+    editor.build_editor(RS, CHAR_DEMON_BLOODED, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-demon-picker')
+def page_godblooded_demon_picker():
+    picker.build_picker(RS, CHAR_DEMON_BLOODED, Path("x.json"), with_header=False)
+
+@ui.page('/godblooded-demon-sheet')
+def page_godblooded_demon_sheet():
+    sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_DEMON_BLOODED))
+
 # Artifact re-verify repro: a Dragon King in the two-flagships shape (Artifact 5 +
 # two 5-dot artifacts) so the live rating-edit round-trip can be driven in a test.
 CHAR_DK_2FLAG = Character(id="dk2f", name="Two Flagships", exalt_type="Dragon-Kings",

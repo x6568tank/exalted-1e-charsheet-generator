@@ -398,6 +398,71 @@
     }
   },
   {
+    "id": "god-blooded",
+    "exalt_type": "God-Blooded",
+    "label": "God-Blooded",
+    "description": "The children of gods and elementals, and the most common God-Blooded by far. God-Kin learn the spirit Charms of their magical parents exactly as their parents do, though they cannot learn Wyld Shield and may only develop a lesser variation of the Portal Charm (costing permanent Willpower in place of temporary). (PG p.48)",
+    "anima_powers": "God-Blooded do not display an anima banner; the single exception is a character with the Aura of Power Flaw (p.67). The children of elementals resonate with that element directly; those descended from gods claim the symbols of their parents.",
+    "heritage_traits": {
+      "unlocked_essence": {
+        "personal_essence_coeff": 5,
+        "personal_willpower_coeff": 2,
+        "personal_virtue_mode": "all",
+        "personal_virtue_coeff": 1,
+        "peripheral_essence_coeff": 0,
+        "peripheral_willpower_coeff": 0,
+        "peripheral_virtue_mode": "none"
+      },
+      "origin_options": ["Divine", "Elemental"],
+      "charm_access": ["Spirit"],
+      "magic_track": "sorcery",
+      "barred_charm_ids": [
+        "godblooded.death-in-life.transubstantiation-of-flesh",
+        "godblooded.death-in-life.lower-soul-ascendant",
+        "godblooded.death-in-life.spiteful-essence-onslaught",
+        "godblooded.death-in-life.wraith-form-transformation",
+        "godblooded.death-in-life.ghost-body-evasion",
+        "godblooded.death-in-life.restless-spirit-sojourn",
+        "spirit.spirit-templates.wyld-shield",
+        "godblooded.general-arcanoi.ox-body-technique"
+      ],
+      "heritage_power": "God-Blooded may attune their senses to the spirit world as a basic dice action for a cost of 1 Willpower point or 3 motes of Essence. This sixth sense allows a God-Blood to perceive all sanctum entrances and immaterial spirits within the range of her normal senses for one scene. (PG p.51)",
+      "ox_body_charm_id": "spirit.spirit-templates.ox-body-technique"
+    }
+  },
+  {
+    "id": "demon-blooded",
+    "exalt_type": "God-Blooded",
+    "label": "Demon-Blooded",
+    "description": "The children of demons. Yozi-Kin follow the same rules regarding Charm selection as God-Blooded, save that their Portal costs the same as usual but can only transport the character into a place within Malfeas or return him to the exact place in Creation where he opened the portal into the Demon Realm. (PG p.48)",
+    "anima_powers": "God-Blooded do not display an anima banner; the single exception is a character with the Aura of Power Flaw (p.67).",
+    "heritage_traits": {
+      "unlocked_essence": {
+        "personal_essence_coeff": 5,
+        "personal_willpower_coeff": 2,
+        "personal_virtue_mode": "all",
+        "personal_virtue_coeff": 1,
+        "peripheral_essence_coeff": 0,
+        "peripheral_willpower_coeff": 0,
+        "peripheral_virtue_mode": "none"
+      },
+      "charm_access": ["Spirit"],
+      "magic_track": "sorcery",
+      "barred_charm_ids": [
+        "godblooded.death-in-life.transubstantiation-of-flesh",
+        "godblooded.death-in-life.lower-soul-ascendant",
+        "godblooded.death-in-life.spiteful-essence-onslaught",
+        "godblooded.death-in-life.wraith-form-transformation",
+        "godblooded.death-in-life.ghost-body-evasion",
+        "godblooded.death-in-life.restless-spirit-sojourn",
+        "spirit.spirit-templates.wyld-shield",
+        "godblooded.general-arcanoi.ox-body-technique"
+      ],
+      "heritage_power": "Demon-Blooded may attune their senses to infernal energies as a reflexive action for a cost of 1 Willpower point or 3 motes of Essence. This sixth sense allows a Demon-Blood to perceive and recognize demons (immaterial or material), Infernal Exalted, Demon-Blooded, gates to Cecelyne, artifacts from the Demon Realm, beings enchanted by demonic magic and all other vessels or places of infernal power within the range of her normal senses for one scene. The character's mystical senses can infallibly pierce shapechanging and mundane disguises. Only magic that cloaks emanations of Essence can hide a source of infernal power from Yozi-Kin employing their birthright. (PG p.53)",
+      "ox_body_charm_id": "spirit.spirit-templates.ox-body-technique"
+    }
+  },
+  {
     "id": "pterok",
     "exalt_type": "Dragon-Kings",
     "label": "Pterok",

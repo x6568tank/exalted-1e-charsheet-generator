@@ -361,7 +361,15 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     # Identified by `min_virtue` rather than by a hardcoded list of the six category
     # strings: being Virtue-keyed is what MAKES a Charm an Arcanos, so a seventh path
     # (or another Virtue-keyed splat) needs no edit here.
-    _arcanoi_categories = {c.category for c in ruleset.charms.values() if c.min_virtue}
+    #
+    # ...except the spirit Charms. The God/Demon-Blooded catalogue is ALSO
+    # Virtue-keyed (same `min_virtue` axis as the Arcanoi) but is a different Charm
+    # class — spirit Charms, not Arcanoi. Without the exalt_type exclusion the
+    # God/Demon-Blooded picker's whole catalogue would sit under an "Arcanoi" page
+    # and the sheet would label each held spirit Charm "Arcanoi". The Arcanoi are
+    # authored for Ghost/God-Blooded; the spirit Charms carry exalt_type "Spirit".
+    _arcanoi_categories = {c.category for c in ruleset.charms.values()
+                           if c.min_virtue and c.exalt_type != "Spirit"}
 
     def _group_of(cat: str) -> str:
         if cat.startswith("martial_arts:"):
@@ -379,10 +387,14 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         own, so it does not follow them onto a foreign splat's page: an Eclipse
         learning Dragon-style Charms needs a tutor, not the Immaculate initiation."""
         want = state["group"] if group is None else group
-        cats = sorted({c.category for c in ruleset.charms.values()
-                       if viewmod.charm_on_splat_page(ruleset, character, c, state["splat"])
-                       and validate.category_available(ruleset, character, c.category)
-                       and _group_of(c.category) == want})
+        # A category whose Charms span several Virtues (the spirit Charms) is split
+        # into one entry per Virtue so each gets its own tree -- see view.virtue_split.
+        cats = sorted(
+            sub for cat in {c.category for c in ruleset.charms.values()
+                            if viewmod.charm_on_splat_page(ruleset, character, c, state["splat"])
+                            and validate.category_available(ruleset, character, c.category)
+                            and _group_of(c.category) == want}
+            for sub in (viewmod.virtue_split(ruleset, cat) or [cat]))
         return {c: _pretty(c) for c in cats}
 
     # ---- Splat page (Eclipse generalist rule, core p.127) ------------------- #
@@ -405,8 +417,14 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     # the Storyteller-permission flag, which is live pre-lock.
     _foreign_caste = validate.foreign_charms_caste(ruleset, character) is not None
 
-    _all_categories = sorted({c.category for c in ruleset.charms.values()
-                              if validate.charm_matches_splat(character, c, ruleset)})
+    # The spirit Charms live under ONE data category but span all four Virtues; the
+    # picker presents them as four trees (one per Virtue, see view.virtue_split), so
+    # the category list is expanded the same way -- otherwise _start would land on the
+    # un-split 'spirit_templates', which is not an option the dropdown offers.
+    _all_categories = sorted(
+        sub for cat in {c.category for c in ruleset.charms.values()
+                        if validate.charm_matches_splat(character, c, ruleset)}
+        for sub in (viewmod.virtue_split(ruleset, cat) or [cat]))
     _start = ("melee" if "melee" in _all_categories
               else (_all_categories[0] if _all_categories else ""))
     state = {"category": _start, "group": _group_of(_start) if _start else "abilities",

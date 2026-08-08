@@ -528,3 +528,171 @@ ST-gated god-specific Charms; pages get authored as the human pastes them.
 `barred_charm_ids`, the heritage `charms_available` flag and the `magic_track` sentinels
 are all in place — the day the pages land, God/Demon-Blooded is a data + one-flag flip,
 not a modelling job.
+
+## God/Demon-Blooded — heritage rows + M&F AUTHORED (2026-08-07, NOT browser-verified)
+
+The two heritage rows and 16 M&F shipped 2026-08-07 from the PG CH2 pages already on
+this machine (the human's "I'm on the home pc — feel free to do god/demons"); **everything
+here is data + tests, no browser yet.**
+
+### The spirit-Charm catalogue — AUTHORED (79 Charms, 2026-08-07)
+**The catalogue is 79 Charms.** It landed in three batches over 2026-08-07 and the
+subsections below are written in the order they happened, so read the count here and
+not the ones inside them: 8 (GoD appendix + PG) → 20 (+ the 12 corebook Charms) → **79**
+(+ the 46 Storyteller's Companion CH3, 4 more PG, 3 Ruins of Rathess, 3 Lunars). Sources
+by book: STC 50, corebook 12, GoD 6, PG 5, RoR 3, Lunars 3.
+
+The GoD appendix (`images/Non-Exalts/Spirit Charms/CH 4 - Spirit Charms.md`,
+pp.125-127) landed first and the 8-strong `spirit.` catalogue shipped:
+`data/charms/spirit_templates.json`, exalt_type **"Spirit"**, one category
+`spirit_templates`. Seven GoD appendix templates — Soul Rapt (Conviction 5),
+Worldly Illusion (Conviction 4), Donning Spiritual Armor (Temperance 2), Essence
+Inveigle (Temperance 3), Uncanny Prowess (Valor 2), Creation of Perfection (Valor
+2), Spirit-Cutting (Valor 3) — plus **Essence-Gifting Method** (Compassion 3, the
+chapter's missing Compassion set filled from the Mortals PG chapter p.123, the
+Investment Charms sidebar). All 8 are Virtue-keyed (`min_virtue` + the rating in
+`min_ability`), the ghost-Arcanoi shape. (They were briefly grouped under **Arcanoi**,
+since any `min_virtue` category was an Arcanos — that is no longer true, see item 4.)
+
+**Then the 12 corebook spirit Charms landed the same day** via the VLM
+transcription pipeline (see below): the corebook's four Virtue sets, transcribed
+from `Exalted.pdf` pp.291-294 / book pp.290-293 into `images/Non-Exalts/Spirit
+Charms/CH 8 - Corebook Spirit Charms.md`, human-vetted, authored into the same
+`spirit_templates.json`. **Compassion:** Measure the Wind, Stoic Endurance, Touch
+of Grace. **Conviction:** Harrow the Mind, Possession, Stoke the Flame.
+**Temperance:** Cunning Thief, Host of Spirits. **Valor:** Essence Bite,
+Materialize, Principle of Motion, Words of Power. (Note the corebook itself says
+spirit Charms have NO prerequisites — the wired prereqs below are the GoD
+appendix's own cross-references, which the appendix prints on its templates.)
+
+**⚠ Things to know about the catalogue:**
+1. **The category is `spirit_templates`, NOT `spirit`** — the Lunar Charms already own
+   category `spirit` (the Spirit ability), and the picker's `_arcanoi_categories` is a
+   GLOBAL set of every `min_virtue` category, so a virtue-keyed `spirit` category would
+   have hijacked the Lunar page off Abilities onto Arcanoi. A test pins the set; the
+   Lunar picker stayed green.
+2. **All four off-catalogue prereqs are now WIRED** (the STC batch closed the last
+   two). Soul Rapt → `possession`, Worldly Illusion → `harrow-the-mind` (corebook),
+   Essence Inveigle → `sustenance`, Essence-Gifting Method → `benefaction` AND
+   `dreamspeak` (STC). In every case the printed prereq moved out of the description
+   into the `prerequisites` field; a test gates Soul Rapt on knowing Possession.
+   **Nothing in the catalogue names a Charm that does not exist** — the loader's link
+   check would fail the suite if it did.
+3. **Wyld Shield + Portal are AUTHORED** (STC CH3, `spirit.spirit-templates.wyld-shield`
+   / `.portal`), and the p.48 ban is live: Wyld Shield is in BOTH heritages'
+   `barred_charm_ids`. Wyld Barrier requires Wyld Shield, so it is unreachable for
+   God/Demon-Blooded by prerequisite cascade rather than by its own bar — correct, and
+   deliberate. **The two Portal variants ride the heritage descriptions only** (the
+   God-Blooded's costs permanent rather than temporary Willpower; the Demon-Blooded's is
+   Malfeas-only with escape difficulty = own Essence): the catalogue holds the one
+   printed stat block, and the variance is the Storyteller's to apply. (The ids use
+   hyphens per the separator convention — the `spirit_templates` category name is the
+   underscore exception.)
+4. **Spirit Charms are NOT Arcanoi in the picker or on the sheet.** Both were
+   identified by `min_virtue` alone; that now excludes `exalt_type == "Spirit"`
+   (`picker._arcanoi_categories`, `view._section_label`). They are Charms — the human's
+   ruling 2026-08-07, *"they're charms"* — so they sit on the Abilities page and the
+   sheet files them under **Charms**. Because the one `spirit_templates` category spans
+   all four Virtues, `view.virtue_split` presents it as four trees
+   (`spirit_templates:<virtue>`), mirroring the ghost Arcanoi where each path is
+   already its own tree. `build_charm_graph` understands that composite key; the
+   `martial_arts:<style>` keys are NOT composites and stay on the direct-equality path.
+   `spirit_templates` is the only multi-Virtue category in the ruleset, so no other
+   splat's picker is touched.
+
+**Access wiring (engine, verified by tests):** `charm_access: ["Spirit"]` resolves on
+both routes (`charm_matches_splat` AND `charm_learnable_by_splat`) — the God-Blooded
+"learn spirit Charms exactly as their parents" and the Demon-Blooded "follow the same
+rules" (p.48). The other three heritages cannot touch the catalogue (Ghost-Blooded
+borrow the Arcanoi, the Half-Caste the parent's, the Fae-Blooded nothing). The Death-in-
+Life bar, the necromancy bar and the shared Ox-Body all still hold with the catalogue
+present.
+
+### The two heritage rows (`castes.json`, caste count 39 → 41)
+* **God-Blooded** — `origin_options: ["Divine", "Elemental"]` (the sub-axis ruling,
+  human 2026-08-07: the printed M&F are "Divine God-Blooded only" vs "Elemental
+  God-Blooded only", so the sub-axis is an **origin dropdown**, the Fae-Blooded
+  precedent, NOT a separate axis or a new field). `charm_access: ["Spirit"]`,
+  `magic_track: "sorcery"`, `barred_charm_ids` = the 6 Death-in-Life Arcanoi (ghost
+  heritage powers; the shared Ox-Body stays, p.47 "only two -2 health levels").
+* **Demon-Blooded** — **no origin axis** (the book prints no Divine/Elemental split).
+  Same `charm_access`, `magic_track`, and Death-in-Life bar.
+* Both ride the p.66 pool: `Ess × 5 + Willpower × 2 + Σ Virtues`
+  (`unlocked_essence`: personal_essence_coeff 5, personal_willpower_coeff 2,
+  personal_virtue_mode "all", personal_virtue_coeff 1), the shared
+  `mf.awakened-essence` pool, and the p.51/p.53 heritage powers (God: perceive sanctum
+  entrances and immaterial spirits; Demon: perceive infernal energies, pierce
+  shapechanging). `magic_track "sorcery"` bars Shadowlands necromancy via the existing
+  `heritage_bars_initiation` (only touches `grants_circle` Charms).
+
+### The 16 new M&F (`merits_flaws.json`, all gated by `barred_castes` on the four other
+heritages and by `required_origins` where the book splits)
+* **Divine God-Blooded** (9): Divine Apprentice (3 Social, prereq "Patron at least 3"),
+  Sanctum's Key (1 Supernatural), Artisan of Prayers (3), Respiring Touch (7),
+  Elemental Dominion (7, prereq Respiring Touch), Elemental Power (7, prereq Dominion,
+  "Essence 2"), Primal Restoration (7), Elemental Immunity (8, prereq Dominion, "Essence
+  2"), Elemental Archetype (2 Mental **flaw**).
+* **Demon-Blooded** (7): Gatekeeper (1 Social), Immunity to Possession (3),
+  Mark of Infernal Favor (3), Ordination of Lies (5), Ordination of Pain (5), Unholy
+  (4 Supernatural **flaw**, prereq Affected by Wards), Walking Blasphemy (5
+  Supernatural **flaw**, prereq Unholy, "Inheritance 3").
+* Elemental Dominion and Unholy descriptions begin with their printed prereq line
+  ("Prerequisites: Respiring Touch." / "Prerequisites: Affected by Wards.") so the
+  `test_every_description_matches_the_source_text` fidelity check passes on the two new
+  entries.
+
+### The Ox-Body split (ruling 2026-08-07, human)
+PG p.83 lists Ox-Body Technique as **(SPIRIT, ARCANOS)** — one Charm living in two
+catalogues. The human's ruling: **copy it into the Spirit catalogue for the
+God/Demon-Blooded and make the Arcanos version Ghost-Blooded-only.**
+
+* **New spirit Charm** — `spirit.spirit-templates.ox-body-technique` (Conviction 1,
+  repeatable cap by Conviction, two −2 levels, p.83 text). The `spirit_templates`
+  catalogue is now **79 Charms**; `SPIRIT_IDS` in `test_godblooded.py` carries it under
+  Conviction.
+* **The arcanos version is barred for God/Demon-Blooded** — both heritage rows append
+  `godblooded.general-arcanoi.ox-body-technique` to `barred_charm_ids` (now 8 entries),
+  so only the Ghost-Blooded can learn it. This emptied the `general_arcanoi` category for
+  them (its only other member was the already magic-track-barred necromancy initiation),
+  so **the Arcanoi picker page no longer exists for God/Demon-Blooded** — the picker
+  tests now assert `spirit_templates:<virtue>` trees instead. That is correct new
+  behaviour, not a regression.
+* **New per-heritage field** — `GodbloodedHeritage.ox_body_charm_id` (singular), checked
+  after `ox_body_charm_ids` (the parent-keyed Half-Caste override) and before the splat
+  fallback. God/Demon-Blooded → the spirit copy; Ghost-Blooded keeps the splat-level
+  arcanos. `rules_db.py` link-checks the new field.
+
+### Investiture of Infernal Glory — RULED OUT (human, 2026-08-07)
+The stat block IS transcribed (p.87: Cost 60 motes, 6 Willpower; Min Compassion 3 /
+Conviction 5 / Valor 4; Min Essence 7; prereqs Endowment, Geas, Memory Transference,
+Scourge) but it fits neither the single-`min_virtue` model nor God/Demon learnability,
+and the AKUMA prose (pp.382-391) makes it Demon-Prince-only. The human closed it:
+*"Akuma aren't PCs without heavy ST intervention. So we can, until it's needed, ignore
+it."* **Intentionally unauthored** — the stat block stays in the transcription for when
+it is needed; do not author it.
+
+### ⚠ The sorcery gap (open, not blocked)
+`magic_track "sorcery"` grants the Terrestrial circle, but **no
+terrestrial-circle-sorcery initiation Charm exists for God/Demon-Blooded** — only the
+Ghost-Blooded's Occult-5 necromancy initiation is authored. A God-Blooded cannot
+currently become a sorcerer. Needs a ruling/pages (does the book grant one? which
+page?) before it can ship; do not invent the initiation.
+
+### ⚠ Pre-existing machine-only test failure (NOT caused by this work)
+`test_every_description_matches_the_source_text` fails with 46 entries on this machine
+and passes on the laptop: the test routes each M&F by `source.page` to pasted chapters
+in `images/`, and the laptop lacks `CH2 - Godblooded.md` (entries defer) while this
+machine has it (check resumes and the descriptions summarize the fuller printed text →
+below 92%). The two new entries were brought to parity and are NOT in the failing list.
+Leave the 46 alone until the human decides; they are not a regression.
+
+**Still open — ONE thing, and it is not blocked on pages arriving:** the sorcery gap
+above. Everything the earlier drafts of this file listed as blocked has since landed —
+the GoD appendix set, the corebook batch, the STC CH3 batch, Wyld Shield and Portal —
+so `charm_access: ["Spirit"]` resolves, the Wyld Shield ban is live, and every printed
+prerequisite is wired to a real id. What is missing is a RULING, not a transcription:
+which page (if any) grants a God/Demon-Blooded the terrestrial-circle initiation. Do
+not invent it.
+
+**NOT browser-verified.** Run `preflight`, then the click-through, before this section
+loses its warning.

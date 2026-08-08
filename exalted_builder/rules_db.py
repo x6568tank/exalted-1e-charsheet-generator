@@ -353,6 +353,10 @@ def _check_charm_references(exalts, castes, charms, spells, problems: list[str])
                 if cid not in charms:
                     problems.append(
                         f"caste {caste.id!r}: {field}[{parent!r}] {cid!r} does not exist")
+        # The heritage's own single Ox-Body (God/Demon-Blooded -> the spirit copy).
+        cid = heritage.ox_body_charm_id or ""
+        if cid and cid not in charms:
+            problems.append(f"caste {caste.id!r}: ox_body_charm_id {cid!r} does not exist")
 
 
 def _check_camps_and_callings(camps, callings, charms, problems: list[str]) -> None:

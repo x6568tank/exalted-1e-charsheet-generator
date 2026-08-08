@@ -2122,6 +2122,404 @@
   }
  },
  {
+  "id": "mf.divine-apprentice",
+  "name": "Divine Apprentice",
+  "kind": "merit",
+  "category": "Social",
+  "cost": 3,
+  "cost_note": "(3-PT. SOCIAL MERIT, DIVINE GOD-BLOODED ONLY)",
+  "prerequisite_note": "Patron at least 3",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "half-caste",
+   "demon-blooded",
+   "fae-blooded"
+  ],
+  "required_origins": [
+   "Divine"
+  ],
+  "description": "A God-Blood with this Merit has already served with exceptional distinction, so much so, in fact, that his spirit parent has chosen to groom him for eventual deification. The character must continue to serve faithfully in all things, but he is assured of receiving an Endowment if and when he reaches a state of sufficiently advanced spiritual development (Essence 3). In the meantime, the character's reputation adds one die to all Social interactions with other God-Blooded and deities impressed by such ardent devotion. Requires Patron 3.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 68
+  }
+ },
+ {
+  "id": "mf.sanctums-key",
+  "name": "Sanctum's Key",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 1,
+  "cost_note": "(1-PT. SUPERNATURAL MERIT, DIVINE GOD-BLOODED ONLY)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "half-caste",
+   "demon-blooded",
+   "fae-blooded"
+  ],
+  "required_origins": [
+   "Divine"
+  ],
+  "description": "A God-Blood with this Merit has free access to her parent's sanctum and may enter it at any time from its doorway in the physical world as a simple action and may bring along one willing passenger each trip. Characters without the Patron Background may not purchase this Merit without express Storyteller permission and a remarkable story explanation.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 68
+  }
+ },
+ {
+  "id": "mf.artisan-of-prayers",
+  "name": "Artisan of Prayers",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 3,
+  "cost_note": "(3-PT. SUPERNATURAL MERIT, DIVINE GOD-BLOODED ONLY)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "half-caste",
+   "demon-blooded",
+   "fae-blooded"
+  ],
+  "required_origins": [
+   "Divine"
+  ],
+  "description": "Time spent among the gods has refined the God-Blood's understanding of prayer into an art. In addition to being considered a priest for all prayer rolls, the character may also direct prayers of eloquent homage to a specific deity. Such auspicious prayers feed the named god 2 motes of Essence per success on the standard Charisma + Performance roll. This gift makes an excellent bribe and will certainly do wonders to improve the character's divine reputation and popularity. Of course, the parent of such a prodigy will certainly expect a regular share of this bounteous wealth as a sign of loyalty.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 68
+  }
+ },
+ {
+  "id": "mf.respiring-touch",
+  "name": "Respiring Touch",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 7,
+  "cost_note": "(7-PT. SUPERNATURAL MERIT, ELEMENTAL GOD-BLOODED ONLY)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "half-caste",
+   "demon-blooded",
+   "fae-blooded"
+  ],
+  "required_origins": [
+   "Elemental"
+  ],
+  "description": "An elemental God-Blood with this Merit multiplies the rate at which she regains Essence through respiration by (her Essence + 1), provided that she maintains contact with or extremely close proximity to a substantial quantity of her associated element for the duration of her rest. Characters must have an Essence pool to purchase this Merit.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 68
+  }
+ },
+ {
+  "id": "mf.elemental-dominion",
+  "name": "Elemental Dominion",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 7,
+  "cost_note": "(7-PT. SUPERNATURAL MERIT, ELEMENTAL GOD-BLOODED ONLY)",
+  "prerequisites": [
+   "mf.respiring-touch"
+  ],
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "half-caste",
+   "demon-blooded",
+   "fae-blooded"
+  ],
+  "required_origins": [
+   "Elemental"
+  ],
+  "description": "Prerequisites: Respiring Touch. Characters with this Merit may exert control over their associated element in the same manner as full elementals (see Exalted, p. 295 for full details). Using this power as an attack requires a Willpower roll to hit and may be dodged or parried normally. Characters must have an Essence pool to purchase this Merit.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 68
+  }
+ },
+ {
+  "id": "mf.elemental-power",
+  "name": "Elemental Power",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 7,
+  "cost_note": "(7-PT. SUPERNATURAL MERIT, ELEMENTAL GOD-BLOODED ONLY)",
+  "prerequisites": [
+   "mf.elemental-dominion"
+  ],
+  "prerequisite_note": "Essence 2",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "half-caste",
+   "demon-blooded",
+   "fae-blooded"
+  ],
+  "required_origins": [
+   "Elemental"
+  ],
+  "description": "A God-Blood with this power exhibits one of the innate powers common among elementals (see Exalted, p. 296). These gifts do not come so naturally to half-breeds, however. Characters must spend 3 motes or 1 Willpower to evoke an elemental power. Aegis, Coarse Skin and Mobility may be activated reflexively and last one scene unless prematurely revoked. Element's Domain and Enshroud are also reflexive powers, but they only last a number of turns equal to the character's Essence. Activating Dragon's Suspire counts as a simple action, and characters must pay for each attack separately. Characters employing Mobility may fly or tunnel up to their normal running speed or swim/run at double normal speed as appropriate to the element. The elemental power Rejuvenation is only available to characters with the Merit Primal Restoration. Moreover, the God-Blooded variant only restores bashing and lethal levels on an hourly basis rather than every turn. Of the elemental powers on page 56 of GoD, only Consume Element and Plague of Menaces can be learned. They cost the God-Blooded the normal number of motes to activate, plus one additional Willpower.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 68
+  }
+ },
+ {
+  "id": "mf.primal-restoration",
+  "name": "Primal Restoration",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 7,
+  "cost_note": "(7-PT. SUPERNATURAL MERIT, ELEMENTAL GOD-BLOODED ONLY)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "half-caste",
+   "demon-blooded",
+   "fae-blooded"
+  ],
+  "required_origins": [
+   "Elemental"
+  ],
+  "description": "Characters with this Merit heal damage as thoroughly as Exalted and further multiply this enhanced rate by (their Essence + 1) for as long as they remain in contact with or extremely close proximity to a substantial quantity of their associated element.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 68
+  }
+ },
+ {
+  "id": "mf.elemental-immunity",
+  "name": "Elemental Immunity",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 8,
+  "cost_note": "(8-PT. SUPERNATURAL MERIT, ELEMENTAL GOD-BLOODED ONLY)",
+  "prerequisites": [
+   "mf.elemental-dominion"
+  ],
+  "prerequisite_note": "Essence 2",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "half-caste",
+   "demon-blooded",
+   "fae-blooded"
+  ],
+  "required_origins": [
+   "Elemental"
+  ],
+  "description": "God-Blooded with this Merit may spend 3 motes of Essence or one point of Willpower to become immune to natural manifestations of their associated element for one scene. For as long as this protection lasts, those who resonate with fire do not burn, while the children of earth cannot be crushed or torn beneath the stones of an avalanche or the metal of weapons. No splinter or thorn will pierce the flesh of characters warded from wood, nor will poisons of the fruit and vine sicken them. Wooden weapons and arrows are no different than natural thorns and similarly turn aside to no effect. Lightning and lashing gales can only buffet a child of air futilely. Lastly, the daughters of water cannot drown or suffer frozen crushing death in the depths. This Merit provides little protection against magical sources of damage, though a character may apply her full Stamina to soak appropriate attacks or environmental hazards.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 68
+  }
+ },
+ {
+  "id": "mf.elemental-archetype",
+  "name": "Elemental Archetype",
+  "kind": "flaw",
+  "category": "Mental",
+  "cost": 2,
+  "cost_note": "(2-PT. MENTAL FLAW, ELEMENTAL GOD-BLOODED ONLY)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "half-caste",
+   "demon-blooded",
+   "fae-blooded"
+  ],
+  "required_origins": [
+   "Elemental"
+  ],
+  "description": "A God-Blood with this Flaw exhibits the stereotypical personality traits associated with her element (see Exalted, p. 295). As a result, anyone who knows the character's heritage may predict her responses with uncomfortable accuracy. Subtract one from the character's successes in any opposed Socialize or Presence check.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 68
+  }
+ },
+ {
+  "id": "mf.gatekeeper",
+  "name": "Gatekeeper",
+  "kind": "merit",
+  "category": "Social",
+  "cost": 1,
+  "cost_note": "(1-PT. SOCIAL MERIT)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "god-blooded",
+   "half-caste",
+   "fae-blooded"
+  ],
+  "description": "The character knows the location of a route connecting the infernal desert of Cecelyne with Creation during Calibration. A total of 16 such routes exist, of which only seven remain known to savants. The knowledge of a lost route may prove an invaluable commodity to sorcerers and would-be infernalists, provided the Demon-Blood is willing to trade such a priceless secret.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 69
+  }
+ },
+ {
+  "id": "mf.immunity-to-possession",
+  "name": "Immunity to Possession",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 3,
+  "cost_note": "(3-PT. SUPERNATURAL MERIT)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "god-blooded",
+   "half-caste",
+   "fae-blooded"
+  ],
+  "description": "A Demon-Blood with this Merit cannot be possessed by any spirit Charms, including Arcanoi. Even though he cannot be entered and controlled from within, he may still fall victim to mind control directed from afar.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 69
+  }
+ },
+ {
+  "id": "mf.mark-of-infernal-favor",
+  "name": "Mark of Infernal Favor",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 3,
+  "cost_note": "(3-PT. SUPERNATURAL MERIT)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "god-blooded",
+   "half-caste",
+   "fae-blooded"
+  ],
+  "description": "A Demon-Blood with this Merit has been tattooed with a demonic glyph identifying her parentage and allegiance. This mark is normally invisible except to spirits and beings capable of perceiving Essence at work, though the character may cause it to become visible and faintly luminous at will. Sentient demons of the First Circle will not generally attack a character bearing such a mark except in self-defense, though such protection is simply diplomatic rather than mystically enforced. A character may conceal the mark from the eyes of divinities, but a thorough search of her person will locate it.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 69
+  }
+ },
+ {
+  "id": "mf.ordination-of-lies",
+  "name": "Ordination of Lies",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 5,
+  "cost_note": "(5-PT. SUPERNATURAL MERIT)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "god-blooded",
+   "half-caste",
+   "fae-blooded"
+  ],
+  "description": "Demon-Blooded with this Merit embody the preternatural deception of their demonic forbears, adding one automatic success to all Social rolls involving lies and concealment of truth.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 70
+  }
+ },
+ {
+  "id": "mf.ordination-of-pain",
+  "name": "Ordination of Pain",
+  "kind": "merit",
+  "category": "Supernatural",
+  "cost": 5,
+  "cost_note": "(5-PT. SUPERNATURAL MERIT)",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "god-blooded",
+   "half-caste",
+   "fae-blooded"
+  ],
+  "description": "Demon-Blooded with this Merit understand the ultimate agony of Malfeas, adding one automatic success to all rolls involving direct torture or interrogation.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 70
+  }
+ },
+ {
+  "id": "mf.unholy",
+  "name": "Unholy",
+  "kind": "flaw",
+  "category": "Supernatural",
+  "cost": 4,
+  "cost_note": "(4-PT. SUPERNATURAL FLAW)",
+  "prerequisites": [
+   "mf.affected-by-wards"
+  ],
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "god-blooded",
+   "half-caste",
+   "fae-blooded"
+  ],
+  "description": "Prerequisites: Affected by Wards. Characters with this Flaw radiate palpable, alien evil that priests and other holy individuals in line of sight can sense with a Perception + Occult roll (difficulty 6 - the character's Inheritance). In addition, such Half-Damned find temples and consecrated ground uncomfortable, adding 1 to the difficulty of all rolls made for them for as long as they remain in the blessed area.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 70
+  }
+ },
+ {
+  "id": "mf.walking-blasphemy",
+  "name": "Walking Blasphemy",
+  "kind": "flaw",
+  "category": "Supernatural",
+  "cost": 5,
+  "cost_note": "(5-PT. SUPERNATURAL FLAW)",
+  "prerequisites": [
+   "mf.unholy"
+  ],
+  "prerequisite_note": "Inheritance 3",
+  "exalt_types": [
+   "God-Blooded"
+  ],
+  "barred_castes": [
+   "ghost-blooded",
+   "god-blooded",
+   "half-caste",
+   "fae-blooded"
+  ],
+  "description": "Whenever a Demon-Blood with this Flaw approaches within three yards of a sacred object, her infernal power reaches out to destroy it. This effect is not optional. The player spends one Willpower point and makes a reflexive Inheritance + Essence roll with a difficulty determined by the object's spiritual significance. Objects without supernatural protection are difficulty 3, while the relics of the Unconquered Sun may range as high as difficulty 10. Stunt dice may benefit this attempt. If the roll succeeds, the offending object shatters or burns, and the character regains the Willpower invested in the attempt. On a failure, the object remains intact for the rest of the turn but demands a new destruction attempt each turn until the character succeeds or runs out of Willpower. Wise Demon-Blooded quickly withdraw from relics beyond their power before the holy items sap their will entirely. Charms that affect creatures of darkness work on the character to full effect.",
+  "source": {
+   "book": "Exalted 1e Player's Guide",
+   "page": 70
+  }
+ },
+ {
   "id": "mf.denizen-of-beyond",
   "name": "Denizen of Beyond",
   "kind": "flaw",

@@ -176,14 +176,25 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (1,996 passing)
+## Status (2,028 passing)
 
-The suite is green: **1,996 passing** — the Mountain Folk splat added 18 tests at
+The suite is green: **2,028 passing** — the Mountain Folk splat added 18 tests at
 ship (2026-08-07, browser-verified) and a further 9 in the Opus code-review fixes
 the same day (the two-pool Ability billing, the foreign-Charm bar, the
-both-phases Pattern bar). (The earlier "1 known failure" M&F description test —
-`test_every_description_matches_the_source_text` — passes as of 2026-08-06; the
-note was stale.)
+both-phases Pattern bar); the God/Demon-Blooded heritage work added 22 on the same
+day (14 engine + 8 UI build tests) and the spirit-Charm catalogue its own
+(`data/charms/spirit_templates.json` — `docs/status/godblooded.md`). The catalogue
+reached **79 Charms** over three batches that same day: the GoD appendix + PG (8), the
+12 corebook Charms (book pp.291-292, all four Virtue sets), then Storyteller's
+Companion CH3 (46) plus stragglers from the PG, Ruins of Rathess and Lunars. The
+last two batches came through the VLM pipeline (`tools/VLM_TRANSCRIPTION_PROMPT.md` +
+`qwen3-vl:8b-instruct`, page-split to avoid the two-column skip, human-vetted), and
+every printed prerequisite the catalogue names is now wired to a real id. **⚠ One
+machine-specific exception:** `test_every_description_matches_the_source_text`
+fails with 46 entries on a machine where `images/Non-Exalts/Godblooded/CH2 -
+Godblooded.md` is present (descriptions summarize the fuller printed text → below
+92%) and passes where it is absent (entries defer). It is green on the laptop,
+red here, and is not a regression — see `docs/status/godblooded.md`.
 
 The detailed build log lives in `docs/status/` — one file per topic/splat, kept
 out of this file so CLAUDE.md stays readable. **Read the relevant file before
@@ -214,7 +225,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
-| **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages — God/Demon-Blooded pending, see Blocked) | `docs/status/godblooded.md` |
+| **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus God/Demon-Blooded heritage rows + 16 M&F + the 79-Charm spirit catalogue authored 2026-08-07, every printed prereq wired — NOT yet browser-verified; the one open item is the sorcery-initiation ruling) | `docs/status/godblooded.md` |
 | **Dragon-Kings — DONE, browser-verified** (9th splat, 4th non-Exalt; the ten Paths of Prehuman Mastery as a rated subsystem, four Breeds, single Essence pool, Essence-gated trait ceilings, Terrestrial sorcery) | `docs/status/dragon-kings.md` |
 | **Mountain Folk — DONE, browser-verified** (10th splat, 5th non-Exalt, the last; the Enlightenment origin axis, the five-Pattern Charm economy with a new Enchantment type, the Great Geas as Divergence + reference panel, three Darkbrood adversaries) | `docs/status/mountain-folk.md` |
 | **Elder Exalts — DONE, browser-verified** (simplified 2026-08-06: Essence XP-purchasable to the splat cap — 9 flat, Terrestrial-7 held; trait ceilings follow Essence; age chart removed; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
@@ -434,15 +445,24 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
   The Dragon-Kings-era Merit hooks that landed before it (Prodigy's
   DK/God-Blooded rate, the PG p.114 mortal-god UI note, the Weak Essence DK bar) are
   all DONE.
-* **God/Demon-Blooded** — the last two Godblooded heritages. The spirit-Charm catalogue
-  they draw from is scattered across **six books** — Storyteller's Companion, the
-  corebook, Lunars, the Player's Guide, Ruin of Rathess, Games of Divinity (human's
-  charmtrees survey 2026-08-05); only the GoD appendix (pp.125-127, 7 templates) is
-  pasted. **PG p.48 rule:** both learn spirit Charms, neither may learn Wyld Shield,
-  Portal is a lesser (God-Blooded) / Malfeas-only (Demon-Blooded) variant. Scoped:
-  generic appendix + Wyld Shield/Portal flags, the other five books deferred. **Blocked
-  on the human's home PC:** the two heritages' chargen sections + their M&F, plus the
-  Wyld Shield/Portal pages. `docs/status/godblooded.md`.
+* **God/Demon-Blooded** — the last two Godblooded heritages. **Heritage rows + 16 M&F +
+  the spirit-Charm catalogue AUTHORED 2026-08-07** (the two `castes.json` rows with the
+  Divine/Elemental origin sub-axis and the p.66 pool; `charm_access: ["Spirit"]` now
+  resolves to the **79-Charm** `spirit_templates.json`; 9 Divine + 7 Demon-Blooded M&F)
+  — 28 tests, all green, NOT yet browser-verified. **PG p.48 rule:** both learn spirit
+  Charms, neither may learn Wyld Shield (the bar is live on both rows), Portal is a
+  lesser (God-Blooded) / Malfeas-only (Demon-Blooded) variant — the variants ride the
+  heritage descriptions, the catalogue holds the one printed stat block. **Catalogue
+  sources:** STC CH3 (46), corebook (12), GoD appendix (6), PG (5), Ruins of Rathess
+  (3), Lunars (3), in `images/Non-Exalts/Spirit Charms/`. **Every printed prereq is
+  wired** — Soul Rapt→Possession, Worldly Illusion→Harrow the Mind, Essence
+  Inveigle→Sustenance, Essence-Gifting Method→Benefaction+Dreamspeak. **Spirit Charms
+  are Charms, NOT Arcanoi** (human, 2026-08-07): both surfaces exclude
+  `exalt_type == "Spirit"` from the `min_virtue` Arcanos test, and `view.virtue_split`
+  presents the one four-Virtue category as four trees. **⚠ The ONE open item:** no
+  terrestrial-circle-sorcery initiation exists for God/Demon-Blooded, so one cannot yet
+  become a sorcerer — that needs a RULING, not a transcription; do not invent it.
+  `docs/status/godblooded.md`.
 
 ### Rulings that bite when touched
 **Three rulings landed 2026-07-31** (human, rules authority — written up in

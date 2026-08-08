@@ -559,6 +559,12 @@ class GodbloodedHeritage(BaseModel):
     # uses their parent Exalt's Ox-Body instead (the splat-level `ox_body_charm_id` stays
     # the God-Blooded one for the ghost-blooded heritage). Empty for every other heritage.
     ox_body_charm_ids: dict[str, str] = Field(default_factory=dict)
+    # A heritage's OWN Ox-Body, when it is not the splat-level one: God/Demon-Blooded
+    # use the SPIRIT Ox-Body (PG p.83 lists Ox-Body Technique as "(Spirit, Arcanos)";
+    # human's ruling 2026-08-07 — copied into the Spirit catalogue, the Arcanos version
+    # left to Ghost-Blooded). Checked after `ox_body_charm_ids` and before the splat
+    # fallback. Empty on every heritage that keeps the splat-level id.
+    ox_body_charm_id: str = ""
 
 
 class InnateWeapon(BaseModel):
