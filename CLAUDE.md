@@ -176,9 +176,9 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (2,028 passing)
+## Status (2,035 passing)
 
-The suite is green: **2,028 passing** — the Mountain Folk splat added 18 tests at
+The suite is green: **2,035 passing** — the Mountain Folk splat added 18 tests at
 ship (2026-08-07, browser-verified) and a further 9 in the Opus code-review fixes
 the same day (the two-pool Ability billing, the foreign-Charm bar, the
 both-phases Pattern bar); the God/Demon-Blooded heritage work added 22 on the same
@@ -225,7 +225,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
-| **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus God/Demon-Blooded heritage rows + 16 M&F + the 79-Charm spirit catalogue authored 2026-08-07, every printed prereq wired — NOT yet browser-verified; the one open item is the sorcery-initiation ruling) | `docs/status/godblooded.md` |
+| **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus God/Demon-Blooded heritage rows + 16 M&F + the 80-Charm spirit catalogue authored 2026-08-07 and the p.48 sorcery initiation 2026-08-08, every printed prereq wired — NOT yet browser-verified) | `docs/status/godblooded.md` |
 | **Dragon-Kings — DONE, browser-verified** (9th splat, 4th non-Exalt; the ten Paths of Prehuman Mastery as a rated subsystem, four Breeds, single Essence pool, Essence-gated trait ceilings, Terrestrial sorcery) | `docs/status/dragon-kings.md` |
 | **Mountain Folk — DONE, browser-verified** (10th splat, 5th non-Exalt, the last; the Enlightenment origin axis, the five-Pattern Charm economy with a new Enchantment type, the Great Geas as Divergence + reference panel, three Darkbrood adversaries) | `docs/status/mountain-folk.md` |
 | **Elder Exalts — DONE, browser-verified** (simplified 2026-08-06: Essence XP-purchasable to the splat cap — 9 flat, Terrestrial-7 held; trait ceilings follow Essence; age chart removed; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
@@ -448,7 +448,7 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
 * **God/Demon-Blooded** — the last two Godblooded heritages. **Heritage rows + 16 M&F +
   the spirit-Charm catalogue AUTHORED 2026-08-07** (the two `castes.json` rows with the
   Divine/Elemental origin sub-axis and the p.66 pool; `charm_access: ["Spirit"]` now
-  resolves to the **79-Charm** `spirit_templates.json`; 9 Divine + 7 Demon-Blooded M&F)
+  resolves to the **80-Charm** `spirit_templates.json`; 9 Divine + 7 Demon-Blooded M&F)
   — 28 tests, all green, NOT yet browser-verified. **PG p.48 rule:** both learn spirit
   Charms, neither may learn Wyld Shield (the bar is live on both rows), Portal is a
   lesser (God-Blooded) / Malfeas-only (Demon-Blooded) variant — the variants ride the
@@ -459,9 +459,15 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
   Inveigle→Sustenance, Essence-Gifting Method→Benefaction+Dreamspeak. **Spirit Charms
   are Charms, NOT Arcanoi** (human, 2026-08-07): both surfaces exclude
   `exalt_type == "Spirit"` from the `min_virtue` Arcanos test, and `view.virtue_split`
-  presents the one four-Virtue category as four trees. **⚠ The ONE open item:** no
-  terrestrial-circle-sorcery initiation exists for God/Demon-Blooded, so one cannot yet
-  become a sorcerer — that needs a RULING, not a transcription; do not invent it.
+  presents the one four-Virtue category as four trees. **The sorcery gap is CLOSED
+  2026-08-08** (PG p.48, Spells): `spirit.spirit-templates.terrestrial-circle-sorcery`
+  mirrors the Ghost-Blooded necromancy initiation (Essence 3 + Occult 5, 10 BP / 25 XP).
+  Everything else the page prints was already built — the heritage split rides
+  `magic_track` (Abyssal Half-Caste included, via `magic_track_by_parent`), greater
+  circles were already barred, and the summon/bind ban was already splat-level in
+  `barred_spell_ids`. ⚠ Its 1-Willpower cost is INHERITED from the core stat block, not
+  printed on p.48 — same as the necromancy one. **Nothing is blocked; only the
+  click-through is owed.**
   `docs/status/godblooded.md`.
 
 ### Rulings that bite when touched

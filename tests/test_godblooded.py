@@ -17,6 +17,7 @@ from exalted_builder.models.character import (
     BackgroundEntry, Character, Combo, HouseRules, MeritFlawPurchase as MP,
     OxBodyPurchase)
 from exalted_builder.models.rules import AbilityName, SpellCircle, VirtueName
+from exalted_builder.ui import view as viewmod
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
@@ -1313,6 +1314,13 @@ def test_god_and_demon_blooded_use_the_spirit_ox_body_not_the_arcanos(rs):
 # both heritage rows' barred_charm_ids, which makes charm_matches_splat False.
 WYLD_SHIELD = "spirit.spirit-templates.wyld-shield"
 
+# PG p.48, Spells: "Terrestrial Circle Sorcery is available to all the remaining
+# heritages save Ghost-Blooded and Abyssal Half-Caste. Conversely, only these
+# heritages may learn Shadowlands Circle Necromancy." The mirror of the
+# Ghost-Blooded necromancy initiation, and the one un-Virtue-keyed spirit Charm.
+SORCERY_INIT = "spirit.spirit-templates.terrestrial-circle-sorcery"
+NECROMANCY_INIT = "godblooded.general-arcanoi.shadowlands-circle-necromancy"
+
 SPIRIT_IDS = [
     "spirit.spirit-templates.soul-rapt",
     "spirit.spirit-templates.worldly-illusion",
@@ -1413,6 +1421,11 @@ SPIRIT_IDS = [
     "spirit.spirit-templates.conditional-blessing",
     "spirit.spirit-templates.conditional-curse",
     "spirit.spirit-templates.dematerialize",
+    # PG p.48 (the Spells subheading) — the sorcery initiation. The ONE Charm in
+    # this catalogue with no Virtue: its printed minimums are Essence 3 and
+    # Occult 5, so it is Ability-gated like the Ghost-Blooded necromancy
+    # initiation it mirrors. See SORCERY_INIT below.
+    SORCERY_INIT,
 ]
 
 
@@ -1424,8 +1437,12 @@ def test_the_spirit_charm_catalogue_is_authored(rs):
 def test_the_spirit_charms_are_virtue_keyed_not_ability_keyed(rs):
     # The GoD appendix groups by Virtue (Conviction/Temperance/Valor) and prints no
     # Ability — the third keying, the same shape as the ghost Arcanoi. Essence-
-    # Gifting Method is the Compassion member the appendix lacks.
+    # Gifting Method is the Compassion member the appendix lacks. The sorcery
+    # initiation is the one exception and has its own test below: p.48 gates it on
+    # Essence 3 and Occult 5, naming no Virtue at all.
     for cid in SPIRIT_IDS:
+        if cid == SORCERY_INIT:
+            continue
         ch = rs.charms[cid]
         assert ch.min_virtue in ("compassion", "conviction", "temperance", "valor"), cid
         assert ch.min_ability >= 1, cid          # the rating in that Virtue
@@ -1479,6 +1496,109 @@ def test_the_other_three_heritages_may_not_learn_spirit_charms(rs):
             _gb(caste="half-caste", origin="Solar"), ch, rs), cid
         assert not validate.charm_matches_splat(
             _gb(caste="fae-blooded", origin="Noble"), ch, rs), cid
+
+
+# --------------------------------------------------------------------------- #
+# The sorcery initiation (PG p.48, Spells). "All God-Blooded with the Awakened
+# Essence Merit apart from Fae-Blooded may also learn to cast spells. Terrestrial
+# Circle Sorcery is available to all the remaining heritages save Ghost-Blooded
+# and Abyssal Half-Caste. Conversely, only these heritages may learn Shadowlands
+# Circle Necromancy. Greater circles of sorcery and necromancy lie beyond the
+# purview of the God-Blooded. ... the Charms necessary to unlock spells
+# (Terrestrial Circle Sorcery, for example) cost 10 bonus points. Once unlocked,
+# spells cost the same as Charms (7 bonus points each). Characters must also have
+# Essence 3 and Occult 5 to undergo the Terrestrial initiation."
+# --------------------------------------------------------------------------- #
+
+def test_the_sorcery_initiation_is_ability_gated_not_virtue_gated(rs):
+    # p.48 prints Essence 3 and Occult 5 and NO Virtue — so this Charm carries no
+    # min_virtue, and its Occult requirement rides `extra_min_abilities`, exactly
+    # as the Ghost-Blooded necromancy initiation it mirrors does.
+    init = rs.charms[SORCERY_INIT]
+    assert not init.min_virtue
+    assert init.min_essence == 3
+    assert init.grants_circle == "Terrestrial"
+    assert [(e.abilities, e.rating) for e in init.extra_min_abilities] == [(["occult"], 5)]
+
+    c = _god()                                   # Essence 2, Occult 0
+    assert validate.charm_ability_shortfalls(c, init)
+    c.abilities[AbilityName.OCCULT] = 5
+    assert not validate.charm_ability_shortfalls(c, init)
+
+
+def test_who_may_take_which_initiation(rs):
+    # The p.48 split, on the buy path: sorcery for God/Demon-Blooded, necromancy
+    # for the Ghost-Blooded, neither for the Fae-Blooded ("apart from Fae-Blooded").
+    sorcery, necromancy = rs.charms[SORCERY_INIT], rs.charms[NECROMANCY_INIT]
+    for character in (_god(), _demon()):
+        assert validate.charm_learnable_by_splat(rs, character, sorcery)
+        assert not validate.charm_learnable_by_splat(rs, character, necromancy)
+    assert not validate.charm_learnable_by_splat(rs, _gb(), sorcery)
+    assert validate.charm_learnable_by_splat(rs, _gb(), necromancy)
+    fae = _gb(caste="fae-blooded", origin="Noble")
+    assert not validate.charm_learnable_by_splat(rs, fae, sorcery)
+    assert not validate.charm_learnable_by_splat(rs, fae, necromancy)
+
+
+def test_the_abyssal_half_caste_is_the_named_sorcery_exception(rs):
+    # "save Ghost-Blooded and Abyssal Half-Caste" — the Half-Caste's track follows
+    # the PARENT, so the same heritage answers differently by origin. This is the
+    # case heritage charm-access alone cannot express: an Abyssal Half-Caste's
+    # borrowed catalogue holds both tracks.
+    sorcery, necromancy = rs.charms[SORCERY_INIT], rs.charms[NECROMANCY_INIT]
+    abyssal = _gb(caste="half-caste", origin="Abyssal")
+    solar = _gb(caste="half-caste", origin="Solar")
+    assert validate.heritage_bars_initiation(rs, abyssal, sorcery)
+    assert not validate.heritage_bars_initiation(rs, abyssal, necromancy)
+    assert not validate.heritage_bars_initiation(rs, solar, sorcery)
+    assert validate.heritage_bars_initiation(rs, solar, necromancy)
+
+
+def test_greater_circles_stay_beyond_the_god_blooded(rs):
+    # "Greater circles of sorcery and necromancy lie beyond the purview of the
+    # God-Blooded" — the first circle of the track only, for both heritages.
+    for cid in ("solar.occult.celestial-circle-sorcery",
+                "solar.occult.solar-circle-sorcery",
+                "abyssal.occult.labyrinth-circle-necromancy",
+                "abyssal.occult.void-circle-necromancy"):
+        assert validate.heritage_bars_initiation(rs, _god(), rs.charms[cid]), cid
+        assert validate.heritage_bars_initiation(rs, _demon(), rs.charms[cid]), cid
+
+
+def test_the_initiation_costs_ten_bonus_points_and_spells_cost_seven(rs):
+    # p.48 prices the initiation at 10 BP against the ordinary spirit-Charm 7, via
+    # the God-Blooded `magic_charm` rate that already served the necromancy one.
+    bp = rs.bonus_costs_for("God-Blooded")
+    assert bp.magic_charm == 10
+    assert bp.charm == 7
+    xp = rs.xp_costs_for("God-Blooded")
+    assert xp.new_magic_charm == 25          # the same table's XP column
+    assert xp.new_spell == 15
+
+
+def test_no_god_blood_may_learn_summoning_or_binding_spells(rs):
+    # "No God-Blood can learn spells to summon and bind elementals or demons, as
+    # the workings of these spells are designed to operate in conjunction with
+    # certain privileges of the Exalted." Barred at SPLAT level, so it holds for
+    # every heritage including the Half-Caste, whatever their parent.
+    barred = rs.exalt_for("God-Blooded").barred_spell_ids
+    assert "spell.terrestrial.summon-elemental" in barred
+    assert "spell.terrestrial.demon-of-the-first-circle" in barred
+
+
+def test_the_sorcery_initiation_is_reachable_in_the_picker(rs):
+    # The trap this Charm walked into: `spirit_templates` is presented as one tree
+    # per Virtue, and this Charm has no Virtue — so a naive split drops it out of
+    # every tree and it becomes unbuyable while sitting right there in the data.
+    # It belongs to the ':general' sub-tree, and every Charm in the catalogue must
+    # be reachable from exactly one sub-tree.
+    keys = viewmod.virtue_split(rs, "spirit_templates")
+    assert f"spirit_templates:{viewmod.UNKEYED_SUBTREE}" in keys
+    god = _god()
+    owned = {n.id for k in keys
+             for n in viewmod.build_charm_graph(rs, god, k).nodes if not n.external}
+    assert SORCERY_INIT in owned
+    assert owned == set(SPIRIT_IDS) - {WYLD_SHIELD}
 
 
 def test_the_spirit_charms_gate_on_the_virtue_rating(rs):

@@ -225,20 +225,38 @@ def charm_on_splat_page(ruleset: RuleSet, character: Character, charm,
     return charm.exalt_type == splat and not native
 
 
+# The sub-tree key for Charms in a Virtue-split category that carry no Virtue of
+# their own. Not a VirtueName, so it can never collide with a real sub-key.
+UNKEYED_SUBTREE = "general"
+
+
 def virtue_split(ruleset: RuleSet, category: str) -> list[str]:
     """Sub-category keys for a data category whose Charms span several Virtues.
 
-    The spirit Charms are the one such category: all 79 sit under
+    The spirit Charms are the one such category: 79 of the 80 sit under
     'spirit_templates', each keyed to one of the four Virtues via `min_virtue`.
     The picker presents them as four trees ('spirit_templates:compassion', ...)
     so the Virtue structure is visible, mirroring the ghost Arcanoi where each
     path is already its own tree. Ghost Arcanoi paths carry a single Virtue per
-    category, so they return [] -- as does anything not Virtue-keyed."""
+    category, so they return [] -- as does anything not Virtue-keyed.
+
+    A split category may also hold Charms that are NOT Virtue-keyed: the 80th
+    spirit Charm is Terrestrial Circle Sorcery, whose printed minimums are
+    Essence 3 and Occult 5 and no Virtue at all (PG p.48). Those go in a final
+    ':general' sub-tree, because a per-Virtue split alone would drop them out of
+    every tree and out of the picker entirely -- present in the data, unbuyable
+    in the UI, which is exactly the dead-field shape this codebase keeps hitting.
+    Splitting a category is therefore only safe if it accounts for every Charm
+    in it."""
     virtues = {c.min_virtue for c in ruleset.charms.values()
                if c.category == category and c.min_virtue}
     if len(virtues) < 2:
         return []
-    return [f"{category}:{v}" for v in sorted(virtues)]
+    keys = [f"{category}:{v}" for v in sorted(virtues)]
+    if any(c.category == category and not c.min_virtue
+           for c in ruleset.charms.values()):
+        keys.append(f"{category}:{UNKEYED_SUBTREE}")
+    return keys
 
 
 def build_charm_graph(ruleset: RuleSet, character: Character, category: str,
@@ -270,8 +288,12 @@ def build_charm_graph(ruleset: RuleSet, character: Character, category: str,
     base_is_category = bool(sep) and any(
         c.category == base for c in ruleset.charms.values())
     if base_is_category:
+        # ':general' selects the Charms of a split category that carry no Virtue --
+        # see virtue_split, which only emits that key when such Charms exist.
+        def _in_subtree(c) -> bool:
+            return not c.min_virtue if virtue == UNKEYED_SUBTREE else c.min_virtue == virtue
         in_category = [c for c in ruleset.charms.values()
-                       if c.category == base and c.min_virtue == virtue
+                       if c.category == base and _in_subtree(c)
                        and charm_on_splat_page(ruleset, character, c, splat)]
     else:
         in_category = [c for c in ruleset.charms.values()

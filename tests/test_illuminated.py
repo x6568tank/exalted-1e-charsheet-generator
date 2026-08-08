@@ -689,6 +689,12 @@ def test_extra_min_abilities_is_empty_for_every_other_charm(rs):
         # print a second "Minimum Performance" line.
         "solar.resistance.drunken-warrior-technique",
         "solar.resistance.inebriated-fool-defense",
+        # God-Blooded (PG p.48) — the sorcery half of the same sentence that gates the
+        # necromancy initiation above: "Characters must also have Essence 3 and Occult 5
+        # to undergo the Terrestrial initiation." It sits in the Virtue-keyed spirit
+        # catalogue but is the one member with no Virtue, so Occult is its only ability
+        # gate and rides here for the same reason the necromancy one does.
+        "spirit.spirit-templates.terrestrial-circle-sorcery",
     ]
 
 

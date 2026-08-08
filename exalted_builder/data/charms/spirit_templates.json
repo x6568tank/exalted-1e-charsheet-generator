@@ -1873,5 +1873,33 @@
       "book": "Exalted 1e Player's Guide",
       "page": 83
     }
+  },
+  {
+    "id": "spirit.spirit-templates.terrestrial-circle-sorcery",
+    "name": "Terrestrial Circle Sorcery",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_essence": 3,
+    "extra_min_abilities": [
+      {
+        "abilities": [
+          "occult"
+        ],
+        "rating": 5
+      }
+    ],
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 Willpower",
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "grants_circle": "Terrestrial",
+    "description": "Least of all sorcery, and the only circle open to the God-Blooded. Invoking this Charm enables the character to cast a single Terrestrial Circle Sorcery spell; the spell's own Essence cost (listed in its description) must also be paid. Terrestrial Circle Sorcery can never be part of a Combo. God-Blooded and Demon-Blooded may learn this initiation but no greater circle (PG p.48: \"Greater circles of sorcery and necromancy lie beyond the purview of the God-Blooded\"); it requires the Awakened Essence Merit, Essence 3 and Occult 5, and costs 10 bonus points or 25 experience, after which spells cost the same as Charms. No God-Blood may learn spells that summon or bind elementals or demons, whose workings depend on privileges of the Exalted.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 48
+    }
   }
 ]

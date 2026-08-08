@@ -671,12 +671,55 @@ and the AKUMA prose (pp.382-391) makes it Demon-Prince-only. The human closed it
 it."* **Intentionally unauthored** — the stat block stays in the transcription for when
 it is needed; do not author it.
 
-### ⚠ The sorcery gap (open, not blocked)
-`magic_track "sorcery"` grants the Terrestrial circle, but **no
-terrestrial-circle-sorcery initiation Charm exists for God/Demon-Blooded** — only the
-Ghost-Blooded's Occult-5 necromancy initiation is authored. A God-Blooded cannot
-currently become a sorcerer. Needs a ruling/pages (does the book grant one? which
-page?) before it can ship; do not invent the initiation.
+### The sorcery gap — CLOSED 2026-08-08 (PG p.48, the Spells subheading)
+The human supplied the page: *"All God-Blooded with the Awakened Essence Merit apart
+from Fae-Blooded may also learn to cast spells. Terrestrial Circle Sorcery is available
+to all the remaining heritages save Ghost-Blooded and Abyssal Half-Caste. Conversely,
+only these heritages may learn Shadowlands Circle Necromancy. Greater circles of sorcery
+and necromancy lie beyond the purview of the God-Blooded… the Charms necessary to unlock
+spells (Terrestrial Circle Sorcery, for example) cost 10 bonus points. Once unlocked,
+spells cost the same as Charms (7 bonus points each). Characters must also have Essence 3
+and Occult 5 to undergo the Terrestrial initiation. No God-Blood can learn spells to
+summon and bind elementals or demons…"*
+
+**It cost one Charm.** Every other half of the rule was already built and only lacked
+something to bite on:
+
+* **`spirit.spirit-templates.terrestrial-circle-sorcery`** — the mirror of
+  `godblooded.general-arcanoi.shadowlands-circle-necromancy`, same shape: `min_essence`
+  3, Occult 5 via `extra_min_abilities`, `grants_circle: "Terrestrial"`, 1 Willpower.
+  **⚠ The 1 Willpower cost is INHERITED, not printed** — p.48 gives no mote/Willpower
+  line, so this follows the core initiation stat block exactly as the Ghost-Blooded
+  necromancy entry already did. Flagged for the rules authority; the point costs
+  (10 BP / 25 XP) ARE printed.
+* **The heritage split needed no code** — `heritage_bars_initiation` already keyed off
+  `magic_track`, so sorcery-for-God/Demon-Blooded, necromancy-for-Ghost-Blooded and
+  neither-for-Fae-Blooded fell out of data that was already there. The **Abyssal
+  Half-Caste** exception the page names likewise already worked, via
+  `magic_track_by_parent` — that heritage answers differently by origin, which is the
+  case the docstring says charm access alone cannot express.
+* **The greater-circle bar** was already live (the first circle of the track only).
+* **The summon/bind ban** was already authored splat-level in
+  `ExaltDefinition.barred_spell_ids` — all four spells, so it holds for every heritage
+  including the Half-Caste whatever the parent.
+* **The prices** were already authored: God-Blooded `magic_charm` 10 BP against the
+  ordinary Charm's 7, and `new_magic_charm` 25 XP.
+
+**⚠ The trap it walked into, and the reason `virtue_split` changed.** This Charm has no
+Virtue — p.48 gates it on an Ability. The picker splits `spirit_templates` into one tree
+per Virtue, so a Charm with no Virtue fell through EVERY tree and would have been
+present in the data and unbuyable in the UI: [[dead-effect-fields]] wearing a new hat.
+`virtue_split` now emits a final **`:general`** sub-tree whenever a split category holds
+un-keyed Charms, and `build_charm_graph` resolves it. A test asserts every Charm in the
+catalogue is reachable from exactly one sub-tree, so the next un-keyed addition cannot
+vanish silently. **Splitting a category is only safe if the split accounts for every
+Charm in it.**
+
+**Still open on the necromancy side (pre-existing, unchanged):** that entry's
+description carries a ⚠ noting its Occult 5 is the *Terrestrial* requirement applied to
+the necromancy path by analogy. p.48 names only the Terrestrial initiation, so the
+sorcery Charm is now certain and the necromancy one is still a reading. Ask before
+relying on it.
 
 ### ⚠ Pre-existing machine-only test failure (NOT caused by this work)
 `test_every_description_matches_the_source_text` fails with 46 entries on this machine
@@ -686,13 +729,12 @@ machine has it (check resumes and the descriptions summarize the fuller printed 
 below 92%). The two new entries were brought to parity and are NOT in the failing list.
 Leave the 46 alone until the human decides; they are not a regression.
 
-**Still open — ONE thing, and it is not blocked on pages arriving:** the sorcery gap
-above. Everything the earlier drafts of this file listed as blocked has since landed —
-the GoD appendix set, the corebook batch, the STC CH3 batch, Wyld Shield and Portal —
-so `charm_access: ["Spirit"]` resolves, the Wyld Shield ban is live, and every printed
-prerequisite is wired to a real id. What is missing is a RULING, not a transcription:
-which page (if any) grants a God/Demon-Blooded the terrestrial-circle initiation. Do
-not invent it.
+**Nothing is blocked.** Everything the earlier drafts of this file listed as blocked has
+landed — the GoD appendix set, the corebook batch, the STC CH3 batch, Wyld Shield,
+Portal, and (2026-08-08) the sorcery initiation. `charm_access: ["Spirit"]` resolves,
+the Wyld Shield ban is live, every printed prerequisite is wired to a real id, and both
+magic tracks reach their one permitted circle. The only flagged item left is the
+inherited 1-Willpower cost on the two initiation Charms (see above).
 
 **NOT browser-verified.** Run `preflight`, then the click-through, before this section
 loses its warning.
