@@ -799,6 +799,21 @@ summed `bp_cost` unconditionally, so post-lock it printed a BP total under an "X
 (two powers rendered as rows of 14 XP above a total of "14 XP"). Now summed in the rows'
 own currency.
 
+**The two remaining "later" review items are CLOSED 2026-08-08:**
+
+* **The caste-level gate landed.** `validate.elemental_powers_available` now requires
+  `caste == "god-blooded"` AND origin Elemental, not just splat-and-origin. "Elemental"
+  is an origin option only on the god-blooded heritage row, so a hand-edited save that
+  paired a different heritage (demon-blooded, ghost-blooded, half-caste, fae-blooded)
+  with `origin="Elemental"` would wrongly open the catalogue — the retired Merit's own
+  `barred_castes` is exactly those four. A test pins all four closed.
+* **The `mf.elemental-power` id migration is NOT BUILT — human ruling 2026-08-08**
+  ("Literally no saves could possibly hold this. We can ignore it."). The Merit was
+  born in `33f8f6b` and deleted in `eba3f87` the same day on this branch, never merged
+  to main, so no released save can hold it. A save that somehow did would fall through
+  to the generic graceful unresolvable-id handling (`merit-unknown` + a skipped BP line)
+  rather than crash — the impossible-case answer.
+
 ⚠ **The 9 descriptions came from the un-vetted VLM transcription** — a fabrication
 incident is documented below on exactly this page ("Consume Element" originally carried
 invented text). **The human vetted all 9 against the book 2026-08-08** (the JSON is the

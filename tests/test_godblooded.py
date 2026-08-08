@@ -1352,6 +1352,23 @@ def test_elemental_power_availability_is_origin_gated(rs):
     assert not validate.elemental_powers_available(rs, _demon())
 
 
+def test_elemental_power_availability_is_caste_gated(rs):
+    """The gate is CASTE-level, not just splat-and-origin (the code-review finding):
+    "Elemental" is only an origin option on the god-blooded heritage row, so a
+    hand-edited save that pairs a different heritage's caste with origin="Elemental"
+    must NOT open the catalogue. The retired Merit's own printed restriction barred
+    every heritage but god-blooded, which is what the check mirrors."""
+    assert validate.elemental_powers_available(rs, _elemental())
+    # Same exalt type, same origin — but a non-god-blooded caste. Closed.
+    for caste in ("demon-blooded", "ghost-blooded", "half-caste", "fae-blooded"):
+        c = _elemental(caste=caste)
+        assert not validate.elemental_powers_available(rs, c), caste
+        # And the whole rule chain downstream of the gate agrees.
+        assert validate.legal_elemental_powers(rs, c) == []
+        assert validate.elemental_power_shortfalls(
+            rs, c, rs.elemental_powers["elemental.aegis"])
+
+
 def test_switching_heritage_away_from_elemental_orphans_held_powers(rs):
     """The orphan path, pinned engine-side: a heritage/caste/origin switch away from
     Elemental makes every held power illegal — the picker tab vanishes, the BP

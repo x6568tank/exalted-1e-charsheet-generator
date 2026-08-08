@@ -176,16 +176,17 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (2,055 passing)
+## Status (2,056 passing)
 
-The suite is green: **2,055 passing** — the Elemental Powers catalogue added 17 on
+The suite is green: **2,056 passing** — the Elemental Powers catalogue added 17 on
 2026-08-08 (12 engine + 5 UI build tests: the locked-XP and empty picker shapes from
 preflight's render matrix, then the sheet-render test from the click-through finding
 that the Charms & Sorcery band did not list owned powers; the 9-power learnable set
 for Elemental-origin God-Blooded, PG p.68, see `docs/status/godblooded.md` → *The
 Elemental Powers*); the four Opus code-review fixes added 3 more the same day (the
 house-bug re-check that a locked character is re-validated for illegal powers, the
-Owned-total currency fix, and the heritage-switch orphan clear); the Mountain Folk splat added 18 tests at
+Owned-total currency fix, and the heritage-switch orphan clear); the caste-level gate
+on `elemental_powers_available` added 1 more the same day; the Mountain Folk splat added 18 tests at
 ship (2026-08-07, browser-verified) and a further 9 in the Opus code-review fixes
 the same day (the two-pool Ability billing, the foreign-Charm bar, the
 both-phases Pattern bar); the God/Demon-Blooded heritage work added 22 on the same
@@ -305,8 +306,11 @@ Recorded as decision records, not restated here — read them before proposing a
 ### 👉 START HERE (session handoff)
 
 **⏸ PICK UP HERE (2026-08-08, branch `deepseek-experiment`, worktree `…-ds`).**
-The suite is at **2,055 passing** (plus the one known machine-only M&F description
-failure — not a regression, see Status). Five commits landed today:
+The suite is at **2,056 passing** (plus the one known machine-only M&F description
+failure — not a regression, see Status). Six commits landed today:
+* **caste gate on `elemental_powers_available`** — the last of the Elemental Powers
+  review's "later" items (see below: the `mf.elemental-power` id migration was CLOSED
+  without building, human ruling).
 * `33f8f6b` — the God/Demon-Blooded heritage work, reviewed and de-noised.
 * `cab543a` — the PG p.48 sorcery initiation, which CLOSED the last open rules gap.
 * the **Elemental Powers catalogue** (SHIPPED — the 9-power learnable set for
@@ -317,7 +321,8 @@ failure — not a regression, see Status). Five commits landed today:
   Elemental Powers*): the house bug (post-lock powers never re-validated), unknown
   power ids now surfaced by `check_references`, the XP-ledger label, and the
   heritage-switch orphan clear (`validate.legal_elemental_powers` + the three editor
-  mutators). The 3 "later" items are deferred.
+  mutators). The 3 "later" items: two landed (Rejuvenation/Mobility activation strings,
+  the caste gate), one CLOSED without building (the id migration) — see item 2 below.
 
 **God/Demon-Blooded is DONE.** 
 1. **The browser click-through** — DONE (human: "1. Works! … 5. Works. Everything works
@@ -328,9 +333,16 @@ failure — not a regression, see Status). Five commits landed today:
 2. **The 9 descriptions in `data/elemental_powers.json`** — **VETTED by the human
    2026-08-08** (while the review fixes landed); the **Rejuvenation/Mobility activation
    strings fixed the same day** (sourced from the retired Merit, git history `eba3f87^`;
-   nothing invented). Remaining on the deferred list only: the 2 Opus "later" items (the
-   caste-level gate on `elemental_powers_available`, the `mf.elemental-power` id
-   migration).
+   nothing invented). **The two remaining Opus "later" items are CLOSED 2026-08-08:** the
+   **caste-level gate** on `elemental_powers_available` landed (now requires
+   `caste == "god-blooded"` AND origin Elemental — a hand-edited save pairing a
+   non-god-blooded heritage with origin "Elemental" no longer opens the catalogue,
+   mirroring the retired Merit's `barred_castes`), and the **`mf.elemental-power` id
+   migration is NOT BUILT by human ruling** — the Merit was born (`33f8f6b`) and deleted
+   (`eba3f87`) the same day on this branch, never merged to main, so no save can hold it
+   ("Literally no saves could possibly hold this. We can ignore it."). A save that
+   somehow held the id would fall through to the generic graceful unresolvable-id
+   handling (`merit-unknown` + a skipped BP line), which is the impossible-case answer.
 
 **Mountain Folk: DONE 2026-08-07, browser-verified.**
 `images/Mortals/Mountain Folk/CH 6 - The Mountain Folk.md` arrived 2026-08-07 and the

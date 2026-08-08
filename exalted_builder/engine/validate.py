@@ -3314,8 +3314,16 @@ def elemental_powers_available(ruleset: RuleSet, character: Character) -> bool:
     """Whether the elemental-powers catalogue is open to this character at all — the
     Elemental-origin God-Blooded gate (PG p.68, "descendents of elementals draw on the
     innate powers of their heritage"). The UI reads this to decide whether the picker
-    page exists; every requirement check starts from it too."""
-    return character.exalt_type == "God-Blooded" and character.origin == "Elemental"
+    page exists; every requirement check starts from it too.
+
+    The gate is CASTE-level, not just splat-and-origin: the retired Merit's printed
+    restriction barred every heritage but god-blooded (`barred_castes`), and "Elemental"
+    is only an origin option on the god-blooded row — so a hand-edited save with
+    `caste="demon-blooded"` + `origin="Elemental"` must NOT open the catalogue. `origin`
+    alone is not enough; a stray origin string could pass it."""
+    return (character.exalt_type == "God-Blooded"
+            and character.caste == "god-blooded"
+            and character.origin == "Elemental")
 
 
 def legal_elemental_powers(ruleset: RuleSet, character: Character) -> list[str]:
