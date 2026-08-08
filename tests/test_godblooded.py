@@ -1352,6 +1352,28 @@ def test_elemental_power_availability_is_origin_gated(rs):
     assert not validate.elemental_powers_available(rs, _demon())
 
 
+def test_switching_heritage_away_from_elemental_orphans_held_powers(rs):
+    """The orphan path, pinned engine-side: a heritage/caste/origin switch away from
+    Elemental makes every held power illegal — the picker tab vanishes, the BP
+    breakdown keeps charging, and there's no UI path to remove them (the code-review
+    finding). legal_elemental_powers is the rule the editor applies after such a
+    switch: it empties the held powers the moment Elemental stops being available, and
+    leaves them alone while it is. The returned list is a COPY — the editor's clear is
+    `if character.elemental_powers != legal: character.elemental_powers = legal`, and
+    a shared object would make that a no-op that keeps the orphaned powers."""
+    assert validate.legal_elemental_powers(
+        rs, _elemental(elemental_powers=["elemental.aegis"])) == ["elemental.aegis"]
+    # Caste switch god-blooded -> demon-blooded resets the origin to "" -> closed.
+    assert validate.legal_elemental_powers(
+        rs, _demon(elemental_powers=["elemental.aegis"])) == []
+    # Origin switch Elemental -> Divine closes the catalogue too.
+    assert validate.legal_elemental_powers(
+        rs, _god(elemental_powers=["elemental.aegis"])) == []
+    c = _elemental(elemental_powers=["elemental.aegis", "elemental.enshroud"])
+    legal = validate.legal_elemental_powers(rs, c)
+    assert legal == c.elemental_powers and legal is not c.elemental_powers
+
+
 def test_elemental_power_requirements_need_dominion_and_essence(rs):
     aegis = rs.elemental_powers["elemental.aegis"]
     assert not validate.meets_elemental_power_requirements(
@@ -1369,15 +1391,38 @@ def test_elemental_power_requirements_need_dominion_and_essence(rs):
 
 def test_elemental_power_issues_report_hand_edited_illegal_powers(rs):
     """A hand-edited save holding an unqualified power is flagged like merit_issues:
-    an unknown id, low Essence, a missing Merit. Folded into validate_chargen too."""
+    an unknown id, low Essence, a missing Merit. Folded into validate() — the
+    always-on validator, so a locked character is re-checked, not just a chargen
+    sheet (the house-bug shape the code review caught)."""
     c = _elemental(merits_flaws=[MP(merit_id="mf.elemental-dominion")],
                    essence_rating=1)
     c.elemental_powers = ["elemental.aegis", "elemental.rejuvenation", "elemental.nope"]
     codes = {i.code for i in validate.elemental_power_issues(rs, c, c.elemental_powers)}
-    assert {"elemental-power-low-essence", "elemental-power-missing-merit",
-            "elemental-power-unknown"} <= codes
-    codes2 = {i.code for i in validate.validate_chargen(rs, c)}
+    assert {"elemental-power-low-essence", "elemental-power-missing-merit"} <= codes
+    # Unknown ids are check_references' job, not elemental_power_issues' — exactly the
+    # unknown-charm/unknown-spell split, so a deleted or renamed power surfaces ONE
+    # issue instead of two.
+    assert "elemental-power-unknown" not in codes
+    codes2 = {i.code for i in validate.validate(rs, c)}
+    assert "elemental-power-unknown" in codes2
     assert "elemental-power-missing-merit" in codes2
+    codes3 = {i.code for i in validate.validate_chargen(rs, c)}
+    assert "elemental-power-missing-merit" not in codes3
+
+
+def test_a_locked_character_is_rechecked_for_illegal_powers(rs):
+    """The house bug, pinned: elemental_power_issues used to live only in
+    validate_chargen, which the sheet runs only pre-lock — so a locked character was
+    never re-checked. Lock a clean Elemental, then hand-edit in an unqualified power;
+    validate() must flag it with chargen long over."""
+    c = _elemental()
+    lifecycle.lock_chargen(c, rs)
+    c.elemental_powers = ["elemental.aegis", "elemental.rejuvenation"]
+    # Rejuvenation needs Primal Restoration, which _elemental holds — drop the Merit
+    # the way a save edit could, leaving a held power unqualified.
+    c.merits_flaws = [MP(merit_id="mf.elemental-dominion")]
+    codes = {i.code for i in validate.validate(rs, c)}
+    assert "elemental-power-missing-merit" in codes
 
 
 def test_learning_an_elemental_power_spends_14_xp(rs):
@@ -1467,6 +1512,23 @@ def test_elemental_powers_appear_in_the_bonus_point_breakdown(rs):
     line2 = next(l for l in validate.bonus_point_breakdown(rs, c).lines
                  if l.domain == "Elemental Powers")
     assert line2.points == 14
+
+
+def test_the_elemental_picker_total_is_in_the_currency_it_labels(rs):
+    """The Owned total must be summed in the same currency the rows are priced in.
+    It summed bp_cost unconditionally, so post-lock it printed a BP total under an
+    "XP" label — two powers rendered as rows of 14 XP above a total of "14 XP"."""
+    c = _elemental(elemental_powers=["elemental.aegis", "elemental.coarse-skin"])
+    v = viewmod.build_elemental_power_picker(rs, c)
+    assert v.currency == "BP"
+    assert [r.price for r in v.owned] == [7, 7]
+    assert v.total == 14
+    c.xp_earned = 100
+    lifecycle.lock_chargen(c, rs)
+    v2 = viewmod.build_elemental_power_picker(rs, c)
+    assert v2.currency == "XP"
+    assert [r.price for r in v2.owned] == [14, 14]
+    assert v2.total == 28
 
 
 def test_merit_ids_held_names_the_held_merits(rs):

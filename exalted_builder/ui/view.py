@@ -605,6 +605,9 @@ def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> s
         catalogue = ruleset.thaum_rituals if key == "ritual" else ruleset.thaum_formulas
         obj = catalogue.get(target)
         return f"Orientation: {obj.name if obj else target} ({orientation})"
+    if domain == "elemental_powers":
+        power = ruleset.elemental_powers.get(entry.detail)
+        return f"Elemental Power: {power.name if power else entry.detail}"
     return entry.target
 
 
@@ -830,9 +833,10 @@ def build_elemental_power_picker(ruleset: RuleSet, character: Character) -> Elem
             available=not reason, reason=reason,
         ))
     owned = [r for r in rows if r.owned]
-    total = sum(ruleset.elemental_powers[pid].bp_cost
-                for pid in character.elemental_powers
-                if pid in ruleset.elemental_powers)
+    # Summed off the rows so the total is in the SAME currency they are priced in —
+    # bonus points before the lock, XP (double, PG p.68) after it. Re-summing bp_cost
+    # here would label a BP total "XP" post-lock.
+    total = sum(r.price for r in owned)
     return ElementalPowerView(currency=currency, total=total,
                               powers=rows, owned=owned)
 

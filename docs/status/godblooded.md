@@ -766,6 +766,39 @@ had them but the Charms & Sorcery band did not, so `SheetView.elemental_powers` 
 them as their own headed section (like Arcanoi/Gifts) in `charm_sections` and the editor's
 picker panel, kept off the flat `view.charms` that tests pin.
 
+**The Opus code review (2026-08-08) fixed four things, all now pinned by tests:**
+
+1. **The house bug (finding 1).** `elemental_power_issues` ran only inside
+   `validate_chargen`, which the sheet calls only pre-lock — post-lock all four checks
+   were dead and powers bought in play were never re-checked. Moved into `validate()`
+   (the always-on validator), reading the **live** `character.elemental_powers` (chargen
+   picks + in-play buys). A test locks a clean Elemental, hand-edits in an unqualified
+   power, and asserts `validate()` flags it with chargen long over.
+2. **Unknown ids (finding 2).** `check_references` covered charms/spells/granted but not
+   elemental_powers — renaming a power id left a locked sheet rendering the "?" missing
+   row with no unknown-* issue behind it. Added the `elemental-power-unknown` loop to
+   `check_references` and removed the duplicate branch from `elemental_power_issues`
+   (which now skips unknown ids) — mirroring the unknown-charm/unknown-spell split so a
+   deleted or renamed power surfaces exactly one issue.
+3. **The XP-ledger label (finding 3).** `_xp_entry_label` had no elemental_powers branch,
+   so two powers bought in play showed as two identical rows reading `elemental_powers ·
+   14 XP` and the LIFO undo button was unlabelled. It now resolves the name → "Elemental
+   Power: Aegis".
+4. **The orphan path (finding 4).** Switching caste/origin/exalt-type away from
+   god-blooded after buying powers reset the origin, hid the picker tab, but left the
+   powers on the character — the BP breakdown kept charging and validation errored with
+   no UI path to remove them. The rule lives in the engine (`validate.legal_elemental_powers`:
+   the held powers are legal iff the catalogue is open, returned as a copy); the editor's
+   three structural mutators (`set_exalt_type`, `set_caste`, `set_origin`) drop whatever
+   it no longer authorizes, notifying when they do — the same shape as
+   `_reset_camp_for_origin`/`default_camp_and_calling`. Pre-lock the BP returns to the
+   pool (decision 0003: BP is a ceiling, not a wallet).
+
+Also caught in the same pass (not one of the four findings): the picker's Owned total
+summed `bp_cost` unconditionally, so post-lock it printed a BP total under an "XP" label
+(two powers rendered as rows of 14 XP above a total of "14 XP"). Now summed in the rows'
+own currency.
+
 ⚠ **The 9 descriptions are lifted from the un-vetted VLM transcription** — a fabrication
 incident is documented below on exactly this page ("Consume Element" originally carried
 invented text). **The human must eyeball the 9 descriptions in `data/elemental_powers.json`

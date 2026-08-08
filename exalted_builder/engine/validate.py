@@ -836,14 +836,16 @@ class Issue(BaseModel):
 # --------------------------------------------------------------------------- #
 
 def check_references(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Every Charm/Spell id the character holds must resolve in the RuleSet.
-    Equipment is an inline copy by design and is intentionally not checked.
+    """Every Charm/Spell/Elemental-Power id the character holds must resolve in the
+    RuleSet. Equipment is an inline copy by design and is intentionally not checked.
 
     Charms live on four lists, and all four are checked: an unresolvable id in the
     Alchemical's Panoply (`retainer_charms`) or in a camp's `granted_charms` is the
     same defect as one in `charms` — most likely a custom Charm deleted from the
     library, or a save opened without the library that defined it (see
-    custom_content.py)."""
+    custom_content.py). Elemental Powers are the same class of defect: a renamed or
+    deleted power id must surface an `elemental-power-unknown` issue rather than a
+    bare "?" row on the sheet with nothing behind it."""
     issues: list[Issue] = []
     charm_lists = (
         ("", character.charms),
@@ -862,6 +864,12 @@ def check_references(ruleset: RuleSet, character: Character) -> list[Issue]:
             issues.append(Issue(
                 code="unknown-spell", where=sid,
                 message=f"Character holds unknown Spell id {sid!r}.",
+            ))
+    for pid in character.elemental_powers:
+        if pid not in ruleset.elemental_powers:
+            issues.append(Issue(
+                code="elemental-power-unknown", where=pid,
+                message=f"Character holds unknown Elemental Power id {pid!r}.",
             ))
     return issues
 
@@ -3310,6 +3318,17 @@ def elemental_powers_available(ruleset: RuleSet, character: Character) -> bool:
     return character.exalt_type == "God-Blooded" and character.origin == "Elemental"
 
 
+def legal_elemental_powers(ruleset: RuleSet, character: Character) -> list[str]:
+    """The Elemental Powers a heritage change leaves the character able to hold.
+    The catalogue belongs to the Elemental origin alone (see elemental_powers_available),
+    so any structural switch away from it orphans every held power — the picker tab
+    vanishes, the BP breakdown keeps charging, and validation errors with no UI path to
+    remove them. The editor reads this after a heritage/caste/origin switch and drops
+    whatever it no longer authorizes (the same shape as default_camp_and_calling: the
+    engine decides, the UI applies)."""
+    return list(character.elemental_powers) if elemental_powers_available(ruleset, character) else []
+
+
 def meets_elemental_power_requirements(ruleset: RuleSet, character: Character, power) -> bool:
     """Whether the character could legally learn `power` right now: Elemental origin,
     min Essence, and every Merit in `required_merits` held. The forward-looking
@@ -3350,10 +3369,9 @@ def elemental_power_issues(ruleset: RuleSet, character: Character,
     for pid in power_ids:
         power = ruleset.elemental_powers.get(pid)
         if power is None:
-            issues.append(Issue(
-                code="elemental-power-unknown", where=pid,
-                message=f"Elemental power {pid!r} is not in the rule set.",
-            ))
+            # Unknown ids are check_references' job (the same split as unknown-charm /
+            # unknown-spell): this function only reports legality for RESOLVED powers,
+            # so a deleted/renamed power surfaces exactly one issue.
             continue
         if not elemental_powers_available(ruleset, character):
             issues.append(Issue(
@@ -3934,7 +3952,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
      beastman_gifts, arrays, _submodules, colleges, thaumaturgy, paths,
-     _favored_path, elemental_powers) = _chargen_source(character)
+     _favored_path, _elemental_powers) = _chargen_source(character)
 
     # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
     # for every splat whose Backgrounds are purely narrative.
@@ -4534,7 +4552,6 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # claims a blank sheet is finished.
     issues.extend(unspent_budget_issues(ruleset, character))
     issues.extend(merit_issues(ruleset, character))
-    issues.extend(elemental_power_issues(ruleset, character, elemental_powers))
 
     issues.extend(check_camp_and_calling(ruleset, character))
     issues.extend(granted_charm_issues(ruleset, character))
@@ -5111,4 +5128,11 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_specialties(ruleset, character)
     issues += check_fetters_and_passions(ruleset, character)
     issues += check_artifacts(ruleset, character)
+    # Elemental Powers legality runs on BOTH sides of the lock, like every other
+    # trait check here — the powers are bought in play as well as at creation, and a
+    # chargen-only read would go dead the moment the character locks (the house bug).
+    # `character.elemental_powers` is the LIVE list: at lock it still holds the
+    # chargen picks, and in play learn_elemental_power appends to it, so the snapshot
+    # (which only ever holds chargen picks) is the wrong resolution here.
+    issues += elemental_power_issues(ruleset, character, character.elemental_powers)
     return issues

@@ -1444,6 +1444,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # this, switching away from an Illuminated Solar leaves a stale camp id behind
         # and validation reports camp-not-supported.
         _reset_camp_for_origin()
+        # ...and any Elemental Powers bought under the old splat (they are Elemental-
+        # heritage-only). Without this, switching away leaves them stranded: the picker
+        # tab vanishes, the BP breakdown keeps charging, validation errors with no UI
+        # path to remove them.
+        _drop_orphaned_elemental_powers()
         body.refresh(); changed()
         if on_theme_change is not None:     # let the embedding app re-theme its chrome
             on_theme_change()
@@ -1466,6 +1471,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             character.origin = next(iter(origins)) if origins else ""
             character.upbringing = ""
             _reset_camp_for_origin()
+        # A heritage switch can orphan Elemental Powers (see _drop_orphaned_elemental_powers
+        # in set_exalt_type) — drop them whenever they stop being available.
+        _drop_orphaned_elemental_powers()
         body.refresh(); changed()
 
     def set_origin(value: str) -> None:
@@ -1478,6 +1486,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # stale camp id would trip camp-wrong-origin; default to the first camp offered
         # (and its first Calling) so the character stays legal by construction.
         _reset_camp_for_origin()
+        # Elemental Powers are the Elemental heritage's alone — leaving it strands them
+        # (see set_exalt_type). Clear them with the origin, since only "Elemental" offers
+        # the catalogue.
+        _drop_orphaned_elemental_powers()
         body.refresh(); changed()
 
     def set_upbringing(value: str) -> None:
@@ -1490,6 +1502,22 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         camp, calling, granted = validate.default_camp_and_calling(ruleset, character)
         character.camp, character.calling = camp, calling
         character.granted_charms = granted
+
+    def _drop_orphaned_elemental_powers() -> None:
+        """Elemental Powers belong to the Elemental heritage alone (PG p.68), so any
+        structural switch that walks away from it strands them: the picker tab vanishes,
+        the BP breakdown keeps charging their cost, and validation flags every one with
+        no UI path to remove them (the code-review finding). The rule lives in the engine
+        (validate.legal_elemental_powers) — this just applies it, exactly as
+        _reset_camp_for_origin applies validate.default_camp_and_calling. Say so when it
+        drops any, because unlike a camp these were bought — pre-lock their BP simply
+        returns to the pool (decision 0003: BP is a ceiling, not a wallet)."""
+        legal = validate.legal_elemental_powers(ruleset, character)
+        if character.elemental_powers != legal:
+            n = len(character.elemental_powers)
+            character.elemental_powers = legal
+            ui.notify(f"Cleared {n} Elemental Power{'s' if n != 1 else ''} — they belong "
+                      "to the Elemental heritage (PG p.68).", type="warning")
 
     def set_camp(value: str, refresh: bool = True) -> None:
         """Pick a training camp. The camp determines both the Calling list and the free
