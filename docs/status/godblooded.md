@@ -625,13 +625,13 @@ present.
   shapechanging). `magic_track "sorcery"` bars Shadowlands necromancy via the existing
   `heritage_bars_initiation` (only touches `grants_circle` Charms).
 
-### The 16 new M&F (`merits_flaws.json`, all gated by `barred_castes` on the four other
+### The 15 new M&F (`merits_flaws.json`, all gated by `barred_castes` on the four other
 heritages and by `required_origins` where the book splits)
-* **Divine God-Blooded** (9): Divine Apprentice (3 Social, prereq "Patron at least 3"),
+* **Divine God-Blooded** (8): Divine Apprentice (3 Social, prereq "Patron at least 3"),
   Sanctum's Key (1 Supernatural), Artisan of Prayers (3), Respiring Touch (7),
-  Elemental Dominion (7, prereq Respiring Touch), Elemental Power (7, prereq Dominion,
-  "Essence 2"), Primal Restoration (7), Elemental Immunity (8, prereq Dominion, "Essence
-  2"), Elemental Archetype (2 Mental **flaw**).
+  Elemental Dominion (7, prereq Respiring Touch), Primal Restoration (7),
+  Elemental Immunity (8, prereq Dominion, "Essence 2"), Elemental Archetype (2 Mental
+  **flaw**).
 * **Demon-Blooded** (7): Gatekeeper (1 Social), Immunity to Possession (3),
   Mark of Infernal Favor (3), Ordination of Lies (5), Ordination of Pain (5), Unholy
   (4 Supernatural **flaw**, prereq Affected by Wards), Walking Blasphemy (5
@@ -729,35 +729,47 @@ machine has it (check resumes and the descriptions summarize the fuller printed 
 below 92%). The two new entries were brought to parity and are NOT in the failing list.
 Leave the 46 alone until the human decides; they are not a regression.
 
-## ⚠ The Elemental Powers — TRANSCRIBED 2026-08-08, AWAITING A MODELLING RULING
+## The Elemental Powers — SHIPPED 2026-08-08
 
-**Do not author these until the human rules on question 1 below.** They are transcribed
-and cross-checked but NOT vetted, and the finding is that they may not belong here at
-all.
+**Human's ruling (2026-08-08), against PG p.68 (CH2 - Godblooded.md):** the elemental
+powers are a **9-power learnable catalogue for Elemental-origin God-Blooded** — their own
+page of the Charms picker, bought at **7 BP chargen / 14 XP in play** ("learned in play
+for a number of experience points equal to double its bonus point value"). They are NOT
+spirit Charms (no cost/type/duration lines) and NOT adversary traits. The old
+`mf.elemental-power` Merit is **retired (deleted)** — the nine powers replace it.
 
-**Where they are:** `images/Non-Exalts/Spirit Charms/Elemental Powers - Core p296 + GoD
-p56.md` — Core p.296 COMMON ELEMENTAL POWERS (7) + GoD p.56 NEW ELEMENTAL POWERS (6),
-the 13 the TODO had been counting. ⚠ **`images/` is gitignored, so that file exists only
-on the machine that made it** (the home PC). It does not travel to the laptop; re-run the
-pipeline there if needed — the recipe is below.
+**The learnable set** (p.68, "of the elemental powers on page 56 of GoD, only Consume
+Element and Plague of Menaces can be learned"): the 7 Core p.296 powers (Aegis, Coarse
+Skin, Dragon's Suspire, Element's Domain, Enshroud, Mobility, Rejuvenation) + Consume
+Element + Plague of Menaces (GoD p.56). The other four GoD powers (Day to Night,
+Elemental Unction, Foul the Waters, Immolation) are elemental-spirit traits, **not
+authored.**
 
-**The finding that changes the question.** Not one of the 13 prints a `Cost:` / `Type:` /
-`Duration:` / `Minimum <Virtue>:` line. They are named powers with inline descriptions,
-referenced by name from elemental stat blocks later in GoD (`Elemental Powers: Aegis,
-Element's Domain, Rejuvenation…`). So the long-standing open question — *are they
-Virtue-keyed or element-keyed?* — has a **third answer: neither.** They are a trait on
-elemental spirits, structurally closer to the adversary roster than to the spirit-Charm
-catalogue. Two consequences:
+**Prereqs:** every power requires the `mf.elemental-dominion` Merit + Essence 2 (the
+retired Merit's own prereqs); **Rejuvenation additionally requires `mf.primal-restoration`.**
+`activation` and `description` are **descriptive text only** — decision 0008 keeps combat
+effects as text (soak bonuses, damage dice, an attack roll all ride the prose).
+**Training time is NOT built** (standing 2026-07-30 ruling — the p.68 "takes a number of
+days equal to the bonus point cost" clause stays descriptive).
 
-1. **OPEN, the human's call:** do they belong to God/Demon-Blooded at all? Nothing on
-   either page ties them to the heritages; the God-Blooded route to elemental power is
-   the p.68 M&F set (Respiring Touch → Elemental Dominion → Elemental Power/Immunity),
-   which is already authored. If the answer is "they're elemental NPC traits", they
-   belong to `adversaries`, not `spirit_templates.json`, and the fifth-tree keying
-   question dies with it.
-2. **Decision 0008 limits what could ship anyway** — most of the 13 are pure combat
-   effects (soak bonuses, lethal damage, an attack roll), so even if authored they would
-   be descriptive text, not derivation.
+**Where it lives:** `data/elemental_powers.json` (9 entries, ids `elemental.<slug>`), a new
+`RuleSet.elemental_powers` catalogue loaded and link-checked like merits;
+`Character.elemental_powers` + snapshot + lock; `engine.costs.elemental_power_xp`
+(7 BP × the `new_merit_bp_multiplier` doubling → 14, deliberately NOT the God-Blooded
+new-Charm rate of 15); `engine.advancement.learn_elemental_power` (learn / audit / undo /
+`drop_merit` dependents scan all extended); the picker's **Elemental Powers** page gated on
+`validate.elemental_powers_available` (God-Blooded AND origin Elemental — every other
+origin/splat's tab bar is unchanged); and `engine.merits.merit_ids_held` for the
+required-Merit check (containment rule decision 0011: Merit ids are named only there and
+in data).
+
+⚠ **The 9 descriptions are lifted from the un-vetted VLM transcription** — a fabrication
+incident is documented below on exactly this page ("Consume Element" originally carried
+invented text). **The human must eyeball the 9 descriptions in `data/elemental_powers.json`
+against the book before browser-verify** — the JSON is the durable copy (`images/` is
+gitignored). The transcription lives at `images/Non-Exalts/Spirit Charms/Elemental Powers
+- Core p296 + GoD p56.md` (home PC only); re-run the pipeline below on another machine if
+needed.
 
 **The pipeline recipe (it worked; reuse it):** `pdftoppm -r 300 -png`, page offset **+1
 in both books** (Core p.296 = `Exalted.pdf` p.297; GoD p.56 = `Games of Divinity
@@ -765,29 +777,21 @@ in both books** (Core p.296 = `Exalted.pdf` p.297; GoD p.56 = `Games of Divinity
 not assumed), then `qwen3-vl:8b-instruct` via ollama with `num_ctx: 16384`,
 `temperature: 0` and `tools/VLM_TRANSCRIPTION_PROMPT.md`. ~30s per image.
 
-**⚠ The trap, and the reason the GoD page is transcribed FULL-PAGE:** its sidebar spans
-the full page width. A 50/50 column split — correct for the corebook pages — cut every
-entry in half, and **the VLM bridged the gaps with fluent invented text while reporting
+**⚠ The trap that made the human's vetting pass necessary:** GoD p.56's sidebar spans the
+full page width. A 50/50 column split — correct for the corebook pages — cut every entry
+in half, and **the VLM bridged the gaps with fluent invented text while reporting
 `UNCERTAIN: none`.** "Consume Element" came out as *"The element burns motes of Essence
 burned (e.g., 10 motes burned = +5 soak) against natural elements such as fire."* It was
 caught only because it was incoherent; the full-page re-run then matched the discarded
 right-column fragments word for word. **A confident `UNCERTAIN: none` is not evidence
 the page was read correctly — check the layout before choosing the crop.** Numbers were
 cross-checked against independent tesseract OCR (Core 5/5 exact; GoD's distinct values
-1/3/5/10/15/16L all agree).
-
-**Two things for the human's vetting pass:** (a) `Immolation` (GoD) still reads oddly —
-*"This power is a dice action… Spends 1 mote of Essence and roll. the bird's Valor +
-Charisma"* — possibly faithful to a badly-set page, needs eyes on the book; (b) the last
-two bullets under Core's COMMON ELEMENTAL POWERS (regeneration, breeding with mortals)
-are **body prose the VLM bulleted**, not named powers — 7 powers plus 2 paragraphs.
-
-**Nothing is blocked.** Everything the earlier drafts of this file listed as blocked has
-landed — the GoD appendix set, the corebook batch, the STC CH3 batch, Wyld Shield,
-Portal, and (2026-08-08) the sorcery initiation. `charm_access: ["Spirit"]` resolves,
-the Wyld Shield ban is live, every printed prerequisite is wired to a real id, and both
-magic tracks reach their one permitted circle. The only flagged item left is the
-inherited 1-Willpower cost on the two initiation Charms (see above).
+1/3/5/10/15/16L all agree). Two stray transcription notes: (a) `Immolation` (GoD) still
+reads oddly — *"This power is a dice action… Spends 1 mote of Essence and roll. the
+bird's Valor + Charisma"* — possibly faithful to a badly-set page, needs eyes on the
+book; (b) the last two bullets under Core's COMMON ELEMENTAL POWERS (regeneration,
+breeding with mortals) are **body prose the VLM bulleted**, not named powers — 7 powers
+plus 2 paragraphs (neither is in the catalogue).
 
 **NOT browser-verified.** Run `preflight`, then the click-through, before this section
 loses its warning.

@@ -176,9 +176,13 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (2,035 passing)
+## Status (2,051 passing)
 
-The suite is green: **2,035 passing** — the Mountain Folk splat added 18 tests at
+The suite is green: **2,051 passing** — the Elemental Powers catalogue added 16 on
+2026-08-08 (12 engine + 4 UI build tests, the last two the locked-XP and empty
+picker shapes from preflight's render matrix; the 9-power learnable set for
+Elemental-origin God-Blooded, PG p.68, see `docs/status/godblooded.md` → *The
+Elemental Powers*); the Mountain Folk splat added 18 tests at
 ship (2026-08-07, browser-verified) and a further 9 in the Opus code-review fixes
 the same day (the two-pool Ability billing, the foreign-Charm bar, the
 both-phases Pattern bar); the God/Demon-Blooded heritage work added 22 on the same
@@ -298,25 +302,28 @@ Recorded as decision records, not restated here — read them before proposing a
 ### 👉 START HERE (session handoff)
 
 **⏸ PICK UP HERE (2026-08-08, branch `deepseek-experiment`, worktree `…-ds`).**
-Two commits landed today and the suite is at **2,035 passing** (plus the one known
-machine-only M&F description failure — not a regression, see Status):
+The suite is at **2,051 passing** (plus the one known machine-only M&F description
+failure — not a regression, see Status). Three commits landed today:
 * `33f8f6b` — the God/Demon-Blooded heritage work, reviewed and de-noised.
 * `cab543a` — the PG p.48 sorcery initiation, which CLOSED the last open rules gap.
+* the **Elemental Powers catalogue** (SHIPPED — the 9-power learnable set for
+  Elemental-origin God-Blooded, PG p.68, 7 BP / 14 XP, its own picker page;
+  `mf.elemental-power` retired). See the ⚠ next.
 
-**Two things are owed, in this order:**
+**Two things stand between God/Demon-Blooded and done — run the `preflight` skill
+first (read-site audit), then browser-verify:**
 1. **The browser click-through of God/Demon-Blooded** — everything is authored, tested
-   and committed, and NOTHING is blocked. Run the `preflight` skill first, then
-   `run-server`. This is the only thing between the splat and "done".
-2. **The 13 Elemental Powers — a MODELLING RULING is owed by the human, not more
-   transcription.** They were transcribed 2026-08-08 (Core p.296 = 7, GoD p.56 = 6) and
-   the finding is that **they are not Charms at all** — no cost/type/duration/minimum
-   lines, just named powers referenced from elemental stat blocks. So they may belong to
-   the adversary roster rather than the spirit catalogue, and the old "Virtue-keyed or
-   element-keyed?" question may be moot. **Do not author them until that is settled** —
-   the full write-up, the pipeline recipe and the VLM trap it exposed are in
-   `docs/status/godblooded.md` → *The Elemental Powers*. ⚠ The transcription lives at
-   `images/Non-Exalts/Spirit Charms/Elemental Powers - Core p296 + GoD p56.md`, which is
-   **gitignored and therefore exists only on the home PC.**
+   and committed, and NOTHING is blocked. `run-server`, then click through. This is the
+   only thing between the splat and "done".
+2. **⚠ Human: eyeball the 9 descriptions in `data/elemental_powers.json` against the
+   book** (the **Elemental Powers** catalogue, SHIPPED 2026-08-08 — the 9-power
+   learnable set for Elemental-origin God-Blooded, PG p.68, 7 BP chargen / 14 XP, its
+   own page of the Charms picker; `mf.elemental-power` retired). The 7 Core p.296 powers
+   + Consume Element + Plague of Menaces (GoD p.56); every power requires Elemental
+   Dominion + Essence 2, Rejuvenation additionally Primal Restoration. The descriptions
+   come from the **un-vetted VLM transcription** (the page's fabrication incident is
+   documented in `docs/status/godblooded.md` → *The Elemental Powers*) — the JSON is the
+   durable copy (`images/` is gitignored), so the eyeball is what makes it safe.
 
 **Mountain Folk: DONE 2026-08-07, browser-verified.**
 `images/Mortals/Mountain Folk/CH 6 - The Mountain Folk.md` arrived 2026-08-07 and the
@@ -467,11 +474,14 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
   The Dragon-Kings-era Merit hooks that landed before it (Prodigy's
   DK/God-Blooded rate, the PG p.114 mortal-god UI note, the Weak Essence DK bar) are
   all DONE.
-* **God/Demon-Blooded** — the last two Godblooded heritages. **Heritage rows + 16 M&F +
+* **God/Demon-Blooded** — the last two Godblooded heritages. **Heritage rows + 15 M&F +
   the spirit-Charm catalogue AUTHORED 2026-08-07** (the two `castes.json` rows with the
   Divine/Elemental origin sub-axis and the p.66 pool; `charm_access: ["Spirit"]` now
-  resolves to the **80-Charm** `spirit_templates.json`; 9 Divine + 7 Demon-Blooded M&F)
-  — 28 tests, all green, NOT yet browser-verified. **PG p.48 rule:** both learn spirit
+  resolves to the **80-Charm** `spirit_templates.json`; 8 Divine + 7 Demon-Blooded M&F)
+  — 42 tests, all green, NOT yet browser-verified. **The Elemental Powers SHIPPED
+  2026-08-08** as a separate 9-power catalogue (`data/elemental_powers.json`, 7 BP /
+  14 XP, Elemental-origin God-Blooded only); the `mf.elemental-power` Merit it replaces
+  is deleted — see START HERE for the two things owed. **PG p.48 rule:** both learn spirit
   Charms, neither may learn Wyld Shield (the bar is live on both rows), Portal is a
   lesser (God-Blooded) / Malfeas-only (Demon-Blooded) variant — the variants ride the
   heritage descriptions, the catalogue holds the one printed stat block. **Catalogue

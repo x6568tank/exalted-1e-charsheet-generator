@@ -488,6 +488,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     # Charms at all (PG pp.175-177). Shown only for a splat that ships paths.
     if ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing).path_dots > 0:
         GROUPS["paths"] = "Paths"
+    # The Elemental Powers page (Core p.296 + GoD p.56, PG p.68): a Charm-like
+    # catalogue open to Elemental-origin God-Blooded only — "descendents of elementals
+    # draw on the innate powers of their heritage". Every other origin/splat's tab bar
+    # is unchanged.
+    if validate.elemental_powers_available(ruleset, character):
+        GROUPS["elemental"] = "Elemental Powers"
 
     # The Alchemical "general" category (the 18 Augmentation templates) renders as two
     # per-type pop-ups instead of an 18-node graph. None for every other splat.
@@ -1330,6 +1336,114 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.label(f"{row.cost} {v.currency}").classes(
                             "text-xs font-mono text-gray-600 w-16 text-right")
 
+    # ---- Elemental Powers (Core p.296 + GoD p.56, PG p.68) ------------------ #
+    # A Charm-like catalogue for Elemental-origin God-Blooded: 7 BP each chargen,
+    # 14 XP in play ("learned in play for a number of experience points equal to
+    # double its bonus point value"). Every gate and price comes from the engine;
+    # purchases edit the chargen list before the lock and go through
+    # engine.advancement after it, exactly like spells.
+    def _elemental_buy_button(row) -> None:
+        if in_play():
+            if row.owned:
+                ui.button(icon="check").props(
+                    "dense flat round size=sm disable").tooltip("Known")
+                return
+            if not row.available:
+                ui.button(icon="lock").props(
+                    "dense flat round size=sm disable").tooltip(row.reason)
+                return
+            btn = ui.button(icon="shopping_cart",
+                            on_click=lambda _=None, rid=row.id: toggle_elemental_power(rid)) \
+                .props("dense flat round size=sm color=positive")
+            if _afford(row.price):
+                btn.tooltip(f"Buy · {row.price} XP")
+            else:
+                btn.props("disable").tooltip(
+                    f"{row.price} XP — only {advancement.xp_available(character)} available")
+        elif row.owned:
+            ui.button(icon="remove",
+                      on_click=lambda _=None, rid=row.id: toggle_elemental_power(rid)) \
+                .props("dense flat round size=sm color=negative")
+        elif row.available:
+            ui.button(icon="add",
+                      on_click=lambda _=None, rid=row.id: toggle_elemental_power(rid)) \
+                .props("dense flat round size=sm color=positive")
+        else:
+            ui.button(icon="lock").props("dense flat round size=sm disable").tooltip(row.reason)
+
+    def toggle_elemental_power(power_id: str) -> None:
+        if in_play():
+            power = ruleset.elemental_powers.get(power_id)
+            if power is None:
+                return
+            if not _buy(lambda: advancement.learn_elemental_power(
+                    ruleset, character, power_id)):
+                return
+            ui.notify(f"Learned {power.name} — {costs.elemental_power_xp(ruleset, character, power)} XP",
+                      type="positive")
+        elif power_id in character.elemental_powers:
+            character.elemental_powers.remove(power_id)
+            ui.notify(f"Dropped {ruleset.elemental_powers[power_id].name}", type="info")
+        else:
+            power = ruleset.elemental_powers.get(power_id)
+            if power is None:
+                return
+            if validate.meets_elemental_power_requirements(ruleset, character, power):
+                character.elemental_powers.append(power_id)
+                ui.notify(f"Learned {power.name}", type="positive")
+            else:
+                reason = "; ".join(validate.elemental_power_shortfalls(
+                    ruleset, character, power))
+                ui.notify(f"{power.name}: {reason}", type="warning")
+                return
+        elemental_panel.refresh()
+        readout.refresh()
+
+    @ui.refreshable
+    def elemental_panel() -> None:
+        if state["group"] != "elemental":
+            return
+        v = viewmod.build_elemental_power_picker(ruleset, character)
+        with ui.card().classes(f"w-full p-3 gap-3 {pal.card}"):
+            with ui.row().classes("w-full items-baseline gap-3"):
+                ui.label("Elemental Powers").classes(
+                    "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
+                if in_play():
+                    caption = "14 XP each in play (7 bonus points doubled, PG p.68)."
+                else:
+                    caption = "7 bonus points each (PG p.68)."
+                ui.label(caption).classes("text-xs text-gray-500")
+            with ui.column().classes("w-full gap-0"):
+                for r in v.powers:
+                    locked = not r.owned and not r.available
+                    with ui.row().classes("w-full items-start no-wrap gap-2 py-1"):
+                        _elemental_buy_button(r)
+                        with ui.column().classes("flex-1 min-w-0 gap-0"):
+                            with ui.row().classes("items-baseline gap-2 no-wrap"):
+                                ui.label(r.name).classes(
+                                    "text-sm " + ("text-gray-400" if locked else "font-medium"))
+                                ui.label(f"Requires {r.requires}").classes(
+                                    "text-xs text-gray-400")
+                            if r.activation:
+                                ui.label(r.activation).classes("text-xs italic text-gray-500")
+                            if r.description:
+                                ui.label(r.description).classes("text-xs text-gray-500")
+                            if locked:
+                                ui.label(r.reason).classes("text-xs text-amber-700 italic")
+            # What this character has bought, straight off the engine's enumeration.
+            if v.owned:
+                ui.separator()
+                with ui.row().classes("w-full items-baseline gap-2"):
+                    ui.label("Owned").classes(
+                        "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
+                    ui.label(f"{v.total} {v.currency} total").classes(
+                        "text-xs text-gray-600")
+                for r in v.owned:
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.label(r.name).classes("text-xs flex-1 truncate")
+                        ui.label(f"{r.price} {v.currency}").classes(
+                            "text-xs font-mono text-gray-600 w-16 text-right")
+
     def _thaum_arts(v) -> None:
         for art in v.arts:
             with ui.expansion(art.name).classes("w-full").props("dense"):
@@ -2020,6 +2134,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         panoply_panel.refresh()
         paths_panel.refresh()
         thaum_panel.refresh()
+        elemental_panel.refresh()
 
     def set_group(value: str) -> None:
         """Switch between the ability pages, the martial-arts styles and the spell
@@ -2152,6 +2267,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             panoply_panel()
             paths_panel()
             thaum_panel()
+            elemental_panel()
         with ui.column().classes("w-72 gap-2 sticky top-4"):
             with ui.card().classes(f"w-full p-3 {pal.card}"):
                 ui.label("Live Validation").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")

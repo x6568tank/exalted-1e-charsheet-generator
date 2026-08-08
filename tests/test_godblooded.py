@@ -764,6 +764,57 @@ async def test_the_picker_builds_for_a_demon_blooded(user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_elemental_god_blooded_picker_has_the_elemental_powers_page(user) -> None:
+    """The Elemental Powers page (PG p.68) is its own group in the picker for an
+    Elemental-origin God-Blooded, priced at 7 BP each and rendering the owned power."""
+    from nicegui import ui as nicegui_ui
+    await user.open('/godblooded-elemental-picker')
+    await user.should_see("Charm Details")
+    toggle = next(t for t in user.find(nicegui_ui.toggle).elements
+                  if t.options and "elemental" in t.options)
+    toggle.set_value("elemental")
+    await user.should_see("Aegis")
+    await user.should_see("7 bonus points each")
+    await user.should_see("Owned")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_elemental_powers_page_is_absent_for_other_heritages(user) -> None:
+    """Only Elemental-origin God-Blooded get the page — Divine God-Blooded and
+    Demon-Blooded never see the tab."""
+    await user.open('/godblooded-god-picker')
+    await user.should_see("Charm Details")
+    await user.should_not_see("Elemental Powers")
+    await user.open('/godblooded-demon-picker')
+    await user.should_see("Charm Details")
+    await user.should_not_see("Elemental Powers")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_elemental_powers_page_switches_to_xp_when_locked(user) -> None:
+    """Once the character is locked, the page prices every power at 14 XP and the
+    owned Aegis reprices as an XP purchase (7 bonus points doubled, PG p.68)."""
+    await user.open('/godblooded-elemental-picker-inplay')
+    await user.should_see("14 XP each in play")
+    await user.should_see("Aegis")
+    await user.should_see("14 XP")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_elemental_powers_page_lists_all_nine_with_none_owned(user) -> None:
+    """A fresh Elemental God-Blooded sees all nine powers available and no Owned
+    section — the early-return on an empty owned list must not crash the page."""
+    await user.open('/godblooded-elemental-picker-empty')
+    await user.should_see("Rejuvenation")
+    await user.should_see("Plague of Menaces")
+    await user.should_not_see("Owned")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_advantages_tab_builds_for_a_demon_blooded(user) -> None:
     await user.open('/godblooded-demon-advantages')
     await user.should_see("Gatekeeper")
@@ -1227,12 +1278,191 @@ def test_the_demon_blooded_merits_are_demon_blooded_only(rs):
 
 def test_the_prereq_chains_of_the_elemental_powers_resolve(rs):
     """pp.68-69 print the chains: Respiring Touch -> Elemental Dominion ->
-    Elemental Power / Elemental Immunity. Each step is gated on the prior."""
+    Elemental Immunity. The retired Elemental Power Merit became the nine-power
+    elemental_powers catalogue (Core p.296 + GoD p.56): every power requires Elemental
+    Dominion, and Rejuvenation additionally requires Primal Restoration."""
     assert rs.merits_flaws["mf.elemental-dominion"].prerequisites == ["mf.respiring-touch"]
-    assert rs.merits_flaws["mf.elemental-power"].prerequisites == ["mf.elemental-dominion"]
     assert rs.merits_flaws["mf.elemental-immunity"].prerequisites == ["mf.elemental-dominion"]
-    assert "Essence 2" in rs.merits_flaws["mf.elemental-power"].prerequisite_note
     assert "Essence 2" in rs.merits_flaws["mf.elemental-immunity"].prerequisite_note
+    assert rs.elemental_powers["elemental.aegis"].required_merits == ["mf.elemental-dominion"]
+    assert rs.elemental_powers["elemental.rejuvenation"].required_merits == [
+        "mf.elemental-dominion", "mf.primal-restoration"]
+
+
+# --------------------------------------------------------------------------- #
+# Elemental Powers (Core p.296 + GoD p.56, PG p.68) — Elemental-origin God-Blooded
+# --------------------------------------------------------------------------- #
+# Human's ruling 2026-08-08: the 13 transcribed powers are a 9-power learnable
+# catalogue for Elemental-origin God-Blooded — 7 BP chargen / 14 XP in play
+# ("learned in play for a number of experience points equal to double its bonus
+# point value"). The retired mf.elemental-power Merit is replaced by these nine;
+# the other four GoD powers (Day to Night, Elemental Unction, Foul the Waters,
+# Immolation) are elemental-spirit traits, not authored.
+
+def _elemental(**kw) -> Character:
+    c = Character(id="elem", name="Aegis of the East Wind", exalt_type="God-Blooded",
+                  caste="god-blooded", origin="Elemental", essence_rating=2)
+    c.virtues = {VirtueName.COMPASSION: 2, VirtueName.CONVICTION: 3,
+                 VirtueName.TEMPERANCE: 2, VirtueName.VALOR: 2}
+    c.merits_flaws = [MP(merit_id="mf.elemental-dominion"),
+                      MP(merit_id="mf.primal-restoration")]
+    for k, v in kw.items():
+        setattr(c, k, v)
+    return c
+
+
+def test_the_elemental_power_catalogue_is_the_nine_learnable_powers(rs):
+    """p.68: the 7 Core p.296 powers + Consume Element and Plague of Menaces (GoD
+    p.56 — "only Consume Element and Plague of Menaces can be learned"). The other
+    four GoD powers are elemental-spirit traits, absent from the catalogue."""
+    ids = {p.id for p in rs.elemental_powers.values()}
+    assert ids == {
+        "elemental.aegis", "elemental.coarse-skin", "elemental.dragons-suspire",
+        "elemental.elements-domain", "elemental.enshroud", "elemental.mobility",
+        "elemental.rejuvenation", "elemental.consume-element",
+        "elemental.plague-of-menaces"}
+    for p in rs.elemental_powers.values():
+        assert p.bp_cost == 7
+        assert p.min_essence == 2
+
+
+def test_elemental_power_xp_is_double_the_bp_value(rs):
+    """p.68: "learned in play for a number of experience points equal to double its
+    bonus point value" — 7 BP x2 = 14, NOT the God-Blooded Charm rate of 15."""
+    p = rs.elemental_powers["elemental.aegis"]
+    assert costs.elemental_power_xp(rs, _elemental(), p) == 14
+
+
+def test_elemental_power_availability_is_origin_gated(rs):
+    """p.68: "descendents of elementals draw on the innate powers of their heritage" —
+    Elemental-origin God-Blooded only. Divine God-Blooded and Demon-Blooded fail."""
+    assert validate.elemental_powers_available(rs, _elemental())
+    assert not validate.elemental_powers_available(rs, _god())
+    assert not validate.elemental_powers_available(rs, _demon())
+
+
+def test_elemental_power_requirements_need_dominion_and_essence(rs):
+    aegis = rs.elemental_powers["elemental.aegis"]
+    assert not validate.meets_elemental_power_requirements(
+        rs, _elemental(merits_flaws=[]), aegis)
+    assert not validate.meets_elemental_power_requirements(
+        rs, _elemental(essence_rating=1), aegis)
+    assert validate.meets_elemental_power_requirements(rs, _elemental(), aegis)
+    # Rejuvenation gates on Primal Restoration too.
+    without_primal = _elemental(merits_flaws=[MP(merit_id="mf.elemental-dominion")])
+    assert not validate.meets_elemental_power_requirements(
+        rs, without_primal, rs.elemental_powers["elemental.rejuvenation"])
+    assert validate.meets_elemental_power_requirements(
+        rs, _elemental(), rs.elemental_powers["elemental.rejuvenation"])
+
+
+def test_elemental_power_issues_report_hand_edited_illegal_powers(rs):
+    """A hand-edited save holding an unqualified power is flagged like merit_issues:
+    an unknown id, low Essence, a missing Merit. Folded into validate_chargen too."""
+    c = _elemental(merits_flaws=[MP(merit_id="mf.elemental-dominion")],
+                   essence_rating=1)
+    c.elemental_powers = ["elemental.aegis", "elemental.rejuvenation", "elemental.nope"]
+    codes = {i.code for i in validate.elemental_power_issues(rs, c, c.elemental_powers)}
+    assert {"elemental-power-low-essence", "elemental-power-missing-merit",
+            "elemental-power-unknown"} <= codes
+    codes2 = {i.code for i in validate.validate_chargen(rs, c)}
+    assert "elemental-power-missing-merit" in codes2
+
+
+def test_learning_an_elemental_power_spends_14_xp(rs):
+    c = _elemental()
+    c.xp_earned = 100
+    lifecycle.lock_chargen(c, rs)
+    entry = advancement.learn_elemental_power(rs, c, "elemental.aegis")
+    assert entry.target == "elemental_powers"
+    assert entry.detail == "elemental.aegis"
+    assert entry.cost == 14
+    assert c.elemental_powers == ["elemental.aegis"]
+    assert advancement.xp_available(c) == 86
+
+
+def test_learning_an_elemental_power_refuses_illegal_buys(rs):
+    c = _elemental()
+    c.xp_earned = 100
+    lifecycle.lock_chargen(c, rs)
+    advancement.learn_elemental_power(rs, c, "elemental.aegis")
+    with pytest.raises(advancement.AdvancementError, match="already"):
+        advancement.learn_elemental_power(rs, c, "elemental.aegis")
+    with pytest.raises(advancement.AdvancementError, match="Unknown"):
+        advancement.learn_elemental_power(rs, c, "elemental.nope")
+    # Primal Restoration is a requirement of Rejuvenation, not held here.
+    no_primal = _elemental(merits_flaws=[MP(merit_id="mf.elemental-dominion")])
+    no_primal.xp_earned = 100
+    lifecycle.lock_chargen(no_primal, rs)
+    with pytest.raises(advancement.AdvancementError, match="Primal Restoration"):
+        advancement.learn_elemental_power(rs, no_primal, "elemental.rejuvenation")
+    # A Divine God-Blooded cannot buy at all.
+    d = _god()
+    d.xp_earned = 100
+    lifecycle.lock_chargen(d, rs)
+    with pytest.raises(advancement.AdvancementError, match="Elemental-origin"):
+        advancement.learn_elemental_power(rs, d, "elemental.aegis")
+
+
+def test_the_xp_audit_reprices_elemental_powers_at_14(rs):
+    """The XP audit must re-price a learned power at the table rate — the plan's trap:
+    without an _expected_cost branch the domain would silently pass every audit."""
+    c = _elemental()
+    c.xp_earned = 100
+    lifecycle.lock_chargen(c, rs)
+    advancement.learn_elemental_power(rs, c, "elemental.aegis")
+    issues = advancement.validate_xp(rs, c)
+    assert not any(i.code == "xp-cost-mismatch" for i in issues)
+    assert advancement._expected_cost(rs, c, c.xp_log[-1]) == 14
+
+
+def test_undo_last_refunds_a_learned_elemental_power(rs):
+    c = _elemental()
+    c.xp_earned = 100
+    lifecycle.lock_chargen(c, rs)
+    advancement.learn_elemental_power(rs, c, "elemental.aegis")
+    advancement.learn_elemental_power(rs, c, "elemental.coarse-skin")
+    advancement.undo_last(rs, c)
+    assert c.elemental_powers == ["elemental.aegis"]
+    assert advancement.xp_available(c) == 86      # one 14 refunded
+    advancement.undo_last(rs, c)
+    assert c.elemental_powers == []
+    assert advancement.xp_available(c) == 100     # both 14s back
+
+
+def test_dropping_a_gating_merit_is_blocked_while_a_power_is_held(rs):
+    """Dropping Elemental Dominion (or Primal Restoration) while a power that requires
+    it is held must be refused — the dependents scan walks the powers' required_merits,
+    not just other Merits."""
+    c = _elemental()
+    c.xp_earned = 100
+    lifecycle.lock_chargen(c, rs)
+    advancement.learn_elemental_power(rs, c, "elemental.aegis")
+    dominion_idx = next(i for i, m in enumerate(c.merits_flaws)
+                        if m.merit_id == "mf.elemental-dominion")
+    with pytest.raises(advancement.AdvancementError, match="Aegis"):
+        advancement.drop_merit(rs, c, dominion_idx)
+
+
+def test_elemental_powers_appear_in_the_bonus_point_breakdown(rs):
+    """2 powers x 7 BP = a 14-point Elemental Powers line, both sides of the lock
+    (the locked side reads the frozen snapshot)."""
+    c = _elemental(elemental_powers=["elemental.aegis", "elemental.rejuvenation"])
+    line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                if l.domain == "Elemental Powers")
+    assert line.points == 14
+    c.xp_earned = 100
+    lifecycle.lock_chargen(c, rs)
+    line2 = next(l for l in validate.bonus_point_breakdown(rs, c).lines
+                 if l.domain == "Elemental Powers")
+    assert line2.points == 14
+
+
+def test_merit_ids_held_names_the_held_merits(rs):
+    """engine.merits.merit_ids_held is the one generic holder check the powers'
+    requirements ride on (containment rule decision 0011)."""
+    assert merits.merit_ids_held(_elemental()) == {
+        "mf.elemental-dominion", "mf.primal-restoration"}
 
 
 def test_the_demon_blooded_flaw_chains_resolve(rs):

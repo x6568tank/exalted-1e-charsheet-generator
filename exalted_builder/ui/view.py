@@ -779,6 +779,64 @@ class ThaumPickerView:
     total: int = 0
 
 
+@dataclass
+class ElementalPowerRow:
+    """One elemental power as the picker renders it (Core p.296 / GoD p.56, PG p.68).
+    `activation` and `description` are descriptive text (decision 0008); `requires`
+    is the human-readable prerequisite line (Merits + Essence)."""
+    id: str
+    name: str
+    price: int              # bp_cost chargen, bp_cost * 2 in play
+    activation: str
+    description: str
+    requires: str
+    owned: bool
+    available: bool
+    reason: str             # why it's locked, for the button tooltip
+
+
+@dataclass
+class ElementalPowerView:
+    currency: str           # 'BP' | 'XP'
+    total: int              # total cost of owned powers
+    powers: list[ElementalPowerRow] = field(default_factory=list)
+    owned: list[ElementalPowerRow] = field(default_factory=list)
+
+
+def build_elemental_power_picker(ruleset: RuleSet, character: Character) -> ElementalPowerView:
+    """The elemental-powers page as display rows. Pure: every gate comes from
+    engine.validate and every price from engine.costs.
+
+    Prices switch currency at the lock like every other picker — before it a purchase
+    costs bonus points, after it experience (PG p.68, "learned in play for a number of
+    experience points equal to double its bonus point value")."""
+    in_play = character.chargen_locked
+    currency = "XP" if in_play else "BP"
+    held = set(character.elemental_powers)
+    rows: list[ElementalPowerRow] = []
+    for power in sorted(ruleset.elemental_powers.values(), key=lambda p: p.name):
+        reason = "; ".join(validate.elemental_power_shortfalls(
+            ruleset, character, power))
+        names = [ruleset.merits_flaws[mid].name
+                 for mid in power.required_merits
+                 if (mid in ruleset.merits_flaws)]
+        requires = ", ".join(names + [f"Essence {power.min_essence}"])
+        price = (costs.elemental_power_xp(ruleset, character, power) if in_play
+                 else power.bp_cost)
+        rows.append(ElementalPowerRow(
+            id=power.id, name=power.name, price=price,
+            activation=power.activation, description=power.description,
+            requires=requires, owned=power.id in held,
+            available=not reason, reason=reason,
+        ))
+    owned = [r for r in rows if r.owned]
+    total = sum(ruleset.elemental_powers[pid].bp_cost
+                for pid in character.elemental_powers
+                if pid in ruleset.elemental_powers)
+    return ElementalPowerView(currency=currency, total=total,
+                              powers=rows, owned=owned)
+
+
 def _thaum_specialty_rows(ruleset: RuleSet, character: Character, art,
                           state, price: int) -> list[ThaumSpecialtyRow]:
     """Every printed aspect of `art`, then any player-invented specialty the

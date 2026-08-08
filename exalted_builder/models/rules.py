@@ -271,6 +271,32 @@ class Submodule(BaseModel):
     description: str = ""
 
 
+class ElementalPower(BaseModel):
+    """One of the nine learnable elemental powers (PG p.68, CH2 - Godblooded.md).
+
+    Core p.296 prints seven (Aegis, Coarse Skin, Dragon's Suspire, Element's Domain,
+    Enshroud, Mobility, Rejuvenation); Games of Divinity p.56 adds Consume Element and
+    Plague of Menaces as the only two of its powers "learned" by descendants of
+    elementals. They are a Charm-like catalogue for Elemental-origin God-Blooded only,
+    bought at `bp_cost` bonus points chargen or `bp_cost * 2` XP in play ("learned in
+    play for a number of experience points equal to double its bonus point value").
+    `required_merits` names Merit ids (e.g. `mf.elemental-dominion`); every power
+    requires that chain, and Rejuvenation additionally requires `mf.primal-restoration`.
+
+    `activation` and `description` are descriptive only — decision 0008 keeps combat
+    effects as text. Training time (p.68's "takes a number of days equal to the bonus
+    point cost") is NOT built (standing 2026-07-30 ruling)."""
+    model_config = ConfigDict(frozen=True)
+    id: str                                  # namespaced `elemental.<slug>`
+    name: str
+    bp_cost: int = Field(default=7, ge=0)
+    min_essence: int = Field(default=2, ge=1)
+    required_merits: list[str] = Field(default_factory=list)
+    activation: str = ""
+    description: str = ""
+    source: Source = Field(default_factory=Source)
+
+
 class CharmCountRequirement(BaseModel):
     """"Any three Lore Charms" — a breadth prerequisite, counting Charms the character
     holds in a `category` rather than naming ids (see `Charm.prerequisite_counts`).
@@ -2315,6 +2341,9 @@ class RuleSet(BaseModel):
     # Merits & Flaws. Cross-splat like thaumaturgy, and inert data: what a Merit DOES
     # lives in engine.merits, never here (decision 0011). Empty when the file is absent.
     merits_flaws: dict[str, MeritFlaw] = Field(default_factory=dict)
+    # Elemental Powers (Core p.296 + GoD p.56, PG p.68), the learnable Charm-like
+    # catalogue for Elemental-origin God-Blooded. Empty when the file is absent.
+    elemental_powers: dict[str, ElementalPower] = Field(default_factory=dict)
     # Thaumaturgy (Player's Guide CH3). Cross-splat, not keyed by exalt_type:
     # any character may hold these. Empty when data/thaumaturgy*.json is absent.
     thaum_arts: dict[str, ThaumaturgicArt] = Field(default_factory=dict)

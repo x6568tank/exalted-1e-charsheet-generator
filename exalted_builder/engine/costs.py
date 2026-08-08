@@ -128,6 +128,16 @@ def merit_cost(ruleset: RuleSet, character: Character, merit, tier: str = "",
     return bp * ruleset.xp_costs_for(character.exalt_type).new_merit_bp_multiplier
 
 
+def elemental_power_xp(ruleset: RuleSet, character: Character, power) -> int:
+    """XP to learn an elemental power in play: its bonus-point value doubled (PG
+    p.68, "learned in play for a number of experience points equal to double its
+    bonus point value"). Deliberately priced through `bp_cost * new_merit_bp_multiplier`
+    — the same "double BP" rule that prices post-lock Merits — NOT through the
+    God-Blooded new-Charm rate: the page says double BP, and the powers' 7-BP value
+    makes that 14, where the Charm rate would be 15."""
+    return power.bp_cost * ruleset.xp_costs_for(character.exalt_type).new_merit_bp_multiplier
+
+
 def specialty_cost(ruleset: RuleSet, character: Character,
                    ability: AbilityName | None = None) -> int:
     """XP for one new specialty dot (flat). A Mountain Folk Craft specialty costs 2

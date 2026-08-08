@@ -1519,6 +1519,48 @@ def page_godblooded_demon_picker():
 def page_godblooded_demon_sheet():
     sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_DEMON_BLOODED))
 
+
+def _elemental_godblooded(cid: str, name: str) -> Character:
+    """An Elemental-origin God-Blooded — the only origin with the Elemental Powers
+    page (PG p.68). Holds Elemental Dominion + Primal Restoration so every power is
+    buyable, and a couple of owned powers for the picker to render."""
+    c = Character(id=cid, name=name, exalt_type="God-Blooded",
+                  caste="god-blooded", origin="Elemental", essence_rating=2)
+    c.virtues = {VirtueName.COMPASSION: 2, VirtueName.CONVICTION: 3,
+                 VirtueName.TEMPERANCE: 2, VirtueName.VALOR: 2}
+    c.merits_flaws = [MeritFlawPurchase(merit_id="mf.awakened-essence"),
+                      MeritFlawPurchase(merit_id="mf.elemental-dominion"),
+                      MeritFlawPurchase(merit_id="mf.primal-restoration")]
+    c.charms = ["spirit.spirit-templates.measure-the-wind"]
+    c.elemental_powers = ["elemental.aegis"]
+    return c
+
+CHAR_ELEMENTAL_GODBLOODED = _elemental_godblooded("egb", "Aegis of the East Wind")
+
+@ui.page('/godblooded-elemental-picker')
+def page_godblooded_elemental_picker():
+    picker.build_picker(RS, CHAR_ELEMENTAL_GODBLOODED, Path("x.json"), with_header=False)
+
+# Locked + XP in hand: the elemental page switches from BP to XP pricing (14 per
+# power) and the owned power reprices as an XP purchase.
+CHAR_ELEMENTAL_INPLAY = _elemental_godblooded("egi", "In-Play Elemental")
+lifecycle.lock_chargen(CHAR_ELEMENTAL_INPLAY, RS)
+CHAR_ELEMENTAL_INPLAY.xp_earned = 40
+
+@ui.page('/godblooded-elemental-picker-inplay')
+def page_godblooded_elemental_picker_inplay():
+    picker.build_picker(RS, CHAR_ELEMENTAL_INPLAY, Path("eg2.json"), with_header=False,
+                        initial_group="elemental")
+
+# No powers owned: the Owned section is absent, all nine still list as available.
+CHAR_ELEMENTAL_EMPTY = _elemental_godblooded("ege", "Empty Elemental")
+CHAR_ELEMENTAL_EMPTY.elemental_powers = []
+
+@ui.page('/godblooded-elemental-picker-empty')
+def page_godblooded_elemental_picker_empty():
+    picker.build_picker(RS, CHAR_ELEMENTAL_EMPTY, Path("eg3.json"), with_header=False,
+                        initial_group="elemental")
+
 # Artifact re-verify repro: a Dragon King in the two-flagships shape (Artifact 5 +
 # two 5-dot artifacts) so the live rating-edit round-trip can be driven in a test.
 CHAR_DK_2FLAG = Character(id="dk2f", name="Two Flagships", exalt_type="Dragon-Kings",

@@ -44,6 +44,7 @@ def lock_chargen(character: Character, ruleset=None) -> Character:
         # re-price them against a moving baseline (decision 0004).
         merits_flaws=[m.model_copy(deep=True) for m in character.merits_flaws],
         charms=list(character.charms),
+        elemental_powers=list(character.elemental_powers),
         spells=list(character.spells),
         combos=[c.model_copy(deep=True) for c in character.combos],
         arrays=[a.model_copy(deep=True) for a in character.arrays],

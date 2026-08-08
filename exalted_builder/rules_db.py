@@ -54,6 +54,7 @@ from .models.rules import (
     College,
     TrainingCamp,
     Calling,
+    ElementalPower,
     ExaltDefinition,
     ExperienceCosts,
     MagicalMaterial,
@@ -226,6 +227,18 @@ def _check_prereqs(charms: dict[str, Charm], problems: list[str]) -> None:
             for pid in group:
                 if pid not in charms:
                     problems.append(f"charm '{ch.id}' references unknown prerequisite '{pid}'")
+
+
+def _check_elemental_powers(powers: dict, merits: dict, problems: list[str]) -> None:
+    """Referential checks for the Elemental Powers catalogue (Core p.296 + GoD p.56,
+    PG p.68). Each power's `required_merits` names Merit ids and must resolve —
+    dropping Elemental Dominion or Primal Restoration would otherwise orphan held
+    powers, and a typo would silently make a power permanently unbuyable."""
+    for p in powers.values():
+        for mid in p.required_merits:
+            if mid not in merits:
+                problems.append(
+                    f"elemental power '{p.id}' references unknown required merit '{mid}'")
 
 
 def _check_merits_flaws(merits: dict, problems: list[str]) -> None:
@@ -528,6 +541,11 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     # carries printed text and costs only; effects live in engine.merits.
     merits_flaws = _index(_load_array(data_dir / "merits_flaws.json", MeritFlaw, problems),
                           "id", "merit", problems)
+    # Elemental Powers (Core p.296 + GoD p.56, PG p.68) — the learnable Charm-like
+    # catalogue for Elemental-origin God-Blooded. Optional, like merits.
+    elemental_powers = _index(
+        _load_array(data_dir / "elemental_powers.json", ElementalPower, problems),
+        "id", "elemental power", problems)
 
     camps = _index(_load_array(data_dir / "camps.json", TrainingCamp, problems),
                    "id", "camp", problems)
@@ -562,6 +580,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     _check_camps_and_callings(camps, callings, charms, problems)
     _check_thaumaturgy(thaum_arts, thaum_sciences, thaum_formulas, problems)
     _check_merits_flaws(merits_flaws, problems)
+    _check_elemental_powers(elemental_powers, merits_flaws, problems)
 
     if problems:
         raise RuleDataError(problems)
@@ -585,6 +604,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         colleges=colleges,
         paths=paths,
         merits_flaws=merits_flaws,
+        elemental_powers=elemental_powers,
         thaum_arts=thaum_arts,
         thaum_sciences=thaum_sciences,
         thaum_rituals=thaum_rituals,

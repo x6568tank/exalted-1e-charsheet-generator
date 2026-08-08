@@ -2953,6 +2953,7 @@ def _chargen_source(character: Character):
         (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character),
         snap.paths if snap else character.paths,
         snap.favored_path if snap else character.favored_path,
+        snap.elemental_powers if snap else character.elemental_powers,
     )
 
 
@@ -2972,7 +2973,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased,
      beastman_gifts, arrays, submodules, colleges, thaumaturgy, paths,
-     favored_path) = _chargen_source(character)
+     favored_path, elemental_powers) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
@@ -3272,6 +3273,13 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     if thaumaturgy.arts or thaumaturgy.art_specialties or thaumaturgy.sciences \
             or thaumaturgy.rituals or thaumaturgy.formulas:
         lines.append(BonusPointLine(domain="Thaumaturgy", points=thaum_bp))
+    # Elemental Powers (PG p.68), on the same terms: one flat line once held, and
+    # absent entirely for every other origin/splat so their breakdowns are unchanged.
+    elemental_bp = sum(
+        ruleset.elemental_powers[pid].bp_cost
+        for pid in elemental_powers if pid in ruleset.elemental_powers)
+    if elemental_powers:
+        lines.append(BonusPointLine(domain="Elemental Powers", points=elemental_bp))
     # Merits & Flaws. A MERIT is a spend at its printed point value; a FLAW is a
     # GRANT that raises the allowance rather than reducing the spend, which is why it
     # lands on `available` and not as a negative line — a negative line would let a
@@ -3292,6 +3300,84 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         inheritance_bp = b.inheritance_bonus_points[rating]
     return BonusPointBreakdown(lines=lines, total=total,
                                available=b.bonus_points + granted + inheritance_bp)
+
+
+def elemental_powers_available(ruleset: RuleSet, character: Character) -> bool:
+    """Whether the elemental-powers catalogue is open to this character at all — the
+    Elemental-origin God-Blooded gate (PG p.68, "descendents of elementals draw on the
+    innate powers of their heritage"). The UI reads this to decide whether the picker
+    page exists; every requirement check starts from it too."""
+    return character.exalt_type == "God-Blooded" and character.origin == "Elemental"
+
+
+def meets_elemental_power_requirements(ruleset: RuleSet, character: Character, power) -> bool:
+    """Whether the character could legally learn `power` right now: Elemental origin,
+    min Essence, and every Merit in `required_merits` held. The forward-looking
+    counterpart of elemental_power_issues, used by the picker to decide which powers
+    are selectable. Ownership is excluded exactly as meets_charm_requirements excludes
+    it — the caller checks "already owned" separately."""
+    if not elemental_powers_available(ruleset, character):
+        return False
+    if character.essence_rating < power.min_essence:
+        return False
+    held = merits.merit_ids_held(character)
+    return all(mid in held for mid in power.required_merits)
+
+
+def elemental_power_shortfalls(ruleset: RuleSet, character: Character, power) -> list[str]:
+    """Human-readable reasons `power` is not learnable right now; empty when it is.
+    Used by the picker for the button tooltip."""
+    out = []
+    if not elemental_powers_available(ruleset, character):
+        out.append("only Elemental-origin God-Blooded may learn elemental powers")
+    if character.essence_rating < power.min_essence:
+        out.append(f"requires Essence {power.min_essence}")
+    held = merits.merit_ids_held(character)
+    for mid in power.required_merits:
+        if mid not in held:
+            definition = ruleset.merits_flaws.get(mid)
+            out.append(f"requires the {definition.name if definition else mid} Merit")
+    return out
+
+
+def elemental_power_issues(ruleset: RuleSet, character: Character,
+                           power_ids: list[str]) -> list[Issue]:
+    """Legality of the character's elemental powers (PG p.68): an unknown id, an
+    origin that bars them, Essence below minimum, or a missing required Merit.
+    Mirrors merit_issues — structural only, and what a power DOES is descriptive
+    text, not modelled mechanics (decision 0008)."""
+    issues: list[Issue] = []
+    for pid in power_ids:
+        power = ruleset.elemental_powers.get(pid)
+        if power is None:
+            issues.append(Issue(
+                code="elemental-power-unknown", where=pid,
+                message=f"Elemental power {pid!r} is not in the rule set.",
+            ))
+            continue
+        if not elemental_powers_available(ruleset, character):
+            issues.append(Issue(
+                code="elemental-power-wrong-origin", where=pid,
+                message=f"{power.name} is restricted to Elemental-origin God-Blooded; "
+                        f"this character is a {character.origin or 'blank'} "
+                        f"{character.exalt_type}.",
+            ))
+        if character.essence_rating < power.min_essence:
+            issues.append(Issue(
+                code="elemental-power-low-essence", where=pid,
+                message=f"{power.name} requires Essence {power.min_essence}; "
+                        f"this character has Essence {character.essence_rating}.",
+            ))
+        held = merits.merit_ids_held(character)
+        for mid in power.required_merits:
+            if mid not in held:
+                definition = ruleset.merits_flaws.get(mid)
+                issues.append(Issue(
+                    code="elemental-power-missing-merit", where=pid,
+                    message=f"{power.name} requires the "
+                            f"{definition.name if definition else mid} Merit.",
+                ))
+    return issues
 
 
 def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -3848,7 +3934,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
      beastman_gifts, arrays, _submodules, colleges, thaumaturgy, paths,
-     _favored_path) = _chargen_source(character)
+     _favored_path, elemental_powers) = _chargen_source(character)
 
     # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
     # for every splat whose Backgrounds are purely narrative.
@@ -4448,6 +4534,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     # claims a blank sheet is finished.
     issues.extend(unspent_budget_issues(ruleset, character))
     issues.extend(merit_issues(ruleset, character))
+    issues.extend(elemental_power_issues(ruleset, character, elemental_powers))
 
     issues.extend(check_camp_and_calling(ruleset, character))
     issues.extend(granted_charm_issues(ruleset, character))

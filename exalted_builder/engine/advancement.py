@@ -829,6 +829,29 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
     return entry
 
 
+def learn_elemental_power(ruleset: RuleSet, character: Character, power_id: str) -> XpEntry:
+    """Learn an elemental power in play (PG p.68): 14 XP (7 BP doubled). Simpler than
+    learn_charm — no splat/foreign/withheld-credit machinery — because the catalogue
+    belongs to exactly one origin and the cost table is flat."""
+    _ensure_locked(character)
+    power = ruleset.elemental_powers.get(power_id)
+    if power is None:
+        raise AdvancementError(f"Unknown elemental power {power_id!r}.")
+    if power_id in character.elemental_powers:
+        raise AdvancementError(f"{power.name} is already known.")
+    if not validate.elemental_powers_available(ruleset, character):
+        raise AdvancementError(
+            "Only Elemental-origin God-Blooded may learn elemental powers (PG p.68).")
+    if not validate.meets_elemental_power_requirements(ruleset, character, power):
+        shortfalls = "; ".join(
+            validate.elemental_power_shortfalls(ruleset, character, power))
+        raise AdvancementError(f"{power.name}: requirements not met ({shortfalls}).")
+    cost = costs.elemental_power_xp(ruleset, character, power)
+    entry = _commit(character, "elemental_powers", power_id, None, None, cost)
+    character.elemental_powers.append(power_id)
+    return entry
+
+
 def learn_spell(ruleset: RuleSet, character: Character, spell_id: str) -> XpEntry:
     _ensure_locked(character)
     spell = ruleset.spells.get(spell_id)
@@ -1407,6 +1430,9 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
     elif domain == "charms":
         if entry.detail in character.charms:
             character.charms.remove(entry.detail)
+    elif domain == "elemental_powers":
+        if entry.detail in character.elemental_powers:
+            character.elemental_powers.remove(entry.detail)
     elif domain == "crossover_charms":
         # An Eclipse/Moonshadow Alchemical Charm: drop it AND the General Slot it granted.
         if entry.detail in character.charms:
@@ -1574,6 +1600,9 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
     if domain in ("charms", "crossover_charms"):
         charm = ruleset.charms.get(entry.detail)
         return costs.charm_cost(ruleset, character, charm) if charm else None
+    if domain == "elemental_powers":
+        power = ruleset.elemental_powers.get(entry.detail)
+        return costs.elemental_power_xp(ruleset, character, power) if power else None
     if domain == "spells":
         spell = ruleset.spells.get(entry.detail)
         return costs.spell_cost(ruleset, character, spell) if spell else None
@@ -1814,9 +1843,15 @@ def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry:
     if definition is None:
         raise AdvancementError(f"Unknown Merit {purchase.merit_id!r}.")
     # Anything that depends on it must go first, or the sheet is left inconsistent.
+    # Both directions: a Merit that names it as a prerequisite, and an elemental power
+    # whose `required_merits` names it (Core p.296 / GoD p.56, PG p.68 — Elemental
+    # Dominion gates every power, Primal Restoration gates Rejuvenation).
     dependents = [d.name for d in ruleset.merits_flaws.values()
                   if definition.id in d.prerequisites
                   and any(p.merit_id == d.id for p in character.merits_flaws)]
+    dependents += [p.name for pid in character.elemental_powers
+                   if (p := ruleset.elemental_powers.get(pid)) is not None
+                   and definition.id in p.required_merits]
     if dependents:
         raise AdvancementError(
             f"{definition.name} is a prerequisite of {', '.join(sorted(dependents))}.")

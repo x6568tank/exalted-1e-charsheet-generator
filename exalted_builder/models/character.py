@@ -562,6 +562,9 @@ class ChargenSnapshot(BaseModel):
     fetters: list[FetterEntry] = Field(default_factory=list)
     merits_flaws: list[MeritFlawPurchase] = Field(default_factory=list)
     charms: list[str]
+    # Elemental Powers frozen at lock (same shape as charms — a list of ids). Default
+    # so old locked saves that predate the catalogue still load.
+    elemental_powers: list[str] = Field(default_factory=list)
     spells: list[str]
     combos: list[Combo] = Field(default_factory=list)
     arrays: list[Array] = Field(default_factory=list)
@@ -755,6 +758,11 @@ class Character(BaseModel):
     # ids and never stored; an empty list is every character who has bought none.
     merits_flaws: list[MeritFlawPurchase] = Field(default_factory=list)
     charms: list[str] = Field(default_factory=list)           # Charm ids into the RuleSet
+    # Elemental Powers (Core p.296 + GoD p.56, PG p.68) — the learnable Charm-like
+    # catalogue for Elemental-origin God-Blooded. Bought at bp_cost bonus points
+    # chargen or bp_cost * 2 XP post-lock. Empty for every other origin/splat, which
+    # is what keeps the picker panel off their sheets.
+    elemental_powers: list[str] = Field(default_factory=list)
     # Alchemical Panoply (p.89): Charms the character OWNS but has NOT installed in a
     # Charm Slot — bought post-lock for the flat "New Charm" XP cost, or via the Vats
     # Background. They occupy no Slot and are not installed; a Vat refit swaps them in

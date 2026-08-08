@@ -2251,35 +2251,6 @@
   }
  },
  {
-  "id": "mf.elemental-power",
-  "name": "Elemental Power",
-  "kind": "merit",
-  "category": "Supernatural",
-  "cost": 7,
-  "cost_note": "(7-PT. SUPERNATURAL MERIT, ELEMENTAL GOD-BLOODED ONLY)",
-  "prerequisites": [
-   "mf.elemental-dominion"
-  ],
-  "prerequisite_note": "Essence 2",
-  "exalt_types": [
-   "God-Blooded"
-  ],
-  "barred_castes": [
-   "ghost-blooded",
-   "half-caste",
-   "demon-blooded",
-   "fae-blooded"
-  ],
-  "required_origins": [
-   "Elemental"
-  ],
-  "description": "A God-Blood with this power exhibits one of the innate powers common among elementals (see Exalted, p. 296). These gifts do not come so naturally to half-breeds, however. Characters must spend 3 motes or 1 Willpower to evoke an elemental power. Aegis, Coarse Skin and Mobility may be activated reflexively and last one scene unless prematurely revoked. Element's Domain and Enshroud are also reflexive powers, but they only last a number of turns equal to the character's Essence. Activating Dragon's Suspire counts as a simple action, and characters must pay for each attack separately. Characters employing Mobility may fly or tunnel up to their normal running speed or swim/run at double normal speed as appropriate to the element. The elemental power Rejuvenation is only available to characters with the Merit Primal Restoration. Moreover, the God-Blooded variant only restores bashing and lethal levels on an hourly basis rather than every turn. Of the elemental powers on page 56 of GoD, only Consume Element and Plague of Menaces can be learned. They cost the God-Blooded the normal number of motes to activate, plus one additional Willpower.",
-  "source": {
-   "book": "Exalted 1e Player's Guide",
-   "page": 68
-  }
- },
- {
   "id": "mf.primal-restoration",
   "name": "Primal Restoration",
   "kind": "merit",

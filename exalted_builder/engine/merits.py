@@ -549,6 +549,15 @@ def _held(ruleset: RuleSet, character: Character) -> list[tuple[MeritFlaw, objec
     return out
 
 
+def merit_ids_held(character: Character) -> set[str]:
+    """The ids of every Merit the character holds, whether or not they resolve in the
+    RuleSet. The ONE generic "does this character hold Merit X" helper — the containment
+    rule (decision 0011) lets this module and the data name Merit ids, so requirement
+    checks elsewhere (e.g. elemental powers' `required_merits`) call here rather than
+    building their own allowlist."""
+    return {p.merit_id for p in character.merits_flaws}
+
+
 def oathbound_bonus_points(character: Character, ruleset: RuleSet) -> int:
     """Bonus points granted by Oathbound Magic, net of the stacking rule.
 
