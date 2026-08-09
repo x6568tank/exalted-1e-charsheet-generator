@@ -347,9 +347,10 @@ it. **The Hooked Daiklaves rating ruling is CLOSED 2026-08-08** — the human ch
 page (`images/Solars/Castebooks/Night/81.png`) and ruled the **heading •••• canonical**;
 the weapon row was changed from the table's ••••• to **4** to match the catalogue entry,
 and the docs' "flagged for a ruling" language was updated (weapon row 5→4, note carries
-the ruling, test pin moved to 4). **One open thread, waiting on the human:** the
-**light click-through of the Advantages-tab combobox** — pick "Echo Jewel"
-(name → rating + description label) then an off-catalogue name. Newest shipped:
+the ruling, test pin moved to 4). **The Advantages-tab combobox click-through is CLOSED
+2026-08-08** — the human has exercised the same mechanism with other catalogue items
+(the name→rating autofill + description label + off-catalogue rename is item-independent),
+so no further click-through is owed. **No open threads.** Newest shipped:
 **the 2026-08-08 castebook
 artifact batch** — the 12 genuinely-new remainder of the "40 authorable-now" backlog
 entries, addressed unsupervised (the human was out; the source pages were on disk):
