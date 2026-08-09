@@ -339,7 +339,16 @@ Recorded as decision records, not restated here — read them before proposing a
 
 **⏸ PICK UP HERE (2026-08-08, branch `deepseek-experiment`, worktree `…-ds`).**
 The suite is at **2,068 passing** (plus the one known machine-only M&F description
-failure — not a regression, see Status). Newest shipped: **the 2026-08-08 castebook
+failure — not a regression, see Status). The castebook batch and all rated-artifact
+work are **COMMITTED** (human, 2026-08-08 — `5c44631 artifacts begin`,
+`6dfae3e artifact dropdown work`); the regenerated authoring checklist
+`docs/status/artifact-backlog-entries.md` is the one file still **untracked** — commit
+it. **Two open threads, both waiting on the human:** (1) the **Hooked Daiklaves rating
+ruling** — heading •••• vs the page's own table •••••, catalogue currently follows the
+heading, weapon row follows the table (both pinned by tests; do not "fix" until ruled);
+(2) the **light click-through of the Advantages-tab combobox** — pick "Echo Jewel"
+(name → rating + description label) then an off-catalogue name. Newest shipped:
+**the 2026-08-08 castebook
 artifact batch** — the 12 genuinely-new remainder of the "40 authorable-now" backlog
 entries, addressed unsupervised (the human was out; the source pages were on disk):
 ten became catalogue entries in `data/artifacts.json` (ids `artifact.castebook-*`,
