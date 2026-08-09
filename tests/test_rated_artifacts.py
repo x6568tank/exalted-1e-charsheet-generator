@@ -591,6 +591,8 @@ async def test_the_artifact_name_field_is_a_catalogue_combobox(user) -> None:
     assert "Tattered Wings" in combobox.options          # the guard folded it in
     assert "Echo Jewel" in combobox.options              # catalogue names are offered
     assert "Myrmidon Carapace" in combobox.options
+    assert "The Jackal's Skull" in combobox.options      # the 2026-08-08 Twilight sync
+    assert "Iron Horse" in combobox.options              # the 2026-08-08 Eclipse sync
 
 
 @pytest.mark.asyncio

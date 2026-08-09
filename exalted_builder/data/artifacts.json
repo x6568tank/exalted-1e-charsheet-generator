@@ -162,5 +162,169 @@
     "description": "An elaborate torc with settings for three Hearthstones, once worn by the Hierophant of the Solar Deliberative when he executed official business. It grants a five-die bonus to all Zenith Caste Ability checks and a two-die bonus to all Social Attribute checks that do not involve the Zenith Caste Abilities, and makes the bearer appear greater than he is.",
     "source": "Caste Book: Zenith p.81",
     "tags": ["social"]
+  },
+  {
+    "id": "artifact.castebook-twilight.bracer-of-the-hawk",
+    "name": "Bracer of the Hawk",
+    "rating": 2,
+    "rating_notes": "•• per the page — human confirmed 2026-08-08; the guide lists •",
+    "description": "Single steel bracer, rarely found in pairs, with the image of a screaming bird of prey worked into it in one of the Five Magical Materials. The owner commits 2 motes to summon from it a hawk of pure Essence that serves at his command: the bird has the attributes of a strix (main rulebook p.317), a one-meter wingspan and a soak of 8L/12B, and can reenter the bracer on returning. If it is slain outside the bracer, the bracer becomes no more than useful armor and the hawk spirit is lost forever. The bracer has a setting for a single Hearthstone.",
+    "source": "Caste Book: Twilight p.79",
+    "tags": ["spirit"]
+  },
+  {
+    "id": "artifact.castebook-twilight.whistle-of-ghost-summoning",
+    "name": "Whistle of Ghost Summoning",
+    "rating": 2,
+    "description": "A whistle of silver and chased ivory that summons local ghosts — but only between sunset and dawn; sounded by day it is totally silent. One blow gives a delicate thin tone that signals all ghosts within a league that their presence is requested; a second blow the same night gives a peremptory note like a military fife; a third makes the whistle shudder and give a high pealing note of ice and steel that causes active pain to all ghosts within a league. Used thrice in a night, the whistle cannot be sounded again for 10 days. It cannot break a binding that holds a ghost in a location, confers no protection against ghost attacks, and is greatly prized by Abyssal Exalted.",
+    "source": "Caste Book: Twilight p.79",
+    "tags": ["spirit", "tool"]
+  },
+  {
+    "id": "artifact.castebook-twilight.seed-of-the-immaculate-blood",
+    "name": "Seed of the Immaculate Blood",
+    "rating": 2,
+    "rating_notes": "•• base; ••• red seeds",
+    "description": "Seeds of a fern that grew from three drops of blood shed when Sextes Jylis, the Immaculate of Wood, stepped upon an Anathema's daiklave. The fern seeds twice a year; its dull green seeds compound into an ointment that restores five health levels, even if the damage is aggravated. Once a century on the last day of Calibration it gives an out-of-season scarlet seed, which either replants to grow another such fern or, dried and ground with the seeds of 25 other plants, produces a ball of sap that grows an instant half-mile forest.",
+    "source": "Caste Book: Twilight p.79",
+    "tags": ["tool", "healing"]
+  },
+  {
+    "id": "artifact.castebook-twilight.cup-of-flowing-blood",
+    "name": "Cup of Flowing Blood",
+    "rating": 3,
+    "description": "A chalice of delicately carved ebony patterned with scenes of First Age Solars fighting the foes of the Old Realm. Held by a person who truly wishes to give of herself for another's sake, it slowly fills with dark blood while the holder loses one health level per turn (unsoakable); the process can be stopped at any time. Blood from the cup drunk by a wounded person restores one health level per turn until the cup is empty, and a person can drain herself to unconsciousness or the verge of death healing others. Its current location is unknown; rumors place it in the private collection of the Lover Clad in the Raiment of Tears.",
+    "source": "Caste Book: Twilight p.79",
+    "tags": ["healing"]
+  },
+  {
+    "id": "artifact.castebook-twilight.eye-of-the-living-earth",
+    "name": "Eye of the Living Earth",
+    "rating": 3,
+    "description": "A head-sized stone quarried by the Mountain Folk from the roots of the Imperial Mountain, clear and pure as a diamond and glowing with a hundred shifting colors; Earth elementals find its radiance euphoric and throng to it. If chipped, carved or otherwise altered from its original rough state, its power is lost. As a scrying device: the owner touches a diamond to it and anoints both with a drop of his blood, then can later scry upon wherever the diamond currently is, perceiving the scene as though from on high. Works with up to five diamonds at a time — attuning a sixth breaks the link to one of the others.",
+    "source": "Caste Book: Twilight p.80",
+    "tags": ["senses", "tool"]
+  },
+  {
+    "id": "artifact.castebook-twilight.ghost-seeing-blindfold",
+    "name": "Ghost-Seeing Blindfold",
+    "rating": 3,
+    "description": "A long scarf of white silk with barely visible sigils of power worked along its length. Bound over the eyes it lets the wearer see normally and also perceive dematerialized ghosts, spirits, dragon tracks and other flows of power, as with the Twilight Charm All-Encompassing Sorcerer's Sight. The blindfold is uncannily resistant to damage and reweaves itself if cut or burned — the only sure way to destroy it is to soak it in the blood of a blind person.",
+    "source": "Caste Book: Twilight p.80",
+    "tags": ["spirit", "senses"]
+  },
+  {
+    "id": "artifact.castebook-twilight.honey-of-the-bees-of-zarlath",
+    "name": "Honey of the Bees of Zarlath",
+    "rating": 3,
+    "description": "Honey from the bees of the lost gardens of Zarlath, which took nectar from roses that bloomed only by sunlight and oleanders that bloomed only by moonlight. It gives speech to the dumb or surpassing eloquence to those born with speech (+3 to all Social Abilities for one hour), can temper the finest of blades, and is used in the forging of strings for lyres and multichords. Zarlath lies hidden in the Wyld; once a year the bees journey out to civilized lands and, if followed, can lead an Exalt back to their hives.",
+    "source": "Caste Book: Twilight p.80",
+    "tags": ["tool"]
+  },
+  {
+    "id": "artifact.castebook-twilight.mirrors-of-illusion-shattering",
+    "name": "Mirrors of Illusion-Shattering",
+    "rating": 3,
+    "description": "Two small hand-mirrors of moonsilver faced with orichalcum, the smith's own mon interlaced on the back with that of his Lunar lover. Someone who looks into one sees the true images of all things reflected therein — Charms, glamours and other magical illusions remain in force, but the true identity of the person is clearly visible. If an illusion-shielded person is forcibly presented with the mirror so she sees her own true reflection, the Charm or sorcery she is using shatters immediately, leaving her obvious in her true nature. The mirrors do not affect physical shapeshifting; separated long ago, they tend to find their way back together.",
+    "source": "Caste Book: Twilight p.80",
+    "tags": ["utility"]
+  },
+  {
+    "id": "artifact.castebook-twilight.scabbard-of-the-living-weapon",
+    "name": "Scabbard of the Living Weapon",
+    "rating": 3,
+    "description": "An elegantly worked sheath of red dragonskin and orichalcum, sized to fit a daiklave or reaver daiklave. Attuned with 5 committed motes, it is magically precisely the right size for its owner's blade and never needs cleaning or mending. While the daiklave is sheathed the wearer is invulnerable to all non-magical damage — weapons turn against his skin, clubs and rocks bounce off him, fires prove harmless — though magical weapons, Charms, attacks augmented by Charms, spells, glamour and similar directed uses of Essence still affect him. Drawing the weapon ends the protection.",
+    "source": "Caste Book: Twilight p.80",
+    "tags": ["protection"]
+  },
+  {
+    "id": "artifact.castebook-twilight.sorcery-capturing-cord",
+    "name": "Sorcery-Capturing Cord",
+    "rating": 3,
+    "rating_notes": "••• emerald / •••• sapphire / ••••• adamant",
+    "description": "A few yards of thin flexible rope interwoven with threads of orichalcum and moonsilver, made in three weaves — emerald, sapphire and adamant — that an experienced eye can tell apart. One of the Exalted can trap spells cast at him by standing in the spell's path and looping the cord into a knot; a cord of equal or greater power to the spell (emerald for Terrestrial Circle, sapphire for Celestial Circle, adamant for Solar Circle) captures it safely and releases it later at the user's choosing by unknotting the cord. Each cord holds only three spells at most, and if destroyed while holding any, the spells are released and take full effect.",
+    "source": "Caste Book: Twilight p.81",
+    "tags": ["utility", "sorcery"]
+  },
+  {
+    "id": "artifact.castebook-twilight.veil-that-holds-back-time",
+    "name": "Veil that Holds Back Time",
+    "rating": 4,
+    "description": "A fragile, diaphanous length of gossamer spun and woven by First Age craftsmen that can suspend the flow of time. Placed over an unmoving person or item, it holds the subject in a state of suspended animation, neither aging nor decaying — it will not work on a conscious person, and an unconscious one cannot wake or remove it. Lifted away, disturbed or damaged in any way, time resumes at once. The veil is extremely fragile and must be handled with care; few in the current age know how to reweave or mend it.",
+    "source": "Caste Book: Twilight p.81",
+    "tags": ["utility"]
+  },
+  {
+    "id": "artifact.castebook-twilight.the-jackals-skull",
+    "name": "The Jackal's Skull",
+    "rating": 4,
+    "description": "A jackal skull larger than any ordinary jackal's, with wires of moonsilver linking the jaw and threads of moonsilver laced over the dome in an intricate web, two great star rubies set in the eye sockets. Commanded by the name of the ancient Lunar it belonged to, it exhales five dog spirits in a cloud of pale silver: they have the statistics of omen dogs (main rulebook p.317) with human intelligence and the Charms Materialize and Principle of Motion, serve the summoner until defeated or commanded to return, and can be summoned again after the next full moon if slain. The dog spirits have Essence 3, Willpower 9, Valor 4 and all other Virtues at 2, hold 89 temporary Essence, and cost 32 motes to materialize. If ever commanded to hunt down or kill a pair of true lovers, the skull howls and the spirits seize it — or hunt down and slay their previous summoner — until they flee with the skull or the summoner is dead.",
+    "source": "Caste Book: Twilight p.81",
+    "tags": ["spirit", "summoning"]
+  },
+  {
+    "id": "artifact.castebook-eclipse.lotus-blossom-cup",
+    "name": "Lotus Blossom Cup",
+    "rating": 1,
+    "description": "A goblet carved from translucent white jade in the shape of an unfolding lotus blossom atop a thick stem for the cup's foot. Any liquid poured into the cup is immediately and completely purified of any toxins or other harmful agents — even strong acid or pure venom becomes nothing more than clean water — so anything in the cup is automatically safe to drink. Such cups are often used by those who fear assassination through poison, or in diplomatic situations to assuage any fears that poison or drugs will be used.",
+    "source": "Caste Book: Eclipse p.79",
+    "tags": ["protection"]
+  },
+  {
+    "id": "artifact.castebook-eclipse.players-mask",
+    "name": "Player's Mask",
+    "rating": 1,
+    "description": "Ornate theatrical masks used by Exalted actors in certain highly stylized styles of amphitheater performance in the First Age. Attuned and worn, a player's mask can switch between a comedy and a tragedy mask at will; some are also able to become an expressionless face and to vanish and reappear as the wearer wishes. Their real power is concealing the identity of the wearer, so that an audience sees only the role and not the actor. Committing 1 mote activates the mask; it adds two to the difficulty of rolls to discern the identity or motives of the wearer.",
+    "source": "Caste Book: Eclipse p.79",
+    "tags": ["utility"]
+  },
+  {
+    "id": "artifact.castebook-eclipse.silver-quill",
+    "name": "Silver Quill",
+    "rating": 1,
+    "rating_notes": "• base; •• self-writing quills",
+    "description": "Writing implements of silver in the form of feathered quills, the feather's plumage with the consistency of a stiff-bristled brush. A silver quill writes without ink, in any color its writer wishes; its nub never wears down and its markings are waterproof like fine ink and dry instantly, on any surface a normal writing quill can use. Some known silver quills (Artifact ••) can also write on their own at the direction of their owner, copying down the words of the owner or another designated person with great speed and accuracy.",
+    "source": "Caste Book: Eclipse p.79",
+    "tags": ["tool"]
+  },
+  {
+    "id": "artifact.castebook-eclipse.seven-jeweled-peacock-fans",
+    "name": "Seven-Jeweled Peacock Fans",
+    "rating": 2,
+    "description": "Fine folding war-fans with leaves of orichalcum inlaid with gem-work in seven brilliant colors and engraved with fine traceries, wielded together as a pair. They have the same statistics as wind-fire wheels and require the same Abilities to wield them, and their construction grants +1 to Speed, Accuracy and Defense. Attuning the fans commits 2 motes of Essence.",
+    "source": "Caste Book: Eclipse p.80",
+    "tags": ["weapon"]
+  },
+  {
+    "id": "artifact.castebook-eclipse.silken-armor",
+    "name": "Silken Armor",
+    "rating": 3,
+    "description": "Cloth made by First Age artisans into robes, tunics and other articles of clothing, usually richly colored and decorated, suitable for formal occasions of all sorts. Although the fabric has the weight and texture of silk, it is as strong as steel when struck, making even a light tunic, robe or cloak of the stuff effective armor — it grants its wearer an additional 5 lethal and 3 bashing soak. It is the clothing of choice for those who need protection without the look of armor.",
+    "source": "Caste Book: Eclipse p.80",
+    "tags": ["protection"]
+  },
+  {
+    "id": "artifact.castebook-eclipse.solar-seal",
+    "name": "Solar Seal",
+    "rating": 1,
+    "description": "A seal crafted from orichalcum, either as a small stamp or a signet ring, bearing the mark of the Eclipse Caste. It can transform to display any seal its owner is rightly entitled to. Used to seal a document, a Solar seal ensures its security: if the sealed document is opened by anyone other than the sender or the intended recipient, its pages become completely blank and can only be restored by the touch of the seal to the pages once more. Solar seals were used in the First Age to protect the contents of important documents, and some are still in use.",
+    "source": "Caste Book: Eclipse p.80",
+    "tags": ["tool"]
+  },
+  {
+    "id": "artifact.castebook-eclipse.folding-ship",
+    "name": "Folding Ship",
+    "rating": 4,
+    "description": "A blue-water merchant (see Savage Seas, pp.56-57) with double masts and sails of the finest and strongest silk, able to sail on its own at the command of its owner without need for a crew — merely someone at the helm to direct it. At a command from its owner (who must commit 4 motes of Essence to attune it), the ship collapses in on itself, folding into a box of finely carved wood about a foot long and six inches tall and wide, and unfolds back into a ship on another command. A folding ship that spends a full day or night in box-form repairs all damage it has suffered. Still limited by needing a body of water to sail upon.",
+    "source": "Caste Book: Eclipse p.81",
+    "tags": ["vehicle"]
+  },
+  {
+    "id": "artifact.castebook-eclipse.iron-horse",
+    "name": "Iron Horse",
+    "rating": 4,
+    "description": "A massive horse made of iron plates, fully articulated and capable of movement — a wonder of First Age magic and engineering. It has the Abilities of a war horse (see Exalted, p.316) except for 8 lethal and 10 bashing soak, a 3L bite and a 10L kick from its sharp iron hooves. It requires no Essence to attune, merely an Intelligence + Ride roll (difficulty 3); a gemstone in its forehead stores up to 5 motes of Essence its owner may draw upon while touching it, recovered like Personal Essence and only after the owner's own Personal Essence is restored. It is remarkably intelligent (about a child of eight or nine), understands verbal commands, travels tirelessly with no need for rest, food, water or air (able to gallop along the bottom of the sea), and weighs nearly a ton — so some light structures may not support it without a Charm. Ride Charms work on it normally.",
+    "source": "Caste Book: Eclipse p.81",
+    "tags": ["vehicle", "tool"]
   }
 ]

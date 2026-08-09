@@ -307,7 +307,7 @@ def test_weapon_and_armor_catalogs_load():
 
 def test_artifact_catalog_loads_the_ten_mountain_folk():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.artifact_catalog) == 20
+    assert len(rs.artifact_catalog) == 40
     # Ratings and the printed ranges, from the Technology chapter (pp.279-283).
     visor = rs.artifact_catalog["artifact.mountain-folk.essence-scrying-visor"]
     assert visor.rating == 1 and visor.source == "Mountain Folk p.279"
@@ -343,6 +343,55 @@ def test_artifact_catalog_loads_the_castebook_artifacts():
     # Source strings point at the transcribed pages.
     assert cat["artifact.castebook-night.belt-of-shadow-walking"].source == "Caste Book: Night p.80"
     assert cat["artifact.castebook-zenith.death-shield-ring"].source == "Caste Book: Zenith p.80"
+
+
+def test_artifact_catalog_loads_the_twilight_and_eclipse_backlog():
+    """The 2026-08-08 VLM-sync batch: the 12 Caste Book: Twilight + 8 Caste Book:
+    Eclipse artifacts from pp.79-81 (VLM-transcribed, human-vetted — the .md pages
+    are `images/Solars/Castebooks/{Twilight,Eclipse}/`). Ratings and sources come from
+    the pages. Two things are pinned so nothing silent can slip:
+    - Bracer of the Hawk is •• (the page prints two dots; the guide lists • — human
+      confirmed 2026-08-08, page as authority).
+    - Audient Brush is NOT in the catalogue — the guide's cb_e row is a phantom (no
+      such text in the Eclipse book; full 98-page word-sweep, 2026-08-08)."""
+    rs = rules_db.load_ruleset(DATA_DIR)
+    cat = rs.artifact_catalog
+    # Twilight p.79 — Bracer pins the page-vs-guide dispute.
+    assert cat["artifact.castebook-twilight.bracer-of-the-hawk"].rating == 2
+    assert cat["artifact.castebook-twilight.whistle-of-ghost-summoning"].rating == 2
+    assert cat["artifact.castebook-twilight.seed-of-the-immaculate-blood"].rating == 2
+    assert cat["artifact.castebook-twilight.seed-of-the-immaculate-blood"].rating_notes == "•• base; ••• red seeds"
+    assert cat["artifact.castebook-twilight.cup-of-flowing-blood"].rating == 3
+    # Twilight p.80.
+    assert cat["artifact.castebook-twilight.eye-of-the-living-earth"].rating == 3
+    assert cat["artifact.castebook-twilight.ghost-seeing-blindfold"].rating == 3
+    assert cat["artifact.castebook-twilight.honey-of-the-bees-of-zarlath"].rating == 3
+    assert cat["artifact.castebook-twilight.mirrors-of-illusion-shattering"].rating == 3
+    assert cat["artifact.castebook-twilight.scabbard-of-the-living-weapon"].rating == 3
+    # Twilight p.81 — Cord carries its three printed variant ratings; Veil and Jackal
+    # pin •••• (the VLM's first pass misread •••••; the page prints four dots).
+    assert cat["artifact.castebook-twilight.sorcery-capturing-cord"].rating == 3
+    assert cat["artifact.castebook-twilight.sorcery-capturing-cord"].rating_notes == "••• emerald / •••• sapphire / ••••• adamant"
+    assert cat["artifact.castebook-twilight.veil-that-holds-back-time"].rating == 4
+    assert cat["artifact.castebook-twilight.the-jackals-skull"].rating == 4
+    # Eclipse p.79.
+    assert cat["artifact.castebook-eclipse.lotus-blossom-cup"].rating == 1
+    assert cat["artifact.castebook-eclipse.players-mask"].rating == 1
+    assert cat["artifact.castebook-eclipse.silver-quill"].rating == 1
+    assert cat["artifact.castebook-eclipse.silver-quill"].rating_notes == "• base; •• self-writing quills"
+    # Eclipse p.80.
+    assert cat["artifact.castebook-eclipse.seven-jeweled-peacock-fans"].rating == 2
+    assert cat["artifact.castebook-eclipse.silken-armor"].rating == 3
+    assert cat["artifact.castebook-eclipse.solar-seal"].rating == 1
+    # Eclipse p.81.
+    assert cat["artifact.castebook-eclipse.folding-ship"].rating == 4
+    assert cat["artifact.castebook-eclipse.iron-horse"].rating == 4
+    # The phantom index row is blocked, not authored.
+    assert "artifact.castebook-eclipse.audient-brush" not in cat
+    # Sources point at the transcribed pages.
+    assert cat["artifact.castebook-twilight.cup-of-flowing-blood"].source == "Caste Book: Twilight p.79"
+    assert cat["artifact.castebook-twilight.sorcery-capturing-cord"].source == "Caste Book: Twilight p.81"
+    assert cat["artifact.castebook-eclipse.folding-ship"].source == "Caste Book: Eclipse p.81"
 
 
 def test_the_gear_artifact_rows_from_the_backlog_batch():

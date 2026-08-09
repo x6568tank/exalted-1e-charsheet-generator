@@ -2,7 +2,7 @@
 
 Pre-computed authoring queues from the **"When Autochthon Dreams"** index (see `docs/status/artifact-backlog.md` for the discovery record and the parse). Every 1E artifact is listed under each source book it references, with the guide's rating and book page, sorted by page. **Values still come from the real pages** — this is book+page discovery only, and the never-author-from-memory rule applies. Syncing a book's missing pages unblocks its whole share at once.
 
-**Build** column = whether the build already holds a matching name: `rated` = an equipment row carrying `artifact_rating` (a rated artifact in the weapons/armour catalogues), `gear` = a mundane equipment row exists, `cat` = a standalone rated-artifact catalogue entry in `data/artifacts.json` (added 2026-08-08 — non-gear artifacts like Shield Bracer live only there), `—` = not in the build. Names were matched case/punctuation-insensitively; `Lightning Torment Hatchet` matches the build's two `(Thrown)`/`(Melee)` rows.
+**Build** column = whether the build already holds a matching name: `rated` = an equipment row carrying `artifact_rating` (a rated artifact in the weapons/armour catalogues), `gear` = a mundane equipment row exists, `cat` = a standalone rated-artifact catalogue entry in `data/artifacts.json` (added 2026-08-08 — non-gear artifacts like Shield Bracer live only there), `—` = not in the build. Names were matched case/punctuation-insensitively; `Lightning Torment Hatchet` matches the build's two `(Thrown)`/`(Melee)` rows. `blocked` = flagged non-authorable — the guide's entry has no matching text in the book (see the `cb_e` note for the one case).
 
 The legend and on-disk flags below were **verified against `images/` this session (2026-08-08)** and correct `artifact-backlog.md`, whose original draft mislabelled five codes (marked ⚠ below — the five `ab_*` codes are the Dragon-Blooded **Aspect Books**, not "Abyssal" anything; `salt` is **Blood and Salt**, not "Salt & Smoke"; `coin` is **Manacle and Coin**, not "Coin of the Realm") and overstated what is on disk.
 
@@ -22,9 +22,9 @@ The legend and on-disk flags below were **verified against `images/` this sessio
 | ab_a | Aspect Book: Air ⚠ | 13 | 75-78, 81 | NO |
 | cb_d | Caste Book: Dawn | 11 | 78-81 | YES — all 11 |
 | time | Time of Tumult | 11 | 15, 23, 49, 94-95 | NO |
-| cb_t | Caste Book: Twilight | 12 | 79-81 | NO (only to 77 on disk) |
+| cb_t | Caste Book: Twilight | 12 | 79-81 | YES — pp.79-81 VLM-transcribed 2026-08-08 (79-81 on disk) |
 | salt | Blood and Salt ⚠ | 11 | 89, 119-124 | NO |
-| cb_e | Caste Book: Eclipse | 9 | 79-81 | NO (only to 77-78 on disk) |
+| cb_e | Caste Book: Eclipse | 9 | 79-81 | YES — pp.79-81 VLM-transcribed 2026-08-08 (79-81 on disk) |
 | cb_n | Caste Book: Night | 8 | 79-81 | YES — all 8 |
 | ab_e | Aspect Book: Earth ⚠ | 6 | 79-81 | NO |
 | ab_w | Aspect Book: Wood ⚠ | 6 | 79-81 | NO |
@@ -416,7 +416,7 @@ On-disk page → crop (all in `images/Image Archive 1/Arms & Armor/`):
 
 | Name | Rating | Page(s) | Build |
 |---|---|---|---|
-| Audient Brush | •• | 79 | — |
+| Audient Brush | •• | 79 | blocked |
 | Lotus Blossom Cup | • | 79 | — |
 | Players Mask | • | 79 | — |
 | Silver Quill | • | 79 | — |
@@ -425,6 +425,8 @@ On-disk page → crop (all in `images/Image Archive 1/Arms & Armor/`):
 | Solar Seal | • | 80 | — |
 | Folding Ship | •••• | 81 | — |
 | Iron Horse | •••• | 81 | — |
+
+**⚠ Audient Brush is blocked 2026-08-08 — a phantom index row.** Caste Book: Eclipse pp.79-81 were VLM-transcribed this day (VLM + tesseract, plus a full 98-page word-sweep of the Eclipse PDF) and the book contains **no** Audient Brush. The real p.79 artifact list is Lotus Blossom Cup, Player's Mask, Silver Quill. Every "brush" in the book is prose or the Larceny Charms Whirling Brush Method / Flawless Brush Discipline. The "When Autochthon Dreams" index either hallucinated the row or misattributed an artifact from another book — authoring needs a real source. The cb_e authorable count is therefore **8, not 9**.
 
 ### `cb_n` — Caste Book: Night (8)
 
