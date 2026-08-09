@@ -1545,10 +1545,10 @@
     "min_strength": 2,
     "min_dexterity": 3,
     "min_martial_arts": 3,
-    "artifact_rating": 5,
+    "artifact_rating": 4,
     "attunement": 8,
     "resources_cost": 0,
-    "notes": "Speed +2, Accuracy +2, Damage +5L, Defense +5, Minimums Strength ••, Dexterity •••, Martial Arts •••, Artifact ••••• (Caste Book: Night p.81 table). ⚠ The table's Artifact column prints ••••• but the heading prints •••• — the catalogue entry follows the heading, this row follows the table, human ruling owed. A matched pair of hooked swords: wielded together they grant two hand-to-hand actions per turn without penalty and eliminate the off-hand penalty, but dice pools cannot be split and extra-action Charms affect only a single blade. Each blade has a Hearthstone setting; commits 8 motes (4 each). Uses Melee.",
+    "notes": "Speed +2, Accuracy +2, Damage +5L, Defense +5, Minimums Strength ••, Dexterity •••, Martial Arts •••, Artifact •••• (Caste Book: Night p.81 heading — human ruling 2026-08-08: the heading is canonical; the table's Artifact column misprints •••••). A matched pair of hooked swords: wielded together they grant two hand-to-hand actions per turn without penalty and eliminate the off-hand penalty, but dice pools cannot be split and extra-action Charms affect only a single blade. Each blade has a Hearthstone setting; commits 8 motes (4 each). Uses Melee.",
     "tags": [
       "melee",
       "artifact"

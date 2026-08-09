@@ -334,7 +334,10 @@ def test_artifact_catalog_loads_the_castebook_artifacts():
     assert cat["artifact.castebook-night.belt-of-shadow-walking"].rating == 3
     assert cat["artifact.castebook-night.circlet-of-spirits"].rating == 3
     assert cat["artifact.castebook-zenith.death-shield-ring"].rating == 3
-    # The two page-vs-guide rating disputes: the page heading is authoritative.
+    # Both pin a rating the guide misprints: the Hooked Daiklaves is •••• per the
+    # heading (human ruling 2026-08-08; the page's own table misprints ••••• — the
+    # weapon row follows the same ruling), and Ring of the Deliberative is •••• (the
+    # guide's ••••• is 2e; page as authority).
     assert cat["artifact.castebook-night.hooked-daiklaves-of-dual-prowess"].rating == 4
     assert cat["artifact.castebook-zenith.ring-of-the-deliberative"].rating == 4
     # Source strings point at the transcribed pages.
@@ -344,11 +347,13 @@ def test_artifact_catalog_loads_the_castebook_artifacts():
 
 def test_the_gear_artifact_rows_from_the_backlog_batch():
     """The two stat-blocked new artifacts also carry equipment rows. The Hooked
-    Daiklaves' row follows the table (Artifact •••••); the Direlance's row follows
-    the p.342 Daiklave Table, with the lance-mode stats in notes."""
+    Daiklaves' row is rated •••• (human ruling 2026-08-08: the heading is canonical;
+    the table's Artifact column misprints ••••• — the row follows the heading like
+    the catalogue entry); the Direlance's row follows the p.342 Daiklave Table, with
+    the lance-mode stats in notes."""
     rs = rules_db.load_ruleset(DATA_DIR)
     hooks = rs.weapon_catalog["weapon.melee.hooked_daiklaves_of_dual_prowess"]
-    assert hooks.artifact_rating == 5            # the table's Artifact column
+    assert hooks.artifact_rating == 4            # the heading, per the ruling
     assert hooks.attunement == 8                 # "commit 8 motes — 4 for each blade"
     assert hooks.speed == 2 and hooks.accuracy == 2 and hooks.damage == 5
     assert hooks.defense == 5 and hooks.damage_type == "L"

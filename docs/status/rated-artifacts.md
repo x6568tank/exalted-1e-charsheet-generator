@@ -332,21 +332,24 @@ note confirms the 12 were deliberately skipped during the castebook gear work �
 | Hooked Daiklaves of Dual Prowess | •••• | Caste Book: Night p.81 (also a weapon row, below) |
 
 Every description is a short summary of the transcribed page text (2-4 lines, the
-established rated-artifact style). **Three page-vs-guide discrepancies resolved with
+established rated-artifact style). **Four page-vs-guide discrepancies resolved with
 the page as authority:**
 - **Ring of the Deliberative ••••** — the page heading prints four dots; the guide's
   ••••• is a 2e-derived value and is wrong for 1e. Pinned by a test.
-- **Hooked Daiklaves of Dual Prowess — internal page inconsistency:** the heading
-  prints **••••** while the page's own Artifact-table column prints **•••••**. The
-  catalogue follows the heading; the weapon row follows the table (5). Flagged for the
-  human; both are pinned by tests and neither is "fixed" until the ruling.
+- **Hooked Daiklaves of Dual Prowess •••• — human ruling 2026-08-08.** The page is
+  internally inconsistent: the heading prints **••••**, the Artifact-table column
+  prints **•••••**. The human checked the page ("It says 4 dots Artifact") and ruled the
+  heading canonical, so the catalogue AND the weapon row both carry **4**; the table's
+  ••••• is treated as a misprint, with the stat block's other columns unaffected.
+  Pinned by tests.
 - **Circlet of Spirits** — the VLM dropped a `t`; body text and the guide agree.
 
 ### Two rated gear rows (in `weapons.json`)
 
 - **Hooked Daiklaves of Dual Prowess** — Spd 2, Acc 2, Dmg 5L, Def 5, Rate 2, Min Str 2,
-  Dex 3, MA 3, Art 5 (table), attune 8 (4 per blade), with notes carrying the stat line
-  + the heading-vs-table ⚠. The light-tags precedent is the Lightning Torment Hatchet's
+  Dex 3, MA 3, **Art 4** (the heading — human ruling 2026-08-08; the table's Artifact
+  column misprints •••••), attune 8 (4 per blade), with notes carrying the stat line +
+  the ruling. The light-tags precedent is the Lightning Torment Hatchet's
   `(Thrown)`/`(Melee)` split.
 - **Direlance** — Spd 6, Acc 2, Dmg 5L, Def 0, Min Str 1, Art 2 (core p.342 Daiklave
   Table), attune 0. **⚠ Two flags:** the weapon's description page (core p.341) is NOT

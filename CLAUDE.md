@@ -343,10 +343,12 @@ failure — not a regression, see Status). The castebook batch and all rated-art
 work are **COMMITTED** (human, 2026-08-08 — `5c44631 artifacts begin`,
 `6dfae3e artifact dropdown work`); the regenerated authoring checklist
 `docs/status/artifact-backlog-entries.md` is the one file still **untracked** — commit
-it. **Two open threads, both waiting on the human:** (1) the **Hooked Daiklaves rating
-ruling** — heading •••• vs the page's own table •••••, catalogue currently follows the
-heading, weapon row follows the table (both pinned by tests; do not "fix" until ruled);
-(2) the **light click-through of the Advantages-tab combobox** — pick "Echo Jewel"
+it. **The Hooked Daiklaves rating ruling is CLOSED 2026-08-08** — the human checked the
+page (`images/Solars/Castebooks/Night/81.png`) and ruled the **heading •••• canonical**;
+the weapon row was changed from the table's ••••• to **4** to match the catalogue entry,
+and the docs' "flagged for a ruling" language was updated (weapon row 5→4, note carries
+the ruling, test pin moved to 4). **One open thread, waiting on the human:** the
+**light click-through of the Advantages-tab combobox** — pick "Echo Jewel"
 (name → rating + description label) then an off-catalogue name. Newest shipped:
 **the 2026-08-08 castebook
 artifact batch** — the 12 genuinely-new remainder of the "40 authorable-now" backlog
@@ -360,10 +362,10 @@ Deliberative), the **Hooked Daiklaves** and the **Direlance** also got rated
 **Direlance's catalogue entry + the Slayer Khatar are BLOCKED** (their description
 pages aren't on disk — p.341's crop is Artifact Materials, p.344's is the Lightning
 Torment Hatchet). **⚠ Two page-vs-guide rating disputes, page as authority:** Ring of
-the Deliberative •••• (the guide's ••••• is 2e) and Hooked Daiklaves heading •••• vs
-its own table ••••• (catalogue follows the heading, weapon row follows the table —
-flagged for a human ruling). `docs/status/rated-artifacts.md` → *The 2026-08-08
-castebook batch*. Earlier the same day: the **rated-artifact catalogue** —
+the Deliberative •••• (the guide's ••••• is 2e) and Hooked Daiklaves •••• — the page
+heading is canonical (human ruling 2026-08-08; the page's own table misprints •••••,
+so the catalogue and the weapon row both carry 4). `docs/status/rated-artifacts.md` →
+*The 2026-08-08 castebook batch*. Earlier the same day: the **rated-artifact catalogue** —
 `data/artifacts.json` (first slice: the ten Mountain Folk Technology
 artifacts), the four stat-blocked ones also in `weapons.json`/`armor.json`, and the
 standalone-artifact name field is now a catalogue combobox that autofills name + rating
