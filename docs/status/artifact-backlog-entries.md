@@ -383,18 +383,18 @@ On-disk page → crop (all in `images/Image Archive 1/Arms & Armor/`):
 
 | Name | Rating | Page(s) | Build |
 |---|---|---|---|
-| Bracer of the Hawk | • | 79 | — |
-| Cup of Flowing Blood | ••• | 79 | — |
-| Seed of the Immaculate Blood | •• | 79 | — |
-| Whistle of Ghost Summoning | •• | 79 | — |
-| Eye of the Living Earth | ••• | 80 | — |
-| Ghost Seeing Blindfold | ••• | 80 | — |
-| Honey of the Bees of Zarlath | ••• | 80 | — |
-| Mirrors of Illusion Shattering | ••• | 80 | — |
-| Scabbard of the Living Weapon | ••• | 80 | — |
-| Sorcery Capturing Cord | ••• | 81 | — |
-| The Jackal’s Skull | •••• | 81 | — |
-| Veil that Holds Back Time | •••• | 81 | — |
+| Bracer of the Hawk | •• | 79 | cat |
+| Cup of Flowing Blood | ••• | 79 | cat |
+| Seed of the Immaculate Blood | •• | 79 | cat |
+| Whistle of Ghost Summoning | •• | 79 | cat |
+| Eye of the Living Earth | ••• | 80 | cat |
+| Ghost Seeing Blindfold | ••• | 80 | cat |
+| Honey of the Bees of Zarlath | ••• | 80 | cat |
+| Mirrors of Illusion Shattering | ••• | 80 | cat |
+| Scabbard of the Living Weapon | ••• | 80 | cat |
+| Sorcery Capturing Cord | ••• | 81 | cat |
+| The Jackal’s Skull | •••• | 81 | cat |
+| Veil that Holds Back Time | •••• | 81 | cat |
 
 ### `salt` — Blood and Salt ⚠ (11)
 
@@ -417,14 +417,14 @@ On-disk page → crop (all in `images/Image Archive 1/Arms & Armor/`):
 | Name | Rating | Page(s) | Build |
 |---|---|---|---|
 | Audient Brush | •• | 79 | blocked |
-| Lotus Blossom Cup | • | 79 | — |
-| Players Mask | • | 79 | — |
-| Silver Quill | • | 79 | — |
-| Seven Jewelled Peacock Fans | •• | 80 | — |
-| Silken Armor | ••• | 80 | — |
-| Solar Seal | • | 80 | — |
-| Folding Ship | •••• | 81 | — |
-| Iron Horse | •••• | 81 | — |
+| Lotus Blossom Cup | • | 79 | cat |
+| Players Mask | • | 79 | cat |
+| Silver Quill | • | 79 | cat |
+| Seven Jewelled Peacock Fans | •• | 80 | cat |
+| Silken Armor | ••• | 80 | cat |
+| Solar Seal | • | 80 | cat |
+| Folding Ship | •••• | 81 | cat |
+| Iron Horse | •••• | 81 | cat |
 
 **⚠ Audient Brush is blocked 2026-08-08 — a phantom index row.** Caste Book: Eclipse pp.79-81 were VLM-transcribed this day (VLM + tesseract, plus a full 98-page word-sweep of the Eclipse PDF) and the book contains **no** Audient Brush. The real p.79 artifact list is Lotus Blossom Cup, Player's Mask, Silver Quill. Every "brush" in the book is prose or the Larceny Charms Whirling Brush Method / Flawless Brush Discipline. The "When Autochthon Dreams" index either hallucinated the row or misattributed an artifact from another book — authoring needs a real source. The cb_e authorable count is therefore **8, not 9**.
 
@@ -439,7 +439,9 @@ On-disk page → crop (all in `images/Image Archive 1/Arms & Armor/`):
 | Gauntlets of Distant Claws | ••• | 80 | rated |
 | Ultimately Useful Tube | ••• | 80 | rated |
 | Cloak of Vanishing Escape | •••• | 81 | rated |
-| Daiklave, Hooked | •• | 81 | — |
+| Daiklave, Hooked | •• | 81 | cat |
+
+**⚠ The guide's "Daiklave, Hooked ••" is a checklist mislabel, not an unauthored artifact.** Night p.81's heading is *Hooked Daiklaves of Dual Prowess (Artifact ••••)* — the guide's rating and word order both differ, so the name matcher missed it. The build holds it under its real name: `artifact.castebook-night.hooked-daiklaves-of-dual-prowess` (••••, catalogue) plus the `weapon.melee.hooked_daiklaves_of_dual_prowess` rated row. Covered by the closed 2026-08-08 Hooked Daiklaves rating ruling (heading •••• canonical).
 
 ### `ab_e` — Aspect Book: Earth ⚠ (6)
 
