@@ -11,11 +11,11 @@ If you like 2.5E more and want it to support that, fork the project. Docs should
 enough to help you modify it to your liking.
 
 The chargen rules, xp rules, etc etc all live in JSONs under data/, not in the Python code.
-There are 1,534 Charms, 92 spells, 18 Martial Arts styles, full cost/budget tables, equipment
-lists and more all there, sorted into their own JSONs. Engine is modular and split off from the
-UI, and contains no I/O -- and the UI is similar in that it has no game logic of its own. In
-practice, this makes it much easier to add homebrew Charms, Spells, or Martial Arts 
-(see [Homebrew](#homebrew)).
+There are 1,709 Charms, 92 spells, 18 Martial Arts styles (plus the ten Dragon-Kings Paths),
+full cost/budget tables, equipment lists and more all there, sorted into their own JSONs. Engine
+is modular and split off from the UI, and contains no I/O -- and the UI is similar in that it
+has no game logic of its own. In practice, this makes it much easier to add homebrew Charms,
+Spells, or Martial Arts (see [Homebrew](#homebrew)).
 
 > Fan project, unaffiliated with White Wolf / Onyx Path. Exalted is their
 > intellectual property; this is a tool for people who own the books.
@@ -46,20 +46,23 @@ Plus the non-Exalt splats, all browser-verified:
 |---|---|
 | Mortals & Heroic Mortals | One splat, two origins; no Charms, Essence pinned at 1; magic comes via Merits & Flaws |
 | Ghosts | 56 Arcanoi across the six paths, Fetters and Passions, two chargen axes |
-| Godblooded | The Ghost-Blooded, Half-Caste and Fae-Blooded heritages |
+| Godblooded | The Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus the God/Demon-Blooded axis and an 80-Charm spirit catalogue |
+| Dragon-Kings | The ten Paths of Prehuman Mastery (a rated subsystem, 60 powers), four Breeds, Terrestrial sorcery |
+| Mountain Folk | The Enlightenment origin axis and the five-Pattern Charm economy (94 Charms), the Great Geas |
 
 And the subsystems: **Merits & Flaws** (the whole chapter, including the Fae-Blooded
 glamour Merits — and the thing that opens Terrestrial Martial Arts and Sorcery to a
 mortal), **rated artifacts** (individual artifacts priced against the E:Ab p.131
-Artifact budget, damaged artifacts and all), **Thaumaturgy** (the cross-splat Arts,
-Sciences, Rituals and Formulas), sorcery and necromancy at every circle, Combos, Ox-Body
-and the other repeatable Charms, per-focus Crafts, magical materials, **Elder Exalts**
-(age raises Essence and traits past 5, with a downtime XP calculator), a **GM adversary
-roster** (49 generic extras, beasts and NPCs), and a manual in-play tracker for motes,
-health, Willpower and Limit.
+Artifact budget — damaged artifacts and all — with a catalogue that autofills name and
+rating), **Thaumaturgy** (the cross-splat Arts, Sciences, Rituals and Formulas), sorcery
+and necromancy at every circle, Combos, Ox-Body and the other repeatable Charms,
+per-focus Crafts, magical materials, **Elder Exalts** (Essence bought with XP past 5
+raises the trait ceilings — no age chart — with a downtime XP calculator), a **GM
+adversary roster** (49 generic extras, beasts and NPCs), and a manual in-play tracker
+for motes, health, Willpower and Limit.
 
-**Not yet supported:** just **Dragon-Kings** and **Mountain Folk**, both waiting on
-source material. The **Fae** can go fuck themselves, as ever.
+**All ten splats are in.** The only thing not supported is the **Fae** — permanently
+out of scope, and they can go fuck themselves, as ever.
 
 ## Features
 
@@ -74,7 +77,7 @@ source material. The **Fae** can go fuck themselves, as ever.
   Terrestrial Martial Arts and Sorcery
 * **Rated artifacts** — artifacts as rated objects against the Artifact budget, with
   damaged-artifact rules
-* **Elder Exalts** — age raises Essence and traits past 5, plus a downtime XP calculator
+* **Elder Exalts** — Essence bought with XP past 5 raises the trait ceilings, plus a downtime XP calculator
 * A **GM adversary roster** — generic extras, beasts and NPCs, instanced and ready for
   the Storyteller page
 * A read-only character sheet view, and a Storyteller party page tracking the whole
@@ -187,7 +190,7 @@ exalted_builder/
 docs/status/        What is built, splat by splat
 pack/               PyInstaller packaging and build instructions
 tools/              Data authoring spec and a validator for hand-written Charm files
-tests/              ~1,900 tests, engine-first
+tests/              ~2,068 tests, engine-first
 ```
 
 Dependencies run one way only: `ui → engine → models`.
@@ -207,7 +210,7 @@ Dependencies run one way only: `ui → engine → models`.
 * [`docs/decisions/`](docs/decisions/) — why it is built this way, one numbered record per
   closed decision (including the ones about what this will never do)
 * [`docs/adding-a-splat.md`](docs/adding-a-splat.md) — what implementing a splat actually
-  takes, based on the six that are done rather than on wishful thinking
+  takes, based on the ten that are done rather than on wishful thinking
 * [`tools/CHARM_AUTHORING_SPEC.md`](tools/CHARM_AUTHORING_SPEC.md) — how to
   transcribe Charms from a page into `data/`, mechanically
 * [`pack/BUILD.md`](pack/BUILD.md) — packaging the desktop executable

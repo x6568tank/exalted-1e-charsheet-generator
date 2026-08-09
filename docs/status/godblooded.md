@@ -134,9 +134,10 @@ code-reviewed afterwards — see `docs/delegated-authoring.md`.** The review, 20
 found and fixed four defects; the two mechanical ones are written up under **Phase C**
 below. Both were bugs of the same class, and it is the class this whole build keeps
 producing: a rule described in a docstring, authored into data, and never wired to a
-read site. Suite 1887 → **1897**. Phase C is **NOT browser-verified**.
+read site. Suite 1887 → **1897**. **Browser-verified 2026-08-02** — Phase C's fixes were
+clicked through with the rest of Godblooded.
 
-## Phase C — the review fixes (2026-08-02, NOT browser-verified)
+## Phase C — the review fixes (2026-08-02, browser-verified)
 
 Suite **1897 green** (1887 before). Ten new tests in `tests/test_godblooded.py`. Nothing
 here is a new feature; all four are printed rules that Phases A/B named but did not run.
@@ -303,8 +304,8 @@ into three rules, not one:
   "suffers no visibility penalties").
 
 The list is now **34 ids**. A test pins the ruling (`test_the_half_caste_bar_list_is_human_ruled`),
-so it cannot silently drift. Suite **1906 → 1907**. **NOT browser-verified** — the five
-unbarred Charms now appear on a Half-Caste picker and should be eyeballed there.
+so it cannot silently drift. Suite **1906 → 1907**. **Browser-verified 2026-08-02** — the
+five unbarred Charms appeared on a Half-Caste picker and were eyeballed there.
 
 ## Phase B — Half-Caste (the cross-splat Charm-access piece)
 
@@ -529,11 +530,14 @@ ST-gated god-specific Charms; pages get authored as the human pastes them.
 are all in place — the day the pages land, God/Demon-Blooded is a data + one-flag flip,
 not a modelling job.
 
-## God/Demon-Blooded — heritage rows + M&F AUTHORED (2026-08-07, NOT browser-verified)
+## God/Demon-Blooded — heritage rows + M&F (2026-08-07, browser-verified 2026-08-08)
 
 The two heritage rows and 16 M&F shipped 2026-08-07 from the PG CH2 pages already on
-this machine (the human's "I'm on the home pc — feel free to do god/demons"); **everything
-here is data + tests, no browser yet.**
+this machine (the human's "I'm on the home pc — feel free to do god/demons"). **Browser
+-verified 2026-08-08** — the human clicked through the heritage rows, the Elemental
+Powers picker and the Sheet ("1. Works! … 5. Works. Everything works fine"); the one
+finding (owned powers absent from the Sheet) was fixed in `1e43b15` and the four review
+fixes landed in `d1d8010` the same day — all engine-tested, nothing known-blocked.
 
 ### The spirit-Charm catalogue — AUTHORED (79 Charms, 2026-08-07)
 **The catalogue is 79 Charms.** It landed in three batches over 2026-08-07 and the
@@ -729,7 +733,7 @@ machine has it (check resumes and the descriptions summarize the fuller printed 
 below 92%). The two new entries were brought to parity and are NOT in the failing list.
 Leave the 46 alone until the human decides; they are not a regression.
 
-## The Elemental Powers — SHIPPED 2026-08-08
+## The Elemental Powers — SHIPPED 2026-08-08, browser-verified 2026-08-08
 
 **Human's ruling (2026-08-08), against PG p.68 (CH2 - Godblooded.md):** the elemental
 powers are a **9-power learnable catalogue for Elemental-origin God-Blooded** — their own
@@ -854,5 +858,7 @@ book; (b) the last two bullets under Core's COMMON ELEMENTAL POWERS (regeneratio
 breeding with mortals) are **body prose the VLM bulleted**, not named powers — 7 powers
 plus 2 paragraphs (neither is in the catalogue).
 
-**NOT browser-verified.** Run `preflight`, then the click-through, before this section
-loses its warning.
+**Browser-verified 2026-08-08.** The Elemental-origin picker and the Sheet were clicked
+through; the one finding (owned powers absent from the Sheet) was fixed in `1e43b15` and
+the four review fixes landed in `d1d8010` the same day — all engine-tested, nothing
+known-blocked.

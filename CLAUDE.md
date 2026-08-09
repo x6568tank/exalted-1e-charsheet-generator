@@ -6,12 +6,12 @@ generation, point validation, and XP advancement, with a character-sheet view.
 Scope is deliberately smaller than EdExalted (which is 2e/2.5e only); **1e is
 unserved, which is the entire point.** All six **Exalt** splats are done (Solar,
 Dragon-Blooded, Abyssal, Lunar, Sidereal, Alchemical) — chargen, Charms, XP and UI,
-each browser-verified. Four non-Exalt splats have shipped since: **Mortals + Heroic
-Mortals** (2026-07-30; one splat, two origins), **Ghosts** (2026-08-01),
-**Godblooded** (2026-08-02; Ghost-Blooded, Half-Caste and Fae-Blooded heritages), and
-**Dragon-Kings** (2026-08-05; the ten Paths of Prehuman Mastery), and
-**Mountain Folk** (2026-08-07; the Enlightenment origin axis, the five-Pattern
-Charm economy), both browser-verified — see **TODO**.
+each browser-verified. Five **non-Exalt** splats have shipped since — **Mortals +
+Heroic Mortals** (2026-07-30; one splat, two origins), **Ghosts** (2026-08-01),
+**Godblooded** (2026-08-02; Ghost-Blooded, Half-Caste and Fae-Blooded heritages),
+**Dragon-Kings** (2026-08-05; the ten Paths of Prehuman Mastery) and **Mountain Folk**
+(2026-08-07; the Enlightenment origin axis, the five-Pattern Charm economy) — each
+browser-verified; see **Status** and `docs/status/`.
 
 ## ⚠️ EDITION: 1e ONLY — never substitute 2e/2.5e rules
 This is the single most important constraint. 2e is far better represented than
@@ -61,13 +61,12 @@ clicked through in a browser. Per-splat detail lives in the **Status** table bel
 | Mountain Folk | `images/Mortals/Mountain Folk/` | **DONE 2026-08-07, browser-verified** — the tenth splat, the last non-Exalt. The Enlightenment origin axis (Enlightened/Unenlightened — attribute pools, a two-pool Ability budget, per-caste Background dots, trait ceilings, Essence/Willpower caps); the five-Pattern Charm economy (94 Charms gated on Minimum Essence only, a new Enchantment Charm type); the Great Geas as a Divergence Limit track + reference panel; banned Backgrounds omitted from the catalog; three Darkbrood adversaries. `docs/status/mountain-folk.md` |
 | ~~Fair Folk / Fae~~ | — | **NEVER — permanently out of scope** (decision 0010) |
 
-**"Mortals" is shorthand, not one splat** (human, 2026-07-29): six different splats
-scattered across different books, each needing its own sources and chargen work.
-Mortals + Heroic Mortals turned out to be ONE splat with two origins (core p.103 runs
-a single procedure through both, varying only 6/4/3·22 vs 4/3/3·16). That revision says
-nothing about the other four — treat each as its own splat with its own budgets, Charm
-economy and shape until the pages say otherwise. **No source exists for Mountain
-Folk; do not start it.**
+**"Mortals" is shorthand, not one splat** (human, 2026-07-29): the non-Exalts are six
+different splats scattered across different books, each needing its own sources and
+chargen work. Mortals + Heroic Mortals turned out to be ONE splat with two origins
+(core p.103 runs a single procedure through both, varying only 6/4/3·22 vs 4/3/3·16).
+That revision says nothing about the others — treat each as its own splat with its own
+budgets, Charm economy and shape until the pages say otherwise.
 
 Work on a splat starts only once its rulebook images land in `images/<ExaltName>/` —
 never author data from memory (see **Workflow expectations**). **Read
@@ -140,16 +139,23 @@ costs — read the record before proposing anything that contradicts it.
 | # | Decision |
 |---|---|
 | 0001 | **1e only, never 2e** — also the source of the never-author-from-memory rule below |
+| 0002 | **Data-driven rules, pure engine, disposable UI** — the rulebook is JSON; the engine is pure functions |
 | 0003 | Current state is canonical; the engine computes the point accounting |
 | 0004 | Chargen and advancement are different shapes (snapshot + append-only XP log) |
 | 0005 | Willpower's Virtue component is pinned at lock |
 | 0006 | Play-state is validation-isolated — it must never enter chargen, the XP audit or a permanent derivation |
+| 0007 | **Ids for invariant content, inline copies for variable** — Charms/spells by id; weapons/armor inline copies |
 | 0008 | No combat/attack derivation |
-| 0009 | **No dice rolling, ever** — broader than 0008; do not propose it |
-| 0010 | The Fair Folk are permanently out of scope — six non-Exalt splats left, not seven |
+| 0009 | No dice rolling, ever — broader than 0008; do not propose it |
+| 0010 | The Fair Folk are permanently out of scope |
 | 0011 | Merits & Flaws return as ONE centralized calc, never the old per-file hooks |
 | 0012 | Homebrew: the `custom/` library is the store, saves carry copies, homebrew errors are non-fatal |
 | 0013 | **Edit and XP are ONE surface** — the dot track is the buy control; there is no XP tab |
+| 0014 | Essence is XP-purchasable to the splat cap; the age chart is gone |
+
+**Permanently out of scope** — decisions 0008, 0009 and 0010 (no combat/attack
+derivation, no dice rolling of any kind, no Fair Folk). Read them before proposing any
+of it; all three are closed.
 
 ## Stack
 - Python + pydantic v2 + pytest.
@@ -176,61 +182,45 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (2,068 passing)
+### The house bug — stated once
+A rule that IS implemented, sitting where it does not run when it matters. Three M&F
+instances, then mortal magic access wired to chargen only, then the XP tab's hardcoded
+trait ceiling. `preflight`'s read-site audit reports single-site fields as if they were
+healthy — **a single read site is as suspect as none when the read sits in the phase
+that wrote it. Test the buy path, not the effect.**
 
-The suite is green: **2,068 passing** — the **2026-08-08 castebook artifact batch**
-added 3 (the ten `data/artifacts.json` catalogue entries for Caste Books Dawn/Night/
-Zenith pp.78-81 — `artifact.castebook-*`, the first non-MF catalogue slice — plus the
-Hooked Daiklaves/Direlance rated gear rows; the two `test_data.py` pins: the
-catalogue-load test asserting all ten ratings + the two page-vs-guide rating disputes
-and the rated-gear-row test asserting the two blocked core items stay out of the
-catalogue, and the `test_rated_artifacts.py` UI test that the combobox offers the ten
-new names — 2,065 → 2,068; see `docs/status/rated-artifacts.md` → *The 2026-08-08
-castebook batch*); the dual-nature devices + the artifact
-description label added 3 on 2026-08-08 (the six `weapon.mountain-folk.*` crossbow/
-flamecaster rows with both `artifact_rating` and `resources_cost` in `test_data.py`,
-the `test_rated_artifacts.py` engine test that zeroing the Art field makes a device
-mundane gear — the human's ruling on how the funding is chosen, see the START HERE —
-and the description-label UI test); a first-pass "Funded by" toggle was removed the
-same day on the human's ruling (2,064 → 2,063); the rated-artifact catalogue added 4 on
-2026-08-08 (the ten-entry `data/artifacts.json` catalogue + the four Mountain Folk gear
-stat blocks in `test_data.py`, and the two `test_rated_artifacts.py` UI tests: the
-catalogue combobox offering off-catalogue names, and the pick autofilling name + rating
-in place); the Elemental Powers catalogue added 17 on
-2026-08-08 (12 engine + 5 UI build tests: the locked-XP and empty picker shapes from
-preflight's render matrix, then the sheet-render test from the click-through finding
-that the Charms & Sorcery band did not list owned powers; the 9-power learnable set
-for Elemental-origin God-Blooded, PG p.68, see `docs/status/godblooded.md` → *The
-Elemental Powers*); the four Opus code-review fixes added 3 more the same day (the
-house-bug re-check that a locked character is re-validated for illegal powers, the
-Owned-total currency fix, and the heritage-switch orphan clear); the caste-level gate
-on `elemental_powers_available` added 1 more the same day; **the alchemical-goods
-removal is pinned by 2 new tests** (the `GoodType`-catalogue-does-not-exist data pin
-and the Advantages-tab-renders-without-Godstrike-Oil UI pin — 2,063 → 2,065; the
-transcription stayed in `docs/status/artifact-backlog.md`); the Mountain Folk splat added 18 tests at
-ship (2026-08-07, browser-verified) and a further 9 in the Opus code-review fixes
-the same day (the two-pool Ability billing, the foreign-Charm bar, the
-both-phases Pattern bar); the God/Demon-Blooded heritage work added 22 on the same
-day (14 engine + 8 UI build tests) and the spirit-Charm catalogue its own
-(`data/charms/spirit_templates.json` — `docs/status/godblooded.md`). The catalogue
-reached **79 Charms** over three batches that same day: the GoD appendix + PG (8), the
-12 corebook Charms (book pp.291-292, all four Virtue sets), then Storyteller's
-Companion CH3 (46) plus stragglers from the PG, Ruins of Rathess and Lunars. The
-last two batches came through the VLM pipeline (`tools/VLM_TRANSCRIPTION_PROMPT.md` +
-`qwen3-vl:8b-instruct`, page-split to avoid the two-column skip, human-vetted), and
-every printed prerequisite the catalogue names is now wired to a real id. **⚠ One
-machine-specific exception:** `test_every_description_matches_the_source_text`
-fails with 46 entries on a machine where `images/Non-Exalts/Godblooded/CH2 -
-Godblooded.md` is present (descriptions summarize the fuller printed text → below
-92%) and passes where it is absent (entries defer). It is green on the laptop,
-red here, and is not a regression — see `docs/status/godblooded.md`.
+**The sharpest version, from Godblooded:** a ZERO-site field can still look healthy,
+because something else may be doing its job by accident. `heritage_traits.magic_track`
+had no reader at all, and Ghost-Blooded behaved correctly regardless — the Ghost
+catalogue holds no sorcery, so Charm access happened to produce the p.48 answer; the
+Abyssal and Solar Half-Castes, whose borrowed catalogues hold both tracks, were both
+broken. **Correct behaviour in the case you tested is not evidence the mechanism
+exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run the
+`preflight` skill before booking browser time.**
 
-The detailed build log lives in `docs/status/` — one file per topic/splat, kept
-out of this file so CLAUDE.md stays readable. **Read the relevant file before
-touching that area**; the summaries below are pointers, not the full record.
+### Delegated authoring (cheap-model splats)
+Godblooded was authored end to end by a cheap model (DeepSeek V4 Flash) and
+code-reviewed afterwards. The review found four defects, all of them the house bug.
+**Read `docs/delegated-authoring.md` before delegating a splat, and run its four
+checks before booking browser time.** The one finding that generalises beyond
+delegation is stated above: **correct behaviour is not evidence the mechanism exists.**
+
+## Status — the record lives in `docs/status/`
+
+The suite is green: **2,068 passing**. ⚠ **One machine-specific exception:**
+`test_every_description_matches_the_source_text` fails with 46 entries on a machine
+where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
+summarize the fuller printed text → below 92%) and passes where it is absent (entries
+defer). It is green on the laptop, red here, and is not a regression — see
+`docs/status/godblooded.md`.
+
+The detailed build log lives in `docs/status/` — one file per topic/splat. **Read the
+relevant file before touching that area**; the summaries below are pointers, not the
+full record.
 
 | Area | File |
 |---|---|
+| **Session handoff — rewritten each session** | `docs/status/handoff.md` |
 | **How it works** (module boundaries, lifecycle, invariants) | `docs/ARCHITECTURE.md` |
 | **Why** (closed decisions, one record each) | `docs/decisions/` |
 | **The rules data** (conventions, what the loader checks) | `docs/content.md` |
@@ -255,7 +245,7 @@ touching that area**; the summaries below are pointers, not the full record.
 | **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM. **2026-08-08 correction:** five mislabelled codes fixed — `ab_a/e/f/v/w` are the Dragon-Blooded **Aspect Books**, `salt` = Blood and Salt, `coin` = Manacle and Coin — and the on-disk claim corrected: **40 entries authorable now** (28 already rated in the build), not ~90; per-entry authoring queue with build status in `artifact-backlog-entries.md`) | `docs/status/artifact-backlog.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
-| **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus God/Demon-Blooded heritage rows + 16 M&F + the 80-Charm spirit catalogue authored 2026-08-07 and the p.48 sorcery initiation 2026-08-08, every printed prereq wired — NOT yet browser-verified) | `docs/status/godblooded.md` |
+| **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus God/Demon-Blooded heritage rows + 16 M&F + the 80-Charm spirit catalogue authored 2026-08-07 and the p.48 sorcery initiation 2026-08-08, every printed prereq wired — browser-verified 2026-08-08) | `docs/status/godblooded.md` |
 | **Dragon-Kings — DONE, browser-verified** (9th splat, 4th non-Exalt; the ten Paths of Prehuman Mastery as a rated subsystem, four Breeds, single Essence pool, Essence-gated trait ceilings, Terrestrial sorcery) | `docs/status/dragon-kings.md` |
 | **Mountain Folk — DONE, browser-verified** (10th splat, 5th non-Exalt, the last; the Enlightenment origin axis, the five-Pattern Charm economy with a new Enchantment type, the Great Geas as Divergence + reference panel, three Darkbrood adversaries) | `docs/status/mountain-folk.md` |
 | **Elder Exalts — DONE, browser-verified** (simplified 2026-08-06: Essence XP-purchasable to the splat cap — 9 flat, Terrestrial-7 held; trait ceilings follow Essence; age chart removed; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
@@ -263,40 +253,17 @@ touching that area**; the summaries below are pointers, not the full record.
 
 **State of the world:** the foundation (models, persistence, engine, UI) is done
 (`engine-and-ui.md`); every shipped splat's data, engine and UI is browser-verified,
-including Mountain Folk (2026-08-07, its click-through found and fixed the origin
-selector, the per-caste Background display, the Divergence label and the Cult ban).
-1,470 Charms across the six Exalt splats, plus 56 ghost Arcanoi and 94 Mountain
-Folk Charms (`data-and-tooling.md`).
-Thaumaturgy and custom content shipped 2026-07-29, Merits & Flaws 2026-07-30, the
-Edit⇄XP merge and Advantages tab 2026-07-31, Elder Exalts 2026-07-31 (**simplified
-2026-08-06** — Essence XP-purchasable, age chart removed), Ghosts and the GM-mode
-adversary roster 2026-08-01, Godblooded 2026-08-02, **Dragon-Kings 2026-08-05** (the ten
-Paths of Prehuman Mastery) — all browser-verified. **2026-08-06:** the Dragon-Kings
-breed-attribute BP ruling was corrected (effective past 5 is BP-bought at the attribute
-rate, not free) and re-verified.
-**Rated artifacts browser-verified 2026-08-05**, and the click-through's one wish —
-a **drop-down of the artifact catalogue** on the standalone-artifact rows — **SHIPPED
-2026-08-08**: `data/artifacts.json` (new `ArtifactType` model + `RuleSet.artifact_catalog`,
-first slice = the ten Mountain Folk Technology-chapter artifacts, pp.279-283), the four
-of them with stat blocks also added to `weapons.json`/`armor.json`, and the name field
-is now a combobox that autofills name + rating, with a per-row description label
-(2026-08-08). The **six dual-nature devices** (Crossbow •• / Mechanized ••• / Assault
-•• / Onslaught ••• / Flamecaster / Pyromantic Grenade, MF p.278) shipped the same day:
-each `weapon.mountain-folk.*` row carries BOTH `artifact_rating` and `resources_cost`,
-and the player picks the funding with the Art/Res edit fields — human's ruling
-2026-08-08 (a first-pass "Funded by" toggle was removed as unnecessary; Art 0 = mundane
-gear). ⚠ The Flamecaster/Grenade print a Resources cost only; their Artifact rating
-mirrors 3 as the ST's call. See `docs/status/rated-artifacts.md` → *The catalogue & the
-dropdown* and *The dual-nature devices*. ⚠ One Dragon-Kings artifact check (the
-`artifact-two-flagships` finding) needs a browser re-verify — the engine flags it but
-the click-through saw a stale server; see `docs/status/dragon-kings.md`.
+including Mountain Folk (2026-08-07). 1,470 Charms across the six Exalt splats, plus
+56 ghost Arcanoi and 94 Mountain Folk Charms (`data-and-tooling.md`). Rated artifacts
+and the catalogue/dropdown shipped 2026-08-08 — see `docs/status/rated-artifacts.md`.
+Ship dates for everything else live in the per-splat status docs and the git log.
 
 ### Removed
 - **Merits & Flaws** — ripped out 2026-06-15 (the old system bundled
   balance-wrecking Charm rewrites), and **RESTORED 2026-07-30** as the single
   centralized `merits_and_flaws_calc` decision 0011 called for. This entry stays as
   history: the reason they were removed is the reason no caller may name a Merit id.
-  See `docs/status/merits-flaws.md` and the TODO.
+  See `docs/status/merits-flaws.md`.
 
 ### Deferred (still open, just not now)
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond
@@ -328,246 +295,12 @@ The reasoning is the tracker's, and it generalises: this build is a **character 
 and validator**, not a chronicle simulator. Anything that needs the passage of in-game
 time to resolve is out for the same reason `PlayState` is a dumb manual tracker.
 
-### Permanently out of scope
-Recorded as decision records, not restated here — read them before proposing any of it:
-**no combat/attack derivation** (`0008`), **no dice rolling of any kind** (`0009`), and
-**the Fair Folk** (`0010`).
-
 ## TODO
 
-### 👉 START HERE (session handoff)
-
-**⏸ PICK UP HERE (2026-08-08, branch `deepseek-experiment`, worktree `…-ds`).**
-The suite is at **2,068 passing** (plus the one known machine-only M&F description
-failure — not a regression, see Status). The castebook batch and all rated-artifact
-work are **COMMITTED** (human, 2026-08-08 — `5c44631 artifacts begin`,
-`6dfae3e artifact dropdown work`); the regenerated authoring checklist
-`docs/status/artifact-backlog-entries.md` is the one file still **untracked** — commit
-it. **The Hooked Daiklaves rating ruling is CLOSED 2026-08-08** — the human checked the
-page (`images/Solars/Castebooks/Night/81.png`) and ruled the **heading •••• canonical**;
-the weapon row was changed from the table's ••••• to **4** to match the catalogue entry,
-and the docs' "flagged for a ruling" language was updated (weapon row 5→4, note carries
-the ruling, test pin moved to 4). **The Advantages-tab combobox click-through is CLOSED
-2026-08-08** — the human has exercised the same mechanism with other catalogue items
-(the name→rating autofill + description label + off-catalogue rename is item-independent),
-so no further click-through is owed. **No open threads.** Newest shipped:
-**the 2026-08-08 castebook
-artifact batch** — the 12 genuinely-new remainder of the "40 authorable-now" backlog
-entries, addressed unsupervised (the human was out; the source pages were on disk):
-ten became catalogue entries in `data/artifacts.json` (ids `artifact.castebook-*`,
-Caste Books Dawn/Night/Zenith pp.78-81 — Shield Bracer, Map of Azure Victory, Chariot
-of Aerial Conquest, Arrows of Distant Death, Spider Grippers, Belt of Shadow Walking,
-Circlet of Spirits, Hooked Daiklaves of Dual Prowess, Death Shield Ring, Ring of the
-Deliberative), the **Hooked Daiklaves** and the **Direlance** also got rated
-`weapons.json` rows (table stats, attune 4-per-blade / not printed), and the
-**Direlance's catalogue entry + the Slayer Khatar are BLOCKED** (their description
-pages aren't on disk — p.341's crop is Artifact Materials, p.344's is the Lightning
-Torment Hatchet). **⚠ Two page-vs-guide rating disputes, page as authority:** Ring of
-the Deliberative •••• (the guide's ••••• is 2e) and Hooked Daiklaves •••• — the page
-heading is canonical (human ruling 2026-08-08; the page's own table misprints •••••,
-so the catalogue and the weapon row both carry 4). `docs/status/rated-artifacts.md` →
-*The 2026-08-08 castebook batch*. Earlier the same day: the **rated-artifact catalogue** —
-`data/artifacts.json` (first slice: the ten Mountain Folk Technology
-artifacts), the four stat-blocked ones also in `weapons.json`/`armor.json`, and the
-standalone-artifact name field is now a catalogue combobox that autofills name + rating
-(`docs/status/rated-artifacts.md` → *The catalogue & the dropdown*). Also shipped the
-same day: the **artifact description label** under each row (mirrors the Background
-`bg-desc` pattern), and the **six dual-nature devices** — the four crossbows (Crossbow
-•• / Mechanized ••• / Assault •• / Onslaught •••) plus the Flamecaster and Pyromantic
-Grenade, all in `weapons.json` carrying BOTH `artifact_rating` and `resources_cost`.
-**The player picks the funding with the Art/Res edit fields** — human's ruling
-2026-08-08 after the click-through: set the Background that was paid and zero the other
-(Art 0 = mundane gear, the default `artifact_items` skips); a first-pass "Funded by"
-toggle was judged unnecessary and removed. **⚠ Flagged, not invented:** the
-Flamecaster/Pyromantic Grenade print a Resources cost only — their Artifact rating
-mirrors 3 so the Art field can fund them either way, and the ST sets the real value.
-The Myrmidon Carapace's weight class is **not printed** — assigned Medium, human
-confirmed fine 2026-08-08. **The alchemical goods were authored and REMOVED the same
-day, human ruling** — Godstrike Oil, Pyromantic Gel and Synthetic Leather (MF
-pp.275-277) as a `GoodType` catalogue, shown in the browser, then deleted: the build
-only catalogues what feeds a mechanical read site (materials → derive, artifacts →
-budget/dropdown, weapons/armour → the sheet); a goods card would be the first data
-with no mechanism behind it, opening the mundane-goods flood. Full transcription
-kept in `docs/status/artifact-backlog.md` (see *The alchemical goods* in
-`docs/status/rated-artifacts.md`). **Mostly
-clicked through 2026-08-08** — the "Funded by" toggle finding closed the dual-nature
-thread; a light click of the Advantages-tab combobox (pick "Echo Jewel" → name +
-rating + description label, then an off-catalogue name) is still owed. Earlier today:
-* **caste gate on `elemental_powers_available`** — the last of the Elemental Powers
-  review's "later" items (see below: the `mf.elemental-power` id migration was CLOSED
-  without building, human ruling).
-* `33f8f6b` — the God/Demon-Blooded heritage work, reviewed and de-noised.
-* `cab543a` — the PG p.48 sorcery initiation, which CLOSED the last open rules gap.
-* the **Elemental Powers catalogue** (SHIPPED — the 9-power learnable set for
-  Elemental-origin God-Blooded, PG p.68, 7 BP / 14 XP, its own picker page;
-  `mf.elemental-power` retired).
-* `1e43b15` — the click-through's one defect: the Sheet now lists owned powers.
-* `d1d8010` — the four Opus code-review fixes (see `docs/status/godblooded.md` → *The
-  Elemental Powers*): the house bug (post-lock powers never re-validated), unknown
-  power ids now surfaced by `check_references`, the XP-ledger label, and the
-  heritage-switch orphan clear (`validate.legal_elemental_powers` + the three editor
-  mutators). The 3 "later" items: two landed (Rejuvenation/Mobility activation strings,
-  the caste gate), one CLOSED without building (the id migration) — see item 2 below.
-
-**God/Demon-Blooded is DONE.** 
-1. **The browser click-through** — DONE (human: "1. Works! … 5. Works. Everything works
-   fine"); the one finding (powers absent from the Sheet) was fixed in `1e43b15` and
-   the review-fix commit `d1d8010` touched the picker's Owned-total currency, the
-   editor's heritage switch, and the XP ledger — all engine-tested, worth a light
-   re-click of the elemental picker + sheet, nothing known-blocked.
-2. **The 9 descriptions in `data/elemental_powers.json`** — **VETTED by the human
-   2026-08-08** (while the review fixes landed); the **Rejuvenation/Mobility activation
-   strings fixed the same day** (sourced from the retired Merit, git history `eba3f87^`;
-   nothing invented). **The two remaining Opus "later" items are CLOSED 2026-08-08:** the
-   **caste-level gate** on `elemental_powers_available` landed (now requires
-   `caste == "god-blooded"` AND origin Elemental — a hand-edited save pairing a
-   non-god-blooded heritage with origin "Elemental" no longer opens the catalogue,
-   mirroring the retired Merit's `barred_castes`), and the **`mf.elemental-power` id
-   migration is NOT BUILT by human ruling** — the Merit was born (`33f8f6b`) and deleted
-   (`eba3f87`) the same day on this branch, never merged to main, so no save can hold it
-   ("Literally no saves could possibly hold this. We can ignore it."). A save that
-   somehow held the id would fall through to the generic graceful unresolvable-id
-   handling (`merit-unknown` + a skipped BP line), which is the impossible-case answer.
-
-**Mountain Folk: DONE 2026-08-07, browser-verified.**
-`images/Mortals/Mountain Folk/CH 6 - The Mountain Folk.md` arrived 2026-08-07 and the
-`add-splat` skill ran end to end: the Enlightenment origin axis, the five-Pattern
-Charm economy (94 Charms, a new Enchantment type), the Great Geas as a Divergence
-track + reference panel, three Darkbrood adversaries — see
-`docs/status/mountain-folk.md` for every ruling. The human's click-through found and
-fixed four things (origin selector, per-caste Background display, the Divergence
-label, and the Cult ban now OMITS banned Backgrounds from the catalog) and the
-splat is browser-verified. The one open thread from the wish-list: the
-Technology-section artifact catalogue (pp.276-280) is NOT authored (see
-`docs/status/mountain-folk.md` → Flagged).
-
-Everything that was waiting on the human's eyes is clicked through (rated artifacts and
-the Advantages-tab Background descriptions, both 2026-08-05). Below, the newest shipped
-area's reference notes and its one open thread:
-
-1. **Rated artifacts** — DONE 2026-08-02, **browser-verified 2026-08-05** (clicked
-   through, no findings) (`docs/status/rated-artifacts.md`). If you touch the area,
-   four things to know from outside it: (1) **`engine.artifacts.artifact_items` is the
-   ONE enumeration** — it folds `Character.artifacts`, artifact weapons and artifact
-   armour into one keyed list, and every rule reads it, so never count any single one
-   of the three; (2) the p.131 budget **runs on both sides of the lock** and artifacts
-   are deliberately NOT in `ChargenSnapshot`, following the Fetter-cap precedent,
-   because the Background that keys the budget can be raised with XP;
-   (3) **`MeritFlaw.points_limited_by` is gone, replaced by the plural
-   `points_limits`** — Damaged Artifact prints two constraints measuring different
-   things and collapsing them was the original bug; (4) armour soak is the only
-   mechanical half that could ship — decision 0008 keeps the weapon half out.
-   **Trap hit:** the Dragon-Blooded artifact multiplier had to be authored on all 13
-   DB budget rows, because `_keyed_row`'s cascade REPLACES rather than merges — the
-   `highest_magic_circle_id` trap in another costume.
-
-   **Nothing is open on it** — Damaged Artifact's third cap ("the number of Background
-   and/or bonus points spent obtaining the artifact", PG p.38) shipped too, as
-   `engine.artifacts.acquisition_cost`. **⚠ It deliberately contradicts the book:**
-   p.38's worked example prices 4-dot wings at two Abyssal Background points by
-   ignoring its own table's per-item ceiling one line up; the table says three. Human's
-   ruling 2026-08-02 — *"if the book disregards its own table, fuck em"* — so this
-   build answers 3. A test pins it. Do not "fix" it toward the printed example.
-
-   **The click-through wish is SHIPPED 2026-08-08** — the name field on the
-   standalone-artifact rows is now a **combobox fed from `data/artifacts.json`**
-   (the new rated-artifact catalogue; first slice = the ten Mountain Folk artifacts,
-   and the four stat-blocked ones also landed in `weapons.json`/`armor.json`). See
-   `docs/status/rated-artifacts.md` → *The catalogue & the dropdown* for the contract.
-   The dual-nature devices shipped the same day (see *The dual-nature devices*); the
-   alchemical goods were authored, shown, and **removed on the human's ruling** (see
-   *The alchemical goods* — a goods catalogue would be the first data with no
-   mechanical read site, opening the mundane-goods flood).
-
-Everything else was browser-verified on 2026-08-01/02 — the Ghost splat, the adversary
-roster, Mortals, and all of Godblooded (Phases A+B, Phase C, the Inheritance ST option,
-the bar-list ruling, Fae-Blooded Phase D and the same-day code-review fixes), all
-clicked through.
-
-### ⚠ Delegated-authoring audit
-**Godblooded was authored end to end by a cheap model (DeepSeek V4 Flash) and
-code-reviewed afterwards.** The review found four defects, all of them the house bug:
-a rule described in a docstring, authored into data, never wired to a read site. Two
-were live rules violations. **The audit that catches this class is
-`docs/delegated-authoring.md`** — read it before delegating a splat, and run its four
-checks before booking browser time. The one finding that generalises beyond delegation:
-**correct behaviour is not evidence the mechanism exists.** `magic_track` was dead and
-Ghost-Blooded still behaved correctly, because Charm access happened to do its job for
-that one heritage; the Abyssal and Solar Half-Castes, which it did not cover, were both
-broken.
-
-### The house bug, stated once
-A rule that IS implemented, sitting where it does not run when it matters. Three M&F
-instances, then mortal magic access wired to chargen only, then the XP tab's hardcoded
-trait ceiling. `preflight`'s read-site audit reports single-site fields as if they were
-healthy — **a single read site is as suspect as none when the read sits in the phase
-that wrote it.** Test the buy path, not the effect.
-
-**The sharpest version, from Godblooded:** a ZERO-site field can still look healthy,
-because something else may be doing its job by accident. `heritage_traits.magic_track`
-had no reader at all, and Ghost-Blooded behaved correctly regardless — the Ghost
-catalogue holds no sorcery, so Charm access happened to produce the p.48 answer; the
-Abyssal and Solar Half-Castes, whose borrowed catalogues hold both tracks, were both
-broken. **Correct behaviour in the case you tested is not evidence the mechanism
-exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run the
-`preflight` skill before booking browser time.**
-
-### Recently shipped, newest first — the traps to remember
-* **Dragon-Kings breed attributes** (`docs/status/dragon-kings.md`) — breed attribute
-  bonuses are free dots ON TOP of the stored value, but each EFFECTIVE dot above 5 is
-  BP-bought at the attribute rate (PG p.175). A same-day ruling that made the effective
-  excess "free past 5" was the OPPOSITE of the human's intention — the friend's Anklok
-  at effective 7/6 with 0 BP surfaced it, and it was reversed in `bonus_point_breakdown`
-  the same day. **Trap: a "free" ruling that contradicts the book's price language
-  ("without spending bonus or experience points") needs the human's intent confirmed
-  before authoring — a mistaken "free" ships as a silent under-charge.**
-* **The adversary roster** (`docs/status/adversary-roster.md`) — GM-mode extras/beasts/
-  NPCs, 49 generic templates. **An `Adversary` is NOT a `Character` and must never
-  become one** — a test asserts it. Named individuals are excluded, except four Exalt
-  blocks that sit under ROLE headings (names stripped, because the book itself says one
-  "could be any ambitious young Dragon-Blooded warrior", p.308); the Lunar Trickster is
-  deliberately absent (alternate forms unmodelled). The dead-field bug fired here too —
-  two tests now force every stat field to be both editable and displayed. Brought
-  **SHIELDS** into the build on the way: the three p.335 shields are `armor.json` rows
-  tagged "shield", NOT a model of their own.
-* **Ghosts** (`docs/status/ghosts.md`) — **Virtue-keyed Charms** (`min_virtue`, the
-  third and last keying axis, after Ability and Lunar's Attribute); **Fetters and
-  Passions**; two independent chargen axes; and three bars — no Combos ever, thaumaturgy
-  held but never usable, no other splat's Charms except the Terrestrial supernatural
-  martial arts at a 20-XP penalty (the **Fighter in Life** Merit). **Passions are a
-  LIVE DERIVATION of the Virtues** on both sides of the lock, per-Virtue, never bought
-  with BP or XP (E:Ab p.283) — deliberately absent from `ChargenSnapshot`. Fetters are
-  bought normally, but their cap (Willpower + Essence) MOVES, so it is checked post-lock
-  too. Ghosts are barred from Spirit Walking via the data-driven
-  `ExaltDefinition.barred_charm_ids`. **⚠ A pre-existing DATA BUG surfaced here with
-  nothing to do with ghosts:** Five-Dragon Style is Terrestrial and the five Immaculate
-  Dragon Paths are Celestial, and the catalogue had both exactly backwards — fixed in
-  the data; don't re-break it.
-* **Elder Exalts** (`docs/status/elder-exalts.md`) — not a splat, an axis: one module
-  (`engine/elder.py`), one entry point. PG pp.258-259, **simplified 2026-08-06**: Essence
-  is **XP-purchasable** to the splat's ceiling (0 → a flat **9**, the chart's max;
-  Terrestrials held at **7** without an ST toggle), and Essence in turn raises traits
-  past 5 (`elder.trait_ceiling`). **The age chart and `Character.age` are GONE** — no
-  character may leave creation with Essence above 5 (`essence-above-elder-chargen-cap`).
-  The p.259 downtime awards shipped as a *calculator that grants*, whose "Exalted years"
-  input is a calculator-local field, not a trait. Enforcing the 4:3:2:1 split was
-  rejected.
-* **The Edit⇄XP merge** (`docs/status/edit-xp-merge.md`, decision 0013) — there is **no
-  XP tab**; `ui/xp.py` is deleted. One trait surface on both sides of the lock: the dot
-  tracks are free setters pre-lock and XP steppers post-lock, and a downward click opens
-  a dialog asking *undo (refund) or permanent loss (curse)?* — the app cannot infer
-  which. **Eight chargen choices are frozen once locked** (Favoured picks, caste, Exalt
-  type, origin, upbringing, camp, Calling, flawed Virtue) — greyed but readable.
-* **Merits & Flaws** (`docs/status/merits-flaws.md`) — all 100 authored, every A-list
-  mechanism implemented. **No module outside `engine/merits.py` may name a Merit id** —
-  a test greps for it; add a `MeritEffects` FIELD, never an allowlist. The 31 dice-only
-  and 32 narrative entries are **skipped permanently** — not deferred. One item stays
-  open: **Salary** is named by Cache's prerequisite and does not exist as a Background,
-  left unresolvable until a page for it appears.
-* **The Advantages tab** (`docs/status/advantages-tab.md`, v0.7.6) — Backgrounds and M&F
-  on one both-sides tab, two duplicate implementations deleted. The **M&F filter/search**
-  is DONE (side/category/free-text over name AND rules text, one filter serving both
-  regimes).
+### 👉 START HERE → `docs/status/handoff.md`
+The session handoff — current state, open threads, flagged items and pointers — lives
+in **`docs/status/handoff.md`**. **It is rewritten each session.** This file is the
+durable operating guide; do not re-accumulate handoff narrative here.
 
 ### Blocked / not started
 * **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
@@ -578,42 +311,49 @@ exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run 
   blight or affliction (p.132). The numen effect list is on **p.118**, which is not in
   `images/Dragonblooded/`, and the text also points at *Games of Divinity* p.127 and
   *Exalted: The Lunars* p.98 for Cult. Author nothing until those land.
-* **Mountain Folk** — **DONE 2026-08-07, browser-verified** (the last non-Exalt;
-  `CH 6 - The Mountain Folk.md`, `docs/status/mountain-folk.md`). See START HERE.
-  The Dragon-Kings-era Merit hooks that landed before it (Prodigy's
-  DK/God-Blooded rate, the PG p.114 mortal-god UI note, the Weak Essence DK bar) are
-  all DONE.
-* **God/Demon-Blooded** — the last two Godblooded heritages. **Heritage rows + 15 M&F +
-  the spirit-Charm catalogue AUTHORED 2026-08-07** (the two `castes.json` rows with the
-  Divine/Elemental origin sub-axis and the p.66 pool; `charm_access: ["Spirit"]` now
-  resolves to the **80-Charm** `spirit_templates.json`; 8 Divine + 7 Demon-Blooded M&F)
-  — 42 tests, all green, NOT yet browser-verified. **The Elemental Powers SHIPPED
-  2026-08-08** as a separate 9-power catalogue (`data/elemental_powers.json`, 7 BP /
-  14 XP, Elemental-origin God-Blooded only); the `mf.elemental-power` Merit it replaces
-  is deleted — see START HERE for the two things owed. **PG p.48 rule:** both learn spirit
-  Charms, neither may learn Wyld Shield (the bar is live on both rows), Portal is a
-  lesser (God-Blooded) / Malfeas-only (Demon-Blooded) variant — the variants ride the
-  heritage descriptions, the catalogue holds the one printed stat block. **Catalogue
-  sources:** STC CH3 (46), corebook (12), GoD appendix (6), PG (5), Ruins of Rathess
-  (3), Lunars (3), in `images/Non-Exalts/Spirit Charms/`. **Every printed prereq is
-  wired** — Soul Rapt→Possession, Worldly Illusion→Harrow the Mind, Essence
-  Inveigle→Sustenance, Essence-Gifting Method→Benefaction+Dreamspeak. **Spirit Charms
-  are Charms, NOT Arcanoi** (human, 2026-08-07): both surfaces exclude
-  `exalt_type == "Spirit"` from the `min_virtue` Arcanos test, and `view.virtue_split`
-  presents the one four-Virtue category as four trees. **The sorcery gap is CLOSED
-  2026-08-08** (PG p.48, Spells): `spirit.spirit-templates.terrestrial-circle-sorcery`
-  mirrors the Ghost-Blooded necromancy initiation (Essence 3 + Occult 5, 10 BP / 25 XP).
-  Everything else the page prints was already built — the heritage split rides
-  `magic_track` (Abyssal Half-Caste included, via `magic_track_by_parent`), greater
-  circles were already barred, and the summon/bind ban was already splat-level in
-  `barred_spell_ids`. ⚠ Its 1-Willpower cost is INHERITED from the core stat block, not
-  printed on p.48 — same as the necromancy one. **Nothing is blocked; only the
-  click-through is owed.**
-  `docs/status/godblooded.md`.
+
+### Recently shipped — traps to remember
+The full record lives in `docs/status/`. These are the cross-cutting lessons that
+survive any status rewrite:
+
+* **Dragon-Kings breed attributes** (`docs/status/dragon-kings.md`) — breed attribute
+  bonuses are free dots ON TOP of the stored value, but each EFFECTIVE dot above 5 is
+  BP-bought at the attribute rate (PG p.175). **Trap: a "free" ruling that contradicts
+  the book's price language ("without spending bonus or experience points") needs the
+  human's intent confirmed before authoring — a mistaken "free" ships as a silent
+  under-charge.**
+* **The adversary roster** (`docs/status/adversary-roster.md`) — **An `Adversary` is
+  NOT a `Character` and must never become one** — a test asserts it. The dead-field bug
+  fired here too: two tests now force every stat field to be both editable and
+  displayed. SHIELDS entered the build as `armor.json` rows tagged "shield", not a
+  model of their own.
+* **Ghosts** (`docs/status/ghosts.md`) — **Passions are a LIVE DERIVATION of the
+  Virtues** on both sides of the lock, per-Virtue, never bought with BP or XP (E:Ab
+  p.283). **⚠ A pre-existing DATA BUG surfaced here:** Five-Dragon Style is Terrestrial
+  and the five Immaculate Dragon Paths are Celestial, and the catalogue had both
+  exactly backwards — fixed in the data; don't re-break it.
+* **Elder Exalts** (`docs/status/elder-exalts.md`) — **no character may leave creation
+  with Essence above 5** (`essence-above-elder-chargen-cap`); the age chart and
+  `Character.age` are GONE.
+* **The Edit⇄XP merge** (`docs/status/edit-xp-merge.md`, decision 0013) — there is **no
+  XP tab**; `ui/xp.py` is deleted. The dot track is the buy control both sides of the
+  lock, and a downward click opens a dialog asking *undo (refund) or permanent loss
+  (curse)?* — the app cannot infer which. **Eight chargen choices are frozen once
+  locked** (Favoured picks, caste, Exalt type, origin, upbringing, camp, Calling, flawed
+  Virtue) — greyed but readable.
+* **Merits & Flaws** (`docs/status/merits-flaws.md`) — **no module outside
+  `engine/merits.py` may name a Merit id** — a test greps for it; add a `MeritEffects`
+  FIELD, never an allowlist. The 31 dice-only and 32 narrative entries are **skipped
+  permanently** — not deferred. **Salary** is named by Cache's prerequisite and does not
+  exist as a Background, left unresolvable until a page for it appears.
+* **The Advantages tab** (`docs/status/advantages-tab.md`) — Backgrounds and M&F on one
+  both-sides tab, two duplicate implementations deleted. The **M&F filter/search** is
+  DONE (side/category/free-text over name AND rules text, one filter serving both
+  regimes).
 
 ### Rulings that bite when touched
 **Three rulings landed 2026-07-31** (human, rules authority — written up in
-`edit-xp-merge.md`). The first changes a model assumption, so read it before touching
+`docs/status/edit-xp-merge.md`). The first changes a model assumption, so read it before touching
 specialties: **a specialty is an INSTANCE, not a rated trait** — you take the same one
 again rather than raising it, capped at **3 per Ability** (two Swords + one Parrying
 fills Melee). Legacy rated specialties are split on load. Also: **Crafts and Colleges
@@ -643,7 +383,7 @@ thread `MeritEffects` through call sites; (3) **a derived effect field that noth
 reads is this area's recurring bug**, three times now and invisible to the suite each
 time — run the `preflight` skill before booking browser time.
 
-### Background
+## Background
 - `CharmCost.health_type` was homebrew-only with no printed use when created, but
   acquired its first printed consumer on 2026-08-01 — Stolen Wax Discipline (E:Ab
   p.238), "5 motes, one lethal health level". Don't treat it as homebrew-only.
