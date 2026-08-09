@@ -291,7 +291,10 @@ def test_weapon_and_armor_catalogs_load():
     # Essence Pulse Grenade, pp.280-282, and the six dual-nature devices — the four
     # crossbows and the flamecaster + pyromantic grenade, p.278 — which carry BOTH
     # `artifact_rating` and `resources_cost` so the player funds them either way).
-    assert len(rs.weapon_catalog) == 96
+    # + 2 from the 2026-08-08 backlog batch: the Hooked Daiklaves of Dual Prowess
+    # (Night p.81) and the Direlance (core p.342 table; its p.341 description page
+    # is not on disk — see the notes field).
+    assert len(rs.weapon_catalog) == 98
     # 17 corebook + the artifact Chain Shirt (Dawn p.81), Cloak of Vanishing
     # Escape (Night p.81) and the Most Terrifying Armor of the Air Dragon (Air p.81),
     # + the three p.335 SHIELDS, which are armour rows tagged "shield" rather than a
@@ -304,7 +307,7 @@ def test_weapon_and_armor_catalogs_load():
 
 def test_artifact_catalog_loads_the_ten_mountain_folk():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.artifact_catalog) == 10
+    assert len(rs.artifact_catalog) == 20
     # Ratings and the printed ranges, from the Technology chapter (pp.279-283).
     visor = rs.artifact_catalog["artifact.mountain-folk.essence-scrying-visor"]
     assert visor.rating == 1 and visor.source == "Mountain Folk p.279"
@@ -313,6 +316,66 @@ def test_artifact_catalog_loads_the_ten_mountain_folk():
     assert talisman.rating == 1 and talisman.rating_notes == "• to •••••"
     # Every entry is readable — "a Merit you cannot read the text of is just a word".
     assert all(a.name and a.description for a in rs.artifact_catalog.values())
+
+
+def test_artifact_catalog_loads_the_castebook_artifacts():
+    """The 2026-08-08 backlog batch: ten non-gear artifacts from the Solar castebooks
+    (Dawn pp.78/81, Night pp.79-81, Zenith pp.80-81) were authorable now and are in
+    the catalogue. Ratings and sources come from the pages; the two rating disputes
+    are pinned here so a "correction" toward the guide (which is 2e-derived and never
+    a values source) cannot slip in silently."""
+    rs = rules_db.load_ruleset(DATA_DIR)
+    cat = rs.artifact_catalog
+    assert cat["artifact.castebook-dawn.shield-bracer"].rating == 2
+    assert cat["artifact.castebook-dawn.map-of-azure-victory"].rating == 3
+    assert cat["artifact.castebook-dawn.chariot-of-aerial-conquest"].rating == 5
+    assert cat["artifact.castebook-dawn.arrows-of-distant-death"].rating == 3
+    assert cat["artifact.castebook-night.spider-grippers"].rating == 2
+    assert cat["artifact.castebook-night.belt-of-shadow-walking"].rating == 3
+    assert cat["artifact.castebook-night.circlet-of-spirits"].rating == 3
+    assert cat["artifact.castebook-zenith.death-shield-ring"].rating == 3
+    # The two page-vs-guide rating disputes: the page heading is authoritative.
+    assert cat["artifact.castebook-night.hooked-daiklaves-of-dual-prowess"].rating == 4
+    assert cat["artifact.castebook-zenith.ring-of-the-deliberative"].rating == 4
+    # Source strings point at the transcribed pages.
+    assert cat["artifact.castebook-night.belt-of-shadow-walking"].source == "Caste Book: Night p.80"
+    assert cat["artifact.castebook-zenith.death-shield-ring"].source == "Caste Book: Zenith p.80"
+
+
+def test_the_gear_artifact_rows_from_the_backlog_batch():
+    """The two stat-blocked new artifacts also carry equipment rows. The Hooked
+    Daiklaves' row follows the table (Artifact •••••); the Direlance's row follows
+    the p.342 Daiklave Table, with the lance-mode stats in notes."""
+    rs = rules_db.load_ruleset(DATA_DIR)
+    hooks = rs.weapon_catalog["weapon.melee.hooked_daiklaves_of_dual_prowess"]
+    assert hooks.artifact_rating == 5            # the table's Artifact column
+    assert hooks.attunement == 8                 # "commit 8 motes — 4 for each blade"
+    assert hooks.speed == 2 and hooks.accuracy == 2 and hooks.damage == 5
+    assert hooks.defense == 5 and hooks.damage_type == "L"
+    assert hooks.min_strength == 2 and hooks.min_dexterity == 3 and hooks.min_martial_arts == 3
+    lance = rs.weapon_catalog["weapon.melee.direlance"]
+    assert lance.artifact_rating == 2 and lance.attunement == 0
+    assert lance.speed == 6 and lance.accuracy == 2 and lance.damage == 5 and lance.defense == 0
+    assert lance.min_strength == 1
+    # The two blocked core items are NOT in the catalogue (no description on disk).
+    assert "artifact.core.direlance" not in rs.artifact_catalog
+    assert "artifact.core.slayer-khatar" not in rs.artifact_catalog
+
+
+def test_the_alchemical_goods_catalogue_does_not_exist():
+    """Godstrike Oil / Pyromantic Gel / Synthetic Leather (MF pp.275-277) were authored
+    as a `GoodType` catalogue, shown in the browser, and removed the same day on the
+    human's ruling (2026-08-08): a goods catalogue feeds no mechanical read site, and
+    the precedent would open the "why not firedust, lanterns, rations?" flood. This
+    pins the ruling in code — re-adding goods must be a deliberate reversal, not an
+    accidental one. The full page transcription is preserved in
+    docs/status/artifact-backlog.md, not in data."""
+    rs = rules_db.load_ruleset(DATA_DIR)
+    assert not hasattr(rs, "goods_catalog")
+    assert not (DATA_DIR / "goods.json").exists()
+    # GoodType must not exist in the models either — the catalogue is fully removed.
+    import exalted_builder.models.rules as rules
+    assert not hasattr(rules, "GoodType")
 
 
 def test_mountain_folk_gear_stat_blocks():

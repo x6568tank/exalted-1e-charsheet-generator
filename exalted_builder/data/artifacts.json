@@ -81,5 +81,86 @@
     "description": "Articulated jade-and-alloy armour (soak 8/8, mobility penalty -1, fatigue 1) for 5 motes of attunement. The masked helmet integrates an Essence-scrying visor (night vision constant, no Essence infusions), an echo jewel and a mask-of-pure-breath filtration and voice system; the suit adds +1 to Strength for damage, lifting and feats. Also armour — see the equipment catalogue.",
     "source": "Mountain Folk p.283",
     "tags": ["armor"]
+  },
+  {
+    "id": "artifact.castebook-dawn.shield-bracer",
+    "name": "Shield Bracer",
+    "rating": 2,
+    "description": "Single ornamented bracer that guides the wearer's arm to block missile and melee attacks: when activated it protects like a tower shield, reducing the successes of all melee attacks by -1 and all missile attacks by -2. The wearer cannot wear any other bracer but is not otherwise encumbered. Has a single Hearthstone setting; commits 3 motes.",
+    "source": "Caste Book: Dawn p.78",
+    "tags": ["protection"]
+  },
+  {
+    "id": "artifact.castebook-dawn.map-of-azure-victory",
+    "name": "Map of Azure Victory",
+    "rating": 3,
+    "description": "A thin two-foot square of solid silver (10 lbs, folds to an 8-inch block) that activates for a full day on 5 motes: its mirror-smooth surface reshapes to show every terrain feature within two miles and tracks troops and civilians as jeweled sand — allied troops always azure, civilians white, the user assigns enemy and neutral troops any of the remaining six colours, and grains representing Exalted or other magical beings glow. Six were created; the Realm is known to have two.",
+    "source": "Caste Book: Dawn p.78",
+    "tags": ["tool"]
+  },
+  {
+    "id": "artifact.castebook-dawn.chariot-of-aerial-conquest",
+    "name": "Chariot of Aerial Conquest",
+    "rating": 5,
+    "description": "Large pentagonal flying howdah of the Old Realm, armoured and almost silent, that carries up to a dozen infantry, five riders and their horses, or two warstriders; it flies up to 20 yards above the ground at a gallop. Its window slits give 75-90 percent cover, and the pilot must have Sail 2 and a level-3+ Hearthstone in its receptacle. Landed, it can channel a Dawn anima wave of terror.",
+    "source": "Caste Book: Dawn p.78",
+    "tags": ["vehicle"]
+  },
+  {
+    "id": "artifact.castebook-dawn.arrows-of-distant-death",
+    "name": "Arrows of Distant Death",
+    "rating": 3,
+    "description": "One-use arrows, normally a set of three (a target arrow, a broadhead and a frog crotch): each can be shot at any target the Exalt has once touched, clearly seen, or holds a personal article of. The arrow vanishes on firing and reappears no more than a foot from the target, with no warning and no chance to dodge or block, though both see each other's true appearance. Exceptionally sharp (+1 damage) and otherwise like normal arrows; fired from ordinary bows or powerbows.",
+    "source": "Caste Book: Dawn p.81",
+    "tags": ["weapon"]
+  },
+  {
+    "id": "artifact.castebook-night.spider-grippers",
+    "name": "Spider Grippers",
+    "rating": 2,
+    "description": "Boots, gloves, elbow pads and kneepads that let the wearer cling to walls like a spider — walking up a wall at (Dexterity+12)/2 yards a turn, even sheer slick surfaces — and walk wet, mossy or narrow ledges without slipping. The wearer can fight without penalty while clinging and carry any weight she could normally carry. The pieces resize to fit; commit 3 motes.",
+    "source": "Caste Book: Night p.79",
+    "tags": ["tool"]
+  },
+  {
+    "id": "artifact.castebook-night.belt-of-shadow-walking",
+    "name": "Belt of Shadow Walking",
+    "rating": 3,
+    "description": "Night-black belt of giant-bat leather that thickens shadow around the wearer, raising the difficulty of all Perception + Awareness rolls to see or hear him by 2. Expending 5 motes while the sun is down transforms him into a shadow for a scene — slipping under doors and through the thinnest cracks, harmed only by sorcery, Charms or weapons of the Five Magical Materials, and leaving any carried living things behind. Commits 6 motes; no Hearthstone setting.",
+    "source": "Caste Book: Night p.80",
+    "tags": ["utility"]
+  },
+  {
+    "id": "artifact.castebook-night.circlet-of-spirits",
+    "name": "Circlet of Spirits",
+    "rating": 3,
+    "description": "A circlet formed of one of the Five Magical Materials, with a single Hearthstone setting, that lets the wearer see and hear all immaterial spirits. Its material adds a second property: orichalcum eases sensing spirits, moonsilver stealth from them, jade attacks and defenses against them, starmetal bargaining with them, and soulsteel makes the dead's attacks against the wearer more difficult. Commits 3 motes.",
+    "source": "Caste Book: Night p.80",
+    "tags": ["spirit", "senses"]
+  },
+  {
+    "id": "artifact.castebook-night.hooked-daiklaves-of-dual-prowess",
+    "name": "Hooked Daiklaves of Dual Prowess",
+    "rating": 4,
+    "rating_notes": "heading prints ••••; the table's Artifact column prints •••••",
+    "description": "A matched pair of jet-black hooked swords, found and used in pairs, made of any of the Five Magical Materials. Wielded together they let a character take two hand-to-hand actions every turn without penalty and remove the off-hand penalty — but dice pools cannot be split, and extra-action Charms affect only a single blade. Each blade has a Hearthstone setting; commit 8 motes (4 each). Also a weapon — see the equipment catalogue.",
+    "source": "Caste Book: Night p.81",
+    "tags": ["weapon"]
+  },
+  {
+    "id": "artifact.castebook-zenith.death-shield-ring",
+    "name": "Death Shield Ring",
+    "rating": 3,
+    "description": "A ring with a single Hearthstone setting that lets the wearer survive any single attack that would result in death: when she would normally be slain, the ring explodes in a brilliant flash of light and the damage is not inflicted. The ring is completely consumed by this effect, and any Hearthstone set in it is cracked by the ring's destruction.",
+    "source": "Caste Book: Zenith p.80",
+    "tags": ["protection"]
+  },
+  {
+    "id": "artifact.castebook-zenith.ring-of-the-deliberative",
+    "name": "Ring of the Deliberative",
+    "rating": 4,
+    "description": "An elaborate torc with settings for three Hearthstones, once worn by the Hierophant of the Solar Deliberative when he executed official business. It grants a five-die bonus to all Zenith Caste Ability checks and a two-die bonus to all Social Attribute checks that do not involve the Zenith Caste Abilities, and makes the bearer appear greater than he is.",
+    "source": "Caste Book: Zenith p.81",
+    "tags": ["social"]
   }
 ]

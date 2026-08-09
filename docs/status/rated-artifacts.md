@@ -5,7 +5,7 @@ expressed before are implemented: the loyal Abyssal's Artifact **budget** (E:Ab 
 and Damaged Artifact's **per-item** point limit (PG p.38), plus the one mechanical
 effect of that Flaw this build can derive.
 
-**2,063 tests** (was 1,835). Preflight clean; **browser-verified 2026-08-05** (clicked
+**2,065 tests** (was 1,835). Preflight clean; **browser-verified 2026-08-05** (clicked
 through, no findings).
 
 **The click-through wish is SHIPPED 2026-08-08:** the standalone-artifact rows' free-text
@@ -304,3 +304,73 @@ no mechanism behind it — the precedent that opens the "why not firedust, lante
 rations?" flood. The full page transcription is preserved in
 `docs/status/artifact-backlog.md` (as its one fully-sourced authorable slice, now
 closed). If a real "possessions" surface is ever built, the source is there.
+
+## The 2026-08-08 castebook batch — the "12 genuinely-new" backlog entries
+
+The `artifact-backlog-entries.md` checklists (regenerated 2026-08-08) marked 40
+entries authorable-now with pages on disk: Caste Books Dawn/Night/Zenith (11+8+5) and
+the core-book subset (16). Of those, 28 already had rated-equipment rows from the
+Solar-castebook gear work — the **12 genuinely-new remainder** were the gap the
+catalogue's own checklist (`cat` build flag) was built to expose. They were addressed
+2026-08-08, all from page text transcribed via the VLM (the `_CASTEBOOK_PENDING.md`
+note confirms the 12 were deliberately skipped during the castebook gear work —
+"ignore anything that isn't a weapon or armor" — which is exactly the hole this fills).
+
+### Ten catalogue entries (ids `artifact.castebook-<dawn|night|zenith>.<slug>`)
+
+| Artifact | Rating | Source |
+|---|---|---|
+| Shield Bracer | •• | Caste Book: Dawn p.78 |
+| Map of Azure Victory | ••• | Caste Book: Dawn p.78 |
+| Chariot of Aerial Conquest | ••••• | Caste Book: Dawn p.78 |
+| Arrows of Distant Death | ••• | Caste Book: Dawn p.81 |
+| Spider Grippers | •• | Caste Book: Night p.79 |
+| Belt of Shadow Walking | ••• | Caste Book: Night p.80 |
+| Circlet of Spirits | ••• | Caste Book: Night p.80 |
+| Death Shield Ring | ••• | Caste Book: Zenith p.80 |
+| Ring of the Deliberative | •••• | Caste Book: Zenith p.81 |
+| Hooked Daiklaves of Dual Prowess | •••• | Caste Book: Night p.81 (also a weapon row, below) |
+
+Every description is a short summary of the transcribed page text (2-4 lines, the
+established rated-artifact style). **Three page-vs-guide discrepancies resolved with
+the page as authority:**
+- **Ring of the Deliberative ••••** — the page heading prints four dots; the guide's
+  ••••• is a 2e-derived value and is wrong for 1e. Pinned by a test.
+- **Hooked Daiklaves of Dual Prowess — internal page inconsistency:** the heading
+  prints **••••** while the page's own Artifact-table column prints **•••••**. The
+  catalogue follows the heading; the weapon row follows the table (5). Flagged for the
+  human; both are pinned by tests and neither is "fixed" until the ruling.
+- **Circlet of Spirits** — the VLM dropped a `t`; body text and the guide agree.
+
+### Two rated gear rows (in `weapons.json`)
+
+- **Hooked Daiklaves of Dual Prowess** — Spd 2, Acc 2, Dmg 5L, Def 5, Rate 2, Min Str 2,
+  Dex 3, MA 3, Art 5 (table), attune 8 (4 per blade), with notes carrying the stat line
+  + the heading-vs-table ⚠. The light-tags precedent is the Lightning Torment Hatchet's
+  `(Thrown)`/`(Melee)` split.
+- **Direlance** — Spd 6, Acc 2, Dmg 5L, Def 0, Min Str 1, Art 2 (core p.342 Daiklave
+  Table), attune 0. **⚠ Two flags:** the weapon's description page (core p.341) is NOT
+  on disk — the crop of p.341 is the Artifact Materials section — so there is **no
+  catalogue entry for the Direlance** (blocked), and the p.342 table prints no attunement
+  cost. The lance-on-a-charge stat line from the table is preserved in the notes.
+
+### Slayer Khatar — fully blocked
+
+The guide lists the Slayer Khatar at core p.344, but the on-disk crop of p.344 is the
+**Lightning Torment Hatchet**; p.327's weapons table carries only the mundane Khatar.
+Neither description nor stat block is on disk, so **nothing is authored** and the
+checklist flags it `—`. Sync p.344's neighbor pages to unblock.
+
+### What this changed
+
+- `data/artifacts.json`: 10 → **20 entries**; `weapons.json`: 96 → **98**.
+- The `artifact-backlog-entries.md` checklists now treat `data/artifacts.json` as a
+  read site — the ten Mountain Folk entries also flip from `—` to `cat` (they were
+  authored but the checklist couldn't see them).
+- **2,065 → 2,068 passing** (+3 tests: two data pins in `tests/test_data.py` — the
+  catalogue load test asserting all ten ratings + the two rating disputes, and the gear
+  rows test pinning the Hooked Daiklaves/Direlance stat blocks + asserting the two
+  blocked core items stay out of the catalogue — and one UI test in
+  `tests/test_rated_artifacts.py` that the combobox offers the ten new names).
+- The 40-entry "authorable-now" remainder is now 29 rated + 9 catalogue-only + 2 fully
+  blocked (Direlance's catalogue entry and Slayer Khatar).

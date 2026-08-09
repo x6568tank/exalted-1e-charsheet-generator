@@ -176,9 +176,17 @@ costs — read the record before proposing anything that contradicts it.
 - Don't leak game logic into the UI. Don't re-derive what the engine already
   computes. Don't hardcode the cost tables — they live in `data/`.
 
-## Status (2,063 passing)
+## Status (2,068 passing)
 
-The suite is green: **2,063 passing** — the dual-nature devices + the artifact
+The suite is green: **2,068 passing** — the **2026-08-08 castebook artifact batch**
+added 3 (the ten `data/artifacts.json` catalogue entries for Caste Books Dawn/Night/
+Zenith pp.78-81 — `artifact.castebook-*`, the first non-MF catalogue slice — plus the
+Hooked Daiklaves/Direlance rated gear rows; the two `test_data.py` pins: the
+catalogue-load test asserting all ten ratings + the two page-vs-guide rating disputes
+and the rated-gear-row test asserting the two blocked core items stay out of the
+catalogue, and the `test_rated_artifacts.py` UI test that the combobox offers the ten
+new names — 2,065 → 2,068; see `docs/status/rated-artifacts.md` → *The 2026-08-08
+castebook batch*); the dual-nature devices + the artifact
 description label added 3 on 2026-08-08 (the six `weapon.mountain-folk.*` crossbow/
 flamecaster rows with both `artifact_rating` and `resources_cost` in `test_data.py`,
 the `test_rated_artifacts.py` engine test that zeroing the Art field makes a device
@@ -196,7 +204,10 @@ for Elemental-origin God-Blooded, PG p.68, see `docs/status/godblooded.md` → *
 Elemental Powers*); the four Opus code-review fixes added 3 more the same day (the
 house-bug re-check that a locked character is re-validated for illegal powers, the
 Owned-total currency fix, and the heritage-switch orphan clear); the caste-level gate
-on `elemental_powers_available` added 1 more the same day; the Mountain Folk splat added 18 tests at
+on `elemental_powers_available` added 1 more the same day; **the alchemical-goods
+removal is pinned by 2 new tests** (the `GoodType`-catalogue-does-not-exist data pin
+and the Advantages-tab-renders-without-Godstrike-Oil UI pin — 2,063 → 2,065; the
+transcription stayed in `docs/status/artifact-backlog.md`); the Mountain Folk splat added 18 tests at
 ship (2026-08-07, browser-verified) and a further 9 in the Opus code-review fixes
 the same day (the two-pool Ability billing, the foreign-Charm bar, the
 both-phases Pattern bar); the God/Demon-Blooded heritage work added 22 on the same
@@ -239,9 +250,9 @@ touching that area**; the summaries below are pointers, not the full record.
 | **Mortals & Heroic Mortals — DONE** (one splat, two origins; casteless, no Charms, Essence pinned at 1; magic via M&F) | `docs/status/mortals.md` |
 | **Merits & Flaws — DONE, browser-verified** (centralized calc per decision 0011; all 100 authored; every A-list mechanism; mortal magic unlock) | `docs/status/merits-flaws.md` |
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
-| **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — first slice the ten Mountain Folk artifacts — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08) | `docs/status/rated-artifacts.md` |
+| **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — first slice the ten Mountain Folk artifacts, GROWN TO 20 the same day with the ten Caste Book Dawn/Night/Zenith entries (`artifact.castebook-*`, pp.78-81) and the Hooked Daiklaves/Direlance rated gear rows, two blocked core items flagged — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
-| **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM) | `docs/status/artifact-backlog.md` |
+| **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM. **2026-08-08 correction:** five mislabelled codes fixed — `ab_a/e/f/v/w` are the Dragon-Blooded **Aspect Books**, `salt` = Blood and Salt, `coin` = Manacle and Coin — and the on-disk claim corrected: **40 entries authorable now** (28 already rated in the build), not ~90; per-entry authoring queue with build status in `artifact-backlog-entries.md`) | `docs/status/artifact-backlog.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
 | **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus God/Demon-Blooded heritage rows + 16 M&F + the 80-Charm spirit catalogue authored 2026-08-07 and the p.48 sorcery initiation 2026-08-08, every printed prereq wired — NOT yet browser-verified) | `docs/status/godblooded.md` |
@@ -327,9 +338,24 @@ Recorded as decision records, not restated here — read them before proposing a
 ### 👉 START HERE (session handoff)
 
 **⏸ PICK UP HERE (2026-08-08, branch `deepseek-experiment`, worktree `…-ds`).**
-The suite is at **2,063 passing** (plus the one known machine-only M&F description
-failure — not a regression, see Status). Newest shipped: the **rated-artifact
-catalogue** — `data/artifacts.json` (first slice: the ten Mountain Folk Technology
+The suite is at **2,068 passing** (plus the one known machine-only M&F description
+failure — not a regression, see Status). Newest shipped: **the 2026-08-08 castebook
+artifact batch** — the 12 genuinely-new remainder of the "40 authorable-now" backlog
+entries, addressed unsupervised (the human was out; the source pages were on disk):
+ten became catalogue entries in `data/artifacts.json` (ids `artifact.castebook-*`,
+Caste Books Dawn/Night/Zenith pp.78-81 — Shield Bracer, Map of Azure Victory, Chariot
+of Aerial Conquest, Arrows of Distant Death, Spider Grippers, Belt of Shadow Walking,
+Circlet of Spirits, Hooked Daiklaves of Dual Prowess, Death Shield Ring, Ring of the
+Deliberative), the **Hooked Daiklaves** and the **Direlance** also got rated
+`weapons.json` rows (table stats, attune 4-per-blade / not printed), and the
+**Direlance's catalogue entry + the Slayer Khatar are BLOCKED** (their description
+pages aren't on disk — p.341's crop is Artifact Materials, p.344's is the Lightning
+Torment Hatchet). **⚠ Two page-vs-guide rating disputes, page as authority:** Ring of
+the Deliberative •••• (the guide's ••••• is 2e) and Hooked Daiklaves heading •••• vs
+its own table ••••• (catalogue follows the heading, weapon row follows the table —
+flagged for a human ruling). `docs/status/rated-artifacts.md` → *The 2026-08-08
+castebook batch*. Earlier the same day: the **rated-artifact catalogue** —
+`data/artifacts.json` (first slice: the ten Mountain Folk Technology
 artifacts), the four stat-blocked ones also in `weapons.json`/`armor.json`, and the
 standalone-artifact name field is now a catalogue combobox that autofills name + rating
 (`docs/status/rated-artifacts.md` → *The catalogue & the dropdown*). Also shipped the

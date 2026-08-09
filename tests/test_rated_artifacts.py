@@ -637,3 +637,35 @@ async def test_a_catalogue_pick_fills_the_description_label(user) -> None:
                  if a.name == "Echo Jewel")
     assert desc.text == entry.description
     assert desc.visible
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_alchemical_goods_reference_is_gone(user) -> None:
+    """The goods removal ruling (2026-08-08) pins the UI side: the Advantages tab
+    builds without the alchemical-goods reference panel, and Godstrike Oil — the most
+    distinctive of the three — does not appear anywhere on it. (The data-side pin is
+    `test_the_alchemical_goods_catalogue_does_not_exist` in test_data.py.)"""
+    await user.open('/artifacts-advantages')
+    await user.should_see("7/7 combined")            # the tab built: the budget header
+    await user.should_not_see("Godstrike Oil")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_combobox_offers_the_castebook_artifacts(user) -> None:
+    """The 2026-08-08 backlog batch added ten non-gear castebook artifacts to the
+    catalogue; the name combobox must offer them (the click-through wish extends to new
+    catalogue rows — a name the dropdown doesn't offer is a name a player must type and
+    mis-price)."""
+    from nicegui import ui as _ui
+    await user.open('/artifacts-advantages')
+    await user.should_see("7/7 combined")
+    combobox = next(e for e in user.client.elements.values()
+                    if isinstance(e, _ui.select)
+                    and e.props.get("label") == "Artifact name")
+    for name in ("Shield Bracer", "Map of Azure Victory", "Chariot of Aerial Conquest",
+                 "Arrows of Distant Death", "Spider Grippers", "Belt of Shadow Walking",
+                 "Circlet of Spirits", "Hooked Daiklaves of Dual Prowess",
+                 "Death Shield Ring", "Ring of the Deliberative"):
+        assert name in combobox.options, f"{name!r} should be offered by the combobox"
