@@ -33,7 +33,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from nicegui import ui
+from nicegui import context, ui
 
 from .. import persistence, rules_db
 from ..engine import (advancement, artifacts as artifactsmod, costs as costsmod,
@@ -901,30 +901,40 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 _mf_changed(id=key, taken_as="", tier="", points=0, detail="")
 
             def _custom_gain() -> None:
-                with ui.dialog() as dlg, ui.card().classes(
-                        f"w-[26rem] p-4 gap-2 {pal.card_solid}"):
-                    ui.label("Custom Merit / Flaw").classes("text-base font-bold")
-                    ui.label("Display-only — recorded on the sheet, no mechanical "
-                             "effect (2026-08-10).").classes("text-xs text-gray-600")
-                    name = ui.input(placeholder="name (e.g. a bloodline trait)").props(
-                        "dense").classes("w-full")
+                # Build the prompt in the LAYOUT context, not the catalogue dialog's
+                # slot. A nested ui.dialog() creates a hidden canary element in the
+                # current slot; the catalogue dialog's clear-on-close then deletes the
+                # canary, whose weakref finalizer deletes THIS dialog — the reviewer
+                # found it as "Custom is a silent no-op". Parented into layout, the
+                # canary is a sibling of the catalogue dialog, not a descendant, so
+                # clearing the catalogue dialog leaves the prompt alive.
+                with context.client.layout:
+                    with ui.dialog() as dlg, ui.card().classes(
+                            f"w-[26rem] p-4 gap-2 {pal.card_solid}"):
+                        ui.label("Custom Merit / Flaw").classes("text-base font-bold")
+                        ui.label("Display-only — recorded on the sheet, no mechanical "
+                                 "effect (2026-08-10).").classes("text-xs text-gray-600")
+                        name = ui.input(
+                            placeholder="name (e.g. a bloodline trait)").props(
+                            "dense").classes("w-full")
 
-                    def _go() -> None:
-                        text = (name.value or "").strip()
-                        if not text:
-                            ui.notify("Give the custom Merit / Flaw a name.",
-                                      type="warning")
-                            return
-                        # Empty `merit_id` — resolves to nothing, so the engine treats
-                        # the row as no-effect (the Custom option's contract).
-                        character.merits_flaws.append(
-                            MeritFlawPurchase(merit_id="", custom_name=text))
-                        dlg.close()
-                        refresh_all()
+                        def _go() -> None:
+                            text = (name.value or "").strip()
+                            if not text:
+                                ui.notify("Give the custom Merit / Flaw a name.",
+                                          type="warning")
+                                return
+                            # Empty `merit_id` — resolves to nothing, so the engine
+                            # treats the row as no-effect (the Custom option's
+                            # contract).
+                            character.merits_flaws.append(
+                                MeritFlawPurchase(merit_id="", custom_name=text))
+                            dlg.close()
+                            refresh_all()
 
-                    ui.button("Add", icon="check", on_click=_go).props(
-                        f"dense color={pal.button}")
-                dlg.open()
+                        ui.button("Add", icon="check", on_click=_go).props(
+                            f"dense color={pal.button}").mark("cat-custom-add")
+                    dlg.open()
 
             def _apply_filter() -> None:
                 count.text = _mf_count_label(

@@ -126,12 +126,19 @@ def catalogue_dialog(
             _list.refresh()
 
         def _pick(key) -> None:
-            dialog.close()
+            # Run on_pick BEFORE closing: close() fires the value-change handler that
+            # clears the dialog, deleting the slot this handler is running in. A pick
+            # callback that opens a nested dialog (the play Custom prompt) would raise
+            # "the parent element this slot belongs to has been deleted" if the close
+            # ran first. (The nested prompt itself must ALSO be built inside
+            # client.layout so its canary survives the outer's clear — see
+            # _custom_gain in ui/advantages.py.)
             on_pick(key)
+            dialog.close()
 
         def _custom() -> None:
-            dialog.close()
             on_pick(None)
+            dialog.close()
 
         with ui.row().classes("w-full items-center gap-2 cursor-pointer"):
             ui.icon("add").classes(f"text-{pal.fam}-700")
@@ -146,5 +153,13 @@ def catalogue_dialog(
         # the scroll area fills the leftover space under the title/search/Custom row.
         with ui.scroll_area().classes("w-full flex-1 min-h-0"):
             _list()
+
+    # A dialog is only HIDDEN when closed, never removed — the NiceGUI docstring says
+    # so outright. Each open builds a fresh dialog with every entry's labels, so a
+    # heavy catalogue (170 M&F rows ≈ 800 elements) would otherwise accumulate a copy
+    # in the client on every open. Clear it on ANY dismissal (pick, custom, ESC,
+    # click-outside) — the value-change-to-closed event fires for all of them. `_pick`
+    # and `_custom` also call `dialog.close()`, so this is the single deletion point.
+    dialog.on_value_change(lambda e: dialog.clear() if not e.value else None)
 
     dialog.open()

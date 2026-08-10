@@ -1336,9 +1336,12 @@ def merit_rows(ruleset: RuleSet, character: Character
     rows: list[tuple[str, str, str, str, str]] = []
     for mp in character.merits_flaws:
         # A player-authored "Custom" row (2026-08-10): display-only, no mechanical
-        # effect — render it by its name rather than as a missing-data warning.
-        if mp.custom_name:
-            rows.append((mp.custom_name, "", mp.detail, "merit",
+        # effect — render it by its name rather than as a missing-data warning. The
+        # discriminator is the EMPTY merit_id, not custom_name's truthiness: the name
+        # is player-editable and may be blanked, but the row must still read as custom
+        # (see the chargen-row comment in ui/advantages.py).
+        if not mp.merit_id:
+            rows.append((mp.custom_name or "Custom", "", mp.detail, "merit",
                          "Custom — no printed effect."))
             continue
         definition = ruleset.merits_flaws.get(mp.merit_id)

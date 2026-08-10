@@ -27,6 +27,12 @@ docs.
   pick a Twilight and an Eclipse name in the Advantages tab, confirm name→rating
   autofill + description label.
 
+## Open bug (pre-existing, found by the code review)
+- **`undo_last` has no merits branch** — undo of a Merit purchase refunds the XP and
+  keeps the Merit (free Merits in play). Confirmed live 2026-08-10. Pre-existing,
+  recorded in CLAUDE.md → TODO; do not fold into the catalogue-dialog branch (two
+  review passes already).
+
 ## ⚠ Flagged, not invented
 - The **Flamecaster / Pyromantic Grenade** print a Resources cost only; their Artifact
   rating **mirrors 3** so the Art field can fund them either way — the ST sets the real

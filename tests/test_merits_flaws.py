@@ -3358,6 +3358,23 @@ async def test_the_play_gain_catalogue_dialog_offers_the_filtered_set(user) -> N
     await user.should_not_see("Lucky")
 
 
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_picking_in_the_play_gain_catalogue_sets_the_pending_selection(user) -> None:
+    """Clicking an entry in the play gain catalogue must reach the preview — the
+    `_pick_gain -> _mf_changed` chain that the dialog-list tests never exercised. A
+    picked Eternal Vow is an `either` entry, so the preview must swap its "select an
+    entry" placeholder for the choose-a-side state."""
+    await user.open('/mf-side-xp')
+    await user.should_see("Select an entry to see its rules text.")
+    user.find("Browse catalogue").click()
+    user.find("Eternal Vow").click()
+    # The dialog closes and the pending selection drives the preview: the placeholder
+    # is gone, and the either-entry side selector appears.
+    await user.should_not_see("Select an entry to see its rules text.")
+    await user.should_see("Merit OR Flaw — choose a side before gaining it")
+
+
 # --- Custom Merit / Flaw rows (2026-08-10, human ruling: display-only, no effect) -- #
 # A player-authored "Custom" entry from the catalogue dialogs. It exists in NO
 # catalogue: renders by name, validates clean, has no mechanical effect, and drops
@@ -3385,9 +3402,31 @@ def test_dropping_a_custom_merit_is_a_plain_removal_not_a_transaction(rs):
     c.chargen_locked = True
     xp_before = c.xp_earned
     entry = advancement.drop_merit(rs, c, 0)
-    assert entry.cost == 0
+    assert entry is None
     assert c.merits_flaws == []
     assert c.xp_earned == xp_before, "dropping a custom row must not spend XP"
+    # NOT logged: there is no XP to refund, and undo_last has no merits branch, so a
+    # cost-0 row would burn the player's next Undo on a no-op. A plain removal with no
+    # undoable side effect records nothing (review finding, re-review 2026-08-10).
+    assert c.xp_log == [], "a custom-row drop must not append a no-op ledger entry"
+
+
+def test_a_blanked_custom_name_stays_a_custom_row_not_an_error(rs):
+    """Review finding: select-all-and-retype in the custom row's name input passes
+    through custom_name="" — the old truthiness discriminator turned that into a
+    merit_id="" normal row (merit-unknown, ⚠ sheet row, unremovable post-lock). The
+    discriminator is the EMPTY merit_id, which the name input never touches, so a
+    blanked name still reads as custom: no validation error, still drops freely."""
+    c = _solar(MP(merit_id="", custom_name=""))      # blanked by the player
+    issues = [i for i in validate.merit_issues(rs, c)]
+    assert not issues, f"a blanked custom name must not validate as an error: {issues}"
+    # Sheet renders it as a custom row, not a missing-data warning.
+    rows = view.merit_rows(rs, c)
+    assert rows and rows[0][4] == "Custom — no printed effect."
+    # Still droppable (the pre-fix row was stuck — drop_merit raised on merit_id="").
+    c.chargen_locked = True
+    advancement.drop_merit(rs, c, 0)
+    assert c.merits_flaws == []
 
 
 @pytest.mark.asyncio
@@ -3408,6 +3447,42 @@ async def test_the_chargen_custom_merit_row_edits_by_name(user) -> None:
     # The visible input now carries the typed name, and the row still shows its
     # delete button — the two things that make the custom row usable.
     await user.should_see("My House Trait")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_play_custom_merit_flow_appends_and_shows_in_held(user) -> None:
+    """The play-side Custom flow is a NESTED dialog: the gain catalogue's Custom row
+    opens a name prompt, which appends the custom row. The catalogue dialog's
+    clear-on-close must not kill the prompt's parent slot — on_pick runs before
+    dialog.close(), so the nested dialog still has a live parent. Driven end to end
+    because this is exactly the flow that broke (and nothing covered it)."""
+    await user.open('/mf-side-xp')
+    user.find("Browse catalogue").click()
+    user.find(marker="cat-custom").click()
+    # The nested name prompt appears.
+    await user.should_see("Custom Merit / Flaw")
+    boxes = [el for el in user.find(ui.input).elements
+             if el.props.get("placeholder", "").startswith("name (e.g.")]
+    assert boxes, "the play custom name prompt did not render"
+    boxes[0].set_value("My House Trait")
+    # The prompt's Add button is marked `cat-custom-add` — `user.find("Add")` would
+    # substring-match "Add background" / "Add artifact" and click the wrong one.
+    user.find(marker="cat-custom-add").click()
+    # The custom row is now held — the Lose dropdown offers it by name. The body
+    # rebuild after the prompt closes is async, so poll for the dropdown.
+    import asyncio
+    held = []
+    for _ in range(20):
+        held = [sel for sel in user.find(ui.select).elements
+                if sel.props.get("label") == "Held"]
+        if held:
+            break
+        await asyncio.sleep(0.05)
+    assert held, "the play Held dropdown did not render"
+    options = " ".join(str(o) for o in (held[0].options or {}).values())
+    assert "My House Trait" in options, \
+        "the play-side custom row must appear in the Held dropdown"
 
 
 def test_the_sheet_renders_a_custom_merit_by_name(rs):

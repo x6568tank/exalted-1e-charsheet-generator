@@ -1832,19 +1832,27 @@ def gain_flaw(ruleset: RuleSet, character: Character, merit_id: str,
     return entry
 
 
-def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry:
+def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry | None:
     """Lose a Merit, or buy off a Flaw. Mirrors the two above: losing a MERIT pays the
-    character twice its value, losing a FLAW charges it (PG p.17)."""
+    character twice its value, losing a FLAW charges it (PG p.17). Returns None for a
+    player-authored Custom row, whose removal is a plain delete with no XP value."""
     _ensure_locked(character)
     if not 0 <= index < len(character.merits_flaws):
         raise AdvancementError(f"No Merit at index {index}.")
     purchase = character.merits_flaws[index]
     # A player-authored "Custom" row (2026-08-10): display-only, no mechanical
     # effect and no XP value — dropping it is a plain removal, not a transaction.
-    if purchase.custom_name:
+    # The discriminator is the EMPTY merit_id (never edited by the name input), not
+    # custom_name's truthiness — a blanked name must still drop as custom.
+    #
+    # Returns None and logs NOTHING: there is no XP to refund, and `undo_last` has no
+    # merits branch (pre-existing — real drops share the gap), so a cost-0 ledger row
+    # would sit on the LIFO stack and silently burn the player's NEXT undo on a no-op
+    # instead of reversing their last real purchase. A plain removal has no undoable
+    # side effect, so there is no entry to record.
+    if not purchase.merit_id:
         del character.merits_flaws[index]
-        return XpEntry(target="merits", detail=f"−{purchase.custom_name} (custom)",
-                       from_rating=None, to_rating=None, cost=0)
+        return None
     definition = ruleset.merits_flaws.get(purchase.merit_id)
     if definition is None:
         raise AdvancementError(f"Unknown Merit {purchase.merit_id!r}.")

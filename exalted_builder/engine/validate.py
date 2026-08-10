@@ -3428,8 +3428,11 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
     for purchase in character.merits_flaws:
         # A player-authored "Custom" row (2026-08-10) has no catalogue entry by
         # design — display-only, no mechanical effect. Nothing about it is checkable
-        # here, so it is skipped entirely rather than reported as merit-unknown.
-        if purchase.custom_name:
+        # here, so it is skipped entirely rather than reported as merit-unknown. The
+        # discriminator is the EMPTY merit_id (set at creation, never edited by the
+        # name input) — not custom_name, which the player can blank and must not
+        # turn back into a merit-unknown error.
+        if not purchase.merit_id:
             continue
         definition = ruleset.merits_flaws.get(purchase.merit_id)
         if definition is None:

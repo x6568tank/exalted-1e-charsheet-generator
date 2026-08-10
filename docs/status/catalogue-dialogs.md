@@ -1,6 +1,6 @@
 # Catalogue picker dialogs — DONE, browser-verified 2026-08-10
 
-The five "add" surfaces open a **browse-before-you-choose dialog** now. 2,081 tests.
+The five "add" surfaces open a **browse-before-you-choose dialog** now. 2,084 tests.
 **Browser-verified 2026-08-10** (clicked through every surface; the human's only
 request was a bigger dialog — see *The dialog sizing* below).
 
@@ -101,3 +101,49 @@ search — the human found it fine but it's the knob to turn if it ever feels re
 Still parked, untouched by this work: prose descriptions for weapons/armour (the
 vision-model pipeline — this dialog was built to show them the moment they land), and
 the wider cross-splat artifact catalogue.
+
+## The code-review fixes (2026-08-10) — 2,081 → 2,084 tests
+
+A code-review pass over the merged branch found four things. The first is the house
+bug's cousin and the most important.
+
+1. **Blanking a Custom M&F name made an unfixable error row.** The custom-row
+   discriminator was `custom_name`'s truthiness, and the name input writes `custom_name`
+   on every keystroke — so select-all-and-retype passed through `custom_name=""`,
+   flipping the row back to a NORMAL merit row with `merit_id=""`: `merit-unknown`
+   validation, a ⚠ sheet row, and — post-lock — a `drop_merit` that raised, so the row
+   could not be removed. The state that turns the mechanism on was player-editable to a
+   value that turns it off. **Fix:** the discriminator everywhere is now the EMPTY
+   `merit_id` (set at creation, never touched by the name input), at all five sites
+   (chargen row, play held list, `view.merit_rows`, `validate.merit_issues`,
+   `advancement.drop_merit`); a blanked name renders as "Custom". Pinned by
+   `test_a_blanked_custom_name_stays_a_custom_row_not_an_error`.
+2. **The play-gain pick path was untested.** The replaced test asserted the dialog
+   lists and filters, never that clicking an entry reaches the pending selection —
+   `_pick_gain → _mf_changed → Gain` could be broken with a green suite. Pinned by
+   `test_picking_in_the_play_gain_catalogue_sets_the_pending_selection` (picks Eternal
+   Vow, asserts the preview swaps its placeholder for the choose-a-side state).
+3. **`drop_merit`'s custom branch returned a phantom XpEntry.** It deleted the row and
+   returned an entry it never appended — unlike both real paths (which go through
+   `_commit_award`/`_pay_or_owe`). **The re-review corrected my first fix:** my initial
+   "append the cost-0 entry like every other drop" was wrong on two counts — `undo_last`
+   has NO merits branch at all (pre-existing; it affects real `buy_merit`/`drop_merit`
+   rows too, and is its own ticket), so the row wasn't undoable anyway; and the cost-0
+   entry would sit on the LIFO stack, silently burning the player's NEXT Undo on a no-op
+   instead of reversing their last real purchase. **Final fix:** a custom drop returns
+   `None` and appends nothing — a plain removal with no XP value and no undoable side
+   effect records nothing. Pinned by `test_dropping_a_custom_merit_is_a_plain_removal
+   _not_a_transaction` (asserts `entry is None` and the ledger stays empty).
+4. **The dialogs were rebuilt per open and never deleted.** A NiceGUI dialog is only
+   HIDDEN when closed — each open built a fresh ~800-element M&F dialog that stayed in
+   the client. **Fix:** `dialog.on_value_change(clear when closed)`, the single deletion
+   point covering pick, custom, ESC and click-outside. Verified in the harness (325
+   dialog labels → 34 after close). **The re-review found the fix's own bug:** the play
+   Custom prompt is a NESTED `ui.dialog()` opened from the catalogue's `_custom`, and
+   `Dialog.__init__` creates a hidden CANARY in the current slot (inside the catalogue
+   dialog's tree) whose weakref finalizer deletes the nested dialog when the outer is
+   cleared — so Custom became a silent no-op. `on_pick`-before-`close` alone wasn't
+   enough. **Fix:** the play prompt is built inside `context.client.layout`, so its
+   canary is a sibling of the catalogue dialog, not a descendant, and clearing the outer
+   leaves it alive. Pinned end-to-end by `test_the_play_custom_merit_flow_appends_and
+   _shows_in_held`.
