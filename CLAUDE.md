@@ -274,6 +274,21 @@ Ship dates for everything else live in the per-splat status docs and the git log
 - A per-session XP-grant ledger; state-reconciliation of hand-edited
   current-vs-snapshot drift (the read-only lock guards normal use).
 
+### After 1.0 — the Qt port (a standing goal, NOT scheduled)
+**Human, 2026-08-10:** after the 1.0 ship (feature-complete — sourcebooks, the full
+artifact and spell catalogues), branch and rebuild the UI on **PySide6/Qt**, which
+becomes the bedrock of a 2.0. Nothing is committed; it becomes **decision 0015** when it
+is. **Do not start it before 1.0 and do not treat it as a 1.0 blocker** — a different
+widget toolkit is not a feature. Full plan, measured baseline and open questions:
+**`docs/plans/qt-port.md`**.
+
+The one part that affects work happening NOW: the port is cheap only because nothing
+outside `ui/` imports `nicegui` and `ui/view.py` is a pure presenter (decision 0002's
+"disposable UI", actually honoured). **Keep it that way**, and prefer putting derived
+state in `view.py` over computing it inline in a widget module — that is ordinary
+hygiene that happens to be free migration work. It is not speculative effort for a port
+that may never happen.
+
 ### ⚠️ Training times are almost certainly NEVER being added
 **Human, 2026-07-30: "training times will probably never be added — that goes out of the
 dumb-tracker scope, in my opinion."** Not a numbered decision record, because the human
