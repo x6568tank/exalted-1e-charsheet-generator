@@ -137,6 +137,36 @@ class CharmDetail:
     custom: bool = False                   # see CharmRow.custom
 
 
+# --------------------------------------------------------------------------- #
+# Gear stat lines — ONE format string per kind, for both the character's own gear
+# and a catalogue entry.
+#
+# These were written twice (editor.py's row readout and catalogue.py's dialog
+# summary) and had already drifted: the armour readout emitted two spaces before
+# "Mob" and the dialog emitted one, while the dialog's docstring claimed it matched.
+# Unified here on the ROW READOUT's spacing, which is the older, browser-verified one.
+#
+# Duck-typed on purpose: `Weapon`/`Armor` (a character's item, usually passed through
+# `derive.effective_*` so the material bonus is folded in) and `WeaponType`/`ArmorType`
+# (a catalogue row) carry the same stat field names, and the caller decides which it
+# has. `material` is the wielder-dependent tag, which a pre-pick catalogue row has no
+# character to compute — hence a parameter rather than a lookup in here.
+# --------------------------------------------------------------------------- #
+
+def weapon_stat_line(weapon, *, material: str = "") -> str:
+    """One-line weapon stat readout: `Acc+2 Dmg+5L Def+0 Spd+0  ◈ Orichalcum`."""
+    tag = f"  ◈ {material}" if material else ""
+    return (f"Acc{weapon.accuracy:+d} Dmg{weapon.damage:+d}{weapon.damage_type} "
+            f"Def{weapon.defense:+d} Spd{weapon.speed:+d}{tag}")
+
+
+def armor_stat_line(armor, *, material: str = "") -> str:
+    """One-line armour stat readout: `Soak 3L/4B  Mob-1 Ftg1  ◈ Moonsilver`."""
+    tag = f"  ◈ {material}" if material else ""
+    return (f"Soak {armor.soak_lethal}L/{armor.soak_bashing}B  "
+            f"Mob{armor.mobility_penalty:+d} Ftg{armor.fatigue}{tag}")
+
+
 def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) -> Optional[CharmDetail]:
     """Display detail for a single Charm: its requirements (gating ability + min
     essence), prerequisite Charms by name, and the character's relationship to it.

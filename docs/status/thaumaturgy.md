@@ -456,12 +456,20 @@ item is the p.143 cross-reference table (below).
      messages, and `thaumaturgy_issues` now calls these, so a greyed-out row explains
      itself in the same words the validator uses. `chargen=True` adds the p.113
      creation-only caps, mirroring `meets_spell_requirements(..., chargen=...)`.
-   - **The purchase functions are module-level in `ui/picker.py`**, not closures
-     inside `build_picker` (the `ui/play.py` precedent). They mutate the save, and
-     several buy buttons legitimately share a label ("5 BP" is every Art), so
-     click-testing one in particular is impossible — module level makes them
-     unit-testable. Each dispatches on the lock, returns the message to show, and
+   - **The purchase functions live in `engine/thaum_actions.py`.** They mutate the
+     save, and several buy buttons legitimately share a label ("5 BP" is every Art),
+     so click-testing one in particular is impossible — a module-level function makes
+     them unit-testable. Each dispatches on the lock, returns the message to show, and
      raises `AdvancementError` on refusal.
+     **⚠ Moved 2026-08-10** — they were module-level in `ui/picker.py` (the
+     `ui/play.py` precedent), which was the wrong layer: they are game logic and never
+     imported `nicegui`. The move was verbatim, `picker.py` re-exports every name, and
+     no call site changed. Two things must not drift: the raised type stays
+     `advancement.AdvancementError` (picker catches exactly that to notify), and
+     `thaum_actions.raise_thaum_science` / `add_thaum_orientation` share a name with
+     the `advancement` functions they call after the lock — the dispatcher and the
+     priced purchase are different things, which is why this is its own module rather
+     than more of `advancement.py`.
    - `build_picker` gained `initial_group=` so a caller can open the picker on any of
      its pages. Used by the render tests; also the obvious hook for deep-linking.
 5. ~~Formulas catalogue (14).~~ **DONE.** The p.143 cross-reference table stays skipped.

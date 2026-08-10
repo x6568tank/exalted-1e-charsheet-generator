@@ -97,6 +97,45 @@ the NiceGUI build on its own merits whether or not the port ever happens.
 None of this is speculative work for a port that may not happen: it is the same
 separation decision 0002 already asks for.
 
+### The audit — what a sweep of `ui/` actually found (2026-08-10)
+
+A pass over every module-level function in `ui/` whose body never touches the toolkit.
+**Tiers 1 and 2 are done; tier 3 is recorded here and deliberately NOT scheduled** —
+it is small, it is spread thin, and it is best swept up while porting the module it
+lives in rather than as a task of its own.
+
+Done already:
+
+* **`engine/thaum_actions.py`** — 206 lines of lock-dispatching thaumaturgy purchases
+  moved out of `ui/picker.py` (verbatim; `picker.py` re-exports every name).
+* **Tier 1, the two places one printed rule was encoded twice** —
+  `editor._BASE_HEALTH` is now `Counter(derive.BASE_WOUND_PENALTIES)` instead of a
+  hand-written `{0: 1, -1: 2, -2: 2, -4: 1}`, and the weapon/armour stat lines are one
+  copy in `view.weapon_stat_line` / `armor_stat_line` instead of two. **The armour pair
+  had already drifted** (two spaces before `Mob` in the row readout, one in the
+  catalogue dialog, while the dialog's docstring claimed they matched) — the cheapest
+  possible demonstration that duplicated presentation does not stay in sync.
+
+**Tier 3 — carry these into the port, module by module.** Each is a handful of lines
+that belongs in `view.py` (presentation) or `engine/` (rules), and each is already
+toolkit-free, so it is a lift-and-shift whenever its module comes up:
+
+| Where | What | Belongs in |
+|---|---|---|
+| `ui/play.py` (~42L) | `play_state`, `normalize_health`, `cycle_mark`, `set_motes`, `set_count` — the PlayState mutators, and the "ui/play.py precedent" the thaumaturgy move cited. **⚠ decision 0006:** if these land in an `engine/play.py`, play-state must stay unreachable from validation | `engine/` |
+| `ui/play.py` | `worst_penalty` — already takes a `viewmod.PlayView` | `view.py` |
+| `ui/editor.py` (~25L) | `_origin_options`, `upbringing_options`, `_heritage_uses_origin` — splat-shape questions, i.e. rules | `view.py` or `engine/` |
+| `ui/builder.py` (33L) | `visible_tabs` — which tabs a splat shows | `view.py` |
+| `ui/storyteller.py` (19L) | `set_rule` — HouseRules coercion | `engine/` |
+| `ui/app.py`, `ui/advantages.py` | three separate dot-string formatters: `_dots`, and `'•' * rating` inline at `advantages.py:319` and `:395` | `view.py`, one copy |
+
+**Checked and clean, so nobody re-audits them:** `engine/` imports `ui/` zero times and
+`models/` imports `engine/` zero times — the layering rule holds. `RuleSet.backgrounds_for`
+/ `budgets_for` / `bonus_costs_for` are data accessors on the data object and are fine
+where they are. `picker._style` / `_elements` / `_node_classes` are the Cytoscape
+adapter — genuinely toolkit code, and precisely the ~72 lines that get rewritten against
+`QGraphicsView`.
+
 ## Sequencing, when it starts
 
 1. Ship 1.0 on NiceGUI and **freeze it**. Do not maintain two UIs — the NiceGUI build

@@ -25,6 +25,7 @@ from nicegui import ui
 
 from ..models.rules import ArmorType, WeaponType
 from . import theme
+from . import view as viewmod
 
 
 # --------------------------------------------------------------------------- #
@@ -35,15 +36,14 @@ from . import theme
 # --------------------------------------------------------------------------- #
 
 def catalog_weapon_summary(wt: WeaponType) -> str:
-    """One-line stat summary for a catalogue weapon, matching the row readout's shape."""
-    return (f"Acc{wt.accuracy:+d} Dmg{wt.damage:+d}{wt.damage_type} "
-            f"Def{wt.defense:+d} Spd{wt.speed:+d}")
+    """One-line stat summary for a catalogue weapon — the SAME line the equipment row
+    shows, minus the material tag (that needs a wielder; the dialog is pre-pick)."""
+    return viewmod.weapon_stat_line(wt)
 
 
 def catalog_armor_summary(at: ArmorType) -> str:
-    """One-line stat summary for a catalogue armour, matching the row readout's shape."""
-    return (f"Soak {at.soak_lethal}L/{at.soak_bashing}B "
-            f"Mob{at.mobility_penalty:+d} Ftg{at.fatigue}")
+    """One-line stat summary for a catalogue armour — see `catalog_weapon_summary`."""
+    return viewmod.armor_stat_line(at)
 
 
 # --------------------------------------------------------------------------- #

@@ -18,6 +18,7 @@ With no path it starts from the bundled example character.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from pathlib import Path
 
 from nicegui import ui
@@ -28,7 +29,21 @@ from ..models.character import (
     Armor, BackgroundEntry, Character, CollegeRating, CraftRating, HealthLevel,
     MeritFlawPurchase, Specialty, VirtueFlaw, Weapon)
 
-_BASE_HEALTH = {0: 1, -1: 2, -2: 2, -4: 1}   # base levels per penalty tier
+from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
+from . import catalogue as cataloguemod
+from . import theme
+from . import view as viewmod
+
+# The base wound track, TALLIED FROM THE ENGINE'S COPY — {penalty: how many base
+# levels sit at that tier}. It used to be a hand-written `{0: 1, -1: 2, -2: 2, -4: 1}`,
+# which was the same printed rule encoded a second time (and a rules table in the UI,
+# which the "no game logic here" rule forbids). Derived, it cannot drift from
+# `derive.health_track`; if a splat ever changes the base track, this follows.
+_BASE_HEALTH = Counter(derive.BASE_WOUND_PENALTIES)
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
+_EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 
 
 def _health_total(character: Character, penalty: int) -> int:
@@ -36,14 +51,6 @@ def _health_total(character: Character, penalty: int) -> int:
     delta = sum((-1 if hl.removed else 1)
                 for hl in character.health_bonus_levels if hl.penalty == penalty)
     return max(0, _BASE_HEALTH.get(penalty, 0) + delta)
-from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
-from . import catalogue as cataloguemod
-from . import theme
-from . import view as viewmod
-
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
-_EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
 
 # Presentation-only: intra-splat chargen origins to offer per Exalt type, and their
 # display labels. The origin *value* drives ruleset.budgets_for (keyed "<exalt>" for
@@ -1259,17 +1266,21 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         material_opts = {"": "— none —"} | {
             m.id: m.name for m in ruleset.material_catalog.values()}
 
+        # The format lives in view.weapon_stat_line / armor_stat_line — the catalogue
+        # dialog renders the same line for a pre-pick entry, and writing it twice is
+        # how the two drifted. Here the stats are the EFFECTIVE ones (material folded
+        # in) and the material tag is the wielder's.
         def _weapon_summary(wp) -> str:
-            eff = derive.effective_weapon(ruleset, character, wp)
             mat = derive.applied_material(ruleset, character, wp)
-            tag = f"  ◈ {mat.name}" if mat else ""
-            return f"Acc{eff.accuracy:+d} Dmg{eff.damage:+d}{eff.damage_type} Def{eff.defense:+d} Spd{eff.speed:+d}{tag}"
+            return viewmod.weapon_stat_line(
+                derive.effective_weapon(ruleset, character, wp),
+                material=mat.name if mat else "")
 
         def _armor_summary(ar) -> str:
-            eff = derive.effective_armor(ruleset, character, ar)
             mat = derive.applied_material(ruleset, character, ar)
-            tag = f"  ◈ {mat.name}" if mat else ""
-            return f"Soak {eff.soak_lethal}L/{eff.soak_bashing}B  Mob{eff.mobility_penalty:+d} Ftg{eff.fatigue}{tag}"
+            return viewmod.armor_stat_line(
+                derive.effective_armor(ruleset, character, ar),
+                material=mat.name if mat else "")
 
         def material_select(item, sm_label, sm_fn):
             def _on(e, item=item, sm_label=sm_label, sm_fn=sm_fn):
