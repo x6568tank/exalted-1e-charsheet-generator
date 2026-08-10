@@ -1,8 +1,8 @@
 # Catalogue picker dialogs — DONE, browser-verified 2026-08-10
 
 The five "add" surfaces open a **browse-before-you-choose dialog** now. 2,081 tests.
-**Browser-verified 2026-08-10** (clicked through every surface, one nitpick on dialog
-size — widened 34rem→46rem and the list 55vh→75vh at the human's request).
+**Browser-verified 2026-08-10** (clicked through every surface; the human's only
+request was a bigger dialog — see *The dialog sizing* below).
 
 ## What shipped
 
@@ -75,13 +75,28 @@ XP, no log).
 2. **`user.find(...).elements` is a set — iteration order is not stable.** A positional
    assert like `numbers[-1].value == 1` is a coin flip. Assert on the set of values,
    not the last element.
+3. **`ui.scroll_area` does NOT size itself from `max-h` — and `flex-1` on its child
+   list collapses to nothing inside a `max-h` (non-definite-height) flex card.** The
+   height changes that looked like no-ops were exactly this: a QScrollArea needs a
+   concrete height from its PARENT. The working shape is the card `h-[85vh]` (a
+   definite height, not `max-h-[85vh]`) + `flex flex-col` on the card + the scroll
+   area `flex-1 min-h-0` — the `min-h-0` is the classic flexbox scroll trap that lets
+   the list shrink below its content and actually scroll.
+
+## The dialog sizing — what the human actually wanted
+
+The human's one click-through comment was size. The dialog started `w-[34rem]` with a
+`max-h-[55vh]` scroll area; it shipped at `w-[46rem]` with the card `h-[85vh]`. The
+width change was the visible half; the height took three passes to get right, and the
+lesson is trap #3 above — the `max-h` values never bound, so the earlier "taller"
+edits (55→65→75→95vh on the scroll area) did nothing until the card got a definite
+height and the scroll area was told to fill it.
 
 ## What the click-through found
 
-Nothing broken — every surface worked on the first pass. The human's only comment was
-the dialog size (widened). The one design question left open: the play surface keeps
-both the side/category filter bar AND the dialog's text search — the human found it
-fine but it's the knob to turn if it ever feels redundant.
+Nothing broken — every surface worked on the first pass. The one design question left
+open: the play surface keeps both the side/category filter bar AND the dialog's text
+search — the human found it fine but it's the knob to turn if it ever feels redundant.
 
 Still parked, untouched by this work: prose descriptions for weapons/armour (the
 vision-model pipeline — this dialog was built to show them the moment they land), and
