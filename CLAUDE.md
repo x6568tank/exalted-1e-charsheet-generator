@@ -207,7 +207,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,084 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,092 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -306,15 +306,6 @@ in **`docs/status/handoff.md`**. **It is rewritten each session.** This file is 
 durable operating guide; do not re-accumulate handoff narrative here.
 
 ### Blocked / not started
-* **`undo_last` has no merits branch — a Merit bought for XP, then undone, refunds the
-  XP and KEEPS the Merit (hands out free Merits in play).** Confirmed live
-  2026-08-10 (buy Lucky for XP, Undo → XP back, Merit stays). Pre-existing, surfaced
-  by the catalogue-dialog code review. Not blocked — a known bug awaiting its own
-  fix. The buy/gain halves are clean (remove the last matching `MeritFlawPurchase`;
-  the entry's `detail` is the merit_id); the drop half needs the entry to carry the
-  removed purchase's full state (tier/taken_as/points), which it does not today — a
-  design decision, not a line change. Do not fold into the catalogue-dialog branch;
-  it has already been through two review passes.
 * **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
   left unauthored (deliberate, human's call 2026-07-29). **Blocked on pages:** the
   Forest Witch summary (p.133) gives Mist as an aspect with NO Aspect Abilities whose

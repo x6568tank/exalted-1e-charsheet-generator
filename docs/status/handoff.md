@@ -6,32 +6,33 @@ with what the next session needs; everything else can point at the per-topic sta
 docs.
 
 ## Current state
-- Suite green: **2,081 passing** (the one machine-only M&F description failure is not a
-  regression — see CLAUDE.md → Status).
-- Branch `deepseek-experiment`, worktree `…-ds`.
-- Newest shipped (2026-08-10): **the catalogue picker dialogs, browser-verified same
-  day** — a shared `ui/catalogue.py` dialog on every add surface (weapons/armour/
-  artifacts/backgrounds/M&F): filterable list of name + summary, full description
-  collapsible, a **Custom** row. Custom M&F is display-only via
-  `MeritFlawPurchase.custom_name` (no mechanical effect, renders by name on the sheet,
-  drops freely). The old silent cheapest-append `add_merit` is deleted. The only
-  click-through finding was dialog size (widened 34rem→46rem, list 55vh→75vh).
-  Full record: `docs/status/catalogue-dialogs.md`.
-- Earlier 2026-08-08 (committed, **written up this session**): the **Twilight/Eclipse
-  catalogue batch** — Caste Book Twilight (12) + Eclipse (8) pp.79-81, VLM-transcribed,
-  into `data/artifacts.json` (now **40 entries**; no on-disk artifact remains
-  unauthored; Audient Brush is a phantom). Full record: `docs/status/rated-artifacts.md`
-  → *The 2026-08-08 evening batch*; `artifact-backlog.md` on-disk rows corrected.
-- **Open thread: the 20 Twilight/Eclipse names are still NOT browser-verified.** The
-  pin + combobox tests are green, but no click-through of the new names. Light check —
-  pick a Twilight and an Eclipse name in the Advantages tab, confirm name→rating
-  autofill + description label.
+- Suite green: **2,092 passing** (the one machine-only M&F description failure is not a
+  regression — see CLAUDE.md → Status). Tree clean, branch `deepseek-experiment`,
+  worktree `…-ds`.
+- **The `undo_last` merits bug is FIXED** (this session): `undo_last` grew a `merits`
+  branch — buys/gains remove the last matching `MeritFlawPurchase`, drops re-add the
+  purchase carried on a new `XpEntry.removed_purchase`, legacy drop rows are refused —
+  and XP-log rows now label merits by name instead of the bare "merits". 8 new tests.
+  Record: `docs/status/merits-flaws.md` → *Undo of Merit changes*. **Not
+  browser-verified** (see START HERE).
+- **Catalogue picker dialogs are DONE and committed** (`a5fc3f6`, `b162a05`,
+  `fbe97a0`), browser-verified 2026-08-10, through **two code-review passes** — the
+  second found and fixed a serious bug (the play Custom prompt died because a nested
+  `ui.dialog()`'s canary lived inside the catalogue dialog's tree; it now builds in
+  `context.client.layout`) and corrected an overclaim (a custom M&F drop returns `None`
+  and logs nothing — it has no XP value, so there is nothing to undo; the real gap,
+  `undo_last` having no merits branch for REAL drops, is now closed). Full record:
+  `docs/status/catalogue-dialogs.md`.
 
-## Open bug (pre-existing, found by the code review)
-- **`undo_last` has no merits branch** — undo of a Merit purchase refunds the XP and
-  keeps the Merit (free Merits in play). Confirmed live 2026-08-10. Pre-existing,
-  recorded in CLAUDE.md → TODO; do not fold into the catalogue-dialog branch (two
-  review passes already).
+## 👉 START HERE — browser-verify the merit-undo fix
+The fix is engine + presenter and is pinned by 8 tests, but **not browser-verified**.
+Click-through: in play, buy a Merit for XP (e.g. Lucky), confirm the sheet lists it and
+the XP card shows it, hit **Undo last: …** in the Experience card — the Merit row should
+leave the sheet and the XP come back. Then drop a Merit (Advantages tab) and Undo — it
+should return, full state (tier/arena/detail) intact, XP restored. The "Undo last"
+button should name the Merit, not "merits".
+
+(Also still open: the Twilight/Eclipse artifact names — see Open threads.)
 
 ## ⚠ Flagged, not invented
 - The **Flamecaster / Pyromantic Grenade** print a Resources cost only; their Artifact
@@ -46,6 +47,12 @@ docs.
   sheet); a goods card would be the first data with no mechanism behind it. Full
   transcription kept in `docs/status/rated-artifacts.md` → *The alchemical goods*.
 
+## Open threads (not the focus this session)
+- **The 20 Twilight/Eclipse artifact names are still NOT browser-verified.** Pin +
+  combobox tests green, but no click-through of the new names in the Advantages tab.
+  Light check — pick a Twilight and an Eclipse name, confirm name→rating autofill +
+  description label.
+
 ## Blocked / not started
 - **Direlance catalogue entry** + **Slayer Khatar** — their description pages aren't on
   disk (p.341's crop is Artifact Materials, p.344's is the Lightning Torment Hatchet).
@@ -54,6 +61,8 @@ docs.
   TODO → Blocked.
 
 ## Pointers
+- Catalogue dialogs + the code-review fixes (incl. the canary trap and the drop-returns-
+  None ruling): `docs/status/catalogue-dialogs.md`
 - Twilight/Eclipse batch + catalogue/dropdown contract + dual-nature devices +
   alchemical-goods ruling: `docs/status/rated-artifacts.md`
 - The 1E artifact discovery layer + per-book queues: `docs/status/artifact-backlog.md`,

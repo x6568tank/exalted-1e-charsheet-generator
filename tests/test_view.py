@@ -165,6 +165,20 @@ def test_xp_log_presenter_labels_entries():
     assert rows[3].label == "Specialty: melee — Swords"
 
 
+def test_xp_log_presenter_labels_merit_rows():
+    """Merits rows name the entry (not the bare "merits" target), so the Undo button
+    says what it will reverse — with a "(removed)" marker for drops."""
+    rs = _rs()
+    char = persistence.load_character(EXAMPLE)
+    char.xp_log = [
+        XpEntry(target="merits", detail="mf.acute-sense", cost=2),
+        XpEntry(target="merits", detail="-mf.acute-sense", cost=-2),
+    ]
+    rows = viewmod.build_xp_log(rs, char)
+    assert rows[0].label == "Acute Sense"
+    assert rows[1].label == "Acute Sense (removed)"
+
+
 def test_spell_detail_reflects_circle_access():
     rs = _rs()
     c = Character(id="char.sd")

@@ -608,6 +608,14 @@ def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> s
     if domain == "elemental_powers":
         power = ruleset.elemental_powers.get(entry.detail)
         return f"Elemental Power: {power.name if power else entry.detail}"
+    if domain == "merits":
+        # A buy/gain logs the bare merit_id; a drop logs "-<merit_id>". Strip the
+        # leading dash so both resolve to the same catalogue name (and the Undo
+        # button names the row it will reverse).
+        mid = entry.detail.lstrip("-")
+        mf = ruleset.merits_flaws.get(mid)
+        name = mf.name if mf else mid
+        return f"{name} (removed)" if entry.detail.startswith("-") else name
     return entry.target
 
 

@@ -431,6 +431,12 @@ class XpEntry(BaseModel):
     to_rating: Optional[int] = None
     cost: int
     training_complete: bool = True         # dormant hook for the parked training-time rule
+    # The purchase a Merit/Flaw DROP removed, so `undo_last` can re-add it exactly —
+    # its tier/taken_as/points/arena/detail are not recoverable from the id alone.
+    # Set only on `drop_merit` rows (whose `detail` is "-<merit_id>"); None on buys,
+    # gains and every other row type. A snapshot: `drop_merit` deep-copies, so the
+    # re-added purchase never aliases a live object.
+    removed_purchase: Optional[MeritFlawPurchase] = None
 
 
 class HouseRules(BaseModel):

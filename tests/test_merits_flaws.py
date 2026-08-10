@@ -597,6 +597,87 @@ def test_a_merit_that_is_a_prerequisite_cannot_be_dropped(rs):
         advancement.drop_merit(rs, c, 0)
 
 
+# --- undo of Merit changes (the free-Merit bug) ------------------------------- #
+# `undo_last` had no `merits` branch. Popping a buy/gain row refunded the XP but left
+# the purchase held (free Merits), and popping a drop row took back the XP without
+# re-adding the purchase (a stranded loss). Both directions are reversed now.
+
+def test_undoing_a_merit_buy_removes_the_purchase_and_restores_the_xp(rs):
+    c = _locked(xp=50)
+    advancement.buy_merit(rs, c, AWARENESS)                      # 6 XP
+    assert any(p.merit_id == AWARENESS for p in c.merits_flaws)
+    advancement.undo_last(rs, c)
+    assert not any(p.merit_id == AWARENESS for p in c.merits_flaws)
+    assert advancement.xp_available(c) == 50
+    assert c.xp_log == []
+
+
+def test_undoing_a_flaw_gain_removes_the_flaw_and_takes_back_the_xp(rs):
+    c = _locked(xp=0)
+    advancement.gain_flaw(rs, c, "thaum.dark-magics")            # pays her 6
+    assert advancement.xp_available(c) == 6
+    advancement.undo_last(rs, c)
+    assert not any(p.merit_id == "thaum.dark-magics" for p in c.merits_flaws)
+    assert advancement.xp_available(c) == 0
+    assert c.xp_log == []
+
+
+def test_undoing_a_repeatable_merit_removes_only_the_last_copy(rs):
+    c = _locked(xp=50)
+    advancement.buy_merit(rs, c, "mf.acute-sense", tier="1")     # 1 BP x2 = 2 XP each
+    advancement.buy_merit(rs, c, "mf.acute-sense", tier="1")
+    assert len([p for p in c.merits_flaws if p.merit_id == "mf.acute-sense"]) == 2
+    advancement.undo_last(rs, c)
+    assert len([p for p in c.merits_flaws if p.merit_id == "mf.acute-sense"]) == 1
+    assert advancement.xp_available(c) == 48                     # one copy refunded
+
+
+def test_undoing_a_merit_drop_re_adds_the_purchase(rs):
+    c = _locked(MP(merit_id=AWARENESS), xp=50)
+    entry = advancement.drop_merit(rs, c, 0)                     # losing a Merit pays
+    assert entry.cost == -6
+    assert not any(p.merit_id == AWARENESS for p in c.merits_flaws)
+    advancement.undo_last(rs, c)
+    assert any(p.merit_id == AWARENESS for p in c.merits_flaws)
+    assert advancement.xp_available(c) == 50
+    assert c.xp_log == []
+
+
+def test_undoing_a_flaw_drop_re_adds_the_flaw_and_refunds_the_charge(rs):
+    c = _locked(MP(merit_id="thaum.dark-magics"), xp=50)
+    entry = advancement.drop_merit(rs, c, 0)                     # buying off a Flaw charges
+    assert entry.cost == 6
+    advancement.undo_last(rs, c)
+    assert any(p.merit_id == "thaum.dark-magics" for p in c.merits_flaws)
+    assert advancement.xp_available(c) == 50
+    assert c.xp_log == []
+
+
+def test_undoing_a_drop_restores_the_purchases_full_state(rs):
+    c = _locked(MP(merit_id=OATH, tier="legendary", arena="combat",
+                   detail="an oath of punctuality", taken_as="merit"), xp=50)
+    advancement.drop_merit(rs, c, 0)
+    advancement.undo_last(rs, c)
+    p = next(x for x in c.merits_flaws if x.merit_id == OATH)
+    assert p.tier == "legendary"
+    assert p.arena == "combat"
+    assert p.detail == "an oath of punctuality"
+    assert p.taken_as == "merit"
+
+
+def test_undo_of_a_legacy_drop_row_is_refused_not_silently_popped(rs):
+    """A drop row logged before the row carried the removed purchase (detail
+    "-<merit_id>", no `removed_purchase`) cannot reconstruct what was removed. Undo
+    must refuse rather than pop the row and strand the Merit's XP."""
+    c = _locked(MP(merit_id=AWARENESS), xp=50)
+    entry = advancement.drop_merit(rs, c, 0)
+    entry.removed_purchase = None                                # the legacy save shape
+    with pytest.raises(advancement.AdvancementError, match="older save"):
+        advancement.undo_last(rs, c)
+    assert c.xp_log == [entry]                                   # nothing popped
+    assert not any(p.merit_id == AWARENESS for p in c.merits_flaws)
+
+
 # --- the debt mechanic ------------------------------------------------------- #
 
 def test_an_unaffordable_change_goes_into_debt_rather_than_being_refused(rs):

@@ -15,6 +15,12 @@ pool-unlocked mortal at Essence 3 seeing the PG p.114 note (an Awareness-only mo
 seeing no note). No findings. (⚠ This doc previously said "still owed" — that record
 was simply never written down; the click-through had already happened.)
 
+**2026-08-10** — Undo of post-creation Merit changes fixed: `undo_last` grew a `merits`
+branch (buys/gains remove the last matching purchase; drops re-add the purchase the row
+carries on a new `XpEntry.removed_purchase`; legacy drop rows are refused), and the XP
+log now labels merit rows by name instead of "merits". 8 new tests, suite at **2,092
+passing**. **Not browser-verified.** See *Undo of Merit changes*.
+
 M&F were ripped out 2026-06-15 because the old implementation scattered their
 mechanical effects across every file they touched. **Decision 0011** is that they come
 back as one centralized calculation. This is that calculation, built early — ahead of
@@ -175,6 +181,39 @@ cost — so the remainder was never counted as spent and **6 XP silently vanishe
 worked example. Logging the full cost and letting `xp_available` go negative makes the
 debt self-evident, self-clearing, and impossible to lose.
 `test_debt_never_destroys_experience` pins it.
+
+### Undo of Merit changes — the free-Merit bug (2026-08-10)
+
+`undo_last` had **no `merits` branch**. Popping a buy/gain row refunded the XP but left
+the purchase held (buy Lucky for XP, Undo → XP back, Merit stays — free Merits), and
+popping a drop row took back the XP without re-adding the purchase (a stranded loss).
+The buy/gain half was the reported bug; the drop half was the other direction and had to
+close with it. Confirmed live 2026-08-10.
+
+Fixed in `advancement.undo_last`:
+
+- **Buys and gains** (log `detail` = the merit_id) reverse by deleting the LAST matching
+  `MeritFlawPurchase` — LIFO, so a repeatable Merit held twice undoes one copy.
+- **Drops** (log `detail` = `-<merit_id>`) reverse by re-adding the purchase. This was
+  the design decision the drop half needed: `drop_merit` now carries the removed
+  purchase's full state (tier / taken_as / points / detail / arena) on a new
+  `XpEntry.removed_purchase` field, a snapshot, so the row can rebuild exactly what was
+  removed. The alternative — declaring drops un-undoable — was rejected: every other
+  logged XP action is fully reversible, and a one-way drop row would sit on the LIFO
+  stack and block every later undo forever. The cost is the new model field and the
+  legacy-save guard below.
+- **Legacy drop rows** (older saves, no `removed_purchase`) are REFUSED with an error
+  rather than silently popped — the removed purchase cannot be reconstructed, and
+  popping would strand the Merit's XP.
+
+The XP-log presenter (`_xp_entry_label`) labels merits rows now (was the bare "merits"):
+the catalogue name, with "(removed)" on a drop — which is what the "Undo last: …" button
+names before it fires.
+
+8 new tests (7 in `tests/test_merits_flaws.py`, 1 in `tests/test_view.py`); suite at
+**2,092 passing**. **Not browser-verified** — engine and presenter are covered by tests;
+a click-through would buy a Merit for XP in play, hit Undo, and watch the row vanish
+from the sheet while the XP comes back.
 
 ## Not done
 

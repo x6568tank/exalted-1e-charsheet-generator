@@ -1492,6 +1492,25 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
     elif domain == "martial_arts":
         if entry.detail in character.charms:
             character.charms.remove(entry.detail)
+    elif domain == "merits":
+        if entry.removed_purchase is not None:
+            # A DROP reversed: re-add the exact purchase the row removed. LIFO — no
+            # later row can exist, so appending restores the held state as it was.
+            character.merits_flaws.append(entry.removed_purchase)
+        elif entry.detail.startswith("-"):
+            # A drop logged before the row carried `removed_purchase` (an older save):
+            # the removed purchase cannot be reconstructed. Refuse rather than pop the
+            # row and strand the Merit's XP.
+            raise AdvancementError(
+                "Cannot undo a Merit/Flaw removal from an older save.")
+        else:
+            # A buy or gain reversed: drop the LAST matching purchase. LIFO — a
+            # repeatable Merit held twice must undo one copy, and the logged one is
+            # the newest.
+            for i in range(len(character.merits_flaws) - 1, -1, -1):
+                if character.merits_flaws[i].merit_id == entry.detail:
+                    del character.merits_flaws[i]
+                    break
     elif domain == "beastman_gifts":
         # LIFO: drop the most recent purchase with this exact Gift set.
         for i in range(len(character.beastman_gifts) - 1, -1, -1):
@@ -1878,6 +1897,10 @@ def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry | 
         entry = _commit_award(character, "merits", f"-{purchase.merit_id}", -value)
     else:
         entry = _pay_or_owe(character, "merits", f"-{purchase.merit_id}", value)
+    # Carry the removed purchase on the log row so `undo_last` can re-add it exactly
+    # (tier/taken_as/points/arena/detail are not recoverable from the id alone). A
+    # snapshot: the row owns its copy even though the live one is about to be deleted.
+    entry.removed_purchase = purchase.model_copy(deep=True)
     del character.merits_flaws[index]
     return entry
 
