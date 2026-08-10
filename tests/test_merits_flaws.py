@@ -3338,14 +3338,84 @@ async def test_the_side_filter_keeps_two_sided_entries(user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
-async def test_the_play_gain_dropdown_filters_too(user) -> None:
-    """The same filter on the other side of the lock. The play select already had
-    type-ahead, but over a label that leads with the name — so a category or a rules-
-    text search found nothing there either."""
+async def test_the_play_gain_catalogue_dialog_offers_the_filtered_set(user) -> None:
+    """The play gain is a catalogue dialog (2026-08-10), not the old dropdown. The
+    filter bar narrows what the dialog offers; picking sets the pending selection, and
+    the pending selection survives a narrower filter (the dialog's own text search is
+    the narrowing here, so the picked entry must still be offerable)."""
     await user.open('/mf-side-xp')
-    before = _merit_row_options(user)
-    assert len(before) > 50
-    _mf_search_box(user).set_value("vow")
-    after = _merit_row_options(user)
-    assert after < before
-    assert "mf.eternal-vow" in after
+    # Open the gain catalogue: a filtered entry is listed with its rules text.
+    user.find("Browse catalogue").click()
+    await user.should_see("Eternal Vow")
+    await user.should_see("(3-PT. MERIT OR 1-PT. FLAW")
+    # The dialog's filter narrows the list — search for something a Flaw's rules text
+    # says, not its name, and the matching entry survives.
+    boxes = [el for el in user.find(ui.input).elements
+             if el.props.get("placeholder") == "Filter…"]
+    assert boxes, "the gain catalogue dialog has no filter box"
+    boxes[0].set_value("vow")
+    await user.should_see("Eternal Vow")
+    await user.should_not_see("Lucky")
+
+
+# --- Custom Merit / Flaw rows (2026-08-10, human ruling: display-only, no effect) -- #
+# A player-authored "Custom" entry from the catalogue dialogs. It exists in NO
+# catalogue: renders by name, validates clean, has no mechanical effect, and drops
+# freely. These pin each read site so a custom row is never mistaken for a
+# missing-data error.
+
+def test_a_custom_merit_validates_clean_and_has_no_mechanical_effect(rs):
+    c = _solar(MP(merit_id="", custom_name="Bloodline trait"))
+    issues = [i for i in validate.merit_issues(rs, c)]
+    assert not issues, f"a custom row must not validate as an error: {issues}"
+    eff = merits.merits_and_flaws_calc(rs, c)
+    assert eff.bonus_point_grant == 0
+    assert validate.merit_bonus_point_cost(rs, c) == 0
+    assert eff.narrative_only == (), "custom rows are not even narrative — they are notes"
+
+
+def test_an_old_save_without_custom_name_loads_unchanged():
+    old = MP(merit_id="mf.eternal-vow", tier="")
+    assert old.custom_name == ""
+    assert old.merit_id == "mf.eternal-vow"
+
+
+def test_dropping_a_custom_merit_is_a_plain_removal_not_a_transaction(rs):
+    c = _solar(MP(merit_id="", custom_name="Bloodline trait"))
+    c.chargen_locked = True
+    xp_before = c.xp_earned
+    entry = advancement.drop_merit(rs, c, 0)
+    assert entry.cost == 0
+    assert c.merits_flaws == []
+    assert c.xp_earned == xp_before, "dropping a custom row must not spend XP"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_chargen_custom_merit_row_edits_by_name(user) -> None:
+    """The Custom option in the chargen M&F catalogue adds a row with a plain name
+    input and no catalogue controls — a display-only row, not a pick from the menu.
+    Asserted through the rendered input (and that the delete button survives), because
+    the handler's `character` is not the test module's copy — pin the visible row."""
+    await user.open('/mf-side')
+    user.find("Add merit / flaw").click()
+    user.find(marker="cat-custom").click()
+    await user.should_see("Custom Merit / Flaw")
+    boxes = [el for el in user.find(ui.input).elements
+             if el.props.get("label") == "Custom Merit / Flaw"]
+    assert boxes, "the custom row's name input did not render"
+    boxes[0].set_value("My House Trait")
+    # The visible input now carries the typed name, and the row still shows its
+    # delete button — the two things that make the custom row usable.
+    await user.should_see("My House Trait")
+
+
+def test_the_sheet_renders_a_custom_merit_by_name(rs):
+    """The sheet's M&F list must show the custom row by its name, not as a missing-data
+    warning — the whole point of the display-only contract."""
+    c = _solar(MP(merit_id="", custom_name="My House Trait"))
+    rows = view.merit_rows(rs, c)
+    names = [r[0] for r in rows]
+    assert "My House Trait" in names
+    assert not any("not in the rule set" in r[4] for r in rows), \
+        "a custom row must not read as missing data"

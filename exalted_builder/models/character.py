@@ -161,6 +161,13 @@ class MeritFlawPurchase(BaseModel):
     # — which validate reports rather than defaulting, because picking the character's
     # best artifact for them would silently make an illegal purchase legal.
     artifact_key: str = ""
+    # A player-authored Merit/Flaw that exists in NO catalogue: the human's "Custom"
+    # option (2026-08-10). When set, the row is display-only — it renders on the sheet
+    # by THIS name, validate skips it entirely (no `merit-unknown`), and the engine's
+    # `_held` skips it because `merit_id` resolves to nothing, so it has no mechanical
+    # effect. `merit_id` still carries a value (the model requires it) but it is not a
+    # catalogue id and nothing looks it up. "" on every printed entry.
+    custom_name: str = ""
 
 
 class CraftRating(BaseModel):

@@ -207,7 +207,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,068 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,081 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -240,9 +240,10 @@ full record.
 | **Mortals & Heroic Mortals — DONE** (one splat, two origins; casteless, no Charms, Essence pinned at 1; magic via M&F) | `docs/status/mortals.md` |
 | **Merits & Flaws — DONE, browser-verified** (centralized calc per decision 0011; all 100 authored; every A-list mechanism; mortal magic unlock) | `docs/status/merits-flaws.md` |
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
-| **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — first slice the ten Mountain Folk artifacts, GROWN TO 20 the same day with the ten Caste Book Dawn/Night/Zenith entries (`artifact.castebook-*`, pp.78-81) and the Hooked Daiklaves/Direlance rated gear rows, two blocked core items flagged — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08) | `docs/status/rated-artifacts.md` |
+| **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — the ten Mountain Folk artifacts, GROWN TO 40 the same day across three castebook batches (`artifact.castebook-*`: Dawn/Night/Zenith pp.78-81 + Twilight/Eclipse pp.79-81 — the last on-disk artifacts, none remain unauthored) and the Hooked Daiklaves/Direlance rated gear rows, two blocked core items flagged — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08; **the 20 Twilight/Eclipse names are NOT yet browser-verified**) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
-| **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM. **2026-08-08 correction:** five mislabelled codes fixed — `ab_a/e/f/v/w` are the Dragon-Blooded **Aspect Books**, `salt` = Blood and Salt, `coin` = Manacle and Coin — and the on-disk claim corrected: **40 entries authorable now** (28 already rated in the build), not ~90; per-entry authoring queue with build status in `artifact-backlog-entries.md`) | `docs/status/artifact-backlog.md` |
+| **Catalogue picker dialogs — DONE, browser-verified 2026-08-10** (a shared `ui/catalogue.py` dialog on every add surface — weapons/armour/artifacts/backgrounds/M&F; browse name + summary, full description collapsible, a **Custom** row; custom M&F via `MeritFlawPurchase.custom_name`, display-only with no mechanical effect; the old silent cheapest-append `add_merit` deleted) | `docs/status/catalogue-dialogs.md` |
+| **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM. **2026-08-08 correction:** five mislabelled codes fixed — `ab_a/e/f/v/w` are the Dragon-Blooded **Aspect Books**, `salt` = Blood and Salt, `coin` = Manacle and Coin. **The on-disk slice is now EXHAUSTED** — the 40 entries authorable-now plus the 20 Caste Book Twilight/Eclipse entries (their pp.79-81 pages landed and were VLM-transcribed 2026-08-08) are all in the build (`data/artifacts.json` = 40); only the Direlance catalogue entry, the Slayer Khatar and the Fair Folk 205-211 question remain, all blocked on pages; per-entry authoring queue with build status in `artifact-backlog-entries.md`) | `docs/status/artifact-backlog.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
 | **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus God/Demon-Blooded heritage rows + 16 M&F + the 80-Charm spirit catalogue authored 2026-08-07 and the p.48 sorcery initiation 2026-08-08, every printed prereq wired — browser-verified 2026-08-08) | `docs/status/godblooded.md` |
@@ -255,7 +256,9 @@ full record.
 (`engine-and-ui.md`); every shipped splat's data, engine and UI is browser-verified,
 including Mountain Folk (2026-08-07). 1,470 Charms across the six Exalt splats, plus
 56 ghost Arcanoi and 94 Mountain Folk Charms (`data-and-tooling.md`). Rated artifacts
-and the catalogue/dropdown shipped 2026-08-08 — see `docs/status/rated-artifacts.md`.
+and the catalogue/dropdown shipped 2026-08-08 — 40 entries, the on-disk backlog
+exhausted (only the Direlance catalogue entry and Slayer Khatar remain, both blocked
+on pages) — see `docs/status/rated-artifacts.md`.
 Ship dates for everything else live in the per-splat status docs and the git log.
 
 ### Removed

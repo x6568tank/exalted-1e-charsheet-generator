@@ -41,6 +41,7 @@ from ..engine import (advancement, artifacts as artifactsmod, costs as costsmod,
 from ..models.character import (ArtifactEntry, BackgroundEntry, Character,
                                 FetterEntry, MeritFlawPurchase, PassionEntry)
 from ..models.rules import RuleSet, VirtueName
+from . import catalogue as cataloguemod
 from . import theme
 from . import view as viewmod
 from .editor import DescribedSelect, _opts_with, dot_track, panel_card
@@ -200,7 +201,23 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             sel.on_value_change(lambda e, bg=bg, sync=_sync: (
                 setattr(bg, "name", e.value or ""), sync()))
             _sync()
-        ui.button("Add background", icon="add", on_click=add_bg).props("flat dense")
+
+        # The catalogue picker replaces the blind "Add background": browse the
+        # splat-filtered catalogue, pick one, or choose Custom for a blank row.
+        def _open_bg_catalogue() -> None:
+            rows = [(b.name, b.name, b.description, b.description)
+                    for b in sorted(bg_catalog, key=lambda b: b.name)]
+            cataloguemod.catalogue_dialog(pal, "Backgrounds", rows, _pick_bg)
+
+        def _pick_bg(name) -> None:
+            if name is None:
+                add_bg()
+                return
+            character.backgrounds.append(BackgroundEntry(name=name, rating=1))
+            refresh_all()
+
+        ui.button("Add background", icon="add", on_click=_open_bg_catalogue
+                  ).props("flat dense")
 
     def _chargen_backgrounds(b, mf_effects) -> None:
         def cap_for(name: str) -> int:
@@ -369,7 +386,33 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label("Also counted, from equipment: "
                          + ", ".join(f"{i.name} ({i.rating})" for i in gear)
                          ).classes("text-xs italic opacity-70")
-            ui.button("Add artifact", icon="add", on_click=add_artifact).props("flat dense")
+
+            # The catalogue picker replaces the blind "Add artifact": browse the
+            # catalogue (name + rating + description), pick one — name AND rating
+            # autofilled — or choose Custom for a blank row.
+            def _open_artifact_catalogue() -> None:
+                rows = [(a.name, a.name,
+                         f"{a.rating_notes or ('•' * a.rating)} — {a.description}",
+                         a.description)
+                        for a in sorted(rs.artifact_catalog.values(),
+                                        key=lambda a: a.name)]
+                cataloguemod.catalogue_dialog(pal, "Artifacts", rows, _pick_artifact)
+
+            def _pick_artifact(name) -> None:
+                if name is None:
+                    add_artifact()
+                    return
+                entry = next((a for a in rs.artifact_catalog.values()
+                              if a.name == name), None)
+                if entry is not None:
+                    character.artifacts.append(
+                        ArtifactEntry(name=entry.name, rating=entry.rating))
+                else:
+                    character.artifacts.append(ArtifactEntry(name=name, rating=1))
+                refresh_all()
+
+            ui.button("Add artifact", icon="add", on_click=_open_artifact_catalogue
+                      ).props("flat dense")
 
     # ---- Merits & Flaws: chargen ------------------------------------------ #
     def set_merit(mp, merit_id: str) -> None:
@@ -382,21 +425,6 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         mp.tier = _default_tier(rs.merits_flaws.get(mp.merit_id))
         mp.taken_as, mp.points, mp.detail, mp.arena = "", 0, "", ""
         mp.stipulations = 0
-        refresh_all()
-
-    def add_merit() -> None:
-        # The cheapest available entry, so a fresh row is always a legal selection — it
-        # must come from the same filtered set the dropdown offers, or the row opens on
-        # an entry that is not in its own options.
-        first = min((m for m in rs.merits_flaws.values()
-                     if validate.merit_available_to(m, character.exalt_type,
-                                                    character.caste,
-                                                    origin=character.origin)),
-                    key=lambda m: (m.kind != "merit", m.cost, m.name), default=None)
-        if first is None:
-            return
-        character.merits_flaws.append(
-            MeritFlawPurchase(merit_id=first.id, tier=_default_tier(first)))
         refresh_all()
 
     def _default_tier(definition) -> str:
@@ -543,6 +571,21 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             ).classes("text-xs opacity-60")
             for idx, mp in enumerate(character.merits_flaws):
                 definition = rs.merits_flaws.get(mp.merit_id)
+                # A player-authored "Custom" row (2026-08-10): no catalogue entry, no
+                # mechanical effect — just a name the sheet renders. It gets a plain
+                # text input instead of the select and NONE of the definition-driven
+                # controls, because `merit_id` resolves to nothing and every one of
+                # those controls reads `definition` (which would be None).
+                if mp.custom_name:
+                    with ui.row().classes("w-full items-center gap-2 flex-wrap"):
+                        ui.input(value=mp.custom_name, label="Custom Merit / Flaw",
+                                 on_change=lambda e, mp=mp: (
+                                     setattr(mp, "custom_name", e.value), changed())
+                                 ).classes("flex-1 min-w-64").props("dense")
+                        ui.button(icon="delete",
+                                  on_click=lambda e=None, idx=idx: remove_merit(idx)
+                                  ).props("flat dense round")
+                    continue
                 # flex-wrap, NOT no-wrap: the merge of the two old panels put more
                 # controls on this row than either had alone — entry, side, tier, arena,
                 # stipulations and detail can all appear at once — and a no-wrap row
@@ -689,7 +732,37 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                               ).props("flat dense round")
                 if definition is not None:
                     _merit_rules_text(definition)
-            ui.button("Add merit / flaw", icon="add", on_click=add_merit).props("flat dense")
+
+            # The catalogue picker replaces the blind "Add merit / flaw" (which used to
+            # append the cheapest available). Browse the filtered set, pick one, or
+            # choose Custom for a display-only player-authored row.
+            def _open_mf_catalogue() -> None:
+                rows = [(m.id, _merit_label(m), m.description, m.description)
+                        for m in available]
+                cataloguemod.catalogue_dialog(
+                    pal, "Merits & Flaws", rows, _pick_mf_catalogue,
+                    subtitle=f"{len(available)} available to this character")
+
+            def _pick_mf_catalogue(key) -> None:
+                if key is None:
+                    # `merit_id` is required but deliberately empty: it resolves to
+                    # nothing in the catalogue, so the engine skips the row entirely —
+                    # the "no mechanical effect" the Custom option promises.
+                    character.merits_flaws.append(
+                        MeritFlawPurchase(merit_id="",
+                                          custom_name="New custom Merit / Flaw"))
+                    refresh_all()
+                    return
+                definition = rs.merits_flaws.get(key)
+                if definition is None:
+                    return
+                character.merits_flaws.append(
+                    MeritFlawPurchase(merit_id=key,
+                                      tier=_default_tier(definition)))
+                refresh_all()
+
+            ui.button("Add merit / flaw", icon="add", on_click=_open_mf_catalogue
+                      ).props("flat dense")
             # Say which held Merits this build treats as narrative, rather than letting a
             # player wonder why nothing changed.
             if eff.narrative_only:
@@ -806,18 +879,54 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             available = _available_merits(
                 validate.effective_budgets(rs, character).essence_start)
 
-            def _gain_opts() -> dict:
-                opts = {m.id: f"{m.name} {m.cost_note or ''}".strip()
-                        for m in available if _mf_matches(m)}
-                # The pending selection stays selectable even once the filter excludes
-                # it — narrowing the search must not silently change what Gain buys.
-                pending = gain_state.get("id") or ""
-                if pending:
-                    opts.setdefault(pending, pending)
-                return opts
+            # The catalogue picker replaces the dropdown: browse the filtered set, pick
+            # one (the detail preview below then prices it), or choose Custom for a
+            # display-only row. The side/category filter bar narrows what the dialog
+            # offers; the dialog's own text search narrows within that.
+            def _gain_opts() -> list:
+                return [m for m in available if _mf_matches(m)]
+
+            def _open_gain_catalogue() -> None:
+                rows = [(m.id, f"{m.name} {m.cost_note or ''}".strip(),
+                         m.description, m.description)
+                        for m in _gain_opts()]
+                cataloguemod.catalogue_dialog(
+                    pal, "Merits & Flaws", rows, _pick_gain,
+                    subtitle=f"{len(_gain_opts())} available to this character")
+
+            def _pick_gain(key) -> None:
+                if key is None:
+                    _custom_gain()
+                    return
+                _mf_changed(id=key, taken_as="", tier="", points=0, detail="")
+
+            def _custom_gain() -> None:
+                with ui.dialog() as dlg, ui.card().classes(
+                        f"w-[26rem] p-4 gap-2 {pal.card_solid}"):
+                    ui.label("Custom Merit / Flaw").classes("text-base font-bold")
+                    ui.label("Display-only — recorded on the sheet, no mechanical "
+                             "effect (2026-08-10).").classes("text-xs text-gray-600")
+                    name = ui.input(placeholder="name (e.g. a bloodline trait)").props(
+                        "dense").classes("w-full")
+
+                    def _go() -> None:
+                        text = (name.value or "").strip()
+                        if not text:
+                            ui.notify("Give the custom Merit / Flaw a name.",
+                                      type="warning")
+                            return
+                        # Empty `merit_id` — resolves to nothing, so the engine treats
+                        # the row as no-effect (the Custom option's contract).
+                        character.merits_flaws.append(
+                            MeritFlawPurchase(merit_id="", custom_name=text))
+                        dlg.close()
+                        refresh_all()
+
+                    ui.button("Add", icon="check", on_click=_go).props(
+                        f"dense color={pal.button}")
+                dlg.open()
 
             def _apply_filter() -> None:
-                gain_sel.set_options(_gain_opts(), value=gain_state.get("id") or None)
                 count.text = _mf_count_label(
                     sum(1 for m in available if _mf_matches(m)), len(available))
 
@@ -826,11 +935,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 sum(1 for m in available if _mf_matches(m)), len(available))
             ).classes("text-xs opacity-60")
             with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                gain_sel = ui.select(
-                    _gain_opts(), label="Merit / Flaw", with_input=True,
-                    on_change=lambda e: _mf_changed(
-                        id=e.value or "", taken_as="", tier="", points=0, detail="")
-                ).classes("flex-1").props("dense")
+                ui.button("Browse catalogue", icon="inventory_2",
+                          on_click=_open_gain_catalogue).props("dense")
                 ui.button("Gain", on_click=_gain_mf).props(f"dense color={pal.button}")
 
             # What the selected entry actually IS — printed cost line, any splat
@@ -923,9 +1029,14 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             gain_state["refresh"] = mf_detail.refresh
             # --- lose ------------------------------------------------------ #
             if character.merits_flaws:
-                held = {str(i): (rs.merits_flaws[mp.merit_id].name
-                                 if mp.merit_id in rs.merits_flaws else mp.merit_id)
+                def _held_name(mp) -> str:
+                    if mp.custom_name:
+                        return mp.custom_name + "  (custom)"
+                    return (rs.merits_flaws[mp.merit_id].name
+                            if mp.merit_id in rs.merits_flaws else mp.merit_id) \
                         + (f" ({mp.tier})" if mp.tier else "")
+
+                held = {str(i): _held_name(mp)
                         for i, mp in enumerate(character.merits_flaws)}
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.select(held, label="Held",

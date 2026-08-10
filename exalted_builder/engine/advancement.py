@@ -1839,6 +1839,12 @@ def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry:
     if not 0 <= index < len(character.merits_flaws):
         raise AdvancementError(f"No Merit at index {index}.")
     purchase = character.merits_flaws[index]
+    # A player-authored "Custom" row (2026-08-10): display-only, no mechanical
+    # effect and no XP value — dropping it is a plain removal, not a transaction.
+    if purchase.custom_name:
+        del character.merits_flaws[index]
+        return XpEntry(target="merits", detail=f"−{purchase.custom_name} (custom)",
+                       from_rating=None, to_rating=None, cost=0)
     definition = ruleset.merits_flaws.get(purchase.merit_id)
     if definition is None:
         raise AdvancementError(f"Unknown Merit {purchase.merit_id!r}.")

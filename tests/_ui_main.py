@@ -886,6 +886,21 @@ def page_mf_side_xp():
     advantages.build_advantages(RS, CHAR_MF_SIDE_XP, Path("x.json"), with_header=False)
 
 
+# A LOCKED character holding a player-authored "Custom" M&F row (2026-08-10). The
+# play surface's "Held" dropdown must offer the custom row by name — a custom
+# purchase has an empty `merit_id`, so the built options must come from `custom_name`
+# or the select crashes on a value it does not offer.
+CHAR_MF_CUSTOM_XP = Character(id="mfcx", name="House-Bound", exalt_type="Solar",
+                              caste="dawn", essence_rating=1, xp_earned=50)
+CHAR_MF_CUSTOM_XP.merits_flaws = [
+    MeritFlawPurchase(merit_id="", custom_name="Bloodline trait")]
+CHAR_MF_CUSTOM_XP.chargen_locked = True
+
+@ui.page('/mf-custom-xp')
+def page_mf_custom_xp():
+    advantages.build_advantages(RS, CHAR_MF_CUSTOM_XP, Path("x.json"), with_header=False)
+
+
 # 14 points of Flaws against the 10-point cap (p.17), so both surfaces have to say
 # that four points are being swallowed rather than printing the capped 10 alone.
 CHAR_MF_CAPPED = Character(id="mfc", name="Overburdened", exalt_type="Mortal", caste="",

@@ -1,4 +1,4 @@
-# Session handoff — 2026-08-09
+# Session handoff — 2026-08-10
 
 **Rewritten each session.** This is the ephemeral handoff block; the durable operating
 guide is `CLAUDE.md`. When a session ends, replace *Current state* and *Open threads*
@@ -6,30 +6,26 @@ with what the next session needs; everything else can point at the per-topic sta
 docs.
 
 ## Current state
-- Suite green: **2,068 passing** (the one machine-only M&F description failure is not a
+- Suite green: **2,081 passing** (the one machine-only M&F description failure is not a
   regression — see CLAUDE.md → Status).
 - Branch `deepseek-experiment`, worktree `…-ds`.
-- Newest shipped (2026-08-08): the **castebook artifact batch** — the 12 genuinely-new
-  remainder of the "40 authorable-now" backlog entries, addressed unsupervised (the
-  human was out; the source pages were on disk). Ten became catalogue entries in
-  `data/artifacts.json` (`artifact.castebook-*`, Caste Books Dawn/Night/Zenith
-  pp.78-81 — Shield Bracer, Map of Azure Victory, Chariot of Aerial Conquest, Arrows of
-  Distant Death, Spider Grippers, Belt of Shadow Walking, Circlet of Spirits, Hooked
-  Daiklaves of Dual Prowess, Death Shield Ring, Ring of the Deliberative); the **Hooked
-  Daiklaves** and the **Direlance** also got rated `weapons.json` rows (table stats,
-  attune 4-per-blade / not printed). Also 2026-08-08: the rated-artifact **catalogue +
-  combobox** (name field autofills name + rating, per-row description label), the **six
-  dual-nature devices** (crossbows + Flamecaster + Pyromantic Grenade carry both
-  `artifact_rating` and `resources_cost`; the player picks the funding with the Art/Res
-  edit fields), and the **Elemental Powers** catalogue (9-power learnable set for
-  Elemental-origin God-Blooded, PG p.68, 7 BP / 14 XP).
-- **No open threads.** The Hooked Daiklaves rating ruling is CLOSED (the **heading ••••
-  is canonical** — human checked `images/Solars/Castebooks/Night/81.png` 2026-08-08; the
-  page's own table misprints •••••, so the catalogue and the weapon row both carry 4).
-  The Advantages-tab combobox click-through is CLOSED (the name→rating autofill +
-  description label + off-catalogue rename is **item-independent**, exercised with other
-  catalogue items). ⚠ Two page-vs-guide rating disputes, **page as authority:** Ring of
-  the Deliberative •••• (the guide's ••••• is 2e) and Hooked Daiklaves ••••.
+- Newest shipped (2026-08-10): **the catalogue picker dialogs, browser-verified same
+  day** — a shared `ui/catalogue.py` dialog on every add surface (weapons/armour/
+  artifacts/backgrounds/M&F): filterable list of name + summary, full description
+  collapsible, a **Custom** row. Custom M&F is display-only via
+  `MeritFlawPurchase.custom_name` (no mechanical effect, renders by name on the sheet,
+  drops freely). The old silent cheapest-append `add_merit` is deleted. The only
+  click-through finding was dialog size (widened 34rem→46rem, list 55vh→75vh).
+  Full record: `docs/status/catalogue-dialogs.md`.
+- Earlier 2026-08-08 (committed, **written up this session**): the **Twilight/Eclipse
+  catalogue batch** — Caste Book Twilight (12) + Eclipse (8) pp.79-81, VLM-transcribed,
+  into `data/artifacts.json` (now **40 entries**; no on-disk artifact remains
+  unauthored; Audient Brush is a phantom). Full record: `docs/status/rated-artifacts.md`
+  → *The 2026-08-08 evening batch*; `artifact-backlog.md` on-disk rows corrected.
+- **Open thread: the 20 Twilight/Eclipse names are still NOT browser-verified.** The
+  pin + combobox tests are green, but no click-through of the new names. Light check —
+  pick a Twilight and an Eclipse name in the Advantages tab, confirm name→rating
+  autofill + description label.
 
 ## ⚠ Flagged, not invented
 - The **Flamecaster / Pyromantic Grenade** print a Resources cost only; their Artifact
@@ -52,8 +48,10 @@ docs.
   TODO → Blocked.
 
 ## Pointers
-- Castebook batch + catalogue/dropdown contract + dual-nature devices + alchemical-goods
-  ruling: `docs/status/rated-artifacts.md`
+- Twilight/Eclipse batch + catalogue/dropdown contract + dual-nature devices +
+  alchemical-goods ruling: `docs/status/rated-artifacts.md`
+- The 1E artifact discovery layer + per-book queues: `docs/status/artifact-backlog.md`,
+  `docs/status/artifact-backlog-entries.md`
 - Elemental Powers + p.48 sorcery + the 80-Charm spirit catalogue: `docs/status/godblooded.md`
 - Mountain Folk (Enlightenment axis, five-Pattern economy): `docs/status/mountain-folk.md`
 - Session-state notes from prior handoffs live in git history, not here.

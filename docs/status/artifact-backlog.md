@@ -52,9 +52,9 @@ corrected below. The guide's own ERS legend (PDF p.6) is the source of the names
 | Aspect Book: Air | 13 | 75-78, 81 | **NO** |
 | Caste Book: Dawn | 11 | 78-81 | **YES** |
 | Time of Tumult | 11 | 15, 23, 49, 94-95 | **NO** |
-| Caste Book: Twilight | 12 | 79-81 | **NO** (only to 77 on disk) |
+| Caste Book: Twilight | 12 | 79-81 | **YES** — pp.79-81 VLM-transcribed 2026-08-08 (all 12 authored) |
 | Blood and Salt | 11 | 89, 119-124 | **NO** |
-| Caste Book: Eclipse | 9 | 79-81 | **NO** (only to 77-78 on disk) |
+| Caste Book: Eclipse | 9 | 79-81 | **YES** — pp.79-81 VLM-transcribed 2026-08-08 (8 authored, Audient Brush a phantom) |
 | Caste Book: Night | 8 | 79-81 | **YES** |
 | Aspect Book: Earth | 6 | 79-81 | **NO** |
 | Aspect Book: Wood | 6 | 79-81 | **NO** |
@@ -90,9 +90,19 @@ the **Direlance's catalogue entry + the Slayer Khatar are BLOCKED** (their descr
 pages aren't on disk — p.341's crop is Artifact Materials and p.344's is the Lightning
 Torment Hatchet). See `docs/status/rated-artifacts.md` → *The 2026-08-08 castebook
 batch*. Plus the ten Fair Folk 279-283 entries already shipped as the rated artifacts in
-`data/artifacts.json`. Everything else needs the human to sync source pages. The earlier
-~90 estimate was more than double the truth. **The per-entry authoring queue, with build
-status on every row, is `docs/status/artifact-backlog-entries.md`.**
+`data/artifacts.json`.
+
+**The same evening, 20 MORE entries were authored** — the Caste Book Twilight (12) and
+Eclipse (8) pp.79-81 pages landed and were VLM-transcribed 2026-08-08, so the "40
+authorable-now" list grew by 20, and all 20 went into the catalogue
+(`artifact.castebook-<twilight|eclipse>.<slug>`). **No on-disk artifact remains
+unauthored** — `data/artifacts.json` is now 40 entries. See
+`docs/status/rated-artifacts.md` → *The 2026-08-08 evening batch*. The only blocked
+items left are the two whose description pages aren't on disk (Direlance's catalogue
+entry, Slayer Khatar) and the Fair Folk 205-211 question below. Everything else needs
+the human to sync source pages. The earlier ~90 estimate was more than double the truth.
+**The per-entry authoring queue, with build status on every row, is
+`docs/status/artifact-backlog-entries.md`.**
 
 ⚠ **Fair Folk 205-211:** these 21 artifacts sit in the Fair Folk splatbook, and the Fair
 Folk splat itself is permanently out of scope (decision 0010). Individual *artifacts*
@@ -102,8 +112,11 @@ from that book are a separate question from the *splat* — decide before starti
 
 - `data/artifacts.json` (SHIPPED 2026-08-08): the ten Mountain Folk rated artifacts
   (pp.279-283) + the four stat-blocked gear rows + the six dual-nature devices. The
-  same day it grew to **20 entries** with the ten Caste Book Dawn/Night/Zenith items
-  (pp.78-81) — the first non-MF slice of the wider cross-splat catalogue.
+  same day it grew to **40 entries** across three castebook batches — the ten Caste
+  Book Dawn/Night/Zenith items (pp.78-81), the first non-MF slice of the wider
+  cross-splat catalogue, plus the 20 Caste Book Twilight/Eclipse items (pp.79-81).
+  **No on-disk artifact remains unauthored** (see *The 2026-08-08 evening batch* in
+  `docs/status/rated-artifacts.md`).
 - **The alchemical goods are the one fully-sourced authorable slice — and they were
   deliberately NOT modelled (human ruling 2026-08-08).** Godstrike Oil, Pyromantic
   Gel and Synthetic Leather (MF pp.275-277) were authored as a `GoodType` catalogue,

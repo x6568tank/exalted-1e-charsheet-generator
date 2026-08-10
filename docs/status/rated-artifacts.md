@@ -377,3 +377,70 @@ checklist flags it `—`. Sync p.344's neighbor pages to unblock.
   `tests/test_rated_artifacts.py` that the combobox offers the ten new names).
 - The 40-entry "authorable-now" remainder is now 29 rated + 9 catalogue-only + 2 fully
   blocked (Direlance's catalogue entry and Slayer Khatar).
+
+## The 2026-08-08 evening batch — Caste Book Twilight (12) + Eclipse (8)
+
+The same day's morning batch (above) was the Dawn/Night/Zenith slice of the
+authorable-now backlog. That evening the **Caste Book: Twilight and Eclipse pp.79-81
+pages** — which the morning checklist had marked NOT on disk — were found/transcribed
+via the VLM pipeline (qwen3-vl, human-vetted; `.md` pages + PNGs in gitignored
+`images/Solars/Castebooks/{Twilight,Eclipse}/`), making another **20 entries
+authorable, and all 20 were authored** (commits `42be3f7`, `18b0086`). This closed the
+backlog: **no on-disk artifact remains unauthored.**
+
+### Twenty catalogue entries (ids `artifact.castebook-<twilight|eclipse>.<slug>`)
+
+| Artifact | Rating | Source |
+|---|---|---|
+| Bracer of the Hawk | •• | Caste Book: Twilight p.79 |
+| Whistle of Ghost Summoning | •• | Caste Book: Twilight p.79 |
+| Seed of the Immaculate Blood | •• | Caste Book: Twilight p.79 |
+| Cup of Flowing Blood | ••• | Caste Book: Twilight p.79 |
+| Eye of the Living Earth | ••• | Caste Book: Twilight p.80 |
+| Ghost Seeing Blindfold | ••• | Caste Book: Twilight p.80 |
+| Honey of the Bees of Zarlath | ••• | Caste Book: Twilight p.80 |
+| Mirrors of Illusion Shattering | ••• | Caste Book: Twilight p.80 |
+| Scabbard of the Living Weapon | ••• | Caste Book: Twilight p.80 |
+| Sorcery-Capturing Cord | ••• | Caste Book: Twilight p.81 |
+| Veil that Holds Back Time | •••• | Caste Book: Twilight p.81 |
+| The Jackal's Skull | •••• | Caste Book: Twilight p.81 |
+| Lotus Blossom Cup | • | Caste Book: Eclipse p.79 |
+| Player's Mask | • | Caste Book: Eclipse p.79 |
+| Silver Quill | • | Caste Book: Eclipse p.79 |
+| Seven Jewelled Peacock Fans | •• | Caste Book: Eclipse p.80 |
+| Silken Armor | ••• | Caste Book: Eclipse p.80 |
+| Solar Seal | • | Caste Book: Eclipse p.80 |
+| Folding Ship | •••• | Caste Book: Eclipse p.81 |
+| Iron Horse | •••• | Caste Book: Eclipse p.81 |
+
+**Rating disputes, page as authority (all pinned by tests):**
+- **Bracer of the Hawk ••** — the page prints two dots; the guide lists •. Human
+  confirmed 2026-08-08.
+- **Veil that Holds Back Time / The Jackal's Skull ••••** — the VLM's first pass
+  misread •••••; the page prints four dots (blob-count verified). The guide was right.
+- **Variant ratings in `rating_notes`:** Sorcery-Capturing Cord (••• emerald / ••••
+  sapphire / ••••• adamant), Seed of the Immaculate Blood (•• base, ••• red seeds),
+  Silver Quill (• base, •• self-writing quills).
+
+**Audient Brush is BLOCKED, not authored — a phantom index row.** The guide's `cb_e`
+row lists it at Caste Book: Eclipse p.79, but the book contains **no** Audient Brush
+(full 98-page word-sweep, 2026-08-08). The real p.79 artifact list is Lotus Blossom
+Cup, Player's Mask, Silver Quill. The `artifact-backlog-entries.md` checklist marks it
+`blocked`, and `test_artifact_catalog_loads_the_twilight_and_eclipse_backlog` asserts
+it stays out of the catalogue.
+
+### What this changed
+
+- `data/artifacts.json`: 20 → **40 entries** (10 Mountain Folk + 30 castebook).
+- The `artifact-backlog-entries.md` checklists: `cb_t`/`cb_e` Build column → `cat`;
+  the guide's "Daiklave, Hooked ••" mislabel on `cb_n` marked `cat` (Night p.81's
+  *Hooked Daiklaves of Dual Prowess* is already in the build under its real name).
+- **2,068 → 2,070 passing.** ⚠ **The recorded 2,068 was already stale by one when
+  this batch landed** — the true pre-batch base was **2,069** (af8051f collected 2,069),
+  so the +1 test here (`test_artifact_catalog_loads_the_twilight_and_eclipse_backlog`
+  in `tests/test_data.py`, pinning all 20 ratings + the three disputes + Audient Brush's
+  absence) landed at **2,070**, not the "2069" the commit message claimed. The
+  combobox test in `tests/test_rated_artifacts.py` gained two names.
+- **Not browser-verified.** The catalogue pin test and combobox-offers-the-names
+  assertions are green, but the 20 new names have not been clicked through the
+  Advantages tab's combobox.

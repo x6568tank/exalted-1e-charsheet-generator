@@ -1335,6 +1335,12 @@ def merit_rows(ruleset: RuleSet, character: Character
     since a save opened without its data set should say so, not quietly shrink."""
     rows: list[tuple[str, str, str, str, str]] = []
     for mp in character.merits_flaws:
+        # A player-authored "Custom" row (2026-08-10): display-only, no mechanical
+        # effect — render it by its name rather than as a missing-data warning.
+        if mp.custom_name:
+            rows.append((mp.custom_name, "", mp.detail, "merit",
+                         "Custom — no printed effect."))
+            continue
         definition = ruleset.merits_flaws.get(mp.merit_id)
         if definition is None:
             rows.append((f"⚠ {mp.merit_id}", "?", mp.detail, "merit",

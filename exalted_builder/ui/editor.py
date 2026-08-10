@@ -37,6 +37,7 @@ def _health_total(character: Character, penalty: int) -> int:
                 for hl in character.health_bonus_levels if hl.penalty == penalty)
     return max(0, _BASE_HEALTH.get(penalty, 0) + delta)
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
+from . import catalogue as cataloguemod
 from . import theme
 from . import view as viewmod
 
@@ -1308,7 +1309,26 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 stat_num(ar, "attunement", "Attune", asm, _armor_summary)
                                 stat_num(ar, "resources_cost", "Res", asm, _armor_summary)
                                 material_select(ar, asm, _armor_summary)
-                ui.button("Add armor", icon="add", on_click=lambda: add_item("armor")).props("flat dense")
+
+                # The catalogue picker replaces the blind "Add armor": browse the
+                # catalogue, pick one (stats autofilled), or choose Custom for a blank
+                # free-text row. A pick appends then autofills via the existing setter;
+                # Custom falls through to the old blank-row append.
+                def _open_armor_catalogue() -> None:
+                    rows = [(a.name, a.name, cataloguemod.catalog_armor_summary(a), None)
+                            for a in sorted(ruleset.armor_catalog.values(),
+                                            key=lambda a: a.name)]
+                    cataloguemod.catalogue_dialog(pal, "Armour", rows, _pick_armor)
+
+                def _pick_armor(name) -> None:
+                    if name is None:
+                        add_item("armor")
+                        return
+                    add_item("armor")
+                    set_armor(len(character.armor) - 1, name)
+
+                ui.button("Add armor", icon="add", on_click=_open_armor_catalogue
+                          ).props("flat dense")
             with panel("Weapons").classes("flex-1"):
                 for idx, wp in enumerate(character.weapons):
                     with ui.column().classes(f"w-full gap-1 border-b border-{pal.fam}-900/10 pb-1"):
@@ -1342,7 +1362,22 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 material_select(wp, wsm, _weapon_summary)
                             ui.input("Notes", value=wp.notes,
                                      on_change=lambda e, wp=wp: (setattr(wp, "notes", e.value), changed())).classes("w-full").props("dense")
-                ui.button("Add weapon", icon="add", on_click=lambda: add_item("weapons")).props("flat dense")
+
+                def _open_weapon_catalogue() -> None:
+                    rows = [(w.name, w.name, cataloguemod.catalog_weapon_summary(w), None)
+                            for w in sorted(ruleset.weapon_catalog.values(),
+                                            key=lambda w: w.name)]
+                    cataloguemod.catalogue_dialog(pal, "Weapons", rows, _pick_weapon)
+
+                def _pick_weapon(name) -> None:
+                    if name is None:
+                        add_item("weapons")
+                        return
+                    add_item("weapons")
+                    set_weapon(len(character.weapons) - 1, name)
+
+                ui.button("Add weapon", icon="add", on_click=_open_weapon_catalogue
+                          ).props("flat dense")
 
         # Permanent Resonance / Limit (Death's Taint, PG p.41). Its own panel rather
         # than a dot track, because it moves in BOTH directions at DIFFERENT prices:

@@ -3426,6 +3426,11 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
     backgrounds = snap.backgrounds if snap else character.backgrounds
 
     for purchase in character.merits_flaws:
+        # A player-authored "Custom" row (2026-08-10) has no catalogue entry by
+        # design — display-only, no mechanical effect. Nothing about it is checkable
+        # here, so it is skipped entirely rather than reported as merit-unknown.
+        if purchase.custom_name:
+            continue
         definition = ruleset.merits_flaws.get(purchase.merit_id)
         if definition is None:
             issues.append(Issue(
