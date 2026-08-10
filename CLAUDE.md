@@ -198,6 +198,15 @@ broken. **Correct behaviour in the case you tested is not evidence the mechanism
 exists.** The mechanical sweep for this is `docs/delegated-authoring.md`. **Run the
 `preflight` skill before booking browser time.**
 
+**The third species, from the catalogue dialogs (2026-08-10):** the mechanism exists and
+runs, but **the state that switches it on is player-editable to a value that switches it
+off.** A custom Merit/Flaw row was identified by `custom_name` being truthy — and the
+name input writes that field on every keystroke, so select-all-and-retype passed through
+`""` and silently converted the row into a `merit-unknown` error with no way back. The
+fix is the general rule: **a discriminator must be a field nothing on the screen can
+edit** (here, the empty `merit_id`, set once at creation). When you add a "kind" flag,
+ask which widget can write it.
+
 ### Delegated authoring (cheap-model splats)
 Godblooded was authored end to end by a cheap model (DeepSeek V4 Flash) and
 code-reviewed afterwards. The review found four defects, all of them the house bug.

@@ -1,4 +1,4 @@
-# Session handoff — 2026-08-10
+# Session handoff — 2026-08-10 (end of day)
 
 **Rewritten each session.** This is the ephemeral handoff block; the durable operating
 guide is `CLAUDE.md`. When a session ends, replace *Current state* and *Open threads*
@@ -7,32 +7,46 @@ docs.
 
 ## Current state
 - Suite green: **2,092 passing** (the one machine-only M&F description failure is not a
-  regression — see CLAUDE.md → Status). Tree clean, branch `deepseek-experiment`,
-  worktree `…-ds`.
-- **The `undo_last` merits bug is FIXED** (this session): `undo_last` grew a `merits`
-  branch — buys/gains remove the last matching `MeritFlawPurchase`, drops re-add the
-  purchase carried on a new `XpEntry.removed_purchase`, legacy drop rows are refused —
-  and XP-log rows now label merits by name instead of the bare "merits". 8 new tests.
-  Record: `docs/status/merits-flaws.md` → *Undo of Merit changes*. **Not
-  browser-verified** (see START HERE).
-- **Catalogue picker dialogs are DONE and committed** (`a5fc3f6`, `b162a05`,
-  `fbe97a0`), browser-verified 2026-08-10, through **two code-review passes** — the
-  second found and fixed a serious bug (the play Custom prompt died because a nested
-  `ui.dialog()`'s canary lived inside the catalogue dialog's tree; it now builds in
-  `context.client.layout`) and corrected an overclaim (a custom M&F drop returns `None`
-  and logs nothing — it has no XP value, so there is nothing to undo; the real gap,
-  `undo_last` having no merits branch for REAL drops, is now closed). Full record:
-  `docs/status/catalogue-dialogs.md`.
+  regression — see CLAUDE.md → Status). Branch `main`.
+- **⚠ Uncommitted at end of session: the tier-2 move** (6 files — `engine/adversaries.py`,
+  `ui/adversaries.py`, `ui/view.py`, `docs/ARCHITECTURE.md`,
+  `docs/status/adversary-roster.md`, `docs/plans/qt-port.md`), plus this close-out's doc
+  edits. Suite green with them in place. **Branch before committing** — the convention is
+  no direct commits to `main`.
+- **Catalogue picker dialogs — DONE, browser-verified, through TWO code-review passes**
+  (`a5fc3f6`, `b162a05`, `fbe97a0`). The second pass found a serious bug the first fix
+  introduced and corrected an overclaim. Record: `docs/status/catalogue-dialogs.md`.
+- **The `undo_last` merits bug is FIXED and browser-verified.** `undo_last` grew a
+  `merits` branch — buys/gains remove the last matching `MeritFlawPurchase`, drops re-add
+  the purchase carried on a new `XpEntry.removed_purchase`, legacy drop rows are refused
+  — and XP-log rows label merits by name instead of the bare "merits".
+  Record: `docs/status/merits-flaws.md` → *Undo of Merit changes*.
+- **A Qt/PySide6 port is now a recorded post-1.0 goal**, not scheduled and not started.
+  Plan, measured baseline and open questions: `docs/plans/qt-port.md`; the standing
+  guard is in CLAUDE.md → *After 1.0 — the Qt port*.
+- **Three misplacement cleanups landed** on the strength of that audit — see below.
 
-## 👉 START HERE — browser-verify the merit-undo fix
-The fix is engine + presenter and is pinned by 8 tests, but **not browser-verified**.
-Click-through: in play, buy a Merit for XP (e.g. Lucky), confirm the sheet lists it and
-the XP card shows it, hit **Undo last: …** in the Experience card — the Merit row should
-leave the sheet and the XP come back. Then drop a Merit (Advantages tab) and Undo — it
-should return, full state (tier/arena/detail) intact, XP restored. The "Undo last"
-button should name the Merit, not "merits".
+## 👉 START HERE — nothing is blocking
+No click-through is owed on this session's work. Pick from *Open threads*; the cheapest
+is the Twilight/Eclipse artifact names.
 
-(Also still open: the Twilight/Eclipse artifact names — see Open threads.)
+## What moved this session (the layering cleanups)
+All three were behaviour-preserving, verified by diffing each moved function against its
+pre-move source, and left every call site and test untouched via re-exports.
+
+1. **`engine/thaum_actions.py`** — 206 lines of lock-dispatching thaumaturgy purchases
+   out of `ui/picker.py` (2,313 → 2,124 lines). They were game logic and never imported
+   `nicegui`. `picker.py` re-exports every name.
+2. **Tier 1 — one printed rule encoded twice, in two places.** `editor._BASE_HEALTH` is
+   now `Counter(derive.BASE_WOUND_PENALTIES)` instead of a hand-written
+   `{0: 1, -1: 2, -2: 2, -4: 1}`; the weapon/armour stat lines are one copy in
+   `view.weapon_stat_line` / `armor_stat_line` instead of two. **The armour pair had
+   already drifted** — two spaces before `Mob` in the row readout, one in the catalogue
+   dialog, while the dialog's docstring claimed they matched. Unified on the row
+   readout's spacing (the older, browser-verified surface).
+3. **Tier 2 — `ui/adversaries.py` 640 → 490 lines**, now widgets only. Ids, duplicate
+   naming and the trait/attack codec went to `engine/adversaries.py`; `summary_line` and
+   `trait_map_line` went to `view.py`.
 
 ## ⚠ Flagged, not invented
 - The **Flamecaster / Pyromantic Grenade** print a Resources cost only; their Artifact
@@ -46,12 +60,25 @@ button should name the Merit, not "merits".
   read site (materials → derive, artifacts → budget/dropdown, weapons/armour → the
   sheet); a goods card would be the first data with no mechanism behind it. Full
   transcription kept in `docs/status/rated-artifacts.md` → *The alchemical goods*.
+- **Undo of a merit drop on a pre-fix save is permanently refused**, and `undo_last` is
+  LIFO, so such a save's undo stack is blocked from that row down. Deliberate — the
+  human's call is that no save in existence holds a pre-fix merit-drop row. Written up
+  beside the design rationale it appears to contradict, in
+  `docs/status/merits-flaws.md`.
 
-## Open threads (not the focus this session)
+## Open threads (none urgent)
 - **The 20 Twilight/Eclipse artifact names are still NOT browser-verified.** Pin +
   combobox tests green, but no click-through of the new names in the Advantages tab.
   Light check — pick a Twilight and an Eclipse name, confirm name→rating autofill +
   description label.
+- **Tier 3 of the `ui/` audit** — five small sites (`play.py`'s PlayState mutators,
+  `editor.py`'s origin/upbringing options, `builder.py`'s `visible_tabs`,
+  `storyteller.py`'s `set_rule`, three duplicate dot formatters). **Deliberately not
+  scheduled**: sweep each up while porting the module it lives in. Table with
+  destinations in `docs/plans/qt-port.md` → *The audit*.
+- **Naming follow-up:** `thaum_actions.raise_thaum_science` / `add_thaum_orientation`
+  shadow the `advancement` functions they call after the lock. Works, reads badly;
+  renaming the dispatchers is a clean standalone commit.
 
 ## Blocked / not started
 - **Direlance catalogue entry** + **Slayer Khatar** — their description pages aren't on
@@ -61,8 +88,13 @@ button should name the Merit, not "merits".
   TODO → Blocked.
 
 ## Pointers
-- Catalogue dialogs + the code-review fixes (incl. the canary trap and the drop-returns-
-  None ruling): `docs/status/catalogue-dialogs.md`
+- The post-1.0 Qt port plan + the `ui/` misplacement audit (tiers 1-3):
+  `docs/plans/qt-port.md`
+- Catalogue dialogs + both code-review passes (the canary trap, the drop-returns-None
+  ruling): `docs/status/catalogue-dialogs.md`
+- Merit undo, `XpEntry.removed_purchase`, the legacy-row guard: `docs/status/merits-flaws.md`
+- Thaumaturgy purchases now in `engine/thaum_actions.py`: `docs/status/thaumaturgy.md`
+- The adversary trait/attack **codec pair** invariant: `docs/status/adversary-roster.md`
 - Twilight/Eclipse batch + catalogue/dropdown contract + dual-nature devices +
   alchemical-goods ruling: `docs/status/rated-artifacts.md`
 - The 1E artifact discovery layer + per-book queues: `docs/status/artifact-backlog.md`,

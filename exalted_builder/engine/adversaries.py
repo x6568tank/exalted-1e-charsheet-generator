@@ -18,7 +18,8 @@ import itertools
 import re
 from typing import Optional
 
-from ..models.adversary import Adversary
+from ..models.adversary import Adversary, AdversaryAttack, AdversaryTrait
+from ..models.party import Party
 from ..models.rules import ArmorType, Damage, RuleSet
 
 # Marks cycle empty -> bashing -> lethal -> aggravated -> empty, the same order
@@ -212,3 +213,152 @@ def instantiate(template: Adversary, new_id: str, *, name: str = "") -> Adversar
     entry.willpower_spent = 0
     entry.motes_spent = 0
     return entry
+
+
+# --------------------------------------------------------------------------- #
+# Ids, duplicate naming, and the free-text trait/attack codec
+#
+# Moved verbatim out of `ui/adversaries.py` 2026-08-10: none of it touched the
+# toolkit, and parsing the book's printed notation is the same job `expand_health`
+# above already does here.
+#
+# ⚠ `parse_traits`/`trait_line` and `parse_attacks`/`attack_line` are CODEC PAIRS,
+# not a parser plus a display helper. The GM edits these fields as text: the `*_line`
+# function fills the input, the `parse_*` function reads it back, and
+# `tests/test_adversaries_ui.py` asserts the round trip (`trait_line(parse_traits(s))
+# == s`). Change one side and you must change the other — which is why they live
+# together rather than the formatters going to `view.py` with the other presenters.
+# --------------------------------------------------------------------------- #
+
+def next_id(party: Party) -> str:
+    """A roster-unique id. Ids are internal — the GM never sees or types one —
+    so a counter is enough, but it must not collide after deletions."""
+    used = {a.id for a in party.adversaries}
+    n = len(party.adversaries) + 1
+    while f"adv.{n}" in used:
+        n += 1
+    return f"adv.{n}"
+
+
+def _copy_name(existing: list[Adversary], base: str) -> str:
+    """"Bandit" -> "Bandit 2" -> "Bandit 3". Numbering the duplicates is the
+    difference between a usable roster and five identically-named rows."""
+    stem = (base or "Adversary").rstrip()
+    taken = {a.name for a in existing}
+    n = 2
+    while f"{stem} {n}" in taken:
+        n += 1
+    return f"{stem} {n}"
+
+
+def attack_line(atk: AdversaryAttack) -> str:
+    """One printed attack, rendered the way the book prints it."""
+    parts = []
+    if atk.speed is not None:
+        parts.append(f"Spd {atk.speed}")
+    if atk.accuracy is not None:
+        parts.append(f"Acc {atk.accuracy}")
+    if atk.damage is not None:
+        parts.append(f"Dmg {atk.damage}{atk.damage_type}")
+    if atk.defense is not None:
+        parts.append(f"Def {atk.defense}")
+    line = f"{atk.name}: " + " ".join(parts) if parts else atk.name
+    return f"{line}  ({atk.note})" if atk.note else line
+
+
+def trait_line(traits: list[AdversaryTrait]) -> str:
+    """"Melee 3 (Swords +2), Dodge 2" — the book's own inline format."""
+    out = []
+    for t in traits:
+        text = f"{t.name} {t.rating}"
+        if t.specialties:
+            text += f" ({t.specialties})"
+        out.append(text)
+    return ", ".join(out)
+
+
+
+# --------------------------------------------------------------------------- #
+# Parsing the two free-text trait fields
+#
+# The GM types these the way the book prints them, so the roster reads them back
+# the same way rather than making them fill a row of boxes per Ability.
+
+
+def parse_traits(text: str) -> list[AdversaryTrait]:
+    """"Melee 3 (Swords +2), Dodge 2" -> two AdversaryTraits.
+
+    Tolerant by design: an unrated entry keeps rating 0 rather than vanishing,
+    and a stray comma yields nothing instead of raising."""
+    out: list[AdversaryTrait] = []
+    depth = 0
+    current = ""
+    # Split on commas that are NOT inside the parenthesised specialty list —
+    # "Linguistics 5 (Native: Old Realm; High Realm, Riverspeak)" is one trait.
+    for ch in text or "":
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth = max(0, depth - 1)
+        if ch == "," and depth == 0:
+            out.append(current)
+            current = ""
+        else:
+            current += ch
+    out.append(current)
+
+    traits: list[AdversaryTrait] = []
+    for chunk in out:
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        spec = ""
+        if chunk.endswith(")") and "(" in chunk:
+            head, _, tail = chunk.rpartition("(")
+            spec, chunk = tail[:-1].strip(), head.strip()
+        parts = chunk.rsplit(" ", 1)
+        if len(parts) == 2 and parts[1].lstrip("-").isdigit():
+            traits.append(AdversaryTrait(name=parts[0].strip(), rating=int(parts[1]),
+                                         specialties=spec))
+        else:
+            traits.append(AdversaryTrait(name=chunk, rating=0, specialties=spec))
+    return traits
+
+
+def parse_attacks(text: str) -> list[AdversaryAttack]:
+    """One attack per line, in the book's own wording:
+
+        Bite: Speed 6 Accuracy 7 Damage 1L Defense 5
+        Venom: Speed 18 Accuracy 8 Damage 24L  (once per 10 turns)
+
+    Keywords are matched case-insensitively and any may be missing — a beast has
+    no Defense, and a Clinch has no damage rating at all."""
+    import re
+
+    out: list[AdversaryAttack] = []
+    for raw in (text or "").splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        note = ""
+        if "(" in line and line.endswith(")"):
+            head, _, tail = line.rpartition("(")
+            note, line = tail[:-1].strip(), head.strip()
+        name, _, rest = line.partition(":")
+        if not rest:
+            name, rest = line, ""
+
+        def grab(word: str) -> Optional[int]:
+            m = re.search(rf"{word}\s*(-?\d+)", rest, re.IGNORECASE)
+            return int(m.group(1)) if m else None
+
+        dmg_match = re.search(r"(?:damage|dmg)\s*(-?\d+)\s*([BLA])?", rest, re.IGNORECASE)
+        out.append(AdversaryAttack(
+            name=name.strip() or "Attack",
+            speed=grab(r"(?:speed|spd)"),
+            accuracy=grab(r"(?:accuracy|acc|atk)"),
+            damage=int(dmg_match.group(1)) if dmg_match else None,
+            damage_type=(dmg_match.group(2) or "").upper() if dmg_match else "",
+            defense=grab(r"(?:defense|def)"),
+            note=note))
+    return out

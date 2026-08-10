@@ -1,6 +1,7 @@
 # Catalogue picker dialogs — DONE, browser-verified 2026-08-10
 
-The five "add" surfaces open a **browse-before-you-choose dialog** now. 2,084 tests.
+The five "add" surfaces open a **browse-before-you-choose dialog** now. 2,084 tests *at
+the time of this work* (the suite has moved on since — CLAUDE.md → Status has the count).
 **Browser-verified 2026-08-10** (clicked through every surface; the human's only
 request was a bigger dialog — see *The dialog sizing* below).
 

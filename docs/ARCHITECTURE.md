@@ -97,6 +97,7 @@ no mutation.
 | `advancement.py` | What does this cost now, and was the ledger honest? Post-lock purchases and the XP audit |
 | `lifecycle.py` | `lock_chargen` / `unlock_chargen` — the transition between the two modes |
 | `refit.py` | Alchemical vat refit: moving Charms between Slots and the Panoply |
+| `adversaries.py` | The little the GM roster needs: template instantiation, the printed health/trait/attack notation codec, damage track, armour+shield soak and dodge. No validation — an `Adversary` is never built to a budget |
 | `thaum_actions.py` | The lock-aware thaumaturgy purchases: a chargen list edit before the lock, an `advancement` purchase after it. Returns the message to show; raises `AdvancementError` on refusal (`ui/picker.py` catches exactly that) |
 
 `validate.py` is by far the largest module, and that is where the splat-specific

@@ -108,6 +108,13 @@ Done already:
 
 * **`engine/thaum_actions.py`** — 206 lines of lock-dispatching thaumaturgy purchases
   moved out of `ui/picker.py` (verbatim; `picker.py` re-exports every name).
+* **Tier 2, `ui/adversaries.py` 640 → 487 lines.** Ids, duplicate naming and the
+  trait/attack codec went to `engine/adversaries.py`; `summary_line` and
+  `trait_map_line` went to `view.py`. **The interesting finding:** `trait_line` and
+  `attack_line` look like presenters and are not — they fill the edit inputs that
+  `parse_traits`/`parse_attacks` read back, with the round trip asserted in tests, so
+  they are codec halves and went to `engine/` with their parsers. *Model→text does not
+  imply `view.py`; ask what reads the text back.*
 * **Tier 1, the two places one printed rule was encoded twice** —
   `editor._BASE_HEALTH` is now `Counter(derive.BASE_WOUND_PENALTIES)` instead of a
   hand-written `{0: 1, -1: 2, -2: 2, -4: 1}`, and the weapon/armour stat lines are one

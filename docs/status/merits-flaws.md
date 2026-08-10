@@ -19,7 +19,7 @@ was simply never written down; the click-through had already happened.)
 branch (buys/gains remove the last matching purchase; drops re-add the purchase the row
 carries on a new `XpEntry.removed_purchase`; legacy drop rows are refused), and the XP
 log now labels merit rows by name instead of "merits". 8 new tests, suite at **2,092
-passing**. **Not browser-verified.** See *Undo of Merit changes*.
+passing**. **Browser-verified 2026-08-10.** See *Undo of Merit changes*.
 
 M&F were ripped out 2026-06-15 because the old implementation scattered their
 mechanical effects across every file they touched. **Decision 0011** is that they come
@@ -211,9 +211,19 @@ the catalogue name, with "(removed)" on a drop — which is what the "Undo last:
 names before it fires.
 
 8 new tests (7 in `tests/test_merits_flaws.py`, 1 in `tests/test_view.py`); suite at
-**2,092 passing**. **Not browser-verified** — engine and presenter are covered by tests;
-a click-through would buy a Merit for XP in play, hit Undo, and watch the row vanish
-from the sheet while the XP comes back.
+**2,092 passing**. **Browser-verified 2026-08-10** — bought a Merit for XP in play, hit
+Undo, watched the row leave the sheet while the XP came back; then dropped one and undid
+that, and it returned with its state intact. No findings.
+
+**⚠ One consequence recorded rather than fixed.** The legacy guard refuses to undo a
+drop row logged before it carried `removed_purchase`, and `undo_last` is strictly LIFO —
+so on a save that already holds such a row, undo is blocked from that row down, forever.
+That is the *same* failure the `removed_purchase` design above cites as its reason for
+existing ("a one-way drop row would sit on the LIFO stack and block every later undo"),
+so the contradiction is deliberate, not an oversight: the human's call 2026-08-10 is that
+no save in existence has a pre-fix merit-drop row, and a guard that can only fire on a
+save nobody has is not worth code. If that assumption ever breaks, the fix is to pop the
+row with a warning rather than refuse.
 
 ## Not done
 

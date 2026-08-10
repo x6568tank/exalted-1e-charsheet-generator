@@ -16,7 +16,9 @@ second character builder.** Nothing validates, prices or locks.
 | `Adversary`, `AdversaryAttack`, `AdversaryTrait` | `models/adversary.py` |
 | `Party.adversaries` | `models/party.py` |
 | Template instantiation, health notation, damage track, armour+shield soak/dodge | `engine/adversaries.py` |
-| The roster section, cards, editor dialog, the two free-text parsers | `ui/adversaries.py` |
+| Roster ids, duplicate naming, and the trait/attack **codec** — `parse_traits`/`trait_line`, `parse_attacks`/`attack_line` (**moved here from `ui/` 2026-08-10**) | `engine/adversaries.py` |
+| The card's stat-line wording: `summary_line`, `trait_map_line` (**moved here from `ui/` 2026-08-10**) | `ui/view.py` |
+| The roster section, cards, editor dialog — widgets only now | `ui/adversaries.py` |
 | 49 catalogue templates | `data/adversaries.json` |
 | The three p.335 shields, as tagged rows | `data/armor.json` |
 | Catalogue loader | `rules_db.load_adversary_catalog` |
@@ -24,6 +26,15 @@ second character builder.** Nothing validates, prices or locks.
 Cards carry a health track, a Willpower spent-track and one mote counter; the buttons
 are Reset, Duplicate, Edit and Delete. Entries persist in the existing `.party.json`,
 and bundles saved before this loads with the list empty.
+
+**⚠ `parse_traits`/`trait_line` and `parse_attacks`/`attack_line` are CODEC PAIRS, not
+a parser plus a display helper.** The GM edits both fields as free text: the `*_line`
+function fills the input, the `parse_*` function reads it back, and the round trip is
+asserted (`trait_line(parse_traits(s)) == s`). Change one side and you must change the
+other. That pairing is why they stayed together in `engine/adversaries.py` when the
+2026-08-10 sweep sent the other model→text functions to `view.py` — splitting a codec
+across two modules is worse than either home. `expand_health`/`format_health` beside
+them is the same shape and the reason `engine/` is the home.
 
 ## An Adversary is NOT a Character, and that is the load-bearing decision
 

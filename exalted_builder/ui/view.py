@@ -16,8 +16,10 @@ from dataclasses import dataclass, field, field as dc_field
 from typing import Optional
 
 from .. import custom_content
-from ..engine import (advancement, artifacts as artifactsmod, costs, derive, elder,
+from ..engine import (advancement, adversaries as advmod,
+                      artifacts as artifactsmod, costs, derive, elder,
                       merits as meritsmod, paths as engine_paths, validate)
+from ..models.adversary import Adversary
 from ..models.character import Armor, Character, HouseRules, Weapon, XpEntry
 from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, CharmCost,
                             Damage, RuleSet, SpellCircle, TRACK_CIRCLES, VirtueName,
@@ -2467,3 +2469,53 @@ def build_custom_library(ruleset: RuleSet, charm_rows: list[dict],
             valid=loaded is not None and loaded.custom,
             problem=_problem_for(rid)))
     return out
+
+
+# --------------------------------------------------------------------------- #
+# Adversary card presentation
+#
+# Moved verbatim out of `ui/adversaries.py` 2026-08-10 (the engine module was
+# aliased `adv` there and is `advmod` here — the only edit). Display composition,
+# not rules: every number comes from `engine.adversaries`, this just words it.
+#
+# Their siblings `trait_line` / `attack_line` did NOT come here despite also being
+# model-to-text: those are half of a round-tripped edit-field codec and live with
+# their parsers in `engine/adversaries.py`. See the note above them there.
+# --------------------------------------------------------------------------- #
+
+def summary_line(ruleset: RuleSet, a: Adversary) -> str:
+    """The one-line stat readout under the name: initiative, dodge, soak.
+
+    Reads through the engine so the armour's mobility penalty and soak land here
+    the same way they would anywhere else."""
+    lethal, bashing = advmod.soak(ruleset, a)
+    dodge = advmod.dodge_after_armor(ruleset, a)
+    bits = []
+    if a.base_initiative is not None:
+        bits.append(f"Init {a.base_initiative}")
+    # An extra's single pool replaces every Attribute + Ability roll it makes, so
+    # it belongs on the stat line rather than buried among the traits.
+    if a.combat_pool is not None:
+        bits.append(f"Pool {a.combat_pool}")
+    bits.append(f"Dodge {dodge}" if dodge is not None else "No dodge")
+    bits.append(f"Soak {lethal}L/{bashing}B")
+    if a.essence:
+        bits.append(f"Essence {a.essence}")
+    if a.cost_to_materialize:
+        bits.append(f"Materialize {a.cost_to_materialize}")
+    if a.cost_to_dematerialize:
+        bits.append(f"Dematerialize {a.cost_to_dematerialize}")
+    # The shield's contribution the dodge pool cannot show: the book prints this
+    # on the statblocks themselves ("+1 difficulty to attack"), and nothing here
+    # resolves an attack, so the Storyteller applies it.
+    melee, ranged = advmod.attack_difficulty(ruleset, a)
+    if melee or ranged:
+        bits.append(f"+{melee}/+{ranged} difficulty to hit (melee/ranged)")
+    return "  ·  ".join(bits)
+
+
+def trait_map_line(values: dict[str, int], order: list[str]) -> str:
+    """"Str 4  Dex 2  Sta 4" — the printed Attributes/Virtues, abbreviated to fit
+    a card. Absent keys are skipped, never shown as 0 (a beast prints three of the
+    nine, and the book means absent, not zero)."""
+    return "  ".join(f"{k[:3].title()} {values[k]}" for k in order if k in values)
