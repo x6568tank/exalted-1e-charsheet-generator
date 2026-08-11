@@ -28,3 +28,4 @@ status log says so rather than guessing.
 | [0012](0012-homebrew-library-plus-carried-copies.md) | Homebrew: a library is the store, saves carry copies | Accepted |
 | [0013](0013-edit-and-xp-are-one-surface.md) | Edit and XP are one surface; the dot track is the buy control | Accepted |
 | [0014](0014-essence-xp-purchasable-no-age-chart.md) | Essence is XP-purchasable to the splat cap; the age chart is gone | Accepted |
+| [0015](0015-exalt-tier-hierarchy.md) | The Exalt tiers are a ranked hierarchy, not a flat label | Accepted |

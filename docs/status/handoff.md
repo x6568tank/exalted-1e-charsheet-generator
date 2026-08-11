@@ -1,139 +1,70 @@
-# Session handoff — 2026-08-10 (end of day)
+# Session handoff — 2026-08-11 (end of day)
 
 **Rewritten each session.** This is the ephemeral handoff block; the durable operating
 guide is `CLAUDE.md`. When a session ends, replace *Current state* and *Open threads*
-with what the next session needs; everything else can point at the per-topic status
-docs.
+with what the next session needs; everything else can point at the per-topic status docs.
 
 ## Current state
-- Suite green: **2,092 passing** (the one machine-only M&F description failure is not a
-  regression — see CLAUDE.md → Status). Branch `main`.
-- **⚠ Uncommitted at end of session: the tier-2 move** (6 files — `engine/adversaries.py`,
-  `ui/adversaries.py`, `ui/view.py`, `docs/ARCHITECTURE.md`,
-  `docs/status/adversary-roster.md`, `docs/plans/qt-port.md`), plus this close-out's doc
-  edits. Suite green with them in place.
-  ⚠ **A previous handoff claimed "branch before committing — no direct commits to
-  `main`". That is FALSE and the human has corrected it (2026-08-10).** The history is
-  a flat series of direct commits to `main`; there is no such convention and never was.
-  Do not reintroduce it, and do not offer to branch on the strength of it.
-- **Catalogue picker dialogs — DONE, browser-verified, through TWO code-review passes**
-  (`a5fc3f6`, `b162a05`, `fbe97a0`). The second pass found a serious bug the first fix
-  introduced and corrected an overclaim. Record: `docs/status/catalogue-dialogs.md`.
-- **The `undo_last` merits bug is FIXED and browser-verified.** `undo_last` grew a
-  `merits` branch — buys/gains remove the last matching `MeritFlawPurchase`, drops re-add
-  the purchase carried on a new `XpEntry.removed_purchase`, legacy drop rows are refused
-  — and XP-log rows label merits by name instead of the bare "merits".
-  Record: `docs/status/merits-flaws.md` → *Undo of Merit changes*.
-- **A Qt/PySide6 port is now a recorded post-1.0 goal**, not scheduled and not started.
-  Plan, measured baseline and open questions: `docs/plans/qt-port.md`; the standing
-  guard is in CLAUDE.md → *After 1.0 — the Qt port*.
-- **Three misplacement cleanups landed** on the strength of that audit — see below.
+- Suite green: **2,102 passing** (the one machine-only M&F description failure is not a
+  regression — CLAUDE.md → Status). Branch `main`; `deepseek-experiment` merged and
+  0 ahead.
+- **The 1.0 catalogue sweep is DONE for everything on disk** —
+  `docs/status/catalogue-sweep.md`. Charms 1,709 → **1,836**, spells 92 → **246**,
+  artifacts 40 → **196**, across six delegated batches, **browser-verified 2026-08-11**.
+- **`sources/` extraction is authorised** (human, 2026-08-10) and eight books are
+  decoded into `images/_extracted/`. Three were ciphered; the corebook has thirteen
+  fonts each with its own cipher. Tools + the ciphers-as-data: `tools/glyph_maps/`,
+  `tools/solve_cid_bands.py`, `tools/extract_born_digital.py`,
+  `tools/apply_glyph_map.py`.
+- **Decision 0015 — Exalt tiers are RANKED** (Terrestrial < Celestial < Solar). Solar
+  had been mislabelled `Celestial` because exact-match could not express "or below";
+  Alchemical matched nothing and needed a hardcoded Perfected Lotus Matrix grant. Both
+  fixed.
+- ⚠ **`images/` does not travel between worktrees or machines.** The extractions live
+  only on this machine. Every glyph map and tool IS committed, so they can be
+  regenerated — one command per book.
 
 ## 👉 START HERE — nothing is blocking
-No click-through is owed on this session's work. Pick from *Open threads*; the cheapest
-is the Twilight/Eclipse artifact names.
+No click-through is owed. Everything authorable from text on disk is authored.
 
-## What moved this session (the layering cleanups)
-All three were behaviour-preserving, verified by diffing each moved function against its
-pre-move source, and left every call site and test untouched via re-exports.
+## The one thing that unblocks more work: page syncs
+**213 entries remain and every one is page-blocked.** By combined yield:
 
-1. **`engine/thaum_actions.py`** — 206 lines of lock-dispatching thaumaturgy purchases
-   out of `ui/picker.py` (2,313 → 2,124 lines). They were game logic and never imported
-   `nicegui`. `picker.py` re-exports every name.
-2. **Tier 1 — one printed rule encoded twice, in two places.** `editor._BASE_HEALTH` is
-   now `Counter(derive.BASE_WOUND_PENALTIES)` instead of a hand-written
-   `{0: 1, -1: 2, -2: 2, -4: 1}`; the weapon/armour stat lines are one copy in
-   `view.weapon_stat_line` / `armor_stat_line` instead of two. **The armour pair had
-   already drifted** — two spaces before `Mob` in the row readout, one in the catalogue
-   dialog, while the dialog's docstring claimed they matched. Unified on the row
-   readout's spacing (the older, browser-verified surface).
-3. **Tier 2 — `ui/adversaries.py` 640 → 490 lines**, now widgets only. Ids, duplicate
-   naming and the trait/attack codec went to `engine/adversaries.py`; `summary_line` and
-   `trait_map_line` went to `view.py`.
+| Book | Artifacts | Spells | Charms | Total |
+|---|---|---|---|---|
+| Book of Three Circles | 14 | 49 | — | **63** |
+| Savage Seas | 4 | 4 | 10 | **18** |
+| The Lunars | — | — | 17 | **17** |
+| Abyssals pp.254-261 | 16 | — | — | **16** |
+| Time of Tumult | 11 | — | 3 | **14** |
+| Blood and Salt | 11 | 2 | — | **13** |
+| Aspect Book: Air | 13 | — | — | **13** |
 
-## ⚠ Flagged, not invented
-- The **Flamecaster / Pyromantic Grenade** print a Resources cost only; their Artifact
-  rating **mirrors 3** so the Art field can fund them either way — the ST sets the real
-  value.
-- The **Myrmidon Carapace**'s weight class is not printed — assigned **Medium**, human
-  confirmed fine 2026-08-08.
-- The **alchemical goods** (Godstrike Oil, Pyromantic Gel, Synthetic Leather, MF
-  pp.275-277) were authored as a `GoodType` catalogue, shown in the browser, then
-  **removed on the human's ruling** — the build only catalogues what feeds a mechanical
-  read site (materials → derive, artifacts → budget/dropdown, weapons/armour → the
-  sheet); a goods card would be the first data with no mechanism behind it. Full
-  transcription kept in `docs/status/rated-artifacts.md` → *The alchemical goods*.
-- **Undo of a merit drop on a pre-fix save is permanently refused**, and `undo_last` is
-  LIFO, so such a save's undo stack is blocked from that row down. Deliberate — the
-  human's call is that no save in existence holds a pre-fix merit-drop row. Written up
-  beside the design rationale it appears to contradict, in
-  `docs/status/merits-flaws.md`.
+⚠ **Before authoring any of it, read `catalogue-sweep.md`'s trap list** — in particular
+that *"missing from the build" is not "should be authored"*, which sent two batches
+deliberately-excluded content this session.
 
-## Open threads (none urgent)
-- **The 1.0 catalogue sweep is now planned** — `docs/plans/content-completeness.md`
-  (recorded 2026-08-10, human's ask). Three tracks: Charms/Arcanoi vs the charm-trees
-  PDF, spells vs the human's masterlist, artifacts vs the existing backlog.
-  **All three indexes are on disk — but in the `-ds` worktree
-  (`…Charsheet Generator-ds/images/`), not this one**, since `images/` is gitignored and
-  does not travel between worktrees. **BOTH diffs are DONE: 168 Charms + 213 spells
-  missing, on top of 266 artifacts (647 total).** Every entry is enumerated per book in
-  **`docs/status/content-gap-entries.md`** (regenerate: `tools/gen_content_gap.py`).
-  All discovery work is finished;
-  **the only remaining blocker on the whole plan is page sync — no rulings are open.**
-  **👉 Sync `Book of Bone and Ebony` first — 204 entries, the highest-value sync in the
-  project** (70 Arcanoi + 60 spells + 74 artifacts). Then Savant and Sorcerer (98),
-  Player's Guide (71, the only source of 49 missing MA Charms), Three Circles (63).
-  Rulings closed this session: **Fair Folk artifacts are OUT OF SCOPE** (reviewed, as
-  game-changing as the splat's rules — decision 0010 territory, do not re-ask);
-  `Adamant` = `Solar` (two in-universe naming schemes, Realm vs not).
-  ⚠ **A name-only diff overstated the Charm gap by 55%** (278 → 168) — the build's
-  parameterised entries (`Keen (Sense) Technique`) and tree typos ate the difference.
-  Mountain Folk went 7 → 1 on re-check. **Suspect the diff before the build.**
-- **`sources/` extraction is authorised and SIX BOOKS ARE EXTRACTED** (2026-08-10) into
-  `images/_extracted/` via `tools/extract_born_digital.py` — Bone and Ebony, Player's
-  Guide, Savant and Sorcerer, Autochthonians, Games of Divinity, Ruins of Rathess.
-  **267 of 285 gap entries from those books now have source text on disk.** Two things
-  need the human before authoring from them: **Savant and Sorcerer's 1,754 unmapped
-  `(cid:N)` glyphs** (left verbatim on purpose — substituting is interpretation), and
-  **The Outcaste, which the tool REFUSES** (its text layer is byte-shifted gibberish
-  despite being 4,700 chars/page — it needs the VLM leg). ⚠ **Character count is not
-  readability** is the lesson; the tool now checks.
-- **Abyssal Charm attribution FIXED** — all 233 said `Exalted 1e Core` while carrying
-  Abyssals pages; now `Exalted: The Abyssals`. `Exalted 1e Core` → `Core` and the three
-  Player's Guide spellings → `Player's Guide` (model default updated too). Conventions
-  and the open cosmetic cleanup: **`docs/source-attribution.md`**.
-- **The 20 Twilight/Eclipse artifact names are still NOT browser-verified.** Pin +
-  combobox tests green, but no click-through of the new names in the Advantages tab.
-  Light check — pick a Twilight and an Eclipse name, confirm name→rating autofill +
-  description label.
-- **Tier 3 of the `ui/` audit** — five small sites (`play.py`'s PlayState mutators,
-  `editor.py`'s origin/upbringing options, `builder.py`'s `visible_tabs`,
-  `storyteller.py`'s `set_rule`, three duplicate dot formatters). **Deliberately not
-  scheduled**: sweep each up while porting the module it lives in. Table with
-  destinations in `docs/plans/qt-port.md` → *The audit*.
+## Open questions for the human (none blocking)
+- **Rathess p.86** — three artifacts under a `COLUMN SPLIT FAILED` marker; a
+  reassembly is in `artifact-batch-2-notes.md` awaiting a one-read sign-off.
+- **`Insidious Ebon Xoanon`** prints `ARTIFACT N/A`; `rating` is required 1-5.
+- **`Kireeki-class Assault Skyreme`** — the fan index places it at Outcaste p.64, which
+  is the Skywolf; the name is nowhere in the book.
+- **Savant and Sorcerer `(cid:144)`** + seven rarer codes (25 occurrences) unmapped.
+
+## Older threads, still open
+- **Tier 3 of the `ui/` audit** — five small sites; deliberately not scheduled, sweep
+  each up while porting its module (`docs/plans/qt-port.md` → *The audit*).
 - **Naming follow-up:** `thaum_actions.raise_thaum_science` / `add_thaum_orientation`
-  shadow the `advancement` functions they call after the lock. Works, reads badly;
-  renaming the dispatchers is a clean standalone commit.
-
-## Blocked / not started
-- **Direlance catalogue entry** + **Slayer Khatar** — their description pages aren't on
-  disk (p.341's crop is Artifact Materials, p.344's is the Lightning Torment Hatchet).
-  Per-book authoring queue: `docs/status/artifact-backlog-entries.md`.
-- **Dragon-Blooded numina / the Mist aspect** — blocked on pages; see CLAUDE.md →
-  TODO → Blocked.
+  shadow the `advancement` functions they call. Works, reads badly.
+- **Dragon-Blooded numina / the Mist aspect** — blocked on pages; CLAUDE.md → Blocked.
 
 ## Pointers
-- The post-1.0 Qt port plan + the `ui/` misplacement audit (tiers 1-3):
-  `docs/plans/qt-port.md`
-- Catalogue dialogs + both code-review passes (the canary trap, the drop-returns-None
-  ruling): `docs/status/catalogue-dialogs.md`
-- Merit undo, `XpEntry.removed_purchase`, the legacy-row guard: `docs/status/merits-flaws.md`
-- Thaumaturgy purchases now in `engine/thaum_actions.py`: `docs/status/thaumaturgy.md`
-- The adversary trait/attack **codec pair** invariant: `docs/status/adversary-roster.md`
-- Twilight/Eclipse batch + catalogue/dropdown contract + dual-nature devices +
-  alchemical-goods ruling: `docs/status/rated-artifacts.md`
-- The 1E artifact discovery layer + per-book queues: `docs/status/artifact-backlog.md`,
-  `docs/status/artifact-backlog-entries.md`
-- Elemental Powers + p.48 sorcery + the 80-Charm spirit catalogue: `docs/status/godblooded.md`
-- Mountain Folk (Enlightenment axis, five-Pattern economy): `docs/status/mountain-folk.md`
-- Session-state notes from prior handoffs live in git history, not here.
+- The sweep, its five traps, and the new gate mechanics: `docs/status/catalogue-sweep.md`
+- Per-batch records: `spell-batch-notes.md`, `artifact-batch-notes.md`,
+  `artifact-batch-2-notes.md`, `ghost-arcanoi-batch-notes.md`,
+  `martial-arts-batch-notes.md`, `charms-closeout-notes.md`
+- Every missing entry, per book: `docs/status/content-gap-entries.md`
+- How `source.book` is written and why it rots: `docs/source-attribution.md`
+- Ranked tiers, alternatives rejected, what it costs: `docs/decisions/0015-*.md`
+- The post-1.0 Qt port (now decision **0016** when committed): `docs/plans/qt-port.md`

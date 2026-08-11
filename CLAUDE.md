@@ -152,6 +152,7 @@ costs — read the record before proposing anything that contradicts it.
 | 0012 | Homebrew: the `custom/` library is the store, saves carry copies, homebrew errors are non-fatal |
 | 0013 | **Edit and XP are ONE surface** — the dot track is the buy control; there is no XP tab |
 | 0014 | Essence is XP-purchasable to the splat cap; the age chart is gone |
+| 0015 | **Exalt tiers are RANKED** — Terrestrial < Celestial < Solar; a splat reaches its own tier and every tier below, never up |
 
 **Permanently out of scope** — decisions 0008, 0009 and 0010 (no combat/attack
 derivation, no dice rolling of any kind, no Fair Folk). Read them before proposing any
@@ -216,7 +217,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,092 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,102 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -230,6 +231,8 @@ full record.
 | Area | File |
 |---|---|
 | **Session handoff — rewritten each session** | `docs/status/handoff.md` |
+| **The 1.0 catalogue sweep — DONE for everything on disk** (six delegated batches; the `sources/` extraction pipeline and its three glyph ciphers; five traps worth re-reading) | `docs/status/catalogue-sweep.md` |
+| How `source.book` is written, and why it rots | `docs/source-attribution.md` |
 | **How it works** (module boundaries, lifecycle, invariants) | `docs/ARCHITECTURE.md` |
 | **Why** (closed decisions, one record each) | `docs/decisions/` |
 | **The rules data** (conventions, what the loader checks) | `docs/content.md` |
@@ -252,7 +255,7 @@ full record.
 | **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — the ten Mountain Folk artifacts, GROWN TO 40 the same day across three castebook batches (`artifact.castebook-*`: Dawn/Night/Zenith pp.78-81 + Twilight/Eclipse pp.79-81 — the last on-disk artifacts, none remain unauthored) and the Hooked Daiklaves/Direlance rated gear rows, two blocked core items flagged — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08; **the 20 Twilight/Eclipse names are NOT yet browser-verified**) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
 | **Catalogue picker dialogs — DONE, browser-verified 2026-08-10** (a shared `ui/catalogue.py` dialog on every add surface — weapons/armour/artifacts/backgrounds/M&F; browse name + summary, full description collapsible, a **Custom** row; custom M&F via `MeritFlawPurchase.custom_name`, display-only with no mechanical effect; the old silent cheapest-append `add_merit` deleted) | `docs/status/catalogue-dialogs.md` |
-| **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM. **2026-08-08 correction:** five mislabelled codes fixed — `ab_a/e/f/v/w` are the Dragon-Blooded **Aspect Books**, `salt` = Blood and Salt, `coin` = Manacle and Coin. **The on-disk slice is now EXHAUSTED** — the 40 entries authorable-now plus the 20 Caste Book Twilight/Eclipse entries (their pp.79-81 pages landed and were VLM-transcribed 2026-08-08) are all in the build (`data/artifacts.json` = 40); only the Direlance catalogue entry, the Slayer Khatar and the Fair Folk 205-211 question remain, all blocked on pages; per-entry authoring queue with build status in `artifact-backlog-entries.md`) | `docs/status/artifact-backlog.md` |
+| **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM. **2026-08-08 correction:** five mislabelled codes fixed — `ab_a/e/f/v/w` are the Dragon-Blooded **Aspect Books**, `salt` = Blood and Salt, `coin` = Manacle and Coin. **Superseded 2026-08-11 by `catalogue-sweep.md`** — `data/artifacts.json` now holds **196**, the Slayer Khatar is authored, the Direlance has no standalone entry to author (core p.341 decoded), and Fair Folk artifacts are OUT OF SCOPE on the human's ruling. Keep this file for the parse method and the per-book page lists; per-entry queue in `artifact-backlog-entries.md`) | `docs/status/artifact-backlog.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
 | **Ghosts — DONE, browser-verified** (7th splat, 2nd non-Exalt; Virtue-keyed Arcanoi, Fetters + Passions, two axes, Terrestrial MA + Fighter in Life) | `docs/status/ghosts.md` |
 | **Godblooded — DONE, browser-verified** (8th splat, 3rd non-Exalt; Ghost-Blooded, Half-Caste and Fae-Blooded heritages, plus God/Demon-Blooded heritage rows + 16 M&F + the 80-Charm spirit catalogue authored 2026-08-07 and the p.48 sorcery initiation 2026-08-08, every printed prereq wired — browser-verified 2026-08-08) | `docs/status/godblooded.md` |
@@ -263,11 +266,11 @@ full record.
 
 **State of the world:** the foundation (models, persistence, engine, UI) is done
 (`engine-and-ui.md`); every shipped splat's data, engine and UI is browser-verified,
-including Mountain Folk (2026-08-07). 1,470 Charms across the six Exalt splats, plus
-56 ghost Arcanoi and 94 Mountain Folk Charms (`data-and-tooling.md`). Rated artifacts
-and the catalogue/dropdown shipped 2026-08-08 — 40 entries, the on-disk backlog
-exhausted (only the Direlance catalogue entry and Slayer Khatar remain, both blocked
-on pages) — see `docs/status/rated-artifacts.md`.
+including Mountain Folk (2026-08-07). **The 1.0 catalogue sweep finished 2026-08-11
+(`catalogue-sweep.md`): 1,836 Charms/Arcanoi, 246 spells, 196 rated artifacts**, all
+browser-verified. Everything still missing — 213 entries — is blocked on page syncs,
+not on work. `sources/` extraction is authorised and eight books are decoded into
+`images/_extracted/`.
 Ship dates for everything else live in the per-splat status docs and the git log.
 
 ### Removed
@@ -286,7 +289,7 @@ Ship dates for everything else live in the per-splat status docs and the git log
 ### After 1.0 — the Qt port (a standing goal, NOT scheduled)
 **Human, 2026-08-10:** after the 1.0 ship (feature-complete — sourcebooks, the full
 artifact and spell catalogues), branch and rebuild the UI on **PySide6/Qt**, which
-becomes the bedrock of a 2.0. Nothing is committed; it becomes **decision 0015** when it
+becomes the bedrock of a 2.0. Nothing is committed; it becomes **decision 0016** when it
 is. **Do not start it before 1.0 and do not treat it as a 1.0 blocker** — a different
 widget toolkit is not a feature. Full plan, measured baseline and open questions:
 **`docs/plans/qt-port.md`**.
@@ -329,56 +332,24 @@ The session handoff — current state, open threads, flagged items and pointers 
 in **`docs/status/handoff.md`**. **It is rewritten each session.** This file is the
 durable operating guide; do not re-accumulate handoff narrative here.
 
-### The 1.0 catalogue sweep → `docs/plans/content-completeness.md`
-**Recorded 2026-08-10 (human's ask), not scheduled.** Every splat's *mechanics* ship;
-the three big *content* catalogues do not. Three tracks, each keyed to a discovery
-index, **all three of which are now on disk** — ⚠ but in the **`-ds` worktree's**
-`images/`, not `main`'s, because `images/` is gitignored and does not travel between
-worktrees any more than between machines. Look there before calling one missing.
+### The 1.0 catalogue sweep → DONE for everything on disk (2026-08-11)
+**Record: `docs/status/catalogue-sweep.md`.** Charms 1,709 → **1,836**, spells 92 →
+**246**, artifacts 40 → **196**, across six delegated batches, browser-verified.
+`sources/` extraction is authorised and eight books are decoded into
+`images/_extracted/` — three of them were ciphered, the corebook with thirteen fonts
+each carrying its own cipher (`tools/glyph_maps/`, `tools/solve_cid_bands.py`).
 
-**BOTH diffs are DONE (2026-08-10) and all discovery work is finished — every remaining
-blocker is a page sync.** Build holds 1,709 Charms/Arcanoi, 92 spells, 40 artifacts;
-**missing: 168 Charms, 213 spells, 266 artifacts (647 total).** Every one is
-enumerated per book in `docs/status/content-gap-entries.md`.
+**What remains is 213 entries and every one is page-blocked** — 112 artifacts, 61
+spells, ~31 Charms. Highest combined yield per sync: Book of Three Circles (63), Savage
+Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
 
-**Sequence page syncs by BOOK, not by track — the books pay across all three at once.
-`Book of Bone and Ebony` is the single highest-value sync in the project: 204 entries**
-(70 Arcanoi — the Ghost catalogue is less than half authored — plus 60 spells and 74
-artifacts). Then Savant and Sorcerer (98), Player's Guide (71, the only source of the 49
-missing Martial Arts Charms), Book of Three Circles (63).
-
-**2026-08-10 — `sources/` extraction is AUTHORISED** (human: "automating extraction works
-for me when taking `sources`"). `tools/extract_born_digital.py` writes page-marked `.md`
-into `images/_extracted/`; **six books are extracted and 267 of the gap entries now have
-their source text on disk.** The vetting checkpoint moved from the human's manual copy to
-the human reading the output — backed by the human's companion rule: **anything too
-garbled to read without heavy interpretation is MARKED and DEFERRED, never guessed.**
-Three traps recorded in the plan: **character count is not readability** (The Outcaste
-extracts 4,700 chars/page of byte-shifted gibberish — the tool now refuses it), Savant
-and Sorcerer's **1,754 unmapped `(cid:N)` glyphs** are left verbatim pending a ruling, and
-small-caps headings must cluster on the **baseline** or Charm names scramble.
-Attribution conventions: `docs/source-attribution.md`.
-
-⚠ **Both indexes are fan-made and carry errors, and a name-only diff overstates the gap
-badly** — the Charm first pass said 278, the true number is 168. Three classes ate the
-difference: entries living in an unexpected file, tree typos where the build is right
-(52), and **the build's PARAMETERISED entries** (`Keen (Sense) Technique`,
-`Mantle of (Element) Invulnerability`, `Auspicious Prospects for (Caste)`) where the
-trees print one box per variant (28). **Never correct the build toward an index, never
-split a parameterised entry into duplicates, and when a shipped browser-verified splat
-looks like it is missing content, suspect the diff first** — Mountain Folk went 7 → 1
-that way. Treat the trees' prerequisite edges as an audit to raise with the human, never
-a fix to apply.
-
-**Fair Folk artifacts are OUT OF SCOPE (human, 2026-08-10)** — reviewed and judged as
-game-changing as the Fair Folk rules themselves, so they follow their splat out under
-decision 0010. Closed, not deferred. The Fair Folk *book* remains a valid source for
-Mountain Folk content: the book is not the splat.
-
-**The governing rule, already settled for artifacts and extending unchanged to the other
-two: a discovery index is discovery only — book, page and name. Every value still comes
-from a human-supplied page.** The charm-trees PDF is not an exception, and reading it
-out of `sources/` yourself is still forbidden.
+⚠ **Two rules that came out of it and generalise beyond it:**
+- **"Missing from the build" is not "should be authored."** The gap diff cannot see a
+  human ruling; two batches were sent deliberately-excluded content. A partial gap is a
+  decision, not an oversight — grep `docs/status/` and `tests/` for an entry name first.
+- **A search shaped like what you expect proves nothing about a thing shaped
+  differently.** Four verification failures in one session came from this; see the
+  status file.
 
 ### Blocked / not started
 * **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
