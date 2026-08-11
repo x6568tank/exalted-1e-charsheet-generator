@@ -1,0 +1,249 @@
+[
+  {
+    "id": "ghost.shadow-constraint-craft.illuminate-the-shadow-constraint",
+    "name": "Illuminate the Shadow Constraint",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote",
+      "motes": 1
+    },
+    "duration": "One minute",
+    "description": "Throughout the Underworld, subtle laws apply to the activities of ghosts. Most such laws stem from the use of ancient and wide-ranging necromancy, but others are restricted in their area of effect, are new or have nothing to do with necromancy itself — they are inherent to the fabric of the Underworld. Ghosts can create temporary taboos with the Impose Stricture Arcanos (see p. 45). Illuminate the Shadow Constraint reveals any taboos that apply to any locations within sight. Alternately, the ghost’s player may roll Perception + Bureaucracy when her character uses this Charm in order to determine any taboos that apply to a particular person or ghost. Studious and careful ghosts learn Illuminate the Shadow Constraint in order to remain aware of taboos and strange laws of reality as they travel from realm to realm.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 43
+    }
+  },
+  {
+    "id": "ghost.shadow-constraint-craft.dark-sorcery-observation",
+    "name": "Dark Sorcery Observation",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 1,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote",
+      "motes": 1
+    },
+    "duration": "Instant",
+    "description": "A ghost who activates Dark Sorcery Observation instantly notices the presence of any active necromantic effects within his field of vision, so long as his player succeeds in a simple Perception + Occult roll. Ensorcelled people, objects or areas emit a dark, pulsing aura to the character’s eyes for a moment or two. With three or more successes, the ghost is aware of the circle (Shadowlands, Underworld, Void) of the necromancy, and with five or more successes, he learns a one-word description of what every effect in the area is doing.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 44
+    }
+  },
+  {
+    "id": "ghost.shadow-constraint-craft.ghostly-magistrate-perception",
+    "name": "Ghostly Magistrate Perception",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "ghost.shadow-constraint-craft.illuminate-the-shadow-constraint"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote",
+      "motes": 1
+    },
+    "duration": "One scene",
+    "description": "This simple Charm allows a ghost to detect the presence of criminals against the local natural order. It immediately points out any living being in line of sight within the Underworld (even if he attempts to conceal his presence through non-magical disguises or the like). Additionally, with a Perception + Bureaucracy roll at standard difficulty, the ghost-magistrate notices any entity that has violated a taboo of the Underworld within the last 24 hours and not had his violation forgiven through the use of Accept Amercement.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 44
+    }
+  },
+  {
+    "id": "ghost.shadow-constraint-craft.brief-exemption",
+    "name": "Brief Exemption",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.shadow-constraint-craft.illuminate-the-shadow-constraint"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "Brief Exemption allows a ghost to tiptoe around a taboo of the Underworld, whether it is a “natural” taboo, one imposed by necromancy or one created by Impose Stricture (see p. 45). A Manipulation + Stealth roll is required. An “ordinary” natural taboo requires just one success to ignore. One imposed by Necromancy or Impose Stricture requires a number of successes equal to the Essence of the entity who created the taboo (a default of four if unknown).",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 44
+    }
+  },
+  {
+    "id": "ghost.shadow-constraint-craft.accept-amercement",
+    "name": "Accept Amercement",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.shadow-constraint-craft.brief-exemption"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes, 1 Willpower",
+      "motes": 3,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "Accept Amercement allows a learned ghost to forgive another’s trespass of local taboo. The violator does not have to be truly repentant; the Charm simply eliminates the negative effect of the taboo for the scene. If the taboo act is a simple, instant thing — eating pomegranates, for instance — this Charm “erases” the act, and the target of the Charm will suffer no further ill effects from his past violation. If the taboo is a state of being — for instance, wearing shoes when it is forbidden to do so — the Arcanos allows the target to continue to violate the taboo for the duration of a single scene.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 44
+    }
+  },
+  {
+    "id": "ghost.shadow-constraint-craft.levy-fine",
+    "name": "Levy Fine",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.shadow-constraint-craft.accept-amercement"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "One scene",
+    "description": "The intensity of punishment for violating a taboo varies wildly. This Arcanos allows a ghostly magistrate to add his own penalty to a violation. This additional punishment can take one of several forms, at the magistrate’s discretion: -2 dice to all dice pools; a visible or audible sign that the violator is a criminal (such as a brand or a phantom crow that shouts “Violator!” from the character’s shoulder); or all forms of movement reduced by 1/3 due to some visible impediment. Similarly scaled punishments may also be levied, at the Storyteller’s discretion. All such effects last until the end of the scene in which Levy Fine is invoked but require no dice roll to impose so long as the target of the Charm has violated a local taboo. No punishment can be used if the target has not violated a local taboo. This Charm may be applied multiple times to a single target, but only if he has violated multiple laws of the Underworld.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 44
+    }
+  },
+  {
+    "id": "ghost.shadow-constraint-craft.house-arrest",
+    "name": "House Arrest",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.shadow-constraint-craft.levy-fine"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes, 1 Willpower",
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "Permanent (see below)",
+    "description": "The successful use of House Arrest forces a living violator of an Underworld taboo to remain in the Underworld or a shadowland until such time as he is forgiven for his transgression. This forgiveness can only come from the use of Accept Amercement (see p. 44) by a ghost with equal to or higher Essence than the ghost who uses this Arcanos. This Arcanos has no effect on ghosts, nor even on Ghost-Blooded.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 44
+    }
+  },
+  {
+    "id": "ghost.shadow-constraint-craft.hide-the-living-name",
+    "name": "Hide the Living Name",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "ghost.shadow-constraint-craft.house-arrest"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 1 Willpower",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "Instant (see below)",
+    "description": "Hide the Living Name turns a living transgressor into a ghost for all intents and purposes until his crime is forgiven by a ghostly magistrate with equal or higher Essence than the user of this Arcanos. The Charm strips away the subject’s physical form and life-essence, imprisoning it in an unknown location (many suspect the Labyrinth — which might have dire consequences in the long run). What’s left, the target’s higher soul (or hun), persists as any other ghost might. The subject of the Charm can leave the Underworld through a shadowland and even enter Creation, but no matter where he goes, he remains a ghost (and is incorporeal in Creation, etc.). His physical body does, apparently, age — a few centuries ago, in a rare case, a mortal was stricken to ghosthood by a vengeful magistrate and left in that state for several years. When he returned to a living state, he found that his hair had grayed and that lines had crept across his face. Living targets of this Charm with particularly high scores in any Virtue and low Willpower may find that their bodies become possessed by spectres while they are under the influence of this Arcanos. Spectres are attracted to the bodies of the particularly virtuous (regardless of the Virtue), but are repelled by the leftover Willpower that anchors the living body’s mind. If the sum of the character’s two highest Virtues exceed his Willpower, that character’s body is a potential possession target. A possessing spectre takes a living body back into Creation and wreaks havoc as it sees fit. It cannot read the victim’s mind, so it cannot necessarily destroy the character’s life, but it can certainly break laws and cause trouble no matter where it goes. If a possessed body is killed in Creation, it returns to the Labyrinth and slowly regenerates, and the spectre that took it to Creation is ejected. If the character’s body is possessed at the time that his sentence ends, he cannot return to it until the spectre residing in it is somehow ejected. It is the Storyteller’s call as to whether the target’s body has been possessed at all and particularly whether the body is “out” at the time that the target is ready to return to it.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 45
+    }
+  },
+  {
+    "id": "ghost.shadow-constraint-craft.impose-stricture",
+    "name": "Impose Stricture",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "ghost.shadow-constraint-craft.levy-fine"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 1 Willpower",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "Three days per success",
+    "description": "The ghost using Impose Stricture can create a short-term taboo in his local area — within one mile per point of permanent Essence (or the size of a small village). This taboo should be relatively simple — nearly all taboos either preclude a single simple behavior (such as eating pomegranates) or require a single behavior (such as wearing a particular garment at all times). No taboo can be impossible to adhere to — even taboos that are logical impossibilities (“Everyone in this area must be male and female at the same time”) has to have a possible symbolic solution (ritual transvestitism, for instance). Taboos created by Impose Stricture only apply within the Underworld. Impose Stricture implies only a single, relatively minor penalty — violators of a taboo suffer a one-die penalty to all dice pools until one hour past the time that they stop violating the taboo. That is, if the taboo is a single action, violators suffer a one-hour penalty. If it is a continuous action (“Wear no leather”), the penalty applies as long as the criminal violates the taboo and then an additional hour after that. The one-hour duration can be cut short if the violator receives the use of Accept Amercement by a ghost magistrate.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 45
+    }
+  },
+  {
+    "id": "ghost.shadow-constraint-craft.curse-of-the-damned",
+    "name": "Curse of the Damned",
+    "category": "shadow_constraint_craft",
+    "exalt_type": "Ghost",
+    "type": "Special",
+    "min_virtue": "temperance",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "ghost.shadow-constraint-craft.impose-stricture"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 1 Willpower",
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "Instant",
+    "description": "A magistrate-ghost uses Curse of the Damned to apply a permanent taboo to another being — be it a spirit, a ghost or a living being. The target of this Arcanos must have an Essence lower than the ghost using it, and it is difficult to apply — the ghost’s player makes a Manipulation + Lore roll, while the target’s player resists with Willpower. If the ghost achieves more successes, the target suffers from a taboo for the rest of its existence. As with Impose Stricture (see p. 45), violation of the taboo results in a one-die penalty to all dice pools for at least one hour after the violation. The taboo should be straightforward, as described in Impose Stricture (with examples given in the boxed text on p. 43). The Curse of the Damned can be removed if the ghost who inflicted it uses Accept Amercement or if any other entity with an Essence higher than the ghostly magistrate who invoked the taboo uses Accept Amercement.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 45
+    }
+  }
+]

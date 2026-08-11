@@ -204,5 +204,104 @@
       "book": "Exalted: The Abyssals",
       "page": 248
     }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.intangible-guardian-presence",
+    "name": "Intangible Guardian Presence",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Special",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.mortal-shadowing-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "This Arcanos is a type of Ox-Body Charm that works only on vessels the ghost is riding or possessing. While it doesn’t add anything to the ghost’s health levels, it dramatically fortifies all vessels she is skinriding using Mortal-Shadowing Technique, Nemissary’s Ride or subsequent Arcanoi in the tree. Some ghosts skinride mortal descendants to protect them in battle, while others augment possessed corpses to increase their own battlefield prowess. When a ghost departs the vessel she was riding, the extra health levels are crossed off, whether they held damage or not. Each purchase imparts one -0 and one -1 health level on the ghost’s vessel. A ghost can buy this Charm as many times as she has dots in her Compassion rating. Storytellers should note that a ghost’s own Ox-Body Technique does not fortify hosts, only her own plasm. This Arcanos is particularly helpful when the ghost is riding a smaller animal, such as a raiton, which usually has far fewer health levels than a human being.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 91
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.the-embalmers-art",
+    "name": "The Embalmer’s Art",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.nemissarys-ride"
+      ]
+    ],
+    "cost": {
+      "raw": "15 motes (committed), 2 Willpower",
+      "motes": 15,
+      "willpower": 2,
+      "committed": true
+    },
+    "duration": "Indefinite",
+    "description": "With this Arcanos, a nemissary refines her ability to possess and animate dead flesh. She may automatically commandeer a corpse as if using Nemissary’s Ride (see Exalted: The Abyssals, p. 250) but requires no roll to do so. Such possession lasts until the ghost withdraws the Essence committed to the Arcanos. Finally, a body possessed using the Embalmer’s Art does not decay. Any existing decay from prior to possession remains, and the body resumes decomposing normally if the ghost leaves it. Furthermore, the nemissary may fortify the vessel it’s riding with Essence. For every 4 additional motes of Essence the ghost commits to the vessel, it gains a -2 health level. The ghost can impart up to its Compassion rating in additional health levels on a vessel this way. Nemissaries wanting to develop their powers even further can purchase a superior version of this Arcanos called the Embalmer’s Enduring Triumph. This Arcanos functions exactly as The Embalmer’s Art, but requires Compassion •••, Essence •••• and the Embalmer’s Art as a prerequisite. However, the Embalmer’s Enduring Triumph costs only 10 motes and 1 Willpower to activate and 2 motes per -1 health level, and the Willpower cost is waived if the ghost is in a shadowland.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 91
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.instauration-of-the-fleshly-vessel",
+    "name": "Instauration of the Fleshly Vessel",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Reflexive",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.the-embalmers-art"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies"
+    },
+    "duration": "Instant",
+    "description": "Among the most powerful — and sometimes most painful — Arcanoi used by nemissaries, Instauration of the Fleshly Vessel allows a ghost to repair damage to a body she is possessing, whether that damage was caused by rot or combat. Many ghosts dislike this Arcanos because of the pain it causes them, but it provides the nemissary with options for keeping a war body useful well beyond its usual duration. The first technique in this Arcanos repairs rotting damage. Every 4 motes of Essence the ghost channels into this Charm undoes all rotting damage sustained over the course of a single day. In most climates, an unprotected corpse will last from six to eight weeks before it becomes structurally compromised. At that point, the vessel loses two permanent health levels per day until it reaches zero health levels, at which point it is little more than a jumble of bones and necrotic goo. A nemissary using this Arcanos can take control of a vessel that may have gone untended a bit too long and render it more habitable. Bodies rot at a different rate depending on the climate. In the extreme North and South, bodies are mummified by the cold or arid climates and last for several months before ceasing to function. In warm, humid climes, a corpse may last only a couple of weeks before falling into a putrescent gray mass, and a nemissary may need to use this Arcanos frequently to keep her vessel intact. The Storyteller determines how often this Arcanos needs to be used on a body to keep it in good repair. Repeated uses of this Charm on even extremely decayed flesh can, eventually, result in a body that looks as though it’s only moments past its final breath. Once the ghost has repaired a possessed body with this Arcanos, she may use the Embalmer’s Art to preserve the corpse’s improved state indefinitely. The other use of this Charm heals damage taken by the nemissary’s vessel, but at the expense of her corpus. For 1 mote of Essence per health level, the nemissary bleeds her own integrity into the vessel to restore it. She suffers one unsoakable level of damage per level regenerated, with the type of damage appropriate to the type healed. She may heal bashing or lethal injuries in any order. Ghosts with the Ox-Body Technique Arcanos (a Conviction Arcanos with no Prerequisites and an Essence and Conviction minimum of 1 that gives two -2 levels per purchase, up to a limit of the ghost’s Conviction rating — see the Exalted Players Guide, pp. 83-84) are far more capable of using this Charm than other ghosts. This Charm cannot heal damage caused by fire, aggravated sources or magic specifically designed to inflict deleterious effects on the undead (such as that caused by the Zeniths’ anima flare or the Charms Solar Spike or Blazing Solar Bolt).",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 92
+    }
+  },
+  {
+    "id": "ghost.stringless-puppeteer.drive-the-necrotic-colossus",
+    "name": "Drive the Necrotic Colossus",
+    "category": "stringless_puppeteer",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "ghost.stringless-puppeteer.nemissarys-ride"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 1 Willpower, 1 experience point"
+    },
+    "duration": "One day",
+    "description": "Nemissary’s Ride allows a ghost to possess and animate a shell as large as a very large (eight feet tall, 400 pound) human. To animate corpses larger than that (or the multiple connected corpses of some necromantic war machines), the ghost must know Drive the Necrotic Colossus. This Charm allows ghosts to animate the bodies of even the largest natural animals and war machines up to the size of a large temple. If the shell to be animated is larger than that (as the largest war machines and behemoth corpses are), then multiple nemissaries must work in concert to animate it. Once the player spends the experience point, the character no longer has to commit Essence to the Charm. At that point, the nemissary stays inside the war machine she’s “piloting” until she decides to leave. The 30 nemissaries that propel Mask of Winter’s Juggernaut do so through the use of this Charm.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 92
+    }
   }
 ]

@@ -249,5 +249,109 @@
       "book": "Exalted 1e Dragon-Blooded",
       "page": 242
     }
+  },
+  {
+    "id": "dragonblooded.martial-arts.walker-among-irises-perception",
+    "name": "Walker-Among-Irises Perception",
+    "category": "martial_arts:enlightenment",
+    "exalt_type": "Dragon-Blooded",
+    "open_to_all": true,
+    "element": "",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "One of two alternate Charm pairs for initiation of a Terrestrial Exalt into the Celestial martial arts — the Iris-Bulb Understanding of Secular and Profane Brokerage, the most common initiation among Dragon-Blooded mandarins of the Shogunate and the First Age, and the basis from which the Immaculate Charms Spirit Sight and Spirit Walking were developed. This Charm functions exactly like the Immaculate Spirit Mastery Charm Spirit Sight. However, when the martial artist using this Charm perceives spirits, instead of seeing their true form, she perceives an outline of the spirit's form, a god-shaped cutout through which she beholds a field teeming with blossoming irises by the thousands.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 236
+    }
+  },
+  {
+    "id": "dragonblooded.martial-arts.iris-bulb-discourse",
+    "name": "Iris-Bulb Discourse",
+    "category": "martial_arts:enlightenment",
+    "exalt_type": "Dragon-Blooded",
+    "open_to_all": true,
+    "element": "",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "dragonblooded.martial-arts.walker-among-irises-perception"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 0,
+      "raw": "5 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "This Charm works exactly like the Immaculate Martial Arts Charm Spirit Walking. However, because this style lacks the ritualized diplomacy of the Dragon styles, a casual, \"off the books\" attitude flavors the Exalt's dealings with the little gods. Martial artists using this style can be recognized as such by the large foot-wide irises that burst from whatever surface the Exalt is standing on and blossom for a few moments before dissipating into a glittering cloud of purple-black Essence. There are other differences besides the obvious cosmetic effects. Little gods who interact with the Terrestrial do so completely without the protection of Heaven. Though their murder may be avenged, Heaven turns a blind eye to slights against propriety inflicted by the Exalt while this Charm is in effect. The Exalt treats dematerialized spirits as if they were material for the remainder of the scene. The character may be hit by dematerialized beings and cannot necessarily see any spirits she may encounter without the use of Walker-Among-Irises Perception. In addition, during the duration of this Charm, if the Exalt's Essence is higher than the spirit's, all difficulties for the little god's Social rolls against the Terrestrial Exalt are increased by the difference in their permanent Essence ratings. This also applies in reverse — Exalts using this Charm on powerful deities may not enjoy what the deities say to them and suffer a similar penalty when interacting with gods whose Essence is higher than their own.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 236
+    }
+  },
+  {
+    "id": "dragonblooded.martial-arts.tiger-and-bear-awareness",
+    "name": "Tiger-and-Bear Awareness",
+    "category": "martial_arts:enlightenment",
+    "exalt_type": "Dragon-Blooded",
+    "open_to_all": true,
+    "element": "",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [],
+    "cost": {
+      "motes": 6,
+      "willpower": 0,
+      "health": 0,
+      "raw": "6 motes"
+    },
+    "duration": "One scene",
+    "description": "One of two alternate Charm pairs for initiation of a Terrestrial Exalt into the Celestial martial arts — the Tiger-and-Bear initiation, used on members of elite military units who were instructed in the Celestial martial arts to increase their combat power. The character becomes totally aware of the world around him, breathing in an awareness of his surroundings with the Essence of his respiration. No being that is not using Essence to conceal itself can hide from him within a radius equal to his Essence in yards. In addition, the character also benefits from the effects of a danger sense. Characters who possess this Charm can activate it reflexively when subject to a sneak attack to obviate the need for an ambush roll. This Charm does not grant the character the ability to see dematerialized spirits.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 237
+    }
+  },
+  {
+    "id": "dragonblooded.martial-arts.tiger-and-bear-unity",
+    "name": "Tiger-and-Bear Unity",
+    "category": "martial_arts:enlightenment",
+    "exalt_type": "Dragon-Blooded",
+    "open_to_all": true,
+    "element": "",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "dragonblooded.martial-arts.tiger-and-bear-awareness"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 1,
+      "health": 0,
+      "raw": "4 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The character's awareness of his environment allows him to strike true against even the hardiest foes. Characters who have mastered this technique can damage any foe they can hit. Essence for this Charm must be spent before the attack roll is made. After the attack is rolled but before any defenses are applied, the player may add his character's Martial Arts to the number of successes rolled on the attack. This Charm does not allow the character to damage individuals he cannot successfully strike with an attack. The character cannot attack dematerialized beings, for example, or beings who are for some reason immune to attack.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 237
+    }
   }
 ]

@@ -183,7 +183,15 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     def _group_of(cat: str) -> str:
         if cat.startswith("martial_arts:"):
             return "styles"
-        if cat in _arcanoi_categories:
+        # Resolve the raw category before any `:virtue` split, mirroring the
+        # `martial_arts:` prefix test above. `view.virtue_split` refuses to split
+        # ghost paths (their Virtue minimums are per-entry gates, not an organizing
+        # axis), so no ghost category reaches here as a sub-key today — this guard is
+        # the belt-and-braces that keeps a future Virtue-keyed arcanos category on
+        # the Arcanoi page rather than falling through to "abilities".
+        # `spirit_templates:*` deliberately falls through: the spirit Charms are
+        # excluded from `_arcanoi_categories` and belong on the Charms page.
+        if cat.split(":", 1)[0] in _arcanoi_categories:
             return "arcanoi"
         return "abilities"
 

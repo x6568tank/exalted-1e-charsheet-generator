@@ -1,0 +1,148 @@
+[
+  {
+    "id": "ghost.chains-of-the-ancient-monarchs.soul-anchor",
+    "name": "Soul Anchor",
+    "category": "chains_of_the_ancient_monarchs",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes, 1 Willpower",
+      "motes": 2,
+      "willpower": 1
+    },
+    "duration": "10 minutes per success",
+    "description": "Minions of various dead monarchs use this Arcanos to keep criminals and battlefield foes from escaping justice. When Soul Anchor is active, no one within 25 yards of the ghost using it is able to use supernatural abilities to move faster than they could at a full sprint. This prohibition even extends to the ghost using Soul Anchor! The ghost may be able to fly or run up walls, and he is still able to do that, but he cannot move faster than he could at an ordinary run. Ghosts and other entities with an Essence higher than that of the ghost using Soul Anchor may spend a Willpower point to overcome the effect of this Arcanos.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 51
+    }
+  },
+  {
+    "id": "ghost.chains-of-the-ancient-monarchs.monarchs-glorious-brilliance",
+    "name": "Monarch’s Glorious Brilliance",
+    "category": "chains_of_the_ancient_monarchs",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "One turn",
+    "description": "The ghost using Monarch’s Glorious Brilliance channels some of the splendor of his undead liege lord (whether a Deathlord or another monarch) into a coruscating white aura. This brilliance makes the ghost visible from quite a long way off — the light can be seen from a mile away on an ordinary day in the Underworld and from the horizon at night. Entities within 20 yards who happen to be looking in the ghost’s direction at the time this Arcanos is activated are temporarily blinded, and their players must make a Wits + Resistance roll for the characters to look away as quickly as possible. Targets are blinded for three turns, minus one for every success on that Wits + Resistance roll. Those targets that are not blinded by the brilliance must still look away from the glorious light or be blinded, so they are considered to be blind with respect to the ghost using this Arcanos. Foes immune to blindness and those wearing heavy whole-face helmets are immune to this Charm. The effects of blindness are described in Exalted, pages 237-238 — a blind character loses two successes from all attack rolls.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 51
+    }
+  },
+  {
+    "id": "ghost.chains-of-the-ancient-monarchs.essence-binding",
+    "name": "Essence Binding",
+    "category": "chains_of_the_ancient_monarchs",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.chains-of-the-ancient-monarchs.soul-anchor"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One turn per success",
+    "description": "Essence Binding calls up bands of Essence representing the ghost’s authority in the name of his ruler(s). He then uses those bands to temporarily restrain his foe’s hands or feet. This Arcanos works only on corporeal foes (ghosts in the Underworld, mortals anywhere). The ghost-magistrate spends his Essence, and his player then rolls Dexterity + Bureaucracy at + 2 accuracy to extend his sovereign’s influence. The ghost must determine whether he plans to bind the target’s hands or feet. The attack works only within hand-to-hand combat range, and the target may dodge or block this attack if he is able to do so. If the Essence Binding succeeds, the target’s hands or feet are bound. If the target’s hands are bound to his body, he may use no weapon that requires two hands, and he is considered to be held as the victim of a hold attack. If the target’s feet are bound, he is restricted to using unusual modes of locomotion (walking on his hands, swinging by a rope, flying) or to hopping no more than one-fifth his normal movement per turn. This binding lasts for one turn for every success achieved on the Dexterity + Bureaucracy roll, above. The bonds can be broken by main strength. A total of four successes is required on a Strength + Athletics roll to break them (and this is a simple action).",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 52
+    }
+  },
+  {
+    "id": "ghost.chains-of-the-ancient-monarchs.snare-the-fleeing-thief",
+    "name": "Snare the Fleeing Thief",
+    "category": "chains_of_the_ancient_monarchs",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.chains-of-the-ancient-monarchs.essence-binding"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One turn per success",
+    "description": "A ghost with Snare the Fleeing Thief can use his Essence and his dedication to his liege to halt an enemy in her tracks for a short period of time. This Charm doesn’t merely create binding ropes of Essence. Instead, it encases the enemy’s body in a light somewhat reminiscent of Monarch’s Glorious Brilliance. The enemy can still move around while encased in this brilliance but at a greatly reduced speed — no more than one-fifth her normal movement per turn, no matter what form of locomotion is being used. Snare the Fleeing Thief requires a hand-to-hand attack using a Dexterity + Bureaucracy roll at +4 accuracy. This attack can be dodged or blocked as normal. If the ghost bypasses such defenses, the target is bound as described above for one minute per success.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 52
+    }
+  },
+  {
+    "id": "ghost.chains-of-the-ancient-monarchs.essence-lasso-form",
+    "name": "Essence Lasso Form",
+    "category": "chains_of_the_ancient_monarchs",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.chains-of-the-ancient-monarchs.essence-binding"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes",
+      "motes": 6
+    },
+    "duration": "One turn per net success",
+    "description": "This Charm works similarly to Essence Binding, save that it works at a range of up to 10 yards per point of Conviction and that it cannot be blocked, only dodged. The ghost calls up a binding in the name of his sovereign, points at the target and spends his Essence, and his player rolls Dexterity + Bureaucracy at +2 accuracy. This attack cannot be parried, as it bypasses such defenses. The target’s hands or feet are bound for one turn per success. If the target’s hands are bound to his body, he may use no weapon that requires two hands, nor may he swing his arms around to make effective Melee or Brawl attacks against any foe that isn’t right up against him. If the target’s feet are bound, he is restricted to using unusual modes of locomotion (walking on his hands, swinging by a rope, flying) or to hopping no more than one-fifth his normal movement per turn.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 53
+    }
+  },
+  {
+    "id": "ghost.chains-of-the-ancient-monarchs.net",
+    "name": "Net",
+    "category": "chains_of_the_ancient_monarchs",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.chains-of-the-ancient-monarchs.snare-the-fleeing-thief"
+      ],
+      [
+        "ghost.chains-of-the-ancient-monarchs.essence-lasso-form"
+      ]
+    ],
+    "cost": {
+      "raw": "7 motes",
+      "motes": 7
+    },
+    "duration": "1 minute",
+    "description": "Ensnares a group of enemies hand-and-foot in the name of the ghost's lord. He designates a location up to five yards away per dot of Conviction; everyone within five yards of it is caught in a binding net of Essence unless they dodge (not block) clear, targeted with Dexterity + Bureaucracy. Those caught are held (see Exalted, p. 240) until the effect ends or they break free.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 53
+    }
+  }
+]

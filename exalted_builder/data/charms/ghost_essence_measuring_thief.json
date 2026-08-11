@@ -222,5 +222,33 @@
       "book": "Exalted: The Abyssals",
       "page": 234
     }
+  },
+  {
+    "id": "ghost.essence-measuring-thief.fertile-soul-endowment",
+    "name": "Fertile Soul Endowment",
+    "category": "essence_measuring_thief",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.essence-measuring-thief.feeding-lifes-fountain"
+      ]
+    ],
+    "cost": {
+      "raw": "10 motes, 1 Willpower, 1 lethal health level",
+      "motes": 10,
+      "willpower": 1,
+      "health": 1,
+      "health_type": "x"
+    },
+    "duration": "Special",
+    "description": "With this Arcanos, a ghost may sire offspring with a human, God-Blood or Exalted woman. The ghost must be materialized, either through Weighted With the Anchor of Flesh (see E:Ab, p. 237) or by siring the child in a shadowland at night. It is also possible for the living to facilitate mating with copious doses of ghost flower tea (see Manacle and Coin, p. 45). Fertile Soul Endowment automatically fails in the Underworld, as the very principles of that dark realm oppose life. The ghost need not actually copulate with the living partner, though the two must exchange a minimum of a deep, passionate kiss. As such, female ghosts may use this Arcanos as readily as males. Finally, the living partner cannot already be pregnant. If all the appropriate conditions are met, the ghost’s player rolls Temperance + Essence against a difficulty of the partner’s Essence rating. Ghosts with appropriate Passions may also channel them for additional dice, as normal. A failure means the living partner’s Essence rejects the energies and no conception takes place. A botch means the partner immediately becomes sterile unless her player makes a successful Stamina + Resistance roll (difficulty 2). Exalted and other magical beings do not risk sterility from such a union. A successful roll on the part of the ghost means the partner immediately conceives a Ghost-Blooded offspring, which she then carries to term normally. The living partner need not be willing or even know that conception has taken place. Essence used to power this Arcanos remains committed until the birth of the child. The ghost may not voluntarily withdraw this commitment, and even the destruction of the ghost does not release the Essence prior to birth or end the pregnancy. A Ghost-Blooded child born of such a union will have innate power appropriate to the total Essence of its parents as normal. Ghosts that sire offspring upon Exalted women are more apt to produce Half-Caste children, though the Arcanos still affords the certainty of conception.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 83
+    }
   }
 ]

@@ -268,9 +268,18 @@ def virtue_split(ruleset: RuleSet, category: str) -> list[str]:
     The spirit Charms are the one such category: 79 of the 80 sit under
     'spirit_templates', each keyed to one of the four Virtues via `min_virtue`.
     The picker presents them as four trees ('spirit_templates:compassion', ...)
-    so the Virtue structure is visible, mirroring the ghost Arcanoi where each
-    path is already its own tree. Ghost Arcanoi paths carry a single Virtue per
-    category, so they return [] -- as does anything not Virtue-keyed.
+    so the Virtue structure is visible. For a spirit Charm the Virtue IS the
+    path.
+
+    Ghost Arcanoi deliberately never split, even where a path spans several
+    Virtues. For a ghost Arcanos the Virtue is a per-entry GATE, not an
+    organizing axis -- the book prints each art as one tree and its chains cross
+    Virtues freely (Soul Anchor, Temperance 2, roots the whole Conviction-keyed
+    body of Chains of the Ancient Monarchs). The six E:Ab paths were
+    single-Virtue so the split never fired for a ghost; the Book of Bone and
+    Ebony paths added 2026-08-11 are multi-Virtue, and the general rule below
+    mis-split them into sparse per-Virtue trees with cross-tree prereq edges.
+    They render as one tree per art. Anything not Virtue-keyed returns [].
 
     A split category may also hold Charms that are NOT Virtue-keyed: the 80th
     spirit Charm is Terrestrial Circle Sorcery, whose printed minimums are
@@ -280,13 +289,14 @@ def virtue_split(ruleset: RuleSet, category: str) -> list[str]:
     in the UI, which is exactly the dead-field shape this codebase keeps hitting.
     Splitting a category is therefore only safe if it accounts for every Charm
     in it."""
-    virtues = {c.min_virtue for c in ruleset.charms.values()
-               if c.category == category and c.min_virtue}
+    charms = [c for c in ruleset.charms.values() if c.category == category]
+    if any(c.exalt_type == "Ghost" for c in charms):
+        return []
+    virtues = {c.min_virtue for c in charms if c.min_virtue}
     if len(virtues) < 2:
         return []
     keys = [f"{category}:{v}" for v in sorted(virtues)]
-    if any(c.category == category and not c.min_virtue
-           for c in ruleset.charms.values()):
+    if any(not c.min_virtue for c in charms):
         keys.append(f"{category}:{UNKEYED_SUBTREE}")
     return keys
 

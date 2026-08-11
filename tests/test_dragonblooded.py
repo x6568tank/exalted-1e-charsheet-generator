@@ -15,6 +15,7 @@ from exalted_builder.models.character import BackgroundEntry, Character, OxBodyP
 from exalted_builder.models.rules import AbilityName as A
 from exalted_builder.models.rules import AttributeName as AT
 from exalted_builder.models.rules import VirtueName as V
+from exalted_builder.models.rules import VirtueName
 from exalted_builder.models.rules import Charm, CharmType
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
@@ -290,6 +291,47 @@ def test_immaculate_path_allows_enlightenment_charms(rs):
     assert _charm_bp(rs, c) > 0
 
 
+def test_any_one_enlightenment_pair_opens_the_dragon_paths(rs):
+    """PG p.236: "The Immaculate Charms Spirit Sight and Spirit Walking are just one
+    set of such Charms. There are others" — and the Player's Guide prints two more
+    pairs (Iris-Bulb pp.236, Tiger-and-Bear p.237). Any ONE complete pair opens the
+    gate; the Immaculate pair is not privileged.
+
+    This is the test the four PG initiation Charms would otherwise have lacked: they
+    load and are buyable regardless, so without it a wrong gate leaves them inert and
+    nothing fails.
+    """
+    for pair in validate.DB_MA_ENLIGHTENMENT_PAIRS:
+        c = _db_fire()
+        c.charms = list(pair)
+        assert validate.db_enlightenment_met(c), pair
+        assert validate.category_available(rs, c, "martial_arts:air-dragon"), pair
+
+
+def test_half_an_enlightenment_pair_does_not_open_the_dragon_paths(rs):
+    """A pair is a pair. Knowing one Charm from each of two different pairs is not an
+    initiation either — that is the mistake a naive "any of these six ids" check makes.
+    """
+    pairs = validate.DB_MA_ENLIGHTENMENT_PAIRS
+    for pair in pairs:
+        c = _db_fire()
+        c.charms = [pair[0]]
+        assert not validate.db_enlightenment_met(c), pair
+        assert not validate.category_available(rs, c, "martial_arts:air-dragon"), pair
+    mixed = _db_fire()
+    mixed.charms = [pairs[0][0], pairs[1][1]]
+    assert not validate.db_enlightenment_met(mixed)
+
+
+def test_every_enlightenment_pair_id_exists(rs):
+    """A gate keyed on hardcoded ids fails silently if a Charm is renamed: the pair
+    can never complete and the Paths quietly stay shut."""
+    for pair in validate.DB_MA_ENLIGHTENMENT_PAIRS:
+        for cid in pair:
+            assert cid in rs.charms, cid
+            assert rs.charms[cid].category == "martial_arts:enlightenment", cid
+
+
 def test_enlightenment_charms_do_not_rescue_a_mixed_tree(rs):
     # Adding enlightenment must not mask a genuine cross-tree violation.
     c = _db_fire()
@@ -389,3 +431,79 @@ def test_shipped_db_terrestrial_sorcery_grants_circle(rs):
     c.abilities[A.OCCULT] = 3
     c.charms = ["dragonblooded.occult.terrestrial-circle-sorcery"]
     assert SpellCircle.TERRESTRIAL in validate.granted_circles(rs, c)
+
+
+# --- Style-wide access restrictions printed in a style's own text (PG pp.246, 249) ---
+# These live here beside the enlightenment gate because they are the same class of rule:
+# a martial-arts style whose prose names who may learn it. Both were authored as data
+# 2026-08-11 with read sites in charm_matches_splat / meets_charm_requirements.
+
+def _solar():
+    return Character(id="s", exalt_type="Solar", caste="dawn",
+                     virtues={VirtueName.COMPASSION: 2, VirtueName.CONVICTION: 2,
+                              VirtueName.TEMPERANCE: 2, VirtueName.VALOR: 2})
+
+
+def _dpc(rs):
+    return next(c for c in rs.charms.values()
+                if c.category == "martial_arts:dreaming-pearl-courtesan")
+
+
+def _monkey(rs):
+    return next(c for c in rs.charms.values()
+                if c.category == "martial_arts:celestial-monkey")
+
+
+def test_dreaming_pearl_is_open_to_solars_and_moonshadow_abyssals(rs):
+    """PG p.249: "it can be mastered only by the Solar Exalted and Moonshadow Caste
+    Abyssals". A Celestial tier alone is not enough — that is the whole point of the
+    restriction, and the style is tier-Celestial too."""
+    charm = _dpc(rs)
+    assert validate.charm_matches_splat(_solar(), charm, rs)
+    moonshadow = Character(id="a", exalt_type="Abyssal", caste="moonshadow")
+    assert validate.charm_matches_splat(moonshadow, charm, rs)
+
+
+def test_dreaming_pearl_is_closed_to_other_celestials_and_other_castes(rs):
+    charm = _dpc(rs)
+    for splat, caste in (("Lunar", "full-moon"), ("Sidereal", "journeys"),
+                         ("Abyssal", "dusk"), ("Dragon-Blooded", "air")):
+        c = Character(id="x", exalt_type=splat, caste=caste)
+        assert not validate.charm_matches_splat(c, charm, rs), (splat, caste)
+
+
+def test_celestial_monkey_bars_a_virtue_above_three(rs):
+    """PG p.246: "those who would grow in the wisdom of the Celestial Monkey can not
+    have any Virtue rating higher than 3" — the build's only requirement a character
+    fails by having MORE of a trait, so it cannot ride on the min_* machinery."""
+    charm = _monkey(rs)
+    ok = _solar()
+    assert validate.charm_virtue_cap_met(ok, charm)
+    proud = _solar()
+    proud.virtues[VirtueName.VALOR] = 4
+    assert not validate.charm_virtue_cap_met(proud, charm)
+    assert not validate.meets_charm_requirements(rs, proud, charm)
+
+
+def test_celestial_monkey_virtue_cap_is_reported_on_a_held_charm(rs):
+    """A forward-looking bar alone would let a character raise a Virtue AFTER buying
+    in and never hear about it — the shape where a rule exists but never fires."""
+    c = _solar()
+    c.charms = [_monkey(rs).id]
+    c.virtues[VirtueName.CONVICTION] = 5
+    # NOTE the entry point: the per-Charm checks live in validate(), not
+    # validate_chargen() — the latter covers the chargen budgets. Asserting against
+    # the wrong one passes an empty set and looks like the rule works.
+    codes = {i.code for i in validate.validate(rs, c)}
+    assert "charm-max-virtue" in codes
+    ok = _solar()
+    ok.charms = [_monkey(rs).id]
+    assert "charm-max-virtue" not in {i.code for i in validate.validate(rs, ok)}
+
+
+def test_the_style_gates_do_not_touch_any_other_charm(rs):
+    """Both fields default empty/0, so nothing else in the catalogue may be affected."""
+    restricted = {c.category for c in rs.charms.values() if c.restricted_to}
+    capped = {c.category for c in rs.charms.values() if c.max_virtue}
+    assert restricted == {"martial_arts:dreaming-pearl-courtesan"}
+    assert capped == {"martial_arts:celestial-monkey"}

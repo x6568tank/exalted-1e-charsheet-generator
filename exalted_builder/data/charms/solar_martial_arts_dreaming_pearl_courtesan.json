@@ -1,0 +1,328 @@
+[
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.demure-carp-feint",
+    "name": "Demure Carp Feint",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "Instant",
+    "description": "The character begins the fan dance by unfurling her fan, causing it to ripple and spin in a distracting fashion. The Exalt's movements become as graceful and unpredictable as peach blossoms caught in a strong gust of wind. Those opposing the Exalt who are trying to strike her must add her Essence score to the difficulty when making an attack.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 250
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.pearlescent-filigree-defense",
+    "name": "Pearlescent Filigree Defense",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per 1L/2B soak"
+    },
+    "duration": "One scene",
+    "description": "The Exalt channels her Essence into her robes, fortifying them against damage. Her clothing and accoutrements take on an iridescent sheen, and shimmering golden motes of Essence waft and rise off of her person. The character cannot spend more motes of Essence to fuel this Charm than she has in her permanent Essence rating. Each mote spent adds 1L/2B to the character's soak. This bonus does not count as armor, but is, instead, a form of natural soak.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 250
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.lethal-paper-fan-attack",
+    "name": "Lethal Paper Fan Attack",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "With this Charm, the Exalt imbues her props with lethal Essence. In the hands of the martial artist, a delicate paper fan can cut like a mighty scimitar. Despite the Charm's name, these benefits can also be applied to other items as well. The character can treat all paper fans and other similar props such as brushes and mirrors as wind-fire wheels. All sashes, long hems, sleeves and so on can be treated as seven-section staves. The damage inflicted with these weapons is lethal. This does not change the appearance of the item thus imbued, just its damage potential. In addition, if the character is using a fan or other accouterment properly-constructed for use in the martial arts, upon activating this Charm, the character may increase the accuracy, parry, speed or damage bonus of her weapon (pick any one at activation) by her permanent Essence score.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 250
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.dreaming-pearl-courtesan-form",
+    "name": "Dreaming Pearl Courtesan Form",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.demure-carp-feint"
+      ],
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.pearlescent-filigree-defense"
+      ],
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.lethal-paper-fan-attack"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "As the martial artist affects the demure and sensual dance of the Pearl Courtesan, her accoutrements and robes take on a life of their own, enhancing and complimenting her movements. At her command, her fans unfurl and ripple enticingly about her body. Her sashes swirl in a coy serpentine dance, and her flowing sleeves and gossamer robes unfold and gather at her whim. The Exalt does not have to manually control these props in order to allow for this effect. They do so automatically, leaving her hands free. Upon activating this Charm, the martial artist can control one prop per dot in her permanent Essence score. Which props the Exalt intends to command must be decided before the activation of this Charm. If the martial artist wishes to add or change a prop, she must drop the present invocation of this form and reactivate it at the beginning of the next turn. Objects the martial artist wishes to command must be on her person. Also, she cannot make an attack with these props unless she is manually controlling them. To do so and leave her hands free requires her to use the Flurry of August Leaves Concentration Charm. While this form is active, the Exalt's player may add her character's Martial Arts to all Presence and Socialize rolls. Characters cannot use more than one Form-type Charm at a time.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 250
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.flurry-of-august-leaves-concentration",
+    "name": "Flurry of August Leaves Concentration",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.dreaming-pearl-courtesan-form"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes per weapon"
+    },
+    "duration": "Instant",
+    "description": "At this level, the fan dancer has an acute understanding of spatial awareness and how the supple flows of air currents can affect the \"play\" of lighter materials such as silk and paper. Armed with this knowledge, the martial artist can use her props to surprising effect at range. The Exalt casts her fan or sash into the air. At her command it flicks and swoops toward its intended target before spinning obediently back to her. If this Charm is activated while the martial artist is using the Dreaming Pearl Courtesan Form, she can command up to the number of props allowed by that Charm to make multiple attacks against one target. This Charm allows the martial artist to strike a target up to (Martial Arts x 5) yards away. The Exalt makes a single attack with her Martial Arts pool, as usual, regardless of how many weapons she is controlling. Successes from the roll are applied to all weapons, and the damage is determined using her Strength as if it were a normal Martial Arts attack. This attack can be parried or dodged like a normal Martial Arts attack, and the target's player need only make one roll for his character to parry or dodge this effect. Botched attacks can result in broken or lost props or injury to the martial artist who cast them. She must pay the cost of this Charm for each prop she wishes to command. Also, this Charm can only be used on props that can be separated from the Exalt's body. However, props in the grips of the Dreaming Pearl Courtesan form are considered explicitly \"in-hand\" for the purposes of this Charm.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 251
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.resplendent-sash-grapple-technique",
+    "name": "Resplendent Sash Grapple Technique",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Reflexive",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.flurry-of-august-leaves-concentration"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes per turn"
+    },
+    "duration": "Varies",
+    "description": "With this Charm, the Exalt is able to use her flowing garments with a prehensile dexterity to grapple opponents and their weapons. After successfully dodging or otherwise negating an enemy's attack, the Exalt's player may make a reflexive Dexterity + Martial Arts roll to have her character's skirt, cloak or flowing sleeves move to snare her opponents weapon or fist. The martial artist must score as many successes as her opponent did on his attack to make a successful grapple. The defender may evade this only with Charms or by splitting his dice pool. If her opponent is using a weapon and the martial artist scores successes equal to or higher than her opponent's Melee, Martial Arts or Brawl score, the character has the option of disarming the target rather than clinching him. After successfully clinching her enemy, the martial artist enters into a resisted roll against her opponent using her Dexterity + Martial Arts dice pool against his Strength + Brawl, Melee or Martial Arts dice pool. The rules for clinching still apply. If the Exalt is using the Dreaming Pearl Courtesan Form when this Charm is activated, she may make as many of these reflexive grapples as allowed by that form Charm. The cost of this Charm must be spent for each reflexive grapple the Exalt wishes to make.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 251
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.vindictive-concubines-pillow-book-understanding",
+    "name": "Vindictive Concubine's Pillow Book Understanding",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.socialize.motive-discerning-technique"
+      ],
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.dreaming-pearl-courtesan-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "There is a saying that the most vicious fights are the ones between siblings or lovers. The person who knows someone the most intimately can circumvent his defenses and hurt him the most deeply. It is in the spirit of this aphorism that this technique was developed. Most armor only covers the vital areas of the body, leaving the hardier or less lethal areas uncovered. Even superheavy plate is donned and removed in pieces: the helm, the back and shoulder guards, the breastplate, the greaves and leggings, etc. It is a testament to the smith's craft if the seams between the different pieces are too narrow for an arrow or blade to pierce. Paper and silk, however, are thinner than even the sharpest blade, and in the hands of a martial artist using this Charm, can be used to deadly effect. Upon activating this Charm, the Exalt negates points of her opponent's armor soak equal to her Essence + Martial Arts. This does not negate her target's natural soak or any bonuses gained through the use of Charms, merely his armor.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 251
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.fragrant-petal-fascination-kata",
+    "name": "Fragrant Petal Fascination Kata",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.flurry-of-august-leaves-concentration"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 0,
+      "raw": "10 motes, 1 Willpower"
+    },
+    "duration": "Until disturbed",
+    "description": "As the Exalt performs the fluid and languid moves of the Fragrant Petal Fascination Kata, hundreds of glowing flower petals flow out of her sleeves and the folds of her robes and spiral about her. The players of all those within the Exalt's Essence in yards must succeed in a resisted Willpower roll against her player, or their characters are transfixed in place, enraptured by the beauty of the kata and perfume of the petals. Even those whose players succeed in the roll find themselves subjected to a hallucinogenic vertigo, as if in a waking dream, and suffer a penalty to all dice pools equal to the Exalt's Essence while in the range of the Charm. Those entranced by this Charm are highly susceptible to suggestion and will believe whatever the Exalt tells them to be truthful. Also, the Exalt can issue commands to those enraptured and, unless the orders are suicidal, expect them to be followed. These suggestive effects, however, do not effect those with a higher permanent Essence rating than the martial artist. If for any reason the Exalt halts her kata, or the scene ends, the fascination begins to wear off. The effects linger for a number of turns equal to the martial artist's Essence. During this period of reduced effects, the victims suffer a dice-pool penalty equal to the Exalt's Essence. Those thus enraptured will have vague memories of what transpired while under the effects of this Charm and will suffer a strange melancholia, adding +1 difficulty to Conviction rolls made for them for a number of days equal to the Exalt's Essence.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 252
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.seven-storms-escape-prana",
+    "name": "Seven Storms Escape Prana",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.fragrant-petal-fascination-kata"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1,
+      "health": 0,
+      "raw": "8 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The martial artist takes a deep breath and concentrates. When she exhales, tendrils of pastel fumes escape her lips. Her clothing and hair whip about her as if caught in an unseen maelstrom. In a flash, she becomes a vortex of swirling light that quickly disappears only to reappear a distance of (the Exalt's Martial Arts x 5) yards away. While performing this Charm, the martial artist can take no other action.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 253
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.dreaming-pearl-courtesan.invoking-the-chimeras-coils",
+    "name": "Invoking the Chimera's Coils",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.socialize.knowing-the-souls-price"
+      ],
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.resplendent-sash-grapple-technique"
+      ],
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.vindictive-concubines-pillow-book-understanding"
+      ],
+      [
+        "solar.martial-arts.dreaming-pearl-courtesan.seven-storms-escape-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 15,
+      "willpower": 1,
+      "health": 0,
+      "raw": "15 motes, 1 Willpower + 1 Willpower to end the Charm"
+    },
+    "duration": "Varies",
+    "description": "It is believed by the masters of this style that all things in Creation are expressions of duality, a marriage of form and the infinitely possible, and that all sentient creatures experience this potential from the safety of their dreams. Masters of this style seek to achieve a perfect waking and lucid union of this dual principle. With this Charm, they are briefly able to breach this threshold and achieve its perfect form, the mighty Chimera. The martial artist opens herself to this same collective consciousness and transcends, assuming the form of this fell and beautiful creature. A pillar of swirling light shines down upon the Exalt. Her clothing and accoutrements disappear as her form becomes long and sinewy, growing to five times her normal height. The Exalt's entire form is covered with gold-veined pearl scales, which afford her an additional 6L/12B armor. Instead of arms or legs, the martial artist gains a pair of four-foot-wide, barbed carp's fins for every point of her permanent Essence, which can strike for Strength +3 damage and enable her to hover in or swim through the air with serpentine grace at 45 miles per hour. While using this Charm, the Exalt cannot be surprised or lied to. Also, the Exalt has a number of actions per turn equal to her Essence. These are full extra actions, the martial artist may split her dice pools, and this effect is incompatible with other extra actions effects. There is, however, a certain risk involved when Invoking the Chimera's Coils. The Exalt experiences an ecstatic bliss while in this form, and if she is not careful, she will forget that she once was mortal and lose herself to the collective knowledge of humanity's dreams, remain transcendent and pass out of this realm of existence. This Charm lasts for as long as the Exalt wishes, and she must spend a point of temporary Willpower to end it. For every scene after the first she remains in this form, she must make a Willpower roll at an additional +1 difficulty. If at any time she fails this roll, she disappears in a blinding flash of pearlescent light. Once thus transcended, none ever return.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 253
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ],
+    "restricted_to": [
+      "Solar",
+      "Abyssal:moonshadow"
+    ]
+  }
+]

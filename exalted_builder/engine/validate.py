@@ -1175,6 +1175,15 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
                          f"character has {character.essence_rating}."),
             ))
 
+        if not charm_virtue_cap_met(character, charm):
+            over = sorted(n.value if hasattr(n, "value") else str(n)
+                          for n, v in character.virtues.items() if v > charm.max_virtue)
+            issues.append(Issue(
+                code="charm-max-virtue", where=cid,
+                message=(f"{charm.name}: no Virtue may exceed {charm.max_virtue}; "
+                         f"{', '.join(over)} too high."),
+            ))
+
         for trait_name, want, held in charm_ability_shortfalls(character, charm):
             issues.append(Issue(
                 code="charm-min-ability", where=cid,
@@ -1219,13 +1228,29 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
 
 
 # Dragon-Blooded martial-arts "Enlightenment" gate (DB p241-242). A Terrestrial
-# must master both Immaculate enlightenment Charms — Spirit Sight, then Spirit
-# Walking — before she may learn the Charms of any Dragon Path. Celestial Exalted
-# and Abyssals need no such initiation (the p241 box: Exalted of any type can learn
-# the Dragon Paths given a tutor), so the gate is Dragon-Blooded-only; and Five-
-# Dragon Style — a mundane DB style, not a Dragon Path — is exempt.
-DB_MA_ENLIGHTENMENT_IDS = ("dragonblooded.martial-arts.spirit-sight",
-                           "dragonblooded.martial-arts.spirit-walking")
+# must master a PAIR of enlightenment Charms — one opening her perceptions, one
+# letting her act on what she perceives — before she may learn the Charms of any
+# Dragon Path. Celestial Exalted and Abyssals need no such initiation (the p241 box:
+# Exalted of any type can learn the Dragon Paths given a tutor), so the gate is
+# Dragon-Blooded-only; and Five-Dragon Style — a mundane DB style, not a Dragon Path
+# — is exempt.
+#
+# There are THREE such pairs, and any ONE of them opens the gate. The Immaculate pair
+# is only the best known: PG p.236 says so outright — "The Immaculate Charms Spirit
+# Sight and Spirit Walking are just one set of such Charms. There are others" — and
+# then prints two more. Requiring the Immaculate pair specifically would make the
+# other four Charms buyable but inert, which is this codebase's oldest bug shape.
+DB_MA_ENLIGHTENMENT_PAIRS = (
+    # Immaculate (DB p.241-242)
+    ("dragonblooded.martial-arts.spirit-sight",
+     "dragonblooded.martial-arts.spirit-walking"),
+    # Iris-Bulb — the Shogunate mandarins' initiation (PG p.236)
+    ("dragonblooded.martial-arts.walker-among-irises-perception",
+     "dragonblooded.martial-arts.iris-bulb-discourse"),
+    # Tiger-and-Bear — used on elite military units (PG p.237)
+    ("dragonblooded.martial-arts.tiger-and-bear-awareness",
+     "dragonblooded.martial-arts.tiger-and-bear-unity"),
+)
 _UNGATED_MA_STYLES = frozenset({"five-dragon", "enlightenment"})
 
 
@@ -1241,12 +1266,13 @@ def _is_dragon_path_style(category: str) -> bool:
 def db_enlightenment_met(character: Character) -> bool:
     """Whether the Dragon-Blooded Dragon-Path gate is OPEN for this character: always
     True for non-Dragon-Blooded (they need no initiation); for a Dragon-Blooded, True
-    only once BOTH Immaculate enlightenment Charms (Spirit Sight + Spirit Walking)
-    are known."""
+    once she knows BOTH Charms of ANY ONE enlightenment pair — the Immaculate pair,
+    the Iris-Bulb pair or the Tiger-and-Bear pair (DB p.241-242, PG pp.236-237)."""
     if character.exalt_type != "Dragon-Blooded":
         return True
     known = set(character.charms)
-    return all(cid in known for cid in DB_MA_ENLIGHTENMENT_IDS)
+    return any(all(cid in known for cid in pair)
+               for pair in DB_MA_ENLIGHTENMENT_PAIRS)
 
 
 def category_available(ruleset: RuleSet, character: Character, category: str) -> bool:
@@ -1272,6 +1298,8 @@ def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> b
         # charm_matches_splat bar, so the picker does not offer it either.
         return False
     if character.essence_rating < charm.min_essence:
+        return False
+    if not charm_virtue_cap_met(character, charm):
         return False
     if charm_ability_shortfalls(character, charm):
         return False
@@ -4656,6 +4684,35 @@ def charms_available(ruleset: RuleSet, character: Character) -> bool:
     return ruleset.exalt_for(character.exalt_type).charms_available
 
 
+def charm_restriction_met(character: Character, charm: Charm) -> bool:
+    """Whether the character satisfies a style's own named access list.
+
+    `Charm.restricted_to` holds "<Splat>" / "<Splat>:<caste>" entries and the
+    character must match ONE. It NARROWS an access the splat/tier test already
+    granted — a Celestial style that also names its splats is open to Celestials who
+    are on the list and nobody else. Empty (the default) means no extra restriction,
+    so every existing Charm is unaffected."""
+    if not charm.restricted_to:
+        return True
+    for entry in charm.restricted_to:
+        splat, _, caste = entry.partition(":")
+        if character.exalt_type != splat:
+            continue
+        if not caste or (character.caste or "").lower() == caste.lower():
+            return True
+    return False
+
+
+def charm_virtue_cap_met(character: Character, charm: Charm) -> bool:
+    """Whether the character is under a style's Virtue ceiling (`Charm.max_virtue`).
+
+    The one requirement here that is failed by having MORE of a trait, so it cannot
+    be folded into the min_* shortfall machinery."""
+    if not charm.max_virtue:
+        return True
+    return all(v <= charm.max_virtue for v in character.virtues.values())
+
+
 def charm_matches_splat(character: Character, charm: Charm,
                         ruleset: Optional[RuleSet] = None) -> bool:
     """Whether `charm` is available to the character — the picker/graph filter and
@@ -4681,6 +4738,10 @@ def charm_matches_splat(character: Character, charm: Charm,
     # rated track, and no Charm path buys a Path dot. First, above every grant below,
     # so a later branch can never talk past it.
     if charm.virtual:
+        return False
+    # A style that names who may learn it (PG p.249). Narrowing only, and above the
+    # grants below so no later branch can talk past it.
+    if not charm_restriction_met(character, charm):
         return False
     # A Charm this splat may never hold, whatever else permits it (ghosts and Spirit
     # Walking). First, and above every grant below — including the splat's own Charms —

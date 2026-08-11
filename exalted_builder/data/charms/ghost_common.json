@@ -1,0 +1,343 @@
+[
+  {
+    "id": "ghost.common.dark-steed-mastery",
+    "name": "Dark Steed Mastery",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Supplemental",
+    "min_virtue": "conviction",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote per die"
+    },
+    "duration": "Instant",
+    "description": "This Charm is frequently taught to ghostly cavalry in the service of a Deathlord or another tyrant of the Underworld. Dark Steed Mastery allows a ghost to better control a ghostly mount. This Arcanos adds one die to the ghost’s Ride dice pools for every mote of Essence spent, to a maximum number of dice equal to his Essence. This Charm can only be used within the Underworld or a shadowland, unless the ghost uses Manifest the Dark Steed (see p. 41).",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 36
+    }
+  },
+  {
+    "id": "ghost.common.pole-the-black-depths",
+    "name": "Pole the Black Depths",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Supplemental",
+    "min_virtue": "conviction",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote per die"
+    },
+    "duration": "Instant",
+    "description": "This Charm allows a ghost sailor to better fulfill his duties. The ghost who uses Pole the Black Depths gains one die to his Sail dice pools for every mote of Essence spent, to a maximum number of dice equal to his Essence. This Charm can only be used within the Underworld or a shadowland, unless the ghost is on the crew of a boat manifested through the use of Conjure the Defeated Vessel or Sunken Admiral Technique (see p. 41-42).",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 36
+    }
+  },
+  {
+    "id": "ghost.common.scent-of-sweet-blood",
+    "name": "Scent of Sweet Blood",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote",
+      "motes": 1
+    },
+    "duration": "One scene",
+    "description": "This simple Charm allows a ghost to smell spilled blood or bleeding wounds at a range of one mile per dot of Essence. The blood does not have to be particularly fresh, but it should be from a mortal or Exalt — animal blood is only sensed at half the range that mortal or Exalt blood can be smelled. The ghost learns the direction of and distance to the blood. Unusually large amounts — say, more than a human body’s worth — may be detected at as far away as five miles per dot of Essence, and strong wind currents or other intense weather may interfere with this ability.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 36
+    }
+  },
+  {
+    "id": "ghost.common.moons-cold-glow",
+    "name": "Moon’s Cold Glow",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes",
+      "motes": 2
+    },
+    "duration": "One night per success",
+    "description": "The Underworld is gloomy and dark even on its brightest mornings. This simple art allows a ghost to pierce the natural darkness of the Underworld. If there is no precipitation or fog, double the distance for both Clear Vision and Murky Vision for the ghost, to a maximum of 100 yards (see Exalted, p. 237). Roll Perception + Conviction. Success means that the ghost can see normally until the following dawn, and each additional success adds 24 hours to the duration from that point.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 36
+    }
+  },
+  {
+    "id": "ghost.common.two-world-vision",
+    "name": "Two World Vision",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 1,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes",
+      "motes": 2
+    },
+    "duration": "One turn per success",
+    "description": "Every spot in the Underworld has an analog within Creation proper — the lands of the dead are simply a dark mirror to the lands above. With this Charm, a ghost can glance from his location in the Underworld at the corresponding space in Creation. A Perception + Occult roll suffices to activate the Charm and provides one turn of vision per success. Two World Vision only works at night. This Arcanos doesn’t work both ways. Even if the ghost finds himself in the living world one night, he cannot look into the Underworld.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 36
+    }
+  },
+  {
+    "id": "ghost.common.whispers-of-the-living",
+    "name": "Whispers of the Living",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "One minute per success",
+    "description": "The Underworld is itself a dark reflection of Creation, and every point in the Underworld corresponds to a particular space in Creation. This Arcanos allows the ghost to hear the living world as though she was standing in the equivalent spot to her current location in the Underworld. A Perception + Occult roll activates the Charm, and the ghost can listen for one minute per success. A botch on this roll allows any living being in that same location to hear unearthly whispers and winds, giving away these strange goings-on. Whispers of the Living only works at night. As with Two World Vision, Whispers of the Living does not allow a ghost to listen in from Creation into the Underworld.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 36
+    }
+  },
+  {
+    "id": "ghost.common.assassins-subtle-escape",
+    "name": "Assassin’s Subtle Escape",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "5 motes, 1 Willpower",
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "One hour per success",
+    "description": "Assassin’s Subtle Escape allows a ghost to temporarily inhabit a mundane object in the living world. The ghost simply lays his hand upon the object, and his physical essence is absorbed into the thing. The ghost’s presence cannot be detected by mundane means, though Charms such as Superior Sight Focus (see Exalted: The Abyssals, p. 205) allow others to detect him. While inhabiting an object, the ghost cannot be directly harmed. Damage to the object does not harm the inhabiting ghost, but the item’s destruction by fire, pulverization or magic sends the ghost to Lethe. The ghost’s player must succeed in a Manipulation + Crafts roll for the ghost to successfully inhabit the object, and he remains within it for up to one hour per success or until he decides to leave — note that once the ghost leaves the object the Charm expires. The ghost may expend an additional 5 motes and a point of Willpower in order for his player to reroll his duration at any time. However, the new duration of the Charm is measured from the new expenditure and roll (rather than being tacked onto the end of the existing use of the Charm). Assassin’s Subtle Escape does not allow a ghost residing in an object to animate the object in any fashion. He is only a passenger. Only one ghost can reside in a given object at a time.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 37
+    }
+  },
+  {
+    "id": "ghost.common.breeze-carried-ash-form",
+    "name": "Breeze-Carried Ash Form",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.common.pyre-smoke-form"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One turn per success",
+    "description": "Breeze-Carried Ash Form allows a ghost to fly through the air at any speed up to his maximum running pace, so long as he is incorporeal as he does so (this Charm is primarily effective only in the land of the living). His player must make a Dexterity + Athletics roll, and each success allows one turn of flight. If the ghost is above ground level when the Charm expires, he falls toward the ground as though solid. He does not take any damage from the fall, however, because he must be incorporeal to use this Arcanos.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 37
+    }
+  },
+  {
+    "id": "ghost.common.motivated-shell",
+    "name": "Motivated Shell",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.common.assassins-subtle-escape"
+      ]
+    ],
+    "cost": {
+      "raw": "8 motes + 1 Willpower",
+      "motes": 8,
+      "willpower": 1
+    },
+    "duration": "One turn per success",
+    "description": "Motivated Shell can only be activated once a ghost inhabits an object through Assassin’s Subtle Escape (above). This Arcanos enables the ghost to control the motions of an object he inhabits. The motions must be the sorts of things that the object could ordinarily do or be made to do by hand. A door swings open or closed; a lock turns or opens; a cart’s wheels roll on their own. The ghost’s player rolls Manipulation + Craft, and each success allows the ghost to control the object’s ordinary movements for one turn.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 37
+    }
+  },
+  {
+    "id": "ghost.common.pyre-smoke-form",
+    "name": "Pyre Smoke Form",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes",
+      "motes": 2
+    },
+    "duration": "One turn per success",
+    "description": "With Pyre Smoke Form, a ghost may become incorporeal even in environments where he would ordinarily be manifest — in the Underworld, for instance, or in a shadowland during Calibration. Using this Arcanos requires a Stamina + Temperance roll, and each success allows one turn of incorporeality.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 37
+    }
+  },
+  {
+    "id": "ghost.common.ride-the-mystic-vessel",
+    "name": "Ride the Mystic Vessel",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.common.assassins-subtle-escape"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3
+    },
+    "duration": "One turn",
+    "description": "This Charm allows the ghost to use Assassin’s Subtle Escape to inhabit an object made of the Five Magical Materials. Ride the Mystic Vessel does not allow the ghost to inhabit highly enchanted items (those requiring Artifact •• or higher) unless those items are made of soulsteel or jade. Even then, the ghost cannot inhabit an item if it is Artifact •••• or above or attuned to an Exalt. Ghosts cannot combine Arcanoi into Combos, so this Arcanos cannot be activated simultaneously with Assassin’s Subtle Escape. Instead, the ghost must activate Ride the Mystic Vessel and then, the following turn, activate Assassin’s Subtle Escape and enter the object in question.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 37
+    }
+  },
+  {
+    "id": "ghost.common.angry-trickster-ghost-method",
+    "name": "Angry Trickster Ghost Method",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "ghost.common.two-world-vision"
+      ],
+      [
+        "ghost.common.assassins-subtle-escape"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "Three turns",
+    "description": "This Arcanos allows an angry ghost to harness his rage into a storm of flying objects in Creation. This storm will injure any unarmored beings caught within it, and it does not differentiate between friend and foe. The ghost’s player rolls Conviction + Melee. Every success increases the diameter of the storm by five yards. The storm hurts those caught in the area. It deals four dice of lethal damage if the objects used are sharp and hard and four dice of bashing damage otherwise (with successes adding to this damage). An entity caught within the storm of objects can defend against it normally.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 38
+    }
+  },
+  {
+    "id": "ghost.common.former-life-destruction-technique",
+    "name": "Former Life Destruction Technique",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Special",
+    "min_virtue": "temperance",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "raw": "None"
+    },
+    "duration": "Permanent",
+    "description": "This art — one of the few introduced to ghostly society by the Deathlords — replicates the Abyssal Exaltation in that it allows a ghost to hide his true name from Creation. The ghost hides his name behind a title or an obviously false name and can never speak or respond to his true name. In return, the character receives an additional three dice to resist any sorcery or necromancy that relies on his name or identity. It does not protect him against line-of-sight magical attacks, however — the character’s identity as “Mavis Karan” is protected, not his identity as “third guy from the left at that table.”",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 38
+    }
+  },
+  {
+    "id": "ghost.common.staggered-dark-stars-movement",
+    "name": "Staggered Dark Stars Movement",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "ghost.terror-spreading.flying-time-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes, 1 Willpower",
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "Varies (see below)",
+    "description": "Staggered Dark Stars Movement allows a powerful ghost to take advantage of Setesh’s Calendar in such a way as to allow hours to pass like moments for himself. The ghost simply pushes his own path further along Setesh’s Calendar than those around him. The Charm allows the ghost to “skip” over minutes or hours. To the ghost, it seems as though time simply jumps forward a few minutes or hours. To those watching, the ghost seems to disappear, only to return after a few minutes or hours. The ghost’s player must roll Intelligence + Occult, and for every success, the ghost can jump forward up to 30 minutes. The player rolls and determines the maximum amount of time the character can leap forward. After that maximum duration is determined, the character picks any amount of time up to that maximum that he wishes to jump. Note that the ghost cannot perceive events that happen in the interim, nor can he make conditional jumps — “jump forward until these guys leave” is not permitted. This Arcanos is a fine way to escape combat, but the ghost cannot jump backward. Any time he skips over is forever lost to him. This Charm can only be used in the Underworld, as Setesh’s Calendar has no power over Creation.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 38
+    }
+  },
+  {
+    "id": "ghost.common.hours-like-autumn-leaves",
+    "name": "Hours Like Autumn Leaves",
+    "category": "common",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 4,
+    "min_essence": 5,
+    "prerequisites": [
+      [
+        "ghost.common.staggered-dark-stars-movement"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes and 1 Willpower per person"
+    },
+    "duration": "Varies (see below)",
+    "description": "Hours Like Autumn Leaves allows the most powerful ghosts to pull themselves and nearby companions forward along Setesh’s Calendar. For all ghosts caught in the pull of this Charm, the world seems to flicker as they jump forward in time. Observers see all ghosts affected by the Charm vanish, only to reappear later. The player of the ghost using this Charm must roll Intelligence + Occult and the ghost must spend 6 motes for himself and every entity to be dragged forward with him, as well as 1 Willpower per being. For every success, the whole group can be moved forward in time up to 30 minutes. The player rolls and determines the maximum amount of time the group can leap forward, and after that maximum duration is determined, the character picks any amount of time up to that maximum that he wishes to jump. Note that the ghost cannot perceive events that happen in the interim, nor can he make conditional jumps — “jump forward until these guys leave” is not permitted. The total span jumped is at the discretion of the ghost using this Charm (those brought along have no control over the span of time over which they jump). Willing subjects of this Charm should be within 10 yards of the ghost using it. An unwilling subject can only be brought along if the ghost is physically touching her. It is rumored that the ghosts of Stygia have a more powerful version of this Charm that allows ghosts to leap forward years, rather than hours.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 39
+    }
+  }
+]

@@ -1,0 +1,336 @@
+[
+  {
+    "id": "solar.martial-arts.righteous-devil.kiss-of-the-sun-concentration",
+    "name": "Kiss of the Sun Concentration",
+    "category": "martial_arts:righteous-devil",
+    "type": "Supplemental",
+    "min_ability": 1,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote per die"
+    },
+    "duration": "Instant",
+    "description": "The character draws a breath and concentrates, extending her senses to feel the flow of Essence that unites her, her weapon and her target. In this perfect moment, the Exalt fires her weapon, and her firewand's tongue of flame seeks out her intended target with knowing assurance. For each mote of Essence the player spends, his player may add one die to any Martial Arts roll using a firewand or similar weapon. This added bonus cannot exceed the character's Dexterity + Martial Arts pool. Essence for this Charm must be spent prior to the attack roll.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 254
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.blessing-of-righteous-solar-spark-meditation",
+    "name": "Blessing of Righteous Solar Spark Meditation",
+    "category": "martial_arts:righteous-devil",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.blossom-of-inevitable-demise-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "committed": true,
+      "raw": "2 motes"
+    },
+    "duration": "Until fired",
+    "description": "With this Charm, the character can turn a mere firewand into a weapon of righteousness. The Solar Exalted meditates and invokes a blessing on his weapon. Upon finishing the evocation, gossamer tongues of heatless golden flame writhe along the barrel of her firewand, imbuing it with a golden, iridescent cast. The player spends 2 motes of Essence for her character to invoke the blessing, and these motes are considered committed until the Exalt fires the weapon, releasing the charge. Add the character's permanent Essence to the base damage of the firewand or similar weapon when it is next fired. If this Charm is used against creatures of the Underworld or Abyssal Exalted, the damage dealt is aggravated. If the Solar using this Charm also invokes Fire Blossom of Inevitable Demise, the bonus dice are added after the damage has been doubled. The increased damage dice gained with Blessing of Righteous Solar Spark Meditation cannot be doubled with Fire Blossom of Inevitable Demise Technique or any Charm that doubles base damage. If the martial artist has multiple firewands, the Blessing of Righteous Solar Spark can only be invoked on one at a time, and if done in combat, it takes two turns to do so. Finally, if the Solar using a \"blessed firewand\" invokes an attack Charm that allows her to make multiple attacks, the bonus damage must be divided evenly among her targets. Only Solar Exalted can use this particular Charm.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 255
+    }
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.blossom-of-inevitable-demise-technique",
+    "name": "Blossom of Inevitable Demise Technique",
+    "category": "martial_arts:righteous-devil",
+    "type": "Supplemental",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.kiss-of-the-sun-concentration"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "At this level, the character becomes more intimately aware of how Essence flows through her and her weapon and is able to dramatically increase the damage her weapon can do based on this understanding. As with Kiss of the Sun Concentration, the character draws a breath, concentrates and then fires her weapon. This time, however, the once thin stream of flame expands to twice its normal girth, spiraling out from its center like a blossoming peony of flame. The player activates the Charm and doubles the damage done on a successful Martial Arts attack using a firewand or some similar weapon. The bonus damage is applied before the target rolls to soak.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 255
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.cloud-of-ebon-devils",
+    "name": "Cloud of Ebon Devils",
+    "category": "martial_arts:righteous-devil",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.lightning-draw-stance"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 motes"
+    },
+    "duration": "Instant",
+    "description": "Despite the superior damage capabilities of firewands, there are certain drawbacks to using them: the low availability and astronomical price of firedust, just to name a couple. Also, their temperamental nature and need for constant upkeep and repair make them difficult choices for use in the field. But perhaps the biggest difficulty in using firewands is that most flame-discharge weapons are single-shot ones. The martial artist must take a turn to reload a firewand after each shot. However, a Solar with this Charm is able to bypass this particular weakness. After the character makes an attack with his weapon, the player may spend 1 mote for his character and make a Reflexive Wits + Martial Arts roll, difficulty 2. The character's hands move too fast for unExalted eyes to see, trailing translucent clouds of black firedust that waft about his torso. If the roll is successful, the Solar Exalted successfully reloads his weapon and can bring it to bear before his next action. If the roll fails, he is unable to load the weapon correctly. If he manages to botch, the Storyteller should feel free to use her twisted imagination to describe what happens when those black firedust clouds, from which the Charm gets its name, ignite about the martial artist's upper torso. A botch can be especially bad if the character is using a First Age weapon.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 255
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.lightning-draw-stance",
+    "name": "Lightning Draw Stance",
+    "category": "martial_arts:righteous-devil",
+    "type": "Reflexive",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.kiss-of-the-sun-concentration"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "With this Charm, the martial artist need not have her weapon in hand before Initiative is rolled to use it. Vibrant cobalt lightning crackles and coalesces about her forearm, and in one fluid motion, the Exalt readies her firewand and fires. The player spends 2 motes of Essence to invoke this Charm. Aside from the benefit of surprise, \"shooting from the hip\" enables the character to attack more quickly, adding 1 to her Initiative rating per point of her permanent Essence.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 255
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.azure-abacus-meditation",
+    "name": "Azure Abacus Meditation",
+    "category": "martial_arts:righteous-devil",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.phoenix-flies-on-golden-wings-attack"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 1,
+      "health": 0,
+      "raw": "4 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "The martial artist using this Charm draws a controlled, deep breath and holds it. She extends her senses to perceive the ebb and flow of Essence that permeates the world around her. As she concentrates, the tenuous connections that tie her and her weapon to her target become glaringly apparent to her. At this point, she can close her eyes, for she need not see her target to strike it. A series of notched rings of silvery azure light encircle her target, varying in width, numbering between three and nine in total. Upon reaching this harmonious state, the Exalt invoking this Charm fires her weapon, and her shot zeros in on her target, trailing a brilliant comet's tail of flaming Essence. The martial artist's target perceives the rectified rings about him shift their shape, and a chorus of aquiline, cobalt cherubim begin to sing, resonating at the harmonic frequency of his soul. Such a display can be very unsettling to those not prepared for it, and the players of those subjected must make a successful reflexive Willpower roll, difficulty 2, for their characters to do anything other than stare or scream in shocked terror. The martial artist spends 4 motes of Essence and one Willpower. So long as the target stays within the firing range of the martial artist's weapon, the attack cannot miss. Even if the character can move, the attack cannot be dodged by any means and can only be parried if the target has Charms that enable him to parry insubstantial attacks.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 256
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.dance-of-the-howling-magma-sprites",
+    "name": "Dance of the Howling Magma Sprites",
+    "category": "martial_arts:righteous-devil",
+    "type": "Extra Action",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.twin-salamander-fist"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 1,
+      "health": 0,
+      "raw": "4 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "Martial artists knowledgeable of this Charm are deadly foes, especially in close quarters, with little to hide behind. Upon firing his weapon, the bolt of flame spits from the end of the barrel only to come to a shrieking halt a yard from the barrel-end of the firewand and, with a thunderous clap, explodes into a small winged creature that howls, spiraling toward its target. The player spends 4 motes and a point of temporary Willpower for his character to invoke the Charm. The player rolls for the martial artist to hit the first target. If the roll succeeds, he may immediately make a second roll to hit the same target or a second target, and so on. The Exalt may make as many attacks as he has points of permanent Essence, and each magma sprite does the base damage of the martial artist's weapon.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 256
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.phoenix-flies-on-golden-wings-attack",
+    "name": "Phoenix Flies on Golden Wings Attack",
+    "category": "martial_arts:righteous-devil",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.righteous-devil-form"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "willpower": 0,
+      "health": 0,
+      "raw": "1 mote"
+    },
+    "duration": "Instant",
+    "description": "With this Charm, a martial artist can extend the range of his weapon. Upon activating this Charm, a halo of gold and cobalt light encircles the tip of the firewand's barrel. When the character pulls the trigger, six golden swan wings, each the length of a woman's forearm, gracefully spiral out of the halo and speed the tongue of flame to its extended target. The player spends 1 mote of Essence, and her character can make a Martial Arts attack using her firewand or similar weapon at twice its normal range.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 256
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.righteous-devil-form",
+    "name": "Righteous Devil Form",
+    "category": "martial_arts:righteous-devil",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.blessing-of-righteous-solar-spark-meditation"
+      ],
+      [
+        "solar.martial-arts.righteous-devil.cloud-of-ebon-devils"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "The martial artist takes on an executioner's terrible stillness. Shadows seem to darken about his eyes and render his features gaunt, giving him an imposing, dreadful gaze. He is the fatal answer to the depraved and unjust, the retribution all who would defy Heaven knew must someday come. After activating this Charm, all extras who lay eyes on the martial artist will move unassumingly, as not to draw attention to themselves, yet swiftly for cover, pull their children inside and bolt their doors. Targets of the martial artist within a radius equal to (the martial artist's Essence x 10) yards feel a sense of foreboding and are compelled to confront the martial artist. Up until a target actually makes eye contact with the Exalt, her player must make a successful reflexive Willpower roll each turn with a difficulty equal to the Exalt's permanent Essence rating, or her character moves to confront the Exalt. Characters may spend a point of temporary Willpower to stop this compulsion. Once she has spent a turn engaged in combat or parley with the Exalt, this effect ends for the remainder of the scene.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 256
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.twin-salamander-fist",
+    "name": "Twin Salamander Fist",
+    "category": "martial_arts:righteous-devil",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.righteous-devil-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "One scene",
+    "description": "With this Charm, the Exalt now has the ability to use a firewand or similar weapon in either hand without the \"off-hand\" penalty. The player spends 3 motes to activate this Charm.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 256
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.phantom-flamebolt-prana",
+    "name": "Phantom Flamebolt Prana",
+    "category": "martial_arts:righteous-devil",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.righteous-devil-form"
+      ]
+    ],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "Instant",
+    "description": "When invoking this Charm, the Celestial martial artist breathes deeply, tapping her inner reservoir of Essence, like bellows stoking a furnace. With each breath, she channels Essence through her weapon, using it as her focus. The Exalt can then fire a bolt of gossamer golden flame from his flamewand rather than needing firedust. So long as he has Essence to fuel it, he need never worry about running out of ammunition again.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 257
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  },
+  {
+    "id": "solar.martial-arts.righteous-devil.caress-of-1000-hells",
+    "name": "Caress of 1,000 Hells",
+    "category": "martial_arts:righteous-devil",
+    "type": "Supplemental",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.righteous-devil.phantom-flamebolt-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 1,
+      "health": 0,
+      "raw": "7 motes, 1 Willpower"
+    },
+    "duration": "Varies",
+    "description": "A master of this style has an acute and profound understanding into the nature of Essence. The invisible matrix of divine energy that tethers all of Creation into one whole, where concepts of space and distance do not exist, becomes evident and accessible to her. When invoking this Charm, the martial artist attunes herself to the ambient lines of Essence, pulling them through her and focusing and filtering these energies through her righteous will. The Exalt fires her weapon, and an Essence-enriched deluge of cobalt-and-gold flame engulfs her target. Any flammable items within the Exalt's Essence in yards around the target is incinerated to ash within seconds. The damage of the attack is aggravated, and the target is engulfed in flames for a number of turns equal to the Exalt's permanent Essence. After soaking the initial damage, the target's player must then make a reflexive Stamina + Resistance roll, difficulty 3, for his character. If the roll is successful, the target suffers a penalty equal to the martial artist's permanent Essence rating to all dice pools. If the roll fails, then the target can do nothing but writhe around on the ground in agony. The victim's player must make a Stamina + Resistance roll as a reflexive action every turn his character remains aflame in order to continue acting. For each turn the target remains on fire, he must soak the base damage of the martial artist's weapon. This damage is not aggravated. Also, his player must reroll the Stamina + Resistance roll at an additional +1 difficulty for each turn after the first.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 258
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
+  }
+]

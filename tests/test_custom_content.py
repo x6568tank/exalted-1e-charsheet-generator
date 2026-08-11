@@ -705,15 +705,21 @@ def test_health_type_is_unset_wherever_the_page_does_not_name_a_damage_type():
 
     **That stopped being true on 2026-08-01.** Stolen Wax Discipline (E:Ab p.238) is
     the first PRINTED Charm to name the type — "5 motes, one lethal health level" —
-    so the field now has exactly one book-data consumer. The invariant that still
-    holds, and the one worth testing, is the narrower one: the field is set only where
-    the page actually names a type, and unset everywhere else."""
+    so the field gained a book-data consumer. Fertile Soul Endowment (Player's Guide
+    p.83, authored 2026-08-11) is the second: "10 motes, 1 Willpower, 1 lethal health
+    level". The invariant that still holds, and the one worth testing, is the narrower
+    one: the field is set only where the page actually names a type, and unset
+    everywhere else — so this list grows as such Charms are authored, and the loop
+    below is the real assertion."""
     rs, _ = _shipped()
     with_health = [c for c in rs.charms.values() if c.cost.health]
     typed = [c for c in with_health if c.cost.health_type is not None]
 
     assert with_health                                   # the corpus still has them
-    assert [c.id for c in typed] == ["ghost.shifting-ghost-clay.stolen-wax-discipline"]
+    assert sorted(c.id for c in typed) == [
+        "ghost.essence-measuring-thief.fertile-soul-endowment",
+        "ghost.shifting-ghost-clay.stolen-wax-discipline",
+    ]
     for c in typed:
         # Whatever names a type must say so in its printed cost line.
         assert "lethal" in c.cost.raw or "bashing" in c.cost.raw \

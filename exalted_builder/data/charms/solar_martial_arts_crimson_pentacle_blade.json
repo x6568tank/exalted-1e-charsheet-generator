@@ -1,0 +1,349 @@
+[
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.graceful-tortoise-technique",
+    "name": "Graceful Tortoise Technique",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "One scene",
+    "description": "Speardancers do not wear armor when they take the battlefield, and clothing, if worn at all, is sheer and loose fitting so as not to hide nor hinder the lines of their dance. Instead, they rely on their ornate shields to deflect arrows and to bat away weapon strikes. An Exalt using the Graceful Tortoise Technique can incorporate the shield effortlessly into her deadly blade dance, even if the shield would otherwise be too large and cumbersome to use. After activating this Charm, the martial artist does not suffer any mobility penalty when using her shield for the scene. She may use a long spear or poleaxe one-handed so long as she uses a buckler or target shield on her other arm.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 241
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.speardancer-concentration",
+    "name": "Speardancer Concentration",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Supplemental",
+    "min_ability": 3,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.graceful-tortoise-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "Through the use of this Charm, the martial artist gains an acute awareness enabling her to use her polearm with great alacrity. Her familiarity with the extended reach afforded her by her weapon allows her to strike first in hand-to-hand combat. Upon activating this Charm, the martial artist adds her Essence rating to her Initiative.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 242
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.crimson-pentacle-blade-form",
+    "name": "Crimson Pentacle Blade Form",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.speardancer-concentration"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "To master the Form Charm, the martial artist has spent years developing her technique. Her muscles have been trained to supple perfection, and she is capable of graceful pas de géant and impressive acrobatic feats. Combined with her acute familiarity with her weapon, she can deliver attacks of devastatingly lethal precision. So perfect is her technique that she can masterfully place attacks where they will do the most damage. To activate the Crimson Pentacle Blade Form, the martial artist spends 5 motes, and for the next scene, her player may add the character's Essence rating to Martial Arts rolls. Characters cannot use more than one Form-type Charm at a time. Using a Form-type Charm ends the effects of any other Form-type Charm the character was utilizing.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 242
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.eastern-root-protocol",
+    "name": "Eastern Root Protocol",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.crimson-pentacle-blade-form"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "One scene",
+    "description": "The first thing learned in the Eastern posture is how to move together in a group and to use a shield effectively to protect the whole formation. With this Charm, a troupe of speardancers band together into an array and gain the benefit of each other's shields. The shields seem to move in a coiling, serpentine dance. There must be at least two martial artists in the formation to gain the benefit of this effect. Each participant gains an additional +1 defensive bonus from the effects of the Charm, against both hand-to-hand and ranged attack. This bonus is provided by the shields of other members of the formation, and the formation is able to extend this protection to one person without a shield for every shield-bearing individual in the formation. No one who does not know the Eastern Root Protocol may benefit from this formation, and all members of the formation must be within the space permitted by the Five Directions Formation Protocol. This Charm lasts for the remainder of the scene or until one of the Exalted moves more than 10 yards away from any other member of the formation.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 242
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.northern-lotus-petal-discernment-meditation",
+    "name": "Northern Lotus Petal Discernment Meditation",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Supplemental",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.crimson-pentacle-blade-form"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "Instant",
+    "description": "Although all martial artists of this style are capable of dazzling feats of fighting prowess, it is through the cold, logical efficiency of movement of the \"minimalist\" Northern posture that the potency of the style is truly realized. When the Exalt invokes this Charm, her target must add her permanent Essence rating to the difficulty to defend against her attack.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 243
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.sprinting-stag-defense",
+    "name": "Sprinting Stag Defense",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.northern-lotus-petal-discernment-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "Instant",
+    "description": "Like the majestic stag fleeing the huntsman's bow, the acrobatic derring-do of the martial artist aids in her defense. For every turn she keeps moving in an acrobatic fashion, her player may make a reflexive Dexterity + Martial Arts roll. Successes on this roll are added to the difficulty for anyone trying to make an attack against the character.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 244
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.western-shield-crush-counterattack",
+    "name": "Western Shield Crush Counterattack",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.crimson-pentacle-blade-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "Instant",
+    "description": "To break as waves against a defiant reef, such is the fate of any who would dare attack a disciple knowledgeable in the Western posture. Although effective in a one-on-one fight, disciples of the Western Shield Posture specifically developed this Charm to break enemy formations. If the martial artist's opponent makes an unsuccessful attack, the martial artist makes a reflexive counterattack by slamming her shield into her foe, knocking him to the ground. The speardancer's player makes a Reflexive roll using her character's Dexterity + Martial Arts pool. This is a counterattack, not an action. The martial artist's target can defend against this normally, but Charms that produce counterattacks cannot counterattack the user of this Charm. If successful, her target is brought to his knees and fights as if prone until he stands. If the speardancer scores more successes than her target has combined dots of Strength + Essence, he is knocked to the ground winded and prone. He is at -2 for prone fighting and -2 for being stunned, and his player must make a reflexive (Wits + appropriate Ability for use of his weapon) roll and score as many successes as the martial artist's Essence, or the character is disarmed. Make the reflexive roll before applying the penalties. The martial artist may make as many Western Shield Crush Counterattacks in a turn as she can afford to pay for, but a character cannot use this Charm in response to any counterattack Charm.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 244
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.blessing-of-jeweled-vambraces-and-mantle",
+    "name": "Blessing of Jeweled Vambraces and Mantle",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.western-shield-crush-counterattack"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 1,
+      "health": 0,
+      "raw": "4 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "With this Charm, the Exalt is able to fortify herself with Essence. She takes a breath and concentrates. When she exhales, Essence-laden energy coruscates and whirls about her arms and upper torso. The Exalt's forearms become heavily encrusted with large gems that work their way up her shoulders and upper back. The appearance of the Jeweled Vambraces and Mantle is appropriate to the Exalt's elemental aspect. Regardless of the appearance, the Exalt who invokes this Charm adds her Essence score to her bashing and lethal soaks for the scene. The Blessing of Jeweled Vambraces and Mantle is not considered to be armor, but a form of natural soak and, therefore, does not contradict the armor prohibition for this martial-arts style.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 244
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.glorious-southern-harbinger-of-war-and-fury",
+    "name": "Glorious Southern Harbinger of War and Fury",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.crimson-pentacle-blade-form"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1,
+      "health": 0,
+      "raw": "6 motes, 1 Willpower"
+    },
+    "duration": "One scene",
+    "description": "As the martial artist adopts the flamboyant and sensual attitude of the Southern posture, she can use her grandiose, sweeping katas to inspire others to acts of great valor. As the Exalt invokes this Charm, a banner of pure Essence erupts from the head of her polearm, edged with precious gems and ending in a six-foot-long pendant tail. The martial artist then uses the weapon to perform an awe-inspiring display before her troops. Once invoked, the pendant lasts for the entire scene or until the Exalt who invoked it wishes otherwise. This display uses her Charisma + Martial Arts, at a base difficulty of 1, +1 difficulty for every three targets she wishes to affect. Success means she effectively stirs the crowd into a battle fury and all those thusly inspired are gifted with one temporary Valor point that can be used per the Virtue rules. This bonus point of Valor lasts for a scene and can exceed its Trait maximum. Also, this Charm is stackable, but only if invoked by separate speardancers — no one martial artist can give an individual more than one Valor point in a single scene through the use of this Charm.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 244
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.furious-battle-scythe",
+    "name": "Furious Battle Scythe",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.glorious-southern-harbinger-of-war-and-fury"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "Until next turn",
+    "description": "During the scene in which the martial artist has invoked the Glorious Southern Harbinger of War and Fury, she may choose to invoke the Furious Battle Scythe. The Essence pendant crystallizes into a gem encrusted scythe. Its tassels harden giving the scythe a kris pointed serrated edge and it is wickedly sharp. The scythe has a Speed 0, Attack 0, Damage +12L, Parry -2, and Rate 3. Characters cannot activate this Charm until they have activated the Charm Glorious Southern Harbinger of War and Fury already during the scene.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 245
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.retribution-of-honorable-guardianship-attitude",
+    "name": "Retribution of Honorable Guardianship Attitude",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Extra Action",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.crimson-pentacle-blade-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1,
+      "health": 0,
+      "raw": "3 motes, 1 Willpower +1 mote per attack"
+    },
+    "duration": "One scene",
+    "description": "Speardancer masters believe that once one is committed to battle it is dishonorable to retreat. With this Charm, a martial artist can hold a bridge or gate almost indefinitely and also prevent anyone from escaping combat once they've crossed blades with her. The character spends Essence, and for the next scene, her player may make a reflexive Dexterity + Martial Arts roll for the Exalt to attack anyone who tries to flank or otherwise get around her, to a maximum distance equal to the martial artist's Essence in yards. She may also make such an attack if her opponent attempts to flee her presence once he has entered into hand-to-hand combat. In addition, the martial artist cannot be moved from the spot by any means unless she, herself, breaks her stance.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 245
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.call-to-the-blade-of-righteousness-mantra",
+    "name": "Call-to-the-Blade-of-Righteousness Mantra",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.retribution-of-honorable-guardianship-attitude"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1,
+      "health": 0,
+      "committed": true,
+      "raw": "3 motes (committed), 1 Willpower"
+    },
+    "duration": "One day",
+    "description": "The Central posture is more of a mode of conduct than a speardancing style. Living life in a state of honorable grace is preferred. And having one's weapon put to a noble cause is the height of achievement all who walk the path of the Crimson Pentacle Blade strive to attain. With this Charm, the Exalt fortifies and enriches his weapon to that purpose. The Exalt spends a little while ritually cleaning and sharpening his weapon. When he is done, he speaks aloud the task to which his weapon shall be used victoriously. For the next day, the martial artist may add his permanent Essence to the damage rating of his weapon when it is bent to this task. This task must be a specific one. Also, the martial artist may stack as many tasks on a single weapon as he has points in permanent Essence. However, the maximum damage bonus awarded by this Charm to a single strike cannot exceed the character's Essence.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 246
+    },
+    "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.central-pillar-attack-pattern-mastery",
+    "name": "Central Pillar Attack Pattern Mastery",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Extra Action",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.eastern-root-protocol"
+      ],
+      [
+        "solar.martial-arts.crimson-pentacle-blade.sprinting-stag-defense"
+      ],
+      [
+        "solar.martial-arts.crimson-pentacle-blade.blessing-of-jeweled-vambraces-and-mantle"
+      ],
+      [
+        "solar.martial-arts.crimson-pentacle-blade.furious-battle-scythe"
+      ],
+      [
+        "solar.martial-arts.crimson-pentacle-blade.call-to-the-blade-of-righteousness-mantra"
+      ]
+    ],
+    "cost": {
+      "motes": 7,
+      "willpower": 1,
+      "health": 0,
+      "raw": "7 motes, 1 Willpower"
+    },
+    "duration": "Instant",
+    "description": "On the field of battle, a master of the Crimson Pentacle Blade Style is a weapon specialist without peer. She perceives the churning chaos of death and discord that is battle instead as a grand choreography. The speardancer's moving and acrobatic style enables her to position herself centrally, maximizing her weapon's effectiveness against multiple foes. Upon activating this Charm, the Exalt perceives a singular, circular attack pattern that enables her to strike a number of opponents equal to her permanent Essence in one efficient stroke. The character's player makes a single Dexterity + Martial Arts roll for her to hit all targets at +1 difficulty for each target after the first, to a maximum +3 difficulty. Targets must then defend individually, as normal. Also, if the attack is successful, the martial artist counts the successes twice for the purposes of determining damage. The Essence for this Charm must be spent prior to making the attack roll.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 246
+    },
+    "open_to_all": true
+  }
+]

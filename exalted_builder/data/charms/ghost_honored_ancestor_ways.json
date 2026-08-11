@@ -1,0 +1,73 @@
+[
+  {
+    "id": "ghost.honored-ancestor-ways.courier-in-dreams",
+    "name": "Courier in Dreams",
+    "category": "honored_ancestor_ways",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 1,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "2 motes",
+      "motes": 2
+    },
+    "duration": "50 words",
+    "description": "With this Arcanos, a ghost can send a message to a living being through dreams. The ghost can perform this Charm from the Underworld, a shadowland or Creation, and send the message to a subject anywhere in Creation. The message travels instantaneously to the subject’s current location. However, the subject does not receive the message until the next time he sleeps (and if that is more than eight hours away, the subject does not receive the message at all). The ghost may speak up to 50 words to the subject, who sees the Charm’s effect as the ghost standing and speaking the words to him. This Arcanos does not allow for two-way communication — the subject receives the ghost’s message but may not send a reply.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 46
+    }
+  },
+  {
+    "id": "ghost.honored-ancestor-ways.honorable-descendant-blessing",
+    "name": "Honorable Descendant Blessing",
+    "category": "honored_ancestor_ways",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "ghost.honored-ancestor-ways.courier-in-dreams"
+      ]
+    ],
+    "cost": {
+      "raw": "5 motes",
+      "motes": 5
+    },
+    "duration": "One day",
+    "description": "A ghost can use this Arcanos to send a minor blessing to an appropriately pious living descendant. The ghost simply speaks the descendant’s name aloud, pictures him and spends the necessary Essence, and the subject of the Charm immediately receives a three-dice bonus pool that can be used to supplement any action at any time in the next day. As the Arcanos takes effect, the subject feels a pleasant surge of energy and good fortune. These dice can only be used once — after the subject of the Charm uses the bonus dice, they are gone. This Charm only works on living mortals and Exalts who can trace a line of blood descent from the ghost.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 46
+    }
+  },
+  {
+    "id": "ghost.honored-ancestor-ways.dishonorable-descendant-curse",
+    "name": "Dishonorable Descendant Curse",
+    "category": "honored_ancestor_ways",
+    "exalt_type": "Ghost",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "ghost.honored-ancestor-ways.courier-in-dreams"
+      ]
+    ],
+    "cost": {
+      "raw": "6 motes",
+      "motes": 6
+    },
+    "duration": "One hour per success",
+    "description": "This Arcanos is, in most ways, the opposite of Honorable Descendant Blessing. It can only be used on living mortals and Exalts who trace a line of blood descent from the ghost. It works at any range, however. The ghost must simply visualize the target and state his name aloud, and the subject feels a dull, throbbing pain throughout the duration of the Charm. While the curse is active, the subject loses one die from all dice pools. Spend the necessary Essence, and roll Compassion + Lore. For every success, the curse lasts one hour. The ghost who activates the Arcanos may dismiss the curse at any time.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 46
+    }
+  }
+]

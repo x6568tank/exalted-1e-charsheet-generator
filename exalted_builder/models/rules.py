@@ -346,6 +346,18 @@ class Charm(BaseModel):
     # them these styles with no data or code change. Like `open_to_all`, a Charm
     # learned this way is an ordinary Martial Arts Charm for the learner.
     open_to_tiers: list[str] = Field(default_factory=list)
+    # A style whose OWN text names who may learn it, narrower than any tier. Entries
+    # are "<Splat>" or "<Splat>:<caste>", and the character must satisfy ONE of them.
+    # Dreaming Pearl Courtesan (PG p.249): "it can be mastered only by the Solar
+    # Exalted and Moonshadow Caste Abyssals" -> ["Solar", "Abyssal:moonshadow"].
+    # This narrows access; it never widens it, so a Charm still has to pass the
+    # ordinary splat/tier test first.
+    restricted_to: list[str] = Field(default_factory=list)
+    # A cap the LEARNER must stay under, not a minimum they must reach — the only
+    # requirement in the build that a character can fail by being too good. Celestial
+    # Monkey (PG p.246): "those who would grow in the wisdom of the Celestial Monkey
+    # can not have any Virtue rating higher than 3". 0 means no cap.
+    max_virtue: int = Field(default=0, ge=0)
     type: CharmType
     min_ability: int = Field(default=0, ge=0)
     # For splats whose Charms are Attribute-keyed rather than Ability-keyed (Lunar,

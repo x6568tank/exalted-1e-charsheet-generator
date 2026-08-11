@@ -643,16 +643,23 @@ def _arcanoi(rs) -> list:
     return [c for c in rs.charms.values() if c.exalt_type == "Ghost"]
 
 
+def _abyssals_arcanoi(rs) -> list:
+    """Only the E:Ab CH6 set. The assertions below count THAT source's printed shape;
+    Book of Bone and Ebony adds its own Arcanoi and must not move these numbers."""
+    return [c for c in _arcanoi(rs)
+            if c.source and c.source.book == "Exalted: The Abyssals"]
+
+
 def test_all_fifty_six_arcanoi_are_authored(rs) -> None:
     """56 `#### ` headings across the six paths in CH6, and no more: the four
     Craft (…) headings on the same level are ABILITIES and carry no Charms."""
-    assert len(_arcanoi(rs)) == 56
+    assert len(_abyssals_arcanoi(rs)) == 56
 
 
 def test_the_six_paths_have_their_printed_counts(rs) -> None:
     from collections import Counter
 
-    counts = Counter(c.category for c in _arcanoi(rs))
+    counts = Counter(c.category for c in _abyssals_arcanoi(rs))
     assert dict(counts) == {
         "shifting_ghost_clay": 10, "terror_spreading": 11, "savage_ghost_tamer": 9,
         "essence_measuring_thief": 9, "stringless_puppeteer": 8, "tangled_web": 9}
@@ -673,14 +680,14 @@ def test_the_virtue_split_matches_the_source(rs) -> None:
     A mis-keyed Charm would move two of these numbers at once."""
     from collections import Counter
 
-    assert dict(Counter(c.min_virtue for c in _arcanoi(rs))) == {
+    assert dict(Counter(c.min_virtue for c in _abyssals_arcanoi(rs))) == {
         "compassion": 18, "temperance": 18, "conviction": 11, "valor": 9}
 
 
 def test_every_arcanos_carries_its_page(rs) -> None:
     """Never-author-from-memory means every value is traceable. The pages run
     p.234-253, the span of CH6's Arcanoi."""
-    for c in _arcanoi(rs):
+    for c in _abyssals_arcanoi(rs):
         assert c.source and c.source.book == "Exalted: The Abyssals", c.id
         assert 232 <= c.source.page <= 253, (c.id, c.source.page)
 
@@ -696,16 +703,16 @@ def test_every_prerequisite_resolves_within_the_catalogue(rs) -> None:
     fails to match does not fail loudly: the line silently becomes description text and
     the Charm loses its prerequisite. 49 was the WRONG answer, arrived at confidently.
     """
-    with_prereqs = [c for c in _arcanoi(rs) if c.prerequisites]
+    with_prereqs = [c for c in _abyssals_arcanoi(rs) if c.prerequisites]
     assert len(with_prereqs) == 50, "49 printed lines + the one with the dropped space"
     edges = 0
-    for c in _arcanoi(rs):
+    for c in _abyssals_arcanoi(rs):
         for group in c.prerequisites:
             for pid in group:
                 assert pid in rs.charms, (c.id, pid)
                 edges += 1
     assert edges == 56
-    roots = [c for c in _arcanoi(rs) if not c.prerequisites]
+    roots = [c for c in _abyssals_arcanoi(rs) if not c.prerequisites]
     assert len(roots) == 6
 
 
@@ -724,7 +731,7 @@ def test_the_one_health_level_cost_uses_the_damage_shorthand(rs) -> None:
 def test_arcanoi_ids_hyphenate_the_category_segment(rs) -> None:
     """Convention (tools/validate_charms.py): id segments use hyphens and only the
     `category` FIELD keeps underscores. Both halves have to hold at once."""
-    for c in _arcanoi(rs):
+    for c in _abyssals_arcanoi(rs):
         assert "_" not in c.id, c.id
         assert c.id.startswith("ghost."), c.id
         assert c.category in _PATHS, c.id
@@ -754,7 +761,7 @@ def test_the_supplementary_printing_variant_was_normalised(rs) -> None:
     from exalted_builder.models.rules import CharmType
     from collections import Counter
 
-    counts = Counter(c.type for c in _arcanoi(rs))
+    counts = Counter(c.type for c in _abyssals_arcanoi(rs))
     assert counts[CharmType.SUPPLEMENTAL] == 10
     assert counts[CharmType.SIMPLE] == 41
 
@@ -1118,15 +1125,27 @@ def test_the_arcanoi_page_is_a_charm_tree_page(rs) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_arcanoi_page_renders_its_categories(user) -> None:
-    """The behavioural half: the page must offer its six paths, which only a graph
-    page does — a plain-panel page has no category dropdown to put them in."""
+    """The behavioural half: the page must offer its paths, which only a graph
+    page does — a plain-panel page has no category dropdown to put them in.
+
+    Ghost paths render as ONE entry per art, never one per Virtue. The six E:Ab
+    paths are single-Virtue; the six multi-Virtue BoBE arts are combined too,
+    because their Virtue minimums are per-entry gates that cross Virtues freely
+    rather than an organizing axis (see view.virtue_split). A `category:virtue`
+    sub-key in the category dropdown would mean the split misfired again.
+    """
     from nicegui import ui as nicegui_ui
 
     await user.open('/ghost-picker')
-    opts = {o for sel in user.find(nicegui_ui.select).elements
-            for o in (sel.options or {})}
-    assert "shifting_ghost_clay" in opts
-    assert "tangled_web" in opts
+    cats = next(sel for sel in user.find(nicegui_ui.select).elements
+                if "shifting_ghost_clay" in (sel.options or {}))
+    for art in ("chains_of_the_ancient_monarchs", "common", "evoke_the_ancient_clay",
+                "noble_craftsman_ways", "scholarly_ways", "tenacious_merchants_way",
+                "shifting_ghost_clay", "tangled_web"):
+        assert art in cats.options, art
+    assert not any(":" in o for o in cats.options), \
+        "a `category:virtue` sub-key means the ghost Virtue split misfired: " \
+        + ", ".join(sorted(o for o in cats.options if ":" in o))
 
 
 @pytest.mark.asyncio
