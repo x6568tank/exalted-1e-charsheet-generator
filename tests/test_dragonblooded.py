@@ -407,7 +407,11 @@ def test_shipped_db_water_ability_charm_counts(rs):
     assert Counter(c.category for c in water) == Counter(
         # Aspect Book: Water (Miracles of Daana'd) CH6 added the second wave; Sail
         # also gained 5 from The Outcaste p.93-94 (pirates): 5 -> 10 -> 13.
-        {"brawl": 13, "bureaucracy": 11, "investigation": 10, "larceny": 14, "sail": 13})
+        # 2026-08-11: Investigation 10 -> 12 (two Outcaste p.130 Charms) and
+        # Bureaucracy 11 -> 12 (Wise Commander's Gift, Player's Guide p.123 — a Water
+        # Ability, so it counts here despite not coming from an Aspect Book).
+        # See docs/status/charms-closeout-notes.md.
+        {"brawl": 13, "bureaucracy": 12, "investigation": 12, "larceny": 14, "sail": 13})
     for c in water:
         assert ":" not in c.category and c.immaculate is False
 
@@ -420,7 +424,9 @@ def test_shipped_db_wood_ability_charm_counts(rs):
         # Aspect Book: Wood (Miracles of Sextes Jylis) CH6 added the second wave.
         # Medicine also gained Spark Kindling Rescue Technique, PRINTED in the Fire
         # book but keyed to Medicine, a Wood Ability.
-        {"archery": 9, "medicine": 11, "performance": 7, "ride": 8, "survival": 8})
+        # 2026-08-11: Performance 7 -> 10, the three Outcaste pp.44-45 Charms
+        # (docs/status/charms-closeout-notes.md).
+        {"archery": 9, "medicine": 11, "performance": 10, "ride": 8, "survival": 8})
     for c in wood:
         assert ":" not in c.category and c.immaculate is False
 

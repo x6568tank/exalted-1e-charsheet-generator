@@ -238,5 +238,55 @@
       "book": "Exalted 1e Aspect Book: Water",
       "page": 73
     }
+  },
+  {
+    "id": "dragonblooded.investigation.atsiluths-bounty",
+    "name": "Atsiluth's Bounty",
+    "category": "investigation",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Water",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "raw": "1 mote",
+      "motes": 1
+    },
+    "duration": "Instant",
+    "description": "Those who live in Atsiluth Eternal dwell in luxury such as even the Forest Witches cannot imagine. With a moment's study of the Essence flows around her, a character can bring forth unbounded wealth. Invoking this Charm within Atsiluth Eternal, a character can conjure any mundane object or structure, as well as any artifact or Manse up to level 5. However, the artifacts and Hearthstones this Charm creates only affect the \"material\" reality of Atsiluth Eternal. They improve the user's perceptions but cannot otherwise divine information or directly affect the minds of others. They cannot act at range without some physical effect that conveys their power to the target. Outside of Atsiluth Eternal, they do not function at all. The Sea of Mind chooses where the summoned thing appears \u2014 the character cannot summon a Manse into the air above an enemy, although she can expect a summoned weapon to appear in her hand.",
+    "source": {
+      "book": "Exalted 1e The Outcaste",
+      "page": 130
+    }
+  },
+  {
+    "id": "dragonblooded.investigation.vision-outside-time",
+    "name": "Vision Outside Time",
+    "category": "investigation",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Water",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "dragonblooded.investigation.atsiluths-bounty"
+      ],
+      [
+        "dragonblooded.investigation.falsehood-unearthing-attitude"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes, 1 Willpower",
+      "motes": 2,
+      "willpower": 1
+    },
+    "duration": "One scene",
+    "description": "The Exalt sprinkles a few drops of blood upon the dust of Atsiluth Eternal and calls forth her vision soul: an image of herself drawn from a dream of future days. Such images are vicious, twisted and perverted liars, desiring primarily to torment those who call them forth with false hopes and false despairs. A wise Witch can, nevertheless, finagle hints from them about the future, the present and the past. The player makes a Manipulation + Investigation roll. If the Storyteller wishes to play out the conversation, then each success represents an opportunity to force out such a truth. The Exalt can spend one of these successes at any time to determine the vision soul's motivation behind a given statement \u2014 for example, to tease the Exalt with obfuscation, to encourage unwarranted despair or to save face after being tricked into making some admission. Otherwise, the difficulty of the roll is 3, and success tells the character one thing she should watch for, one thing she should fear and one thing she should desire.",
+    "source": {
+      "book": "Exalted 1e The Outcaste",
+      "page": 130
+    }
   }
 ]

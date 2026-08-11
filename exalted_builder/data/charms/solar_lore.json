@@ -197,7 +197,7 @@
       "raw": "6 motes, 1 Willpower, 1 health level"
     },
     "duration": "One day",
-    "description": "With a seemingly harmless touch, the character can envenom a single weapon, a single plate of food or a goblet of wine. The difficulty to resist the poison and the penalty and damage for the poison are all the same as for Brewing Venom Technique. At the character's option, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or enter a wound to be effective. The poison is odorless, tasteless and colorless. The poison lingers in the drink or the weapon for the next full day — after this time, it dissipates harmlessly. This Charm cannot be used to poison food or drink in the same turn that it is consumed or to envenom a weapon in the same turn that it is being used to strike a target.",
+    "description": "With a seemingly harmless touch, the character can envenom a single weapon, a single plate of food or a goblet of wine. The difficulty to resist the poison and the penalty and damage for the poison are all the same as for Brewing Venom Technique. At the character's option, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or enter a wound to be effective. The poison is odorless, tasteless and colorless. The poison lingers in the drink or the weapon for the next full day \u2014 after this time, it dissipates harmlessly. This Charm cannot be used to poison food or drink in the same turn that it is consumed or to envenom a weapon in the same turn that it is being used to strike a target.",
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 72
@@ -223,7 +223,7 @@
       "raw": "10 motes, 1 Willpower, 1 health level"
     },
     "duration": "Instant",
-    "description": "The character can use this Charm to either envenom a single weapon on the same turn that it is used to strike a target or to poison a single plate of food or goblet of drink. Also, the character may poison a weapon, food or drink that is up to one yard per point of permanent Essence away. The difficulty to resist the poison and the penalty and damage for the poison are all the same as for Brewing Venom Technique. At the character's choice, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or enter a wound to be effective. The poison is odorless, tasteless and colorless. The poison lingers on the drink or the weapon for the next full scene — after this time, it harmlessly dissipates.",
+    "description": "The character can use this Charm to either envenom a single weapon on the same turn that it is used to strike a target or to poison a single plate of food or goblet of drink. Also, the character may poison a weapon, food or drink that is up to one yard per point of permanent Essence away. The difficulty to resist the poison and the penalty and damage for the poison are all the same as for Brewing Venom Technique. At the character's choice, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or enter a wound to be effective. The poison is odorless, tasteless and colorless. The poison lingers on the drink or the weapon for the next full scene \u2014 after this time, it harmlessly dissipates.",
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 72
@@ -301,7 +301,7 @@
       "raw": "15 motes, 1 Willpower"
     },
     "duration": "Instant",
-    "description": "By means of this Charm, an Exalt can use his singular knowledge of both chaos and order to restore a Wyld-corrupted living creature or object. By placing his hands upon the target and focusing his will, the Solar can restore it to its original physical and mental state. However, any time that has passed will be taken into account: The target of the Charm will be restored to his appropriate age and may age significantly if the Wyld has preserved him from the passing years. For a full day after this Charm has been used, the target is immune to the effects of the Wyld. However, if he remains in Wyld areas after that time, he will once again be subject to its changes and may eventually be returned to his previous altered form. Note that this Charm does nothing to cure Wyld addiction — exposure to the energies of the madlands is still pleasurable.",
+    "description": "By means of this Charm, an Exalt can use his singular knowledge of both chaos and order to restore a Wyld-corrupted living creature or object. By placing his hands upon the target and focusing his will, the Solar can restore it to its original physical and mental state. However, any time that has passed will be taken into account: The target of the Charm will be restored to his appropriate age and may age significantly if the Wyld has preserved him from the passing years. For a full day after this Charm has been used, the target is immune to the effects of the Wyld. However, if he remains in Wyld areas after that time, he will once again be subject to its changes and may eventually be returned to his previous altered form. Note that this Charm does nothing to cure Wyld addiction \u2014 exposure to the energies of the madlands is still pleasurable.",
     "source": {
       "book": "Exalted 1e Caste Book: Twilight",
       "page": 71
@@ -327,10 +327,35 @@
       "raw": "10 motes, 1 Willpower, 1 experience point"
     },
     "duration": "Instant",
-    "description": "By means of this Charm, a character can lend one of her spells to another Exalted sorcerer. For each dot of the loaning character's Essence, she can lend a spell for one use. The recipient must have the appropriate Sorcery Charm to be able to use the spell. These spells draw directly on the Essence of the Exalted who lent them, but the recipient must pay any non-Essence costs — for example the Willpower to activate the appropriate Sorcery Charm.\n\nThe Solar is still able to use these spells while the Charm is in effect, but as soon as the recipient has cast any of them as many times as the lending character has permanent Essence, the recipient loses the ability to cast that particular spell again. Use of this Charm does not aid in the study of the spell — it merely imprints the spell on the target, giving him the ability to use it once per dot of the lending character's Essence. Powerful Solars often used this ability to empower lesser minions — particularly the Dragon-Blooded — for particular missions.",
+    "description": "By means of this Charm, a character can lend one of her spells to another Exalted sorcerer. For each dot of the loaning character's Essence, she can lend a spell for one use. The recipient must have the appropriate Sorcery Charm to be able to use the spell. These spells draw directly on the Essence of the Exalted who lent them, but the recipient must pay any non-Essence costs \u2014 for example the Willpower to activate the appropriate Sorcery Charm.\n\nThe Solar is still able to use these spells while the Charm is in effect, but as soon as the recipient has cast any of them as many times as the lending character has permanent Essence, the recipient loses the ability to cast that particular spell again. Use of this Charm does not aid in the study of the spell \u2014 it merely imprints the spell on the target, giving him the ability to use it once per dot of the lending character's Essence. Powerful Solars often used this ability to empower lesser minions \u2014 particularly the Dragon-Blooded \u2014 for particular missions.",
     "source": {
       "book": "Exalted 1e Caste Book: Twilight",
       "page": 71
+    }
+  },
+  {
+    "id": "solar.lore.power-investing-prana",
+    "name": "Power-Investing Prana",
+    "category": "lore",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.lore.will-bolstering-method"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes",
+      "motes": 3,
+      "committed": true
+    },
+    "duration": "Until released",
+    "description": "Solars of the First Age used this Charm to empower their trusted servants and most skilled mortal warriors with enough Essence to make use of the weapons and armor that could be crafted for their use and to power minor artifacts to aid them in their service to the Exalted. To use this Charm, the character must spend a turn in skin-to-skin contact with the recipient and spend 3 motes of Essence \u2014 these motes are committed so long as the Charm is in effect. Upon doing this, the Exalt can transfer up to three times her permanent Essence to the mortal, up to a limit of three times the mortal's Willpower. These motes do not regenerate normally \u2014 once they have all been spent, the Charm ends. If the Solar withdraws her commitment, the Charm also ends immediately, and the mortal loses all granted motes. Motes gained in this fashion may be used in any way mortals may normally spend Essence, including committing them to attune to artifacts, if the mortal has the right Merits. Artifacts attuned in this fashion function for one week before becoming de-attuned. The motes committed to the subject do not regenerate normally.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 123
     }
   }
 ]

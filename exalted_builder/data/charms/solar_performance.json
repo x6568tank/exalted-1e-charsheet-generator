@@ -273,7 +273,7 @@
       "raw": "4 motes"
     },
     "duration": "Instant",
-    "description": "As with Commanding the Ideal Celestial Army, a character using this Charm can give an order audible to all troops under her command. In addition, the instant before she gives the order, she receives impressions of how the battle is going on every front. The character is aware of any weakness in her lines and of which troops (if any) can safely be moved elsewhere. This knowledge combined with the ability to give a short command (two dozen words or less) to either the entire army or to any section of it — for example, \"the cavalry\" or \"the troops on the left flank\" — enables the character to exercise amazing control over her soldiers.",
+    "description": "As with Commanding the Ideal Celestial Army, a character using this Charm can give an order audible to all troops under her command. In addition, the instant before she gives the order, she receives impressions of how the battle is going on every front. The character is aware of any weakness in her lines and of which troops (if any) can safely be moved elsewhere. This knowledge combined with the ability to give a short command (two dozen words or less) to either the entire army or to any section of it \u2014 for example, \"the cavalry\" or \"the troops on the left flank\" \u2014 enables the character to exercise amazing control over her soldiers.",
     "source": {
       "book": "Exalted 1e Caste Book: Dawn",
       "page": 76
@@ -424,7 +424,7 @@
       "raw": "Special"
     },
     "duration": "Special",
-    "description": "Through the use of this Charm, the Exalted weaves a complicated false identity around herself. The identity is complete with a detailed history and natural personality traits. Mere conversation cannot detect any flaws in the identity. In fact, the infallibility of the identity is perfect until the Exalted chooses to drop the façade or she is faced with an investigative intellect that is likewise Charm-enhanced. King of Masks Technique provides no resistance to interrogation techniques.\n\nWhen invoking the Charm, the Exalted crafts a back-story for herself and her player makes a Intelligence + Performance roll, adding one automatic success for each mote of Essence she chooses to invest. The total number of successes is the number of successes an investigator must achieve to see through the false identity, but this can never exceed twice the character's Intelligence + Performance pool. Only Charm-enhanced Investigation rolls will reduce this pool of successes, but all such investigations are cumulative. The Fair Folk and beings with Essence higher than the character are immune to the effects of this Charm.\n\nAt the time of an identity's creation, the Exalted may spend one experience point to make the identity permanent. The character may resume a permanent identity at any time by spending half as many motes of Essence as she originally spent creating the identity. Persistent investigators can wear away at and eventually destroy permanent identities. If an identity is pierced, then the experience point is lost. Permanent identities can be investigated even when the character is not using them. Motes of Essence spent creating a permanent identity are not committed after the identity is first \"put aside,\" but whenever the character resumes the identity, the Essence she pays to resume it is committed while she uses the identity.\n\nThis Charm cannot be used to mimic specific individuals. It can only create fictional identities. An Exalted may have as many permanent identities as she has points of permanent Essence.",
+    "description": "Through the use of this Charm, the Exalted weaves a complicated false identity around herself. The identity is complete with a detailed history and natural personality traits. Mere conversation cannot detect any flaws in the identity. In fact, the infallibility of the identity is perfect until the Exalted chooses to drop the fa\u00e7ade or she is faced with an investigative intellect that is likewise Charm-enhanced. King of Masks Technique provides no resistance to interrogation techniques.\n\nWhen invoking the Charm, the Exalted crafts a back-story for herself and her player makes a Intelligence + Performance roll, adding one automatic success for each mote of Essence she chooses to invest. The total number of successes is the number of successes an investigator must achieve to see through the false identity, but this can never exceed twice the character's Intelligence + Performance pool. Only Charm-enhanced Investigation rolls will reduce this pool of successes, but all such investigations are cumulative. The Fair Folk and beings with Essence higher than the character are immune to the effects of this Charm.\n\nAt the time of an identity's creation, the Exalted may spend one experience point to make the identity permanent. The character may resume a permanent identity at any time by spending half as many motes of Essence as she originally spent creating the identity. Persistent investigators can wear away at and eventually destroy permanent identities. If an identity is pierced, then the experience point is lost. Permanent identities can be investigated even when the character is not using them. Motes of Essence spent creating a permanent identity are not committed after the identity is first \"put aside,\" but whenever the character resumes the identity, the Essence she pays to resume it is committed while she uses the identity.\n\nThis Charm cannot be used to mimic specific individuals. It can only create fictional identities. An Exalted may have as many permanent identities as she has points of permanent Essence.",
     "source": {
       "book": "Exalted 1e Caste Book: Zenith",
       "page": 78
@@ -463,5 +463,30 @@
         "rating": 3
       }
     ]
+  },
+  {
+    "id": "solar.performance.dragon-soul-enlightening-method",
+    "name": "Dragon-Soul Enlightening Method",
+    "category": "performance",
+    "exalt_type": "Solar",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 4,
+    "prerequisites": [
+      [
+        "solar.performance.tiger-warrior-training-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "20 motes, 3 Willpower",
+      "motes": 20,
+      "willpower": 3
+    },
+    "duration": "One month",
+    "description": "Although their own methods of teaching their young the first steps toward civilized intelligence require several years, Solar Exalted who know this Charm can take even the most savage and mindless stalkers and unlock the latent intelligence within them. A Solar may supervise the training of up to (his Essence rating x 3) stalkers in a given month. At the end of this month, all of the stalkers who the Storyteller makes a successful Willpower roll for now have two dots in Essence and are capable of speaking both their own language and the language of the Solar who taught them. This Charm can only be used to give stalkers who only possess one dot of Essence a second dot of Essence; it cannot be used to give more spiritually advanced Dragon Kings further Essence and enlightenment. Until their training is completed, the Solar must confine the stalkers, since they are cunning and savage beasts until they regain their reason. Note: To use this Charm, the Solar Exalted must also know how to speak and read the High Holy Speech of the Dragon Kings. Also, this Charm is unknown in the modern day. Exalts who wish to learn it must either reinvent it or find instructions about it in an ancient tome.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 158
+    }
   }
 ]

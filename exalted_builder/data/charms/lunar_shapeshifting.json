@@ -10,10 +10,16 @@
     "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"motes": 1, "raw": "1 mote"},
+    "cost": {
+      "motes": 1,
+      "raw": "1 mote"
+    },
     "duration": "Instant",
     "description": "When purchasing this Charm, the Lunar chooses an animal no larger than an elk and no smaller than a large cat; that animal becomes the Lunar's totem animal, and its shape becomes one of her true shapes (making her Tell easier to spot in that shape). A Lunar in totem animal shape may spend 1 mote to activate this Charm and return to human shape; it may be activated only once per turn. A Lunar who wants a totem animal outside the elk-to-cat range must already know (or immediately buy) Humble Mouse Shape or Towering Beast Form as appropriate, and cannot exceed those Charms' limits. Changing totem animal costs a dot of permanent Willpower and re-buying this Charm; traces of the old form linger in the Tell (a Tell combining several animals marks the Lunar as a scorned 'chimera'), and the Lunar may earn the enmity of the totem-species' animal god for forsaking it. Members of the Eclipse Caste may not learn this Charm, for it draws on a natural power of the Lunar Exalted that Solars cannot master or emulate.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 124}
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 124
+    }
   },
   {
     "id": "lunar.shapeshifting.deadly-beastman-transformation",
@@ -25,63 +31,209 @@
     "min_attribute": "charisma",
     "min_ability": 2,
     "min_essence": 2,
-    "prerequisites": [["lunar.shapeshifting.finding-the-spirits-shape"]],
-    "cost": {"motes": 5, "raw": "5 motes"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.finding-the-spirits-shape"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "raw": "5 motes"
+    },
     "duration": "Instant",
     "repeatable_cap_ability": "essence",
     "variant_picks_first_purchase": 2,
     "variant_picks_per_purchase": 1,
-    "description": "This powerful Charm allows the Lunar to shift her shape into a monstrous hybrid of her human form and her totem animal — three feet taller than her normal height, with huge bonuses. Anyone who sees this hybrid form cannot mistake the Lunar for anything but a sleek, deadly killing machine; a character using this Charm is considered to be in one of his true forms. The first time a character takes this Charm, he receives five Attribute points and two Gifts (both must be applied immediately after the character purchases the Charm); subsequent purchases grant three Attribute points and one Gift per purchase (p.126-127; see `variants` for the Gift menu). A character may purchase this Charm no more times than his points of Essence. Each Attribute point raises Strength or Stamina by 1, or Dexterity by 1 for two points spent; bonuses are fixed once allocated, count as a natural part of the doubled Attribute for Charm purposes, and allow automatic successes on a roll per the normal rules. These Attribute points are NOT tracked by this engine — they apply only while the Lunar is actually in hybrid form, the same transient, play-time-only territory as combat/attack derivation, which this engine deliberately does not model. In beastman form, weapons and armor worn in human form are present (adjusted to fit), though the wielder cannot exceed the limits of Combos with Charms that also alter the character's shape. Members of the Eclipse Caste may not learn this Charm, for it draws on a natural power of the Lunar Exalted that Solars cannot master or emulate.",
+    "description": "This powerful Charm allows the Lunar to shift her shape into a monstrous hybrid of her human form and her totem animal \u2014 three feet taller than her normal height, with huge bonuses. Anyone who sees this hybrid form cannot mistake the Lunar for anything but a sleek, deadly killing machine; a character using this Charm is considered to be in one of his true forms. The first time a character takes this Charm, he receives five Attribute points and two Gifts (both must be applied immediately after the character purchases the Charm); subsequent purchases grant three Attribute points and one Gift per purchase (p.126-127; see `variants` for the Gift menu). A character may purchase this Charm no more times than his points of Essence. Each Attribute point raises Strength or Stamina by 1, or Dexterity by 1 for two points spent; bonuses are fixed once allocated, count as a natural part of the doubled Attribute for Charm purposes, and allow automatic successes on a roll per the normal rules. These Attribute points are NOT tracked by this engine \u2014 they apply only while the Lunar is actually in hybrid form, the same transient, play-time-only territory as combat/attack derivation, which this engine deliberately does not model. In beastman form, weapons and armor worn in human form are present (adjusted to fit), though the wielder cannot exceed the limits of Combos with Charms that also alter the character's shape. Members of the Eclipse Caste may not learn this Charm, for it draws on a natural power of the Lunar Exalted that Solars cannot master or emulate.",
     "variants": [
-      {"key": "horrifying-might", "label": "Horrifying Might", "max_purchases": 1,
-       "description": "A Lunar with this gift gains unparalleled command of his body and exudes power, his muscles strengthened as if transformed into steel hawsers, or his agility enhanced to match that of a monkey. He gains +2 Attribute points if the gift is taken with the Lunar's first purchase of Deadly Beastman Transformation or +1 if taken with a subsequent purchase of the Charm. These points may only be spent on physical Attributes (Strength, Dexterity and Stamina). As noted above, this gift can only be taken once."},
-      {"key": "bestial-reflexes", "label": "Bestial Reflexes", "max_purchases": 2,
-       "description": "The Lunar moves with bestial speed. Increase his base initiative by +3. This gift may be taken up to two times."},
-      {"key": "lightning-speed", "label": "Lightning Speed", "max_purchases": 1,
-       "description": "The character's running speed and jumping distances double. Remember that bonuses operate on the unmodified numbers. If the character is a Full Moon with his anima power activated, his running speed is tripled, not quadrupled."},
-      {"key": "spider-foot-climbing", "label": "Spider-Foot Climbing", "max_purchases": 1,
-       "prerequisites": [["bestial-reflexes", "lightning-speed"]],
-       "description": "A Lunar with this gift can move at half his normal speed across any surface, however slick, even vertical or horizontal ones. The character may not stop moving while off the horizontal, or he will fall normally. The character can bear loads of up to (his Strength x 50 pounds) through the use of this gift."},
-      {"key": "glue-foot-climbing", "label": "Glue-Foot Climbing", "max_purchases": 1,
-       "prerequisites": [["spider-foot-climbing"]],
-       "description": "A Lunar with this gift can scuttle with preternatural speed up walls and across ceilings. The character may stop and hang in any orientation without fear of falling. The character can support loads of up to (his Strength x 100 pounds) through the use of this gift."},
-      {"key": "gift-of-hands", "label": "Gift of Hands", "max_purchases": 1,
-       "description": "The character has one or two extra arms. This Charm can also imitate other manipulative extremities such as trunks and tails. The character can hold things normally with the extra extremities, allowing him to wield extra weapons. In addition, the character can more easily do several things at once, and the penalty for multiple actions is reduced by -1 for each action (it still cannot go below -0), but the character still cannot split his dice pool before his initiative. Characters do not enjoy the benefits of this gift during any turn in which they are under the effects of an extra action type Charm."},
-      {"key": "arm-array", "label": "Arm-Array", "max_purchases": 1,
-       "prerequisites": [["gift-of-hands"]],
-       "description": "The character has more than two extra arms — as few as three, or possibly, as many as 30. This gives the character the benefit of being able to hold many weapons at the ready. Remember, characters must pay the attunement cost for each magical weapon individually. In addition, the character's dice-pool penalty from multiple actions is reduced by -3 for each action (it still cannot go below -0), but the player still cannot split his character's dice pool until his initiative. Characters do not enjoy the benefits of this gift during any turn in which they are under the effects of an extra action type Charm."},
-      {"key": "resilience-of-nature", "label": "Resilience of Nature", "max_purchases": 1,
-       "description": "The Lunar heals quickly. He heals 1B per turn or 1L per hour while in hybrid form. This healing, which takes place at the start of the turn, is a reflexive action and does not count against the Lunar's actions. No dice rolls are required."},
-      {"key": "wound-knitting-power", "label": "Wound-Knitting Power", "max_purchases": 1,
-       "prerequisites": [["resilience-of-nature"]],
-       "description": "The body of a Lunar with Wound-Knitting Power can shake off most injuries with ease, wounds healing far quicker than is possible without the aid of magic. When in beastman form, he heals all bashing every turn and may also heal one point of lethal damage per turn. This healing, which takes place at the start of the turn, is a reflexive action and does not count against the Lunar's actions. No dice rolls are required."},
-      {"key": "fearsome-appearance", "label": "Fearsome Appearance", "max_purchases": 1,
-       "description": "The Lunar's appearance is unsettling, and her bestial nature is close to the surface. Beings with a Willpower lower than (the character's Essence + 2) are at +1 difficulty when attacking or defending against the Lunar, and all intimidation attempts by the Lunar against them are at +3 dice."},
-      {"key": "terrifying-bestial-visage", "label": "Terrifying Bestial Visage", "max_purchases": 1,
-       "prerequisites": [["fearsome-appearance"]],
-       "description": "Lunars with this gift are truly horrifying, causing the weak-willed to flee in terror. Players of characters with a Willpower lower than (the Lunar's Essence + 2) must make a successful Valor roll at difficulty 1 when their characters confront the Lunar or have them be unable to attack the shapeshifter, and such characters are at +2 difficulty on any attempts to defend themselves from the Exalt's attacks. Those whose players make the Valor roll and characters whose Willpower is greater than (the Lunar's Essence + 2) are still at +1 difficulty on all attempts to attack or defend against the Lunar."},
-      {"key": "rugged-hide", "label": "Rugged Hide", "max_purchases": 1,
-       "description": "This gift covers the Lunar with a rugged and thick skin, gaining him +2L/+2B soak. In addition, the Lunar's rugged constitution allows the character to soak lethal damage with his entire Stamina. A Lunar's natural soaks (both lethal and bashing) cannot be raised above 12 by the combined effects of this gift, Deadly Beastman Transformation's effects on the character's Stamina and any other Charm that enhances the character's natural soak. Instead, the character may ignore attacks that do less raw damage than the difference between 12 and what the character's soak would be without the limit. A character may never ignore attacks doing more than 12 points of raw damage, regardless of what his soak should be. For Example: With his Stamina and Rugged Hide gift, Gaum the Elephant-Lord should have a lethal soak of 16. Instead, he has a 12L soak, and ignores attacks doing less than 4L raw damage. If he wore a reinforced breastplate in hybrid shape, he'd have a soak of 19L and still ignore attacks that did less than 4L."},
-      {"key": "impenetrable-beast-armor", "label": "Impenetrable Beast-Armor", "max_purchases": 1,
-       "prerequisites": [["rugged-hide"]],
-       "description": "In addition to a thick hide, the Lunar now has cartilaginous growths under his skin, giving him formidable protection from damage. This grants him +6L/+6B soak. This soak bonus replaces Rugged Hide's soak bonus rather than adding to it. The character can still add his entire Stamina to his soak against lethal attacks. A Lunar's natural soaks (both lethal and bashing) cannot be raised above 12 by the combined effects of this gift, Deadly Beastman Transformation's effects on the character's Stamina and any other Charm that enhances his natural soak. Instead, the character may ignore attacks that do less raw damage than the difference between 12 and what the character's soak would be without the limit. A character may never ignore attacks doing more than 12 points of raw damage, regardless of what his soak should be."},
-      {"key": "poison-bite", "label": "Poison Bite", "max_purchases": 1,
-       "description": "The bite of a Lunar with this gift is toxic, and the player of any target successfully bitten in a turn (the Lunar need not do damage) must make a Stamina + Endurance roll against a difficulty equal to the Lunar's Stamina or have his character suffer an extra 3L damage. This damage is soaked only with the victim's natural soak — armor does not apply."},
-      {"key": "deadly-breath", "label": "Deadly Breath", "max_purchases": 1,
-       "prerequisites": [["poison-bite"]],
-       "description": "A Lunar with this gift can breathe fire or some other horrifying substance such as caustic venom or concentrated acid. This attack has a maximum range of 30 yards, +2 accuracy, and does a base damage equal to (the Lunar's Essence x 4) plus extra successes. This attack costs 1 Willpower to use. The player rolls the character's Dexterity + Archery or Dexterity + Athletics, whichever he prefers. The player can choose the special effect of the attack when the gift is acquired. A Lunar with this gift may also choose to drool venom, speak with flame licking from his mouth or puff acidic gas at a cost of 1 mote. Whatever the effect, it adds +3 dice to a single intimidation roll."},
-      {"key": "enhanced-senses", "label": "Enhanced Senses", "max_purchases": 2,
-       "description": "A Lunar with this gift has hyper-acute senses, gaining the eyes, ears and other senses of his animal form. Increase the Perception Attribute of a Lunar with this gift by +2. This gift may be taken up to two times."},
-      {"key": "ghost-sight", "label": "Ghost Sight", "max_purchases": 1,
-       "prerequisites": [["enhanced-senses"]],
-       "description": "A Lunar with Ghost Sight can clearly see dematerialized spirits but not Essence flows or active magic."},
-      {"key": "terrible-beast-claws", "label": "Terrible Beast Claws", "max_purchases": 1,
-       "description": "The Lunar does Spd +3, Acc +1, Dmg +3L, Pry +1 with his claws and Spd +0, Acc +2, Dmg +5L, Pry +0 with his bite. All Lunars get both claws and bite for this gift. Attacking with these natural weapons is a Brawl or Martial Arts attack, whichever the Lunar prefers."},
-      {"key": "savage-moonsilver-talons", "label": "Savage Moonsilver Talons", "max_purchases": 1,
-       "prerequisites": [["terrible-beast-claws"]],
-       "description": "The Lunar's fangs and claws are huge and made of moonsilver, capable of carving through flesh, bone or metal with equal ease. The Lunar has some control over the form of the fangs and claws and can adapt them to meet his needs (for example, lengthening them to rend flesh or retracting them to allow him to handle objects unimpeded), though the statistics remain the same. The claws have the following statistics: Spd +6, Acc +4, Dmg +5L, Pry +4. The bite is: Spd +3, Acc +2, Dmg +8L, Pry +0. Attacking with these natural weapons is a Brawl or Martial Arts attack, whichever the Lunar prefers. The Lunar's moonsilver talons and teeth can harm dematerialized spirits and count as moonsilver weapons for the purposes of Charms that affect those items."}
+      {
+        "key": "horrifying-might",
+        "label": "Horrifying Might",
+        "max_purchases": 1,
+        "description": "A Lunar with this gift gains unparalleled command of his body and exudes power, his muscles strengthened as if transformed into steel hawsers, or his agility enhanced to match that of a monkey. He gains +2 Attribute points if the gift is taken with the Lunar's first purchase of Deadly Beastman Transformation or +1 if taken with a subsequent purchase of the Charm. These points may only be spent on physical Attributes (Strength, Dexterity and Stamina). As noted above, this gift can only be taken once."
+      },
+      {
+        "key": "bestial-reflexes",
+        "label": "Bestial Reflexes",
+        "max_purchases": 2,
+        "description": "The Lunar moves with bestial speed. Increase his base initiative by +3. This gift may be taken up to two times."
+      },
+      {
+        "key": "lightning-speed",
+        "label": "Lightning Speed",
+        "max_purchases": 1,
+        "description": "The character's running speed and jumping distances double. Remember that bonuses operate on the unmodified numbers. If the character is a Full Moon with his anima power activated, his running speed is tripled, not quadrupled."
+      },
+      {
+        "key": "spider-foot-climbing",
+        "label": "Spider-Foot Climbing",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "bestial-reflexes",
+            "lightning-speed"
+          ]
+        ],
+        "description": "A Lunar with this gift can move at half his normal speed across any surface, however slick, even vertical or horizontal ones. The character may not stop moving while off the horizontal, or he will fall normally. The character can bear loads of up to (his Strength x 50 pounds) through the use of this gift."
+      },
+      {
+        "key": "glue-foot-climbing",
+        "label": "Glue-Foot Climbing",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "spider-foot-climbing"
+          ]
+        ],
+        "description": "A Lunar with this gift can scuttle with preternatural speed up walls and across ceilings. The character may stop and hang in any orientation without fear of falling. The character can support loads of up to (his Strength x 100 pounds) through the use of this gift."
+      },
+      {
+        "key": "gift-of-hands",
+        "label": "Gift of Hands",
+        "max_purchases": 1,
+        "description": "The character has one or two extra arms. This Charm can also imitate other manipulative extremities such as trunks and tails. The character can hold things normally with the extra extremities, allowing him to wield extra weapons. In addition, the character can more easily do several things at once, and the penalty for multiple actions is reduced by -1 for each action (it still cannot go below -0), but the character still cannot split his dice pool before his initiative. Characters do not enjoy the benefits of this gift during any turn in which they are under the effects of an extra action type Charm."
+      },
+      {
+        "key": "arm-array",
+        "label": "Arm-Array",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "gift-of-hands"
+          ]
+        ],
+        "description": "The character has more than two extra arms \u2014 as few as three, or possibly, as many as 30. This gives the character the benefit of being able to hold many weapons at the ready. Remember, characters must pay the attunement cost for each magical weapon individually. In addition, the character's dice-pool penalty from multiple actions is reduced by -3 for each action (it still cannot go below -0), but the player still cannot split his character's dice pool until his initiative. Characters do not enjoy the benefits of this gift during any turn in which they are under the effects of an extra action type Charm."
+      },
+      {
+        "key": "resilience-of-nature",
+        "label": "Resilience of Nature",
+        "max_purchases": 1,
+        "description": "The Lunar heals quickly. He heals 1B per turn or 1L per hour while in hybrid form. This healing, which takes place at the start of the turn, is a reflexive action and does not count against the Lunar's actions. No dice rolls are required."
+      },
+      {
+        "key": "wound-knitting-power",
+        "label": "Wound-Knitting Power",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "resilience-of-nature"
+          ]
+        ],
+        "description": "The body of a Lunar with Wound-Knitting Power can shake off most injuries with ease, wounds healing far quicker than is possible without the aid of magic. When in beastman form, he heals all bashing every turn and may also heal one point of lethal damage per turn. This healing, which takes place at the start of the turn, is a reflexive action and does not count against the Lunar's actions. No dice rolls are required."
+      },
+      {
+        "key": "fearsome-appearance",
+        "label": "Fearsome Appearance",
+        "max_purchases": 1,
+        "description": "The Lunar's appearance is unsettling, and her bestial nature is close to the surface. Beings with a Willpower lower than (the character's Essence + 2) are at +1 difficulty when attacking or defending against the Lunar, and all intimidation attempts by the Lunar against them are at +3 dice."
+      },
+      {
+        "key": "terrifying-bestial-visage",
+        "label": "Terrifying Bestial Visage",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "fearsome-appearance"
+          ]
+        ],
+        "description": "Lunars with this gift are truly horrifying, causing the weak-willed to flee in terror. Players of characters with a Willpower lower than (the Lunar's Essence + 2) must make a successful Valor roll at difficulty 1 when their characters confront the Lunar or have them be unable to attack the shapeshifter, and such characters are at +2 difficulty on any attempts to defend themselves from the Exalt's attacks. Those whose players make the Valor roll and characters whose Willpower is greater than (the Lunar's Essence + 2) are still at +1 difficulty on all attempts to attack or defend against the Lunar."
+      },
+      {
+        "key": "rugged-hide",
+        "label": "Rugged Hide",
+        "max_purchases": 1,
+        "description": "This gift covers the Lunar with a rugged and thick skin, gaining him +2L/+2B soak. In addition, the Lunar's rugged constitution allows the character to soak lethal damage with his entire Stamina. A Lunar's natural soaks (both lethal and bashing) cannot be raised above 12 by the combined effects of this gift, Deadly Beastman Transformation's effects on the character's Stamina and any other Charm that enhances the character's natural soak. Instead, the character may ignore attacks that do less raw damage than the difference between 12 and what the character's soak would be without the limit. A character may never ignore attacks doing more than 12 points of raw damage, regardless of what his soak should be. For Example: With his Stamina and Rugged Hide gift, Gaum the Elephant-Lord should have a lethal soak of 16. Instead, he has a 12L soak, and ignores attacks doing less than 4L raw damage. If he wore a reinforced breastplate in hybrid shape, he'd have a soak of 19L and still ignore attacks that did less than 4L."
+      },
+      {
+        "key": "impenetrable-beast-armor",
+        "label": "Impenetrable Beast-Armor",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "rugged-hide"
+          ]
+        ],
+        "description": "In addition to a thick hide, the Lunar now has cartilaginous growths under his skin, giving him formidable protection from damage. This grants him +6L/+6B soak. This soak bonus replaces Rugged Hide's soak bonus rather than adding to it. The character can still add his entire Stamina to his soak against lethal attacks. A Lunar's natural soaks (both lethal and bashing) cannot be raised above 12 by the combined effects of this gift, Deadly Beastman Transformation's effects on the character's Stamina and any other Charm that enhances his natural soak. Instead, the character may ignore attacks that do less raw damage than the difference between 12 and what the character's soak would be without the limit. A character may never ignore attacks doing more than 12 points of raw damage, regardless of what his soak should be."
+      },
+      {
+        "key": "poison-bite",
+        "label": "Poison Bite",
+        "max_purchases": 1,
+        "description": "The bite of a Lunar with this gift is toxic, and the player of any target successfully bitten in a turn (the Lunar need not do damage) must make a Stamina + Endurance roll against a difficulty equal to the Lunar's Stamina or have his character suffer an extra 3L damage. This damage is soaked only with the victim's natural soak \u2014 armor does not apply."
+      },
+      {
+        "key": "deadly-breath",
+        "label": "Deadly Breath",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "poison-bite"
+          ]
+        ],
+        "description": "A Lunar with this gift can breathe fire or some other horrifying substance such as caustic venom or concentrated acid. This attack has a maximum range of 30 yards, +2 accuracy, and does a base damage equal to (the Lunar's Essence x 4) plus extra successes. This attack costs 1 Willpower to use. The player rolls the character's Dexterity + Archery or Dexterity + Athletics, whichever he prefers. The player can choose the special effect of the attack when the gift is acquired. A Lunar with this gift may also choose to drool venom, speak with flame licking from his mouth or puff acidic gas at a cost of 1 mote. Whatever the effect, it adds +3 dice to a single intimidation roll."
+      },
+      {
+        "key": "enhanced-senses",
+        "label": "Enhanced Senses",
+        "max_purchases": 2,
+        "description": "A Lunar with this gift has hyper-acute senses, gaining the eyes, ears and other senses of his animal form. Increase the Perception Attribute of a Lunar with this gift by +2. This gift may be taken up to two times."
+      },
+      {
+        "key": "ghost-sight",
+        "label": "Ghost Sight",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "enhanced-senses"
+          ]
+        ],
+        "description": "A Lunar with Ghost Sight can clearly see dematerialized spirits but not Essence flows or active magic."
+      },
+      {
+        "key": "terrible-beast-claws",
+        "label": "Terrible Beast Claws",
+        "max_purchases": 1,
+        "description": "The Lunar does Spd +3, Acc +1, Dmg +3L, Pry +1 with his claws and Spd +0, Acc +2, Dmg +5L, Pry +0 with his bite. All Lunars get both claws and bite for this gift. Attacking with these natural weapons is a Brawl or Martial Arts attack, whichever the Lunar prefers."
+      },
+      {
+        "key": "savage-moonsilver-talons",
+        "label": "Savage Moonsilver Talons",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "terrible-beast-claws"
+          ]
+        ],
+        "description": "The Lunar's fangs and claws are huge and made of moonsilver, capable of carving through flesh, bone or metal with equal ease. The Lunar has some control over the form of the fangs and claws and can adapt them to meet his needs (for example, lengthening them to rend flesh or retracting them to allow him to handle objects unimpeded), though the statistics remain the same. The claws have the following statistics: Spd +6, Acc +4, Dmg +5L, Pry +4. The bite is: Spd +3, Acc +2, Dmg +8L, Pry +0. Attacking with these natural weapons is a Brawl or Martial Arts attack, whichever the Lunar prefers. The Lunar's moonsilver talons and teeth can harm dematerialized spirits and count as moonsilver weapons for the purposes of Charms that affect those items."
+      },
+      {
+        "key": "aspect-of-the-gillman",
+        "label": "Aspect of the Gillman",
+        "max_purchases": 1,
+        "description": "The character is totally at home underwater. He can swim at normal running speed, make attacks without penalty (even ranged attacks) and breathe water as easily as air. The character is perfectly amphibious and needs no transition time between air and water."
+      },
+      {
+        "key": "fluttering-wings",
+        "label": "Fluttering Wings",
+        "max_purchases": 1,
+        "description": "The character has weak wings good only for fluttering flight or flaps of skin that allow gliding. The primary effects are to double the character's vertical jumping distance and to triple the character's horizontal jumping distance. In addition, the character can fall any distance without injury. This gift can also simulate characters with incredibly athletic legs, a Lunar with a springbok or rabbit totem, for example."
+      },
+      {
+        "key": "soaring-pinions",
+        "label": "Soaring Pinions",
+        "max_purchases": 1,
+        "prerequisites": [
+          [
+            "fluttering-wings"
+          ]
+        ],
+        "description": "The character has mighty wings, which allow her to swoop and soar at speeds of up to 35 miles per hour. The character's wingspan is at least twice as wide as the character is tall, and the Exalt cannot fly if she cannot spread her wings. The player must make a Stamina + Endurance roll for her character for every four hours of soaring flight or every hour of flapping flight."
+      }
     ],
-    "source": {"book": "Exalted 1e The Lunars", "page": 124}
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 124
+    }
   },
   {
     "id": "lunar.shapeshifting.hide-of-the-cunning-hunter",
@@ -93,10 +245,16 @@
     "min_ability": 1,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"motes": 1, "raw": "1 mote"},
+    "cost": {
+      "motes": 1,
+      "raw": "1 mote"
+    },
     "duration": "One day",
-    "description": "Often one of the first Charms young Lunars learn: it lets them suppress their Caste Mark tattoos, becoming invisible, causing them to become effectively hidden. The effect dissipates if the character's anima banner reaches or exceeds the 4-7 motes level of display. Otherwise it is impossible to detect the Lunar's Tell, even by forms of sight that perceive active Essence. Storytellers should assume anyone who sees a Lunar with unsuppressed tattoos will regard her suspiciously and likely realize her nature — the Lunar Anathema are the stuff of legend.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 123}
+    "description": "Often one of the first Charms young Lunars learn: it lets them suppress their Caste Mark tattoos, becoming invisible, causing them to become effectively hidden. The effect dissipates if the character's anima banner reaches or exceeds the 4-7 motes level of display. Otherwise it is impossible to detect the Lunar's Tell, even by forms of sight that perceive active Essence. Storytellers should assume anyone who sees a Lunar with unsuppressed tattoos will regard her suspiciously and likely realize her nature \u2014 the Lunar Anathema are the stuff of legend.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 123
+    }
   },
   {
     "id": "lunar.shapeshifting.masking-the-brilliant-form",
@@ -107,11 +265,22 @@
     "min_attribute": "manipulation",
     "min_ability": 2,
     "min_essence": 1,
-    "prerequisites": [["lunar.shapeshifting.hide-of-the-cunning-hunter"]],
-    "cost": {"motes": 3, "willpower": 1, "raw": "3 motes, 1 Willpower"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.hide-of-the-cunning-hunter"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1,
+      "raw": "3 motes, 1 Willpower"
+    },
     "duration": "One scene",
     "description": "This Charm makes it harder to detect the Lunar's Tell. While active, it is impossible to detect the Tell of a Lunar who has never purchased Deadly Beastman Transformation. Lunars who have purchased Deadly Beastman Transformation 1-2 times are treated as if they had never purchased it for the purposes of having their Tells spotted; those who have purchased it 3+ times are treated as 1-2 purchases. This Charm cannot suppress the Tell at the 4-7 motes anima display level, and its effects end if the character's anima becomes that intense.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 123}
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 123
+    }
   },
   {
     "id": "lunar.shapeshifting.towering-beast-form",
@@ -122,11 +291,20 @@
     "min_attribute": "charisma",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["lunar.shapeshifting.finding-the-spirits-shape"]],
-    "cost": {"raw": "None"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.finding-the-spirits-shape"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
     "duration": "Indefinite",
-    "description": "Allows the Lunar to assume a totem-animal form larger than an elk but no larger than a Tyrant Lizard or other large dinosaur. There is no cost to use this Charm's effects — learning it simply enhances the Lunar's capabilities (the scope of Finding the Spirit's Shape). Members of the Eclipse Caste may not learn this Charm, for it draws on a natural power of the Lunar Exalted that Solars cannot master or emulate.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 125}
+    "description": "Allows the Lunar to assume a totem-animal form larger than an elk but no larger than a Tyrant Lizard or other large dinosaur. There is no cost to use this Charm's effects \u2014 learning it simply enhances the Lunar's capabilities (the scope of Finding the Spirit's Shape). Members of the Eclipse Caste may not learn this Charm, for it draws on a natural power of the Lunar Exalted that Solars cannot master or emulate.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 125
+    }
   },
   {
     "id": "lunar.shapeshifting.calling-lunas-favor",
@@ -137,11 +315,21 @@
     "min_attribute": "manipulation",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["lunar.shapeshifting.deadly-beastman-transformation"]],
-    "cost": {"motes": 5, "raw": "5 motes"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.deadly-beastman-transformation"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "raw": "5 motes"
+    },
     "duration": "Scene",
     "description": "By means of this Charm, a Lunar can draw forth the power of one of his Deadly Beastman Transformation Gifts while not in beastman form. From immediately after the character activates this Charm until the end of the scene or until the character ends the Charm's effects, he enjoys the benefits of one Deadly Beastman Transformation gift. The gift actually manifests and is probably an obvious mark of supernatural character. Characters can manifest any gift they possess, regardless of whether or not it has prerequisites.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 125}
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 125
+    }
   },
   {
     "id": "lunar.shapeshifting.blossoming-gift-of-luna",
@@ -152,11 +340,22 @@
     "min_attribute": "charisma",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["lunar.shapeshifting.calling-lunas-favor"]],
-    "cost": {"motes": 3, "willpower": 1, "raw": "3 motes, 1 Willpower"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.calling-lunas-favor"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1,
+      "raw": "3 motes, 1 Willpower"
+    },
     "duration": "Indefinite",
     "description": "An extension of Calling Luna's Favor: by activating this Charm, the Lunar can retain a single Deadly Beastman Transformation gift in hybrid form until she ends the Charm's effects or next enters hybrid form. As with Calling Luna's Favor, the gift actually manifests and is in no way concealed by this magic; characters can manifest any gift they possess, regardless of whether or not it has prerequisites.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 125}
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 125
+    }
   },
   {
     "id": "lunar.shapeshifting.shaping-the-ideal-form",
@@ -167,11 +366,21 @@
     "min_attribute": "manipulation",
     "min_ability": 2,
     "min_essence": 1,
-    "prerequisites": [["lunar.shapeshifting.finding-the-spirits-shape"]],
-    "cost": {"motes": 1, "raw": "1 mote"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.finding-the-spirits-shape"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "raw": "1 mote"
+    },
     "duration": "Instant",
-    "description": "Allows the Lunar to make cosmetic changes to the appearance of any of her true forms — changing hair, eye, or skin color by several shades, lengthening (or shortening) hair length, reshaping a chin, or straightening teeth. A modification only applies to the form it was used in — altering hair color in both human and totem-animal shapes requires using the Charm twice. Shaping the Ideal Form does not allow the Lunar to assume the appearance of another being (that requires Prey's Skin Disguise). No matter how much effort is put into the shaping, the Charm cannot be used to improve the Lunar's Physical Attributes unless the player invests experience in raising the Attribute — training time can represent an extended campaign of cosmetic self-improvement. Overuse tends to detract from the Lunar's appearance, rendering him bland, and is regarded as a sign of degeneracy and vanity among Luna's Beloved.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 128}
+    "description": "Allows the Lunar to make cosmetic changes to the appearance of any of her true forms \u2014 changing hair, eye, or skin color by several shades, lengthening (or shortening) hair length, reshaping a chin, or straightening teeth. A modification only applies to the form it was used in \u2014 altering hair color in both human and totem-animal shapes requires using the Charm twice. Shaping the Ideal Form does not allow the Lunar to assume the appearance of another being (that requires Prey's Skin Disguise). No matter how much effort is put into the shaping, the Charm cannot be used to improve the Lunar's Physical Attributes unless the player invests experience in raising the Attribute \u2014 training time can represent an extended campaign of cosmetic self-improvement. Overuse tends to detract from the Lunar's appearance, rendering him bland, and is regarded as a sign of degeneracy and vanity among Luna's Beloved.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 128
+    }
   },
   {
     "id": "lunar.shapeshifting.humble-mouse-shape",
@@ -183,11 +392,20 @@
     "min_attribute": "charisma",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["lunar.shapeshifting.finding-the-spirits-shape"]],
-    "cost": {"raw": "None"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.finding-the-spirits-shape"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
     "duration": "Indefinite",
-    "description": "Allows the Lunar to shapeshift into a form smaller than a cat but no smaller than a field mouse. There is no cost to use this Charm — learning it simply enhances the Lunar's capabilities. Members of the Eclipse Caste may not learn this Charm, for it draws on a natural power of the Lunar Exalted that Solars cannot master or emulate.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 128}
+    "description": "Allows the Lunar to shapeshift into a form smaller than a cat but no smaller than a field mouse. There is no cost to use this Charm \u2014 learning it simply enhances the Lunar's capabilities. Members of the Eclipse Caste may not learn this Charm, for it draws on a natural power of the Lunar Exalted that Solars cannot master or emulate.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 128
+    }
   },
   {
     "id": "lunar.shapeshifting.many-faced-moon-transformation",
@@ -198,11 +416,21 @@
     "min_attribute": "charisma",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["lunar.shapeshifting.shaping-the-ideal-form"]],
-    "cost": {"motes": 3, "raw": "3 motes"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.shaping-the-ideal-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "raw": "3 motes"
+    },
     "duration": "Instant",
-    "description": "By means of this Charm, the Exalted changes gender, males becoming females and vice versa; both their personalities, knowledge and Traits are unchanged. This is not a cosmetic modification — she becomes capable of siring or bearing children as appropriate. While many Lunars have a preferred gender, individual Lunars don't have a 'natural' sex — they're considered to be in true form in either gender. Attempts by a Lunar willing to use this Charm to assume the form of specific individuals must learn the Charm Prey's Skin Disguise. The character can still dress and act any way she desires — she adopts the victim's outward appearance, not personality. A Lunar willing to consume many mortals can develop quite a diverse catalog of shapes. As with any other type of shapechanging, the appearance of the character's Tell and tattoos are unchanged; Lunars who wish to masquerade as the persons they consumed would thus be well-advised to use Charms to suppress these unmistakable signs. The Charm's effect includes a gender change if appropriate, with the same limitations to pregnant characters as Many-Faced Moon Transformation. Members of the Eclipse Caste may not learn this Charm, for it draws on a natural power of the Lunar Exalted that Solars cannot master or emulate.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 129}
+    "description": "By means of this Charm, the Exalted changes gender, males becoming females and vice versa; both their personalities, knowledge and Traits are unchanged. This is not a cosmetic modification \u2014 she becomes capable of siring or bearing children as appropriate. While many Lunars have a preferred gender, individual Lunars don't have a 'natural' sex \u2014 they're considered to be in true form in either gender. Attempts by a Lunar willing to use this Charm to assume the form of specific individuals must learn the Charm Prey's Skin Disguise. The character can still dress and act any way she desires \u2014 she adopts the victim's outward appearance, not personality. A Lunar willing to consume many mortals can develop quite a diverse catalog of shapes. As with any other type of shapechanging, the appearance of the character's Tell and tattoos are unchanged; Lunars who wish to masquerade as the persons they consumed would thus be well-advised to use Charms to suppress these unmistakable signs. The Charm's effect includes a gender change if appropriate, with the same limitations to pregnant characters as Many-Faced Moon Transformation. Members of the Eclipse Caste may not learn this Charm, for it draws on a natural power of the Lunar Exalted that Solars cannot master or emulate.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 129
+    }
   },
   {
     "id": "lunar.shapeshifting.preys-skin-disguise",
@@ -215,14 +443,27 @@
     "min_ability": 4,
     "min_essence": 3,
     "prerequisites": [
-      ["lunar.shapeshifting.towering-beast-form"],
-      ["lunar.shapeshifting.humble-mouse-shape"],
-      ["lunar.shapeshifting.many-faced-moon-transformation"]
+      [
+        "lunar.shapeshifting.towering-beast-form"
+      ],
+      [
+        "lunar.shapeshifting.humble-mouse-shape"
+      ],
+      [
+        "lunar.shapeshifting.many-faced-moon-transformation"
+      ]
     ],
-    "cost": {"motes": 5, "willpower": 1, "raw": "5 motes, 1 Willpower"},
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "raw": "5 motes, 1 Willpower"
+    },
     "duration": "Indefinite",
-    "description": "This Charm allows the Lunar to assume the outward appearance of a specific other human. To do so, the Lunar must consume the target's heart's blood like any other form the Lunar wishes to gain. The Charm then allows her to assume the victim's outward appearance and Physical Attributes and Appearance, but she does not gain the victim's knowledge, Mental or Social Attributes or Abilities. If the target is an Exalt, the Lunar gains his outward appearance but remains a Lunar. This Charm cannot be used to mimic the Fair Folk, though humanoid beings that are something other. The character can still dress and act any way she desires — she adopts the victim's outward appearance, not personality. A Lunar willing to consume many mortals can develop quite a diverse catalog of shapes; as with any other type of shapechanging, the appearance of the character's Tell and tattoos are unchanged, and Lunars who wish to masquerade as the persons they consumed would thus be well-advised to use Charms to suppress these unmistakable signs.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 129}
+    "description": "This Charm allows the Lunar to assume the outward appearance of a specific other human. To do so, the Lunar must consume the target's heart's blood like any other form the Lunar wishes to gain. The Charm then allows her to assume the victim's outward appearance and Physical Attributes and Appearance, but she does not gain the victim's knowledge, Mental or Social Attributes or Abilities. If the target is an Exalt, the Lunar gains his outward appearance but remains a Lunar. This Charm cannot be used to mimic the Fair Folk, though humanoid beings that are something other. The character can still dress and act any way she desires \u2014 she adopts the victim's outward appearance, not personality. A Lunar willing to consume many mortals can develop quite a diverse catalog of shapes; as with any other type of shapechanging, the appearance of the character's Tell and tattoos are unchanged, and Lunars who wish to masquerade as the persons they consumed would thus be well-advised to use Charms to suppress these unmistakable signs.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 129
+    }
   },
   {
     "id": "lunar.shapeshifting.lunar-blood-reshaping-technique",
@@ -233,11 +474,22 @@
     "min_attribute": "manipulation",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["lunar.shapeshifting.shaping-the-ideal-form"]],
-    "cost": {"motes": 3, "health": 1, "raw": "3 motes, 1 health level + special"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.shaping-the-ideal-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "health": 1,
+      "raw": "3 motes, 1 health level + special"
+    },
     "duration": "One day",
-    "description": "By allowing a subject to taste his blood and activating this Charm, the Lunar can make minor alterations to the form of another willing subject — the same range of possible changes as Shaping the Ideal Form. This Charm cannot be used to change a target's shape or to give her the appearance of another specific human. Unlike modifications the Lunar makes to himself, the changes fade after a day. The subject must also spend a temporary Willpower point (two if she is an Exalt). Unwilling subjects, tattooed Lunars, non-humans, the undead and unmaterialized spirits cannot be shaped by this Charm. Once the Charm is activated, the player rolls Manipulation + Craft (Body Shaping) at difficulty 3. Three or more successes indicates success, while if the roll fails (or gets only one or two successes), the subject's form is unaltered. A botch, however, results in an unexpected — and usually unpleasant — outcome.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 129}
+    "description": "By allowing a subject to taste his blood and activating this Charm, the Lunar can make minor alterations to the form of another willing subject \u2014 the same range of possible changes as Shaping the Ideal Form. This Charm cannot be used to change a target's shape or to give her the appearance of another specific human. Unlike modifications the Lunar makes to himself, the changes fade after a day. The subject must also spend a temporary Willpower point (two if she is an Exalt). Unwilling subjects, tattooed Lunars, non-humans, the undead and unmaterialized spirits cannot be shaped by this Charm. Once the Charm is activated, the player rolls Manipulation + Craft (Body Shaping) at difficulty 3. Three or more successes indicates success, while if the roll fails (or gets only one or two successes), the subject's form is unaltered. A botch, however, results in an unexpected \u2014 and usually unpleasant \u2014 outcome.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 129
+    }
   },
   {
     "id": "lunar.shapeshifting.wondrous-lunar-transformation",
@@ -249,13 +501,25 @@
     "min_ability": 5,
     "min_essence": 4,
     "prerequisites": [
-      ["lunar.shapeshifting.preys-skin-disguise"],
-      ["lunar.shapeshifting.lunar-blood-reshaping-technique"]
+      [
+        "lunar.shapeshifting.preys-skin-disguise"
+      ],
+      [
+        "lunar.shapeshifting.lunar-blood-reshaping-technique"
+      ]
     ],
-    "cost": {"motes": 5, "willpower": 1, "health": 1, "raw": "5 motes, 1 Willpower, 1 health level + special"},
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 1,
+      "raw": "5 motes, 1 Willpower, 1 health level + special"
+    },
     "duration": "One day",
-    "description": "A more powerful version of the Lunar Blood Reshaping Technique, this Charm allows the Lunar to alter the subject's form to match one of the patterns in the Lunar's 'library.' This process is difficult, both painful for the subject and requiring immense skill by the Lunar, but it allows the subject to attain a non-human form or to masquerade as another human. In addition to the costs to the Lunar, the subject must spend 2 temporary Willpower points (3 if an Exalt). Unwilling subjects, tattooed Lunars, non-humans, the undead and unmaterialized spirits cannot be shaped by this Charm. Once the Charm is activated, the Lunar's player rolls Manipulation + Craft (Body Shaping) at difficulty 3. Three or more successes indicates success, while if the roll fails (or gets only one or two successes), the subject's form is unaltered. A botch, however, results in an unexpected — and usually unpleasant — outcome, probably a subject twisted and crippled for the duration or possibly suffering permanent damage.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 129}
+    "description": "A more powerful version of the Lunar Blood Reshaping Technique, this Charm allows the Lunar to alter the subject's form to match one of the patterns in the Lunar's 'library.' This process is difficult, both painful for the subject and requiring immense skill by the Lunar, but it allows the subject to attain a non-human form or to masquerade as another human. In addition to the costs to the Lunar, the subject must spend 2 temporary Willpower points (3 if an Exalt). Unwilling subjects, tattooed Lunars, non-humans, the undead and unmaterialized spirits cannot be shaped by this Charm. Once the Charm is activated, the Lunar's player rolls Manipulation + Craft (Body Shaping) at difficulty 3. Three or more successes indicates success, while if the roll fails (or gets only one or two successes), the subject's form is unaltered. A botch, however, results in an unexpected \u2014 and usually unpleasant \u2014 outcome, probably a subject twisted and crippled for the duration or possibly suffering permanent damage.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 129
+    }
   },
   {
     "id": "lunar.shapeshifting.shaping-the-once-living-form",
@@ -266,11 +530,20 @@
     "min_attribute": "manipulation",
     "min_ability": 3,
     "min_essence": 3,
-    "prerequisites": [["lunar.shapeshifting.lunar-blood-reshaping-technique"]],
-    "cost": {"raw": "1 mote per raw cubic foot, 1 per volume increase + 1 health level"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.lunar-blood-reshaping-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per raw cubic foot, 1 per volume increase + 1 health level"
+    },
     "duration": "Indefinite/Instant",
-    "description": "By means of this Charm, a Lunar can reshape inert once-living material into another form: a fallen tree into a shelter, a bone into a hide into clothing. He cannot, however, use the Charm to create complex objects (a simple buckle is about as sophisticated as it gets), nor can it be used to reshape objects that are already under the influence of Charms, sorcery or other supernatural effects. The item to be shaped must be smeared in the Lunar's blood, costing him a single health level (unsoakable lethal damage) before Essence can be channeled into the object. The texture, appearance and so on of the original material is clearly unchanged — a bone weapon is clearly bone, not metal — but the product may be modified by conventional methods (dyes, paint and so forth). The Essence cost of activating the Charm reflects the amount of raw material affected: if the target object is roughly the same size as the raw material, the Essence cost of the Charm is unaltered; if a size change is part of the process, each extra mote allows the final product's size to be twice (or half) that of the raw material. An object fashioned in this way is not permanent, but rather remains the Lunar's for as long as she commits the Essence; if the Lunar uses the Essence for other purposes, the object reverts to its original form. A Lunar can, however, make a permanent object by spending a point of Willpower, but this may only be done at the moment of creation. In this case, the Charm is instant, and the Essence returns normally. Shaping the object requires a Manipulation + Craft roll, usually of difficulty 1. The Storyteller may, however, increase this difficulty for more complex shapes. This Charm cannot affect the undead.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 130}
+    "description": "By means of this Charm, a Lunar can reshape inert once-living material into another form: a fallen tree into a shelter, a bone into a hide into clothing. He cannot, however, use the Charm to create complex objects (a simple buckle is about as sophisticated as it gets), nor can it be used to reshape objects that are already under the influence of Charms, sorcery or other supernatural effects. The item to be shaped must be smeared in the Lunar's blood, costing him a single health level (unsoakable lethal damage) before Essence can be channeled into the object. The texture, appearance and so on of the original material is clearly unchanged \u2014 a bone weapon is clearly bone, not metal \u2014 but the product may be modified by conventional methods (dyes, paint and so forth). The Essence cost of activating the Charm reflects the amount of raw material affected: if the target object is roughly the same size as the raw material, the Essence cost of the Charm is unaltered; if a size change is part of the process, each extra mote allows the final product's size to be twice (or half) that of the raw material. An object fashioned in this way is not permanent, but rather remains the Lunar's for as long as she commits the Essence; if the Lunar uses the Essence for other purposes, the object reverts to its original form. A Lunar can, however, make a permanent object by spending a point of Willpower, but this may only be done at the moment of creation. In this case, the Charm is instant, and the Essence returns normally. Shaping the object requires a Manipulation + Craft roll, usually of difficulty 1. The Storyteller may, however, increase this difficulty for more complex shapes. This Charm cannot affect the undead.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 130
+    }
   },
   {
     "id": "lunar.shapeshifting.fish-tail-technique",
@@ -281,11 +554,21 @@
     "min_attribute": "charisma",
     "min_ability": 3,
     "min_essence": 3,
-    "prerequisites": [["lunar.shapeshifting.shaping-the-ideal-form"]],
-    "cost": {"motes": 6, "raw": "6 motes"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.shaping-the-ideal-form"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "raw": "6 motes"
+    },
     "duration": "Indefinite",
     "description": "Using this Charm, a Lunar transforms his limbs to enhance his swimming abilities, turning his limbs into flippers, webbing hands and feet, or performing other similar effects (at the Lunar's discretion) to enhance his swimming abilities, allowing him to move through water unimpeded at twice his normal movement rate. If the Lunar is in a form with innate swimming abilities, such as that of a shark or a seal, the Fish Tail Technique confers no additional benefits. This Charm does not confer the ability to breathe water, and the character must surface to breathe (per the holding breath rules on p.243 of Exalted) or risk drowning.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 131}
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 131
+    }
   },
   {
     "id": "lunar.shapeshifting.tool-hand-technique",
@@ -296,11 +579,21 @@
     "min_attribute": "manipulation",
     "min_ability": 2,
     "min_essence": 2,
-    "prerequisites": [["lunar.shapeshifting.shaping-the-ideal-form"]],
-    "cost": {"motes": 1, "raw": "1 mote"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.shaping-the-ideal-form"
+      ]
+    ],
+    "cost": {
+      "motes": 1,
+      "raw": "1 mote"
+    },
     "duration": "One scene",
     "description": "Most Lunars abhor the trappings of civilization, but this does not mean they don't occasionally require tools. Unlike mortals, who must keep a range of prefabricated tools for such circumstances, a Lunar can reshape his body to provide the necessary instruments. Hands are strengthened and fingers sharpened and reshaped to provide whatever tool the Exalt might need. While using the Tool-Hand Technique, the Lunar can naturally perform tasks that would normally require tools (for example, boring a hole in wood, hammering a peg, or picking at stone). The Lunar's hands, feet or whatever else is shaped for a superficial resemblance to the tool in question remains indisputably flesh and bone (albeit hard and surrounded by a nimbus of Essence). A Lunar with multiple limbs can equip the multiple limbs at a cost of 1 mote per limb and suffers no injury from the pounding, cutting or rasping of using the 'tools.' The Tool-Hand Technique cannot be used to form weapons or to otherwise give the Lunar an advantage in inflicting or withstanding damage, nor does the Lunar work faster than she would with normal tools. Any rolls involving Craft gain a +2 bonus when the Lunar uses this Charm.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 131}
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 131
+    }
   },
   {
     "id": "lunar.shapeshifting.rat-head-technique",
@@ -311,10 +604,20 @@
     "min_attribute": "manipulation",
     "min_ability": 2,
     "min_essence": 2,
-    "prerequisites": [["lunar.shapeshifting.shaping-the-ideal-form"]],
-    "cost": {"motes": 3, "raw": "3 motes"},
+    "prerequisites": [
+      [
+        "lunar.shapeshifting.shaping-the-ideal-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "raw": "3 motes"
+    },
     "duration": "One scene",
-    "description": "By means of this Charm, the Lunar's bones, muscles and organs become capable of immense deformation, allowing him to squeeze his body through gaps it would not normally fit through. A human-sized Lunar could wriggle through a hole as small as a mouse hole or a knothole in a fence, though the process is very unsettling to watch and is likewise uncomfortable for the Lunar. The Rat-Head Technique cannot be used as part of any Combo or while the Lunar is under the effects of a Charm or sorcery that hardens or reinforces his limbs in any manner (such as the Body Weapon Technique). While using this Charm, the Lunar's natural soak cannot exceed 2B/2L under any circumstances, and he cannot parry lethal attacks without an appropriate stunt — his 'softened' body lacks the strength to do so effectively. A Lunar under the effect of Rat-Head Technique may dodge normally.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 132}
+    "description": "By means of this Charm, the Lunar's bones, muscles and organs become capable of immense deformation, allowing him to squeeze his body through gaps it would not normally fit through. A human-sized Lunar could wriggle through a hole as small as a mouse hole or a knothole in a fence, though the process is very unsettling to watch and is likewise uncomfortable for the Lunar. The Rat-Head Technique cannot be used as part of any Combo or while the Lunar is under the effects of a Charm or sorcery that hardens or reinforces his limbs in any manner (such as the Body Weapon Technique). While using this Charm, the Lunar's natural soak cannot exceed 2B/2L under any circumstances, and he cannot parry lethal attacks without an appropriate stunt \u2014 his 'softened' body lacks the strength to do so effectively. A Lunar under the effect of Rat-Head Technique may dodge normally.",
+    "source": {
+      "book": "Exalted 1e The Lunars",
+      "page": 132
+    }
   }
 ]

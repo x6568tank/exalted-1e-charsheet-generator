@@ -257,5 +257,30 @@
       "book": "Exalted 1e Aspect Book: Water",
       "page": 73
     }
+  },
+  {
+    "id": "dragonblooded.bureaucracy.wise-commanders-gift",
+    "name": "Wise Commander's Gift",
+    "category": "bureaucracy",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Water",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "dragonblooded.bureaucracy.benevolent-masters-blessing"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per mote granted, 1 additional committed mote, 1 Willpower",
+      "willpower": 1
+    },
+    "duration": "One week per permanent Essence",
+    "description": "Use of this Charm was never common, even in the First Age \u2014 Terrestrial Exalted simply do not have enough Essence to grant it to their servants and prefer to make artifacts that are both operable by mortals and limited in power (to prevent those mortals using them against their masters). Still, in some instances, no other alternative is available, and so, this Charm was developed. The Terrestrial may grant no more motes than twice his permanent Essence with this Charm, nor may a mortal benefit from more than one application of this Charm at once, even from different Dragon-Blooded. The Dragon-Blooded can gift Essence to as many mortals as his permanent Essence at any time and commits 1 additional mote per mortal affected in this fashion. Motes gifted by this Charm do not regenerate normally \u2014 once they have all been spent, the Charm ends. If the Terrestrial withdraws his commitment, the Charm also ends immediately, and the mortal loses all granted motes. Motes gained in this fashion may be used in any way mortals may normally spend Essence, including committing them to attune to artifacts, if the mortal has the right Merits. Artifacts attuned in this fashion function for one week before becoming de-attuned \u2014 the motes committed do not regenerate normally, and so, eventually, their power fades.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 123
+    }
   }
 ]

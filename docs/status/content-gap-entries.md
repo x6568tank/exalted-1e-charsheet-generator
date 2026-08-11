@@ -8,6 +8,20 @@ corrections and the sequencing rationale. **Read that first.**
 prerequisite, duration, description) still comes from the human-supplied page.
 The indexes are fan-made and demonstrably carry errors; see the plan's correction log.
 
+⚠⚠ **A name here is not proof the entry SHOULD be authored.** Some entries are
+*deliberately unauthored* on a human ruling, and this list cannot see that. Two were
+sent to a delegated batch on 2026-08-11 and had to be removed again:
+
+| Entry | Ruling |
+|---|---|
+| Day to Night, Foul the Waters, Immolation, Elemental Unction (GoD p.56) | PG p.68: *"Of the elemental powers on page 56 of GoD, only Consume Element and Plague of Menaces can be learned."* Encoded in `test_the_elemental_power_catalogue_is_the_nine_learnable_powers`. |
+| Investiture of Infernal Glory (PG p.85/87) | Human, 2026-08-07: akuma-only, does not fit the single-`min_virtue` model — *"Intentionally unauthored… do not author it"* (`docs/status/godblooded.md`). |
+
+**Before authoring anything from this list, grep `docs/status/` and `tests/` for the
+entry name.** A partial gap is the tell: when a source's entries are split between
+authored and not — as GoD p.56 was, two of six — that asymmetry is a decision, not an
+oversight, and it has a written reason somewhere.
+
 ⚠ **A name here is not proof the entry is absent from the build.** These lists
 already survived three filters (exact match, global fuzzy ≥0.86, same-book fuzzy
 ≥0.75), but the build's **parameterised entries** — `Keen (Sense) Technique`,

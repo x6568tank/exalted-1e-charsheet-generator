@@ -1033,7 +1033,9 @@ def test_gift_charm_shape(rs):
     assert charm.repeatable_cap_ability == "essence"
     assert charm.variant_picks_first_purchase == 2
     assert charm.variant_picks_per_purchase == 1
-    assert len(charm.variants) == 19
+    # 19 from Lunars pp.124-127; 22 since 2026-08-11, when the Player's Guide p.207
+    # gifts (Aspect of the Gillman, Soaring Pinions, Fluttering Wings) were added.
+    assert len(charm.variants) == 22
     assert validate.gift_charm_id(rs, _lunar()) == charm.id
     assert validate.gift_charm(rs, _lunar()).id == charm.id
 
@@ -1060,11 +1062,15 @@ def test_gift_prerequisite_chain(rs):
     assert by_key["deadly-breath"] == [["poison-bite"]]
     assert by_key["ghost-sight"] == [["enhanced-senses"]]
     assert by_key["savage-moonsilver-talons"] == [["terrible-beast-claws"]]
+    # Player's Guide p.207 (added 2026-08-11): "Prerequisite Gifts: Fluttering Wings"
+    # on Soaring Pinions, "None" on the other two.
+    assert by_key["soaring-pinions"] == [["fluttering-wings"]]
     roots = {k for k, p in by_key.items() if not p}
     assert roots == {
         "horrifying-might", "bestial-reflexes", "lightning-speed", "gift-of-hands",
         "terrible-beast-claws", "resilience-of-nature", "fearsome-appearance",
         "rugged-hide", "poison-bite", "enhanced-senses",
+        "aspect-of-the-gillman", "fluttering-wings",
     }
 
 
