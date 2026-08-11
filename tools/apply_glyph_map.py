@@ -49,6 +49,51 @@ def decode_reflect288(text: str, charmap: dict[str, str]) -> str:
     return "".join(out)
 
 
+def split_layout_columns(page: str, min_gutter=3, agree=0.90):
+    """Split a poppler `-layout` page into columns, in reading order.
+
+    `-layout` is used because it is the only mode that preserves every character:
+    pdfminer drops U+00AD (this cipher's lowercase 's') and plain pdftotext eats the
+    line-end ones as hyphenation, so "hamlets are" silently becomes "hamletare". The
+    price is that -layout keeps the visual grid, putting both columns on every line —
+    so the gutter is found here as a run of character positions blank on virtually
+    every line, and the left column is emitted entire, then the right.
+
+    Returns the page unchanged when no corridor is found, so single-column pages and
+    full-width tables are left alone.
+    """
+    rows = [ln for ln in page.split("\n") if ln.strip()]
+    if len(rows) < 6:
+        return page
+    width = max(len(r) for r in rows)
+    if width < 60:
+        return page
+    blank = []
+    for x in range(int(width * 0.25), int(width * 0.75)):
+        hits = sum(1 for r in rows if x >= len(r) or r[x] == " ")
+        if hits >= agree * len(rows):
+            blank.append(x)
+    if not blank:
+        return page
+    runs, cur = [], [blank[0]]
+    for a, b in zip(blank, blank[1:]):
+        if b == a + 1:
+            cur.append(b)
+        else:
+            runs.append(cur)
+            cur = [b]
+    runs.append(cur)
+    best = max(runs, key=len)
+    if len(best) < min_gutter:
+        return page
+    cut = best[0]
+    left = [r[:cut].rstrip() for r in rows]
+    right = [r[cut:].rstrip() for r in rows]
+    if min(sum(bool(x) for x in left), sum(bool(x) for x in right)) < 0.25 * len(rows):
+        return page
+    return "\n".join([x for x in left if x] + [x for x in right if x])
+
+
 def load_map(path):
     spec = json.load(open(path))
     cid = {k: v["to"] for k, v in spec.get("cid", {}).items()}
@@ -109,10 +154,7 @@ def main():
                   "from poppler", file=sys.stderr)
             return 2
         raw = subprocess.run(
-            # NO -layout: that preserves the visual grid, which puts both columns
-            # on every line and interleaves them. Plain mode follows the PDF's own
-            # stored reading order — the order you get by selecting and copying.
-            ["pdftotext", "-enc", "UTF-8", a.pdf, "-"],
+            ["pdftotext", "-layout", "-enc", "UTF-8", a.pdf, "-"],
             capture_output=True).stdout.decode("utf-8", "replace")
         # poppler separates pages with a form feed; turn those into the same
         # <!--PAGE n--> markers the rest of the pipeline uses.
@@ -122,7 +164,7 @@ def main():
             if not pg.strip():
                 continue
             out.append(f"<!--PAGE {i + 1 - a.offset}-->")
-            out.append(decode_reflect288(pg, chars))
+            out.append(decode_reflect288(split_layout_columns(pg), chars))
         after = "\n".join(out)
         before = raw
     else:

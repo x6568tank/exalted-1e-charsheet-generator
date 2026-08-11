@@ -4,12 +4,67 @@
   "problem": "Every glyph is reflected: the font stores code 288 - ord(char). Extraction without decoding yields byte-shifted gibberish that still counts as a fat text layer.",
   "cipher": "reflect288",
   "evidence": "The running head decodes as EXALTED THE OUTCASTE; chapter heads as CHAPTER ONE LOOKSHY AND THE SEVENTH LEGION and CHAPTER THREE THE FOREST WITCHES; printed folios decode to their own page numbers. The mapping is proved by the book, not inferred.",
-  "extractor": "poppler (pdftotext), NOT pdfminer - pdfminer silently DROPS U+00AD, which is this cipher's lowercase 's' (288-115=173). Losing a letter silently is worse than any garble.",
+  "extractor": "poppler (pdftotext) with -layout PLUS the column splitter, NOT pdfminer and NOT plain mode. pdfminer DROPS U+00AD (this cipher's lowercase 's'). Plain pdftotext mode reads in the right order but silently eats the line-end soft hyphens as hyphenation, losing ~7 's' per page ('hamletare' for 'hamlets are'). -layout keeps every character; the column splitter restores reading order.",
   "chars": {
-    "0x2d": {"to": "s", "why": "U+00AD soft hyphen, which poppler renders as '-'; 288-115=173. A real hyphen encodes as 0xF3 and decodes normally, so every 0x2D here is an 's'.", "seen_in": ["artilleri-t- -> artillerists", "-iege engineer- -> siege engineers"]},
-    "0x4b": {"to": "’", "why": "apostrophe (raw ASCII passthrough; a real letter K arrives as 0xD5)", "seen_in": ["ShogunateKs -> Shogunate's", "LookshyKs -> Lookshy's"]},
-    "0x4e": {"to": "“", "why": "left double quote (a real N arrives as 0xD2)", "seen_in": ["NfangsM -> “fangs”"]},
-    "0x4d": {"to": "”", "why": "right double quote (a real M arrives as 0xD3)", "seen_in": ["NlegionsM -> “legions”"]},
-    "0x4f": {"to": "—", "why": "em dash (a real O arrives as 0xD1)", "seen_in": ["per dragon O this is sometimes -> per dragon — this is"]}
+    "0x2d": {
+      "to": "s",
+      "why": "U+00AD soft hyphen, which poppler renders as '-'; 288-115=173. A real hyphen encodes as 0xF3 and decodes normally, so every 0x2D here is an 's'.",
+      "seen_in": [
+        "artilleri-t- -> artillerists",
+        "-iege engineer- -> siege engineers"
+      ]
+    },
+    "0x4b": {
+      "to": "’",
+      "why": "apostrophe (raw ASCII passthrough; a real letter K arrives as 0xD5)",
+      "seen_in": [
+        "ShogunateKs -> Shogunate's",
+        "LookshyKs -> Lookshy's"
+      ]
+    },
+    "0x4e": {
+      "to": "“",
+      "why": "left double quote (a real N arrives as 0xD2)",
+      "seen_in": [
+        "NfangsM -> “fangs”"
+      ]
+    },
+    "0x4d": {
+      "to": "”",
+      "why": "right double quote (a real M arrives as 0xD3)",
+      "seen_in": [
+        "NlegionsM -> “legions”"
+      ]
+    },
+    "0x4f": {
+      "to": "—",
+      "why": "em dash (a real O arrives as 0xD1)",
+      "seen_in": [
+        "per dragon O this is sometimes -> per dragon — this is"
+      ]
+    },
+    "0x7b": {
+      "to": "•",
+      "why": "the Artifact/Level rating DOT — a MECHANICAL VALUE, not decoration",
+      "seen_in": [
+        "these are Artifact {{{ and have a commitment cost of 5 -> Artifact •••",
+        "crimson armor is Artifact {{{{) -> Artifact ••••",
+        "worthy of Artifact {{{{{ -> Artifact •••••"
+      ],
+      "count": 455,
+      "WARNING": "Missing this mapping is why the first artifact batch fell back to the fan index for all 26 Outcaste ratings. Ratings are spent against the Artifact Background budget; they must come from the page. NOTE: this recovers dots printed in BODY text ('these are Artifact •••'). The dots inside artifact HEADINGS — '(ARTIFACT )' — are absent from the text layer entirely and CANNOT be recovered here; they need the VLM on the page image or a human read."
+    },
+    "0x2022": {
+      "to": "’",
+      "why": "apostrophe in ALL-CAPS headings (the heading counterpart of 0x4b)",
+      "seen_in": [
+        "DOMNICA•S MANTLE",
+        "THE HELM OF HEART•S DESIRE",
+        "PASIAP•S STAIR",
+        "ATSILUTH•S BOUNTY"
+      ],
+      "count": 12,
+      "WARNING": "Must be mapped, or it collides with 0x7b -> • and a heading apostrophe reads as a rating dot."
+    }
   }
 }
