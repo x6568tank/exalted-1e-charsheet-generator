@@ -270,9 +270,12 @@ def test_abyssal_necromancy_spells_authored(rs):
     by_circle = {}
     for s in rs.spells.values():
         by_circle.setdefault(s.circle, []).append(s)
-    assert len(by_circle[SpellCircle.SHADOWLANDS]) == 9
-    assert len(by_circle[SpellCircle.LABYRINTH]) == 7
-    assert len(by_circle[SpellCircle.VOID]) == 7
+    # 2026-08-11: Book of Bone and Ebony — the Arcanoi/necromancy book — was extracted
+    # and its 59 necromancy spells authored, roughly tripling these circles. The counts
+    # are the E:Ab originals plus that batch (docs/status/spell-batch-notes.md).
+    assert len(by_circle[SpellCircle.SHADOWLANDS]) == 42
+    assert len(by_circle[SpellCircle.LABYRINTH]) == 24
+    assert len(by_circle[SpellCircle.VOID]) == 17
     # a known spell of each circle
     assert "spell.shadowlands.summon-ghost" in rs.spells
     assert "spell.labyrinth.ivory-razor-forest" in rs.spells
