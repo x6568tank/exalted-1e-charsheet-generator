@@ -47,9 +47,64 @@ def _char(splat: str, caste: str) -> Character:
 # --- the tier data itself ---------------------------------------------------- #
 
 def test_exalt_tiers_authored(rs):
-    assert rs.exalt_for("Solar").tier == "Celestial"
+    """The hierarchy, low to high: Terrestrial < Celestial < Solar (human, rules
+    authority, 2026-08-11). Terrestrial is the Dragon-Blooded alone; Celestial holds
+    Lunars, Sidereals, Abyssals and Alchemicals; the Solar Exalted stand above all.
+
+    Solar was previously authored `Celestial` — not a taxonomy but a workaround, since
+    the tier test was exact string equality and there was no way to say "Celestial or
+    below". `validate.tier_reaches` now ranks them, so the label can be honest."""
+    assert rs.exalt_for("Solar").tier == "Solar"
     assert rs.exalt_for("Abyssal").tier == "Celestial"
+    assert rs.exalt_for("Lunar").tier == "Celestial"
+    assert rs.exalt_for("Sidereal").tier == "Celestial"
+    assert rs.exalt_for("Alchemical").tier == "Celestial"
     assert rs.exalt_for("Dragon-Blooded").tier == "Terrestrial"
+
+
+def test_a_splat_reaches_its_own_tier_and_every_tier_below(rs):
+    """Downward only. A Solar reaches Celestial and Terrestrial styles; a Celestial
+    reaches Terrestrial; nothing reaches UP — Lunars and Sidereals cannot touch
+    Solar-tier material."""
+    assert validate.tier_reaches("Solar", ["Celestial"])
+    assert validate.tier_reaches("Solar", ["Terrestrial"])
+    assert validate.tier_reaches("Celestial", ["Terrestrial"])
+    assert validate.tier_reaches("Celestial", ["Celestial"])
+    assert not validate.tier_reaches("Celestial", ["Solar"])
+    assert not validate.tier_reaches("Terrestrial", ["Celestial"])
+    assert not validate.tier_reaches("Terrestrial", ["Solar"])
+    # Splats outside the hierarchy reach nothing by rank; they are gated elsewhere.
+    assert not validate.tier_reaches("Mortal", ["Terrestrial"])
+    assert not validate.tier_reaches("Ghost", ["Terrestrial"])
+
+
+def test_an_alchemical_reaches_no_martial_arts_at_all_without_the_matrix(rs):
+    """CH3 p.100 — the tier says what she COULD reach, PLM says whether she may, and
+    it gates EVERY tier: no Terrestrial style either (human, 2026-08-11).
+
+    The bar has to sit above `open_to_all`, because the Terrestrial styles are
+    open_to_all and would otherwise be granted before any tier reasoning ran. Testing
+    only the Celestial style would pass with the bar in the wrong place."""
+    bare = _char("Alchemical", "orichalcum")
+    for cid in (_HUNGRY_GHOST, _FIVE_DRAGON):
+        assert not validate.charm_matches_splat(bare, rs.charms[cid], rs), cid
+    installed = _char("Alchemical", "orichalcum")
+    installed.charms = [validate.PERFECTED_LOTUS_MATRIX_ID]
+    for cid in (_HUNGRY_GHOST, _FIVE_DRAGON):
+        assert validate.charm_matches_splat(installed, rs.charms[cid], rs), cid
+
+
+def test_the_matrix_bar_does_not_touch_an_alchemicals_own_charms(rs):
+    """The bar is keyed on the martial_arts CATEGORY, and no Alchemical Charm lives
+    in one — including Perfected Lotus Matrix itself, which she must be able to buy
+    in order to lift the bar at all."""
+    bare = _char("Alchemical", "orichalcum")
+    plm = rs.charms[validate.PERFECTED_LOTUS_MATRIX_ID]
+    assert validate.charm_matches_splat(bare, plm, rs)
+    own = next(c for c in rs.charms.values()
+               if c.exalt_type == "Alchemical"
+               and not c.category.startswith("martial_arts"))
+    assert validate.charm_matches_splat(bare, own, rs)
 
 
 def test_styles_flagged_celestial(rs):

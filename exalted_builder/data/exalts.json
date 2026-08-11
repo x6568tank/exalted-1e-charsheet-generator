@@ -10,7 +10,7 @@
     "magic_track": "sorcery",
     "highest_magic_circle_id": "Solar",
     "ox_body_charm_id": "solar.endurance.ox-body-technique",
-    "tier": "Celestial",
+    "tier": "Solar",
     "essence_cap": 9
   },
   {
@@ -117,7 +117,7 @@
     "ox_body_charm_id": "alchemical.might-and-mobility.strain-resistant-chassis-modification",
     "caste_noun": "Caste",
     "clarity": true,
-    "tier": "Alchemical",
+    "tier": "Celestial",
     "essence_cap": 9,
     "has_virtue_flaw": false
   },

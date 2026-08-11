@@ -1251,16 +1251,30 @@ DB_MA_ENLIGHTENMENT_PAIRS = (
     ("dragonblooded.martial-arts.tiger-and-bear-awareness",
      "dragonblooded.martial-arts.tiger-and-bear-unity"),
 )
-_UNGATED_MA_STYLES = frozenset({"five-dragon", "enlightenment"})
+def _is_dragon_path_style(ruleset: RuleSet, category: str) -> bool:
+    """A martial-arts style the Dragon-Blooded enlightenment gate applies to.
 
+    The gate is about **Celestial** martial arts, not martial arts in general —
+    PG p.236 describes the initiation as what lets "the Terrestrial to, with
+    difficulty, grasp the principles and practice of the Celestial martial arts",
+    and the five Immaculate Dragon Paths are explicitly Celestial styles (human,
+    rules authority, 2026-08-11). So the test is the style's TIER.
 
-def _is_dragon_path_style(category: str) -> bool:
-    """A martial-arts style category that counts as a 'Dragon Path' for the DB
-    enlightenment gate — any ``martial_arts:<style>`` except the exempt styles
-    (Five-Dragon and the Enlightenment tree itself)."""
+    A Dragon-Blooded therefore reaches every TERRESTRIAL style uninitiated — Five
+    Dragon, Falling Blossom, Crimson Pentacle Blade — and Jade Mountain, which is a
+    Dragon-Blooded style carrying no tier at all.
+
+    Previously this exempted two styles BY NAME and gated everything else, which hid
+    every Terrestrial style from an uninitiated Dragon-Blooded. Falling Blossom had
+    been invisible to them since it was authored; adding Crimson Pentacle Blade is
+    what made the bug visible.
+    """
     if not category.startswith("martial_arts:"):
         return False
-    return category.split(":", 1)[1] not in _UNGATED_MA_STYLES
+    for charm in ruleset.charms.values():
+        if charm.category == category:
+            return "Celestial" in charm.open_to_tiers
+    return False
 
 
 def db_enlightenment_met(character: Character) -> bool:
@@ -1280,7 +1294,8 @@ def category_available(ruleset: RuleSet, character: Character, category: str) ->
     style-dropdown filter. Currently the only gate is the Dragon-Blooded Dragon-Path
     rule (p241): a DB reaches the elemental Dragon styles only after learning both
     enlightenment Charms. Every other category is always available."""
-    return not (_is_dragon_path_style(category) and not db_enlightenment_met(character))
+    return not (_is_dragon_path_style(ruleset, category)
+                and not db_enlightenment_met(character))
 
 
 def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> bool:
@@ -1290,7 +1305,7 @@ def meets_charm_requirements(ruleset: RuleSet, character: Character, charm) -> b
     Blooded — the Dragon-Path enlightenment gate (p241). The forward-looking
     counterpart to check_charm_prerequisites; used by the charm-tree picker to
     decide which Charms are currently selectable."""
-    if _is_dragon_path_style(charm.category) and not db_enlightenment_met(character):
+    if _is_dragon_path_style(ruleset, charm.category) and not db_enlightenment_met(character):
         return False
     if _mountain_folk_unenlightened_bar(character, charm):
         # An Unenlightened Jadeborn may only learn their own Caste Pattern or the
@@ -4800,21 +4815,59 @@ def charm_matches_splat(character: Character, charm: Charm,
         # one rule covers every Terrestrial style.
         return (ruleset.exalt_for(character.exalt_type).terrestrial_martial_arts
                 and is_terrestrial_martial_arts(charm))
+    # An Alchemical is a CELESTIAL Exalt (human, 2026-08-11) but reaches NO martial
+    # arts at all — Terrestrial or Celestial — without Perfected Lotus Matrix installed
+    # (CH3 p.100: with it she learns them "in the same manner as any other Celestial
+    # Exalted type"). The tier says what she could reach; PLM says whether she may.
+    #
+    # This sits ABOVE `open_to_all`, because the Terrestrial styles are open_to_all and
+    # would otherwise be granted before any tier reasoning ran — the same ordering trap
+    # the mortal and ghost bars above document. Her own Charms are unaffected: no
+    # Alchemical Charm lives in a `martial_arts:` category, PLM included.
+    if (character.exalt_type == "Alchemical" and is_martial_arts_charm(charm)
+            and not has_perfected_lotus_matrix(character)):
+        return False
     if charm.open_to_all or splat_of(charm) == character.exalt_type:
         return True
     if ruleset is not None and charm.open_to_tiers:
-        if ruleset.exalt_for(character.exalt_type).tier in charm.open_to_tiers:
-            return True
-        # Perfected Lotus Matrix (CH3 p.100): an Alchemical with it installed learns
-        # Terrestrial/Celestial Martial Arts Charms "in the same manner as any other
-        # Celestial Exalted type", so a Celestial-tier MA style becomes available.
-        if (is_martial_arts_charm(charm) and "Celestial" in charm.open_to_tiers
-                and has_perfected_lotus_matrix(character)):
+        if tier_reaches(ruleset.exalt_for(character.exalt_type).tier,
+                        charm.open_to_tiers):
             return True
     return False
 
 
 PERFECTED_LOTUS_MATRIX_ID = "alchemical.close-combat.perfected-lotus-matrix"
+
+# The Exalt power hierarchy, low to high (human, rules authority, 2026-08-11):
+# Terrestrial = the Dragon-Blooded alone; Celestial = Lunars, Sidereals, Abyssals and
+# Alchemicals; Solar = the Solar Exalted, above all. A splat reaches its own tier AND
+# EVERY TIER BELOW IT — a Solar may learn Celestial and Terrestrial martial arts, a
+# Celestial may learn Terrestrial, a Terrestrial reaches only Terrestrial. Nothing
+# reaches UP: Lunars and Sidereals cannot touch Solar-tier material.
+#
+# Before 2026-08-11 the tier test was exact string equality, so "Celestial or below"
+# was inexpressible and Solar had to be MISLABELLED `tier: "Celestial"` to reach
+# Celestial martial arts at all — which in turn left Alchemicals matching nothing and
+# needing a hardcoded Perfected Lotus Matrix special case.
+TIER_ORDER = ("Terrestrial", "Celestial", "Solar")
+
+
+def tier_rank(tier: str) -> int:
+    """Position of `tier` in the Exalt hierarchy, or -1 for a tier outside it
+    (Mortal, Ghost — those splats reach nothing by rank and are gated elsewhere)."""
+    return TIER_ORDER.index(tier) if tier in TIER_ORDER else -1
+
+
+def tier_reaches(character_tier: str, charm_tiers: list[str]) -> bool:
+    """Whether a splat of `character_tier` may reach a Charm marked `charm_tiers`.
+
+    True when the character's rank is at least the LOWEST tier the Charm names, so a
+    Solar reaches a Celestial style and a Dragon-Blooded does not."""
+    mine = tier_rank(character_tier)
+    if mine < 0:
+        return False
+    ranks = [tier_rank(t) for t in charm_tiers if tier_rank(t) >= 0]
+    return bool(ranks) and mine >= min(ranks)
 
 
 def is_martial_arts_charm(charm: Charm) -> bool:
