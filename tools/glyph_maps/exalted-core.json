@@ -1,0 +1,59 @@
+{
+  "book": "Exalted Core",
+  "pdf": "Exalted.pdf",
+  "problem": "Thirteen subsetted fonts, none with a ToUnicode map, so every character extracts as a bare glyph index. EACH FONT IS ITS OWN CIPHER: the body face is 89% of the text and the sidebar/quote/table faces are separate substitutions. Decoding everything with the body font's mapping yields clean English for 89% and confident nonsense for the rest.",
+  "cipher": "bands_per_font",
+  "evidence": "Solved by tools/solve_cid_bands.py, which anchors each font on English: the commonest 3-letter word gives the lowercase constant (cross-checked across all three of t/h/e), a capitalised word whose tail already decodes gives the uppercase one, and the two commonest word-final non-letters give the punctuation one as a SELF-CHECKING pair ('.' takes the lower cid, so 46+period must equal 44+comma). The solver independently reproduced the body font's 137/133/130, which had been derived by hand, and ZTR41C6's 130/124/119, which had been derived from a garbled sample the human spotted.",
+  "extractor": "pdfplumber via tools/extract_born_digital.py --glyph-map. pdfplumber reports (cid:N) per character WITH its fontname, which is required here: poppler emits the raw glyph byte, losing the font attribution that tells you which cipher to apply — and additionally conflates glyph 32 with layout padding.",
+  "fonts": {
+    "ZTR41CA.tmp,Bold": {
+      "space": 2,
+      "lower": 137,
+      "upper": 133,
+      "punct": 130,
+      "share": "89.1%",
+      "note": "body text"
+    },
+    "ZTR41C6.tmp,Bold": {
+      "space": 2,
+      "lower": 130,
+      "upper": 124,
+      "punct": 119,
+      "share": "4.5%"
+    },
+    "ZTR41E2.tmp,Bold": {
+      "space": 2,
+      "lower": 132,
+      "upper": 127,
+      "punct": 122,
+      "share": "2.0%"
+    },
+    "ZTR41CC.tmp,Bold": {
+      "space": 2,
+      "lower": 130,
+      "upper": 125,
+      "punct": 119,
+      "share": "1.6%"
+    }
+  },
+  "singles": {
+    "3": {
+      "to": "’",
+      "why": "apostrophe in the body font",
+      "fonts": [
+        "ZTR41CA.tmp,Bold"
+      ]
+    }
+  },
+  "unresolved": {
+    "ZTR41D0.tmp,Bold": {
+      "share": "2.5%",
+      "note": "UNSOLVED — its commonest 3-letter word is not 'the', so it is probably a small-caps or display face with a different glyph set. Left as U+FFFD, never guessed."
+    },
+    "ZTR41E6/DC/C8 and five tinier faces": {
+      "share": "0.3%",
+      "note": "UNSOLVED — too little text to anchor. Left as U+FFFD."
+    }
+  },
+  "measured": "2026-08-11 after the per-font fix: 1,383,330 chars, 340 pages, 3.00% undecoded (the unsolved faces, every glyph marked U+FFFD). 337 of 340 pages read as English; the three that do not are the contents page, a creature stat table and the blank character sheet. 237 of 276 Core entries already authored FROM PAGE IMAGES are found, 188 of them on exactly their recorded page (up from 103 when a single font's mapping was applied to all thirteen)."
+}
