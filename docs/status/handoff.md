@@ -52,6 +52,16 @@ deliberately-excluded content this session.
   is the Skywolf; the name is nowhere in the book.
 - **Savant and Sorcerer `(cid:144)`** + seven rarer codes (25 occurrences) unmapped.
 
+## Next up — the human's two asks (2026-08-11)
+- **Full descriptions for every Background** — 38 entries, 9 under 120 chars while one
+  runs to 968. Needs pages; then a pure data job.
+- **Validate gear `resources_cost` against the Resources Background** — the Artifact
+  analogue. The field is written, displayed and carried by 66 catalogue rows, and read
+  by nothing. ⚠ **Ask what the rule is before building it** — per-item or total,
+  chargen-only or both sides of the lock. Do not infer it from the Artifact table.
+
+Both are in CLAUDE.md → *Next up*.
+
 ## Older threads, still open
 - **Tier 3 of the `ui/` audit** — five small sites; deliberately not scheduled, sweep
   each up while porting its module (`docs/plans/qt-port.md` → *The audit*).

@@ -351,6 +351,28 @@ Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
   differently.** Four verification failures in one session came from this; see the
   status file.
 
+### Next up — not started (human's asks, 2026-08-11)
+
+* **Full descriptions for every Background.** `data/backgrounds.json` is 38 entries and
+  wildly uneven — 9 are under 120 characters (Cult is 46, Contacts 61, Resources 70)
+  while Class runs to 968. The human dislikes the inconsistency and wants them all at
+  full length. **Needs pages**, and the never-author-from-memory rule applies: a
+  Background description is printed text, so each one comes off its page or is asked
+  about. The per-row description already renders in the Advantages tab
+  (`docs/status/advantages-tab.md`), so this is purely a data job once the pages exist.
+
+* **Validate gear `resources_cost` against the Resources Background** — the Artifact
+  analogue, which does not exist yet. `resources_cost` is on `WeaponType`/`ArmorType`
+  and on the character's own copies, is editable in the UI, and 66 of 122 catalogue
+  rows carry one — and **nothing reads it for validation**. It is the same
+  writer-with-no-reader shape the Artifact budget had before `engine/artifacts.py`
+  gave it one, so build it the same way: the check in an engine module, the thresholds
+  as DATA on the Background rule (`budget_tiers` is the precedent), nothing
+  splat-specific in code. ⚠ Ask the human first what the rule actually IS — whether a
+  character may own gear above their Resources rating at all, whether it is per-item or
+  a total, and whether it binds at chargen only or both sides of the lock. Do not infer
+  it from the Artifact table.
+
 ### Blocked / not started
 * **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
   left unauthored (deliberate, human's call 2026-07-29). **Blocked on pages:** the
