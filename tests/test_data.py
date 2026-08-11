@@ -314,7 +314,10 @@ def test_artifact_catalog_loads_the_ten_mountain_folk():
     # 2026-08-11: the 141-entry delegation batch (B&E 71, Outcaste 26, Rathess 15,
     # Autochthonians 15, Player's Guide 14) grew the catalogue from 40 to 181 — see
     # docs/status/artifact-batch-notes.md for the 8 worklist entries skipped/merged.
-    assert len(rs.artifact_catalog) == 181
+    # 2026-08-11 (batch 2): +15 from Exalted Core (8), Savant and Sorcerer (5) and
+    # Book of Bone and Ebony p.114 (2) — 8 worklist rows skipped/dup — see
+    # docs/status/artifact-batch-2-notes.md.
+    assert len(rs.artifact_catalog) == 196
     # Ratings and the printed ranges, from the Technology chapter (pp.279-283).
     visor = rs.artifact_catalog["artifact.mountain-folk.essence-scrying-visor"]
     assert visor.rating == 1 and visor.source == "Mountain Folk p.279"
@@ -418,9 +421,14 @@ def test_the_gear_artifact_rows_from_the_backlog_batch():
     assert lance.artifact_rating == 2 and lance.attunement == 0
     assert lance.speed == 6 and lance.accuracy == 2 and lance.damage == 5 and lance.defense == 0
     assert lance.min_strength == 1
-    # The two blocked core items are NOT in the catalogue (no description on disk).
+    # The Direlance has NO standalone catalogue entry — and that is now a finding, not
+    # a gap: core p.341 was decoded 2026-08-11 and carries only weapon-class prose plus
+    # the p.342 stat table, so the entry does not exist to author. The rated weapon row
+    # above is the whole of it.
     assert "artifact.core.direlance" not in rs.artifact_catalog
-    assert "artifact.core.slayer-khatar" not in rs.artifact_catalog
+    # The Slayer Khatar WAS blocked for the same reason and is no longer: p.344 decoded
+    # cleanly, so it is now authored (docs/status/artifact-batch-2-notes.md).
+    assert "artifact.core.slayer-khatar" in rs.artifact_catalog
 
 
 def test_the_alchemical_goods_catalogue_does_not_exist():

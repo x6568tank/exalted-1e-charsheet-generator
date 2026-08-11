@@ -1938,5 +1938,167 @@
       "thrown",
       "weapon"
     ]
+  },
+  {
+    "id": "artifact.core.charm-against-disease",
+    "name": "Charm against Disease",
+    "rating": 1,
+    "description": "A talisman carried on the character's person that adds one die to the Stamina + Resistance roll to withstand disease and one die to the Stamina + Endurance roll to overcome its effects. Used to protect a household, it adds two dice to the Stamina + Resistance rolls of all those within, but only so long as they remain inside the warded house. Very strong charms against disease have double or even triple these effects.",
+    "source": "Exalted Core p.336",
+    "tags": [
+      "protection",
+      "healing"
+    ]
+  },
+  {
+    "id": "artifact.core.dragon-tear-tiara",
+    "name": "Dragon Tear Tiara",
+    "rating": 2,
+    "description": "Tiaras and circlets forged from all the Magical Materials, each with a setting for a Hearthstone located directly over the character's Caste Mark. They require the commitment of 2 motes of Essence to activate the Hearthstone and the tiara's own powers. When activated, a tiara adds 1 die to the character's Perception for normal perception rolls, a bonus that increases to 3 dice when she performs geomancy, astrology, detects spirits or otherwise attempts tasks requiring occult sensitivity.",
+    "source": "Exalted Core p.337",
+    "tags": [
+      "senses",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.core.good-luck-charm",
+    "name": "Good Luck Charm",
+    "rating": 1,
+    "description": "A talisman that doesn't so much give a character good luck as protect him from bad luck: once per story, a good luck charm protects the character from the negative effects of a botch, either one the player rolls or one another player rolls that would hurt the character carrying the talisman. Very powerful good luck charms will negate two or more botches in a single story.",
+    "source": "Exalted Core p.337",
+    "tags": [
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.core.hearthstone-amulet",
+    "name": "Hearthstone Amulet",
+    "rating": 1,
+    "description": "Amulets forged from the Five Magical Materials but too small to provide special benefits based on their material, each with a setting for a single Hearthstone. A character wearing such an amulet against her skin gains the basic benefits of a Hearthstone — the ability to regain Essence more quickly. Committing 1 mote of Essence makes the amulet resonate and activates the Hearthstone; if the amulet is removed, the benefit dissipates.",
+    "source": "Exalted Core p.337",
+    "tags": [
+      "tool",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.core.walkaway",
+    "name": "Walkaway",
+    "rating": 1,
+    "description": "Naturally occurring talismans created from mementos of a memorable accident where the survivors should have been killed or maimed but instead emerged unharmed. Once per story, an effective walkaway negates one success on a single, life-threatening damage roll; very powerful walkaways can negate two or even three successes, all from the same damage roll.",
+    "source": "Exalted Core p.337",
+    "tags": [
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.core.warding-charms",
+    "name": "Warding Charms",
+    "rating": 1,
+    "description": "Talismans that protect against a particular type of being — Fair Folk, spirits and elementals, demons, or the walking dead. Each causes beings of the appropriate type to suffer a -1 penalty to all their dice pools when attempting to affect the wearer; very powerful warding charms may double or even triple this effect. Magical beings can sense when an individual is warded against their power and often react with hostility.",
+    "source": "Exalted Core p.337",
+    "tags": [
+      "protection",
+      "spirit"
+    ]
+  },
+  {
+    "id": "artifact.core.hearthstone-bracers",
+    "name": "Hearthstone Bracers",
+    "rating": 2,
+    "description": "A pair of bracers, one with a setting for a single Hearthstone and the other imbued with magical power, providing powerful defensive bonuses that only work for an Exalted of the appropriate type. They require the commitment of 4 motes of Essence (2 for each bracer) and will not activate unless worn as a pair. The bonus depends on the material: orichalcum adds 2 to all attack damage, moonsilver adds 2 to lethal soak, jade adds 2 to base initiative, starmetal adds 1 to weapon attack, defense and initiative rolls, and soulsteel decreases a target's soak by 2 against the Abyssal's attacks, never below 0.",
+    "source": "Exalted Core p.338",
+    "tags": [
+      "combat",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.core.slayer-khatar",
+    "name": "Slayer Khatar",
+    "rating": 2,
+    "description": "The ultimate destructive weapon, forged with the aid of earth elementals from steel alloyed with yellow jade and orichalcum. It requires no commitment of Essence and can be used by any being, mortal or Exalted, though its powers truly blossom in the hands of an Exalted. It has no more effect on characters, even armored ones, than a normal khatar, but when wielded against objects these weapons shatter and destroy them: all damage inflicted against inanimate objects is doubled, an effect compatible with abilities such as the Brawl Charm Sledgehammer Fist Punch.",
+    "source": "Exalted Core p.344",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.savant-sorcerer.collar-of-dawns-cleansing-light",
+    "name": "Collar of Dawn's Cleansing Light",
+    "rating": 1,
+    "description": "A piece of neck jewelry — studded bands, chokers, collars, torcs or delicate necklaces — that keeps the wearer clean inside and out, negating all penalties to Social rolls that would be applied for being dirty or unkempt. Attuning to the collar extends its powers beyond the Exalt's clothing to her physical body, and its cleansing light adds two dice to Resistance rolls against disease or poison. The collar requires the commitment of 1 mote of Essence to become active.",
+    "source": "Savant and Sorcerer p.40",
+    "tags": [
+      "social",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.savant-sorcerer.mask",
+    "name": "Mask",
+    "rating": 2,
+    "description": "Seemingly plain ivory face masks that have played an important part in Exalted political and emotional intrigues since the First Age. A mask allows an Exalt to alter her appearance to look like anyone she wishes and completely control the emotions her face shows, adding four dice to her Intelligence + Larceny pool for any attempt at disguise. Once attuned, at the normal cost of 5 motes for a Level •• item, it also grants an extra four dice to any attempt to misdirect another as to the wearer's true motives, such as during certain Presence, Socialize and Bureaucracy rolls.",
+    "source": "Savant and Sorcerer p.41",
+    "tags": [
+      "social",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.savant-sorcerer.ring-of-being",
+    "name": "Ring of Being",
+    "rating": 4,
+    "description": "Rings made by the great Twilight artificer Jervon during the height of the First Age, each a pure and perfect representation of the Magical Material from which it was made. No magic or power of the dead, the Fair Folk, demons, spirits or the Wyld can affect the wearer's innate form or mind — no Charm can change her, no spell addle her mind, and no demon may claim her soul while she is attuned. Attunement is costly: 15 motes must be invested, and only an Exalt can attune to a ring made of the appropriate Magical Material.",
+    "source": "Savant and Sorcerer p.41",
+    "tags": [
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.savant-sorcerer.wings-of-the-raptor",
+    "name": "Wings of the Raptor",
+    "rating": 4,
+    "description": "A set of wings that appears as a heavy cloak when not in use; expending 10 motes of Essence transforms it into a glorious set of wings 20 feet across from wingtip to wingtip, granting its wearer the power of flight. The Exalt may move at five times his base running speed (80 miles per hour flying) and adds six dice to any Dexterity roll involving aerial maneuvering, including dodging and hand-to-hand combat, plus six extra dice on all sight-based Perception rolls; all modifiers due to distance are reduced by three. The spent Essence cannot be reclaimed until the wings return to their mundane state.",
+    "source": "Savant and Sorcerer p.42",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.savant-sorcerer.soul-mirror",
+    "name": "Soul Mirror",
+    "rating": 5,
+    "description": "A soulsteel grand daiklave forged by the Lover Clad in Raiment of Tears, sharing a grand daiklave's statistics and attunement cost, with an additional Hearthstone setting on the handle (four total). On striking an opponent it drains one point of temporary Willpower and a number of motes of Essence equal to its wielder's permanent Essence, half (rounded down) passed to the bearer. When it takes a life the victim's ghost is drawn into the blade rather than passing to the Underworld, and the wielder may consume a contained soul to add 1 to the weapon's speed, accuracy and damage for seven days, up to four souls at a time. Those who face it in battle must succeed at a Willpower roll — difficulty 4 for mortals, 3 for Exalted and other magical beings, 2 for Solars or Abyssals — or suffer a four-die penalty to attack rolls.",
+    "source": "Savant and Sorcerer p.43",
+    "tags": [
+      "weapon",
+      "combat",
+      "spirit"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.soulsteel-net",
+    "name": "Soulsteel Net",
+    "rating": 4,
+    "description": "A net of soulsteel mesh — threads woven from the corpus of other ghosts — attached in the center to a cord of woven soulsteel threads and fired by the Deathlords from large bone tubes. Capturing targets requires a Dexterity + Archery roll at difficulty 3 and catches all those in a five-foot radius (enough space to capture up to five people standing close together); characters caught lose 1 mote of Essence per turn. Escaping involves doing five health levels of damage to the net, which is difficult as it has a lethal soak of 15 and a bashing soak of 30, and a soulsteel net can hold a creature with a Strength of up to 20.",
+    "source": "Book of Bone and Ebony p.114",
+    "tags": [
+      "combat",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.soulsteel-mesh-swathing",
+    "name": "Soulsteel Mesh Swathing",
+    "rating": 5,
+    "description": "Chain swathing made of soulsteel mesh, all but unbreakable and so heavy that only Essence channelers who attune themselves to the armor can wear it (and avoid its Essence-draining effects). In addition to the standard benefits of wearing soulsteel, soulsteel swathing imparts a hardness of 4 and a soak of 13L/16B, and requires Resources (or Artifact) ••••• to purchase.",
+    "source": "Book of Bone and Ebony p.114",
+    "tags": [
+      "armor",
+      "protection"
+    ]
   }
 ]
