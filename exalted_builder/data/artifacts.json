@@ -5,7 +5,10 @@
     "rating": 1,
     "description": "Crystal goggles: 1 mote per scene ignores low-light penalties; 3 motes activates Essence sight, which negates all visual penalties, pierces smoke and darkness, and adds three dice to Awareness rolls to notice illuminated beings and objects. Useless inside Demesnes and Manses. Artifact •• versions provide constant Essence sight for 4 committed motes.",
     "source": "Mountain Folk p.279",
-    "tags": ["senses", "tool"]
+    "tags": [
+      "senses",
+      "tool"
+    ]
   },
   {
     "id": "artifact.mountain-folk.hammerfist-bracer",
@@ -13,7 +16,10 @@
     "rating": 1,
     "description": "Bulky jade bracer (4 committed motes) that transmutes the arm below the elbow into indestructible stone until removed: the petrified fist parries lethal attacks without a stunt and inflicts +8L damage against animate targets (+10L against inanimate objects), at speed -2. Predominantly used as an excavation tool by Worker Caste miners.",
     "source": "Mountain Folk p.279",
-    "tags": ["tool", "combat"]
+    "tags": [
+      "tool",
+      "combat"
+    ]
   },
   {
     "id": "artifact.mountain-folk.mask-of-pure-breath",
@@ -21,7 +27,10 @@
     "rating": 1,
     "description": "Blue-jade mask that affixes to the face for 1 mote: absorbs and cleanses air, giving complete protection against toxin gases, smoke and airborne hazards; in vacuum it synthesizes breathable air for 2 motes/hour (muting the sense of smell). Distorts the voice: +1 die to intimidation Presence, +2 to the difficulty of identifying the speaker.",
     "source": "Mountain Folk p.279",
-    "tags": ["protection", "tool"]
+    "tags": [
+      "protection",
+      "tool"
+    ]
   },
   {
     "id": "artifact.mountain-folk.skirmish-pike",
@@ -29,7 +38,9 @@
     "rating": 1,
     "description": "Collapsible jade-and-crystal spear (four-foot pike or 18-inch baton, telescoped reflexively once per turn). The slender points puncture armour; any magical being can commit 5 motes to attune; no Hearthstone socket. Officer pikes add features (stun point, shock pulse, Essence capacitor) that raise the rating to •• or •••. Also a weapon — see the equipment catalogue.",
     "source": "Mountain Folk p.280",
-    "tags": ["weapon"]
+    "tags": [
+      "weapon"
+    ]
   },
   {
     "id": "artifact.mountain-folk.echo-jewel",
@@ -38,7 +49,10 @@
     "rating_notes": "• or •••",
     "description": "Crystal disk rimmed in jade: 1 committed mote links it to other echo jewels, relaying every vocal utterance within half a mile (50 yards above ground). Artifact ••• versions are four-foot disk arrays laid in a Manse's central chamber that transmit life-sized images to one another across up to (Manse rating × 1,000) miles.",
     "source": "Mountain Folk p.280",
-    "tags": ["communication", "tool"]
+    "tags": [
+      "communication",
+      "tool"
+    ]
   },
   {
     "id": "artifact.mountain-folk.talisman-of-suspended-evocation",
@@ -47,7 +61,10 @@
     "rating_notes": "• to •••••",
     "description": "Artificial gem (tetrahedron • through icosahedron •••••) that stores Mountain Folk Charms: charging costs the Charm's full cost plus 1 Willpower; it holds Charms whose total minimum Essence is double its Artifact rating. Activation counts as a Charm use and cannot be part of a Combo. Only Mountain Folk can use these devices.",
     "source": "Mountain Folk p.281",
-    "tags": ["charm-store", "tool"]
+    "tags": [
+      "charm-store",
+      "tool"
+    ]
   },
   {
     "id": "artifact.mountain-folk.dragon-sigh-wand",
@@ -55,7 +72,9 @@
     "rating": 2,
     "description": "Two-foot red-jade firewand that needs no ammunition: 5 motes attune, 2 motes per blast of scarlet flame (12L, range 30, rate 1). A ruby capacitor stores 12 motes as an alternate power source. No Magical Material bonus; the delicate lenses need maintenance after every scene fired. Smaller foot-long variants (Artifact •• single, ••• a pair) trade damage for rate. Also a weapon — see the equipment catalogue.",
     "source": "Mountain Folk p.281",
-    "tags": ["weapon"]
+    "tags": [
+      "weapon"
+    ]
   },
   {
     "id": "artifact.mountain-folk.essence-pulse-grenade",
@@ -63,7 +82,10 @@
     "rating": 2,
     "description": "Reusable jade-and-crystal grenade that detonates on a timer (a turn to an hour) or a dead-man's switch; recharging costs 6 motes and a jewelled key. The jade's colour varies the blast: red 10L fire, blue 20B lightning, white 20B force, black 10L freezing (cutting Dexterity by 2), green poison gas. Also a weapon — see the equipment catalogue.",
     "source": "Mountain Folk p.282",
-    "tags": ["weapon", "thrown"]
+    "tags": [
+      "weapon",
+      "thrown"
+    ]
   },
   {
     "id": "artifact.mountain-folk.shieldstone-gauntlet",
@@ -72,7 +94,10 @@
     "rating_notes": "•• or •••",
     "description": "Fingerless glove (4 committed motes) that projects a luminous force shield (+2 to the difficulty of all attacks against the wearer) when the bearer presents the palm or back-of-hand stone. The Artifact ••• version can instead raise a freestanding wall of raw Essence with 3B/2L soak per mote spent.",
     "source": "Mountain Folk p.282",
-    "tags": ["protection", "tool"]
+    "tags": [
+      "protection",
+      "tool"
+    ]
   },
   {
     "id": "artifact.mountain-folk.myrmidon-carapace",
@@ -80,7 +105,9 @@
     "rating": 3,
     "description": "Articulated jade-and-alloy armour (soak 8/8, mobility penalty -1, fatigue 1) for 5 motes of attunement. The masked helmet integrates an Essence-scrying visor (night vision constant, no Essence infusions), an echo jewel and a mask-of-pure-breath filtration and voice system; the suit adds +1 to Strength for damage, lifting and feats. Also armour — see the equipment catalogue.",
     "source": "Mountain Folk p.283",
-    "tags": ["armor"]
+    "tags": [
+      "armor"
+    ]
   },
   {
     "id": "artifact.castebook-dawn.shield-bracer",
@@ -88,7 +115,9 @@
     "rating": 2,
     "description": "Single ornamented bracer that guides the wearer's arm to block missile and melee attacks: when activated it protects like a tower shield, reducing the successes of all melee attacks by -1 and all missile attacks by -2. The wearer cannot wear any other bracer but is not otherwise encumbered. Has a single Hearthstone setting; commits 3 motes.",
     "source": "Caste Book: Dawn p.78",
-    "tags": ["protection"]
+    "tags": [
+      "protection"
+    ]
   },
   {
     "id": "artifact.castebook-dawn.map-of-azure-victory",
@@ -96,7 +125,9 @@
     "rating": 3,
     "description": "A thin two-foot square of solid silver (10 lbs, folds to an 8-inch block) that activates for a full day on 5 motes: its mirror-smooth surface reshapes to show every terrain feature within two miles and tracks troops and civilians as jeweled sand — allied troops always azure, civilians white, the user assigns enemy and neutral troops any of the remaining six colours, and grains representing Exalted or other magical beings glow. Six were created; the Realm is known to have two.",
     "source": "Caste Book: Dawn p.78",
-    "tags": ["tool"]
+    "tags": [
+      "tool"
+    ]
   },
   {
     "id": "artifact.castebook-dawn.chariot-of-aerial-conquest",
@@ -104,7 +135,9 @@
     "rating": 5,
     "description": "Large pentagonal flying howdah of the Old Realm, armoured and almost silent, that carries up to a dozen infantry, five riders and their horses, or two warstriders; it flies up to 20 yards above the ground at a gallop. Its window slits give 75-90 percent cover, and the pilot must have Sail 2 and a level-3+ Hearthstone in its receptacle. Landed, it can channel a Dawn anima wave of terror.",
     "source": "Caste Book: Dawn p.78",
-    "tags": ["vehicle"]
+    "tags": [
+      "vehicle"
+    ]
   },
   {
     "id": "artifact.castebook-dawn.arrows-of-distant-death",
@@ -112,7 +145,9 @@
     "rating": 3,
     "description": "One-use arrows, normally a set of three (a target arrow, a broadhead and a frog crotch): each can be shot at any target the Exalt has once touched, clearly seen, or holds a personal article of. The arrow vanishes on firing and reappears no more than a foot from the target, with no warning and no chance to dodge or block, though both see each other's true appearance. Exceptionally sharp (+1 damage) and otherwise like normal arrows; fired from ordinary bows or powerbows.",
     "source": "Caste Book: Dawn p.81",
-    "tags": ["weapon"]
+    "tags": [
+      "weapon"
+    ]
   },
   {
     "id": "artifact.castebook-night.spider-grippers",
@@ -120,7 +155,9 @@
     "rating": 2,
     "description": "Boots, gloves, elbow pads and kneepads that let the wearer cling to walls like a spider — walking up a wall at (Dexterity+12)/2 yards a turn, even sheer slick surfaces — and walk wet, mossy or narrow ledges without slipping. The wearer can fight without penalty while clinging and carry any weight she could normally carry. The pieces resize to fit; commit 3 motes.",
     "source": "Caste Book: Night p.79",
-    "tags": ["tool"]
+    "tags": [
+      "tool"
+    ]
   },
   {
     "id": "artifact.castebook-night.belt-of-shadow-walking",
@@ -128,7 +165,9 @@
     "rating": 3,
     "description": "Night-black belt of giant-bat leather that thickens shadow around the wearer, raising the difficulty of all Perception + Awareness rolls to see or hear him by 2. Expending 5 motes while the sun is down transforms him into a shadow for a scene — slipping under doors and through the thinnest cracks, harmed only by sorcery, Charms or weapons of the Five Magical Materials, and leaving any carried living things behind. Commits 6 motes; no Hearthstone setting.",
     "source": "Caste Book: Night p.80",
-    "tags": ["utility"]
+    "tags": [
+      "utility"
+    ]
   },
   {
     "id": "artifact.castebook-night.circlet-of-spirits",
@@ -136,7 +175,10 @@
     "rating": 3,
     "description": "A circlet formed of one of the Five Magical Materials, with a single Hearthstone setting, that lets the wearer see and hear all immaterial spirits. Its material adds a second property: orichalcum eases sensing spirits, moonsilver stealth from them, jade attacks and defenses against them, starmetal bargaining with them, and soulsteel makes the dead's attacks against the wearer more difficult. Commits 3 motes.",
     "source": "Caste Book: Night p.80",
-    "tags": ["spirit", "senses"]
+    "tags": [
+      "spirit",
+      "senses"
+    ]
   },
   {
     "id": "artifact.castebook-night.hooked-daiklaves-of-dual-prowess",
@@ -145,7 +187,9 @@
     "rating_notes": "•••• per the heading — human ruling 2026-08-08; the table's Artifact column misprints •••••",
     "description": "A matched pair of jet-black hooked swords, found and used in pairs, made of any of the Five Magical Materials. Wielded together they let a character take two hand-to-hand actions every turn without penalty and remove the off-hand penalty — but dice pools cannot be split, and extra-action Charms affect only a single blade. Each blade has a Hearthstone setting; commit 8 motes (4 each). Also a weapon — see the equipment catalogue.",
     "source": "Caste Book: Night p.81",
-    "tags": ["weapon"]
+    "tags": [
+      "weapon"
+    ]
   },
   {
     "id": "artifact.castebook-zenith.death-shield-ring",
@@ -153,7 +197,9 @@
     "rating": 3,
     "description": "A ring with a single Hearthstone setting that lets the wearer survive any single attack that would result in death: when she would normally be slain, the ring explodes in a brilliant flash of light and the damage is not inflicted. The ring is completely consumed by this effect, and any Hearthstone set in it is cracked by the ring's destruction.",
     "source": "Caste Book: Zenith p.80",
-    "tags": ["protection"]
+    "tags": [
+      "protection"
+    ]
   },
   {
     "id": "artifact.castebook-zenith.ring-of-the-deliberative",
@@ -161,7 +207,9 @@
     "rating": 4,
     "description": "An elaborate torc with settings for three Hearthstones, once worn by the Hierophant of the Solar Deliberative when he executed official business. It grants a five-die bonus to all Zenith Caste Ability checks and a two-die bonus to all Social Attribute checks that do not involve the Zenith Caste Abilities, and makes the bearer appear greater than he is.",
     "source": "Caste Book: Zenith p.81",
-    "tags": ["social"]
+    "tags": [
+      "social"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.bracer-of-the-hawk",
@@ -170,7 +218,9 @@
     "rating_notes": "•• per the page — human confirmed 2026-08-08; the guide lists •",
     "description": "Single steel bracer, rarely found in pairs, with the image of a screaming bird of prey worked into it in one of the Five Magical Materials. The owner commits 2 motes to summon from it a hawk of pure Essence that serves at his command: the bird has the attributes of a strix (main rulebook p.317), a one-meter wingspan and a soak of 8L/12B, and can reenter the bracer on returning. If it is slain outside the bracer, the bracer becomes no more than useful armor and the hawk spirit is lost forever. The bracer has a setting for a single Hearthstone.",
     "source": "Caste Book: Twilight p.79",
-    "tags": ["spirit"]
+    "tags": [
+      "spirit"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.whistle-of-ghost-summoning",
@@ -178,7 +228,10 @@
     "rating": 2,
     "description": "A whistle of silver and chased ivory that summons local ghosts — but only between sunset and dawn; sounded by day it is totally silent. One blow gives a delicate thin tone that signals all ghosts within a league that their presence is requested; a second blow the same night gives a peremptory note like a military fife; a third makes the whistle shudder and give a high pealing note of ice and steel that causes active pain to all ghosts within a league. Used thrice in a night, the whistle cannot be sounded again for 10 days. It cannot break a binding that holds a ghost in a location, confers no protection against ghost attacks, and is greatly prized by Abyssal Exalted.",
     "source": "Caste Book: Twilight p.79",
-    "tags": ["spirit", "tool"]
+    "tags": [
+      "spirit",
+      "tool"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.seed-of-the-immaculate-blood",
@@ -187,7 +240,10 @@
     "rating_notes": "•• base; ••• red seeds",
     "description": "Seeds of a fern that grew from three drops of blood shed when Sextes Jylis, the Immaculate of Wood, stepped upon an Anathema's daiklave. The fern seeds twice a year; its dull green seeds compound into an ointment that restores five health levels, even if the damage is aggravated. Once a century on the last day of Calibration it gives an out-of-season scarlet seed, which either replants to grow another such fern or, dried and ground with the seeds of 25 other plants, produces a ball of sap that grows an instant half-mile forest.",
     "source": "Caste Book: Twilight p.79",
-    "tags": ["tool", "healing"]
+    "tags": [
+      "tool",
+      "healing"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.cup-of-flowing-blood",
@@ -195,7 +251,9 @@
     "rating": 3,
     "description": "A chalice of delicately carved ebony patterned with scenes of First Age Solars fighting the foes of the Old Realm. Held by a person who truly wishes to give of herself for another's sake, it slowly fills with dark blood while the holder loses one health level per turn (unsoakable); the process can be stopped at any time. Blood from the cup drunk by a wounded person restores one health level per turn until the cup is empty, and a person can drain herself to unconsciousness or the verge of death healing others. Its current location is unknown; rumors place it in the private collection of the Lover Clad in the Raiment of Tears.",
     "source": "Caste Book: Twilight p.79",
-    "tags": ["healing"]
+    "tags": [
+      "healing"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.eye-of-the-living-earth",
@@ -203,7 +261,10 @@
     "rating": 3,
     "description": "A head-sized stone quarried by the Mountain Folk from the roots of the Imperial Mountain, clear and pure as a diamond and glowing with a hundred shifting colors; Earth elementals find its radiance euphoric and throng to it. If chipped, carved or otherwise altered from its original rough state, its power is lost. As a scrying device: the owner touches a diamond to it and anoints both with a drop of his blood, then can later scry upon wherever the diamond currently is, perceiving the scene as though from on high. Works with up to five diamonds at a time — attuning a sixth breaks the link to one of the others.",
     "source": "Caste Book: Twilight p.80",
-    "tags": ["senses", "tool"]
+    "tags": [
+      "senses",
+      "tool"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.ghost-seeing-blindfold",
@@ -211,7 +272,10 @@
     "rating": 3,
     "description": "A long scarf of white silk with barely visible sigils of power worked along its length. Bound over the eyes it lets the wearer see normally and also perceive dematerialized ghosts, spirits, dragon tracks and other flows of power, as with the Twilight Charm All-Encompassing Sorcerer's Sight. The blindfold is uncannily resistant to damage and reweaves itself if cut or burned — the only sure way to destroy it is to soak it in the blood of a blind person.",
     "source": "Caste Book: Twilight p.80",
-    "tags": ["spirit", "senses"]
+    "tags": [
+      "spirit",
+      "senses"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.honey-of-the-bees-of-zarlath",
@@ -219,7 +283,9 @@
     "rating": 3,
     "description": "Honey from the bees of the lost gardens of Zarlath, which took nectar from roses that bloomed only by sunlight and oleanders that bloomed only by moonlight. It gives speech to the dumb or surpassing eloquence to those born with speech (+3 to all Social Abilities for one hour), can temper the finest of blades, and is used in the forging of strings for lyres and multichords. Zarlath lies hidden in the Wyld; once a year the bees journey out to civilized lands and, if followed, can lead an Exalt back to their hives.",
     "source": "Caste Book: Twilight p.80",
-    "tags": ["tool"]
+    "tags": [
+      "tool"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.mirrors-of-illusion-shattering",
@@ -227,7 +293,9 @@
     "rating": 3,
     "description": "Two small hand-mirrors of moonsilver faced with orichalcum, the smith's own mon interlaced on the back with that of his Lunar lover. Someone who looks into one sees the true images of all things reflected therein — Charms, glamours and other magical illusions remain in force, but the true identity of the person is clearly visible. If an illusion-shielded person is forcibly presented with the mirror so she sees her own true reflection, the Charm or sorcery she is using shatters immediately, leaving her obvious in her true nature. The mirrors do not affect physical shapeshifting; separated long ago, they tend to find their way back together.",
     "source": "Caste Book: Twilight p.80",
-    "tags": ["utility"]
+    "tags": [
+      "utility"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.scabbard-of-the-living-weapon",
@@ -235,7 +303,9 @@
     "rating": 3,
     "description": "An elegantly worked sheath of red dragonskin and orichalcum, sized to fit a daiklave or reaver daiklave. Attuned with 5 committed motes, it is magically precisely the right size for its owner's blade and never needs cleaning or mending. While the daiklave is sheathed the wearer is invulnerable to all non-magical damage — weapons turn against his skin, clubs and rocks bounce off him, fires prove harmless — though magical weapons, Charms, attacks augmented by Charms, spells, glamour and similar directed uses of Essence still affect him. Drawing the weapon ends the protection.",
     "source": "Caste Book: Twilight p.80",
-    "tags": ["protection"]
+    "tags": [
+      "protection"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.sorcery-capturing-cord",
@@ -244,7 +314,10 @@
     "rating_notes": "••• emerald / •••• sapphire / ••••• adamant",
     "description": "A few yards of thin flexible rope interwoven with threads of orichalcum and moonsilver, made in three weaves — emerald, sapphire and adamant — that an experienced eye can tell apart. One of the Exalted can trap spells cast at him by standing in the spell's path and looping the cord into a knot; a cord of equal or greater power to the spell (emerald for Terrestrial Circle, sapphire for Celestial Circle, adamant for Solar Circle) captures it safely and releases it later at the user's choosing by unknotting the cord. Each cord holds only three spells at most, and if destroyed while holding any, the spells are released and take full effect.",
     "source": "Caste Book: Twilight p.81",
-    "tags": ["utility", "sorcery"]
+    "tags": [
+      "utility",
+      "sorcery"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.veil-that-holds-back-time",
@@ -252,7 +325,9 @@
     "rating": 4,
     "description": "A fragile, diaphanous length of gossamer spun and woven by First Age craftsmen that can suspend the flow of time. Placed over an unmoving person or item, it holds the subject in a state of suspended animation, neither aging nor decaying — it will not work on a conscious person, and an unconscious one cannot wake or remove it. Lifted away, disturbed or damaged in any way, time resumes at once. The veil is extremely fragile and must be handled with care; few in the current age know how to reweave or mend it.",
     "source": "Caste Book: Twilight p.81",
-    "tags": ["utility"]
+    "tags": [
+      "utility"
+    ]
   },
   {
     "id": "artifact.castebook-twilight.the-jackals-skull",
@@ -260,7 +335,10 @@
     "rating": 4,
     "description": "A jackal skull larger than any ordinary jackal's, with wires of moonsilver linking the jaw and threads of moonsilver laced over the dome in an intricate web, two great star rubies set in the eye sockets. Commanded by the name of the ancient Lunar it belonged to, it exhales five dog spirits in a cloud of pale silver: they have the statistics of omen dogs (main rulebook p.317) with human intelligence and the Charms Materialize and Principle of Motion, serve the summoner until defeated or commanded to return, and can be summoned again after the next full moon if slain. The dog spirits have Essence 3, Willpower 9, Valor 4 and all other Virtues at 2, hold 89 temporary Essence, and cost 32 motes to materialize. If ever commanded to hunt down or kill a pair of true lovers, the skull howls and the spirits seize it — or hunt down and slay their previous summoner — until they flee with the skull or the summoner is dead.",
     "source": "Caste Book: Twilight p.81",
-    "tags": ["spirit", "summoning"]
+    "tags": [
+      "spirit",
+      "summoning"
+    ]
   },
   {
     "id": "artifact.castebook-eclipse.lotus-blossom-cup",
@@ -268,7 +346,9 @@
     "rating": 1,
     "description": "A goblet carved from translucent white jade in the shape of an unfolding lotus blossom atop a thick stem for the cup's foot. Any liquid poured into the cup is immediately and completely purified of any toxins or other harmful agents — even strong acid or pure venom becomes nothing more than clean water — so anything in the cup is automatically safe to drink. Such cups are often used by those who fear assassination through poison, or in diplomatic situations to assuage any fears that poison or drugs will be used.",
     "source": "Caste Book: Eclipse p.79",
-    "tags": ["protection"]
+    "tags": [
+      "protection"
+    ]
   },
   {
     "id": "artifact.castebook-eclipse.players-mask",
@@ -276,7 +356,9 @@
     "rating": 1,
     "description": "Ornate theatrical masks used by Exalted actors in certain highly stylized styles of amphitheater performance in the First Age. Attuned and worn, a player's mask can switch between a comedy and a tragedy mask at will; some are also able to become an expressionless face and to vanish and reappear as the wearer wishes. Their real power is concealing the identity of the wearer, so that an audience sees only the role and not the actor. Committing 1 mote activates the mask; it adds two to the difficulty of rolls to discern the identity or motives of the wearer.",
     "source": "Caste Book: Eclipse p.79",
-    "tags": ["utility"]
+    "tags": [
+      "utility"
+    ]
   },
   {
     "id": "artifact.castebook-eclipse.silver-quill",
@@ -285,7 +367,9 @@
     "rating_notes": "• base; •• self-writing quills",
     "description": "Writing implements of silver in the form of feathered quills, the feather's plumage with the consistency of a stiff-bristled brush. A silver quill writes without ink, in any color its writer wishes; its nub never wears down and its markings are waterproof like fine ink and dry instantly, on any surface a normal writing quill can use. Some known silver quills (Artifact ••) can also write on their own at the direction of their owner, copying down the words of the owner or another designated person with great speed and accuracy.",
     "source": "Caste Book: Eclipse p.79",
-    "tags": ["tool"]
+    "tags": [
+      "tool"
+    ]
   },
   {
     "id": "artifact.castebook-eclipse.seven-jeweled-peacock-fans",
@@ -293,7 +377,9 @@
     "rating": 2,
     "description": "Fine folding war-fans with leaves of orichalcum inlaid with gem-work in seven brilliant colors and engraved with fine traceries, wielded together as a pair. They have the same statistics as wind-fire wheels and require the same Abilities to wield them, and their construction grants +1 to Speed, Accuracy and Defense. Attuning the fans commits 2 motes of Essence.",
     "source": "Caste Book: Eclipse p.80",
-    "tags": ["weapon"]
+    "tags": [
+      "weapon"
+    ]
   },
   {
     "id": "artifact.castebook-eclipse.silken-armor",
@@ -301,7 +387,9 @@
     "rating": 3,
     "description": "Cloth made by First Age artisans into robes, tunics and other articles of clothing, usually richly colored and decorated, suitable for formal occasions of all sorts. Although the fabric has the weight and texture of silk, it is as strong as steel when struck, making even a light tunic, robe or cloak of the stuff effective armor — it grants its wearer an additional 5 lethal and 3 bashing soak. It is the clothing of choice for those who need protection without the look of armor.",
     "source": "Caste Book: Eclipse p.80",
-    "tags": ["protection"]
+    "tags": [
+      "protection"
+    ]
   },
   {
     "id": "artifact.castebook-eclipse.solar-seal",
@@ -309,7 +397,9 @@
     "rating": 1,
     "description": "A seal crafted from orichalcum, either as a small stamp or a signet ring, bearing the mark of the Eclipse Caste. It can transform to display any seal its owner is rightly entitled to. Used to seal a document, a Solar seal ensures its security: if the sealed document is opened by anyone other than the sender or the intended recipient, its pages become completely blank and can only be restored by the touch of the seal to the pages once more. Solar seals were used in the First Age to protect the contents of important documents, and some are still in use.",
     "source": "Caste Book: Eclipse p.80",
-    "tags": ["tool"]
+    "tags": [
+      "tool"
+    ]
   },
   {
     "id": "artifact.castebook-eclipse.folding-ship",
@@ -317,7 +407,9 @@
     "rating": 4,
     "description": "A blue-water merchant (see Savage Seas, pp.56-57) with double masts and sails of the finest and strongest silk, able to sail on its own at the command of its owner without need for a crew — merely someone at the helm to direct it. At a command from its owner (who must commit 4 motes of Essence to attune it), the ship collapses in on itself, folding into a box of finely carved wood about a foot long and six inches tall and wide, and unfolds back into a ship on another command. A folding ship that spends a full day or night in box-form repairs all damage it has suffered. Still limited by needing a body of water to sail upon.",
     "source": "Caste Book: Eclipse p.81",
-    "tags": ["vehicle"]
+    "tags": [
+      "vehicle"
+    ]
   },
   {
     "id": "artifact.castebook-eclipse.iron-horse",
@@ -325,6 +417,1526 @@
     "rating": 4,
     "description": "A massive horse made of iron plates, fully articulated and capable of movement — a wonder of First Age magic and engineering. It has the Abilities of a war horse (see Exalted, p.316) except for 8 lethal and 10 bashing soak, a 3L bite and a 10L kick from its sharp iron hooves. It requires no Essence to attune, merely an Intelligence + Ride roll (difficulty 3); a gemstone in its forehead stores up to 5 motes of Essence its owner may draw upon while touching it, recovered like Personal Essence and only after the owner's own Personal Essence is restored. It is remarkably intelligent (about a child of eight or nine), understands verbal commands, travels tirelessly with no need for rest, food, water or air (able to gallop along the bottom of the sea), and weighs nearly a ton — so some light structures may not support it without a Charm. Ride Charms work on it normally.",
     "source": "Caste Book: Eclipse p.81",
-    "tags": ["vehicle", "tool"]
+    "tags": [
+      "vehicle",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.blood-apples",
+    "name": "Blood Apples",
+    "rating": 1,
+    "rating_notes": "• for a single apple; •• for a tree",
+    "description": "Crystal blood-apple trees grow only in the Underworld or shadowlands and must be watered weekly with blood from living creatures; at Calibration they bear glass apples that smell of snow and salt. Biting one makes the eater fall to the ground as though dead — her spirit rises as a ghost and may travel the shadowlands or Underworld for 12 hours before being pulled back to her body. If her body is destroyed while she is away, or her spirit is barred from returning by Sapphire or Adamant Circle magic (or the necromantic equivalent), she is truly dead. The apples are as fragile as thin ice and last until the next Calibration; in Creation they react like soulfire crystals.",
+    "source": "Book of Bone and Ebony p.58",
+    "tags": [
+      "spirit",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.bloody-ice-comb",
+    "name": "Bloody Ice Comb",
+    "rating": 1,
+    "description": "A garnet comb used to pin back the hair; cast to the ground with the appropriate invocation, it summons a violent storm of ice and blood that whips across the landscape in the trail of its owner — the equivalent of a supernatural ice storm spreading for a mile to either side, moving back in the direction the user has come from so it strikes pursuers. The storm lasts five minutes and does not affect the user or her companions; the comb is gone once used.",
+    "source": "Book of Bone and Ebony p.58",
+    "tags": [
+      "combat",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.collar-of-the-bestial-shade",
+    "name": "Collar of the Bestial Shade",
+    "rating": 1,
+    "description": "A strip of furry or feathered hide with a jade buckle that lets a ghost change her form to an associated animal (known collars include ghost tigers, pyre hawks and savanna lions) for as long as she desires, gaining the creature's Physical Attributes while keeping her own Mental and Social Attributes. After the first continuous week, each further week requires a Willpower roll (+1 die per remaining Fetter dot); fewer than three successes means she succumbs to Lethe. Removing the collar after a week and donning it again spares the wearer.",
+    "source": "Book of Bone and Ebony p.58",
+    "tags": [
+      "spirit",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.drum-of-the-living-heart",
+    "name": "Drum of the Living Heart",
+    "rating": 1,
+    "description": "A small drum barely a handspan across, surfaced and bound with human skin and strung with human sinews. Anointed with a drop of a target's blood, it beats in time with the target's heartbeat, speeding and slowing with the pulse, and ceases to beat entirely when the target dies.",
+    "source": "Book of Bone and Ebony p.59",
+    "tags": [
+      "senses",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.forms-of-harmony",
+    "name": "Forms of Harmony",
+    "rating": 1,
+    "rating_notes": "• for one; •• for a set of five or more",
+    "description": "Musical stringed instruments crafted from black ash and strung with soulsteel that, commanded by their master, play separately or together in harmony. When five or more are gathered and set to play in harmony, they soothe emotions and lower suspicions, granting their owner a bonus die to all Social rolls against everyone within 50 yards. They can play for a scene but then require a day's rest.",
+    "source": "Book of Bone and Ebony p.59",
+    "tags": [
+      "social",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.grapes-of-torment",
+    "name": "Grapes of Torment",
+    "rating": 1,
+    "description": "Dark globes swollen with an evil juice, grown from the essence of pain and suffering. Ingesting one fills the eater with a surge of energy and strength — a bonus of two dice to all Strength-related rolls for the scene — but at the cost of a penalty of one die to all Perception-related rolls from the agonizing pain. They are found in bunches of five or less and are as fragile as natural grapes.",
+    "source": "Book of Bone and Ebony p.59",
+    "tags": [
+      "tool",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.ivory-butterfly",
+    "name": "Ivory Butterfly",
+    "rating": 1,
+    "description": "A fragile ivory-and-garnet butterfly with a two-foot wingspan that travels across the Underworld carrying small items or messages — up to three scrolls or scroll cases, with up to four butterflies cooperating to carry a larger object. It moves unnaturally fast (with the speed of a raiton), needs neither food nor rest, and has no self-defense but can recognize threats and dodge or take cover. If the target is not present when it arrives, it waits three days and nights before returning to its mistress.",
+    "source": "Book of Bone and Ebony p.59",
+    "tags": [
+      "communication",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.jade-harmony-needles",
+    "name": "Jade Harmony Needles",
+    "rating": 1,
+    "description": "Five thin white-jade needles used in conjunction with a Hearthstone or a Manse to knit up wounds and restore health to the dead. Inserted in a precise circle in the target's flesh and exposed to a Death-aspected Hearthstone (any other aspect burns them out) or left to bask in a Death-aspected Manse's restoring energies, they let the victim recover health levels equal to the Hearthstone's rating (or the Manse's level) at the rate of one per hour. Removing the needles early ceases the process.",
+    "source": "Book of Bone and Ebony p.60",
+    "tags": [
+      "healing",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.labyrinth-doorknocker",
+    "name": "Labyrinth Doorknocker",
+    "rating": 1,
+    "description": "A fist-sized dark soulsteel doorknocker. Soaked with freshly spilled blood from a living being and placed against a flat surface of earth or stone, it pulsates and a door forms around it, opening a passage to somewhere in the Labyrinth within the territory of the Deathlord who empowered it. The door closes behind the owner and crumbles after 10 minutes, whereupon the doorknocker rusts and disintegrates.",
+    "source": "Book of Bone and Ebony p.60",
+    "tags": [
+      "tool",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.mirror-of-life",
+    "name": "Mirror of Life",
+    "rating": 1,
+    "description": "A mirror of obsidian or silver-edged white jade that shows any ghost his face and form as they were in life, with none of the stigma or shades of death; Abyssals are reflected as they were before they were Exalted, former Solars with their old Caste Marks and animas. Owning or using it has no harmful effects, but it can encourage obsession among those fascinated with their past lives (a Temperance check for each hour spent looking into one).",
+    "source": "Book of Bone and Ebony p.60",
+    "tags": [
+      "utility",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.pillow-of-grass",
+    "name": "Pillow of Grass",
+    "rating": 1,
+    "description": "A pillow of woven grass stuffed with pyre-hawk down and embroidered with gravecloth silk. A ghost lying with his head on it can spend Essence to hear what is happening near where his dead body lies: 1 mote hears within earshot of the grave, 2 motes within a mile, 3 motes within five miles, for up to an hour (the pillow must rest a day between uses). It works even for the unburied. Multiple conversations require a Perception + Awareness roll, difficulty 5, to filter one out.",
+    "source": "Book of Bone and Ebony p.60",
+    "tags": [
+      "senses",
+      "spirit"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.robe-of-life",
+    "name": "Robe of Life",
+    "rating": 1,
+    "description": "A simple white linen robe that smells of spring breezes rather than funeral incense. While worn, it causes its wearer to appear as she did while alive and in the flush of youth, removing all evidence of her method of death and even effacing the stains of the Great Contagion. The effect lasts only while the robe is kept on; it does not affect artificial post-death changes or restore soulsteel.",
+    "source": "Book of Bone and Ebony p.61",
+    "tags": [
+      "social",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.scroll-of-unending-stories",
+    "name": "Scroll of Unending Stories",
+    "rating": 1,
+    "description": "An ivory-tanned leather scroll (detectable to aficionados as dried human skin). By concentrating on it and spending a mote of Essence, the holder can imprint a story on it permanently, at the cost of losing it from his own memory. Unrolled, the story appears in dark brown lettering with no practical limit to length; spies use them to carry secret messages the messenger cannot reveal.",
+    "source": "Book of Bone and Ebony p.61",
+    "tags": [
+      "communication",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.stallion-thrashing-whip",
+    "name": "Stallion-Thrashing Whip",
+    "rating": 1,
+    "description": "A whip prepared from the hide, mane and bones of a dead stallion. A single crack summons the stallion's ghost to serve its owner — the horse rises from the ground in a crack of thunder, with the statistics of a noble horse though lacking its full intelligence. It may only be summoned by the whip crafted from its body, obeys only the current holder, and if slain fades away to be resummoned by cracking the whip at the next dark of the moon.",
+    "source": "Book of Bone and Ebony p.61",
+    "tags": [
+      "summoning",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.steel-pen-of-refinement",
+    "name": "Steel Pen of Refinement",
+    "rating": 1,
+    "description": "A soulsteel quill modeled on a pyre hawk's plume. Fed with a drop of blood and a mote of Essence, it grants its owner a bonus die to all Bureaucracy, Performance and Craft rolls involving writing until the end of the scene, with his handwriting and prose flowing more beautifully.",
+    "source": "Book of Bone and Ebony p.61",
+    "tags": [
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.stone-of-ten-thousand-tears",
+    "name": "Stone of Ten Thousand Tears",
+    "rating": 1,
+    "description": "A specially prepared crystal that captures strong emotions. A living person places it against her forehead and willingly recalls a memory, which rushes into the stone and leaves her forever — she no longer recalls the event but is freed of its emotional trauma. A ghost (or living person) who then uses the stone relives the event in full; once used, the stone is wiped clean and may hold a new memory.",
+    "source": "Book of Bone and Ebony p.62",
+    "tags": [
+      "spirit",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.storm-running-boots",
+    "name": "Storm-Running Boots",
+    "rating": 1,
+    "description": "Boots sewn from savanna lion skin and set with soulsteel rivets that draw on the raw energies of Underworld tempests. After committing 3 motes to attune, the wearer within an area being hit by a storm may run at full speed without growing tired and without being affected by the weather — but only while actually moving with the storm. The enchantment cannot be shared with others.",
+    "source": "Book of Bone and Ebony p.62",
+    "tags": [
+      "utility",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.storm-warding-parasol",
+    "name": "Storm-Warding Parasol",
+    "rating": 1,
+    "rating_notes": "• small; •• large",
+    "description": "A black silk parasol on an ebony frame, embroidered with human hair and soulsteel thread. Raised, it shields its owner from the storms that wrack the Underworld — rain, blood, hail and bone alike — so that she feels no impact beyond a gentle rain against the silk. Larger versions (Artifact ••) expand to a five-yard-wide circle and shelter several people at once; it does not protect against dangers of the landscape.",
+    "source": "Book of Bone and Ebony p.62",
+    "tags": [
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.thirst-quenching-pitcher",
+    "name": "Thirst-Quenching Pitcher",
+    "rating": 1,
+    "description": "A pitcher that, fed with the blood of the living, pours forth any drink the holder has tasted and can remember, from fine wines to bitter ales — but cannot produce poisons. One health level of lethal damage provides enough blood for one glass; dried blood is ineffective, and blood more than a day old produces a drink with a faint patina of age.",
+    "source": "Book of Bone and Ebony p.62",
+    "tags": [
+      "tool",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.the-tongue-binder",
+    "name": "The Tongue-Binder",
+    "rating": 1,
+    "description": "A thin soulsteel chain worn as a necklace, its pendant a stylized inch-long snake. When invoked by its owner to bear witness that she speaks the truth, the serpent begins to writhe — if the wearer knowingly tells a lie, it breaks loose, digs into her neck, wriggles up inside her throat and bites off her tongue (a level of lethal damage, immensely obvious to onlookers). It works only when deliberately invoked in the name of Oblivion and only on knowing lies.",
+    "source": "Book of Bone and Ebony p.63",
+    "tags": [
+      "social",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.whip-of-the-dead",
+    "name": "Whip of the Dead",
+    "rating": 1,
+    "description": "A whip made from leather flayed from the corpse of a leviathan, with soulsteel barbs and wire. Any ghost or animal creature of the Underworld instinctively fears it and makes an extra effort to please its wielder. Carrying it gives an extra die on all Ride rolls; actively using it on one's steed gives two extra dice for that roll but inflicts a level of bashing damage to the steed.",
+    "source": "Book of Bone and Ebony p.63",
+    "tags": [
+      "tool",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.bag-of-harvested-plagues",
+    "name": "Bag of Harvested Plagues",
+    "rating": 2,
+    "description": "A black silk sack that can trap and release diseases. To trap a disease, the bag is held to the mouth of a dead person who died of it and a mote of Essence spent; up to five different diseases may be held. To release, the holder opens the bag toward a living person within five yards — the diseases all discharge together, each requiring a separate Stamina + Resistance check against the disease's Virulence. It cannot trap the Great Contagion.",
+    "source": "Book of Bone and Ebony p.63",
+    "tags": [
+      "combat",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.bone-bridge",
+    "name": "Bone Bridge",
+    "rating": 2,
+    "description": "A chain of human vertebrae linked with dried sinew, flexible enough to wear as a belt. Once the owner attunes by committing 5 motes of Essence, she can cast it down over a river, chasm or soft ground and it grows into a curved bone bridge three feet wide spanning up to 100 yards. It stays solid until the owner places a hand on it and wishes it back to its smaller form — from either side, or even while standing on it.",
+    "source": "Book of Bone and Ebony p.63",
+    "tags": [
+      "utility",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.bone-harpoon",
+    "name": "Bone Harpoon",
+    "rating": 2,
+    "description": "A barbed harpoon carved from the bones of a dead behemoth and paired with a soulsteel gauntlet, summoned at a moment's notice; in hand-to-hand combat it has the statistics of a dire lance. If thrown to strike for at least one level of damage, the user can spend a mote of Essence to conjure a soulsteel chain that drags the target to three feet away (opposed Strength + Melee vs the target's Strength + Endurance, taking a full combat turn).",
+    "source": "Book of Bone and Ebony p.64",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.bracelets-of-passionate-artistry",
+    "name": "Bracelets of Passionate Artistry",
+    "rating": 2,
+    "description": "Hammered soulsteel bracelets several inches wide that always fit their owner precisely. They raise the owner's Craft, giving a bonus of one die to all rolls involving works of art or craft made while wearing them, or two dice when working within a specialization. Both must be worn to be effective; if one is destroyed, the other immediately shatters.",
+    "source": "Book of Bone and Ebony p.64",
+    "tags": [
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.candelabrum-of-remembered-kin",
+    "name": "Candelabrum of Remembered Kin",
+    "rating": 2,
+    "description": "A slender five-branched soulsteel candelabrum set with garnets and onyx. With candles of a certain formulation lit, the smoke forms a circular window a yard in diameter that displays the family member of whom the candle-lighter was thinking, for as long as the candles burn (up to half an hour). The effect can be protected against by countermagic or spells that block scrying.",
+    "source": "Book of Bone and Ebony p.64",
+    "tags": [
+      "senses",
+      "spirit"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.chair-of-guilty-sorrows",
+    "name": "Chair of Guilty Sorrows",
+    "rating": 2,
+    "description": "A throne-like chair carved from black marble. When one of the dead sits in it, the chair glues itself to him with supernatural strength, and serpent heads on the arms intone a list of all the victim's crimes in life, drawing on his own feelings of guilt — it cannot read guilt if the victim's Essence + Willpower is 10 or more. The victim must confess to each crime as it is listed or be forcibly torn free (a combined Strength + Athletics roll, five successes against difficulty 7, with lethal damage for shortfalls). Sapphire or Adamant Countermagic breaks the hold for only a minute.",
+    "source": "Book of Bone and Ebony p.65",
+    "tags": [
+      "tool",
+      "sorcery"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.cloak-of-vermin",
+    "name": "Cloak of Vermin",
+    "rating": 2,
+    "description": "A rich cloak of black fur composed of the ghosts of hundreds of plague rats. With a single word the wearer transforms it into a seething mass of yellow-toothed rats set on his enemies, treated as a single creature with the statistics of a great cat that automatically bites and claws a single target every turn. Even if the rats are slain the cloak reforms at the next dark of the moon; only flame, sorcery or Charms can permanently destroy it.",
+    "source": "Book of Bone and Ebony p.65",
+    "tags": [
+      "combat",
+      "spirit"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.essence-dice",
+    "name": "Essence Dice",
+    "rating": 2,
+    "rating_notes": "•• normal; ••• health-level-wagering form",
+    "description": "Bone dice inlaid with ebon shadow taken from the pupils of ghosts' eyes, which transfer Essence through a bet: the dice absorb Essence from those who made the wager and restore it to the winner, with a maximum of 5 motes wagered on any one bet. A rarer form (Artifact •••) can also wager health levels of lethal damage, so that ghosts can bet their very existences; a ghost who gambles away all her health levels casts herself into Lethe.",
+    "source": "Book of Bone and Ebony p.65",
+    "tags": [
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.fingerbone-bracelet",
+    "name": "Fingerbone Bracelet",
+    "rating": 2,
+    "description": "A pale bracelet woven from fingerbones linked with thin dry sinew and tanned human skin. The wearer presses the heel of her hand against a lock and spends a mote; the fingerbones pry loose, wriggle down to the lock and open any normal lock in one minute. Magical locks thwart it.",
+    "source": "Book of Bone and Ebony p.65",
+    "tags": [
+      "tool",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.hairpin-blade",
+    "name": "Hairpin Blade",
+    "rating": 2,
+    "description": "A slender white-jade hairpin that is actually an artfully carved miniature model of a full daiklave. If its owner commits 5 motes of Essence, she can expand it to a full daiklave at a moment's notice — with all the normal statistics of a jade daiklave, though no sockets for Hearthstones — remaining at full size for the rest of the scene or until she shrinks it back.",
+    "source": "Book of Bone and Ebony p.66",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.hilt-of-the-bloody-sword",
+    "name": "Hilt of the Bloody Sword",
+    "rating": 2,
+    "rating_notes": "•• normal; ••• with a Hearthstone setting",
+    "description": "A hilt without a blade, carved masterwork of white jade veined with dark crimson. Dipped into freshly spilled blood (a health level's worth of lethal damage, from the wielder or any donor), it sucks up the blood and forms a blade of dark-red shimmering crystal with the statistics of a jade daiklave. The sword returns to hilt form at the end of the scene or at the wielder's desire; rarer hilts carry a Hearthstone setting (Artifact •••).",
+    "source": "Book of Bone and Ebony p.66",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.inkbrush-of-the-hearts-desire",
+    "name": "Inkbrush of the Heart's Desire",
+    "rating": 2,
+    "description": "A delicate white-jade inkbrush containing a variant on the Arcanos Extension of the Friendly Gaze. With an uninterrupted line of sight (up to 100 yards) the user spends an hour painting the target, then rolls Perception + Craft against a difficulty of the target's permanent Essence; the successes scored are the number of the target's Fetters that appear in the painting, strongest first.",
+    "source": "Book of Bone and Ebony p.66",
+    "tags": [
+      "spirit",
+      "senses"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.the-loom-of-cobwebs",
+    "name": "The Loom of Cobwebs",
+    "rating": 2,
+    "description": "An ivory loom inlaid with chips of human bone whose shuttles are ebony spiders that move by themselves on command. Fed with raw silk and human hair taken from corpses, it takes a whole day to weave a tapestry showing an event from a dead or Abyssal target's future that will occur within a year. The owner has no control over when or where the event will be; it may be used continuously with sufficient materials.",
+    "source": "Book of Bone and Ebony p.67",
+    "tags": [
+      "spirit",
+      "senses"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.onyx-soul-window",
+    "name": "Onyx Soul Window",
+    "rating": 2,
+    "description": "A circular obsidian lens bound with crimson ribbons, set in front of one eye after a commitment of 5 motes. It provides automatic, constant use of the Spirit-Catching Eye Technique Arcanos and use at will of Sensing the Delicate Strands at the usual price. Its flaw: the wearer is always visible to other ghosts as though using Spirit-Catching Eye, however hard he conceals himself, unless he removes the window from his eye.",
+    "source": "Book of Bone and Ebony p.67",
+    "tags": [
+      "senses",
+      "spirit"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.patch-hide-armor",
+    "name": "Patch Hide Armor",
+    "rating": 2,
+    "rating_notes": "•• usual; ••• without the Appearance penalty",
+    "description": "Ghost armor made by peeling skin from parts of the body and fastening raw spectre-hide in its place with soulsteel rivets. In return for a permanent commitment of 3 motes, the ghost gains a bonus of 6L/4B to any other soak she may have, most often at the price of a -2 Appearance penalty. Versions without the penalty are Artifact •••.",
+    "source": "Book of Bone and Ebony p.67",
+    "tags": [
+      "armor"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.ring-of-flies",
+    "name": "Ring of Flies",
+    "rating": 2,
+    "description": "A chased garnet band carved with the tiny figures of thousands of blowflies. By spending 5 motes, the wearer manifests in a shadowland or Creation as a throbbing swarm of blowflies that can use Arcanoi or spells but has no solid substance and cannot make physical attacks, traveling at the speed of a fast horse and fitting under doors. A single blow, sorcery, fire or Charms breaks the effect; in Creation the wearer is cast into the corresponding part of the Underworld and cannot use the ring again until the next dark of the moon.",
+    "source": "Book of Bone and Ebony p.67",
+    "tags": [
+      "utility",
+      "spirit"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.sacrificial-gem",
+    "name": "Sacrificial Gem",
+    "rating": 2,
+    "description": "A faceted gem the length of a woman's finger, clear when not in effect and obsidian-dark when working. It allows a ghost to bear a minor curse or spell directed at a living person he wishes to protect — the effect must be no more than a single dice roll's worth of penalty or the persistent loss of a single Attribute point, and the ghost suffers it instead of the natural victim. It requires an arcane, emotional or familial link and full knowledge of the curse.",
+    "source": "Book of Bone and Ebony p.68",
+    "tags": [
+      "spirit",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.shadow-gloves",
+    "name": "Shadow Gloves",
+    "rating": 2,
+    "description": "Thin black leather gloves, strangely warm, that let the wearer shape shadow into solid form. Spending 3 motes, he reaches into the nearest shadow and pulls out a length of darkness like clay; the quality of the result depends on a Perception + Craft roll against difficulty 5 (successes capped by permanent Essence) — one success yields a rough bar of iron, three a well-balanced weapon or helm, five or more perfectly crafted steel. Items of any black material (except the Five Magical Materials) up to the user's size vanish after 24 hours.",
+    "source": "Book of Bone and Ebony p.68",
+    "tags": [
+      "tool",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.shadow-peacock-earring",
+    "name": "Shadow Peacock Earring",
+    "rating": 2,
+    "description": "An inch-wide black opal disc in a pale silver setting. When the wearer spends 2 motes, the earring sparkles darkly and hypnotically, imperceptibly drawing the attention of the person spoken to and lulling him into a suggestible state that makes the wearer's statements sound reasonable. The victim's player rolls Willpower against difficulty 5 each turn (+1 per turn of exposure); after 10 cumulative successes the influence ends.",
+    "source": "Book of Bone and Ebony p.68",
+    "tags": [
+      "social"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.the-speaking-dagger",
+    "name": "The Speaking Dagger",
+    "rating": 2,
+    "description": "A soulsteel dagger with a star ruby in the hilt and a crossguard shaped like a closed mouth. Used to slay a target (or deliver the fatal blow) and then placed in the victim's mouth, it devours the victim's tongue and, with it, the knowledge the victim held in his dying moments — it cannot devour the tongue of a being with Essence •••• or greater. Fed the holder's own blood or plasm (a level of lethal damage) and 5 motes, it truthfully answers up to three questions from that knowledge.",
+    "source": "Book of Bone and Ebony p.69",
+    "tags": [
+      "weapon",
+      "social"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.whispering-fan",
+    "name": "Whispering Fan",
+    "rating": 2,
+    "description": "A fan of charcoal and red feathers with etched soulsteel struts. The holder raises it to his lips, murmurs a name and a message of 13 words or less, and waves the fan away — the message speeds across the Underworld and is whispered into the recipient's ear as clearly as though the holder stood beside him. Any magical protection on the recipient blocks it; the fans can only be used three times a day.",
+    "source": "Book of Bone and Ebony p.69",
+    "tags": [
+      "communication"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.worm-ridden-veil",
+    "name": "Worm-Ridden Veil",
+    "rating": 2,
+    "description": "A length of rotting gray silk that, wrapped around the face and body with 3 motes spent, swells into a draping shroud concealing the wearer from head to foot — only his rough size is visible, and his voice is modulated to a rasping hiss. Charms or sorcery can pierce the concealment but no mortal vision can. The enchantment breaks if the wearer attacks someone or directs sorcery at anyone; otherwise it reverts at the end of the scene.",
+    "source": "Book of Bone and Ebony p.69",
+    "tags": [
+      "utility",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.bath-that-warms",
+    "name": "Bath That Warms",
+    "rating": 3,
+    "description": "A bath carved of black marble and onyx with soulsteel channels. Filled with a large quantity of human blood — a minimum of seven health levels of lethal damage, fresh within 15 minutes — a ghost who immerses herself in it is recreated in the full beauty of the body she had in life, lasting a single day (proportionally longer with more blood). When the time is over the body falls to dust, and the ghost may use any Arcanoi while embodied.",
+    "source": "Book of Bone and Ebony p.70",
+    "tags": [
+      "spirit",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.bell-of-the-endless-caravan",
+    "name": "Bell of the Endless Caravan",
+    "rating": 3,
+    "description": "A dark bell with a camel-tooth clapper inlaid with soulsteel. Rung, a low peal echoes out and the ghosts of a dozen harnessed camels bearing bundled black-silk tents rise from the sands to serve the holder, with the base statistics and intelligence of a normal camel (more docile, not trained for battle). The camels and tents remain until the bell is rung again or the next Calibration; a slain camel is replaced, with its equipment, the next time the bell is rung.",
+    "source": "Book of Bone and Ebony p.70",
+    "tags": [
+      "summoning",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.boat-of-bones",
+    "name": "Boat of Bones",
+    "rating": 3,
+    "description": "A small boat of bones and tanned leather with the skeletal wings of a huge spectre, sailing in the sky above the storms of the Underworld; its figurehead is a human skull that obeys verbal or mental commands. It travels at twice the speed of a raiton at any height the owner wishes, and all Dodge attempts against aerial attacks use its owner's Dodge. It must be fed a health level's worth of blood in any month it is to travel, and can stay airborne up to a month.",
+    "source": "Book of Bone and Ebony p.70",
+    "tags": [
+      "vehicle"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.bow-of-screaming-doom",
+    "name": "Bow of Screaming Doom",
+    "rating": 3,
+    "description": "A soulsteel long powerbow chased with screaming faces and twisted bodies; on attunement and commitment of 7 motes it functions as a soulsteel long powerbow. By spending 5 additional motes the wielder taints his next shot: if it slays the victim, he arises as an undead creature controlled by a hungry ghost — the physical statistics of the victim but an essentially animal intelligence — that obeys the wielder. Only one feral zombie per turn, and the possessed corpse deliquesces a day after combat.",
+    "source": "Book of Bone and Ebony p.70",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.chart-of-the-final-lands",
+    "name": "Chart of the Final Lands",
+    "rating": 3,
+    "description": "A map penned on white grave-linen with ink from corpse-ashes, requiring an investment of 5 motes to attune. Unrolled with another 5 motes, it redraws itself in shadowy lines to show the owner's location at the center of a chosen scale, and can track other people given an arcane link (a body part, blood or an attuned artifact) unless the target is shielded by Celestial Circle magic or above. An arrow at the top of the map always points toward Stygia.",
+    "source": "Book of Bone and Ebony p.71",
+    "tags": [
+      "senses",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.the-codex-of-the-damned",
+    "name": "The Codex of the Damned",
+    "rating": 3,
+    "description": "A hefty tome of flayed human skin bound with soulsteel, inscribed in blood. After spending 5 motes to attune, the owner finds the secrets of Moliation, Pandemonium and Soulforging laid out before her — she automatically gains a dot in each of the three Craft Abilities (to a maximum of 3), extendable to a maximum of 5 in any Ability by sacrificing her Fetters. While attuned she is as bound by Oblivion as any wearer of grave-prison chains, and breaking attunement loses the dots without returning sacrificed Fetters.",
+    "source": "Book of Bone and Ebony p.72",
+    "tags": [
+      "sorcery",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.the-crusher-of-souls",
+    "name": "The Crusher of Souls",
+    "rating": 3,
+    "description": "A great obsidian statue of a kneeling spectre whose cupped hands crush ghosts placed within, in a ghastly sacrifice, so that an Essence-containing gem grows in the niche in its forehead. Activating it costs 10 motes; the fingers close over five combat turns. Five or more sacrifices produce a 1-mote gem, 20 or more a 2-mote gem, 50 or more a 3-mote gem — never more than a ••• gem, and one per day.",
+    "source": "Book of Bone and Ebony p.72",
+    "tags": [
+      "sorcery",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.eyes-of-the-pyre-flame",
+    "name": "Eyes of the Pyre Flame",
+    "rating": 3,
+    "description": "A pair of dark star rubies that replace the ghost's own eyes (he must rip them out himself; the gems take a full day to accustom, filled with nightmares). They provide normal vision and allow him to blast enemies with pyre flame five times a day: 5 motes produce a small jug's worth (two-foot splash radius, three levels of aggravated damage), 10 motes a medium jug (five-foot radius, seven levels), dodgeable with Agility + Dodge against the user's Perception + Awareness. The pair must be used together.",
+    "source": "Book of Bone and Ebony p.72",
+    "tags": [
+      "combat",
+      "senses"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.fire-belly-centipede",
+    "name": "Fire-Belly Centipede",
+    "rating": 3,
+    "description": "A three-inch soulsteel centipede with a wider bulb containing pyre flame. At its master's command (5 motes, plus a mote per month it is to lie concealed) it burrows into a victim's flesh and lies dormant, then exposes the pyre flame — an automatic two health levels of unsoakable lethal damage per turn of exposure. Cutting it out does three unsoakable lethal levels to the victim and three aggravated to the surgeon (Intelligence + Medicine, difficulty 5, to avoid).",
+    "source": "Book of Bone and Ebony p.73",
+    "tags": [
+      "combat",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.girdle-of-skulls",
+    "name": "Girdle of Skulls",
+    "rating": 3,
+    "description": "An elegant ivory girdle laced with the hair of old women and clasped with soulsteel, studded with miniature skulls perfect in every detail; committing 5 motes makes it fit the wearer perfectly. On a word of command, a dozen skulls detach, grow to full human size and float around the owner, functioning much like the Dolorous Reflection spell — catching missiles in their teeth or deflecting them away, never hurling them back. They do not interfere with hand-to-hand combat and return at the owner's command or the end of the scene.",
+    "source": "Book of Bone and Ebony p.73",
+    "tags": [
+      "protection",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.hammer-of-the-damned",
+    "name": "Hammer of the Damned",
+    "rating": 3,
+    "description": "A giant white-jade goremaul crafted by a Dragon-Blooded mastersmith. It functions as a normal weapon in battle and is also capable of shattering grave-prison chains: each of the five stones ornamenting the shackles must be crushed, requiring a successful attack on the wearer that does at least one level of bashing damage (the victim may choose not to dodge).",
+    "source": "Book of Bone and Ebony p.73",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.hand-snare-chains",
+    "name": "Hand Snare Chains",
+    "rating": 3,
+    "description": "A fragile-seeming tangle of soulsteel chains worn as a bracelet that fits its owner perfectly after a commitment of 5 motes. At a moment's notice she can point at someone within 10 feet and the chains leap out to wrap around the victim, who may dodge with Perception + Dodge against the wielder's Dexterity + Occult. Once caught, the chains thicken to grave-prison size, immobilizing the victim and preventing him from spending Essence or using Arcanoi; they free their captive after an hour or whenever the wielder desires.",
+    "source": "Book of Bone and Ebony p.73",
+    "tags": [
+      "combat",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.mirror-that-looks-upon-its-twin",
+    "name": "Mirror That Looks Upon Its Twin",
+    "rating": 3,
+    "description": "Two hand-mirrors always linked in pairs — one of black iron ornamented with pale orichalcum, the other solid gold chased with soulsteel — forming a two-way see-and-hear link between the Underworld and Creation. To activate one, the holder smears his blood in the shape of the sigil on its back and spends 5 motes, opening a channel to the other mirror. The black-iron mirror must stay in the Underworld or a shadowland, the gold in Creation; if either crosses into its antithetical realm or is destroyed, both crumble to dust.",
+    "source": "Book of Bone and Ebony p.74",
+    "tags": [
+      "communication",
+      "senses"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.night-mother-doll",
+    "name": "Night Mother Doll",
+    "rating": 3,
+    "description": "A large doll with articulated jade face and hands and long silk drapes that, when called on, grows to the size of an adult and has the statistics of a jade effigy, though it carries no weapons. It obeys any command from its owner — fighting, cradling her through the night, carrying her while traveling, or watching over her — and can remain in adult form for centuries. Only a ghost child who lived less than 10 years can own one; for anyone else it will not work.",
+    "source": "Book of Bone and Ebony p.74",
+    "tags": [
+      "spirit",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.pale-bees-of-the-ghostly-hive",
+    "name": "Pale Bees of the Ghostly Hive",
+    "rating": 3,
+    "description": "Bees striped with shadow and pale gold that dwell dormant in a honeycombed piece of white jade the size of a man's fist. Called on, they swarm out and rip at opponents' flesh, doing damage as Death of Obsidian Butterflies except rolled with Perception + Awareness; attacks on the swarm have no effect, and only destroying the hive (five levels of lethal damage) kills them. When they have collected 20 health levels of lethal damage, the remnants distil into an onyx liquor that restores five health levels to the dead. The bees must be called at least once a month or they turn on each other.",
+    "source": "Book of Bone and Ebony p.74",
+    "tags": [
+      "combat",
+      "healing"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.phantom-mantle",
+    "name": "Phantom Mantle",
+    "rating": 3,
+    "description": "A translucent mantle woven from wool as pale as crystal and clasped with an onyx brooch. When donned and 5 motes expended, the wearer becomes immaterial for the duration of the scene — passing through wood, metal and rock but balked by jade or any Magical Material, and still affected by Charms, sorcery and fire. He remains visible and audible while active. The mantle is too fragile to serve as armor and is destroyed by three or more levels of bashing damage.",
+    "source": "Book of Bone and Ebony p.75",
+    "tags": [
+      "utility",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.razor-teeth",
+    "name": "Razor Teeth",
+    "rating": 3,
+    "description": "A necklace of carved soulsteel incisors that, placed against the wearer's mouth, painfully burrows into her gums, displacing her natural teeth with razor-edged soulsteel (5 motes permanently lost in attunement). It gives her a bite attack — Speed 5, Accuracy 5, Damage 5L — and lets her consume the flesh of enemies: for every five health levels of lethal damage consumed she gains a bonus of one die to her next Strength or Stamina roll, to a maximum of three dice, which cannot be saved beyond the end of the scene.",
+    "source": "Book of Bone and Ebony p.75",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.rosary-that-feeds-on-souls",
+    "name": "Rosary That Feeds on Souls",
+    "rating": 3,
+    "description": "A long necklace of pearls wound around the neck with a single soulfire crystal pendant. Each time the wearer slays a living being with at least one dot of permanent Essence within 10 yards, a mote of Essence (automatically Death-aspected) enters the crystal until it reaches its capacity of usually 5-10 motes; the pearls shift from pale luminous white to dead black as it fills. The stored Essence may only be used by the wearer of the rosary.",
+    "source": "Book of Bone and Ebony p.75",
+    "tags": [
+      "combat",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.scourge-of-thorns",
+    "name": "Scourge of Thorns",
+    "rating": 3,
+    "description": "A soulsteel scourge modeled as a multi-stranded whip, each strand braided from knotted wire contorted into spiky knots, with a setting for a Hearthstone; its statistics are Speed +3, Accuracy +1, Damage +3L, Defense +0, minimum Dexterity 2. Shaken with a mote spent, it produces a hideous whispering sound causing fear in mortals within earshot (-1 die on attack rolls to those with Essence 1 or less). Cast to the ground, it springs up as a dome of steely black brambles five yards across, impervious to fire or non-magical weapons, with a soak of 4L/8B, requiring 10 levels of lethal damage to hack through.",
+    "source": "Book of Bone and Ebony p.75",
+    "tags": [
+      "weapon",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.shadow-casting-gem",
+    "name": "Shadow-Casting Gem",
+    "rating": 3,
+    "description": "A black diamond dangerous to the wielder's allies as to his enemies. Exposed to the air with a word of command, a brilliant light flares and all those within 20 yards except the wielder cast shadows that come alive and attack their owners — same Physical Traits, armor and weapon types (without powers), each shadow having as many health levels as the gem's wielder has permanent Essence. The wielder cannot control the shadows or spare anyone. The gem can only be used three times in a single day and flickers if not stored in absolute darkness.",
+    "source": "Book of Bone and Ebony p.76",
+    "tags": [
+      "combat",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.stomach-weighting-powder",
+    "name": "Stomach-Weighting Powder",
+    "rating": 3,
+    "rating_notes": "Page prices a pouch of 5 doses in Resources •••, not Artifact dots",
+    "description": "A small pinch of dark powder, easy to swallow with wine or water. Once swallowed it swells to the size of a man's head inside the victim's stomach and becomes ten times as dense and heavy as iron, pinning the victim to the ground, unable to rise or walk away. Removal: a solution of nettles, ash and Underworld grapes (Intelligence + Medicine, three successes); waiting 12 hours, when it shrinks and is vomited out; or cutting the stomach open (three levels of lethal damage). Found in pouches of five doses.",
+    "source": "Book of Bone and Ebony p.77",
+    "tags": [
+      "tool",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.taming-muzzle",
+    "name": "Taming Muzzle",
+    "rating": 3,
+    "description": "A twisted muzzle of pitch-black soulsteel bound around a victim's face. The prisoner loses all ability to take independent action, becoming numb and obedient to the muzzle's master; in a second state the soulfire crystals glow scarlet and the wearer goes berserk, attacking whomever the master orders (with physical attacks or weapons but no Arcanoi, Charms or sorcery). Victims with Essence •• or less have no chance of breaking free; those of ••• to ••••• may try by rolling their totaled Virtues against the master's Willpower (five successes frees them). It cannot hold victims of Essence •••••• or more.",
+    "source": "Book of Bone and Ebony p.77",
+    "tags": [
+      "tool",
+      "social"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.thieving-harness-of-servitude",
+    "name": "Thieving Harness of Servitude",
+    "rating": 3,
+    "description": "A harness plaited from thin black silk rope, buckled with a soulsteel clasp set with an Essence-containing gem. Fastened around a jade effigy's chest and shoulders, it compels the effigy to obey its wearer instead of its proper owner. The wearer must pour a pint of his own blood or plasm over the gem (one level of lethal damage) and feed it a pint of blood every week thereafter; if he omits this, the gem stops glowing, the harness falls off, and the effigy returns to its prior allegiance.",
+    "source": "Book of Bone and Ebony p.77",
+    "tags": [
+      "spirit",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.urn-that-voids-darkness",
+    "name": "Urn That Voids Darkness",
+    "rating": 3,
+    "description": "A small onyx urn one foot wide and two feet high, inlaid with soulfire crystals. Opened, a vast darkness spills from its mouth like smoke, filling the room in a single turn — extinguishing natural lights and dimming or extinguishing sorcerous lights (Solar anima flares and Caste Marks are unaffected). The darkness lasts while the lid is off, does not go beyond the boundaries of the room, and the urn simply fails to function in corridors or under the open sky. It is fragile; if broken, it is utterly destroyed.",
+    "source": "Book of Bone and Ebony p.78",
+    "tags": [
+      "utility",
+      "sorcery"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.the-white-snakes-that-hunger",
+    "name": "The White Snakes That Hunger",
+    "rating": 3,
+    "description": "A white-jade oval carved to resemble two snakes coiled on themselves. Cast to the ground with a mote of Essence, the snakes uncoil — one attacking an indicated target while the other gives birth to a new snake each turn, half attacking and half reproducing (each snake has the statistics and poison of a coral snake). They multiply and attack for up to half an hour, then swallow each other until only two remain and reform the oval; the artifact cannot be used again until the next day, or for a year if all its snakes are killed.",
+    "source": "Book of Bone and Ebony p.79",
+    "tags": [
+      "combat",
+      "summoning"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.keystone-of-the-stair-inescapable",
+    "name": "Keystone of the Stair Inescapable",
+    "rating": 4,
+    "description": "A pallid moonstone buried under the bottom step of a flight of stairs. Once someone begins to climb, it makes it impossible to leave the stairs unless he pronounces the keystone's name — the stairs elongate to infinity in either direction, the top never reached, the bottom always a few paces away. Anyone of 6 or more permanent Essence can ignore its effects, and Adamant Countermagic or Charms that alter the flow of space, time and fate may also permit exit.",
+    "source": "Book of Bone and Ebony p.79",
+    "tags": [
+      "sorcery",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.bonestrider",
+    "name": "Bonestrider",
+    "rating": 5,
+    "description": "A warstrider made entirely of bone and soulsteel on a barbed soulsteel frame, animated by Labyrinth Circle Necromancy; its stats are the same as a common warstrider, and it is often outfitted with similar weapons, albeit the Underworld's equivalents. The bones of enormous creatures are sculpted into the necessary shapes and connected on the frame, with enormous scapulas guarding the chest.",
+    "source": "Book of Bone and Ebony p.104",
+    "tags": [
+      "armor",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.bone-ebony.manifestation-engine",
+    "name": "Manifestation Engine",
+    "rating": 4,
+    "rating_notes": "••••+; the + indicates larger engines",
+    "description": "Several nested spheres of soulsteel filigree engraved with necromantic runes, worn around the neck and touching the corpus, that grant a ghost substance in Creation — remaining solid there as if using the Arcanos Weighted With the Anchor of Flesh. Even the smallest contains an Artifact ••• Essence-containing gem at its core; its casing and shielding soak 5L/3B per level of the engine's Artifact rating and crack after two health levels of damage per level, whereupon the reserve is instantly depleted. A typical engine holds enough Essence for 24 hours of solidity (the Deathlords' war machines mount 10-foot-diameter engines holding 75+ motes); if it runs out at night the wearer fades into the Underworld, while running dry during the day devours the wearer's Essence, then Willpower, then health levels at 2 per hour, exploding for 10 levels of lethal damage in a 10-foot radius if exposed to sunlight while feeding.",
+    "source": "Book of Bone and Ebony p.113",
+    "tags": [
+      "spirit",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.ashigaru-battle-armor",
+    "name": "Ashigaru Battle Armor",
+    "rating": 2,
+    "description": "Lightweight First Age armor, equal in protection to a reinforced breastplate, whose design can still be produced today. It sharpens the wearer's senses (negating penalties for darkness less than 'utter blackness' and adding two dice to all Awareness pools), filters out poison and disease (+2 dice to Resistance pools, completely shielding the wearer from breathed toxins for up to an hour) and can camouflage the wearer (+2 dice to Stealth when moving, +3 when stationary). Mortals must spend one temporary Willpower to activate it (treated as committed, lowering maximum temporary Willpower) and age one extra week for every season or part of a season used; Exalts commit 4 motes with no other effect. Requires maintenance every 150 hours of operation.",
+    "source": "The Outcaste p.50",
+    "tags": [
+      "armor"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.reaper-daiklave",
+    "name": "Reaper Daiklave",
+    "rating": 2,
+    "description": "A great slashing sword — a perfectly balanced, four-foot-long, four-inch-wide, gently curved razor ground to a fine point — that favors speed and defense over raw striking power (Speed +5, Accuracy +3, Damage +4L, Defense +3). Requires 5 motes to attune. Popular among the Dragon-Blooded of Lookshy, who prefer its elegance and speed over the more common reaver or grand daiklaves.",
+    "source": "The Outcaste p.51",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.shock-pike",
+    "name": "Shock Pike",
+    "rating": 2,
+    "rating_notes": "•• standard; versions holding more than 20 motes are •••",
+    "description": "A conventional if somewhat short spear (staff of ebony or ironwood inset with leaf-shaped plackets of green jade) dating from the Dragon-Blooded Shogunate, designed for mortal soldiers. At a cost of 2 motes it can make an attack at range exactly as if used in close combat, using Melee + Dexterity and following all normal melee rules, compatible with Melee Charms; a parry attempt against it is at +2 difficulty. Standard shock pikes store 16 motes (versions holding 10, 20 or more than 20 are known; those over 20 are Artifact •••, none hold more than 40). An Exalt-specific version stores no motes but is a generally more powerful weapon with a range of ([permanent Essence × 10] + 50) yards and a 5-mote commitment.",
+    "source": "The Outcaste p.51",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.warstrider-implosion-bow",
+    "name": "Warstrider Implosion Bow",
+    "rating": 2,
+    "description": "A lightweight, semi-portable version of the light implosion bow mounted on First Age warships and skycraft, built in two parts: a backpack-like device holding the Essence accumulators, reagent canisters and mechanisms, connected to the bow by a pair of flexible emerald cables as strong as steel. It has the same statistics as a normal light implosion bow — half charge does 7B/5L and full charge 15B/12L to all targets in a 10-foot radius, maximum range 450 yards — but fires less often at high charges.",
+    "source": "The Outcaste p.51",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.elemental-lens",
+    "name": "Elemental Lens",
+    "rating": 3,
+    "rating_notes": "A lens built into another artifact adds • to that artifact's rating if it starts below •••",
+    "description": "One of the more common weapons of the First Age, few survive outside of Lookshy; a lens can take many shapes, made as part of a glove or gauntlet or built into talismans, weapons or suits of armor. Requires 5 motes to attune (adding 2 motes to the attunement cost of an artifact it is added to). It amplifies the effects of a Dragon-Blooded's elemental attacks — Elemental Bolt Attack does 4L damage per mote invested, Elemental Burst Technique 3L per mote or increases damage radius by one yard, and Dragon Vortex Attack's radius or damage rises with motes spent above 10 — and can improve up to three Charms at the Storyteller's discretion, limited to straightforward elemental manipulations of Charms with Essence or Ability requirements no higher than 3.",
+    "source": "The Outcaste p.52",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.essence-cannon",
+    "name": "Essence Cannon",
+    "rating": 2,
+    "rating_notes": "•• small cannon; ••• medium; •••• large; ••••• very large",
+    "description": "Possibly the oldest ranged weapon not powered by muscle: an Exalt pumps in motes and out comes a beam of raw, focused Essence — a concussive bashing pulse that smashes anything it hits. Essence cannons are inefficient and clumsy but rugged and simple to maintain, easy to build and capable of great power when built large. Four sizes are detailed: small (Artifact ••, Damage 15B, Range 75, Strength minimum 4), medium (•••, 20B, 125), large (••••, 30B, 200) and very large (•••••, 45B, 300); medium cannons require a two-man team, and large and very large cannons are normally used only as fortification weapons.",
+    "source": "The Outcaste p.52",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.fire-lance",
+    "name": "Fire Lance",
+    "rating": 3,
+    "description": "A refinement of the flame spear resembling a fairly conventional spear, once common and still numerous in the arsenals of Lookshy; it holds 20 motes of Essence. Charged with 1 mote, the head becomes wreathed in colorless flames that explode over a target when next successfully used to attack in melee; 2 motes disgorge streamers of colorless fire at a target; 5 motes spray the fire in an arc against up to three adjacent targets. Fire lances use Melee or Archery as appropriate and are compatible with Melee but not Archery Charms; an Exalt may attune for a 4-mote commitment and power it directly.",
+    "source": "The Outcaste p.53",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.gunzosha-combat-armor",
+    "name": "Gunzosha Combat Armor",
+    "rating": 3,
+    "description": "The pinnacle of First Age artifacts designed for use by mortals, equivalent in protection to a suit of articulated plate. It conceals the wearer when desired (+4 dice to all Stealth pools), doubles ground speed, protects from diseases and poisons (+2 dice on all Resistance checks), recovers one bashing health level per turn, steadies the hand (+2 on all attacks and parries) and enhances strength (+2 Strength for purposes of damage and lifting). Before first donning, the wearer must undergo a month of rituals culminating in the implantation of amulets at major pulse points (Dexterity + Medicine, difficulty 3; the surgeon needs Medicine and Occult at ••• or higher), and while the amulets are implanted the wearer ages at twice the normal rate — the Seventh Legion requires that no gunzosha serve for more than a decade. Exalts commit 5 motes; requires maintenance every 100 hours of operation.",
+    "source": "The Outcaste p.53",
+    "tags": [
+      "armor"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.armors-of-the-immaculate-dragons",
+    "name": "Armors of the Immaculate Dragons",
+    "rating": 4,
+    "description": "Suits of jade-alloyed articulated plate armor, cunningly built with no seam or gap in protection, made for the Dragon-Blooded — nearly the pinnacle of Terrestrial armor, and few have survived to the present day, most in the hands of the Realm and Lookshy. When worn the armor protects against poisons and diseases (+2 dice to all Endurance and Resistance rolls) and provides the wearer mobility and a number of specialized abilities; the helms feature Essence-filtering lenses and air-filtering face plates. The five elemental designs (Air, Earth, Fire, Water, Wood) were the most common, but at least five additional designs were made for particular missions.",
+    "source": "The Outcaste p.54",
+    "tags": [
+      "armor"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.infinite-weapon",
+    "name": "Infinite Weapon",
+    "rating": 3,
+    "description": "A single weapon that replaces an arsenal, originally designed for those who wanted to travel light; in its normal state it resembles a mace with a perfectly spherical head of one of the Five Magical Metals. For the expenditure of 1 mote the wielder can shift it to any of about 10 distinct weapon forms (the weapon cannot be used in the turn it shifts); returning to its normal state is reflexive. It requires a commitment of 6 motes, and ammunition such as arrows must be supplied separately. Infinite weapons receive the Magical Material bonus of their composition.",
+    "source": "The Outcaste p.54",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.haze-shield",
+    "name": "Haze Shield",
+    "rating": 4,
+    "description": "A defensive barrier, common in the First Age and in the Lookshy arsenal, used to defend fortifications and battlefield units: when activated it throws up a barrier that obscures vision as if looking into an unsettled pond, so those inside seem to shift and flicker. The first setting requires an Air or Fire Hearthstone of at least •• and 1 mote per 50 yards of shield; all attackers suffer a -2 success penalty on ranged attacks against anything inside, while outgoing attacks are unaffected. The second setting costs 1 mote per 25 yards and lasts a number of minutes equal to the operator's permanent Essence + the Hearthstone rating, but penalizes outgoing attacks by -2 successes as well. Shields do not stack with other haze shields and give no protection against hand-to-hand attacks; they must be maintained after every 20 hours of combat use.",
+    "source": "The Outcaste p.58",
+    "tags": [
+      "protection",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.crimson-armor-of-the-unseen-assassin",
+    "name": "Crimson Armor of the Unseen Assassin",
+    "rating": 5,
+    "rating_notes": "•••••; •••• in a game without Sidereal astrology",
+    "description": "Prized and rare armor used by the most dangerous rangers — part armor, part concealment, and exceedingly dangerous: bright scarlet flowing robes and armor (Soak 8L/12B, +2 Strength) that obscure the wearer's form completely. It doubles all movement rates and adds four dice to the wearer's Stealth pool, applying to any means of detection and specifically bypassing any Charm or ability that negates magical invisibility; for 3 motes per scene this rises to +6 dice, rendering the wearer invisible to all but the most keen-eyed observers. It also adds 2 to Awareness, negates penalties for darkness and grants Essence sight at 2 motes per minute; for 5 motes the wearer can blur into an indistinct red shadow, reducing all actions against him by three successes (attacks and parries, not dodges). So long as it is worn the wearer is removed from destiny, untargetable by Sidereal astrology; it requires 10 committed motes, and there are warnings against wearing it too long, lest one's soul become permanently detached from destiny and the cycle of reincarnation.",
+    "source": "The Outcaste p.59",
+    "tags": [
+      "armor"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.medium-implosion-bow",
+    "name": "Medium Implosion Bow",
+    "rating": 4,
+    "description": "A more powerful version of the light implosion bow; only limited numbers survive even in Lookshy, mounted in towers and Manses, on skyships and naval vessels, with a handful on heavy carriages for field use. Unlike light implosion bows these require a Hearthstone of at least level 2 to function, have a blast radius of 20 feet and a longer range (maximum 750 yards, no extended range), doing 15B/12L damage for 2 motes or 25B/20L for 5 motes. Fired using the Archery Ability but does not benefit from Archery Charms; Repair 3.",
+    "source": "The Outcaste p.59",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.warstrider-fire-lance",
+    "name": "Warstrider Fire Lance",
+    "rating": 4,
+    "description": "A warstrider-scaled version of the fire lance, intended to smash fortifications and troop units; this version carries only 10 motes of Essence. Spending 2 motes charges the head for melee use, 4 motes throws a streamer of colorless fire, and 10 motes throws a fire fan that affects an entire area rather than individual targets. Uses Melee or Archery as appropriate and is compatible with Melee but not Archery Charms; requires 4 committed motes.",
+    "source": "The Outcaste p.59",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.warstrider-shock-ram",
+    "name": "Warstrider Shock Ram",
+    "rating": 4,
+    "description": "A massive gauntlet of steel alloyed with green jade, working in similar fashion to the shock pike. To use it the wielder simply pantomimes a punch at a distant target and spends 2 motes, releasing a powerful 'phantom punch' — it can duplicate any one-handed unarmed attack the pilot could physically make, using Dexterity + Brawl or Martial Arts for the attack roll and compatible with Martial Arts and/or Brawl Charms that affect unarmed attacks. Because of the nature of the attack, the warstrider does not suffer penalties for attacking smaller targets, so long as they are at least 10 yards away.",
+    "source": "The Outcaste p.59",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.chariot-of-the-infinite-heavens",
+    "name": "Chariot of the Infinite Heavens",
+    "rating": 4,
+    "description": "A common smaller flying craft of the First Age, resembling the wheeled chariots used by some barbarian forces but sturdier, with four small feet or skids to hold it up when landed; perhaps 3,000 were built over the centuries, and only a fraction (no more than 200) survive, most in the hands of the Seventh Legion for local patrols. Each chariot can carry three — one charioteer and two passengers, who remain always stable and steady regardless of the chariot's movement — and anyone can fly it once the owner 'turns over the reins.' Each requires a level 2 Hearthstone to power flight and must be fed 1 mote of Essence per scene. Speed 4, Maneuver 2, Armor 12L/18B, no armament normally, 20 health levels, Repair 4; one hour of maintenance per 20 hours of flight or 20 turns of combat use.",
+    "source": "The Outcaste p.62",
+    "tags": [
+      "vehicle"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.manta",
+    "name": "Manta",
+    "rating": 5,
+    "description": "One of a family of similar-sized and -purposed medium transports in the Lookshy fleet: carved from a diamond the size of a building and given the shape of a giant faceted crystal with small wings on either side, over 60 feet long with a body nearly 12 feet wide. She can carry two warstriders as cargo or a talon of infantry for short distances; requires a crew of five including two Exalted, is powered by two Air Hearthstones (level 2 or higher) in sockets near the twin Essence furnaces, and each of the Exalts must commit 3 motes for the skyship to fly. Speed 5, Maneuver 1, Armor 15L/20B, armament of two fire lances, 40 health levels, Repair 3. A reliable craft requiring maintenance every 100 hours of flight, there are more craft like Manta in existence than any other type of flying craft save the chariot of the infinite heavens.",
+    "source": "The Outcaste p.63",
+    "tags": [
+      "vehicle"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.compass-of-immanent-strife",
+    "name": "Compass of Immanent Strife",
+    "rating": 2,
+    "description": "A compass forged of orichalcum and starmetal that, once installed in a ship's helm, infallibly points toward the largest current battle within 50 miles — the size of a battle gauged by the power of the participants and then by their number. Should there be no ongoing battle within that distance, the starmetal needle hangs loosely, swaying idly with the waves. If the steersman sails toward the battle, following the compass' direction, he benefits from a favoring wind giving the ship an extra dot of speed until he reaches it.",
+    "source": "The Outcaste p.92",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.freshwater-pearls",
+    "name": "Freshwater Pearls",
+    "rating": 1,
+    "description": "Pearls the size of a child's fist, nacreously white as the first star on a winter's evening. Placed in a barrel (or lesser quantity) of seawater or fouled water, a pearl instantly renders the water as clear and fresh as a mountain spring; thrown into a larger quantity it has no effect. A pearl works up to five times a day, and in wine or other alcohol turns the liquid to ordinary healthy grape juice or whatever the appropriate source liquid might be. It has no effect on actual poison.",
+    "source": "The Outcaste p.92",
+    "tags": [
+      "utility",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.helm-of-hearts-desire",
+    "name": "Helm of Heart's Desire",
+    "rating": 5,
+    "description": "A precious First Age artifact constructed of all five types of jade, with the wheel itself of orichalcum and three moonsilver compasses set beside it — the first pointing toward the Elemental Pole of Earth at the heart of the Realm, the second toward the helmsman's desire, the third toward his worst nightmare. The owner must have the Helm set into his ship and attune it by committing 10 motes of temporary Essence; if unattuned, or if anyone else lays a hand on it, the wheel stays fixed and unmoving and the ship shudders, tears itself in two and sinks if out of sight of land. Once attuned it serves as a normal helm, and seeking a desired image costs 5 motes of temporary Essence a day: the Wyld opens before the ship and it sails the desired waters for a dozen hours before reemerging into more normal seas, navigation resolved with a Perception + Sail roll against difficulty 6. The Helm deals with desires and fantasies, not real things — it cannot magically transport the ship to a real location deliberately focused upon.",
+    "source": "The Outcaste p.92",
+    "tags": [
+      "vehicle",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.wave-stepping-boots",
+    "name": "Wave-Stepping Boots",
+    "rating": 2,
+    "description": "Footwear seen in various forms — elegant sandals, silk slippers, polished half-boots, thigh-high leather with high heels — that always sizes itself to fit its latest wearer perfectly. While wearing them, the Exalt may walk upon seawater as though it were solid ground, the protection extending to his whole body; he literally cannot sink into the water or be pulled into it, though he can certainly fire missiles into the water or plunge a daiklave into it. Falling from a height onto the ocean surface risks damage as though he had fallen onto solid earth from a similar height.",
+    "source": "The Outcaste p.92",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.perfected-flame",
+    "name": "Perfected Flame",
+    "rating": 3,
+    "description": "Torches that begin as the horn of a Fair Folk cataphract's fell unicorn mount, suffused with liquid cold jade over the course of a year and tempered in the ashes of a burned-out star. Only those with the Glowing Coal Radiance Charm can attune a perfected flame to their anima, requiring a 5-mote commitment; it functions as a jade dire lance. If the character reverses the weapon and spends 5 motes, the thicker end ignites in a brilliant radiance lasting the remainder of the scene, and the character thereafter benefits from Glowing Coal Radiance — for each point of temporary Willpower spent, she can either extend the Charm's protection to one ally or add 1 to the difficulty of an opponent's reflexive Willpower tests against it. Blind opponents and opponents who close their eyes ignore the flame's abilities but suffer the normal penalty of two fewer successes on all attack rolls.",
+    "source": "The Outcaste p.121",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.six-and-finger-staff",
+    "name": "Six-and-Finger Staff",
+    "rating": 1,
+    "description": "A seven-section staff whose final link is the skeletal remains of one of Valentin's fingers, its bones locked together by knuckles forged from blue jade; after Rurik killed Valentin, the Forest Witches forced him to craft eight of these staves, suffering a beating from each. The staves are invariably exceptional weapons with a bonus to their speed, accuracy and damage, and Presence rolls that would affect a character holding one — including those for Charms such as Unbearable Taunt Technique — subtract two dice from their pools. Once during the existence of a given staff, a victim struck by it will fall hopelessly in love; the wielder cannot control when this happens but is instantly aware of it when it does.",
+    "source": "The Outcaste p.121",
+    "tags": [
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.veil-of-the-anointed",
+    "name": "Veil of the Anointed",
+    "rating": 2,
+    "description": "Thin, nearly transparent veils that cling of their own volition when pressed against someone's face, without interfering with breath or sight — though others can no longer see the wearer's eyes, and orbs of brilliant light now seem set in that person's skull. A character who holds a veil for a day and commits 1 mote to it can remove it from others at will, merely gesturing for it to fly to his hand; others must succeed at a Willpower roll or spend a temporary Willpower point to remove it. Anyone wearing one perceives the perfected vision of Creation found in the Sea of Mind rather than its true form, but the veils permit any given person at most 28 visits to the Sea of Mind in his lifetime, each lasting up to a day and a night.",
+    "source": "The Outcaste p.121",
+    "tags": [
+      "senses",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.domnicas-mantle",
+    "name": "Domnica's Mantle",
+    "rating": 5,
+    "description": "A mantle made of a fine gray mist that allows the wearer to utter a word so potent as to both end and begin his life. As the mantle draws upon his Essence, his body turns to dust; the mantle holds the spark of his life, and unless the mantle is destroyed, the wearer is reborn within two years. He may name the mother he prefers (who must have Essence 8 or less), name the circumstances and location of the birth, choose which criteria takes precedence if greater forces prevent both desires from being satisfied, and can even tailor his physical appearance in his new life.",
+    "source": "The Outcaste p.122",
+    "tags": [
+      "spirit",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.outcaste.walking-stone",
+    "name": "Walking Stone",
+    "rating": 3,
+    "description": "Fist-sized drops of water from the forest pool, among the artifacts the Forest Witches have constructed over the centuries that allow the dead true interaction with the living world. Put in the Hearthstone setting for a suit of artifact armor, a walking stone allows a dead character to move the limbs and gloves of the armor as if she were physically inside; the Witches call suits so equipped 'Radiant Dragon Armor,' and a dead wearer can act in the reflected Creation without incurring the disapproval of Atsiluth Eternal's elders. Two captured common warstriders have also been set with walking stones, one standing guard at the major road into the woods, red jade daiklave in hand.",
+    "source": "The Outcaste p.122",
+    "tags": [
+      "spirit",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.rathess.shock-gauntlet",
+    "name": "Shock Gauntlet",
+    "rating": 3,
+    "description": "A large gauntlet covered in metallic leaves that covers almost the entire arm, used by Dragon King troops before the fall of Rathess, especially those who worshiped Leeayta. A ranged melee weapon: the wearer spends 1 mote and punches at a target up to 30 yards away, making a normal Brawl or Martial Arts roll; the gauntlet transmits the strength of the punch, which does damage exactly as if the target had been hit with a normal unarmed attack. Ranged use: Acc +0, 16L, Rate 1, Range 30 (no range increments). Hand-to-hand: Speed +0, Acc +0, Str +8B, Def +0, Min S•.",
+    "source": "Ruins of Rathess p.83",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.rathess.thorn-thrower",
+    "name": "Thorn Thrower",
+    "rating": 3,
+    "description": "A thin flexible branch four feet long holding many large thorns; committing 6 motes lets the user coil it into a six-inch coil carried on a belt. Flicked like a whip, it throws large thorns coated with azure sap that promotes blood loss, or can be used like a short whip in close combat. Thrown use: Acc +3, 8L, Rate 2, Range 20; like a target arrow it is armor-piercing, and anyone wounded loses one health level every 10 turns due to bleeding, with all attempts to stop it at +1 difficulty. Hand-to-hand: Speed +4, Acc +2, +6L, Def +3, Min D•••. Each ranged attack costs 1 additional mote.",
+    "source": "Ruins of Rathess p.83",
+    "tags": [
+      "combat",
+      "thrown",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.rathess.boot-grafts",
+    "name": "Boot Grafts",
+    "rating": 1,
+    "description": "Amorphous masses of fibrous tissue covered in tiny spines that expand over the feet to the ankles and harden into bark-like 'boots' with large spines where the toes would be. They provide solid support, warmth in cold conditions and aeration in hot conditions, and grant a +2 bonus to all Athletics checks involving climbing or mounting an incline. Photosynthetic, they survive on at least four hours of bright sunlight a day; dormant grafts require 1 mote and four hours of direct sunlight to reactivate.",
+    "source": "Ruins of Rathess p.80",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.rathess.breather-plant",
+    "name": "Breather Plant",
+    "rating": 1,
+    "description": "A small leafy vine that wraps around the neck of a living being no larger than a war horse, growing tendrils into the neck that let the wearer breathe both fresh and salt water (but not poisoned or extremely stagnant bodies of water). After roughly three hours of use it slowly yellows and goes dormant, and must be returned to its pot for at least 12 hours before it can be used again.",
+    "source": "Ruins of Rathess p.80",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.rathess.green-eyes",
+    "name": "Green Eyes",
+    "rating": 1,
+    "description": "Translucent cylindrical plants that spread very thinly over the wearer's eyes. For six hours after application the wearer is effectively blinded while the buds adapt; afterwards they grant clarity of vision to see details 100 yards distant without difficulty, plus one automatic success on Awareness rolls (these benefits do not add to those granted by Awareness Charms). They require 1 mote per day, otherwise they revert to an inert state and fall from the eyes.",
+    "source": "Ruins of Rathess p.80",
+    "tags": [
+      "senses"
+    ]
+  },
+  {
+    "id": "artifact.rathess.green-iron-dust",
+    "name": "Green Iron Dust",
+    "rating": 1,
+    "description": "Pollen from the hraas'kaztha plant ground to a fine powder and ingested. It adds a dot to Strength and Stamina for one scene, as well as to the Brawl, Endurance, Dodge, Melee and Resistance Abilities, at the cost of 1 dot in Wits (which does not affect initiative). Afterwards the character suffers the loss of 1 dot in Strength, Dexterity and Wits for one hour. Typically found in containers of 100 doses, fewer naturally having a lower Artifact value at the Storyteller's discretion.",
+    "source": "Ruins of Rathess p.81",
+    "tags": [
+      "combat",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.rathess.knife-spores",
+    "name": "Knife Spores",
+    "rating": 1,
+    "description": "Tiny ambulatory plants native to the subterranean regions around Rathess, with flat bodies and sharp filaments covering their surface. A colony that infests a living creature (at the cost of one lethal health level per day) lets the character inflict lethal rather than bashing damage with his blows. After 10 successful blows while wearing them, the spores die in large enough numbers to be ineffectual.",
+    "source": "Ruins of Rathess p.81",
+    "tags": [
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.rathess.healing-orchid",
+    "name": "Healing Orchid",
+    "rating": 2,
+    "description": "A finger-thick vine encircling the wearer's arm, bearing several dozen thumb-sized leaves and half a dozen emerald-green flowers, that lets the wearer heal far faster than normal. Exalts wearing it heal one level of bashing damage per hour or one level of lethal damage every three hours, and roll two additional dice to resist poison, disease or infection. Dragon Kings and Exalts must commit 4 motes of Essence to keep it healthy; mortal humans must instead eat three times as much food whenever it is active, and unExalted wearers need a Stamina of at least 4 to support it.",
+    "source": "Ruins of Rathess p.82",
+    "tags": [
+      "healing"
+    ]
+  },
+  {
+    "id": "artifact.rathess.vine-klave",
+    "name": "Vine Klave",
+    "rating": 1,
+    "description": "A five-foot weapon with a two-foot gnarly woody haft and a three-foot blade of vine specially bred to be as tough as fine steel; when inactive the fibrous blade becomes flexible and coils along the haft. Placing its thorns against flesh extends and coils them around the arm, causing a short piercing pain and unsoakably draining two health levels that cannot be recovered until the weapon is detached. Once attached the wearer cannot be disarmed or drop it, but the limited grip adds +1 difficulty on all rolls involving the physical dexterity of that hand and prevents picking anything else up. Stats: Speed +3, Acc +2, +5L, Def +0, Min S•.",
+    "source": "Ruins of Rathess p.82",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.rathess.mimic-skin",
+    "name": "Mimic Skin",
+    "rating": 3,
+    "description": "A viscous globule of transparent fleshy material held in a small cylindrical orichalcum container. Infused with 3 motes of Essence it expands and crawls over a normal-sized person from head to foot, leaving all senses and breathing unobstructed while it mimics its surroundings: anyone trying to see the wearer suffers a four-dice penalty to Perception + Awareness rolls if the wearer stays perfectly still, reduced to two dice if he is moving. It stays active for three days, then must regenerate its matrix in its container for three more before it can be activated again.",
+    "source": "Ruins of Rathess p.83",
+    "rating_notes": "••• per the page; the worklist lists ••",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.rathess.sun-crystal",
+    "name": "Sun Crystal",
+    "rating": 1,
+    "description": "Small, regularly shaped crystals that occur naturally in Southern lands, often underground or on the surface after volcanic eruptions. With the expenditure of 1 mote a crystal glows brightly and clearly for 1,001 days, illuminating an area 90 feet in diameter; an additional mote increases the radius to 150 feet, and expending any more shatters the crystal in an impressive (though harmless) pyrotechnic display.",
+    "source": "Ruins of Rathess p.84",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.rathess.lizard-tail-regrowth-sphere",
+    "name": "Lizard Tail Regrowth Sphere",
+    "rating": 4,
+    "description": "A glittering green globe laced with red stripes and full of warm, translucent green slime. Those placed within it heal at 20 times the normal rate, whether lethal or bashing, and regrow lost limbs and appendages as if under the effects of Bodily Regeneration Prana: small appendages take (10 - Stamina) days, minimum 1, and limbs take (21 - Stamina) days, minimum 3. Proper use requires at least 1 dot of Medicine (3 dots to regenerate a limb); the technician commits 10 motes, and each activation consumes a one-use tube of herbal and alchemical reagents costing Resources •••.",
+    "source": "Ruins of Rathess p.87",
+    "tags": [
+      "healing"
+    ]
+  },
+  {
+    "id": "artifact.rathess.warbird",
+    "name": "Warbird",
+    "rating": 4,
+    "description": "A vehicle of living magical metals shaped like a giant hawk, eagle, owl, raiton or bat, controlled with leg movements, weight shifting, built-in reins and verbal commands (Dexterity + Ride). It carries up to two passengers on saddles, flies at 120 miles per hour (100 yards per turn in combat), has 10 health levels and 10L/15B soak, and protects riders with the equivalent of 75 percent hard cover against attacks from below and a target shield against all other attacks, with all attacks on it at an additional +2 difficulty. A Hearthstone of at least level 2 is needed to awaken it; inactive it appears to be an immobile metal statue.",
+    "source": "Ruins of Rathess p.88",
+    "tags": [
+      "vehicle"
+    ]
+  },
+  {
+    "id": "artifact.rathess.enchiridion-of-all-knowledge",
+    "name": "Enchiridion of All Knowledge",
+    "rating": 2,
+    "description": "A short work created through supernatural scrivenery by Auspicious Plume that contains far more information than its pages should allow, covering a wide variety of First Age topics in an extremely curt, almanac-like fashion. It adds +3 to Lore for discovering superficial facts about the First Age, but provides no bonus for the sort of material that could not be found in an almanac or dictionary. Composed only once (though frequently copied), it dates from the mid First Age.",
+    "source": "Ruins of Rathess p.91",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.rathess.glory-to-the-ghoul-king",
+    "name": "Glory to the Ghoul King",
+    "rating": 1,
+    "description": "A Dragon King crystal 'book' — a thin square of black stony material with a glass plate on one side. Infused with 3 motes of Essence, the plate lights up displaying sigils in the High Holy Speech, readable as scrolling text. A religious text dedicated to the worship of Han-Tha, the Eater of the Dead, its graphic descriptions of his rites (including necrophagy) provide many insights into his dark cult; reading it requires knowing the High Holy Speech and a difficulty 3 Perception + Lore roll to understand the esoteric jargon.",
+    "source": "Ruins of Rathess p.91",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.arc-protector",
+    "name": "Arc Protector",
+    "rating": 1,
+    "description": "Goggles faced with black crystal created by Luminor savants. Wearers can see in normal illumination and suffer no penalties or negative repercussions from staring at naked electrical arcs, open plasma furnaces and the like, though the goggles provide no protection against magic that happens to have a visual component and hamper vision in low-light conditions (a dice penalty of one to three).",
+    "source": "Autochthonians p.182",
+    "tags": [
+      "senses"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.autolabe",
+    "name": "Autolabe",
+    "rating": 1,
+    "description": "A navigational device: the gimbaled pointer in an autolabe points back to a fixed beacon, just as a jade needle compass points to the Elemental Pole of Earth in Creation. The beacon can be reset by leaving the autolabe in physical contact with a new beacon for 25 hours; exploration models come as a set with a base unit, and a rare variant has two autolabes always point back to one another. Most autolabes are spheres approximately three inches in diameter.",
+    "rating_notes": "• or ••",
+    "source": "Autochthonians p.182",
+    "tags": [
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.essence-capacitor",
+    "name": "Essence Capacitor",
+    "rating": 1,
+    "description": "Elaborate polyhedral crystal jewels an inch wide fitted in a wire cage of orichalcum and condensed Primordial Essence, filling the technological niche Hearthstones serve in Creation (Autochthonia has no Demesnes or Manses). A working capacitor may be plugged into the sockets of large or advanced artifacts to supply constant power, exactly as a Hearthstone. Virtually indestructible, if broken they release a devastating pulse of the capacitor's rating x 10L damage (minus 1L per full yard away). They function for 25 hours before shutting down, recharge one hour for every two spent respiring Essence in Autochthonia, and must be calibrated to respire in other realms.",
+    "rating_notes": "• to •••••",
+    "source": "Autochthonians p.183",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.flaw-scanner",
+    "name": "Flaw Scanner",
+    "rating": 1,
+    "description": "A disc-shaped amulet of carved amethyst an inch wide locked in a ring of orichalcum, worn on one hand so the jewel is centered against the palm. Activated for a scene by expending 1 Willpower or 2 motes, it projects a narrow cone of soft violet light in which any cracks, flaws or points of unintended stress appear highlighted in a bright purple-white aura, scanning up to a square yard each turn. Craft rolls made to repair detected flaws add a one-die bonus so long as the technician studies the damage for a full minute under the light.",
+    "source": "Autochthonians p.183",
+    "tags": [
+      "senses",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.light-amplification-visor",
+    "name": "Light Amplification Visor",
+    "rating": 1,
+    "description": "Goggles with a pair of narrow lenses or a single curved lens extending across both eyes. Wearers constantly receive the benefits and drawbacks provided by the light-intensification filters submodule of the Optical Enhancement Charm; some mortals have small versions surgically implanted in their eyes (three-hour surgery, Intelligence + Medicine at difficulty 5, permanent blindness on failure). Artifact •• versions provide thermal vision when powered — 1 Willpower charges the lenses for two hours, while a mote charges them for one hour. Alchemicals cannot have these artifacts implanted, although other varieties of Exalted may.",
+    "rating_notes": "• or ••",
+    "source": "Autochthonians p.183",
+    "tags": [
+      "senses"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.light-sphere",
+    "name": "Light Sphere",
+    "rating": 1,
+    "description": "Three-inch-wide globes of brass and tempered glass containing a treated orichalcum catalyst and a socket for inserting coin-sized discs of low-quality jade. The catalyst makes the jade sublime away in a slow incandescent display with the radiance of a torch, yet without heat or smoke. Each jade fuel disc (Resources • in Autochthonia or Yu-Shan, •• elsewhere) produces light for a full week; higher-quality discs last a month and perfectly calibrated ones a year. Rarer models (also Artifact •) have an articulated iris shutter and colored glass filters used for signaling, tripling the distance of illumination as a narrow cone.",
+    "source": "Autochthonians p.184",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.omnimodal-wardrobe-unit",
+    "name": "Omnimodal Wardrobe Unit",
+    "rating": 1,
+    "description": "An entire wardrobe compressed into a single garment, appearing by default as a basic citizen uniform of artificial silk that is unusually light, glossy oil black and faintly iridescent, with a fine lattice of moonsilver wires. Attuned for 1 committed mote, it changes form with a thought: each change is a reflexive action costing 1 mote, as hundreds of thumbnail-sized spider automata weave and transmute the fibers into the new template in a single turn, also cleaning and repairing any damage. It can become any clothing type from a single glove to a full outfit; in all forms it is unusually durable (+1L soak, not armor or natural soak, cumulative with armor), but it can only become clothes, never actual armor.",
+    "source": "Autochthonians p.184",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.portable-nutriment-recycling-engine",
+    "name": "Portable Nutriment Recycling Engine",
+    "rating": 1,
+    "description": "A machine approximately the size of a person and weighing a mere 30 pounds, with a clockwork power cell and a foot-wide intake chute on top; pressing a button collapses it into a rectangular steel box that fits in a backpack. Wound with a crank (five minutes of winding produces an hour of operation), spinning blades chew any organic material fed into the intake chute, and every two pounds of organic substance takes one minute to process into a thumbnail-sized white pellet that provides the same nourishment as a full meal. All toxins and diseases present in the matter are removed before the pellets emerge; ten pellets are a Resources •• item in Autochthonia.",
+    "source": "Autochthonians p.185",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.respirator-module",
+    "name": "Respirator Module",
+    "rating": 1,
+    "description": "Sophisticated filter masks with a central nodule of blue jade surrounded by wires of mystical alloys, usable as filter masks without any cleaning or upkeep. Flipping a switch with the tongue seals the device and synthesizes air out of Essence, completely protecting the user against harmful airborne effects and allowing travel underwater or through a vacuum without asphyxiating. Each chip of crystallized thaumaturgical reagent (Resources •• for a batch of 10) provides an hour of air; beings able to channel Essence may spend a mote reflexively to power it for an hour.",
+    "source": "Autochthonians p.185",
+    "tags": [
+      "protection",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.courier-drone",
+    "name": "Courier Drone",
+    "rating": 2,
+    "description": "Three-inch-long automata reminiscent of large metallic dragonflies, one of the most common means of delivering messages between Autochthonian cities. They carry up to a quarter-pound of weight, navigate by Essence to track the emissions of metropoli, and fly at a top speed of 300 miles per hour. A less common exploration and military version (also Artifact ••) flies back and forth between two rings, infallibly tracking their target beacons in real time so long as they are on the same plane of reality.",
+    "source": "Autochthonians p.185",
+    "tags": [
+      "communication",
+      "vehicle"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.soulgem",
+    "name": "Soulgem",
+    "rating": 2,
+    "description": "Every citizen of the Eight Nations receives one within a week of birth: needle-sharp soulsteel posts drive into the center of the forehead, and the gem is fused to skull and nerve with a touch of a living nerve of the Great Maker. When its bearer dies, the jewel absorbs her still-fused higher and lower soul and stores it until the spirit can be recycled; the Essence of a Celestial Exalt cannot be captured. Soulgems are as durable as Hearthstones, and deliberately breaking one is a capital crime throughout Autochthonia. Players do not spend Background points for one — everyone is assumed to have it.",
+    "source": "Autochthonians p.186",
+    "tags": [
+      "spirit"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.industrial-exoskeleton",
+    "name": "Industrial Exoskeleton",
+    "rating": 3,
+    "description": "A humanoid frame of steel and magical alloys close to 12 feet tall, covered in plates of armor over clockwork machinery, with long four-part vice pincer arms and articulated plate claws. A human or Essence 2-3 Alchemical climbs in; after a wire filament threads up into her brain, committing 8 motes (or 2 Willpower for beings unable to channel Essence) makes the exoskeleton an extension of her body. It adds 12 to Strength for lifting, breaking and strength-based damage, and counts as armor with soak 12L/12B (hardness 6L/6B), mobility penalty -8 and fatigue 2 (lighter unarmored models: soak 6L/6B, mobility -3, fatigue 1); heavily armored models halve the user's ground speed and cannot jump or climb. Requires a two-dot Essence capacitor installed to function at all.",
+    "source": "Autochthonians p.187",
+    "tags": [
+      "armor",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.fibre-weave-bodysuit",
+    "name": "Fibre-Weave Bodysuit",
+    "rating": 1,
+    "description": "A light armor of high-quality fiber-weave threaded with a lattice of wires or embedded nodes of Magical Materials, extremely supple and thin and roughly equivalent to an enchanted chain shirt. It requires a commitment of 3 motes and is intended for discreet or covert situations, since it can be worn under normal clothes. Lethal piercing attacks based on actual kinetic penetration do not halve the armor's soak unless the raw damage is at least twice the base lethal soak. Artifact •• versions also incorporate all the properties of an omnimodal wardrobe unit except its soak bonus, with the same 3-mote attunement.",
+    "rating_notes": "• or ••",
+    "source": "Autochthonians p.189",
+    "tags": [
+      "armor",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.gyroscopic-chakram",
+    "name": "Gyroscopic Chakram",
+    "rating": 3,
+    "description": "Six-inch metal disks with five holes spread for gripping, the most widely used and feared thrown weapons of the Alchemical Exalted, normally carried strapped to the small of the back or the side of the thigh. Hurled by an attuned owner (5-mote commitment), clockwork deploys a ring of three-inch blades that spin at high velocity and the disk banks to follow its quarry: if it misses due to a dodge or parry it swoops back for another attempt on the following turn, acting at initiative 20 with a pool of 10 dice until it hits or botches, then arcs back to its owner's hand at the end of the turn. Additional powers depend on the Magical Material used to make it, and the disks can also be used in close combat as saws.",
+    "source": "Autochthonians p.189",
+    "tags": [
+      "combat",
+      "thrown",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.autochthonians.beam-klave",
+    "name": "Beam-Klave",
+    "rating": 4,
+    "description": "The signature melee weapons of the Alchemical Exalted: unassuming cylinders of reinforced alloys and Magical Materials tipped with a small crystal spike, most between 9 and 12 inches long. Once attuned for a commitment of 3 motes, an additional 5 motes per scene extends a blade of glowing Essence from the jewel to an average length of three feet, combining heat and pure force; the blade can set flammable objects alight and emits a flickering light comparable to a torch, its color depending on the Magical Material. Active beam klaves have the same statistics and Magical Material benefits as daiklaves, and if a parry against a non-magical weapon achieves any successes, the parried weapon is destroyed by the heat and focused energy of the klave.",
+    "source": "Autochthonians p.190",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.reading-crystal",
+    "name": "Reading Crystal",
+    "rating": 1,
+    "description": "A clear, flat, rectangular crystal eight inches on a side and an eighth of an inch thick. Placed over text and infused with 5 motes of Essence, it copies the text exactly — one page every turn — and is sensitive enough to render worn, faded or partially erased text as if newly written, so long as some trace of the writing remains. Instead spending 3 motes lets the user write on the surface of the crystal, which records the writing for the next full scene. Each reading crystal holds several thousand pages; reading costs 1 mote to activate the device for a scene.",
+    "source": "Player's Guide p.192",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.bracer-of-crystal-bolts",
+    "name": "Bracer of Crystal Bolts",
+    "rating": 2,
+    "description": "A large bracer of clear rock crystal set with orichalcum inlays, holding two bolts also made of enchanted rock crystal that the wearer can fire with a thought; spending 1 mote draws the bolts back to the weapon. If either bolt is damaged or broken it repairs itself within a few hours. Committing 4 motes activates the bracer, resizes it to fit and allows the wearer to fire it, after which it can only be removed by the wearer or upon her death; it has a setting for a single Hearthstone. It uses the Thrown Ability, to which Thrown Charms apply: Acc +2, 6L (armor-piercing), Rate 2, Range 100.",
+    "source": "Player's Guide p.193",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.fire-claw",
+    "name": "Fire Claw",
+    "rating": 2,
+    "description": "An orichalcum bracelet set with a large red stone that fits perfectly on the wrist of a Dragon King and is not uncomfortable worn by an Exalt. Expend 2 motes to make a curving blade of golden sunfire spring forth and arc in front of the wearer's hand (a diceless reflexive action); the claw endures for one full scene and can be made to exist indefinitely for 2 motes per scene. A wearer must commit 5 motes of Essence to use it, and it contains a setting for a single Hearthstone. It is wielded with the Melee Ability and cannot be used as a claw-type weapon for the purposes of Tiger Style or Lunar natural fighting techniques. Stats: Spd +2 (+3 for a Dragon King or Solar), Acc +2 (+3), +5L, Def +1 (+2), Min S••, D•••.",
+    "source": "Player's Guide p.193",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.swordstick",
+    "name": "Swordstick",
+    "rating": 1,
+    "description": "A long, flat club of semi-living wood with a row of iron-hard thorns along either side, just like the teeth in the jaws of a sawfish; the Dragon Kings' vegetative technology grows low bushes that produce a cluster of three or four swordsticks every two years. Empowered with 4 motes of committed Essence it comes to life: the thorns ooze a sap that makes all wounds exceptionally painful (+1 wound penalties for the rest of the scene, once per scene) and the club-like blade bends itself to the user's will, aiding his attacks. Stats: Spd +2, Acc +1, +5L, Def +1, Min S•••.",
+    "source": "Player's Guide p.193",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.crystal-warclub",
+    "name": "Crystal Warclub",
+    "rating": 3,
+    "description": "A flattened angular club of smoky quartz set with a single row of bright ruby crystals on both of its two blade-like edges. When activated by spending 2 motes of Essence, a triangular blade of glowing energy issues from each crystal and remains for the next full scene. Anyone who wields the club must also commit 6 motes of Essence to it. Stats: Spd +3 (+4 for a Dragon King or Solar), Acc +2 (+3), +9L (+10L), Def +0, Min S•••, D•••.",
+    "source": "Player's Guide p.194",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.necklace-of-solar-charisma",
+    "name": "Necklace of Solar Charisma",
+    "rating": 3,
+    "description": "A necklace of golden circular crystals connected by slender orichalcum chains. When the wearer attunes it by committing 3 motes of Essence, he becomes infused with a small fraction of the Unconquered Sun's majesty: three dice on all Charisma and Appearance rolls, and everyone with a permanent Essence less than the wearer's regards him as attractive and not in any way odd or disturbing (a Dragon King would be a cause for wonder, not of fear or disgust). It has a setting for a single Hearthstone; its crystals are inscribed with images of the Unconquered Sun, and loyal followers of the Immaculate Dragons would never consider wearing it.",
+    "source": "Player's Guide p.194",
+    "tags": [
+      "social"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.essence-storing-crystal",
+    "name": "Essence Storing Crystal",
+    "rating": 4,
+    "description": "A flat collar of triangular crystals that sits on the Dragon Kings' shoulders, at the base of the neck, storing and concentrating Essence to give the wearer access to an extra 8 motes of Essence used just like ordinary Essence. It is particularly attuned to Dragon Kings and cannot be used by Exalts or other Essence users. It costs nothing to attune; when the wearer first puts it on and places at least 1 mote in it, it automatically sizes itself and closes when the ends are touched together, and the crystals glow softly when filled with Essence.",
+    "source": "Player's Guide p.195",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.globe-of-transport",
+    "name": "Globe of Transport",
+    "rating": 4,
+    "description": "A solid sphere of violet crystal the size of a large orange with a setting for a single Hearthstone, carried around as easily as any small item. With a Hearthstone of at least level 2 in the setting and 7 motes of Essence, it expands into a thin-walled hollow globe nearly three yards in diameter around the user and up to two other people she is touching (maximum 800 pounds), traveling at up to 100 miles per hour to any place the controller has visited or in a chosen direction, powered for one journey. The walls are fairly fragile, providing only 3L/3B armor for the occupants, but any cracks or damage repair themselves in seconds; no one inside can attack out of it, and it lands and deactivates at its destination, depositing everyone unharmed.",
+    "source": "Player's Guide p.195",
+    "tags": [
+      "utility",
+      "vehicle"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.obsidian-sheath",
+    "name": "Obsidian Sheath",
+    "rating": 4,
+    "description": "A lightweight suit of articulated plate made from a glassy yet flexible black stone, similar in appearance to obsidian and trimmed with orichalcum; it provides the orichalcum Magical Material bonus when attuned by a Solar or a Dragon King. When worn by a living creature who expends 6 motes of Essence to attune to it, the armor bonds with its user, acting like a second skin. It has soak 8/8, mobility penalty -0 and fatigue 1, and raises the wearer's Strength to 8 (or by +2 if it is already 8 or greater). Very tough and maneuverable, it is associated with service to the Unconquered Sun and has a hardness of 4 (half its lethal soak).",
+    "source": "Player's Guide p.195",
+    "tags": [
+      "armor",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.crushfist",
+    "name": "Crushfist",
+    "rating": 1,
+    "description": "An artifact hand-to-hand weapon and clinch enhancer that does piercing damage. Stats: Speed -5, Acc +0, +4L, Def +3, Rate 1, Min Str ••.",
+    "source": "Player's Guide p.211",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.short-daiklave",
+    "name": "Short Daiklave",
+    "rating": 2,
+    "description": "An artifact hand-to-hand weapon. Stats: Speed +3, Acc +4, +4L, Def +1, Rate 6, Min Str •.",
+    "source": "Player's Guide p.211",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.god-kicking-boot",
+    "name": "God-Kicking Boot",
+    "rating": 1,
+    "description": "An artifact hand-to-hand weapon. Stats: Speed -2, Acc +2, +6L, Def +1, Rate 3, Min Str ••.",
+    "source": "Player's Guide p.211",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.grand-goremaul",
+    "name": "Grand Goremaul",
+    "rating": 3,
+    "description": "An artifact hand-to-hand weapon that does piercing damage. Stats: Speed +10, Acc +0, +9L, Def +1, Rate 3, Min Str ••••.",
+    "source": "Player's Guide p.211",
+    "tags": [
+      "combat",
+      "weapon"
+    ]
+  },
+  {
+    "id": "artifact.players-guide.infinite-jade-chakram",
+    "name": "Infinite Jade Chakram",
+    "rating": 2,
+    "description": "An artifact thrown weapon that returns instantly after being thrown. Stats: Acc +1, +4L, Rate 4, Range 50, Min Str •.",
+    "source": "Player's Guide p.211",
+    "tags": [
+      "combat",
+      "thrown",
+      "weapon"
+    ]
   }
 ]

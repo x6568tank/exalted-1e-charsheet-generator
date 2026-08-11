@@ -311,7 +311,10 @@ def test_weapon_and_armor_catalogs_load():
 
 def test_artifact_catalog_loads_the_ten_mountain_folk():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.artifact_catalog) == 40
+    # 2026-08-11: the 141-entry delegation batch (B&E 71, Outcaste 26, Rathess 15,
+    # Autochthonians 15, Player's Guide 14) grew the catalogue from 40 to 181 — see
+    # docs/status/artifact-batch-notes.md for the 8 worklist entries skipped/merged.
+    assert len(rs.artifact_catalog) == 181
     # Ratings and the printed ranges, from the Technology chapter (pp.279-283).
     visor = rs.artifact_catalog["artifact.mountain-folk.essence-scrying-visor"]
     assert visor.rating == 1 and visor.source == "Mountain Folk p.279"
