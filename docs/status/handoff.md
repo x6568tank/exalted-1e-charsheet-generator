@@ -67,6 +67,25 @@ pre-move source, and left every call site and test untouched via re-exports.
   `docs/status/merits-flaws.md`.
 
 ## Open threads (none urgent)
+- **The 1.0 catalogue sweep is now planned** — `docs/plans/content-completeness.md`
+  (recorded 2026-08-10, human's ask). Three tracks: Charms/Arcanoi vs the charm-trees
+  PDF, spells vs the human's masterlist, artifacts vs the existing backlog.
+  **All three indexes are on disk — but in the `-ds` worktree
+  (`…Charsheet Generator-ds/images/`), not this one**, since `images/` is gitignored and
+  does not travel between worktrees. **BOTH diffs are DONE: 179 Charms + 213 spells
+  missing, on top of 266 artifacts (658 total).** Every entry is enumerated per book in
+  **`docs/status/content-gap-entries.md`** (regenerate: `tools/gen_content_gap.py`).
+  All discovery work is finished;
+  **the only remaining blocker on the whole plan is page sync — no rulings are open.**
+  **👉 Sync `Book of Bone and Ebony` first — 204 entries, the highest-value sync in the
+  project** (70 Arcanoi + 60 spells + 74 artifacts). Then Savant and Sorcerer (98),
+  Player's Guide (71, the only source of 49 missing MA Charms), Three Circles (63).
+  Rulings closed this session: **Fair Folk artifacts are OUT OF SCOPE** (reviewed, as
+  game-changing as the splat's rules — decision 0010 territory, do not re-ask);
+  `Adamant` = `Solar` (two in-universe naming schemes, Realm vs not).
+  ⚠ **A name-only diff overstated the Charm gap by 55%** (278 → 179) — the build's
+  parameterised entries (`Keen (Sense) Technique`) and tree typos ate the difference.
+  Mountain Folk went 7 → 1 on re-check. **Suspect the diff before the build.**
 - **The 20 Twilight/Eclipse artifact names are still NOT browser-verified.** Pin +
   combobox tests green, but no click-through of the new names in the Advantages tab.
   Light check — pick a Twilight and an Eclipse name, confirm name→rating autofill +

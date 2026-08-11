@@ -329,6 +329,45 @@ The session handoff — current state, open threads, flagged items and pointers 
 in **`docs/status/handoff.md`**. **It is rewritten each session.** This file is the
 durable operating guide; do not re-accumulate handoff narrative here.
 
+### The 1.0 catalogue sweep → `docs/plans/content-completeness.md`
+**Recorded 2026-08-10 (human's ask), not scheduled.** Every splat's *mechanics* ship;
+the three big *content* catalogues do not. Three tracks, each keyed to a discovery
+index, **all three of which are now on disk** — ⚠ but in the **`-ds` worktree's**
+`images/`, not `main`'s, because `images/` is gitignored and does not travel between
+worktrees any more than between machines. Look there before calling one missing.
+
+**BOTH diffs are DONE (2026-08-10) and all discovery work is finished — every remaining
+blocker is a page sync.** Build holds 1,709 Charms/Arcanoi, 92 spells, 40 artifacts;
+**missing: 179 Charms, 213 spells, 266 artifacts (658 total).** Every one is
+enumerated per book in `docs/status/content-gap-entries.md`.
+
+**Sequence page syncs by BOOK, not by track — the books pay across all three at once.
+`Book of Bone and Ebony` is the single highest-value sync in the project: 204 entries**
+(70 Arcanoi — the Ghost catalogue is less than half authored — plus 60 spells and 74
+artifacts). Then Savant and Sorcerer (98), Player's Guide (71, the only source of the 49
+missing Martial Arts Charms), Book of Three Circles (63).
+
+⚠ **Both indexes are fan-made and carry errors, and a name-only diff overstates the gap
+badly** — the Charm first pass said 278, the true number is 179. Three classes ate the
+difference: entries living in an unexpected file, tree typos where the build is right
+(52), and **the build's PARAMETERISED entries** (`Keen (Sense) Technique`,
+`Mantle of (Element) Invulnerability`, `Auspicious Prospects for (Caste)`) where the
+trees print one box per variant (28). **Never correct the build toward an index, never
+split a parameterised entry into duplicates, and when a shipped browser-verified splat
+looks like it is missing content, suspect the diff first** — Mountain Folk went 7 → 1
+that way. Treat the trees' prerequisite edges as an audit to raise with the human, never
+a fix to apply.
+
+**Fair Folk artifacts are OUT OF SCOPE (human, 2026-08-10)** — reviewed and judged as
+game-changing as the Fair Folk rules themselves, so they follow their splat out under
+decision 0010. Closed, not deferred. The Fair Folk *book* remains a valid source for
+Mountain Folk content: the book is not the splat.
+
+**The governing rule, already settled for artifacts and extending unchanged to the other
+two: a discovery index is discovery only — book, page and name. Every value still comes
+from a human-supplied page.** The charm-trees PDF is not an exception, and reading it
+out of `sources/` yourself is still forbidden.
+
 ### Blocked / not started
 * **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
   left unauthored (deliberate, human's call 2026-07-29). **Blocked on pages:** the
