@@ -30,6 +30,8 @@ import re
 import statistics
 import warnings
 
+import json
+
 import pdfplumber
 
 warnings.filterwarnings("ignore")
@@ -47,6 +49,88 @@ SPACED_OUT = re.compile(r"(?:\b\w\s){6,}")
 UNMAPPED_GLYPH = re.compile(r"\(cid:\d+\)")
 
 
+def make_font_decoder(map_path):
+    """Build a per-font (cid:N) decoder from a `bands_per_font` glyph map.
+
+    Each subsetted font in the book is its OWN substitution cipher, so a glyph index
+    means nothing without knowing which font drew it. That is why this reads
+    pdfplumber words with `fontname` attached rather than plain text: the same
+    `(cid:21)` is 't' in the body face and something else in a sidebar face, and one
+    global mapping silently garbles every minority font while looking perfect on the
+    majority one.
+    """
+    spec = json.load(open(map_path))
+    if spec.get("cipher") != "bands_per_font":
+        return None
+    table = {}
+    for font, b in spec["fonts"].items():
+        table[font] = (b["space"], b["lower"], b["upper"], b["punct"])
+    singles = {f: {} for f in table}
+    for cid, info in spec.get("singles", {}).items():
+        for f in info.get("fonts", list(table)):
+            singles.setdefault(f, {})[int(cid)] = info["to"]
+
+    def decode(text: str, font: str) -> str:
+        # pdfplumber reports the full name with the PDF's random subset prefix
+        # ("BFHAOF+ZTR41CA.tmp,Bold"); the map is keyed on the face itself.
+        font = font.split("+")[-1]
+        band = table.get(font)
+        if band is None:
+            # An unsolved face. Mark every glyph rather than borrow another font's
+            # cipher, which is exactly how 11% of this book came out as fluent noise.
+            return re.sub(r"\(cid:\d+\)", "\ufffd", text)
+        space, lower, upper, punct = band
+        sing = singles.get(font, {})
+
+        def sub(m):
+            n = int(m.group(1))
+            if n == space:
+                return " "
+            if n in sing:
+                return sing[n]
+            if lower - 122 <= n <= lower - 97:
+                return chr(lower - n)
+            if upper - 90 <= n <= upper - 65:
+                return chr(upper - n)
+            if punct - 57 <= n <= punct - 40:
+                return chr(punct - n)
+            return "\ufffd"
+        return re.sub(r"\(cid:(\d+)\)", sub, text)
+
+    return decode
+
+
+def make_decoder(map_path):
+    """Build a (cid:N) -> character decoder from a glyph map.
+
+    Used for books whose font subset carries no ToUnicode table, so every glyph
+    extracts as a bare index. pdfplumber is the right reader for these: it reports
+    `(cid:32)` explicitly, whereas poppler emits raw byte 0x20 for that glyph AND for
+    layout padding, so the two become indistinguishable and the text silently fills
+    with stray letters.
+    """
+    if not map_path:
+        return None
+    spec = json.load(open(map_path))
+    bands = [(b["lo"], b["hi"], b["const"]) for b in spec.get("bands", [])]
+    singles = {int(k): v["to"] for k, v in spec.get("singles", {}).items()}
+
+    def decode(text: str) -> str:
+        def sub(m):
+            n = int(m.group(1))
+            if n in singles:
+                return singles[n]
+            for lo, hi, const in bands:
+                if lo <= n <= hi:
+                    return chr(const - n)
+            # A glyph from one of the book's display subsets, which have their own
+            # orders. Marked, never guessed.
+            return "\ufffd"
+        return re.sub(r"\(cid:(\d+)\)", sub, text)
+
+    return decode
+
+
 def columns(page, min_gutter=8.0):
     """Split a page into columns using a vertical projection profile.
 
@@ -54,7 +138,7 @@ def columns(page, min_gutter=8.0):
     widest such band in the middle third is far more reliable than looking at gaps
     between word centres, which stay dense when the columns are wide.
     """
-    words = page.extract_words(use_text_flow=False)
+    words = page.extract_words(use_text_flow=False, extra_attrs=["fontname"])
     if not words:
         return []
     width = page.width
@@ -105,7 +189,11 @@ def columns(page, min_gutter=8.0):
     return [c for c in (left, right) if c]
 
 
-def lines(words, ytol=2.5):
+def _wtext(w, decode):
+    return decode(w["text"], w.get("fontname", "")) if decode else w["text"]
+
+
+def lines(words, ytol=2.5, decode=None):
     """Group words into visual lines, clustering on the BASELINE.
 
     Small-caps headings set the initial letter in a larger size, so "COMMON ARCANOI"
@@ -124,7 +212,7 @@ def lines(words, ytol=2.5):
     out = []
     for r in sorted(rows, key=lambda r: r[0]["bottom"]):
         r.sort(key=lambda w: w["x0"])
-        parts = [r[0]["text"]]
+        parts = [_wtext(r[0], decode)]
         for prev, w in zip(r, r[1:]):
             # A small-caps heading renders its large initial as its own object:
             # "D" + "ARK" + "STEED". Rejoin those, and ONLY those. A plain
@@ -138,7 +226,7 @@ def lines(words, ytol=2.5):
                 and w["text"].isupper()
                 and w["x0"] - prev["x1"] < 1.5
             )
-            parts.append(("" if drop_cap else " ") + w["text"])
+            parts.append(("" if drop_cap else " ") + _wtext(w, decode))
         out.append(("".join(parts).strip(), r[0]["bottom"]))
     return out
 
@@ -158,7 +246,7 @@ def shattered(ln: str) -> bool:
     return singles >= 2 and singles / len(toks) >= 0.6
 
 
-def flow_lines(page, ytol=2.5):
+def flow_lines(page, ytol=2.5, decode=None):
     """Lines in the PDF's OWN reading order — what selecting and copying gives you.
 
     A born-digital PDF stores its text in content-stream order, which for these books
@@ -168,7 +256,7 @@ def flow_lines(page, ytol=2.5):
 
     Returns None when the stored order is untrustworthy — see `column_switches`.
     """
-    words = page.extract_words(use_text_flow=True)
+    words = page.extract_words(use_text_flow=True, extra_attrs=["fontname"])
     if not words:
         return []
     rows, cur = [], [words[0]]
@@ -181,7 +269,7 @@ def flow_lines(page, ytol=2.5):
     rows.append(cur)
     out = []
     for r in rows:
-        parts = [r[0]["text"]]
+        parts = [_wtext(r[0], decode)]
         for prev, w in zip(r, r[1:]):
             drop_cap = (
                 len(prev["text"]) == 1
@@ -189,7 +277,7 @@ def flow_lines(page, ytol=2.5):
                 and w["text"].isupper()
                 and 0 <= w["x0"] - prev["x1"] < 1.5
             )
-            parts.append(("" if drop_cap else " ") + w["text"])
+            parts.append(("" if drop_cap else " ") + _wtext(w, decode))
         out.append(("".join(parts).strip(), r[0]["bottom"]))
     return out
 
@@ -217,7 +305,7 @@ def looks_two_column(page) -> bool:
     second way — a two-column page has a strong cluster of word left-edges at the
     body margin AND another near the middle, where the second column starts.
     """
-    words = page.extract_words(use_text_flow=False)
+    words = page.extract_words(use_text_flow=False, extra_attrs=["fontname"])
     if len(words) < 120:
         return False
     W = page.width
@@ -236,7 +324,7 @@ def split_x(page):
     return max(w["x1"] for w in cols[0])
 
 
-def page_md(page):
+def page_md(page, decode=None):
     body, flags, glyphs = [], [], 0
 
     # Prefer the PDF's stored reading order; fall back to geometry only if the stored
@@ -246,10 +334,10 @@ def page_md(page):
     if sx is not None:
         switches, n = column_switches(page, sx)
         if n and switches <= max(6, 0.03 * n):
-            src, used_flow = flow_lines(page), True
+            src, used_flow = flow_lines(page, decode=decode), True
     if src is None:
         cols = columns(page)
-        src = [ln for col in cols for ln in lines(col)]
+        src = [ln for col in cols for ln in lines(col, decode=decode)]
 
     cols = columns(page)
     if not used_flow and len(cols) < 2 and looks_two_column(page):
@@ -368,13 +456,16 @@ def main():
                     help="pdf page number minus printed book page number "
                          "(default: detect automatically)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--glyph-map", help="glyph map JSON for a subsetted-font book")
     ap.add_argument("--force", action="store_true",
                     help="extract even if the text layer fails the readability check")
     a = ap.parse_args()
 
     chunks, marked, done, unmapped = [], [], 0, {}
     with pdfplumber.open(a.pdf) as pdf:
-        score = readable(pdf)
+        font_decoder = make_font_decoder(a.glyph_map) if a.glyph_map else None
+        decoder = None if font_decoder else make_decoder(a.glyph_map)
+        score = 1.0 if (decoder or font_decoder) else readable(pdf)
         if score < 0.5 and not a.force:
             print(f"REFUSING: only {score:.0%} of sampled pages read as English.")
             print("  This PDF's text layer is present but not decodable (a broken font")
@@ -400,7 +491,15 @@ def main():
                 idx = bookpg + offset - 1
                 if not 0 <= idx < len(pdf.pages):
                     continue
-                body, flags, glyphs = page_md(pdf.pages[idx])
+                body, flags, glyphs = page_md(pdf.pages[idx], decode=font_decoder)
+                if font_decoder:
+                    glyphs = sum(x.count("\ufffd") for x in body)
+                if decoder:
+                    # Decode BEFORE counting unmapped glyphs: on a subsetted-font book
+                    # every character is a (cid:N), so counting first reports the whole
+                    # book as damaged.
+                    body = [decoder(x) for x in body]
+                    glyphs = sum(x.count("\ufffd") for x in body)
                 if not body:
                     continue
                 if glyphs:
@@ -428,8 +527,9 @@ def main():
         print("no garbled markers")
     if unmapped:
         total = sum(unmapped.values())
-        print(f"⚠ {total} UNMAPPED GLYPHS ((cid:N)) across {len(unmapped)} page(s) — "
-              f"this PDF's font map is incomplete.")
+        label = ("glyphs from an UNDECODED display subset" if a.glyph_map
+                 else "UNMAPPED GLYPHS ((cid:N))")
+        print(f"⚠ {total} {label} across {len(unmapped)} page(s).")
         print("  Left verbatim on purpose. Most are punctuation and the intent is "
               "usually obvious,")
         print("  but substituting them is interpretation — get the human's ruling "

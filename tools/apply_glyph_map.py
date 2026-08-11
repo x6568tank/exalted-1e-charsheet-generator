@@ -94,6 +94,34 @@ def split_layout_columns(page: str, min_gutter=3, agree=0.90):
     return "\n".join([x for x in left if x] + [x for x in right if x])
 
 
+def decode_bands(text: str, spec: dict) -> str:
+    """Undo a subsetted-font glyph order made of descending bands.
+
+    Within a band, `cid + ord(char)` is constant; the bands differ because unused
+    glyphs are dropped from the subset and shift every id after them. Anything outside
+    the bands belongs to one of the book's display subsets, which have their own orders
+    and are left as U+FFFD rather than guessed at.
+    """
+    bands = [(b["lo"], b["hi"], b["const"]) for b in spec.get("bands", [])]
+    singles = {int(k): v["to"] for k, v in spec.get("singles", {}).items()}
+    out = []
+    for ch in text:
+        n = ord(ch)
+        if ch in "\n\f":
+            out.append(ch)
+            continue
+        if n in singles:
+            out.append(singles[n])
+            continue
+        for lo, hi, const in bands:
+            if lo <= n <= hi:
+                out.append(chr(const - n))
+                break
+        else:
+            out.append("\ufffd" if n < 32 else ch)
+    return "".join(out)
+
+
 def load_map(path):
     spec = json.load(open(path))
     cid = {k: v["to"] for k, v in spec.get("cid", {}).items()}
@@ -148,7 +176,7 @@ def main():
 
     spec, cid, chars = load_map(a.map)
 
-    if spec.get("cipher") == "reflect288":
+    if spec.get("cipher") in ("reflect288", "bands"):
         if not a.pdf:
             print("this map needs --pdf: pdfminer drops U+00AD, so the text must come "
                   "from poppler", file=sys.stderr)
@@ -164,7 +192,9 @@ def main():
             if not pg.strip():
                 continue
             out.append(f"<!--PAGE {i + 1 - a.offset}-->")
-            out.append(decode_reflect288(split_layout_columns(pg), chars))
+            body = split_layout_columns(pg)
+            out.append(decode_reflect288(body, chars)
+                       if spec["cipher"] == "reflect288" else decode_bands(body, spec))
         after = "\n".join(out)
         before = raw
     else:
@@ -175,7 +205,8 @@ def main():
     print(f"# {spec['book']} — glyph map review\n")
     print(spec["problem"] + "\n")
 
-    table = list(spec.get("cid", {}).items()) + list(spec.get("chars", {}).items())
+    table = (list(spec.get("cid", {}).items()) + list(spec.get("chars", {}).items())
+             + list(spec.get("singles", {}).items()))
     for code, info in table:
         needle = f"(cid:{code})" if code.isdigit() else None
         print(f"## {code} -> {info['to']!r}   ({info['why']})")
@@ -192,7 +223,9 @@ def main():
         print()
 
     for code, info in spec.get("unresolved", {}).items():
-        print(f"## (cid:{code}) — UNRESOLVED, left verbatim  ({info['count']} occurrences)")
+        n = info.get("count")
+        print(f"## {code} — UNRESOLVED, left verbatim"
+              + (f"  ({n} occurrences)" if n else ""))
         if info.get("candidates"):
             print(f"   candidates: {' or '.join(repr(c) for c in info['candidates'])}")
         print(f"   {info['note']}")

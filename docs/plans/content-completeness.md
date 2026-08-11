@@ -78,6 +78,34 @@ with, and `--review` prints every one in context before anything is authored.
   `(cid:144)` (14) and seven rarer codes (25 total) are **left unmapped and flagged**;
   there is not enough context to call them.
 
+### The Exalted corebook — a THIRD cipher, and a validation lesson (2026-08-11)
+
+The corebook's fonts are subsetted with no ToUnicode, so every character extracts as a
+bare glyph index. Solved as a substitution cipher from word patterns, and it has the
+same three-band shape as The Outcaste (`cid + ord(char)` constant within a band).
+
+⚠ **But EACH OF ITS THIRTEEN FONTS IS ITS OWN CIPHER.** The body face is 89% of the
+text; sidebars, quotes and tables use separate faces with different glyph orders. The
+first pass solved the body face and applied it to everything — producing clean English
+for 89% and **fluent nonsense for the other 11%**, which the human caught by reading the
+output (`Xujl7 jlu…yplz hnv7` for "Once, centuries ago,").
+
+`tools/solve_cid_bands.py` now solves each font automatically, anchoring on English:
+the commonest 3-letter word gives lowercase (cross-checked across t/h/e), a capitalised
+word whose tail already decodes gives uppercase, and the two commonest word-final
+non-letters give punctuation as a **self-checking pair** — the period takes the lower
+cid, so `46 + period` must equal `44 + comma` or the font is left UNSOLVED. It
+independently reproduced both the hand-derived body mapping and the mapping implied by
+the human's garbled sample. Four faces solved = 97.2% of the text; the rest is marked
+`U+FFFD`, never guessed.
+
+**The validation lesson, which is the durable part:** the first pass was "validated" by
+sampling every 20th page and by finding 145 authored Charm names verbatim. Both passed
+— because **the failure varied by FONT, not by page**, and every sampled page was
+majority-body-font. *Sample along the axis the failure actually varies on.* Character
+count did not catch it either, for the same reason it missed the interleaved columns:
+the text was all present, just wrong.
+
 ### Four findings that generalise
 
 1. **⚠ Character count is NOT readability.** The Outcaste carries ~4,700 chars/page and
