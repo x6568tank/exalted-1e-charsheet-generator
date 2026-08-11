@@ -338,7 +338,7 @@ worktrees any more than between machines. Look there before calling one missing.
 
 **BOTH diffs are DONE (2026-08-10) and all discovery work is finished — every remaining
 blocker is a page sync.** Build holds 1,709 Charms/Arcanoi, 92 spells, 40 artifacts;
-**missing: 179 Charms, 213 spells, 266 artifacts (658 total).** Every one is
+**missing: 168 Charms, 213 spells, 266 artifacts (647 total).** Every one is
 enumerated per book in `docs/status/content-gap-entries.md`.
 
 **Sequence page syncs by BOOK, not by track — the books pay across all three at once.
@@ -347,8 +347,20 @@ enumerated per book in `docs/status/content-gap-entries.md`.
 artifacts). Then Savant and Sorcerer (98), Player's Guide (71, the only source of the 49
 missing Martial Arts Charms), Book of Three Circles (63).
 
+**2026-08-10 — `sources/` extraction is AUTHORISED** (human: "automating extraction works
+for me when taking `sources`"). `tools/extract_born_digital.py` writes page-marked `.md`
+into `images/_extracted/`; **six books are extracted and 267 of the gap entries now have
+their source text on disk.** The vetting checkpoint moved from the human's manual copy to
+the human reading the output — backed by the human's companion rule: **anything too
+garbled to read without heavy interpretation is MARKED and DEFERRED, never guessed.**
+Three traps recorded in the plan: **character count is not readability** (The Outcaste
+extracts 4,700 chars/page of byte-shifted gibberish — the tool now refuses it), Savant
+and Sorcerer's **1,754 unmapped `(cid:N)` glyphs** are left verbatim pending a ruling, and
+small-caps headings must cluster on the **baseline** or Charm names scramble.
+Attribution conventions: `docs/source-attribution.md`.
+
 ⚠ **Both indexes are fan-made and carry errors, and a name-only diff overstates the gap
-badly** — the Charm first pass said 278, the true number is 179. Three classes ate the
+badly** — the Charm first pass said 278, the true number is 168. Three classes ate the
 difference: entries living in an unexpected file, tree typos where the build is right
 (52), and **the build's PARAMETERISED entries** (`Keen (Sense) Technique`,
 `Mantle of (Element) Invulnerability`, `Auspicious Prospects for (Caste)`) where the

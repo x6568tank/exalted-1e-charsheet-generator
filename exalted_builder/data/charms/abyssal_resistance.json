@@ -8,10 +8,15 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"raw": "2+ motes"},
+    "cost": {
+      "raw": "2+ motes"
+    },
     "duration": "One scene",
     "description": "Channels calcifying death Essence through his body, granting the resilience of leathery wind-dried tissue: per 2 motes spent, add one point of bashing soak and half that (round down) to lethal soak. May be reactivated to stack, but total bashing soak cannot exceed Stamina + Resistance (half that for lethal). Compatible with armor.",
-    "source": {"book": "Exalted 1e Core", "page": 181}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 181
+    }
   },
   {
     "id": "abyssal.resistance.snake-bites-its-tail",
@@ -21,11 +26,20 @@
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.resistance.spirit-hardened-frame"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "abyssal.resistance.spirit-hardened-frame"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "One scene",
     "description": "Amplifies her metabolism with Essence to resist poison: for the scene, nullifies any poison whose resistance difficulty is lower than her permanent Essence, and adds Essence in automatic successes to Stamina + Resistance rolls against stronger ones. May be activated before exposure. Also lets her safely drink Resistance extra alcoholic drinks.",
-    "source": {"book": "Exalted 1e Core", "page": 183}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 183
+    }
   },
   {
     "id": "abyssal.resistance.scarlet-venom-technique",
@@ -35,11 +49,20 @@
     "type": "Special",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.resistance.snake-bites-its-tail"]],
-    "cost": {"raw": "None"},
+    "prerequisites": [
+      [
+        "abyssal.resistance.snake-bites-its-tail"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
     "duration": "Permanent",
     "description": "Venom suffuses every fluid in her body (same statistics as arrow frog venom): living beings consuming or internalizing her tainted fluids (kissing or more intimate contact) must roll Stamina + Resistance or suffer the full poison. Cannot be turned off or suppressed — the corruption is irreversible.",
-    "source": {"book": "Exalted 1e Core", "page": 183}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 183
+    }
   },
   {
     "id": "abyssal.resistance.ivory-blossom-carapace",
@@ -49,11 +72,21 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.resistance.spirit-hardened-frame"]],
-    "cost": {"health": 1, "raw": "1 mote per 1B/1L, plus one lethal health level"},
+    "prerequisites": [
+      [
+        "abyssal.resistance.spirit-hardened-frame"
+      ]
+    ],
+    "cost": {
+      "health": 1,
+      "raw": "1 mote per 1B/1L, plus one lethal health level"
+    },
     "duration": "One scene",
     "description": "Forces hundreds of bony spines through her skin to blossom into armored plates: 1 point of bashing and lethal soak per mote spent, plus a mobility penalty equal to half the soak rating (round down). Cannot spend more motes than Stamina + Resistance. Characters wearing armor cannot use it. The health-level cost applies only the first time it is used in a scene.",
-    "source": {"book": "Exalted 1e Core", "page": 181}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 181
+    }
   },
   {
     "id": "abyssal.resistance.bone-arsenal-method",
@@ -63,11 +96,20 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.resistance.ivory-blossom-carapace"]],
-    "cost": {"raw": "Varies"},
+    "prerequisites": [
+      [
+        "abyssal.resistance.ivory-blossom-carapace"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies"
+    },
     "duration": "One scene",
     "description": "Extrudes spikes or grows weapons from the limbs (requires Brawl 2). Growing spines costs 8 motes, 1 Willpower, one lethal health level and adds 2B/2L soak (stacks) plus lets 'unarmed' attacks (clinches, tackles) do lethal, and anyone grappling/striking her barehanded soaks Strength in lethal. Growing a melee weapon costs one lethal health level + 1 mote per +1 in Speed/Accuracy/Defense/lethal damage (none above permanent Essence). Weapons retract into the skeleton and can't be dropped or taken unless severed.",
-    "source": {"book": "Exalted 1e Core", "page": 182}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 182
+    }
   },
   {
     "id": "abyssal.resistance.crimson-petal-armor",
@@ -77,11 +119,22 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.resistance.ivory-blossom-carapace"]],
-    "cost": {"willpower": 1, "health": 1, "raw": "1 mote per 1B/1L, 1 Willpower, one lethal health level"},
+    "prerequisites": [
+      [
+        "abyssal.resistance.ivory-blossom-carapace"
+      ]
+    ],
+    "cost": {
+      "willpower": 1,
+      "health": 1,
+      "raw": "1 mote per 1B/1L, 1 Willpower, one lethal health level"
+    },
     "duration": "One scene",
     "description": "Blood gushes from every pore to shape a suit of liquid armor that flows with her motion yet hardens like fine steel. Follows Ivory Blossom Carapace's rules except the armor is virtually weightless with no mobility penalty. Cannot be used alongside Ivory Blossom Carapace. When it expires the armor flows back through her mouth.",
-    "source": {"book": "Exalted 1e Core", "page": 182}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 182
+    }
   },
   {
     "id": "abyssal.resistance.flowing-wound-defense",
@@ -91,11 +144,22 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.resistance.crimson-petal-armor"]],
-    "cost": {"motes": 5, "willpower": 1, "health": 1},
+    "prerequisites": [
+      [
+        "abyssal.resistance.crimson-petal-armor"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1,
+      "health": 1
+    },
     "duration": "Instant",
     "description": "Momentarily liquefies her body and possessions so a blow passes harmlessly through and re-solidifies: takes no damage from a single attack (secondary effects apply normally). A perfect defense duplicating Adamant Skin Technique. Must be invoked after the opponent spends motes but before the attack roll.",
-    "source": {"book": "Exalted 1e Core", "page": 182}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 182
+    }
   },
   {
     "id": "abyssal.resistance.plague-knows-its-master",
@@ -105,11 +169,20 @@
     "type": "Special",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.resistance.spirit-hardened-frame"]],
-    "cost": {"raw": "None"},
+    "prerequisites": [
+      [
+        "abyssal.resistance.spirit-hardened-frame"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
     "duration": "Permanent",
     "description": "Consecration to the Malfeans grants disease resistance (buyable repeatedly like Ox-Body): subtract permanent Essence from the difficulty of all Stamina + Resistance and Stamina + Endurance rolls to resist infection and disease (cumulative with the -2 all Exalted share). If a modified difficulty drops below 1, the character automatically avoids or purges the illness.",
-    "source": {"book": "Exalted 1e Core", "page": 182}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 182
+    }
   },
   {
     "id": "abyssal.resistance.armor-calling-kata",
@@ -120,10 +193,15 @@
     "min_ability": 3,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 5},
+    "cost": {
+      "motes": 5
+    },
     "duration": "One turn",
     "description": "Speeds donning armor: he gestures and his anima flows out to enfold the armor in a liquid shroud, fastening it perfectly by turn's end. The armor must be readily at hand (no further than Essence yards away); he cannot grab it from elsewhere with this Charm.",
-    "source": {"book": "Exalted 1e Core", "page": 183}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 183
+    }
   },
   {
     "id": "abyssal.resistance.void-banished-mail",
@@ -133,11 +211,20 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["abyssal.resistance.armor-calling-kata"]],
-    "cost": {"raw": "3 motes to summon or banish"},
+    "prerequisites": [
+      [
+        "abyssal.resistance.armor-calling-kata"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes to summon or banish"
+    },
     "duration": "Instant",
     "description": "Stores his armor Elsewhere and recalls it as needed. He must be wearing it (all straps fastened) to banish it; it vanishes in ghostly light and may be re-summoned onto his person at any time. Only one suit stored at a time, recallable only if he is unarmored to receive it. Cannot banish armor substantially larger than the Exalt (no warstriders).",
-    "source": {"book": "Exalted 1e Core", "page": 183}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 183
+    }
   },
   {
     "id": "abyssal.resistance.inauspicious-shadow-plate",
@@ -147,10 +234,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.resistance.void-banished-mail"]],
-    "cost": {"motes": 10, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.resistance.void-banished-mail"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "Her anima hardens into a suit of obsidian-black plate mail — an expression of her soul — providing 10L/10B soak with only a -1 mobility penalty. For an extra 2 motes she grows a sweeping black cape that entangles incoming blows, acting as a shield (+1 difficulty to all attacks against her).",
-    "source": {"book": "Exalted 1e Core", "page": 184}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 184
+    }
   }
 ]

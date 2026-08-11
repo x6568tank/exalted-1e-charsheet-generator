@@ -13,7 +13,7 @@
     "duration": "One scene",
     "description": "Attunes to ambient Essence, adding the character's Essence in automatic successes to Investigation rolls.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 185
     }
   },
@@ -35,7 +35,7 @@
     "duration": "Instant",
     "description": "Reconstructs the physical process behind an event from its undisturbed physical evidence.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 185
     }
   },
@@ -57,7 +57,7 @@
     "duration": "One scene",
     "description": "Infallibly detects whether a specific person is lying (it detects deliberate falsehoods only).",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 185
     }
   },
@@ -80,7 +80,7 @@
     "duration": "Instant",
     "description": "Builds a psychological profile of a person from the possessions and evidence they leave behind.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 185
     }
   },
@@ -102,7 +102,7 @@
     "duration": "One scene",
     "description": "Compels a target to answer a question truthfully, at the cost of their Willpower.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 186
     }
   },
@@ -128,7 +128,7 @@
     "duration": "Instant",
     "description": "Mentally reconstructs and relives a past event by reading the evidence it left behind.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 186
     }
   },

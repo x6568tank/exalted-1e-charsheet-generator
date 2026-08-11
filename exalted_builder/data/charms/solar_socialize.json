@@ -13,7 +13,7 @@
     "duration": "Instant",
     "description": "Reads the unspoken subtext and social currents of a conversation.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 211
     }
   },
@@ -35,7 +35,7 @@
     "duration": "Instant",
     "description": "Discerns a target's true motives and what they want in a social situation.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 211
     }
   },
@@ -53,7 +53,7 @@
     "duration": "One scene",
     "description": "Always behaves with flawless, appropriate manners and etiquette for any situation.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 211
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Instant",
     "description": "Determines what a target most desires — what would bribe, sway, or buy them.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 211
     }
   },
@@ -102,7 +102,7 @@
     "duration": "Instant",
     "description": "Grasps the entire web of power, alliance, and rivalry in a social setting at a glance.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 212
     }
   },
@@ -128,7 +128,7 @@
     "duration": "One day",
     "description": "Spreads ruinous rumors that turn a target into a social outcast.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 213
     }
   },

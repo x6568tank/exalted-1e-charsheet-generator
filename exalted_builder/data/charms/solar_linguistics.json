@@ -13,7 +13,7 @@
     "duration": "One scene",
     "description": "Writes or copies text at supernatural speed with flawless accuracy.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 205
     }
   },
@@ -35,7 +35,7 @@
     "duration": "One day",
     "description": "Produces a perfect, indistinguishable copy of any document.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 206
     }
   },
@@ -57,7 +57,7 @@
     "duration": "Instant",
     "description": "Hides a secret message within an innocuous document, readable only by the intended recipient.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 206
     }
   },
@@ -83,7 +83,7 @@
     "duration": "One hour",
     "description": "Reads damaged, erased, or faded text by its faintest traces.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 206
     }
   },
@@ -101,7 +101,7 @@
     "duration": "Instant",
     "description": "Discerns the author's true intent and opinions behind a written text.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 207
     }
   },
@@ -123,7 +123,7 @@
     "duration": "One scene",
     "description": "Speaks or writes with such eloquence that listeners are moved and swayed.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 207
     }
   },
@@ -149,7 +149,7 @@
     "duration": "One scene",
     "description": "Weaves words with hidden meanings, conveying a secret subtext beneath the surface.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 207
     }
   },
@@ -174,7 +174,7 @@
     "duration": "Special",
     "description": "Entrances listeners with an irresistibly captivating recitation that holds them spellbound.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 207
     }
   },

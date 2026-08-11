@@ -5,7 +5,10 @@
     "level": 1,
     "cost": "1 mote or one Willpower",
     "description": "At the cost of 1 mote or one Willpower and one turn of gesticulation, the thaumaturge can conjure up a small flame about the size and intensity of a candle flame, lasting for no more than a minute. The flame provides only sparse illumination, but it is bright enough by which to read a book.",
-    "source": {"book": "Exalted Player's Guide", "page": 149}
+    "source": {
+      "book": "Player's Guide",
+      "page": 149
+    }
   },
   {
     "id": "ritual.dedicated-purification",
@@ -14,7 +17,10 @@
     "roll": "Occult + Perception, difficulty 2",
     "resources": "Resources 1 (sanctified candles, cleansing soaps, a large vat of clean water, preferably rainwater kept clear of any debris)",
     "description": "In an hour-long ritual of cleansing and chanting, the thaumaturge purifies not only himself and any participants in whatever spell or ritual is to follow, but also the area in which the ritual will take place. If successful, the thaumaturge's player can reroll a single botch during the procedure that follows, as the sanctification of the site and participants aids in preventing backlash and mishaps in the ritual.",
-    "source": {"book": "Exalted Player's Guide", "page": 149}
+    "source": {
+      "book": "Player's Guide",
+      "page": 149
+    }
   },
   {
     "id": "ritual.art-of-the-thrice-warded-gateway",
@@ -22,7 +28,10 @@
     "level": 2,
     "cost": "3 motes",
     "description": "This ritual is rarely sufficient to stop the determined, but it is sufficient to deter the merely curious. The thaumaturge repeats a prayer to a now-dead god of locks and wards seven times seven times, then quickly wraps the handles, lock bars or hinges with twine and spends 3 motes of Essence. Once done, the door will act as if stoutly barred to any who try to pass through it for the next hour. If someone attempts to force the door, the door will resist, but only for the first attempt: any subsequent effort to break the door down will automatically succeed.",
-    "source": {"book": "Exalted Player's Guide", "page": 149}
+    "source": {
+      "book": "Player's Guide",
+      "page": 149
+    }
   },
   {
     "id": "ritual.dishonest-spirits-rebuke.spirits",
@@ -31,7 +40,10 @@
     "cost": "One Willpower per reflexive attack",
     "resources": "Resources 2 (inks, special papers and brushes); 10 hours to scribe the prayer strips",
     "description": "One of four related rituals — one each for spirits, demons, elementals and ghosts. Each operates in the same fashion but MUST BE LEARNED SEPARATELY. When a ghost hunter is unable to placate or drive a spirit away through the Arts, sometimes the only option is force. The thaumaturge must first inscribe a set of prayer strips; these can be generic and prepared ahead of time, but if personalized with the name, lineage and misdeeds of the spirit they are to be used against, the thaumaturge gains +2L damage on all attacks against that spirit while the strips are active. When the ritual is cast, the thaumaturge mutters a prayer and throws the strips into the air, where they hang for the duration of the spell (no more than one scene). While in use, the ghost hunter may, as a reflexive action, spend one Willpower to make an attack against a dematerialized spirit, using a weapon or barehanded. This ritual grants no innate ability to detect a dematerialized spirit; that must be gained in some other fashion.",
-    "source": {"book": "Exalted Player's Guide", "page": 150}
+    "source": {
+      "book": "Player's Guide",
+      "page": 150
+    }
   },
   {
     "id": "ritual.dishonest-spirits-rebuke.demons",
@@ -40,7 +52,10 @@
     "cost": "One Willpower per reflexive attack",
     "resources": "Resources 2 (inks, special papers and brushes); 10 hours to scribe the prayer strips",
     "description": "The demon-facing member of the four Dishonest Spirit's Rebuke rituals, learned separately from the others. See Dishonest Spirit's Rebuke (Spirits) for the full system: prayer strips scribed over 10 hours, +2L damage when personalized with the target's name, lineage and misdeeds, and a reflexive one-Willpower attack against a dematerialized target for up to one scene.",
-    "source": {"book": "Exalted Player's Guide", "page": 150}
+    "source": {
+      "book": "Player's Guide",
+      "page": 150
+    }
   },
   {
     "id": "ritual.dishonest-spirits-rebuke.elementals",
@@ -49,7 +64,10 @@
     "cost": "One Willpower per reflexive attack",
     "resources": "Resources 2 (inks, special papers and brushes); 10 hours to scribe the prayer strips",
     "description": "The elemental-facing member of the four Dishonest Spirit's Rebuke rituals, learned separately from the others. See Dishonest Spirit's Rebuke (Spirits) for the full system: prayer strips scribed over 10 hours, +2L damage when personalized with the target's name, lineage and misdeeds, and a reflexive one-Willpower attack against a dematerialized target for up to one scene.",
-    "source": {"book": "Exalted Player's Guide", "page": 150}
+    "source": {
+      "book": "Player's Guide",
+      "page": 150
+    }
   },
   {
     "id": "ritual.dishonest-spirits-rebuke.ghosts",
@@ -58,7 +76,10 @@
     "cost": "One Willpower per reflexive attack",
     "resources": "Resources 2 (inks, special papers and brushes); 10 hours to scribe the prayer strips",
     "description": "The ghost-facing member of the four Dishonest Spirit's Rebuke rituals, learned separately from the others. See Dishonest Spirit's Rebuke (Spirits) for the full system: prayer strips scribed over 10 hours, +2L damage when personalized with the target's name, lineage and misdeeds, and a reflexive one-Willpower attack against a dematerialized target for up to one scene.",
-    "source": {"book": "Exalted Player's Guide", "page": 150}
+    "source": {
+      "book": "Player's Guide",
+      "page": 150
+    }
   },
   {
     "id": "ritual.warding-of-undue-influence",
@@ -67,6 +88,9 @@
     "cost": "One Willpower (three Willpower to invoke immediately in a crisis)",
     "roll": "Wits + Occult, difficulty 3 (only when invoked immediately)",
     "description": "It is known that many spirits, the Fair Folk and the Anathema have powers that can twist perception and make the unreal seem real or the obvious hidden. While the Warding of Undue Influence is not a surety against these powers, it does provide some protection for mortals. The ritual normally takes one day to perform and costs one Willpower, but in a crisis a thaumaturge may attempt to invoke its power immediately at the cost of three Willpower and a Wits + Occult roll against difficulty 3. While invoked, all beings with a permanent Essence of 1 gain a +2 bonus to their permanent Essence for purposes of resisting Fair Folk glamours, spirit Charms that manipulate emotions or perceptions, and the like. Charms that are rolled against a difficulty to affect emotions or perceptions are at +1 difficulty. The effect is limited to an area equal to five feet times the caster's permanent Essence, centered on and moving with the caster, and once invoked it lasts for 10 minutes.",
-    "source": {"book": "Exalted Player's Guide", "page": 150}
+    "source": {
+      "book": "Player's Guide",
+      "page": 150
+    }
   }
 ]

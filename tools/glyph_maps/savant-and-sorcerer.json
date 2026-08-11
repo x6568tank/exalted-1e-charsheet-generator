@@ -1,0 +1,129 @@
+{
+  "book": "Savant and Sorcerer",
+  "pdf": "Exalted - Savant And Sorcerer.pdf",
+  "problem": "The font map resolves no punctuation or accents, so pdfminer emits (cid:N) markers.",
+  "evidence": "Every mapping is read off unambiguous context, quoted verbatim. None was chosen because it looked right. ⚠ The first pass judged these against a column-INTERLEAVED extraction and got 209 wrong-looking as a result; re-read them after the reading-order fix.",
+  "cid": {
+    "213": {
+      "to": "’",
+      "why": "apostrophe, body text",
+      "seen_in": [
+        "Don(cid:213)t think I(cid:213)m gonna forget",
+        "one(cid:213)s awareness",
+        "doesn(cid:213)t mean it is advisable"
+      ],
+      "count": 996,
+      "human_confirmed": "2026-08-10"
+    },
+    "144": {
+      "to": "’",
+      "why": "apostrophe, SMALL-CAPS headings - a separate glyph from 213",
+      "seen_in": [
+        "CALLING THE WIND(cid:144)S KISS",
+        "THUNDER WOLF(cid:144)S HOWL",
+        "THE BATTLE(cid:144)S END",
+        "GAIA(cid:144)S REBUKE"
+      ],
+      "count": 14,
+      "WARNING": "This one is load-bearing: it appears in SPELL NAMES. Mapping it takes S&S spell-name coverage from 84/93 to 91/93."
+    },
+    "209": {
+      "to": "—",
+      "why": "em dash",
+      "seen_in": [
+        "Many (cid:209) even the most criminal (cid:209) do this to sate their egos",
+        "the three circles (cid:209) Emerald, Sapphire and Adamant",
+        "(cid:209)Jack Vance, (cid:210)Maziran the Magician(cid:211)"
+      ],
+      "count": 391,
+      "human_confirmed": "2026-08-10, after re-reading on corrected text; the PAIRED use settles it - a space cannot be paired."
+    },
+    "128": {
+      "to": "•",
+      "why": "the Artifact rating dot; also the running-head separator",
+      "seen_in": [
+        "PROTEUS GAUNTLET (ARTIFACT (cid:128)(cid:128)(cid:128)(cid:128))",
+        "EXALTED (cid:128) SAVANT AND SORCERER"
+      ],
+      "count": 176,
+      "human_confirmed": "2026-08-10",
+      "WARNING": "A MECHANICAL VALUE where it marks a rating (~6 of the 176). Check each of those individually against data/artifacts.json; the rest are running-head decoration."
+    },
+    "210": {
+      "to": "“",
+      "why": "left double quote",
+      "seen_in": [
+        "Tomy (cid:210)lovable(cid:211) coworkers",
+        "(cid:210)Puerca Non Grata(cid:211) Achilli"
+      ],
+      "count": 83,
+      "human_confirmed": "2026-08-10"
+    },
+    "211": {
+      "to": "”",
+      "why": "right double quote",
+      "seen_in": [
+        "(cid:210)lovable(cid:211)",
+        "(cid:210)Refuge(cid:211) Schaeffer"
+      ],
+      "count": 83,
+      "human_confirmed": "2026-08-10"
+    },
+    "142": {
+      "to": "é",
+      "why": "e-acute",
+      "seen_in": [
+        "na(cid:149)vet(cid:142) according to her detractors -> naiveté",
+        "d(cid:142)cor -> décor",
+        "completely blas(cid:142) -> blasé"
+      ],
+      "count": 3
+    },
+    "149": {
+      "to": "ï",
+      "why": "i-diaeresis",
+      "seen_in": [
+        "na(cid:149)vet(cid:142) -> naïveté"
+      ],
+      "count": 1
+    },
+    "141": {
+      "to": "ç",
+      "why": "c-cedilla",
+      "seen_in": [
+        "fa(cid:141)ades of buildings -> façades"
+      ],
+      "count": 1
+    },
+    "201": {
+      "to": "…",
+      "why": "ellipsis",
+      "seen_in": [
+        "had been known(cid:201) . Now at this dim time",
+        "The light of the Unconquered Sun(cid:201) disturbing! Fearsome!",
+        "People(cid:201) do not behave properly"
+      ],
+      "count": 4,
+      "human_confirmed": "2026-08-10 — human checked pp.5, 91, 104 against the printed page"
+    },
+    "38": {
+      "to": "≠",
+      "why": "not-equals sign",
+      "seen_in": [
+        "tied to or around objects (cid:38)(cid:209) or people (p.110)"
+      ],
+      "count": 1,
+      "human_confirmed": "2026-08-10 — human checked p.110 against the printed page"
+    },
+    "1": {
+      "to": "",
+      "why": "errant space in the p.2 running head; deleted, carries no meaning",
+      "seen_in": [
+        "EXALTED (cid:128)(cid:1)S AVANT AND SORCERER"
+      ],
+      "count": 1,
+      "human_confirmed": "2026-08-10 — human ruled it errant and ignorable"
+    }
+  },
+  "status": "COMPLETE — every (cid:N) in this book is mapped and human-confirmed 2026-08-10."
+}

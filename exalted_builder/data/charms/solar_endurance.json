@@ -43,7 +43,7 @@
     ],
     "description": "Grants extra health levels. Repeatable once per dot of Endurance; each purchase grants one of three health-level packages.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 170
     }
   },
@@ -61,7 +61,7 @@
     "duration": "One day",
     "description": "The character adapts to her armor, reducing its fatigue and mobility penalties.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 170
     }
   },
@@ -83,7 +83,7 @@
     "duration": "One day",
     "description": "A stronger version of Armored Scout's Invigoration, further reducing armor fatigue and mobility penalties.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 170
     }
   },
@@ -105,7 +105,7 @@
     "duration": "One day",
     "description": "The most powerful of the armor Charms, reducing armor fatigue and mobility penalties to almost nothing.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 171
     }
   },
@@ -123,7 +123,7 @@
     "duration": "Instant",
     "description": "Taps the wellsprings of Essence behind pain and rage, regaining motes when the character takes damage.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 171
     }
   },
@@ -145,7 +145,7 @@
     "duration": "Instant",
     "description": "Steels the character's inner resolve, regaining temporary Willpower from inner strength.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 171
     }
   },
@@ -167,7 +167,7 @@
     "duration": "One scene",
     "description": "Focuses the character into a battle fury, lending power and stamina to her fighting.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 171
     }
   },
@@ -190,7 +190,7 @@
     "duration": "One scene",
     "description": "Wraps the character in a battle trance that fights on, hard to stop and hard to turn from an enemy until the foe is slain.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 172
     }
   },

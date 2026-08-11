@@ -13,7 +13,7 @@
     "duration": "One day",
     "description": "Channels Essence to knit broken bones and mend wounds at ten times the natural rate while in a healing trance.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 188
     }
   },
@@ -31,7 +31,7 @@
     "duration": "Five minutes",
     "description": "Diagnoses a patient's illness or injury with flawless, supernatural accuracy.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 188
     }
   },
@@ -53,7 +53,7 @@
     "duration": "Six hours",
     "description": "Treats and cures illness, helping a patient recover from even serious disease.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 188
     }
   },
@@ -75,7 +75,7 @@
     "duration": "Six hours",
     "description": "Eases a patient's pain and discomfort, lessening wound penalties.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 189
     }
   },
@@ -97,7 +97,7 @@
     "duration": "One day",
     "description": "Cures normally incurable diseases and halts the spread of contagion.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 189
     }
   },
@@ -119,7 +119,7 @@
     "duration": "One day",
     "description": "Greatly accelerates the character's own healing of grievous wounds.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 190
     }
   },
@@ -144,7 +144,7 @@
     "duration": "One day",
     "description": "Heals another character's wounds at an incredible rate over days of bed rest.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 190
     }
   },
@@ -169,7 +169,7 @@
     "duration": "Instant",
     "description": "Instantly heals a patient's wounds, even grievous ones, with a touch.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 190
     }
   },
@@ -192,7 +192,7 @@
     "duration": "One hour",
     "description": "Regenerates lost limbs, eyes, and other lost tissue over a healing trance.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 191
     }
   },
@@ -218,7 +218,7 @@
     "duration": "One hour",
     "description": "A deep healing trance that mends the most serious injuries and regrows lost body parts.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 191
     }
   },

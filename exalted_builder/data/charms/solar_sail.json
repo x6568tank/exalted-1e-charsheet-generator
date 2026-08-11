@@ -13,7 +13,7 @@
     "duration": "One day",
     "description": "Keeps perfect balance and footing aboard ship, immune to seasickness even in rough seas.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 209
     }
   },
@@ -35,7 +35,7 @@
     "duration": "One day",
     "description": "Survives shipwreck, treading water and resisting drowning and exposure for days.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 209
     }
   },
@@ -57,7 +57,7 @@
     "duration": "Instant",
     "description": "Always knows the ship's exact position relative to landmarks and the stars.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 210
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Instant",
     "description": "Foresees coming weather at sea, predicting squalls and storms.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 210
     }
   },
@@ -101,7 +101,7 @@
     "duration": "One scene",
     "description": "Senses the depth of the water and hidden reefs or shoals beneath the ship.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 210
     }
   },
@@ -123,7 +123,7 @@
     "duration": "One scene",
     "description": "Sails against the wind, granting a ship tremendous speed regardless of conditions.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 210
     }
   },
@@ -146,7 +146,7 @@
     "duration": "One day",
     "description": "Toughens a ship to weather storms and survive ramming.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 211
     }
   },
@@ -168,7 +168,7 @@
     "duration": "One turn",
     "description": "Reflexively preserves a ship from damage that would sink or wreck it.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 211
     }
   },

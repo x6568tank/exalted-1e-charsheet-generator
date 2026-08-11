@@ -8,10 +8,15 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"raw": "1 mote per dot"},
+    "cost": {
+      "raw": "1 mote per dot"
+    },
     "duration": "One scene",
     "description": "Closes his eyes and dredges memories from the drowned dead of the Underworld, intuitively understanding the craft of sailing as though from decades at sea: adds one dot to Sail per mote spent (cannot raise Sail above 5). While active he never botches a roll to keep his balance in tumultuous seas (though he can still fall).",
-    "source": {"book": "Exalted 1e Core", "page": 218}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 218
+    }
   },
   {
     "id": "abyssal.sail.ghost-on-the-deck",
@@ -21,11 +26,20 @@
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.sail.master-sailors-memory"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "abyssal.sail.master-sailors-memory"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "One day",
     "description": "Digs deeper into the memories of sailors long dead so their stolen expertise guides his every movement: perfect balance to stride the deck or scurry the rigging without a roll, even in a howling typhoon or on a submerged reef, while the rest of the crew may be swept overboard. Completely immune to seasickness.",
-    "source": {"book": "Exalted 1e Core", "page": 219}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 219
+    }
   },
   {
     "id": "abyssal.sail.phantom-sail-technique",
@@ -35,11 +49,20 @@
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.sail.master-sailors-memory"]],
-    "cost": {"motes": 6},
+    "prerequisites": [
+      [
+        "abyssal.sail.master-sailors-memory"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
     "duration": "One day",
     "description": "Channels Essence to patch the rips and tears of a damaged sail and rigging, summoning a morass of shadows over the targeted sail; for 24 hours it behaves as if undamaged and provides propulsion. Multiple sails may need multiple uses. Restores clinging tatters to full function but cannot create a sail from nothing — some identifiable vestige must remain.",
-    "source": {"book": "Exalted 1e Core", "page": 219}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 219
+    }
   },
   {
     "id": "abyssal.sail.ghost-wind-prana",
@@ -49,11 +72,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.sail.phantom-sail-technique"]],
-    "cost": {"motes": 10},
+    "prerequisites": [
+      [
+        "abyssal.sail.phantom-sail-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10
+    },
     "duration": "One scene",
     "description": "Summons a cold wind from the Underworld that exists only to propel her vessel, displacing all natural breezes for that purpose (though others hear its eerie howling) without disturbing the water or the wind for other ships. The ship moves as though its sails were full regardless of the prevailing wind or set course. The spectral wind has the intensity of the surrounding winds (a hurricane is still dangerous).",
-    "source": {"book": "Exalted 1e Core", "page": 219}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 219
+    }
   },
   {
     "id": "abyssal.sail.crew-sustaining-technique",
@@ -63,11 +95,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.sail.ghost-on-the-deck"]],
-    "cost": {"raw": "Varies"},
+    "prerequisites": [
+      [
+        "abyssal.sail.ghost-on-the-deck"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies"
+    },
     "duration": "One day",
     "description": "Reduces a crew's need for food and rest: spend 1 Willpower plus 1 mote per four crewmembers (or fraction) to enchant. Shipboard vermin's life energy is absorbed to power it (reducing the cost to 1 mote per six crewmen), steadily killing all pests. Enchanted sailors need only a quarter of the food/water/rest and suffer no scurvy or dietary deficiency, but long-term use past a character's Stamina in days reduces Stamina by one dot per further day (zero = death; recovers 1/day). Only Exalted/magical beings excepted.",
-    "source": {"book": "Exalted 1e Core", "page": 219}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 219
+    }
   },
   {
     "id": "abyssal.sail.wind-killing-stance",
@@ -78,13 +119,23 @@
     "min_ability": 5,
     "min_essence": 3,
     "prerequisites": [
-      ["abyssal.sail.ghost-on-the-deck"],
-      ["abyssal.sail.ghost-wind-prana"]
+      [
+        "abyssal.sail.ghost-on-the-deck"
+      ],
+      [
+        "abyssal.sail.ghost-wind-prana"
+      ]
     ],
-    "cost": {"motes": 20, "willpower": 1},
+    "cost": {
+      "motes": 20,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "Extends a zone of stillness that displaces even the fiercest gales: traces a horizontal arc and a spherical wave of Essence flashes out to a radius of permanent Essence×15 yards, killing all breezes inside its boundary. The stillness moves with the Exalt and lasts one scene (or until he dies or moves more than a yard from his spot on deck). Cannot stop magical breezes unless their creator is substantially weaker. Used to weather storms and stop enemy ships from escaping.",
-    "source": {"book": "Exalted 1e Core", "page": 219}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 219
+    }
   },
   {
     "id": "abyssal.sail.hull-hardening-technique",
@@ -94,11 +145,20 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.sail.ghost-wind-prana"]],
-    "cost": {"raw": "1 mote per 1L of soak, plus 1 Willpower"},
+    "prerequisites": [
+      [
+        "abyssal.sail.ghost-wind-prana"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per 1L of soak, plus 1 Willpower"
+    },
     "duration": "One scene",
     "description": "Lays hands on a ship and lets Essence flow through its timbers to reinforce it: the ship gains 1L soak per mote spent (cannot buy more soak than Stamina + Sail; the limit applies to all uses in a scene). No Willpower needed if used to strengthen a ship while another application is already active. Treated hulls look bleached and weathered though they keep their true age's durability.",
-    "source": {"book": "Exalted 1e Core", "page": 220}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 220
+    }
   },
   {
     "id": "abyssal.sail.hull-restoring-meditation",
@@ -108,11 +168,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.sail.hull-hardening-technique"]],
-    "cost": {"raw": "Varies, plus 1 Willpower"},
+    "prerequisites": [
+      [
+        "abyssal.sail.hull-hardening-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "Varies, plus 1 Willpower"
+    },
     "duration": "Special",
     "description": "Extends his anima in tendrils through the hull, caulking and patching breaches with raw Essence that calcifies into bleached-bone material. Repairing combat damage costs motes equal to the ship's damaged/destroyed rating; non-combat repairs get a Storyteller-set Essence cost by severity. Staves off certain destruction by sealing massive breaches but does not remove handling penalties for trapped water (until pumped/bailed). Needs a mostly intact hull; cannot regenerate entire missing segments or a ruined hull. Cannot repair First Age ships.",
-    "source": {"book": "Exalted 1e Core", "page": 220}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 220
+    }
   },
   {
     "id": "abyssal.sail.unsinkable-derelict-preservation",
@@ -122,10 +191,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 4,
-    "prerequisites": [["abyssal.sail.hull-restoring-meditation"]],
-    "cost": {"motes": 10, "willpower": 2},
+    "prerequisites": [
+      [
+        "abyssal.sail.hull-restoring-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 2
+    },
     "duration": "One day",
     "description": "Channels Essence through the ship's hull, temporarily sealing all breaks with translucent wisps of relic from the Underworld so the ship ignores damage entirely: for a number of hours equal to permanent Essence (persisting so long as it stays in a shadowland/Underworld) the ship acts as if whole and ignores further damage. When the protection ends, severely damaged vessels take on water and sink normally. Can restore a rotting hull to full operation so long as enough remains to identify the ship (broken-asunder hulls cannot be enchanted). Can affect First Age ships.",
-    "source": {"book": "Exalted 1e Core", "page": 220}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 220
+    }
   }
 ]

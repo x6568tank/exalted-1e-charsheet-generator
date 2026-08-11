@@ -13,7 +13,7 @@
     "duration": "One day",
     "description": "Grants preternatural intuition about criminal subcultures, fences, and the underworld.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 199
     }
   },
@@ -35,7 +35,7 @@
     "duration": "One day",
     "description": "Alters the character's appearance, voice, and scent into a flawless disguise.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 199
     }
   },
@@ -58,7 +58,7 @@
     "duration": "One hour",
     "description": "Perfectly imitates a specific person the character knows well, fooling even their intimates.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 200
     }
   },
@@ -76,7 +76,7 @@
     "duration": "Instant",
     "description": "Picks pockets and palms small objects flawlessly, without chance of detection.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 200
     }
   },
@@ -98,7 +98,7 @@
     "duration": "Instant",
     "description": "Steals an object even while it is watched, drawing no notice to the act.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 200
     }
   },
@@ -121,7 +121,7 @@
     "duration": "Instant",
     "description": "Steals an object from a distance, with no notice drawn to the theft.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 200
     }
   },
@@ -143,7 +143,7 @@
     "duration": "Instant",
     "description": "Opens any lock instantly with a touch, as though it were unlocked.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 201
     }
   },
@@ -166,7 +166,7 @@
     "duration": "Instant",
     "description": "Passes through locked doors and closed portals as though they stood open.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 201
     }
   },

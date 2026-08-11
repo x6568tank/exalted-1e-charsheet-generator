@@ -8,10 +8,15 @@
     "min_ability": 1,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"motes": 3},
+    "cost": {
+      "motes": 3
+    },
     "duration": "One scene",
     "description": "Becomes preternaturally deft and light: she can balance on objects ordinarily too weak or delicate to support her without falling or breaking them, and never needs to roll Athletics to move gracefully or keep her footing except in the most improbable circumstances.",
-    "source": {"book": "Exalted 1e Core", "page": 200}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 200
+    }
   },
   {
     "id": "abyssal.athletics.spider-pounce-technique",
@@ -21,11 +26,20 @@
     "type": "Reflexive",
     "min_ability": 1,
     "min_essence": 1,
-    "prerequisites": [["abyssal.athletics.raitons-nimble-perch"]],
-    "cost": {"motes": 1},
+    "prerequisites": [
+      [
+        "abyssal.athletics.raitons-nimble-perch"
+      ]
+    ],
+    "cost": {
+      "motes": 1
+    },
     "duration": "Instant",
     "description": "Lunges impossibly far and fast: he can move Strength×3 yards vertically or twice that horizontally in place of a normal movement action. May attack the same turn but gains no bonus for it (beyond surprise). Once per turn.",
-    "source": {"book": "Exalted 1e Core", "page": 200}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 200
+    }
   },
   {
     "id": "abyssal.athletics.autumn-leafs-descent",
@@ -35,11 +49,20 @@
     "type": "Reflexive",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.athletics.spider-pounce-technique"]],
-    "cost": {"motes": 2},
+    "prerequisites": [
+      [
+        "abyssal.athletics.spider-pounce-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
     "duration": "Instant",
     "description": "Falls softly and quietly as a feather from any height up to a mile without damage, so long as invoked before landing. While active she is virtually weightless and may crudely glide (not fly) on thermals with a Dexterity + Athletics roll (difficulty 2) each turn. No roll needed to fall straight down.",
-    "source": {"book": "Exalted 1e Core", "page": 201}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 201
+    }
   },
   {
     "id": "abyssal.athletics.falling-scythe-attack",
@@ -49,11 +72,21 @@
     "type": "Supplemental",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.athletics.spider-pounce-technique"]],
-    "cost": {"motes": 3, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.athletics.spider-pounce-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Springs into the air and adds deadly momentum to a descending blow (eerily quiet, trailing shadowy afterimages): the attack is made normally but its damage is doubled after rolling. Cannot move the same turn (so not Comboable with movement Charms), but may Combo with Spider Pounce Technique to extend the jumping attack's range (no extra damage). May Combo with Charms of other Abilities.",
-    "source": {"book": "Exalted 1e Core", "page": 201}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 201
+    }
   },
   {
     "id": "abyssal.athletics.soaring-raptor-prana",
@@ -64,13 +97,23 @@
     "min_ability": 5,
     "min_essence": 3,
     "prerequisites": [
-      ["abyssal.athletics.autumn-leafs-descent"],
-      ["abyssal.athletics.falling-scythe-attack"]
+      [
+        "abyssal.athletics.autumn-leafs-descent"
+      ],
+      [
+        "abyssal.athletics.falling-scythe-attack"
+      ]
     ],
-    "cost": {"motes": 3, "willpower": 1},
+    "cost": {
+      "motes": 3,
+      "willpower": 1
+    },
     "duration": "Special",
     "description": "True flight: spends a full turn concentrating, then is borne aloft on spectral winds and may fly at will (capes billow like wings). Maintained by reflexively paying 2 motes each turn (committed until he stops flying). While flying he moves Dexterity×9 yards per turn and may attack aerial combatants or ground targets with ranged weapons, or swoop to strike. Unless swooping, flying characters can only be attacked with ranged weapons, by other fliers, or on initiative when they strike a ground target.",
-    "source": {"book": "Exalted 1e Core", "page": 201}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 201
+    }
   },
   {
     "id": "abyssal.athletics.shadow-races-the-light",
@@ -80,11 +123,20 @@
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.athletics.raitons-nimble-perch"]],
-    "cost": {"raw": "2+ motes"},
+    "prerequisites": [
+      [
+        "abyssal.athletics.raitons-nimble-perch"
+      ]
+    ],
+    "cost": {
+      "raw": "2+ motes"
+    },
     "duration": "One turn",
     "description": "Dramatically increases her speed for short dashes, surging ahead as a muted blur of shadow: increases sprinting speed by one factor per 2 motes spent, up to a maximum multiplier of permanent Essence. She also runs without fear of getting winded or weary.",
-    "source": {"book": "Exalted 1e Core", "page": 202}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 202
+    }
   },
   {
     "id": "abyssal.athletics.flickering-image-strike",
@@ -94,11 +146,21 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.athletics.shadow-races-the-light"]],
-    "cost": {"motes": 5, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.athletics.shadow-races-the-light"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Delivers a single devastating blow while rushing past an opponent as a flickering blur, his motions broken as if strobing: the attack is made normally but its damage is doubled after rolling. He may move up to his sprinting distance without penalty on that turn. Needs relative freedom of motion (restrained characters cannot use it). May Combo with Charms of other Abilities.",
-    "source": {"book": "Exalted 1e Core", "page": 202}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 202
+    }
   },
   {
     "id": "abyssal.athletics.crouching-gargoyle-stance",
@@ -108,11 +170,20 @@
     "type": "Reflexive",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.athletics.shadow-races-the-light"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "abyssal.athletics.shadow-races-the-light"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Special",
     "description": "Gains unnatural flexibility and balance, scuttling or dashing along any surface without regard to gravity (scaling sheer walls, dancing on ceilings), or standing motionless at odd angles / clinging to impossible perches. Distended limbs reduce Appearance by 1 (min 0). Costs 1 mote reflexively each turn maintained (committed until it ends).",
-    "source": {"book": "Exalted 1e Core", "page": 202}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 202
+    }
   },
   {
     "id": "abyssal.athletics.mist-over-ice",
@@ -122,11 +193,20 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.athletics.shadow-races-the-light"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "abyssal.athletics.shadow-races-the-light"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "Special",
     "description": "Treads on water and other fluid surfaces as easily as solid ground, with the weightless poise of a ghost; her silent footfalls leave no ripple or wake. Walking on dangerous liquids (corrosive slime, magma) still injures her feet/shoes normally. Costs 2 motes each turn maintained (+1 difficulty to complex tasks; committed until she stops).",
-    "source": {"book": "Exalted 1e Core", "page": 202}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 202
+    }
   },
   {
     "id": "abyssal.athletics.enhanced-attribute-discipline",
@@ -137,10 +217,15 @@
     "min_ability": 4,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"raw": "3/5 motes per dot"},
+    "cost": {
+      "raw": "3/5 motes per dot"
+    },
     "duration": "One scene",
     "description": "Suffuses flesh and bones with Essence to briefly elevate physical prowess. On purchase, choose Strength or Dexterity (cannot be bought again). Per 3 motes raise Strength by one dot, or per 5 motes raise Dexterity by one dot; cannot raise an Attribute above permanent Essence.",
-    "source": {"book": "Exalted 1e Core", "page": 203}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 203
+    }
   },
   {
     "id": "abyssal.athletics.infirmity-inflicting-gesture",
@@ -150,11 +235,20 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.athletics.enhanced-attribute-discipline"]],
-    "cost": {"raw": "3 motes per dot, 1 Willpower"},
+    "prerequisites": [
+      [
+        "abyssal.athletics.enhanced-attribute-discipline"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes per dot, 1 Willpower"
+    },
     "duration": "One scene",
     "description": "Requires the Strength permutation of Enhanced (Attribute) Discipline. Saps an enemy's vigor: gesture at a living target within five yards and roll Willpower vs the target's permanent Essence; success drops 1 Strength per 3 motes spent. Exalted/Essence-channelers cannot go below their permanent Essence; magical victims may cancel it (5 motes per dot, a dice action). Non-magical targets reduced to zero Strength stay at Strength 1 for the scene and lose a permanent dot (recoverable only with experience). Never below 1.",
-    "source": {"book": "Exalted 1e Core", "page": 203}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 203
+    }
   },
   {
     "id": "abyssal.athletics.strength-stealing-technique",
@@ -164,10 +258,19 @@
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.athletics.infirmity-inflicting-gesture"]],
-    "cost": {"raw": "4 motes per dot, plus 1 Willpower"},
+    "prerequisites": [
+      [
+        "abyssal.athletics.infirmity-inflicting-gesture"
+      ]
+    ],
+    "cost": {
+      "raw": "4 motes per dot, plus 1 Willpower"
+    },
     "duration": "Instant",
     "description": "Robs a living victim's potency and adds it to his own: strike in hand-to-hand (damage optional), roll Willpower vs the target's permanent Essence; win and the victim loses 1 Strength per 4 motes (as Infirmity Inflicting Gesture), while he gains 1 Strength per 2 dots taken for the scene. No Strength gained from reducing a mortal; cannot more than double his unmodified Strength. May Combo with Charms of other Abilities.",
-    "source": {"book": "Exalted 1e Core", "page": 204}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 204
+    }
   }
 ]

@@ -14,7 +14,7 @@
     "duration": "One day",
     "description": "Wards the character's mind and body against magical influence and Wyld mutation for a day.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 186
     }
   },
@@ -37,7 +37,7 @@
     "duration": "One hour",
     "description": "Protects an area and those within it from the warping influence of the Wyld.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 186
     }
   },
@@ -60,7 +60,7 @@
     "duration": "Instant",
     "description": "Shapes raw Wyld chaos into real objects, creatures, or even a manse, by force of will.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 186
     }
   },
@@ -78,7 +78,7 @@
     "duration": "Instant",
     "description": "Transfers the character's Essence (motes) to another character by touch.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 187
     }
   },
@@ -101,7 +101,7 @@
     "duration": "Instant",
     "description": "Lends temporary Willpower to another character.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 187
     }
   },
@@ -123,7 +123,7 @@
     "duration": "Instant",
     "description": "Takes another character's wounds onto oneself, accepting their damage to relieve them.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 188
     }
   },
@@ -147,7 +147,7 @@
     "duration": "One day",
     "description": "Awards a portion of the character's own Essence to another character (costs 1 experience point).",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 188
     }
   },

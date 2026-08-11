@@ -13,7 +13,7 @@
     "duration": "Instant",
     "description": "Sways like a reed in the wind to add dice to a dodge against an attack.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 197
     }
   },
@@ -35,7 +35,7 @@
     "duration": "Instant",
     "description": "Flows aside to perfectly evade a single attack the character is aware of.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 198
     }
   },
@@ -57,7 +57,7 @@
     "duration": "Instant",
     "description": "Evades even attacks normally impossible to dodge, slipping aside like a shadow.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 198
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Instant",
     "description": "Reflexively dodges an attack the character was not even aware of.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 198
     }
   },
@@ -105,7 +105,7 @@
     "duration": "One scene",
     "description": "Moves like flowing water, perfectly evading all physical attacks for a scene.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 198
     }
   },

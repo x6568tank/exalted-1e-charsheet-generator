@@ -13,7 +13,7 @@
     "duration": "One scene",
     "description": "Toughens the skin with Essence, adding dice to bashing soak.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 176
     }
   },
@@ -36,7 +36,7 @@
     "duration": "Varies",
     "description": "Reflexively hardens the skin to soak an incoming attack as bashing damage.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 176
     }
   },
@@ -58,7 +58,7 @@
     "duration": "One scene",
     "description": "Reinforces the body so it soaks lethal damage with its full bashing soak.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 176
     }
   },
@@ -85,7 +85,7 @@
     "duration": "Instant",
     "description": "Perfectly hardens the skin to ignore a single attack; invoked before the opponent's attack roll.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 177
     }
   },
@@ -107,7 +107,7 @@
     "duration": "Instant",
     "description": "Reflexively adds the character's Resistance to her bashing soak against an attack.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 177
     }
   },
@@ -129,7 +129,7 @@
     "duration": "Instant",
     "description": "Adds the character's Resistance to her lethal soak as well as her bashing soak.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 178
     }
   },
@@ -147,7 +147,7 @@
     "duration": "Special",
     "description": "Dons or doffs armor in a fraction of the normal time.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 178
     }
   },
@@ -169,7 +169,7 @@
     "duration": "Instant",
     "description": "Calls the character's worn armor from Elsewhere onto her, fully fitted.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 179
     }
   },
@@ -192,7 +192,7 @@
     "duration": "One scene",
     "description": "Materializes a suit of golden lamellar from the anima (10 lethal / 10 bashing soak, only -1 mobility).",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 179
     }
   },
@@ -210,7 +210,7 @@
     "duration": "One scene",
     "description": "Endures the effects of toxins, adding automatic successes to resist poison.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 179
     }
   },
@@ -228,7 +228,7 @@
     "duration": "One day",
     "description": "Shrugs off disease, adding automatic successes to resist or recover from illness.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 179
     }
   },
@@ -254,7 +254,7 @@
     "duration": "One scene",
     "description": "Channels Essence so the character cannot be poisoned or contract illnesses for the scene.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 179
     }
   },

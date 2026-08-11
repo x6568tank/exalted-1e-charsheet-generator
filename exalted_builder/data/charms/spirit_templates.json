@@ -205,7 +205,7 @@
     "duration": "Instant",
     "description": "This power enables the spirit to sense nearby Essence, whether it exists in objects or within Exalted. Rolls the spirit's Perception + Compassion. One success is enough to sense Essence in the vaguest of measures. Three or more successes means the spirit not only senses Essence, but knows its source and potential powers (if possessed by Exalted, for example).",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 291
     }
   },
@@ -226,7 +226,7 @@
     "duration": "Varies",
     "description": "For each success on the roll, the spirit may improve an individual's Stamina by one dot. More dice than the spirit's Charisma + Compassion may not be rolled, nor may the spirit increase the target's Stamina by more dots than the spirit's Essence. Only one use of this Charm may be active on an individual at any given time. This Charm fades at a rate of one dot per (the spirit's Willpower) turns.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 291
     }
   },
@@ -247,7 +247,7 @@
     "duration": "Instant",
     "description": "The spirit may heal itself or others. Spends the 3 motes of Essence and make a Compassion roll. If the roll succeeds, the Charm heals one health level of bashing or lethal damage.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 291
     }
   },
@@ -269,7 +269,7 @@
     "duration": "One scene",
     "description": "Through the use of this Charm, the spirit can create mental illusions that only the target can see. To do it, roll the spirit's Manipulation + Conviction. The first success creates the illusion, while additional successes make the illusion more difficult to penetrate. The target's player must make an Intelligence + Temperance roll and must gain a number of successes at least equal to the number of successes the spirit rolled. If not, the target is unable to tell the illusion from reality. He may make additional Intelligence + Temperance rolls whenever the illusion departs wildly from what the target expects from reality, making believable illusions much more difficult to see through. Once the illusion has been penetrated, it is dispelled, and all further uses of the Charm on that being are at +1 difficulty for the next several days.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 291
     }
   },
@@ -291,7 +291,7 @@
     "duration": "One scene",
     "description": "Roll the spirit's Manipulation + Conviction in an extended resisted action against the target's Willpower. When the spirit gains more successes than the victim has temporary Willpower, the spirit takes possession of the target for the rest of the scene. Successes accumulate for the duration of the scene. More powerful versions of this Charm exist, which allow spirits to “hollow out” a being's soul and possess him indefinitely.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 291
     }
   },
@@ -312,7 +312,7 @@
     "duration": "One scene",
     "description": "The spirit channels Essence into the victim to inflame her emotional state. One success merely aggravates whatever condition is already present, while three or more successes cause the target to completely lose herself in the emotion of the moment. You may roll no more dice that the spirit's Conviction. Used against one of the Exalted, this Charm causes the character's Limit to increase by one point per success.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 291
     }
   },
@@ -333,7 +333,7 @@
     "duration": "Instant",
     "description": "The spirit must touch the target for this Charm to work (resolved by a normal Dexterity + Brawl or Martial Arts check). If the attempt to touch the target is successful, make a reflexive Wits + Temperance roll. For every success the spirit achieves, the target loses two motes of Essence. The spirit cannot steal more motes than twice its Essence.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 292
     }
   },
@@ -355,7 +355,7 @@
     "duration": "One scene",
     "description": "Through the use of this Charm, the spirit forms multiple images of itself to deceive attackers. This ability works much like Harrow the Mind, above. However, there are more images and they are harder to distinguish from reality.\n\nMake an Intelligence + Temperance roll for the spirit, opposed by the target's Perception + Awareness. If the target garners fewer successes than the spirit, he sees many false images of the small god, each virtually indistinguishable from the real being. Attacks by individuals so befuddled have only (their Essence) in 10 chance of actually striking the spirit. Make another Perception + Awareness for those observing the spirit every time the spirit attacks.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 292
     }
   },
@@ -376,7 +376,7 @@
     "duration": "One scene",
     "description": "The spirit must touch its target for this Charm to work, requiring a successful Dexterity + Brawl or Martial Arts roll. If the touch attempt is successful, make a reflexive Valor + Essence roll for the spirit. For every success on the attack, the spirit does a point of lethal damage. The character's armor soak applies as normal to this damage, and extra successes on the attack roll add to damage as usual.\n\nThis Charm may rely on heat, cold, life-draining or any number of other mechanisms to do damage — almost all have secondary effects that the spirit can manipulate to its advantage. For example, a ghost that can start fires with its fiery touch can burn down a barn with this Charm.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 292
     }
   },
@@ -397,7 +397,7 @@
     "duration": "Indefinite",
     "description": "Through the use of this Charm, the spirit can materialize in the physical world. The cost of this Charm is between 50 percent and 100 percent of the spirit's temporary Essence. The cost varies from spirit to spirit and is listed in the spirit's description or assigned by the Storyteller. Generally, as the power of the spirit grows, the spirit must expend proportionally greater amounts of Essence to materialize.\n\nIn most cases, a spirit that plans to meddle in mortal affairs will materialize in some safe area and then rest, regaining its Essence, before it goes about its business. Spirits that have not materialized cannot affect the physical world, not with Charms, physical attacks or in any other fashion.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 292
     }
   },
@@ -419,7 +419,7 @@
     "duration": "Until used",
     "description": "When the spirit uses this Charm, it gains a pool of extra actions equal to its Valor. Actions in this pool can be expended for extra attacks on the spirit's initiative or reflexively, to parry or dodge an attack or to refresh the spirit's Dodge pool when using the full dodge maneuver. If the spirit does not use all the actions in its pool, they remain available for it in the following turn. Actions in the pool will persist for many months, and many spirits make sure they retain a full complement of actions in case they are ambushed. A spirit cannot use this Charm again until it has used up all the extra actions granted by the last use of the Charm. While the spirit has extra actions in its pool, the motes of Essence used to power this Charm are considered committed.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 292
     }
   },
@@ -440,7 +440,7 @@
     "duration": "One scene",
     "description": "The spirit may intone blasphemies, keen out the lamentations of the dead or speak the victim's true name, but regardless, its words are like a battering ram. The spirit attacks using Charisma + Valor to hit the opponent and does bashing damage equal to the spirit's Strength, which can be soaked only by the target's Stamina. Extra successes on the attack add to damage, as usual. For every health level of damage the target takes, he is at a -1 penalty to all dice pools for a number of turns equal to the attacking spirit's Essence.\n\nThis attack may be dodged or blocked as normal but has no physical effects except perhaps causing blood to flow from the target's ears or hurling him bodily through light obstructions.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 292
     }
   },
@@ -1792,7 +1792,7 @@
     "duration": "Until Calibration",
     "description": "With these Charms, a spirit may place a mark of Essence upon a target in its line of sight as a delayed trigger for another Charm. If the delayed effect has a positive intent, the spirit must know and use the Compassion Charm Conditional Blessing. A negative or harmful intent requires the Valor Charm Conditional Curse. A Manipulation + Compassion/Valor roll against a difficulty of the target's Essence is necessary to inscribe the mark. If this roll succeeds, the spirit chooses one Charm it knows that can directly affect that target. If the selected Charm has multiple uses or permutations, the spirit must also select the exact effects the Charm will take. The spirit then establishes the precise actions the target must perform to trigger the delayed Charm.\n\nThe spirit may include as many conditions as desired, any of which may be as elaborate or straightforward as desired. For example, the spirit may decide to heal a loyal shaman with Touch of Grace if she speaks a specific prayer petitioning aid. Conversely, a demon might arrange to summon its Demon-Blooded daughter to a dungeon in Malfeas (via Capture) if she ever disobeys a direct order or reveals her infernal heritage to anyone she is not actively trying to kill.\n\nWhenever the target of a Conditional Blessing or Curse performs the requisite actions, the spirit knows. At any time, it may then immediately activate the triggered Charm as a reflexive action to end the Conditional Blessing/Curse regardless of distance or withhold its benediction/wrath until it can learn more about the target's actions.\n\nThis Charm and its mark also fade without effect if the target does not meet the established conditions by the next Calibration. Only spirits and other beings capable of perceiving Essence at work can see the mark of an extant Conditional Blessing/Curse.",
     "source": {
-      "book": "Exalted 1e Player's Guide",
+      "book": "Player's Guide",
       "page": 82
     }
   },
@@ -1818,7 +1818,7 @@
     "duration": "Until Calibration",
     "description": "With these Charms, a spirit may place a mark of Essence upon a target in its line of sight as a delayed trigger for another Charm. If the delayed effect has a positive intent, the spirit must know and use the Compassion Charm Conditional Blessing. A negative or harmful intent requires the Valor Charm Conditional Curse. A Manipulation + Compassion/Valor roll against a difficulty of the target's Essence is necessary to inscribe the mark. If this roll succeeds, the spirit chooses one Charm it knows that can directly affect that target. If the selected Charm has multiple uses or permutations, the spirit must also select the exact effects the Charm will take. The spirit then establishes the precise actions the target must perform to trigger the delayed Charm.\n\nThe spirit may include as many conditions as desired, any of which may be as elaborate or straightforward as desired. For example, the spirit may decide to heal a loyal shaman with Touch of Grace if she speaks a specific prayer petitioning aid. Conversely, a demon might arrange to summon its Demon-Blooded daughter to a dungeon in Malfeas (via Capture) if she ever disobeys a direct order or reveals her infernal heritage to anyone she is not actively trying to kill.\n\nWhenever the target of a Conditional Blessing or Curse performs the requisite actions, the spirit knows. At any time, it may then immediately activate the triggered Charm as a reflexive action to end the Conditional Blessing/Curse regardless of distance or withhold its benediction/wrath until it can learn more about the target's actions.\n\nThis Charm and its mark also fade without effect if the target does not meet the established conditions by the next Calibration. Only spirits and other beings capable of perceiving Essence at work can see the mark of an extant Conditional Blessing/Curse.",
     "source": {
-      "book": "Exalted 1e Player's Guide",
+      "book": "Player's Guide",
       "page": 82
     }
   },
@@ -1838,7 +1838,7 @@
     "duration": "Indefinite",
     "description": "Through the use of this Charm, an elemental may transmute its flesh and personal belongings into spiritual Essence, thereby assuming an incorporeal state. Dematerialized elementals may perceive and interact with other incorporeal beings as if both were solid, either magically or with touch. However, immaterial beings are utterly undetectable to physical beings and cannot directly affect the physical world in any way without Charms or other powers intended for such use (such as Possession, Will-o-Wisp etc.).\n\nDematerialized elementals with Essence 2+ can spend 1 mote to manifest for a scene as a translucent phantom of themselves and speak in a quiet voice or whisper, exactly as normally immaterial spirits can do as an innate ability. As always, the Storyteller remains the final arbiter of whether a particular power may affect the physical world from a dematerialized state. This lack of physical interaction also allows an incorporeal elemental to effortlessly pass through solid walls and other material obstructions, though appropriate magical wards can still bar their path.\n\nThe cost of this Charm is normally between 50 percent and 100 percent of the elemental's total available Essence pool. For elementals without a listed cost to dematerialize, the percentage cost of total Essence they must expend equals their (Essence rating x 5) + 45, rounded up. For example, a spirit with Essence 2 and an available pool of 48 motes pays 27 motes (55 percent).\n\nEclipse Caste Solars and Moonshadow Caste Abyssals who learn this Charm also calculate their cost according to the preceding formula without applying the usual double cost modifier for learning spirit Charms, determining the value according to a percentage of their total Essence pool (Personal + Peripheral). The half-spirit descendents of gods, elementals and demons do not pay a percentage of their total pool, instead paying a cost of their (Essence rating x 5) + 5 motes.\n\nUnlike other Charms of non-instant duration, Dematerialize does not require that elementals commit the Essence cost to sustain the magic. However, beings that normally exist in a material state cannot regain Essence through respiration while Dematerialized (and vice versa for immaterial spirits who materialize). Instead of committing Essence, beings using this Charm must pay half the normal cost each day at sunrise as a reflexive upkeep, rounded up. Failure to pay this upkeep immediately ends the effects of the Charm. Otherwise, characters must spend a dice action reverting back to their natural state, though success is automatic.\n\nThe rules printed here expand upon and supersede those for the Materialize Charm in Exalted and apply in reverse for that Charm.",
     "source": {
-      "book": "Exalted 1e Player's Guide",
+      "book": "Player's Guide",
       "page": 82
     }
   },
@@ -1870,7 +1870,7 @@
     "duration": "Permanent",
     "description": "Like the Exalted, the children of spirits may also exhibit superhuman resilience. Each time this Charm is purchased, the character gains two additional -2 health levels. Characters cannot purchase this Charm more times than their Conviction rating. Actual gods, elementals and demons do not normally use this Charm, but instead manifest health levels appropriate to their nature. As the souls of mortals, ghosts require this Arcanos to surpass mortal limits of resilience. (PG p.83)",
     "source": {
-      "book": "Exalted 1e Player's Guide",
+      "book": "Player's Guide",
       "page": 83
     }
   },

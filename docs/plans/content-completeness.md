@@ -22,6 +22,97 @@ Three tracks, each keyed to a **discovery index** the human supplies:
 > them there by accident 2026-08-10; whether they get copied to `main`'s `images/` or
 > read in place is a housekeeping call, not a blocker either way.
 
+## 2026-08-10 — the source gate moved: `sources/` extraction is AUTHORISED
+
+**Human's ruling:** "Automating extraction works for me when taking `sources`."
+
+This changes the standing "never read the `sources/` PDFs yourself" rule. The reason for
+that rule was that the human's manual copy step *was* the vetting checkpoint; with
+extraction automated, **the checkpoint moves to the human reading the output**, backed by
+the human's other 2026-08-10 rule: *anything too garbled to read without heavy
+interpretation gets marked and deferred, never guessed*.
+
+- Tool: **`tools/extract_born_digital.py`** — takes a page range, a list of ranges, or a
+  whole book; auto-detects the page offset; writes `<!--PAGE n-->`-marked Markdown in
+  the same shape as the human's hand pastes.
+- Output lives in **`images/_extracted/`**, deliberately apart from the hand-pasted
+  `.md` files: a hand paste was read by a human on the way in, an extraction was not.
+- **267 of the 285 gap entries from these books now have their source text on disk.**
+
+### What was extracted (2026-08-10) — all seven books
+
+| Book | Pages | Garbled pages | Notes |
+|---|---|---|---|
+| Book of Bone and Ebony | 169 | 13 | |
+| Player's Guide | 272 | 24 | |
+| Autochthonians | 304 | 35 | |
+| Savant and Sorcerer | 161 | 6 | ⚠ **1,754 unmapped glyphs** — see the glyph map |
+| Games of Divinity | 126 | 3 | |
+| Ruins of Rathess | 93 | 3 | |
+| **The Outcaste** | 161 | 0 | **decoded from a reflection cipher** |
+
+**273 of 291 gap entries from these books now have their source text on disk.**
+
+### Two PDFs needed a glyph map — `tools/glyph_maps/*.json`
+
+Both are mechanical, reversible transforms, applied with `tools/apply_glyph_map.py`.
+The maps are **data with their evidence attached**, so a substitution can be argued
+with, and `--review` prints every one in context before anything is authored.
+
+- **The Outcaste** — every glyph is reflected: `ord(plain) = 288 - ord(cipher)`. Proved,
+  not guessed: the running head decodes to `EXALTED THE OUTCASTE`, chapter heads to
+  `CHAPTER ONE LOOKSHY AND THE SEVENTH LEGION`, and printed folios decode to their own
+  page numbers. **Verified against the indexes: all 6 missing Charms and 20 of 27
+  artifacts found.**
+  ⚠ **It must be read through poppler, not pdfminer** — pdfminer silently DROPS
+  `U+00AD`, which is this cipher's lowercase **`s`** (288-115=173). The result is
+  fluent English with a letter missing (`artilleri t are a igned`). **A silently
+  vanishing letter is worse than any visible garble.**
+  ⚠ **Poppler `-layout` interleaves columns too**, so this path needed its own column
+  split — the gutter found as a run of character positions blank on ~every line, then
+  left column emitted entire, then right. Same defect as Rathess, different tool: the
+  bug is in reading a two-column grid line by line, not in any one library.
+- **Savant and Sorcerer** — the font map resolves no punctuation:
+  `213`→`’` (996), `209`→`—` (391), `128`→`•` (176), `210`/`211`→`“`/`”` (83 each).
+  ⚠ `(cid:128)` is the **Artifact rating dot — a MECHANICAL VALUE**, not punctuation.
+  `(cid:144)` (14) and seven rarer codes (25 total) are **left unmapped and flagged**;
+  there is not enough context to call them.
+
+### Four findings that generalise
+
+1. **⚠ Character count is NOT readability.** The Outcaste carries ~4,700 chars/page and
+   every one was byte-shifted. The tool now runs an English-readability check and
+   refuses below 50% unless `--force`, because the failure mode is a megabyte of
+   convincing garbage that looks like a successful transcription.
+2. **⚠ Folios are drawn more than once.** Several books layer the page number for a
+   drop shadow, so page 5 extracts as `"555"` and page 2 as `"22"`. Read literally,
+   that threw the offset out by ~20 and silently renumbered a whole book — Ruins of
+   Rathess came out starting at page 21. Offset detection now generates every plausible
+   reading and lets **cross-page consensus** decide. Re-checked: all seven books are
+   `+1`; Rathess *and* Games of Divinity had been wrong.
+3. **⚠ A failed column split is the most dangerous outcome this pipeline has** — the two
+   columns interleave line by line into *readable nonsense* (`…a vast and` welded to
+   `looting areas. This supplement`). **It bit twice, through two different tools**:
+   pdfplumber geometry (Rathess) and poppler `-layout` (The Outcaste). Both paths now
+   split explicitly. The gutter test must be **relative to the page**:
+   an absolute threshold finds nothing on sparse pages, where the gutter still carries a
+   few crossings. A second, independent check (word-left-edge clustering) now asks
+   whether a page *looks* two-column, and any disagreement emits
+   `<!--COLUMN SPLIT FAILED-->`. **41 pages across the seven books are flagged that
+   way; every one was previously silent.**
+4. **"Text is present" is far weaker evidence than "text is in the right order."** A
+   character-count audit showed ~100% retention while the columns were interleaved,
+   because interleaving loses nothing — it reorders. The human caught this, not the
+   audit. **Check order, not volume.**
+
+### Small-caps headings
+Charm names set in small caps render as a lone drop cap plus a remainder (`D` + `ARK` +
+`STEED`) on a different `top` but the same **baseline** — lines must cluster on
+`bottom`, or every heading scrambles into the next paragraph. Rejoining on tight
+adjacency alone then welds real word pairs (`CALLING` + `THE` → `CALLINGTHE`), producing
+**a wrong Charm name that looks right**; the join is restricted to a lone capital
+followed by all-caps.
+
 ## ⚠ The rule that governs all three tracks
 
 **A discovery index is a discovery index, never a source of values.** This was settled
@@ -127,7 +218,7 @@ regex, then walk upward gathering x-overlapping segments as that box's name. Val
 against a hand-read page (Abyssal: Archery → 11 boxes, matching both the page and the
 build exactly). **189 trees, 2,184 Charm boxes.**
 
-### The gap: **179 Charms/Arcanoi missing** (Fair Folk excluded)
+### The gap: **168 Charms/Arcanoi missing** (Fair Folk excluded)
 
 Of 1,953 in-scope boxes: **1,694 exact name matches, 80 name variants, 179 genuine
 gaps.** Getting to that number took three passes, and the corrections are the most
@@ -190,7 +281,7 @@ thing more likely to be wrong.**
 | Solar | 17 | Savage Seas, Time of Tumult, core |
 | **Terrestrial Martial Arts** | **14** | Player's Guide |
 | Terrestrial (Dragon-Blooded) | 9 | Outcaste, DB |
-| Abyssal | 7 | Abyssals 203-205 |
+| ~~Abyssal~~ | **0** | all 7 were parameterised entries already in the build |
 | Spirit | 5 | Games of Divinity 4, PG 1 |
 | Mountain Folk | 1 | `Heart of Chaos` (fair.247) |
 | **Sidereal** | **0** | — fully authored |
@@ -331,10 +422,10 @@ already built. **Every remaining blocker is a page sync** — no discovery is le
 
 | Track | In build | Missing | Diff status |
 |---|---|---|---|
-| Charms + Arcanoi | 1,709 | **179** | done 2026-08-10 |
+| Charms + Arcanoi | 1,709 | **168** | done 2026-08-10 |
 | Spells | 92 | **213** | done 2026-08-10 |
 | Artifacts | 40 | **266** | backlog built 2026-08-08 (Fair Folk 17 removed) |
-| **Total** | **1,841** | **658** | |
+| **Total** | **1,841** | **647** | |
 
 ### Sequence by BOOK, not by track
 
@@ -362,7 +453,7 @@ Tracks are otherwise independent and can interleave freely.
 
 ## What the human owes
 
-- [x] the **charm-trees PDF** — on disk (`-ds` worktree), **diff DONE: 179 missing**
+- [x] the **charm-trees PDF** — on disk (`-ds` worktree), **diff DONE: 168 missing**
 - [x] the **spell masterlist** — on disk (`-ds` worktree), **diff DONE: 213 missing**
 - [x] ~~ruling: `Adamant` vs `Solar`~~ — **RESOLVED 2026-08-10: same circle, two
       in-universe naming schemes (Realm vs not). Nothing blocked.**

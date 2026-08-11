@@ -7,10 +7,15 @@
     "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"motes": 3},
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "Moves with serpentine speed, adding the character's Martial Arts score to initiative for the turn (once per turn).",
-    "source": {"book": "Exalted 1e Core", "page": 160}
+    "source": {
+      "book": "Core",
+      "page": 160
+    }
   },
   {
     "id": "solar.martial-arts.serpentine-evasion",
@@ -19,11 +24,20 @@
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 1,
-    "prerequisites": [["solar.martial-arts.striking-cobra-technique"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "solar.martial-arts.striking-cobra-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "Infuses the anima with Essence to dodge with serpentine grace, adding Martial Arts dice to a dodge.",
-    "source": {"book": "Exalted 1e Core", "page": 160}
+    "source": {
+      "book": "Core",
+      "page": 160
+    }
   },
   {
     "id": "solar.martial-arts.snake-form",
@@ -32,11 +46,20 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["solar.martial-arts.serpentine-evasion"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "solar.martial-arts.serpentine-evasion"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "One scene",
     "description": "Assumes the sinuous Snake-style stance, adding Martial Arts to soak and enabling the style's higher Charms.",
-    "source": {"book": "Exalted 1e Core", "page": 160}
+    "source": {
+      "book": "Core",
+      "page": 160
+    }
   },
   {
     "id": "solar.martial-arts.essence-fangs-and-scales-technique",
@@ -45,11 +68,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["solar.martial-arts.snake-form"]],
-    "cost": {"motes": 6},
+    "prerequisites": [
+      [
+        "solar.martial-arts.snake-form"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
     "duration": "One scene",
     "description": "Hardens the fingers into envenomed talons, dealing lethal damage with bare hands.",
-    "source": {"book": "Exalted 1e Core", "page": 160}
+    "source": {
+      "book": "Core",
+      "page": 160
+    }
   },
   {
     "id": "solar.martial-arts.armor-penetrating-fang-strike",
@@ -58,11 +90,21 @@
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["solar.martial-arts.essence-fangs-and-scales-technique"]],
-    "cost": {"motes": 5, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.martial-arts.essence-fangs-and-scales-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "A strike that ignores the target's armor soak; only Stamina soaks the blow.",
-    "source": {"book": "Exalted 1e Core", "page": 161}
+    "source": {
+      "book": "Core",
+      "page": 161
+    }
   },
   {
     "id": "solar.martial-arts.snake-strikes-the-heel",
@@ -71,11 +113,20 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["solar.martial-arts.snake-form"]],
-    "cost": {"motes": 4},
+    "prerequisites": [
+      [
+        "solar.martial-arts.snake-form"
+      ]
+    ],
+    "cost": {
+      "motes": 4
+    },
     "duration": "Instant",
     "description": "Reflexively counterattacks whenever the character is successfully attacked.",
-    "source": {"book": "Exalted 1e Core", "page": 161}
+    "source": {
+      "book": "Core",
+      "page": 161
+    }
   },
   {
     "id": "solar.martial-arts.crippling-pressure-point-strike",
@@ -84,11 +135,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["solar.martial-arts.snake-strikes-the-heel"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "solar.martial-arts.snake-strikes-the-heel"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "Strikes nerve clusters to cripple the target, imposing lasting dice penalties.",
-    "source": {"book": "Exalted 1e Core", "page": 161}
+    "source": {
+      "book": "Core",
+      "page": 161
+    }
   },
   {
     "id": "solar.martial-arts.uncoiling-serpent-prana",
@@ -97,11 +157,20 @@
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["solar.martial-arts.snake-form"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "solar.martial-arts.snake-form"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "Supplements an attack with the uncoiling speed and precision of the striking serpent.",
-    "source": {"book": "Exalted 1e Core", "page": 161}
+    "source": {
+      "book": "Core",
+      "page": 161
+    }
   },
   {
     "id": "solar.martial-arts.striking-serpent-speed",
@@ -110,11 +179,21 @@
     "type": "Extra Action",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["solar.martial-arts.uncoiling-serpent-prana"]],
-    "cost": {"motes": 6, "willpower": 1},
+    "prerequisites": [
+      [
+        "solar.martial-arts.uncoiling-serpent-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Strikes with the coiled speed of a serpent, granting extra actions in the turn.",
-    "source": {"book": "Exalted 1e Core", "page": 162}
+    "source": {
+      "book": "Core",
+      "page": 162
+    }
   },
   {
     "id": "solar.martial-arts.essence-venom-strike",
@@ -124,13 +203,26 @@
     "min_ability": 5,
     "min_essence": 3,
     "prerequisites": [
-      ["solar.martial-arts.armor-penetrating-fang-strike"],
-      ["solar.martial-arts.crippling-pressure-point-strike"],
-      ["solar.martial-arts.striking-serpent-speed"]
+      [
+        "solar.martial-arts.armor-penetrating-fang-strike"
+      ],
+      [
+        "solar.martial-arts.crippling-pressure-point-strike"
+      ],
+      [
+        "solar.martial-arts.striking-serpent-speed"
+      ]
     ],
-    "cost": {"motes": 10, "willpower": 1, "health": 1},
+    "cost": {
+      "motes": 10,
+      "willpower": 1,
+      "health": 1
+    },
     "duration": "Instant",
     "description": "Strikes with venomous Essence as deadly as a dozen serpents, dealing aggravated damage.",
-    "source": {"book": "Exalted 1e Core", "page": 162}
+    "source": {
+      "book": "Core",
+      "page": 162
+    }
   }
 ]

@@ -11,8 +11,11 @@ docs.
 - **⚠ Uncommitted at end of session: the tier-2 move** (6 files — `engine/adversaries.py`,
   `ui/adversaries.py`, `ui/view.py`, `docs/ARCHITECTURE.md`,
   `docs/status/adversary-roster.md`, `docs/plans/qt-port.md`), plus this close-out's doc
-  edits. Suite green with them in place. **Branch before committing** — the convention is
-  no direct commits to `main`.
+  edits. Suite green with them in place.
+  ⚠ **A previous handoff claimed "branch before committing — no direct commits to
+  `main`". That is FALSE and the human has corrected it (2026-08-10).** The history is
+  a flat series of direct commits to `main`; there is no such convention and never was.
+  Do not reintroduce it, and do not offer to branch on the strength of it.
 - **Catalogue picker dialogs — DONE, browser-verified, through TWO code-review passes**
   (`a5fc3f6`, `b162a05`, `fbe97a0`). The second pass found a serious bug the first fix
   introduced and corrected an overclaim. Record: `docs/status/catalogue-dialogs.md`.
@@ -72,8 +75,8 @@ pre-move source, and left every call site and test untouched via re-exports.
   PDF, spells vs the human's masterlist, artifacts vs the existing backlog.
   **All three indexes are on disk — but in the `-ds` worktree
   (`…Charsheet Generator-ds/images/`), not this one**, since `images/` is gitignored and
-  does not travel between worktrees. **BOTH diffs are DONE: 179 Charms + 213 spells
-  missing, on top of 266 artifacts (658 total).** Every entry is enumerated per book in
+  does not travel between worktrees. **BOTH diffs are DONE: 168 Charms + 213 spells
+  missing, on top of 266 artifacts (647 total).** Every entry is enumerated per book in
   **`docs/status/content-gap-entries.md`** (regenerate: `tools/gen_content_gap.py`).
   All discovery work is finished;
   **the only remaining blocker on the whole plan is page sync — no rulings are open.**
@@ -83,9 +86,22 @@ pre-move source, and left every call site and test untouched via re-exports.
   Rulings closed this session: **Fair Folk artifacts are OUT OF SCOPE** (reviewed, as
   game-changing as the splat's rules — decision 0010 territory, do not re-ask);
   `Adamant` = `Solar` (two in-universe naming schemes, Realm vs not).
-  ⚠ **A name-only diff overstated the Charm gap by 55%** (278 → 179) — the build's
+  ⚠ **A name-only diff overstated the Charm gap by 55%** (278 → 168) — the build's
   parameterised entries (`Keen (Sense) Technique`) and tree typos ate the difference.
   Mountain Folk went 7 → 1 on re-check. **Suspect the diff before the build.**
+- **`sources/` extraction is authorised and SIX BOOKS ARE EXTRACTED** (2026-08-10) into
+  `images/_extracted/` via `tools/extract_born_digital.py` — Bone and Ebony, Player's
+  Guide, Savant and Sorcerer, Autochthonians, Games of Divinity, Ruins of Rathess.
+  **267 of 285 gap entries from those books now have source text on disk.** Two things
+  need the human before authoring from them: **Savant and Sorcerer's 1,754 unmapped
+  `(cid:N)` glyphs** (left verbatim on purpose — substituting is interpretation), and
+  **The Outcaste, which the tool REFUSES** (its text layer is byte-shifted gibberish
+  despite being 4,700 chars/page — it needs the VLM leg). ⚠ **Character count is not
+  readability** is the lesson; the tool now checks.
+- **Abyssal Charm attribution FIXED** — all 233 said `Exalted 1e Core` while carrying
+  Abyssals pages; now `Exalted: The Abyssals`. `Exalted 1e Core` → `Core` and the three
+  Player's Guide spellings → `Player's Guide` (model default updated too). Conventions
+  and the open cosmetic cleanup: **`docs/source-attribution.md`**.
 - **The 20 Twilight/Eclipse artifact names are still NOT browser-verified.** Pin +
   combobox tests green, but no click-through of the new names in the Advantages tab.
   Light check — pick a Twilight and an Eclipse name, confirm name→rating autofill +

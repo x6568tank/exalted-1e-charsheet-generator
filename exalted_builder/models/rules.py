@@ -147,7 +147,7 @@ def circle_kind(circle: "SpellCircle") -> str:
 # --------------------------------------------------------------------------- #
 
 class Source(BaseModel):
-    book: str = "Exalted 1e Core"
+    book: str = "Core"
     page: Optional[int] = None
 
 

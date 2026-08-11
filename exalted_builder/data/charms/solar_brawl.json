@@ -13,7 +13,7 @@
     "duration": "Instant",
     "description": "Infuses unarmed strikes with Essence, making them more damaging; extra successes add to damage.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 157
     }
   },
@@ -35,7 +35,7 @@
     "duration": "Instant",
     "description": "Hardens the hands with Essence to deal lethal damage in hand-to-hand combat without penalty.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 157
     }
   },
@@ -57,7 +57,7 @@
     "duration": "Instant",
     "description": "Channels Essence into a stunning blow; each success imposes a dice penalty on the target.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 157
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Varies",
     "description": "Wraps and crushes a clinched opponent, dealing Strength + Essence + 2 lethal damage.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 158
     }
   },
@@ -101,7 +101,7 @@
     "duration": "Instant",
     "description": "Pours Essence into the character's motion to automatically win initiative against a single opponent.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 158
     }
   },
@@ -124,7 +124,7 @@
     "duration": "Instant",
     "description": "Rains a flurry of unarmed blows as extra attacks, all against a single target.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 159
     }
   },
@@ -142,7 +142,7 @@
     "duration": "One turn",
     "description": "Suffuses the body with Essence to strike inanimate objects and structures with tremendous force.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 159
     }
   },
@@ -164,7 +164,7 @@
     "duration": "Instant",
     "description": "Hurls an opponent with great force, dealing damage based on the distance thrown.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 159
     }
   },
@@ -186,7 +186,7 @@
     "duration": "Instant",
     "description": "Strikes an opponent so hard they are knocked flying, taking damage for the distance hurled.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 160
     }
   },
@@ -208,7 +208,7 @@
     "duration": "Instant",
     "description": "A blow whose force ripples outward; even a parried strike transfers damage through the parry.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 160
     }
   },

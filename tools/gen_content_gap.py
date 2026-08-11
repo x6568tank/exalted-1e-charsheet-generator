@@ -29,6 +29,9 @@ CANON = {
 }
 ONDISK = {"Caste Book: Dawn", "Caste Book: Night", "Caste Book: Twilight",
           "Caste Book: Zenith", "Caste Book: Eclipse", "Fair Folk (Mountain Folk ch.)"}
+# Extracted from sources/ on 2026-08-10 into images/_extracted/ — full text on disk.
+EXTRACTED = {"Book of Bone and Ebony", "Savant and Sorcerer", "Player's Guide",
+             "The Outcaste", "Games of Divinity", "Ruins of Rathess", "Autochthonians"}
 
 charms = json.load(open("missing_charms_full.json"))
 spells = json.load(open("missing_spells_full.json"))
@@ -92,7 +95,12 @@ W("|---|---|---|---|---|---|")
 for b in order:
     v = books[b]
     n = len(v["charms"]) + len(v["spells"]) + len(v["artifacts"])
-    disk = "YES (partial)" if b in ONDISK else "**NO**"
+    if b in EXTRACTED:
+        disk = "**YES — extracted**"
+    elif b in ONDISK:
+        disk = "YES (partial)"
+    else:
+        disk = "**NO**"
     W(f"| {b} | {len(v['charms']) or '—'} | {len(v['spells']) or '—'} | {len(v['artifacts']) or '—'} | **{n}** | {disk} |")
 W("")
 

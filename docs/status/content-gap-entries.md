@@ -14,7 +14,7 @@ already survived three filters (exact match, global fuzzy ≥0.86, same-book fuz
 `Mantle of (Element) Invulnerability` — mean one record can legitimately cover
 several rows below. **Check the build before authoring.**
 
-**Totals: 179 Charm/Arcanoi rows (177 unique) · 213 spells · 266 artifacts = 658 rows.**
+**Totals: 168 Charm/Arcanoi rows (166 unique) · 213 spells · 266 artifacts = 647 rows.**
 
 The Charm rows exceed unique names by 2: the trees **cross-list** a Charm that
 belongs to more than one tree (`Pole the Black Depths` sits in two Arcanoi;
@@ -24,29 +24,28 @@ belongs to more than one tree (`Pole the Black Depths` sits in two Arcanoi;
 
 | Book | Charms | Spells | Artifacts | **Total** | Pages on disk? |
 |---|---|---|---|---|---|
-| Book of Bone and Ebony | 70 | 60 | 74 | **204** | **NO** |
-| Savant and Sorcerer | — | 93 | 5 | **98** | **NO** |
-| Player's Guide | 57 | — | 14 | **71** | **NO** |
+| Book of Bone and Ebony | 70 | 60 | 74 | **204** | **YES — extracted** |
+| Savant and Sorcerer | — | 93 | 5 | **98** | **YES — extracted** |
+| Player's Guide | 57 | — | 14 | **71** | **YES — extracted** |
 | Book of Three Circles | — | 49 | 14 | **63** | **NO** |
-| The Outcaste | 6 | — | 27 | **33** | **NO** |
-| The Abyssals | 7 | 1 | 16 | **24** | **NO** |
+| The Outcaste | 6 | — | 27 | **33** | **YES — extracted** |
 | Savage Seas | 10 | 4 | 4 | **18** | **NO** |
-| Ruins of Rathess | — | — | 18 | **18** | **NO** |
+| Ruins of Rathess | — | — | 18 | **18** | **YES — extracted** |
 | The Lunars | 17 | — | — | **17** | **NO** |
-| Autochthonians | — | — | 16 | **16** | **NO** |
+| The Abyssals | — | 1 | 16 | **17** | **NO** |
+| Autochthonians | — | — | 16 | **16** | **YES — extracted** |
 | Time of Tumult | 3 | — | 11 | **14** | **NO** |
 | Blood and Salt | — | 2 | 11 | **13** | **NO** |
 | Aspect Book: Air | — | — | 13 | **13** | **NO** |
-| Exalted Core | 2 | — | 8 | **10** | **NO** |
+| Exalted Core | — | — | 8 | **8** | **NO** |
 | Aspect Book: Earth | — | — | 6 | **6** | **NO** |
 | Storyteller's Companion | — | — | 6 | **6** | **NO** |
-| Games of Divinity | 4 | 1 | — | **5** | **NO** |
+| Games of Divinity | 4 | 1 | — | **5** | **YES — extracted** |
 | Sidereals | — | 2 | 3 | **5** | **NO** |
 | Cult of the Illuminated | — | — | 5 | **5** | **NO** |
 | Kingdom of Halta | — | — | 5 | **5** | **NO** |
 | Aspect Book: Wood | — | — | 4 | **4** | **NO** |
 | Aspect Book: Water | — | — | 3 | **3** | **NO** |
-| Dragon-Blooded | 2 | — | — | **2** | **NO** |
 | Aspect Book: Fire | — | — | 2 | **2** | **NO** |
 | Fair Folk (Mountain Folk ch.) | 1 | — | — | **1** | YES (partial) |
 | ⚠ UNKNOWN CODE (`E:S` — legend omits it; likely Sidereals) | — | 1 | — | **1** | **NO** |
@@ -592,48 +591,6 @@ belongs to more than one tree (`Pole the Black Depths` sits in two Arcanoi;
 | Wave Stepping Boots | •• | 92 |
 
 
-## The Abyssals — 24 entries
-
-### Charms / Arcanoi (7)
-
-| Name | Tree | Page | Combo-OK |
-|---|---|---|---|
-| Enhanced Dexterity Discipline | Abyssal: Athletics | 203 |  |
-| Enhanced Strength Discipline | Abyssal: Athletics | 203 |  |
-| Superior Hearing Focus | Abyssal: Awareness | 205 |  |
-| Incomparable Hearing Technique | Abyssal: Awareness | 205 |  |
-| Superior Smell Focus | Abyssal: Awareness | 205 |  |
-| Superior Sight Focus | Abyssal: Awareness | 205 |  |
-| Incomparable Sight Technique | Abyssal: Awareness | 205 |  |
-
-### Spells (1)
-
-| Name | Circle | Page |
-|---|---|---|
-| Cleansing Solar Flames | Solar *(list: Adamant)* | 139 |
-
-### Artifacts (16)
-
-| Name | Rating | Page |
-|---|---|---|
-| Soulfire Crystal | • | 254 |
-| Essence Containing Gem | • | 255 |
-| Chime of Perfect Summoning | • | 256 |
-| Vessel of the Pyre | • | 256 |
-| Grave-Prison Chains | •• | 257 |
-| Morning Star Guide | •• | 257 |
-| Soulfire Mask | •• | 257 |
-| Demon-Embracing Robes | ••• | 258 |
-| Ghost-Strengthening Links | ••• | 258 |
-| Visage-Distorting Mask | •• | 258 |
-| Repeating Maggot-Caster | ••• | 259 |
-| Tongue of 11 Demon Howl | ••• | 259 |
-| Hovering Iron Spirit | •••• | 260 |
-| Virtue-Enhancing Flask | ••• | 260 |
-| Shroud of the Unquiet Dead | •••• | 261 |
-| Whip of Devouring Serpents | ••••• | 261 |
-
-
 ## Savage Seas — 18 entries
 
 ### Charms / Arcanoi (10)
@@ -719,6 +676,36 @@ belongs to more than one tree (`Pole the Black Depths` sits in two Arcanoi;
 | Ghost Sight | Lunar: Deadly Beastman Gift | 127 |  |
 | Enhanced Senses | Lunar: Deadly Beastman Gift | 127 |  |
 | Wound-Knitting Power | Lunar: Deadly Beastman Gift | 127 |  |
+
+
+## The Abyssals — 17 entries
+
+### Spells (1)
+
+| Name | Circle | Page |
+|---|---|---|
+| Cleansing Solar Flames | Solar *(list: Adamant)* | 139 |
+
+### Artifacts (16)
+
+| Name | Rating | Page |
+|---|---|---|
+| Soulfire Crystal | • | 254 |
+| Essence Containing Gem | • | 255 |
+| Chime of Perfect Summoning | • | 256 |
+| Vessel of the Pyre | • | 256 |
+| Grave-Prison Chains | •• | 257 |
+| Morning Star Guide | •• | 257 |
+| Soulfire Mask | •• | 257 |
+| Demon-Embracing Robes | ••• | 258 |
+| Ghost-Strengthening Links | ••• | 258 |
+| Visage-Distorting Mask | •• | 258 |
+| Repeating Maggot-Caster | ••• | 259 |
+| Tongue of 11 Demon Howl | ••• | 259 |
+| Hovering Iron Spirit | •••• | 260 |
+| Virtue-Enhancing Flask | ••• | 260 |
+| Shroud of the Unquiet Dead | •••• | 261 |
+| Whip of Devouring Serpents | ••••• | 261 |
 
 
 ## Autochthonians — 16 entries
@@ -819,14 +806,7 @@ belongs to more than one tree (`Pole the Black Depths` sits in two Arcanoi;
 | Reaver Dragonfly | •••• | 81 |
 
 
-## Exalted Core — 10 entries
-
-### Charms / Arcanoi (2)
-
-| Name | Tree | Page | Combo-OK |
-|---|---|---|---|
-| Keen Hearing and Touch Technique | Solar: Awareness | 196 |  |
-| Unsurpassed Hearing and Touch Discipline | Solar: Awareness | 196 |  |
+## Exalted Core — 8 entries
 
 ### Artifacts (8)
 
@@ -953,16 +933,6 @@ belongs to more than one tree (`Pole the Black Depths` sits in two Arcanoi;
 | Stamp of Ultimate Authority | •• | 80 |
 | The Ultimate Document | ••• | 80 |
 | Resplendent Dolphin Courier | •••• | 81 |
-
-
-## Dragon-Blooded — 2 entries
-
-### Charms / Arcanoi (2)
-
-| Name | Tree | Page | Combo-OK |
-|---|---|---|---|
-| Wood Protection Form | Terrestrial: Resistance | 201 |  |
-| Air Protection Form | Terrestrial: Resistance | 201 |  |
 
 
 ## Aspect Book: Fire — 2 entries

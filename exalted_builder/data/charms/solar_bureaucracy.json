@@ -13,7 +13,7 @@
     "duration": "Instant",
     "description": "Evaluates the true quality and fair price of any goods offered for sale at a glance.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 203
     }
   },
@@ -35,7 +35,7 @@
     "duration": "Instant",
     "description": "Discerns a seller's intentions and the true value of an object they offer.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 203
     }
   },
@@ -57,7 +57,7 @@
     "duration": "Instant",
     "description": "Reads a customer's intentions and budget with a single glance.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 203
     }
   },
@@ -83,7 +83,7 @@
     "duration": "One scene",
     "description": "Becomes a supernaturally persuasive salesman, able to sell almost anything to anyone.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 203
     }
   },
@@ -101,7 +101,7 @@
     "duration": "One task",
     "description": "Navigates bureaucracy preternaturally well, getting officials to cooperate.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 204
     }
   },
@@ -123,7 +123,7 @@
     "duration": "One task",
     "description": "Cuts through bureaucratic delay to accomplish a task in record time.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 204
     }
   },
@@ -145,7 +145,7 @@
     "duration": "One task",
     "description": "Stalls and slows a bureaucratic process, multiplying the time a task takes.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 205
     }
   },
@@ -168,7 +168,7 @@
     "duration": "One task",
     "description": "Sows discord in a meeting, hampering and crippling the bureaus involved.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 205
     }
   },
@@ -191,7 +191,7 @@
     "duration": "One investigation",
     "description": "Roots out corruption in a bureaucracy through a thorough investigation.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 205
     }
   },

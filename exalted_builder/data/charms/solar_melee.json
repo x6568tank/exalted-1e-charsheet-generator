@@ -13,7 +13,7 @@
     "duration": "Instant",
     "description": "Adds one die to a single attack per mote spent, to a maximum of double the character's Dexterity + Melee dice pool.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 162
     }
   },
@@ -35,7 +35,7 @@
     "duration": "Instant",
     "description": "The attack's extra successes are counted as automatic damage successes; the Essence must be spent before the attack roll.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 163
     }
   },
@@ -57,7 +57,7 @@
     "duration": "Instant",
     "description": "Adds an extra die of damage for each mote of Essence spent, up to the character's Strength; a botched damage roll may break ordinary weapons.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 163
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Instant",
     "description": "Lets the character attack twice in one turn; the two attacks are rolled separately.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 163
     }
   },
@@ -101,7 +101,7 @@
     "duration": "Instant",
     "description": "Buys multiple additional attacks in a turn (2 motes per extra attack, up to the character's Essence), each at the full dice pool.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 163
     }
   },
@@ -124,7 +124,7 @@
     "duration": "Instant",
     "description": "A flurry of strikes and thrusts, splitting the Melee dice pool among as many attacks as the character's Dexterity.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 163
     }
   },
@@ -142,7 +142,7 @@
     "duration": "Instant",
     "description": "Calls a dropped or thrown weapon back into the character's hand.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 163
     }
   },
@@ -164,7 +164,7 @@
     "duration": "Instant",
     "description": "Summons a visible weapon across a distance into the character's hand.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 163
     }
   },
@@ -187,7 +187,7 @@
     "duration": "Instant",
     "description": "Summons or banishes a single attuned weapon to or from Elsewhere.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 164
     }
   },
@@ -210,7 +210,7 @@
     "duration": "One scene",
     "description": "Forms a blade of pure Essence in hand, dealing base lethal damage equal to the character's Strength, lasting a scene.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 164
     }
   },
@@ -232,7 +232,7 @@
     "duration": "Instant",
     "description": "Hurls a melee weapon as a ranged attack out to (Dexterity x5) yards, after which it returns to hand.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 164
     }
   },
@@ -254,7 +254,7 @@
     "duration": "Instant",
     "description": "Charges the weapon with Essence to strike a distant target, dealing lethal damage.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 165
     }
   },
@@ -276,7 +276,7 @@
     "duration": "Instant",
     "description": "Invests the weapon with Essence to deal aggravated damage against creatures of darkness and the undead.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 166
     }
   },
@@ -299,7 +299,7 @@
     "duration": "One scene",
     "description": "Wreathes the weapon in burning Essence for a scene, dealing aggravated damage to the undead and creatures of darkness.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 166
     }
   },
@@ -325,7 +325,7 @@
     "duration": "Instant",
     "description": "Channels Solar Essence into a leaping bolt that strikes a distant target for the weapon's damage, aggravated to creatures of Malfeas and the Underworld.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 166
     }
   },
@@ -343,7 +343,7 @@
     "duration": "Instant",
     "description": "Adds parry dice against an attack the character is aware of, one die per 2 motes spent.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 166
     }
   },
@@ -365,7 +365,7 @@
     "duration": "Instant",
     "description": "Parries an attack the character is aware of, even one normally too fast to block.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 166
     }
   },
@@ -387,7 +387,7 @@
     "duration": "Until next action",
     "description": "Until the next action, the character may parry any attack she is aware of with no dice penalty for multiple defenses.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 166
     }
   },
@@ -410,7 +410,7 @@
     "duration": "Instant",
     "description": "Perfectly blocks a single attack the character is aware of, even normally unblockable ones.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 166
     }
   },
@@ -432,7 +432,7 @@
     "duration": "One scene",
     "description": "For a scene, perfectly blocks attacks the character is aware of, even normally unblockable ones.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 167
     }
   },
@@ -454,7 +454,7 @@
     "duration": "Instant",
     "description": "An immediate counterattack at full Dexterity + Melee against anyone making a hand-to-hand attack; not an action and repeatable as motes allow.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 167
     }
   },
@@ -476,7 +476,7 @@
     "duration": "One turn",
     "description": "Until the next action, responds to all incoming hand-to-hand attacks with an immediate full counterattack.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 167
     }
   },

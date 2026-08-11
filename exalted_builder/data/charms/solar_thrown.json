@@ -13,7 +13,7 @@
     "duration": "Instant",
     "description": "Guides a thrown weapon with Essence, adding one die per mote to a Thrown attack (up to double the pool).",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 168
     }
   },
@@ -35,7 +35,7 @@
     "duration": "Instant",
     "description": "A thrown strike that wounds a joint, imposing a lasting dice penalty on the target's physical actions.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 168
     }
   },
@@ -57,7 +57,7 @@
     "duration": "Instant",
     "description": "Throws a weapon unseen by onlookers, concealing the source and direction of the attack.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 168
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Instant",
     "description": "Throws with such control that the weapon strikes in silence, leaving no trace of its path.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 168
     }
   },
@@ -101,7 +101,7 @@
     "duration": "Instant",
     "description": "An assassin's strike from surprise; the target applies no soak and the damage successes are doubled.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 168
     }
   },
@@ -119,7 +119,7 @@
     "duration": "Instant",
     "description": "Lightens a thrown weapon with Essence to triple its effective range without penalty.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 169
     }
   },
@@ -141,7 +141,7 @@
     "duration": "Instant",
     "description": "Hurls Essence-conjured duplicates of a favored throwing weapon, saturating an area with blades.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 169
     }
   },
@@ -164,7 +164,7 @@
     "duration": "Instant",
     "description": "Throws a number of weapons from one hand as extra attacks in a single action.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 169
     }
   },
@@ -187,7 +187,7 @@
     "duration": "Instant",
     "description": "Hurls a chakram of burning Essence (range ~100 yards) that adds automatic successes against demons, ghosts, and creatures of the night.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 169
     }
   },

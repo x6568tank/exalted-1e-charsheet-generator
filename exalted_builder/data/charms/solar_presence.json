@@ -13,7 +13,7 @@
     "duration": "One hour",
     "description": "Radiates calm confidence, raising the character's effective Presence in one-on-one interactions.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 175
     }
   },
@@ -35,7 +35,7 @@
     "duration": "Instant",
     "description": "Lends supernatural persuasiveness to an argument, adding successes to sway a listener.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 175
     }
   },
@@ -58,7 +58,7 @@
     "duration": "Special",
     "description": "Implants a hypnotic suggestion the target carries out unaware; it persists for days equal to the Exalt's Charisma.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 175
     }
   },
@@ -80,7 +80,7 @@
     "duration": "One scene",
     "description": "Wreathes the character in radiant majesty, awing onlookers (not usable with the Dawn anima power).",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 175
     }
   },
@@ -103,7 +103,7 @@
     "duration": "One day",
     "description": "Imbues a servant with the majesty of the Exalted's office, lending them borrowed authority.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 175
     }
   },
@@ -126,7 +126,7 @@
     "duration": "One scene",
     "description": "Makes the character terrible and awe-inspiring, driving foes to flee or submit.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 176
     }
   },

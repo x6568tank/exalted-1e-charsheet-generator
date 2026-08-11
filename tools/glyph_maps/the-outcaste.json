@@ -1,0 +1,15 @@
+{
+  "book": "The Outcaste",
+  "pdf": "Exalted - WW8850 - The Outcaste.pdf",
+  "problem": "Every glyph is reflected: the font stores code 288 - ord(char). Extraction without decoding yields byte-shifted gibberish that still counts as a fat text layer.",
+  "cipher": "reflect288",
+  "evidence": "The running head decodes as EXALTED THE OUTCASTE; chapter heads as CHAPTER ONE LOOKSHY AND THE SEVENTH LEGION and CHAPTER THREE THE FOREST WITCHES; printed folios decode to their own page numbers. The mapping is proved by the book, not inferred.",
+  "extractor": "poppler (pdftotext), NOT pdfminer - pdfminer silently DROPS U+00AD, which is this cipher's lowercase 's' (288-115=173). Losing a letter silently is worse than any garble.",
+  "chars": {
+    "0x2d": {"to": "s", "why": "U+00AD soft hyphen, which poppler renders as '-'; 288-115=173. A real hyphen encodes as 0xF3 and decodes normally, so every 0x2D here is an 's'.", "seen_in": ["artilleri-t- -> artillerists", "-iege engineer- -> siege engineers"]},
+    "0x4b": {"to": "’", "why": "apostrophe (raw ASCII passthrough; a real letter K arrives as 0xD5)", "seen_in": ["ShogunateKs -> Shogunate's", "LookshyKs -> Lookshy's"]},
+    "0x4e": {"to": "“", "why": "left double quote (a real N arrives as 0xD2)", "seen_in": ["NfangsM -> “fangs”"]},
+    "0x4d": {"to": "”", "why": "right double quote (a real M arrives as 0xD3)", "seen_in": ["NlegionsM -> “legions”"]},
+    "0x4f": {"to": "—", "why": "em dash (a real O arrives as 0xD1)", "seen_in": ["per dragon O this is sometimes -> per dragon — this is"]}
+  }
+}

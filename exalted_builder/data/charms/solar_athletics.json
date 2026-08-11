@@ -13,7 +13,7 @@
     "duration": "One scene",
     "description": "Grants perfect balance, letting the character stand and move on any surface however narrow or precarious.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 193
     }
   },
@@ -35,7 +35,7 @@
     "duration": "One turn",
     "description": "Leaps great distances, jumping many times the normal height or length.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 193
     }
   },
@@ -58,7 +58,7 @@
     "duration": "Instant",
     "description": "Strikes with the momentum of a leaping charge, adding damage from sheer speed.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 193
     }
   },
@@ -80,7 +80,7 @@
     "duration": "One turn",
     "description": "Bursts into a blur of motion, moving far faster than normal for a turn.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 193
     }
   },
@@ -102,7 +102,7 @@
     "duration": "Instant",
     "description": "Walks on walls and ceilings, scuttling across any surface regardless of gravity.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 194
     }
   },
@@ -124,7 +124,7 @@
     "duration": "Instant",
     "description": "Lightens the footfalls to run across fluid surfaces such as water or quicksand.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 194
     }
   },
@@ -147,7 +147,7 @@
     "duration": "Instant",
     "description": "Leaps into an attack, doubling the damage with the force of the pounce.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 194
     }
   },
@@ -173,7 +173,7 @@
     "duration": "One hour",
     "description": "Travels at tremendous speed in great graceful leaps for an hour, as though in a waking dream.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 195
     }
   },
@@ -191,7 +191,7 @@
     "duration": "One scene",
     "description": "Tremendously increases the character's Strength for a short time.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 195
     }
   },
@@ -213,7 +213,7 @@
     "duration": "One scene",
     "description": "Further increases Strength + Athletics for lifting and breaking objects.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 195
     }
   },
@@ -235,7 +235,7 @@
     "duration": "Instant",
     "description": "Channels Essence into a single attack against an object, adding tremendous damage.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 196
     }
   },

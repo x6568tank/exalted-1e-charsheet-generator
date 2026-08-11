@@ -15,7 +15,7 @@
     "grants_circle": "Terrestrial",
     "description": "Lets the character learn and cast spells of the Terrestrial (First) Circle. Each spell also has its own Essence cost, listed in the spell. Cannot be placed in a Combo.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 191
     }
   },
@@ -39,7 +39,7 @@
     "grants_circle": "Celestial",
     "description": "Lets the character learn and cast spells of the Celestial (Second) Circle, the magic of the Celestial Exalted. Cannot be placed in a Combo.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 191
     }
   },
@@ -63,7 +63,7 @@
     "grants_circle": "Solar",
     "description": "Lets the character learn and cast spells of the Solar (Third) Circle, the most powerful sorcery, available only to the Solar Exalted. Cannot be placed in a Combo.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 191
     }
   },
@@ -82,7 +82,7 @@
     "grants_circle": "Shadowlands",
     "description": "The necromancy of the First Circle, binding the dark energies of the Underworld — potent but limited in scope. Invoking this Charm enables the character to cast a single Shadowlands Circle Necromancy spell; the spell's own Essence cost (listed in its description) must also be paid. Shadowlands Circle Necromancy can never be part of a Combo. (Solars may learn Shadowlands and Labyrinth Circle Necromancy, but never the Void Circle.)",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 197
     }
   },
@@ -105,7 +105,7 @@
     "grants_circle": "Labyrinth",
     "description": "The necromancy of the Second Circle — the stuff of nightmares and dreams best left to dead gods, offering great and terrible power. Enables the character to cast a single Labyrinth Circle Necromancy spell; the spell's own Essence cost must also be paid. Labyrinth Circle Necromancy can never be part of a Combo.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 198
     }
   },
@@ -123,7 +123,7 @@
     "duration": "One scene",
     "description": "Perceives unmanifested spirits, gods, ghosts, and demons that would otherwise be invisible.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 192
     }
   },
@@ -145,7 +145,7 @@
     "duration": "Instant",
     "description": "Lets the character's attacks strike and harm dematerialized spirits.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 192
     }
   },
@@ -167,7 +167,7 @@
     "duration": "Instant",
     "description": "Devours a slain ghost's Essence, permanently destroying it and feeding the character's pools.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 192
     }
   },
@@ -189,7 +189,7 @@
     "duration": "One scene",
     "description": "Inscribes a diagram that bars spirits from an area or holds a bound spirit at bay.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 193
     }
   },
@@ -211,7 +211,7 @@
     "duration": "One scene",
     "description": "Perceives the flow of Essence in the world, identifying enchantments, Manses, and demesnes.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 193
     }
   },

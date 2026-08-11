@@ -1,138 +1,138 @@
 [
- {
-  "id": "elemental.aegis",
-  "name": "Aegis",
-  "bp_cost": 7,
-  "min_essence": 2,
-  "required_merits": [
-   "mf.elemental-dominion"
-  ],
-  "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts one scene unless prematurely revoked.",
-  "description": "The element coalesces into a thin sheath that protects the elemental with (3L/3B) armor.",
-  "source": {
-   "book": "Exalted 1e Core",
-   "page": 296
+  {
+    "id": "elemental.aegis",
+    "name": "Aegis",
+    "bp_cost": 7,
+    "min_essence": 2,
+    "required_merits": [
+      "mf.elemental-dominion"
+    ],
+    "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts one scene unless prematurely revoked.",
+    "description": "The element coalesces into a thin sheath that protects the elemental with (3L/3B) armor.",
+    "source": {
+      "book": "Core",
+      "page": 296
+    }
+  },
+  {
+    "id": "elemental.coarse-skin",
+    "name": "Coarse Skin",
+    "bp_cost": 7,
+    "min_essence": 2,
+    "required_merits": [
+      "mf.elemental-dominion"
+    ],
+    "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts one scene unless prematurely revoked.",
+    "description": "Whether searing or blistering-cold skin, fur sharp with thorns or pebbles or even abrasive scales, the elemental damages anyone that touches it, inflicting two dice of lethal damage.",
+    "source": {
+      "book": "Core",
+      "page": 296
+    }
+  },
+  {
+    "id": "elemental.dragons-suspire",
+    "name": "Dragon's Suspire",
+    "bp_cost": 7,
+    "min_essence": 2,
+    "required_merits": [
+      "mf.elemental-dominion"
+    ],
+    "activation": "3 motes or 1 Willpower to evoke. Simple action; must pay for each attack separately.",
+    "description": "Elemental breath, such as a thunderclap, plume of flame, stream of rocks or splinters or blast of ice water. This attack is a Dexterity + Athletics or Archery roll, whichever the attacker prefers. The effect is 10 feet in length and 5 feet wide. It can be blocked or dodged. It inflicts 4L, plus extra successes.",
+    "source": {
+      "book": "Core",
+      "page": 296
+    }
+  },
+  {
+    "id": "elemental.elements-domain",
+    "name": "Element's Domain",
+    "bp_cost": 7,
+    "min_essence": 2,
+    "required_merits": [
+      "mf.elemental-dominion"
+    ],
+    "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts a number of turns equal to the character's Essence.",
+    "description": "The elemental briefly assumes the form of its element. For fire and air, it becomes intangible and can neither be hit nor fall to physical harm. For water, it takes only half damage from attacks but can only inflict half its normal damage. Earth and wood endow the elemental with (6L/6B) armor, but its movement and initiative are halved as well.",
+    "source": {
+      "book": "Core",
+      "page": 296
+    }
+  },
+  {
+    "id": "elemental.enshroud",
+    "name": "Enshroud",
+    "bp_cost": 7,
+    "min_essence": 2,
+    "required_merits": [
+      "mf.elemental-dominion"
+    ],
+    "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts a number of turns equal to the character's Essence.",
+    "description": "The elemental causes fog, mist, smoke or dust to settle over an area, blinding everyone except itself. Make Awareness rolls for all creatures at +1 difficulty for them to see.",
+    "source": {
+      "book": "Core",
+      "page": 296
+    }
+  },
+  {
+    "id": "elemental.mobility",
+    "name": "Mobility",
+    "bp_cost": 7,
+    "min_essence": 2,
+    "required_merits": [
+      "mf.elemental-dominion"
+    ],
+    "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts one scene unless prematurely revoked.",
+    "description": "Based on the elemental's element, it can move more quickly or possesses a new mode of transport. Air imbues flight, earth offers tunneling, water increases swimming speed, while both fire and wood double ground speed.",
+    "source": {
+      "book": "Core",
+      "page": 296
+    }
+  },
+  {
+    "id": "elemental.rejuvenation",
+    "name": "Rejuvenation",
+    "bp_cost": 7,
+    "min_essence": 2,
+    "required_merits": [
+      "mf.elemental-dominion",
+      "mf.primal-restoration"
+    ],
+    "activation": "3 motes or 1 Willpower to evoke. The God-Blooded variant restores bashing and lethal levels on an hourly basis rather than every turn.",
+    "description": "The elemental regenerates one health level per turn when in contact with its relevant element. This ability cannot regenerate aggravated damage.",
+    "source": {
+      "book": "Core",
+      "page": 296
+    }
+  },
+  {
+    "id": "elemental.consume-element",
+    "name": "Consume Element",
+    "bp_cost": 7,
+    "min_essence": 2,
+    "required_merits": [
+      "mf.elemental-dominion"
+    ],
+    "activation": "Costs the God-Blooded the normal number of motes to activate, plus one additional Willpower.",
+    "description": "An elemental using this power can absorb any elemental attack, such as Dragon's Suspire or Affinity Element Control. The elemental adds half as many points to his soak as motes of Essence burned (e.g., 10 motes burned = +5 soak vs. that one attack). This power is also effective against natural elements such as fire. Burning 3 motes renders the elemental immune to natural fires, tidal waves, typhoons, etc.",
+    "source": {
+      "book": "Games of Divinity",
+      "page": 56
+    }
+  },
+  {
+    "id": "elemental.plague-of-menaces",
+    "name": "Plague of Menaces",
+    "bp_cost": 7,
+    "min_essence": 2,
+    "required_merits": [
+      "mf.elemental-dominion"
+    ],
+    "activation": "Costs the God-Blooded the normal number of motes to activate, plus one additional Willpower.",
+    "description": "By burning 10 motes of Essence, the elemental can cause an onrush of annoying creatures associated with its element to overrun a village or town for one day. Common choices include frogs, locusts, giant earthworms, gulls and cockroaches.",
+    "source": {
+      "book": "Games of Divinity",
+      "page": 56
+    }
   }
- },
- {
-  "id": "elemental.coarse-skin",
-  "name": "Coarse Skin",
-  "bp_cost": 7,
-  "min_essence": 2,
-  "required_merits": [
-   "mf.elemental-dominion"
-  ],
-  "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts one scene unless prematurely revoked.",
-  "description": "Whether searing or blistering-cold skin, fur sharp with thorns or pebbles or even abrasive scales, the elemental damages anyone that touches it, inflicting two dice of lethal damage.",
-  "source": {
-   "book": "Exalted 1e Core",
-   "page": 296
-  }
- },
- {
-  "id": "elemental.dragons-suspire",
-  "name": "Dragon's Suspire",
-  "bp_cost": 7,
-  "min_essence": 2,
-  "required_merits": [
-   "mf.elemental-dominion"
-  ],
-  "activation": "3 motes or 1 Willpower to evoke. Simple action; must pay for each attack separately.",
-  "description": "Elemental breath, such as a thunderclap, plume of flame, stream of rocks or splinters or blast of ice water. This attack is a Dexterity + Athletics or Archery roll, whichever the attacker prefers. The effect is 10 feet in length and 5 feet wide. It can be blocked or dodged. It inflicts 4L, plus extra successes.",
-  "source": {
-   "book": "Exalted 1e Core",
-   "page": 296
-  }
- },
- {
-  "id": "elemental.elements-domain",
-  "name": "Element's Domain",
-  "bp_cost": 7,
-  "min_essence": 2,
-  "required_merits": [
-   "mf.elemental-dominion"
-  ],
-  "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts a number of turns equal to the character's Essence.",
-  "description": "The elemental briefly assumes the form of its element. For fire and air, it becomes intangible and can neither be hit nor fall to physical harm. For water, it takes only half damage from attacks but can only inflict half its normal damage. Earth and wood endow the elemental with (6L/6B) armor, but its movement and initiative are halved as well.",
-  "source": {
-   "book": "Exalted 1e Core",
-   "page": 296
-  }
- },
- {
-  "id": "elemental.enshroud",
-  "name": "Enshroud",
-  "bp_cost": 7,
-  "min_essence": 2,
-  "required_merits": [
-   "mf.elemental-dominion"
-  ],
-  "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts a number of turns equal to the character's Essence.",
-  "description": "The elemental causes fog, mist, smoke or dust to settle over an area, blinding everyone except itself. Make Awareness rolls for all creatures at +1 difficulty for them to see.",
-  "source": {
-   "book": "Exalted 1e Core",
-   "page": 296
-  }
- },
- {
-  "id": "elemental.mobility",
-  "name": "Mobility",
-  "bp_cost": 7,
-  "min_essence": 2,
-  "required_merits": [
-   "mf.elemental-dominion"
-  ],
-  "activation": "3 motes or 1 Willpower to evoke. Reflexive; lasts one scene unless prematurely revoked.",
-  "description": "Based on the elemental's element, it can move more quickly or possesses a new mode of transport. Air imbues flight, earth offers tunneling, water increases swimming speed, while both fire and wood double ground speed.",
-  "source": {
-   "book": "Exalted 1e Core",
-   "page": 296
-  }
- },
- {
-  "id": "elemental.rejuvenation",
-  "name": "Rejuvenation",
-  "bp_cost": 7,
-  "min_essence": 2,
-  "required_merits": [
-   "mf.elemental-dominion",
-   "mf.primal-restoration"
-  ],
-  "activation": "3 motes or 1 Willpower to evoke. The God-Blooded variant restores bashing and lethal levels on an hourly basis rather than every turn.",
-  "description": "The elemental regenerates one health level per turn when in contact with its relevant element. This ability cannot regenerate aggravated damage.",
-  "source": {
-   "book": "Exalted 1e Core",
-   "page": 296
-  }
- },
- {
-  "id": "elemental.consume-element",
-  "name": "Consume Element",
-  "bp_cost": 7,
-  "min_essence": 2,
-  "required_merits": [
-   "mf.elemental-dominion"
-  ],
-  "activation": "Costs the God-Blooded the normal number of motes to activate, plus one additional Willpower.",
-  "description": "An elemental using this power can absorb any elemental attack, such as Dragon's Suspire or Affinity Element Control. The elemental adds half as many points to his soak as motes of Essence burned (e.g., 10 motes burned = +5 soak vs. that one attack). This power is also effective against natural elements such as fire. Burning 3 motes renders the elemental immune to natural fires, tidal waves, typhoons, etc.",
-  "source": {
-   "book": "Games of Divinity",
-   "page": 56
-  }
- },
- {
-  "id": "elemental.plague-of-menaces",
-  "name": "Plague of Menaces",
-  "bp_cost": 7,
-  "min_essence": 2,
-  "required_merits": [
-   "mf.elemental-dominion"
-  ],
-  "activation": "Costs the God-Blooded the normal number of motes to activate, plus one additional Willpower.",
-  "description": "By burning 10 motes of Essence, the elemental can cause an onrush of annoying creatures associated with its element to overrun a village or town for one day. Common choices include frogs, locusts, giant earthworms, gulls and cockroaches.",
-  "source": {
-   "book": "Games of Divinity",
-   "page": 56
-  }
- }
 ]

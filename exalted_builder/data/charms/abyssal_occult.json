@@ -8,11 +8,16 @@
     "min_ability": 3,
     "min_essence": 3,
     "prerequisites": [],
-    "cost": {"willpower": 1},
+    "cost": {
+      "willpower": 1
+    },
     "duration": "Instant",
     "grants_circle": "Terrestrial",
     "description": "Least of all sorcery and still beyond the most talented mortal wizards. Invoking this Charm enables the character to cast a single Terrestrial Circle Sorcery spell; the spell's own Essence cost (listed in its description) must also be paid. Terrestrial Circle Sorcery can never be part of a Combo.",
-    "source": {"book": "Exalted 1e Core", "page": 197}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 197
+    }
   },
   {
     "id": "abyssal.occult.celestial-circle-sorcery",
@@ -22,12 +27,21 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 4,
-    "prerequisites": [["abyssal.occult.terrestrial-circle-sorcery"]],
-    "cost": {"willpower": 2},
+    "prerequisites": [
+      [
+        "abyssal.occult.terrestrial-circle-sorcery"
+      ]
+    ],
+    "cost": {
+      "willpower": 2
+    },
     "duration": "Instant",
     "grants_circle": "Celestial",
     "description": "Easily outstripping the most potent Dragon-Blooded spells; known in the Underworld as a weapon of the Deathlords and their Daybreak Caste servants. Enables the character to cast a single Celestial Circle Sorcery spell; the spell's own Essence cost must also be paid. Celestial Circle Sorcery can never be part of a Combo.",
-    "source": {"book": "Exalted 1e Core", "page": 197}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 197
+    }
   },
   {
     "id": "abyssal.occult.shadowlands-circle-necromancy",
@@ -38,11 +52,16 @@
     "min_ability": 3,
     "min_essence": 3,
     "prerequisites": [],
-    "cost": {"willpower": 1},
+    "cost": {
+      "willpower": 1
+    },
     "duration": "Instant",
     "grants_circle": "Shadowlands",
     "description": "The necromancy of the First Circle, binding the dark energies of the Underworld — potent but limited in scope. Invoking this Charm enables the character to cast a single Shadowlands Circle Necromancy spell; the spell's own Essence cost (listed in its description) must also be paid. Shadowlands Circle Necromancy can never be part of a Combo.",
-    "source": {"book": "Exalted 1e Core", "page": 197}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 197
+    }
   },
   {
     "id": "abyssal.occult.labyrinth-circle-necromancy",
@@ -52,12 +71,21 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 4,
-    "prerequisites": [["abyssal.occult.shadowlands-circle-necromancy"]],
-    "cost": {"willpower": 2},
+    "prerequisites": [
+      [
+        "abyssal.occult.shadowlands-circle-necromancy"
+      ]
+    ],
+    "cost": {
+      "willpower": 2
+    },
     "duration": "Instant",
     "grants_circle": "Labyrinth",
     "description": "The necromancy of the Second Circle — the stuff of nightmares and dreams best left to dead gods, offering great and terrible power. Enables the character to cast a single Labyrinth Circle Necromancy spell; the spell's own Essence cost must also be paid. Labyrinth Circle Necromancy can never be part of a Combo.",
-    "source": {"book": "Exalted 1e Core", "page": 198}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 198
+    }
   },
   {
     "id": "abyssal.occult.void-circle-necromancy",
@@ -67,12 +95,21 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 5,
-    "prerequisites": [["abyssal.occult.labyrinth-circle-necromancy"]],
-    "cost": {"willpower": 3},
+    "prerequisites": [
+      [
+        "abyssal.occult.labyrinth-circle-necromancy"
+      ]
+    ],
+    "cost": {
+      "willpower": 3
+    },
     "duration": "Instant",
     "grants_circle": "Void",
     "description": "The necromancy of the Third Circle — the power of unmaking that would devour all Creation and the Underworld. The very death taint that denies Abyssals Solar Circle Sorcery grants them comparable power over Oblivion. Enables the character to cast a single Void Circle Necromancy spell; the spell's own Essence cost must also be paid. Void Circle Necromancy can never be part of a Combo.",
-    "source": {"book": "Exalted 1e Core", "page": 198}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 198
+    }
   },
   {
     "id": "abyssal.occult.spirit-sensing-technique",
@@ -83,10 +120,15 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 5},
+    "cost": {
+      "motes": 5
+    },
     "duration": "One scene",
     "description": "Perceives dematerialized spirits in her vicinity as translucent specters (ghosts appear more 'solid' than other spirits). Every 5 motes above the base cost projects one additional sense into the spirit realm. Even so, she cannot touch a dematerialized spirit without other magic.",
-    "source": {"book": "Exalted 1e Core", "page": 198}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 198
+    }
   },
   {
     "id": "abyssal.occult.through-dead-eyes",
@@ -96,11 +138,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.occult.spirit-sensing-technique"]],
-    "cost": {"motes": 6},
+    "prerequisites": [
+      [
+        "abyssal.occult.spirit-sensing-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6
+    },
     "duration": "One scene",
     "description": "Perceives the necrotic Essence leaking into Creation: beings and places suffused with death glow, and living-Essence objects appear shadowed or empty. Identifies dematerialized ghosts, spots other Abyssal Exalted at a glance, maps shadowland boundaries, and notices most magic (Charms/sorcery) without a roll; an Intelligence + Occult roll can identify magic (+1 difficulty if the magic does not involve death energy).",
-    "source": {"book": "Exalted 1e Core", "page": 199}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 199
+    }
   },
   {
     "id": "abyssal.occult.corpus-rending-blow",
@@ -110,11 +161,20 @@
     "type": "Supplemental",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.occult.spirit-sensing-technique"]],
-    "cost": {"motes": 2},
+    "prerequisites": [
+      [
+        "abyssal.occult.spirit-sensing-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 2
+    },
     "duration": "Instant",
     "description": "Charges his hand or weapon with spectral energy to make one strike against an immaterial spirit (roll to hit normally). He may elect (before rolling) to drain Essence instead of damage, using the spirit's Valor as its soak; each level of 'damage' drains 2 motes into his own pool (excess dissipates). Confers no ability to perceive incorporeal spirits, so blind-fighting penalties apply without other magic. No effect on materialized spirits. May be Comboed with Charms of other Abilities.",
-    "source": {"book": "Exalted 1e Core", "page": 199}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 199
+    }
   },
   {
     "id": "abyssal.occult.soul-eating-strike",
@@ -124,11 +184,20 @@
     "type": "Supplemental",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.occult.corpus-rending-blow"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "abyssal.occult.corpus-rending-blow"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "Instant",
     "description": "Infuses a single attack with the chill of the Void so it can strike incorporeal spirits: a hit inflicts aggravated damage and drains Essence as Corpus-Rending Blow (rolled separately). Spirits slain this way are irrevocably destroyed. Against materialized spirits it drains Essence as above but does not inflict aggravated damage; materialized spirits killed eventually regenerate. May be Comboed with Charms of other Abilities.",
-    "source": {"book": "Exalted 1e Core", "page": 199}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 199
+    }
   },
   {
     "id": "abyssal.occult.spirit-draining-ward",
@@ -138,10 +207,19 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.occult.soul-eating-strike"]],
-    "cost": {"motes": 10},
+    "prerequisites": [
+      [
+        "abyssal.occult.soul-eating-strike"
+      ]
+    ],
+    "cost": {
+      "motes": 10
+    },
     "duration": "One scene",
     "description": "Opens himself as a conduit to the Void, spreading a maelstrom of shadows in a radius equal to permanent Essence yards (a mere breeze in the material world). Immaterial spirits within suffer battering cold like an arctic gale and take permanent-Essence-minus-their-Essence aggravated levels each turn (not rolled, soaked only by aggravated soak); he regains 2 motes per level inflicted. Spirits killed are sucked into the Void and destroyed. Spirits of equal/greater Essence take no damage but suffer +1 difficulty to all actions inside.",
-    "source": {"book": "Exalted 1e Core", "page": 199}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 199
+    }
   }
 ]

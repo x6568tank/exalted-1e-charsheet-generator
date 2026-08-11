@@ -8,19 +8,45 @@
     "min_ability": 1,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"raw": "None"},
+    "cost": {
+      "raw": "None"
+    },
     "duration": "Permanent",
     "repeatable_cap_ability": "endurance",
     "variants": [
-      {"key": "one-zero", "label": "One -0 level", "health_levels": [0],
-       "description": "Gain one extra -0 health level."},
-      {"key": "two-one", "label": "Two -1 levels", "health_levels": [-1, -1],
-       "description": "Gain two extra -1 health levels."},
-      {"key": "one-one-two-two", "label": "One -1 and two -2 levels", "health_levels": [-1, -2, -2],
-       "description": "Gain one extra -1 and two extra -2 health levels."}
+      {
+        "key": "one-zero",
+        "label": "One -0 level",
+        "health_levels": [
+          0
+        ],
+        "description": "Gain one extra -0 health level."
+      },
+      {
+        "key": "two-one",
+        "label": "Two -1 levels",
+        "health_levels": [
+          -1,
+          -1
+        ],
+        "description": "Gain two extra -1 health levels."
+      },
+      {
+        "key": "one-one-two-two",
+        "label": "One -1 and two -2 levels",
+        "health_levels": [
+          -1,
+          -2,
+          -2
+        ],
+        "description": "Gain one extra -1 and two extra -2 health levels."
+      }
     ],
     "description": "Grants extra health levels. Repeatable once per dot of Endurance; each purchase grants one of three health-level packages.",
-    "source": {"book": "Exalted 1e Core", "page": 174}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 174
+    }
   },
   {
     "id": "abyssal.endurance.ghost-armor-prana",
@@ -31,10 +57,15 @@
     "min_ability": 3,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"raw": "3 motes per point"},
+    "cost": {
+      "raw": "3 motes per point"
+    },
     "duration": "One hour",
     "description": "Enfolds his anima about his armor, granting it surreal lightness: per 3 motes spent, reduce the armor's fatigue value and mobility penalty by one point each (max reduction = permanent Essence). A fatigue value of zero means no fatigue rolls. Cannot reduce either below zero.",
-    "source": {"book": "Exalted 1e Core", "page": 174}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 174
+    }
   },
   {
     "id": "abyssal.endurance.tireless-sentinel-technique",
@@ -44,11 +75,20 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.endurance.ghost-armor-prana"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "abyssal.endurance.ghost-armor-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "One day",
     "description": "Revivifies himself with Essence, acting at full strength with no penalties for sleep loss or exhaustion for a day (repeatable indefinitely). After Stamina + Endurance days of continuous use he takes one unsoakable bashing level each further day of use, which does not heal until he stops; he cannot safely reactivate until that damage heals.",
-    "source": {"book": "Exalted 1e Core", "page": 175}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 175
+    }
   },
   {
     "id": "abyssal.endurance.relentless-revenant-spirit",
@@ -58,11 +98,20 @@
     "type": "Special",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.endurance.tireless-sentinel-technique"]],
-    "cost": {"raw": "None"},
+    "prerequisites": [
+      [
+        "abyssal.endurance.tireless-sentinel-technique"
+      ]
+    ],
+    "cost": {
+      "raw": "None"
+    },
     "duration": "Permanent",
     "description": "Death itself cannot stop him: if slain, his spirit rises again as a ghost. He loses his Exaltation and its powers but gains the full advantages of unlife, keeps any supernatural martial-arts Forms he knows (not more advanced techniques), and gains twice a starting ghost's Arcanoi.",
-    "source": {"book": "Exalted 1e Core", "page": 175}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 175
+    }
   },
   {
     "id": "abyssal.endurance.pain-eating-focus",
@@ -73,10 +122,15 @@
     "min_ability": 1,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 1},
+    "cost": {
+      "motes": 1
+    },
     "duration": "Instant",
     "description": "Understands the power of suffering: whenever she is struck in combat, roll one die per die of pre-soak damage the attack inflicts; each success restores 1 mote of Essence (up to her usual limit). Cannot harvest more than her Essence from a single attack.",
-    "source": {"book": "Exalted 1e Core", "page": 175}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 175
+    }
   },
   {
     "id": "abyssal.endurance.insensible-corpse-technique",
@@ -86,11 +140,20 @@
     "type": "Special",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.endurance.pain-eating-focus"]],
-    "cost": {"raw": "None (permanent) / 1 mote per -1 (temporary)"},
+    "prerequisites": [
+      [
+        "abyssal.endurance.pain-eating-focus"
+      ]
+    ],
+    "cost": {
+      "raw": "None (permanent) / 1 mote per -1 (temporary)"
+    },
     "duration": "Permanent / one scene",
     "description": "On purchase choose permanent or temporary. Permanent: subtract 2 from all wound penalties (does not speed healing); cumulative, so a second purchase subtracts 4 and a third grants immunity to all but unimaginable agony. Temporary: for each mote spent, ignore one die of wound penalties for the scene (cumulative, may pre-empt future penalties). Exalted who know both forms combine them.",
-    "source": {"book": "Exalted 1e Core", "page": 175}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 175
+    }
   },
   {
     "id": "abyssal.endurance.agony-savoring-spirit",
@@ -100,10 +163,19 @@
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.endurance.pain-eating-focus"]],
-    "cost": {"willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.endurance.pain-eating-focus"
+      ]
+    ],
+    "cost": {
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Feeds on the suffering of others: whenever she slays an individual single-handedly, roll Conviction; each success restores one point of Willpower.",
-    "source": {"book": "Exalted 1e Core", "page": 176}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 176
+    }
   }
 ]

@@ -8,10 +8,15 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"raw": "1 mote per 2L damage"},
+    "cost": {
+      "raw": "1 mote per 2L damage"
+    },
     "duration": "Instant",
     "description": "A bolt of crackling darkness leaps from his palm; damage manifests as sudden decay (metal corrodes, wood and flesh wither). Roll Dexterity + Athletics or Thrown to hit with an Accuracy bonus equal to permanent Essence; base 2L per mote, range permanent Essence×10 yards. Aggravated vs Fair Folk/Wyld. Cannot spend more motes than Stamina + Lore.",
-    "source": {"book": "Exalted 1e Core", "page": 191}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 191
+    }
   },
   {
     "id": "abyssal.lore.essence-scattering-blast",
@@ -21,11 +26,20 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.lore.crypt-bolt"]],
-    "cost": {"raw": "1+ mote, 1 Willpower"},
+    "prerequisites": [
+      [
+        "abyssal.lore.crypt-bolt"
+      ]
+    ],
+    "cost": {
+      "raw": "1+ mote, 1 Willpower"
+    },
     "duration": "Instant",
     "description": "A bolt of black lightning that inflicts no damage but drains Essence: follows Crypt Bolt's Range/Accuracy/to-hit rules; a struck Essence-pooled being loses 1 mote per mote spent activating it, plus permanent Essence extra (Peripheral drained first). Dissipates harmlessly against anything but a magical being. Cannot spend more motes than Stamina + Lore.",
-    "source": {"book": "Exalted 1e Core", "page": 191}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 191
+    }
   },
   {
     "id": "abyssal.lore.breath-draining-prana",
@@ -35,11 +49,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.lore.essence-scattering-blast"]],
-    "cost": {"motes": 1},
+    "prerequisites": [
+      [
+        "abyssal.lore.essence-scattering-blast"
+      ]
+    ],
+    "cost": {
+      "motes": 1
+    },
     "duration": "Instant",
     "description": "Feeds on a target's life force without touching her: roll Willpower; each success inflicts one lethal level (soaked only by Stamina), and the Abyssal regains 1 mote per level actually inflicted. Can also drain a magical being's Essence pool one-for-one; if fewer motes than the target's Stamina are taken, she may not even notice. Targets any being in line of sight.",
-    "source": {"book": "Exalted 1e Core", "page": 192}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 192
+    }
   },
   {
     "id": "abyssal.lore.radiant-blight-technique",
@@ -49,11 +72,20 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.lore.crypt-bolt"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "abyssal.lore.crypt-bolt"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "Instant",
     "description": "Forces death Essence into the land, destroying plant life and harming creatures: roll Charisma + Lore; all plants in a circular area of radius equal to successes (in yards) wither and die, and all animals and people within (including Exalted) suffer permanent-Essence dice of lethal damage, soaked only by natural soak.",
-    "source": {"book": "Exalted 1e Core", "page": 192}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 192
+    }
   },
   {
     "id": "abyssal.lore.wyld-shield-meditation",
@@ -63,11 +95,21 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.lore.crypt-bolt"]],
-    "cost": {"motes": 10, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.lore.crypt-bolt"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "Special",
     "description": "Channels death-tainted Essence to shield herself and her possessions (up to a laden horse if mounted) against the warping of the Wyld, venturing into its most chaotic regions without change of form, and adds permanent Essence to soak and other rolls to resist greater Fair Folk magic. Lasts as long as she desires, but each hour maintained inflicts one unsoakable bashing level.",
-    "source": {"book": "Exalted 1e Core", "page": 192}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 192
+    }
   },
   {
     "id": "abyssal.lore.chaos-searing-treatment",
@@ -77,11 +119,20 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.lore.wyld-shield-meditation"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "abyssal.lore.wyld-shield-meditation"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "One scene",
     "description": "Channels soul-numbing death Essence into a weapon so that, for the scene, it inflicts aggravated damage on Fair Folk and Wyld beasts as though made of cold iron.",
-    "source": {"book": "Exalted 1e Core", "page": 192}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 192
+    }
   },
   {
     "id": "abyssal.lore.wyld-slaying-burst",
@@ -92,12 +143,21 @@
     "min_ability": 5,
     "min_essence": 3,
     "prerequisites": [
-      ["abyssal.lore.radiant-blight-technique"],
-      ["abyssal.lore.chaos-searing-treatment"]
+      [
+        "abyssal.lore.radiant-blight-technique"
+      ],
+      [
+        "abyssal.lore.chaos-searing-treatment"
+      ]
     ],
-    "cost": {"raw": "30 motes, 1 Willpower, one lethal health level, 3 experience points"},
+    "cost": {
+      "raw": "30 motes, 1 Willpower, one lethal health level, 3 experience points"
+    },
     "duration": "Instant",
     "description": "Unleashes the full force of the Underworld against life and Wyld as a spherical shockwave withering trees and eroding rocks: roll Intelligence + Lore + Essence; all Fair Folk and Wyld-spawned mutants in the area take unsoakable aggravated equal to the successes (fae disintegrate), and living beings take Lore dice of lethal. Radius permanent Essence×10 yards; nothing grows in the barren circle for months or years.",
-    "source": {"book": "Exalted 1e Core", "page": 192}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 192
+    }
   }
 ]

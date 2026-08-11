@@ -13,7 +13,7 @@
     "duration": "One scene",
     "description": "Heightens all five senses, perceiving softer sounds, finer detail, and subtler tastes and scents.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 196
     }
   },
@@ -35,7 +35,7 @@
     "duration": "One scene",
     "description": "Sharpens a single chosen sense (sight, hearing, etc.) to a supernatural degree.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 196
     }
   },
@@ -57,7 +57,7 @@
     "duration": "One scene",
     "description": "Extends a single sense to incredible range and acuity, far beyond Keen (Sense) Technique.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 196
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Instant",
     "description": "A preternatural danger sense that warns of imminent threats, making the character almost impossible to ambush.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 197
     }
   },

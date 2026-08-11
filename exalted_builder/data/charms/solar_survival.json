@@ -13,7 +13,7 @@
     "duration": "One scene",
     "description": "Calms and befriends any wild animal, communing with it.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 179
     }
   },
@@ -37,7 +37,7 @@
     "duration": "Instant",
     "description": "Binds an animal as a permanent Familiar tied to the character's Essence (costs 1 experience point).",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 179
     }
   },
@@ -59,7 +59,7 @@
     "duration": "One scene",
     "description": "Takes on a single bestial characteristic, such as a tiger's strength or an eagle's eyes.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 180
     }
   },
@@ -77,7 +77,7 @@
     "duration": "One day",
     "description": "Survives the harshest mundane conditions — cold, heat, hunger, thirst — without harm.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 180
     }
   },
@@ -99,7 +99,7 @@
     "duration": "One day",
     "description": "Finds the way safely and swiftly through even the worst terrain, leading others along.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 181
     }
   },
@@ -121,7 +121,7 @@
     "duration": "One hour",
     "description": "Forages enough food in an hour to feed many people.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 181
     }
   },
@@ -144,7 +144,7 @@
     "duration": "One day",
     "description": "Tracks a quarry unerringly across any terrain.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 181
     }
   },
@@ -166,7 +166,7 @@
     "duration": "One day",
     "description": "Conceals the character and her companions from sight, raising her effective Resistance to detection.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 182
     }
   },
@@ -188,7 +188,7 @@
     "duration": "One day",
     "description": "Moves without leaving any trail, foiling all but magical pursuit.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 182
     }
   },
@@ -211,7 +211,7 @@
     "duration": "One day",
     "description": "Survives extreme elemental environments, such as the caldera of a volcano or the elemental poles.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 182
     }
   },

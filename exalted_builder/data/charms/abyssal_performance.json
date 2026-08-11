@@ -8,10 +8,15 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"raw": "1 mote per 2 dice"},
+    "cost": {
+      "raw": "1 mote per 2 dice"
+    },
     "duration": "Instant",
     "description": "Her voice takes on an otherworldly tone (discordant or mellifluous), adding emotional weight: adds 2 dice per mote to a Performance or Presence roll, up to double her pool. She must be using her voice (singing, teaching, oration) to invoke it.",
-    "source": {"book": "Exalted 1e Core", "page": 176}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 176
+    }
   },
   {
     "id": "abyssal.performance.withering-dirge",
@@ -21,11 +26,20 @@
     "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.performance.haunting-inflection-trick"]],
-    "cost": {"raw": "2 motes per 1L damage"},
+    "prerequisites": [
+      [
+        "abyssal.performance.haunting-inflection-trick"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes per 1L damage"
+    },
     "duration": "Instant",
     "description": "Channels Essence into a mournful song so listeners begin to die as they hear it: each willing or unwilling listener suffers 1L per 2 motes spent (max damage = permanent Essence), soaked only by Stamina/soak Charms and leaving no physical mark. Once per turn, sustainable on later turns. Nonliving beings and the deaf are immune.",
-    "source": {"book": "Exalted 1e Core", "page": 176}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 176
+    }
   },
   {
     "id": "abyssal.performance.morbid-fascination-style",
@@ -36,10 +50,15 @@
     "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 5},
+    "cost": {
+      "motes": 5
+    },
     "duration": "One scene",
     "description": "Instantly commands fear and respect from an assembled crowd: they may not like her performance or believe her words, but recognize the implicit malice she embodies and dare not heckle or depart before the show ends. A few disturbed souls find her alluring. Only works on non-magical beings.",
-    "source": {"book": "Exalted 1e Core", "page": 177}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 177
+    }
   },
   {
     "id": "abyssal.performance.heart-sculpting-oration",
@@ -50,13 +69,23 @@
     "min_ability": 5,
     "min_essence": 2,
     "prerequisites": [
-      ["abyssal.performance.haunting-inflection-trick"],
-      ["abyssal.performance.morbid-fascination-style"]
+      [
+        "abyssal.performance.haunting-inflection-trick"
+      ],
+      [
+        "abyssal.performance.morbid-fascination-style"
+      ]
     ],
-    "cost": {"motes": 6, "willpower": 1},
+    "cost": {
+      "motes": 6,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "Inflames or hardens the passions of living and dead alike: roll Manipulation + Performance (difficulty 2, or standard if the emotion is innately negative). Targets with Willpower below the successes are overwhelmed and act on the chosen emotion; Willpower below twice the successes may resist (difficulty 1); above twice is unaffected. Can also induce numbing apathy. Lasts one scene.",
-    "source": {"book": "Exalted 1e Core", "page": 177}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 177
+    }
   },
   {
     "id": "abyssal.performance.elegy-for-the-fallen",
@@ -66,11 +95,20 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.performance.haunting-inflection-trick"]],
-    "cost": {"motes": 5},
+    "prerequisites": [
+      [
+        "abyssal.performance.haunting-inflection-trick"
+      ]
+    ],
+    "cost": {
+      "motes": 5
+    },
     "duration": "Special",
     "description": "Channels the prayers of a living congregation to empower the dead in a nighttime memorial. Targeting a single ghost: lead the congregation for one or more hours, rolling dice equal to active participants (max twice Charisma + Performance) each hour; the ghost regains 1 mote per success (half if not present). General worship of death divides the Essence among all ghosts through the mausoleums of Stygia.",
-    "source": {"book": "Exalted 1e Core", "page": 177}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 177
+    }
   },
   {
     "id": "abyssal.performance.lamenting-ghost-technique",
@@ -80,11 +118,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.performance.withering-dirge"]],
-    "cost": {"raw": "1 mote per 1L damage"},
+    "prerequisites": [
+      [
+        "abyssal.performance.withering-dirge"
+      ]
+    ],
+    "cost": {
+      "raw": "1 mote per 1L damage"
+    },
     "duration": "Instant",
     "description": "Opens her mouth and screams a devastating sonic blast: roll Manipulation + Performance to hit one target, base 1L per mote spent (extra successes add normally). Cannot be parried, only dodged, and soaked only by Stamina/natural soak. Range Performance×10 yards. Cannot spend more motes than Stamina + Essence.",
-    "source": {"book": "Exalted 1e Core", "page": 177}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 177
+    }
   },
   {
     "id": "abyssal.performance.morale-shattering-method",
@@ -95,13 +142,23 @@
     "min_ability": 5,
     "min_essence": 3,
     "prerequisites": [
-      ["abyssal.performance.withering-dirge"],
-      ["abyssal.performance.heart-sculpting-oration"]
+      [
+        "abyssal.performance.withering-dirge"
+      ],
+      [
+        "abyssal.performance.heart-sculpting-oration"
+      ]
     ],
-    "cost": {"motes": 10, "willpower": 1},
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "Radiates a nimbus of cold dread that saps morale: all enemy troops within Conviction×100 yards feel terror seize their hearts, losing 1 die from all combat pools and suffering +1 difficulty on Valor rolls. Its influence on a battle's outcome is considerable (Storyteller discretion).",
-    "source": {"book": "Exalted 1e Core", "page": 178}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 178
+    }
   },
   {
     "id": "abyssal.performance.hardened-killer-training-style",
@@ -111,10 +168,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.performance.morale-shattering-method"]],
-    "cost": {"motes": 10, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.performance.morale-shattering-method"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "One week",
     "description": "Transforms a crew of peaceful farmers and children into merciless killers: supervise up to Essence×100 soldiers per week; a month or more of training yields elite troops with combat Abilities at 3+ and a specialty or two. The regimen wears away humanity — every two weeks a soldier loses one Compassion and gains a dot of Valor or Conviction, graduating as Compassion 1 with five+ dots in Conviction/Valor.",
-    "source": {"book": "Exalted 1e Core", "page": 178}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 178
+    }
   }
 ]

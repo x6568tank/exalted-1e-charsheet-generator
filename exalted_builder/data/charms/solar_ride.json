@@ -13,7 +13,7 @@
     "duration": "Instant",
     "description": "Evaluates a mount's age, health, and temperament at a glance, and rides any animal expertly.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 207
     }
   },
@@ -35,7 +35,7 @@
     "duration": "Instant",
     "description": "Summons a trained mount from a distance with a whistle.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 207
     }
   },
@@ -58,7 +58,7 @@
     "duration": "One day",
     "description": "Summons a great steed of pure Essence with a burning golden mane, tireless and fearless.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 208
     }
   },
@@ -80,7 +80,7 @@
     "duration": "One scene",
     "description": "Renders a mount immune to terror, steadying it against frightening sensations.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 208
     }
   },
@@ -102,7 +102,7 @@
     "duration": "One day's march",
     "description": "Reduces the need to care for mounts on a long march, keeping them rested and sound.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 208
     }
   },
@@ -124,7 +124,7 @@
     "duration": "Instant",
     "description": "Heals a mount's wounds and cures its diseases.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 209
     }
   },
@@ -146,7 +146,7 @@
     "duration": "One scene",
     "description": "Forms a flawless bond with a mount so it never panics or fails her.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 209
     }
   },
@@ -168,7 +168,7 @@
     "duration": "One scene",
     "description": "Imbues a mount with endless energy, granting tremendous speed and stamina.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 209
     }
   },

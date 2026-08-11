@@ -13,7 +13,7 @@
     "duration": "Instant",
     "description": "Channels Essence into craftwork, adding automatic successes to a Craft roll.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 182
     }
   },
@@ -35,7 +35,7 @@
     "duration": "One scene",
     "description": "Strengthens an object so it endures far more damage than normal.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 183
     }
   },
@@ -57,7 +57,7 @@
     "duration": "Instant",
     "description": "Permanently enhances an object's durability, making it nearly indestructible.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 183
     }
   },
@@ -80,7 +80,7 @@
     "duration": "Instant",
     "description": "Wards an object against the warping, reshaping effects of the Wyld.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 183
     }
   },
@@ -102,7 +102,7 @@
     "duration": "Instant",
     "description": "Channels Essence to rend stone and metal by hand, doubling Strength + Athletics to break the worked material.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 184
     }
   },
@@ -125,7 +125,7 @@
     "duration": "One scene",
     "description": "Shapes a chosen material directly with hands and voice, needing no tools or workshop.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 184
     }
   },
@@ -152,7 +152,7 @@
     "duration": "Instant",
     "description": "Repairs any broken object, no matter how damaged, piecing it back together over hours of work.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 183
     }
   },

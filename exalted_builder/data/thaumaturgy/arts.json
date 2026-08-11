@@ -45,7 +45,10 @@
         "description": "A thaumaturge does not summon spirits, he beckons them. Roll Charisma + Performance at a difficulty equal to the spirit's permanent Essence; if successful the spirit must fail a Virtue roll dictated by the summoner or appear. The thaumaturge has no power over the spirit once it arrives, and the spirit's reaction is shaded by the Virtue invoked."
       }
     ],
-    "source": {"book": "Exalted Player's Guide", "page": 126}
+    "source": {
+      "book": "Player's Guide",
+      "page": 126
+    }
   },
   {
     "id": "art.warding",
@@ -55,19 +58,55 @@
     "cost": "3 motes per attempt",
     "description": "Warding is the simplest of Arts, and in nearly every community there will be a handful of people who at least know its basics. Wards are barriers against intrusion or contamination, sealing an area off from the being or influence they are designed to defend against. Wards come in two types: generic (proof against an entire class of creature) and specific (particular to a given type). They nearly always have a physical component — a line of salt or ash, sigils, woven dreamcatchers, statuary. For each day or portion of a day spent preparing, add one success to the ward's durability, and one success to its strength for every two days. Successes are divided between the ward's two attributes, Strength and Durability. Materials to ward a decent-sized home cost Resources 2; Resources 3 wards a large mansion, 4 a small town, 5 a small city. Long-term wards require maintenance, and unmaintained wards lose one dot of Strength and Durability per year.",
     "aspects": [
-      {"id": "art.warding.ghosts", "name": "Ghosts"},
-      {"id": "art.warding.demons", "name": "Demons"},
-      {"id": "art.warding.elementals", "name": "Elementals"},
-      {"id": "art.warding.gods", "name": "Gods"},
-      {"id": "art.warding.exalts", "name": "Exalts"},
-      {"id": "art.warding.animals", "name": "Animals"},
-      {"id": "art.warding.mortals", "name": "Mortals"},
-      {"id": "art.warding.wyld", "name": "The Wyld"},
-      {"id": "art.warding.fair-folk", "name": "Fair Folk"},
-      {"id": "art.warding.divination", "name": "Divination"},
-      {"id": "art.warding.bad-magic", "name": "Bad magic"}
+      {
+        "id": "art.warding.ghosts",
+        "name": "Ghosts"
+      },
+      {
+        "id": "art.warding.demons",
+        "name": "Demons"
+      },
+      {
+        "id": "art.warding.elementals",
+        "name": "Elementals"
+      },
+      {
+        "id": "art.warding.gods",
+        "name": "Gods"
+      },
+      {
+        "id": "art.warding.exalts",
+        "name": "Exalts"
+      },
+      {
+        "id": "art.warding.animals",
+        "name": "Animals"
+      },
+      {
+        "id": "art.warding.mortals",
+        "name": "Mortals"
+      },
+      {
+        "id": "art.warding.wyld",
+        "name": "The Wyld"
+      },
+      {
+        "id": "art.warding.fair-folk",
+        "name": "Fair Folk"
+      },
+      {
+        "id": "art.warding.divination",
+        "name": "Divination"
+      },
+      {
+        "id": "art.warding.bad-magic",
+        "name": "Bad magic"
+      }
     ],
-    "source": {"book": "Exalted Player's Guide", "page": 130}
+    "source": {
+      "book": "Player's Guide",
+      "page": 130
+    }
   },
   {
     "id": "art.exorcism",
@@ -77,12 +116,27 @@
     "cost": "6 motes per attempt",
     "description": "Rogue spirits and the dead are often found harassing mortals — sometimes with justification, often without — and it is the duty of the ghost hunter or exorcist to send them back to their rest. Exorcism is broken up into three basic tasks. Placation: an extended Charisma + Occult negotiation requiring successes equal to twice the spirit's Willpower + Essence, one hour per roll, difficulty (6 - the spirit's Compassion), with a total number of rolls equal to the exorcist's Endurance (or Stamina - 2). Expulsion: driving a spirit out of a possessed mortal, an extended Manipulation + Occult roll at a difficulty equal to the spirit's lowest Virtue, requiring successes equal to twice its highest Virtue, each roll representing 10 minutes and costing a Willpower. Banishment: spirits cannot be banished or forced from a location for more than a few scenes; see the banishment table for rolls, costs, successes and durations by entity class.",
     "aspects": [
-      {"id": "art.exorcism.ghosts", "name": "Ghosts"},
-      {"id": "art.exorcism.fair-folk", "name": "Fair Folk"},
-      {"id": "art.exorcism.demons", "name": "Demons"},
-      {"id": "art.exorcism.spirits", "name": "Spirits"}
+      {
+        "id": "art.exorcism.ghosts",
+        "name": "Ghosts"
+      },
+      {
+        "id": "art.exorcism.fair-folk",
+        "name": "Fair Folk"
+      },
+      {
+        "id": "art.exorcism.demons",
+        "name": "Demons"
+      },
+      {
+        "id": "art.exorcism.spirits",
+        "name": "Spirits"
+      }
     ],
-    "source": {"book": "Exalted Player's Guide", "page": 133}
+    "source": {
+      "book": "Player's Guide",
+      "page": 133
+    }
   },
   {
     "id": "art.astrology",
@@ -92,11 +146,26 @@
     "cost": "0 motes per attempt",
     "description": "Mortal thaumaturges have, over the millennia, researched, stolen and otherwise acquired a surprisingly complete set of astrological ephemera — tables, charts, star maps and stellar associations that detail the effects the stars and constellations have on a person or group's destiny. Predictions are made using Intelligence + Occult at a difficulty of (8 - any dots in the Destiny Merit; heroic mortals always count as having Destiny of at least 1). Access to Varangian or First Age astrological machinery makes the base difficulty 5 rather than 8. Successes are divided between duration and accuracy, from one month and 'extremely vague, at best' at one success up to ten years and genuinely accurate at six or more. Predictions tend to come true if the gods or Sidereals do not meddle, but they need not be exactly accurate — they are often misleading, inconclusive or missing important details.",
     "aspects": [
-      {"id": "art.astrology.exalted", "name": "The Exalted"},
-      {"id": "art.astrology.mortals", "name": "Mortals"},
-      {"id": "art.astrology.stars-of-the-dead", "name": "The stars of the dead"},
-      {"id": "art.astrology.gods", "name": "Gods"}
+      {
+        "id": "art.astrology.exalted",
+        "name": "The Exalted"
+      },
+      {
+        "id": "art.astrology.mortals",
+        "name": "Mortals"
+      },
+      {
+        "id": "art.astrology.stars-of-the-dead",
+        "name": "The stars of the dead"
+      },
+      {
+        "id": "art.astrology.gods",
+        "name": "Gods"
+      }
     ],
-    "source": {"book": "Exalted Player's Guide", "page": 135}
+    "source": {
+      "book": "Player's Guide",
+      "page": 135
+    }
   }
 ]

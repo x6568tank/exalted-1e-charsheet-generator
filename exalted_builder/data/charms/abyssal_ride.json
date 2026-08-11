@@ -8,10 +8,15 @@
     "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [],
-    "cost": {"raw": "1 mote per point"},
+    "cost": {
+      "raw": "1 mote per point"
+    },
     "duration": "One scene",
     "description": "Subdues a mount with his supernatural will: per mote spent, reduce the animal's Control Rating by one point; at zero it obeys unhesitatingly (even leaping to its death if directed). The mount obeys only the Exalt; others contend with its normal Control Rating. Only affects animals trained for riding.",
-    "source": {"book": "Exalted 1e Core", "page": 217}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 217
+    }
   },
   {
     "id": "abyssal.ride.forceful-spirit-spur",
@@ -21,11 +26,20 @@
     "type": "Simple",
     "min_ability": 3,
     "min_essence": 2,
-    "prerequisites": [["abyssal.ride.soul-reins"]],
-    "cost": {"motes": 3},
+    "prerequisites": [
+      [
+        "abyssal.ride.soul-reins"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
     "duration": "Instant",
     "description": "Silently summons her mount from great distances (range permanent Essence×10 miles); the steed feels phantom spurs unless it moves at best speed toward her. She must have clearly dominated the animal at least once (physically or mystically) before it answers. Summoned animals never get distracted or lost but cannot circumvent complex obstacles better than normal. The compulsion persists until the animal reaches her or moves beyond range.",
-    "source": {"book": "Exalted 1e Core", "page": 217}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 217
+    }
   },
   {
     "id": "abyssal.ride.mount-breaking-method",
@@ -35,11 +49,21 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.ride.soul-reins"]],
-    "cost": {"motes": 10, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.ride.soul-reins"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "One scene",
     "description": "Like Soul Reins but permanent: roll Strength + Ride vs the animal's Control Rating; each success permanently reduces it by one point (min 1). Reducing a Control Rating to zero grants immunity to terror when ridden by the Exalt. He must still spend the scene aggressively taming the beast; the new Control Rating applies to all riders. May affect any trainable animal (even hybroc or bear); exotic/deadly animals require Essence 3+.",
-    "source": {"book": "Exalted 1e Core", "page": 217}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 217
+    }
   },
   {
     "id": "abyssal.ride.mount-spooking-shout",
@@ -49,11 +73,21 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.ride.soul-reins"]],
-    "cost": {"motes": 5, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.ride.soul-reins"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Pours Essence into an unholy shriek that terrifies most steeds: all living mounts within earshot rear and bolt unless their riders/drivers make a Charisma + Ride roll vs the Abyssal's Essence. Even on success the mounts stay skittish (+1 Control Rating for the scene, cumulative per scream). Does not affect his own steed or beasts other than pack animals/mounts.",
-    "source": {"book": "Exalted 1e Core", "page": 218}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 218
+    }
   },
   {
     "id": "abyssal.ride.spectral-steed",
@@ -63,11 +97,21 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.ride.forceful-spirit-spur"]],
-    "cost": {"motes": 10, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.ride.forceful-spirit-spur"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
     "duration": "One day",
     "description": "Summons a ghost horse from the Essence of the Underworld: a pure black stallion with smoldering-coal eyes and sharp teeth, statted as an excellent war horse but utterly tireless, fearless, biting for 4L. It needs no food or drink but enjoys human flesh and blood. Recasting before the duration ends conjures a new horse; the old dissolves with a screaming whinny.",
-    "source": {"book": "Exalted 1e Core", "page": 217}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 217
+    }
   },
   {
     "id": "abyssal.ride.tireless-charger-technique",
@@ -77,11 +121,21 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.ride.mount-breaking-method"]],
-    "cost": {"motes": 6, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.ride.mount-breaking-method"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1
+    },
     "duration": "Varies",
     "description": "Sustains and pushes his horse with raw Essence: lasts until he dismounts or Ride hours pass. The enchanted steed has boundless energy and never needs food/water, but the necrotic Essence eats its life force — per hour (or fraction) maintained, the horse suffers one unsoakable lethal level (deferred until the Charm ends). An injured horse cannot be safely re-enchanted until healed; doing so anyway lets it act at full strength but kills it when the forced march ends.",
-    "source": {"book": "Exalted 1e Core", "page": 217}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 217
+    }
   },
   {
     "id": "abyssal.ride.foundering-foal-gesture",
@@ -91,10 +145,19 @@
     "type": "Simple",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["abyssal.ride.mount-spooking-shout"]],
-    "cost": {"raw": "4 motes per animal, plus 1 Willpower"},
+    "prerequisites": [
+      [
+        "abyssal.ride.mount-spooking-shout"
+      ]
+    ],
+    "cost": {
+      "raw": "4 motes per animal, plus 1 Willpower"
+    },
     "duration": "One scene",
     "description": "Gesturing sharply at a mount in her line of sight curses it with weakness and pain: the steed cannot move faster than a walk unless pushed for short agonizing bursts by its rider. Can affect multiple animals at 4 motes each. Only affects pack animals and steeds; magical beasts and magically strengthened ones are immune.",
-    "source": {"book": "Exalted 1e Core", "page": 218}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 218
+    }
   }
 ]

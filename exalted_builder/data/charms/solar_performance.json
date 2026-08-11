@@ -13,7 +13,7 @@
     "duration": "One scene",
     "description": "Commands the respect and attention of an audience during a performance.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 172
     }
   },
@@ -36,7 +36,7 @@
     "duration": "Instant",
     "description": "A commanding rebuke that disperses an unruly or hostile crowd.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 172
     }
   },
@@ -59,7 +59,7 @@
     "duration": "3 turns",
     "description": "A rallying gesture that halts a panicked rout and steadies fleeing allies.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 172
     }
   },
@@ -82,7 +82,7 @@
     "duration": "One scene",
     "description": "Whips a crowd into a fury, inciting them to riot or violence.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 173
     }
   },
@@ -105,7 +105,7 @@
     "duration": "One scene",
     "description": "Inspires troops to deeds of great heroism, boosting morale and combat rolls.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 173
     }
   },
@@ -131,7 +131,7 @@
     "duration": "One week",
     "description": "Drills raw recruits into disciplined, capable soldiers over the course of a week.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 173
     }
   },
@@ -149,7 +149,7 @@
     "duration": "Instant",
     "description": "Channels Essence through the voice or instrument to enhance a performance, adding successes.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 174
     }
   },
@@ -174,7 +174,7 @@
     "duration": "One scene",
     "description": "Weaves illusions into a performance, conjuring phantom images to illustrate the tale.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 174
     }
   },
@@ -197,7 +197,7 @@
     "duration": "One scene",
     "description": "Compels a chosen emotion in the audience through performance, swaying their hearts.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 174
     }
   },
@@ -223,7 +223,7 @@
     "duration": "One scene",
     "description": "Reweaves a narrative so plausibly the audience comes to believe it, reshaping memory.",
     "source": {
-      "book": "Exalted 1e Core",
+      "book": "Core",
       "page": 175
     }
   },

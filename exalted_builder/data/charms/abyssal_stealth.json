@@ -8,10 +8,15 @@
     "min_ability": 3,
     "min_essence": 2,
     "prerequisites": [],
-    "cost": {"motes": 4},
+    "cost": {
+      "motes": 4
+    },
     "duration": "One scene",
     "description": "Briefly erodes onlookers' attention with a gentle rush of Essence: until scene's end, all attempts to spot him are at +permanent Essence difficulty. Applies only while he draws no undue attention and stays unnoticed; once spotted the Charm ends and cannot be reactivated until he moves entirely out of sight.",
-    "source": {"book": "Exalted 1e Core", "page": 210}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 210
+    }
   },
   {
     "id": "abyssal.stealth.encounter-banishing-gesture",
@@ -21,11 +26,20 @@
     "type": "Reflexive",
     "min_ability": 4,
     "min_essence": 2,
-    "prerequisites": [["abyssal.stealth.concealing-distraction-discipline"]],
-    "cost": {"raw": "3 motes per target"},
+    "prerequisites": [
+      [
+        "abyssal.stealth.concealing-distraction-discipline"
+      ]
+    ],
+    "cost": {
+      "raw": "3 motes per target"
+    },
     "duration": "Instant",
     "description": "Rips the memory of an encounter from a target's mind so he forgets he ever saw the Exalt: roll Manipulation + Stealth vs the target's Essence; each success erases one turn of memory (four successes erase four turns). A befuddled target won't notice him again for a like number of turns. No effect on higher-Essence beings or those physically agitated (e.g. in combat).",
-    "source": {"book": "Exalted 1e Core", "page": 210}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 210
+    }
   },
   {
     "id": "abyssal.stealth.splinter-in-the-minds-eye",
@@ -35,11 +49,21 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 2,
-    "prerequisites": [["abyssal.stealth.encounter-banishing-gesture"]],
-    "cost": {"motes": 8, "willpower": 1},
+    "prerequisites": [
+      [
+        "abyssal.stealth.encounter-banishing-gesture"
+      ]
+    ],
+    "cost": {
+      "motes": 8,
+      "willpower": 1
+    },
     "duration": "Instant",
     "description": "Duplicates Encounter-Banishing Gesture but its effects extend to a number of witnesses equal to permanent Essence×10 without requiring motes for each observer.",
-    "source": {"book": "Exalted 1e Core", "page": 210}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 210
+    }
   },
   {
     "id": "abyssal.stealth.unseen-wisp-method",
@@ -49,11 +73,20 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 4,
-    "prerequisites": [["abyssal.stealth.concealing-distraction-discipline"]],
-    "cost": {"raw": "2 motes per turn"},
+    "prerequisites": [
+      [
+        "abyssal.stealth.concealing-distraction-discipline"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes per turn"
+    },
     "duration": "Varies",
     "description": "Vanishes wholly from sight, dissolving in scattering shadows: for a number of turns equal to half the motes invested she is visible as no more than a wavering in the air. Ranged attacks against her are all but impossible without magic or well-described stunts; close attacks suffer a difficulty penalty of permanent Essence.",
-    "source": {"book": "Exalted 1e Core", "page": 211}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 211
+    }
   },
   {
     "id": "abyssal.stealth.noiseless-phantom-style",
@@ -63,11 +96,20 @@
     "type": "Reflexive",
     "min_ability": 4,
     "min_essence": 3,
-    "prerequisites": [["abyssal.stealth.concealing-distraction-discipline"]],
-    "cost": {"motes": 4},
+    "prerequisites": [
+      [
+        "abyssal.stealth.concealing-distraction-discipline"
+      ]
+    ],
+    "cost": {
+      "motes": 4
+    },
     "duration": "Stealth in minutes",
     "description": "Enveloped in the stillness of the grave, she makes no noise whatsoever — footsteps, jumps, even shouts are silent. Conversely, she cannot speak or use any sound-based magic. Only wards sounds she makes: her blade sliding into ribs is silent, but the victim's scream is not.",
-    "source": {"book": "Exalted 1e Core", "page": 211}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 211
+    }
   },
   {
     "id": "abyssal.stealth.stifled-cry-exercise",
@@ -77,11 +119,20 @@
     "type": "Reflexive",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.stealth.noiseless-phantom-style"]],
-    "cost": {"motes": 1},
+    "prerequisites": [
+      [
+        "abyssal.stealth.noiseless-phantom-style"
+      ]
+    ],
+    "cost": {
+      "motes": 1
+    },
     "duration": "One turn",
     "description": "Focuses on a single victim in line of sight and smothers his voice with Essence: until turn's end the target cannot speak or make any vocalized noise. Day Caste assassins use it to keep victims from screaming. No effect on higher-Essence beings.",
-    "source": {"book": "Exalted 1e Core", "page": 211}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 211
+    }
   },
   {
     "id": "abyssal.stealth.shadow-cloak-technique",
@@ -91,10 +142,19 @@
     "type": "Simple",
     "min_ability": 5,
     "min_essence": 3,
-    "prerequisites": [["abyssal.stealth.noiseless-phantom-style"]],
-    "cost": {"raw": "2 motes per die"},
+    "prerequisites": [
+      [
+        "abyssal.stealth.noiseless-phantom-style"
+      ]
+    ],
+    "cost": {
+      "raw": "2 motes per die"
+    },
     "duration": "Stealth in turns",
     "description": "Cocoons himself in pure darkness as a solidified shadow: so long as he stays in darkness or among shadows, adds 1 die per 2 motes to all Stealth rolls (not more than twice permanent Essence). If bright light is shined on him, the cloak dissolves immediately and the Charm ends.",
-    "source": {"book": "Exalted 1e Core", "page": 211}
+    "source": {
+      "book": "Exalted: The Abyssals",
+      "page": 211
+    }
   }
 ]
