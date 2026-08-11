@@ -219,7 +219,7 @@ def test_db_dragon_path_gate_does_not_bind_a_foreign_learner(rs):
     char = _eclipse(chargen_locked=True, xp_earned=200)
     dragon_style = next(
         c for c in sorted(rs.charms.values(), key=lambda c: c.id)
-        if validate._is_dragon_path_style(c.category) and not c.prerequisites)
+        if validate._is_dragon_path_style(rs, c.category) and not c.prerequisites)
     assert validate.category_available(rs, char, dragon_style.category) is True
     assert validate.meets_charm_requirements(rs, char, dragon_style) is True
     advancement.learn_charm(rs, char, dragon_style.id)
