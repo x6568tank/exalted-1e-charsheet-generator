@@ -223,8 +223,16 @@
   {
     "id": "background.hearts-blood",
     "name": "Heart's Blood",
-    "description": "The animals (and men) whose forms you can take, beyond your totem animal — drinking a creature's heart's blood at its death teaches your body its shape forever. Higher ratings let you take the heart's blood of larger or more numerous creatures, up to three dozen animals or a dozen humans at •••••.",
-    "exalt_type": "Lunar"
+    "description": "As a natural gift given by Luna, the Children of the Moon are able to shapeshift into the form of any animal whose heart's blood they have partaken of. Members of the Silver Pact frequently engage in ritual hunts, while Casteless Lunars instinctively seek out the heart's blood of their prey. To drink an animal's heart's blood the animal must die at the Lunar's hand, and the blood must be drunk immediately from the animal's heart or throat; once drunk, the knowledge of that creature's form stays with the Lunar until he dies. Eating another Lunar gives only the human and beast shapes of that Lunar, not her beastman shape or her personal shape library. This Background represents the number of forms a beginning Lunar has at his disposal — once play begins he may increase his catalog of shapes to whatever extent he wishes and is able. Without the proper Charms (Humble Mouse Shape and Towering Beast Form) he is limited in the size of animal shape he may take. Creatures of the Wyld and sorcerous constructs may not be hunted for their heart's blood. Humans may be, but the character may not assume human form without the Prey's Skin Disguise Charm, and must take Heart's Blood (Human) as a SEPARATE Background, as the scale for number of forms available differs from that of other animals.",
+    "exalt_type": "Lunar",
+    "ladder": [
+      "You have yet to drink the heart's blood of any animal or human.",
+      "You have drank the heart's blood of a single animal or human.",
+      "You have drank the heart's blood of five animals or of two humans.",
+      "You have drank the heart's blood of a dozen animals or of four humans.",
+      "You have drank the heart's blood of two dozen animals or of seven humans.",
+      "You have drank the heart's blood of three dozen animals or of a dozen humans."
+    ]
   },
   {
     "id": "background.henchmen",
@@ -323,8 +331,19 @@
   {
     "id": "background.renown",
     "name": "Renown",
-    "description": "Your standing within the Silver Pact above and beyond the ordinary Lunar's — grants additional points to spend on the Renown trait at creation (5 at •, 10 at ••, 15 at •••, 25 at ••••, 40 at •••••). Casteless Lunars may not take this Background.",
-    "exalt_type": "Lunar"
+    "description": "The Silver Pact is a society in which rank and respect are earned through the performance of great and mighty deeds — monsters slain, armies destroyed, towns sacked, tribes defended. All this and more is what builds a Lunar's personal legend, as well as raising his standing among members of the society; the higher a Lunar's Renown, the higher his rank within the Silver Pact. Although every Lunar distinguishes himself during his Rite of Passage, some distinguish themselves more than others, and the Renown Background represents actions and behaviors above even the high standards of the Silver Pact. Player and Storyteller should work together to detail what the character did to earn the additional Renown, as those details influence which aspects of Renown the extra points go toward — a trickster's exploits earn Cunning, a warrior's honor-duels earn Glory. Renown comes with a price: the trickster may be called upon to top his already outrageous exploits, and the warrior may find a long line of young warriors wishing to make their own reputation at her expense. Casteless characters may not take the Renown Background, for obvious reasons.",
+    "exalt_type": "Lunar",
+    "ladder": [
+      "You have yet to make a reputation for yourself. No additional Renown points.",
+      "Your performance during your rite of passage was considered impressive — 5 additional Renown points.",
+      "You have begun to make a name for yourself among certain factions within the Pact — 10 additional Renown points.",
+      "Your deeds are such that many of the society elders have heard your name — 15 additional Renown points.",
+      "Tales of your exploits have spread throughout the Silver Pact, and there are those within the Threshold who fear your name — 25 additional Renown points.",
+      "The elders of the Silver Pact know your name and fully expect you to help reshape the world. Other nain-ya look upon you as a potential role model, and those within the civilized lands look upon you as a figure of dread — 40 additional Renown points."
+    ],
+    "excluded_origins": [
+      "Lunar:casteless"
+    ]
   },
   {
     "id": "background.reputation",
