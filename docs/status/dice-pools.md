@@ -1,8 +1,11 @@
 # Dice pools — the base-pool calculator
 
-**Status: SHIPPED 2026-08-12, engine + data + UI, suite green (2,255).
-NOT browser-verified.** The three open rules questions were RULED the same day
-(human, rules authority) and all three are now implemented — see **Rulings** below.
+**Status: DONE 2026-08-12, browser-verified** — engine + data + UI, suite green
+(2,255), committed as `f2ef735`. Clicked through by the human in its final shape (the
+sidebar list plus the main-column custom builder); no defects reported.
+
+The three open rules questions were RULED the same day (human, rules authority) and
+all three are implemented — see **Rulings** below.
 Decision record: `docs/decisions/0016-base-dice-pools-are-in-scope.md`.
 
 ## What it is
@@ -179,11 +182,11 @@ against a fixture you wrote yourself.**
 * The catalogue is core-only. Splat books that print their own rolls (Sidereal
   astrology, Alchemical Charm-slot actions) are not swept.
 
-## What preflight could not check
+## What preflight could and could not check
 
-Whether the numbers are RIGHT for a real character at a real table. Pass 1 found
-nothing (this feature adds no effects-dataclass fields); pass 2 found one real bug of
-its own — the panel's selection state lived inside the tracker's refreshable body, so
+Whether the numbers are RIGHT for a real character at a real table — which the
+click-through then answered, and cleanly. Pass 1 found nothing (this feature adds no
+effects-dataclass fields); pass 2 found one real bug of its own — the panel's selection state lived inside the tracker's refreshable body, so
 marking damage reset the player's chosen roll on exactly the click that sends them to
 the pool. Fixed by hoisting it to `build_play`, with a test that has a verified
 negative control.
