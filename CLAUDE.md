@@ -217,7 +217,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,102 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,127 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -254,6 +254,7 @@ full record.
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
 | **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — the ten Mountain Folk artifacts, GROWN TO 40 the same day across three castebook batches (`artifact.castebook-*`: Dawn/Night/Zenith pp.78-81 + Twilight/Eclipse pp.79-81 — the last on-disk artifacts, none remain unauthored) and the Hooked Daiklaves/Direlance rated gear rows, two blocked core items flagged — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08; **the 20 Twilight/Eclipse names are NOT yet browser-verified**) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
+| **Backgrounds — DONE, browser-verified 2026-08-12** (per-splat `catalogue_backgrounds` off each book's printed list, with `HouseRules.all_backgrounds_available` as the ST override; the printed dot ladder as `BackgroundType.ladder`, 49 of 61, rendered one rung on the row and the whole ladder in the dialog; Artifact and Manse reworked per splat; `charm_noun` so a Ghost reads "Arcanoi") | `docs/status/backgrounds.md` |
 | **Catalogue picker dialogs — DONE, browser-verified 2026-08-10** (a shared `ui/catalogue.py` dialog on every add surface — weapons/armour/artifacts/backgrounds/M&F; browse name + summary, full description collapsible, a **Custom** row; custom M&F via `MeritFlawPurchase.custom_name`, display-only with no mechanical effect; the old silent cheapest-append `add_merit` deleted) | `docs/status/catalogue-dialogs.md` |
 | **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM. **2026-08-08 correction:** five mislabelled codes fixed — `ab_a/e/f/v/w` are the Dragon-Blooded **Aspect Books**, `salt` = Blood and Salt, `coin` = Manacle and Coin. **Superseded 2026-08-11 by `catalogue-sweep.md`** — `data/artifacts.json` now holds **196**, the Slayer Khatar is authored, the Direlance has no standalone entry to author (core p.341 decoded), and Fair Folk artifacts are OUT OF SCOPE on the human's ruling. Keep this file for the parse method and the per-book page lists; per-entry queue in `artifact-backlog-entries.md`) | `docs/status/artifact-backlog.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
@@ -353,13 +354,14 @@ Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
 
 ### Next up — not started (human's asks, 2026-08-11)
 
-* **Full descriptions for every Background.** `data/backgrounds.json` is 38 entries and
-  wildly uneven — 9 are under 120 characters (Cult is 46, Contacts 61, Resources 70)
-  while Class runs to 968. The human dislikes the inconsistency and wants them all at
-  full length. **Needs pages**, and the never-author-from-memory rule applies: a
-  Background description is printed text, so each one comes off its page or is asked
-  about. The per-row description already renders in the Advantages tab
-  (`docs/status/advantages-tab.md`), so this is purely a data job once the pages exist.
+* **Engine enforcement of the Background numeric rules** — the last open piece of the
+  Backgrounds work (`docs/status/backgrounds.md`), and it needs NO pages: the thresholds
+  are already visible in committed data. Sidereal Connections capped at total Attributes,
+  Celestial Manse ≤3 without ST permission, Sidereal Resources ronin-only, mortals barred
+  from Artifact/Manse, Mountain Folk Backing ≤2 when Unenlightened. Most map onto existing
+  `BackgroundRule` fields; Connections needs a new "cap from a trait total" field.
+  `engine/artifacts.py` is the precedent — thresholds as DATA, nothing splat-specific in
+  code.
 
 * **Validate gear `resources_cost` against the Resources Background** — the Artifact
   analogue, which does not exist yet. `resources_cost` is on `WeaponType`/`ArmorType`
@@ -387,6 +389,13 @@ Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
 The full record lives in `docs/status/`. These are the cross-cutting lessons that
 survive any status rewrite:
 
+* **Backgrounds** (`docs/status/backgrounds.md`) — **`catalogue_backgrounds` is what the
+  dropdown OFFERS; `allowed_backgrounds` is HARD validation.** Writing a list into the
+  wrong one makes every free-text Background illegal for that splat. Two lessons that
+  generalise past this area: a `full` description string in `ui/catalogue.py` that is
+  STRUCTURED rather than prose needs `whitespace-pre-line` or NiceGUI collapses every
+  newline in it; and a test that reads a shared module-level fixture character's CONTENT
+  needs its own route, or it passes alone and fails in the suite.
 * **Dragon-Kings breed attributes** (`docs/status/dragon-kings.md`) — breed attribute
   bonuses are free dots ON TOP of the stored value, but each EFFECTIVE dot above 5 is
   BP-bought at the attribute rate (PG p.175). **Trap: a "free" ruling that contradicts
