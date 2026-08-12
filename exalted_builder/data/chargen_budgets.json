@@ -1562,16 +1562,16 @@
     "willpower_cap_exception_virtue": 4,
     "willpower_cap_exception_count": 2,
     "catalogue_backgrounds": [
-      "allies",
-      "artifact",
-      "backing",
-      "contacts",
-      "familiar",
-      "followers",
-      "influence",
-      "manse",
-      "mentor",
-      "resources"
+      "background.allies-mountainfolk",
+      "background.artifact-mountainfolk",
+      "background.backing-mountainfolk",
+      "background.contacts-mountainfolk",
+      "background.familiar-mountainfolk",
+      "background.followers-mountainfolk",
+      "background.influence-mountainfolk",
+      "background.manse-mountainfolk",
+      "background.mentor-mountainfolk",
+      "background.resources-mountainfolk"
     ]
   },
   "Mountain-Folk:unenlightened": {
@@ -1624,16 +1624,16 @@
     "charm_min_caste_favored": 0,
     "willpower_hard_cap": 6,
     "catalogue_backgrounds": [
-      "allies",
-      "artifact",
-      "backing",
-      "contacts",
-      "familiar",
-      "followers",
-      "influence",
-      "manse",
-      "mentor",
-      "resources"
+      "background.allies-mountainfolk",
+      "background.artifact-mountainfolk",
+      "background.backing-mountainfolk",
+      "background.contacts-mountainfolk",
+      "background.familiar-mountainfolk",
+      "background.followers-mountainfolk",
+      "background.influence-mountainfolk",
+      "background.manse-mountainfolk",
+      "background.mentor-mountainfolk",
+      "background.resources-mountainfolk"
     ]
   },
   "Solar": {
