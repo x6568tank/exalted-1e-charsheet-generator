@@ -2511,13 +2511,23 @@ def test_backgrounds_and_merits_have_exactly_one_implementation():
     import inspect
     from exalted_builder.ui import advantages, editor
     adv = inspect.getsource(advantages)
+    # The Background catalogue is reached through `validate.background_catalogue_for`,
+    # the single read site for the Storyteller's open-the-catalogue toggle — so the
+    # sentinel is that call, not the RuleSet method it wraps. A module calling
+    # `backgrounds_for` DIRECTLY is the regression: it would silently ignore the
+    # toggle, which is this project's recurring shape (a rule wired into one of the
+    # places that needs it).
     for module in (editor,):
         src = inspect.getsource(module)
         assert "merits_flaws" not in src, (
             f"{module.__name__} touches Merits & Flaws; they live in ui/advantages.py")
-        assert "backgrounds_for" not in src, (
+        assert "background_catalogue_for" not in src and "backgrounds_for" not in src, (
             f"{module.__name__} has a Background panel; they live in ui/advantages.py")
-    assert "backgrounds_for" in adv and "merits_flaws" in adv
+    assert "background_catalogue_for" in adv and "merits_flaws" in adv
+    assert "backgrounds_for" not in adv, (
+        "ui/advantages.py must reach the catalogue through "
+        "validate.background_catalogue_for, or the Storyteller's "
+        "all_backgrounds_available toggle does not reach the dropdown")
 
 
 def test_advantages_is_a_both_sides_tab_not_half_of_the_edit_xp_pair():

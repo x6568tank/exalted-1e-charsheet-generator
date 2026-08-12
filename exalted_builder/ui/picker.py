@@ -411,7 +411,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 # They live on their own lists, so the count comes from the engine's
                 # canonical enumeration rather than from adding lists up here.
                 charm_picks = validate.charm_pick_count(ruleset, character)
-                ui.label(f"Charms: {charm_picks} · Spells: {len(character.spells)}").classes(
+                noun = ruleset.exalt_for(character.exalt_type).charm_noun
+                ui.label(f"{noun}: {charm_picks} · Spells: {len(character.spells)}").classes(
                     "text-sm font-semibold").style(f"color:{pal.accent}")
             _immaculate_path_banner()
             ui.label(bp).classes("text-xs text-gray-600")

@@ -46,10 +46,16 @@ def test_db_barred_from_contacts_influence_followers(rs):
         assert kept in solar
 
 
-def test_shared_backgrounds_visible_to_all(rs):
-    for shared in ("Command", "Henchmen", "Reputation"):
-        assert shared in _names(rs, "Solar")
-        assert shared in _names(rs, "Dragon-Blooded")
+def test_command_henchmen_and_reputation_are_dragon_blooded_backgrounds(rs):
+    """These three, and Family with them, are printed in E:DB CH4's NEW BACKGROUNDS
+    (pp.158-160) — Dragon-Blooded content (human, rules authority, 2026-08-11). They
+    shipped untagged and were therefore offered to every splat in the build, the same
+    leak as Lookshy's Arsenal. A Solar's own Backgrounds section (core pp.141-148)
+    prints none of them."""
+    for db_only in ("Command", "Henchmen", "Reputation", "Family"):
+        assert db_only in _names(rs, "Dragon-Blooded"), db_only
+        for splat in ("Solar", "Sidereal", "Lunar", "Abyssal"):
+            assert db_only not in _names(rs, splat), f"{db_only} leaked to {splat}"
 
 
 def test_core_ten_still_present_for_solar(rs):
@@ -174,3 +180,151 @@ async def test_a_free_text_background_name_hides_its_description(user) -> None:
     assert len(labels) == 1, f"expected one (hidden) description label, got {len(labels)}"
     assert not labels[0].visible, "an unknown Background still shows a description"
     assert not (labels[0].text or ""), labels[0].text
+
+
+# --------------------------------------------------------------------------- #
+# The printed dot ladder (BackgroundType.ladder)
+# --------------------------------------------------------------------------- #
+# Every Background in the book prints a dot-by-dot ladder saying what each RATING
+# actually gets you, and the build showed none of it — a single blurb, the same at
+# Resources • as at Resources •••••. The ladder is TEXT: nothing in the engine reads
+# a rung, and the numeric rules a rung happens to state live in BackgroundRule.
+
+def test_a_transcribed_ladder_renders_the_rung_for_the_held_rating(rs):
+    """Core p.142: "•• Two allies or one significant one." A character with Allies 2
+    should be shown that rung and no other."""
+    from exalted_builder.ui import view as viewmod
+    cat = rs.backgrounds_for("Solar")
+    assert "Two allies or one significant one" in viewmod.background_rung(cat, "Allies", 2)
+    assert "Five allies" in viewmod.background_rung(cat, "Allies", 5)
+    # The zero rung is the book's "x" row and still says something worth reading.
+    assert "no one close to turn to" in viewmod.background_rung(cat, "Allies", 0)
+
+
+def test_the_ladder_degrades_to_nothing_rather_than_a_blank_rung(rs):
+    """Backgrounds are free text, so the rung lookup must survive a name no catalogue
+    entry covers, a rating off the scale, and a Background whose ladder has not been
+    transcribed yet — all three return "" and the label simply hides."""
+    from exalted_builder.ui import view as viewmod
+    cat = rs.backgrounds_for("Solar")
+    assert viewmod.background_rung(cat, "Wholly Invented Background", 3) == ""
+    assert viewmod.background_rung(cat, "Allies", 9) == ""
+    assert viewmod.background_ladder(cat, "Wholly Invented Background") == []
+
+
+def test_a_partial_ladder_is_rejected_at_load(rs):
+    """The sheet indexes the ladder BY RATING, so four rungs would print the wrong
+    text for a rating rather than no text — worse than the empty default. The model
+    takes six entries or none."""
+    import pytest as _pytest
+    from exalted_builder.models.rules import BackgroundType
+    BackgroundType(id="b.x", name="X", ladder=tuple("abcdef"))      # 6 is fine
+    BackgroundType(id="b.y", name="Y")                              # none is fine
+    with _pytest.raises(ValueError):
+        BackgroundType(id="b.z", name="Z", ladder=("a", "b", "c", "d"))
+
+
+# --------------------------------------------------------------------------- #
+# The per-splat catalogue list (ChargenBudgets.catalogue_backgrounds)
+# --------------------------------------------------------------------------- #
+# Each book enumerates its own Backgrounds — Ghosts CH3 names eleven, Lookshy's p.66
+# summary fifteen, E:DB's Traits chapter thirteen. That list is what the dropdown
+# offers. Backgrounds shipped almost entirely untagged, so every splat saw every
+# other splat's: a Solar could take the Seventh Legion's Arsenal.
+
+def test_each_splats_catalogue_is_its_own_books_list(rs):
+    """Spot-checked against the transcribed books, one splat per shape: a splat whose
+    summary enumerates (Ghost), one whose Traits chapter does (Dragon-Blooded), and
+    an ORIGIN that prints a different list from its splat (Lookshy).
+
+    `universal` entries are subtracted first — they sit outside the per-splat lists by
+    definition, so including them here would make this a test of the universal flag
+    rather than of each book's enumeration."""
+    universal = {b.name for b in rs.background_catalog.values() if b.universal}
+    assert set(_names(rs, "Ghost")) - universal == {
+        "Allies", "Ancestor Cult", "Artifact", "Backing", "Contacts", "Followers",
+        "Grave Goods", "Influence", "Mentor", "Resources", "Underworld Cult"}
+    assert set(_names(rs, "Solar")) - universal == {
+        "Allies", "Artifact", "Backing", "Contacts", "Familiar", "Followers",
+        "Influence", "Manse", "Mentor", "Resources"}
+    lookshy = {b.name for b in rs.backgrounds_for("Dragon-Blooded", "lookshy")}
+    assert lookshy - set(_names(rs, "Dragon-Blooded")) == {
+        "Arsenal", "Retainers", "Sorcery"}
+
+
+def test_the_catalogue_list_never_makes_a_typed_background_illegal(rs):
+    """The invariant this field exists to protect. `catalogue_backgrounds` narrows
+    what is OFFERED; `allowed_backgrounds` is the separate HARD list that errors.
+    Writing one field for both jobs made every free-text Background illegal for every
+    splat whose book got transcribed — do not merge them back."""
+    from exalted_builder.engine import validate
+    from exalted_builder.models.character import BackgroundEntry, Character
+    c = Character(id="c", exalt_type="Solar", caste="dawn")
+    c.backgrounds = [BackgroundEntry(name="Something The Book Never Printed", rating=1)]
+    assert [i for i in validate.validate_chargen(rs, c)
+            if i.code == "background-not-allowed"] == []
+    assert rs.budgets_for("Solar").allowed_backgrounds == []
+
+
+def test_an_untranscribed_splat_degrades_to_the_old_filter(rs):
+    """A splat whose book has not been read yet must keep the behaviour it had — the
+    per-Background `exalt_type` tag — rather than showing nothing. That is what makes
+    transcribing the books incremental instead of all-or-nothing."""
+    assert rs.catalogue_backgrounds_for("Lunar") == set()
+    lunar = _names(rs, "Lunar")
+    assert "Heart's Blood" in lunar and "Renown" in lunar      # its own tagged pair
+    assert "Whispers" not in lunar                             # another splat's
+
+
+# --------------------------------------------------------------------------- #
+# Universal Backgrounds (BackgroundType.universal)
+# --------------------------------------------------------------------------- #
+# Human's ruling, 2026-08-11: "Cult is universal, as are any other backgrounds not in
+# specific splats if such exist." Cult is printed in Games of Divinity, which is not a
+# splat book, so no character-creation summary names it — and without the flag it was
+# visible only to the splats whose lists had not been transcribed yet, and would have
+# vanished one splat at a time as the sweep finished.
+
+def test_a_universal_background_reaches_every_splat(rs):
+    for splat in ("Solar", "Dragon-Blooded", "Ghost", "Sidereal", "Lunar", "Abyssal"):
+        assert "Cult" in _names(rs, splat), splat
+    assert "Cult" in {b.name for b in rs.backgrounds_for("Dragon-Blooded", "lookshy")}
+
+
+def test_universal_does_not_mean_unbannable(rs):
+    """Universal means "belongs to no one book", not "cannot be forbidden". The Great
+    Geas explicitly prohibits a Mountain Folk a Cult (CH6 p.234), and that ban is
+    about the splat, not about which supplement is open — so it still bites, and the
+    Storyteller's all_backgrounds_available does not lift it either."""
+    for origin in ("enlightened", "unenlightened"):
+        assert "Cult" not in {b.name for b in
+                              rs.backgrounds_for("Mountain-Folk", origin)}
+        assert "Cult" not in {b.name for b in rs.backgrounds_for(
+            "Mountain-Folk", origin, all_available=True)}
+
+
+def test_the_universal_flag_matches_the_data_in_both_directions(rs):
+    """The flag is explicit rather than derived, so this is what stops it rotting.
+
+    Derived ("no splat tag and no list names it") was rejected for a nasty non-local
+    failure: the day some splat's book turned out to list Cult, Cult would silently
+    disappear from every OTHER splat. Explicit plus this check makes that a red test
+    instead — and the second half is the one that earns its keep, because it means a
+    newly added Background cannot quietly default to belonging to nobody."""
+    listed = set()
+    for row in rs.budgets.values():
+        listed |= {n.strip().lower() for n in row.catalogue_backgrounds}
+
+    for bg in rs.background_catalog.values():
+        owned = bool(bg.exalt_type) or bg.name.strip().lower() in listed
+        if bg.universal:
+            assert not owned, (
+                f"{bg.name} is marked universal but belongs to a splat "
+                f"(tag={bg.exalt_type!r}, named by a catalogue list={not bg.exalt_type}). "
+                f"Clear `universal` or take it off that splat's list.")
+        else:
+            assert owned, (
+                f"{bg.name} belongs to no splat — it carries no exalt_type and no "
+                f"splat's catalogue_backgrounds names it — so nothing would ever "
+                f"offer it once every book is transcribed. Mark it `universal: true`, "
+                f"tag it, or add it to the list of the splat whose book prints it.")

@@ -2,34 +2,51 @@
   {
     "id": "background.abyssal-command",
     "name": "Abyssal Command",
-    "description": "You have been placed at the head of one of your Deathlord's military formations \u2014 battle-trained and moliated ghosts, ancestor-cult zealots or death-cult fanatics. Ranges from a small bodyguard (\u2022) up to a double dragon of 500 war ghosts, 1,000 soldiers and 3,000 zombies (\u2022\u2022\u2022\u2022\u2022). The Abyssal replacement for the Command Background.",
+    "description": "You have been placed at the head of one of your Deathlord's military formations — battle-trained and moliated ghosts, ancestor-cult zealots or death-cult fanatics. Ranges from a small bodyguard (•) up to a double dragon of 500 war ghosts, 1,000 soldiers and 3,000 zombies (•••••). The Abyssal replacement for the Command Background.",
     "exalt_type": "Abyssal"
   },
   {
     "id": "background.allies",
     "name": "Allies",
-    "description": "Aides and friends who help you in tasks \u2014 close, capable companions; each Ally is a Storyteller character."
+    "description": "Aides and friends who help you in tasks — close, capable companions; each Ally is a Storyteller character.",
+    "ladder": [
+      "None — your character skulks about, having no one close to turn to.",
+      "One ally of moderate ability (equivalent to a starting character).",
+      "Two allies or one significant one.",
+      "Three allies or fewer allies of correspondingly high power.",
+      "Four allies or fewer ones of great capability.",
+      "Five allies or fewer ones of immense power."
+    ]
   },
   {
     "id": "background.ancestor-cult",
     "name": "Ancestor Cult",
     "exalt_type": "Ghost",
-    "description": "Mortals who pay you homage after death, burning valuables and effigies in your memory; their prayers and offerings give you Essence. \u2022 a wife or a few children (the most any ghost on the Blessed Isle can expect without Immaculate persecution); \u2022\u2022 an honoured ancestor of a family line; \u2022\u2022\u2022 a large family or a small nation, with a mortal occultist sending a grave good no more than once a year; \u2022\u2022\u2022\u2022 an altar and a part-time priest, and the ghost regains 1 Willpower daily at the moment of her death; \u2022\u2022\u2022\u2022\u2022 a full temple with full-time priests, 1 Willpower daily and an extra 2 motes per hour. The living expect guidance in return, and a cult can be attacked by local gods, the Immaculate Order or a rival's cult. Cult \u2022 and \u2022\u2022 are folded into the \u2022\u2022\u2022\u2022 and \u2022\u2022\u2022\u2022\u2022 levels (p.152)."
+    "description": "Mortals who pay you homage after death, burning valuables and effigies in your memory; their prayers and offerings give you Essence. • a wife or a few children (the most any ghost on the Blessed Isle can expect without Immaculate persecution); •• an honoured ancestor of a family line; ••• a large family or a small nation, with a mortal occultist sending a grave good no more than once a year; •••• an altar and a part-time priest, and the ghost regains 1 Willpower daily at the moment of her death; ••••• a full temple with full-time priests, 1 Willpower daily and an extra 2 motes per hour. The living expect guidance in return, and a cult can be attacked by local gods, the Immaculate Order or a rival's cult. Cult • and •• are folded into the •••• and ••••• levels (p.152)."
   },
   {
     "id": "background.arsenal",
     "name": "Arsenal",
-    "description": "Weapons or equipment issued from the Lookshy armories for your use. The gear remains the property of the Seventh Legion and must be turned in, in working order, when demanded \u2014 a temporary loan rather than part of your panoply."
+    "description": "Most of Lookshy's magical assets are stored away in deep vaults, managed by the master armorers of the Seventh Legion. This equipment is loaned out to Dragon-Blooded, to elite troop units and, rarely, to other agents of the Seventh Legion as needed or deemed wise. The equipment remains the property of the Seventh Legion, it must be turned in (in working order) when demanded, and in all other ways it should be considered a temporary piece of lent gear rather than an inherent part of the character's panoply — that is what Artifact is for. Heroic mortal characters may purchase Arsenal (it is common with elite forces units, such as rangers), but the cost is doubled. Dots provided by Arsenal can also be used to purchase dots of Manse (including its Hearthstone) on a one-for-one basis, representing the Legion temporarily turning over one of its Manses to you. (The Outcaste pp.66-67)",
+    "ladder": [
+      "Apparently the master armorers don't trust your character very much. Why is that?",
+      "Two level 1 artifacts.",
+      "Four dots of artifacts, divided up any way (up to artifact 2).",
+      "Six dots of artifacts, divided up any way (up to artifact 3). At this level, your character may have been trusted with one of the Legion's legendary war engines, such as a warstrider.",
+      "Eight dots of artifacts, divided up any way (up to artifact 4). At this level, your character has almost certainly been assigned some First Age weapon system, such as dragon armor or command over a major piece of field artillery.",
+      "Ten dots of artifacts, divided up any way (up to artifact 5)."
+    ],
+    "exalt_type": "Dragon-Blooded"
   },
   {
     "id": "background.artifact",
     "name": "Artifact",
-    "description": "Wondrous devices of the First Age that you own, rated by power and rarity. (Dragon-Blooded receive twice the dots' worth of artifacts.) (Alchemicals receive THREE dots of artifacts per dot bought, usually of their caste's Magical Material though this is not required; they alone may buy a rating as high as \u2022\u2022\u2022\u2022\u2022 at creation without bonus points, but the fourth and fifth dot each cost two dots from the pool. Alchemicals may also buy Charms as artifacts at a rating equal to the Charm's minimum Essence \u2014 these are kept on retainer at the Vats and do NOT increase the Charms they may install.)"
+    "description": "Wondrous devices of the First Age that you own, rated by power and rarity. (Dragon-Blooded receive twice the dots' worth of artifacts.) (Alchemicals receive THREE dots of artifacts per dot bought, usually of their caste's Magical Material though this is not required; they alone may buy a rating as high as ••••• at creation without bonus points, but the fourth and fifth dot each cost two dots from the pool. Alchemicals may also buy Charms as artifacts at a rating equal to the Charm's minimum Essence — these are kept on retainer at the Vats and do NOT increase the Charms they may install.)"
   },
   {
     "id": "background.backing",
     "name": "Backing",
-    "description": "Standing and rank within an organization of power, such as the Realm, a Guild, or a society. (An Abyssal in a Deathlord's service may not begin play with Backing \u2014 she takes Liege instead, p131.) (In Autochthonia, Backing is membership and authority in a branch of the Tripartite \u2014 an Olgotary branch, a Theomachracy branch or one of the Five Sodalities \u2014 and requires Class \u2022\u2022\u2022+. Autocrats, celebrants and councilors need Backing \u2022\u2022\u2022\u2022\u2022 in the Olgotary, the Theomachracy or a Sodality respectively. Backing in an exile colony, a Voidbringer sect or the black market is possible but limited, and the latter two mark you for death.)",
+    "description": "Standing and rank within an organization of power, such as the Realm, a Guild, or a society. (An Abyssal in a Deathlord's service may not begin play with Backing — she takes Liege instead, p131.) (In Autochthonia, Backing is membership and authority in a branch of the Tripartite — an Olgotary branch, a Theomachracy branch or one of the Five Sodalities — and requires Class •••+. Autocrats, celebrants and councilors need Backing ••••• in the Olgotary, the Theomachracy or a Sodality respectively. Backing in an exile colony, a Voidbringer sect or the black market is possible but limited, and the latter two mark you for death.)",
     "excluded_exalt_types": [
       "Abyssal"
     ]
@@ -43,16 +60,14 @@
   {
     "id": "background.class",
     "name": "Class",
-    "description": "Your rank in Autochthonia's social order and your standard of living, subsuming Followers, Influence and Resources into one Trait. Alchemicals automatically receive Class \u2022\u2022\u2022 at creation and may raise it with bonus points. x: Lumpen outcast, living as Resources \u2022, -1 die on Social pools against higher Class. \u2022: Populat laborer, Resources \u2022\u2022. \u2022\u2022: shift chief over 20-300 workers, Resources \u2022\u2022\u2022. \u2022\u2022\u2022: Populat foreman or junior Tripartite (with Backing \u2022 to \u2022\u2022), living at Resources \u2022\u2022\u2022 and able to requisition Resources \u2022\u2022\u2022\u2022; +1 die on Social rolls against lower Class. \u2022\u2022\u2022\u2022: Populat supervisor or veteran Tripartite (Backing \u2022\u2022 to \u2022\u2022\u2022), requisition up to Resources \u2022\u2022\u2022\u2022\u2022; +1 die against lower Class. \u2022\u2022\u2022\u2022\u2022: director/sub-director or senior Tripartite leader (Backing \u2022\u2022\u2022\u2022 to \u2022\u2022\u2022\u2022\u2022); +2 dice against lower Class. Because Class subsumes them, civilized Autochthonians may not take Resources or Followers \u2014 Lumpen outcasts, who live outside this Background entirely, may.",
+    "description": "Your rank in Autochthonia's social order and your standard of living, subsuming Followers, Influence and Resources into one Trait. Alchemicals automatically receive Class ••• at creation and may raise it with bonus points. x: Lumpen outcast, living as Resources •, -1 die on Social pools against higher Class. •: Populat laborer, Resources ••. ••: shift chief over 20-300 workers, Resources •••. •••: Populat foreman or junior Tripartite (with Backing • to ••), living at Resources ••• and able to requisition Resources ••••; +1 die on Social rolls against lower Class. ••••: Populat supervisor or veteran Tripartite (Backing •• to •••), requisition up to Resources •••••; +1 die against lower Class. •••••: director/sub-director or senior Tripartite leader (Backing •••• to •••••); +2 dice against lower Class. Because Class subsumes them, civilized Autochthonians may not take Resources or Followers — Lumpen outcasts, who live outside this Background entirely, may.",
     "exalt_type": "Alchemical"
   },
   {
     "id": "background.command",
     "name": "Command",
     "description": "The earned right to command soldiers of the legions or a House army, from a single fang (5) up to an entire dragon (500) fighting under your banner.",
-    "excluded_exalt_types": [
-      "Abyssal"
-    ]
+    "exalt_type": "Dragon-Blooded"
   },
   {
     "id": "background.connections",
@@ -65,13 +80,15 @@
     "name": "Contacts",
     "description": "Information sources and useful connections in various places.",
     "excluded_exalt_types": [
-      "Dragon-Blooded"
+      "Dragon-Blooded",
+      "Sidereal"
     ]
   },
   {
     "id": "background.cult",
     "name": "Cult",
-    "description": "Worshippers whose devotions give you strength."
+    "description": "Worshippers whose devotions give you strength.",
+    "universal": true
   },
   {
     "id": "background.familiar",
@@ -84,48 +101,57 @@
   {
     "id": "background.family",
     "name": "Family",
-    "description": "Notable family members. Optional; see Exalted: The Dragon-Blooded p.279."
+    "description": "Notable family members. Optional; see Exalted: The Dragon-Blooded p.279.",
+    "exalt_type": "Dragon-Blooded"
   },
   {
     "id": "background.followers",
     "name": "Followers",
     "description": "Mortals who look to you for leadership, rated by their number and devotion.",
+    "ladder": [
+      "None — you haven't inspired anyone to rally to your banner.",
+      "One follower of average capability (equivalent to a typical extra).",
+      "Three followers.",
+      "Seven followers.",
+      "25 followers.",
+      "100 loyal followers."
+    ],
     "excluded_exalt_types": [
-      "Dragon-Blooded"
+      "Dragon-Blooded",
+      "Sidereal"
     ]
   },
   {
     "id": "background.grave-goods",
     "name": "Grave Goods",
     "exalt_type": "Ghost",
-    "description": "The value of your funeral spread \u2014 your outfit in the Underworld, which does NOT replenish itself the way Resources do; once it is gone you are naked and alone. \u2022 fine clothing, a weapon and some food; \u2022\u2022 armour, several suits, jewellery, books and several weapons; \u2022\u2022\u2022 a princely panoply, a dozen exceptional weapons and 100 Essence/10 Willpower in burnt offerings, with up to three sacrificed animals and a sacrificial servant; \u2022\u2022\u2022\u2022 a funeral fit for a queen, a tomb that entered the Underworld with you, 150 Essence/15 Willpower; \u2022\u2022\u2022\u2022\u2022 a national effort, yachts with effigy crews, 1,000 warrior effigies and 250 Essence/25 Willpower. High Resources cannot substitute \u2014 bought gear wears out, and it cannot justify grave-bound servants or sacrificed animals."
+    "description": "The value of your funeral spread — your outfit in the Underworld, which does NOT replenish itself the way Resources do; once it is gone you are naked and alone. • fine clothing, a weapon and some food; •• armour, several suits, jewellery, books and several weapons; ••• a princely panoply, a dozen exceptional weapons and 100 Essence/10 Willpower in burnt offerings, with up to three sacrificed animals and a sacrificial servant; •••• a funeral fit for a queen, a tomb that entered the Underworld with you, 150 Essence/15 Willpower; ••••• a national effort, yachts with effigy crews, 1,000 warrior effigies and 250 Essence/25 Willpower. High Resources cannot substitute — bought gear wears out, and it cannot justify grave-bound servants or sacrificed animals."
   },
   {
     "id": "background.hearts-blood",
     "name": "Heart's Blood",
-    "description": "The animals (and men) whose forms you can take, beyond your totem animal \u2014 drinking a creature's heart's blood at its death teaches your body its shape forever. Higher ratings let you take the heart's blood of larger or more numerous creatures, up to three dozen animals or a dozen humans at \u2022\u2022\u2022\u2022\u2022.",
+    "description": "The animals (and men) whose forms you can take, beyond your totem animal — drinking a creature's heart's blood at its death teaches your body its shape forever. Higher ratings let you take the heart's blood of larger or more numerous creatures, up to three dozen animals or a dozen humans at •••••.",
     "exalt_type": "Lunar"
   },
   {
     "id": "background.henchmen",
     "name": "Henchmen",
     "description": "UnExalted characters of note who have sworn personal oaths of loyalty to you, rated by their number.",
-    "excluded_exalt_types": [
-      "Abyssal"
-    ]
+    "exalt_type": "Dragon-Blooded"
   },
   {
     "id": "background.influence",
     "name": "Influence",
-    "description": "Your pull and status in society \u2014 political, social, or commercial.",
+    "description": "Your pull and status in society — political, social, or commercial.",
     "excluded_exalt_types": [
-      "Dragon-Blooded"
+      "Dragon-Blooded",
+      "Sidereal"
     ]
   },
   {
     "id": "background.liege",
     "name": "Liege",
-    "description": "The interest and favor your Deathlord takes in you, standing in for both Mentor and Backing (which loyal deathknights may not take). Grants extra bonus points at creation (2 at \u2022, 4 at \u2022\u2022, 6 at \u2022\u2022\u2022, 9 at \u2022\u2022\u2022\u2022, 12 at \u2022\u2022\u2022\u2022\u2022) spendable on Abyssal Command, Artifact, Followers, Influence, Manse, Necromancy, Resources, Underworld Manse, Whispers, Caste/Favored Abilities or Charms. Renegade deathknights on the run from their masters may not buy Liege.",
+    "description": "The interest and favor your Deathlord takes in you, standing in for both Mentor and Backing (which loyal deathknights may not take). Grants extra bonus points at creation (2 at •, 4 at ••, 6 at •••, 9 at ••••, 12 at •••••) spendable on Abyssal Command, Artifact, Followers, Influence, Manse, Necromancy, Resources, Underworld Manse, Whispers, Caste/Favored Abilities or Charms. Renegade deathknights on the run from their masters may not buy Liege.",
     "exalt_type": "Abyssal",
     "excluded_exalt_types": [
       "Ghost"
@@ -142,30 +168,29 @@
   {
     "id": "background.mentor",
     "name": "Mentor",
-    "description": "A patron, teacher, or defender who advises and aids you, rated by their power. (An Abyssal in a Deathlord's service may not begin play with Mentor \u2014 she takes Liege instead, p131.)",
+    "description": "A patron, teacher, or defender who advises and aids you, rated by their power. (An Abyssal in a Deathlord's service may not begin play with Mentor — she takes Liege instead, p131.)",
     "excluded_exalt_types": [
-      "Abyssal"
+      "Abyssal",
+      "Sidereal"
     ]
   },
   {
     "id": "background.necromancy",
     "name": "Necromancy",
-    "description": "Training in the death-magic of the Underworld \u2014 you begin play knowing necromantic spells without swapping Charms for them: one Shadowlands-Circle spell at \u2022, rising to seven Shadowlands/Labyrinth-Circle spells at \u2022\u2022\u2022\u2022\u2022. Only Necromancy may be learned this way, never Terrestrial or Celestial sorcery.",
+    "description": "Training in the death-magic of the Underworld — you begin play knowing necromantic spells without swapping Charms for them: one Shadowlands-Circle spell at •, rising to seven Shadowlands/Labyrinth-Circle spells at •••••. Only Necromancy may be learned this way, never Terrestrial or Celestial sorcery.",
     "exalt_type": "Abyssal"
   },
   {
     "id": "background.renown",
     "name": "Renown",
-    "description": "Your standing within the Silver Pact above and beyond the ordinary Lunar's \u2014 grants additional points to spend on the Renown trait at creation (5 at \u2022, 10 at \u2022\u2022, 15 at \u2022\u2022\u2022, 25 at \u2022\u2022\u2022\u2022, 40 at \u2022\u2022\u2022\u2022\u2022). Casteless Lunars may not take this Background.",
+    "description": "Your standing within the Silver Pact above and beyond the ordinary Lunar's — grants additional points to spend on the Renown trait at creation (5 at •, 10 at ••, 15 at •••, 25 at ••••, 40 at •••••). Casteless Lunars may not take this Background.",
     "exalt_type": "Lunar"
   },
   {
     "id": "background.reputation",
     "name": "Reputation",
     "description": "How widely your exploits are known across the Dynasty and the Realm; may be added to Social rolls where fame carries weight (or subtracted where it is a liability).",
-    "excluded_exalt_types": [
-      "Abyssal"
-    ]
+    "exalt_type": "Dragon-Blooded"
   },
   {
     "id": "background.resources",
@@ -175,24 +200,42 @@
   {
     "id": "background.retainers",
     "name": "Retainers",
-    "description": "Mortals who serve you \u2014 a steward, a cook, bodyguards, aides and secretaries."
+    "description": "Officers of the Seventh Legion are expected to maintain a proper staff of assistants and support personnel — even a taizei can be expected to have a steward, a cook and a pair of personal bodyguards unaffiliated with his command. He might also perhaps have a concubine or two, though some would see it as vaguely decadent. Retainers are generally quite loyal to their commanding officer, though that loyalty can be dependent on treatment: well treated, they will develop into fanatical servants; treated poorly, they may seek to gain vengeance, or they may simply sigh and accept their lot, depending on the personality of the characters. (The Outcaste p.67)",
+    "ladder": [
+      "None. Your character has no retainers, being either of low rank, unsavory reputation or stoic disposition.",
+      "Two retainers, usually a steward and an aide-de-camp.",
+      "Five retainers, normally including a cook and, possibly, a bodyguard.",
+      "Seven retainers, likely incorporating a pair of bodyguards, a steward, a cook and a secretary.",
+      "Nine retainers, or a lesser number of more skilled aides.",
+      "Thirteen retainers, almost certainly incorporating armsmen, bodyguards and concubines, the retinue of a taimyo or the spoiled child of a Gens."
+    ],
+    "exalt_type": "Dragon-Blooded"
   },
   {
     "id": "background.sorcery",
     "name": "Sorcery",
-    "description": "The advanced training of Lookshy sorcerers, representing the common training of the sorcerer-technicians rather than the private studies and innovations that must be bought by exchanging Charms or with bonus points or experience."
+    "description": "This Background represents the advanced training of Lookshy sorcerers, whose spells are all selected from the Seventh Legion's own list. This magical mastery represents the common training of the sorcerer-technicians rather than their private studies and innovations, which must be purchased by exchanging Charms or with bonus points or experience. At the Storyteller's discretion, graduates of the Heptagram should be allowed to purchase Sorcery as well, although they are unlikely to have the highest levels of it. (The Outcaste pp.67-68)",
+    "ladder": [
+      "Your character has never been tapped for sorcery training and has never studied sorcery privately.",
+      "Your character has received basic instruction in arts of sorcery. Your character starts with the knowledge of one spell.",
+      "Your character has a strong understanding of sorcery's core principles. Your character begins with two spells.",
+      "Your character has received extensive training in the art of sorcery. Your character begins with three spells.",
+      "Your character has an advanced understanding of the finer points of sorcery. Your character starts with four spells. Additionally, although your character cannot perform such spells, she has some knowledge of the fundamentals of the Celestial Circle of sorcery, enough to sometimes recognize Celestial spells when she sees them written down or performed.",
+      "Your character's knowledge of Terrestrial sorcery is unmatched, and her furtive perusal of certain banned tomes has given her insights into the more powerful Circles. She begins with five spells."
+    ],
+    "exalt_type": "Dragon-Blooded"
   },
   {
     "id": "background.spies",
     "name": "Spies",
-    "description": "A share of your Deathlord's espionage apparatus of demons, ghosts and informants \u2014 from five spies (\u2022) up to a network spanning an entire Direction in both the living and dead worlds (\u2022\u2022\u2022\u2022\u2022). You may use it to spy on foes and draw on its resources for protection, but have no discretionary access to its budget.",
+    "description": "A share of your Deathlord's espionage apparatus of demons, ghosts and informants — from five spies (•) up to a network spanning an entire Direction in both the living and dead worlds (•••••). You may use it to spy on foes and draw on its resources for protection, but have no discretionary access to its budget.",
     "exalt_type": "Abyssal"
   },
   {
     "id": "background.underworld-cult",
     "name": "Underworld Cult",
     "exalt_type": "Ghost",
-    "description": "Worship from your fellow DEAD \u2014 ghostly peasants venerating their ritual kings, citizens of Stygia their district's ruler. Provides no Willpower, but considerable Essence: \u2022 your peers and household, 1 Essence per hour; \u2022\u2022 perhaps a hundred spirit-clients, 2 per hour; \u2022\u2022\u2022 several hundred, the level of the average nephwrack temple or the ritual ruler of a city-state of the dead, 3 per hour; \u2022\u2022\u2022\u2022 several thousand, or the ambient reverence paid to an ancient hero, 4 per hour; \u2022\u2022\u2022\u2022\u2022 tens of thousands \u2014 a spectral religion or a Deathlord's following \u2014 5 per hour."
+    "description": "Worship from your fellow DEAD — ghostly peasants venerating their ritual kings, citizens of Stygia their district's ruler. Provides no Willpower, but considerable Essence: • your peers and household, 1 Essence per hour; •• perhaps a hundred spirit-clients, 2 per hour; ••• several hundred, the level of the average nephwrack temple or the ritual ruler of a city-state of the dead, 3 per hour; •••• several thousand, or the ambient reverence paid to an ancient hero, 4 per hour; ••••• tens of thousands — a spectral religion or a Deathlord's following — 5 per hour."
   },
   {
     "id": "background.underworld-manse",
@@ -203,20 +246,20 @@
   {
     "id": "background.vats",
     "name": "Vats",
-    "description": "Your access to your city's Vat foundry: how many Charms you keep on retainer in your Panoply beyond those installed in your Charm Slots, and how fast you can requisition a refit. Cumulative with Charms bought as artifacts; in neither case may you take a Charm whose Trait minimums you do not meet. x: no special access \u2014 one month's notice for a minor refit, six months for Essence. \u2022: one extra Charm; two weeks / two months notice. \u2022\u2022: two extra; one week / one month. \u2022\u2022\u2022: three extra; two days / two weeks. \u2022\u2022\u2022\u2022: four extra; one day / one week. \u2022\u2022\u2022\u2022\u2022: five extra, and refits receive immediate priority with no notice. Vats also allow accelerated repair: an hour plugged in restores (Essence x 5) motes and multiplies your healing rate by permanent Essence. Mortals may not take Vats.",
+    "description": "Your access to your city's Vat foundry: how many Charms you keep on retainer in your Panoply beyond those installed in your Charm Slots, and how fast you can requisition a refit. Cumulative with Charms bought as artifacts; in neither case may you take a Charm whose Trait minimums you do not meet. x: no special access — one month's notice for a minor refit, six months for Essence. •: one extra Charm; two weeks / two months notice. ••: two extra; one week / one month. •••: three extra; two days / two weeks. ••••: four extra; one day / one week. •••••: five extra, and refits receive immediate priority with no notice. Vats also allow accelerated repair: an hour plugged in restores (Essence x 5) motes and multiplies your healing rate by permanent Essence. Mortals may not take Vats.",
     "exalt_type": "Alchemical"
   },
   {
     "id": "background.whispers",
     "name": "Whispers",
-    "description": "Your attunement to the dead gods, letting you tap the lore lost in the Underworld's darkness. Once per night, roll Perception + Whispers to uncover a lost secret, be drawn toward where a death would matter most, or substitute Whispers for a single Ability (this last costs 1 temporary Willpower). At \u2022\u2022\u2022\u2022\u2022 you are one with the Malfeans.",
+    "description": "Your attunement to the dead gods, letting you tap the lore lost in the Underworld's darkness. Once per night, roll Perception + Whispers to uncover a lost secret, be drawn toward where a death would matter most, or substitute Whispers for a single Ability (this last costs 1 temporary Willpower). At ••••• you are one with the Malfeans.",
     "exalt_type": "Abyssal"
   },
   {
     "id": "background.inheritance",
     "name": "Inheritance",
     "exalt_type": "God-Blooded",
-    "description": "The potency of your magical birthright (PG p.61). Though still mortal, one of your parents was a powerful magical being, and this mystical parentage has left its mark on body and soul. Characters without the Inheritance Background may not purchase Traits exclusive to the God-Blooded. Each dot grants additional bonus points and Flaw capacity: \u2022 Thin blood +6 BP / 10 Flaws; \u2022\u2022 Good blood +12 / 15; \u2022\u2022\u2022 Notable ancestry +18 / 15; \u2022\u2022\u2022\u2022 Impeccable scion +24 / 20; \u2022\u2022\u2022\u2022\u2022 Divine +30 / 20. These bonus points may not be spent on Backgrounds. The Storyteller assigns a consistent rating to set the series' power level; where it needs calculating, Inheritance equals half the sum of the parents' Essence ratings, rounded down."
+    "description": "The potency of your magical birthright (PG p.61). Though still mortal, one of your parents was a powerful magical being, and this mystical parentage has left its mark on body and soul. Characters without the Inheritance Background may not purchase Traits exclusive to the God-Blooded. Each dot grants additional bonus points and Flaw capacity: • Thin blood +6 BP / 10 Flaws; •• Good blood +12 / 15; ••• Notable ancestry +18 / 15; •••• Impeccable scion +24 / 20; ••••• Divine +30 / 20. These bonus points may not be spent on Backgrounds. The Storyteller assigns a consistent rating to set the series' power level; where it needs calculating, Inheritance equals half the sum of the parents' Essence ratings, rounded down."
   },
   {
     "id": "background.patron",
@@ -240,7 +283,93 @@
     "id": "background.savant",
     "name": "Savant",
     "exalt_type": "Dragon-Kings",
-    "excluded_origins": ["Dragon-Kings"],
+    "excluded_origins": [
+      "Dragon-Kings"
+    ],
     "description": "Memories of the First Age and its lost secrets (see Exalted: The Sidereals, pp.108-109). Only ancient Dragon Kings may possess this Background at character creation."
+  },
+  {
+    "id": "background.acquaintances",
+    "name": "Acquaintances",
+    "exalt_type": "Sidereal",
+    "description": "Because of their inherently arcane nature, Sidereals must go to great lengths to build and maintain interpersonal relationships with mortals. The Acquaintances Background represents the time and effort a character has devoted to establishing such bonds. Without this Background, no mortal will ever recognize nor remember a character's name or face — mortals will simply accept the character by whatever role she had assumed and recall her as little more than another face in the crowd. However, those mortals with whom the character has worked to build a relationship will begin to remember her more clearly. At first they will simply find her face familiar; with enough time and patience, the mortals may even remember her name when she is not there, allowing the Sidereal to establish front identities. Front identities are business operations or professional identities that are similar to acquaintances, but rather than one individual knowing the Exalt well, many know her superficially. Any serious inquiry into a front identity will reveal that it does not exist, and so the front cannot be particularly prominent or important. Sidereals can add to their Acquaintances Background through the use of the Ride Charm Breaking the Wild Mortal. Sidereals are unable to gather Followers — the inherently arcane nature of their existence makes this impossible — and use Acquaintances instead. (Sidereals p.105)",
+    "ladder": [
+      "None. You have made no effort to cultivate any sort of personal relationship with mortals. Why?",
+      "A single person, such as an innkeeper or city guard, recognizes yours as a friendly face when he sees it.",
+      "A small handful of people who recognize your face and remember your name when they see you. Alternately, you may have a greater number of less familiar acquaintances. With this level of Acquaintances, you may have a front identity, such as the owner of a curious bookstore or a gravely humorous undertaker. However, you will have no repeat clientele, as your patrons will only come upon your front identity by accidents of fate.",
+      "The regulars at a tavern, gambling den or other small, close-knit group (such as a criminal gang or small farming village) accept you as one of their own. At this level, you can maintain a thorough professional appearance in a front identity, but away from your persona, you are still an enigma.",
+      "You have a close personal relationship with a single mortal as well a small number of genuine friends. Alternately, you may have a larger number of less familiar acquaintances — up to three front identities with full sets of casual acquaintances. You might have the same identity in multiple places or may maintain entirely different fronts.",
+      "You have an established social position in a sizable but close-knit community, such as a town or city neighborhood, a mercenary company or a large temple. The quality of this position is dependent upon your Connections and Resources Backgrounds, and this familiarity does not extend outside the immediate community. Alternately, you may have up to five front identities with full sets of casual acquaintances."
+    ]
+  },
+  {
+    "id": "background.celestial-manse-sidereal",
+    "name": "Celestial Manse",
+    "exalt_type": "Sidereal",
+    "description": "The Celestial City of Yu-Shan is so large and crowded as to make the greatest of mortal cities look like a farming village. Space is limited, and the gods endlessly compete for control of it. For many of the Chosen of Fate, a dwelling within Yu-Shan is an invaluable treasure. A Sidereal's Celestial Manse provides both a temporary reprieve from the pressure and demands of her duties to the Celestial Hierarchy and a sanctuary from the chaos of the material world. In addition, Sidereals with Celestial Manses are permitted to travel to and from Yu-Shan whenever they wish, allowing them to enter Heaven without official business. The competition for Yu-Shan's available space is fierce: when a Sidereal dies (or a god is exiled), others begin a subtle and cutthroat dance of intrigue in an attempt to claim the space for themselves. In addition to shelter and status, a Sidereal's Celestial Manse is also capable of producing Hearthstones just like a regular Manse. Such Hearthstones are always Celestial in nature, and Hearthstones from Celestial Manses work normally in Creation. Characters cannot buy above Celestial Manse ••• without special Storyteller permission — more impressive digs are reserved for higher-ranking individuals. No amount of money can secure a character a Manse in Heaven: a Sidereal must have this Background to start with her own, and characters without it are restricted to palaces and mansions that do not generate Hearthstones. (Sidereals p.106)",
+    "ladder": [
+      "None. You have no celestial dwelling of your own, unless you live without a residency permit in a squatter camp. Why?",
+      "A small faux-shrine or comfy townhouse. Produces a level 1 Hearthstone.",
+      "A beautiful pagoda or a spacious townhouse. Produces a level 2 Hearthstone.",
+      "A small palace with grounds or a spacious mansion. Produces a level 3 Hearthstone.",
+      "A towering pagoda, an impressive palace or a hunting lodge with a hundred acres of land well-stocked with godly deer. Produces a level 4 Hearthstone.",
+      "A singular property, either famed for some previous inhabitant or for some element of its vast and overwrought grandeur. Produces a level 5 Hearthstone."
+    ]
+  },
+  {
+    "id": "background.connections-sidereal",
+    "name": "Connections",
+    "exalt_type": "Sidereal",
+    "description": "Combining the vast backing of the Celestial Hierarchy with an innate talent for spotting opportunity, the Sidereal Exalted are in a unique position to influence the individuals and institutions around them while drawing little or no notice to themselves. They excel at crafting webs within webs, and the ability to use those webs for their own personal and professional benefit is a powerful one. Characters with Connections can guide society in the direction they wish it to move and grow, protecting their assets and gaining special favors. However, such an ability also requires a serious dedication of time and resources, so Sidereals must focus their attentions on certain areas of influence in order to fully manipulate any of Creation's widespread and diverse social and political structures. When purchasing Connections you must select one of the areas of influence detailed on p.108 — the Dragon-Blooded, the Realm, the Immaculate Order, the Guild, the Threshold, the Cult of the Illuminated, outlaws, the Bureau of Destiny (each Maiden's division counting separately) and the Celestial Hierarchy (each bureau counting separately). Each area effectively counts as a separate Background. You cannot manage more points of Connections than the sum of your character's Physical, Social and Mental Attributes combined; for starting characters this means the total number of dots in Connections may not exceed 27, unless bonus points have been spent toward Attributes. This Background serves the same function as both the Contacts and Influence Backgrounds from Exalted, neither of which Sidereal characters use. (Sidereals pp.106-108)",
+    "ladder": [
+      "None. You lack any ties to the group in question.",
+      "You possess at least one major contact (and a handful of minor ones) among the group and are moderately influential on the local level.",
+      "Two major contacts and several minor ones, giving you a great deal of pull in your area.",
+      "Three major contacts and a large number of minor ones within your area of influence, making you a person of importance within your region.",
+      "Five major contacts and a horde of lesser ones. You are one of the most influential persons in your bailiwick.",
+      "You know all of the major power players in your area of influence, and more importantly, you know how to make them do what you want."
+    ]
+  },
+  {
+    "id": "background.salary-sidereal",
+    "name": "Salary",
+    "exalt_type": "Sidereal",
+    "description": "Their powers and the availability of Ambrosia make mortal wealth of little concern for most of the Sidereal Exalted; what matters most is the amount of Quintessence and Ambrosia the character has access to. Because Sidereals are neither permitted nor able to develop cults, they are instead given access to monies through their division. These come out of the funds the Bureau of Heaven releases to the Bureau of Destiny, but the character has discretion to spend them as she wishes. There is a noticeable pay differential between the Bronze and Gold Factions: the Bronze Faction does not control the payments apparatus, which is in divine hands, but it does exert a great deal of influence through its operation of the evaluation system. Bureau regulations prohibit Sidereals from living above the Resources ••• standard of living in Creation lest they draw attention to themselves, and heavenly regulations prohibit Celestial salaries being used to purchase or maintain armies, fleets, thrones or other trappings of political power. Living at Resources •••• is a Severity 2 offense, living at Resources ••••• is a Severity 4 offense, and purchasing mortal armies or principalities is a Severity 5 offense; characters cannot bribe their regional censors to get around this. Sidereals do not generally qualify to exceed Salary ••• until they have served Heaven for at least 100 years. Exalted other than Sidereals might occasionally be awarded Celestial preferments for meritorious deeds, but such honorariums are never above Salary •••. Non-ronin Sidereals do not generally start with Resources, using Salary instead. Heaven is expensive: Resources in Yu-Shan are not the same as Resources in Creation, and a character who derives his Resources from Creation and not a Salary adds •• to the Resources cost of all fees and standards of living. (Sidereals pp.107-109)",
+    "ladder": [
+      "No salary. Did you piss someone off, or are they impounding it to pay some heinous court fee? You live in someone's back room or in your office. You have to beg or crash a feast to eat.",
+      "The starting salary for most gods. As a Sidereal, this means you're either new or on probation. You have a small (five-room) apartment and can afford one meager feast each day. You can pay your two servants, but you get no Ambrosia. You have Resources •• in Heaven, Resources ••• in Creation — dragon boat rental is problematic, and you often ride in passenger dhows.",
+      "Solid salary — you have a small townhouse or a spacious apartment in a mediocre neighborhood. Your feasting-board is constantly full. There is some Ambrosia in your pay, but most of it is in Quintessence allowances useful only for paying servants or meeting basic needs. You have Resources ••• in Heaven and can live as if you have Resources •••• in Creation, although Sidereals generally won't be able to exert this fully. This is the standard Salary for members of the Gold Faction, who are typically paid at the bottom of their grade.",
+      "You own a towering townhouse, a working faux-ranch or a rooftop temple-fortress. You have your own dragon boat, aerial rickshaw and a dozen servitor gods. Most of your pay is in Ambrosia, allowing you to eat many godly victuals. You have Resources •••• in Yu-Shan and could have Resources ••••• in Creation if you could stand the legal heat. This is the standard pay packet for a member of the Bronze Faction.",
+      "At least two of the above residences and, possibly, a few Essence 2 or 3 gods living with you as yojimbos, advisors or concubines (these must be bought with the Allies Background). You eat nothing but godly victuals and pay even your menial servants in Ambrosia to keep them loyal. Ambrosia and Quintessence subsidies give you Resources ••••• in both Heaven and Creation.",
+      "You have a half-dozen grand palaces, penthouse aeries and weekend hunting lodges or party houses in faux-country settings. You possess several dragon boats, a party barge, several aerial rickshaws and a legion of servants, possibly including up to a dozen militant lesser gods (useful gods must be bought as Allies). You dine on the peaches of immortality. You could make unlimited Resources •••• purchases in Creation, totally ruining the local economy. Only senior Sidereals and the better sort of high god receive these sorts of pay packets."
+    ]
+  },
+  {
+    "id": "background.savant-sidereal",
+    "name": "Savant",
+    "exalt_type": "Sidereal",
+    "description": "Alone among the Exalted, the Sidereals have preserved the lost secrets of the First Age in their entirety. While the Dragon-Blooded remember only what the Sidereals have carefully doled out and the Lunars have lost all interest in the arts of civilization, the Chosen of Fate have carefully recorded and handed down secrets of Essence and craftsmanship long forgotten in the material world. Even when the Great Contagion threatened to consume Creation, the Sidereal libraries in Yu-Shan remained undisturbed. The Sidereal Exalted use special teaching techniques to fill young Exalts up with concentrated understanding. A character with the Savant Background may add her Background rating in dice to any Lore check involving the history, science and/or magic of the First Age. In addition, she may add her Savant rating in dots to her Lore, Occult and/or Craft Abilities in order to meet the skill qualifications to operate, maintain or overhaul any First Age artifact. (Sidereals pp.109-110)",
+    "ladder": [
+      "None. You lack any intuitive understanding of First Age lore. Why?",
+      "You vaguely recall the secrets learned in past existences and intuitively grasp some of the basics of First Age wonder working.",
+      "The teaching techniques worked well with you, and you have a reasonable understanding of First Age magical principles.",
+      "You can remember large amounts of your enhanced training and have excellent insight into the secrets of the First Age.",
+      "Most segments of the knowledge in printing remained intact. You easily grasp the workings of most First Age artifacts.",
+      "The elders applied supplemental training to your already-perfect mastery and made you a walking library of First Age secrets. You have an instinctive understanding of even the most complex First Age mechanisms. It must be painful to comprehend the distance that the Second Age has fallen from the First."
+    ]
+  },
+  {
+    "id": "background.sifu",
+    "name": "Sifu",
+    "exalt_type": "Sidereal",
+    "description": "Each Sidereal is assigned a tutor, known as a sifu, who is expected to pass the secrets of martial-arts mastery along to the young Exalt. When a young Sidereal has proven herself ready to begin learning these secret and powerful forms — by meeting all of the prerequisites for learning the Charms — her sifu will begin instructing her in the secret techniques as well. But while all Sidereals have a sifu, not all sifus are created equal: elder Sidereals know only a limited number of supernatural martial-arts secrets, and the greater the sifu's skill, the more the student will be able to learn. The Sifu Background allows a player to stake out those martial-arts forms she wishes for her character to learn later in the game. If a character possesses the Sifu Background, the player and the Storyteller should agree on which forms the sifu knows. Sifus may be busy, but they are expected to make time to train their charges — Sifu is effectively martial-arts training on demand, subject to plot consideration. With their small numbers, long lives and complex support structure, the Chosen of Fate maintain a strong and regulated mentoring system, and every member of the Celestial Hierarchy possesses a mentor she sees on a regularly scheduled basis; for this reason Sidereal characters do not use the Mentor Background, and this one covers it. (Sidereals p.110)",
+    "ladder": [
+      "Your sifu knows only a single supernatural martial-arts form and probably has only partial mastery of that. What did you do to get such a teacher?",
+      "Your sifu knows one supernatural martial-arts form and has partially mastered one Sidereal form.",
+      "Your sifu knows two supernatural martial-arts forms and one Sidereal form.",
+      "Your sifu knows three supernatural martial-arts forms and two Sidereal forms.",
+      "Your sifu knows five supernatural martial-arts forms and three Sidereal forms.",
+      "Your sifu knows seven supernatural martial-arts forms and four Sidereal forms."
+    ]
   }
 ]

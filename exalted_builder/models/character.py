@@ -497,6 +497,28 @@ class HouseRules(BaseModel):
     # because only a mortal can turn this flag on in the first place.
     mortal_favored_ability: bool = False
 
+    # TABLE-WIDE. Open the WHOLE Background catalogue to every splat, rather than the
+    # Backgrounds that character's own book prints. The books ask for exactly this
+    # switch: the Outcaste's new-Backgrounds heading (p.66) offers Arsenal, Retainers
+    # and Sorcery to Lookshy and adds that "Storytellers may wish to introduce them in
+    # other games where they are appropriate but are under no compulsion to allow
+    # characters to take them unless the game is about Lookshy Dragon-Blooded".
+    #
+    # Off by default, which is the printed default — a Background belongs to the book
+    # that prints it until a Storyteller says otherwise. Table-wide because the answer
+    # is about which books are in play, and a series where one player may take Arsenal
+    # and another may not is not a rules decision but an argument.
+    #
+    # Read ONLY through `validate.background_catalogue_for`, never by reaching into
+    # HouseRules at a call site: it lifts the splat and origin filters and must NOT
+    # lift `banned_backgrounds`, which are in-fiction prohibitions (the Great Geas
+    # forbids a Mountain Folk a Cult) rather than questions of which book is open.
+    #
+    # NOT frozen into the ChargenSnapshot: Backgrounds are free text and this flag
+    # changes only which names the dropdown OFFERS, never how a dot is priced, so
+    # flipping it post-lock cannot re-price a locked character.
+    all_backgrounds_available: bool = False
+
     # TABLE-WIDE. How Merits & Flaws change AFTER character creation (Player's Guide
     # p.17, "Gaining and Losing Merits and Flaws"). The book gives three methods and
     # says the Storyteller "may use any of these three methods or a combination":

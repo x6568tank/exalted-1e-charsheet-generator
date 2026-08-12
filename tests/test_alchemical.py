@@ -1266,3 +1266,16 @@ def test_non_crossover_splat_cannot_use_panoply(rs):
     c.xp_earned = 100
     with pytest.raises(advancement.AdvancementError, match="Alchemical mechanic"):
         advancement.learn_retainer_charm(rs, c, _ALCH_STR)
+
+
+def test_the_slot_economy_has_no_unspent_charm_pool(rs) -> None:
+    """Every other splat now warns about unspent chargen Charm picks. An Alchemical
+    has no pick pool to leave unspent — she buys SLOTS (p.88-89), and the picker's
+    slot-occupancy readout is the report that matters. Guards the `uses_charm_slots`
+    skip in `unspent_budget_issues` against being dropped as redundant."""
+    from exalted_builder.engine import validate
+    from exalted_builder.models.character import Character
+
+    issues = validate.unspent_budget_issues(
+        rs, Character(id="a", exalt_type="Alchemical"))
+    assert not [i for i in issues if i.where == "charms"]

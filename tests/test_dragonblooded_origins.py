@@ -485,10 +485,46 @@ def test_changing_origin_clears_a_stale_upbringing(rs):
 def test_the_outcaste_backgrounds_are_in_the_autofill_catalog(rs):
     """Backgrounds stay soft free text — the catalog is an autofill source only — but
     the four books name several the catalog did not have."""
-    names = {b.name for b in rs.backgrounds_for(DB)}
-    for name in ("Arsenal", "Command", "Cult", "Henchmen", "Breeding", "Sorcery",
+    names = {b.name for b in rs.backgrounds_for(DB, "lookshy")}
+    # Cult and Henchmen are NOT in this list: the Lookshy chargen summary (p.66)
+    # enumerates its own fifteen and neither is among them. Cult is Games of Divinity
+    # content and Henchmen is in E:DB's new-Backgrounds section, which Lookshy's
+    # summary does not restate (human, rules authority, 2026-08-11).
+    for name in ("Arsenal", "Command", "Breeding", "Sorcery",
                  "Retainers", "Reputation", "Manse", "Artifact"):
         assert name in names, name
+
+
+def test_lookshys_three_new_backgrounds_do_not_leak_to_every_splat(rs):
+    """The Outcaste p.66 introduces Arsenal, Retainers and Sorcery under a heading
+    that scopes them itself: "The following Backgrounds are most appropriate for
+    Lookshy characters. Storytellers ... are under no compulsion to allow characters
+    to take them unless the game is about Lookshy Dragon-Blooded."
+
+    All three shipped with no restriction at all and were offered to every splat in
+    the build — a Solar could take the Seventh Legion's armoury. They are scoped with
+    `origins` (an ALLOW-list) rather than `excluded_origins`, because an exclusion
+    list silently reopens them the next time a Dragon-Blooded origin is added, which
+    is how this happened in the first place."""
+    lookshy = {b.name for b in rs.backgrounds_for(DB, "lookshy")}
+    for name in ("Arsenal", "Retainers", "Sorcery"):
+        assert name in lookshy, f"{name} must be offered to Lookshy"
+        for splat, origin in ((DB, ""), (DB, "pirate"), ("Solar", ""),
+                              ("Sidereal", ""), ("Abyssal", "")):
+            offered = {b.name for b in rs.backgrounds_for(splat, origin)}
+            assert name not in offered, f"{name} leaked to {splat}/{origin or '-'}"
+
+
+def test_the_storyteller_can_open_the_whole_catalogue(rs):
+    """The printed override (The Outcaste p.66: Storytellers "may wish to introduce
+    them in other games where they are appropriate"). It lifts the splat and origin
+    filters — a Solar may then take Arsenal — but is NOT a way to route around a
+    splat's own prohibitions."""
+    solar = {b.name for b in rs.backgrounds_for("Solar")}
+    opened = {b.name for b in rs.backgrounds_for("Solar", all_available=True)}
+    assert "Arsenal" not in solar and "Arsenal" in opened
+    assert "Sifu" not in solar and "Sifu" in opened
+    assert solar < opened
 
 
 # --- render routes ----------------------------------------------------------- #

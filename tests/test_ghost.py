@@ -1289,3 +1289,29 @@ def test_hyphenated_arcanoi_names_keep_both_halves_capitalised(rs) -> None:
     for name in hyphenated:
         for half in name.split("-"):
             assert half[:1] == half[:1].upper(), name
+
+
+def test_the_unspent_arcanoi_pool_is_warned_about_and_named(rs) -> None:
+    """A heroic ghost gets six Arcanoi (p.126) and NOTHING said so: every other
+    chargen domain warned about its leftovers — Attributes, Abilities, Virtues,
+    Backgrounds, Fetters — and the Charm pool warned about none, so a ghost with no
+    magic at all read as complete on that axis. The noun comes from
+    `ExaltDefinition.charm_noun`, presentation data exactly like `caste_noun`, so
+    the warning and the picker's readout cannot disagree about what to call the pool.
+    """
+    from exalted_builder.engine import validate
+    from exalted_builder.models.character import Character
+
+    assert rs.exalt_for("Ghost").charm_noun == "Arcanoi"
+    heroic = validate.unspent_budget_issues(
+        rs, Character(id="g", exalt_type="Ghost", origin="heroic"))
+    line = next(i for i in heroic if i.where == "charms")
+    assert line.severity == "warning"
+    assert "6 of 6 free Arcanoi are unspent" in line.message
+
+    # The mundane dead get two, from their own budget row (p.126 sidebar) — asserted
+    # separately so a row that silently fell back to the heroic one would show.
+    mundane = validate.unspent_budget_issues(
+        rs, Character(id="m", exalt_type="Ghost", origin="mundane"))
+    assert "2 of 2 free Arcanoi are unspent" in next(
+        i for i in mundane if i.where == "charms").message

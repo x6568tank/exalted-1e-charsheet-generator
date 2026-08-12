@@ -159,10 +159,15 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
     def _background_rows(bg_cap) -> None:
         """The Background list itself — identical in both regimes but for the rating
         control, which is `bg_cap`'s business. This body is the whole reason the tab
-        exists: it used to be two functions that differed only in their header."""
+        exists: it used to be two functions that differed only in their header.
+
+        `bg_cap` is called with (bg, on_rating_change) and MUST invoke the callback
+        when the rating moves: the rung label under the row is keyed to the rating,
+        and the play regime's number input does not rebuild the panel, so without it
+        the rung would keep describing the rating the row was drawn at."""
         # The origin matters for `excluded_origins` (the ancient-only Savant): a
         # modern Dragon King must not see it, an ancient one must.
-        bg_catalog = rs.backgrounds_for(character.exalt_type, character.origin)
+        bg_catalog = validate.background_catalogue_for(rs, character)
         bg_names = [b.name for b in bg_catalog]
         bg_descriptions = {b.name: b.description for b in bg_catalog}
         for idx, bg in enumerate(character.backgrounds):
@@ -175,7 +180,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.input(value=bg.note, placeholder="note",
                          on_change=lambda e, bg=bg: setattr(bg, "note", e.value)
                          ).props("dense").classes("flex-1")
-                bg_cap(bg)
+                # Forward-declared so the rating control can call it; the closure is
+                # rebound below, once `desc`/`rung` exist.
+                row_sync: dict = {}
+                bg_cap(bg, lambda rs_=row_sync: rs_.get("fn", lambda: None)())
                 ui.button(icon="delete",
                           on_click=lambda e=None, idx=idx: remove_bg(idx)
                           ).props("flat dense round")
@@ -192,12 +200,22 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             # and passes against code with no persistent label at all.
             desc = ui.label("").classes("text-xs opacity-70 pl-1"
                                         ).props('data-testid="bg-desc"')
+            # The printed rung for the rating this row actually holds — "•• Two
+            # allies or one significant one". Its own label rather than appended to
+            # `desc`, so the rating can change it without redrawing the description,
+            # and so a `should_see` assertion can tell the two apart.
+            rung = ui.label("").classes("text-xs opacity-70 pl-1 italic"
+                                        ).props('data-testid="bg-rung"')
 
-            def _sync(bg=bg, desc=desc) -> None:
+            def _sync(bg=bg, desc=desc, rung=rung) -> None:
                 text = bg_descriptions.get(bg.name, "")
                 desc.set_text(text)
                 desc.set_visibility(bool(text))
+                rung_text = viewmod.background_rung(bg_catalog, bg.name, bg.rating)
+                rung.set_text(rung_text)
+                rung.set_visibility(bool(rung_text))
 
+            row_sync["fn"] = _sync
             sel.on_value_change(lambda e, bg=bg, sync=_sync: (
                 setattr(bg, "name", e.value or ""), sync()))
             _sync()
@@ -205,8 +223,19 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         # The catalogue picker replaces the blind "Add background": browse the
         # splat-filtered catalogue, pick one, or choose Custom for a blank row.
         def _open_bg_catalogue() -> None:
-            rows = [(b.name, b.name, b.description, b.description)
-                    for b in sorted(bg_catalog, key=lambda b: b.name)]
+            # The dialog is where a rating gets CHOSEN, so its "Full description"
+            # panel carries the whole printed ladder, not just the blurb — the row
+            # itself shows only the one rung the character holds. The summary stays
+            # the plain description so the filter and the clamped one-liner are
+            # unchanged. A Background with no transcribed ladder shows the blurb
+            # alone, exactly as before.
+            rows = []
+            for b in sorted(bg_catalog, key=lambda b: b.name):
+                ladder = viewmod.background_ladder(bg_catalog, b.name)
+                full = b.description + (
+                    "\n\n" + "\n".join(f"{dot}  {text}" for dot, text in ladder)
+                    if ladder else "")
+                rows.append((b.name, b.name, b.description, full))
             cataloguemod.catalogue_dialog(pal, "Backgrounds", rows, _pick_bg)
 
         def _pick_bg(name) -> None:
@@ -236,9 +265,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             # A Flaw may cap or close a Background (Innocuous' veiled tier). Same
             # treatment the Attribute rows give a Merit cap: a ceiling the player can
             # still click past is not a ceiling.
-            _background_rows(lambda bg: dots(lambda bg=bg: bg.rating,
-                                             lambda v, bg=bg: setattr(bg, "rating", v),
-                                             0, cap_for(bg.name)))
+            _background_rows(lambda bg, synced: dots(
+                lambda bg=bg: bg.rating,
+                lambda v, bg=bg, synced=synced: (setattr(bg, "rating", v), synced()),
+                0, cap_for(bg.name)))
 
     def _play_backgrounds() -> None:
         # Backgrounds change in play through the story (a Manse falls, an Ally is made),
@@ -249,9 +279,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label("Backgrounds").classes(
                     "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label("free — no XP").classes("text-xs text-gray-500")
-            _background_rows(lambda bg: ui.number(
+            _background_rows(lambda bg, synced: ui.number(
                 value=bg.rating, min=0, max=5, format="%d",
-                on_change=lambda e, bg=bg: setattr(bg, "rating", int(e.value or 0))
+                on_change=lambda e, bg=bg, synced=synced: (
+                    setattr(bg, "rating", int(e.value or 0)), synced())
             ).props("dense").classes("w-16"))
 
     # ---- Artifacts: individually rated items ------------------------------- #

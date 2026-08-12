@@ -402,8 +402,12 @@ def test_banned_backgrounds_omitted_from_catalog(rs):
     assert "cult" not in enlightened
     assert "cult" not in unenlightened
     assert "followers" not in unenlightened
-    # Other splats are unaffected — the ban is per-origin.
-    assert "cult" in [b.name.lower() for b in rs.backgrounds_for("Solar")]
+    # Other splats are unaffected — the ban is per-origin. Checked against a splat
+    # that actually holds these two: a Solar's catalogue is now its own printed ten
+    # (core pp.141-148) and contains neither, so it cannot tell a per-origin ban from
+    # the ordinary per-splat filter.
+    lunar = [b.name.lower() for b in rs.backgrounds_for("Lunar")]
+    assert "cult" in lunar and "followers" in lunar
 
 
 def test_artisan_college_floors(rs):

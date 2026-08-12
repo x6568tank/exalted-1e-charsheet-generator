@@ -69,7 +69,22 @@
       "artifact": {
         "rating_per_dot": 2
       }
-    }
+    },
+    "catalogue_backgrounds": [
+      "allies",
+      "artifact",
+      "backing",
+      "familiar",
+      "manse",
+      "mentor",
+      "resources",
+      "breeding",
+      "command",
+      "connections",
+      "henchmen",
+      "reputation",
+      "family"
+    ]
   },
   "Dragon-Blooded:outcaste": {
     "attribute_pools": [
@@ -178,7 +193,24 @@
       "artifact": {
         "rating_per_dot": 2
       }
-    }
+    },
+    "catalogue_backgrounds": [
+      "allies",
+      "arsenal",
+      "artifact",
+      "backing",
+      "breeding",
+      "command",
+      "connections",
+      "familiar",
+      "manse",
+      "mentor",
+      "reputation",
+      "resources",
+      "retainers",
+      "sorcery",
+      "family"
+    ]
   },
   "Dragon-Blooded:lookshy:foreign": {
     "attribute_pools": [
@@ -1017,7 +1049,20 @@
         "dot_cost": 2,
         "bp_surcharge_per_dot": 2
       }
-    }
+    },
+    "catalogue_backgrounds": [
+      "ancestor cult",
+      "artifact",
+      "allies",
+      "backing",
+      "contacts",
+      "followers",
+      "grave goods",
+      "influence",
+      "mentor",
+      "resources",
+      "underworld cult"
+    ]
   },
   "Ghost:heroic:immaculate": {
     "attribute_pools": [
@@ -1116,7 +1161,11 @@
     }
   },
   "God-Blooded": {
-    "attribute_pools": [6, 4, 3],
+    "attribute_pools": [
+      6,
+      4,
+      3
+    ],
     "ability_dots": 22,
     "ability_min_caste_favored": 1,
     "ability_cap_pre_bp": 3,
@@ -1137,23 +1186,49 @@
     "essence_start": 1,
     "essence_start_cap": 3,
     "bonus_points": 21,
-    "inheritance_bonus_points": [0, 6, 12, 18, 24, 30],
-    "inheritance_flaw_cap": [0, 10, 15, 15, 20, 20]
+    "inheritance_bonus_points": [
+      0,
+      6,
+      12,
+      18,
+      24,
+      30
+    ],
+    "inheritance_flaw_cap": [
+      0,
+      10,
+      15,
+      15,
+      20,
+      20
+    ]
   },
   "Dragon-Kings": {
-    "attribute_pools": [7, 5, 4],
+    "attribute_pools": [
+      7,
+      5,
+      4
+    ],
     "ability_dots": 25,
     "ability_min_caste_favored": 10,
     "favored_count": 3,
     "background_dots": 7,
     "background_cap_pre_bp": 3,
     "background_rules": {
-      "artifact": { "rating_per_dot": 2 },
-      "celestial manse": { "max_rating": 2 },
-      "salary": { "max_rating": 2 }
+      "artifact": {
+        "rating_per_dot": 2
+      },
+      "celestial manse": {
+        "max_rating": 2
+      },
+      "salary": {
+        "max_rating": 2
+      }
     },
     "virtue_dots": 5,
-    "required_virtue_dots": { "valor": 1 },
+    "required_virtue_dots": {
+      "valor": 1
+    },
     "essence_start": 2,
     "essence_start_cap": 3,
     "bonus_points": 15,
@@ -1162,24 +1237,57 @@
     "path_dots": 6,
     "path_min_breed_favored": 3,
     "path_cap_pre_bp": 3,
-    "path_max_by_essence": { "1": 1, "2": 3, "3": 5, "4": 5, "5": 5, "6": 6 },
-    "intelligence_max_by_essence": { "1": 1, "2": 3, "3": 5, "4": 5, "5": 5, "6": 6 },
-    "virtue_max_by_essence": { "1": 5, "2": 5, "3": 5, "4": 5, "5": 5, "6": 6 }
+    "path_max_by_essence": {
+      "1": 1,
+      "2": 3,
+      "3": 5,
+      "4": 5,
+      "5": 5,
+      "6": 6
+    },
+    "intelligence_max_by_essence": {
+      "1": 1,
+      "2": 3,
+      "3": 5,
+      "4": 5,
+      "5": 5,
+      "6": 6
+    },
+    "virtue_max_by_essence": {
+      "1": 5,
+      "2": 5,
+      "3": 5,
+      "4": 5,
+      "5": 5,
+      "6": 6
+    }
   },
   "Dragon-Kings:ancient": {
-    "attribute_pools": [8, 6, 5],
+    "attribute_pools": [
+      8,
+      6,
+      5
+    ],
     "ability_dots": 35,
     "ability_min_caste_favored": 10,
     "favored_count": 3,
     "background_dots": 12,
     "background_cap_pre_bp": 3,
     "background_rules": {
-      "artifact": { "rating_per_dot": 2 },
-      "celestial manse": { "max_rating": 2 },
-      "salary": { "max_rating": 2 }
+      "artifact": {
+        "rating_per_dot": 2
+      },
+      "celestial manse": {
+        "max_rating": 2
+      },
+      "salary": {
+        "max_rating": 2
+      }
     },
     "virtue_dots": 5,
-    "required_virtue_dots": { "valor": 1 },
+    "required_virtue_dots": {
+      "valor": 1
+    },
     "essence_start": 3,
     "essence_start_cap": 5,
     "bonus_points": 25,
@@ -1188,17 +1296,57 @@
     "path_dots": 10,
     "path_min_breed_favored": 5,
     "path_cap_pre_bp": 3,
-    "path_max_by_essence": { "1": 1, "2": 3, "3": 5, "4": 5, "5": 5, "6": 6 },
-    "intelligence_max_by_essence": { "1": 1, "2": 3, "3": 5, "4": 5, "5": 5, "6": 6 },
-    "virtue_max_by_essence": { "1": 5, "2": 5, "3": 5, "4": 5, "5": 5, "6": 6 },
+    "path_max_by_essence": {
+      "1": 1,
+      "2": 3,
+      "3": 5,
+      "4": 5,
+      "5": 5,
+      "6": 6
+    },
+    "intelligence_max_by_essence": {
+      "1": 1,
+      "2": 3,
+      "3": 5,
+      "4": 5,
+      "5": 5,
+      "6": 6
+    },
+    "virtue_max_by_essence": {
+      "1": 5,
+      "2": 5,
+      "3": 5,
+      "4": 5,
+      "5": 5,
+      "6": 6
+    },
     "required_min_abilities": [
-      { "abilities": ["linguistics"], "rating": 1 },
-      { "abilities": ["lore"], "rating": 2 },
-      { "abilities": ["occult"], "rating": 2 }
+      {
+        "abilities": [
+          "linguistics"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "lore"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "occult"
+        ],
+        "rating": 2
+      }
     ]
   },
   "Mountain-Folk:enlightened": {
-    "attribute_pools": [16, 13, 10],
+    "attribute_pools": [
+      16,
+      13,
+      10
+    ],
     "attribute_min": 3,
     "attribute_cap": 7,
     "ability_favored_dots": 10,
@@ -1206,15 +1354,26 @@
     "ability_cap_pre_bp": 3,
     "ability_cap": 6,
     "favored_count": 6,
-    "required_favored": ["craft"],
+    "required_favored": [
+      "craft"
+    ],
     "background_dots": 10,
-    "background_dots_by_caste": { "artisan": 13 },
+    "background_dots_by_caste": {
+      "artisan": 13
+    },
     "background_cap_pre_bp": 3,
     "background_rules": {
-      "artifact": { "rating_per_dot": 2, "cap_pre_bp_exempt": true },
-      "resources": { "max_rating": 3 }
+      "artifact": {
+        "rating_per_dot": 2,
+        "cap_pre_bp_exempt": true
+      },
+      "resources": {
+        "max_rating": 3
+      }
     },
-    "banned_backgrounds": ["cult"],
+    "banned_backgrounds": [
+      "cult"
+    ],
     "virtue_dots": 5,
     "virtue_base": 1,
     "virtue_cap_pre_bp": 3,
@@ -1227,23 +1386,45 @@
     "willpower_cap_exception_count": 2
   },
   "Mountain-Folk:unenlightened": {
-    "attribute_pools": [8, 4, 3],
-    "attribute_caps": { "intelligence": 2 },
+    "attribute_pools": [
+      8,
+      4,
+      3
+    ],
+    "attribute_caps": {
+      "intelligence": 2
+    },
     "ability_favored_dots": 14,
     "ability_dots": 8,
     "ability_cap_pre_bp": 3,
     "favored_count": 6,
-    "required_favored": ["craft"],
+    "required_favored": [
+      "craft"
+    ],
     "background_dots": 6,
     "background_cap_pre_bp": 3,
     "background_rules": {
-      "artifact": { "rating_per_dot": 2, "cap_pre_bp_exempt": true },
-      "resources": { "max_rating": 3 },
-      "backing": { "max_rating": 2 },
-      "influence": { "max_rating": 1 },
-      "mentor": { "max_rating": 3 }
+      "artifact": {
+        "rating_per_dot": 2,
+        "cap_pre_bp_exempt": true
+      },
+      "resources": {
+        "max_rating": 3
+      },
+      "backing": {
+        "max_rating": 2
+      },
+      "influence": {
+        "max_rating": 1
+      },
+      "mentor": {
+        "max_rating": 3
+      }
     },
-    "banned_backgrounds": ["cult", "followers"],
+    "banned_backgrounds": [
+      "cult",
+      "followers"
+    ],
     "virtue_dots": 5,
     "virtue_base": 1,
     "virtue_cap_pre_bp": 3,
@@ -1253,5 +1434,19 @@
     "charm_count": 3,
     "charm_min_caste_favored": 0,
     "willpower_hard_cap": 6
+  },
+  "Solar": {
+    "catalogue_backgrounds": [
+      "allies",
+      "artifact",
+      "backing",
+      "contacts",
+      "familiar",
+      "followers",
+      "influence",
+      "manse",
+      "mentor",
+      "resources"
+    ]
   }
 }

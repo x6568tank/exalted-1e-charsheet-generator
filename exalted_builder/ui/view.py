@@ -13,7 +13,7 @@ imports NO UI toolkit, so it is unit-testable on its own and the NiceGUI layer
 from __future__ import annotations
 
 from dataclasses import dataclass, field, field as dc_field
-from typing import Optional
+from typing import Optional, Sequence
 
 from .. import custom_content
 from ..engine import (advancement, adversaries as advmod,
@@ -21,9 +21,9 @@ from ..engine import (advancement, adversaries as advmod,
                       merits as meritsmod, paths as engine_paths, validate)
 from ..models.adversary import Adversary
 from ..models.character import Armor, Character, HouseRules, Weapon, XpEntry
-from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, CharmCost,
-                            Damage, RuleSet, SpellCircle, TRACK_CIRCLES, VirtueName,
-                            circle_kind)
+from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, BackgroundType,
+                            CharmCost, Damage, RuleSet, SpellCircle, TRACK_CIRCLES,
+                            VirtueName, circle_kind)
 
 
 @dataclass
@@ -1113,6 +1113,13 @@ _HOUSE_RULES = [
      "Terrestrial Exalts are held at Essence 7 without 'outside energies' — dietary "
      "and meditational regimens, powerful Hearthstones and the like. None of that is "
      "on the sheet, so this is the Storyteller asserting it happened."),
+    ("all_backgrounds_available", "Open every Background to every splat", "table",
+     "The Outcaste p.66",
+     "By default a character is offered the Backgrounds her own book prints — "
+     "Arsenal belongs to Lookshy, Sifu to the Sidereals. The books ask for this "
+     "switch in so many words: Storytellers 'may wish to introduce them in other "
+     "games where they are appropriate'. Does not lift a splat's own prohibitions, "
+     "such as the Great Geas barring the Mountain Folk a Cult."),
     ("mf_change_method", "Merits & Flaws after character creation", "table",
      "Player's Guide p.17",
      "How a Merit or Flaw gained or lost in play is accounted for. The book offers "
@@ -1180,6 +1187,19 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
             elif character.essence_rating < 7:
                 note = ("Nothing to lift yet: Essence is below the Terrestrial "
                         "ceiling of 7. The toggle matters once it reaches 7.")
+        elif fld == "all_backgrounds_available":
+            # Say what the toggle is actually worth to THIS character, in names.
+            # A count is the honest measure: the ST wants to know whether flipping
+            # it changes anything before they flip it.
+            own = len(ruleset.backgrounds_for(character.exalt_type, character.origin))
+            everything = len(ruleset.backgrounds_for(
+                character.exalt_type, character.origin, all_available=True))
+            if getattr(rules, fld):
+                note = (f"Offering all {everything} Backgrounds, up from the "
+                        f"{own} this character's own books print.")
+            else:
+                note = (f"Offering the {own} Backgrounds this character's own books "
+                        f"print; {everything - own} more exist in other splats' books.")
         elif fld == "magic_for_everyone" and getattr(rules, fld):
             grant = validate.magic_for_everyone_grant(ruleset, character)
             note = (f"Currently granting {grant} free purchase(s)." if grant else
@@ -1832,6 +1852,42 @@ def _health_label(hl: derive.HealthLevelView) -> str:
     else:
         base = str(hl.penalty)
     return f"{base} ★" if hl.source else base   # ★ marks a Charm-granted level
+
+
+# The book prints the zero rung as "x"; "○" reads as an empty dot beside the filled
+# ones and does not collide with the em dashes the ladder text itself uses.
+_DOTS = ["○", "•", "••", "•••", "••••", "•••••"]
+
+
+def background_rung(catalog: Sequence[BackgroundType], name: str, rating: int) -> str:
+    """What the book says this RATING of this Background gets you — the one rung of
+    `BackgroundType.ladder` the character actually holds, rendered "••• Three major
+    contacts and…".
+
+    `catalog` is the character's OWN filtered catalogue (`RuleSet.backgrounds_for`),
+    not the whole `background_catalog`, and that is load-bearing rather than
+    convenience: several Background NAMES belong to two splats with different printed
+    text — a Dragon-Blooded's Connections is not a Sidereal's (Sidereals p.106), and
+    Celestial Manse / Salary / Savant are printed for both the Dragon-Kings (PG p.176)
+    and the Sidereals. `BackgroundEntry` stores a name, not an id, so a search over
+    every splat's entries would hand a Sidereal the Dragon-King's rungs. Searching
+    only what this character can actually take makes the name unambiguous.
+
+    Backgrounds are free text, so an unknown name, an untranscribed ladder and a
+    rating off the 0-5 scale all return "" and the caller simply shows nothing."""
+    bg = next((b for b in catalog if b.name == name), None)
+    if bg is None or not bg.ladder or not 0 <= rating < len(bg.ladder):
+        return ""
+    return f"{_DOTS[rating]} {bg.ladder[rating]}"
+
+
+def background_ladder(catalog: Sequence[BackgroundType], name: str) -> list[tuple[str, str]]:
+    """The WHOLE printed ladder as (dots, text) pairs, for the catalogue dialog's
+    full-description panel — where the reader is choosing a rating rather than
+    holding one. Same splat-filtered `catalog` as `background_rung`, for the same
+    duplicate-name reason. Empty for a Background whose ladder is not transcribed."""
+    bg = next((b for b in catalog if b.name == name), None)
+    return [(_DOTS[i], text) for i, text in enumerate(bg.ladder)] if bg else []
 
 
 def college_rows(ruleset: RuleSet, character: Character) -> list[tuple[str, int, str, bool]]:

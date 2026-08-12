@@ -1157,6 +1157,57 @@ class BackgroundType(BaseModel):
     # by RuleSet.backgrounds_for as a soft autofill filter (backgrounds are free
     # text, never hard-validated).
     excluded_origins: list[str] = Field(default_factory=list)
+    # A Background that belongs to NO splat in particular, and is therefore offered to
+    # every splat regardless of what that splat's own book enumerates. Cult is the
+    # case that named the field: it is printed in Games of Divinity, which is not a
+    # splat book, so no character-creation summary anywhere lists it — and without
+    # this flag it would have been visible only to the splats whose lists had not been
+    # transcribed yet, vanishing one splat at a time as the sweep progressed.
+    #
+    # Human's ruling, 2026-08-11: "Cult is universal, as are any other backgrounds not
+    # in specific splats if such exist."
+    #
+    # Marked explicitly rather than derived from "tagged by nobody, listed by nobody",
+    # because the derived version has a nasty non-local failure: the day a splat's book
+    # turned out to list Cult, Cult would silently disappear from every OTHER splat.
+    # `tests/test_backgrounds_splat.py` checks the flag against the data BOTH ways, so
+    # it cannot rot: a universal Background must appear in no splat's list, and a
+    # Background with no splat tag that no list names must be marked universal.
+    #
+    # Still subject to `excluded_exalt_types`, `excluded_origins` and the budget's
+    # `banned_backgrounds` — universal means "belongs to no one book", not "unbannable".
+    # The Great Geas still forbids a Mountain Folk a Cult (CH6 p.234).
+    universal: bool = False
+    # NOTE there is deliberately NO per-Background allow-list of splats or origins.
+    # Which Backgrounds a splat may take is a property of the SPLAT, not of the
+    # Background: every book's character-creation summary enumerates its own list
+    # (Ghosts CH3 names eleven, Lookshy's p.66 summary fifteen), and that list is the
+    # answer. It lives on `ChargenBudgets.allowed_backgrounds` and is read through
+    # `RuleSet.allowed_backgrounds_for`. `exalt_type` / `excluded_exalt_types` above
+    # remain the FALLBACK for a splat whose summary has not been transcribed yet.
+    # The printed dot-by-dot ladder — what each RATING of this Background actually
+    # gets you ("•• Two allies or one significant one"). Six entries when present,
+    # indexed by rating: `ladder[0]` is the book's `x` row (None) and `ladder[1..5]`
+    # the five dots. Empty means the ladder has not been transcribed yet, and the
+    # sheet falls back to `description` alone — so an untranscribed Background
+    # degrades to what it displayed before rather than rendering a blank rung.
+    #
+    # This is TEXT, not mechanics: nothing in the engine reads a rung. The numeric
+    # rules a ladder happens to state (a cap, a cost, a prerequisite) belong in the
+    # per-splat `BackgroundRule`, which is where the engine looks — a rung that says
+    # "you cannot buy above three" does not enforce itself, and authoring one as if
+    # it did is exactly the writer-with-no-reader bug this project keeps hitting.
+    ladder: tuple[str, ...] = ()
+
+    @field_validator("ladder")
+    @classmethod
+    def _ladder_is_empty_or_complete(cls, v: tuple[str, ...]) -> tuple[str, ...]:
+        """A partial ladder is worse than none: the sheet indexes it by rating, so
+        four rungs would render the wrong text for a rating rather than no text."""
+        if v and len(v) != 6:
+            raise ValueError(
+                f"ladder must have 6 entries (x + 5 dots), got {len(v)}")
+        return v
 
 
 class TraitRequirement(BaseModel):
@@ -1901,6 +1952,27 @@ class ChargenBudgets(BaseModel):
     # The same paragraph's "no Backing from or Connections with any of the Sidereal
     # factions or Celestial Bureaus" is narrative and is NOT modelled.
     allowed_backgrounds: list[str] = Field(default_factory=list)
+    # The Backgrounds this splat/origin's own book ENUMERATES — the list that decides
+    # what the dropdown OFFERS, as lowercased names. Empty = the book has not been
+    # transcribed, and the catalogue falls back to the per-Background `exalt_type`
+    # tag. Read through `RuleSet.catalogue_backgrounds_for`.
+    #
+    # ⚠ NOT the same field as `allowed_backgrounds` above, and the distinction is the
+    # whole reason this exists rather than reusing it:
+    #
+    #   allowed_backgrounds     HARD VALIDATION. A name outside it is an ERROR
+    #                           (`background-not-allowed`). Opt-in for the one or two
+    #                           origins whose book forbids the rest outright — the
+    #                           Sidereal ronin (p.100), the Illuminated Solar.
+    #   catalogue_backgrounds   OFFERED LIST. A name outside it is simply not in the
+    #                           dropdown. Backgrounds stay soft free text: a player who
+    #                           types one in anyway is still legal, and the Storyteller's
+    #                           `all_backgrounds_available` reveals the rest.
+    #
+    # Reusing the first for the second would have made every free-text Background
+    # ILLEGAL for every splat whose list got transcribed — which is exactly what the
+    # suite caught when this was first written as one field.
+    catalogue_backgrounds: list[str] = Field(default_factory=list)
     # Backgrounds this origin may NOT take AT ALL, as lowercased NAMEs — the named
     # complement of `allowed_backgrounds`, for the one or two bans a book prints on
     # an otherwise-open list. Mountain Folk: Cult is "explicitly prohibited" by the
@@ -2195,6 +2267,13 @@ class ExaltDefinition(BaseModel):
     # Dragon-Blooded have "Aspect". Presentation only — the underlying field is
     # still Character.caste keyed to RuleSet.castes.
     caste_noun: str = "Caste"
+    # What this splat calls the things it spends its Charm pool on, PLURAL: a ghost
+    # buys "Arcanoi", not Charms (E:Ab p.126). Presentation only, exactly like
+    # `caste_noun` above — the underlying pool, its budget row (`charm_count`) and
+    # the single `charm_picks` enumeration are unchanged, and a splat that never
+    # sets it reads "Charms". Used by the chargen unspent-picks warning and by the
+    # picker's readout, so the two cannot disagree about what to call the pool.
+    charm_noun: str = "Charms"
     # Which tier of Exalt this splat is: "Celestial" (Solar, Lunar, Sidereal,
     # Abyssal) or "Terrestrial" (Dragon-Blooded). Read only by
     # validate.charm_matches_splat, against Charm.open_to_tiers, to open a
@@ -2433,7 +2512,32 @@ class RuleSet(BaseModel):
     def xp_costs_for(self, exalt_type: str) -> ExperienceCosts:
         return self.xp_costs.get(exalt_type, self.xp_costs["default"])
 
-    def backgrounds_for(self, exalt_type: str, origin: str = "") -> list[BackgroundType]:
+    def catalogue_backgrounds_for(self, exalt_type: str, origin: str = "",
+                                  upbringing: str = "") -> set[str]:
+        """The Backgrounds this splat/origin's own book enumerates, lowercased — what
+        the dropdown OFFERS. Empty = the book has not been transcribed, and the
+        catalogue falls back to the per-Background `exalt_type` filter.
+
+        Not to be confused with `ChargenBudgets.allowed_backgrounds`, which is the
+        HARD validation list; see the field comment there.
+
+        Walks the `E:o:u` -> `E:o` -> `E` cascade for the first NON-EMPTY list, rather
+        than taking the most specific row the way `budgets_for` does. That is a
+        deliberate exception and it earns itself: budget rows REPLACE wholesale, so an
+        origin row that simply does not restate its splat's Background list — which is
+        most of the 30-odd rows — would otherwise read as "unrestricted" and silently
+        reopen the whole catalogue. Inheriting means an origin authors a list only
+        where its book prints a DIFFERENT one (Lookshy p.66 does; the pirates do not).
+        """
+        for key in ([f"{exalt_type}:{origin}:{upbringing}"] if origin and upbringing else []) \
+                + ([f"{exalt_type}:{origin}"] if origin else []) + [exalt_type]:
+            row = self.budgets.get(key)
+            if row is not None and row.catalogue_backgrounds:
+                return {n.strip().lower() for n in row.catalogue_backgrounds}
+        return set()
+
+    def backgrounds_for(self, exalt_type: str, origin: str = "", *,
+                        upbringing: str = "", all_available: bool = False) -> list[BackgroundType]:
         """The Backgrounds a character of `exalt_type` may pick from (the editor's
         autofill list). A splat-restricted Background (`exalt_type` set) shows only
         for that splat; a Background listing `exalt_type` in `excluded_exalt_types`
@@ -2441,17 +2545,50 @@ class RuleSet(BaseModel):
         the character's effective budget cascade key in `excluded_origins` is hidden
         from that ORIGIN — the ancient-only Savant excludes the modern key
         `"Dragon-Kings"`, never `"Dragon-Kings:ancient"` (barring the ancient row
-        would bar the wrong half). Universal ones (no restriction) show for everyone.
-        Order follows the catalog's insertion order."""
+        would bar the wrong half); one carrying a non-empty `origins` shows ONLY to
+        the keys it lists (Lookshy's Arsenal). Universal ones (no restriction) show
+        for everyone. Order follows the catalog's insertion order.
+
+        `all_available` is the Storyteller's override, and the books ask for it in so
+        many words — the Outcaste's own new-Backgrounds heading (p.66) says
+        "Storytellers may wish to introduce them in other games where they are
+        appropriate but are under no compulsion to allow characters to take them
+        unless the game is about Lookshy Dragon-Blooded." It lifts the SPLAT and
+        ORIGIN filters, which are questions of which book a Background came from.
+        It deliberately does NOT lift `banned_backgrounds`: those are in-fiction
+        prohibitions on a splat that CAN see the Background — the Great Geas forbids
+        a Mountain Folk a Cult (CH6 p.234) — not a matter of which book is in play.
+        Callers pass `HouseRules.all_backgrounds_available`, never a literal."""
         key = f"{exalt_type}:{origin}" if (origin and f"{exalt_type}:{origin}" in self.budgets) else exalt_type
+        # The splat's own enumerated list, when its book has been transcribed. This
+        # narrows what is OFFERED; it never makes a typed-in name illegal.
+        offered = self.catalogue_backgrounds_for(exalt_type, origin, upbringing)
         out: list[BackgroundType] = []
         for bg in self.background_catalog.values():
-            if bg.exalt_type and bg.exalt_type != exalt_type:
-                continue
-            if exalt_type in bg.excluded_exalt_types:
-                continue
-            if key in bg.excluded_origins:
-                continue
+            if not all_available:
+                # The allow-list answers WHICH NAMES; the splat tag answers WHICH
+                # VERSION of a name, and both are needed. Four names are printed
+                # twice with different rules — a Dragon-Blooded's Connections is not
+                # a Sidereal's — so a name-keyed list alone admits both copies and
+                # the dropdown shows "Connections" twice. Where a splat has no
+                # transcribed summary the tag is also the whole filter, which is
+                # what every splat used before the summaries were read.
+                # A universal Background sits outside the per-splat lists entirely —
+                # no book enumerates it because no splat owns it.
+                if offered and not bg.universal \
+                        and bg.name.strip().lower() not in offered:
+                    continue
+                if bg.exalt_type and bg.exalt_type != exalt_type:
+                    continue
+                # The two exclusion lists apply EITHER WAY. They are explicit printed
+                # bars on a named Background, and a summary that happens to list one
+                # does not repeal them — the ancient-only Savant (PG p.176) must stay
+                # shut to a modern Dragon King even though both origins inherit the
+                # same allow-list.
+                if exalt_type in bg.excluded_exalt_types:
+                    continue
+                if key in bg.excluded_origins:
+                    continue
             out.append(bg)
         # A Background this origin is BARRED from entirely is not even offered —
         # the Mountain Folk may not take Cult (CH6 p.234: "This Background is

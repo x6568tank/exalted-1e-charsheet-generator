@@ -406,12 +406,16 @@ def test_blank_sheet_warns_about_every_unspent_pool():
     rs = _ruleset()
     issues = validate.unspent_budget_issues(rs, Character(id="blank", caste="dawn"))
     by_domain = {i.where: i for i in issues}
-    assert set(by_domain) == {"attribute", "ability", "virtue", "background"}
+    assert set(by_domain) == {"attribute", "ability", "virtue", "background", "charms"}
     assert all(i.severity == "warning" for i in issues)
     assert "18 of 18" in by_domain["attribute"].message      # 8/6/4
     assert "25 of 25" in by_domain["ability"].message
     assert "5 of 5" in by_domain["virtue"].message
     assert "7 of 7" in by_domain["background"].message
+    assert "10 of 10" in by_domain["charms"].message
+
+# The Charm pool's noun is per-splat and its skip is per-economy, so both of those
+# need the REAL data rows — they live in tests/test_ghost.py and test_alchemical.py.
 
 
 def test_unspent_dots_do_not_make_a_character_illegal():

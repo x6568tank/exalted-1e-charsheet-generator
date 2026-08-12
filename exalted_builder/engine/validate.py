@@ -461,6 +461,22 @@ def chargen_house_rules(character: Character) -> HouseRules:
     return character.house_rules or HouseRules()
 
 
+def background_catalogue_for(ruleset: RuleSet, character: Character) -> list:
+    """The Background names this character may actually pick from — the ONE read site
+    for `HouseRules.all_backgrounds_available`, so no UI module has to know the flag
+    exists and the answer cannot differ between the two places Backgrounds are chosen
+    (the row dropdown and the catalogue dialog).
+
+    Reads the LIVE house rules rather than `chargen_house_rules`'s frozen snapshot: a
+    locked character keeps her Backgrounds either way, and a table that later opens
+    the catalogue should be able to add one in play. This flag changes which names are
+    OFFERED, never how a dot is priced, which is what the snapshot exists to protect.
+    """
+    hr = character.house_rules or HouseRules()
+    return ruleset.backgrounds_for(character.exalt_type, character.origin,
+                                   all_available=hr.all_backgrounds_available)
+
+
 def magic_for_everyone_grant(ruleset: RuleSet, character: Character) -> int:
     """How many thaumaturgy purchases this character gets FREE at creation under the
     optional "Magic for Everyone" rule (p.115): "one ritual, one formula or procedure
@@ -2855,7 +2871,7 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
     """
     b = effective_budgets(ruleset, character)
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
-     *_rest) = _chargen_source(character)
+     charms, spells, *_rest) = _chargen_source(character)
     issues: list[Issue] = []
 
     def warn(domain: str, left: int, total: int) -> None:
@@ -2906,6 +2922,30 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
         fetter_within = sum(min(f.rating, b.fetter_cap_pre_bp)
                             for f in character.fetters)
         warn("Fetter", b.fetter_dots - fetter_within, b.fetter_dots)
+
+    # Charms — the one chargen pool counted in PICKS rather than dots, which is why
+    # it does not go through `warn`. A heroic ghost gets six Arcanoi and nothing said
+    # so: every other domain warned about its leftovers and this one never did, so a
+    # sheet with no magic at all still read as merely "incomplete elsewhere".
+    #
+    # The pool is shared with Spells (p.100) and the Immaculate path swaps its size
+    # (DB p.151), both exactly as `bonus_point_breakdown` prices it — same two
+    # expressions, so the warning and the billing cannot drift. Skipped for the slot
+    # economy: an Alchemical buys Slots, not picks, and the picker already shows slot
+    # occupancy. `charm_noun` makes the message say Arcanoi to a ghost.
+    if b.charm_count and not uses_charm_slots(ruleset, character):
+        pool = (b.immaculate_charm_count
+                if _immaculate_path(ruleset, charms, character.exalt_type)
+                else b.charm_count)
+        taken = charm_pick_count(ruleset, character) + sum(
+            1 for sid in spells if ruleset.spells.get(sid) is not None)
+        left = pool - taken
+        if left > 0:
+            noun = ruleset.exalt_for(character.exalt_type).charm_noun
+            issues.append(Issue(
+                code="unspent-chargen-dots", where="charms", severity="warning",
+                message=f"{left} of {pool} free {noun} are unspent.",
+            ))
 
     return issues
 
