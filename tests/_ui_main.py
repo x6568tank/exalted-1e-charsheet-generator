@@ -1601,3 +1601,23 @@ def page_dk_artifacts_2flag_advantages():
 @ui.page('/dk-artifacts-2flag-sheet')
 def page_dk_artifacts_2flag_sheet():
     sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_DK_2FLAG))
+
+# The per-row Background RUNG — the printed dot ladder for the rating the row holds.
+# Its own characters rather than reusing CHAR_BG_MERITS: these tests MOVE the rating,
+# and a module-level character shared with the description tests would carry the edit
+# into whichever test ran next.
+CHAR_BG_RUNG = Character(id="bgrung", name="Rungs", exalt_type="Solar", caste="dawn",
+                         essence_rating=1)
+CHAR_BG_RUNG.backgrounds = [BackgroundEntry(name="Allies", rating=2)]
+
+@ui.page('/backgrounds-rung')
+def page_backgrounds_rung():
+    advantages.build_advantages(RS, CHAR_BG_RUNG, Path("x.json"), with_header=False)
+
+CHAR_BG_RUNG_XP = CHAR_BG_RUNG.model_copy(deep=True)
+CHAR_BG_RUNG_XP.id = "bgrungx"
+CHAR_BG_RUNG_XP.chargen_locked = True
+
+@ui.page('/backgrounds-rung-xp')
+def page_backgrounds_rung_xp():
+    advantages.build_advantages(RS, CHAR_BG_RUNG_XP, Path("x.json"), with_header=False)

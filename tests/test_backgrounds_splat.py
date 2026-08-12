@@ -476,3 +476,71 @@ def test_a_renegade_abyssal_uses_the_core_artifact_background(rs):
     assert "Liege" not in names and "Liege" in loyal
     assert {"Backing", "Mentor"} <= names
     assert "Backing" not in loyal and "Mentor" not in loyal
+
+
+# --------------------------------------------------------------------------- #
+# The rung LABEL, through the UI (the ladder tests above only exercise view.py)
+# --------------------------------------------------------------------------- #
+# `background_rung` being right proves nothing about the row: the label is refreshed by
+# a callback the RATING CONTROL has to invoke, and the play regime's number input does
+# not rebuild the panel. A rung that keeps describing the rating the row was drawn at
+# is exactly the shape the suite cannot see and the browser can.
+
+def _bg_rung_labels(user) -> list:
+    return [el for el in user.find(ui.label).elements
+            if el.props.get("data-testid") == "bg-rung"]
+
+
+def _bg_rung_texts(user) -> list[str]:
+    return [el.text or "" for el in _bg_rung_labels(user)]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_row_prints_the_rung_for_the_rating_it_holds(user) -> None:
+    await user.open('/backgrounds-rung')
+    texts = _bg_rung_texts(user)
+    assert any("Two allies or one significant one" in t for t in texts), texts
+    assert all(el.visible for el in _bg_rung_labels(user))
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_rung_follows_the_rating_in_play(user) -> None:
+    """The play regime edits the rating through a plain number input and does NOT
+    rebuild the panel, so the rung only moves if the control invokes the row's sync."""
+    await user.open('/backgrounds-rung-xp')
+    assert any("Two allies" in t for t in _bg_rung_texts(user)), _bg_rung_texts(user)
+    number = next(e for e in user.client.elements.values()
+                  if isinstance(e, ui.number) and e.props.get("label") is None
+                  and e.value == 2)
+    number.value = 5
+    await user.should_see("Five allies")
+    texts = _bg_rung_texts(user)
+    assert any("Five allies" in t for t in texts), texts
+    assert not any("Two allies" in t for t in texts), texts
+
+
+def _click_pip(el) -> None:
+    """Dispatch a click to ONE pip icon. `user.find(...).click()` would fire every
+    matching element and `.elements` is an unordered set, so the pip is picked by id
+    order and its own listener invoked directly — the harness dispatches no bubbling
+    click to an icon inside a row anyway."""
+    el._handle_event({"id": el.id, "listener_id": list(el._event_listeners)[0],
+                      "args": {}})
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_rung_follows_a_dot_track_click_at_chargen(user) -> None:
+    """The other regime: chargen rates a Background with the dot track, whose click
+    writes the rating and must call the row's sync. The page holds exactly one dotted
+    row (one Background, no Merits), so the pips are unambiguous."""
+    await user.open('/backgrounds-rung')
+    pips = sorted([e for e in user.client.elements.values() if isinstance(e, ui.icon)],
+                  key=lambda e: e.id)
+    assert len(pips) == 5, f"expected one 5-pip Background row, got {len(pips)} pips"
+    _click_pip(pips[4])                                   # Allies 2 -> 5
+    await user.should_see("Five allies")
+    texts = _bg_rung_texts(user)
+    assert not any("Two allies" in t for t in texts), texts
