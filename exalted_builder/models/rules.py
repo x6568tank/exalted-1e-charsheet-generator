@@ -1903,6 +1903,18 @@ class BackgroundRule(BaseModel):
     # an EXTRA on top of `background_above_3` for above-cap dots; this is a flat
     # one-point price above a named rating, and the two compose differently.
     bp_above_rating: int = Field(default=0, ge=0)
+    # The ceiling on ONE ROW, where `max_rating` and `max_rating_is_attribute_sum` both
+    # measure the SUM of every row sharing the name (`background_rating` sums
+    # duplicates). Sidereal Connections is the case the distinction exists for: the
+    # printed rule caps the TOTAL at the Attribute sum, which would let a lone row hold
+    # 27 — absurd on the page, and unrenderable as a dot track (human's ruling,
+    # 2026-08-12: "Connections should be capped at 10. 27 dots in one background is
+    # absurd and wouldn't render well"). 0 = the universal 5.
+    #
+    # It only ever RAISES the per-row ceiling; the universal cap is this field's floor,
+    # never removed by it. `BackgroundEntry.rating`'s own `le=10` is the structural
+    # backstop, so it may not exceed 10.
+    max_rating_per_row: int = Field(default=0, ge=0, le=10)
 
 
 class ChargenBudgets(BaseModel):

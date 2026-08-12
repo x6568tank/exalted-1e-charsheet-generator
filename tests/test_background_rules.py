@@ -362,3 +362,38 @@ def test_a_rule_may_raise_the_universal_cap_but_never_remove_it(rs):
     codes = [i.code for i in validate.validate_chargen(rs, mf)
              if i.code.startswith("background-above")]
     assert codes == ["background-above-origin-cap"], codes
+
+
+def test_connections_caps_one_row_at_ten_and_the_total_at_the_attribute_sum(rs):
+    """Human's ruling 2026-08-12: "Connections should be capped at 10. 27 dots in one
+    background is absurd and wouldn't render well."
+
+    Two ceilings on one Background, and they measure different things. `max_rating` and
+    the Attribute-sum cap both read `background_rating`, which SUMS every row sharing
+    the name — so the printed total-cap alone would let a lone row hold the whole 27,
+    and the dot track would try to draw 27 pips. `max_rating_per_row` is the per-row
+    ceiling; the printed rule still caps the TOTAL."""
+    b = rs.budgets_for("Sidereal")
+    c = _sidereal()
+    c.attributes = {a: 3 for a in AttributeName}        # sum 27
+
+    # the control offers 10, not 5 and not the 27-dot allowance
+    assert validate.background_rating_cap(b, c, "Connections") == 10
+
+    # one row at 10 is legal while the total is within the sum…
+    c.backgrounds = [BackgroundEntry(name="Connections", rating=10)]
+    assert not [i for i in validate.validate_chargen(rs, c)
+                if i.code.startswith("background-above")]
+    # …two of them still are (20 ≤ 27)…
+    c.backgrounds = [BackgroundEntry(name="Connections", rating=10)] * 2
+    assert not [i for i in validate.validate_chargen(rs, c)
+                if i.code.startswith("background-above")]
+    # …and the TOTAL still binds: six rows of 5 is 30 against a sum of 27.
+    c.backgrounds = [BackgroundEntry(name="Connections", rating=5)] * 6
+    assert [i.code for i in validate.validate_chargen(rs, c)
+            if i.code.startswith("background-above")] == ["background-above-attribute-cap"]
+
+    # The per-row lift does not leak: every other Background keeps the universal 5.
+    c.backgrounds = [BackgroundEntry(name="Savant", rating=10)]
+    assert [i.code for i in validate.validate_chargen(rs, c)
+            if i.code.startswith("background-above")] == ["background-above-universal-cap"]

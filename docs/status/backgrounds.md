@@ -121,7 +121,7 @@ mortals.
 
 ## The numeric rules — DONE (2026-08-12), NOT browser-verified
 `docs/briefs-background-rules.md` was the authoring brief; every ruling in it is CLOSED.
-Suite **2,147 passing** at the time of writing.
+Suite **2,148 passing** at the time of writing.
 
 **Review round two (2026-08-12).** The three review defects were fixed and verified
 through the real path, and the fix to the last of them left one narrower opening, now
@@ -135,13 +135,15 @@ re-deriving it from `BackgroundRule`, which was never meant to carry it. Three r
 each narrowing rather than closing. **When a structural invariant is relaxed, name where
 it moved TO in the same change.**
 
-**Open rules question — for the human, do not choose.** The R1 tests assert that a
-SINGLE Connections row at the full Attribute sum (9, 10, 27…) is legal, because the
-printed rule caps the TOTAL: "the total number of dots in Connections may not exceed 27".
-So a lone Connections row may currently hold 27 while every other Background is held to
-5. Is Connections exempt from the universal per-row 5 (a Background rated per
-organisation, summed), or does the per-row 5 still apply with the Attribute sum capping
-the total across rows? Left as authored; the answer changes one line. ⚠ **Not browser-verified** — nothing past
+**Connections is capped at 10 PER ROW** (human's ruling 2026-08-12: "Connections should
+be capped at 10. 27 dots in one background is absurd and wouldn't render well"). The
+printed rule caps the TOTAL at the Attribute sum, and `max_rating` /
+`max_rating_is_attribute_sum` both read `background_rating`, which SUMS every row sharing
+a name — so the total-cap alone let a lone row hold the whole 27-dot allowance, and the
+dot track would have tried to draw 27 pips. `BackgroundRule.max_rating_per_row` is the
+per-row ceiling; the printed total still binds across rows (six rows of 5 against a sum of
+27 errors, two rows of 10 do not). It only ever RAISES the per-row ceiling, and every
+other Background keeps the universal 5. ⚠ **Not browser-verified** — nothing past
 the UI harness has driven the new controls; see the click-through list below.
 
 The already-modelled inventory stands unchanged (chargen-only): Mountain Folk Backing ≤2 /

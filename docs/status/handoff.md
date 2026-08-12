@@ -3,7 +3,7 @@
 **Rewritten each session.** The durable operating guide is `CLAUDE.md`.
 
 ## Current state
-- Suite **2,147 passing**, no failures. The documented machine-only
+- Suite **2,148 passing**, no failures. The documented machine-only
   `test_every_description_matches_the_source_text` is GREEN on this machine now (the
   Godblooded chapter md is absent here, so its 46 entries defer) — still not a
   regression either way, see `docs/status/godblooded.md`.
@@ -14,7 +14,7 @@
 
 ## What happened this session
 1. **The Background numeric rules implemented** (`docs/briefs-background-rules.md`, 12
-   tests in `tests/test_background_rules.py`, suite 2,134 → **2,147**). R1 Connections
+   tests in `tests/test_background_rules.py`, suite 2,134 → **2,148**). R1 Connections
    ≤ the Attribute sum (a new `max_rating_is_attribute_sum` field); R2 Celestial Manse
    ≤3 on BOTH sides with a PER-CHARACTER toggle; R3 mortals barred from Artifact/Manse
    with a toggle; R4 Mountain Folk Artifact ≤10 at 1 BP/dot above 5; R5 the plumbing —

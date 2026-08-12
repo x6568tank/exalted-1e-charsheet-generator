@@ -2153,11 +2153,19 @@ def background_issues(budgets, backgrounds, character=None, *,
         # lose the cap at chargen while keeping it post-lock.
         ceiling = (rule.max_rating if governs and rule.max_rating > merits.DOT_MAX
                    else merits.DOT_MAX)
+        # A PER-ROW ceiling, for the rules that measure a TOTAL. `max_rating` and the
+        # Attribute-sum cap both read `background_rating`, which SUMS every row sharing
+        # the name — so without this a lone Sidereal Connections row could hold the
+        # whole 27-dot allowance. It raises the per-row ceiling and never lowers it.
+        if rule is not None and rule.max_rating_per_row > ceiling:
+            ceiling = rule.max_rating_per_row
         # Where the rule states its OWN ceiling, that check has already spoken (an
         # above-origin-cap or above-attribute-cap issue); saying it twice for one row
-        # is noise. A total-cap rule (Sidereal Connections) reads the SUM of the rows,
-        # so it governs the row here too.
-        if governs and (rule.max_rating or rule.max_rating_is_attribute_sum):
+        # is noise. The exception is a row over the PER-ROW ceiling, which the summed
+        # check cannot see — a lone 27-dot Connections row passes a 27-dot total.
+        if governs and (rule.max_rating or rule.max_rating_is_attribute_sum) \
+                and not (rule.max_rating_per_row
+                         and bg.rating > rule.max_rating_per_row):
             continue
         if bg.rating > ceiling:
             issues.append(Issue(
@@ -2221,9 +2229,10 @@ def background_rating_cap(budgets, character, name, *, post_lock=False) -> int:
     # The Attribute-sum rule (Sidereal Connections) is a TOTAL cap, not a per-row one:
     # the printed rule says "the total number of dots in Connections may not exceed"
     # the sum, and `background_rating` already sums duplicate rows for the check. So
-    # the control keeps the universal per-row ceiling and the total is
-    # `background_issues`' job — a row must not offer the whole attribute sum as pips.
-    return merits.DOT_MAX
+    # the control offers the rule's PER-ROW ceiling (Connections 10, the human's ruling
+    # 2026-08-12) and the total is `background_issues`' job — a row must never offer
+    # the whole attribute sum as pips.
+    return max(merits.DOT_MAX, rule.max_rating_per_row)
 
 
 def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
