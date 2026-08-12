@@ -87,7 +87,15 @@
     "id": "background.breeding",
     "name": "Breeding",
     "description": "The purity of your Terrestrial bloodline: higher Breeding means more pronounced elemental markings, a stronger anima banner, and larger Essence pools.",
-    "exalt_type": "Dragon-Blooded"
+    "exalt_type": "Dragon-Blooded",
+    "ladder": [
+      "Your family tree is unremarkable. Perhaps you were Exalted from the plebeian classes?",
+      "Good blood. +1 to your Personal Essence pool; +2 to your Peripheral Essence pool. Although your parent may not be Exalted, your family line has spawned Dragon-Blooded recently.",
+      "Very good blood. One of your parents is certainly an Exalt. +2 to your Personal Essence pool; +3 to your Peripheral Essence pool.",
+      "You are the child of an excellent line, probably with numerous Dragon-Blooded in your immediate family, with almost all of them sharing your elemental aspect. +3 to your Personal Essence pool; +5 to your Peripheral Essence pool.",
+      "Impeccable pedigree. The connection both you and your family have to your chosen element is undeniable. +4 to your Personal Essence pool; +7 to your Peripheral Essence pool; −1 mote from the cost to activate your anima banner; +1 on the roll to see if your child Exalts.",
+      "Your bloodline is impeccable and includes numerous Exalted of great fame. You may be directly related to the Empress. Your aspect markings are unmistakable, making it clear to all who see that you are far more than a mere mortal. +5 to your Personal Essence pool; +9 to your Peripheral Essence pool; −2 motes to the cost of activating your anima banner; +2 on the roll to see if a child of yours Exalts."
+    ]
   },
   {
     "id": "background.class",
@@ -107,13 +115,29 @@
     "id": "background.command",
     "name": "Command",
     "description": "The earned right to command soldiers of the legions or a House army, from a single fang (5) up to an entire dragon (500) fighting under your banner.",
-    "exalt_type": "Dragon-Blooded"
+    "exalt_type": "Dragon-Blooded",
+    "ladder": [
+      "None; you either haven't earned the right to lead troops or you have no interest in doing so.",
+      "You command a single fang (five soldiers).",
+      "A scale (25 soldiers).",
+      "A talon (125 soldiers).",
+      "A wing (250 soldiers).",
+      "An entire dragon (500 soldiers) fights under your personal banner."
+    ]
   },
   {
     "id": "background.connections",
     "name": "Connections",
     "description": "Ties into one area of the Realm's web of institutions and cliques (chosen per instance, e.g. a House or the legions); serves as both Contacts and Influence for the Dragon-Blooded.",
-    "exalt_type": "Dragon-Blooded"
+    "exalt_type": "Dragon-Blooded",
+    "ladder": [
+      "None; you lack any ties to the group in question.",
+      "You possess at least one major contact (and a handful of minor ones) among the group and are moderately influential on a local level.",
+      "Two major contacts and several minor ones within your area of influence, giving you a great deal of pull in your city.",
+      "Three major contacts and a large number of minor ones, making you a person of importance within your region.",
+      "Five major contacts and a horde of lesser ones. You are one of the most influential persons in the Realm.",
+      "You know all of the major power players in your area of influence, and more importantly, they not only know who you are, but listen to you as well."
+    ]
   },
   {
     "id": "background.contacts",
@@ -209,7 +233,15 @@
     "id": "background.henchmen",
     "name": "Henchmen",
     "description": "UnExalted characters of note who have sworn personal oaths of loyalty to you, rated by their number.",
-    "exalt_type": "Dragon-Blooded"
+    "exalt_type": "Dragon-Blooded",
+    "ladder": [
+      "None; you have no companions.",
+      "One companion.",
+      "Two companions.",
+      "Three companions.",
+      "Five companions.",
+      "Eight companions."
+    ]
   },
   {
     "id": "background.influence",
@@ -302,7 +334,15 @@
     "id": "background.reputation",
     "name": "Reputation",
     "description": "How widely your exploits are known across the Dynasty and the Realm; may be added to Social rolls where fame carries weight (or subtracted where it is a liability).",
-    "exalt_type": "Dragon-Blooded"
+    "exalt_type": "Dragon-Blooded",
+    "ladder": [
+      "You have yet to make a name for yourself.",
+      "You're well known in your set.",
+      "Your name is bandied about in your part of the Dynasty.",
+      "Everyone in the Dynasty knows well your legend.",
+      "Tales of your exploits have spread across the Realm.",
+      "Your legend has preceded you even to the far corners of the Threshold."
+    ]
   },
   {
     "id": "background.resources",
@@ -342,7 +382,8 @@
       "Your character has received extensive training in the art of sorcery. Your character begins with three spells.",
       "Your character has an advanced understanding of the finer points of sorcery. Your character starts with four spells. Additionally, although your character cannot perform such spells, she has some knowledge of the fundamentals of the Celestial Circle of sorcery, enough to sometimes recognize Celestial spells when she sees them written down or performed.",
       "Your character's knowledge of Terrestrial sorcery is unmatched, and her furtive perusal of certain banned tomes has given her insights into the more powerful Circles. She begins with five spells."
-    ]
+    ],
+    "exalt_type": "Dragon-Blooded"
   },
   {
     "id": "background.spies",
@@ -446,13 +487,29 @@
     "id": "background.celestial-manse",
     "name": "Celestial Manse",
     "exalt_type": "Dragon-Kings",
-    "description": "You have a dwelling in the Celestial City (see Exalted: The Sidereals, p.106). Only for characters living or working in Yu-Shan, and may not exceed two dots even if bonus points are used."
+    "description": "You have a dwelling in the Celestial City (see Exalted: The Sidereals, p.106). Only for characters living or working in Yu-Shan, and may not exceed two dots even if bonus points are used.",
+    "ladder": [
+      "None. You have no celestial dwelling of your own, unless you live without a residency permit in a squatter camp. Why?",
+      "A small faux-shrine or comfy townhouse. Produces a level 1 Hearthstone.",
+      "A beautiful pagoda or a spacious townhouse. Produces a level 2 Hearthstone.",
+      "A small palace with grounds or a spacious mansion. Produces a level 3 Hearthstone.",
+      "A towering pagoda, an impressive palace or a hunting lodge with a hundred acres of land well-stocked with godly deer. Produces a level 4 Hearthstone.",
+      "A singular property, either famed for some previous inhabitant or for some element of its vast and overwrought grandeur. Produces a level 5 Hearthstone."
+    ]
   },
   {
     "id": "background.salary",
     "name": "Salary",
     "exalt_type": "Dragon-Kings",
-    "description": "The size of your celestial pay packet (see Exalted: The Sidereals, pp.107-108). Only for characters living or working in Yu-Shan, and may not exceed two dots even if bonus points are used."
+    "description": "The size of your celestial pay packet (see Exalted: The Sidereals, pp.107-108). Only for characters living or working in Yu-Shan, and may not exceed two dots even if bonus points are used.",
+    "ladder": [
+      "No salary. Did you piss someone off, or are they impounding it to pay some heinous court fee? You live in someone's back room or in your office. You have to beg or crash a feast to eat.",
+      "The starting salary for most gods. As a Sidereal, this means you're either new or on probation. You have a small (five-room) apartment and can afford one meager feast each day. You can pay your two servants, but you get no Ambrosia. You have Resources •• in Heaven, Resources ••• in Creation — dragon boat rental is problematic, and you often ride in passenger dhows.",
+      "Solid salary — you have a small townhouse or a spacious apartment in a mediocre neighborhood. Your feasting-board is constantly full. There is some Ambrosia in your pay, but most of it is in Quintessence allowances useful only for paying servants or meeting basic needs. You have Resources ••• in Heaven and can live as if you have Resources •••• in Creation, although Sidereals generally won't be able to exert this fully. This is the standard Salary for members of the Gold Faction, who are typically paid at the bottom of their grade.",
+      "You own a towering townhouse, a working faux-ranch or a rooftop temple-fortress. You have your own dragon boat, aerial rickshaw and a dozen servitor gods. Most of your pay is in Ambrosia, allowing you to eat many godly victuals. You have Resources •••• in Yu-Shan and could have Resources ••••• in Creation if you could stand the legal heat. This is the standard pay packet for a member of the Bronze Faction.",
+      "At least two of the above residences and, possibly, a few Essence 2 or 3 gods living with you as yojimbos, advisors or concubines (these must be bought with the Allies Background). You eat nothing but godly victuals and pay even your menial servants in Ambrosia to keep them loyal. Ambrosia and Quintessence subsidies give you Resources ••••• in both Heaven and Creation.",
+      "You have a half-dozen grand palaces, penthouse aeries and weekend hunting lodges or party houses in faux-country settings. You possess several dragon boats, a party barge, several aerial rickshaws and a legion of servants, possibly including up to a dozen militant lesser gods (useful gods must be bought as Allies). You dine on the peaches of immortality. You could make unlimited Resources •••• purchases in Creation, totally ruining the local economy. Only senior Sidereals and the better sort of high god receive these sorts of pay packets."
+    ]
   },
   {
     "id": "background.savant",
@@ -461,7 +518,15 @@
     "excluded_origins": [
       "Dragon-Kings"
     ],
-    "description": "Memories of the First Age and its lost secrets (see Exalted: The Sidereals, pp.108-109). Only ancient Dragon Kings may possess this Background at character creation."
+    "description": "Memories of the First Age and its lost secrets (see Exalted: The Sidereals, pp.108-109). Only ancient Dragon Kings may possess this Background at character creation.",
+    "ladder": [
+      "None. You lack any intuitive understanding of First Age lore. Why?",
+      "You vaguely recall the secrets learned in past existences and intuitively grasp some of the basics of First Age wonder working.",
+      "The teaching techniques worked well with you, and you have a reasonable understanding of First Age magical principles.",
+      "You can remember large amounts of your enhanced training and have excellent insight into the secrets of the First Age.",
+      "Most segments of the knowledge in printing remained intact. You easily grasp the workings of most First Age artifacts.",
+      "The elders applied supplemental training to your already-perfect mastery and made you a walking library of First Age secrets. You have an instinctive understanding of even the most complex First Age mechanisms. It must be painful to comprehend the distance that the Second Age has fallen from the First."
+    ]
   },
   {
     "id": "background.acquaintances",
@@ -551,12 +616,42 @@
     "id": "background.illumination",
     "name": "Illumination",
     "exalt_type": "Solar",
-    "description": "Rank and prestige within the Cult of the Illuminated. An Illuminated Solar begins with Illumination • for free, in addition to her Background dots."
+    "description": "Rank and prestige within the Cult of the Illuminated. Even among the Princes of the Earth there are differences in rank and status: until a young Solar has proved himself skilled and worthy, the greatest secrets of the Cult are hidden from him and he is expected to learn rather than lead. Those who prove their dedication and leadership are lifted up as examples to the younger Solars and to the Cult as a whole, are expected to teach and to lead, and receive a greater portion of the cultists' prayers. As the prophesied Illuminated Ones the Solars receive the greatest consideration within the Cult, and all Illuminated Solars begin with Illumination • for free. Other Exalted serve the Cult and may purchase Illumination, but do not reach the same heights: Dragon-Blooded may not exceed •••, Lunars may reach ••••, Sidereals do not normally take it at all (using Connections (The Cult of the Illuminated) instead), and an Abyssal may take it only with the Storyteller's approval.",
+    "ladder": [
+      "The Exalt has no rank or trust within the Cult. Either he is an outsider, or he is considered a lesser, dedicated servant of the Illuminated, no better than the rank-and-file members of the Cult.",
+      "Initiate. The Exalt has achieved the trust and dedication of the Cult, and its resources are at his disposal. Despite this he is still considered unproven, expected to learn at the feet of his instructors; while cultists are required to obey his word, he is expected to listen to the advice of wiser cultists, such as his guide. This is the rank of a Solar training in the camps, and all Illuminated Solars begin here.",
+      "Adept. The Exalt has proven himself to the Cult and now acts as an independent agent. He is free to come and go as he pleases, and can expect mortals to listen to his commands as well as tend to his needs. Adepts primarily serve as the agents of the Cult, leaving the camps to perform tasks on their behalf. This is the rank of those Solars who have graduated from their training.",
+      "Illuminated. The Exalt has experience in serving the Cult and is considered a leader. Adepts look to him for leadership, and he often leads Cult missions and endeavors. Illuminated Exalts also serve as instructors of less capable Solars, and all the instructors of the camps stand at this rank. They receive a portion of the Cult's worship and, every dawn — the hour of worship for mortals — regain a free point of Willpower.",
+      "Saint. The Exalt has proven himself beyond the rest of the Solars and is a hero among the Cult. His name is spoken amongst cultists and he is held up as an example to other Solars. Saints are living embodiments of the Illuminated Ones and serve as the high priests of the Cult, making appearances at gatherings and performing miracles for the believers. In addition to gaining a point of Willpower at every dawn, their hourly Essence regeneration rate is increased by 2.",
+      "Prophet. The Exalt leads and guides the whole of the Cult with his words. Training camps are ostensibly headed by prophets, as is the Cult itself. These Solars are the voice of the Cult, speaking for Heaven above, and their word is divine mandate to the cultists below them — though they remain spokesmen for a Heaven run by the Sidereals. In addition to their daily point of Willpower, their hourly Essence regeneration rate is increased by 3."
+    ]
   },
   {
     "id": "background.tiger-warriors",
     "name": "Tiger Warriors",
     "exalt_type": "Solar",
-    "description": "Fanatical soldiers willing to fight and die for the Illuminated Ones."
+    "description": "Fanatical soldiers willing to fight and die for the Illuminated Ones. In addition to the Solars, the Cult trains elite cadres of mortal soldiers whose dedication to the cause is complete; the greatest are trained by the Solars themselves, their skills augmented by the Charm Tiger-Warrior Training Technique. Lacking the resources of the Realm or the Deathlords, the Gold Faction cannot field nearly as many soldiers, and tiger warriors are a valuable resource not to be thrown away frivolously — yet each looks forward to the day he can become a martyr, assured a place in Heaven beside his beloved Solar. Unlike the faceless legionnaires of the Realm, these warriors each know their leader personally and adore him. Tiger warriors are always considered elite extras.",
+    "ladder": [
+      "Your Solar works alone. Perhaps his training didn't involve leadership, or perhaps the tasks the Cult puts him to would only be hampered by the presence of others. For whatever reason, the Cult has chosen not to bestow your Solar with mortal servants.",
+      "A dedicated guard. Your Solar is attended by a personal bodyguard consisting of no more than five tiger warriors and one heroic mortal that sees to his protection and needs.",
+      "A crack unit. The Solar has command of a sizable force of tiger warriors, no more than 15, that can act independently of the Solar if necessary. These warriors are led by up to two heroic mortals.",
+      "A personal strike force. Up to 25 tiger warriors serve the Solar, acting as an elite strike force ready to carry out his commands. Up to three heroic mortals aid the Solar in the command of this unit or, optionally, a single Dragon-Blood who serves the Solar personally.",
+      "A dedicated brigade. The Solar commands a considerable force of tiger warriors, up to 100, enough to intimidate small towns and to fend off a small Wyld Hunt. Alternately, the Solar may lead 50 especially well-trained and -equipped tiger warriors considered superior in quality. In addition, up to four heroic mortals or a single Dragon-Blood attend the Solar.",
+      "A small army. Up to 250 tiger warriors of elite quality or 100 tiger warriors of superior quality follow the Solar's every command, a mighty force ready to sacrifice their lives for him. Additionally, up to five heroic mortals serve the Solar. Alternatively, he may be served by an experienced Dragon-Blooded outcaste, or a lone Casteless Lunar acquired and trained before the Silver Pact could reach him, serving as personal attendant, champion and commander of his troops — undeniably great, but dangerously unpredictable."
+    ]
+  },
+  {
+    "id": "background.sorcery-illuminated",
+    "name": "Sorcery",
+    "exalt_type": "Solar",
+    "description": "A thorough education in the arts of sorcery at a Cult of the Illuminated training camp, granting free spells. Solars stand upon the apex of sorcery, and once taught the basic principles the rest comes easily to them. This Background provides only the knowledge of spells, not the Charms associated with sorcery — to take full advantage of it the character must acquire the appropriate Sorcery Charms through normal Charm selection. The spells gained must be selected from the Cult's approved list: the Gold Faction teaches what is immediately useful and quietly withholds the more controversial spells.",
+    "ladder": [
+      "The character has no special training in sorcery. Far from a deficit, the character has simply chosen to focus on other aspects of her training.",
+      "The character has learned the basic principles of the art of sorcery and gains a single spell from the Terrestrial Circle.",
+      "The character benefits from extensive training in the occult and gains two spells from the Terrestrial Circle.",
+      "The character has mastered the fundamentals of sorcery and gains three spells from the Terrestrial Circle.",
+      "The character has extensively studied sorcery, expanding upon the principles taught to her at her training camp, and gains four spells from either the Terrestrial or the Celestial Circles.",
+      "The character's knowledge and understanding of sorcery is almost unparalleled. Characters this dedicated to sorcery are destined to shake the world and begin play with five spells from the Terrestrial or the Celestial Circles."
+    ]
   }
 ]

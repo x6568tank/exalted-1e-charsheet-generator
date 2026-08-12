@@ -1341,7 +1341,23 @@
       "4": 5,
       "5": 5,
       "6": 6
-    }
+    },
+    "catalogue_backgrounds": [
+      "allies",
+      "artifact",
+      "backing",
+      "celestial manse",
+      "contacts",
+      "cult",
+      "familiar",
+      "followers",
+      "influence",
+      "manse",
+      "mentor",
+      "resources",
+      "salary",
+      "savant"
+    ]
   },
   "Dragon-Kings:ancient": {
     "attribute_pools": [
