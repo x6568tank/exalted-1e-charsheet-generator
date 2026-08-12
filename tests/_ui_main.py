@@ -1621,3 +1621,15 @@ CHAR_BG_RUNG_XP.chargen_locked = True
 @ui.page('/backgrounds-rung-xp')
 def page_backgrounds_rung_xp():
     advantages.build_advantages(RS, CHAR_BG_RUNG_XP, Path("x.json"), with_header=False)
+
+# The Background catalogue DIALOG's ladder rendering. Its own character again: the
+# dialog test reads the full text of the Allies entry, and the description tests
+# RENAME the Background on the character behind /merits-backgrounds, so sharing that
+# route makes this test pass or fail on execution order.
+CHAR_BG_DIALOG = Character(id="bgdlg", name="Ladders", exalt_type="Solar", caste="dawn",
+                           essence_rating=1)
+CHAR_BG_DIALOG.backgrounds = [BackgroundEntry(name="Allies", rating=1)]
+
+@ui.page('/backgrounds-ladder-dialog')
+def page_backgrounds_ladder_dialog():
+    advantages.build_advantages(RS, CHAR_BG_DIALOG, Path("x.json"), with_header=False)

@@ -116,7 +116,15 @@ def catalogue_dialog(
                     if full and len(full) > 160:
                         with ui.expansion("Full description", icon="article"
                                           ).classes("w-full"):
-                            ui.label(full).classes("text-xs leading-relaxed")
+                            # `whitespace-pre-line` because a `full` may be STRUCTURED,
+                            # not one paragraph: a Background's is the blurb followed by
+                            # its printed dot ladder, one rung per line. A plain label
+                            # collapses those newlines and runs six rungs together into
+                            # a wall of text. Blank lines inside the string survive too,
+                            # which is what separates the rungs; runs of spaces still
+                            # collapse, so ordinary prose entries are unaffected.
+                            ui.label(full).classes(
+                                "text-xs leading-relaxed whitespace-pre-line")
             if not any(_matches(e, _filter["text"]) for e in entries):
                 ui.label("Nothing matches the filter.").classes(
                     "text-xs italic opacity-60")

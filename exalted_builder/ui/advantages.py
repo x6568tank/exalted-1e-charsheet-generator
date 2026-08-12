@@ -232,8 +232,13 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             rows = []
             for b in sorted(bg_catalog, key=lambda b: b.name):
                 ladder = viewmod.background_ladder(bg_catalog, b.name)
+                # A blank line BETWEEN rungs, not just before the first: six rungs on
+                # consecutive lines read as one block, and the dialog is where the
+                # player compares them to choose a rating (human, click-through
+                # 2026-08-12). The dialog's label renders these newlines only because
+                # it carries `whitespace-pre-line` — see ui/catalogue.py.
                 full = b.description + (
-                    "\n\n" + "\n".join(f"{dot}  {text}" for dot, text in ladder)
+                    "\n\n" + "\n\n".join(f"{dot}  {text}" for dot, text in ladder)
                     if ladder else "")
                 rows.append((b.name, b.name, b.description, full))
             cataloguemod.catalogue_dialog(pal, "Backgrounds", rows, _pick_bg)

@@ -115,3 +115,21 @@ async def test_a_locked_custom_merit_row_renders_by_name_in_play(user) -> None:
     options = " ".join(str(o) for o in (held[0].options or {}).values())
     assert "Bloodline trait" in options, \
         "the custom M&F row must be offerable in the play Held dropdown"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_background_dialogs_ladder_is_readable_line_by_line(user) -> None:
+    """The dialog is where a RATING gets chosen, so its full text is the whole printed
+    ladder — and a plain NiceGUI label collapses newlines, which ran six rungs together
+    into one paragraph (human, click-through 2026-08-12). Two halves, both required: the
+    text must carry blank lines BETWEEN rungs, and the label must be told to render
+    them. Asserting only the string would pass against a wall of text on screen."""
+    await user.open('/backgrounds-ladder-dialog')
+    user.find("Add background").click()
+    full = next(el for el in user.find(ui.label).elements
+                if "Two allies or one significant one" in (el.text or ""))
+    assert "\n\n••  " in full.text, \
+        "the rungs are not separated by a blank line"
+    assert "whitespace-pre-line" in full.classes, \
+        "the label collapses the newlines it was given"
