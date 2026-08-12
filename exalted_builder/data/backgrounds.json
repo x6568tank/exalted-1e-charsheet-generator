@@ -57,7 +57,7 @@
   {
     "id": "background.artifact",
     "name": "Artifact",
-    "description": "Wondrous devices of the First Age that you own, rated by power and rarity. Talented Exalted craftsmen can work their will on objects, crafting them into artifacts of great power. The most powerful of these items were made during the now-vanished golden time of the First Age. Many have failed, as the ravages of time undid their magic; many more were destroyed in the disasters and wars that ended that Age of glory. Yet some survive and continue to function — their imperishability a tribute to the power of the ancients. Even today, the Dragon-Blooded still forge weak items, and the Sidereals and Lunars both work their hidden wonders, yet most of the First Age's wisdom has been forgotten or was lost during the Great Contagion. Your character could have been powerful or rich enough previous to her Exaltation to have some trapping of First Age glory, or she might have followed prophetic dreams and looted one of the hidden fortress-tombs where the bones and ashes of the Solars were laid down and sealed away, or seized the artifact or had it given to her by a third party. However the object came into the character's possession, there is a story behind it. For details of various artifacts, see Chapter Nine — Wonders and Equipment. (Dragon-Blooded receive twice the dots' worth of artifacts.) (Alchemicals receive THREE dots of artifacts per dot bought, usually of their caste's Magical Material though this is not required; they alone may buy a rating as high as ••••• at creation without bonus points, but the fourth and fifth dot each cost two dots from the pool. Alchemicals may also buy Charms as artifacts at a rating equal to the Charm's minimum Essence — these are kept on retainer at the Vats and do NOT increase the Charms they may install.)",
+    "description": "Wondrous devices of the First Age that you own, rated by power and rarity. Talented Exalted craftsmen can work their will on objects, crafting them into artifacts of great power. The most powerful of these items were made during the now-vanished golden time of the First Age; many have failed as the ravages of time undid their magic, and many more were destroyed in the disasters and wars that ended that Age of glory. Yet some survive and continue to function, their imperishability a tribute to the power of the ancients. Even today the Dragon-Blooded still forge weak items, and the Sidereals and Lunars both work their hidden wonders.",
     "ladder": [
       "No Artifact.",
       "A minor item — a magic charm, an amulet with a setting for a single Hearthstone or a diadem of office.",
@@ -78,9 +78,6 @@
       "Midlevel rank, usually with ill-defined authority and responsibility (such leeway can be both a blessing and a curse).",
       "A position of some direction and privilege — the character has access to large resources and is trusted by the elite.",
       "You've reached the upper ranks — a leader in your own right, the character commands power and respect."
-    ],
-    "excluded_exalt_types": [
-      "Abyssal"
     ]
   },
   {
@@ -280,7 +277,7 @@
   {
     "id": "background.manse",
     "name": "Manse",
-    "description": "A geomantic structure over a demesne that produces Essence and houses a Hearthstone. The power of the Exalted stems from the might of their own souls, but that Essence is the same power that courses through and forms the very fabric of the world. By attuning themselves to places where the world's natural magic gathers, the Exalted can draw on an almost unlimited wellspring of power, pulling energy from Creation itself to fuel their magics. The places are called Demesnes, if they have not been harnessed by occult architecture; if their power has been focused by geomantic means, then they are known as Manses. Weak Demesnes are quite common, but the more powerful ones are increasingly rare and make attractive lairs for magical creatures — from Lunar Exalted to Fair Folk and spirits of great power, all capable of disputing the character's ownership. Characters inside a Manse or Demesne to which they are attuned regain four times the level of the site per hour in Essence motes. A Demesne can be raised up into a Manse that channels its power into a Hearthstone, a piece of rock crystal about the size and shape of a chicken egg. In its raw state, the Hearthstone causes the Exalted to regain twice the Manse's rating in Essence per hour; it must be touching skin, and only one Hearthstone may grant this benefit at a time. A Hearthstone can also be set into a specially made item forged from one of the Five Magical Materials to grant greater power to the Exalted who bears it. For more details on Manses, their construction and how they generate Hearthstones, see page 247; for a dozen example Hearthstones, see Chapter Nine — Wonders and Equipment. (Autochthonia contains no Manses, so this Background is off limits to Alchemicals in any story where the Seal of the Eight Divinities is unbroken; once the Locust Crusade begins they use and build Manses in conquered Creation, purchasing this Trait exactly as a Solar does. Mortal Autochthonians may not take Manse.)",
+    "description": "A geomantic structure over a demesne that produces Essence and houses a Hearthstone. The power of the Exalted stems from the might of their own souls, but that Essence is the same power that courses through and forms the very fabric of the world. By attuning themselves to places where the world's natural magic gathers, the Exalted can draw on an almost unlimited wellspring of power, pulling energy from Creation itself to fuel their magics. The places are called Demesnes, if they have not been harnessed by occult architecture; if their power has been focused by geomantic means, then they are known as Manses. Weak Demesnes are quite common, but the more powerful ones are increasingly rare and make attractive lairs for magical creatures — from Lunar Exalted to Fair Folk and spirits of great power, all capable of disputing the character's ownership. Characters inside a Manse or Demesne to which they are attuned regain four times the level of the site per hour in Essence motes. A Demesne can be raised up into a Manse that channels its power into a Hearthstone, a piece of rock crystal about the size and shape of a chicken egg. In its raw state, the Hearthstone causes the Exalted to regain twice the Manse's rating in Essence per hour; it must be touching skin, and only one Hearthstone may grant this benefit at a time. A Hearthstone can also be set into a specially made item forged from one of the Five Magical Materials to grant greater power to the Exalted who bears it. For more details on Manses, their construction and how they generate Hearthstones, see page 247; for a dozen example Hearthstones, see Chapter Nine — Wonders and Equipment.",
     "ladder": [
       "No Manse or Demesne.",
       "Level 1 Manse or level 2 Demesne.",
@@ -306,7 +303,6 @@
       "Your character's mentor is potentially world-shaking, and he takes a great interest in your character's welfare. Beware, though — such a mentor surely has enemies, and those rivals will see your character as his heir, understudy and minion."
     ],
     "excluded_exalt_types": [
-      "Abyssal",
       "Sidereal"
     ]
   },
@@ -653,5 +649,53 @@
       "The character has extensively studied sorcery, expanding upon the principles taught to her at her training camp, and gains four spells from either the Terrestrial or the Celestial Circles.",
       "The character's knowledge and understanding of sorcery is almost unparalleled. Characters this dedicated to sorcery are destined to shake the world and begin play with five spells from the Terrestrial or the Celestial Circles."
     ]
+  },
+  {
+    "id": "background.artifact-dragonblooded",
+    "name": "Artifact",
+    "exalt_type": "Dragon-Blooded",
+    "description": "As lords of the Realm, the Dragon-Blooded have inherited a sizable portion of the remains of the First Age's infrastructure, as well as almost the entirety of its arsenal of jade artifacts and wonders. The result is that Dragon-Blooded characters have a much easier time acquiring artifacts than the fallen Anathema, or anyone else for that matter. The Artifact Background grants Dragon-Blooded twice the number of dots' worth of artifacts as normal.",
+    "ladder": [
+      "A single level 1 artifact of the Storyteller's choice.",
+      "A pair of level 1 artifacts.",
+      "A level 2 artifact, and a pair of level 1 artifacts.",
+      "A level 3 artifact, and three dots worth of level 1 and 2 artifacts (either a level 2 artifact and a level 1 artifact, or three level 1 artifacts).",
+      "A level 4 artifact, and four dots worth of level 1 through 3 artifacts (a level 3 artifact and a level 1 artifact, a pair of level 2 artifacts, etc.).",
+      "A level 5 artifact, and five dots worth of level 1 through 4 artifacts (a level 4 artifact and a level 1 artifact, a level 3 artifact and a level 2 artifact, a pair of level 2 artifacts and a level 1 artifact, etc.). At the Storyteller's discretion, the character may also have access to the Realm's arsenal of First Age war machines — not that this means he'll actually own one, but he may be able to get permission to use one."
+    ]
+  },
+  {
+    "id": "background.manse-dragonblooded",
+    "name": "Manse",
+    "exalt_type": "Dragon-Blooded",
+    "description": "In contrast to the chaotic and savage Threshold, the Realm is a place of relative order and stability, and imperial forces have managed to locate and claim all known Manses located on the Blessed Isle. Because various Great Houses or the Immaculate Order already hold these Manses, it is exceedingly difficult for a Dragon-Blooded character to claim one as her own personal property. Most households and estates are built around Manses, and being able to purchase the rights to one is essential in starting a household or line. Rather than representing a single Manse the character has claim on, the Manse rating of a Dragon-Blooded character indicates generally how many Manses she has been attuned to. Characters who carry the Hearthstone from a Manse probably don't actually own it, instead holding it on extended loan; in case of family emergency the stone may be recalled, especially a powerful one. Level 1 and 2 Manses are very common in the Realm and are used as weekend and vacation manors, hunting lodges and strongholds to defend small estates.",
+    "ladder": [
+      "The character is not welcome in any of the Realm's Manses. Why?",
+      "The character is allowed to enter and has been attuned to several level 1 and 2 Manses. She may have one Hearthstone of level 1 or 2.",
+      "The character is allowed to enter and has been attuned to several weak Manses. She has a couple of level 1 or 2 Hearthstones (no more than three levels, total).",
+      "The character is allowed to enter and has been attuned to some fairly powerful Manses. She has a level 3 Hearthstone and several level 1 and 2 stones (no more than six levels, total, including the large stone).",
+      "The character is allowed to enter and has been attuned to some very powerful Manses, probably among the best her house possesses. She has a level 4 Hearthstone and several of level 1 or 2 and possibly even one of level 3 (no more than eight levels, total, including the large stone).",
+      "The character is allowed to enter and attune herself to the Realm's most powerful Manses, and has even been entrusted with the Hearthstone of one of these cathedrals of the Exalted. She has a level 5 Hearthstone and several others of level 1-3 (no more than ten levels, total, including the large stone)."
+    ]
+  },
+  {
+    "id": "background.artifact-abyssal",
+    "name": "Artifact",
+    "exalt_type": "Abyssal",
+    "description": "The Deathlords rule vast kingdoms within the Underworld, and their favored servants are able to take full advantage of the resources at their liege's command — deathknights have a much easier time acquiring artifacts than most other Exalted. All a deathknight's artifacts are forged from soulsteel unless the Storyteller gives specific permission otherwise, and are frequently disturbing blends of grotesque beauty and fascinating horror: the faces of the dead are reflected in their surfaces, and the screams and moans of the dead issue forth softly now and then. Jade, usually taken from grave goods, is the second most common Magical Material. Abyssal characters also have access to the artifacts of the dead, which can be purchased for their normal Artifact value but are of no use outside the Underworld. This alteration applies only to Abyssals who continue to faithfully serve their Deathlords — renegades use the Artifact Background from the main Exalted rulebook.",
+    "ladder": [
+      "None: who are you, that your Deathlord has given you no trinkets of power?",
+      "Trinkets: artifacts with a combined Artifact rating no higher than 3.",
+      "Sound Gear: artifacts with a combined Artifact rating no higher than 5. None can individually be above Artifact 3 without Storyteller permission.",
+      "Well-Equipped: artifacts with a combined Artifact rating no higher than 7. None can individually be above Artifact 4 without Storyteller permission.",
+      "Supremely Appointed: artifacts with a combined Artifact rating no higher than 10. There is no limit on individual Artifact level, other than it cannot be N/A.",
+      "Divine Regalia: artifacts with a combined Artifact rating no higher than 13. There is no limit on individual Artifact level, other than it cannot be N/A."
+    ]
+  },
+  {
+    "id": "background.artifact-alchemical",
+    "name": "Artifact",
+    "exalt_type": "Alchemical",
+    "description": "Built from Magical Materials and infused with life, the bodies and Charms of the Alchemical Exalted represent the most sophisticated and powerful artifacts in Autochthonia. Yet the Chosen of the Machine Gods use far more artifacts than themselves in the defense of their nations and patron, freely drawing on the resources and unmatched technology of the Realm of Brass and Shadow. Alchemicals receive three total dots of artifacts for every dot of the Artifact Background purchased. Most of these devices are constructed from the same Magical Material as the Exalt's caste, although this is not actually required. Alchemicals may purchase a rating as high as ••••• with their Background dots during character creation even without spending bonus points, though the fourth and fifth dot still cost two dots each. Finally, Alchemicals can purchase additional Charms as artifacts with a rating equal to their minimum Essence (but cannot purchase Charms whose Trait minimums they do not meet); these Charms are kept on retainer at the Vats and do not increase the number of Charms the Alchemical may install."
   }
 ]

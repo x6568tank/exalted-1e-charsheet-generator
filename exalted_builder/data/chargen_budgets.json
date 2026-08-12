@@ -72,14 +72,14 @@
     },
     "catalogue_backgrounds": [
       "allies",
-      "artifact",
+      "background.artifact-dragonblooded",
       "backing",
       "breeding",
       "command",
       "connections",
       "familiar",
       "henchmen",
-      "manse",
+      "background.manse-dragonblooded",
       "mentor",
       "reputation",
       "resources",
@@ -198,13 +198,13 @@
     "catalogue_backgrounds": [
       "allies",
       "arsenal",
-      "artifact",
+      "background.artifact-dragonblooded",
       "backing",
       "breeding",
       "command",
       "connections",
       "familiar",
-      "manse",
+      "background.manse-dragonblooded",
       "mentor",
       "reputation",
       "resources",
@@ -744,7 +744,7 @@
     "catalogue_backgrounds": [
       "abyssal command",
       "allies",
-      "artifact",
+      "background.artifact-abyssal",
       "contacts",
       "familiar",
       "followers",
@@ -772,7 +772,24 @@
     "charm_min_caste_favored": 5,
     "virtue_dots": 5,
     "essence_start": 2,
-    "bonus_points": 15
+    "bonus_points": 15,
+    "catalogue_backgrounds": [
+      "abyssal command",
+      "allies",
+      "background.artifact",
+      "backing",
+      "contacts",
+      "familiar",
+      "followers",
+      "influence",
+      "manse",
+      "mentor",
+      "necromancy",
+      "resources",
+      "spies",
+      "underworld manse",
+      "whispers"
+    ]
   },
   "Lunar": {
     "attribute_pools": [
@@ -1013,7 +1030,7 @@
     },
     "catalogue_backgrounds": [
       "allies",
-      "artifact",
+      "background.artifact-alchemical",
       "backing",
       "class",
       "contacts",
@@ -1391,7 +1408,7 @@
     },
     "catalogue_backgrounds": [
       "allies",
-      "artifact",
+      "background.artifact-dragonblooded",
       "backing",
       "celestial manse",
       "contacts",
@@ -1486,7 +1503,7 @@
     ],
     "catalogue_backgrounds": [
       "allies",
-      "artifact",
+      "background.artifact-dragonblooded",
       "backing",
       "celestial manse",
       "contacts",

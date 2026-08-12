@@ -414,3 +414,65 @@ def test_the_god_blooded_are_offered_every_background_their_book_grants(rs):
     # The three ambiguous names take the SIDEREAL copy, which is what PG cites.
     salary = next(b for b in rs.backgrounds_for("God-Blooded") if b.name == "Salary")
     assert salary.id == "background.salary-sidereal"
+
+
+# --------------------------------------------------------------------------- #
+# Backgrounds that are genuinely REWORKED per splat, not merely repriced
+# --------------------------------------------------------------------------- #
+# Two different differences, two different mechanisms:
+#   * a MECHANICAL difference is a `BackgroundRule` on the budget row — the
+#     Dragon-Blooded x2, the Alchemical x3, the Abyssal budget tiers;
+#   * a TEXTUAL difference is a second BackgroundType with its own id.
+# Artifact and Manse used to do neither: one entry whose description was a pile of
+# per-splat parentheses and whose ladder was always the Solar one. The engine charged
+# a Dragon-Blooded the doubled rate while the sheet read them the Solar rungs.
+
+def test_a_reworked_background_shows_its_own_splats_rungs(rs):
+    from exalted_builder.ui import view as viewmod
+    def artifact(splat, origin=""):
+        cat = rs.backgrounds_for(splat, origin)
+        return next(b for b in cat if b.name == "Artifact"), cat
+
+    solar, _ = artifact("Solar")
+    db, db_cat = artifact("Dragon-Blooded")
+    ab, ab_cat = artifact("Abyssal")
+    assert len({solar.id, db.id, ab.id}) == 3, "each must be its own entry"
+    # E:DB p.157 counts ARTIFACTS, not dots — that is what the doubling looks like on
+    # the page — and its zero rung still grants an item, unlike every other splat's.
+    assert "pair of level 1 artifacts" in viewmod.background_rung(db_cat, "Artifact", 1)
+    assert "single level 1 artifact" in db.ladder[0]
+    # E:Ab p.131 is a BUDGET: combined ratings, not one item.
+    assert "combined Artifact rating no higher than 7" in \
+        viewmod.background_rung(ab_cat, "Artifact", 3)
+    # And the Manse rework: a Dragon-Blooded's rating is how many Manses she is
+    # ATTUNED to, capped in total Hearthstone levels — not one Manse of that level.
+    assert "attuned to several level 1 and 2 Manses" in viewmod.background_rung(
+        db_cat, "Manse", 1)
+
+
+def test_the_abyssal_artifact_ladder_matches_the_rule_that_prices_it(rs):
+    """The rungs and `BackgroundRule.budget_tiers` are the same five tiers off the
+    same page (E:Ab p.131), so a change to one that misses the other is a sheet that
+    promises what the engine will not allow. Checked by the numbers, not the prose."""
+    tiers = rs.budgets_for("Abyssal").background_rules["artifact"].budget_tiers
+    ladder = rs.background_catalog["background.artifact-abyssal"].ladder
+    assert [t.combined_max for t in tiers] == [3, 5, 7, 10, 13]
+    for tier in tiers:
+        rung = ladder[tier.rating]
+        assert tier.name.lower() in rung.lower()
+        assert str(tier.combined_max) in rung
+
+
+def test_a_renegade_abyssal_uses_the_core_artifact_background(rs):
+    """E:Ab p.131: the Deathlord budget "only applies to those Abyssals who continue
+    to faithfully serve their Deathlords. Renegade Abyssals use the Artifact
+    Background found in Chapter Four: Traits of the main Exalted rulebook." The
+    fugitive also loses Liege — the relationship they renounced — and may begin with
+    Backing or Mentor, which a serving deathknight may not."""
+    fug = rs.backgrounds_for("Abyssal", "fugitive")
+    loyal = {b.name for b in rs.backgrounds_for("Abyssal")}
+    assert next(b for b in fug if b.name == "Artifact").id == "background.artifact"
+    names = {b.name for b in fug}
+    assert "Liege" not in names and "Liege" in loyal
+    assert {"Backing", "Mentor"} <= names
+    assert "Backing" not in loyal and "Mentor" not in loyal
