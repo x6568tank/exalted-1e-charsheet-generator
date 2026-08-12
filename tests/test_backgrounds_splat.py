@@ -366,3 +366,51 @@ def test_the_dropdown_never_offers_a_background_the_hard_list_forbids(rs):
         assert offered <= allowed, (
             f"{key} offers {sorted(offered - allowed)}, which its allowed_backgrounds "
             f"forbids — the player can pick a name that immediately errors.")
+
+
+def test_every_catalogue_list_entry_resolves_to_exactly_one_background(rs):
+    """A `catalogue_backgrounds` entry is a lowercased NAME or an exact id, and either
+    way it must land on precisely one Background for that splat.
+
+    Both failure modes are silent. An entry naming nothing (a typo, a renamed
+    Background) just quietly shrinks the dropdown. An ambiguous NAME — one of the five
+    printed twice, like Salary or Connections — either offers the wrong splat's copy
+    or offers the row twice; ids exist for exactly that case."""
+    for key, row in rs.budgets.items():
+        if not row.catalogue_backgrounds:
+            continue
+        splat = key.split(":")[0]
+        offered = [bg.name for bg in rs.backgrounds_for(
+            splat, key.split(":")[1] if ":" in key else "")]
+        assert len(offered) == len(set(offered)), (
+            f"{key} offers a duplicate name: "
+            f"{sorted(n for n in offered if offered.count(n) > 1)}. Name the copy it "
+            f"means by id.")
+        names = {bg.name.strip().lower() for bg in rs.background_catalog.values()}
+        ids = set(rs.background_catalog)
+        for entry in row.catalogue_backgrounds:
+            e = entry.strip()
+            assert (e in ids) or (e.lower() in names), (
+                f"{key} lists {entry!r}, which matches no Background name or id — "
+                f"the dropdown silently drops it.")
+
+
+def test_the_god_blooded_are_offered_every_background_their_book_grants(rs):
+    """PG p.50 prints twenty-five Backgrounds for the God-Blooded, twelve of them
+    published in OTHER splats' books and granted by cross-reference — Whispers from
+    E:Ab p.134, Renown from E:L p.100, Salary from E:S pp.107/109, and so on.
+
+    Those copies are tagged for the splat that PRINTED them, and `exalt_type` is a
+    single string that cannot say "Abyssal and God-Blooded", so the tag vetoed all
+    twelve and the dropdown offered thirteen of twenty-five. Naming them by id in the
+    catalogue list is what bypasses the tag."""
+    offered = {b.name for b in rs.backgrounds_for("God-Blooded")}
+    assert len(offered) == 25
+    for borrowed in ("Whispers", "Renown", "Salary", "Reputation", "Spies",
+                     "Abyssal Command", "Underworld Manse", "Family"):
+        assert borrowed in offered, borrowed
+    # …without dragging in the rest of those splats' books.
+    assert "Necromancy" not in offered and "Heart's Blood" not in offered
+    # The three ambiguous names take the SIDEREAL copy, which is what PG cites.
+    salary = next(b for b in rs.backgrounds_for("God-Blooded") if b.name == "Salary")
+    assert salary.id == "background.salary-sidereal"

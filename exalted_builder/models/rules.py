@@ -1953,9 +1953,19 @@ class ChargenBudgets(BaseModel):
     # factions or Celestial Bureaus" is narrative and is NOT modelled.
     allowed_backgrounds: list[str] = Field(default_factory=list)
     # The Backgrounds this splat/origin's own book ENUMERATES — the list that decides
-    # what the dropdown OFFERS, as lowercased names. Empty = the book has not been
-    # transcribed, and the catalogue falls back to the per-Background `exalt_type`
-    # tag. Read through `RuleSet.catalogue_backgrounds_for`.
+    # what the dropdown OFFERS. Empty = the book has not been transcribed, and the
+    # catalogue falls back to the per-Background `exalt_type` tag. Read through
+    # `RuleSet.catalogue_backgrounds_for`.
+    #
+    # Entries are lowercased NAMES ("allies"), or an exact id ("background.whispers")
+    # where a name is not enough. Use an id in two cases:
+    #   * the name exists twice and this splat wants a particular copy — a Sidereal's
+    #     Connections is not a Dragon-Blooded's;
+    #   * the Background is TAGGED for another splat but this book grants it anyway.
+    #     The God-Blooded chapter (PG p.50) is the case: twelve of its twenty-five are
+    #     printed in other splats' books and cross-referenced, and no `exalt_type`
+    #     string can say "Abyssal and God-Blooded". An id bypasses the tag; a name
+    #     does not.
     #
     # ⚠ NOT the same field as `allowed_backgrounds` above, and the distinction is the
     # whole reason this exists rather than reusing it:
@@ -2533,7 +2543,12 @@ class RuleSet(BaseModel):
                 + ([f"{exalt_type}:{origin}"] if origin else []) + [exalt_type]:
             row = self.budgets.get(key)
             if row is not None and row.catalogue_backgrounds:
-                return {n.strip().lower() for n in row.catalogue_backgrounds}
+                # Entries are lowercased NAMES, or exact `background.*` IDS where a
+                # name would be ambiguous. Ids are preserved verbatim (they are
+                # already lowercase) so `backgrounds_for` can tell the two apart.
+                return {n.strip() if n.strip().startswith("background.")
+                        else n.strip().lower()
+                        for n in row.catalogue_backgrounds}
         return set()
 
     def backgrounds_for(self, exalt_type: str, origin: str = "", *,
@@ -2575,9 +2590,21 @@ class RuleSet(BaseModel):
                 # what every splat used before the summaries were read.
                 # A universal Background sits outside the per-splat lists entirely —
                 # no book enumerates it because no splat owns it.
-                if offered and not bg.universal \
-                        and bg.name.strip().lower() not in offered:
-                    continue
+                if offered:
+                    if not bg.universal and not (
+                            bg.id in offered
+                            or bg.name.strip().lower() in offered):
+                        continue
+                    # A list entry naming this Background BY ID has already picked
+                    # which copy it means, so the splat tag must not then veto it.
+                    # That is how the God-Blooded get the twelve Backgrounds their
+                    # own chapter grants them out of other splats' books (Whispers
+                    # from E:Ab, Renown from E:L, Salary from E:S…): the copies are
+                    # tagged for the splat that PRINTED them, and no `exalt_type`
+                    # string can say "Abyssal and God-Blooded".
+                    if bg.id in offered:
+                        out.append(bg)
+                        continue
                 if bg.exalt_type and bg.exalt_type != exalt_type:
                     continue
                 # The two exclusion lists apply EITHER WAY. They are explicit printed
