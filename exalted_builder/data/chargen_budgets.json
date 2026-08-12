@@ -74,15 +74,16 @@
       "allies",
       "artifact",
       "backing",
-      "familiar",
-      "manse",
-      "mentor",
-      "resources",
       "breeding",
       "command",
       "connections",
+      "familiar",
       "henchmen",
+      "manse",
+      "mentor",
       "reputation",
+      "resources",
+      "retainers",
       "family"
     ]
   },
@@ -739,7 +740,23 @@
           }
         ]
       }
-    }
+    },
+    "catalogue_backgrounds": [
+      "abyssal command",
+      "allies",
+      "artifact",
+      "contacts",
+      "familiar",
+      "followers",
+      "influence",
+      "liege",
+      "manse",
+      "necromancy",
+      "resources",
+      "spies",
+      "underworld manse",
+      "whispers"
+    ]
   },
   "Abyssal:fugitive": {
     "attribute_pools": [
@@ -792,6 +809,21 @@
     ],
     "required_favored": [
       "survival"
+    ],
+    "catalogue_backgrounds": [
+      "allies",
+      "artifact",
+      "backing",
+      "contacts",
+      "cult",
+      "familiar",
+      "followers",
+      "heart's blood",
+      "influence",
+      "manse",
+      "mentor",
+      "renown",
+      "resources"
     ]
   },
   "Lunar:casteless": {
@@ -889,7 +921,20 @@
         "rating": 1
       }
     ],
-    "martial_arts_form_charm_cap": 3
+    "martial_arts_form_charm_cap": 3,
+    "catalogue_backgrounds": [
+      "acquaintances",
+      "allies",
+      "artifact",
+      "backing",
+      "celestial manse",
+      "connections",
+      "familiar",
+      "manse",
+      "salary",
+      "savant",
+      "sifu"
+    ]
   },
   "Sidereal:ronin": {
     "attribute_pools": [
@@ -919,7 +964,17 @@
     "college_dots": 0,
     "college_min_own_house": 0,
     "ignore_caste_min_abilities": true,
-    "martial_arts_form_charm_cap": 0
+    "martial_arts_form_charm_cap": 0,
+    "catalogue_backgrounds": [
+      "acquaintances",
+      "allies",
+      "artifact",
+      "backing",
+      "connections",
+      "familiar",
+      "manse",
+      "resources"
+    ]
   },
   "Alchemical": {
     "attribute_mode": "caste_favored",
@@ -955,7 +1010,19 @@
         "expensive_dot_cost": 2,
         "rating_per_dot": 3
       }
-    }
+    },
+    "catalogue_backgrounds": [
+      "allies",
+      "artifact",
+      "backing",
+      "class",
+      "contacts",
+      "familiar",
+      "followers",
+      "manse",
+      "resources",
+      "vats"
+    ]
   },
   "Solar:illuminated": {
     "ability_dots": 30,
@@ -986,7 +1053,21 @@
         "free_rating": 1,
         "min_rating": 1
       }
-    }
+    },
+    "catalogue_backgrounds": [
+      "allies",
+      "artifact",
+      "contacts",
+      "familiar",
+      "followers",
+      "illumination",
+      "influence",
+      "manse",
+      "mentor",
+      "resources",
+      "sorcery",
+      "tiger warriors"
+    ]
   },
   "Mortal": {
     "attribute_pools": [

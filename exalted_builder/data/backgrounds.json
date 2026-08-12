@@ -222,8 +222,7 @@
       "Your character has received extensive training in the art of sorcery. Your character begins with three spells.",
       "Your character has an advanced understanding of the finer points of sorcery. Your character starts with four spells. Additionally, although your character cannot perform such spells, she has some knowledge of the fundamentals of the Celestial Circle of sorcery, enough to sometimes recognize Celestial spells when she sees them written down or performed.",
       "Your character's knowledge of Terrestrial sorcery is unmatched, and her furtive perusal of certain banned tomes has given her insights into the more powerful Circles. She begins with five spells."
-    ],
-    "exalt_type": "Dragon-Blooded"
+    ]
   },
   {
     "id": "background.spies",
@@ -371,5 +370,17 @@
       "Your sifu knows five supernatural martial-arts forms and three Sidereal forms.",
       "Your sifu knows seven supernatural martial-arts forms and four Sidereal forms."
     ]
+  },
+  {
+    "id": "background.illumination",
+    "name": "Illumination",
+    "exalt_type": "Solar",
+    "description": "Rank and prestige within the Cult of the Illuminated. An Illuminated Solar begins with Illumination • for free, in addition to her Background dots."
+  },
+  {
+    "id": "background.tiger-warriors",
+    "name": "Tiger Warriors",
+    "exalt_type": "Solar",
+    "description": "Fanatical soldiers willing to fight and die for the Illuminated Ones."
   }
 ]

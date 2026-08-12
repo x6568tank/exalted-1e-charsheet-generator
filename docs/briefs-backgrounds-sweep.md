@@ -14,8 +14,8 @@ splat may take which. They touch different files and can be done in either order
 
 # Part 1 — descriptions and dot ladders
 
-**Target file:** `exalted_builder/data/backgrounds.json` — 44 entries, **11 already
-done, 33 to go.**
+**Target file:** `exalted_builder/data/backgrounds.json` — 46 entries, **11 already
+done, 35 to go.**
 
 For each remaining Background, two things:
 
@@ -41,14 +41,18 @@ for the Sidereals and once for the Dragon-Kings or Dragon-Blooded, with differen
 printed rules. The Sidereal copies are done; **the other copies still need doing.**
 Match on `id`, never on `name`.
 
-## The 33 remaining
+## The 35 remaining
 
 `Abyssal Command`, `Ancestor Cult`, `Artifact`, `Backing`, `Breeding`,
 `Celestial Manse` (DK), `Class`, `Command`, `Connections` (DB), `Contacts`, `Cult`,
 `Familiar`, `Family`, `Grave Goods`, `Heart's Blood`, `Henchmen`, `Influence`,
 `Inheritance`, `Liege`, `Manse`, `Mentor`, `Necromancy`, `Patron`, `Renown`,
 `Reputation`, `Resources`, `Salary` (DK), `Savant` (DK), `Spies`, `Underworld Cult`,
-`Underworld Manse`, `Vats`, `Whispers`.
+`Underworld Manse`, `Vats`, `Whispers`, `Illumination`, `Tiger Warriors`.
+
+`Illumination` and `Tiger Warriors` are new stubs carrying only the one-line
+description from the Cult of the Illuminated chargen summary; their full text and
+ladders are in that book.
 
 ## Worked examples — match this shape exactly
 
@@ -125,98 +129,93 @@ that entry.** Never author a value out of a marked passage.
 
 # Part 2 — the per-splat catalogue lists
 
-**Target file:** `exalted_builder/data/chargen_budgets.json`, the
-`catalogue_backgrounds` field on each splat's row.
+**Mostly DONE.** `images/core backgrounds/` turned out to hold each splat's printed
+BACKGROUNDS block, and Claude transcribed all ten. The following rows are authored and
+must not be touched:
 
-Each book enumerates the Backgrounds its splat may take, and that list decides what
-the dropdown offers. Four rows are authored already and are your worked examples:
+`Solar`, `Solar:illuminated`, `Dragon-Blooded`, `Dragon-Blooded:lookshy`, `Abyssal`,
+`Lunar`, `Sidereal`, `Sidereal:ronin`, `Alchemical`, `Ghost`.
 
-```json
-"Solar":                  { "catalogue_backgrounds": ["allies","artifact","backing","contacts","familiar","followers","influence","manse","mentor","resources"] },
-"Dragon-Blooded":         { "catalogue_backgrounds": ["allies","artifact","backing","familiar","manse","mentor","resources","breeding","command","connections","henchmen","reputation","family"] },
-"Dragon-Blooded:lookshy": { "catalogue_backgrounds": ["allies","arsenal","artifact","backing","breeding","command","connections","familiar","manse","mentor","reputation","resources","retainers","sorcery","family"] },
-"Ghost":                  { "catalogue_backgrounds": ["ancestor cult","artifact","allies","backing","contacts","followers","grave goods","influence","mentor","resources","underworld cult"] }
-```
+## What is left
 
-Lowercased names, matching `name` in `backgrounds.json` exactly.
-
-## Where the list lives in a book
-
-Two shapes, both already seen:
-
-* **The chargen summary enumerates it.** Ghosts CH3 has a `### BACKGROUNDS` heading
-  listing eleven; The Outcaste CH1 has one listing fifteen. Use it directly.
-* **The chargen summary gives only a dot count** — "Choose Backgrounds (12 — none may
-  be higher than 3…)", which is what Solar core p.94 and E:DB p.151 both do. Then the
-  list is the **Traits chapter's Backgrounds section**, which runs as
-  `ALTERED BACKGROUNDS` followed by `NEW BACKGROUNDS`. The splat's list is: the core
-  ten, minus the altered section's bars, plus the new ones.
-
-⚠ **Read the ALTERED section carefully** — its bars are easy to miss and they are how
-a splat *loses* a core Background. Worked example, E:DB pp.156-157: "Dragon-Blooded
-characters do not use these Backgrounds [Contacts and Influence]. Instead, they use
-Connections", and "Dragon-Blooded cannot take the Followers Background." All three are
-absent from the Dragon-Blooded list above for exactly that reason.
-
-## Rows still needing a list
+Four splats have no image and no transcribed list. They fall back to the older
+per-Background `exalt_type` filter, which is safe but wrong in detail:
 
 | Row key | Source |
 |---|---|
-| `Abyssal`, `Abyssal:fugitive` | `images/Abyssals/` — Traits chapter |
-| `Lunar`, `Lunar:casteless` | `images/Lunars/` — Traits chapter |
-| `Alchemical` | `images/_extracted/Autochthonians.md` |
 | `Mortal`, `Mortal:ordinary` | `images/_extracted/Exalted Core.md`, p.103 |
 | `God-Blooded` | `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` |
 | `Dragon-Kings`, `Dragon-Kings:ancient` | `images/_extracted/Player's Guide.md` |
 | `Mountain-Folk:enlightened`, `Mountain-Folk:unenlightened` | Mountain Folk CH6 |
 
-**`Sidereal` is already decided** — author it verbatim as:
+Also open, and needing pages rather than guesses:
+
+* **`Abyssal:fugitive`** — the base Abyssal list includes `Liege` ("your relationship
+  with your Deathlord"), which a renegade plainly cannot hold, and the fugitive origin
+  uses the core Artifact Background rather than the Abyssal one. Its own list is not
+  transcribed.
+* **Alchemical exile characters** — the printed list marks `Followers` and `Resources`
+  "(Exile characters only)" and restricts `Manse` to stories set after the breaking of
+  the Seal of Eight Divinities. There is no exile origin row to hang that on, so the
+  base list currently carries all three unqualified.
+
+## Format
+
+Lowercased names, matching `name` in `backgrounds.json` exactly. Worked examples:
 
 ```json
-["acquaintances","allies","artifact","backing","celestial manse","connections","familiar","manse","resources","salary","savant","sifu"]
+"Ghost":     { "catalogue_backgrounds": ["ancestor cult","artifact","allies","backing","contacts","followers","grave goods","influence","mentor","resources","underworld cult"] },
+"Alchemical":{ "catalogue_backgrounds": ["allies","artifact","backing","class","contacts","familiar","followers","manse","resources","vats"] }
 ```
 
-(Sidereals p.105's ALTERED BACKGROUNDS bars Contacts, Influence, Followers and Mentor
-by name. Resources is ronin-only in practice but stays on the list.)
+## Where the list lives in a book
+
+Two shapes:
+
+* **The chargen summary enumerates it** under a `BACKGROUNDS` heading — every splat in
+  `images/core backgrounds/` does this. Use it directly.
+* **The summary gives only a dot count** ("Choose Backgrounds (12 — none may be higher
+  than 3…)"). Then the list is the **Traits chapter's Backgrounds section**, which runs
+  as `ALTERED BACKGROUNDS` then `NEW BACKGROUNDS`: the core ten, minus the altered
+  section's bars, plus the new ones.
+
+⚠ **Read the ALTERED section carefully** — its bars are how a splat *loses* a core
+Background, and they are easy to miss. E:DB pp.156-157: "Dragon-Blooded characters do
+not use these Backgrounds [Contacts and Influence]" and "Dragon-Blooded cannot take the
+Followers Background."
 
 ## Rules
 
-1. **Only author a row you have a page for.** A row with no list falls back to the
-   older per-Background filter and behaves exactly as it does today. Leaving a splat
-   out is safe; guessing is not.
+1. **Only author a row you have a page for.** A row with no list falls back and behaves
+   as it does today. Leaving a splat out is safe; guessing is not.
 2. **Do not remove or rename any other key** in `chargen_budgets.json`.
 3. **Never confuse `catalogue_backgrounds` with `allowed_backgrounds`.** The second is
-   a HARD validation list that makes any unlisted Background an **error**, and only
-   two rows should ever carry it (`Sidereal:ronin`, `Solar:illuminated`). Writing your
-   list into that field makes every free-text Background illegal for that splat.
-4. Return a blocked list for any splat whose pages you could not find or read.
+   a HARD list that makes any unlisted Background an **error**, and only two rows carry
+   it (`Sidereal:ronin`, `Solar:illuminated`). Writing your list there makes every
+   free-text Background illegal for that splat. Where a row has both, the offered list
+   must be a SUBSET of the allowed one — a test enforces it.
+4. **Do not orphan a Background.** A test fails if any entry ends up with no
+   `exalt_type`, no `universal` flag and no list naming it: it would be offered to
+   nobody. If your reading leaves one in that state, report it.
+5. `universal` entries (currently just Cult) are offered to every splat automatically.
+   A splat book MAY also list one — the Lunar summary lists Cult — and that is fine;
+   the two are independent. Include it in the list if the page prints it.
+6. Return a blocked list for any splat whose pages you could not find or read.
 
-## ⚠ Universal Backgrounds — do not put these in any splat list
+## Validation
 
-Some Backgrounds belong to no splat in particular. **Cult** is the case: it is printed
-in Games of Divinity, which is not a splat book, so no character-creation summary
-anywhere names it. These carry `"universal": true` in `backgrounds.json` and are
-offered to every splat automatically.
-
-**If a splat's book turns out to enumerate `Cult` — or anything else already marked
-`universal` — do not add it to that splat's `catalogue_backgrounds`. Report it in your
-blocked list instead.** Adding it would make that Background splat-specific and strip
-it from every other splat. A test checks this and will go red.
-
-The same test also fails if a Background ends up belonging to **nobody**: no
-`exalt_type` tag, `universal` not set, and no splat list naming it. If your reading
-leaves an entry in that state, say so rather than guessing which splat owns it.
+```
+.venv/bin/python -m pytest tests/test_backgrounds_splat.py -q
+```
 
 ---
 
 # Handing the work back
 
-Return the two edited files, plus a **blocked list**: every entry or row you could not
-complete, and why — "no ladder printed", "source page not on disk", "passage garbled",
-"book lists a universal Background". A short honest blocked list is the most useful
-part of the output. **Do not fill a gap to make the list shorter.**
-
-Both files must load and both suites must pass:
+Return the edited file(s), plus a **blocked list**: every entry or row you could not
+complete, and why — "no ladder printed", "source page not on disk", "passage garbled".
+A short honest blocked list is the most useful part of the output. **Do not fill a gap
+to make the list shorter.**
 
 ```
 .venv/bin/python -m pytest tests/test_backgrounds_splat.py tests/test_content.py -q
