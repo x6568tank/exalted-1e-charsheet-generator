@@ -507,12 +507,17 @@ def test_lookshys_three_new_backgrounds_do_not_leak_to_every_splat(rs):
     list silently reopens them the next time a Dragon-Blooded origin is added, which
     is how this happened in the first place."""
     lookshy = {b.name for b in rs.backgrounds_for(DB, "lookshy")}
-    for name in ("Arsenal", "Retainers", "Sorcery"):
-        assert name in lookshy, f"{name} must be offered to Lookshy"
-        for splat, origin in ((DB, ""), (DB, "pirate"), ("Solar", ""),
-                              ("Sidereal", ""), ("Abyssal", "")):
-            offered = {b.name for b in rs.backgrounds_for(splat, origin)}
-            assert name not in offered, f"{name} leaked to {splat}/{origin or '-'}"
+    assert "Arsenal" in lookshy
+    # Arsenal is Lookshy's alone. Retainers and Sorcery are NOT — the core-backgrounds
+    # images settled both: the Dragon-Blooded chargen summary lists Retainers, and the
+    # Cult of the Illuminated summary lists Sorcery, so neither is Lookshy-exclusive.
+    # Only Arsenal appears in exactly one book's list.
+    for splat, origin in ((DB, ""), (DB, "pirate"), ("Solar", ""),
+                          ("Sidereal", ""), ("Abyssal", "")):
+        offered = {b.name for b in rs.backgrounds_for(splat, origin)}
+        assert "Arsenal" not in offered, f"Arsenal leaked to {splat}/{origin or '-'}"
+    assert "Retainers" in {b.name for b in rs.backgrounds_for(DB)}
+    assert "Sorcery" in {b.name for b in rs.backgrounds_for("Solar", "illuminated")}
 
 
 def test_the_storyteller_can_open_the_whole_catalogue(rs):

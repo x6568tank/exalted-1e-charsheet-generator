@@ -248,8 +248,9 @@ def test_each_splats_catalogue_is_its_own_books_list(rs):
         "Allies", "Artifact", "Backing", "Contacts", "Familiar", "Followers",
         "Influence", "Manse", "Mentor", "Resources"}
     lookshy = {b.name for b in rs.backgrounds_for("Dragon-Blooded", "lookshy")}
-    assert lookshy - set(_names(rs, "Dragon-Blooded")) == {
-        "Arsenal", "Retainers", "Sorcery"}
+    # Retainers is NOT in this delta: the Dragon-Blooded chargen summary lists it too,
+    # so only the Seventh Legion's armoury and its sorcery training are Lookshy's own.
+    assert lookshy - set(_names(rs, "Dragon-Blooded")) == {"Arsenal", "Sorcery"}
 
 
 def test_the_catalogue_list_never_makes_a_typed_background_illegal(rs):
@@ -270,10 +271,13 @@ def test_an_untranscribed_splat_degrades_to_the_old_filter(rs):
     """A splat whose book has not been read yet must keep the behaviour it had — the
     per-Background `exalt_type` tag — rather than showing nothing. That is what makes
     transcribing the books incremental instead of all-or-nothing."""
-    assert rs.catalogue_backgrounds_for("Lunar") == set()
-    lunar = _names(rs, "Lunar")
-    assert "Heart's Blood" in lunar and "Renown" in lunar      # its own tagged pair
-    assert "Whispers" not in lunar                             # another splat's
+    # Dragon-Kings, whose chargen summary has not been transcribed. (Lunar used to
+    # stand here and no longer can — its list came in with the core-backgrounds
+    # images.) Update this to another fallback splat when the DK book is read.
+    assert rs.catalogue_backgrounds_for("Dragon-Kings") == set()
+    dk = _names(rs, "Dragon-Kings")
+    assert "Celestial Manse" in dk and "Salary" in dk          # its own tagged trio
+    assert "Whispers" not in dk                                # another splat's
 
 
 # --------------------------------------------------------------------------- #
@@ -303,28 +307,56 @@ def test_universal_does_not_mean_unbannable(rs):
             "Mountain-Folk", origin, all_available=True)}
 
 
-def test_the_universal_flag_matches_the_data_in_both_directions(rs):
-    """The flag is explicit rather than derived, so this is what stops it rotting.
+def test_no_background_ends_up_belonging_to_nobody(rs):
+    """The guard that keeps the sweep from creating orphans. A Background with no
+    `exalt_type`, no `universal` flag and no splat list naming it would be offered to
+    NOBODY once every book is transcribed — present in the catalogue, reachable from
+    nowhere. Adding one must therefore force a decision about who owns it.
 
-    Derived ("no splat tag and no list names it") was rejected for a nasty non-local
-    failure: the day some splat's book turned out to list Cult, Cult would silently
-    disappear from every OTHER splat. Explicit plus this check makes that a red test
-    instead — and the second half is the one that earns its keep, because it means a
-    newly added Background cannot quietly default to belonging to nobody."""
+    NOTE this deliberately checks one direction only. The obvious mirror — "a
+    universal Background appears in no splat's list" — is FALSE against the books:
+    Cult is marked universal on the human's ruling (2026-08-11) AND is named outright
+    in the Lunar chargen summary. Being enumerated by one book does not stop a
+    Background belonging to no book in particular, so `universal` and "listed
+    somewhere" are independent, not exclusive."""
     listed = set()
     for row in rs.budgets.values():
         listed |= {n.strip().lower() for n in row.catalogue_backgrounds}
 
-    for bg in rs.background_catalog.values():
-        owned = bool(bg.exalt_type) or bg.name.strip().lower() in listed
-        if bg.universal:
-            assert not owned, (
-                f"{bg.name} is marked universal but belongs to a splat "
-                f"(tag={bg.exalt_type!r}, named by a catalogue list={not bg.exalt_type}). "
-                f"Clear `universal` or take it off that splat's list.")
-        else:
-            assert owned, (
-                f"{bg.name} belongs to no splat — it carries no exalt_type and no "
-                f"splat's catalogue_backgrounds names it — so nothing would ever "
-                f"offer it once every book is transcribed. Mark it `universal: true`, "
-                f"tag it, or add it to the list of the splat whose book prints it.")
+    orphans = [bg.name for bg in rs.background_catalog.values()
+               if not bg.universal and not bg.exalt_type
+               and bg.name.strip().lower() not in listed]
+    assert not orphans, (
+        f"{orphans} belong to no splat: no exalt_type, not universal, and no splat's "
+        f"catalogue_backgrounds names them. Mark them universal, tag them, or add "
+        f"them to the list of the splat whose book prints them.")
+
+
+def test_every_hard_allowed_background_exists_in_the_catalogue(rs):
+    """`allowed_backgrounds` is the HARD list — a name outside it is an error — so a
+    name INSIDE it that no catalogue entry provides is legal to hold and impossible to
+    find in any dropdown. Illumination and Tiger Warriors sat in that state: named by
+    `Solar:illuminated` since the Cult of the Illuminated shipped, backed by no entry."""
+    names = {bg.name.strip().lower() for bg in rs.background_catalog.values()}
+    for key, row in rs.budgets.items():
+        for allowed in row.allowed_backgrounds:
+            assert allowed.strip().lower() in names, (
+                f"{key} allows {allowed!r}, which no Background in the catalogue "
+                f"provides — it can be held but never picked.")
+
+
+def test_the_dropdown_never_offers_a_background_the_hard_list_forbids(rs):
+    """Two lists, one sheet: `catalogue_backgrounds` decides what is OFFERED and
+    `allowed_backgrounds` decides what is LEGAL, so a row carrying both must not let
+    them disagree. The Sidereal ronin did: its catalogue inherited the twelve of the
+    base Sidereal row while p.100 limits it to eight, so the dropdown offered
+    Celestial Manse, Salary, Savant and Sifu and each errored the moment it was
+    picked."""
+    for key, row in rs.budgets.items():
+        if not (row.allowed_backgrounds and row.catalogue_backgrounds):
+            continue
+        allowed = {n.strip().lower() for n in row.allowed_backgrounds}
+        offered = {n.strip().lower() for n in row.catalogue_backgrounds}
+        assert offered <= allowed, (
+            f"{key} offers {sorted(offered - allowed)}, which its allowed_backgrounds "
+            f"forbids — the player can pick a name that immediately errors.")
