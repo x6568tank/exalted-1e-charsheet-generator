@@ -175,6 +175,42 @@ def _load_keyed_table(path: Path, model: Type[M], problems: list[str]) -> dict[s
     return tables
 
 
+def _resolve_borrowed_ladders(backgrounds: dict, problems: list[str]) -> None:
+    """Copy each `ladder_from` pointer's rungs onto the borrowing Background, in place.
+
+    Resolved ONCE here rather than at the read sites, because the read sites are handed
+    a SPLAT-FILTERED catalogue: a Mountain Folk list does not contain the Solar entry it
+    borrows from, so a lookup there would find nothing and silently render no rung — the
+    house bug, with the mechanism present and pointed at the wrong collection. After this
+    runs, `ladder` is an ordinary transcribed ladder to every reader.
+
+    Chains are not followed: a pointer must aim at an entry that carries its own printed
+    ladder, so the text on screen is always one hop from the book that printed it.
+
+    Rewrites the dict's VALUES rather than the entries: rules models are frozen, and the
+    replacement copy is what every later reader is handed."""
+    for bg in list(backgrounds.values()):
+        if not bg.ladder_from:
+            continue
+        if bg.ladder:
+            problems.append(
+                f"background {bg.id}: has both a ladder and ladder_from={bg.ladder_from}")
+            continue
+        src = backgrounds.get(bg.ladder_from)
+        if src is None:
+            problems.append(
+                f"background {bg.id}: ladder_from points at unknown id {bg.ladder_from}")
+        elif src.ladder_from:
+            problems.append(
+                f"background {bg.id}: ladder_from={bg.ladder_from} itself borrows "
+                f"its ladder; point at the entry that carries the printed one")
+        elif not src.ladder:
+            problems.append(
+                f"background {bg.id}: ladder_from={bg.ladder_from} has no ladder")
+        else:
+            backgrounds[bg.id] = bg.model_copy(update={"ladder": src.ladder})
+
+
 def _index(items: list[M], key: str, kind: str, problems: list[str]) -> dict:
     out: dict = {}
     for it in items:
@@ -534,6 +570,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
                        "id", "artifact", problems)
     backgrounds = _index(_load_array(data_dir / "backgrounds.json", BackgroundType, problems),
                          "id", "background", problems)
+    _resolve_borrowed_ladders(backgrounds, problems)
     natures = _index(_load_array(data_dir / "natures.json", NatureType, problems),
                      "id", "nature", problems)
     materials = _index(_load_array(data_dir / "materials.json", MagicalMaterial, problems),

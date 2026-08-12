@@ -1199,6 +1199,20 @@ class BackgroundType(BaseModel):
     # it did is exactly the writer-with-no-reader bug this project keeps hitting.
     ladder: tuple[str, ...] = ()
 
+    # An exact Background id to BORROW the ladder from, for a splat whose own book
+    # prints the Background as prose with no dot-by-dot breakdown (the ten Mountain
+    # Folk copies — human's ruling 2026-08-12: "it's prose only, but you should
+    # probably make them point to the Solar backgrounds, just makes life easier").
+    # The borrowed rungs are copied onto `ladder` ONCE, by the loader, so every reader
+    # downstream sees an ordinary ladder and nothing has to know this field exists.
+    #
+    # ⚠ Deliberately a per-entry POINTER and never a blanket "fall back to the untagged
+    # entry of the same name": Alchemical Artifact and Family have no ladder ON PURPOSE
+    # (their books print none / print a random table instead), and a same-name fallback
+    # would silently hand Alchemical Artifact the Solar Artifact ladder — a splat whose
+    # Artifact Background is heavily reworked. An opt-in cannot do that by accident.
+    ladder_from: str = ""
+
     @field_validator("ladder")
     @classmethod
     def _ladder_is_empty_or_complete(cls, v: tuple[str, ...]) -> tuple[str, ...]:
@@ -2617,6 +2631,18 @@ class RuleSet(BaseModel):
                 if key in bg.excluded_origins:
                     continue
             out.append(bg)
+        # A splat's OWN copy of a name displaces the untagged one. Both survive the
+        # filters above whenever the tag is doing the whole job — a splat with no
+        # transcribed summary, or one whose list is keyed by origin and the origin is
+        # blank (a save written before the axis existed, or a character built without
+        # one). The Mountain Folk shipped exactly that: ten of their own Backgrounds
+        # plus the ten core entries they replace, every name in the dropdown twice.
+        # Not applied under `all_available`: the Storyteller asked for every book's
+        # version, and there the five Artifacts are the point.
+        if not all_available:
+            owned = {bg.name.strip().lower() for bg in out if bg.exalt_type}
+            out = [bg for bg in out
+                   if bg.exalt_type or bg.name.strip().lower() not in owned]
         # A Background this origin is BARRED from entirely is not even offered —
         # the Mountain Folk may not take Cult (CH6 p.234: "This Background is
         # explicitly prohibited"). Filtering here (rather than relying on the

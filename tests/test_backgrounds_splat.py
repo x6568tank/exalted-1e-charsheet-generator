@@ -544,3 +544,110 @@ async def test_the_rung_follows_a_dot_track_click_at_chargen(user) -> None:
     await user.should_see("Five allies")
     texts = _bg_rung_texts(user)
     assert not any("Two allies" in t for t in texts), texts
+
+
+# --------------------------------------------------------------------------- #
+# Borrowed ladders (BackgroundType.ladder_from)
+# --------------------------------------------------------------------------- #
+# The Mountain Folk book prints its ten shared Backgrounds as PROSE, with no dot-by-dot
+# breakdown (human, rules authority, 2026-08-12), so those rows showed a description and
+# no rung where a Solar showed both. Their entries now point at the core entry's ladder.
+# The ruling is "point at the Solar ones"; it is NOT a same-name fallback — see the
+# Alchemical Artifact test below for why that distinction is load-bearing.
+
+def test_the_mountain_folk_copies_show_a_rung(rs):
+    """The whole point: a Mountain Folk row must print a rung for its rating, borrowed
+    from the entry that carries the printed ladder."""
+    from exalted_builder.ui import view as viewmod
+    cat = rs.backgrounds_for("Mountain-Folk")
+    for name in ("Allies", "Backing", "Contacts", "Familiar", "Followers",
+                 "Influence", "Manse", "Mentor", "Resources", "Artifact"):
+        assert viewmod.background_rung(cat, name, 2), f"{name} shows no rung"
+
+
+def test_a_borrowed_ladder_keeps_its_own_printed_description(rs):
+    """Borrowing the RUNGS must not borrow the prose: the Mountain Folk description is
+    their own book's and is the reason these entries exist as separate rows at all."""
+    mf = next(b for b in rs.backgrounds_for("Mountain-Folk", "enlightened")
+              if b.name == "Allies")
+    core = rs.background_catalog["background.allies"]
+    assert "Jadeborn" in mf.description or "own kind" in mf.description
+    assert mf.description != core.description
+    assert mf.ladder == core.ladder
+
+
+def test_the_deliberate_no_ladder_entries_stay_empty(rs):
+    """Alchemical Artifact and Family have no ladder ON PURPOSE — the Alchemical book
+    prints none and E:DB p.159 prints a random table instead. A same-name FALLBACK
+    (rather than the per-entry pointer that shipped) would hand Alchemical Artifact the
+    core Artifact ladder, which is a different Background wearing the same name."""
+    for bid in ("background.artifact-alchemical", "background.family"):
+        assert not rs.background_catalog[bid].ladder, bid
+
+
+def test_a_broken_ladder_pointer_is_a_load_problem():
+    """The pointer is resolved once at load, so a typo must be LOUD there rather than
+    silently rendering no rung. All four ways to get it wrong are reported."""
+    from exalted_builder.models.rules import BackgroundType
+    from exalted_builder.rules_db import _resolve_borrowed_ladders
+    full = tuple("abcdef")
+    good = BackgroundType(id="b.good", name="Good", ladder=full)
+    cases = {
+        "b.dangling": BackgroundType(id="b.dangling", name="D", ladder_from="b.nope"),
+        "b.unladdered": BackgroundType(id="b.unladdered", name="U", ladder_from="b.bare"),
+        "b.chained": BackgroundType(id="b.chained", name="C", ladder_from="b.dangling"),
+        "b.both": BackgroundType(id="b.both", name="B", ladder=full,
+                                 ladder_from="b.good"),
+    }
+    table = {"b.good": good, "b.bare": BackgroundType(id="b.bare", name="Bare"), **cases}
+    problems: list[str] = []
+    _resolve_borrowed_ladders(table, problems)
+    for bid in cases:
+        assert any(bid in p for p in problems), f"{bid} resolved silently: {problems}"
+    # …and the healthy pointer still resolves alongside the broken ones.
+    table = {"b.good": good,
+             "b.ok": BackgroundType(id="b.ok", name="OK", ladder_from="b.good")}
+    problems = []
+    _resolve_borrowed_ladders(table, problems)
+    assert table["b.ok"].ladder == full and not problems
+
+
+def test_the_shipped_data_resolves_every_pointer_cleanly():
+    """The loader reports into `problems`; nothing enforced that the shipped file is
+    clean. Re-reads the file rather than the loaded ruleset, because resolution has
+    already run on the latter — asking a resolved table again would report every
+    borrower as carrying "both a ladder and ladder_from"."""
+    import json
+    from pathlib import Path
+    import exalted_builder
+    from exalted_builder import rules_db
+    from exalted_builder.models.rules import BackgroundType
+    raw = json.loads(
+        (Path(exalted_builder.__file__).parent / "data" / "backgrounds.json").read_text())
+    table = {b["id"]: BackgroundType(**b) for b in raw}
+    problems: list[str] = []
+    rules_db._resolve_borrowed_ladders(table, problems)
+    assert not problems, problems
+    assert any(b.ladder_from for b in table.values()), \
+        "no entry borrows a ladder; this test would pass vacuously"
+
+
+def test_a_splats_own_copy_displaces_the_untagged_one(rs):
+    """The Mountain Folk shipped with their ten Backgrounds AND the ten core entries
+    they replace, so every name appeared in the dropdown twice — visible only with a
+    blank origin (their catalogue list is keyed by origin), which is what an older save
+    or a programmatically built character has. No splat may offer a name twice."""
+    from collections import Counter
+    for splat in ("Solar", "Sidereal", "Abyssal", "Dragon-Blooded", "Lunar",
+                  "Alchemical", "Mortal", "Ghost", "God-Blooded", "Dragon-Kings",
+                  "Mountain-Folk"):
+        for origin in ("", "enlightened"):
+            names = Counter(b.name for b in rs.backgrounds_for(splat, origin))
+            assert not [n for n, c in names.items() if c > 1], (splat, origin, names)
+
+
+def test_the_storyteller_override_still_shows_every_books_version(rs):
+    """The displacement must NOT reach `all_available`: there the ST asked for every
+    book's version, and the five differently-reworked Artifacts are the point."""
+    rows = rs.backgrounds_for("Solar", all_available=True)
+    assert len([b for b in rows if b.name == "Artifact"]) == 5

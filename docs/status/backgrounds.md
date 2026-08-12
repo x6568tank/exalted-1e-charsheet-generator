@@ -1,6 +1,6 @@
 # Backgrounds — the overhaul (2026-08-11 → 2026-08-12)
 
-**DONE, browser-verified 2026-08-12.** Suite **2,127 passing**.
+**DONE, browser-verified 2026-08-12.** Suite **2,134 passing**.
 
 Came out of a friend's play-test, which found the Background surface doing three
 things wrong at once: offering every splat every other splat's Backgrounds, saying the
@@ -82,17 +82,42 @@ in both the chargen readout and the picker header.
   Background must appear in no splat's list, and a Background with no splat tag that no
   list names must be marked universal — tested both ways, so the invariant cannot rot.
 
-## Open — for the human
-- **The ten Mountain Folk Background copies carry no ladder.** They arrived with their
-  own printed descriptions (they used to read the Solar entries), but no rungs were
-  transcribed, so a Mountain Folk row shows a description and no rung where a Solar shows
-  both. **Question, not a decision: does CH6 print dot ladders for these, or prose only?**
-  If it prints them this is a transcription job; if it does not, it belongs in Deliberate
-  gaps above. Author nothing until the pages say.
-- **Tiger Warriors ladder** wants a one-read sign-off: its rungs are interrupted by a page
-  break and a tangent table, which displaced every dot marker one line early. The
-  fragments rejoin cleanly so the reassembly is mechanical, but it is the human's call
-  (the `garbled-transcription-defer` rule).
+## Borrowed ladders, and the duplicate they exposed (2026-08-12)
+**Human's ruling:** CH6 prints the ten shared Mountain Folk Backgrounds as PROSE, with no
+dot ladder — "it's prose only, but you should probably make them point to the Solar
+backgrounds, just makes life easier". So `BackgroundType.ladder_from` is an exact
+Background id whose rungs are copied onto the borrower **once, by the loader**
+(`rules_db._resolve_borrowed_ladders`), after which every reader sees an ordinary ladder.
+
+Two design points that are the whole reason it is shaped this way:
+- **Resolved at LOAD, not at the read sites.** The read sites are handed a
+  SPLAT-FILTERED catalogue — a Mountain Folk list does not contain the Solar entry it
+  borrows from — so a lookup there would find nothing and silently render no rung. The
+  house bug, with the mechanism present and pointed at the wrong collection.
+- **A per-entry POINTER, never a same-name fallback.** Alchemical Artifact and Family
+  have no ladder on purpose; a fallback would hand Alchemical Artifact the core Artifact
+  ladder, which is a different Background wearing the same name. Four ways to get a
+  pointer wrong (dangling, chained, target unladdered, both fields set) are load problems.
+
+**The duplicate it exposed.** Writing the test that reads the Mountain Folk Allies entry
+turned up `backgrounds_for("Mountain-Folk")` returning **21 rows with all ten names
+twice** — their own copies AND the core entries those replace. It hides whenever an
+origin is passed (their catalogue list is keyed `Mountain-Folk:enlightened`) and the
+editor defaults the origin, so the browser never showed it; a save written before the
+axis existed, or any character built without an origin, gets the doubled list. Fixed
+generally rather than in the data: **a splat's own tagged copy displaces the untagged one
+of the same name**, in `backgrounds_for`, for every splat. Deliberately NOT applied under
+`all_available` — there the ST asked for every book's version and the five Artifacts are
+the point.
+
+⚠ The lesson is the handoff's own trap, arriving from the other side: it was written up
+as "a bare NAME offers the row twice", so the fix went into the LIST format and the
+**fallback path was never checked**. A trap recorded as a data-authoring rule can still
+be live as a code path.
+
+**Tiger Warriors: signed off** (human, 2026-08-12). The reassembly across the page break
+was already in the data and reads monotonic — 5/15/25/100/250 warriors, 1/2/3/4/5 heroic
+mortals.
 
 ## Still open, and needs no pages
 **Engine enforcement of the Background numeric rules** — the last item from the original

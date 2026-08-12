@@ -721,60 +721,70 @@
     "id": "background.allies-mountainfolk",
     "name": "Allies",
     "exalt_type": "Mountain-Folk",
-    "description": "Most of the allies available to Mountain Folk characters will be others of their own kind. Less commonly, the Enlightened associate with earth elementals or gods of the subterranean depths. Those who dwell near the surface of the Imperial Mountain may even have allies among the Dragon Blooded Host."
+    "description": "Most of the allies available to Mountain Folk characters will be others of their own kind. Less commonly, the Enlightened associate with earth elementals or gods of the subterranean depths. Those who dwell near the surface of the Imperial Mountain may even have allies among the Dragon Blooded Host.",
+    "ladder_from": "background.allies"
   },
   {
     "id": "background.artifact-mountainfolk",
     "name": "Artifact",
     "exalt_type": "Mountain-Folk",
-    "description": "As the premiere craftsmen of Creation, Mountain Folk receive two dots worth of artifacts for every dot invested in this Background. They pay only one Background or bonus point to purchase each dot, even above a rating of 3. The greatest Enlightened heroes of the Mountain Folk can possess this Background above a rating of 5 to reflect a truly amazing hoard, with each dot beyond 5 costing one bonus point and granting an additional dot of total artifacts. Even among the Jadeborn, such extreme caches are rare and precious, so players should have an excellent story explanation or select other appropriate Backgrounds to justify their extraordinary magical wealth. Most of the artifacts used by the Mountain Folk are constructed of jade, although they occasionally use orichalcum and moonsilver. Some few devices use starmetal, but the subterranean Jadeborn have very little access to meteoric iron. Soulsteel is all but unknown and considered extremely dangerous, though not actually illegal."
+    "description": "As the premiere craftsmen of Creation, Mountain Folk receive two dots worth of artifacts for every dot invested in this Background. They pay only one Background or bonus point to purchase each dot, even above a rating of 3. The greatest Enlightened heroes of the Mountain Folk can possess this Background above a rating of 5 to reflect a truly amazing hoard, with each dot beyond 5 costing one bonus point and granting an additional dot of total artifacts. Even among the Jadeborn, such extreme caches are rare and precious, so players should have an excellent story explanation or select other appropriate Backgrounds to justify their extraordinary magical wealth. Most of the artifacts used by the Mountain Folk are constructed of jade, although they occasionally use orichalcum and moonsilver. Some few devices use starmetal, but the subterranean Jadeborn have very little access to meteoric iron. Soulsteel is all but unknown and considered extremely dangerous, though not actually illegal.",
+    "ladder_from": "background.artifact"
   },
   {
     "id": "background.backing-mountainfolk",
     "name": "Backing",
     "exalt_type": "Mountain-Folk",
-    "description": "Mountain Folk do not generally remain aboveground long enough to gain membership in many organizations, let alone to advance in rank. Within Mountain Folk society, Backing usually represents rank in the military (• for shard leader, •• for stone leader, ••• for hill commander, •••• for mountain lord and ••••• for range lord. Rank above ••• is generally reserved for Enlightened veterans with centuries of experience and appropriately high levels of Influence and should only be earned in the course of play unless the game assumes extremely powerful starting characters with hundreds of experience points. The Unenlightened can only ever have a rank as high as ••. Military Backing affords similar benefits to the Command Background available to the Dragon-Blooded and Abyssal Exalted. Each officer commands an appropriate chain of subordinate officers, culminating in shard leaders who actually lead the rank and file. All forces belong to the Conclave, not to the character, and officers abusing their authority face heavy and immediate punishment. As an alternative to military rank, Backing can also represent leadership status within a religious order such as the Cult of the Great Maker or another sub-society of the Jadeborn. The Unenlightened cannot have this Background above 3 for private organizations."
+    "description": "Mountain Folk do not generally remain aboveground long enough to gain membership in many organizations, let alone to advance in rank. Within Mountain Folk society, Backing usually represents rank in the military (• for shard leader, •• for stone leader, ••• for hill commander, •••• for mountain lord and ••••• for range lord. Rank above ••• is generally reserved for Enlightened veterans with centuries of experience and appropriately high levels of Influence and should only be earned in the course of play unless the game assumes extremely powerful starting characters with hundreds of experience points. The Unenlightened can only ever have a rank as high as ••. Military Backing affords similar benefits to the Command Background available to the Dragon-Blooded and Abyssal Exalted. Each officer commands an appropriate chain of subordinate officers, culminating in shard leaders who actually lead the rank and file. All forces belong to the Conclave, not to the character, and officers abusing their authority face heavy and immediate punishment. As an alternative to military rank, Backing can also represent leadership status within a religious order such as the Cult of the Great Maker or another sub-society of the Jadeborn. The Unenlightened cannot have this Background above 3 for private organizations.",
+    "ladder_from": "background.backing"
   },
   {
     "id": "background.contacts-mountainfolk",
     "name": "Contacts",
     "exalt_type": "Mountain-Folk",
-    "description": "Unlike many other social Backgrounds, a Jadeborn’s contacts can easily include mortals, at least for those Mountain Folk who dwell near the surface of the Imperial Mountain. Some even draw contacts from spirits and Exalted, though most build networks of informants among their own kind."
+    "description": "Unlike many other social Backgrounds, a Jadeborn’s contacts can easily include mortals, at least for those Mountain Folk who dwell near the surface of the Imperial Mountain. Some even draw contacts from spirits and Exalted, though most build networks of informants among their own kind.",
+    "ladder_from": "background.contacts"
   },
   {
     "id": "background.familiar-mountainfolk",
     "name": "Familiar",
     "exalt_type": "Mountain-Folk",
-    "description": "While quite rare, some Mountain Folk establish a magical rapport with creatures of the sunless deep. The Unenlightened have little time for pets to build such bonds, so these animals must generally be able to assist them in their duties in some way. The Enlightened can even establish ties with lesser earth elementals such as jokun and mercury ants (see Games of Divinity, pp. 7677). Elementals with Essence 2 count as four-dot familiars; those with Essence 3 cost five dots. Such beings show more autonomy than animals and never provide Essence unless they have a means and inclination to donate from their own pool, but they may share their senses if they so will it."
+    "description": "While quite rare, some Mountain Folk establish a magical rapport with creatures of the sunless deep. The Unenlightened have little time for pets to build such bonds, so these animals must generally be able to assist them in their duties in some way. The Enlightened can even establish ties with lesser earth elementals such as jokun and mercury ants (see Games of Divinity, pp. 7677). Elementals with Essence 2 count as four-dot familiars; those with Essence 3 cost five dots. Such beings show more autonomy than animals and never provide Essence unless they have a means and inclination to donate from their own pool, but they may share their senses if they so will it.",
+    "ladder_from": "background.familiar"
   },
   {
     "id": "background.followers-mountainfolk",
     "name": "Followers",
     "exalt_type": "Mountain-Folk",
-    "description": "For Enlightened Workers and Warrior Caste Mountain Folk, Followers represent Unenlightened subordinates of their own caste. Artisans can draw their retainers from any of the Unenlightened, typically a retinue of bodyguards or personal laborer-aides. The Unenlightened cannot possess this Background."
+    "description": "For Enlightened Workers and Warrior Caste Mountain Folk, Followers represent Unenlightened subordinates of their own caste. Artisans can draw their retainers from any of the Unenlightened, typically a retinue of bodyguards or personal laborer-aides. The Unenlightened cannot possess this Background.",
+    "ladder_from": "background.followers"
   },
   {
     "id": "background.influence-mountainfolk",
     "name": "Influence",
     "exalt_type": "Mountain-Folk",
-    "description": "As applied to the surface world, this Background is extremely dangerous and runs a strong risk of triggering the Great Geas. Most Mountain Folk only have influence pertaining to the Conclave. In either case, Unenlightened characters cannot have more than a single dot in this Background."
+    "description": "As applied to the surface world, this Background is extremely dangerous and runs a strong risk of triggering the Great Geas. Most Mountain Folk only have influence pertaining to the Conclave. In either case, Unenlightened characters cannot have more than a single dot in this Background.",
+    "ladder_from": "background.influence"
   },
   {
     "id": "background.manse-mountainfolk",
     "name": "Manse",
     "exalt_type": "Mountain-Folk",
-    "description": "The Earth holds many places of power hidden too deep for those on Creation to tap. The cities and warrens of the Mountain Folk are invariably situated on such geomantic wellsprings and built around the core of a central Manse. Unsurprisingly, most of the Demesnes and Manses owned by the Jadeborn have an Earth Aspect, although other elements find expression in volcanic vents, flooded caverns and passages walled in deep-burrowing roots. The Mountain Folk control few Manses of Air, fewer still of Celestial Aspect and none tainted by Abyssal energies. Each dot in this Background provides two dots worth of Manses or three dots of Demesnes to which the character is attuned. These dots may be arranged however desired. Unenlightened characters are not assumed to carry the Hearthstones of any Manses to which they are attuned, unless these stones are temporarily on loan for a specific task. However, any task that requires a Hearthstone will be generally fall to one of the Enlightened, making the issue a moot point except in the most extraordinary circumstances."
+    "description": "The Earth holds many places of power hidden too deep for those on Creation to tap. The cities and warrens of the Mountain Folk are invariably situated on such geomantic wellsprings and built around the core of a central Manse. Unsurprisingly, most of the Demesnes and Manses owned by the Jadeborn have an Earth Aspect, although other elements find expression in volcanic vents, flooded caverns and passages walled in deep-burrowing roots. The Mountain Folk control few Manses of Air, fewer still of Celestial Aspect and none tainted by Abyssal energies. Each dot in this Background provides two dots worth of Manses or three dots of Demesnes to which the character is attuned. These dots may be arranged however desired. Unenlightened characters are not assumed to carry the Hearthstones of any Manses to which they are attuned, unless these stones are temporarily on loan for a specific task. However, any task that requires a Hearthstone will be generally fall to one of the Enlightened, making the issue a moot point except in the most extraordinary circumstances.",
+    "ladder_from": "background.manse"
   },
   {
     "id": "background.mentor-mountainfolk",
     "name": "Mentor",
     "exalt_type": "Mountain-Folk",
-    "description": "In most cases, a mentor represents a senior member of a character’s own caste. In far more unusual instances, Mountain Folk may receive tutelage from spirits or even Exalted. The Enlightened undercastes usually draw their Mentors from Artisans. The Unenlightened may not have more than three dots of this Background."
+    "description": "In most cases, a mentor represents a senior member of a character’s own caste. In far more unusual instances, Mountain Folk may receive tutelage from spirits or even Exalted. The Enlightened undercastes usually draw their Mentors from Artisans. The Unenlightened may not have more than three dots of this Background.",
+    "ladder_from": "background.mentor"
   },
   {
     "id": "background.resources-mountainfolk",
     "name": "Resources",
     "exalt_type": "Mountain-Folk",
-    "description": "The earth bears many treasures coveted in the world, especially precious ores and gleaming gems. As a result, Mountain Folk characters have an effective Resources rating equal to the number of dots invested in this Background + 2, but cannot have more than three actual dots in the Background. Characters lacking this Background may still live comfortably with an standard of living equivalent to Resources •• for the Enlightened and Resources • for the Unenlightened. Only those pathetic wretches and criminals exiled from Mountain Folk society face true poverty. Unenlightened characters rarely have any actual rating in this Background unless their hoard represents a reward for extraordinary acts of heroism. Conversely, very few Enlightened characters have less than effective Resources •••••, except for those who have suffered fines as a result of misconduct."
+    "description": "The earth bears many treasures coveted in the world, especially precious ores and gleaming gems. As a result, Mountain Folk characters have an effective Resources rating equal to the number of dots invested in this Background + 2, but cannot have more than three actual dots in the Background. Characters lacking this Background may still live comfortably with an standard of living equivalent to Resources •• for the Enlightened and Resources • for the Unenlightened. Only those pathetic wretches and criminals exiled from Mountain Folk society face true poverty. Unenlightened characters rarely have any actual rating in this Background unless their hoard represents a reward for extraordinary acts of heroism. Conversely, very few Enlightened characters have less than effective Resources •••••, except for those who have suffered fines as a result of misconduct.",
+    "ladder_from": "background.resources"
   }
 ]
