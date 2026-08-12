@@ -25,7 +25,7 @@ from .. import persistence, rules_db
 # branching on a Merit id, which is what decision 0011 forbids.
 from ..engine import derive, merits
 from ..models.character import Character, Damage, PlayState
-from ..models.rules import RuleSet
+from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import theme
 from . import view as viewmod
 
@@ -85,6 +85,12 @@ def set_motes(character: Character, field: str, value, cap: int) -> None:
     setattr(play_state(character), field, max(0, min(cap, int(value or 0))))
 
 
+def set_fatigue(character: Character, value) -> None:
+    """Set the accumulated armour-fatigue points (p.332). No upper clamp: the rule
+    prints no maximum, and the penalty keeps accruing on every failed roll."""
+    play_state(character).fatigue = max(0, int(value or 0))
+
+
 def set_count(character: Character, field: str, clicked: int, cap: int) -> None:
     """Dot-track click: clicking the top filled box clears it, else fill up to it."""
     cur = getattr(play_state(character), field)
@@ -100,7 +106,8 @@ def health_box(character: Character, i: int, label: str, mark: Damage | None,
     with ui.column().classes("items-center gap-0"):
         ui.label(label).classes("text-gray-500").style("font-size:0.6rem")
         sym_color = _MARK_COLOR[mark] if mark else pal.accent
-        box = ui.label(mark.value if mark else "").classes("cursor-pointer select-none")
+        box = ui.label(mark.value if mark else "").classes(
+            "cursor-pointer select-none").mark(f"play-health-{i}")
         box.style(f"width:2rem;height:2rem;line-height:2rem;text-align:center;"
                   f"font-weight:700;border-radius:4px;border:1px solid {_BORDER};"
                   f"background:{_GOLD if mark else _WHITE};color:{sym_color};")
@@ -128,12 +135,196 @@ def worst_penalty(pv: "viewmod.PlayView", marks: list) -> str:
     return "Incapacitated" if deepest.incapacitated else deepest.label
 
 
+def new_pool_state(ruleset: RuleSet) -> dict:
+    """The sidebar's selections. Created by the CALLER, outside its refreshable body
+    — the sidebar is rebuilt every time a health box is clicked, and state owned by
+    the sidebar would reset the player's chosen weapon on exactly the click that
+    makes them want the pools. Returns {} when no roll catalogue shipped."""
+    if not ruleset.roll_catalog:
+        return {}
+    return {"weapon": None, "mobility": True, "wound": True, "fatigue": True,
+            # The custom Attribute + Ability pool. Defaults chosen so the block
+            # shows a real number the moment it renders rather than an empty frame.
+            "custom_attribute": AttributeName.DEXTERITY.value,
+            "custom_ability": AbilityName.ATHLETICS.value,
+            "custom_agility": False}
+
+
+def _pool_row(row: "viewmod.PoolRow", pal: theme.Palette) -> None:
+    """One roll line: the total, the name, and the arithmetic underneath.
+
+    ⚠ The `compact` breakdown is NOT optional decoration. A column of bare totals is
+    precisely the "looks authoritative" surface decision 0008 rejected, and 0016
+    narrowed 0008 only on the promise that every pool shown is itemised. One
+    function so the preset list and the custom block cannot drift apart on it.
+    """
+    with ui.row().classes("w-full items-baseline gap-2 no-wrap"):
+        ui.label(f"{row.total}").classes(
+            "text-base font-bold w-8 text-right shrink-0").style(
+            f"color:{'#b45309' if row.below_one else pal.accent}")
+        with ui.column().classes("gap-0 min-w-0"):
+            ui.label(row.name).classes("text-sm leading-tight")
+            ui.label(row.compact).classes("text-xs text-gray-600 leading-tight")
+
+
+def custom_pool_panel(ruleset: RuleSet, character: Character,
+                      pal: theme.Palette, state: dict, on_change) -> None:
+    """The player's own Attribute + Ability pool — a builder, not data.
+
+    The catalogue covers the rolls the corebook spells out by name; the rest of 1e is
+    "roll Attribute + Ability" for whatever the table is doing, and there is no
+    printed roster of those to author (see pools.custom_roll).
+
+    Lives in the MAIN column rather than the sidebar: the roll list is long and the
+    tracker beside it is short, so this fills the space under the tracker instead of
+    adding to the taller side. It shares `state` with the sidebar, which is why both
+    take the caller's refresh — the sidebar's penalty toggles govern these rows too.
+    """
+    mobility = viewmod.pool_mobility_lines(ruleset, character)
+
+    def _set(key, value) -> None:
+        state[key] = value
+        on_change()
+
+    with _panel("Dice pool  ·  your own Attribute + Ability", pal):
+        with ui.row().classes("w-full gap-2 items-end flex-wrap"):
+            attributes, abilities = viewmod.pool_trait_options()
+            ui.select(attributes, value=state["custom_attribute"], label="Attribute",
+                      on_change=lambda e: _set("custom_attribute", e.value)
+                      ).classes("w-40").props("dense outlined")
+            ui.select(abilities, value=state["custom_ability"], label="Ability",
+                      with_input=True,
+                      on_change=lambda e: _set("custom_ability", e.value)
+                      ).classes("w-40").props("dense outlined")
+            # p.332's discretionary clause is the Storyteller's call, so it is a
+            # control rather than a guess — see view.build_custom_pool.
+            if mobility:
+                ui.checkbox("Agility or balance (armour mobility applies)",
+                            value=state["custom_agility"],
+                            on_change=lambda e: _set("custom_agility", e.value)
+                            ).props("dense").classes("text-xs")
+        for row in viewmod.build_custom_pool(
+                ruleset, character,
+                AttributeName(state["custom_attribute"]),
+                AbilityName(state["custom_ability"]),
+                agility_based=state["custom_agility"],
+                include_mobility=state["mobility"], include_wound=state["wound"],
+                include_fatigue=state["fatigue"]):
+            _pool_row(row, pal)
+        ui.label("The wound, fatigue and mobility switches in the sidebar govern "
+                 "these rows too. Same caveats: a BASE pool, no Charms, no stunts, "
+                 "nothing rolled.").classes("text-xs text-gray-500")
+
+
+def dice_pool_sidebar(ruleset: RuleSet, character: Character,
+                      pal: theme.Palette, state: dict, on_change) -> None:
+    """The base dice-pool sidebar (decision 0016).
+
+    A LIST, not a picker: every roll the catalogue knows, each on one line with its
+    own arithmetic, so a player scans for the row they need instead of driving a
+    dropdown mid-turn. One shared weapon choice and three penalty toggles sit above
+    it; the standing exclusions sit below.
+
+    ⚠ Read 0016 before changing this. The arithmetic is in scope; resolution is not,
+    and NO dice are rolled (0009). The presentation is load-bearing, not decoration:
+    0008 rejected a static combat number because it "looks authoritative and is
+    wrong the moment a Charm fires", and what 0016 accepted instead is an itemised
+    breakdown that states what it leaves out. **Every row must keep showing its
+    `compact` breakdown** — a list of bare totals is precisely what 0008 refused —
+    and the exclusions block must stay put and stay undismissable.
+
+    All arithmetic and every derived list comes from view.build_pool_sidebar; this
+    function lays out what it returns and nothing else.
+
+    `on_change` is the CALLER's refresh, not a private one: the custom-pool block
+    lives in the other column and reads the same `state`, so a toggle flipped here
+    has to redraw both. A refreshable local to this function could not reach it.
+    """
+    def _set(key, value) -> None:
+        state[key] = value
+        on_change()
+
+    def panel() -> None:
+        sv = viewmod.build_pool_sidebar(
+            ruleset, character, weapon_index=state["weapon"],
+            include_mobility=state["mobility"], include_wound=state["wound"],
+            include_fatigue=state["fatigue"])
+
+        # ---- controls ---------------------------------------------------- #
+        if sv.weapons:
+            # Labelled "Attack with" rather than "Weapon": a plain "Weapon" select
+            # already exists on the equipment surface, and two identically labelled
+            # selects are indistinguishable to the test harness.
+            ui.select({i: n for i, n in enumerate(sv.weapons)}, value=state["weapon"],
+                      label="Attack with", clearable=True,
+                      on_change=lambda e: _set("weapon", e.value)
+                      ).classes("w-full").props("dense outlined")
+        else:
+            ui.label("No weapon owned — the attack rows are unarmed.").classes(
+                "text-xs text-gray-600")
+
+        with ui.column().classes("gap-0"):
+            if sv.wound_label and sv.wound_label != "Incapacitated":
+                ui.switch(f"Wound penalty ({sv.wound_label})", value=state["wound"],
+                          on_change=lambda e: _set("wound", e.value)
+                          ).props("dense").classes("text-xs")
+            if sv.fatigue_points:
+                ui.switch(f"Fatigue (-{sv.fatigue_points})", value=state["fatigue"],
+                          on_change=lambda e: _set("fatigue", e.value)
+                          ).props("dense").classes("text-xs")
+            if sv.mobility_lines:
+                ui.switch(f"Armour mobility ({', '.join(sv.mobility_lines)})",
+                          value=state["mobility"],
+                          on_change=lambda e: _set("mobility", e.value)
+                          ).props("dense").classes("text-xs")
+        if sv.wound_label == "Incapacitated":
+            ui.label("Deepest mark is Incapacitated — that level carries no dice "
+                     "penalty of its own; whether the character acts at all is the "
+                     "Storyteller's call.").classes("text-xs text-amber-700")
+
+        ui.separator()
+
+        # ---- the rolls ---------------------------------------------------- #
+        for category, rows in sv.groups:
+            ui.label(category.upper()).classes(
+                "text-xs font-bold tracking-widest mt-2").style(f"color:{pal.accent}")
+            for row in rows:
+                _pool_row(row, pal)
+
+        if sv.any_below_one:
+            # Not clamped: the book floors range penalties and nothing else (p.229),
+            # so a general floor would be invented. Say what happened instead.
+            ui.label("Rows in amber have been taken below one die by the penalties. "
+                     "The core floors range penalties at 1 die and prints no general "
+                     "rule, so that is the Storyteller's call.").classes(
+                "text-xs text-amber-700 mt-2")
+
+        ui.separator()
+
+        # ---- the standing caveat ------------------------------------------ #
+        # NOT collapsible and NOT dismissible: this is the whole reason decision
+        # 0016 could narrow 0008. See the docstring.
+        ui.label("These are BASE pools. They do not include:").classes(
+            "text-xs font-semibold mt-2")
+        for line in sv.excludes:
+            ui.label(f"· {line}").classes("text-xs text-gray-600 leading-tight")
+        ui.label("No dice are rolled here, and nothing is resolved.").classes(
+            "text-xs text-gray-500 mt-1")
+
+    with ui.card().classes(f"w-full p-3 {pal.card_soft} gap-2"):
+        ui.label("DICE POOLS").classes(
+            "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
+        panel()
+
+
 def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                *, with_header: bool = True) -> None:
     """Render the in-play tracker for `character`. With `with_header=False` the
     title/Save bar is omitted (the embedding app provides one). The tab is live
     regardless of chargen lock — play happens after creation, but never blocks."""
     pal = theme.palette(character.exalt_type)
+    # Outside `body`, deliberately — see new_pool_state.
+    pool_state = new_pool_state(ruleset)
 
     # ---- mutations -------------------------------------------------------- #
     def clear_damage() -> None:
@@ -156,7 +347,13 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
         cur = character.play or PlayState()
         marks = list(cur.health) + [None] * max(0, len(pv.health_boxes) - len(cur.health))
 
-        with ui.column().classes("w-full max-w-3xl mx-auto gap-3"):
+        # Two columns: the dice-pool sidebar on the left, the tracker on the right.
+        # `items-start` so the sidebar does not stretch to the tracker's height, and
+        # NO `no-wrap` on the outer row — on a narrow window the sidebar drops above
+        # the tracker instead of crushing it (a `no-wrap` row has done exactly that
+        # to a panel here before).
+        def tracker() -> None:
+            """The right-hand column: the play-state tracker proper."""
             # --- Health -------------------------------------------------- #
             with _panel("Health  ·  / bashing   x lethal   * aggravated", pal):
                 with ui.row().classes("gap-1 flex-wrap items-end"):
@@ -172,6 +369,30 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                         f"color:{pal.accent}")
                     ui.button("Clear damage", icon="healing", on_click=clear_damage).props(
                         "flat dense").classes("text-xs")
+
+            # --- Accumulated armour fatigue (p.332) ---------------------- #
+            # Shown only where it can matter: armour is worn, or points are already
+            # on the clock (they outlive taking the armour off — they dissipate with
+            # rest, not with undressing). A character who never wears armour should
+            # not carry a permanently-zero control.
+            if character.armor or cur.fatigue:
+                with _panel(f"Armour fatigue  ({cur.fatigue} accumulated — "
+                            f"-{cur.fatigue} to all actions)" if cur.fatigue
+                            else "Armour fatigue  (none accumulated)", pal):
+                    with ui.row().classes("gap-4 items-end flex-wrap"):
+                        ui.number("Points", value=cur.fatigue, min=0, format="%d",
+                                  on_change=lambda e: (
+                                      set_fatigue(character, e.value), body.refresh())
+                                  ).classes("w-28")
+                        if pv.fatigue_difficulties:
+                            ui.label("Fatigue roll difficulty: "
+                                     + ", ".join(pv.fatigue_difficulties)).classes(
+                                "text-xs text-gray-600")
+                    ui.label("Each failed Stamina + Endurance roll against the armour's "
+                             "fatigue value adds a point; each dissipates after eight "
+                             "hours of rest out of the armour (p.332). Both are the "
+                             "Storyteller's call — this counter is manual, like Limit.").classes(
+                        "text-xs text-gray-500")
 
             # --- Motes (numeric; capacities derived, spend is user input) - #
             # A merged pool is ONE track: "all of which is considered Peripheral"
@@ -298,10 +519,27 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
 
             _curse = ("Clarity" if derive.uses_clarity(ruleset, character)
                       else derive.limit_label(ruleset, character))
+            # --- the custom Attribute + Ability pool (decision 0016) ----- #
+            if pool_state:
+                custom_pool_panel(ruleset, character, pal, pool_state, body.refresh)
+
             ui.button("Clear motes spent", icon="refresh", on_click=clear_motes).props(
                 f"flat color={pal.button}").tooltip(
                 "Resets Personal and Peripheral motes spent to 0. "
                 f"Willpower, Health, and {_curse} are left to you / the ST.")
+
+        # Two columns: the dice-pool sidebar on the left, the tracker on the right.
+        # `items-start` so the sidebar does not stretch to the tracker's height, and
+        # deliberately NO `no-wrap` on the outer row — on a narrow window the sidebar
+        # drops above the tracker rather than crushing it, which is what a `no-wrap`
+        # row has already done to a panel in this build once.
+        with ui.row().classes("w-full gap-4 items-start justify-center"):
+            if pool_state:
+                with ui.column().classes("w-80 shrink-0 gap-2"):
+                    dice_pool_sidebar(ruleset, character, pal, pool_state,
+                                      body.refresh)
+            with ui.column().classes("flex-1 min-w-0 max-w-3xl gap-3"):
+                tracker()
 
     def _mote_input(label: str, field: str, value: int, cap: int) -> None:
         with ui.column().classes("gap-0"):

@@ -9,7 +9,7 @@ from exalted_builder.models.character import (
     MeritFlawPurchase,
     Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
     ArtifactEntry, FetterEntry, HouseRules, PassionEntry, PathRating, PlayState,
-    RitualEntry, ScienceRating, ThaumaturgyState, Weapon)
+    RitualEntry, ScienceRating, Specialty, ThaumaturgyState, Weapon)
 from exalted_builder.engine import adversaries as adversaries_engine
 from exalted_builder.models.adversary import (Adversary, AdversaryAttack,
                                               AdversaryTrait)
@@ -58,6 +58,50 @@ def page_blank():
 @ui.page('/play')
 def page_play():
     play.build_play(RS, CHAR_PLAY, Path("x.json"), with_header=False)
+
+# (f) the dice-pool calculator (decision 0016) gets its OWN route and character:
+# it reads the character's CONTENT (weapons, armour, specialties, marked damage), so
+# sharing CHAR_PLAY would make this pass alone and fail in the suite.
+CHAR_POOLS = Character(id="dp", name="Duelist", caste="dawn")
+CHAR_POOLS.attributes[AttributeName.DEXTERITY] = 4
+CHAR_POOLS.abilities[AbilityName.MELEE] = 3
+CHAR_POOLS.abilities[AbilityName.DODGE] = 2
+CHAR_POOLS.weapons.append(Weapon(name="Short Sword", accuracy=2, defense=3))
+CHAR_POOLS.armor.append(Armor(name="Buff Jacket", soak_lethal=3, mobility_penalty=-1, fatigue=2))
+CHAR_POOLS.specialties.append(Specialty(ability=AbilityName.MELEE, name="Swords", rating=2))
+CHAR_POOLS.play = PlayState(health=[Damage.BASHING, Damage.LETHAL])
+
+@ui.page('/pools')
+def page_pools():
+    play.build_play(RS, CHAR_POOLS, Path("x.json"), with_header=False)
+
+# (g) the click test MUTATES its character's health marks, so it gets its own copy —
+# a shared fixture whose CONTENT a test changes makes the next reader pass alone and
+# fail in the suite.
+CHAR_POOLS_CLICK = CHAR_POOLS.model_copy(deep=True)
+CHAR_POOLS_CLICK.id = "dpc"
+
+@ui.page('/pools-click')
+def page_pools_click():
+    play.build_play(RS, CHAR_POOLS_CLICK, Path("x.json"), with_header=False)
+
+# (h) accumulated armour fatigue (p.332) — its own character, because the points
+# subtract from every pool and would move every other route's expected total.
+CHAR_POOLS_FATIGUE = CHAR_POOLS.model_copy(deep=True)
+CHAR_POOLS_FATIGUE.id = "dpf"
+CHAR_POOLS_FATIGUE.play = PlayState(fatigue=2)
+
+@ui.page('/pools-fatigue')
+def page_pools_fatigue():
+    play.build_play(RS, CHAR_POOLS_FATIGUE, Path("x.json"), with_header=False)
+
+# (i) the empty shape: a Mortal with no weapons, no armour, no specialties and no
+# marked damage — every optional control in the calculator absent at once.
+CHAR_POOLS_BARE = Character(id="dpb", name="Peasant", exalt_type="Mortal", caste="")
+
+@ui.page('/pools-bare')
+def page_pools_bare():
+    play.build_play(RS, CHAR_POOLS_BARE, Path("x.json"), with_header=False)
 
 @ui.page('/xp')
 def page_xp():

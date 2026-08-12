@@ -220,7 +220,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,172 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,255 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -266,6 +266,7 @@ full record.
 | **Dragon-Kings — DONE, browser-verified** (9th splat, 4th non-Exalt; the ten Paths of Prehuman Mastery as a rated subsystem, four Breeds, single Essence pool, Essence-gated trait ceilings, Terrestrial sorcery) | `docs/status/dragon-kings.md` |
 | **Mountain Folk — DONE, browser-verified** (10th splat, 5th non-Exalt, the last; the Enlightenment origin axis, the five-Pattern Charm economy with a new Enchantment type, the Great Geas as Divergence + reference panel, three Darkbrood adversaries) | `docs/status/mountain-folk.md` |
 | **Elder Exalts — DONE, browser-verified** (simplified 2026-08-06: Essence XP-purchasable to the splat cap — 9 flat, Terrestrial-7 held; trait ceilings follow Essence; age chart removed; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
+| **Dice pools — SHIPPED 2026-08-12, NOT browser-verified** (decision 0016; `data/dice_pools.json` + `RollDefinition` + a pure `engine/pools.py` + a **left sidebar on the Play tab listing every roll at once**, each with its own one-line arithmetic, plus a custom Attribute + Ability builder in the main column that shares the sidebar's state. An ITEMISED base pool — never a bare number, and the on-screen "does not include" list is the mitigation 0016 accepted for 0008's objection, so do not collapse it. Mobility is a PER-ROLL fact off p.332, not a blanket subtraction; wound penalties apply to EVERY roll including Virtue/Willpower, with p.233's resist-infection the one printed exemption, gated in the engine; **accumulated armour fatigue is now a manual `PlayState.fatigue` counter** (p.332) that subtracts from every pool. ⚠ `Armor.mobility_penalty` is stored NEGATIVE in the data — a new consumer that reads it as a magnitude adds dice) | `docs/status/dice-pools.md` |
 | **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
 **State of the world:** the foundation (models, persistence, engine, UI) is done

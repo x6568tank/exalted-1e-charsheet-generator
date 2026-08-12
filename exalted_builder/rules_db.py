@@ -59,6 +59,7 @@ from .models.rules import (
     ExaltDefinition,
     ExperienceCosts,
     MagicalMaterial,
+    RollDefinition,
     MeritFlaw,
     # Alias: `pathlib.Path` is already imported above, and the Dragon-King Path
     # catalogue class collides with it. models.rules.py itself has no pathlib import,
@@ -594,6 +595,10 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
                        "id", "material", problems)
     colleges = _index(_load_array(data_dir / "colleges.json", College, problems),
                       "id", "college", problems)
+    # Named base dice pools (decision 0016). Cross-splat and optional: absent means
+    # the pool calculator simply offers no presets.
+    rolls = _index(_load_array(data_dir / "dice_pools.json", RollDefinition, problems),
+                   "id", "roll", problems)
     # Merits & Flaws (decision 0011). Optional, cross-splat and INERT — the file
     # carries printed text and costs only; effects live in engine.merits.
     merits_flaws = _index(_load_array(data_dir / "merits_flaws.json", MeritFlaw, problems),
@@ -660,6 +665,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         nature_catalog=natures,
         material_catalog=materials,
         colleges=colleges,
+        roll_catalog=rolls,
         paths=paths,
         merits_flaws=merits_flaws,
         elemental_powers=elemental_powers,

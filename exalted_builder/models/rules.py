@@ -16,7 +16,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 # --------------------------------------------------------------------------- #
@@ -1490,6 +1490,76 @@ class NatureType(BaseModel):
     description: str = ""
 
 
+class PoolKind(str, Enum):
+    """What arithmetic a RollDefinition's base term is made of."""
+    ATTRIBUTE_ABILITY = "attribute_ability"   # Dexterity + Melee, Wits + Awareness…
+    VIRTUE = "virtue"                         # a Virtue check: the Virtue's rating alone
+    WILLPOWER = "willpower"                   # a Willpower check: permanent Willpower
+
+
+class WeaponStat(str, Enum):
+    """Which weapon stat, if any, joins the pool. Both are printed as being added
+    to the Dexterity + Ability total (core p.327): accuracy "when rolling for
+    attacks", defense "when she parries with the weapon"."""
+    NONE = "none"
+    ACCURACY = "accuracy"
+    DEFENSE = "defense"
+
+
+class RollDefinition(BaseModel):
+    """One named roll whose BASE dice pool is trait arithmetic (decision 0016).
+
+    Data, not code: which traits compose a given roll comes off the printed page
+    like every other game value, so the roster lives in data/dice_pools.json and
+    the engine does nothing but add up what this row names.
+
+    ⚠ This models the BASE pool only. Nothing here describes stunts, difficulty,
+    range, multiple-action splitting, or Charm dice — those are Storyteller- or
+    play-state-supplied and are out of scope by 0016. `excludes` carries the text
+    the surface must show so the number never reads as a final pool.
+    """
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    name: str
+    kind: PoolKind = PoolKind.ATTRIBUTE_ABILITY
+    category: str = ""                     # UI grouping only: "Combat", "Social"…
+    attribute: Optional[AttributeName] = None   # required for ATTRIBUTE_ABILITY
+    ability: Optional[AbilityName] = None       # required for ATTRIBUTE_ABILITY
+    weapon_stat: WeaponStat = WeaponStat.NONE
+    # Armour's mobility penalty is "the number of dice subtracted from the
+    # character's dice pools when she tries to do anything requiring agility or
+    # physical dexterity. This penalty doesn't normally apply to attack and parry
+    # rolls, but does apply to dodge rolls and Athletics rolls for feats that
+    # require whole-body agility" (core p.326). So this is a PER-ROLL fact off the
+    # page, not a blanket subtraction — attack rolls must not carry it.
+    mobility_applies: bool = False
+    # Wound penalties apply to essentially every action — p.229's "Order of
+    # Modifiers" lists them among the subtractions, and the human confirmed
+    # 2026-08-12 that this includes Virtue and Willpower checks. So the default is
+    # True and a row opts OUT only where a page says so in as many words: p.233,
+    # "wound penalties do not subtract from the character's dice pool for the
+    # purposes of this roll" (resisting infection). Do not clear this on a hunch —
+    # a silent exemption is a silently inflated pool.
+    wound_applies: bool = True
+    notes: str = ""
+    source: Source = Field(default_factory=Source)
+
+    @model_validator(mode="after")
+    def _check_traits(self) -> "RollDefinition":
+        if self.kind is PoolKind.ATTRIBUTE_ABILITY:
+            if self.attribute is None or self.ability is None:
+                raise ValueError(
+                    f"roll {self.id!r}: kind 'attribute_ability' needs both "
+                    f"`attribute` and `ability`.")
+        elif self.attribute is not None or self.ability is not None:
+            raise ValueError(
+                f"roll {self.id!r}: kind {self.kind.value!r} takes no attribute/ability.")
+        if self.weapon_stat is not WeaponStat.NONE and self.kind is not PoolKind.ATTRIBUTE_ABILITY:
+            raise ValueError(f"roll {self.id!r}: a weapon stat needs an Attribute + Ability pool.")
+        return self
+
+
 class MagicalMaterial(BaseModel):
     """One of the five magical materials an artifact weapon/armour can be forged
     from (core p.341). Each material resonates with exactly one Exalt type and
@@ -2540,6 +2610,10 @@ class RuleSet(BaseModel):
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
     colleges: dict[str, College] = Field(default_factory=dict)   # Astrological Colleges (Sidereal)
+    # Named base dice pools (decision 0016), keyed by RollDefinition.id. Cross-splat
+    # — every character rolls Dexterity + Melee the same way. Empty when the file is
+    # absent, which simply means the pool calculator offers no presets.
+    roll_catalog: dict[str, RollDefinition] = Field(default_factory=dict)
     # Dragon-King Paths of Prehuman Mastery (PG pp.177-191), keyed by Path.id. The
     # 60 dot-level powers are ALSO projected into `charms` as virtual rows (see
     # rules_db.load_ruleset) so Combos and the sheet can name them; `paths` is the

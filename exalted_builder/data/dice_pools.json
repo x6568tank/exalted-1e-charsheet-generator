@@ -1,0 +1,149 @@
+[
+  {
+    "id": "attack-melee",
+    "name": "Attack — Melee",
+    "kind": "attribute_ability",
+    "category": "Combat",
+    "attribute": "dexterity",
+    "ability": "melee",
+    "weapon_stat": "accuracy",
+    "mobility_applies": false,
+    "notes": "The attacker's player rolls Dexterity + the Ability that governs the kind of attack (p.228). The weapon's accuracy is added to the Dexterity + Ability total when rolling for attacks (p.327). Armour's mobility penalty does NOT normally apply to attack rolls (p.332).",
+    "source": {"book": "Exalted", "page": 228}
+  },
+  {
+    "id": "attack-brawl",
+    "name": "Attack — Brawl",
+    "kind": "attribute_ability",
+    "category": "Combat",
+    "attribute": "dexterity",
+    "ability": "brawl",
+    "weapon_stat": "accuracy",
+    "notes": "Characters attacking unarmed may choose Martial Arts or Brawl; the difference is description and the Charms available (p.228).",
+    "source": {"book": "Exalted", "page": 228}
+  },
+  {
+    "id": "attack-martial-arts",
+    "name": "Attack — Martial Arts",
+    "kind": "attribute_ability",
+    "category": "Combat",
+    "attribute": "dexterity",
+    "ability": "martial_arts",
+    "weapon_stat": "accuracy",
+    "notes": "Characters attacking unarmed may choose Martial Arts or Brawl (p.228).",
+    "source": {"book": "Exalted", "page": 228}
+  },
+  {
+    "id": "attack-archery",
+    "name": "Attack — Archery",
+    "kind": "attribute_ability",
+    "category": "Combat",
+    "attribute": "dexterity",
+    "ability": "archery",
+    "weapon_stat": "accuracy",
+    "notes": "The bow's accuracy is added to or subtracted from the Dexterity + Archery total when rolling for attacks (p.330). Range penalties are situational and are NOT included here.",
+    "source": {"book": "Exalted", "page": 330}
+  },
+  {
+    "id": "attack-thrown",
+    "name": "Attack — Thrown",
+    "kind": "attribute_ability",
+    "category": "Combat",
+    "attribute": "dexterity",
+    "ability": "thrown",
+    "weapon_stat": "accuracy",
+    "notes": "Accuracy is added to or subtracted from the Dexterity + Thrown total when rolling for attacks (p.331). Range penalties are situational and are NOT included here.",
+    "source": {"book": "Exalted", "page": 331}
+  },
+  {
+    "id": "parry-melee",
+    "name": "Parry — Melee",
+    "kind": "attribute_ability",
+    "category": "Combat",
+    "attribute": "dexterity",
+    "ability": "melee",
+    "weapon_stat": "defense",
+    "notes": "Parry rolls are Dexterity + whatever Ability governs the weapon the character is armed with (p.228); the weapon's defense is added to that total when she parries with it (p.327). The mobility penalty does not normally apply to parry rolls (p.332).",
+    "source": {"book": "Exalted", "page": 228}
+  },
+  {
+    "id": "parry-brawl",
+    "name": "Parry — Brawl",
+    "kind": "attribute_ability",
+    "category": "Combat",
+    "attribute": "dexterity",
+    "ability": "brawl",
+    "weapon_stat": "defense",
+    "source": {"book": "Exalted", "page": 228}
+  },
+  {
+    "id": "parry-martial-arts",
+    "name": "Parry — Martial Arts",
+    "kind": "attribute_ability",
+    "category": "Combat",
+    "attribute": "dexterity",
+    "ability": "martial_arts",
+    "weapon_stat": "defense",
+    "source": {"book": "Exalted", "page": 228}
+  },
+  {
+    "id": "dodge",
+    "name": "Dodge",
+    "kind": "attribute_ability",
+    "category": "Combat",
+    "attribute": "dexterity",
+    "ability": "dodge",
+    "weapon_stat": "none",
+    "mobility_applies": true,
+    "notes": "Dodge rolls are Dexterity + Dodge (p.228). The armour mobility penalty DOES apply to dodge rolls (p.332). The cumulative -1, -2… for dodging repeated attacks in one turn is situational and is not included here.",
+    "source": {"book": "Exalted", "page": 228}
+  },
+  {
+    "id": "athletics-feat",
+    "name": "Athletics — whole-body feat",
+    "kind": "attribute_ability",
+    "category": "Physical",
+    "attribute": "dexterity",
+    "ability": "athletics",
+    "mobility_applies": true,
+    "notes": "The mobility penalty applies to Athletics rolls for feats that require whole-body agility (p.332). Which Attribute an Athletics roll uses varies with the feat — build a custom pool for anything that is not Dexterity-based.",
+    "source": {"book": "Exalted", "page": 332}
+  },
+  {
+    "id": "fatigue-roll",
+    "name": "Fatigue roll (armour)",
+    "kind": "attribute_ability",
+    "category": "Physical",
+    "attribute": "stamina",
+    "ability": "endurance",
+    "notes": "Players must make a Stamina + Endurance roll when their characters wear armour, at a difficulty equal to the armour's fatigue value (p.332). The difficulty is not a dice-pool term, so it is shown beside the pool rather than in it.",
+    "source": {"book": "Exalted", "page": 332}
+  },
+  {
+    "id": "resist-infection",
+    "name": "Resist infection",
+    "kind": "attribute_ability",
+    "category": "Physical",
+    "attribute": "stamina",
+    "ability": "resistance",
+    "wound_applies": false,
+    "notes": "A reflexive Stamina + Resistance roll to resist infection (p.233). \"Wound penalties do not subtract from the character's dice pool for the purposes of this roll\" — the only printed exemption in the shipped catalogue, so the wound line is omitted here even when the character is hurt.",
+    "source": {"book": "Exalted", "page": 233}
+  },
+  {
+    "id": "virtue-check",
+    "name": "Virtue check",
+    "kind": "virtue",
+    "category": "Personality",
+    "notes": "A character with 3 or more dots in a Virtue must roll his Virtue rating when he wishes to act contrary to that Virtue's dictates (p.130). The pool is the Virtue rating alone.",
+    "source": {"book": "Exalted", "page": 130}
+  },
+  {
+    "id": "willpower-check",
+    "name": "Willpower check",
+    "kind": "willpower",
+    "category": "Personality",
+    "notes": "Dice actions using Willpower are based on the character's PERMANENT score (the dots), not the current temporary rating (the squares) — p.88.",
+    "source": {"book": "Exalted", "page": 88}
+  }
+]

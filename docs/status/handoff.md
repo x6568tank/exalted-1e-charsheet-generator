@@ -69,21 +69,30 @@ and over.
    today that no one has clicked. Open Add weapon on a character with Resources ••: Self
    Bow should read "within your means", Long Bow "a serious expense", Composite Bow
    "beyond your Resources" and be faded (but still pickable).
-3. **Two features the human asked to scope, 2026-08-12, both un-started:**
+3. **The dice-pool calculator — SHIPPED, needs a click-through.** Decision 0016 was
+   written and the feature built off it: `data/dice_pools.json` (14 page-cited rolls),
+   `RollDefinition` on the RuleSet, a pure `engine/pools.py`, and — after the human
+   asked for it — a **left SIDEBAR on the Play tab listing every roll at once**, each
+   on one line with its own arithmetic, rather than a one-roll-at-a-time picker. The three open rules questions were all RULED and implemented the same day —
+   wound penalties apply to Virtue/Willpower checks, resist-infection is exempt
+   (p.233), and accumulated armour fatigue is now a manual `PlayState.fatigue`
+   counter. Suite 2,172 → **2,228**. Record: `docs/status/dice-pools.md`.
+
+   Suite 2,172 → **2,242**. What to click is in the session's final handover message
+   and re-derivable from `docs/status/dice-pools.md`.
+
+   ⚠ **One thing to eyeball hard:** the mobility line. `Armor.mobility_penalty` is
+   stored NEGATIVE and the first cut read it as a magnitude, i.e. it ADDED dice —
+   caught only when the fatigue work brought the real catalogue values into view. It
+   is fixed and tested both ways, but a wrong sign is exactly the class of error a
+   green suite kept agreeing with.
+4. **One feature the human asked to scope, 2026-08-12, still un-started:**
    - **Mundane purchasable gear.** Cheap: `resources_cost`, `gear_affordability` and the
      shared catalogue dialog all exist; it needs a `GearEntry` model, `Character.gear`, a
      `data/gear.json` and a third section on the equipment surface. No engine work — per
      the p.325 ruling, Resources is a hint, never a validation. **Page-blocked on the
-     equipment lists**, same blocker as item 4.
-   - **A dice-pool calculator on the Play tab.** Shows the base pool for an action
-     (Dex + Melee + a weapon's accuracy; Virtue and Willpower rolls too). **NO DICE ARE
-     ROLLED and the human is not walking that back** — but it brushes decision 0008
-     (no combat/attack derivation) and should be an explicit amendment/record, not a
-     quiet exception. Two open questions: whether wound penalties and armour
-     mobility/fatigue belong in the base pool (they are character-derived, not ST-
-     supplied), and Charm dice are OUT — they need activation state, which is play-state
-     (decision 0006). Shape: a pure `engine/pools.py` returning a labelled breakdown.
-4. **The other 63 `resources_cost` values** — page-blocked, needs a human read of the
+     equipment lists**, same blocker as item 5.
+5. **The other 63 `resources_cost` values** — page-blocked, needs a human read of the
    corebook equipment tables; the Cost column is dot glyphs the font cipher did not
    resolve. `docs/status/rated-artifacts.md` has the detail.
 

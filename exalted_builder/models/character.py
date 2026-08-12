@@ -680,6 +680,19 @@ class PlayState(BaseModel):
     # derived (Essence above 5 + installed Charms) and deliberately NOT stored here;
     # see engine.derive.clarity. Unlike Limit, Clarity never "breaks" or resets at 10.
     clarity_temporary: int = Field(default=0, ge=0, le=10)
+    # Accumulated armour fatigue (core p.332). A character wearing armour rolls
+    # Stamina + Endurance at a difficulty equal to the armour's fatigue value; "if a
+    # player fails the roll, his character takes a -1 penalty to all actions due to
+    # soreness and fatigue. This penalty continues to accumulate as the character
+    # continues to fail Endurance rolls. Accumulated penalties dissipate at the rate
+    # of one point of penalty per eight hours of rest outside the armor."
+    #
+    # It lives HERE, and is a manual counter, for the same reason Limit is: it is a
+    # roll OUTCOME, not a derivation. The app does not roll (decision 0009) and does
+    # not track the passage of in-game time, so it can neither add a point nor
+    # dissipate one — the ST does both. It carries no printed maximum, so the model
+    # imposes none; it is stored as a positive point count and SUBTRACTS from a pool.
+    fatigue: int = Field(default=0, ge=0)
     renown: dict[str, int] = Field(
         default_factory=lambda: {"succor": 0, "mettle": 0, "cunning": 0, "glory": 0})
     face: int = Field(default=0, ge=0, le=10)

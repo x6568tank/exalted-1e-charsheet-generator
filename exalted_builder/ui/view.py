@@ -22,8 +22,8 @@ from ..engine import (advancement, adversaries as advmod,
 from ..models.adversary import Adversary
 from ..models.character import Armor, Character, HouseRules, Weapon, XpEntry
 from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, BackgroundType,
-                            CharmCost, Damage, RuleSet, SpellCircle, TRACK_CIRCLES,
-                            VirtueName, circle_kind)
+                            CharmCost, Damage, PoolKind, RuleSet, SpellCircle,
+                            TRACK_CIRCLES, VirtueName, circle_kind)
 
 
 @dataclass
@@ -2240,6 +2240,13 @@ class PlayView:
     # this is a marker on the track, never a second cap. The roll is the table's to
     # make (decision 0009); the tracker only says where the line falls.
     free_max: Optional[int] = None
+    # The fatigue-roll difficulty of each worn piece, "Buff Jacket 1" (core p.332:
+    # the roll is Stamina + Endurance "with a difficulty equal to the armor's fatigue
+    # value"). Read through effective_armor, so jade shows no difficulty at all for a
+    # Dragon-Blooded — "jade-alloy armor has no fatigue value" (p.345). A difficulty
+    # is not a dice-pool term, so it is reference text beside the counter, never a
+    # line in a pool.
+    fatigue_difficulties: list[str] = dc_field(default_factory=list)
 
 
 def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
@@ -2254,7 +2261,261 @@ def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
         willpower_max=d.willpower,
         single_pool=d.essence_single_pool,
         free_max=d.essence_free,
+        fatigue_difficulties=[
+            f"{a.name or 'Armour'} {eff.fatigue}"
+            for a, eff in ((a, derive.effective_armor(ruleset, character, a))
+                           for a in character.armor)
+            if eff.fatigue],
     )
+
+
+# --------------------------------------------------------------------------- #
+# The dice-pool calculator (decision 0016)
+#
+# A BASE pool, never a final one. Everything derived lives here so the widget
+# module only lays out what this returns — including the exclusions text, which is
+# not decoration: it is the mitigation 0016 accepted for 0008's objection that a
+# static combat number "looks authoritative and is wrong the moment a Charm fires".
+# --------------------------------------------------------------------------- #
+
+@dataclass
+class PoolChoicesView:
+    """Everything the calculator's controls can offer for one selected roll —
+    which of them are relevant is a property of the RollDefinition, so the widget
+    module never has to know that (say) a Virtue check takes no weapon."""
+    needs_weapon: bool
+    needs_virtue: bool
+    weapons: list[str]                       # inline weapon names, in owned order
+    virtues: list[str]                       # display labels
+    specialties: list[str]                   # "Swords (+2 dice)" for the ones that apply
+    takes_mobility: bool                     # this roll carries the armour penalty
+    mobility_lines: list[str]                # what would be subtracted, for the toggle label
+    takes_wound: bool                        # False where a page exempts the roll (p.233)
+    wound_exempt_note: str = ""              # why, when it does not
+    fatigue_points: int = 0                  # accumulated armour fatigue, as a positive count
+
+
+@dataclass
+class PoolView:
+    """One computed base pool, ready to render."""
+    roll_name: str
+    lines: list[tuple[str, int]]             # (label, signed value), in order
+    total: int
+    summary: str                             # "Dexterity 4 + Melee 3 … = 9"
+    excludes: list[str]
+    notes: str = ""
+    wound_label: str = ""                    # "-2", "Incapacitated", or ""
+    below_one: bool = False                  # penalties took it under a single die
+
+
+def pool_roll_options(ruleset: RuleSet) -> list[tuple[str, str]]:
+    """(id, label) for every shipped roll, grouped by category in the label so one
+    flat select reads as a grouped one. Empty when no dice_pools.json shipped."""
+    rows = sorted(ruleset.roll_catalog.values(), key=lambda r: (r.category, r.name))
+    return [(r.id, f"{r.category} · {r.name}" if r.category else r.name) for r in rows]
+
+
+def build_pool_choices(ruleset: RuleSet, character: Character,
+                       roll) -> PoolChoicesView:
+    from ..engine import pools as poolsmod
+    return PoolChoicesView(
+        needs_weapon=roll.weapon_stat.value != "none",
+        needs_virtue=roll.kind.value == "virtue",
+        weapons=[w.name or "(unnamed)" for w in character.weapons],
+        virtues=[v.value.title() for v in VirtueName],
+        # One entry per NAME, already summed across instances — see SpecialtyOption.
+        specialties=[f"{s.name} (+{s.dice} {'die' if s.dice == 1 else 'dice'})"
+                     for s in poolsmod.specialties_for(character, roll)],
+        takes_mobility=roll.mobility_applies,
+        mobility_lines=[f"{name} -{points}" for name, points
+                        in poolsmod.mobility_penalty(ruleset, character)],
+        takes_wound=roll.wound_applies,
+        wound_exempt_note=("" if roll.wound_applies else
+                           "Wound penalties do not subtract from this roll (p.233)."),
+        fatigue_points=-poolsmod.fatigue_penalty(character),
+    )
+
+
+def build_pool_view(ruleset: RuleSet, character: Character, roll, *,
+                    weapon_index: Optional[int] = None,
+                    virtue: Optional[VirtueName] = None,
+                    specialty_index: Optional[int] = None,
+                    include_mobility: bool = True,
+                    include_wound: bool = True,
+                    include_fatigue: bool = True) -> PoolView:
+    """Compute the base pool for `roll` with the calculator's current selections.
+
+    The wound and fatigue penalties are read HERE — the visible play-state reads,
+    handed to the engine as plain integers (decision 0006; see engine/pools.py).
+    `include_wound` / `include_fatigue` are the toggles, so switching one off is a
+    presentation choice that never has to reach into Character.play.
+
+    ⚠ `include_wound=True` is a REQUEST, not a guarantee: a roll whose row is
+    exempt (p.233) drops the line inside the engine. Read the returned lines, never
+    the flag, to know what is in the total.
+    """
+    from ..engine import pools as poolsmod
+    penalty, wound_label = poolsmod.wound_penalty(ruleset, character)
+    fatigue = poolsmod.fatigue_penalty(character)
+    weapon = (character.weapons[weapon_index]
+              if weapon_index is not None and 0 <= weapon_index < len(character.weapons)
+              else None)
+    applicable = poolsmod.specialties_for(character, roll)
+    specialty = (applicable[specialty_index]
+                 if specialty_index is not None and 0 <= specialty_index < len(applicable)
+                 else None)
+    bd = poolsmod.base_pool(
+        ruleset, character, roll,
+        weapon=weapon, virtue=virtue, specialty=specialty,
+        include_mobility=include_mobility,
+        wound_penalty=penalty if include_wound else 0,
+        fatigue_penalty=fatigue if include_fatigue else 0)
+    return PoolView(
+        roll_name=bd.roll,
+        lines=[(ln.label, ln.value) for ln in bd.lines],
+        total=bd.total,
+        summary=bd.summary,
+        excludes=list(bd.excludes),
+        notes=bd.notes,
+        wound_label=wound_label,
+        below_one=bd.below_one,
+    )
+
+
+@dataclass
+class PoolRow:
+    """One roll in the sidebar list: a name, its arithmetic on one line, and the
+    total. `compact` is a BREAKDOWN, not a caption — a row that showed only `total`
+    would be the bare number decision 0016 forbids."""
+    name: str
+    compact: str                             # "+4 dex +3 melee +2 acc -1 wnd -2 ftg"
+    total: int
+    below_one: bool = False
+    note: str = ""                           # a printed rider worth one short line
+
+
+@dataclass
+class PoolSidebarView:
+    """Everything the dice-pool sidebar renders: the shared controls at the top, the
+    grouped roll list in the middle, and the standing exclusions at the bottom."""
+    weapons: list[str]
+    groups: list[tuple[str, list[PoolRow]]]  # (category, rows), in catalogue order
+    excludes: list[str]
+    wound_label: str = ""                    # "-1", "Incapacitated", or ""
+    fatigue_points: int = 0
+    mobility_lines: list[str] = dc_field(default_factory=list)
+    any_below_one: bool = False
+
+
+def build_pool_sidebar(ruleset: RuleSet, character: Character, *,
+                       weapon_index: Optional[int] = None,
+                       include_mobility: bool = True,
+                       include_wound: bool = True,
+                       include_fatigue: bool = True) -> PoolSidebarView:
+    """Every roll the catalogue knows, computed at once for the sidebar.
+
+    Two rolls expand into several rows, because in a LIST there is nothing to pick
+    from — the choice has to be visible as separate lines:
+
+    * a Virtue check becomes one row per Virtue;
+    * a roll whose Ability carries specialties gets one extra row per specialty
+      NAME, since a specialty applies only to its own facet (p.134) and folding it
+      into the base row would claim dice the character does not always have.
+    """
+    from ..engine import pools as poolsmod
+    penalty, wound_label = poolsmod.wound_penalty(ruleset, character)
+    fatigue = poolsmod.fatigue_penalty(character)
+    weapon = (character.weapons[weapon_index]
+              if weapon_index is not None and 0 <= weapon_index < len(character.weapons)
+              else None)
+
+    def _row(roll, name: str, **kw) -> PoolRow:
+        # The weapon joins only the rolls it is actually used with — a daiklave
+        # lends nothing to an Archery pool. Unknown (homebrew) weapons apply
+        # everywhere, which is the safe direction.
+        wp = weapon if (weapon is not None
+                        and poolsmod.weapon_applies(ruleset, weapon, roll)) else None
+        bd = poolsmod.base_pool(
+            ruleset, character, roll, weapon=wp,
+            include_mobility=include_mobility,
+            wound_penalty=penalty if include_wound else 0,
+            fatigue_penalty=fatigue if include_fatigue else 0, **kw)
+        return PoolRow(name=name, compact=bd.compact, total=bd.total,
+                       below_one=bd.below_one, note=bd.notes)
+
+    groups: dict[str, list[PoolRow]] = {}
+    for roll in sorted(ruleset.roll_catalog.values(),
+                       key=lambda r: (r.category, r.name)):
+        rows = groups.setdefault(roll.category or "Other", [])
+        if roll.kind is PoolKind.VIRTUE:
+            rows += [_row(roll, f"{roll.name} — {v.value.title()}", virtue=v)
+                     for v in VirtueName]
+            continue
+        rows.append(_row(roll, roll.name))
+        for spec in poolsmod.specialties_for(character, roll):
+            rows.append(_row(roll, f"{roll.name} · {spec.name}", specialty=spec))
+
+    return PoolSidebarView(
+        weapons=[w.name or "(unnamed)" for w in character.weapons],
+        groups=list(groups.items()),
+        excludes=list(poolsmod.EXCLUDES),
+        wound_label=wound_label,
+        fatigue_points=-fatigue,
+        mobility_lines=[f"{name} -{points}" for name, points
+                        in poolsmod.mobility_penalty(ruleset, character)],
+        any_below_one=any(r.below_one for rows in groups.values() for r in rows),
+    )
+
+
+def pool_trait_options() -> tuple[dict[str, str], dict[str, str]]:
+    """(attributes, abilities) as {enum value: label} for the custom-pool selects.
+    The full nine and the full 25 — a custom pool is for whatever the table is
+    doing, so nothing is filtered by caste, favouring or rating."""
+    return ({a.value: _label(a.value) for a in AttributeName},
+            {a.value: _label(a.value) for a in AbilityName})
+
+
+def pool_mobility_lines(ruleset: RuleSet, character: Character) -> list[str]:
+    """"Buff Jacket -1" per worn piece, for a surface that needs to know whether the
+    armour-mobility question arises at all. Same read `build_pool_sidebar` does."""
+    from ..engine import pools as poolsmod
+    return [f"{name} -{points}"
+            for name, points in poolsmod.mobility_penalty(ruleset, character)]
+
+
+def build_custom_pool(ruleset: RuleSet, character: Character,
+                      attribute: AttributeName, ability: AbilityName, *,
+                      agility_based: bool = False,
+                      include_mobility: bool = True,
+                      include_wound: bool = True,
+                      include_fatigue: bool = True) -> list[PoolRow]:
+    """The player's own Attribute + Ability pool, plus one row per applicable
+    specialty (same reasoning as the preset rows — p.134 scopes a specialty to its
+    own facet, so it cannot be folded into the base row).
+
+    `agility_based` is the player's answer to p.332's discretionary clause, not a
+    guess: the mobility penalty applies to dodge and whole-body Athletics feats by
+    the printed rule, and to anything else "the Storyteller deems becomes more
+    difficult in 20 or more pounds of protective gear".
+    """
+    from ..engine import pools as poolsmod
+    penalty, _ = poolsmod.wound_penalty(ruleset, character)
+    fatigue = poolsmod.fatigue_penalty(character)
+    roll = poolsmod.custom_roll(attribute, ability, mobility_applies=agility_based)
+
+    def _row(name: str, **kw) -> PoolRow:
+        bd = poolsmod.base_pool(
+            ruleset, character, roll,
+            include_mobility=include_mobility,
+            wound_penalty=penalty if include_wound else 0,
+            fatigue_penalty=fatigue if include_fatigue else 0, **kw)
+        return PoolRow(name=name, compact=bd.compact, total=bd.total,
+                       below_one=bd.below_one)
+
+    rows = [_row(roll.name)]
+    rows += [_row(f"{roll.name} · {s.name}", specialty=s)
+             for s in poolsmod.specialties_for(character, roll)]
+    return rows
 
 
 @dataclass
