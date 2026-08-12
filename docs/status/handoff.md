@@ -3,31 +3,30 @@
 **Rewritten each session.** The durable operating guide is `CLAUDE.md`.
 
 ## Current state
-- Suite **2,127 passing**, no failures. The documented machine-only
+- Suite **2,147 passing**, no failures. The documented machine-only
   `test_every_description_matches_the_source_text` is GREEN on this machine now (the
   Godblooded chapter md is absent here, so its 46 entries defer) — still not a
   regression either way, see `docs/status/godblooded.md`.
-- **The Backgrounds overhaul is DONE and browser-verified** (2026-08-12). Written up in
-  `docs/status/backgrounds.md`; the click-through record is at the bottom of that file.
+- **The Backgrounds overhaul is DONE and browser-verified** (2026-08-12), and the
+  **numeric rules are now implemented** (same day, 9 new tests) — but the numeric
+  rules are **NOT yet browser-verified**. Written up in `docs/status/backgrounds.md`.
 - `main` is at the close-out. `deepseek-experiment` is behind it.
 
 ## What happened this session
-1. **`preflight`** — Pass 1 turned up nothing new (the 27 single-site effect fields are
-   all pre-triaged; the four new Background fields all have healthy read sites). Pass 2
-   confirmed the narrowed catalogue cannot crash a select (`_opts_with` folds the held
-   value into the options). Pass 3 found the real gap: the per-row **rung label had no
-   UI coverage at all**, only `view.background_rung` unit tests. Three harness tests
-   added, negative-controlled.
-2. **The click-through** — all six items passed, ladder rungs read correctly.
-3. **One fix off it:** the dialog's ladder rendered as a wall of text. A plain NiceGUI
-   label collapses newlines, so this took BOTH blank lines between rungs and
-   `whitespace-pre-line` on the label. Covered by test; not re-clicked.
+1. **The Background numeric rules implemented** (`docs/briefs-background-rules.md`, 12
+   tests in `tests/test_background_rules.py`, suite 2,134 → **2,147**). R1 Connections
+   ≤ the Attribute sum (a new `max_rating_is_attribute_sum` field); R2 Celestial Manse
+   ≤3 on BOTH sides with a PER-CHARACTER toggle; R3 mortals barred from Artifact/Manse
+   with a toggle; R4 Mountain Folk Artifact ≤10 at 1 BP/dot above 5; R5 the plumbing —
+   `background_issues` takes an optional character + `post_lock`, called post-lock from
+   `validate.validate` for `bind_post_lock` rules only, and both rating controls read
+   `validate.background_rating_cap`. The model's `BackgroundEntry.rating` was a THIRD
+   hardcoded 5 and is relaxed to `le=10` (the human's R4 number). ⚠ **NOT browser-verified.**
+2. **The earlier session's click-through and ladder-fix record stands** (see below).
 
 ## Next up — in the order I'd take them
-1. **Engine enforcement of the Background numeric rules** — the last open piece of the
-   original ask and it needs **no pages**. The five thresholds are listed in
-   `docs/status/backgrounds.md`; `engine/artifacts.py` is the precedent. Connections is
-   the only one needing a new field ("cap from a trait total").
+1. **Browser-verify the numeric rules** — the click-through list is at the bottom of
+   `docs/status/backgrounds.md`. Run `preflight` before booking the browser time.
 2. **Gear `resources_cost` vs the Resources Background** — ⚠ still blocked on the human
    saying what the rule IS (per-item or total, chargen-only or both sides). Do not infer
    it from the Artifact table.

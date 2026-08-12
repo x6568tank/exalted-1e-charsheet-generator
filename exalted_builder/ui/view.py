@@ -1108,6 +1108,18 @@ _HOUSE_RULES = [
      "Exalted p.103",
      "Grants one Favored Ability, discount included. The price is a ceiling: no other "
      "Ability may be rated above it. Only affects splats with no castes."),
+    ("st_celestial_manse_over_three", "Sidereal may hold Celestial Manse above 3 dots",
+     "character", "Sidereals p.106",
+     "Storyteller permission for THIS Sidereal to own a Celestial Manse above three "
+     "dots — 'Characters cannot buy above Celestial Manse ••• without special "
+     "Storyteller permission'. The ceiling binds on both sides of the lock, and this "
+     "lifts it for one character only."),
+    ("st_mortal_artifact_manse", "Mortal may hold Artifact and Manse", "character",
+     "Exalted p.103",
+     "Storyteller permission for THIS mortal to take the Artifact or Manse Background "
+     "— 'may not purchase the Artifacts or Manse Backgrounds without Storyteller "
+     "permission; if a mortal has control over one of these, it's a plot device'. "
+     "Chargen only: there is no post-lock purchase to bar."),
     ("terrestrial_essence_transcendence", "Terrestrial may pass Essence 7", "character",
      "Player's Guide p.258",
      "Terrestrial Exalts are held at Essence 7 without 'outside energies' — dietary "
@@ -1179,6 +1191,18 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                         f"{'/' + character.origin if character.origin else ''}.")
             elif getattr(rules, fld):
                 note = "Granting 1 Favored Ability, which must stay the highest-rated."
+        elif fld == "st_celestial_manse_over_three":
+            if character.exalt_type != "Sidereal":
+                note = (f"No effect: the Celestial Manse ≤3 ceiling is a Sidereal rule "
+                        f"(Sidereals p.106), and this character is {character.exalt_type}.")
+            elif getattr(rules, fld):
+                note = "Permission granted: this Sidereal may hold Celestial Manse above 3 dots."
+        elif fld == "st_mortal_artifact_manse":
+            if character.exalt_type != "Mortal":
+                note = (f"No effect: core p.103 bars MORTALS from Artifact and Manse, "
+                        f"and this character is {character.exalt_type}.")
+            elif getattr(rules, fld):
+                note = "Permission granted: this mortal may take Artifact and Manse Backgrounds."
         elif fld == "terrestrial_essence_transcendence":
             if ruleset.exalt_for(character.exalt_type).tier != "Terrestrial":
                 note = (f"No effect: the Essence 7 ceiling is a Terrestrial rule, and "

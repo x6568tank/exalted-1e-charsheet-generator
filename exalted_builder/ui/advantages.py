@@ -257,13 +257,19 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         def cap_for(name: str) -> int:
             """The highest rating this Background may be clicked to. Ordinarily 5; a
             held Flaw may lower it (Innocuous caps Allies/Contacts/Mentor at 2) or close
-            it outright (Followers, Cult, Command). Asked of engine.merits, so no Merit
-            id is named here."""
+            it outright (Followers, Cult, Command) — that half is engine.merits'. The
+            engine.validate' half is the DATA ceiling: a splat rule caps or bars the
+            Background (MF Backing ≤2, the mortal Artifact bar, the MF Artifact lift to
+            10), and the control must not offer past it — a cap you can click past is
+            not a ceiling."""
             key = (name or "").strip().lower()
             if key in mf_effects.barred_backgrounds:
                 return 0
-            return min(meritsmod.DOT_MAX,
-                       mf_effects.background_caps.get(key, meritsmod.DOT_MAX))
+            data_cap = validate.background_rating_cap(b, character, name)
+            merit_cap = mf_effects.background_caps.get(key)
+            if merit_cap is None:
+                return data_cap
+            return min(data_cap, merit_cap)
 
         with panel_card(pal, f"Backgrounds ({validate.background_dots_budget(b, character)} dots; "
                              f"≤{b.background_cap_pre_bp} pre-bonus)"):
@@ -284,8 +290,15 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.label("Backgrounds").classes(
                     "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label("free — no XP").classes("text-xs text-gray-500")
+            # The ceiling comes from the engine, not a hardcoded 5 (game logic out of
+            # the widget): only the `bind_post_lock` rules bind post-lock (Sidereal
+            # Celestial Manse ≤3, MF Artifact ≤10), so a locked Unenlightened Mountain
+            # Folk can be given Backing 4 by the story and a mortal granted an artifact.
+            b = validate.effective_budgets(rs, character)
             _background_rows(lambda bg, synced: ui.number(
-                value=bg.rating, min=0, max=5, format="%d",
+                value=bg.rating, min=0,
+                max=validate.background_rating_cap(b, character, bg.name, post_lock=True),
+                format="%d",
                 on_change=lambda e, bg=bg, synced=synced: (
                     setattr(bg, "rating", int(e.value or 0)), synced())
             ).props("dense").classes("w-16"))

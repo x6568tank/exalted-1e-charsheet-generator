@@ -217,7 +217,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,134 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,147 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -254,7 +254,7 @@ full record.
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
 | **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — the ten Mountain Folk artifacts, GROWN TO 40 the same day across three castebook batches (`artifact.castebook-*`: Dawn/Night/Zenith pp.78-81 + Twilight/Eclipse pp.79-81 — the last on-disk artifacts, none remain unauthored) and the Hooked Daiklaves/Direlance rated gear rows, two blocked core items flagged — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08; **the 20 Twilight/Eclipse names are NOT yet browser-verified**) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
-| **Backgrounds — DONE, browser-verified 2026-08-12** (per-splat `catalogue_backgrounds` off each book's printed list, with `HouseRules.all_backgrounds_available` as the ST override; the printed dot ladder as `BackgroundType.ladder`, 49 of 61, rendered one rung on the row and the whole ladder in the dialog; Artifact and Manse reworked per splat; `charm_noun` so a Ghost reads "Arcanoi") | `docs/status/backgrounds.md` |
+| **Backgrounds — DONE, browser-verified 2026-08-12** (per-splat `catalogue_backgrounds` off each book's printed list, with `HouseRules.all_backgrounds_available` as the ST override; the printed dot ladder as `BackgroundType.ladder`, 49 of 61, rendered one rung on the row and the whole ladder in the dialog; Artifact and Manse reworked per splat; `charm_noun` so a Ghost reads "Arcanoi"; **the numeric rules enforced 2026-08-12, NOT yet browser-verified** — Sidereal Connections ≤ the Attribute sum, Sidereal Celestial Manse ≤3 on BOTH sides with a PER-CHARACTER ST toggle, mortals barred from Artifact/Manse with an ST toggle, Mountain Folk Artifact ≤10 at 1 BP/dot above 5, and the two hardcoded 5s in the rating controls replaced by `validate.background_rating_cap`) | `docs/status/backgrounds.md` |
 | **Catalogue picker dialogs — DONE, browser-verified 2026-08-10** (a shared `ui/catalogue.py` dialog on every add surface — weapons/armour/artifacts/backgrounds/M&F; browse name + summary, full description collapsible, a **Custom** row; custom M&F via `MeritFlawPurchase.custom_name`, display-only with no mechanical effect; the old silent cheapest-append `add_merit` deleted) | `docs/status/catalogue-dialogs.md` |
 | **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM. **2026-08-08 correction:** five mislabelled codes fixed — `ab_a/e/f/v/w` are the Dragon-Blooded **Aspect Books**, `salt` = Blood and Salt, `coin` = Manacle and Coin. **Superseded 2026-08-11 by `catalogue-sweep.md`** — `data/artifacts.json` now holds **196**, the Slayer Khatar is authored, the Direlance has no standalone entry to author (core p.341 decoded), and Fair Folk artifacts are OUT OF SCOPE on the human's ruling. Keep this file for the parse method and the per-book page lists; per-entry queue in `artifact-backlog-entries.md`) | `docs/status/artifact-backlog.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
@@ -353,15 +353,9 @@ Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
   status file.
 
 ### Next up — not started (human's asks, 2026-08-11)
-
-* **Engine enforcement of the Background numeric rules** — briefed, not built.
-  **`docs/briefs-background-rules.md`** is the authoring brief (written for a delegated
-  run); the inventory and the human's four rulings are in `docs/status/backgrounds.md`.
-  Needs no pages. ⚠ The two structural findings are the actual work, and neither was on
-  the original list: **`background_issues` is called only from `validate_chargen`**, so
-  every Background cap in the build is chargen-only; and **the rating ceiling is hardcoded
-  5 in both rating controls**, which makes the Mountain Folk Artifact lift unrecordable
-  whatever the data says.
+**Done since this list was written:** the Background numeric rules — implemented
+2026-08-12, **NOT yet browser-verified**; see the Backgrounds row above and
+`docs/status/backgrounds.md`.
 
 * **Validate gear `resources_cost` against the Resources Background** — the Artifact
   analogue, which does not exist yet. `resources_cost` is on `WeaponType`/`ArmorType`

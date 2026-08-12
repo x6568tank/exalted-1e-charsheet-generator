@@ -2002,6 +2002,19 @@ def background_pool_spend(ruleset: RuleSet, character: Character, b, backgrounds
             rate = bp_costs.background_above_3
             above_rates += [rate] * max(0, bg.rating - cap - free_above)
             continue
+        # Dots ABOVE `bp_above_rating` are bought one bonus point each, NOT from the
+        # Background pool (Mountain Folk Artifact, CH6 p.234-235: "with each dot
+        # beyond 5 costing one bonus point"). The dots at or below it go through the
+        # normal accounting below — `cap_pre_bp_exempt` keeps the MF's dots in the
+        # pool — and any of those that still sit above the pre-BP cap owe the ordinary
+        # above-cap rate (none for the MF, whose exempt cap is its own rating).
+        if rule and rule.bp_above_rating and bg.rating > rule.bp_above_rating:
+            pool_rating = min(bg.rating, rule.bp_above_rating)
+            within += background_pool_dots(rule, min(pool_rating, cap))
+            mid_rate = bp_costs.background_above_3 + rule.bp_surcharge_per_dot
+            above_rates += [mid_rate] * max(0, pool_rating - cap)
+            above_rates += [1] * (bg.rating - rule.bp_above_rating)
+            continue
         within += background_pool_dots(rule, min(bg.rating, cap))
         rate = bp_costs.background_above_3 + (rule.bp_surcharge_per_dot if rule else 0)
         above_rates += [rate] * max(0, bg.rating - cap)
@@ -2015,57 +2028,103 @@ def background_pool_spend(ruleset: RuleSet, character: Character, b, backgrounds
     return within, above_rates
 
 
-def background_issues(budgets, backgrounds) -> list[Issue]:
-    """Chargen legality for Backgrounds that carry mechanics (`background_rules`).
-    Empty for every splat with none — which is all of them but the Alchemical, whose
-    book is the first to give Backgrounds real rules (CH2 p.65-69).
+def background_issues(budgets, backgrounds, character=None, *,
+                      post_lock=False) -> list[Issue]:
+    """Legality for Backgrounds that carry mechanics (`background_rules`). Empty for
+    every splat with none — which is all of them but the Alchemical and the handful of
+    rules this brief adds.
 
-    Two checks: a Background the splat receives automatically may not be below that
-    rating (Alchemicals "automatically receive Class ••• during character creation"),
-    and a Background gated on another must have it (Backing "requires Class •••+").
+    `character` is OPTIONAL, the silent-fallback shape the merits-flaws precedent uses
+    (`derive.soak`, `lifecycle.lock_chargen`): a rule that needs the character — the
+    Attribute-sum ceiling (Sidereal Connections) or a PER-CHARACTER `st_toggle` — is
+    skipped (or reads as no permission) when called without one, rather than
+    TypeErroring at every call site.
 
-    Plus, when the origin restricts WHICH Backgrounds it may take at all
-    (`allowed_backgrounds` — the Sidereal ronin, p.100), anything outside that list is
-    flagged. Blank rows are skipped: the editor adds an empty row for the player to
-    fill in, and an unnamed row is not yet an illegal Background."""
+    `post_lock` runs the subset that binds on BOTH sides of the lock. `background_issues`
+    is called post-lock from `validate.validate`, and ONLY rules with
+    `BackgroundRule.bind_post_lock` are applied there — exactly the Sidereal Celestial
+    Manse ≤3 and Mountain Folk Artifact ≤10 (2026-08-12 rulings). Every other cap in
+    the build is chargen-only by design, because Backgrounds change through the story,
+    not by purchase; the allowed/banned lists, minimums, prerequisites and the mortal
+    bar all stay chargen-side.
+
+    The checks: a Background the splat receives automatically may not be below that
+    rating; a Background gated on another must have it; a hard ceiling — a literal
+    `max_rating`, the Attribute-sum ceiling, or a `barred` prohibition (rating must be
+    0) — may not be passed, each unless its `st_toggle` grants permission; the
+    universal trait cap (5) holds every Background on BOTH sides of the lock unless a
+    rule explicitly raises it; and, when the origin restricts WHICH Backgrounds it may
+    take at all (`allowed_backgrounds` — the Sidereal ronin, p.100), anything outside
+    that list is flagged. Blank rows are skipped: the editor adds an empty row for the
+    player to fill in, and an unnamed row is not yet an illegal Background.
+    """
     issues: list[Issue] = []
-    allowed = {n.strip().lower() for n in budgets.allowed_backgrounds}
-    if allowed:
-        for bg in backgrounds:
-            name = bg.name.strip()
-            if name and name.lower() not in allowed:
-                issues.append(Issue(
-                    code="background-not-allowed", where=name,
-                    message=f"{name} is not available to this origin; allowed: "
-                            f"{', '.join(sorted(n.title() for n in allowed))}.",
-                ))
-    banned = {n.strip().lower() for n in budgets.banned_backgrounds}
-    if banned:
-        for bg in backgrounds:
-            name = bg.name.strip()
-            if name and name.lower() in banned:
-                issues.append(Issue(
-                    code="background-banned", where=name,
-                    message=f"{name.title()} is prohibited for this origin: "
-                            f"{', '.join(sorted(n.title() for n in banned))}.",
-                ))
+    if not post_lock:
+        allowed = {n.strip().lower() for n in budgets.allowed_backgrounds}
+        if allowed:
+            for bg in backgrounds:
+                name = bg.name.strip()
+                if name and name.lower() not in allowed:
+                    issues.append(Issue(
+                        code="background-not-allowed", where=name,
+                        message=f"{name} is not available to this origin; allowed: "
+                                f"{', '.join(sorted(n.title() for n in allowed))}.",
+                    ))
+        banned = {n.strip().lower() for n in budgets.banned_backgrounds}
+        if banned:
+            for bg in backgrounds:
+                name = bg.name.strip()
+                if name and name.lower() in banned:
+                    issues.append(Issue(
+                        code="background-banned", where=name,
+                        message=f"{name.title()} is prohibited for this origin: "
+                                f"{', '.join(sorted(n.title() for n in banned))}.",
+                    ))
     for name, rule in budgets.background_rules.items():
+        if post_lock and not rule.bind_post_lock:
+            continue
         rating = background_rating(backgrounds, name)
-        if rule.min_rating and rating < rule.min_rating:
+        if not post_lock and rule.min_rating and rating < rule.min_rating:
             issues.append(Issue(
                 code="background-below-minimum", where=name,
                 message=f"{name.title()} is automatically {rule.min_rating} at character "
                         f"creation; this character has {rating}.",
             ))
-        if rule.max_rating and rating > rule.max_rating:
-            # A HARD ceiling, so an error rather than the bonus-point surcharge a
-            # soft cap produces: no amount of bonus points buys past it.
+        # The ceiling: a literal `max_rating`, or the Attribute-sum cap (Sidereal
+        # Connections, Sidereals pp.106-108). Both are HARD ceilings — an error rather
+        # than the bonus-point surcharge a soft cap produces — and both lift when the
+        # rule's `st_toggle` grants permission. The Attribute-sum variant needs the
+        # character; called without one it is skipped, the silent fallback.
+        cap = None
+        cap_is_attribute_sum = False
+        if rule.max_rating_is_attribute_sum and character is not None:
+            cap = sum(_chargen_source(character)[0].values())
+            cap_is_attribute_sum = True
+        elif rule.max_rating:
+            cap = rule.max_rating
+        if cap and rating > cap and not background_st_permitted(character, rule):
+            if cap_is_attribute_sum:
+                issues.append(Issue(
+                    code="background-above-attribute-cap", where=name,
+                    message=f"{name.title()} may not exceed {cap} for this character; "
+                            f"this character has {rating}.",
+                ))
+            else:
+                issues.append(Issue(
+                    code="background-above-origin-cap", where=name,
+                    message=f"{name.title()} may not exceed {cap} for this origin; "
+                            f"this character has {rating}.",
+                ))
+        # A BAR (rating must be 0) — mortals and Artifact/Manse, core p.103 — lifted
+        # by ST permission. Chargen only: there is no post-lock purchase to bar.
+        if not post_lock and rule.barred and rating > 0 \
+                and not background_st_permitted(character, rule):
             issues.append(Issue(
-                code="background-above-origin-cap", where=name,
-                message=f"{name.title()} may not exceed {rule.max_rating} for this "
-                        f"origin; this character has {rating}.",
+                code="background-barred", where=name,
+                message=f"{name.title()} may not be purchased for this origin without "
+                        f"Storyteller permission; this character has {rating}.",
             ))
-        if rule.requires and rating > 0:
+        if not post_lock and rule.requires and rating > 0:
             have = background_rating(backgrounds, rule.requires)
             if have < rule.requires_rating:
                 issues.append(Issue(
@@ -2073,7 +2132,98 @@ def background_issues(budgets, backgrounds) -> list[Issue]:
                     message=f"{name.title()} requires {rule.requires.title()} "
                             f"{rule.requires_rating}+; this character has {have}.",
                 ))
+    # The universal trait cap (5), enforced here now that `BackgroundEntry.rating` no
+    # longer carries it structurally — a hand-edited or older save could otherwise hold
+    # an Artifact 10 with no rule to flag it. Every Background is held to it on BOTH
+    # sides of the lock, EXCEPT where a rule explicitly raises it (Mountain Folk
+    # Artifact ≤10, whose higher ceiling the loop above enforces). A rule that caps
+    # LOWER (Backing ≤2) is chargen-only and falls away post-lock, so post-lock only
+    # this cap holds it. A rule that caps a TOTAL (Sidereal Connections) is skipped
+    # here — its own check above reads the summed rating against the attribute total.
+    for bg in backgrounds:
+        key = (bg.name or "").strip().lower()
+        if not key:
+            continue
+        rule = budgets.background_rules.get(key)
+        governs = rule is not None and (not post_lock or rule.bind_post_lock)
+        # A rule may RAISE the universal cap; it may never REMOVE it. The earlier
+        # version skipped this check whenever a rule merely EXISTED, which let the
+        # rules that state no maximum at all — Alchemical Class (`min_rating`),
+        # Alchemical Backing (`requires`), Illuminated Illumination (`min_rating`) —
+        # lose the cap at chargen while keeping it post-lock.
+        ceiling = (rule.max_rating if governs and rule.max_rating > merits.DOT_MAX
+                   else merits.DOT_MAX)
+        # Where the rule states its OWN ceiling, that check has already spoken (an
+        # above-origin-cap or above-attribute-cap issue); saying it twice for one row
+        # is noise. A total-cap rule (Sidereal Connections) reads the SUM of the rows,
+        # so it governs the row here too.
+        if governs and (rule.max_rating or rule.max_rating_is_attribute_sum):
+            continue
+        if bg.rating > ceiling:
+            issues.append(Issue(
+                code="background-above-universal-cap", where=bg.name,
+                message=f"{bg.name.title()} may not exceed {merits.DOT_MAX}; "
+                        f"this character has {bg.rating}.",
+            ))
     return issues
+
+
+def background_st_permitted(character, rule) -> bool:
+    """Whether THIS rule's Storyteller toggle lifts it for `character`.
+
+    The toggle is the PER-CHARACTER `HouseRules` field named by `BackgroundRule.st_toggle`
+    — R2's Sidereal Celestial Manse ≤3 and R3's mortal Artifact/Manse bar, both "without
+    Storyteller permission". ONE read site, the `validate.foreign_charms_permitted`
+    pattern: the UI never reaches into HouseRules for a name. `character` is optional —
+    called without one, no permission, the rule binds. A toggle the field names but a
+    HouseRules version lacks reads as False (graceful, like any dangling reference)."""
+    if character is None or not rule.st_toggle:
+        return False
+    hr = character.house_rules
+    if hr is None:
+        return False
+    return bool(getattr(hr, rule.st_toggle, False))
+
+
+def background_rating_cap(budgets, character, name, *, post_lock=False) -> int:
+    """The highest rating the Background `name` may be set to for THIS character on
+    THIS side of the lock — the single engine-side answer the rating controls take
+    their ceiling from (ui/advantages.py hardcoded 5 in both until 2026-08-12, which
+    made the Mountain Folk Artifact lift unrecordable).
+
+    A rating above this errors in `background_issues`; a control that offered more
+    would be the cap you can click past, which is not a ceiling. Layers, most
+    restrictive first:
+      * a `barred` rule (rating must be 0), unless its `st_toggle` grants permission;
+      * the rule's own `max_rating` ceiling;
+      * DOT_MAX, the universal trait cap (5).
+
+    The Attribute-sum rule (Sidereal Connections) is deliberately NOT a layer here: it
+    caps a TOTAL ("the total number of dots in Connections may not exceed" the sum,
+    Sidereals pp.106-108), so the per-row control keeps the universal ceiling and
+    `background_issues` enforces the total against the summed rating.
+
+    Post-lock only the `bind_post_lock` rules' ceilings apply. Backgrounds are free
+    story edits in play, so a chargen-only cap must NOT clamp the play control: a
+    locked Unenlightened Mountain Folk can be given Backing 4 by the story even though
+    he could not buy it at creation, and a mortal can be granted an artifact.
+    """
+    key = (name or "").strip().lower()
+    rule = budgets.background_rules.get(key)
+    if post_lock and not (rule and rule.bind_post_lock):
+        return merits.DOT_MAX
+    if rule is None:
+        return merits.DOT_MAX
+    if rule.barred and not background_st_permitted(character, rule):
+        return 0
+    if rule.max_rating and not background_st_permitted(character, rule):
+        return rule.max_rating
+    # The Attribute-sum rule (Sidereal Connections) is a TOTAL cap, not a per-row one:
+    # the printed rule says "the total number of dots in Connections may not exceed"
+    # the sum, and `background_rating` already sums duplicate rows for the check. So
+    # the control keeps the universal per-row ceiling and the total is
+    # `background_issues`' job — a row must not offer the whole attribute sum as pips.
+    return merits.DOT_MAX
 
 
 def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
@@ -4054,8 +4204,10 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
      _favored_path, _elemental_powers) = _chargen_source(character)
 
     # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
-    # for every splat whose Backgrounds are purely narrative.
-    issues += background_issues(b, backgrounds)
+    # for every splat whose Backgrounds are purely narrative. The character goes in —
+    # the Attribute-sum cap (Sidereal Connections) and the PER-CHARACTER ST toggles
+    # both read it, and an omitted character silently skips them (the house bug).
+    issues += background_issues(b, backgrounds, character)
 
     # Thaumaturgy: Occult gates on Arts, aspects and rituals; per-Science ceilings.
     # No-op for a character who has bought none, which is every character until the
@@ -5298,6 +5450,16 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_specialties(ruleset, character)
     issues += check_fetters_and_passions(ruleset, character)
     issues += check_artifacts(ruleset, character)
+    # The Background rules that bind on BOTH sides of the lock — `bind_post_lock` in
+    # the data, exactly the Sidereal Celestial Manse ≤3 and Mountain Folk Artifact ≤10
+    # (2026-08-12 rulings). Chargen-only caps stay in `validate_chargen`; Backgrounds
+    # change through the story, so a locked Unenlightened Mountain Folk may be given
+    # Backing 4 and nothing may object, and a locked Sidereal must still be held to
+    # Manse ••• unless the ST lifts it. Reads the LIVE backgrounds, which are the
+    # truth post-lock — the snapshot is for the XP audit, and Backgrounds have no XP.
+    if character.chargen_locked:
+        issues += background_issues(effective_budgets(ruleset, character),
+                                    character.backgrounds, character, post_lock=True)
     # Elemental Powers legality runs on BOTH sides of the lock, like every other
     # trait check here — the powers are bought in play as well as at creation, and a
     # chargen-only read would go dead the moment the character locks (the house bug).

@@ -1633,3 +1633,54 @@ CHAR_BG_DIALOG.backgrounds = [BackgroundEntry(name="Allies", rating=1)]
 @ui.page('/backgrounds-ladder-dialog')
 def page_backgrounds_ladder_dialog():
     advantages.build_advantages(RS, CHAR_BG_DIALOG, Path("x.json"), with_header=False)
+
+# --------------------------------------------------------------------------- #
+# The rating-control ceilings come from the engine (R5 of briefs-background-rules).
+# Four dedicated characters, each with ONE dotted Background row so the pip count
+# and the lone unlabelled number input are unambiguous:
+#   * Mountain Folk Artifact — the ceiling is 10 (both sides of the lock);
+#   * Solar Artifact — the ceiling stays 5 (every other splat still stops at 5).
+# Dedicated because these tests MOVE the ratings; sharing a character with the
+# ladder tests above would make one pass or fail on execution order.
+# --------------------------------------------------------------------------- #
+# Attributes are passed to the CONSTRUCTOR so pydantic coerces the string keys to
+# AttributeName — assignment after construction would bypass validation and leave raw
+# strings in the dict, which the range checks crash on.
+_CHAR_ATTRIBUTES_MF = {"strength": 3, "dexterity": 3, "stamina": 3,
+                       "charisma": 3, "manipulation": 3, "appearance": 3,
+                       "perception": 3, "intelligence": 3, "wits": 3}
+_CHAR_ATTRIBUTES_1 = {"strength": 1, "dexterity": 1, "stamina": 1,
+                      "charisma": 1, "manipulation": 1, "appearance": 1,
+                      "perception": 1, "intelligence": 1, "wits": 1}
+CHAR_MF_ART = Character(id="mfart", name="Jadeborn", exalt_type="Mountain-Folk",
+                        origin="enlightened", caste="worker", essence_rating=2,
+                        attributes=_CHAR_ATTRIBUTES_MF)
+CHAR_MF_ART.backgrounds = [BackgroundEntry(name="Artifact", rating=3)]
+
+@ui.page('/mf-artifact-chargen')
+def page_mf_artifact_chargen():
+    advantages.build_advantages(RS, CHAR_MF_ART, Path("x.json"), with_header=False)
+
+CHAR_MF_ART_PLAY = CHAR_MF_ART.model_copy(deep=True)
+CHAR_MF_ART_PLAY.id = "mfartx"
+lifecycle.lock_chargen(CHAR_MF_ART_PLAY, RS)
+
+@ui.page('/mf-artifact-play')
+def page_mf_artifact_play():
+    advantages.build_advantages(RS, CHAR_MF_ART_PLAY, Path("x.json"), with_header=False)
+
+CHAR_SOLAR_ART = Character(id="solart", name="Aurora", exalt_type="Solar", caste="dawn",
+                           essence_rating=1, attributes=_CHAR_ATTRIBUTES_1)
+CHAR_SOLAR_ART.backgrounds = [BackgroundEntry(name="Artifact", rating=3)]
+
+@ui.page('/solar-artifact-chargen')
+def page_solar_artifact_chargen():
+    advantages.build_advantages(RS, CHAR_SOLAR_ART, Path("x.json"), with_header=False)
+
+CHAR_SOLAR_ART_PLAY = CHAR_SOLAR_ART.model_copy(deep=True)
+CHAR_SOLAR_ART_PLAY.id = "solartx"
+lifecycle.lock_chargen(CHAR_SOLAR_ART_PLAY, RS)
+
+@ui.page('/solar-artifact-play')
+def page_solar_artifact_play():
+    advantages.build_advantages(RS, CHAR_SOLAR_ART_PLAY, Path("x.json"), with_header=False)

@@ -951,7 +951,17 @@
       "salary",
       "savant",
       "sifu"
-    ]
+    ],
+    "background_rules": {
+      "connections": {
+        "max_rating_is_attribute_sum": true
+      },
+      "celestial manse": {
+        "max_rating": 3,
+        "bind_post_lock": true,
+        "st_toggle": "st_celestial_manse_over_three"
+      }
+    }
   },
   "Sidereal:ronin": {
     "attribute_pools": [
@@ -1112,7 +1122,17 @@
       "influence",
       "mentor",
       "resources"
-    ]
+    ],
+    "background_rules": {
+      "artifact": {
+        "barred": true,
+        "st_toggle": "st_mortal_artifact_manse"
+      },
+      "manse": {
+        "barred": true,
+        "st_toggle": "st_mortal_artifact_manse"
+      }
+    }
   },
   "Mortal:ordinary": {
     "attribute_pools": [
@@ -1139,7 +1159,17 @@
       "influence",
       "mentor",
       "resources"
-    ]
+    ],
+    "background_rules": {
+      "artifact": {
+        "barred": true,
+        "st_toggle": "st_mortal_artifact_manse"
+      },
+      "manse": {
+        "barred": true,
+        "st_toggle": "st_mortal_artifact_manse"
+      }
+    }
   },
   "Ghost": {
     "attribute_pools": [
@@ -1542,7 +1572,10 @@
     "background_rules": {
       "artifact": {
         "rating_per_dot": 2,
-        "cap_pre_bp_exempt": true
+        "cap_pre_bp_exempt": true,
+        "max_rating": 10,
+        "bind_post_lock": true,
+        "bp_above_rating": 5
       },
       "resources": {
         "max_rating": 3
@@ -1595,7 +1628,10 @@
     "background_rules": {
       "artifact": {
         "rating_per_dot": 2,
-        "cap_pre_bp_exempt": true
+        "cap_pre_bp_exempt": true,
+        "max_rating": 10,
+        "bind_post_lock": true,
+        "bp_above_rating": 5
       },
       "resources": {
         "max_rating": 3

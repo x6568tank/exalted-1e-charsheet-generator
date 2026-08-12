@@ -50,7 +50,14 @@ class Specialty(BaseModel):
 
 class BackgroundEntry(BaseModel):
     name: str                              # open-ended: "Artifact", "Manse", "Resources"...
-    rating: int = Field(ge=0, le=5)
+    # The universal trait cap was 5 until the Mountain Folk Artifact lift (2026-08-12):
+    # "with each dot beyond 5 costing one bonus point" (CH6 p.234-235), ceiling 10 by
+    # the human's ruling. The model holds only a structural bound — the highest ceiling
+    # the build supports. Every REAL ceiling (the Sidereal Connections attribute-sum
+    # cap, the Celestial Manse ≤3, the MF Backing ≤2…) is the engine's job:
+    # `background_issues` and `background_rating_cap`, which know the data. The model
+    # cannot, by design (it has no RuleSet).
+    rating: int = Field(ge=0, le=10)
     note: str = ""                         # the specific descriptor
 
 
@@ -496,6 +503,23 @@ class HouseRules(BaseModel):
     # (mortal-favored-not-highest); the Exalted are exempt, which is flavour here
     # because only a mortal can turn this flag on in the first place.
     mortal_favored_ability: bool = False
+
+    # PER-CHARACTER. Storyteller permission for THIS Sidereal to own a Celestial
+    # Manse above three dots (Sidereals p.106): "Characters cannot buy above Celestial
+    # Manse ••• without special Storyteller permission — more impressive digs are
+    # reserved for higher-ranking individuals." Granted to one character, not the
+    # series. Read through `validate.background_st_permitted` (the Sidereal budget
+    # row's `st_toggle` names this field); no UI module learns the name.
+    st_celestial_manse_over_three: bool = False
+
+    # PER-CHARACTER. Storyteller permission for THIS mortal to hold the Artifact or
+    # Manse Background (core p.103): "Mortals only receive 5 dots for Backgrounds and
+    # may not purchase the Artifacts or Manse Backgrounds without Storyteller
+    # permission; if a mortal has control over one of these, it's a plot device, not an
+    # object for him to use." Chargen-only — there is no post-lock purchase to bar.
+    # Read through `validate.background_st_permitted` (both mortal rows' `st_toggle`
+    # names this field); no UI module learns the name.
+    st_mortal_artifact_manse: bool = False
 
     # TABLE-WIDE. Open the WHOLE Background catalogue to every splat, rather than the
     # Backgrounds that character's own book prints. The books ask for exactly this

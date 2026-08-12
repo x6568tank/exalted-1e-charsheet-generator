@@ -1860,6 +1860,49 @@ class BackgroundRule(BaseModel):
     # measures against. Mutually exclusive with `budget_tiers` in practice: a splat
     # prints one shape or the other, and the tiers win where both appear.
     rating_per_dot: int = Field(default=1, ge=1)
+    # Whether this rule binds on BOTH sides of the lock. The default (False) is
+    # chargen-only, which is how every rule shipped until 2026-08-12 — Backgrounds
+    # change through the story, not by purchase, and nothing checked them after the
+    # lock. Exactly two rules bind post-lock, both by human ruling (the ONLY ones in
+    # the build): Sidereal Celestial Manse ≤3 (Sidereals p.106, "cannot buy above
+    # Celestial Manse ••• without special Storyteller permission") and Mountain Folk
+    # Artifact ≤10 (CH6 p.234-235; the ceiling itself is the human's call — the book
+    # prints no upper bound). `background_issues` runs post-lock (from
+    # `validate.validate`) and applies ONLY the rules flagged here, so every other
+    # splat's caps keep behaving exactly as they do today.
+    bind_post_lock: bool = False
+    # A ceiling expressed as a TRAIT TOTAL rather than a literal: when true, the rating
+    # may not exceed the sum of the character's Attributes (Sidereal Connections,
+    # Sidereals pp.106-108: "cannot manage more points of Connections than the sum of
+    # your character's Physical, Social and Mental Attributes combined"). The DATA names
+    # what is summed; the engine never hardcodes "Attributes" or the 27 a default
+    # chargen spread happens to sum to. Requires the character (the attribute sum), so
+    # `background_issues` skips it when called without one — the silent-fallback shape
+    # the merits-flaws precedent uses. Chargen only, like `max_rating`.
+    max_rating_is_attribute_sum: bool = False
+    # A BAR rather than a ceiling: this origin may not take the Background AT ALL
+    # (rating must be 0) until `st_toggle` is set. Mortals and core p.103: "may not
+    # purchase the Artifacts or Manse Backgrounds without Storyteller permission; if a
+    # mortal has control over one of these, it's a plot device, not an object for him
+    # to use." Distinct from `banned_backgrounds`, which is unconditional — this lifts
+    # with ST permission. Chargen only.
+    barred: bool = False
+    # The PER-CHARACTER `HouseRules` field that, when True, lifts this rule for THIS
+    # character ("Storyteller permission"). Read through
+    # `validate.background_st_permitted`, the ONE read site, so no caller (UI included)
+    # reaches into HouseRules for a name. Empty = no toggle, the rule binds
+    # unconditionally. R2's Celestial Manse ceiling and R3's mortal bar each name their
+    # toggle here.
+    st_toggle: str = ""
+    # Dots ABOVE this rating are bought one bonus point each, NOT from the Background
+    # pool — the Mountain Folk Artifact ("with each dot beyond 5 costing one bonus
+    # point and granting an additional dot of total artifacts", CH6 p.234-235).
+    # 0 = no such threshold, which is every Background but the Mountain Folk Artifact.
+    # Dots at or below it still go through the normal pool accounting (`cap_pre_bp_exempt`
+    # keeps the MF's dots in the pool). Distinct from `bp_surcharge_per_dot`, which is
+    # an EXTRA on top of `background_above_3` for above-cap dots; this is a flat
+    # one-point price above a named rating, and the two compose differently.
+    bp_above_rating: int = Field(default=0, ge=0)
 
 
 class ChargenBudgets(BaseModel):
