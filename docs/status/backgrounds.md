@@ -119,15 +119,39 @@ be live as a code path.
 was already in the data and reads monotonic — 5/15/25/100/250 warriors, 1/2/3/4/5 heroic
 mortals.
 
-## Still open, and needs no pages
-**Engine enforcement of the Background numeric rules** — the last item from the original
-ask. The thresholds are now visible in committed data (descriptions and ladders):
-Sidereal Connections capped at total Attributes (27 at chargen), Celestial Manse ≤3
-without ST permission, Sidereal Resources ronin-only, mortals barred from Artifact/Manse
-without permission, Mountain Folk Backing ≤2 for the Unenlightened. Most map onto existing
-`BackgroundRule` fields; Connections needs a new "cap from a trait total" field. Read
-`engine/artifacts.py` first — it is the precedent, and the rule of the area is thresholds
-as DATA, nothing splat-specific in code.
+## Still open — the numeric rules (brief written, not built)
+`docs/briefs-background-rules.md` is the authoring brief. The inventory behind it, from
+reading the shipped data rather than the TODO:
+
+**Already modelled AND enforced** (chargen only) — Mountain Folk Backing ≤2 / Influence ≤1
+/ Mentor ≤3 (Unenlightened) and Resources ≤3 (both origins); Dragon-Kings Celestial Manse
+≤2 and Salary ≤2; Ghost Ancestor Cult and Grave Goods ≤1 (Immaculate); God-Blooded
+Inheritance 1–5; Alchemical Class ≥3 with Backing requiring Class 3. The TODO listed
+Mountain Folk Backing ≤2 as unbuilt; it has been built for a while.
+
+**Not modelled, and ruled on by the human 2026-08-12** — Sidereal Connections capped at
+the Attribute sum (CHARGEN ONLY); Sidereal Celestial Manse ≤3 without ST permission (BOTH
+SIDES, a PER-CHARACTER `HouseRules` toggle); mortals barred from Artifact/Manse without ST
+permission (CHARGEN ONLY, core p.103 — the page was on disk all along); Mountain Folk
+Artifact rises to **10**, one bonus point per dot above 5 (BOTH SIDES).
+
+**Skipped deliberately** — Mountain Folk Backing ≤3 "for private organizations"
+(narrative); "non-ronin Sidereals do not generally start with Resources" ("do not
+generally" is a ruling, not a threshold).
+
+⚠ **Two structural findings the TODO's list never mentioned, and they are the real work:**
+- **`background_issues` is called once, from `validate_chargen`.** Every Background cap in
+  the build is chargen-only. Nothing checks a Background after the lock, where the
+  Advantages tab edits ratings freely — so today a locked Unenlightened Mountain Folk can
+  be set to Backing 5 and nothing objects.
+- **The rating ceiling is hardcoded 5 in BOTH controls** — `cap_for`'s
+  `min(meritsmod.DOT_MAX, …)` at chargen and `ui.number(…, max=5)` at
+  `ui/advantages.py:288` in play. The Mountain Folk Artifact lift is unrecordable until
+  both read it from data, and the play one is game logic in a widget.
+
+Backgrounds have **no XP path at all** (`advancement.py` does not know them) — post-lock
+they are free story edits. "Binds post-lock" therefore means a validation ceiling, never a
+purchase price.
 
 ## Click-through record (2026-08-12)
 Verified by the human: the rung following the dot track at chargen; the rung following the

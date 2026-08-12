@@ -354,14 +354,14 @@ Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
 
 ### Next up — not started (human's asks, 2026-08-11)
 
-* **Engine enforcement of the Background numeric rules** — the last open piece of the
-  Backgrounds work (`docs/status/backgrounds.md`), and it needs NO pages: the thresholds
-  are already visible in committed data. Sidereal Connections capped at total Attributes,
-  Celestial Manse ≤3 without ST permission, Sidereal Resources ronin-only, mortals barred
-  from Artifact/Manse, Mountain Folk Backing ≤2 when Unenlightened. Most map onto existing
-  `BackgroundRule` fields; Connections needs a new "cap from a trait total" field.
-  `engine/artifacts.py` is the precedent — thresholds as DATA, nothing splat-specific in
-  code.
+* **Engine enforcement of the Background numeric rules** — briefed, not built.
+  **`docs/briefs-background-rules.md`** is the authoring brief (written for a delegated
+  run); the inventory and the human's four rulings are in `docs/status/backgrounds.md`.
+  Needs no pages. ⚠ The two structural findings are the actual work, and neither was on
+  the original list: **`background_issues` is called only from `validate_chargen`**, so
+  every Background cap in the build is chargen-only; and **the rating ceiling is hardcoded
+  5 in both rating controls**, which makes the Mountain Folk Artifact lift unrecordable
+  whatever the data says.
 
 * **Validate gear `resources_cost` against the Resources Background** — the Artifact
   analogue, which does not exist yet. `resources_cost` is on `WeaponType`/`ArmorType`
