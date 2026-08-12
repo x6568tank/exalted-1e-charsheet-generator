@@ -351,8 +351,12 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                     validate.effective_budgets(rs, character), rating)
                 combined = sum(i.rating for i in items)
                 if tier is not None:
+                    # The row name is optional — the Cult of the Illuminated's table
+                    # (p.96) prints bare dot rows where the Abyssal's names each one,
+                    # and a blank left a trailing comma inside the parenthesis.
+                    named = f", {tier.name}" if tier.name else ""
                     header = (f"Artifacts ({combined}/{tier.combined_max} combined — "
-                              f"Artifact {rating}, {tier.name})")
+                              f"Artifact {rating}{named})")
                 else:
                     header = f"Artifacts ({combined} combined — no Artifact Background)"
             with ui.row().classes("w-full items-baseline gap-2"):

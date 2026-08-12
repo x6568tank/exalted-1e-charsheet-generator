@@ -1079,11 +1079,35 @@
       "illumination": {
         "free_rating": 1,
         "min_rating": 1
+      },
+      "artifact": {
+        "budget_tiers": [
+          {
+            "rating": 1,
+            "combined_max": 2
+          },
+          {
+            "rating": 2,
+            "combined_max": 3
+          },
+          {
+            "rating": 3,
+            "combined_max": 4
+          },
+          {
+            "rating": 4,
+            "combined_max": 6
+          },
+          {
+            "rating": 5,
+            "combined_max": 8
+          }
+        ]
       }
     },
     "catalogue_backgrounds": [
       "allies",
-      "artifact",
+      "background.artifact-illuminated",
       "contacts",
       "familiar",
       "followers",
@@ -1094,6 +1118,74 @@
       "resources",
       "sorcery",
       "tiger warriors"
+    ]
+  },
+  "Dragon-Blooded:illuminated": {
+    "attribute_pools": [
+      7,
+      6,
+      4
+    ],
+    "ability_dots": 30,
+    "ability_min_caste_favored": 10,
+    "favored_count": 3,
+    "background_dots": 7,
+    "charm_count": 7,
+    "charm_min_caste_favored": 4,
+    "virtue_dots": 5,
+    "essence_start": 2,
+    "bonus_points": 15,
+    "requires_camp": true,
+    "requires_calling": false,
+    "background_rules": {
+      "artifact": {
+        "budget_tiers": [
+          {
+            "rating": 1,
+            "combined_max": 2
+          },
+          {
+            "rating": 2,
+            "combined_max": 3
+          },
+          {
+            "rating": 3,
+            "combined_max": 4
+          },
+          {
+            "rating": 4,
+            "combined_max": 6
+          },
+          {
+            "rating": 5,
+            "combined_max": 8
+          }
+        ]
+      },
+      "illumination": {
+        "max_rating": 3
+      },
+      "sorcery": {
+        "max_rating": 3
+      }
+    },
+    "catalogue_backgrounds": [
+      "allies",
+      "background.artifact-illuminated",
+      "background.illumination",
+      "background.manse-dragonblooded",
+      "background.sorcery-illuminated",
+      "backing",
+      "breeding",
+      "command",
+      "connections",
+      "familiar",
+      "family",
+      "henchmen",
+      "mentor",
+      "reputation",
+      "resources",
+      "retainers"
     ]
   },
   "Mortal": {
@@ -1679,7 +1771,7 @@
   "Solar": {
     "catalogue_backgrounds": [
       "allies",
-      "artifact",
+      "background.artifact",
       "backing",
       "contacts",
       "familiar",

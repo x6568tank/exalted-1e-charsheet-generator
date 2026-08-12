@@ -96,3 +96,102 @@ budget row. Open items, source defects and the rules calls are recorded in
   here had been green the whole time, because serve-and-grep proves a control renders
   and says nothing about whether the control the page NEEDS is present. Same lesson as
   the Lunar DBT dialog.
+
+## The Cult's own Backgrounds, and the Cult Dragon-Blooded (2026-08-12)
+
+Source: `images/Solar/Illuminated Backgrounds.md` (Cult pp.96-100, human-pasted).
+Both halves came out of the same pages; the browser found the first.
+
+- **`background.artifact-illuminated` (p.96) — the Cult prints its OWN Artifact and
+  the build was handing Illuminated Solars the corebook's.** Nothing was
+  mis-resolving; the entry had simply never been authored. It is the **Abyssal p.131
+  BUDGET shape**, not a cost curve — combined rating ≤ 2/3/4/6/8 at •-••••• — so it
+  reused `BackgroundRule.budget_tiers` and needed no new engine concept. A 4-dot
+  artifact now costs an Illuminated Solar three Background dots, not four.
+  - **The disambiguation trap:** both entries are called "Artifact", and a
+    `catalogue_backgrounds` NAME matches both copies; the "a splat's own copy
+    displaces the untagged one" rule would then have handed a **standard** Solar the
+    Cult's version. Both `Solar` and `Solar:illuminated` therefore key Artifact BY ID.
+    The same applies to any future splat-local rework of a shared name.
+  - Two nameless-tier bugs fell out: `BackgroundBudgetTier.name` is optional (the
+    Abyssal's five rows are labelled, the Cult's are bare dot rows) and three sites
+    interpolated it unconditionally, producing "Artifact 3 () allows…". Issue text now
+    goes through `engine.artifacts.tier_label`.
+  - `tests/test_backgrounds_splat.py`'s offered-vs-allowed guard compared the two
+    lists as raw strings, so it failed on a CORRECT config the moment a row carrying
+    both lists used an id. It resolves ids to names now. Mountain Folk had hidden the
+    gap: it uses ids throughout but carries no `allowed_backgrounds`.
+
+- **`Dragon-Blooded:illuminated` (p.96)** — "generated as standard outcastes … with
+  the following exceptions": 30 Ability dots, **7** Background dots, the Cult's
+  Backgrounds, and a training camp. Budget rows REPLACE wholesale, so the row restates
+  every outcaste value it does not change and a test pins them against
+  `Dragon-Blooded:outcaste`.
+  - **No Calling** (human, rules authority): the page names its exceptions and never
+    mentions one. `requires_camp` true, `requires_calling` false — the first character
+    in the build with a camp but no Calling, which is why the editor's panel heading is
+    now conditional.
+  - Two new camps, `sequestered-tabernacle-db` / `kether-rock-db`, borrowing the Solar
+    camps' Ability floors ("the normal requirements for their training camp").
+    **Kether Rock grants a Dragon-Blood nothing** — "select seven (7) standard
+    Dragon-Blooded Charms" is just the outcaste allowance restated.
+  - **A THIRD grant shape: `GrantedCharmChoice.pool_categories` + `pool_charms`.**
+    The Tabernacle's "three (3) Charms from Ebon Shadow, Falling Blossom, Praying
+    Mantis, Snake, Tiger Style or Ox-Body Technique" is ONE FLAT POOL picked in any
+    combination (human, rules authority) — unlike the Solar camps' "two Charms from
+    ONE of…" — and the pool MIXES style categories with a named Ability Charm, which
+    `from_categories` cannot express. It renders as ONE control, not two.
+  - Backgrounds: the Cult's Artifact displaces the Realm's doubled one ("For other
+    Cult Exalted, orichalcum is reserved exclusively for Solars. They may take jade
+    with this Background"), Illumination is capped at ••• (p.97) via `max_rating`, and
+    Sorcery is offered on the strength of "any Illuminated Exalt training in the camps
+    can learn sorcery" — but **capped at ••• ** (human, rules authority, 2026-08-12),
+    because its •••• and ••••• rungs grant "spells from either the Terrestrial or the
+    Celestial Circles" and a Terrestrial cannot cast the latter. ••• is the highest rung
+    that grants Terrestrial spells only. The cap lives on the ORIGIN row, so Solars keep
+    the whole ladder.
+
+- **Preflight caught a crash the suite could not.** `validate.camp_for` resolves a
+  stored camp id against the WHOLE camp table, so a Dragon-Blooded carrying the Solar
+  Cult's `kether-rock` reached `ui.select` as a value outside its options — which
+  raises at BUILD time and takes the enclosing tab down with it. **Unreachable until a
+  second splat owned camps**, and reachable the moment one did. `build_camp_view` now
+  clamps a MISMATCHED camp/Calling to something offered (a character with none chosen
+  still gets the empty select it always had); the engine keeps reporting
+  `camp-wrong-origin` in the issue panel, which is where a mismatch belongs.
+
+**Browser-verified by the human 2026-08-12** — all nine checklist items confirmed:
+the panel heading, the one-control pool select accepting three Charms from two styles,
+Kether Rock granting nothing, the Cult Artifact ladder and budget header, the ••• caps
+on Sorcery and Illumination, and — the regression that started all this — a STANDARD
+Solar still getting the corebook Artifact. Suite at 2,172.
+
+### Deliberately NOT authored
+
+- **Cult Abyssals (p.96)** — deferred (human, 2026-08-12). The budget deltas are
+  trivial (as Cult Solars, but 7 Background dots and none of the Indoctrination
+  flaws); the blocker is "their Calling Charms and required Charms are replaced with
+  the closest Abyssal equivalent", which is **56 unmapped Charms** — only 3 of the 59
+  Solar ids in the camps and Callings exist by name in the Abyssal catalogue. Needs a
+  human-approved mapping, not an inference.
+- **Tiger Warriors for Cult Dragon-Blooded** — the pages say Dragon-Blooded sometimes
+  *are* tiger warriors and appear as attendants at •••• and •••••, never that they may
+  buy the Background. Left out; flag if the table wants it.
+- **A Cult Dragon-Blood cannot reach the CORE Artifact.** p.96 says other Cult Exalted
+  must "purchase the standard Artifact Background from the Exalted main rulebook" to
+  hold moonsilver, starmetal or soulsteel. Offering both would put two rows named
+  "Artifact" in one dropdown — the exact duplicate the displacement rule exists to
+  prevent, and displacement cannot resolve it because both copies are tagged. Only the
+  Cult's is offered.
+- **Illumination for Lunars (••••) and Abyssals (•••••)** — printed on p.97, but there
+  is no Lunar or Abyssal Cult origin to hang the cap on.
+
+### Open question left with the human
+
+**Iris-Bulb Discourse requires Essence 3; a Cult Dragon-Blood starts at Essence 2.**
+So the Sequestered Tabernacle grants every Dragon-Blooded graduate a Charm they cannot
+hold without spending bonus points on Essence, and the sheet flags it as
+`granted-charm-minimum`. p.90 makes the SOLAR packages explicitly subject to their
+Charms' own minimums; p.96 only says Dragon-Blooded "gain" these two. Left flagged
+rather than exempted — the alternative is granted Charms bypassing minima for this camp
+only, which is a ruling, not a code choice.

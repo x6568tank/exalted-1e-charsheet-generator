@@ -161,6 +161,18 @@ def acquisition_cost(budgets, rating: int) -> int:
     return -(-rating // per)                   # ceiling division
 
 
+def tier_label(rating: int, tier: BackgroundBudgetTier) -> str:
+    """How a budget row is named back to the player: "Artifact 3 (Well-Equipped)", or
+    plain "Artifact 3" where the printed table names no rows.
+
+    A `BackgroundBudgetTier.name` is optional and the second table to arrive had none:
+    the loyal Abyssal's five rows are labelled (E:Ab p.131), the Cult of the
+    Illuminated's are bare dot rows (Cult p.96). Interpolating the empty name gave
+    "Artifact 3 ()" in the budget Issues and a trailing comma in the panel header, so
+    both read it through here rather than formatting the name themselves."""
+    return f"Artifact {rating} ({tier.name})" if tier.name else f"Artifact {rating}"
+
+
 def budget_tier(budgets, rating: int) -> Optional[BackgroundBudgetTier]:
     """The budget row for Artifact at `rating` dots, or None when this splat prints no
     budget table (every splat but the loyal Abyssal) or the rating has no row.

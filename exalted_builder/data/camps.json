@@ -159,5 +159,140 @@
       "book": "Exalted 1e Cult of the Illuminated",
       "page": 90
     }
+  },
+  {
+    "id": "sequestered-tabernacle-db",
+    "exalt_type": "Dragon-Blooded",
+    "origin": "illuminated",
+    "label": "The Sequestered Tabernacle",
+    "description": "The Cult's refined training camp as it takes Dragon-Blooded students. Venerable Silk borrowed techniques from the Bronze Faction and trains her Terrestrial students in Celestial martial arts, so a Dragon-Blooded graduate leaves with a martial package no Realm school would teach (p.96).",
+    "required_min_abilities": [
+      {
+        "abilities": [
+          "endurance"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "linguistics"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "lore"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "martial_arts"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "occult"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "presence"
+        ],
+        "rating": 3
+      },
+      {
+        "abilities": [
+          "socialize"
+        ],
+        "rating": 1
+      }
+    ],
+    "granted_charms": [
+      "dragonblooded.martial-arts.walker-among-irises-perception",
+      "dragonblooded.martial-arts.iris-bulb-discourse"
+    ],
+    "granted_charm_choices": [
+      {
+        "label": "Three Charms from the Tabernacle's list",
+        "pick": 3,
+        "from_categories": [],
+        "fixed_sets": [],
+        "pool_categories": [
+          "martial_arts:ebon-shadow",
+          "martial_arts:falling-blossom",
+          "martial_arts:praying-mantis",
+          "martial_arts:snake",
+          "martial_arts:tiger"
+        ],
+        "pool_charms": [
+          "dragonblooded.endurance.ox-body-technique"
+        ]
+      }
+    ],
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 96
+    }
+  },
+  {
+    "id": "kether-rock-db",
+    "exalt_type": "Dragon-Blooded",
+    "origin": "illuminated",
+    "label": "Kether Rock",
+    "description": "The Cult's militant training camp as it takes Dragon-Blooded students. Unlike the Sequestered Tabernacle it teaches its Terrestrial students nothing out of the ordinary: they simply select seven standard Dragon-Blooded Charms (p.96).",
+    "required_min_abilities": [
+      {
+        "abilities": [
+          "archery",
+          "brawl"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "endurance"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "medicine"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "melee"
+        ],
+        "rating": 2
+      },
+      {
+        "abilities": [
+          "presence"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "resistance"
+        ],
+        "rating": 1
+      },
+      {
+        "abilities": [
+          "survival"
+        ],
+        "rating": 3
+      }
+    ],
+    "granted_charms": [],
+    "granted_charm_choices": [],
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 96
+    }
   }
 ]

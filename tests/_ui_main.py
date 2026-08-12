@@ -403,6 +403,49 @@ CHAR_ILL_TAB.abilities[AbilityName.PRESENCE] = 3
 def page_ill_editor_tab():
     editor.build_editor(RS, CHAR_ILL_TAB, Path("i3.json"), with_header=False)
 
+# A Cult DRAGON-BLOODED (Cult p.96) — the second splat to own training camps, and the
+# first flat-pool grant ("three Charms from five styles or Ox-Body Technique", picked
+# in any combination). Two shapes need a render route rather than a unit test: the
+# pool choice renders ONE control where a category choice renders two, and a camp id
+# belonging to the other splat's Cult is a value outside the select's options, which
+# `ui.select` raises on at build time.
+def _cult_db(cid: str, camp: str) -> Character:
+    c = Character(id=cid, name="Cult Terrestrial", exalt_type="Dragon-Blooded",
+                  caste="fire", origin="illuminated", camp=camp, essence_rating=2)
+    for ability, dots in ((AbilityName.BRAWL, 1), (AbilityName.ENDURANCE, 1),
+                          (AbilityName.MEDICINE, 1), (AbilityName.MELEE, 2),
+                          (AbilityName.PRESENCE, 3), (AbilityName.RESISTANCE, 1),
+                          (AbilityName.SURVIVAL, 3), (AbilityName.MARTIAL_ARTS, 5),
+                          (AbilityName.LINGUISTICS, 1), (AbilityName.LORE, 1),
+                          (AbilityName.OCCULT, 1), (AbilityName.SOCIALIZE, 1)):
+        c.abilities[ability] = dots
+    return c
+
+CHAR_CULT_DB = _cult_db("cdb1", "sequestered-tabernacle-db")
+# Resolve the pool with three Charms from TWO different styles — the combination a
+# category choice would reject and this shape must accept.
+_EBON = sorted((c for c in RS.charms.values() if c.category == "martial_arts:ebon-shadow"),
+               key=lambda c: (c.min_ability, c.min_essence, c.name))[:2]
+_TIGER = sorted((c for c in RS.charms.values() if c.category == "martial_arts:tiger"),
+                key=lambda c: (c.min_ability, c.min_essence, c.name))[:1]
+CHAR_CULT_DB.granted_charms = (
+    list(RS.camps["sequestered-tabernacle-db"].granted_charms)
+    + [c.id for c in _EBON + _TIGER])
+
+@ui.page('/cult-db-editor')
+def page_cult_db_editor():
+    editor.build_editor(RS, CHAR_CULT_DB, Path("cdb1.json"), with_header=False)
+
+# The crash shape: a Dragon-Blooded holding the SOLAR Cult's camp id. `camp_for`
+# resolves it against the whole table, so the select would be handed a value none of
+# its options carry.
+CHAR_CULT_DB_CROSSED = _cult_db("cdb2", "kether-rock")
+CHAR_CULT_DB_CROSSED.calling = "deacon"
+
+@ui.page('/cult-db-crossed')
+def page_cult_db_crossed():
+    editor.build_editor(RS, CHAR_CULT_DB_CROSSED, Path("cdb2.json"), with_header=False)
+
 # A plain Solar, for the test that the Origin dropdown renders at all and offers the
 # Illuminated option — it was missing from _SPLAT_ORIGINS on the first pass, which made
 # the whole origin unselectable while every engine test passed.

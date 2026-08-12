@@ -425,12 +425,29 @@ def _check_camps_and_callings(camps, callings, charms, problems: list[str]) -> N
                     if cid not in charms:
                         problems.append(
                             f"camp {camp.id!r}: charm {cid!r} in a fixed_sets option does not exist")
-            if not choice.from_categories and not choice.fixed_sets:
+            for cid in choice.pool_charms:
+                if cid not in charms:
+                    problems.append(
+                        f"camp {camp.id!r}: charm {cid!r} in a pool_charms option does not exist")
+            pooled = bool(choice.pool_categories or choice.pool_charms)
+            if not choice.from_categories and not choice.fixed_sets and not pooled:
                 problems.append(f"camp {camp.id!r}: granted_charm_choice {choice.label!r} offers nothing")
             if choice.from_categories and choice.pick < 1:
                 problems.append(
                     f"camp {camp.id!r}: granted_charm_choice {choice.label!r} picks from categories "
                     f"but `pick` is {choice.pick}")
+            if pooled and choice.pick < 1:
+                problems.append(
+                    f"camp {camp.id!r}: granted_charm_choice {choice.label!r} picks from a pool "
+                    f"but `pick` is {choice.pick}")
+            # A pool smaller than the package cannot be resolved at all, and the
+            # failure would otherwise surface as a permanent chargen error on a
+            # legal character rather than as a data problem here.
+            if pooled and len(choice.pool_charm_ids(charms)) < choice.pick:
+                problems.append(
+                    f"camp {camp.id!r}: granted_charm_choice {choice.label!r} needs "
+                    f"{choice.pick} Charm(s) but its pool holds "
+                    f"{len(choice.pool_charm_ids(charms))}")
     known_camps = set(camps)
     for calling in callings.values():
         if calling.camp and calling.camp not in known_camps:

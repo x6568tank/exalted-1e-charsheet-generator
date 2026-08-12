@@ -217,7 +217,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,159 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,172 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -244,7 +244,7 @@ full record.
 | Lunar (chargen, Attribute-keyed Charms, Gifts, Combos) | `docs/status/lunar.md` |
 | Sidereal (Colleges, ronin, Paradox, Charms, SMA wiring) | `docs/status/sidereal.md` |
 | Alchemical (Charm Slots, Arrays, Submodules, Clarity, Vat Refit) | `docs/status/alchemical.md` |
-| Solar alt-origin: Cult of the Illuminated (Camps, Callings, granted Charms) | `docs/status/illuminated.md` |
+| Solar alt-origin: Cult of the Illuminated (Camps, Callings, granted Charms) — **plus the Cult's own Artifact Background and the Cult DRAGON-BLOODED origin, both browser-verified 2026-08-12**; Cult Abyssals deliberately deferred | `docs/status/illuminated.md` |
 | DB origins: Lookshy / Forest Witches / Lost Eggs / Pirates (`upbringing` axis) | `docs/status/dragonblooded-origins.md` |
 | DB Aspect Books CH6 (87 Charms, Jade Mountain, breadth prereqs, gear) | `docs/status/dragonblooded-aspect-books.md` |
 | **Thaumaturgy — DONE** (cross-splat Arts/Sciences/Rituals/Formulas; engine + UI, browser-verified) | `docs/status/thaumaturgy.md` |
@@ -387,6 +387,16 @@ survive any status rewrite:
   STRUCTURED rather than prose needs `whitespace-pre-line` or NiceGUI collapses every
   newline in it; and a test that reads a shared module-level fixture character's CONTENT
   needs its own route, or it passes alone and fails in the suite.
+* **Cult of the Illuminated, second pass** (`docs/status/illuminated.md`) — the Cult
+  prints its OWN Artifact Background and the build had never authored it, so Illuminated
+  Solars silently got the corebook's. Two lessons that generalise: **where two splats
+  print the same Background NAME, the catalogue entry must be keyed by ID** — a name
+  matches both copies, and the displacement rule then hands the WRONG splat the reworked
+  one; and **a UI select whose value is resolved against a GLOBAL table while its options
+  are SCOPED is a build-time crash waiting for a second owner to exist.** `camp_for`
+  searches every camp, `camps_for` only the character's — harmless while one splat owned
+  every camp, a blanked tab the day Cult Dragon-Blooded shipped. Preflight caught it;
+  the suite could not.
 * **Dragon-Kings breed attributes** (`docs/status/dragon-kings.md`) — breed attribute
   bonuses are free dots ON TOP of the stored value, but each EFFECTIVE dot above 5 is
   BP-bought at the attribute rate (PG p.175). **Trap: a "free" ruling that contradicts

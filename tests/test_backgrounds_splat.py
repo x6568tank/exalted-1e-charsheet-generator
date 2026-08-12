@@ -357,12 +357,22 @@ def test_the_dropdown_never_offers_a_background_the_hard_list_forbids(rs):
     them disagree. The Sidereal ronin did: its catalogue inherited the twelve of the
     base Sidereal row while p.100 limits it to eight, so the dropdown offered
     Celestial Manse, Salary, Savant and Sifu and each errored the moment it was
-    picked."""
+    picked.
+
+    Compared by NAME on both sides: `allowed_backgrounds` is name-keyed (it validates
+    a `BackgroundEntry`, which stores a name), while a catalogue entry may be either a
+    name or an exact id — the Illuminated Solars' Artifact is listed by id so it cannot
+    be confused with the corebook's. Resolving ids to their name first is what keeps
+    the two lists comparable at all."""
     for key, row in rs.budgets.items():
         if not (row.allowed_backgrounds and row.catalogue_backgrounds):
             continue
         allowed = {n.strip().lower() for n in row.allowed_backgrounds}
-        offered = {n.strip().lower() for n in row.catalogue_backgrounds}
+        offered = set()
+        for entry in row.catalogue_backgrounds:
+            entry = entry.strip()
+            bg = rs.background_catalog.get(entry)
+            offered.add((bg.name if bg is not None else entry).strip().lower())
         assert offered <= allowed, (
             f"{key} offers {sorted(offered - allowed)}, which its allowed_backgrounds "
             f"forbids — the player can pick a name that immediately errors.")
@@ -648,6 +658,6 @@ def test_a_splats_own_copy_displaces_the_untagged_one(rs):
 
 def test_the_storyteller_override_still_shows_every_books_version(rs):
     """The displacement must NOT reach `all_available`: there the ST asked for every
-    book's version, and the five differently-reworked Artifacts are the point."""
+    book's version, and the six differently-reworked Artifacts are the point."""
     rows = rs.backgrounds_for("Solar", all_available=True)
-    assert len([b for b in rows if b.name == "Artifact"]) == 5
+    assert len([b for b in rows if b.name == "Artifact"]) == 6

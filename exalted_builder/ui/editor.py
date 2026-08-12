@@ -73,6 +73,11 @@ _SPLAT_ORIGINS: dict[str, dict[str, str]] = {
         "forest-witch": "Forest Witch",
         "lost-egg": "Lost Egg",
         "pirate": "Pirate (Eos and Ossissa)",
+        # Cult p.96: a Dragon-Blooded trained by the Cult of the Illuminated is
+        # generated as a standard outcaste with four exceptions (30 Abilities, 7
+        # Backgrounds, the Cult's Backgrounds, and a training camp). Unlike the
+        # Solar Cult origin there is no Calling — the page never gives them one.
+        "illuminated": "Cult of the Illuminated",
     },
     # Abyssal Backgrounds depend on standing with the Deathlord: 13 dots for a loyal
     # deathknight, 5 for a fugitive/renegade (p.122). First key is the default
@@ -974,7 +979,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         # uses camps, so no other splat grows an empty panel.
         camp_view = viewmod.build_camp_view(ruleset, character)
         if camp_view is not None:
-            with panel("Training Camp & Calling"):
+            # Cult p.96 gives a Dragon-Blooded a camp but no Calling, so the heading
+            # follows what the panel actually contains rather than naming a control
+            # that is not there.
+            with panel("Training Camp & Calling" if camp_view.calling_options
+                       else "Training Camp"):
                 with ui.row().classes("w-full gap-3 items-start"):
                     # left: the camp, its floors and its free-Charm package
                     with ui.column().classes("flex-1 gap-1 min-w-0"):
@@ -990,7 +999,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                             ui.label("Free Charms: " + ", ".join(
                                 n for _, n in camp_view.granted_fixed)).classes("text-xs italic")
                         for idx, choice in enumerate(camp_view.choices):
-                            suffix = f" (pick {choice.pick})" if choice.is_category_choice else ""
+                            # `pick` rather than `is_category_choice`: a flat-pool
+                            # choice also picks N, and only a fixed-set choice (which
+                            # leaves pick at 0) has no count to show.
+                            suffix = f" (pick {choice.pick})" if choice.pick else ""
                             # An option the page offers but `data/` cannot yet satisfy stays
                             # LISTED — hiding it would misrepresent the rulebook — but is
                             # marked, and set_camp_choice refuses it rather than assigning
@@ -998,10 +1010,13 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                             opts = {o.key: (o.label if o.available
                                             else f"{o.label} — {o.reason}")
                                     for o in choice.options}
-                            _frozen(ui.select(opts, label=choice.label + suffix,
-                                      value=choice.chosen_key or None,
-                                      on_change=lambda e, i=idx: set_camp_choice(i, e.value)
-                                      ).classes("w-full"))
+                            # A flat-pool choice has no options and no style step; its
+                            # Charm select below is the entire control.
+                            if opts:
+                                _frozen(ui.select(opts, label=choice.label + suffix,
+                                          value=choice.chosen_key or None,
+                                          on_change=lambda e, i=idx: set_camp_choice(i, e.value)
+                                          ).classes("w-full"))
                             # Picking the style is only half the choice — the package is
                             # "two Charms from ONE of four martial arts" (p.90), so the
                             # player chooses WHICH. Multi-select, capped at `pick`.
@@ -1009,8 +1024,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 copts = {o.charm_id: (o.label if o.meets_minimums
                                                       else f"{o.label} — {o.reason}")
                                          for o in choice.charm_options}
+                                # With a style select above, this is the follow-up
+                                # ("Which 2?"); standing alone it IS the choice, so it
+                                # carries the printed label instead.
                                 _frozen(ui.select(copts, multiple=True,
-                                          label=f"Which {choice.pick}?",
+                                          label=(f"Which {choice.pick}?" if opts
+                                                 else choice.label + suffix),
                                           value=list(choice.chosen_charm_ids),
                                           on_change=lambda e, i=idx: set_camp_choice_charms(
                                               i, list(e.value or []))

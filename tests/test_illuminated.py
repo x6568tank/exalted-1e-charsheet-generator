@@ -8,7 +8,7 @@ tests there. Nothing here should pass by accident once those land.
 """
 import pytest
 
-from exalted_builder.models.character import Character
+from exalted_builder.models.character import BackgroundEntry, Character
 from exalted_builder.models.rules import AbilityName
 from exalted_builder.rules_db import load_ruleset
 
@@ -81,6 +81,29 @@ def test_illumination_dot_is_free_on_top_of_the_pool(rs):
 
     alch = rs.budgets_for("Alchemical").background_rules["class"]
     assert alch.free_rating == 0, "the Alchemical Class dots are paid for, not granted"
+
+
+def test_the_cult_prints_its_own_artifact_background(rs):
+    """p.96: the Cult's Artifact is not the core one. It is a combined-rating BUDGET
+    (the Abyssal p.131 shape), and an Illuminated Solar must be offered that copy
+    rather than the corebook's cost-curve version — which is what the browser found.
+
+    Both catalogue entries are keyed BY ID rather than by the name "artifact",
+    because the name alone matches both copies and the displacement rule would then
+    hand a standard Solar the Cult's version."""
+    ill = {b.id for b in rs.backgrounds_for("Solar", "illuminated")}
+    std = {b.id for b in rs.backgrounds_for("Solar")}
+    assert "background.artifact-illuminated" in ill
+    assert "background.artifact" not in ill
+    assert std & {"background.artifact", "background.artifact-illuminated"} \
+        == {"background.artifact"}
+
+    tiers = rs.budgets_for("Solar", "illuminated").background_rules["artifact"].budget_tiers
+    assert [(t.rating, t.combined_max) for t in tiers] == \
+        [(1, 2), (2, 3), (3, 4), (4, 6), (5, 8)]
+    # The page prints no per-item ceiling on any row, unlike the loyal Abyssal's.
+    assert all(t.individual_max == 0 for t in tiers)
+    assert rs.budgets_for("Solar").background_rules.get("artifact") is None
 
 
 # ------------------------------------------------------------------- camps
@@ -1244,3 +1267,179 @@ def test_fixed_set_choices_have_no_sub_choice(rs):
         if not choice.is_category_choice:
             assert choice.charm_options == []
             assert choice.chosen_charm_ids == []
+
+
+# ---------------------------------------------- Cult Dragon-Blooded (p.96)
+
+def _cult_db(rs, camp="kether-rock-db", **kw):
+    """A Cult Dragon-Blooded. p.96 generates them "as standard outcastes ... with the
+    following exceptions", so everything not named below comes off the outcaste row."""
+    abilities = {AB.BRAWL: 1, AB.ENDURANCE: 1, AB.MEDICINE: 1, AB.MELEE: 2,
+                 AB.PRESENCE: 1, AB.RESISTANCE: 1, AB.SURVIVAL: 3, AB.MARTIAL_ARTS: 4}
+    abilities.update(kw.pop("abilities", {}))
+    granted = kw.pop("granted_charms", list(rs.camps[camp].granted_charms))
+    data = dict(id="cdb", name="Cult DB", exalt_type="Dragon-Blooded", caste="fire",
+                origin="illuminated", camp=camp, calling="", essence_rating=2,
+                abilities=abilities, granted_charms=granted)
+    data.update(kw)
+    return Character(**data)
+
+
+def test_cult_dragonblooded_budget_is_the_outcaste_row_with_four_exceptions(rs):
+    """p.96: "generated as standard outcastes (Exalted: The Outcaste, pp. 159-160)
+    with the following exceptions: They gain 30 dots of Abilities and have the normal
+    requirements for their training camp. They receive seven (7) Background dots and
+    may select Cult Backgrounds." Everything else must still be the outcaste's —
+    budget rows REPLACE wholesale, so the unchanged values are restated, and this test
+    is what keeps a future edit from letting one drift."""
+    out = rs.budgets_for("Dragon-Blooded", "outcaste")
+    cult = rs.budgets_for("Dragon-Blooded", "illuminated")
+
+    assert (out.ability_dots, cult.ability_dots) == (25, 30)
+    assert (out.background_dots, cult.background_dots) == (12, 7)
+    for field in ("attribute_pools", "ability_min_caste_favored", "favored_count",
+                  "charm_count", "charm_min_caste_favored", "virtue_dots",
+                  "essence_start", "bonus_points"):
+        assert getattr(cult, field) == getattr(out, field), field
+
+
+def test_a_cult_dragonblooded_has_a_camp_but_no_calling(rs):
+    """p.96 gives them "the normal requirements for their training camp" and never
+    mentions a Calling — the Solar apparatus does not come wholesale (human, rules
+    authority). The camp panel must therefore render with no Calling control."""
+    from exalted_builder.ui import view
+    cult = rs.budgets_for("Dragon-Blooded", "illuminated")
+    assert cult.requires_camp is True
+    assert cult.requires_calling is False
+
+    cv = view.build_camp_view(rs, _cult_db(rs))
+    assert [cid for cid, _ in cv.camp_options] == \
+        ["sequestered-tabernacle-db", "kether-rock-db"]
+    assert cv.calling_options == []
+    assert not validate.check_camp_and_calling(rs, _cult_db(rs))
+
+
+def test_the_db_camps_borrow_the_solar_camps_ability_floors(rs):
+    """"the normal requirements for their training camp" (p.96) — the floors are the
+    camp's, not a second set printed for Dragon-Blooded."""
+    for db, solar in (("sequestered-tabernacle-db", "sequestered-tabernacle"),
+                      ("kether-rock-db", "kether-rock")):
+        assert rs.camps[db].required_min_abilities == \
+            rs.camps[solar].required_min_abilities
+
+
+def test_kether_rock_grants_a_dragonblood_nothing(rs):
+    """p.96: Kether Rock's Dragon-Blooded "select seven (7) standard Dragon-Blooded
+    Charms" — which is the outcaste's normal allowance, so the camp hands out no free
+    package at all. Contrast the Solar Kether Rock, which grants two Charms and a
+    pair."""
+    camp = rs.camps["kether-rock-db"]
+    assert list(camp.granted_charms) == []
+    assert list(camp.granted_charm_choices) == []
+    assert not validate.granted_charm_issues(rs, _cult_db(rs))
+    assert rs.budgets_for("Dragon-Blooded", "illuminated").charm_count == 7
+
+
+def test_the_tabernacle_grants_a_dragonblood_two_charms_plus_three_from_a_pool(rs):
+    """p.96: Venerable Silk "trains Dragon-Blooded in Celestial martial arts", so they
+    "gain Walker-Among-Irises Perception and Iris-Bulb Discourse ... and three (3)
+    Charms from Ebon Shadow Style, Falling Blossom Style, Praying Mantis Style, Snake
+    Style, Tiger Style or Ox-Body Technique".
+
+    The three come from ONE FLAT POOL, mixed freely — unlike the Solar camps' "two
+    Charms from ONE of the following four martial arts" (human, rules authority) —
+    and the pool mixes five styles with a named Ability Charm, which is why
+    `pool_categories`/`pool_charms` exists at all."""
+    camp = rs.camps["sequestered-tabernacle-db"]
+    assert list(camp.granted_charms) == [
+        "dragonblooded.martial-arts.walker-among-irises-perception",
+        "dragonblooded.martial-arts.iris-bulb-discourse"]
+    (choice,) = camp.granted_charm_choices
+    assert choice.pick == 3
+    assert not choice.from_categories and not choice.fixed_sets
+    assert set(choice.pool_categories) == {
+        "martial_arts:ebon-shadow", "martial_arts:falling-blossom",
+        "martial_arts:praying-mantis", "martial_arts:snake", "martial_arts:tiger"}
+    assert list(choice.pool_charms) == ["dragonblooded.endurance.ox-body-technique"]
+
+    pool = choice.pool_charm_ids(rs.charms)
+    assert "dragonblooded.endurance.ox-body-technique" in pool
+    assert any(rs.charms[c].category == "martial_arts:falling-blossom" for c in pool)
+
+
+def test_the_pool_choice_needs_exactly_three_charms_from_anywhere_in_it(rs):
+    """Under-picking is unresolved, three is legal in ANY combination (the point of
+    the shape — two styles at once must NOT raise granted-charm-choice-mixed), and a
+    fourth is an extra."""
+    camp = rs.camps["sequestered-tabernacle-db"]
+    fixed = list(camp.granted_charms)
+    (choice,) = camp.granted_charm_choices
+    pool = choice.pool_charm_ids(rs.charms)
+    ebon = [c for c in pool if rs.charms[c].category == "martial_arts:ebon-shadow"]
+    snake = [c for c in pool if rs.charms[c].category == "martial_arts:snake"]
+
+    def codes(granted):
+        return _codes(validate.granted_charm_issues(
+            rs, _cult_db(rs, camp="sequestered-tabernacle-db", granted_charms=granted)))
+
+    assert "granted-charm-choice-unresolved" in codes(fixed + ebon[:2])
+    mixed = fixed + [ebon[0], snake[0], "dragonblooded.endurance.ox-body-technique"]
+    assert not (codes(mixed) & {"granted-charm-choice-unresolved",
+                                "granted-charm-choice-mixed", "granted-charm-extra"})
+    assert "granted-charm-extra" in codes(mixed + [snake[1]])
+
+
+def test_the_pool_choice_renders_as_one_control_not_two(rs):
+    """A category choice is a style select plus a Charm select; a pool choice has no
+    style step, so `options` must be empty and `charm_options` full from the start.
+    An empty style select would be a dropdown the player can neither use nor
+    dismiss — the editor keys off exactly this."""
+    from exalted_builder.ui import view
+    cult = _cult_db(rs, camp="sequestered-tabernacle-db")
+    (choice,) = view.build_camp_view(rs, cult).choices
+    assert choice.options == []
+    assert choice.is_category_choice is False
+    assert len(choice.charm_options) > 40
+    assert choice.pick == 3
+
+
+def test_cult_dragonblooded_take_the_cults_artifact_and_a_capped_illumination(rs):
+    """p.96: "For other Cult Exalted, orichalcum is reserved exclusively for Solars.
+    They may take jade with this Background" — the Cult's Artifact is theirs, so it
+    displaces the Realm's doubled one. Illumination is theirs too, but capped: "
+    Dragon-Blooded may not exceed Illumination •••" (p.97)."""
+    offered = {b.id for b in rs.backgrounds_for("Dragon-Blooded", "illuminated")}
+    assert "background.artifact-illuminated" in offered
+    assert "background.artifact-dragonblooded" not in offered
+    assert {"background.illumination", "background.sorcery-illuminated"} <= offered
+    # Still Dragon-Blooded: the Realm Backgrounds do not go away.
+    assert {"background.breeding", "background.family"} <= offered
+
+    rules = rs.budgets_for("Dragon-Blooded", "illuminated").background_rules
+    assert rules["illumination"].max_rating == 3
+    assert rules["illumination"].free_rating == 0, \
+        "the free dot is printed for Solars only (p.97)"
+    assert [(t.rating, t.combined_max) for t in rules["artifact"].budget_tiers] == \
+        [(1, 2), (2, 3), (3, 4), (4, 6), (5, 8)]
+
+
+def test_a_cult_dragonblooded_sorcery_stops_below_the_celestial_rungs(rs):
+    """The Sorcery Background is offered to Dragon-Blooded on the strength of "any
+    Illuminated Exalt training in the camps can learn sorcery" (p.98), but its •••• and
+    ••••• rungs grant "four/five spells from either the Terrestrial or the Celestial
+    Circles" — which a Terrestrial cannot cast. Capped at ••• , the highest rung that
+    grants Terrestrial spells only (human, rules authority, 2026-08-12).
+
+    Solars keep the full ladder: the cap is on the ORIGIN row, not the Background."""
+    db = rs.budgets_for("Dragon-Blooded", "illuminated")
+    assert db.background_rules["sorcery"].max_rating == 3
+
+    solar = rs.budgets_for("Solar", "illuminated")
+    assert "sorcery" not in solar.background_rules
+
+    c = Character(id="s", name="s", exalt_type="Dragon-Blooded", caste="fire",
+                  origin="illuminated",
+                  backgrounds=[BackgroundEntry(name="Sorcery", rating=4)])
+    assert validate.background_rating_cap(db, c, "Sorcery") == 3
+    assert "background-above-origin-cap" in _codes(
+        validate.background_issues(db, c.backgrounds, c))

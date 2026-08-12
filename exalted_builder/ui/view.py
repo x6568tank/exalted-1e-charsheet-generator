@@ -1519,7 +1519,11 @@ class CampChoiceView:
     A category choice is TWO controls, not one: `options`/`chosen_key` pick the style,
     then `charm_options`/`chosen_charm_ids` pick which `pick` of that style's Charms are
     granted. `charm_options` is empty until a style is chosen, and always empty for a
-    fixed-set choice (there the printed pair IS the grant — no sub-choice)."""
+    fixed-set choice (there the printed pair IS the grant — no sub-choice).
+
+    A flat-pool choice (GrantedCharmChoice.pool_categories/pool_charms) is the mirror
+    image: `options` is EMPTY and `charm_options` holds the whole pool from the start,
+    so the editor renders one control instead of two."""
     label: str
     pick: int
     is_category_choice: bool
@@ -1563,6 +1567,21 @@ def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView
     camps = ruleset.camps_for(character.exalt_type, character.origin)
     camp = validate.camp_for(ruleset, character)
     calling = validate.calling_for(ruleset, character)
+    # `camp_for` resolves the stored id against the WHOLE camp table, so a camp
+    # belonging to another splat's Cult resolves fine and would be handed to the
+    # select as a value that is not one of its options — which `ui.select` raises on
+    # at BUILD time, taking the rest of the tab down with it. Clamp to something
+    # offered; the engine still reports `camp-wrong-origin` in the issue panel, which
+    # is where a mismatch belongs. Unreachable until Cult Dragon-Blooded shipped
+    # (2026-08-12) — with one splat owning every camp, the value was always an option.
+    # Only a MISMATCH is clamped. A character with no camp chosen yet keeps the empty
+    # select it has always had — filling it in here would show a camp the character
+    # does not actually hold.
+    if camps and character.camp and camp not in camps:
+        camp = camps[0]
+    if calling is not None and camp is not None and \
+            calling not in ruleset.callings_for(camp.id):
+        calling = None
 
     minimums: list[str] = []
     granted_fixed: list[tuple[str, str]] = []
@@ -1603,6 +1622,11 @@ def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView
                         available=ok, reason=reason))
                     if ids and any(c in held for c in ids):
                         chosen = cat
+            # A flat-pool choice reaches here with `options` still empty, and that is
+            # what tells the editor to render only the Charm multi-select: the shape
+            # has no style step, and a select over nothing would be an empty dropdown
+            # the player can neither use nor dismiss.
+            #
             # Choosing the style is only half a category choice — the page grants
             # "two Charms from ONE of four martial arts" (p.90), so the player also
             # picks WHICH. Offer the chosen style's whole roster, flagging any Charm
@@ -1611,8 +1635,14 @@ def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView
             # raising the trait later clears it).
             charm_options: list[CampCharmOption] = []
             chosen_charm_ids: list[str] = []
+            pool: list[str] = []
             if chosen and choice.from_categories:
                 pool = next((o.charm_ids for o in options if o.key == chosen), [])
+            elif not choice.fixed_sets and not choice.from_categories:
+                # The flat pool is offered whole and immediately — there is no style
+                # to choose first, so this control is the entire choice.
+                pool = choice.pool_charm_ids(ruleset.charms)
+            if pool:
                 for cid in sorted(pool, key=lambda i: _charm_name(ruleset, i)):
                     charm = ruleset.charms.get(cid)
                     short = validate.charm_ability_shortfalls(character, charm) if charm else []
@@ -1623,6 +1653,7 @@ def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView
                         charm_id=cid, label=_charm_name(ruleset, cid),
                         meets_minimums=not short, reason=reason))
                 chosen_charm_ids = [c for c in pool if c in held]
+
             choices.append(CampChoiceView(
                 label=choice.label, pick=choice.pick,
                 is_category_choice=bool(choice.from_categories),

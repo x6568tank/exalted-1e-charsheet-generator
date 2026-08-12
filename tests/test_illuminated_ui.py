@@ -127,3 +127,46 @@ async def test_editor_renders_the_which_charms_sub_select(user: User) -> None:
     # The two Snake Charms seeded in _ui_main.py, shown as chips.
     await user.should_see("Striking Cobra Technique")
     await user.should_see("Serpentine Evasion")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_cult_dragonblooded_editor_renders_the_camp_panel_without_a_calling(
+        user: User) -> None:
+    """Cult p.96 gives a Dragon-Blooded a training camp but no Calling, so the panel's
+    left half renders and its right half must not — an empty Calling select would be a
+    control with nothing in it."""
+    await user.open('/cult-db-editor')
+    await user.should_see("Training Camp")
+    await user.should_see("The Sequestered Tabernacle")
+    await user.should_see("Walker-Among-Irises Perception")   # a fixed DB grant
+    # Not even in the heading: the panel names what it contains.
+    await user.should_not_see("Calling")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_flat_pool_choice_renders_one_control_carrying_its_picks(
+        user: User) -> None:
+    """The pool shape has no style step: its Charm multi-select IS the choice, so it
+    carries the printed label rather than the "Which 3?" follow-up wording, and its
+    chips show three Charms drawn from two different styles."""
+    await user.open('/cult-db-editor')
+    await user.should_see("Three Charms from the Tabernacle's list (pick 3)")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_camp_from_another_splats_cult_does_not_blank_the_editor(
+        user: User) -> None:
+    """Regression, found by preflight before the click-through: `camp_for` resolves a
+    stored camp id against the WHOLE camp table, so a Dragon-Blooded carrying the
+    Solar Cult's "kether-rock" reached `ui.select` as a value outside its options —
+    which raises at BUILD time and takes the enclosing tab down with it. Unreachable
+    until a second splat owned camps.
+
+    The page must render, clamped to a camp this character can actually attend; the
+    mismatch is reported as `camp-wrong-origin` in the issue panel, not by crashing."""
+    await user.open('/cult-db-crossed')
+    await user.should_see("Training Camp")
+    await user.should_see("The Sequestered Tabernacle")

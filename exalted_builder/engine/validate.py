@@ -1830,6 +1830,22 @@ def granted_charm_issues(ruleset, character) -> list[Issue]:
                     ))
                 for cid in by_cat[chosen][:choice.pick]:
                     remaining.remove(cid)
+        else:
+            # A flat pool: `pick` Charms from anywhere in it, in any combination
+            # (Cult p.96, the Dragon-Blooded Tabernacle package). No cross-style
+            # complaint is possible here — mixing IS the shape — so the only failure
+            # is the wrong COUNT, and an over-count leaves the surplus in `remaining`
+            # to be reported as granted-charm-extra like any other stray id.
+            pool = set(choice.pool_charm_ids(ruleset.charms))
+            taken = [cid for cid in remaining if cid in pool]
+            if len(taken) < choice.pick:
+                issues.append(Issue(
+                    code="granted-charm-choice-unresolved", where=choice.label,
+                    message=f"{camp.label}: {choice.label} — needs {choice.pick} "
+                            f"Charm(s) from the package's list; {len(taken)} taken.",
+                ))
+            for cid in taken[:choice.pick]:
+                remaining.remove(cid)
 
     for cid in remaining:
         issues.append(Issue(
@@ -2323,8 +2339,8 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
         if combined > tier.combined_max:
             issues.append(Issue(
                 code="artifact-combined-over-budget", where="Artifact",
-                message=f"Artifact {rating} ({tier.name}) allows a combined rating no "
-                        f"higher than {tier.combined_max}; this character owns "
+                message=f"{artifacts.tier_label(rating, tier)} allows a combined rating "
+                        f"no higher than {tier.combined_max}; this character owns "
                         f"{combined}.",
             ))
         if tier.individual_max:
@@ -2333,8 +2349,8 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
                     issues.append(Issue(
                         severity="warning",
                         code="artifact-item-over-cap", where=item.name,
-                        message=f"Artifact {rating} ({tier.name}) allows no single artifact "
-                                f"above {tier.individual_max} without Storyteller "
+                        message=f"{artifacts.tier_label(rating, tier)} allows no single "
+                                f"artifact above {tier.individual_max} without Storyteller "
                                 f"permission; {item.name} is {item.rating}.",
                     ))
         return issues

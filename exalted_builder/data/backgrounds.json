@@ -670,6 +670,20 @@
     ]
   },
   {
+    "id": "background.artifact-illuminated",
+    "name": "Artifact",
+    "exalt_type": "Solar",
+    "description": "The chosen messiahs of Heaven deserve the finest weapons and tools available, and the Cult of the Illuminated provides them. When a new Solar is found, the Gold Faction examines his past lives in detail via astrology, then dispatches elite teams of scavenger lords or Solar tomb raiders to find and retrieve the young Solar's artifacts, while Cult-loyal gods work quietly at their Heavenly forges crafting tools worthy of the returning Solars. But the Cult's resources aren't endless: while Cult Solars have more artifacts than unIlluminated Solars, they certainly do not drip with orichalcum the way Dynasts drip with jade. The Cult focuses on quality over quantity, and it is common to see each Solar with a single powerful artifact and a few small trinkets supplementing their power. Orichalcum artifacts make up the bulk of the collection, followed by jade; a Solar may take jade rather than orichalcum with this Background if he wishes. For other Cult Exalted, orichalcum is reserved exclusively for Solars — they may take jade with this Background and nothing else, and must purchase the standard Artifact Background from the main rulebook to acquire moonsilver, starmetal or soulsteel.",
+    "ladder": [
+      "A single talisman or minor, thaumaturgical trinket.",
+      "Artifacts with a combined rating of no higher than 2.",
+      "Artifacts with a combined rating of no higher than 3.",
+      "Artifacts with a combined rating of no higher than 4.",
+      "Artifacts with a combined rating of no higher than 6.",
+      "Artifacts with a combined rating of no higher than 8."
+    ]
+  },
+  {
     "id": "background.artifact-dragonblooded",
     "name": "Artifact",
     "exalt_type": "Dragon-Blooded",

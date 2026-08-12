@@ -723,13 +723,26 @@ class CasteDefinition(BaseModel):
 class GrantedCharmChoice(BaseModel):
     """One player choice within a TrainingCamp's free-Charm package.
 
-    The Cult of the Illuminated grants free Charms in two shapes (p.90), so this
-    covers both and a camp lists whichever it needs:
+    The Cult of the Illuminated grants free Charms in three shapes, and a camp lists
+    whichever it needs:
 
-    * `from_categories` — "two Charms from ONE of the following four martial arts".
-      The player picks a single category from the list, then `pick` Charms inside it.
-    * `fixed_sets` — "one of the following pairs of Charms". The player takes exactly
-      one whole set, verbatim. `pick` is ignored (a set is all-or-nothing).
+    * `from_categories` — "two Charms from ONE of the following four martial arts"
+      (p.90). The player picks a single category from the list, then `pick` Charms
+      inside it. The single-category restriction is the whole point of this shape.
+    * `fixed_sets` — "one of the following pairs of Charms" (p.90). The player takes
+      exactly one whole set, verbatim. `pick` is ignored (a set is all-or-nothing).
+    * `pool_categories` + `pool_charms` — "three (3) Charms from Ebon Shadow Style,
+      Falling Blossom Style, Praying Mantis Style, Snake Style, Tiger Style or
+      Ox-Body Technique" (p.96, the Dragon-Blooded package at the Sequestered
+      Tabernacle). `pick` Charms from ONE FLAT POOL, in any combination — the
+      sentence, unlike the Solar camps', does not say "from one of".
+
+    The pool shape is not `from_categories` with the restriction relaxed, and the two
+    must not be merged: it also has to hold a pool that MIXES styles with a named
+    Ability Charm (Ox-Body Technique), which a category list cannot express. The pool
+    is the union of every Charm in `pool_categories` and every id in `pool_charms`;
+    naming the categories rather than enumerating their Charms means a style gaining
+    a Charm later widens the package automatically, the way the printed text does.
 
     A set may offer alternates for one member where a house rule swaps a Charm
     (Spirit Strengthens the Skin replaces Iron Skin Concentration under Exalted
@@ -740,6 +753,18 @@ class GrantedCharmChoice(BaseModel):
     pick: int = Field(default=0, ge=0)              # how many Charms from the chosen category
     from_categories: list[str] = Field(default_factory=list)
     fixed_sets: list[list[str]] = Field(default_factory=list)
+    pool_categories: list[str] = Field(default_factory=list)
+    pool_charms: list[str] = Field(default_factory=list)
+
+    def pool_charm_ids(self, charms: dict) -> list[str]:
+        """Every Charm id this choice's flat pool offers, given the Charm catalogue.
+        Empty for the other two shapes, which is what keeps their branches unchanged."""
+        if not (self.pool_categories or self.pool_charms):
+            return []
+        out = [cid for cid, charm in charms.items()
+               if charm.category in self.pool_categories]
+        out += [cid for cid in self.pool_charms if cid not in out]
+        return out
 
 
 class TrainingCamp(BaseModel):
