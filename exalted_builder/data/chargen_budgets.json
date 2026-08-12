@@ -954,8 +954,7 @@
     ],
     "background_rules": {
       "connections": {
-        "max_rating_is_attribute_sum": true,
-        "max_rating_per_row": 10
+        "max_rating_is_attribute_sum": true
       },
       "celestial manse": {
         "max_rating": 3,
@@ -1116,11 +1115,13 @@
     "optional_favored_ability": true,
     "catalogue_backgrounds": [
       "allies",
+      "artifact",
       "backing",
       "contacts",
       "familiar",
       "followers",
       "influence",
+      "manse",
       "mentor",
       "resources"
     ],
@@ -1153,11 +1154,13 @@
     "bonus_points": 21,
     "catalogue_backgrounds": [
       "allies",
+      "artifact",
       "backing",
       "contacts",
       "familiar",
       "followers",
       "influence",
+      "manse",
       "mentor",
       "resources"
     ],

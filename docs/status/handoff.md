@@ -3,49 +3,72 @@
 **Rewritten each session.** The durable operating guide is `CLAUDE.md`.
 
 ## Current state
-- Suite **2,148 passing**, no failures. The documented machine-only
-  `test_every_description_matches_the_source_text` is GREEN on this machine now (the
-  Godblooded chapter md is absent here, so its 46 entries defer) — still not a
-  regression either way, see `docs/status/godblooded.md`.
-- **The Backgrounds overhaul is DONE and browser-verified** (2026-08-12), and the
-  **numeric rules are now implemented** (same day, 9 new tests) — but the numeric
-  rules are **NOT yet browser-verified**. Written up in `docs/status/backgrounds.md`.
-- `main` is at the close-out. `deepseek-experiment` is behind it.
+- Suite **2,159 passing**, no failures. The documented machine-only
+  `test_every_description_matches_the_source_text` is GREEN here (the Godblooded chapter
+  md is absent on this machine, so its 46 entries defer) — not a regression either way,
+  see `docs/status/godblooded.md`.
+- **The Backgrounds work is DONE and browser-verified end to end** — the overhaul
+  (per-splat catalogues, dot ladders, `charm_noun`) and the numeric rules (R1–R5).
+  Record: `docs/status/backgrounds.md`; the brief that drove the second half is
+  `docs/briefs-background-rules.md`.
+- ⚠ **Uncommitted on `main`**: the mortal-catalogue fix, the Connections per-row revert,
+  three preflight render routes and the doc updates. `ef0b828` is the last commit.
 
 ## What happened this session
-1. **The Background numeric rules implemented** (`docs/briefs-background-rules.md`, 12
-   tests in `tests/test_background_rules.py`, suite 2,134 → **2,148**). R1 Connections
-   ≤ the Attribute sum (a new `max_rating_is_attribute_sum` field); R2 Celestial Manse
-   ≤3 on BOTH sides with a PER-CHARACTER toggle; R3 mortals barred from Artifact/Manse
-   with a toggle; R4 Mountain Folk Artifact ≤10 at 1 BP/dot above 5; R5 the plumbing —
-   `background_issues` takes an optional character + `post_lock`, called post-lock from
-   `validate.validate` for `bind_post_lock` rules only, and both rating controls read
-   `validate.background_rating_cap`. The model's `BackgroundEntry.rating` was a THIRD
-   hardcoded 5 and is relaxed to `le=10` (the human's R4 number). ⚠ **NOT browser-verified.**
-2. **The earlier session's click-through and ladder-fix record stands** (see below).
+1. **Click-through of the overhaul** — all six items passed. One fix off it: the
+   catalogue dialog's ladder rendered as a wall of text, because a NiceGUI label
+   collapses newlines. It needed blank lines AND `whitespace-pre-line`.
+2. **Two rulings closed.** The ten Mountain Folk Backgrounds are prose-only and now
+   borrow the core ladder via `BackgroundType.ladder_from` (resolved once by the loader —
+   the read sites see a splat-FILTERED catalogue that does not contain the entry being
+   borrowed from). The Tiger Warriors ladder is signed off. ⚠ Writing the first test for
+   the borrow exposed a live bug: the Mountain Folk dropdown offered ten names TWICE.
+   Fixed generally — a splat's own tagged copy displaces the untagged one.
+3. **The numeric rules, delegated to DeepSeek** off a written brief, then reviewed —
+   **three rounds**, defects each time, all the house bug. See below.
+4. **`preflight` + click-through of the numeric rules**, passed after two more fixes.
+5. **Gear `resources_cost` answered and shipped** — core p.325 (the human found the
+   sidebar; the extracted corebook is now in `images/_extracted/`). An affordability
+   HINT on the gear dialogs, NOT a validation, because the printed rule contradicts an
+   ownership invariant in its own middle clause. `docs/status/rated-artifacts.md`.
 
-## Next up — in the order I'd take them
-1. **Browser-verify the numeric rules** — the click-through list is at the bottom of
-   `docs/status/backgrounds.md`. Run `preflight` before booking the browser time.
-2. **Gear `resources_cost` vs the Resources Background** — ⚠ still blocked on the human
-   saying what the rule IS (per-item or total, chargen-only or both sides). Do not infer
-   it from the Artifact table.
+## The delegation, honestly — the part worth reading
+The brief was good and most of the authored work was right: R4's bonus-point pricing was
+exact, and the Merit caps survived a rewrite of the very control that carries them. But
+every defect was one shape, and a green suite saw none of them:
 
-## Waiting on the human (rules questions, do not choose)
-- **The ten Mountain Folk Background copies carry no ladder.** They arrived with their
-  own printed descriptions but no rungs, so a Mountain Folk row shows a description and
-  no rung where a Solar shows both. Does CH6 print dot ladders for these, or prose only?
-- **Tiger Warriors ladder** — a page break and a tangent table displaced every dot marker
-  one line early. The reassembly is mechanical but it is the human's call
-  (`garbled-transcription-defer`).
+- **Round 1.** `validate_chargen` never passed the character, so R1 never ran in
+  production and the mortal toggle could not lift its own bar. All nine tests called
+  `background_issues(...)` directly — **the read site was tested, the caller was not.**
+- **Round 2.** The fix for the universal cap skipped it whenever a rule merely EXISTED,
+  so the three rules stating no maximum (Alchemical Class, Alchemical Backing,
+  Illuminated Illumination) lost the cap at chargen while keeping it post-lock.
+- **Round 3, in the browser.** The mortal permission lifted the BAR but not the OFFER
+  list — permission that reveals nothing. And Connections' total-cap leaked into the
+  per-row control, offering a row ceiling of 27.
+
+**What to change in the next brief:** "test the binding, not the field" was not enough.
+Name **which function the test must call**. A test that reaches past the caller into the
+helper cannot see the caller's mistake, and that is the mistake a cheap model makes over
+and over.
+
+## Next up
+1. **Commit the working tree**, if the human has not.
+2. **Browser-verify the Resources hint** — the gear dialogs are the only thing shipped
+   today that no one has clicked. Open Add weapon on a character with Resources ••: Self
+   Bow should read "within your means", Long Bow "a serious expense", Composite Bow
+   "beyond your Resources" and be faded (but still pickable).
+3. **The other 63 `resources_cost` values** — page-blocked, needs a human read of the
+   corebook equipment tables; the Cost column is dot glyphs the font cipher did not
+   resolve. `docs/status/rated-artifacts.md` has the detail.
 
 ## Blocked on pages — do these at home, not at work
 ⚠ `images/` and `sources/` are gitignored and do not travel.
 - **17 Lunar Charms** from the content gap. `sources/Exalted - The Lunars.pdf` is a PURE
   SCAN (0 of 258 pages carry text, so neither `extract_born_digital` nor
   `solve_cid_bands` applies) but rasterises cleanly with `pdftoppm -r 110`. **PDF page =
-  book page + 3.** This is the job that would justify the Ollama VLM leg
-  (`qwen3-vl:8b-instruct` is pulled); ⚠ its dot counts are biased low, so for any ladder
-  take the rating from the rung's POSITION, never from counting.
+  book page + 3.** The job that would justify the Ollama VLM leg (`qwen3-vl:8b-instruct`
+  is pulled); ⚠ its dot counts are biased low, so for any ladder take the rating from the
+  rung's POSITION, never from counting.
 - The rest of the 213 page-blocked catalogue entries — `docs/status/catalogue-sweep.md`
   ranks the syncs by yield.

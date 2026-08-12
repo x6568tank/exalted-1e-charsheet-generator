@@ -160,6 +160,35 @@ works. One grep per claim. The model is not lying — it is describing the thing
 to build, and the gap between that and the thing it built is where the whole defect
 class lives.
 
+## Writing the brief: name the FUNCTION the test must call
+
+From the second delegated run (the Background numeric rules, 2026-08-12,
+`docs/briefs-background-rules.md` → `docs/status/backgrounds.md`). That brief already
+said "tests are required per **binding**, not per field", and it was still not enough:
+all nine tests called the helper directly —
+
+```python
+validate.background_issues(budgets, character.backgrounds, character)   # the read site
+```
+
+— while the production caller, `validate_chargen`, omitted the character argument
+entirely. The rule was implemented, tested, documented, and never ran. **A test that
+reaches past the caller into the helper cannot see the caller's mistake**, and the
+optional-argument shape this codebase uses for its silent fallbacks (`derive.soak`,
+`lifecycle.lock_chargen`, `background_issues`) turns that mistake into a quiet no-op
+rather than a TypeError.
+
+So the brief must say, per rule: **which entry point the test calls** — `validate_chargen`
+/ `validate.validate` / the UI route — not merely what it asserts. Where a helper takes an
+optional argument, require at least one test that never names the helper at all.
+
+Three review rounds were needed on that run: the missing argument, then a fix that
+narrowed the hole instead of closing it, then two defects only the browser could see (a
+permission that lifted a bar without revealing the Background, and a total-cap leaking
+into a per-row control). The pattern across all three is the same as the first run's, one
+level up: **each fix was correct about the case in front of it and silent about the
+neighbouring one.**
+
 ## Verdict
 
 Worth it. Four defects across a two-phase splat is a good ratio at any price and an

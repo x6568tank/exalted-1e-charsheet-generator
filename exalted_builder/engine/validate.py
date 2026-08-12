@@ -473,8 +473,20 @@ def background_catalogue_for(ruleset: RuleSet, character: Character) -> list:
     OFFERED, never how a dot is priced, which is what the snapshot exists to protect.
     """
     hr = character.house_rules or HouseRules()
-    return ruleset.backgrounds_for(character.exalt_type, character.origin,
+    rows = ruleset.backgrounds_for(character.exalt_type, character.origin,
                                    all_available=hr.all_backgrounds_available)
+    # A `barred` rule hides the Background until its Storyteller toggle lifts it, the
+    # same treatment `backgrounds_for` gives `banned_backgrounds`: the dropdown never
+    # offers a name the sheet cannot legally hold. The BAR and the OFFER are separate
+    # mechanisms and the toggle has to move both — the browser found exactly that
+    # (2026-08-12), with a mortal granted permission and still unable to find Artifact
+    # or Manse in the catalogue, because the bar lifted and the offer list did not.
+    budgets = effective_budgets(ruleset, character)
+    hidden = {name for name, rule in budgets.background_rules.items()
+              if rule.barred and not background_st_permitted(character, rule)}
+    if hidden:
+        rows = [bg for bg in rows if bg.name.strip().lower() not in hidden]
+    return rows
 
 
 def magic_for_everyone_grant(ruleset: RuleSet, character: Character) -> int:
@@ -1897,6 +1909,37 @@ def background_best(backgrounds, name: str) -> int:
                default=0)
 
 
+def gear_affordability(character: Character, resources_cost: int) -> str:
+    """How a piece of gear priced at `resources_cost` sits against this character's
+    Resources — core p.325, "The Resources System", the whole rule:
+
+        * cost LOWER than her Resources — an out-of-pocket expense; "within reason,
+          the character can purchase as many of the items as she wants";
+        * cost EQUAL to her Resources — "a serious expense. When she buys it, she
+          lowers her Resources rating by 1 until it is increased through roleplaying";
+        * cost GREATER — "too expensive for her, and she cannot afford to buy it".
+
+    Returns "easy" / "serious" / "unaffordable", or "" for gear with no printed cost
+    (56 of the 122 catalogue rows have none, and a missing price is not a free item).
+
+    ⚠ This answers a PURCHASE, and is deliberately NOT a validation of what a character
+    OWNS — no caller may turn it into one (human's ruling 2026-08-12). The printed rule
+    contradicts an ownership invariant in its own middle clause: buying at cost EQUAL
+    drops Resources by one, so the book's own outcome is a character holding a 3-cost
+    item at Resources 2. Loot and gifts break it the same way — nothing says a
+    character may not be GIVEN a daiklave. A static "no item above your rating" check
+    would flag both as errors.
+    """
+    if resources_cost <= 0:
+        return ""
+    # The HIGHEST single row, not the sum: Resources is one lifestyle rating, and two
+    # rows of 2 is a character who wrote it down twice, not a character with 4.
+    rating = background_best(character.backgrounds, "Resources")
+    if resources_cost < rating:
+        return "easy"
+    return "serious" if resources_cost == rating else "unaffordable"
+
+
 def trait_rating(character: Character, name: str, backgrounds=None) -> int:
     """The character's rating in the trait called `name`, whatever kind of trait it is.
 
@@ -2153,19 +2196,15 @@ def background_issues(budgets, backgrounds, character=None, *,
         # lose the cap at chargen while keeping it post-lock.
         ceiling = (rule.max_rating if governs and rule.max_rating > merits.DOT_MAX
                    else merits.DOT_MAX)
-        # A PER-ROW ceiling, for the rules that measure a TOTAL. `max_rating` and the
-        # Attribute-sum cap both read `background_rating`, which SUMS every row sharing
-        # the name — so without this a lone Sidereal Connections row could hold the
-        # whole 27-dot allowance. It raises the per-row ceiling and never lowers it.
-        if rule is not None and rule.max_rating_per_row > ceiling:
-            ceiling = rule.max_rating_per_row
-        # Where the rule states its OWN ceiling, that check has already spoken (an
-        # above-origin-cap or above-attribute-cap issue); saying it twice for one row
-        # is noise. The exception is a row over the PER-ROW ceiling, which the summed
-        # check cannot see — a lone 27-dot Connections row passes a 27-dot total.
-        if governs and (rule.max_rating or rule.max_rating_is_attribute_sum) \
-                and not (rule.max_rating_per_row
-                         and bg.rating > rule.max_rating_per_row):
+        # Where the rule states its own LITERAL ceiling, that check has already spoken
+        # (an above-origin-cap issue) and saying it twice for one row is noise.
+        #
+        # A TOTAL-cap rule is different and must NOT skip: `max_rating_is_attribute_sum`
+        # reads `background_rating`, which SUMS every row sharing the name, so it has
+        # nothing to say about one row. Sidereal Connections is capped at 5 per row like
+        # every other Background (human's ruling 2026-08-12) while its printed total
+        # binds across rows — two ceilings measuring two different things.
+        if governs and rule.max_rating:
             continue
         if bg.rating > ceiling:
             issues.append(Issue(
@@ -2228,11 +2267,11 @@ def background_rating_cap(budgets, character, name, *, post_lock=False) -> int:
         return rule.max_rating
     # The Attribute-sum rule (Sidereal Connections) is a TOTAL cap, not a per-row one:
     # the printed rule says "the total number of dots in Connections may not exceed"
-    # the sum, and `background_rating` already sums duplicate rows for the check. So
-    # the control offers the rule's PER-ROW ceiling (Connections 10, the human's ruling
+    # the sum, and `background_rating` already sums duplicate rows for the check. The
+    # row keeps the universal 5 like every other Background (human's ruling
     # 2026-08-12) and the total is `background_issues`' job — a row must never offer
     # the whole attribute sum as pips.
-    return max(merits.DOT_MAX, rule.max_rating_per_row)
+    return merits.DOT_MAX
 
 
 def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:

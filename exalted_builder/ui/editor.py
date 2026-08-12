@@ -1326,10 +1326,19 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 # free-text row. A pick appends then autofills via the existing setter;
                 # Custom falls through to the old blank-row append.
                 def _open_armor_catalogue() -> None:
-                    rows = [(a.name, a.name, cataloguemod.catalog_armor_summary(a), None)
-                            for a in sorted(ruleset.armor_catalog.values(),
-                                            key=lambda a: a.name)]
-                    cataloguemod.catalogue_dialog(pal, "Armour", rows, _pick_armor)
+                    # The Resources clause, exactly as the weapon dialog above — see the
+                    # comment there for why an unaffordable row is faded, not withheld.
+                    rows, unaffordable = [], set()
+                    for a in sorted(ruleset.armor_catalog.values(), key=lambda a: a.name):
+                        afford = validate.gear_affordability(character, a.resources_cost)
+                        note = cataloguemod.gear_cost_note(a.resources_cost, afford)
+                        summary = cataloguemod.catalog_armor_summary(a)
+                        rows.append((a.name, a.name,
+                                     f"{summary} · {note}" if note else summary, None))
+                        if afford == "unaffordable":
+                            unaffordable.add(a.name)
+                    cataloguemod.catalogue_dialog(pal, "Armour", rows, _pick_armor,
+                                                  dimmed=unaffordable)
 
                 def _pick_armor(name) -> None:
                     if name is None:
@@ -1375,10 +1384,21 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                      on_change=lambda e, wp=wp: (setattr(wp, "notes", e.value), changed())).classes("w-full").props("dense")
 
                 def _open_weapon_catalogue() -> None:
-                    rows = [(w.name, w.name, cataloguemod.catalog_weapon_summary(w), None)
-                            for w in sorted(ruleset.weapon_catalog.values(),
-                                            key=lambda w: w.name)]
-                    cataloguemod.catalogue_dialog(pal, "Weapons", rows, _pick_weapon)
+                    # Core p.325 prices gear in Resources dots, so the row says what it
+                    # would cost THIS character. `validate.gear_affordability` owns the
+                    # rule; unaffordable rows are faded but still pickable — a character
+                    # can be GIVEN what she could not buy, and nothing here validates.
+                    rows, unaffordable = [], set()
+                    for w in sorted(ruleset.weapon_catalog.values(), key=lambda w: w.name):
+                        afford = validate.gear_affordability(character, w.resources_cost)
+                        note = cataloguemod.gear_cost_note(w.resources_cost, afford)
+                        summary = cataloguemod.catalog_weapon_summary(w)
+                        rows.append((w.name, w.name,
+                                     f"{summary} · {note}" if note else summary, None))
+                        if afford == "unaffordable":
+                            unaffordable.add(w.name)
+                    cataloguemod.catalogue_dialog(pal, "Weapons", rows, _pick_weapon,
+                                                  dimmed=unaffordable)
 
                 def _pick_weapon(name) -> None:
                     if name is None:

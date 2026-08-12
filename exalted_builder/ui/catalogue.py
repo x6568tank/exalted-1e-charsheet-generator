@@ -46,6 +46,25 @@ def catalog_armor_summary(at: ArmorType) -> str:
     return viewmod.armor_stat_line(at)
 
 
+# Core p.325 prices gear in Resources dots rather than money, so the dialog says what a
+# row would COST this character before she picks it. Presentation only: the three cases
+# come from `validate.gear_affordability`, which owns the rule.
+_AFFORDABILITY_NOTE = {
+    "easy": "within your means",
+    "serious": "a serious expense (buying it drops Resources by 1)",
+    "unaffordable": "beyond your Resources",
+}
+
+
+def gear_cost_note(resources_cost: int, affordability: str) -> str:
+    """The Resources clause appended to a gear row's summary, e.g.
+    "Resources ●●● — beyond your Resources". Empty for gear with no printed cost."""
+    if not resources_cost or not affordability:
+        return ""
+    return (f"Resources {'●' * resources_cost}"
+            f" — {_AFFORDABILITY_NOTE.get(affordability, '')}".rstrip(" —"))
+
+
 # --------------------------------------------------------------------------- #
 # The dialog
 # --------------------------------------------------------------------------- #
@@ -58,6 +77,7 @@ def catalogue_dialog(
     *,
     custom_label: str = "Custom",
     subtitle: str = "",
+    dimmed: frozenset[str] | set[str] = frozenset(),
 ) -> None:
     """Open a modal listing catalogue entries to choose from.
 
@@ -68,6 +88,11 @@ def catalogue_dialog(
     `on_pick(key)` and closes. The "Custom" row calls `on_pick(None)` and closes.
 
     The list is filtered live by a text input over name + summary + full.
+
+    `dimmed` holds keys to render faded — gear the character cannot afford (core p.325).
+    They stay PICKABLE: the affordability of a purchase is the Storyteller's business,
+    the sheet is a tracker, and a character can be given what she could not buy. This is
+    a hint, never a gate; nothing here validates.
     """
     _filter = {"text": ""}
 
@@ -92,8 +117,9 @@ def catalogue_dialog(
                 if not _matches(entry, term):
                     continue
                 key, name, summary, full = entry
+                faded = " opacity-50" if key in dimmed else ""
                 with ui.column().classes(
-                        f"w-full gap-1 border-b border-{pal.fam}-900/10 pb-1"):
+                        f"w-full gap-1 border-b border-{pal.fam}-900/10 pb-1{faded}"):
                     # The pick affordance is the NAME LABEL itself, not the enclosing
                     # row — the NiceGUI user harness dispatches clicks only to the
                     # element's own listeners and never bubbles, so a row-level handler

@@ -1684,3 +1684,49 @@ lifecycle.lock_chargen(CHAR_SOLAR_ART_PLAY, RS)
 @ui.page('/solar-artifact-play')
 def page_solar_artifact_play():
     advantages.build_advantages(RS, CHAR_SOLAR_ART_PLAY, Path("x.json"), with_header=False)
+
+# Three more rating-ceiling shapes the four routes above do not produce, each a
+# different way the engine-supplied ceiling can be wrong on screen:
+#   * a PER-ROW lift (Sidereal Connections 10) where the rule's own cap is a TOTAL;
+#   * a BAR (mortal Artifact, cap 0) on a row the character already holds — the
+#     control must still be steppable DOWN or the player cannot fix the error;
+#   * a locked character holding MORE than the post-lock ceiling (Celestial Manse 5
+#     against a max of 3), the shape a save written before the rule existed has.
+CHAR_SID_CONN = Character(id="sidconn", name="Chejop", exalt_type="Sidereal",
+                          caste="journeys", essence_rating=2,
+                          attributes=_CHAR_ATTRIBUTES_MF)
+CHAR_SID_CONN.backgrounds = [BackgroundEntry(name="Connections", rating=3)]
+
+@ui.page('/sidereal-connections-chargen')
+def page_sidereal_connections_chargen():
+    advantages.build_advantages(RS, CHAR_SID_CONN, Path("x.json"), with_header=False)
+
+CHAR_MORTAL_ART = Character(id="mortart", name="Hopeful", exalt_type="Mortal", caste="",
+                            origin="heroic", essence_rating=1,
+                            attributes=_CHAR_ATTRIBUTES_1)
+CHAR_MORTAL_ART.backgrounds = [BackgroundEntry(name="Artifact", rating=2)]
+
+@ui.page('/mortal-artifact-barred-chargen')
+def page_mortal_artifact_barred_chargen():
+    advantages.build_advantages(RS, CHAR_MORTAL_ART, Path("x.json"), with_header=False)
+
+CHAR_SID_OVER = Character(id="sidover", name="Overhoused", exalt_type="Sidereal",
+                          caste="journeys", essence_rating=2,
+                          attributes=_CHAR_ATTRIBUTES_MF)
+CHAR_SID_OVER.backgrounds = [BackgroundEntry(name="Celestial Manse", rating=5)]
+CHAR_SID_OVER.chargen_locked = True
+
+@ui.page('/sidereal-over-ceiling-play')
+def page_sidereal_over_ceiling_play():
+    advantages.build_advantages(RS, CHAR_SID_OVER, Path("x.json"), with_header=False)
+
+# The Resources affordability hint on the gear dialogs (core p.325). Resources 2 puts
+# the three bows on the three printed cases at once — Self Bow 1 under, Long Bow 2
+# equal, Composite Bow 3 over — so one route exercises the whole rule.
+CHAR_RESOURCES_2 = Character(id="res2", name="Thrifty", exalt_type="Solar", caste="dawn",
+                             essence_rating=2)
+CHAR_RESOURCES_2.backgrounds = [BackgroundEntry(name="Resources", rating=2)]
+
+@ui.page('/gear-resources')
+def page_gear_resources():
+    editor.build_editor(RS, CHAR_RESOURCES_2, Path("x.json"), with_header=False)

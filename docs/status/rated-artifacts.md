@@ -444,3 +444,40 @@ it stays out of the catalogue.
 - **Not browser-verified.** The catalogue pin test and combobox-offers-the-names
   assertions are green, but the 20 new names have not been clicked through the
   Advantages tab's combobox.
+
+
+## Gear `resources_cost` — the Resources System (DONE 2026-08-12, NOT browser-verified)
+**Core p.325, the "THE RESOURCES SYSTEM" sidebar**, is the whole rule. Items carry no
+money price; they are rated in the Resources dots needed to buy them. Cost **lower** than
+the rating is an out-of-pocket expense ("as many of the items as she wants"); cost
+**equal** is "a serious expense. When she buys it, she lowers her Resources rating by 1
+until it is increased through roleplaying"; cost **greater** is unaffordable. The
+equipment tables that follow (weapons p.330 onward, armour after) each carry a legend
+line: "The minimum Resources the character must have to purchase the item."
+
+**It shipped as a HINT, not a validation** (human's ruling 2026-08-12), and the reason
+generalises: **the printed rule contradicts an ownership invariant in its own middle
+clause.** Buy at cost EQUAL and the book leaves the character holding an item that costs
+more than she now has. Gear also arrives as loot and gifts. A static "no item above your
+rating" check — the shape `engine/artifacts.py` uses for the Artifact budget, which was
+the assumed precedent — would flag both as errors. The Artifact budget was the wrong
+model, and the tell was in the rule's own text.
+
+- `validate.gear_affordability(character, cost)` → `"easy"` / `"serious"` /
+  `"unaffordable"` / `""` (no printed cost — 56 of 122 rows, and a missing price is not
+  a free item). It reads the HIGHEST Resources row, not the sum: Resources is one
+  lifestyle rating, unlike Connections where the sum is the printed measure.
+- The weapon and armour catalogue dialogs print the clause per row and FADE what the
+  character cannot afford. Faded rows stay **pickable** — the sheet is a tracker, and a
+  character can be given what she could not buy.
+- The drop-by-one on an equal-cost purchase is **deliberately not applied** (human
+  declined it): the app cannot know a purchase happened.
+- **Nothing validates ownership**, and a test asserts that on both sides of the lock.
+
+⚠ **The other 63 `resources_cost` values are still unattributed.** The human verified
+Self/Long/Composite Bow at 1/2/3 against the p.330 table and those three now carry a
+`source`; every other row's cost has no book or page behind it. The extracted corebook
+cannot settle them — the Cost column is dot glyphs that did not survive the font cipher,
+and p.330 carries an explicit `GARBLED … NOT authorable without a human read` marker. The
+hint makes wrong values MORE visible, which is the argument for shipping it first, but
+the values are a page-blocked job.

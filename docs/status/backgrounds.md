@@ -1,6 +1,6 @@
 # Backgrounds — the overhaul (2026-08-11 → 2026-08-12)
 
-**DONE, browser-verified 2026-08-12.** Suite **2,134 passing**.
+**DONE, browser-verified 2026-08-12.** Suite **2,152 passing**.
 
 Came out of a friend's play-test, which found the Background surface doing three
 things wrong at once: offering every splat every other splat's Backgrounds, saying the
@@ -119,9 +119,9 @@ be live as a code path.
 was already in the data and reads monotonic — 5/15/25/100/250 warriors, 1/2/3/4/5 heroic
 mortals.
 
-## The numeric rules — DONE (2026-08-12), NOT browser-verified
+## The numeric rules — DONE, browser-verified 2026-08-12
 `docs/briefs-background-rules.md` was the authoring brief; every ruling in it is CLOSED.
-Suite **2,148 passing** at the time of writing.
+Suite **2,152 passing** at the time of writing.
 
 **Review round two (2026-08-12).** The three review defects were fixed and verified
 through the real path, and the fix to the last of them left one narrower opening, now
@@ -135,16 +135,28 @@ re-deriving it from `BackgroundRule`, which was never meant to carry it. Three r
 each narrowing rather than closing. **When a structural invariant is relaxed, name where
 it moved TO in the same change.**
 
-**Connections is capped at 10 PER ROW** (human's ruling 2026-08-12: "Connections should
-be capped at 10. 27 dots in one background is absurd and wouldn't render well"). The
-printed rule caps the TOTAL at the Attribute sum, and `max_rating` /
-`max_rating_is_attribute_sum` both read `background_rating`, which SUMS every row sharing
-a name — so the total-cap alone let a lone row hold the whole 27-dot allowance, and the
-dot track would have tried to draw 27 pips. `BackgroundRule.max_rating_per_row` is the
-per-row ceiling; the printed total still binds across rows (six rows of 5 against a sum of
-27 errors, two rows of 10 do not). It only ever RAISES the per-row ceiling, and every
-other Background keeps the universal 5. ⚠ **Not browser-verified** — nothing past
-the UI harness has driven the new controls; see the click-through list below.
+**Connections is capped at 5 per row, and its printed TOTAL binds across rows.**
+`max_rating` and `max_rating_is_attribute_sum` both read `background_rating`, which SUMS
+every row sharing a name, so the printed cap ("the total number of dots in Connections may
+not exceed" the Attribute sum) says nothing about one row — and the control first offered
+the whole 27-dot allowance as pips. A per-row ceiling of 10 shipped briefly and was
+reverted the same day (human: "row should be five"), taking `BackgroundRule.max_rating_per_row`
+with it rather than leaving an unused mechanism behind. The row now keeps the universal 5
+like every other Background; six rows of 5 against a sum of 27 errors, two rows of 5 do not.
+
+⚠ **A fixture can hide behind a filtered error.** Four R1 tests used a SINGLE Connections
+row of 10 — expressible only while the row ceiling was 10, and each asserted on
+`background-above-attribute-cap` while filtering out the `background-above-universal-cap`
+the same row now raises. They stayed green through a ruling that reversed the thing they
+were testing. Fixtures are now rows within 5.
+
+**The offer and the bar are separate mechanisms, and a toggle must move both** (browser,
+2026-08-12): a mortal granted Storyteller permission still could not find Artifact or Manse
+in the catalogue, because `catalogue_backgrounds` omitted them entirely and only the
+`barred` rule lifted. Both mortal rows now list them, and `background_catalogue_for` hides
+a barred Background until its toggle lifts it — the treatment `banned_backgrounds` already
+had. Lifting a prohibition the player cannot then act on is worse than not offering the
+toggle.
 
 The already-modelled inventory stands unchanged (chargen-only): Mountain Folk Backing ≤2 /
 Influence ≤1 / Mentor ≤3 (Unenlightened) and Resources ≤3 (both origins); Dragon-Kings
@@ -217,7 +229,7 @@ generally" is a ruling, not a threshold).
   the R2/R3 tests drive both toggles, so a typo breaks them. Flagged rather than silently
   trusted.
 
-**Tests** — `tests/test_background_rules.py`, 12 tests, one per binding. Which pins which:
+**Tests** — `tests/test_background_rules.py`, **18 tests**, one per binding (12 from the authoring run, 3 from the review rounds, 3 render-matrix shapes added by `preflight`). Which pins which:
 R1 (cap is the COMPUTED attribute sum, never the literal 27; BP on Attributes raises the
 allowance; the same cap fires through `validate_chargen`, not just `background_issues`),
 R2 (errors at chargen AND post-lock; the per-character toggle lifts both; a second
@@ -231,13 +243,17 @@ invisible to engine tests; the post-lock call site does not move the chargen-onl
 the universal cap holds a no-rule Background at 5 on BOTH sides — the Solar Artifact 10
 case the relaxed model had exposed).
 
-**Not browser-verified — what to click when it is:** a Sidereal's Connections rows (each
-dot track at 5 — the TOTAL is what the rule caps, so validation flags it when the summed
-Connections exceed the Attribute total, which the sheet shows) and Celestial Manse (3
-pips, or 5 after the ST toggle on the Options tab); a mortal's Artifact/Manse rows (barred
-at 0, lifted by the toggle); a Mountain Folk Artifact row showing 10 pips at chargen and
-accepting 10 in play; a Solar Artifact play number stopping at 5 (and a hand-edited 10
-flagged on the sheet, both sides of the lock); the two new rows on the ST Options page.
+**Click-through record — the numeric rules (2026-08-12).** Verified by the human, after
+`preflight`: Mountain Folk Artifact showing 10 pips at chargen and accepting 10 in play,
+1 BP per dot above 5; every other splat's Artifact stopping at 5 on both sides; Sidereal
+Connections at 5 pips per row with the TOTAL flagged when the summed rows pass the
+Attribute sum; Celestial Manse ≤3 erroring on both sides and its PER-CHARACTER toggle
+clearing both; the mortal Artifact/Manse bar and its toggle; the two new ST Options rows
+reading "No effect: …" for a splat they do not touch.
+
+Two rounds of clicking, and the browser found what the harness could not both times: the
+mortal toggle lifted the bar without revealing the Backgrounds, and Connections offered a
+row ceiling that was legal but looked like nothing else on the sheet.
 
 ## Click-through record (2026-08-12)
 Verified by the human: the rung following the dot track at chargen; the rung following the

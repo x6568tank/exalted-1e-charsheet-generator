@@ -217,7 +217,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,148 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,159 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -254,7 +254,7 @@ full record.
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
 | **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — the ten Mountain Folk artifacts, GROWN TO 40 the same day across three castebook batches (`artifact.castebook-*`: Dawn/Night/Zenith pp.78-81 + Twilight/Eclipse pp.79-81 — the last on-disk artifacts, none remain unauthored) and the Hooked Daiklaves/Direlance rated gear rows, two blocked core items flagged — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08; **the 20 Twilight/Eclipse names are NOT yet browser-verified**) | `docs/status/rated-artifacts.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
-| **Backgrounds — DONE, browser-verified 2026-08-12** (per-splat `catalogue_backgrounds` off each book's printed list, with `HouseRules.all_backgrounds_available` as the ST override; the printed dot ladder as `BackgroundType.ladder`, 49 of 61, rendered one rung on the row and the whole ladder in the dialog; Artifact and Manse reworked per splat; `charm_noun` so a Ghost reads "Arcanoi"; **the numeric rules enforced 2026-08-12, NOT yet browser-verified** — Sidereal Connections ≤ the Attribute sum, Sidereal Celestial Manse ≤3 on BOTH sides with a PER-CHARACTER ST toggle, mortals barred from Artifact/Manse with an ST toggle, Mountain Folk Artifact ≤10 at 1 BP/dot above 5, and the two hardcoded 5s in the rating controls replaced by `validate.background_rating_cap`) | `docs/status/backgrounds.md` |
+| **Backgrounds — DONE, browser-verified 2026-08-12** (per-splat `catalogue_backgrounds` off each book's printed list, with `HouseRules.all_backgrounds_available` as the ST override; the printed dot ladder as `BackgroundType.ladder`, 49 of 61, rendered one rung on the row and the whole ladder in the dialog; Artifact and Manse reworked per splat; `charm_noun` so a Ghost reads "Arcanoi"; **the numeric rules enforced and browser-verified 2026-08-12** — Sidereal Connections ≤ the Attribute sum, Sidereal Celestial Manse ≤3 on BOTH sides with a PER-CHARACTER ST toggle, mortals barred from Artifact/Manse with an ST toggle, Mountain Folk Artifact ≤10 at 1 BP/dot above 5, and the two hardcoded 5s in the rating controls replaced by `validate.background_rating_cap`; delegated to DeepSeek off `docs/briefs-background-rules.md`, three review rounds) | `docs/status/backgrounds.md` |
 | **Catalogue picker dialogs — DONE, browser-verified 2026-08-10** (a shared `ui/catalogue.py` dialog on every add surface — weapons/armour/artifacts/backgrounds/M&F; browse name + summary, full description collapsible, a **Custom** row; custom M&F via `MeritFlawPurchase.custom_name`, display-only with no mechanical effect; the old silent cheapest-append `add_merit` deleted) | `docs/status/catalogue-dialogs.md` |
 | **1E artifact backlog — the discovery layer** (parsed from the fanmade "When Autochthon Dreams" index, 2026-08-08: 749 entries → 417 with a 1E ref, 360 unique names, per-book page lists; which source pages are already on disk vs blocked; pdfplumber not the VLM. **2026-08-08 correction:** five mislabelled codes fixed — `ab_a/e/f/v/w` are the Dragon-Blooded **Aspect Books**, `salt` = Blood and Salt, `coin` = Manacle and Coin. **Superseded 2026-08-11 by `catalogue-sweep.md`** — `data/artifacts.json` now holds **196**, the Slayer Khatar is authored, the Direlance has no standalone entry to author (core p.341 decoded), and Fair Folk artifacts are OUT OF SCOPE on the human's ruling. Keep this file for the parse method and the per-book page lists; per-entry queue in `artifact-backlog-entries.md`) | `docs/status/artifact-backlog.md` |
 | **Edit⇄XP merge — DONE, browser-verified** (one trait surface both sides of the lock; `ui/xp.py` deleted) | `docs/status/edit-xp-merge.md` |
@@ -352,23 +352,6 @@ Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
   differently.** Four verification failures in one session came from this; see the
   status file.
 
-### Next up — not started (human's asks, 2026-08-11)
-**Done since this list was written:** the Background numeric rules — implemented
-2026-08-12, **NOT yet browser-verified**; see the Backgrounds row above and
-`docs/status/backgrounds.md`.
-
-* **Validate gear `resources_cost` against the Resources Background** — the Artifact
-  analogue, which does not exist yet. `resources_cost` is on `WeaponType`/`ArmorType`
-  and on the character's own copies, is editable in the UI, and 66 of 122 catalogue
-  rows carry one — and **nothing reads it for validation**. It is the same
-  writer-with-no-reader shape the Artifact budget had before `engine/artifacts.py`
-  gave it one, so build it the same way: the check in an engine module, the thresholds
-  as DATA on the Background rule (`budget_tiers` is the precedent), nothing
-  splat-specific in code. ⚠ Ask the human first what the rule actually IS — whether a
-  character may own gear above their Resources rating at all, whether it is per-item or
-  a total, and whether it binds at chargen only or both sides of the lock. Do not infer
-  it from the Artifact table.
-
 ### Blocked / not started
 * **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
   left unauthored (deliberate, human's call 2026-07-29). **Blocked on pages:** the
@@ -383,8 +366,22 @@ Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
 The full record lives in `docs/status/`. These are the cross-cutting lessons that
 survive any status rewrite:
 
+* **Gear `resources_cost`** (`docs/status/rated-artifacts.md`) — core p.325's Resources
+  System shipped as an affordability HINT on the gear dialogs, never a validation.
+  **The trap, and it generalises: a printed rule can contradict an ownership invariant
+  in its own text.** Buying at cost EQUAL to your Resources lowers the rating by one, so
+  the book's own outcome is a character holding gear she could not now afford — a static
+  "no item above your rating" check would flag the rule working correctly. The Artifact
+  budget looked like the precedent and was the wrong model. ⚠ 63 of the 66 costs are
+  still unattributed (the corebook's Cost column is dot glyphs the font cipher did not
+  resolve, on a page flagged GARBLED).
 * **Backgrounds** (`docs/status/backgrounds.md`) — **`catalogue_backgrounds` is what the
-  dropdown OFFERS; `allowed_backgrounds` is HARD validation.** Writing a list into the
+  dropdown OFFERS; `allowed_backgrounds` is HARD validation.** Two more that generalise:
+  **when a structural invariant is relaxed, name where it moved TO in the same change**
+  (the universal 5 lived on `BackgroundEntry.rating`; relaxing it to `le=10` took three
+  rounds to re-derive in the engine, each narrowing rather than closing the hole); and
+  **a permission toggle must move the OFFER as well as the bar** — a mortal granted
+  Artifact still could not find it in the catalogue, which is worse than no toggle. Writing a list into the
   wrong one makes every free-text Background illegal for that splat. Two lessons that
   generalise past this area: a `full` description string in `ui/catalogue.py` that is
   STRUCTURED rather than prose needs `whitespace-pre-line` or NiceGUI collapses every

@@ -77,20 +77,26 @@ def test_r1_connections_capped_by_the_attribute_sum(rs):
     c = _sidereal()
     b = rs.budgets_for("Sidereal")
     attr_sum = sum(c.attributes.values())
+    # The cap is a TOTAL, so it is exercised with ROWS — each within the universal 5,
+    # which is the per-row ceiling (human's ruling 2026-08-12). A single row carrying
+    # the whole allowance was the original fixture here and stopped being expressible
+    # when the row was held to 5; it also conflated the two ceilings.
+    def rows(total):
+        full, rest = divmod(total, 5)
+        return [BackgroundEntry(name="Connections", rating=5)] * full + (
+            [BackgroundEntry(name="Connections", rating=rest)] if rest else [])
+
     # over the sum errors
-    over = [i.code for i in validate.background_issues(
-        b, [BackgroundEntry(name="Connections", rating=attr_sum + 1)], c)]
+    over = [i.code for i in validate.background_issues(b, rows(attr_sum + 1), c)]
     assert over == ["background-above-attribute-cap"]
     # at exactly the sum is legal
-    assert validate.background_issues(
-        b, [BackgroundEntry(name="Connections", rating=attr_sum)], c) == []
+    assert validate.background_issues(b, rows(attr_sum), c) == []
     # spending BP on Attributes raises the allowance: one more dot is now legal
     c.attributes[AttributeName.STRENGTH] += 1
     raised_sum = sum(c.attributes.values())
-    assert validate.background_issues(
-        b, [BackgroundEntry(name="Connections", rating=raised_sum)], c) == []
+    assert validate.background_issues(b, rows(raised_sum), c) == []
     # chargen only: post-lock a locked Sidereal may be handed Connections by the story
-    locked = _sidereal([BackgroundEntry(name="Connections", rating=10)])
+    locked = _sidereal([BackgroundEntry(name="Connections", rating=5)] * 2)
     lifecycle.lock_chargen(locked, rs)
     assert not [i for i in validate.validate(rs, locked)
                 if "background-above-attribute" in i.code]
@@ -103,11 +109,13 @@ def test_r1_connections_capped_through_validate_chargen(rs):
     purest form. A rule whose required input is omitted by its caller is a rule that
     does not run. The Attribute-sum cap and the ST-toggle reads both go through this
     path."""
-    c = _sidereal([BackgroundEntry(name="Connections", rating=10)])   # base attrs sum 9
+    # Two rows of 5, not one of 10: the per-row ceiling is the universal 5, and a
+    # single illegal row would make this pass on the wrong error.
+    c = _sidereal([BackgroundEntry(name="Connections", rating=5)] * 2)  # base attrs sum 9
     assert any(i.code == "background-above-attribute-cap"
                for i in validate.validate_chargen(rs, c))
     # spending BP on Attributes raises the allowance through the same path
-    c2 = _sidereal([BackgroundEntry(name="Connections", rating=10)])
+    c2 = _sidereal([BackgroundEntry(name="Connections", rating=5)] * 2)
     c2.attributes[AttributeName.STRENGTH] += 1                        # sum 10
     assert not [i for i in validate.validate_chargen(rs, c2)
                 if i.code == "background-above-attribute-cap"]
@@ -364,36 +372,107 @@ def test_a_rule_may_raise_the_universal_cap_but_never_remove_it(rs):
     assert codes == ["background-above-origin-cap"], codes
 
 
-def test_connections_caps_one_row_at_ten_and_the_total_at_the_attribute_sum(rs):
-    """Human's ruling 2026-08-12: "Connections should be capped at 10. 27 dots in one
-    background is absurd and wouldn't render well."
+def test_connections_caps_the_row_at_five_and_the_total_at_the_attribute_sum(rs):
+    """Two ceilings on one Background, measuring different things.
 
-    Two ceilings on one Background, and they measure different things. `max_rating` and
-    the Attribute-sum cap both read `background_rating`, which SUMS every row sharing
-    the name — so the printed total-cap alone would let a lone row hold the whole 27,
-    and the dot track would try to draw 27 pips. `max_rating_per_row` is the per-row
-    ceiling; the printed rule still caps the TOTAL."""
+    `max_rating_is_attribute_sum` reads `background_rating`, which SUMS every row
+    sharing the name — the printed rule caps the TOTAL ("the total number of dots in
+    Connections may not exceed" the sum, Sidereals pp.106-108). It therefore says
+    nothing about a single row, which keeps the universal 5 like every other Background
+    (human's ruling 2026-08-12; a row briefly shipped at 10 and was reverted — 27 or
+    even 10 pips in one row looks unlike anything else on the sheet)."""
     b = rs.budgets_for("Sidereal")
     c = _sidereal()
     c.attributes = {a: 3 for a in AttributeName}        # sum 27
 
-    # the control offers 10, not 5 and not the 27-dot allowance
-    assert validate.background_rating_cap(b, c, "Connections") == 10
+    # the control offers the universal 5 — never the 27-dot allowance
+    assert validate.background_rating_cap(b, c, "Connections") == 5
 
-    # one row at 10 is legal while the total is within the sum…
-    c.backgrounds = [BackgroundEntry(name="Connections", rating=10)]
+    # one row is held to 5…
+    c.backgrounds = [BackgroundEntry(name="Connections", rating=8)]
+    assert [i.code for i in validate.validate_chargen(rs, c)
+            if i.code.startswith("background-above")] == ["background-above-universal-cap"]
+    # …two legal rows are legal…
+    c.backgrounds = [BackgroundEntry(name="Connections", rating=5)] * 2
     assert not [i for i in validate.validate_chargen(rs, c)
                 if i.code.startswith("background-above")]
-    # …two of them still are (20 ≤ 27)…
-    c.backgrounds = [BackgroundEntry(name="Connections", rating=10)] * 2
-    assert not [i for i in validate.validate_chargen(rs, c)
-                if i.code.startswith("background-above")]
-    # …and the TOTAL still binds: six rows of 5 is 30 against a sum of 27.
+    # …and the TOTAL still binds across rows: six rows of 5 is 30 against a sum of 27.
     c.backgrounds = [BackgroundEntry(name="Connections", rating=5)] * 6
     assert [i.code for i in validate.validate_chargen(rs, c)
             if i.code.startswith("background-above")] == ["background-above-attribute-cap"]
 
-    # The per-row lift does not leak: every other Background keeps the universal 5.
-    c.backgrounds = [BackgroundEntry(name="Savant", rating=10)]
-    assert [i.code for i in validate.validate_chargen(rs, c)
-            if i.code.startswith("background-above")] == ["background-above-universal-cap"]
+
+# --------------------------------------------------------------------------- #
+# Preflight render matrix — three ceiling shapes the R5 tests do not produce
+# --------------------------------------------------------------------------- #
+
+def _pips(user) -> int:
+    """Pip icons on the page. Each route holds exactly ONE dotted Background row."""
+    from nicegui import ui as _ui
+    return len([e for e in user.client.elements.values() if isinstance(e, _ui.icon)])
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_connections_row_offers_the_universal_five(user) -> None:
+    """The rule's cap measures a TOTAL, so it must not reach the row: 27 pips would
+    mean the attribute-sum leaked into the control, which is what shipped first."""
+    await user.open('/sidereal-connections-chargen')
+    assert _pips(user) == 5, _pips(user)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_barred_row_the_character_holds_can_still_be_stepped_down(user) -> None:
+    """The mortal Artifact bar puts the ceiling at 0 while the character holds 2 — an
+    older save, or the moment after the ST revokes permission. The dot track draws
+    `max(hi, current)`, so the row must still show its 2 pips; a row drawn at the
+    ceiling would strand the player with an error and no control to clear it."""
+    await user.open('/mortal-artifact-barred-chargen')
+    assert _pips(user) == 2, _pips(user)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_locked_row_above_its_post_lock_ceiling_still_renders(user) -> None:
+    """Celestial Manse 5 against a post-lock ceiling of 3: the play control is a
+    `ui.number` whose `max` is now engine-supplied, and a value above `max` must not
+    stop the panel building (the blank-tab class). The row renders and the rule still
+    reports the excess."""
+    from nicegui import ui as _ui
+    await user.open('/sidereal-over-ceiling-play')
+    await user.should_see("Celestial Manse")
+    numbers = [e for e in user.client.elements.values()
+               if isinstance(e, _ui.number) and e.props.get("label") is None]
+    assert numbers and numbers[0].value == 5, [n.value for n in numbers]
+
+
+def test_the_mortal_toggle_moves_the_OFFER_list_not_only_the_bar(rs):
+    """Found in the browser, 2026-08-12: a mortal with Storyteller permission still
+    could not find Artifact or Manse in the catalogue.
+
+    The bar and the offer are SEPARATE mechanisms — `BackgroundRule.barred` decides
+    legality, `catalogue_backgrounds` decides what the dropdown lists — and the toggle
+    moved only the first. Lifting a prohibition the player cannot then act on is worse
+    than not offering the toggle. `background_catalogue_for` now hides a barred
+    Background until its toggle lifts it, the same treatment `banned_backgrounds`
+    already gets, and both mortal rows list Artifact and Manse so there is something
+    for the permission to reveal."""
+    from exalted_builder.models.character import HouseRules
+    for origin in ("heroic", "ordinary"):
+        c = Character(id="mcat", exalt_type="Mortal", caste="", origin=origin,
+                      essence_rating=1)
+        c.attributes = _all_one_attributes()
+        offered = lambda: {b.name for b in validate.background_catalogue_for(rs, c)}
+        assert not {"Artifact", "Manse"} & offered(), \
+            f"{origin}: barred Backgrounds must not be offered without permission"
+        c.house_rules = HouseRules(st_mortal_artifact_manse=True)
+        assert {"Artifact", "Manse"} <= offered(), \
+            f"{origin}: permission must reveal them in the catalogue"
+
+    # The hiding is keyed to the character's OWN barred rules: no other splat loses a
+    # Background to it.
+    solar = Character(id="scat", exalt_type="Solar", caste="dawn", essence_rating=2)
+    solar.attributes = _all_one_attributes()
+    assert {"Artifact", "Manse"} <= {b.name for b in
+                                     validate.background_catalogue_for(rs, solar)}
