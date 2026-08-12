@@ -1085,7 +1085,17 @@
     "essence_start": 1,
     "essence_start_cap": 1,
     "bonus_points": 21,
-    "optional_favored_ability": true
+    "optional_favored_ability": true,
+    "catalogue_backgrounds": [
+      "allies",
+      "backing",
+      "contacts",
+      "familiar",
+      "followers",
+      "influence",
+      "mentor",
+      "resources"
+    ]
   },
   "Mortal:ordinary": {
     "attribute_pools": [
@@ -1102,7 +1112,17 @@
     "virtue_dots": 5,
     "essence_start": 1,
     "essence_start_cap": 1,
-    "bonus_points": 21
+    "bonus_points": 21,
+    "catalogue_backgrounds": [
+      "allies",
+      "backing",
+      "contacts",
+      "familiar",
+      "followers",
+      "influence",
+      "mentor",
+      "resources"
+    ]
   },
   "Ghost": {
     "attribute_pools": [
@@ -1282,6 +1302,33 @@
       15,
       20,
       20
+    ],
+    "catalogue_backgrounds": [
+      "abyssal command",
+      "allies",
+      "artifact",
+      "backing",
+      "celestial manse",
+      "command",
+      "contacts",
+      "cult",
+      "familiar",
+      "family",
+      "followers",
+      "henchmen",
+      "influence",
+      "inheritance",
+      "manse",
+      "mentor",
+      "patron",
+      "renown",
+      "reputation",
+      "resources",
+      "salary",
+      "savant",
+      "spies",
+      "underworld manse",
+      "whispers"
     ]
   },
   "Dragon-Kings": {
@@ -1436,6 +1483,22 @@
         ],
         "rating": 2
       }
+    ],
+    "catalogue_backgrounds": [
+      "allies",
+      "artifact",
+      "backing",
+      "celestial manse",
+      "contacts",
+      "cult",
+      "familiar",
+      "followers",
+      "influence",
+      "manse",
+      "mentor",
+      "resources",
+      "salary",
+      "savant"
     ]
   },
   "Mountain-Folk:enlightened": {
@@ -1480,7 +1543,19 @@
     "charm_min_caste_favored": 0,
     "willpower_start_cap": 8,
     "willpower_cap_exception_virtue": 4,
-    "willpower_cap_exception_count": 2
+    "willpower_cap_exception_count": 2,
+    "catalogue_backgrounds": [
+      "allies",
+      "artifact",
+      "backing",
+      "contacts",
+      "familiar",
+      "followers",
+      "influence",
+      "manse",
+      "mentor",
+      "resources"
+    ]
   },
   "Mountain-Folk:unenlightened": {
     "attribute_pools": [
@@ -1530,7 +1605,19 @@
     "bonus_points": 15,
     "charm_count": 3,
     "charm_min_caste_favored": 0,
-    "willpower_hard_cap": 6
+    "willpower_hard_cap": 6,
+    "catalogue_backgrounds": [
+      "allies",
+      "artifact",
+      "backing",
+      "contacts",
+      "familiar",
+      "followers",
+      "influence",
+      "manse",
+      "mentor",
+      "resources"
+    ]
   },
   "Solar": {
     "catalogue_backgrounds": [

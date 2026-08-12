@@ -271,18 +271,19 @@ def test_an_untranscribed_splat_degrades_to_the_old_filter(rs):
     """A splat whose book has not been read yet must keep the behaviour it had — the
     per-Background `exalt_type` tag — rather than showing nothing. That is what makes
     transcribing the books incremental instead of all-or-nothing."""
-    # Whichever splat is still untranscribed — the example keeps moving as the sweep
-    # finishes (Lunar, then Dragon-Kings, both now have lists), so it is CHOSEN rather
-    # than named. When the last one is read this test has nothing left to prove and
-    # should be deleted, not faked with an invented splat.
-    fallback = next((s for s in ("God-Blooded", "Mortal", "Mountain-Folk")
-                     if not rs.catalogue_backgrounds_for(s)), None)
-    assert fallback is not None, (
-        "every splat now has a transcribed catalogue list — the fallback path this "
-        "test covers is unreachable, so delete the test rather than inventing a splat")
-    offered = {b.name for b in rs.backgrounds_for(fallback)}
-    assert offered, f"{fallback} was offered nothing at all"
-    assert "Whispers" not in offered            # another splat's tagged Background
+    # No shipped splat is untranscribed any more — Dragon-Kings was the last, and its
+    # own list is covered above and in test_dragonkings.py. The fallback is still LIVE
+    # CODE in `backgrounds_for` though, and it is what makes adding splat number twelve
+    # incremental rather than all-or-nothing, so it is exercised through a key no book
+    # will ever define. A synthetic splat is the honest way to test a branch that no
+    # real character currently reaches; delete this only if the fallback itself goes.
+    assert rs.catalogue_backgrounds_for("Some-Unread-Splat") == set()
+    names = _names(rs, "Some-Unread-Splat")
+    assert "Allies" in names and "Resources" in names   # untagged, offered to everyone
+    assert "Cult" in names                              # universal, needs no list
+    assert "Celestial Manse" not in names               # Dragon-Kings'/Sidereal's
+    assert "Whispers" not in names                      # Abyssal's
+    assert "Heart's Blood" not in names                 # Lunar's
 
 
 # --------------------------------------------------------------------------- #
