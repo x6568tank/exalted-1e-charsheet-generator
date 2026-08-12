@@ -2,7 +2,15 @@
   {
     "id": "background.abyssal-command",
     "name": "Abyssal Command",
-    "description": "You have been placed at the head of one of your Deathlord's military formations — battle-trained and moliated ghosts, ancestor-cult zealots or death-cult fanatics. Ranges from a small bodyguard (•) up to a double dragon of 500 war ghosts, 1,000 soldiers and 3,000 zombies (•••••). The Abyssal replacement for the Command Background.",
+    "description": "You have been placed at the head of one of your Deathlord's military formations. The troops are typically battle-trained and moliated ghosts, ancestor-cult zealots or death-cult fanatics. Characters may trade two living soldiers for one ghost, and one living soldier for three skeletons or walking corpses. These troopers are the character's personal retinue and don't have anything to do other than take the character's orders, though the master deathknight may second them to the regular military when he is not using them. Troops that come from this Background use the Elite Troops template found on page 278 of Exalted, walking dead are as described on page 299 and war ghosts on page 301, and all troops are extras. The Abyssal replacement for the Command Background.",
+    "ladder": [
+      "None. Not even a bodyguard?",
+      "A small bodyguard of two ghosts, five soldiers or 15 common zombies. They also do basic domestic chores.",
+      "A large bodyguard of 13 ghosts, 25 soldiers or 75 zombies and other walking dead commanders. Perhaps you fear ambush?",
+      "An armed company of 50 ghosts, 100 men or 300 common zombies and assorted other animated dead. The character might command a unit of commando raiders, a monastic fighting order, a violent criminal syndicate or a very large personal bodyguard.",
+      "A heavy company of 250 ghosts, 500 men or 1,500 shamblers. Perhaps the character commands the palace guard or his lord's heavy cavalry. The character's force may contain undead war machines, at the Storyteller's discretion.",
+      "A double dragon, 500 war ghosts, 1,000 soldiers or 3,000 common zombies and an additional 250 more intelligent walking dead to manage them. The force can only be the vanguard of your master's forces or the Deathlord's personal bodyguard."
+    ],
     "exalt_type": "Abyssal"
   },
   {
@@ -22,7 +30,15 @@
     "id": "background.ancestor-cult",
     "name": "Ancestor Cult",
     "exalt_type": "Ghost",
-    "description": "Mortals who pay you homage after death, burning valuables and effigies in your memory; their prayers and offerings give you Essence. • a wife or a few children (the most any ghost on the Blessed Isle can expect without Immaculate persecution); •• an honoured ancestor of a family line; ••• a large family or a small nation, with a mortal occultist sending a grave good no more than once a year; •••• an altar and a part-time priest, and the ghost regains 1 Willpower daily at the moment of her death; ••••• a full temple with full-time priests, 1 Willpower daily and an extra 2 motes per hour. The living expect guidance in return, and a cult can be attacked by local gods, the Immaculate Order or a rival's cult. Cult • and •• are folded into the •••• and ••••• levels (p.152)."
+    "description": "Mortals who pay you homage and respect after your death, burning valuables and effigies in your memory; their prayers and offerings give you Essence. This may be your large extended family and their descendants or the citizens of a nation or an ethnic group who consider your deeds in life worthy of remembrance. The living expect guidance in return, and a cult can be attacked by local gods, the Immaculate Order or a rival's cult. Cult • and •• are folded into the •••• and ••••• levels (p.152).",
+    "ladder": [
+      "You have no one to make offerings in your name. Why?",
+      "A wife or perhaps a few children remember you and make offerings. You receive Resources • tributes every few days and the occasional Resources •• valuables tribute. This is the maximum Ancestor Cult any ghost on the Blessed Isle can expect to have without Immaculate persecution.",
+      "You are held up as an honored ancestor by a family line or a small extended family. You receive daily Resources • tributes, Resources •• tributes at least once a week and a Resources ••• tribute (almost certainly a Resources •••• effigy) on the major holidays.",
+      "A large family venerates you as a revered ancestor and tells stories of your deeds, or perhaps you are the founder of a small town or the hero of a small nation. Your daily offerings amount to Resources ••, and there are several (at least three) Resources ••• offerings on the major holidays or anniversaries important to the character. There are doubtless a number of children who bear your name, and much is done in your memory. Occasionally (no more than once a year), a mortal occultist may send the character a new grave good with a mortal Resources cost no higher than •••.",
+      "You are one of the prime ancestors of a powerful and influential clan, or perhaps founder of a small nation or a city. There is an altar set up for you, and you have at least one part-time priest. You receive Resources ••• total burnt offerings daily and Resources •••• offerings on the major holidays or when individuals seek your special favor. In addition, the constant invocation and veneration of the character strengthens her will. Every day at the moment of the ghost's death, the ghost regains 1 Willpower.",
+      "You were the founder of a great nation or the hero of a people. Children are named after you, and there is a full temple with full-time priests devoted to your memory. You receive Resources ••• in burnt offerings daily, with Resources ••••• offerings on all the major holidays. Every few weeks, a follower will make a Resources •••• offering seeking your special favor. In addition, the ghost regains one temporary Willpower daily on the moment of her death, and the prayers and offerings of her worshipers give her an additional 2 motes of Essence per hour. The character is becoming quite the god and will have to begin contending with other local little gods for serious worship."
+    ]
   },
   {
     "id": "background.arsenal",
@@ -41,12 +57,28 @@
   {
     "id": "background.artifact",
     "name": "Artifact",
-    "description": "Wondrous devices of the First Age that you own, rated by power and rarity. (Dragon-Blooded receive twice the dots' worth of artifacts.) (Alchemicals receive THREE dots of artifacts per dot bought, usually of their caste's Magical Material though this is not required; they alone may buy a rating as high as ••••• at creation without bonus points, but the fourth and fifth dot each cost two dots from the pool. Alchemicals may also buy Charms as artifacts at a rating equal to the Charm's minimum Essence — these are kept on retainer at the Vats and do NOT increase the Charms they may install.)"
+    "description": "Wondrous devices of the First Age that you own, rated by power and rarity. Talented Exalted craftsmen can work their will on objects, crafting them into artifacts of great power. The most powerful of these items were made during the now-vanished golden time of the First Age. Many have failed, as the ravages of time undid their magic; many more were destroyed in the disasters and wars that ended that Age of glory. Yet some survive and continue to function — their imperishability a tribute to the power of the ancients. Even today, the Dragon-Blooded still forge weak items, and the Sidereals and Lunars both work their hidden wonders, yet most of the First Age's wisdom has been forgotten or was lost during the Great Contagion. Your character could have been powerful or rich enough previous to her Exaltation to have some trapping of First Age glory, or she might have followed prophetic dreams and looted one of the hidden fortress-tombs where the bones and ashes of the Solars were laid down and sealed away, or seized the artifact or had it given to her by a third party. However the object came into the character's possession, there is a story behind it. For details of various artifacts, see Chapter Nine — Wonders and Equipment. (Dragon-Blooded receive twice the dots' worth of artifacts.) (Alchemicals receive THREE dots of artifacts per dot bought, usually of their caste's Magical Material though this is not required; they alone may buy a rating as high as ••••• at creation without bonus points, but the fourth and fifth dot each cost two dots from the pool. Alchemicals may also buy Charms as artifacts at a rating equal to the Charm's minimum Essence — these are kept on retainer at the Vats and do NOT increase the Charms they may install.)",
+    "ladder": [
+      "No Artifact.",
+      "A minor item — a magic charm, an amulet with a setting for a single Hearthstone or a diadem of office.",
+      "A useful item, a weapon or suit of armor.",
+      "A powerful weapon or suit of armor — a non-weapon item of significant power.",
+      "Either a remarkably powerful weapon or armor or a non-weapon item of power and utility.",
+      "A vanished wonder of the First Age — a one-of-a-kind item capable of changing the course of history."
+    ]
   },
   {
     "id": "background.backing",
     "name": "Backing",
-    "description": "Standing and rank within an organization of power, such as the Realm, a Guild, or a society. (An Abyssal in a Deathlord's service may not begin play with Backing — she takes Liege instead, p131.) (In Autochthonia, Backing is membership and authority in a branch of the Tripartite — an Olgotary branch, a Theomachracy branch or one of the Five Sodalities — and requires Class •••+. Autocrats, celebrants and councilors need Backing ••••• in the Olgotary, the Theomachracy or a Sodality respectively. Backing in an exile colony, a Voidbringer sect or the black market is possible but limited, and the latter two mark you for death.)",
+    "description": "Standing and rank within an organization of power, such as the Realm, a Guild, or a society. Backing is less a measure of actual capability or achievement than of perceived influence or rank. At the Storyteller's discretion, you may take Backing multiple times for rank in different organizations. With this rank comes responsibility — if your character has high Backing, she is likely to be responsible for decisions involving great numbers of people and resources. (An Abyssal in a Deathlord's service may not begin play with Backing — she takes Liege instead, p131.) (In Autochthonia, Backing is membership and authority in a branch of the Tripartite — an Olgotary branch, a Theomachracy branch or one of the Five Sodalities — and requires Class •••+. Autocrats, celebrants and councilors need Backing ••••• in the Olgotary, the Theomachracy or a Sodality respectively. Backing in an exile colony, a Voidbringer sect or the black market is possible but limited, and the latter two mark you for death.)",
+    "ladder": [
+      "None — a typical grunt.",
+      "A low-ranking position of little authority but a fair amount of (usually dull and unpleasant) responsibility.",
+      "A good post with most of the disagreeable duties pawned off on underlings.",
+      "Midlevel rank, usually with ill-defined authority and responsibility (such leeway can be both a blessing and a curse).",
+      "A position of some direction and privilege — the character has access to large resources and is trusted by the elite.",
+      "You've reached the upper ranks — a leader in your own right, the character commands power and respect."
+    ],
     "excluded_exalt_types": [
       "Abyssal"
     ]
@@ -60,7 +92,15 @@
   {
     "id": "background.class",
     "name": "Class",
-    "description": "Your rank in Autochthonia's social order and your standard of living, subsuming Followers, Influence and Resources into one Trait. Alchemicals automatically receive Class ••• at creation and may raise it with bonus points. x: Lumpen outcast, living as Resources •, -1 die on Social pools against higher Class. •: Populat laborer, Resources ••. ••: shift chief over 20-300 workers, Resources •••. •••: Populat foreman or junior Tripartite (with Backing • to ••), living at Resources ••• and able to requisition Resources ••••; +1 die on Social rolls against lower Class. ••••: Populat supervisor or veteran Tripartite (Backing •• to •••), requisition up to Resources •••••; +1 die against lower Class. •••••: director/sub-director or senior Tripartite leader (Backing •••• to •••••); +2 dice against lower Class. Because Class subsumes them, civilized Autochthonians may not take Resources or Followers — Lumpen outcasts, who live outside this Background entirely, may.",
+    "description": "Your rank in Autochthonia's social order and your overall standard of living, subsuming Followers, Influence and Resources into a single Trait. Most of Autochthonia lacks any form of currency — trade and barter exists, particularly on a larger scale between nations, but no fixed units of exchange govern these transactions, and hoarding is strongly discouraged, although sufficient social status permits considerably greater leniency. Alchemical Exalted automatically receive Class ••• during character creation and may raise this Background even further with bonus points; they receive the same benefits and resource allocations as mortals for their Class rating. Lumpen exiled to the Reaches for serious crimes against the state live entirely outside the auspices of this Background, as do rare children unlucky enough to be born in an exile colony. Any standing in an exile colony should be purchased as Backing, while caches of scavenged wealth or lackeys require a combination of Resources and Followers, as appropriate. Civilized Autochthonians may not have either of these latter Backgrounds and must generally restrict their Backing to official channels.",
+    "ladder": [
+      "As a Lumpen outcast, you occupy the lowest social rung. You enjoy a tolerable standard of living equivalent to Resources •, but you face derision and scorn, suffering a one-die penalty to Social pools when interacting with characters of a higher Class rating. Surface slaves kidnapped from Creation during the Locust Crusade also have this rating of Class.",
+      "As a general laborer or aide of the Populat, you are considered a productive member of society, enjoying a standard of living equivalent to Resources ••. Your dormitory home houses several dozen individuals, and you have no personal claim to any of that space. In the wake of a successful Locust Crusade, Creation-dwelling loyalists of the Outsider caste also share this Class rating, though they are forbidden from entering Autochthonia.",
+      "You are a shift chief of the Populat, overseeing anywhere from 20 to 300 workers, with a Resources ••• standard of living. You live in an apartment with roughly a dozen of your peers.",
+      "You are either a foreman of the Populat, responsible for overseeing an entire factory, or a junior member of the Tripartite (this should be accompanied by appropriate Backing of one to two dots). You live as if you had Resources ••• with a dedicated staff of aides (ostensibly for professional use only), but your rank allows you to requisition goods and services valued at Resources ••••. Superiors may demand justification for these requisitions. Foremen live in suites housing six peers, while all members of the Tripartite and Alchemicals have small private domiciles befitting their importance. Your player receives an additional die to all Social rolls when you're interacting with Autochthonian characters of lower Class.",
+      "You are a supervisor of the Populat, directing all factories belonging to a single industry within your city. Alternately, you are a veteran member of the Tripartite (this should be accompanied by appropriate Backing in the two- to three-dot range). You may have a standard of living at Resources ••• or •••• depending on your sensibilities but can freely requisition goods and services as valuable as Resources ••••• if you are willing to risk the scrutiny and censorship of superiors. Your private residence/office complex is spacious and comfortable, roughly the size of a large townhouse in Creation. Your player receives an additional die to Social rolls when you're interacting with Autochthonian characters of lower Class.",
+      "You are director or sub-director of the Populat or a senior leader in the Tripartite (appropriate Backing at four or five dots). You live as befits your authority in a palatial residence, most likely living at Resources •••• or ••••• depending on your ego. Only the most egregious abuse of your station and its concomitant privileges invites censure. Your player receives two dice to Social rolls when you're interacting with Autochthonian characters of lower Class."
+    ],
     "exalt_type": "Alchemical"
   },
   {
@@ -78,7 +118,15 @@
   {
     "id": "background.contacts",
     "name": "Contacts",
-    "description": "Information sources and useful connections in various places.",
+    "description": "Information sources and useful connections in various places. More casual than allies, contacts are people with whom your character has developed a mutually beneficial arrangement. Contacts use their talents, information or resources to help your character, but they always expect some favor in return. This favor could be a service, trade or even payment, but it generally matches the value of the contact's assistance. These associates don't risk themselves as far as a follower or even an ally will (although a well-cultivated contact could grow into one or the other over the course of the series). Each dot represents major and minor contacts. Major contacts are individuals with whom your character interacts frequently — a dirty customs official, a high-ranking military officer, a leading courtier or the scion of a powerful family. Minor contacts don't have names; they represent your character's overall connectedness, and all you need to do to find one is roll a success on your Contacts. Obviously, not all these minor contacts know the character personally — to a large extent, minor contacts just represent a character's innate ability to sniff out information and people receptive to bribes. Also obviously, there will be times when a character's Contacts rating is irrelevant — a character just isn't going to find someone willing to fill him in on the local situation at a deserted oasis.",
+    "ladder": [
+      "No useful contacts — the character does his own legwork.",
+      "One major contact and a few minor ones.",
+      "Two major contacts in different areas and a smattering of minor contacts.",
+      "Three major contacts and a respectable number of minor ones.",
+      "Four major contacts in different areas (although your character may double up in a given field) and a large number of minor contacts.",
+      "Five major contacts and a minor contact virtually anywhere your character cares to look."
+    ],
     "excluded_exalt_types": [
       "Dragon-Blooded",
       "Sidereal"
@@ -87,13 +135,29 @@
   {
     "id": "background.cult",
     "name": "Cult",
-    "description": "Worshippers whose devotions give you strength.",
+    "description": "Worshippers whose devotions give you strength. There is Essence in worship: prayers and burnt offerings provide power to those gods who receive them. In this fallen age, the Essence of prayer lures gods to demand the worship of men. They are not alone in this, for some Exalted accept worship as well, and even mortal cult leaders can gain power from worship. Though it does not provide as much Essence as ownership of a Manse or Demesne, worship is harder to disrupt — while a god's control of a holy place can be directly contested, her cult will attempt to continue worship even if it becomes illegal. It doesn't matter if the god's worshipers like her or not; what matters is that they make regular offerings and prayers to her. Cults that hate and fear a god are less likely to persist if the local political climate turns against her, however. Having this Background does not make an Exalt or mortal into a god; it just grants them access to Essence and Willpower. The Immaculate Order's attitude about personal cults is very dim, but the more autocratic Great Houses are effectively cults.",
+    "ladder": [
+      "None — the god has no cult and must rely on respiration and control of holy places to regain Essence.",
+      "The god has a small hut devoted cult, with perhaps a half-dozen full time priests or ascetics tending to his shrines and singing his praises. Every morning when the sun rises or sets (the god picks), the god gains a point of temporary Willpower.",
+      "The god's faith lays its hand on the everyday life of a large community or several small ones. Several hundred people offer the god daily prayers and small offerings, and the god has feasts and sacred days (perhaps informal ones) throughout that area. The god gains a point of temporary Willpower every morning or evening and, in addition, gains 2 motes of Essence per hour from worship.",
+      "The god is venerated in a region. Several thousand people daily seek the god's favor or forbearance. Gods who are divine rulers of a single city have this level of worship. The god may regain a point of temporary Willpower once every 24 hours as a reflexive action requiring no dice. The god gains 3 motes of Essence per hour from the power of the cult.",
+      "The god's worship is the faith of a nation. Tens of thousands of beings hold the god in reverence. There are regional festivals in the god's name that draw merchants and traders from all around. The god may have a city sacred to her where she rules either symbolically or in truth. Once every 12 hours, the god may gain back a point of temporary Willpower as a reflexive action that requires no dice, and the god's cult blesses her with 4 additional Essence per hour.",
+      "The god's worship is the faith of a region, and he is seen as the arbiter of some major sphere of life affairs, such as hunting, war or procreation. There are seasonal festivals in the god's honor all over the land, many children carry the god's name, and much is done in honor of that name. The god must surely face fierce competition from other powerful divinities for the prayers and honors and will have to spend a great deal of time furthering his worship. Every six hours, the god can gain a point of temporary Willpower as a diceless reflexive action, and the god gains back 6 motes per hour from the constant prayers of the faithful."
+    ],
     "universal": true
   },
   {
     "id": "background.familiar",
     "name": "Familiar",
-    "description": "An animal companion bonded to you and sustained by your Essence, rated by capability. (Autochthonia has almost no conventional fauna, so Alchemicals bond not animals but the animate constructs of their world, telepathically requisitioning an entity whose properties they define. Mortal Autochthonians may not take Familiar.)",
+    "description": "An animal companion bonded to you and sustained by your Essence, rated by capability. Many Exalted find themselves bound to animal companions. In many cases, these are simply animals drawn to the Exalted's power and are little more than loyal pets. However, in some cases, the bond is much closer, allowing the Exalted to communicate with the animal and even share its senses. However, in either case, the familiar draws the character's Essence to supplement its own life — the animal will not age or die until the character does. (Autochthonia has almost no conventional fauna, so Alchemicals bond not animals but the animate constructs of their world, telepathically requisitioning an entity whose properties they define. Mortal Autochthonians may not take Familiar.)",
+    "ladder": [
+      "No familiar.",
+      "A small animal, such as a cat or stray dog, that provides little more than companionship and perhaps warning of danger.",
+      "An impressive pet, such as a wolf or hawk. A smaller pet that is preternaturally intelligent — a cat that is very clever and that can understand simple instructions, for example. It cannot speak, but it can understand you and perform very simple tasks such as fetching or knocking something over. It communicates with your character (and him alone) fairly well through posture and facial expression.",
+      "A powerful or dangerous pet — a tiger or a dire wolf — or an impressive and intelligent pet. If the familiar is a small animal, it is as intelligent as a child of eight or nine years — it can fetch items and do chores, but it has no book learning and can be easily distracted. The familiar can communicate with you as well as if it were speaking by its noises, postures and expressions. When it is touching your character, it makes an additional 5 motes of Essence available. This Essence is 'stored' in the familiar but is otherwise treated as Personal Essence. It regenerates only after your character has regained all his own Essence. The character can share one of its senses when it is within 100 yards.",
+      "An impressive pet that has the properties of a small animal at Familiar •• — increased intelligence, sharing of senses, making extra Essence available to your character and near-perfect communication.",
+      "A powerful or dangerous pet that has the properties of Familiar •••."
+    ],
     "excluded_exalt_types": [
       "Ghost"
     ]
@@ -125,7 +189,15 @@
     "id": "background.grave-goods",
     "name": "Grave Goods",
     "exalt_type": "Ghost",
-    "description": "The value of your funeral spread — your outfit in the Underworld, which does NOT replenish itself the way Resources do; once it is gone you are naked and alone. • fine clothing, a weapon and some food; •• armour, several suits, jewellery, books and several weapons; ••• a princely panoply, a dozen exceptional weapons and 100 Essence/10 Willpower in burnt offerings, with up to three sacrificed animals and a sacrificial servant; •••• a funeral fit for a queen, a tomb that entered the Underworld with you, 150 Essence/15 Willpower; ••••• a national effort, yachts with effigy crews, 1,000 warrior effigies and 250 Essence/25 Willpower. High Resources cannot substitute — bought gear wears out, and it cannot justify grave-bound servants or sacrificed animals."
+    "description": "The general value of the character's funeral spread. Characters with high Grave Goods were buried with both panoply and retinue, while those with low ratings were buried poor and alone. Grave Goods are not Resources, because they do not replenish themselves — they are the character's outfit in the Underworld, and once they are gone, the character is naked and alone. Characters with high Resources may have many exceptional weapons and gear, but they will be someone else's grave goods bought at a necropolis and will wear out; characters with high Resources cannot use that to justify grave-bound servants or sacrificed animals.",
+    "ladder": [
+      "You have no grave goods. Perhaps you were a pauper or a follower of the Immaculate Philosophy, or perhaps you died in a plague or war and were buried in haste.",
+      "You have basic grave goods — a fine suit of clothing, a weapon and some tasty food.",
+      "You have elaborate grave goods — a suit of armor, several suits of clothing, much jewelry, miscellaneous personal goods such as books and games and several weapons.",
+      "You had a princely panoply. Perhaps you were a mortal prince, or perhaps you were simply an ancestor cultist who knew how to prepare for the Underworld. This is the appropriate level of grave goods for someone who received a first-rate Sijanese burial or who was buried among the icewalkers or other ancestor-worshiping tribes. The character has many suits of fine clothing and glittering finery, a dozen exceptional weapons, a larder full of delicacies and 100 Essence/10 Willpower in burnt offerings. You may have one to three sacrificed animals, one to three funeral effigies and a favorite wife or servant as your sacrificial slave.",
+      "You were given a funeral fit for a queen of means. You have a large tomb that probably entered the Underworld with you that can serve as a residence. You have all the weapons, trappings, armor and food you could ever want, and your entire household never wants for the food of the living. You have a hound and a hawk and a horse — and sheep and cattle as well. You will have a ship if from a nautical culture. You can have up to 100 effigies and a dozen total sacrificed wives, aides and bodyguards or slaves. You have 150 Essence/15 Willpower in burnt offerings.",
+      "Your burial was a national effort by a country of considerable resources or one of the best funerals that Sijan has seen in decades. You are fabulously rich in trappings and have yachts with effigy crews and a stable of horses. You possess herds of sheep and cattle, complete with effigy herdsmen. You have 1,000 warrior effigies, and your ghostly servants include a dozen personal servants and close retainers, a brawny gang of workers and a harem of beautiful sex partners (who may also be the workers, under appropriate circumstances). Your vast tomb has assuredly entered the Underworld with you to serve as your palace among the dead. You have 250 Essence/25 Willpower in burnt offerings."
+    ]
   },
   {
     "id": "background.hearts-blood",
@@ -142,7 +214,15 @@
   {
     "id": "background.influence",
     "name": "Influence",
-    "description": "Your pull and status in society — political, social, or commercial.",
+    "description": "Your pull and status in society — political, social, or commercial. If nothing else, Exalted are certainly persons of importance — people watch, admire and fear them. This status may derive from political office, running a business, being an entertainer, being a religious figure or merely the amount of power he's demonstrated. Whatever your character's specific credentials, people pay attention to his words and deeds. Influence may be used to garner special favors from others, to promote a personal agenda in public or just to make life that much easier. Additionally, Influence may be drawn on to network and make important connections — or to draw even more people under your character's sway. Most Exalted will eventually garner some degree of Influence, if they don't start with it. This Background doesn't cover standing or sway in a private organization — that's handled by Backing.",
+    "ladder": [
+      "None — your character's fame has yet to spread.",
+      "Moderately influential — a figure of local note.",
+      "Moderately powerful — your character swings some weight in the city-state or satrapy where he resides.",
+      "Influential — your character is very important to the region close to where he resides and noticed in neighboring states. The Dragon-Blooded know of him.",
+      "Broad personal power — your character's words carry great weight throughout the region, and he may rule a town or small city. The arrival of the Wyld Hunt is only a matter of time, even in the current political climate.",
+      "Vastly influential — your character rules a region or has great pull in several. Surely the Realm even now gathers armies to annihilate him."
+    ],
     "excluded_exalt_types": [
       "Dragon-Blooded",
       "Sidereal"
@@ -151,7 +231,15 @@
   {
     "id": "background.liege",
     "name": "Liege",
-    "description": "The interest and favor your Deathlord takes in you, standing in for both Mentor and Backing (which loyal deathknights may not take). Grants extra bonus points at creation (2 at •, 4 at ••, 6 at •••, 9 at ••••, 12 at •••••) spendable on Abyssal Command, Artifact, Followers, Influence, Manse, Necromancy, Resources, Underworld Manse, Whispers, Caste/Favored Abilities or Charms. Renegade deathknights on the run from their masters may not buy Liege.",
+    "description": "The interest and favor your Deathlord takes in you, standing in for both Mentor and Backing, which loyal deathknights may not take. Every Abyssal character is considered to have her Deathlord as both a mentor and a backer, and the Liege Background represents the Deathlord's level of interest in the character's existence and activities. Keep in mind that, no matter how close a relationship an Abyssal may have with her liege, the relationship is and always will be one of servitude. The higher a character's Liege rating, the more closely her will and her destiny are bound to that of her Deathlord. A character with the Liege Background has an additional number of bonus points that may be spent on the Backgrounds of Abyssal Command, Artifact, Followers, Influence, Manse, Necromancy, Resources, Underworld Manse and Whispers, as well as on any of the character's Caste or Favored Abilities and on Charms. Renegade deathknights on the run from their Deathlord masters may not buy the Liege Background.",
+    "ladder": [
+      "You no longer have any contact with your Deathlord, either because you have turned your back upon him or because he has turned his back upon you.",
+      "You and your Deathlord are distant, and he takes only the minimal interest in your doings. The character possesses 2 additional bonus points to be spent on those Traits detailed in the Liege Background description.",
+      "Your Deathlord takes an infrequent interest in your activities, perhaps a half-dozen times a year, and gives you a small number of underlings and other resources to use in the course of your duties. The character receives 4 additional bonus points.",
+      "Your Deathlord calls you into his presence occasionally, perhaps once a month, and grants you a moderate amount of resources to use as you see fit. The character receives 6 additional bonus points.",
+      "You see your Deathlord often, reporting to him almost weekly and are entrusted with a large number of his empire's resources. The character receives 9 additional bonus points.",
+      "You are your Deathlord's most favored servant, acting as his trusted agent and receiving his full support in all things. The character receives 12 additional bonus points."
+    ],
     "exalt_type": "Abyssal",
     "excluded_exalt_types": [
       "Ghost"
@@ -160,7 +248,15 @@
   {
     "id": "background.manse",
     "name": "Manse",
-    "description": "A geomantic structure over a demesne that produces Essence and houses a Hearthstone. (Autochthonia contains no Manses, so this Background is off limits to Alchemicals in any story where the Seal of the Eight Divinities is unbroken; once the Locust Crusade begins they use and build Manses in conquered Creation, purchasing this Trait exactly as a Solar does. Mortal Autochthonians may not take Manse.)",
+    "description": "A geomantic structure over a demesne that produces Essence and houses a Hearthstone. The power of the Exalted stems from the might of their own souls, but that Essence is the same power that courses through and forms the very fabric of the world. By attuning themselves to places where the world's natural magic gathers, the Exalted can draw on an almost unlimited wellspring of power, pulling energy from Creation itself to fuel their magics. The places are called Demesnes, if they have not been harnessed by occult architecture; if their power has been focused by geomantic means, then they are known as Manses. Weak Demesnes are quite common, but the more powerful ones are increasingly rare and make attractive lairs for magical creatures — from Lunar Exalted to Fair Folk and spirits of great power, all capable of disputing the character's ownership. Characters inside a Manse or Demesne to which they are attuned regain four times the level of the site per hour in Essence motes. A Demesne can be raised up into a Manse that channels its power into a Hearthstone, a piece of rock crystal about the size and shape of a chicken egg. In its raw state, the Hearthstone causes the Exalted to regain twice the Manse's rating in Essence per hour; it must be touching skin, and only one Hearthstone may grant this benefit at a time. A Hearthstone can also be set into a specially made item forged from one of the Five Magical Materials to grant greater power to the Exalted who bears it. For more details on Manses, their construction and how they generate Hearthstones, see page 247; for a dozen example Hearthstones, see Chapter Nine — Wonders and Equipment. (Autochthonia contains no Manses, so this Background is off limits to Alchemicals in any story where the Seal of the Eight Divinities is unbroken; once the Locust Crusade begins they use and build Manses in conquered Creation, purchasing this Trait exactly as a Solar does. Mortal Autochthonians may not take Manse.)",
+    "ladder": [
+      "No Manse or Demesne.",
+      "Level 1 Manse or level 2 Demesne.",
+      "Level 2 Manse or level 3 Demesne.",
+      "Level 3 Manse or level 4 Demesne.",
+      "Level 4 Manse or level 5 Demesne.",
+      "Level 5 Manse."
+    ],
     "excluded_exalt_types": [
       "Ghost"
     ]
@@ -168,7 +264,15 @@
   {
     "id": "background.mentor",
     "name": "Mentor",
-    "description": "A patron, teacher, or defender who advises and aids you, rated by their power. (An Abyssal in a Deathlord's service may not begin play with Mentor — she takes Liege instead, p131.)",
+    "description": "A patron, teacher, or defender who advises and aids you, rated by their power. A mentor is many things — a patron, teacher, defender and friend. Your character's relationship with her mentor is quite different from any relationship with an ally, contact or follower. While a mentor won't always respond to your character's requests for help, he always acts in her best interests (or what he considers her best interests). A mentor-student relationship is a complex and personal association that entails responsibilities on both sides, and it should, therefore, be the subject of involved roleplaying. A mentor may be a powerful Exalted, an organization such as the Guild or possibly even a mighty spirit or creature of the Wyld. Depending on her capabilities and means, a mentor may teach Abilities, make information or resources available or even instruct in use of sorcery and Charms. She may also serve as your character's advocate in dealing with a particular organization or may simply show up in time to pull her out of a tight spot. The rating of this Background reflects a mentor's helpfulness: a minor patron is better than none (usually), and a more significant mentor has a correspondingly higher rating. Even so, a low-ranking mentor can be a powerful influence in your character's growth. (An Abyssal in a Deathlord's service may not begin play with Mentor — she takes Liege instead, p131.)",
+    "ladder": [
+      "None — your character hasn't caught anyone's attention, or perhaps she simply hasn't found a patron worthy of her attention.",
+      "Like an older sibling, your mentor is just a bit more worldly and wise than your character. He has a few connections.",
+      "A figure of some note or a true power who has little time for your character.",
+      "A seasoned individual, your character's mentor is wise and influential.",
+      "Canny and respected, your character's mentor has significant clout, even enough to shape the course of nations.",
+      "Your character's mentor is potentially world-shaking, and he takes a great interest in your character's welfare. Beware, though — such a mentor surely has enemies, and those rivals will see your character as his heir, understudy and minion."
+    ],
     "excluded_exalt_types": [
       "Abyssal",
       "Sidereal"
@@ -177,7 +281,15 @@
   {
     "id": "background.necromancy",
     "name": "Necromancy",
-    "description": "Training in the death-magic of the Underworld — you begin play knowing necromantic spells without swapping Charms for them: one Shadowlands-Circle spell at •, rising to seven Shadowlands/Labyrinth-Circle spells at •••••. Only Necromancy may be learned this way, never Terrestrial or Celestial sorcery.",
+    "description": "Training in the death-magic of the Underworld. The Deathlords have had millennia to gather their power and to uncover the secrets of the Underworld, and these same secrets are made available to their deathknight servants. A character who possesses the Necromancy Background has put forth the time and effort to master the dread magics of the Underworld. Most learn at the feet of their Deathlords; some undertake independent instruction or seek out the ghosts of First Age loremasters, and a few mad souls descend deep into the Underworld in order to learn the dark arts from the Malfeans themselves. This Background enables a character to begin the game with the knowledge of a certain number of necromancy spells without having to swap out Charms for spells. All of the spells learned from this Background must be Necromantic in nature. It may not be used to learn Terrestrial or Celestial sorcery.",
+    "ladder": [
+      "You have little to no training in the arts of necromancy.",
+      "You have received basic instruction in the necromantic arts. Your character starts with the knowledge of one necromancy spell of the Shadowlands Circle.",
+      "You have a strong understanding of the core principles of the magic of the Underworld. Your character starts with the knowledge of two necromancy spells of the Shadowlands Circle.",
+      "You have received extensive training in the arts of necromancy. Your character starts with the knowledge of three necromancy spells of the Shadowlands Circle.",
+      "You have an advanced understanding of the power death can wield over Creation. Your character starts with the knowledge of five necromancy spells of the Shadowlands or Labyrinth Circle.",
+      "A prodigy in the study of the dread arts. Your character starts with the knowledge of seven necromancy spells of the Shadowlands or Labyrinth Circles."
+    ],
     "exalt_type": "Abyssal"
   },
   {
@@ -195,7 +307,15 @@
   {
     "id": "background.resources",
     "name": "Resources",
-    "description": "Your material wealth and income, from destitute to fabulously wealthy."
+    "description": "Your material wealth and income, from destitute to fabulously wealthy. Resources are a general indication of the character's financial assets. Jade money is common, and people can be considered wealthy without being feudal warlords controlling large stretches of farmland. Nevertheless, wealth is ephemeral, and the worth of coins is no more than that of their value as precious stones. As a result, this Background includes such things as property, clothing and basic equipment and shows how easily your character can acquire more. While Resources are not entirely liquid assets, possessions can be sold to gain money (though doing so may take some time depending on what is for sale). Each dot of Resources conveys a standard income beyond any gear or wealth your character gains during play. The source of this wealth must be detailed (rents on property, sharecropping, government stipend, interest in a mercantile concern, tax farming), since it may be increased, reduced or cut off entirely depending on events in the series. As with Influence, most Exalted have few problems acquiring Resources — through one means or another.",
+    "ladder": [
+      "None — you are homeless and broke. You may own a club or a staff and, perhaps, a pair of boots with no holes in the soles.",
+      "Small savings — you have a tiny apartment or cottage and may own a shoddy suit of armor and a notched long knife or spear. You have no riding animal but may own a pet and some domestic animals such as goats or sheep. If you support a family, family members go hungry often, and meat is just a dream for them. If you live alone, you can eat meat once a week.",
+      "Comfortable — you have a comfortable cottage or apartment and, probably, own a riding animal of low quality. You may own a suit of light armor and a weapon. If you support a family, it eats frequent, if boring, meals. If you live alone, you can eat meat every day or two and afford hard liquor as well as beer.",
+      "Affluent — you own a townhouse or a prosperous farm. You probably have a fine riding animal and another one of lower quality in case the first falls ill. You have a suit of any armor and any two weapons. If you live alone, you are a merry bachelor or spinster, eating well every night and making merry with your friends. If you are supporting a family, it never goes hungry, and there are roasts and sweetmeats on feast days. You probably have a domestic servant or two.",
+      "Wealthy — you are very wealthy, owning at least a townhouse and a country estate. You bear the finest arms, ride a fine gelding or stallion, and alone or as master of a family, you and yours will never know hunger or want for medical attention. You may own a private yacht, and a dozen or more servants tend to your needs.",
+      "Vastly Rich — you are a merchant prince, bandit king, mercenary lord or potentate. You have more riches than you know what to do with. You command an army or could rent one if you needed to. You own at least one excellent ship. An army of servants waits on you, oh Prince of the Earth."
+    ]
   },
   {
     "id": "background.retainers",
@@ -228,44 +348,100 @@
   {
     "id": "background.spies",
     "name": "Spies",
-    "description": "A share of your Deathlord's espionage apparatus of demons, ghosts and informants — from five spies (•) up to a network spanning an entire Direction in both the living and dead worlds (•••••). You may use it to spy on foes and draw on its resources for protection, but have no discretionary access to its budget.",
+    "description": "A share of your Deathlord's espionage apparatus. The Deathlords have spies everywhere — they have had hundreds of years to establish their networks, and they can use a potent combination of demons, spies and sorcerous communication to manage their intelligence apparatus. Characters with this Background have some portion of the Deathlord's intelligence machinery at their command. Perhaps they manage it, or perhaps they have been given it as a status item or plaything. Whatever the case, a character can use the network to spy on his foes. Characters with this Background do not have discretionary access to the organization's budget, but so long as they keep their Deathlord happy, they can take advantage of its facilities and resources for their personal protection and to fulfill their agenda.",
+    "ladder": [
+      "No agents serve you.",
+      "You have control of the security forces in the area around a major Manse or perhaps run a small secret police force. You have five spies under your control.",
+      "You control a bureau of 25 spies, perhaps enforcing your master's demesne over one or more shadowlands.",
+      "You control a bureau of perhaps 100 spies, monitoring a single kingdom in the Underworld or perhaps all of your master's affairs in the mortal world. Your organization probably has several hundred part-time informants and ties with local death cults who can provide muscle among the living and the dead.",
+      "You control a large network of several hundred full-time operators and several hundred additional casuals. You have achieved varying degrees of penetration over an entire Direction, either in the land of the living or the land of the dead.",
+      "Your organization spans an entire Direction in both the lands of the living and the dead. You have eyes everywhere: thousands of casual agents, hundreds of full-time agents and a commando force of 100 elite troops."
+    ],
     "exalt_type": "Abyssal"
   },
   {
     "id": "background.underworld-cult",
     "name": "Underworld Cult",
     "exalt_type": "Ghost",
-    "description": "Worship from your fellow DEAD — ghostly peasants venerating their ritual kings, citizens of Stygia their district's ruler. Provides no Willpower, but considerable Essence: • your peers and household, 1 Essence per hour; •• perhaps a hundred spirit-clients, 2 per hour; ••• several hundred, the level of the average nephwrack temple or the ritual ruler of a city-state of the dead, 3 per hour; •••• several thousand, or the ambient reverence paid to an ancient hero, 4 per hour; ••••• tens of thousands — a spectral religion or a Deathlord's following — 5 per hour."
+    "description": "Worship from your fellow dead. Many ghosts receive extensive worship from their fellow ghosts — ghostly peasants venerate their ritual kings, spectres venerate the nephwracks, citizens of Stygia venerate the ruler of their district, and all venerate the Dual Monarchy and the cities of Stygia and Sijan. These many rituals help bind ghosts to their existences. Underworld Cult provides no Willpower, but ghosts who are worshiped by other ghosts can gain considerable Essence from it.",
+    "ladder": [
+      "None worship you, but by your worship of others, you help perpetuate the system of memory and veneration that allows the dead to respire and the great Calendar of the Underworld to turn.",
+      "Your peers and household make obeisance to you. You gain 1 Essence per hour from their devotions. Long-time inhabitants of Sijan often gain this level of Underworld Cult by feeding on ambient reverence.",
+      "There are perhaps a hundred who call you their spirit patron and kneel down regularly in your honor, calling out your name and hiding their faces. Perhaps you are the founder of an extensive family or the ritual ruler of a small town. You gain 2 Essence per hour from the worship. Long-term residents of Stygia can gain this level of Underworld Cult just from feeding on the many prayers offered to the city itself.",
+      "There are several hundred who treat the character as spirit lord. This is the appropriate level of Underworld Cult for the average nephwrack temple, the founder of a major clan or the ritual ruler of a city-state of the dead. You gain 3 Essence per hour from the prostrations and venerations of your ghostly underlings.",
+      "You have several thousand ghostly worshipers, perhaps a larger kingdom of the dead or leadership of a great family in the Underworld. This is also the level of Underworld Cult possessed by the ghosts of ancient heroes from ambient reverence. The character gains 4 motes per hour from her cult's activities.",
+      "You sport a cult similar in size to that of a successful spectral religion, a Deathlord or the devotions of an empire as great as that of Aki's or of a Stygian district. You gain 5 Essence per hour from your tens of thousands of ghostly worshipers."
+    ]
   },
   {
     "id": "background.underworld-manse",
     "name": "Underworld Manse",
-    "description": "Access and attunement to the Deathlord's manses and Hearthstones within the Underworld (their power fails beyond the edge of the shadowlands). Manses in the land of the living must be bought with the ordinary Manse Background. A renegade who buys this receives only the benefits of the normal Manse Background (p145 of the core rulebook).",
+    "description": "Access and attunement to the Deathlord's manses and Hearthstones within the Underworld. Though the Deathlords lay claim to few Manses among the living, they claim most such places in the land of the dead, having been that kingdom's sole sorcerers for many long centuries. With demon and ghost laborers, they have made these places into countless strongpoints and hidden retreats. Access to a Manse's Hearthstone generally implies the character also has use of the Manse's facilities as a fortress, place of habitation, magical library or whatever other functions it might serve. The power of these Manses fails beyond the edge of the shadowlands, so Manses in the land of the living must be bought with the ordinary Manse Background. Underworld Manses are not the sole property of the deathknight, however, and can be stripped away or reassigned at the Abyssal's master's whim. Renegade Abyssals may purchase Underworld Manse, but it represents only places they have found on their own or stolen cleanly from their former master, and they receive only the benefits listed for Manse on page 145 of the Exalted rulebook.",
+    "ladder": [
+      "Why is it that the master has not opened any of the Underworld's Manses to you?",
+      "The character is permitted use of and attuned to several level 1 and level 2 Manses in the Underworld. She may have one Hearthstone of level 1 or 2.",
+      "The character is allowed to enter and has been attuned to several weak Underworld Manses. She has level 1 or level 2 Hearthstones, no more than three levels total.",
+      "The character is permitted entrance to and has been attuned to some fairly powerful Underworld Manses. She has a level 3 Hearthstone and several level 1 and level 2 stones (no more than six levels, total, including the large stone).",
+      "The character has access to and is attuned to some of the Deathlord's most powerful mansions in the Underworld. She has a level 4 Hearthstone and several of level 1 or level 2 and possibly even one of level 3 (no more than eight levels, total, including the large stone).",
+      "The character has been taken into the bosom of her master's powers and been allowed to enter and attune herself to the Deathlord's most powerful Underworld Manses. She has even been entrusted with the Hearthstone of one of these temples of the infinite void. She has a level 5 Hearthstone and several others of levels 1-3 (no more than 10 levels, total, including the large stone)."
+    ],
     "exalt_type": "Abyssal"
   },
   {
     "id": "background.vats",
     "name": "Vats",
-    "description": "Your access to your city's Vat foundry: how many Charms you keep on retainer in your Panoply beyond those installed in your Charm Slots, and how fast you can requisition a refit. Cumulative with Charms bought as artifacts; in neither case may you take a Charm whose Trait minimums you do not meet. x: no special access — one month's notice for a minor refit, six months for Essence. •: one extra Charm; two weeks / two months notice. ••: two extra; one week / one month. •••: three extra; two days / two weeks. ••••: four extra; one day / one week. •••••: five extra, and refits receive immediate priority with no notice. Vats also allow accelerated repair: an hour plugged in restores (Essence x 5) motes and multiplies your healing rate by permanent Essence. Mortals may not take Vats.",
+    "description": "Your access to your city's Vat foundry, denoting how many additional Charms you keep on retainer in your Panoply beyond those installed in your body, as well as measuring how quickly you can requisition a refit. Additional Charms obtained with this Background are cumulative with any purchased as artifacts, but in neither case may the character purchase Charms for which she doesn't meet the minimum Trait requirements. In recognized emergencies, a character can demand immediate repairs, but any abuse of this authority will result in censure and a loss of Vat privileges for a time. Younger Exalted have fewer Charm Slots than their superiors and so may receive disproportionate Vats access to offset their limitations. Vats also allow accelerated healing and Essence recovery: for every hour spent plugged into a Vat, the character regains (Essence x 5) motes and multiplies her healing rate by her permanent Essence. Mortals may not take Vats.",
+    "ladder": [
+      "You have no special access to your city's Vats and must submit a formal request for any minor refitting (Charms, Attributes) at least one month in advance. Major upgrades such as Essence require six months' notice.",
+      "One extra Charm on retainer; two weeks' notice for a minor refit, two months for Essence.",
+      "Two extra Charms on retainer; one week's notice for a minor refit, one month for Essence.",
+      "Three extra Charms on retainer; two days' notice for a minor refit, two weeks for Essence.",
+      "Four extra Charms on retainer; one day's notice for a minor refit, one week for Essence.",
+      "Five extra Charms on retainer, and refits receive immediate priority with no notice."
+    ],
     "exalt_type": "Alchemical"
   },
   {
     "id": "background.whispers",
     "name": "Whispers",
-    "description": "Your attunement to the dead gods, letting you tap the lore lost in the Underworld's darkness. Once per night, roll Perception + Whispers to uncover a lost secret, be drawn toward where a death would matter most, or substitute Whispers for a single Ability (this last costs 1 temporary Willpower). At ••••• you are one with the Malfeans.",
+    "description": "Your attunement to the dead gods, letting you tap the lore lost in the Underworld's darkness. In creating their Abyssal champions, the Deathlords called upon the power of their dead gods, the Malfeans, and the dark influence of the long-dead Primordials stains the souls of every deathknight. Some Abyssals learn to listen to the darkness in their hearts, minds and souls, seeking unholy communion with their gods of death. Once per night (from dusk until dawn), by rolling Perception + Whispers, an Abyssal character may uncover a secret lost into the void of the Underworld, be drawn intuitively toward a place the Malfeans believe her action may benefit them the most, or substitute her Whispers rating for a single Ability rating in a single roll (the commonness of the task determines the difficulty of the Whispers roll). The character must spend 1 temporary Willpower to activate the Whispers Background.",
+    "ladder": [
+      "You either have not made an effort to listen to the whispers of the Underworld or you have successfully ignored them.",
+      "You have learned to hear the voices in your soul but still have difficulty understanding the wisdom they impart.",
+      "You have a strong insight into the will of the Malfeans.",
+      "The music of death sings in your soul.",
+      "The quiet voices of your dead gods are your constant companion.",
+      "You are one with the Malfeans, and your eyes shine with the light of divine insight."
+    ],
     "exalt_type": "Abyssal"
   },
   {
     "id": "background.inheritance",
     "name": "Inheritance",
     "exalt_type": "God-Blooded",
-    "description": "The potency of your magical birthright (PG p.61). Though still mortal, one of your parents was a powerful magical being, and this mystical parentage has left its mark on body and soul. Characters without the Inheritance Background may not purchase Traits exclusive to the God-Blooded. Each dot grants additional bonus points and Flaw capacity: • Thin blood +6 BP / 10 Flaws; •• Good blood +12 / 15; ••• Notable ancestry +18 / 15; •••• Impeccable scion +24 / 20; ••••• Divine +30 / 20. These bonus points may not be spent on Backgrounds. The Storyteller assigns a consistent rating to set the series' power level; where it needs calculating, Inheritance equals half the sum of the parents' Essence ratings, rounded down."
+    "description": "The potency of your magical birthright (PG p.61). Though still mortal, the character bears exceptional heritage: one of her parents was a powerful magical being — a spirit, a Fair One or even a mighty Exalt — and this mystical parentage has left its mark on her body and soul, conferring the blessings, and perhaps banes, of her ancestry. Characters without the Inheritance Background may not purchase Traits exclusive to the God-Blooded, although minor or distant mystical ancestry may explain unusual Merits and Flaws; characters with at least one dot of Inheritance may freely purchase God-Blooded Traits. In addition, God-Blooded gain extra bonus points and capacity for Flaws depending on their Inheritance rating. These bonus points may not be spent on Backgrounds. In case it needs to be calculated, Inheritance equals half the sum of the parents' Essence ratings, rounded down.",
+    "ladder": [
+      "You have little or no mystical heritage.",
+      "Thin blood. You are the child of a lesser spirit or one of the weaker Fair Folk. It is possible that you do not even know of your heritage. You gain 6 additional bonus points and may take 10 points of Flaws.",
+      "Good blood. Your parent is accorded respect or fear. You may be descended from a lesser demon, the spirit of a river or an ancient tree, an established Exalt, an old ghost or a Fair Folk noble. You gain 12 additional bonus points and may take 15 points of Flaws.",
+      "Notable ancestry. You claim descent from a mighty Exalt, a Second Circle demon, a significant elemental or a locally important god. You gain 18 additional bonus points and may take 15 points of Flaws.",
+      "Impeccable scion. You favor your divine blood as the child of a centuries-old Exalt, a greater god or a champion among Second Circle demons. Minor gods honor you as a peer. You gain 24 additional bonus points and may take 20 points of Flaws.",
+      "Divine. You are all but a god in your own right, the honored progeny of a regional or celestial god of surpassing authority, a truly terrible demon or a venerable Celestial Exalt from the First Age. You may even rise in power beyond the lowest Terrestrial Exalted in your life. You gain 30 additional bonus points and may take 20 points of Flaws."
+    ]
   },
   {
     "id": "background.patron",
     "name": "Patron",
     "exalt_type": "God-Blooded",
-    "description": "The privileges and obligations imposed by your magical parent (PG p.61). Every dot invested in Patron counts as a dot of Mentor and awards additional Background dots that can raise Traits above 3; Patron also substitutes for Backing in representing rank within the parent's dominion or area of influence."
+    "description": "The privileges and obligations imposed by your magical parent (PG p.61). Most God-Blooded serve their magical parents as favored lieutenants or majordomos; others attend powerful sorcerers or necromancers, and a few are loved and pampered almost incessantly. The Patron Background measures the closeness of a God-Blood to her magical parent: the more she serves, the more she receives in tutelage and other rewards. Every dot invested in Patron counts as a dot of Mentor and awards additional Background dots that can raise Traits above 3; Patron also substitutes for Backing in representing rank within the parent's dominion or area of influence. The higher a character's Patron Background, the greater and more frequent her obligations, and characters cannot have a higher rating of Patron than they have dots of Inheritance. Characters who abandon their duties will certainly lose all Background dots purchased under the auspices of their Patron and will come to rue anything they steal as fugitives (Artifacts, Resources, etc.).",
+    "ladder": [
+      "You have no contact with your magical parent. Did you escape his brutal control, or were you exiled for disobedience? Does he even know you exist? Do you even know what you are?",
+      "Your parent has precious little power and connections. On the upside, she only asks one or two simple errands every month. You gain 3 additional Background dots.",
+      "Your parent has only moderate power or greater influence and little use for you. In either case, you must generally perform a handful of simple tasks each month and one complicated or dangerous errand each year. You gain 6 additional Background dots.",
+      "Your parent has considerable influence and substantial magical power. Merely presenting yourself as her emissary grants safety in some places. You can expect to perform a minor task each week and a handful of complicated tasks every year, often when you least expect or want a job. Alternately, you take on a full-time job as an unsupervised agent with proscribed duties, reporting in person once every few months or as summoned. Add 9 additional Background dots.",
+      "Your parent is widely revered and worshiped, and she may instruct you in all manner of lore and magic if you prove worthy. She sends you out on all her most important errands, perhaps even supervising other lesser agents. Alternately, you manage her entire influence over a particular region or activity as a trusted seneschal. You have precious little free time, but the rewards of such notable service are great. Add 13 additional Background dots.",
+      "Your parent is among the most powerful beings in or out of Creation, her name spoken in a hushed whisper by all save her equally great and terrible peers. You can have or learn anything you can imagine and many things you can't, but the price is everything. You have no life of your own and may never own mastery of your fate, existing merely as an adjunct and enforcer of your parent's divine will. Add 17 additional Background dots."
+    ]
   },
   {
     "id": "background.celestial-manse",
