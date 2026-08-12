@@ -153,10 +153,13 @@ costs — read the record before proposing anything that contradicts it.
 | 0013 | **Edit and XP are ONE surface** — the dot track is the buy control; there is no XP tab |
 | 0014 | Essence is XP-purchasable to the splat cap; the age chart is gone |
 | 0015 | **Exalt tiers are RANKED** — Terrestrial < Celestial < Solar; a splat reaches its own tier and every tier below, never up |
+| 0016 | **Base dice pools are in scope; resolution is not** — narrows 0008's boundary, leaves 0009 untouched |
 
 **Permanently out of scope** — decisions 0008, 0009 and 0010 (no combat/attack
 derivation, no dice rolling of any kind, no Fair Folk). Read them before proposing any
-of it; all three are closed.
+of it; all three are closed. ⚠ 0008's boundary was NARROWED by 0016 (2026-08-12):
+computing a BASE dice pool is in scope, resolution and Charm dice are not — read 0016
+before citing 0008 against a pool calculation.
 
 ## Stack
 - Python + pydantic v2 + pytest.
@@ -290,8 +293,8 @@ Ship dates for everything else live in the per-splat status docs and the git log
 ### After 1.0 — the Qt port (a standing goal, NOT scheduled)
 **Human, 2026-08-10:** after the 1.0 ship (feature-complete — sourcebooks, the full
 artifact and spell catalogues), branch and rebuild the UI on **PySide6/Qt**, which
-becomes the bedrock of a 2.0. Nothing is committed; it becomes **decision 0016** when it
-is. **Do not start it before 1.0 and do not treat it as a 1.0 blocker** — a different
+becomes the bedrock of a 2.0. Nothing is committed; it becomes a numbered decision when
+it is (0016 has since been taken by the dice-pool boundary — use the next free number). **Do not start it before 1.0 and do not treat it as a 1.0 blocker** — a different
 widget toolkit is not a feature. Full plan, measured baseline and open questions:
 **`docs/plans/qt-port.md`**.
 

@@ -28,3 +28,7 @@ special mounted profiles.
   attack to exist.
 * Do not build this without the maintainer explicitly reopening it. See also
   [0009](0009-no-dice-rolling.md), which is broader.
+* ⚠ **Boundary narrowed by [0016](0016-base-dice-pools-are-in-scope.md)** (2026-08-12):
+  computing a character's BASE dice pool — Attribute + Ability + specialty + one weapon
+  stat, and Virtue/Willpower checks — is in scope. Resolution is still not, and neither
+  are Charm dice. Read 0016 before citing this record against a pool calculation.

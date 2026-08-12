@@ -29,3 +29,4 @@ status log says so rather than guessing.
 | [0013](0013-edit-and-xp-are-one-surface.md) | Edit and XP are one surface; the dot track is the buy control | Accepted |
 | [0014](0014-essence-xp-purchasable-no-age-chart.md) | Essence is XP-purchasable to the splat cap; the age chart is gone | Accepted |
 | [0015](0015-exalt-tier-hierarchy.md) | The Exalt tiers are a ranked hierarchy, not a flat label | Accepted |
+| [0016](0016-base-dice-pools-are-in-scope.md) | Base dice pools are in scope; resolution is not (amends 0008's boundary) | Accepted |
