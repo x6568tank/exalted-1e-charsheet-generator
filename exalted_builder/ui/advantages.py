@@ -380,6 +380,15 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 desc.set_text(text)
                 desc.set_visibility(bool(text))
                 rung_text = viewmod.background_rung(bg_catalog, bg.name, bg.rating)
+                # Where a splat's book separates what you BUY from what it is WORTH
+                # (Mountain Folk Resources: dots + 2, max 3 dots), say so on the row.
+                # A player who sees "Resources •••" and is offered a Resources ••••
+                # item has no way to tell the offer from a bug. Same engine call the
+                # affordability hint makes, so the row and the dialog cannot disagree.
+                effective = validate.effective_background_rating(rs, character, bg.name)
+                if effective != bg.rating:
+                    note = f"effective {bg.name} {effective}"
+                    rung_text = f"{rung_text}  ·  {note}" if rung_text else note
                 rung.set_text(rung_text)
                 rung.set_visibility(bool(rung_text))
                 # …and the Artifacts header in the panel below, which counts against
@@ -594,9 +603,21 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 # first a player heard of the one-artifact limit was a validation error
                 # after they had picked two. The line states the rule whether or not
                 # they are over it.
-                header = (f"Artifacts ({len(items)}/1 — Artifact {rating}, "
-                          f"one artifact rated up to {rating})" if rating
-                          else f"Artifacts ({len(items)} — no Artifact Background)")
+                #
+                # ONE PER ROW: a character may hold the Artifact Background more than
+                # once, and two Artifact •• rows are two artifacts (see
+                # `validate.background_rows`). The header counts rows, not their sum —
+                # printing "/1" beside two rows is what made the browser read the
+                # validator's error as arbitrary.
+                rows = sorted((r for r in validate.background_rows(
+                    character.backgrounds, artifactsmod.ARTIFACT_BACKGROUND) if r > 0),
+                    reverse=True)
+                if rows:
+                    allowance = " + ".join(f"up to {r}" for r in rows)
+                    header = (f"Artifacts ({len(items)}/{len(rows)} — Artifact "
+                              f"{'+'.join(str(r) for r in rows)}, {allowance})")
+                else:
+                    header = f"Artifacts ({len(items)} — no Artifact Background)"
             elif budgeted:
                 tier = artifactsmod.budget_tier(
                     validate.effective_budgets(rs, character), rating)

@@ -74,6 +74,21 @@ the next slice, along with `data/gear.json`.
 ⚠ NOT browser-verified: the Acquired control appears only post-lock, and flipping it to
 Bought must drop the header count and print "+ 1 bought with Resources".
 
+**The 2026-08-13 click-through found two more, both fixed:**
+
+* **The corebook rule was one artifact per CHARACTER; it should be one per Background
+  ROW.** Two Artifact •• rows are two artifacts — `background_best` has said so since
+  2026-07-31. `validate.background_rows` is the new third reader (sum / best / rows), and
+  the header now counts rows. See `docs/status/rated-artifacts.md`.
+* **Mountain Folk Resources are worth their dots + 2** (CH6), capped at 3 actual dots —
+  so nothing above Resources ••• could be bought by the richest Jadeborn in Creation. The
+  cap was authored and its compensation was not. Now `BackgroundRule.effective_bonus` /
+  `effective_floor` (the page also floors an unbought Background at •• Enlightened / •
+  Unenlightened) read through `validate.effective_background_rating`, which
+  `gear_affordability` and the Background row both call. ⚠ `gear_affordability` now takes
+  the RULESET as its first argument, deliberately required rather than optional: its
+  wrong answer is a silent "you cannot buy that".
+
 Also still open: the Resources hint on the gear dialogs is unclicked.
 
 ---

@@ -2054,6 +2054,24 @@ class BackgroundRule(BaseModel):
     # `validate.validate`) and applies ONLY the rules flagged here, so every other
     # splat's caps keep behaving exactly as they do today.
     bind_post_lock: bool = False
+    # The EFFECTIVE rating this Background delivers, where a splat's book separates what
+    # you buy from what it is worth. Mountain Folk Resources (CH6): "an effective
+    # Resources rating equal to the number of dots invested in this Background + 2, but
+    # cannot have more than three actual dots" — so `max_rating: 3` with
+    # `effective_bonus: 2`, and Artifact ••• is a stored 3 worth 5.
+    #
+    # `effective_floor` is the same page's other half, and the half that is easy to
+    # miss: "Characters LACKING this Background may still live comfortably with a
+    # standard of living equivalent to Resources •• for the Enlightened and Resources •
+    # for the Unenlightened." A floor is not a bonus — it applies at zero dots, where
+    # `effective_bonus` must NOT (0 + 2 would give an unbought Background the same worth
+    # as one dot bought). Keyed per origin, which the budget rows already are.
+    #
+    # Read through `validate.effective_background_rating`, the ONE read site. Nothing
+    # else may add these — a consumer that reads `BackgroundEntry.rating` raw gets the
+    # STORED number, which for a Mountain Folk is two dots short of the truth.
+    effective_bonus: int = Field(default=0, ge=0)
+    effective_floor: int = Field(default=0, ge=0)
     # A ceiling expressed as a TRAIT TOTAL rather than a literal: when true, the rating
     # may not exceed the sum of the character's Attributes (Sidereal Connections,
     # Sidereals pp.106-108: "cannot manage more points of Connections than the sum of

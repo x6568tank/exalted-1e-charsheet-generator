@@ -46,17 +46,17 @@ def _with_resources(rating: int) -> Character:
 
 def test_the_three_printed_cases(rs):
     c = _with_resources(2)
-    assert validate.gear_affordability(c, 1) == "easy"
-    assert validate.gear_affordability(c, 2) == "serious"
-    assert validate.gear_affordability(c, 3) == "unaffordable"
+    assert validate.gear_affordability(rs, c, 1) == "easy"
+    assert validate.gear_affordability(rs, c, 2) == "serious"
+    assert validate.gear_affordability(rs, c, 3) == "unaffordable"
     # Resources 0 affords nothing that carries a price — cost > rating.
-    assert validate.gear_affordability(_with_resources(0), 1) == "unaffordable"
+    assert validate.gear_affordability(rs, _with_resources(0), 1) == "unaffordable"
 
 
 def test_gear_with_no_printed_cost_says_nothing(rs):
     """56 of the 122 catalogue rows carry no `resources_cost`, and a missing price is
     not a free item — the dialog must stay silent rather than call it affordable."""
-    assert validate.gear_affordability(_with_resources(2), 0) == ""
+    assert validate.gear_affordability(rs, _with_resources(2), 0) == ""
     assert cataloguemod.gear_cost_note(0, "") == ""
 
 
@@ -67,7 +67,7 @@ def test_the_three_bows_are_the_worked_example(rs):
     costs = {w.name: w.resources_cost for w in rs.weapon_catalog.values()}
     assert (costs["Self Bow"], costs["Long Bow"], costs["Composite Bow"]) == (1, 2, 3)
     c = _with_resources(2)
-    assert [validate.gear_affordability(c, costs[n])
+    assert [validate.gear_affordability(rs, c, costs[n])
             for n in ("Self Bow", "Long Bow", "Composite Bow")] == [
         "easy", "serious", "unaffordable"]
 
@@ -78,7 +78,7 @@ def test_resources_reads_the_highest_row_not_the_sum(rs):
     down twice, not a character with 4."""
     c = _with_resources(2)
     c.backgrounds.append(BackgroundEntry(name="Resources", rating=2))
-    assert validate.gear_affordability(c, 3) == "unaffordable"
+    assert validate.gear_affordability(rs, c, 3) == "unaffordable"
 
 
 def test_nothing_validates_ownership(rs):
@@ -127,3 +127,66 @@ async def test_an_unaffordable_row_is_faded_but_still_pickable(user) -> None:
     assert faded, "no row faded though the character cannot afford a Composite Bow"
     user.find("Composite Bow").click()
     await user.should_see("Composite Bow")
+
+
+# --- Mountain Folk: stored dots are not what the Background is worth ---------- #
+
+@pytest.mark.parametrize("origin,floor", [("enlightened", 2), ("unenlightened", 1)])
+def test_mountain_folk_resources_are_worth_their_dots_plus_two(rs, origin, floor):
+    """CH6: "an effective Resources rating equal to the number of dots invested in this
+    Background + 2, but cannot have more than three actual dots." So the richest
+    Jadeborn stores 3 and is worth 5.
+
+    ⚠ Found in the browser 2026-08-13: `gear_affordability` read the stored row, so a
+    Mountain Folk capped at 3 could not buy anything costing more than •••. The rule
+    was authored — `max_rating: 3` was already in the data — and the half that made the
+    cap fair was not. A cap with its compensation missing is worse than neither.
+    """
+    def _mf(rating: int) -> Character:
+        c = Character(id="mf", name="Jadeborn", exalt_type="Mountain-Folk",
+                      caste="artisan", origin=origin, essence_rating=2)
+        if rating:
+            c.backgrounds = [BackgroundEntry(name="Resources", rating=rating)]
+        return c
+
+    assert validate.effective_background_rating(rs, _mf(3), "Resources") == 5
+    assert validate.effective_background_rating(rs, _mf(1), "Resources") == 3
+    # Resources ••••• buys a Resources •••• item outright and finds ••••• a serious
+    # expense — the two cases the old code called "unaffordable".
+    assert validate.gear_affordability(rs, _mf(3), 4) == "easy"
+    assert validate.gear_affordability(rs, _mf(3), 5) == "serious"
+
+    # The floor is the page's other half, and it is NOT the bonus applied to zero: a
+    # Mountain Folk who never bought the Background still lives at •• / •, not at ••.
+    assert validate.effective_background_rating(rs, _mf(0), "Resources") == floor
+    assert validate.gear_affordability(rs, _mf(0), floor) == "serious"
+
+
+def test_other_splats_are_unchanged_by_the_effective_rating(rs):
+    """The negative control: every splat printing neither field reads the stored row,
+    so a Solar's Resources •• is worth 2 and nothing shifted underneath the p.325 rule.
+    """
+    c = _with_resources(2)
+    assert validate.effective_background_rating(rs, c, "Resources") == 2
+    assert validate.effective_background_rating(rs, c, "Artifact") == 0
+    assert validate.gear_affordability(rs, c, 2) == "serious"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_row_says_what_a_capped_resources_is_WORTH(user) -> None:
+    """The display half of the same fix. A Mountain Folk stores Resources ••• and is
+    worth •••••; without the note the row and the catalogue dialog appear to disagree,
+    and the player cannot tell an offer from a bug."""
+    await user.open('/mf-resources')
+    await user.should_see("effective Resources 5")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_an_ordinary_background_gets_no_effective_note(user) -> None:
+    """The negative control — the note appears only where the stored and effective
+    ratings actually differ, or every row on every sheet grows noise."""
+    await user.open('/mf-artifact-chargen')
+    await user.should_see("Artifact")
+    await user.should_not_see("effective Artifact")

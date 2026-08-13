@@ -1801,6 +1801,16 @@ CHAR_MF_ART.backgrounds = [BackgroundEntry(name="Artifact", rating=3)]
 def page_mf_artifact_chargen():
     advantages.build_advantages(RS, CHAR_MF_ART, Path("x.json"), with_header=False)
 
+# A Mountain Folk holding the capped Resources Background, for the effective-rating
+# note on the row. Its own character because the test reads this row's CONTENT.
+CHAR_MF_RES = CHAR_MF_ART.model_copy(deep=True)
+CHAR_MF_RES.id = "mfres"
+CHAR_MF_RES.backgrounds = [BackgroundEntry(name="Resources", rating=3)]
+
+@ui.page('/mf-resources')
+def page_mf_resources():
+    advantages.build_advantages(RS, CHAR_MF_RES, Path("x.json"), with_header=False)
+
 CHAR_MF_ART_PLAY = CHAR_MF_ART.model_copy(deep=True)
 CHAR_MF_ART_PLAY.id = "mfartx"
 lifecycle.lock_chargen(CHAR_MF_ART_PLAY, RS)

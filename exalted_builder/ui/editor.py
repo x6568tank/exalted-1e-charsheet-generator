@@ -1358,7 +1358,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     # comment there for why an unaffordable row is faded, not withheld.
                     rows, unaffordable, icons = [], set(), {}
                     for a in sorted(ruleset.armor_catalog.values(), key=lambda a: a.name):
-                        afford = validate.gear_affordability(character, a.resources_cost)
+                        afford = validate.gear_affordability(ruleset, character, a.resources_cost)
                         note = cataloguemod.gear_cost_note(a.resources_cost, afford)
                         summary = cataloguemod.catalog_armor_summary(a)
                         rows.append((a.name, a.name,
@@ -1429,7 +1429,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     # can be GIVEN what she could not buy, and nothing here validates.
                     rows, unaffordable, icons = [], set(), {}
                     for w in sorted(ruleset.weapon_catalog.values(), key=lambda w: w.name):
-                        afford = validate.gear_affordability(character, w.resources_cost)
+                        afford = validate.gear_affordability(ruleset, character, w.resources_cost)
                         note = cataloguemod.gear_cost_note(w.resources_cost, afford)
                         summary = cataloguemod.catalog_weapon_summary(w)
                         rows.append((w.name, w.name,

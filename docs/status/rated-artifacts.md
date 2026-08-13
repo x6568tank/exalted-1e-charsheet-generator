@@ -137,6 +137,21 @@ useless" cannot be exceeded.
 
 ## The corebook default — the fourth rule, added 2026-08-13
 
+⚠ **Amended the same day, after the browser: the allowance is ONE ARTIFACT PER
+BACKGROUND ROW, not one per character.** A character holding Artifact •• twice holds two
+artifacts. `background_best`'s docstring has said exactly that since 2026-07-31 — "two
+Artifacts at 2 dots each are two artifacts, not one artifact at 4", which is why Damaged
+Artifact reads the best row rather than the sum — and the first cut of this rule summed
+the rows and demanded a single artifact, agreeing with neither ruling. `background_rows`
+is the third reader of a repeated Background (sum / best / rows), and rows are matched to
+artifacts LARGEST FIRST, which is exact rather than approximate: a smaller artifact fits
+anywhere a larger one does.
+
+**The lesson generalises past this rule:** when a new check reads a Background, ask which
+of the three readings it needs — and grep the other two for a docstring that already
+answered the question. This one was answered months earlier, in the codebase, and the new
+code did not look.
+
 **Human ruling, 2026-08-13:** *"Default Artifact core is one artifact per background.
 The ones with different rulings (DB, DK, MF, Alchemical) are the ones that can have
 multiple per background. If a splat has the Artifact background, and it isn't altered

@@ -1674,7 +1674,9 @@
         "bp_above_rating": 5
       },
       "resources": {
-        "max_rating": 3
+        "max_rating": 3,
+        "effective_bonus": 2,
+        "effective_floor": 2
       }
     },
     "banned_backgrounds": [
@@ -1730,7 +1732,9 @@
         "bp_above_rating": 5
       },
       "resources": {
-        "max_rating": 3
+        "max_rating": 3,
+        "effective_bonus": 2,
+        "effective_floor": 1
       },
       "backing": {
         "max_rating": 2

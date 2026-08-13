@@ -586,7 +586,7 @@ async def test_a_splat_with_no_budget_TABLE_states_the_corebook_rule(user) -> No
     await user.open('/artifacts-advantages-solar')
     await user.should_see("Tattered Wings")
     await user.should_see("1/1")
-    await user.should_see("one artifact rated up to 4")
+    await user.should_see("Artifact 4, up to 4")
     await user.should_not_see("combined")
 
 
@@ -1118,10 +1118,10 @@ async def test_raising_the_artifact_background_moves_the_artifacts_header(user) 
     agrees with.
     """
     await user.open('/artifact-header-sync')
-    await user.should_see("one artifact rated up to 4")
+    await user.should_see("Artifact 4, up to 4")
     # `.clear()` first — `.type()` appends. See the Manse test above.
     user.find(marker="bg-rating").clear().type("5")
-    await user.should_see("one artifact rated up to 5")
+    await user.should_see("Artifact 5, up to 5")
 
 
 # --- the artifact/gear link (2026-08-13) ------------------------------------ #
@@ -1220,7 +1220,7 @@ async def test_picking_an_artifact_weapon_grants_its_stat_line_ONCE(user) -> Non
     await user.should_see("Reaver Daiklave")
     _pick("Reaver Daiklave")
     await user.should_see("1/1")
-    await user.should_see("one artifact rated up to 3")
+    await user.should_see("Artifact 3, up to 3")
 
     # The granted stat line, on the equipment surface it was granted to.
     await user.open('/artifact-grant-editor')
@@ -1350,3 +1350,38 @@ async def test_the_header_says_what_the_background_did_NOT_pay_for(user) -> None
     sel.set_value("purchased")
     await user.should_see("bought with Resources")
     await user.should_see("0/1")
+
+
+def test_two_artifact_backgrounds_buy_TWO_artifacts(rs):
+    """⚠ Found in the browser 2026-08-13. A character holding the Artifact Background
+    TWICE at •• holds two artifacts, one per row — `background_best`'s docstring has
+    said so since 2026-07-31 ("two Artifacts at 2 dots each are two artifacts, not one
+    artifact at 4"), which is why Damaged Artifact reads the best row and not the sum.
+
+    The corebook check summed the rows instead and demanded exactly one artifact, so
+    two daiklaves on two Artifact •• rows produced "Artifact 4 permits ONE artifact
+    rated no higher than 4". The new rule agreed with neither prior ruling.
+    """
+    def _c(rows, arts):
+        return Character(id="c.2r", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                         backgrounds=[_bg("Artifact", r) for r in rows],
+                         artifacts=[_art(name=n, rating=v) for n, v in arts])
+
+    # The reported case: two rows of 2, two 2-dot daiklaves. Legal.
+    assert validate.check_artifacts(rs, _c([2, 2], [("Daiklave", 2),
+                                                    ("Daiklave", 2)])) == []
+    # A third artifact has no row to sit on.
+    assert [i.code for i in validate.check_artifacts(
+        rs, _c([2, 2], [("A", 2), ("B", 2), ("C", 1)]))] == [
+        "artifact-over-background-dots"]
+    # Rows are matched LARGEST FIRST, so a 3-dot artifact takes the 3-dot row and the
+    # 1-dot artifact takes the 1-dot row. Matching in list order would fail this.
+    assert validate.check_artifacts(rs, _c([1, 3], [("Small", 1),
+                                                    ("Big", 3)])) == []
+    # …and the rating cap still bites per row: two 3s do not fit 3 + 1.
+    assert [i.code for i in validate.check_artifacts(
+        rs, _c([1, 3], [("Big", 3), ("Also Big", 3)]))] == [
+        "artifact-item-over-background"]
+    # One row is unchanged — the morning's ruling, still exactly as ruled.
+    assert [i.code for i in validate.check_artifacts(
+        rs, _c([3], [("A", 3), ("B", 1)]))] == ["artifact-over-background-dots"]

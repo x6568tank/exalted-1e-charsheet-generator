@@ -1911,6 +1911,18 @@ def background_rating(backgrounds, name: str) -> int:
     return sum(bg.rating for bg in backgrounds if bg.name.strip().lower() == key)
 
 
+def background_rows(backgrounds, name: str) -> list[int]:
+    """Every INSTANCE of the Background called `name`, as a list of ratings.
+
+    The third way to read a repeated Background, beside `background_rating` (the sum)
+    and `background_best` (the largest). A possession Background is held per possession
+    — "two Artifacts at 2 dots each are two artifacts, not one artifact at 4" — so a
+    rule that allows one thing PER ROW needs the rows themselves, not either summary.
+    """
+    key = name.strip().lower()
+    return [bg.rating for bg in backgrounds if bg.name.strip().lower() == key]
+
+
 def background_best(backgrounds, name: str) -> int:
     """The HIGHEST single instance of the Background called `name` (0 if absent).
 
@@ -1925,7 +1937,34 @@ def background_best(backgrounds, name: str) -> int:
                default=0)
 
 
-def gear_affordability(character: Character, resources_cost: int) -> str:
+def effective_background_rating(ruleset: RuleSet, character: Character,
+                                name: str) -> int:
+    """What a Background is WORTH to this character, which is not always what is stored.
+
+    Mountain Folk Resources is the case that needs it (CH6): "an effective Resources
+    rating equal to the number of dots invested in this Background + 2, but cannot have
+    more than three actual dots", plus a floor for characters who never bought it at all
+    — Resources •• Enlightened, • Unenlightened. So a stored 3 is worth 5, and a stored
+    0 is worth 2.
+
+    ⚠ The floor is NOT a bonus applied to zero. Adding `effective_bonus` at 0 dots would
+    make an unbought Background worth as much as one bought dot, which is a different
+    (and wrong) rule. They are separate fields and this is the only place both are read.
+
+    Every splat that prints neither field gets the stored rating unchanged, so this is
+    safe to call for any Background on any character.
+    """
+    stored = background_best(character.backgrounds, name)
+    rule = effective_budgets(ruleset, character).background_rules.get(name.strip().lower())
+    if rule is None:
+        return stored
+    if stored <= 0:
+        return max(rule.effective_floor, 0)
+    return stored + rule.effective_bonus
+
+
+def gear_affordability(ruleset: RuleSet, character: Character,
+                       resources_cost: int) -> str:
     """How a piece of gear priced at `resources_cost` sits against this character's
     Resources — core p.325, "The Resources System", the whole rule:
 
@@ -1948,9 +1987,18 @@ def gear_affordability(character: Character, resources_cost: int) -> str:
     """
     if resources_cost <= 0:
         return ""
-    # The HIGHEST single row, not the sum: Resources is one lifestyle rating, and two
-    # rows of 2 is a character who wrote it down twice, not a character with 4.
-    rating = background_best(character.backgrounds, "Resources")
+    # The EFFECTIVE rating, not the stored one — a Mountain Folk's Resources is worth
+    # her dots + 2 and is capped at 3 actual dots, so reading the row raw made every
+    # item above Resources ••• unaffordable to the richest Jadeborn in Creation (found
+    # in the browser, 2026-08-13). `effective_background_rating` also takes the HIGHEST
+    # single row rather than the sum: Resources is one lifestyle rating, and two rows of
+    # 2 is a character who wrote it down twice, not a character with 4.
+    #
+    # ⚠ `ruleset` is REQUIRED here, unlike the optional-ruleset shape `derive.soak` and
+    # friends use. That shape trades a TypeError for a silently wrong answer, and this
+    # function's wrong answer is "you cannot buy that" — invisible, and exactly the bug
+    # being fixed. A caller with no RuleSet has no business pricing gear.
+    rating = effective_background_rating(ruleset, character, "Resources")
     if resources_cost < rating:
         return "easy"
     return "serious" if resources_cost == rating else "unaffordable"
@@ -2390,37 +2438,58 @@ def _purchased_at_chargen_issues(character: Character) -> list[Issue]:
     ) for item in bought]
 
 
-def _corebook_artifact_issues(items: list, rating: int) -> list[Issue]:
-    """The corebook Artifact Background: ONE artifact, rated no higher than the
-    Background (human ruling 2026-08-13).
+def _corebook_artifact_issues(items: list, rows: list[int]) -> list[Issue]:
+    """The corebook Artifact Background: ONE artifact per Background ROW, each rated no
+    higher than its own row (human's rulings 2026-07-31 and 2026-08-13).
 
-    The rule every splat gets unless its own book prints something else, so it is the
+    The rule every splat gets unless its own book prints something else, so this is the
     branch that runs for plain Solars, Lunars, Sidereals, Ghosts, Godblooded and the
-    Abyssal renegade. Both findings are ERRORS, not warnings: the corebook ladder
-    carries no "without Storyteller permission" clause, which is the thing that made
-    the Abyssal per-item cap a warning. An ST who wants to hand out more has the same
-    escape every hard rule here has — the Storyteller is not the validator.
+    Abyssal renegade.
 
-    Rating 0 is "No Artifact." on the printed ladder, so owning anything at all is the
-    same finding the tiered and multiplier branches raise, with the same code.
+    ⚠ **Per ROW, not per summed rating.** The first cut read the summed Background and
+    demanded exactly one artifact, so a character holding two Artifact •• Backgrounds
+    and two daiklaves was told "Artifact 4 permits ONE artifact rated no higher than 4"
+    (found in the browser, 2026-08-13). That contradicted an interpretation this build
+    had already recorded — `background_best`'s docstring says in as many words that
+    "two Artifacts at 2 dots each are two artifacts, not one artifact at 4", which is
+    why Damaged Artifact reads the best row rather than the sum. Two rulings, one of
+    them months old, and the new code agreed with neither.
+
+    Rows and items are matched largest-first: the biggest artifact must fit the biggest
+    row. That is the only assignment that can succeed if any can — a smaller artifact
+    fits anywhere a larger one does — so a greedy pass is exact here, not an
+    approximation.
+
+    Both findings are ERRORS, not warnings: the corebook ladder carries no "without
+    Storyteller permission" clause, which is what made the Abyssal per-item cap a
+    warning.
     """
-    if rating == 0:
+    owned = sorted(items, key=lambda i: i.rating, reverse=True)
+    ladder = sorted((r for r in rows if r > 0), reverse=True)
+    if not ladder:
         return [Issue(
             code="artifact-without-background", where="Artifact",
-            message=f"This character owns {len(items)} artifact(s) but has no Artifact "
+            message=f"This character owns {len(owned)} artifact(s) but has no Artifact "
                     f"Background; artifacts are bought with its dots.",
-        )]
-    issues = [Issue(
-        code="artifact-item-over-background", where=item.name,
-        message=f"Artifact {rating} permits no artifact rated above {rating}; "
-                f"{item.name} is {item.rating}.",
-    ) for item in items if item.rating > rating]
-    if len(items) > 1:
+        )] if owned else []
+
+    issues: list[Issue] = []
+    for item, row in zip(owned, ladder):
+        if item.rating > row:
+            issues.append(Issue(
+                code="artifact-item-over-background", where=item.name,
+                message=f"Artifact {row} permits no artifact rated above {row}; "
+                        f"{item.name} is {item.rating}.",
+            ))
+    if len(owned) > len(ladder):
+        allowed = ("one artifact" if len(ladder) == 1
+                   else f"{len(ladder)} artifacts, one per Artifact Background")
         issues.append(Issue(
             code="artifact-over-background-dots", where="Artifact",
-            message=f"Artifact {rating} permits ONE artifact rated no higher than "
-                    f"{rating}; this character owns {len(items)} "
-                    f"({', '.join(i.name for i in items)}).",
+            message=f"Artifact {'+'.join(str(r) for r in ladder)} permits {allowed} "
+                    f"({', '.join('rated up to ' + str(r) for r in ladder)}); this "
+                    f"character owns {len(owned)} "
+                    f"({', '.join(i.name for i in owned)}).",
         ))
     return issues
 
@@ -2479,7 +2548,9 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
         if rule is None and artifacts.rule_is_pending_an_origin(
                 ruleset, character.exalt_type, character.origin):
             return issues
-        return issues + _corebook_artifact_issues(items, rating)
+        return issues + _corebook_artifact_issues(
+            items, background_rows(character.backgrounds,
+                                   artifacts.ARTIFACT_BACKGROUND))
     if rule.budget_tiers:
         tier = artifacts.budget_tier(budgets, rating)
         if tier is None:
