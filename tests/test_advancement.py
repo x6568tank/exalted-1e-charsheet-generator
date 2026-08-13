@@ -840,8 +840,12 @@ async def test_the_merged_editor_builds_with_off_catalogue_gear_and_nature(user)
     the freeze now wraps several selects — a frozen select still has to build with
     whatever the save happens to hold."""
     await user.open('/editor-locked-odd')
+    # Weapons and armour moved to the Gear tab (2026-08-13); the frozen SELECTS this
+    # test is really about — Nature, caste, origin — stayed on Edit.
+    await user.open('/editor-locked-odd-gear')
     await user.should_see("Grandpa's Axe")
     await user.should_see("Scrap Plate")
+    await user.open('/editor-locked-odd')
     await user.should_see("Not In The Catalog")
 
 

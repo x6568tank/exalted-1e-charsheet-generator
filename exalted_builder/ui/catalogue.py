@@ -139,10 +139,13 @@ def catalogue_dialog(
     on_pick: Callable[[str | None], None],
     *,
     custom_label: str = "Custom",
+    allow_custom: bool = True,
     subtitle: str = "",
     dimmed: frozenset[str] | set[str] = frozenset(),
     icons: dict[str, str] | None = None,
     default_icon: str = "",
+    group_of: dict[str, str] | None = None,
+    custom_kinds: dict[str, str] | None = None,
 ) -> None:
     """Open a modal listing catalogue entries to choose from.
 
@@ -163,7 +166,7 @@ def catalogue_dialog(
     the sheet is a tracker, and a character can be given what she could not buy. This is
     a hint, never a gate; nothing here validates.
     """
-    _filter = {"text": ""}
+    _filter = {"text": "", "group": ""}
 
     with ui.dialog() as dialog, ui.card().classes(
             f"w-[46rem] max-w-[92vw] h-[85vh] flex flex-col p-4 gap-2 {pal.card_solid}"):
@@ -175,9 +178,32 @@ def catalogue_dialog(
                           ).props("dense clearable").classes("w-full")
 
         def _matches(e, term: str) -> bool:
+            group = _filter["group"]
+            if group and (group_of or {}).get(e[0]) != group:
+                return False
             t = term.lower()
             hay = " ".join(x for x in (e[1], e[2], e[3]) if x).lower()
             return not t or t in hay
+
+        # Type filter. A dialog spanning several catalogues is a wall of names without
+        # it — the text box can only be used by someone who already knows what to type,
+        # which is not the person browsing a shop. Chips are built from `group_of`, so a
+        # caller that passes none gets exactly the dialog it had before.
+        if group_of:
+            groups = list(dict.fromkeys(group_of.values()))
+
+            def _set_group(g: str) -> None:
+                _filter["group"] = g
+                _list.refresh()
+
+            with ui.row().classes("w-full gap-1 flex-wrap items-center"):
+                for g, label in [("", "Everything")] + [(x, x) for x in groups]:
+                    n = (len(entries) if not g
+                         else sum(1 for e in entries if group_of.get(e[0]) == g))
+                    ui.button(f"{label} ({n})", on_click=lambda g=g: _set_group(g)
+                              ).props("dense flat"
+                                      + ("" if _filter["group"] == g else " outline")
+                                      ).classes("text-xs")
 
         @ui.refreshable
         def _list() -> None:
@@ -250,11 +276,27 @@ def catalogue_dialog(
             on_pick(None)
             dialog.close()
 
-        with ui.row().classes("w-full items-center gap-2 cursor-pointer"):
-            ui.icon("add").classes(f"text-{pal.fam}-700")
-            ui.label(custom_label).classes("text-sm font-semibold"
-                                           ).on("click", _custom).mark("cat-custom")
-        ui.separator()
+        # "Custom" needs a TYPE when the dialog spans several catalogues — a blank row
+        # has to go in some list. `custom_kinds` maps a kind key to its label and turns
+        # the single Custom row into one per kind ("Custom weapon", "Custom armour"),
+        # which is what let the per-panel Add buttons be deleted: making a thing and
+        # buying a thing are now the same surface.
+        if custom_kinds:
+            with ui.row().classes("w-full items-center gap-3 flex-wrap"):
+                ui.icon("add").classes(f"text-{pal.fam}-700")
+                for kind, label in custom_kinds.items():
+                    ui.label(label).classes(
+                        "text-sm font-semibold cursor-pointer"
+                    ).on("click", lambda k=kind: (on_pick(f"custom:{k}"),
+                                                  dialog.close())
+                         ).mark(f"cat-custom-{kind}")
+            ui.separator()
+        elif allow_custom:
+            with ui.row().classes("w-full items-center gap-2 cursor-pointer"):
+                ui.icon("add").classes(f"text-{pal.fam}-700")
+                ui.label(custom_label).classes("text-sm font-semibold"
+                                               ).on("click", _custom).mark("cat-custom")
+            ui.separator()
 
         # The list scrolls; the Custom row and title stay put. `flex-1 min-h-0` lets the
         # scroll area shrink below its content (the classic flexbox scroll trap) — a

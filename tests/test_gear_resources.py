@@ -106,7 +106,9 @@ async def test_the_weapon_dialog_prices_each_row_against_this_character(user) ->
     of choosing. Asserted on the summary labels rather than the page text, so a note
     that never reached a row cannot pass."""
     await user.open('/gear-resources')
-    user.find("Add weapon").click()
+    # The Buy surface — the per-panel weapon dialog was folded into it on 2026-08-13.
+    user.find(marker="buy-button").click()
+    await user.should_see("Buy")
     texts = [el.text or "" for el in user.find(ui.label).elements]
     joined = "\n".join(texts)
     assert "Resources ● — within your means" in joined, "the under-cost case is missing"
@@ -121,11 +123,18 @@ async def test_an_unaffordable_row_is_faded_but_still_pickable(user) -> None:
     be GIVEN what she could not buy, so the row fades and still picks. A test that only
     checked the fade would pass against a dialog that refused the click."""
     await user.open('/gear-resources')
-    user.find("Add weapon").click()
+    user.find(marker="buy-button").click()
+    await user.should_see("Buy")
     faded = [el for el in user.client.elements.values()
              if isinstance(el, ui.column) and "opacity-50" in " ".join(el.classes)]
     assert faded, "no row faded though the character cannot afford a Composite Bow"
-    user.find("Composite Bow").click()
+    rows = [e for e in user.client.elements.values()
+            if isinstance(e, ui.label) and e.text == "Composite Bow"
+            and e._event_listeners]
+    assert len(rows) == 1
+    el = rows[0]
+    el._handle_event({"id": el.id, "listener_id": list(el._event_listeners)[0],
+                      "args": {}})
     await user.should_see("Composite Bow")
 
 

@@ -33,6 +33,7 @@ from ..models.character import Character
 from ..models.party import Party
 from ..models.rules import RuleSet
 from . import advantages
+from . import gear as gear_mod
 from . import app as sheet_app
 from . import combos as combos_mod
 from . import custom as custom_mod
@@ -47,7 +48,8 @@ from .assets import cytoscape_head_html
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 
-_TABS = ("Edit", "Advantages", "Charms", "Combos", "Play", "ST", "Custom", "Sheet")
+_TABS = ("Edit", "Gear", "Advantages", "Charms", "Combos", "Play", "ST",
+         "Custom", "Sheet")
 
 
 def visible_tabs(locked: bool, *, combos: bool = True) -> tuple[str, ...]:
@@ -202,6 +204,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         if state["tab"] == "Edit":
             editor.build_editor(ruleset, char, path, with_header=False,
                                 on_theme_change=_apply_chrome)
+        elif state["tab"] == "Gear":
+            gear_mod.build_gear(ruleset, char, path, with_header=False)
         elif state["tab"] == "Advantages":
             advantages.build_advantages(ruleset, char, path, with_header=False)
         elif state["tab"] == "Charms":
@@ -413,7 +417,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             tabs["Combos"].props(
                 f'label={"Arrays" if viewmod.uses_arrays(ruleset, ctx["char"]) else "Combos"}')
 
-    _ICONS = {"Edit": "edit", "Advantages": "workspace_premium",
+    _ICONS = {"Edit": "edit", "Gear": "inventory_2", "Advantages": "workspace_premium",
               "Charms": "account_tree", "Combos": "bolt",
               "XP": "trending_up", "Play": "casino", "ST": "gavel",
               "Custom": "construction", "Sheet": "description"}

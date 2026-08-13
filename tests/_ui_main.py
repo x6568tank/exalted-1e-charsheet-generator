@@ -18,7 +18,7 @@ from exalted_builder.models.adversary import (Adversary, AdversaryAttack,
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.models.rules import (AbilityName, AttributeName, Orientation,
                                           VirtueName)
-from exalted_builder.ui import advantages, app as sheet_app
+from exalted_builder.ui import gear, advantages, app as sheet_app
 from exalted_builder.ui import (builder, combos, custom, editor, gm, picker,
                                 play, storyteller, view)
 
@@ -53,9 +53,21 @@ CHAR_DB.backgrounds.append(BackgroundEntry(name="", rating=1))       # a Backgro
 def page_custom():
     editor.build_editor(RS, CHAR_CUSTOM, Path("x.json"), with_header=False)
 
+# Off-catalogue gear renders on the GEAR tab now — the crash this guards against (a
+# `ui.select` whose stored value is not in its options) followed the panels there.
+@ui.page('/custom-gear')
+def page_custom_gear():
+    gear.build_gear(RS, CHAR_CUSTOM, Path("x.json"), with_header=False)
+
 @ui.page('/blank')
 def page_blank():
     editor.build_editor(RS, CHAR_BLANK, Path("x.json"), with_header=False)
+
+# The same character's GEAR tab. Equipment moved off Edit on 2026-08-13, so a test
+# about weapons, armour or goods opens this route and one about traits opens the other.
+@ui.page('/blank-gear')
+def page_blank_gear():
+    gear.build_gear(RS, CHAR_BLANK, Path("x.json"), with_header=False)
 
 @ui.page('/play')
 def page_play():
@@ -108,6 +120,10 @@ def page_pools_bare():
 @ui.page('/xp')
 def page_xp():
     editor.build_editor(RS, CHAR_XP, Path("x.json"), with_header=False)
+
+@ui.page('/xp-gear')
+def page_xp_gear():
+    gear.build_gear(RS, CHAR_XP, Path("x.json"), with_header=False)
 
 @ui.page('/db')
 def page_db():
@@ -1222,6 +1238,10 @@ CHAR_ODD_LOCKED.xp_earned = 30
 def page_editor_locked_odd():
     editor.build_editor(RS, CHAR_ODD_LOCKED, Path("x.json"), with_header=False)
 
+@ui.page('/editor-locked-odd-gear')
+def page_editor_locked_odd_gear():
+    gear.build_gear(RS, CHAR_ODD_LOCKED, Path("x.json"), with_header=False)
+
 
 # Essence and trait ceilings (Player's Guide pp.258-259): the first characters in the
 # build whose Essence, Abilities and Attributes legally sit above 5. Three shapes,
@@ -1389,6 +1409,13 @@ CHAR_ARTIFACTS.merits_flaws.append(
 
 @ui.page('/artifacts-advantages')
 def page_artifacts_advantages():
+    gear.build_gear(RS, CHAR_ARTIFACTS, Path("x.json"), with_header=False)
+
+# The same character's ADVANTAGES tab. Damaged Artifact is a Merit, so its per-item
+# picker stayed with M&F when the artifacts themselves moved to Gear — one character,
+# two tabs, and the tests that read each need their own route.
+@ui.page('/artifacts-merits')
+def page_artifacts_merits():
     advantages.build_advantages(RS, CHAR_ARTIFACTS, Path("x.json"), with_header=False)
 
 @ui.page('/artifacts-sheet')
@@ -1404,7 +1431,7 @@ CHAR_ARTIFACTS_XP.xp_earned = 20
 
 @ui.page('/artifacts-advantages-xp')
 def page_artifacts_advantages_xp():
-    advantages.build_advantages(RS, CHAR_ARTIFACTS_XP, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACTS_XP, Path("x.json"), with_header=False)
 
 # A splat with no budget table: the panel still edits artifacts, but prints no budget.
 CHAR_ARTIFACTS_SOLAR = Character(id="arts", name="Velgash", caste="dawn")
@@ -1413,7 +1440,7 @@ CHAR_ARTIFACTS_SOLAR.artifacts.append(ArtifactEntry(name="Tattered Wings", ratin
 
 @ui.page('/artifacts-advantages-solar')
 def page_artifacts_advantages_solar():
-    advantages.build_advantages(RS, CHAR_ARTIFACTS_SOLAR, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACTS_SOLAR, Path("x.json"), with_header=False)
 
 # The same Solar past the lock, where the Background rating control is a NUMBER input
 # (the unlocked regime draws dots, which a test can only click one pip at a time). The
@@ -1425,7 +1452,13 @@ lifecycle.lock_chargen(CHAR_ARTIFACT_HEADER, RS)
 
 @ui.page('/artifact-header-sync')
 def page_artifact_header_sync():
-    advantages.build_advantages(RS, CHAR_ARTIFACT_HEADER, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_HEADER, Path("x.json"), with_header=False)
+
+# …and its ADVANTAGES side, where the Artifact Background row states what its dots buy.
+@ui.page('/artifact-background-note')
+def page_artifact_background_note():
+    advantages.build_advantages(RS, CHAR_ARTIFACT_HEADER, Path("x.json"),
+                                with_header=False)
 
 # Picking an artifact that is ALSO a weapon must grant the stat line, linked, so the
 # budget counts one daiklave rather than two. Its own character: the test picks from the
@@ -1436,13 +1469,13 @@ CHAR_ARTIFACT_GRANT.backgrounds.append(BackgroundEntry(name="Artifact", rating=3
 
 @ui.page('/artifact-grant')
 def page_artifact_grant():
-    advantages.build_advantages(RS, CHAR_ARTIFACT_GRANT, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_GRANT, Path("x.json"), with_header=False)
 
 # The equipment surface for the SAME character, so a test can pick an artifact on one
 # page and see the granted stat line on the other without reaching into module state.
 @ui.page('/artifact-grant-editor')
 def page_artifact_grant_editor():
-    editor.build_editor(RS, CHAR_ARTIFACT_GRANT, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_GRANT, Path("x.json"), with_header=False)
 
 # A LOCKED character who bought an artifact with cash (Manacle and Coin pp.122-125) —
 # the acquisition control exists only post-lock, and the budget must not charge for it.
@@ -1455,7 +1488,7 @@ lifecycle.lock_chargen(CHAR_ARTIFACT_BOUGHT, RS)
 
 @ui.page('/artifact-bought')
 def page_artifact_bought():
-    advantages.build_advantages(RS, CHAR_ARTIFACT_BOUGHT, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_BOUGHT, Path("x.json"), with_header=False)
 
 # The same shape UNLOCKED, where the control must not exist at all.
 CHAR_ARTIFACT_UNLOCKED = Character(id="artu", name="Fresh", exalt_type="Solar",
@@ -1465,7 +1498,7 @@ CHAR_ARTIFACT_UNLOCKED.artifacts.append(ArtifactEntry(name="Tattered Wings", rat
 
 @ui.page('/artifact-unlocked')
 def page_artifact_unlocked():
-    advantages.build_advantages(RS, CHAR_ARTIFACT_UNLOCKED, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_UNLOCKED, Path("x.json"), with_header=False)
 
 # Damaged Artifact held by a character owning NO artifacts — the empty-options case
 # for the artifact picker, which is the NiceGUI build-time crash class (a ui.select
@@ -1737,7 +1770,9 @@ CHAR_DK_2FLAG.artifacts.append(ArtifactEntry(name="Wyld-Cutting Blade", rating=5
 
 @ui.page('/dk-artifacts-2flag-advantages')
 def page_dk_artifacts_2flag_advantages():
-    advantages.build_advantages(RS, CHAR_DK_2FLAG, Path("x.json"), with_header=False)
+    # The artifacts panel and its readout moved to Gear on 2026-08-13; the route name
+    # is kept so the test's history stays greppable.
+    gear.build_gear(RS, CHAR_DK_2FLAG, Path("x.json"), with_header=False)
 
 @ui.page('/dk-artifacts-2flag-sheet')
 def page_dk_artifacts_2flag_sheet():
@@ -1821,7 +1856,7 @@ CHAR_GOODS.backgrounds = [BackgroundEntry(name="Resources", rating=3)]
 
 @ui.page('/goods')
 def page_goods():
-    editor.build_editor(RS, CHAR_GOODS, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_GOODS, Path("x.json"), with_header=False)
 
 # The inventory VIEW: one character owning something of every kind at once, including
 # the overlap that makes the filters non-exclusive (an artifact daiklave is a weapon
@@ -1839,7 +1874,7 @@ CHAR_INV.gear.append(GearEntry(name="Fine clothes", resources_cost=2))
 
 @ui.page('/inventory')
 def page_inventory():
-    editor.build_editor(RS, CHAR_INV, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_INV, Path("x.json"), with_header=False)
 
 CHAR_MF_ART_PLAY = CHAR_MF_ART.model_copy(deep=True)
 CHAR_MF_ART_PLAY.id = "mfartx"
@@ -1909,7 +1944,7 @@ CHAR_RESOURCES_2.backgrounds = [BackgroundEntry(name="Resources", rating=2)]
 
 @ui.page('/gear-resources')
 def page_gear_resources():
-    editor.build_editor(RS, CHAR_RESOURCES_2, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_RESOURCES_2, Path("x.json"), with_header=False)
 
 # A chargen character sitting on the transient over-cap state the editor creates every
 # time a specialty row is appended: `add_spec` writes the row on Melee and the player

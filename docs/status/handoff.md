@@ -1,166 +1,44 @@
 # Session handoff — 2026-08-13
 
-## Gear item 3 — STARTED, half shipped
+## Gear, inventory, goods and the shop — DONE, browser-verified 2026-08-13
 
-**Human's ruling 2026-08-13: services are a REFERENCE PRICE LIST, not inventory.** The
-price tables hold two kinds of thing and only one is ownable — `GearType.kind` is
-`goods` (clothes, jewelry, an animal, an estate) or `service` (upkeep, events,
-commissions, rentals).
+**The record is `docs/status/gear-and-inventory.md`** — the Gear tab, the inventory view,
+the Buy surface, mundane goods and the custom gear library, plus the traps that refactor
+produced. Decision **0017** (artifacts have two acquisition channels — the Background is
+pre-game, cash is in-play) is in `docs/decisions/`; the artifact BUDGET rules and the two
+new extraction tools are in `rated-artifacts.md`; the gear library is in
+`custom-content.md`.
 
-Shipped: `data/gear.json` (**43 rows off Manacle and Coin p.123**, 18 goods / 25
-services), `GearType` + `RuleSet.gear_catalog` + loader, `GearEntry` +
-`Character.gear`, a **Goods** section on the equipment surface with the shared
-catalogue dialog, and a **services price list** panel beside it. `tests/test_gear_catalogue.py`.
+## The rest of 2026-08-13, in brief
 
-**The inventory VIEW shipped** (same day): `view.inventory_rows` / `filter_inventory` /
-`inventory_counts` + an Inventory panel at the top of the equipment surface, with filter
-chips. `tests/test_inventory_view.py`.
+* **The corebook Artifact Background is enforced** and was never running for plain
+  Solars, Lunars, Sidereals, Ghosts, Godblooded or the Abyssal renegade — a splat with no
+  `BackgroundRule` read as "no budget" rather than "the default budget", and three tests
+  asserted `== []` on that gap. Amended the same day to ONE ARTIFACT PER BACKGROUND ROW.
+* **Dragon Kings had their own Artifact entry all along** (PG p.175-176), and were
+  reading the Dragon-Blooded one. The RULE was right either way, which is why nothing
+  caught it.
+* **Two extraction tools, both proved before use**: `parse_resources_costs.py` (the
+  corebook's dot columns — 42/42 against hand-authored values, and it found a typo) and
+  `parse_mc_prices.py` (Manacle and Coin's two-column price pages — 43/43 against a page
+  authored independently, which then unblocked p.125).
+* **`sources/` is now on this machine.** Abyssals pp.254-261 extracts cleanly (16 blocked
+  entries), Outcaste p.118 is readable (re-check the Mist-aspect blocker before planning
+  it), The Lunars is present but a pure scan.
 
-* It is a **VIEW, never a storage shape** — the four lists stay typed because they carry
-  different fields and because `character.weapons` is indexed by position elsewhere (the
-  dice-pool sidebar).
-* **The filters are NOT a partition.** An artifact daiklave answers to `weapon` AND
-  `artifact`, an arrow to `weapon` and `ammunition`, so the counts sum to more than the
-  rows. A later change that "fixes" that has broken the feature.
-* The artifact kind comes from `artifacts.artifact_items`, the same enumeration the
-  budget reads, so a granted stat line is not tagged as a second artifact — the
-  inventory and the validator cannot disagree about what is owned.
+## Next up
 
-⚠ **Two UI lessons from the browser, both mine, both same-day:**
-* **`GearType.cash` had ZERO read sites** — the services panel printed a name and a dot
-  column, so a PRICE list showed no prices and the human called it useless. Correctly.
-  It now prints the jade/silver equivalents, category headings and the Manse note.
-* **A bare dot column is unreadable.** `•••` beside a good was asked about in the
-  browser: every other dot column on the sheet is a rated trait, and this one is a
-  PRICE. Labelled `Res •••` with a tooltip.
-* And a test-scoping one worth keeping: the per-type editors list the same item names as
-  the inventory, so `should_not_see` after a filter click asserts against the wrong
-  panel. Inventory rows carry a `inv-row` marker for that reason.
+Nothing is blocking and nothing is half-finished. Open threads, in rough order of value:
 
-⚠ **NOT done, and next:**
-* **M&C p.125 is UNBLOCKED and authored** — `tools/parse_mc_prices.py` reads these
-  two-column price pages properly. **Proved by re-parsing p.123 and reproducing all 43
-  rows** that had been authored independently from that page's clean single-column
-  extraction (`--verify` → 43/43). Then p.125 yielded 20 rows: **13 Everyday Wonders →
-  `gear.json`** (56 rows now) and **7 Greater & Lesser Wonders → `resources_cost` on
-  `ArtifactType`**, which is decision 0017 made concrete — a daiklave is Artifact ••
-  AND Resources ••••, two scales, two channels.
+1. **The 213 catalogue entries** — re-triage now that `sources/` has landed;
+   `catalogue-sweep.md` ranks them by yield but its "page-blocked" claims are stale.
+2. **The Mist aspect** — the last unauthored piece of the Outcaste book, possibly
+   unblocked; needs a page read and probably a ruling.
+3. **The Lunar 17** — needs the VLM leg on a pure scan; never exercised.
 
-  Four parser bugs, each of which looked like working code, and all four are recorded in
-  the tool's docstrings:
-  1. a continuation threshold of 7.0 taken from an exploratory dump that had HALVED
-     every gap (`round(top/2)`) — it joined nothing and 27 of 43 names silently lost
-     their second line;
-  2. continuations must CHAIN ("Crew and provender / for a ship for a / month");
-  3. a line in a continuation slot continues the row WHATEVER is on it — "(rating • to
-     •••)" carries dots and is not a price;
-  4. the running head carries a bullet ("EXALTED • MANACLE AND COIN") and parsed as a
-     one-dot row.
-
-  ⚠ **"Created walkaway" is transcribed as printed** — its three siblings are "… charm"
-  and it is not, and the word appears nowhere else in the book. Flagged in `notes`, NOT
-  completed; needs the rules authority.
-* **Fold the three Add buttons into one Buy surface** — the human's next unification
-  (2026-08-13): "Add weapon" / "Add armor" / "Add goods" open the same dialog against
-  three catalogues, and should be one shop filtered by type. The Artifact Background
-  stays its own surface on Advantages, per decision 0017 — the shop may never sell an
-  artifact at chargen.
-* Not browser-verified: the Goods section, the price list, the Add-goods dialog.
-
-
-
-**The human clicked through the corebook Wonders work overnight and it passed.** Two
-things shipped the morning after, both off a preflight run:
-
-1. **The Play tab's unarmed notice was re-parented** (`ui/play.py`). Its `else` belonged
-   to `if sv.weapons:`, and `4f875d3` inserted the nocked-arrow controls between the
-   `if` and the `else` — so an armed character with nothing nocked was told "No weapon
-   owned" beneath a dropdown listing their weapon. The unarmed case still read correctly
-   *by accident*, which is why the suite stayed green. Fixed, with a two-route
-   regression test and its negative control.
-2. **The corebook Artifact Background is now enforced** — human ruling 2026-08-13, full
-   record in `docs/status/rated-artifacts.md`. One artifact, rated no higher than the
-   Background, for every splat whose book alters nothing. `check_artifacts` used to
-   `return issues` when a splat had no `BackgroundRule`, so the check did not run for
-   plain Solar, Lunar, Sidereal, Ghost, Godblooded or the Abyssal renegade. **Three
-   tests asserted `== []` on that gap** — they encoded the bug as the spec.
-
-**Then an audit of every splat's Artifact rule**, prompted by the human asking what the
-new default does to the others. It turned up two more:
-
-3. **Mountain Folk with no Enlightenment chosen were being handed the corebook rule** —
-   theirs is the ONE splat with no base budget row, so an origin-less character resolves
-   to no rule at all. A regression the fallback itself introduced: before it, a missing
-   rule meant no check. Now guarded by `artifacts.rule_is_pending_an_origin` — silence
-   beats the wrong rule. ⚠ The first cut of that guard asked "does any row in this
-   splat's cascade print a rule?", and `Solar:illuminated` answered yes, **switching the
-   corebook default off for every ordinary Solar** — the guard disabled the feature it
-   was protecting. Caught by the negative control in the same test.
-4. **Dragon Kings were reading the Dragon-Blooded Artifact entry** — CLOSED. The page
-   (PG p.175-176, in `images/_extracted/Player's Guide.md`) prints them their own:
-   "Weapons and tools, either vegetative, crystal or orichalcum", whose footnote borrows
-   the Terrestrial RULE explicitly ("See E:DB, p. 157 for details"). Authored as
-   `background.artifact-dragonkings` with `ladder_from` the DB entry — the human's call,
-   since the page's own cross-reference points there. The rule was right the whole time,
-   which is why nothing caught it. `docs/status/rated-artifacts.md`.
-
-Suite **2,292 passing**. ⚠ The artifact work is NOT browser-verified: click the
-Advantages tab on a plain Solar and confirm the header reads `Artifacts (n/1 — Artifact
-N, one artifact rated up to N)`, that a second artifact raises an error, and that an
-artifact weapon + artifact armour counts as two.
-
-**Items 1 and 2 of the gear/catalogue overhaul are done** (the human's plan, 2026-08-13;
-item 3 — `GearEntry` / `data/gear.json` / the services-vs-possessions ruling — is
-deliberately not started):
-
-* **The artifact/gear double-entry is fixed.** `from_artifact` links a granted stat line
-  to its artifact, and the budget counts the pair once. Details and the four traps in
-  `docs/status/rated-artifacts.md`.
-* **`tools/parse_resources_costs.py` reads the dot columns**, proven by `--verify`
-  against the hand-authored data: **42 agree, 0 disagree**. Found one typo (Reinforced
-  Buff Jacket ••• → ••).
-* **Shields and helms are priced after all** — Manacle and Coin p.124, supplied by the
-  human; all six authored. The corebook simply does not price them, and this file had
-  recorded that as "no printed cost", which was a stronger claim than the evidence.
-* ⚠ **`images/_extracted/Exalted Core.md` was the PRE-crack copy on this machine** and
-  has been re-extracted now that `sources/` is here. **The offset auto-detect fails on
-  this PDF — pass `--offset 2`.**
-
-**The purchasing catalogue is NO LONGER PAGE-BLOCKED.** The human's call, 2026-08-13:
-base it on **Manacle and Coin pp.122-125**, not the corebook. Clean text layer, real `•`
-characters (the dot-counting parser is not needed for it), the same tables fuller, and
-two the corebook lacks — the Resources↔cash conversion (p.122) and Everyday / Greater &
-Lesser Wonders (p.125). The two books agree on all 39 shared rows.
-
-**That ruling is now CLOSED as decision 0017** — the two numbers measure different
-things and the corebook says so: its gear tables define the Artifact column as the dots
-spent "to start the game owning" the item (p.342). So the Background is the pre-game
-channel and cash is the in-play one. **The model and the rule are BUILT** (`acquired` on
-the three ownables, `artifacts.budgeted_items`, the post-lock-only control, the
-`artifact-purchased-at-chargen` bar); **the M&C prices are NOT yet authored** — that is
-the next slice, along with `data/gear.json`.
-
-⚠ NOT browser-verified: the Acquired control appears only post-lock, and flipping it to
-Bought must drop the header count and print "+ 1 bought with Resources".
-
-**The 2026-08-13 click-through found two more, both fixed:**
-
-* **The corebook rule was one artifact per CHARACTER; it should be one per Background
-  ROW.** Two Artifact •• rows are two artifacts — `background_best` has said so since
-  2026-07-31. `validate.background_rows` is the new third reader (sum / best / rows), and
-  the header now counts rows. See `docs/status/rated-artifacts.md`.
-* **Mountain Folk Resources are worth their dots + 2** (CH6), capped at 3 actual dots —
-  so nothing above Resources ••• could be bought by the richest Jadeborn in Creation. The
-  cap was authored and its compensation was not. Now `BackgroundRule.effective_bonus` /
-  `effective_floor` (the page also floors an unbought Background at •• Enlightened / •
-  Unenlightened) read through `validate.effective_background_rating`, which
-  `gear_affordability` and the Background row both call. ⚠ `gear_affordability` now takes
-  the RULESET as its first argument, deliberately required rather than optional: its
-  wrong answer is a silent "you cannot buy that".
-
-Also still open: the Resources hint on the gear dialogs is unclicked.
-
----
+⚠ **One printed oddity is recorded and confirmed, not fixed:** M&C p.125 prints "Created
+walkaway" where its three siblings are "… charm". The human confirmed 2026-08-13 that the
+entry is just that; whether the book dropped a word is unknowable from the page.
 
 # Session handoff — 2026-08-12
 

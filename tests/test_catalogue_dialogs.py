@@ -17,13 +17,30 @@ MAIN = "tests/_ui_main.py"
 # Equipment (weapons / armour) on the editor
 # --------------------------------------------------------------------------- #
 
+def _pick_in_dialog(user, name: str) -> None:
+    """Click the row whose name label is EXACTLY `name`, by dispatching to its own
+    listener. `user.find(name).click()` matches every element CONTAINING the text —
+    including input values and longer names ("Daiklave" also matches "Grand Daiklave",
+    "Reaver Daiklave") — and which one it lands on varies with per-run string hashing.
+    """
+    rows = [e for e in user.client.elements.values()
+            if isinstance(e, ui.label) and e.text == name and e._event_listeners]
+    assert len(rows) == 1, f"{len(rows)} clickable labels read exactly {name!r}"
+    el = rows[0]
+    el._handle_event({"id": el.id, "listener_id": list(el._event_listeners)[0],
+                      "args": {}})
+
+
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_the_weapon_dialog_lists_catalogue_entries_and_autofills(user) -> None:
-    await user.open('/blank')
-    user.find("Add weapon").click()
-    # The dialog opens with a known weapon; picking it appends a row with stats.
-    user.find("Daiklave").click()
+async def test_the_shop_autofills_a_weapons_printed_stats(user) -> None:
+    """Was `test_the_weapon_dialog_…`, against the per-panel dialog. Browsing moved to
+    the single Buy surface on 2026-08-13 — four dialogs over four catalogues is four
+    shops — so the autofill contract is asserted there now."""
+    await user.open('/blank-gear')
+    user.find(marker="buy-button").click()
+    await user.should_see("Buy")
+    _pick_in_dialog(user, "Daiklave")
     # The new row's stat summary reflects the autofilled catalogue stats (Acc+2,
     # Dmg+5L) — the existing blank row on /blank reads Acc+7, so this must be new.
     await user.should_see("Acc+2")
@@ -32,13 +49,19 @@ async def test_the_weapon_dialog_lists_catalogue_entries_and_autofills(user) -> 
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_the_weapon_dialog_custom_row_makes_a_blank_free_text_weapon(user) -> None:
-    await user.open('/blank')
-    user.find("Add weapon").click()
-    user.find(marker="cat-custom").click()
-    # The blank row's name field is a free-text combobox (ui.select, with_input) —
-    # the same shape the existing weapon row uses. /blank starts with one weapon, so
-    # the custom row is the LAST weapon select. The body rebuild is async, so poll.
+async def test_the_shop_can_MAKE_a_thing_as_well_as_sell_one(user) -> None:
+    """The last per-panel button died here (2026-08-13). "Custom weapon" lives in the
+    Buy dialog now, because a shop spanning four catalogues CAN know which list a blank
+    row belongs in once you say which kind you are making — and three editor panels
+    beside an inventory that already lists everything was four surfaces for one job.
+    """
+    await user.open('/blank-gear')
+    user.find(marker="buy-button").click()
+    await user.should_see("Buy")
+    user.find(marker="cat-custom-weapons").click()
+    # The blank row's name field is a free-text combobox (ui.select, with_input) — the
+    # same shape an existing weapon row uses. /blank starts with one weapon, so the new
+    # row is the LAST weapon select. The rebuild is async, so poll.
     import asyncio
     sels = []
     for _ in range(20):
@@ -47,7 +70,7 @@ async def test_the_weapon_dialog_custom_row_makes_a_blank_free_text_weapon(user)
         if len(sels) >= 2:
             break
         await asyncio.sleep(0.05)
-    assert len(sels) >= 2, "the custom weapon row did not append a second select"
+    assert len(sels) >= 2, "Custom weapon did not append a second select"
     new_sel = sels[-1]
     new_sel._handle_new_value("Homebrew Lance")
     new_sel.set_value("Homebrew Lance")
@@ -56,11 +79,11 @@ async def test_the_weapon_dialog_custom_row_makes_a_blank_free_text_weapon(user)
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_the_armor_dialog_lists_catalogue_entries_and_autofills(user) -> None:
-    await user.open('/blank')
-    user.find("Add armor").click()
-    user.find("Buff Jacket").click()
-    # A catalogue armour row carries its printed soak (3L/4B).
+async def test_the_shop_autofills_an_armours_printed_soak(user) -> None:
+    await user.open('/blank-gear')
+    user.find(marker="buy-button").click()
+    await user.should_see("Buy")
+    _pick_in_dialog(user, "Buff Jacket")
     await user.should_see("Soak 3L/4B")
 
 

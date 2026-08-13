@@ -288,18 +288,15 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         _sync_total()
         return _sync_total
 
-    # The Artifacts header reads the Artifact BACKGROUND's rating, which is edited in a
-    # different panel — so the panel that owns the number cannot refresh the panel that
-    # displays it. Registered by the artifacts panel (built after these rows) and called
-    # by every Background rating change; a no-op for a splat whose tab has no artifacts
-    # panel. The alternative, rebuilding the whole tab on a rating click, is the thing
-    # the header's own docstring forbids: a rebuilt input eats the keystroke.
+    # ⚠ Two consumers of a Background rating have gone stale in this panel — the
+    # Hearthstone denominator (see `row_sync`'s rebind below) and, until the Artifacts
+    # panel moved to the Gear tab, its budget header. Both were fixed by driving them
+    # from `_sync`, which is where a rating change arrives. When you add anything that
+    # reads a Background rating, drive it from there too.
     #
-    # ⚠ This is the SECOND consumer of a Background rating to go stale in this panel —
-    # the Hearthstone denominator was the first (see `row_sync`'s rebind below, and its
-    # comment). A third one will happen: when you add anything that reads a Background
-    # rating from outside this panel, hook it here.
-    artifact_header_sync: dict = {"fn": lambda: None}
+    # The cross-panel HOOK that served the artifact header is gone with the panel: two
+    # tabs render separately, so there is nothing here to refresh. The link that
+    # replaced it is the "buys N dot(s)" note in `_sync`, which `_sync` recomputes.
 
     def _background_rows(bg_cap) -> None:
         """The Background list itself — identical in both regimes but for the rating
@@ -389,13 +386,16 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 if effective != bg.rating:
                     note = f"effective {bg.name} {effective}"
                     rung_text = f"{rung_text}  ·  {note}" if rung_text else note
+                # The link to the Gear tab, where the artifacts themselves now live
+                # (2026-08-13). The Background is what PAYS for them, so the row says
+                # what it bought — otherwise moving the panel would leave the dots here
+                # with no visible consequence, and the budget stated in only one place.
+                if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND:
+                    owned = len(artifactsmod.budgeted_items(character))
+                    buys = f"buys {bg.rating} dot(s) of artifacts · {owned} owned"
+                    rung_text = f"{rung_text}  ·  {buys}" if rung_text else buys
                 rung.set_text(rung_text)
                 rung.set_visibility(bool(rung_text))
-                # …and the Artifacts header in the panel below, which counts against
-                # this rating. Called for every Background because a RENAME moves it
-                # too: typing "Artifact" over "Allies" changes the budget as surely as
-                # clicking a dot does, and `_sync` is the one place both arrive.
-                artifact_header_sync["fn"]()
 
             row_sync["fn"] = _sync
             sel.on_value_change(lambda e, bg=bg, sync=_sync: (
@@ -501,276 +501,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             ).props("dense").classes("w-16").mark("bg-rating"))
 
     # ---- Artifacts: individually rated items ------------------------------- #
-    def add_artifact() -> None:
-        character.artifacts.append(ArtifactEntry(name="", rating=1))
-        refresh_all()
-
-    def remove_artifact(idx: int) -> None:
-        # The gear row this artifact granted is deliberately LEFT BEHIND. It may have
-        # been edited, and deleting a player's equipment to tidy up a link is not this
-        # panel's business; the orphaned row simply counts as an artifact in its own
-        # right again (see `artifacts.artifact_items`), which is visible rather than
-        # free. Deleting the weapon is one click and theirs to make.
-        del character.artifacts[idx]
-        refresh_all()
-
-    def grant_gear(art_name: str) -> None:
-        """Give a newly picked artifact its stat line on the equipment surface.
-
-        The human's note from the 2026-08-13 click-through: owning "Daiklave" as an
-        artifact and then adding a "Daiklave" weapon to actually swing it counted the
-        same object twice, which the corebook one-artifact rule turns into a false
-        error. So the artifact grants the row and stamps `from_artifact` on it, and the
-        budget counts the pair once.
-
-        Silent when the artifact has no gear half (202 of the 222 do not), and when the
-        row is already there — picking the same artifact twice must not breed daiklaves.
-        """
-        found = artifactsmod.gear_stat_line(rs, art_name)
-        if found is None:
-            return
-        source, entry = found
-        key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, art_name)
-        rows = (character.weapons if source == artifactsmod.SOURCE_WEAPON
-                else character.armor)
-        if any(row.from_artifact == key for row in rows):
-            return
-        if source == artifactsmod.SOURCE_WEAPON:
-            rows.append(Weapon(
-                name=entry.name, speed=entry.speed, accuracy=entry.accuracy,
-                damage=entry.damage, damage_type=entry.damage_type,
-                defense=entry.defense, rate=entry.rate, range=entry.range,
-                min_strength=entry.min_strength, min_dexterity=entry.min_dexterity,
-                min_martial_arts=entry.min_martial_arts,
-                max_strength=entry.max_strength, artifact_rating=entry.artifact_rating,
-                attunement=entry.attunement, resources_cost=entry.resources_cost,
-                notes=entry.notes, from_artifact=key))
-        else:
-            rows.append(Armor(
-                name=entry.name, soak_lethal=entry.soak_lethal,
-                soak_bashing=entry.soak_bashing,
-                mobility_penalty=entry.mobility_penalty, fatigue=entry.fatigue,
-                artifact_rating=entry.artifact_rating, attunement=entry.attunement,
-                resources_cost=entry.resources_cost, from_artifact=key))
-
-    def _artifacts_panel() -> None:
-        """The standalone artifacts — those that are neither weapon nor armour.
-
-        On the Advantages tab because artifacts are bought with the Artifact Background
-        and budgeted by it (E:Ab p.131), so the two belong under one eye. Weapons and
-        armour keep their own `artifact_rating` on the equipment surface and are NOT
-        editable here — they are only counted, in the budget line below.
-
-        ⚠ That count used to be the whole story, and the comment here claimed it was
-        what "stops a daiklave being entered twice". It did the opposite: twenty names
-        exist in both catalogues, so a player who owned the artifact AND added the gear
-        row to swing it was charged for two daiklaves. Picking an artifact now GRANTS
-        its stat line, stamped with `from_artifact`, and the budget counts the pair
-        once — see `grant_gear` and `artifacts.artifact_items`.
-
-        One panel, both regimes: an artifact is equipment, and equipment has never been
-        XP-priced or log-tracked on either side of the lock.
-
-        The name field is a combobox fed from `RuleSet.artifact_catalog`
-        (`data/artifacts.json`): picking a catalogue entry fills the name and autofills
-        the rating, and a typed off-catalogue name is free text that renames while
-        preserving the rating. Entering a gear item both here and on the equipment
-        surface counts it twice toward the budget — the same contract free text already
-        has; there is no cross-catalogue dedup.
-        """
-        @ui.refreshable
-        def _artifacts_header() -> None:
-            """The budget line, its own refreshable so a rating edit updates it WITHOUT
-            rebuilding the panel. Rebuilding the body from inside the rating input's
-            on_change destroyed the widget mid-interaction — NiceGUI drops events that
-            target a deleted element (Client.handle_event), so a rapid second click
-            (5→4→5) was silently lost, the stored rating desynced from the number on
-            screen, and the two-flagships warning never came back. The header and the
-            readout are the only things a rating edit moves."""
-            # The BUDGET's items, not everything owned: a purchased artifact is charged
-            # to nothing, so counting it here would print a number the validator does
-            # not agree with — the header and the rule must tell the same story.
-            items = artifactsmod.budgeted_items(character)
-            bought = artifactsmod.purchased_items(character)
-            rule = artifactsmod.artifact_rule(validate.effective_budgets(rs, character))
-            budgeted = rule is not None and bool(rule.budget_tiers)
-            header = "Artifacts"
-            rating = sum(bg.rating for bg in character.backgrounds
-                         if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
-            if artifactsmod.uses_corebook_rule(rule):
-                # The corebook rule (ruling 2026-08-13) governs most splats, and until
-                # it was enforced this header said the bare word "Artifacts" — so the
-                # first a player heard of the one-artifact limit was a validation error
-                # after they had picked two. The line states the rule whether or not
-                # they are over it.
-                #
-                # ONE PER ROW: a character may hold the Artifact Background more than
-                # once, and two Artifact •• rows are two artifacts (see
-                # `validate.background_rows`). The header counts rows, not their sum —
-                # printing "/1" beside two rows is what made the browser read the
-                # validator's error as arbitrary.
-                rows = sorted((r for r in validate.background_rows(
-                    character.backgrounds, artifactsmod.ARTIFACT_BACKGROUND) if r > 0),
-                    reverse=True)
-                if rows:
-                    allowance = " + ".join(f"up to {r}" for r in rows)
-                    header = (f"Artifacts ({len(items)}/{len(rows)} — Artifact "
-                              f"{'+'.join(str(r) for r in rows)}, {allowance})")
-                else:
-                    header = f"Artifacts ({len(items)} — no Artifact Background)"
-            elif budgeted:
-                tier = artifactsmod.budget_tier(
-                    validate.effective_budgets(rs, character), rating)
-                combined = sum(i.rating for i in items)
-                if tier is not None:
-                    # The row name is optional — the Cult of the Illuminated's table
-                    # (p.96) prints bare dot rows where the Abyssal's names each one,
-                    # and a blank left a trailing comma inside the parenthesis.
-                    named = f", {tier.name}" if tier.name else ""
-                    header = (f"Artifacts ({combined}/{tier.combined_max} combined — "
-                              f"Artifact {rating}{named})")
-                else:
-                    header = f"Artifacts ({combined} combined — no Artifact Background)"
-            with ui.row().classes("w-full items-baseline gap-2"):
-                ui.label(header).classes(
-                    "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
-                ui.label("bought with the Artifact Background").classes(
-                    "text-xs text-gray-500")
-                if bought:
-                    # Said out loud, because the alternative is a header whose count is
-                    # lower than the visible list for no stated reason.
-                    ui.label(f"+ {len(bought)} bought with Resources, not charged to "
-                             f"the Background").classes("text-xs text-gray-500"
-                                                        ).props('data-testid="art-bought"')
-
-        # The name combobox is fed from the catalogue (`data/artifacts.json`). Option
-        # labels stay plain names so `art.name` stores cleanly; the rating and
-        # description ride the option tooltip.
-        # Filtered to what Artifact dots actually buy: the Hearthstones in the same
-        # catalogue file come with the Manse Background, and picking one here would
-        # charge the p.131 Artifact budget for something Artifact never bought. They
-        # get their own picker on the Manse Background row instead.
-        art_catalog = artifactsmod.purchasable_with_artifact(rs.artifact_catalog)
-        art_names = [a.name for a in art_catalog]
-        art_descs = {a.name: f"{a.rating_notes or ('•' * a.rating)} — {a.description}"
-                     for a in art_catalog}
-        with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
-            _artifacts_header()
-            # The Background rows were built above and hold this hook lazily, so
-            # registering here — after the header exists — is both legal and required.
-            artifact_header_sync["fn"] = _artifacts_header.refresh
-            for idx, art in enumerate(character.artifacts):
-                with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                    sel = (DescribedSelect(_opts_with(art_names, art.name),
-                                           descriptions=art_descs,
-                                           value=art.name or None, label="Artifact name",
-                                           with_input=True, new_value_mode="add-unique")
-                           .props("dense").classes("flex-1"))
-                    ui.input(value=art.note, placeholder="note",
-                             on_change=lambda e, art=art: setattr(art, "note", e.value)
-                             ).props("dense").classes("flex-1")
-                    number = ui.number(value=art.rating, min=1, max=5, format="%d",
-                                       label="Rating",
-                                       on_change=lambda e, art=art: (
-                                           setattr(art, "rating",
-                                                   max(1, min(5, int(e.value or 1)))),
-                                           _artifacts_header.refresh(),
-                                           changed())
-                                       ).props("dense").classes("w-24")
-                    # How it was acquired. POST-LOCK ONLY: at creation the Background
-                    # is the only channel there is (core p.342, "to start the game
-                    # owning"), so offering the choice would be offering an illegal
-                    # pick — the same reasoning that filters the Virtue Flaw dropdown
-                    # to the flawed Virtue. `validate` bars it either way; this stops
-                    # the player reaching the bar.
-                    if character.chargen_locked:
-                        ui.select({artifactsmod.ACQUIRED_BACKGROUND: "Background",
-                                   artifactsmod.ACQUIRED_PURCHASED: "Bought"},
-                                  value=art.acquired, label="Acquired",
-                                  on_change=lambda e, art=art: (
-                                      setattr(art, "acquired",
-                                              e.value or artifactsmod.ACQUIRED_BACKGROUND),
-                                      _artifacts_header.refresh(), changed())
-                                  ).props("dense").classes("w-32").mark("art-acquired")
-                    ui.button(icon="delete",
-                              on_click=lambda e=None, idx=idx: remove_artifact(idx)
-                              ).props("flat dense round")
-                # The catalogue description under the row, mirroring the Background rows:
-                # the dropdown tooltip made permanent. Refreshed by the row's own select
-                # WITHOUT rebuilding the panel (a rebuilt input eats every keystroke —
-                # the filter bar's lesson). A free-text name no catalogue entry covers
-                # gets nothing — the label just hides. `data-testid` is the one prop that
-                # distinguishes this label from the M&F rules-text labels, which share its
-                # styling classes.
-                desc = ui.label("").classes("text-xs opacity-70 pl-1"
-                                            ).props('data-testid="art-desc"')
-
-                def _sync(art=art, desc=desc):
-                    entry = next((a for a in art_catalog if a.name == art.name), None)
-                    text = entry.description if entry else ""
-                    desc.set_text(text)
-                    desc.set_visibility(bool(text))
-
-                def _on_art(e, art=art, number=number, sync=_sync):
-                    # A catalogue pick sets name + autofills rating; any other
-                    # value is free text and only renames, preserving the rating.
-                    entry = next((a for a in art_catalog
-                                  if a.name == (e.value or "")), None)
-                    if entry is not None:
-                        art.name, art.rating = entry.name, entry.rating
-                        # Keep the on-screen control in sync: the header refresh
-                        # recomputes the total but must NOT rebuild the body (see
-                        # the header docstring), so the number is pushed directly.
-                        number.value = entry.rating
-                        # Choosing a catalogue artifact HERE is the same act as
-                        # choosing one in the dialog, so it grants the same stat line.
-                        grant_gear(entry.name)
-                    else:
-                        art.name = e.value or ""
-                    sync()
-                    _artifacts_header.refresh()
-                    changed()
-
-                sel.on_value_change(_on_art)
-                _sync()
-            # Artifact weapons and armour count against the same budget but are edited
-            # on the equipment surface. Listed read-only so the combined total above is
-            # accounted for rather than looking wrong.
-            gear = [i for i in artifactsmod.artifact_items(character)
-                    if i.source != artifactsmod.SOURCE_ARTIFACT]
-            if gear:
-                ui.label("Also counted, from equipment: "
-                         + ", ".join(f"{i.name} ({i.rating})" for i in gear)
-                         ).classes("text-xs italic opacity-70")
-
-            # The catalogue picker replaces the blind "Add artifact": browse the
-            # catalogue (name + rating + description), pick one — name AND rating
-            # autofilled — or choose Custom for a blank row.
-            def _open_artifact_catalogue() -> None:
-                rows = [(a.name, a.name,
-                         f"{a.rating_notes or ('•' * a.rating)} — {a.description}",
-                         a.description)
-                        for a in art_catalog]
-                icons = {a.name: cataloguemod.icon_for(a.tags, "auto_awesome")
-                         for a in art_catalog}
-                cataloguemod.catalogue_dialog(pal, "Artifacts", rows, _pick_artifact,
-                                              icons=icons)
-
-            def _pick_artifact(name) -> None:
-                if name is None:
-                    add_artifact()
-                    return
-                entry = next((a for a in art_catalog if a.name == name), None)
-                if entry is not None:
-                    character.artifacts.append(
-                        ArtifactEntry(name=entry.name, rating=entry.rating))
-                    grant_gear(entry.name)
-                else:
-                    character.artifacts.append(ArtifactEntry(name=name, rating=1))
-                refresh_all()
-
-            ui.button("Add artifact", icon="add", on_click=_open_artifact_catalogue
-                      ).props("flat dense")
+    # Artifacts MOVED to the Gear tab (ui/gear.py) on 2026-08-13, with their budget
+    # header and their catalogue picker. What stays here is the LINK: the Artifact
+    # Background row prints what its dots buy and how many are owned, so the rule is
+    # stated on both surfaces rather than owned silently by one.
 
     # ---- Merits & Flaws: chargen ------------------------------------------ #
     def set_merit(mp, merit_id: str) -> None:
@@ -1582,7 +1316,6 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         b = validate.effective_budgets(rs, character)
         if _in_play():
             _play_backgrounds()
-            _artifacts_panel()
             if _has_fetters():
                 _fetters_panel(b)
             if _has_passions():
@@ -1592,7 +1325,6 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             return
         mf_effects = meritsmod.merits_and_flaws_calc(rs, character)
         _chargen_backgrounds(b, mf_effects)
-        _artifacts_panel()
         # Ghosts only; every other splat has an empty Fetter budget and empty lists.
         if _has_fetters():
             _fetters_panel(b)

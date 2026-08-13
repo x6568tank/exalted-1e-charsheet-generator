@@ -475,10 +475,41 @@ def _check_sorcery_reachable(
             )
 
 
+def _merge_custom_gear(custom_dir: Path, catalogs: dict, problems: list[str]) -> None:
+    """Overlay the user's gear library onto the book catalogues, in place.
+
+    Same contract as the Charm layer above and for the same reasons: the BOOK ALWAYS
+    WINS an id collision, a bad row is reported and dropped rather than raised on, and
+    the app loads anyway. Gear needs no satisfiability pass — a weapon points at nothing
+    the way a Charm points at prerequisites — so this is the whole of it.
+
+    ⚠ Rows are tagged `custom` via their `tags`, not a model field: `WeaponType` and
+    friends are frozen and shared with the book data, and adding a flag to them would
+    put a homebrew concept in the printed models. The Buy dialog reads the tag to mark
+    a row as yours.
+    """
+    for kind, (catalog, model) in catalogs.items():
+        rows = custom_content.library_gear(kind, custom_dir)
+        for raw in rows:
+            try:
+                entry = model.model_validate(raw)
+            except ValidationError as ex:
+                problems.append(f"custom {kind} row {raw.get('id', '?')!r}: {ex}")
+                continue
+            if entry.id in catalog:
+                problems.append(
+                    f"custom {kind} {entry.id!r} shadows an entry from the rulebook; "
+                    f"ignored")
+                continue
+            catalog[entry.id] = entry.model_copy(
+                update={"tags": list(entry.tags) + ["custom"]})
+
+
 def _load_custom_layer(
     custom_dir: Path,
     charms: dict[str, Charm],
     spells: dict[str, Spell],
+    gear_catalogs: dict | None = None,
 ) -> list[str]:
     """Merge the user's custom library over the book data, in place.
 
@@ -546,6 +577,9 @@ def _load_custom_layer(
                 f"that circle, so it could never be learned; dropped")
         else:
             spells[sp.id] = sp.model_copy(update={"custom": True})
+
+    if gear_catalogs:
+        _merge_custom_gear(custom_dir, gear_catalogs, problems)
 
     return problems
 
@@ -658,7 +692,10 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     # book error is never blamed on the user's homebrew (and vice versa).
     custom_problems: list[str] = []
     if custom_dir is not None and Path(custom_dir).is_dir():
-        custom_problems = _load_custom_layer(Path(custom_dir), charms, spells)
+        custom_problems = _load_custom_layer(
+            Path(custom_dir), charms, spells,
+            {"weapons": (weapons, WeaponType), "armor": (armor, ArmorType),
+             "gear": (gear, GearType), "artifacts": (artifacts, ArtifactType)})
 
     return RuleSet(
         exalts=exalts,

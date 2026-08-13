@@ -7,15 +7,18 @@ MAIN = "tests/_ui_main.py"
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_reload_with_custom_gear_renders(user: User) -> None:
-    # off-catalog weapon/armor/nature must not crash the render (was a 500)
+    # off-catalog weapon/armor/nature must not crash the render (was a 500). The
+    # Nature select stayed on Edit; the gear selects moved to the Gear tab, so both
+    # renders are checked.
     await user.open('/custom')
+    await user.open('/custom-gear')
     await user.should_see("Weapons")
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_typing_custom_name_keeps_stats(user: User) -> None:
     from tests import _ui_main as M  # same process → same module object
-    await user.open('/blank')
+    await user.open('/blank-gear')
     sels = [e for e in user.client.elements.values() if isinstance(e, Select)]
     wsel = next(s for s in sels if s._props.get('label') == 'Weapon')
     wsel._handle_new_value("Homebrew Daiklave")
@@ -42,9 +45,17 @@ async def test_equipment_is_editable_after_the_lock(user: User) -> None:
     # it is the dot track's downward dialog (decision 0013), covered in
     # test_advancement. What this route still usefully proves is that equipment, which
     # is free on BOTH sides of the lock, survived the XP tab's deletion.
-    await user.open('/xp')
-    await user.should_see("Armor")
-    await user.should_see("Weapons")
+    # The three per-kind panels were folded into the inventory rows on 2026-08-13, so
+    # what proves equipment survived the lock is the INVENTORY listing it and the row
+    # carrying an editor.
+    # CHAR_XP owns nothing, so there are no rows to expand — what proves the point is
+    # that the surface is LIVE after the lock: the inventory renders and the shop opens.
+    # (Equipment is free on both sides; it was never XP-priced.)
+    await user.open('/xp-gear')
+    await user.should_see("Inventory")
+    await user.should_see("Nothing owned yet")
+    user.find(marker="buy-button").click()
+    await user.should_see("Buy")
 
 
 @pytest.mark.asyncio

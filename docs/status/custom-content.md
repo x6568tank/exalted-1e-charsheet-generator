@@ -91,3 +91,36 @@ adding one can never make a Charm cheaper.
 Repeatable Charms (`repeatable_cap_ability` + `variants` — the Ox-Body shape) are
 authored through the JSON pane. The form says so. Everything else on `Charm` has a
 control, the splat-specific fields inside a collapsed "Advanced" section.
+
+
+## Gear joined the library — 2026-08-13
+
+**The human's call**, off the observation that the custom affordance "felt like there's
+a better way". There were two problems and only one was about buttons:
+
+1. **Catalogue browsing existed in five places** — the Buy surface plus four per-panel
+   dialogs, one per catalogue. Their only remaining job was the Custom row, so they
+   collapsed to a one-click blank add and Buy became the single browse.
+2. **"Custom" gear meant free text on ONE character.** You invented a homebrew daiklave
+   and it existed on that sheet alone, retyped for the next character, with no way to
+   fix a mistake everywhere. Charms and spells had had the answer since decision 0012;
+   equipment simply never got it.
+
+`custom/weapons.json`, `armor.json`, `gear.json` and `artifacts.json` now load through
+the SAME layer, with the same three contracts: **the book always wins an id collision**,
+**a bad row is reported and dropped rather than fatal**, and **saves carry copies**.
+`rules_db._merge_custom_gear` is the merge; `custom_content.save_gear_row` is the write.
+
+* **"Save to my library"** sits on every gear row (`save-to-library`). No authoring form
+  was needed: you tweak an item on a character and click once.
+* ⚠ **A character's `Weapon` is NOT a `WeaponType`.** It carries `quantity` and
+  `from_artifact` — facts about OWNING a thing, not about its design — so the payload is
+  four small explicit mappings, not a model dump. The binding test loads the library
+  after clicking the real button, because every direct-API test would pass against a
+  button that wrote a malformed row.
+* ⚠ **Library rows are tagged, not flagged.** `WeaponType` and friends are frozen and
+  shared with the book data; a `custom` field on them would put a homebrew concept in
+  the printed models. The Buy dialog reads the tag to mark a row "★ yours".
+* ⚠ **`ArmorType.weight` is required and a character's armour row has none**, so a saved
+  armour defaults to Light and the notify SAYS SO. Nothing in the engine reads armour
+  weight today; the player edits the file if it matters.

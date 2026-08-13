@@ -556,7 +556,7 @@ async def test_damaged_artifact_offers_an_artifact_picker(user) -> None:
     effect never fired. The options must span all three sources — a picker that only
     offered standalone artifacts would leave a damaged daiklave unnameable."""
     from nicegui import ui as _ui
-    await user.open('/artifacts-advantages')
+    await user.open('/artifacts-merits')
     await user.should_see("Damaged Artifact")
     picker = next(e for e in user.client.elements.values()
                   if isinstance(e, _ui.select) and e.props.get("label") == "Artifact")
@@ -613,9 +613,11 @@ async def test_the_picker_survives_owning_no_artifacts(user) -> None:
     await user.open('/artifacts-advantages-none')
     await user.should_see("Damaged Artifact")
     await user.should_see("no artifacts owned")
-    # The siblings are the real assertion: a crash here blanks the whole tab.
+    # The siblings are the real assertion: a crash here blanks the whole tab. The
+    # Artifacts panel is no longer one of them — it moved to the Gear tab on
+    # 2026-08-13 — so the siblings tested are the two that remain on Advantages.
     await user.should_see("Backgrounds")
-    await user.should_see("Artifacts")
+    await user.should_see("Merits & Flaws")
 
 
 @pytest.mark.asyncio
@@ -1106,23 +1108,29 @@ def test_dragon_kings_read_their_OWN_artifact_entry_not_the_dragon_blooded_one(r
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
-async def test_raising_the_artifact_background_moves_the_artifacts_header(user) -> None:
-    """The header states the corebook allowance ("one artifact rated up to 4"), and the
-    rating it reads is edited in the BACKGROUNDS panel — a different panel, which cannot
-    refresh this one without a hook. Found in the browser 2026-08-13: raising Artifact
-    left the header at the old number until the player switched tabs and back.
+async def test_the_background_row_states_what_its_dots_BUY(user) -> None:
+    """The link that survived the split. The Artifacts panel moved to the Gear tab on
+    2026-08-13, so the cross-panel refresh hook that kept its header in step with the
+    Background rating is gone — two tabs render separately and there is nothing to
+    refresh. What replaced it is this note on the Background row itself, driven by the
+    same `_sync` the rung text uses.
 
-    ⚠ The second consumer of a Background rating to go stale here; the Hearthstone
-    denominator was the first, and its test above says the same thing. Every test until
-    these two read the header on a freshly built panel — the one phase a stale closure
-    agrees with.
+    ⚠ The rule is now stated on BOTH surfaces — dots here, budget there — which is
+    deliberate. A rating whose only visible consequence lives on another tab is how the
+    Artifact budget went unnoticed for a whole splat in the first place.
     """
-    await user.open('/artifact-header-sync')
-    await user.should_see("Artifact 4, up to 4")
+    await user.open('/artifact-background-note')
+    await user.should_see("buys 4 dot(s) of artifacts · 1 owned")
     # `.clear()` first — `.type()` appends. See the Manse test above.
     user.find(marker="bg-rating").clear().type("5")
-    await user.should_see("Artifact 5, up to 5")
+    await user.should_see("buys 5 dot(s) of artifacts · 1 owned")
 
+
+# (The Gear side of this — that the budget header is keyed to the Artifact Background —
+# is covered by `test_a_splat_with_no_budget_TABLE_states_the_corebook_rule`, which
+# renders the Gear tab. A second test here read the SAME character after the one above
+# had raised its rating, so it passed or failed on test ORDER: the shared-fixture trap
+# this file has hit before.)
 
 # --- the artifact/gear link (2026-08-13) ------------------------------------ #
 

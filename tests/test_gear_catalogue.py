@@ -82,7 +82,9 @@ def test_the_cash_column_is_reference_text_never_arithmetic(rs):
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_goods_section_and_the_price_list_both_render(user) -> None:
     await user.open('/goods')
-    await user.should_see("Goods")
+    # "Goods" is a filter chip on the inventory now, not a panel of its own — the three
+    # per-kind panels were folded into the inventory rows on 2026-08-13.
+    await user.should_see("Inventory")
     await user.should_see("Prices — services & upkeep")
     await user.should_see("Reference only")
     # A service row is VISIBLE as a price…
@@ -97,8 +99,8 @@ async def test_the_add_goods_dialog_offers_goods_and_NOT_services(user) -> None:
     the data and is not applied by the caller is this build's recurring bug."""
     from nicegui import ui as _ui
     await user.open('/goods')
-    user.find("Add goods").click()
-    await user.should_see("Fine camel/horse")
+    user.find(marker="buy-button").click()
+    await user.should_see("Buy")
     # ⚠ Scoped to the DIALOG's own descendants. `should_not_see` would pass or fail on
     # the services price list rendered on the page BEHIND the dialog — the panel this
     # very feature adds — so the obvious assertion tests the wrong surface.
@@ -114,8 +116,8 @@ async def test_the_add_goods_dialog_offers_goods_and_NOT_services(user) -> None:
 async def test_picking_goods_appends_a_row_carrying_its_price(user) -> None:
     from nicegui import ui as _ui
     await user.open('/goods')
-    user.find("Add goods").click()
-    await user.should_see("Fine camel/horse")
+    user.find(marker="buy-button").click()
+    await user.should_see("Buy")
     rows = [e for e in user.client.elements.values()
             if isinstance(e, _ui.label) and e.text == "Fine camel/horse"
             and e._event_listeners]
@@ -165,11 +167,12 @@ def test_the_everyday_wonders_landed(rs):
 
 def test_created_walkaway_is_transcribed_as_printed(rs):
     """⚠ A printed oddity, not corrected: its three siblings are '… charm' and this row
-    is not, and the word appears nowhere else in the book. The rules authority has not
-    ruled on whether it is a typo — do not silently complete it."""
+    is not, and the word appears nowhere else in the book. CONFIRMED by the rules
+    authority 2026-08-13 — the entry is just "Created walkaway", and whether the book
+    dropped a word is unknowable from the page. Do not complete it."""
     g = rs.gear_catalog["gear.created-walkaway"]
     assert g.name == "Created walkaway"
-    assert "NOT completed" in g.notes
+    assert "Do not complete it" in g.notes
 
 
 def test_the_seven_wonders_carry_a_RESOURCES_price_as_well_as_a_rating(rs):
@@ -184,3 +187,23 @@ def test_the_seven_wonders_carry_a_RESOURCES_price_as_well_as_a_rating(rs):
             art["Hearthstone Amulet"].resources_cost) == (1, 3)
     priced = [a for a in rs.artifact_catalog.values() if a.resources_cost]
     assert len(priced) == 7, "only the seven wonders M&C prices"
+
+
+def test_the_price_lists_scroll_area_keeps_a_definite_height() -> None:
+    """⚠ A layout guard, because no render test can catch this one: the rows were in the
+    DOM and `should_see` passed while the browser showed an empty panel.
+
+    `ui.scroll_area` needs a definite height. `flex-1 min-h-0` supplies one only when the
+    PARENT is a fixed-height flex column — true of the catalogue dialog's `h-[85vh]`
+    card, false of this panel — and combining it with an inline height is worse than
+    either alone: `flex: 1 1 0%` collapses the area to a zero basis and `min-h-0` removes
+    the content floor that would have rescued it.
+    """
+    import inspect
+
+    from exalted_builder.ui import gear as gearmod
+    src = inspect.getsource(gearmod)
+    area = src[src.index("with ui.scroll_area()"):][:200]
+    assert "height:" in area, "the price list's scroll area lost its explicit height"
+    assert "flex-1" not in area, (
+        "flex-1 on a scroll area whose parent has no height collapses it to nothing")

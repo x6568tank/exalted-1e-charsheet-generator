@@ -144,3 +144,75 @@ async def test_a_filter_narrows_the_list(user) -> None:
     user.find("Everything (6)").click()
     await user.should_see("showing Everything (6)")
     assert len(_names()) == 6
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_gear_tab_holds_every_owned_thing_in_one_place(user) -> None:
+    """The point of the 2026-08-13 split: one tab for possessions. Weapons, armour and
+    goods came off the Edit tab and artifacts off Advantages, because an artifact whose
+    STATS lived on one tab and whose BUDGET lived on another is what let a daiklave be
+    entered and charged twice.
+
+    Asserts every panel is present together — a move that dropped one on the floor
+    would otherwise be invisible until someone went looking for it in the browser.
+    """
+    await user.open('/inventory')
+    for panel in ("Inventory", "Weapons", "Armor", "Goods", "Artifacts",
+                  "Prices — services & upkeep"):
+        await user.should_see(panel)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_edit_tab_no_longer_carries_equipment(user) -> None:
+    """The negative control for the move. Without it the panels could have been COPIED
+    rather than moved and every assertion above would still pass — with two surfaces
+    editing one list, which is the bug the split exists to prevent."""
+    await user.open('/blank')
+    await user.should_see("Attributes")           # the Edit tab is intact…
+    await user.should_not_see("Add weapon")       # …and no longer sells gear
+    await user.should_not_see("Add goods")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_each_row_carries_its_OWN_editor(user) -> None:
+    """The three per-kind panels are gone (2026-08-13, the human's call: "the worst part
+    of the three extra panels — the three extra panels"). An inventory that lists
+    everything, beside panels that edit the same objects, is four surfaces for one job —
+    and only the list could show a daiklave as both weapon and artifact.
+
+    Each row now expands to the editor for ITS kind, reached through `row.list_name` /
+    `row.index`, which is what those fields on the view exist for.
+    """
+    from nicegui import ui as _ui
+    await user.open('/inventory')
+    await user.should_see("Inventory")
+    # Weapon stats, armour stats and a goods price all reachable from the one list.
+    labels = {e.text for e in user.client.elements.values() if isinstance(e, _ui.label)}
+    assert any("Soak" in t for t in labels), "no armour editor in the inventory"
+    assert any("Acc" in t for t in labels), "no weapon editor in the inventory"
+    # …and the panels that used to hold them are not also on the page. Probed with the
+    # armour panel's full title: "Goods" and "Weapons" survive as a row TAG and a filter
+    # chip, so a bare word cannot tell a deleted panel from live UI — the negative
+    # control has to name something only the panel said.
+    assert "Armor (sets soak)" not in labels
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_shop_filters_by_type(user) -> None:
+    """The Buy dialog spans four catalogues, which is a wall of names without a type
+    filter — the text box only helps someone who already knows what to type, which is
+    not the person browsing a shop."""
+    from nicegui import ui as _ui
+    await user.open('/inventory')
+    user.find(marker="buy-button").click()
+    await user.should_see("Buy")
+    dialog = next(e for e in user.client.elements.values() if isinstance(e, _ui.dialog))
+    chips = {b.text for b in dialog.descendants() if isinstance(b, _ui.button)}
+    assert any(c.startswith("Everything (") for c in chips), chips
+    assert any(c.startswith("Weapon (") for c in chips), chips
+    assert any(c.startswith("Armour (") for c in chips), chips
+    assert any(c.startswith("Goods (") for c in chips), chips

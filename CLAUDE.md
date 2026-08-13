@@ -221,7 +221,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,267 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,347 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -256,7 +256,8 @@ full record.
 | **Mortals & Heroic Mortals — DONE** (one splat, two origins; casteless, no Charms, Essence pinned at 1; magic via M&F) | `docs/status/mortals.md` |
 | **Merits & Flaws — DONE, browser-verified** (centralized calc per decision 0011; all 100 authored; every A-list mechanism; mortal magic unlock) | `docs/status/merits-flaws.md` |
 | M&F mechanical-effect triage (what was modelled, what was skipped and why) | `docs/status/merits-flaws-triage.md` |
-| **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — the ten Mountain Folk artifacts, GROWN TO 40 the same day across three castebook batches (`artifact.castebook-*`: Dawn/Night/Zenith pp.78-81 + Twilight/Eclipse pp.79-81 — the last on-disk artifacts, none remain unauthored) and the Hooked Daiklaves/Direlance rated gear rows, two blocked core items flagged — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08; **the 20 Twilight/Eclipse names are NOT yet browser-verified**; **the COREBOOK default shipped 2026-08-13** — ruling: a splat whose book alters nothing gets ONE artifact rated no higher than the Background, which had never run because a splat with no `BackgroundRule` read as "no budget" rather than "the default budget", NOT browser-verified) | `docs/status/rated-artifacts.md` |
+| **Rated artifacts — DONE, browser-verified, catalogue SHIPPED 2026-08-08** (individual artifacts as rated objects; the E:Ab p.131 Artifact budget; per-item Damaged Artifact + its armour-soak effect; `data/artifacts.json` — the ten Mountain Folk artifacts, GROWN TO 40 the same day across three castebook batches (`artifact.castebook-*`: Dawn/Night/Zenith pp.78-81 + Twilight/Eclipse pp.79-81 — the last on-disk artifacts, none remain unauthored) and the Hooked Daiklaves/Direlance rated gear rows, two blocked core items flagged — feeding the standalone rows' name combobox, which autofills rating, with a per-row description label; the six dual-nature devices shipped the same day — crossbows/flamecaster carry BOTH `artifact_rating` and `resources_cost`, and the player picks the funding with the Art/Res edit fields, per human's ruling 2026-08-08; **the 20 Twilight/Eclipse names are NOT yet browser-verified**; **the COREBOOK default shipped 2026-08-13** — ruling: a splat whose book alters nothing gets ONE artifact rated no higher than the Background, which had never run because a splat with no `BackgroundRule` read as "no budget" rather than "the default budget"; **amended the same day to ONE ARTIFACT PER BACKGROUND ROW** — two Artifact •• rows are two artifacts, which `background_best` had said since 2026-07-31; browser-verified 2026-08-13) | `docs/status/rated-artifacts.md` |
+| **The Gear tab, inventory & shop — DONE, browser-verified 2026-08-13** (everything OWNED on one top-level tab; the inventory as a filterable VIEW over the four typed lists — filters OVERLAP by design; per-row editors, so the three per-kind panels are gone; one **Buy** surface over every priced catalogue with type chips and custom-by-kind rows; `data/gear.json` — 56 rows off Manacle and Coin pp.123/125, `goods` ownable and `service` a REFERENCE price list per the human's ruling, and NO sell action; Mountain Folk effective Resources; gear joined the `custom/` library) | `docs/status/gear-and-inventory.md` |
 | **Advantages tab — DONE, browser-verified** (Backgrounds + M&F on one both-sides tab; two duplicate panels deleted; per-row Background descriptions) | `docs/status/advantages-tab.md` |
 | **Backgrounds — DONE, browser-verified 2026-08-12** (per-splat `catalogue_backgrounds` off each book's printed list, with `HouseRules.all_backgrounds_available` as the ST override; the printed dot ladder as `BackgroundType.ladder`, 49 of 61, rendered one rung on the row and the whole ladder in the dialog; Artifact and Manse reworked per splat; `charm_noun` so a Ghost reads "Arcanoi"; **the numeric rules enforced and browser-verified 2026-08-12** — Sidereal Connections ≤ the Attribute sum, Sidereal Celestial Manse ≤3 on BOTH sides with a PER-CHARACTER ST toggle, mortals barred from Artifact/Manse with an ST toggle, Mountain Folk Artifact ≤10 at 1 BP/dot above 5, and the two hardcoded 5s in the rating controls replaced by `validate.background_rating_cap`; delegated to DeepSeek off `docs/briefs-background-rules.md`, three review rounds) | `docs/status/backgrounds.md` |
 | **Catalogue picker dialogs — DONE, browser-verified 2026-08-10** (a shared `ui/catalogue.py` dialog on every add surface — weapons/armour/artifacts/backgrounds/M&F; browse name + summary, full description collapsible, a **Custom** row; custom M&F via `MeritFlawPurchase.custom_name`, display-only with no mechanical effect; the old silent cheapest-append `add_merit` deleted) | `docs/status/catalogue-dialogs.md` |
@@ -268,7 +269,7 @@ full record.
 | **Mountain Folk — DONE, browser-verified** (10th splat, 5th non-Exalt, the last; the Enlightenment origin axis, the five-Pattern Charm economy with a new Enchantment type, the Great Geas as Divergence + reference panel, three Darkbrood adversaries) | `docs/status/mountain-folk.md` |
 | **Elder Exalts — DONE, browser-verified** (simplified 2026-08-06: Essence XP-purchasable to the splat cap — 9 flat, Terrestrial-7 held; trait ceilings follow Essence; age chart removed; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 | **Dice pools — DONE 2026-08-12, browser-verified** (decision 0016; `data/dice_pools.json` + `RollDefinition` + a pure `engine/pools.py` + a **left sidebar on the Play tab listing every roll at once**, each with its own one-line arithmetic, plus a custom Attribute + Ability builder in the main column that shares the sidebar's state. An ITEMISED base pool — never a bare number, and the on-screen "does not include" list is the mitigation 0016 accepted for 0008's objection, so do not collapse it. Mobility is a PER-ROLL fact off p.332, not a blanket subtraction; wound penalties apply to EVERY roll including Virtue/Willpower, with p.233's resist-infection the one printed exemption, gated in the engine; **accumulated armour fatigue is now a manual `PlayState.fatigue` counter** (p.332) that subtracts from every pool. ⚠ `Armor.mobility_penalty` is stored NEGATIVE in the data — a new consumer that reads it as a magnitude adds dice) | `docs/status/dice-pools.md` |
-| **Corebook Wonders — DONE 2026-08-12, NOT yet browser-verified** (the ten Hearthstones + sixteen Greater Wonders → `artifacts.json` 196→222; the four arrows as `ammunition` gear rows, FREE per the human's ruling, with `Weapon.quantity` for stacking; the three cosmetic helms; the ten sample Virtue Flaws as a Virtue-filtered dropdown over the free-text field; catalogue row icons; a nocked-arrow REFERENCE control on the Play tab. ⚠ **A Hearthstone's dots are its MANSE rating, not Artifact** — `ArtifactType.background` keeps the stones off both Artifact-spending surfaces, and their picker lives on the Manse Background row. ⚠ Unblocked by cracking `ZTR41D0`, the face that draws the corebook's entry NAMES: the pages were on disk and readable and still unauthorable, because the missing 2.5% was the identifying half) | `docs/status/corebook-wonders.md` |
+| **Corebook Wonders — DONE 2026-08-12, browser-verified 2026-08-13** (the ten Hearthstones + sixteen Greater Wonders → `artifacts.json` 196→222; the four arrows as `ammunition` gear rows, FREE per the human's ruling, with `Weapon.quantity` for stacking; the three cosmetic helms; the ten sample Virtue Flaws as a Virtue-filtered dropdown over the free-text field; catalogue row icons; a nocked-arrow REFERENCE control on the Play tab. ⚠ **A Hearthstone's dots are its MANSE rating, not Artifact** — `ArtifactType.background` keeps the stones off both Artifact-spending surfaces, and their picker lives on the Manse Background row. ⚠ Unblocked by cracking `ZTR41D0`, the face that draws the corebook's entry NAMES: the pages were on disk and readable and still unauthorable, because the missing 2.5% was the identifying half) | `docs/status/corebook-wonders.md` |
 | **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
 **State of the world:** the foundation (models, persistence, engine, UI) is done
@@ -278,9 +279,9 @@ including Mountain Folk (2026-08-07). **The 1.0 catalogue sweep finished 2026-08
 browser-verified. **The corebook Wonders chapter followed on 2026-08-12** — artifacts
 **196 → 222** (the ten Hearthstones + sixteen Greater Wonders), plus the four arrows,
 three helms and the ten sample Virtue Flaws, unblocked by solving the corebook's
-thirteenth font (`docs/status/corebook-wonders.md`); NOT yet browser-verified. Everything still missing — 213 entries — is blocked on page syncs,
+thirteenth font (`docs/status/corebook-wonders.md`), browser-verified 2026-08-13. Everything still missing — 213 entries — is blocked on page syncs,
 not on work. `sources/` extraction is authorised and eight books are decoded into
-`images/_extracted/`.
+`images/_extracted/` — and **`sources/` itself is now on this machine (2026-08-13)**, which unblocks several syncs the catalogue sweep had listed as page-blocked. **A top-level Gear tab shipped 2026-08-13** — everything owned on one surface, with mundane goods and a shop (`docs/status/gear-and-inventory.md`).
 Ship dates for everything else live in the per-splat status docs and the git log.
 
 ### Removed
@@ -349,9 +350,15 @@ durable operating guide; do not re-accumulate handoff narrative here.
 `images/_extracted/` — three of them were ciphered, the corebook with thirteen fonts
 each carrying its own cipher (`tools/glyph_maps/`, `tools/solve_cid_bands.py`).
 
-**What remains is 213 entries and every one is page-blocked** — 112 artifacts, 61
-spells, ~31 Charms. Highest combined yield per sync: Book of Three Circles (63), Savage
-Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
+**What remains is 213 entries** — 112 artifacts, 61 spells, ~31 Charms. Highest combined
+yield per sync: Book of Three Circles (63), Savage Seas (18), The Lunars (17), Time of
+Tumult (14), Abyssals pp.254-261 (16).
+
+⚠ **"Page-blocked" is STALE as a blanket claim: `sources/` landed on this machine
+2026-08-13.** Abyssals pp.254-261 extracts cleanly right now (16 entries). The Lunars is
+present but a PURE SCAN, so its 17 still need the VLM leg. Book of Three Circles, Savage
+Seas and Time of Tumult are genuinely absent. Check `sources/` before recording anything
+here as blocked.
 
 ⚠ **Two rules that came out of it and generalise beyond it:**
 - **"Missing from the build" is not "should be authored."** The gap diff cannot see a
@@ -363,13 +370,16 @@ Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
 
 ### Blocked / not started
 * **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
-  left unauthored (deliberate, human's call 2026-07-29). **Blocked on pages:** the
-  Forest Witch summary (p.133) gives Mist as an aspect with NO Aspect Abilities whose
-  power is "one numen effect per point of Essence"; a numen must buy Cult • or Cult ••,
-  replaces one Charm with Dematerialize, and reduces Temperance by one dot if it has a
-  blight or affliction (p.132). The numen effect list is on **p.118**, which is not in
-  `images/Dragonblooded/`, and the text also points at *Games of Divinity* p.127 and
-  *Exalted: The Lunars* p.98 for Cult. Author nothing until those land.
+  left unauthored (deliberate, human's call 2026-07-29). The Forest Witch summary
+  (p.133) gives Mist as an aspect with NO Aspect Abilities whose power is "one numen
+  effect per point of Essence"; a numen must buy Cult • or Cult ••, replaces one Charm
+  with Dematerialize, and reduces Temperance by one dot if it has a blight or affliction
+  (p.132). ⚠ **No longer page-blocked as recorded — RE-CHECK BEFORE PLANNING.**
+  `sources/` landed on 2026-08-13 and **Outcaste p.118 is readable**; it carries the
+  Cult •/•• effects. Whether it also carries the numen effect LIST is unconfirmed, and
+  *Games of Divinity* — which this entry cites for it — does not contain the word
+  "numina" on any page. Read the pages before authoring, and do not trust this
+  paragraph's cross-references.
 
 ### Recently shipped — traps to remember
 The full record lives in `docs/status/`. These are the cross-cutting lessons that

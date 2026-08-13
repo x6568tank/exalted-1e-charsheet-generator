@@ -51,6 +51,22 @@ ID_PREFIX = "custom."
 CHARMS_FILE = "charms/custom-charms.json"
 SPELLS_FILE = "spells.json"
 
+# The gear library (2026-08-13). Same shapes as the shipped `data/` files, so a row
+# copied out of one is a valid row here — and the same non-fatal treatment: a typo in
+# homebrew must never brick the builder.
+#
+# Gear got this late because "custom" for equipment used to mean free text on ONE
+# character: you invented a homebrew daiklave, and it existed on that sheet alone, to be
+# retyped for the next character with no way to fix a mistake everywhere. Charms and
+# spells have had the library since decision 0012; this is the same answer for the same
+# problem.
+GEAR_FILES = {
+    "weapons": "weapons.json",
+    "armor": "armor.json",
+    "gear": "gear.json",
+    "artifacts": "artifacts.json",
+}
+
 
 class CustomContentError(Exception):
     """A custom row could not be saved: it is structurally invalid, or its id is
@@ -211,6 +227,47 @@ def save_spell(payload: dict, *, custom_dir: str | Path | None = None,
     _, index = _locate([path], spell.id)
     _upsert(path, spell.model_dump(mode="json", exclude={"custom"}), index)
     return spell
+
+
+def library_gear(kind: str, custom_dir: str | Path | None = None) -> list[dict]:
+    """The user's own rows for one gear kind — "weapons", "armor", "gear", "artifacts".
+
+    Raw dicts, like `library_charms`: rules_db validates them against the same models
+    the book data uses, and reports rather than raises on a bad row.
+    """
+    return _read_rows(_dir(custom_dir) / GEAR_FILES[kind])
+
+
+def save_gear_row(kind: str, payload: dict, *,
+                  custom_dir: str | Path | None = None,
+                  reserved_ids: Optional[set[str]] = None) -> dict:
+    """Put one gear row into the library, creating or replacing by id.
+
+    Takes a plain dict rather than a model because the four kinds have four different
+    models and this module deliberately holds no game logic — the caller has already
+    built a row of the right shape from the character's own item, and rules_db is what
+    validates it on the next load.
+
+    ⚠ The id is REQUIRED and must carry `ID_PREFIX`. A library row that reused a
+    printed id would shadow the book, and the book must always win a collision
+    (`_load_custom_layer`); making the prefix a preconditon means the collision cannot
+    be constructed rather than being caught later.
+    """
+    if kind not in GEAR_FILES:
+        raise CustomContentError(f"unknown gear kind {kind!r}")
+    row_id = str(payload.get("id") or "")
+    if not row_id.startswith(ID_PREFIX):
+        raise CustomContentError(
+            f"a library id must start with {ID_PREFIX!r}; got {row_id!r}")
+    if reserved_ids and row_id in reserved_ids:
+        raise CustomContentError(f"{row_id!r} is already used by the rulebook")
+    if not str(payload.get("name") or "").strip():
+        raise CustomContentError("give it a name first")
+    root = _dir(custom_dir)
+    path = root / GEAR_FILES[kind]
+    _, index = _locate([path], row_id)
+    _upsert(path, payload, index)
+    return payload
 
 
 def _delete(files: Iterable[Path], row_id: str) -> bool:
