@@ -48,6 +48,31 @@ class Specialty(BaseModel):
     rating: int = Field(ge=1, le=3)        # cap of three per ability enforced in engine
 
 
+class HearthstoneEntry(BaseModel):
+    """One Hearthstone held on a Manse Background row.
+
+    A stone is a rated object out of `data/artifacts.json` like any other, but it is
+    NOT bought with Artifact dots — its level is the level of the Manse that grew it
+    (core p.338), which is why `ArtifactType.background` keeps it off both
+    Artifact-spending surfaces and why it lands here rather than in
+    `Character.artifacts`.
+
+    ⚠ It is stored STRUCTURALLY, with its rating, rather than as text. The first cut
+    (2026-08-12) appended the stone's name to the row's `note` and kept no rating, so
+    the S&S p.67 total could not be checked at all; and `note` is bound to a text input
+    that rewrites it on every keystroke, so parsing the names back out would have been
+    the catalogue-dialog discriminator bug again — state that switches a rule on, sitting
+    on a field the player can edit to switch it off.
+
+    `rating` copies the catalogue entry's rather than referencing it (decision 0007:
+    ids for invariant content, inline copies for variable). A Hearthstone is variable —
+    S&S p.67 says in as many words that every Manse is unique and the printed stones are
+    examples — so a stone renamed by the table must not keep claiming the printed one's
+    level."""
+    name: str
+    rating: int = Field(default=1, ge=0, le=5)
+
+
 class BackgroundEntry(BaseModel):
     name: str                              # open-ended: "Artifact", "Manse", "Resources"...
     # The universal trait cap was 5 until the Mountain Folk Artifact lift (2026-08-12):
@@ -59,6 +84,19 @@ class BackgroundEntry(BaseModel):
     # cannot, by design (it has no RuleSet).
     rating: int = Field(ge=0, le=10)
     note: str = ""                         # the specific descriptor
+    # Hearthstones held on THIS row. Per-row rather than per-character because the S&S
+    # p.67 cap is per-Manse: a character with two Manse rows has two separate
+    # allowances, and a character-level list could not say which stone came from which.
+    # Empty on every Background that is not a Manse — see
+    # `BackgroundType.hearthstone_tiers` / `hearthstone_per_dot`, which decide whether
+    # a row grows stones at all.
+    hearthstones: list[HearthstoneEntry] = Field(default_factory=list)
+    # This row is a DEMESNE rather than a Manse. Every Manse Background doubles as the
+    # Demesne Background one rung up ("Level 3 Manse or level 4 Demesne"), and the two
+    # differ for exactly one purpose in this build: a Demesne grows no Hearthstones
+    # (human's ruling 2026-08-12 — S&S p.66's Demesne stones are accidental, one level
+    # weaker and decay on removal, and are not worth modelling). Nothing else reads it.
+    is_demesne: bool = False
 
 
 class ArtifactEntry(BaseModel):
@@ -359,6 +397,12 @@ class Weapon(BaseModel):
     # applied by engine.derive only when the wielder's Exalt type matches.
     material: str = ""
     notes: str = ""
+    # How many the character carries. 1 for everything you wield — you own a daiklave,
+    # not four of them — and the reason the field exists is AMMUNITION, which players
+    # hold in quantity (human, 2026-08-12). It is a count, never a multiplier: nothing
+    # in the engine reads it, because nothing derives an attack (decision 0008) and a
+    # stack of twenty arrows is still one Strength + 2 shot.
+    quantity: int = Field(default=1, ge=1)
 
 
 class Armor(BaseModel):

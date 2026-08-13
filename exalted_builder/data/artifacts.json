@@ -2100,5 +2100,311 @@
       "armor",
       "protection"
     ]
+  },
+  {
+    "id": "artifact.core.windhands-gemstone",
+    "name": "Windhands Gemstone",
+    "rating": 3,
+    "rating_notes": "Manse ••• (bought with the Manse Background, not Artifact)",
+    "description": "Perfectly clear, so clear that it becomes invisible if submerged in clear water. The bearer's reflexes are enhanced, letting him knock aside or dodge arrows and thrown attacks with casual ease: whenever he is subject to a ranged attack he may make a reflexive roll to dodge or parry it (his option) at his full Dexterity + (Dodge or his highest combat Ability, whichever he chooses).",
+    "source": "Exalted Core p.338",
+    "tags": [
+      "hearthstone",
+      "air"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.gem-of-sapphire-and-emerald",
+    "name": "Gem of Sapphire and Emerald",
+    "rating": 5,
+    "rating_notes": "Manse ••••• (bought with the Manse Background, not Artifact)",
+    "description": "A gem with no constant colour — depending on the angle it appears pale or brilliant, cloudy or translucent, green or blue. The bearer is treated as if constantly under the effects of the spell Sapphire Countermagic: Terrestrial Circle spells cast at her are snuffed out instantly and Celestial Circle spells that target her are torn asunder. It protects the bearer only — she cannot disrupt spells that do not include her in their effects, nor tear apart already-extant magic.",
+    "source": "Exalted Core p.339",
+    "tags": [
+      "hearthstone",
+      "air"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.salt-gem-of-the-spirits-eye",
+    "name": "Salt-Gem of the Spirit's Eye",
+    "rating": 2,
+    "rating_notes": "Manse •• (bought with the Manse Background, not Artifact)",
+    "description": "White and porous, like salt or chalk, but like all Hearthstones almost impossible to mar without enchanted tools. The bearer is very difficult for unmanifested spirits to perceive: a spirit not actively looking for him will overlook him, and one that is looking suffers +1 difficulty on Perception + Awareness rolls to spot him (if he is using Stealth). An unmanifested spirit attacking him does so at a -2 dice penalty. No effect on spirits that have donned physical form.",
+    "source": "Exalted Core p.339",
+    "tags": [
+      "hearthstone",
+      "earth"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.gem-of-adamant-skin",
+    "name": "Gem of Adamant Skin",
+    "rating": 4,
+    "rating_notes": "Manse •••• (bought with the Manse Background, not Artifact)",
+    "description": "A glittering, flawless black ovoid. The bearer cannot be cut or have her bones broken: lethal damage done to her is automatically converted to bashing before soak is applied. No effect on aggravated damage.",
+    "source": "Exalted Core p.339",
+    "tags": [
+      "hearthstone",
+      "earth"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.gem-of-the-calm-heart",
+    "name": "Gem of the Calm Heart",
+    "rating": 1,
+    "rating_notes": "Manse • (bought with the Manse Background, not Artifact)",
+    "description": "Teardrop shaped and the bright, glittering red of heart's blood. It banks the fires of the bearer's heart, letting him act out of reason rather than anger: he may spend Willpower to suppress a Valor check without adding to his Limit. No effect on Limit Break conditions.",
+    "source": "Exalted Core p.339",
+    "tags": [
+      "hearthstone",
+      "fire"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.jewel-of-hungry-fire",
+    "name": "Jewel of Hungry Fire",
+    "rating": 2,
+    "rating_notes": "Manse •• (bought with the Manse Background, not Artifact)",
+    "description": "Bright orange-red around the edges, deepening to a glowing brick red at the centre like the coals of a banked fire. The Hearthstone draws heat and flame into itself: add 6 to the bearer's soak when applying damage from fire attacks.",
+    "source": "Exalted Core p.339",
+    "tags": [
+      "hearthstone",
+      "fire"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.the-freedom-stone",
+    "name": "The Freedom Stone",
+    "rating": 3,
+    "rating_notes": "Manse ••• (bought with the Manse Background, not Artifact)",
+    "description": "Murky blue-black and full of shifting colours, like lake water rich with algae. The bearer can never be physically restrained: shackles fall from her wrists, the knots of lassos and nooses come undone when drawn tight, and all grapple, clinch, hold and throw manoeuvres against her automatically fail. She cannot be RESTRAINED — she can still be confined, as the stone does nothing against locked doors and barred gates.",
+    "source": "Exalted Core p.339",
+    "tags": [
+      "hearthstone",
+      "water"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.seacalm-gemstone",
+    "name": "Seacalm Gemstone",
+    "rating": 4,
+    "rating_notes": "Manse •••• (bought with the Manse Background, not Artifact)",
+    "description": "A fist-sized drop of brilliant azure seawater caught in perfect stasis. The bearer has incredible luck at sea: no matter how severe the weather or how poor the handling, her ship will never founder and emerges totally unscathed. This protects only against weather — not shoals, pirates or anything of the sort. More powerful than it sounds: she can ride before a gale under full sail with no fear of ripped cloth or snapped masts.",
+    "source": "Exalted Core p.339",
+    "tags": [
+      "hearthstone",
+      "water"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.stone-of-healing",
+    "name": "Stone of Healing",
+    "rating": 1,
+    "rating_notes": "Manse • (bought with the Manse Background, not Artifact)",
+    "description": "A healthy earth-brown mottled with spots of green, round enough to have come from the bottom of any streambed were the colours not so vibrant. It enhances the medical talents and knowledge of whoever bears it, making an unskilled character a skilled surgeon and a gifted doctor a brilliant healer: add three dice to all the bearer's Medicine rolls.",
+    "source": "Exalted Core pp.339-340",
+    "tags": [
+      "hearthstone",
+      "wood"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.gem-of-incomparable-wellness",
+    "name": "Gem of Incomparable Wellness",
+    "rating": 5,
+    "rating_notes": "Manse ••••• (bought with the Manse Background, not Artifact)",
+    "description": "A brilliant emerald stone of unearthly appearance, constantly changing shape as it grows outward from its ever-shrinking centre. The bearer cannot die: he regenerates one health level per turn even if rendered into ash (aggravated damage takes up to a minute per level), never sickens and never ages, and cannot drown, suffocate, starve or dehydrate. He can be destroyed only if the Hearthstone is broken, if the Manse is damaged enough that the stone goes inactive, or if the item the stone is set in is separated from him long enough for the committed Essence to dissipate (about a day).",
+    "source": "Exalted Core p.340",
+    "tags": [
+      "hearthstone",
+      "wood"
+    ],
+    "background": "manse"
+  },
+  {
+    "id": "artifact.core.daiklave",
+    "name": "Daiklave",
+    "rating": 2,
+    "description": "The traditional weapon of the Exalted: an elaborately decorated double-edged blade over four feet long and six or more inches wide, forged from steel alloyed with one of the Five Magical Materials and far too large for a mortal to wield. In an Exalt's hands the material resonates with her anima, making the blade light and wieldy. Each is unique, named, and treated as an honoured companion. Most have a setting for a single Hearthstone. Commit 5 motes to attune, which takes at least 20 minutes of handling and lapses if the wielder does not make daily skin contact; unattuned it is a 20-pound burden. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core pp.340-342",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.core.grand-daiklave",
+    "name": "Grand Daiklave",
+    "rating": 3,
+    "description": "The battleblade or foecutter — a two-handed weapon with a blade six feet long and over a foot wide, wieldable at all only through the lightening effects of Essence, and even then only by the physically strongest of the Exalted. Never popular even in the First Age, but there have always been those willing to sacrifice defence and speed for the ultimate in killing power. Most bear settings for three Hearthstones and require the commitment of 8 motes rather than the usual 5. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core pp.341-342",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.core.reaver-daiklave",
+    "name": "Reaver Daiklave",
+    "rating": 2,
+    "description": "A cleaver-like single-edged blade four feet long and in some cases a foot wide, with a square or angled tip — slow and clumsy compared to a normal daiklave, but brutally powerful and capable of shearing through even the heaviest armour. Like normal daiklaves it typically has a setting for a single Hearthstone and requires 5 committed motes. Most popular in the First Age among the Dragon-Blooded and the Lunar Exalted, and favoured among them still. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core pp.341-342",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.core.dire-lance",
+    "name": "Dire Lance",
+    "rating": 2,
+    "description": "The daiklave-grade spear. Like every weapon of this family it is much larger and swifter than its mortal equivalent, requires 5 committed motes to attune, and is almost always forged with a setting for a Hearthstone. Its statblock prints two lines — wielded as a spear, and couched as a lance. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core pp.341-342",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.core.goremaul",
+    "name": "Goremaul",
+    "rating": 1,
+    "description": "The daiklave-grade hammer or mace, much larger and swifter than its mortal equivalent. Requires the commitment of 5 motes of Essence, and is almost always forged with a setting for a Hearthstone. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core pp.341-342",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.core.grimcleaver",
+    "name": "Grimcleaver",
+    "rating": 2,
+    "description": "The daiklave-grade axe, much larger and swifter than its mortal equivalent. Requires the commitment of 5 motes of Essence, and is almost always forged with a setting for a Hearthstone. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core pp.341-342",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.core.serpent-sting-staff",
+    "name": "Serpent-Sting Staff",
+    "rating": 2,
+    "description": "The daiklave-grade seven-section staff, much larger and swifter than its mortal equivalent. Requires the commitment of 5 motes of Essence, and is almost always forged with a setting for a Hearthstone. Its minimums are Dexterity and Martial Arts rather than Strength. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core pp.341-342",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.core.smashfist",
+    "name": "Smashfist",
+    "rating": 1,
+    "description": "The daiklave-grade cestus, much larger and swifter than its mortal equivalent. Requires the commitment of 5 motes of Essence, and is almost always forged with a setting for a Hearthstone. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core pp.341-342",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.core.short-powerbow",
+    "name": "Short Powerbow",
+    "rating": 2,
+    "description": "A baroque bow laminated from horn, rare woods and the Five Magical Materials — what a daiklave is to a sword. It must be invested with Essence to function at all (4 committed motes for a short powerbow), and has a setting for a single Hearthstone. Unlike a normal bow it has no maximum Strength: it yields to the weak and stiffens for the mighty, and ADDS to the user's Strength for damage. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core p.343",
+    "tags": [
+      "weapon",
+      "archery"
+    ]
+  },
+  {
+    "id": "artifact.core.long-powerbow",
+    "name": "Long Powerbow",
+    "rating": 3,
+    "description": "The greater of the two powerbows, laminated from horn, rare woods and the Five Magical Materials, with a setting for a single Hearthstone. It requires the commitment of 7 motes of Essence to bend at all. Like all powerbows it has no maximum Strength and ADDS to the user's Strength for damage. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core p.343",
+    "tags": [
+      "weapon",
+      "archery"
+    ]
+  },
+  {
+    "id": "artifact.core.lightning-torment-hatchets",
+    "name": "Lightning Torment Hatchets",
+    "rating": 5,
+    "description": "Teak-handled throwing axes forged from moonsilver and white jade — the assassin's friend, and no more than an oversized throwing axe outside an Exalt's hands. They come in PAIRS and both must be activated for either to work (3 motes each, 6 total). They return to the wielder's hands after being thrown, whirling back at the end of the turn unless blocked or more than 100 yards away, in which case they can be recalled through Elsewhere as a reflexive action for one mote — and can be recalled until the invested Essence fades about a day after last being touched, which makes them easy to smuggle. A target struck is wrapped in crackling blue sparks until the end of the scene, subtracting 1 from all her dice pools; hits stack to a maximum of -3, but EACH hatchet inflicts the penalty separately. Also a weapon — see the equipment catalogue.",
+    "source": "Exalted Core pp.344-345",
+    "tags": [
+      "weapon",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.core.breastplate-artifact",
+    "name": "Breastplate (Artifact)",
+    "rating": 1,
+    "description": "Mundane breastplate reforged from steel alloyed with one of the Five Magical Materials: more protective than its mundane counterpart, and lighter and more flexible through the commitment of Essence (2 motes). Soak 6L/4B, mobility -0, fatigue 0. Unmistakably magical — it glitters with the colour of the material used to forge it. Also armour — see the equipment catalogue.",
+    "source": "Exalted Core pp.345-346",
+    "tags": [
+      "armor",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.core.reinforced-buff-jacket-artifact",
+    "name": "Reinforced Buff Jacket (Artifact)",
+    "rating": 2,
+    "description": "A buff jacket reinforced with one of the Five Magical Materials. Soak 7L/10B, mobility -1, fatigue 0, commitment 3 motes. Also armour — see the equipment catalogue.",
+    "source": "Exalted Core pp.345-346",
+    "tags": [
+      "armor",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.core.reinforced-breastplate-artifact",
+    "name": "Reinforced Breastplate (Artifact)",
+    "rating": 3,
+    "description": "A reinforced breastplate forged from steel alloyed with one of the Five Magical Materials. Soak 10L/9B, mobility -1, fatigue 1, commitment 4 motes. Also armour — see the equipment catalogue.",
+    "source": "Exalted Core pp.345-346",
+    "tags": [
+      "armor",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.core.articulated-plate-artifact",
+    "name": "Articulated Plate (Artifact)",
+    "rating": 4,
+    "description": "Articulated plate forged from steel alloyed with one of the Five Magical Materials, with fins or long flat spikes protruding from the back and shoulders to prevent uncomfortable Essence buildup between the plates and the wearer's skin. Soak 12/14, mobility -2, fatigue 1, commitment 6 motes. Also armour — see the equipment catalogue.",
+    "source": "Exalted Core pp.345-346",
+    "tags": [
+      "armor",
+      "protection"
+    ]
+  },
+  {
+    "id": "artifact.core.superheavy-plate-artifact",
+    "name": "Superheavy Plate (Artifact)",
+    "rating": 5,
+    "description": "The heaviest of the magical armours, forged from steel alloyed with one of the Five Magical Materials and finned to vent Essence buildup. Soak 15/15, mobility -2, fatigue 2, commitment 8 motes. Also armour — see the equipment catalogue.",
+    "source": "Exalted Core pp.345-346",
+    "tags": [
+      "armor",
+      "protection"
+    ]
   }
 ]

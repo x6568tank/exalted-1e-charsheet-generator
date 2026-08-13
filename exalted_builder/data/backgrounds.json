@@ -296,7 +296,8 @@
     ],
     "excluded_exalt_types": [
       "Ghost"
-    ]
+    ],
+    "hearthstone_per_dot": 1
   },
   {
     "id": "background.mentor",
@@ -440,7 +441,35 @@
       "The character has access to and is attuned to some of the Deathlord's most powerful mansions in the Underworld. She has a level 4 Hearthstone and several of level 1 or level 2 and possibly even one of level 3 (no more than eight levels, total, including the large stone).",
       "The character has been taken into the bosom of her master's powers and been allowed to enter and attune herself to the Deathlord's most powerful Underworld Manses. She has even been entrusted with the Hearthstone of one of these temples of the infinite void. She has a level 5 Hearthstone and several others of levels 1-3 (no more than 10 levels, total, including the large stone)."
     ],
-    "exalt_type": "Abyssal"
+    "exalt_type": "Abyssal",
+    "hearthstone_tiers": [
+      {
+        "rating": 1,
+        "combined_max": 2,
+        "individual_max": 2,
+        "max_items": 1
+      },
+      {
+        "rating": 2,
+        "combined_max": 3,
+        "individual_max": 2
+      },
+      {
+        "rating": 3,
+        "combined_max": 6,
+        "individual_max": 3
+      },
+      {
+        "rating": 4,
+        "combined_max": 8,
+        "individual_max": 4
+      },
+      {
+        "rating": 5,
+        "combined_max": 10,
+        "individual_max": 5
+      }
+    ]
   },
   {
     "id": "background.vats",
@@ -510,7 +539,8 @@
       "A small palace with grounds or a spacious mansion. Produces a level 3 Hearthstone.",
       "A towering pagoda, an impressive palace or a hunting lodge with a hundred acres of land well-stocked with godly deer. Produces a level 4 Hearthstone.",
       "A singular property, either famed for some previous inhabitant or for some element of its vast and overwrought grandeur. Produces a level 5 Hearthstone."
-    ]
+    ],
+    "hearthstone_per_dot": 1
   },
   {
     "id": "background.salary",
@@ -569,7 +599,8 @@
       "A small palace with grounds or a spacious mansion. Produces a level 3 Hearthstone.",
       "A towering pagoda, an impressive palace or a hunting lodge with a hundred acres of land well-stocked with godly deer. Produces a level 4 Hearthstone.",
       "A singular property, either famed for some previous inhabitant or for some element of its vast and overwrought grandeur. Produces a level 5 Hearthstone."
-    ]
+    ],
+    "hearthstone_per_dot": 1
   },
   {
     "id": "background.connections-sidereal",
@@ -709,6 +740,34 @@
       "The character is allowed to enter and has been attuned to some fairly powerful Manses. She has a level 3 Hearthstone and several level 1 and 2 stones (no more than six levels, total, including the large stone).",
       "The character is allowed to enter and has been attuned to some very powerful Manses, probably among the best her house possesses. She has a level 4 Hearthstone and several of level 1 or 2 and possibly even one of level 3 (no more than eight levels, total, including the large stone).",
       "The character is allowed to enter and attune herself to the Realm's most powerful Manses, and has even been entrusted with the Hearthstone of one of these cathedrals of the Exalted. She has a level 5 Hearthstone and several others of level 1-3 (no more than ten levels, total, including the large stone)."
+    ],
+    "hearthstone_tiers": [
+      {
+        "rating": 1,
+        "combined_max": 2,
+        "individual_max": 2,
+        "max_items": 1
+      },
+      {
+        "rating": 2,
+        "combined_max": 3,
+        "individual_max": 2
+      },
+      {
+        "rating": 3,
+        "combined_max": 6,
+        "individual_max": 3
+      },
+      {
+        "rating": 4,
+        "combined_max": 8,
+        "individual_max": 4
+      },
+      {
+        "rating": 5,
+        "combined_max": 10,
+        "individual_max": 5
+      }
     ]
   },
   {
@@ -785,7 +844,8 @@
     "name": "Manse",
     "exalt_type": "Mountain-Folk",
     "description": "The Earth holds many places of power hidden too deep for those on Creation to tap. The cities and warrens of the Mountain Folk are invariably situated on such geomantic wellsprings and built around the core of a central Manse. Unsurprisingly, most of the Demesnes and Manses owned by the Jadeborn have an Earth Aspect, although other elements find expression in volcanic vents, flooded caverns and passages walled in deep-burrowing roots. The Mountain Folk control few Manses of Air, fewer still of Celestial Aspect and none tainted by Abyssal energies. Each dot in this Background provides two dots worth of Manses or three dots of Demesnes to which the character is attuned. These dots may be arranged however desired. Unenlightened characters are not assumed to carry the Hearthstones of any Manses to which they are attuned, unless these stones are temporarily on loan for a specific task. However, any task that requires a Hearthstone will be generally fall to one of the Enlightened, making the issue a moot point except in the most extraordinary circumstances.",
-    "ladder_from": "background.manse"
+    "ladder_from": "background.manse",
+    "hearthstone_per_dot": 2
   },
   {
     "id": "background.mentor-mountainfolk",

@@ -1156,6 +1156,52 @@ class ArtifactType(BaseModel):
     description: str = ""                   # short, human-vetted from the source page
     source: str = ""                        # e.g. "MF p.279"
     tags: list[str] = Field(default_factory=list)   # kind: tool/communication/weapon/...
+    # WHICH Background pays for this entry, and therefore which budget its rating is
+    # denominated in. Everything in the catalogue was Artifact until the corebook
+    # Hearthstones (pp.338-340) were authored, and a Hearthstone's dots are its MANSE
+    # rating — the stone comes with the Manse that grew it, not with Artifact dots.
+    # Without this field the ten stones would be indistinguishable from artifacts in
+    # `data/artifacts.json` and picking one would append an `ArtifactEntry` that
+    # charges the p.131 Artifact budget for something the Artifact Background never
+    # bought. `engine.artifacts.purchasable_with_artifact` is the read site; the
+    # artifact row's combobox and its catalogue dialog are both filtered through it.
+    background: str = "artifact"            # "artifact" | "manse"
+
+
+class BackgroundBudgetTier(BaseModel):
+    """One row of a Background that BUYS A BUDGET rather than rating a trait directly
+    (`BackgroundRule.budget_tiers`, `BackgroundType.hearthstone_tiers`).
+
+    The Abyssal Artifact Background (E:Ab p.131) is the first of these and the reason
+    the shape exists: its dots do not describe how good your artifact is, they buy a
+    pool of combined artifact rating plus a ceiling on any single item —
+
+        •     Trinkets            combined ≤ 3
+        ••    Sound Gear          combined ≤ 5,  none individually above 3
+        •••   Well-Equipped       combined ≤ 7,  none individually above 4
+        ••••  Supremely Appointed combined ≤ 10, no individual ceiling
+        ••••• Divine Regalia      combined ≤ 13, no individual ceiling
+
+    `individual_max` is 0 for "no ceiling" — the two top rows print no limit "other
+    than it cannot be N/A", and an N/A artifact has no rating to record in the first
+    place (see character.ArtifactEntry). The one-dot row prints no individual cap
+    either, because a combined maximum of 3 already is one.
+
+    The per-item ceilings are ST-overridable in the text ("without Storyteller
+    permission"); they are reported as ordinary chargen issues, which is how every
+    other soft printed limit in this build behaves."""
+    model_config = ConfigDict(frozen=True)
+
+    rating: int = Field(ge=0, le=5)        # dots of the owning Background
+    name: str = ""                         # the printed label ("Well-Equipped")
+    combined_max: int = Field(default=0, ge=0)
+    individual_max: int = Field(default=0, ge=0)   # 0 = no per-item ceiling
+    # How many ITEMS the row permits, where the page states a count rather than
+    # leaving it implied by the two maxima. 0 = uncounted, which is every Artifact row
+    # and every Hearthstone row but one: the Dragon-Blooded and Abyssal Manse ladders
+    # both print "She may have ONE Hearthstone of level 1 or 2" at a single dot, and
+    # the maxima alone would permit two level-1 stones instead.
+    max_items: int = Field(default=0, ge=0)
 
 
 class BackgroundType(BaseModel):
@@ -1237,6 +1283,44 @@ class BackgroundType(BaseModel):
     # would silently hand Alchemical Artifact the Solar Artifact ladder — a splat whose
     # Artifact Background is heavily reworked. An opt-in cannot do that by accident.
     ladder_from: str = ""
+
+    # ---- Hearthstones (Savant and Sorcerer pp.66-67) ---------------------- #
+    # What this Background's dots let the character actually HOLD in Hearthstones.
+    # Set on the six Manse variants and nothing else; a Background that leaves both
+    # fields at their defaults grows no stones and gets no picker, which is how the
+    # UI decides — `engine.artifacts.grows_hearthstones` is the ONE read site, so the
+    # old "is the name 'manse'?" substring test is gone. That test could not have
+    # expressed these numbers anyway: they differ per splat.
+    #
+    # The governing rule is S&S p.67: "The sum of the levels of all the Hearthstones
+    # produced can never exceed the level of the Manse." A Manse may be designed to
+    # produce several stones instead of one (p.66, "Multiple Hearthstones by Design"),
+    # so the cap is on the TOTAL, never on the count — except where a page prints a
+    # count, which is `BackgroundBudgetTier.max_items`.
+    #
+    # Two shapes, because the books print two:
+    #
+    #   `hearthstone_per_dot` — a linear Background, where N dots carry N × per_dot
+    #     levels of stone. The core Manse ladder is "Level N Manse" and the Sidereal
+    #     and Dragon-King Celestial Manse ladders are "Produces a level N Hearthstone",
+    #     so both are 1. The Mountain Folk Manse prints no ladder at all, only prose:
+    #     "Each dot in this Background provides two dots worth of Manses" (CH6), so 2.
+    #     A single stone may be the whole allowance, so the individual ceiling is the
+    #     combined one.
+    #
+    #   `hearthstone_tiers` — an irregular printed table, which is what the
+    #     Dragon-Blooded and Abyssal Underworld ladders are: their rungs name a
+    #     combined level total AND the largest single stone, and the totals (2/3/6/8/10)
+    #     are not a multiple of anything. Tiers WIN where both are set.
+    #
+    # ⚠ DEMESNES ARE NOT MODELLED HERE, deliberately (human's ruling 2026-08-12). Every
+    # Manse ladder doubles as the Demesne ladder at one rung higher, and S&S p.66 gives
+    # Demesne stones their own rule (always one level BELOW the Demesne, and they decay
+    # once removed). Rather than model that, `BackgroundEntry.is_demesne` marks the row
+    # as a Demesne and it simply grows no stones — the book calls them accidental and
+    # rapidly useless, and the toggle is the whole of the support they get.
+    hearthstone_tiers: tuple[BackgroundBudgetTier, ...] = ()
+    hearthstone_per_dot: int = Field(default=0, ge=0)
 
     @field_validator("ladder")
     @classmethod
@@ -1488,6 +1572,33 @@ class NatureType(BaseModel):
     id: str
     name: str
     description: str = ""
+
+
+class VirtueFlawType(BaseModel):
+    """One of the book's SAMPLE Virtue Flaws — the Great Curse's named perversions of
+    a Virtue (core pp.131-133).
+
+    A catalogue, never a constraint. The book is explicit that these "aren\u2019t the only
+    Flaws that an Exalted might develop" and that players should "feel free to work
+    together to develop their own", so `Character.virtue_flaw.description` stays free
+    text and this list only populates the dropdown beside it — the same contract Nature
+    has. `virtue` is which Virtue the Flaw springs from, which is what filters the
+    dropdown: a Flaw must belong to a Virtue the character rates 3 or more (p.131), and
+    offering a Compassion Flaw to someone who flawed their Valor would be offering an
+    illegal pick.
+
+    `limit_break` is the printed Limit Break Condition, kept as its own field rather
+    than glued onto the description: it is the half that gets consulted at the table.
+    """
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    name: str
+    virtue: VirtueName
+    description: str = ""
+    limit_break: str = ""                   # the printed Limit Break Condition
+    source: str = ""
+    notes: str = ""                         # transcription oddities, printed as-is
 
 
 class PoolKind(str, Enum):
@@ -1851,34 +1962,11 @@ class ExperienceCosts(BaseModel):
     calling_charm_discount: int = 0
 
 
-class BackgroundBudgetTier(BaseModel):
-    """One row of a Background that BUYS A BUDGET rather than rating a trait directly
-    (`BackgroundRule.budget_tiers`).
-
-    The Abyssal Artifact Background (E:Ab p.131) is the first of these and the reason
-    the shape exists: its dots do not describe how good your artifact is, they buy a
-    pool of combined artifact rating plus a ceiling on any single item —
-
-        •     Trinkets            combined ≤ 3
-        ••    Sound Gear          combined ≤ 5,  none individually above 3
-        •••   Well-Equipped       combined ≤ 7,  none individually above 4
-        ••••  Supremely Appointed combined ≤ 10, no individual ceiling
-        ••••• Divine Regalia      combined ≤ 13, no individual ceiling
-
-    `individual_max` is 0 for "no ceiling" — the two top rows print no limit "other
-    than it cannot be N/A", and an N/A artifact has no rating to record in the first
-    place (see character.ArtifactEntry). The one-dot row prints no individual cap
-    either, because a combined maximum of 3 already is one.
-
-    The per-item ceilings are ST-overridable in the text ("without Storyteller
-    permission"); they are reported as ordinary chargen issues, which is how every
-    other soft printed limit in this build behaves."""
-    model_config = ConfigDict(frozen=True)
-
-    rating: int = Field(ge=0, le=5)        # dots of the owning Background
-    name: str = ""                         # the printed label ("Well-Equipped")
-    combined_max: int = Field(default=0, ge=0)
-    individual_max: int = Field(default=0, ge=0)   # 0 = no per-item ceiling
+class _BackgroundBudgetTierMoved:
+    """`BackgroundBudgetTier` moved ABOVE `BackgroundType` (2026-08-12) so the
+    Hearthstone tiers could reuse it — a pydantic model cannot annotate a field with a
+    class defined later in the module. Nothing else changed. This marker exists only so
+    a `grep` landing on the old location finds the new one."""
 
 
 class BackgroundRule(BaseModel):
@@ -2608,6 +2696,9 @@ class RuleSet(BaseModel):
     artifact_catalog: dict[str, ArtifactType] = Field(default_factory=dict)
     background_catalog: dict[str, BackgroundType] = Field(default_factory=dict)
     nature_catalog: dict[str, NatureType] = Field(default_factory=dict)
+    # The sample Virtue Flaws (core pp.131-133), keyed by id. Empty for a ruleset
+    # without the file — the flaw stays free text, which is what it was before.
+    virtue_flaw_catalog: dict[str, VirtueFlawType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
     colleges: dict[str, College] = Field(default_factory=dict)   # Astrological Colleges (Sidereal)
     # Named base dice pools (decision 0016), keyed by RollDefinition.id. Cross-splat
@@ -2651,12 +2742,24 @@ class RuleSet(BaseModel):
     # split it so a caller never has to know the tag string, and so "the armour
     # list" and "the shield list" are one source of truth with two views.
     def body_armor(self) -> list[ArmorType]:
-        """Armour proper — everything in the catalogue that is not a shield."""
-        return [a for a in self.armor_catalog.values() if "shield" not in a.tags]
+        """Armour proper — everything in the catalogue that is neither a shield nor a
+        helm. Both of those are armour ROWS (a character's armour is a list, so worn
+        gear needs no second slot), and both are excluded here for the same reason: an
+        adversary's "what armour is this NPC wearing" list wants suits, not accessories."""
+        return [a for a in self.armor_catalog.values()
+                if "shield" not in a.tags and "helm" not in a.tags]
 
     def shields(self) -> list[ArmorType]:
         """The shields. p.335 describes three; all are mundane."""
         return [a for a in self.armor_catalog.values() if "shield" in a.tags]
+
+    def helms(self) -> list[ArmorType]:
+        """The helms (core pp.334-335). Three are printed and the book states outright
+        that "all helms are considered mechanically identical" — they are a substitute
+        for a striking hair style, carrying no soak, no mobility penalty and no fatigue.
+        They are in the catalogue so a character can record what she is wearing, not
+        because they do anything."""
+        return [a for a in self.armor_catalog.values() if "helm" in a.tags]
 
     def exalt_for(self, exalt_type: str) -> ExaltDefinition:
         """The ExaltDefinition for `exalt_type`, falling back to Solar if the type

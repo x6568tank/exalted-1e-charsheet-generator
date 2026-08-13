@@ -142,7 +142,8 @@ def new_pool_state(ruleset: RuleSet) -> dict:
     makes them want the pools. Returns {} when no roll catalogue shipped."""
     if not ruleset.roll_catalog:
         return {}
-    return {"weapon": None, "mobility": True, "wound": True, "fatigue": True,
+    return {"weapon": None, "arrow": None,
+            "mobility": True, "wound": True, "fatigue": True,
             # The custom Attribute + Ability pool. Defaults chosen so the block
             # shows a real number the moment it renders rather than an empty frame.
             "custom_attribute": AttributeName.DEXTERITY.value,
@@ -247,18 +248,38 @@ def dice_pool_sidebar(ruleset: RuleSet, character: Character,
     def panel() -> None:
         sv = viewmod.build_pool_sidebar(
             ruleset, character, weapon_index=state["weapon"],
+            arrow_index=state["arrow"],
             include_mobility=state["mobility"], include_wound=state["wound"],
             include_fatigue=state["fatigue"])
+
+        # ⚠ A stale selection is a build-time crash, not a cosmetic problem — see
+        # view.clamp_pool_selection, which owns the rule and carries the reasoning.
+        viewmod.clamp_pool_selection(state, sv)
 
         # ---- controls ---------------------------------------------------- #
         if sv.weapons:
             # Labelled "Attack with" rather than "Weapon": a plain "Weapon" select
             # already exists on the equipment surface, and two identically labelled
             # selects are indistinguishable to the test harness.
-            ui.select({i: n for i, n in enumerate(sv.weapons)}, value=state["weapon"],
+            ui.select(dict(sv.weapons), value=state["weapon"],
                       label="Attack with", clearable=True,
                       on_change=lambda e: _set("weapon", e.value)
                       ).classes("w-full").props("dense outlined")
+        if sv.arrows:
+            # Only for a weapon that fires them, and deliberately a SEPARATE control
+            # from "Attack with": the bow is what you roll, the arrow is what lands.
+            ui.select(dict(sv.arrows), value=state["arrow"], label="Nocked arrow",
+                      clearable=True, on_change=lambda e: _set("arrow", e.value)
+                      ).classes("w-full").props("dense outlined")
+        if sv.arrow_note:
+            # Reference text, sitting with the controls rather than inside a pool row,
+            # so it cannot read as a term in the arithmetic. An arrow contributes no
+            # dice — core p.330 gives arrows a base damage and a soak clause and no
+            # accuracy — and this build derives no damage at all (decision 0008).
+            ui.label(sv.arrow_note).classes("text-xs opacity-70"
+                                            ).props('data-testid="arrow-note"')
+            ui.label("Damage only — an arrow adds no dice to the attack pool."
+                     ).classes("text-xs italic opacity-60")
         else:
             ui.label("No weapon owned — the attack rows are unarmed.").classes(
                 "text-xs text-gray-600")

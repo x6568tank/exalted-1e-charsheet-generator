@@ -298,15 +298,25 @@ def test_weapon_and_armor_catalogs_load():
     # + 2 from the 2026-08-08 backlog batch: the Hooked Daiklaves of Dual Prowess
     # (Night p.81) and the Direlance (core p.342 table; its p.341 description page
     # is not on disk — see the notes field).
-    assert len(rs.weapon_catalog) == 98
+    # + 4 ARROWS (core p.330), tagged "ammunition": in 1e the arrow IS the bow's
+    # damage ("broadhead arrows do the firing character's Strength + 2"), which is why
+    # every bow row in this catalogue carries none. They have no printed Resources cost
+    # and are free unless a specific type states otherwise (human, 2026-08-12).
+    assert len(rs.weapon_catalog) == 102
     # 17 corebook + the artifact Chain Shirt (Dawn p.81), Cloak of Vanishing
     # Escape (Night p.81) and the Most Terrifying Armor of the Air Dragon (Air p.81),
     # + the three p.335 SHIELDS, which are armour rows tagged "shield" rather than a
     # model of their own (see ArmorType), + the Myrmidon Carapace (Mountain Folk
     # p.283). rs.body_armor() / rs.shields() split them.
-    assert len(rs.armor_catalog) == 24
+    # + the three p.334-335 HELMS, which are armour rows tagged "helm" and carry no
+    # stats at all — the book says all helms are mechanically identical and largely
+    # cosmetic. rs.body_armor() excludes both accessories.
+    assert len(rs.armor_catalog) == 27
     assert len(rs.body_armor()) == 21
     assert len(rs.shields()) == 3
+    assert len(rs.helms()) == 3
+    assert all(h.soak_lethal == 0 and h.soak_bashing == 0 and h.fatigue == 0
+               and h.mobility_penalty == 0 for h in rs.helms())
 
 
 def test_artifact_catalog_loads_the_ten_mountain_folk():
@@ -317,7 +327,10 @@ def test_artifact_catalog_loads_the_ten_mountain_folk():
     # 2026-08-11 (batch 2): +15 from Exalted Core (8), Savant and Sorcerer (5) and
     # Book of Bone and Ebony p.114 (2) — 8 worklist rows skipped/dup — see
     # docs/status/artifact-batch-2-notes.md.
-    assert len(rs.artifact_catalog) == 196
+    # 2026-08-12: +26 from the corebook Wonders chapter, unblocked when the display
+    # face that draws its entry NAMES was decoded (tools/glyph_maps/exalted-core.json)
+    # — the ten Hearthstones (pp.338-340) and sixteen Greater Wonders (pp.340-346).
+    assert len(rs.artifact_catalog) == 222
     # Ratings and the printed ranges, from the Technology chapter (pp.279-283).
     visor = rs.artifact_catalog["artifact.mountain-folk.essence-scrying-visor"]
     assert visor.rating == 1 and visor.source == "Mountain Folk p.279"
@@ -634,3 +647,96 @@ def test_virtue_flaw_is_splat_gated():
     assert derive.has_virtue_flaw(rs, sid) is False
     assert derive.limit_label(rs, sid) == "Paradox"
     assert derive.has_virtue_flaw(rs, Character(id="c.sol", exalt_type="Solar", caste="dawn")) is True
+
+
+def test_the_corebook_wonders_are_in_the_catalogue():
+    """core pp.336-346. The chapter was blocked for three years of build time not
+    because the pages were missing but because the display face that draws every entry
+    NAME extracted as U+FFFD — the eight entries authored before this were the ones a
+    page image had been read for. Ratings for the gear-statblocked rows are the ones
+    already in weapons.json/armor.json, so the two must not drift."""
+    rs = rules_db.load_ruleset(DATA_DIR)
+    cat = rs.artifact_catalog
+    for aid, rating in (("artifact.core.daiklave", 2),
+                        ("artifact.core.grand-daiklave", 3),
+                        ("artifact.core.reaver-daiklave", 2),
+                        ("artifact.core.short-powerbow", 2),
+                        ("artifact.core.long-powerbow", 3),
+                        ("artifact.core.lightning-torment-hatchets", 5),
+                        ("artifact.core.superheavy-plate-artifact", 5)):
+        assert cat[aid].rating == rating, aid
+    # The catalogue rating and the gear row's `artifact_rating` are two copies of one
+    # printed number (p.342/p.346). A player can add a daiklave from either surface.
+    by_name = {w.name: w for w in rs.weapon_catalog.values()}
+    for name, aid in (("Daiklave", "artifact.core.daiklave"),
+                      ("Grand Daiklave", "artifact.core.grand-daiklave"),
+                      ("Reaver Daiklave", "artifact.core.reaver-daiklave"),
+                      ("Dire Lance", "artifact.core.dire-lance"),
+                      ("Goremaul", "artifact.core.goremaul"),
+                      ("Grimcleaver", "artifact.core.grimcleaver"),
+                      ("Serpent-Sting Staff", "artifact.core.serpent-sting-staff"),
+                      ("Smashfist", "artifact.core.smashfist"),
+                      ("Short Powerbow", "artifact.core.short-powerbow"),
+                      ("Long Powerbow", "artifact.core.long-powerbow")):
+        assert by_name[name].artifact_rating == cat[aid].rating, name
+    armour = {a.name: a for a in rs.armor_catalog.values()}
+    for name in ("Breastplate (Artifact)", "Reinforced Buff Jacket (Artifact)",
+                 "Reinforced Breastplate (Artifact)", "Articulated Plate (Artifact)",
+                 "Superheavy Plate (Artifact)"):
+        aid = "artifact.core." + name.lower().replace(" (artifact)", "-artifact"
+                                                      ).replace(" ", "-")
+        assert armour[name].artifact_rating == cat[aid].rating, name
+
+
+def test_the_ten_corebook_hearthstones_are_rated_by_manse_not_artifact():
+    """core pp.338-340 print ten stones, two per element, and each one's dots are the
+    rating of the MANSE that grew it. They live in the artifact catalogue because they
+    are rated objects, but `background` keeps them out of the Artifact budget — see
+    `engine.artifacts.purchasable_with_artifact`."""
+    from exalted_builder.engine import artifacts as artifacts_engine
+    rs = rules_db.load_ruleset(DATA_DIR)
+    stones = artifacts_engine.hearthstones(rs.artifact_catalog)
+    assert {s.name for s in stones} == {
+        "Windhands Gemstone", "Gem of Sapphire and Emerald",
+        "Salt-Gem of the Spirit's Eye", "Gem of Adamant Skin",
+        "Gem of the Calm Heart", "Jewel of Hungry Fire",
+        "The Freedom Stone", "Seacalm Gemstone",
+        "Stone of Healing", "Gem of Incomparable Wellness"}
+    assert {s.rating for s in stones} == {1, 2, 3, 4, 5}
+    # Two per element, and the element is the tag that says which.
+    elements = [t for s in stones for t in s.tags if t != "hearthstone"]
+    assert sorted(elements) == sorted(["air"] * 2 + ["earth"] * 2 + ["fire"] * 2
+                                      + ["water"] * 2 + ["wood"] * 2)
+    # Nothing else in the catalogue moved off the Artifact Background.
+    artifact_bought = artifacts_engine.purchasable_with_artifact(rs.artifact_catalog)
+    assert len(artifact_bought) + len(stones) == len(rs.artifact_catalog)
+    assert all(a.background == "artifact" for a in artifact_bought)
+
+
+def test_the_sample_virtue_flaws_load_keyed_to_their_virtue():
+    """core pp.131-133. Ten sample Flaws, each springing from one Virtue — which is
+    what the editor's dropdown filters on, since a Flaw must belong to a Virtue the
+    character rates 3 or more (p.131) and the flawed Virtue is already chosen above it.
+    A catalogue, never a constraint: the page says outright that these are not the only
+    Flaws an Exalt might develop, so the description field stays free text."""
+    rs = rules_db.load_ruleset(DATA_DIR)
+    cat = rs.virtue_flaw_catalog
+    assert len(cat) == 10
+    by_virtue = {}
+    for flaw in cat.values():
+        by_virtue.setdefault(flaw.virtue.value, []).append(flaw.name)
+    assert sorted(by_virtue["compassion"]) == ["Compassionate Martyrdom",
+                                               "Heart of Tears",
+                                               "Red Rage of Compassion"]
+    assert sorted(by_virtue["conviction"]) == ["Deliberate Cruelty", "Heart of Flint"]
+    assert sorted(by_virtue["temperance"]) == ["Ascetic Drive",
+                                               "Contempt of the Virtuous",
+                                               "Overindulgence"]
+    assert sorted(by_virtue["valor"]) == ["Berserk Anger", "Foolhardy Contempt"]
+    # Every one carries its printed Limit Break Condition — the half consulted at the
+    # table, and the reason it is its own field rather than glued to the description.
+    assert all(f.description and f.limit_break for f in cat.values())
+    # Deliberate Cruelty prints a Conviction Flaw whose duration keys off TEMPERANCE.
+    # Transcribed as printed, flagged in `notes`, NOT silently corrected.
+    cruelty = cat["virtue-flaw.deliberate-cruelty"]
+    assert "Temperance" in cruelty.description and cruelty.notes

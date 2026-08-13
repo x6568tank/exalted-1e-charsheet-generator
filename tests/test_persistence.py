@@ -171,3 +171,18 @@ def test_save_uses_suggested_filename_in_a_directory(tmp_path):
     persistence.save_character(c, target)
     assert target.name == "harmonious-jade.character.json"
     assert persistence.load_character(target).name == "Harmonious Jade"
+
+
+def test_ammunition_quantity_survives_a_save_and_load(tmp_path):
+    """`Weapon.quantity` is written by the editor and read by nothing in the engine —
+    the shape that has silently lost data in this build before (a stat the adversary
+    editor wrote and the save dropped). Pin the round trip, since no derivation would
+    ever notice the field going missing."""
+    from exalted_builder.models.character import Weapon
+    c = Character(id="char.ammo", name="Fletcher", caste="dawn")
+    c.weapons = [Weapon(name="Long Bow", accuracy=1, rate=3, range=200),
+                 Weapon(name="Broadhead Arrow", damage=2, quantity=24)]
+    path = tmp_path / "ammo.json"
+    persistence.save_character(c, path)
+    back = persistence.load_character(path)
+    assert [w.quantity for w in back.weapons] == [1, 24]

@@ -305,5 +305,44 @@
       "artifact"
     ],
     "notes": "Articulated jade-and-alloy armour for 5 motes of attunement. The masked helmet integrates an Essence-scrying visor (night vision constant, no Essence infusions), an echo jewel and a mask-of-pure-breath filtration and voice system; the suit adds +1 to Strength for damage, lifting and feats. Weight class is not printed on the page — assigned Medium by comparison with the other Medium artifact armors (the Reinforced Buff Jacket Artifact sits at mobility penalty -1). (Mountain Folk p.283)"
+  },
+  {
+    "id": "helm.pot_helm",
+    "name": "Pot Helm",
+    "weight": "Light",
+    "soak_lethal": 0,
+    "soak_bashing": 0,
+    "mobility_penalty": 0,
+    "fatigue": 0,
+    "tags": [
+      "helm"
+    ],
+    "notes": "A rounded bowl that fits over the wearer's head, typically longer in the back than the front to protect the ears, usually with a nosepiece and a neck guard of chain or armoured leather, and often a spire cast into the crown to make a stunning blow atop it difficult to land. MECHANICALLY IDENTICAL to every other helm — helms are largely cosmetic, a substitute for a striking hair style. Optional gritty-game rule: a Storyteller may let opponents make called shots at a BARE-HEADED character's unarmoured pate by subtracting one success from the attack roll, an exception to the rule that called shots cannot cause extra damage. Exalted pp.334-335."
+  },
+  {
+    "id": "helm.masked_helm",
+    "name": "Masked Helm",
+    "weight": "Light",
+    "soak_lethal": 0,
+    "soak_bashing": 0,
+    "mobility_penalty": 0,
+    "fatigue": 0,
+    "tags": [
+      "helm"
+    ],
+    "notes": "The standard helm for completing heavy armour: a thicker pot helm, usually without a spire, to which an armoured face plate can be affixed. The plate has holes for the eyes and mouth and is usually decorated with a ferocious beast — draconic images in the Realm, and in the Threshold the faces of dangerous beings such as Fair Folk warrior races, war spirits and predators like wolves and tigers. MECHANICALLY IDENTICAL to every other helm (see Pot Helm). Exalted pp.334-335."
+  },
+  {
+    "id": "helm.slotted_helmet",
+    "name": "Slotted Helmet",
+    "weight": "Light",
+    "soak_lethal": 0,
+    "soak_bashing": 0,
+    "mobility_penalty": 0,
+    "fatigue": 0,
+    "tags": [
+      "helm"
+    ],
+    "notes": "One of the simplest and most durable helms: a cylinder rounded at one end and open at the other, the bottom typically fluted to let the wearer move her head, with a T-shaped slot in front to see, breathe and speak clearly. Usually cast as a single piece, which makes it very strong; often used to complete a suit of heavy armour where the craftsmanship is not up to forging a masked helm. MECHANICALLY IDENTICAL to every other helm (see Pot Helm). Exalted pp.334-335."
   }
 ]

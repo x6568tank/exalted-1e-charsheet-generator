@@ -1585,5 +1585,65 @@
       "melee",
       "artifact"
     ]
+  },
+  {
+    "id": "weapon.archery.broadhead_arrow",
+    "name": "Broadhead Arrow",
+    "damage": 2,
+    "damage_type": "L",
+    "tags": [
+      "archery",
+      "ammunition"
+    ],
+    "notes": "Broad triangle- or leaf-shaped head, wide to increase tissue damage but still tapered to penetrate armour. Base damage is the firing character's Strength + 2. Arrows have no printed Resources cost — they are free unless a specific type states otherwise (human, rules authority, 2026-08-12).",
+    "source": {
+      "book": "Exalted",
+      "page": 330
+    }
+  },
+  {
+    "id": "weapon.archery.fowling_arrow",
+    "name": "Fowling Arrow",
+    "damage": 2,
+    "damage_type": "B",
+    "tags": [
+      "archery",
+      "ammunition"
+    ],
+    "notes": "No point — a round wooden bulb at the tip. Normally used to hunt birds, which a normal arrow would ruin, but also used to stun targets without killing them. Base damage is the firing character's Strength + 2, and that damage is BASHING. Arrows have no printed Resources cost — they are free unless a specific type states otherwise (human, rules authority, 2026-08-12).",
+    "source": {
+      "book": "Exalted",
+      "page": 330
+    }
+  },
+  {
+    "id": "weapon.archery.frog_crotch_arrow",
+    "name": "Frog Crotch Arrow",
+    "damage": 4,
+    "damage_type": "L",
+    "tags": [
+      "archery",
+      "ammunition"
+    ],
+    "notes": "Y-shaped head with the arms facing forward, sharpened on the inside. Does hideous damage to tissue but performs terribly against armour: base damage is the firing character's Strength + 4, but the LETHAL SOAK OF THE TARGET'S ARMOUR IS DOUBLED before the damage is applied. Arrows have no printed Resources cost — they are free unless a specific type states otherwise (human, rules authority, 2026-08-12).",
+    "source": {
+      "book": "Exalted",
+      "page": 330
+    }
+  },
+  {
+    "id": "weapon.archery.target_arrow",
+    "name": "Target Arrow",
+    "damage": 0,
+    "damage_type": "L",
+    "tags": [
+      "archery",
+      "ammunition"
+    ],
+    "notes": "No blades on the head — simply a hardened steel tip. Base damage is the firing character's Strength, but the LETHAL SOAK OF THE TARGET'S ARMOUR COUNTS AS HALF its true value when the damage is applied. Arrows have no printed Resources cost — they are free unless a specific type states otherwise (human, rules authority, 2026-08-12).",
+    "source": {
+      "book": "Exalted",
+      "page": 330
+    }
   }
 ]

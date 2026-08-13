@@ -28,6 +28,7 @@ Expected layout:
       armor.json             array of ArmorType       (optional)
       weapons.json           array of WeaponType      (optional)
       natures.json           array of NatureType      (optional)
+      virtue_flaws.json      array of VirtueFlawType  (optional)
       costs_bonus.json       BonusPointCosts object   (optional -> defaults)
       costs_xp.json          ExperienceCosts object   (optional -> defaults)
       chargen_budgets.json   ChargenBudgets object    (optional -> defaults)
@@ -68,6 +69,7 @@ from .models.rules import (
     Path as DragonKingPath,
     SOLAR_EXALT,
     NatureType,
+    VirtueFlawType,
     RuleSet,
     Spell,
     StScreen,
@@ -589,6 +591,8 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     backgrounds = _index(_load_array(data_dir / "backgrounds.json", BackgroundType, problems),
                          "id", "background", problems)
     _resolve_borrowed_ladders(backgrounds, problems)
+    virtue_flaws = _index(_load_array(data_dir / "virtue_flaws.json", VirtueFlawType,
+                                      problems), "id", "virtue flaw", problems)
     natures = _index(_load_array(data_dir / "natures.json", NatureType, problems),
                      "id", "nature", problems)
     materials = _index(_load_array(data_dir / "materials.json", MagicalMaterial, problems),
@@ -663,6 +667,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         artifact_catalog=artifacts,
         background_catalog=backgrounds,
         nature_catalog=natures,
+        virtue_flaw_catalog=virtue_flaws,
         material_catalog=materials,
         colleges=colleges,
         roll_catalog=rolls,

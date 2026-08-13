@@ -478,9 +478,14 @@ def test_the_three_printed_shields_are_authored(ruleset):
 
 def test_shields_do_not_appear_in_the_body_armour_list(ruleset):
     """The two views must not overlap, or a GM picking "armour" is offered a
-    buckler and the character sheet lists a shield as a suit."""
+    buckler and the character sheet lists a shield as a suit. Helms (core pp.334-335)
+    joined the catalogue as the third accessory kind and are excluded for the same
+    reason — the three views partition the catalogue between them."""
     assert not ({a.id for a in ruleset.body_armor()} & {s.id for s in ruleset.shields()})
-    assert len(ruleset.body_armor()) + len(ruleset.shields()) == len(ruleset.armor_catalog)
+    assert not ({a.id for a in ruleset.body_armor()} & {h.id for h in ruleset.helms()})
+    assert not ({h.id for h in ruleset.helms()} & {s.id for s in ruleset.shields()})
+    assert (len(ruleset.body_armor()) + len(ruleset.shields()) + len(ruleset.helms())
+            == len(ruleset.armor_catalog))
 
 
 def test_a_character_can_hold_a_shield_in_its_armour_list(ruleset):

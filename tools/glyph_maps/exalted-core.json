@@ -34,6 +34,15 @@
       "upper": 125,
       "punct": 119,
       "share": "1.6%"
+    },
+    "ZTR41D0.tmp,Bold": {
+      "space": 2,
+      "lower": 130,
+      "upper": [[123, 65, 80], [124, 82, 90]],
+      "punct": [[118, 44, 58], [117, 40, 42]],
+      "share": "2.5%",
+      "note": "The entry-name / table-header display face — it draws the NAMES on the Wonders pages, which is why the artifact catalogue could not be authored past the eight entries that came off page images. Solved 2026-08-12 by crib, not by the band solver: the solver anchors on the commonest 3-letter word being 'the', and this face sets names and column headers where it is not. The cribs are the five magical-material run-in heads on core p.338 (Orichalcum:/Moonsilver:/Jade:/Starmetal:/Soulsteel:), which pin all 26 lowercase letters, nine capitals and the colon between them.",
+      "why_split_bands": "This face is the reason `upper` and `punct` may be a LIST of [k, lo_ord, hi_ord] bands rather than one constant. A subset drops unused glyphs and every id after the gap shifts, so a face with a mid-alphabet gap needs two constants. Here 'Q' is not in the subset: A-P solve at 123 and R-Z at 124, proved by 'Poleaxe' (p.328) and 'Resources' (the weapon-table header) — decoding both with one constant turns one of them into 'Qoleaxe' or 'Sesources'. The punctuation splits the same way: ',' '-' '.' '/' 0-9 ':' at 118, and '(' ')' '*' at 117."
     }
   },
   "singles": {
@@ -43,12 +52,18 @@
       "fonts": [
         "ZTR41CA.tmp,Bold"
       ]
+    },
+    "7": {
+      "to": "•",
+      "why": "the RATING DOT in the display face — this is the glyph that carries 'Manse •••' after a Hearthstone name and the dot rating after an artifact name, so it is the one single-glyph mapping the catalogue work actually depends on. Read off the ten Hearthstones on core pp.338-340, whose ratings are stated again in their own body text.",
+      "fonts": [
+        "ZTR41D0.tmp,Bold"
+      ]
     }
   },
   "unresolved": {
-    "ZTR41D0.tmp,Bold": {
-      "share": "2.5%",
-      "note": "UNSOLVED — its commonest 3-letter word is not 'the', so it is probably a small-caps or display face with a different glyph set. Left as U+FFFD, never guessed."
+    "ZTR41D0.tmp,Bold cids 4, 5, 6": {
+      "note": "Three glyphs of the otherwise-solved display face. 4 and 5 are a quote pair with ONE occurrence each in the whole book (p.13's 'over the top' pull-quote) and 6 is a separator ornament (77 uses: 'Familiar ? ', 'Step 1 ? Apply Bonuses:') that could be a bullet, an em dash or a diamond. Their band is not constrained by any crib, so they stay U+FFFD rather than get a plausible guess — none of them carries a game value."
     },
     "ZTR41E6/DC/C8 and five tinier faces": {
       "share": "0.3%",

@@ -2290,6 +2290,79 @@ def background_rating_cap(budgets, character, name, *, post_lock=False) -> int:
     return merits.DOT_MAX
 
 
+def check_hearthstones(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """The Hearthstone allowance on every Manse Background row (Savant and Sorcerer
+    pp.66-67).
+
+    The governing sentence is p.67: "The sum of the levels of all the Hearthstones
+    produced can never exceed the level of the Manse." A Manse may be built to yield
+    several stones rather than one (p.66), so the rule caps the TOTAL and not the count,
+    and the Dragon-Blooded and Abyssal ladders add a ceiling on the largest single stone
+    on top of that.
+
+    PER ROW, not per character: two Manse rows are two Manses with two separate
+    allowances, and summing them would let a Manse • and a Manse ••••• between them
+    carry a level-5 stone on the wrong one.
+
+    Runs on BOTH sides of the lock, following `check_artifacts` for the same reason it
+    does — the allowance is keyed to a Background the story can raise or take away, so
+    a chargen-only check would fall silent exactly when the cap started moving. That is
+    also the human's ruling for this rule specifically (2026-08-12).
+
+    The allowance comes from the BackgroundType, resolved through
+    `background_catalogue_for` so a splat sees its OWN Manse variant — the six variants
+    print six different allowances, and matching on the bare name would hand a
+    Dragon-Blooded the corebook's linear one. A row whose name matches no catalogue
+    entry (Backgrounds are free text) grows no stones, which is reported rather than
+    ignored: it is the only way a stone can end up stranded on a row that cannot hold
+    it, by renaming the row or flipping it to a Demesne after the fact.
+    """
+    by_name = {bg.name.strip().lower(): bg
+               for bg in background_catalogue_for(ruleset, character)}
+    issues: list[Issue] = []
+    for bg in character.backgrounds:
+        if not bg.hearthstones:
+            continue
+        held = artifacts.hearthstone_total(bg)
+        where = bg.name or "Background"
+        bg_type = by_name.get(bg.name.strip().lower())
+        allowance = (None if bg.is_demesne
+                     else artifacts.hearthstone_allowance(bg_type, bg.rating))
+        if allowance is None:
+            issues.append(Issue(
+                code="hearthstone-without-manse",
+                message=(f"{where} holds {len(bg.hearthstones)} Hearthstone(s) but "
+                         f"produces none"
+                         + (" — the row is marked as a Demesne" if bg.is_demesne
+                            else "")),
+                where=where))
+            continue
+        label = (f"{where} {bg.rating} ({allowance.tier_name})"
+                 if allowance.tier_name else f"{where} {bg.rating}")
+        if held > allowance.combined_max:
+            issues.append(Issue(
+                code="hearthstone-over-combined",
+                message=(f"{label} allows {allowance.combined_max} level(s) of "
+                         f"Hearthstone; {held} held"),
+                where=where))
+        if allowance.individual_max:
+            for stone in bg.hearthstones:
+                if stone.rating > allowance.individual_max:
+                    issues.append(Issue(
+                        code="hearthstone-over-individual",
+                        message=(f"{label} allows no Hearthstone above level "
+                                 f"{allowance.individual_max}; {stone.name} is level "
+                                 f"{stone.rating}"),
+                        where=where))
+        if allowance.max_items and len(bg.hearthstones) > allowance.max_items:
+            issues.append(Issue(
+                code="hearthstone-over-count",
+                message=(f"{label} allows {allowance.max_items} Hearthstone(s); "
+                         f"{len(bg.hearthstones)} held"),
+                where=where))
+    return issues
+
+
 def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
     """The p.131 Artifact BUDGET: combined rating and per-item ceiling, keyed by the
     character's Artifact Background rating (E:Ab p.131).
@@ -5514,6 +5587,7 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_specialties(ruleset, character)
     issues += check_fetters_and_passions(ruleset, character)
     issues += check_artifacts(ruleset, character)
+    issues += check_hearthstones(ruleset, character)
     # The Background rules that bind on BOTH sides of the lock — `bind_post_lock` in
     # the data, exactly the Sidereal Celestial Manse ≤3 and Mountain Folk Artifact ≤10
     # (2026-08-12 rulings). Chargen-only caps stay in `validate_chargen`; Backgrounds

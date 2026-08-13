@@ -675,3 +675,36 @@ def test_every_attribute_ability_pair_computes():
         for ability in AbilityName:
             bd = pools.base_pool(_RS, c, pools.custom_roll(attribute, ability))
             assert bd.total == sum(ln.value for ln in bd.lines)
+
+
+# --------------------------------------------------------------------------- #
+# The Play tab's stored selection vs a weapon list that changed under it
+# --------------------------------------------------------------------------- #
+
+def test_a_stale_weapon_or_arrow_choice_is_cleared_not_remapped():
+    """The Play tab's `state` outlives the weapon list it indexes — the player deletes
+    a weapon on the equipment surface and the sidebar rebuilds with the old choice. A
+    `ui.select` whose value is not among its options raises at BUILD time and blanks
+    the whole tab, siblings included (adding-a-splat trap #3).
+
+    Cleared, never remapped: deleting a row renumbers everything after it, so the index
+    that survives names a DIFFERENT weapon than the one the player chose."""
+    from exalted_builder.ui import view as viewmod
+
+    sidebar = viewmod.PoolSidebarView(weapons=[(0, "Long Bow")], groups=[], excludes=[],
+                                      arrows=[(1, "Broadhead Arrow")])
+    state = {"weapon": 0, "arrow": 1}
+    viewmod.clamp_pool_selection(state, sidebar)
+    assert state == {"weapon": 0, "arrow": 1}          # both still name a row
+
+    # The Fowling Arrow at index 1 is deleted: the Broadhead renumbers 2 -> 1, and the
+    # stored 2 names nothing.
+    state = {"weapon": 0, "arrow": 2}
+    viewmod.clamp_pool_selection(state, sidebar)
+    assert state == {"weapon": 0, "arrow": None}
+
+    # ...and with no rows at all, both clear rather than pointing at a gap.
+    empty = viewmod.PoolSidebarView(weapons=[], groups=[], excludes=[])
+    state = {"weapon": 0, "arrow": 1}
+    viewmod.clamp_pool_selection(state, empty)
+    assert state == {"weapon": None, "arrow": None}

@@ -39,7 +39,8 @@ from .. import persistence, rules_db
 from ..engine import (advancement, artifacts as artifactsmod, costs as costsmod,
                       derive as derivemod, merits as meritsmod, validate)
 from ..models.character import (ArtifactEntry, BackgroundEntry, Character,
-                                FetterEntry, MeritFlawPurchase, PassionEntry)
+                                FetterEntry, HearthstoneEntry, MeritFlawPurchase,
+                                PassionEntry)
 from ..models.rules import RuleSet, VirtueName
 from . import catalogue as cataloguemod
 from . import theme
@@ -156,6 +157,137 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         del character.backgrounds[idx]
         refresh_all()
 
+    # The splat-filtered catalogue, keyed by lowercased name — the row's link back to
+    # its printed rules. Built once per panel build rather than per row.
+    _bg_types = {b.name.strip().lower(): b
+                 for b in validate.background_catalogue_for(rs, character)}
+    # A printed Hearthstone's level, so picking one records the rating the rule
+    # measures rather than leaving the player to re-enter it.
+    _stone_ratings = {s.name: s.rating
+                      for s in artifactsmod.hearthstones(rs.artifact_catalog)}
+
+    def _bg_type(bg):
+        """The catalogue entry a Background row names, or None for free text.
+
+        Resolved through the SPLAT-FILTERED catalogue, which is what makes a
+        Dragon-Blooded Manse row find the Dragon-Blooded allowance rather than the
+        corebook's — the six Manse variants share two names between them, so a global
+        lookup by name would answer for whichever copy it met first (the Illuminated
+        Artifact scar)."""
+        return _bg_types.get(bg.name.strip().lower())
+
+    def _grows_stones(bg) -> bool:
+        """Whether this row gets the Hearthstone picker. Asks the DATA (does this
+        Background produce stones?) rather than the row's free-text name, and honours
+        the per-row Demesne toggle — a Demesne grows none (human's ruling
+        2026-08-12)."""
+        return (not bg.is_demesne) and artifactsmod.grows_hearthstones(_bg_type(bg))
+
+    def _open_hearthstones(bg) -> None:
+        stones = artifactsmod.hearthstones(rs.artifact_catalog)
+        allowance = artifactsmod.hearthstone_allowance(_bg_type(bg), bg.rating)
+        held = artifactsmod.hearthstone_total(bg)
+        # The dialog shows what each stone would COST against the row's remaining
+        # allowance, so the player is not picking blind and then reading a validation
+        # error. Reads the same `hearthstone_allowance` the validator does — a picker
+        # that greys a stone the validator accepts (or the reverse) is worse than one
+        # that greys nothing.
+        remaining = max(0, allowance.combined_max - held) if allowance else 0
+        rows = []
+        for s in stones:
+            over = s.rating > remaining or (allowance and allowance.individual_max
+                                            and s.rating > allowance.individual_max)
+            note = (" — exceeds this Manse's remaining Hearthstone levels"
+                    if over else "")
+            rows.append((s.name, s.name,
+                         f"{s.rating_notes or ('•' * s.rating)} — {s.description}"
+                         f"{note}",
+                         s.description))
+
+        def _pick(name) -> None:
+            # Custom (name is None) adds a blank stone rather than doing nothing: a
+            # Hearthstone is unique per Manse (S&S p.67) and the printed ten are
+            # examples, so "my own stone" is the common case, not an edge one. It gets
+            # a rating control like any other, because the rating is what the rule
+            # measures.
+            bg.hearthstones.append(HearthstoneEntry(
+                name="" if name is None else name,
+                rating=1 if name is None else _stone_ratings.get(name, 1)))
+            refresh_all()
+
+        cataloguemod.catalogue_dialog(pal, "Hearthstones", rows, _pick,
+                                      icons={s.name: cataloguemod.icon_for(s.tags,
+                                                                          "diamond")
+                                             for s in stones},
+                                      default_icon="diamond")
+
+    def _render_hearthstones(bg):
+        """The stones held on one Manse row, plus a running total against the
+        allowance. The total is printed on screen rather than left to the validator:
+        the allowance differs per splat and per rating, so a player cannot know it
+        without being told, and the Issue would be their first hint.
+
+        Returns its own sync function, which the caller chains onto the row's
+        rating-change callback — see `_sync` below."""
+        # Declared before `_sync_total` closes over it and CREATED after the stone
+        # rows, so the running total prints beneath them. Late binding makes the order
+        # legal; the first call is the one at the end of this function.
+        total = None
+
+        def _sync_total() -> None:
+            """Repaint the running total IN PLACE.
+
+            ⚠ The allowance is recomputed HERE, on every call, never captured when the
+            row was built. Both halves of "4 / 3" move: the numerator when a stone is
+            added or re-rated, and the DENOMINATOR when the Manse rating changes — a
+            Manse raised from ••• to ••••• is a bigger Manse and legalises the stone
+            that was over budget a moment ago. A build-time allowance froze the
+            denominator at whatever the rating happened to be when the panel was drawn
+            (browser, 2026-08-12).
+
+            ⚠ And never `refresh_all()` from the rating control. Rebuilding the panel
+            rebuilds the inputs inside it, and a rebuilt input eats every keystroke
+            after the first — the filter bar's lesson, recorded on the Background
+            description label a few lines below, and the same shape as the dice-pool
+            panel bug preflight caught on 2026-08-12 (state destroyed by exactly the
+            click that produced it)."""
+            if total is None:
+                return
+            allowance = (None if bg.is_demesne
+                         else artifactsmod.hearthstone_allowance(_bg_type(bg),
+                                                                 bg.rating))
+            if allowance is None:
+                total.set_visibility(False)
+                return
+            total.set_visibility(True)
+            held = artifactsmod.hearthstone_total(bg)
+            over = held > allowance.combined_max
+            total.set_text(
+                f"Hearthstones: {held} / {allowance.combined_max} levels")
+            total.classes(replace="text-xs pl-6 " + (
+                "text-red-600 font-semibold" if over else "opacity-70"))
+
+        for sidx, stone in enumerate(bg.hearthstones):
+            with ui.row().classes("w-full items-center gap-2 no-wrap pl-6"):
+                ui.icon("diamond").classes("text-xs opacity-60")
+                ui.input(value=stone.name, placeholder="Hearthstone",
+                         on_change=lambda e, s=stone: setattr(s, "name", e.value)
+                         ).props("dense").classes("flex-1")
+                ui.number(value=stone.rating, min=0, max=5, format="%d",
+                          on_change=lambda e, s=stone: (
+                              setattr(s, "rating", int(e.value or 0)), _sync_total())
+                          ).props("dense").classes("w-16")
+                # Removal DOES rebuild — a row has to disappear, and a click carries
+                # no in-progress keystrokes to lose.
+                ui.button(icon="close",
+                          on_click=lambda e=None, bg=bg, sidx=sidx: (
+                              bg.hearthstones.pop(sidx), refresh_all())
+                          ).props("flat dense round")
+        total = ui.label("").classes("text-xs pl-6").props(
+            'data-testid="hearthstone-total"')
+        _sync_total()
+        return _sync_total
+
     def _background_rows(bg_cap) -> None:
         """The Background list itself — identical in both regimes but for the rating
         control, which is `bg_cap`'s business. This body is the whole reason the tab
@@ -184,6 +316,29 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 # rebound below, once `desc`/`rung` exist.
                 row_sync: dict = {}
                 bg_cap(bg, lambda rs_=row_sync: rs_.get("fn", lambda: None)())
+                # A Manse row gets the Hearthstone catalogue, because the stone is what
+                # the Manse produces (core p.338) and its level is the MANSE's, not
+                # Artifact's — picking one deliberately does NOT create an
+                # `ArtifactEntry`, which would charge the p.131 Artifact budget for a
+                # stone Artifact dots never bought.
+                #
+                # The Demesne toggle sits on every Background that COULD grow stones,
+                # including one already flipped to Demesne — otherwise flipping it
+                # would hide the control that flips it back. The picker sits only on
+                # rows that actually grow them.
+                if artifactsmod.grows_hearthstones(_bg_type(bg)):
+                    ui.switch(value=bg.is_demesne,
+                              on_change=lambda e, bg=bg: (
+                                  setattr(bg, "is_demesne", bool(e.value)),
+                                  refresh_all())
+                              ).props("dense size=sm").tooltip(
+                                  "Demesne rather than Manse — grows no Hearthstones"
+                              ).mark("demesne-toggle")
+                if _grows_stones(bg):
+                    ui.button(icon="diamond",
+                              on_click=lambda e=None, bg=bg: _open_hearthstones(bg)
+                              ).props("flat dense round").tooltip("Hearthstones"
+                              ).mark("hearthstone-picker")
                 ui.button(icon="delete",
                           on_click=lambda e=None, idx=idx: remove_bg(idx)
                           ).props("flat dense round")
@@ -219,6 +374,21 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             sel.on_value_change(lambda e, bg=bg, sync=_sync: (
                 setattr(bg, "name", e.value or ""), sync()))
             _sync()
+
+            # The Hearthstones held on this row, each with the rating the S&S p.67 cap
+            # actually measures. Editable, because a stone's level is a fact about the
+            # Manse that grew it and the printed ten are examples — a table's own stone
+            # is the ordinary case. Shown whenever any are held, even on a row flipped
+            # to Demesne or renamed off a Manse, so a stranded stone stays visible and
+            # deletable rather than becoming an Issue with no control behind it.
+            if bg.hearthstones:
+                stones_sync = _render_hearthstones(bg)
+                # Rebind the rating hook to drive BOTH labels. `row_sync` is read
+                # lazily by the rating control, so rebinding after the stones are
+                # drawn is legal and keeps them below the rung. Without this the
+                # denominator went stale: raising the Manse moved the rung text and
+                # left "4 / 3" claiming the row was still over budget.
+                row_sync["fn"] = lambda s=_sync, h=stones_sync: (s(), h())
 
         # The catalogue picker replaces the blind "Add background": browse the
         # splat-filtered catalogue, pick one, or choose Custom for a blank row.
@@ -301,7 +471,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 format="%d",
                 on_change=lambda e, bg=bg, synced=synced: (
                     setattr(bg, "rating", int(e.value or 0)), synced())
-            ).props("dense").classes("w-16"))
+            ).props("dense").classes("w-16").mark("bg-rating"))
 
     # ---- Artifacts: individually rated items ------------------------------- #
     def add_artifact() -> None:
@@ -368,9 +538,14 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         # The name combobox is fed from the catalogue (`data/artifacts.json`). Option
         # labels stay plain names so `art.name` stores cleanly; the rating and
         # description ride the option tooltip.
-        art_names = [a.name for a in rs.artifact_catalog.values()]
+        # Filtered to what Artifact dots actually buy: the Hearthstones in the same
+        # catalogue file come with the Manse Background, and picking one here would
+        # charge the p.131 Artifact budget for something Artifact never bought. They
+        # get their own picker on the Manse Background row instead.
+        art_catalog = artifactsmod.purchasable_with_artifact(rs.artifact_catalog)
+        art_names = [a.name for a in art_catalog]
         art_descs = {a.name: f"{a.rating_notes or ('•' * a.rating)} — {a.description}"
-                     for a in rs.artifact_catalog.values()}
+                     for a in art_catalog}
         with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
             _artifacts_header()
             for idx, art in enumerate(character.artifacts):
@@ -405,8 +580,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                                             ).props('data-testid="art-desc"')
 
                 def _sync(art=art, desc=desc):
-                    entry = next((a for a in rs.artifact_catalog.values()
-                                  if a.name == art.name), None)
+                    entry = next((a for a in art_catalog if a.name == art.name), None)
                     text = entry.description if entry else ""
                     desc.set_text(text)
                     desc.set_visibility(bool(text))
@@ -414,7 +588,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 def _on_art(e, art=art, number=number, sync=_sync):
                     # A catalogue pick sets name + autofills rating; any other
                     # value is free text and only renames, preserving the rating.
-                    entry = next((a for a in rs.artifact_catalog.values()
+                    entry = next((a for a in art_catalog
                                   if a.name == (e.value or "")), None)
                     if entry is not None:
                         art.name, art.rating = entry.name, entry.rating
@@ -447,16 +621,17 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 rows = [(a.name, a.name,
                          f"{a.rating_notes or ('•' * a.rating)} — {a.description}",
                          a.description)
-                        for a in sorted(rs.artifact_catalog.values(),
-                                        key=lambda a: a.name)]
-                cataloguemod.catalogue_dialog(pal, "Artifacts", rows, _pick_artifact)
+                        for a in art_catalog]
+                icons = {a.name: cataloguemod.icon_for(a.tags, "auto_awesome")
+                         for a in art_catalog}
+                cataloguemod.catalogue_dialog(pal, "Artifacts", rows, _pick_artifact,
+                                              icons=icons)
 
             def _pick_artifact(name) -> None:
                 if name is None:
                     add_artifact()
                     return
-                entry = next((a for a in rs.artifact_catalog.values()
-                              if a.name == name), None)
+                entry = next((a for a in art_catalog if a.name == name), None)
                 if entry is not None:
                     character.artifacts.append(
                         ArtifactEntry(name=entry.name, rating=entry.rating))

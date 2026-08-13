@@ -229,3 +229,52 @@ async def test_a_sidebar_toggle_reaches_the_custom_panel_in_the_other_column(
     wound.set_value(False)
     await user.should_see("+4 dex +0 athletics")              # custom row, wound gone
     await user.should_not_see("+4 dex +0 athletics -1 wnd")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_ammunition_is_not_offered_as_a_weapon_to_attack_with(user) -> None:
+    """An arrow is not a thing you attack with — it is what the bow throws. It also
+    must not shift the indices of the real weapons: the select's value is a position in
+    `character.weapons`, so a filtered list numbered by position would attack with the
+    wrong weapon."""
+    from nicegui import ui as _ui
+    await user.open('/archer-pools')
+    sel = next(e for e in user.client.elements.values()
+               if isinstance(e, _ui.select) and e.props.get("label") == "Attack with")
+    assert sel.options == {0: "Long Bow"}, "the arrow row is excluded, index preserved"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_nocked_arrow_shows_its_damage_and_adds_no_dice(user) -> None:
+    """The arrow control is REFERENCE. core p.330 gives arrows a base damage and a soak
+    clause and no accuracy at all, and this build derives no damage (decision 0008) —
+    so the pool totals must be identical before and after nocking one."""
+    from nicegui import ui as _ui
+    await user.open('/archer-pools')
+    weapon_sel = next(e for e in user.client.elements.values()
+                      if isinstance(e, _ui.select)
+                      and e.props.get("label") == "Attack with")
+    weapon_sel.set_value(0)
+    await user.should_see("Nocked arrow")
+    before = sorted(e.text for e in user.client.elements.values()
+                    if isinstance(e, _ui.label) and "Archery" in (e.text or ""))
+    arrow_sel = next(e for e in user.client.elements.values()
+                     if isinstance(e, _ui.select)
+                     and e.props.get("label") == "Nocked arrow")
+    assert arrow_sel.options == {1: "Frog Crotch Arrow"}
+    arrow_sel.set_value(1)
+    await user.should_see("Frog Crotch Arrow: Strength +4L base damage")
+    await user.should_see("Damage only — an arrow adds no dice to the attack pool.")
+    after = sorted(e.text for e in user.client.elements.values()
+                   if isinstance(e, _ui.label) and "Archery" in (e.text or ""))
+    assert before == after, "nocking an arrow changed a pool"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_arrow_control_is_hidden_for_a_weapon_that_fires_nothing(user) -> None:
+    """A duelist with a short sword and no ammunition never sees it."""
+    await user.open('/pools')
+    await user.should_not_see("Nocked arrow")

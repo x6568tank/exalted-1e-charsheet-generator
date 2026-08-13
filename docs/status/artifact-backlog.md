@@ -43,7 +43,7 @@ corrected below. The guide's own ERS legend (PDF p.6) is the source of the names
 | Bone & Ebony | 74 | 58-79, 104, 113-114 | **NO** |
 | Outcastes | 27 | 50-54, 58-59, 62-64, 92, 121-122 | **NO** |
 | Fair Folk | 27 | 205-211, 279-283 | 279-283 YES (**already authored** — the ten MF artifacts in `data/artifacts.json`); 205-211 NO |
-| core | 24 | 336-338, 340-341, 343-345 | **PARTIAL** — 341, 343, 344, 345 (Arms & Armor table crops) + the 342/327-331 stat tables |
+| core | 24 | 336-338, 340-341, 343-345 | **DONE 2026-08-12** — the whole Wonders chapter is authored (`data/artifacts.json` 196→222). It was never a page problem: the pages extracted fine and the display face that draws every entry NAME did not, so the names were rows of U+FFFD. See `corebook-wonders.md`. |
 | Ruins of Rathess | 18 | 80-84, 86-88, 91, 194 | **NO** |
 | Autochthonians | 17 | 182-190 | **NO** |
 | Abyssals | 16 | 254-261 | **NO** (only Traits 130-153 on disk) |

@@ -1254,10 +1254,19 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     if locked:
                         ui.label(f"{_label(sp.ability.value)} — {sp.name}").classes("text-sm flex-1")
                         continue
+                    # Both handlers MUST call `changed()`. The row is appended blank on
+                    # Melee and retargeted afterwards, so the add itself can legitimately
+                    # push Melee over the cap for as long as it takes to pick the real
+                    # Ability — and `add_spec`'s `changed()` has already rendered that
+                    # transient `specialty-cap` error into the sticky issues column. Without
+                    # a re-run here the retarget fixes the MODEL and leaves the stale error
+                    # on screen: three Melee + three Dodge reads back as "Melee has 4".
                     ui.select({a: _label(a.value) for a in AbilityName}, value=sp.ability,
-                              on_change=lambda e, sp=sp: setattr(sp, "ability", e.value)).classes("flex-1")
+                              on_change=lambda e, sp=sp: (setattr(sp, "ability", e.value),
+                                                          changed())).classes("flex-1")
                     ui.input(value=sp.name, placeholder="Specialty",
-                             on_change=lambda e, sp=sp: setattr(sp, "name", e.value)).classes("flex-1")
+                             on_change=lambda e, sp=sp: (setattr(sp, "name", e.value),
+                                                         changed())).classes("flex-1")
                     ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_spec(idx)).props("flat dense round")
             if locked:
                 _spec = {"ability": AbilityName.MELEE, "name": ""}
@@ -1347,17 +1356,18 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 def _open_armor_catalogue() -> None:
                     # The Resources clause, exactly as the weapon dialog above — see the
                     # comment there for why an unaffordable row is faded, not withheld.
-                    rows, unaffordable = [], set()
+                    rows, unaffordable, icons = [], set(), {}
                     for a in sorted(ruleset.armor_catalog.values(), key=lambda a: a.name):
                         afford = validate.gear_affordability(character, a.resources_cost)
                         note = cataloguemod.gear_cost_note(a.resources_cost, afford)
                         summary = cataloguemod.catalog_armor_summary(a)
                         rows.append((a.name, a.name,
                                      f"{summary} · {note}" if note else summary, None))
+                        icons[a.name] = cataloguemod.icon_for(a.tags, "security")
                         if afford == "unaffordable":
                             unaffordable.add(a.name)
                     cataloguemod.catalogue_dialog(pal, "Armour", rows, _pick_armor,
-                                                  dimmed=unaffordable)
+                                                  dimmed=unaffordable, icons=icons)
 
                 def _pick_armor(name) -> None:
                     if name is None:
@@ -1377,6 +1387,16 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                       new_value_mode="add-unique", label="Weapon",
                                       on_change=lambda e, idx=idx: set_weapon(idx, e.value)).classes("flex-1")
                             wsm = ui.label(_weapon_summary(wp)).classes("text-xs")
+                            # Stackable gear. Ammunition is the case that put it here —
+                            # a player holds arrows by the score — but nothing stops a
+                            # stack of javelins, so every weapon row carries it. It is a
+                            # COUNT and nothing more: no engine reads it, because nothing
+                            # derives an attack (decision 0008).
+                            ui.number(value=wp.quantity, min=1, format="%d", label="Qty",
+                                      on_change=lambda e, wp=wp: (
+                                          setattr(wp, "quantity",
+                                                  max(1, int(e.value or 1))), changed())
+                                      ).props("dense").classes("w-16")
                             ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("weapons", idx)).props("flat dense round")
                         with ui.expansion("Edit stats", icon="tune").classes("w-full"):
                             with ui.row().classes("w-full gap-2 flex-wrap"):
@@ -1407,17 +1427,18 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     # would cost THIS character. `validate.gear_affordability` owns the
                     # rule; unaffordable rows are faded but still pickable — a character
                     # can be GIVEN what she could not buy, and nothing here validates.
-                    rows, unaffordable = [], set()
+                    rows, unaffordable, icons = [], set(), {}
                     for w in sorted(ruleset.weapon_catalog.values(), key=lambda w: w.name):
                         afford = validate.gear_affordability(character, w.resources_cost)
                         note = cataloguemod.gear_cost_note(w.resources_cost, afford)
                         summary = cataloguemod.catalog_weapon_summary(w)
                         rows.append((w.name, w.name,
                                      f"{summary} · {note}" if note else summary, None))
+                        icons[w.name] = cataloguemod.icon_for(w.tags, "sym_o_swords")
                         if afford == "unaffordable":
                             unaffordable.add(w.name)
                     cataloguemod.catalogue_dialog(pal, "Weapons", rows, _pick_weapon,
-                                                  dimmed=unaffordable)
+                                                  dimmed=unaffordable, icons=icons)
 
                 def _pick_weapon(name) -> None:
                     if name is None:
@@ -1467,8 +1488,30 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                     _frozen(ui.select({v: _label(v.value) for v in VirtueName}, label="Flawed Virtue",
                               value=vf.virtue if vf else None,
                               on_change=lambda e: set_virtue_flaw_virtue(e.value)).classes("w-full"))
+                    # The book's SAMPLE Flaws for the Virtue that is actually flawed
+                    # (pp.131-133) — offering a Compassion Flaw beside a flawed Valor
+                    # would be offering an illegal pick. The list is a shortcut into the
+                    # free-text field below, never a replacement for it: the page says
+                    # in as many words that these are not the only Flaws an Exalt might
+                    # develop, so a picked Flaw writes its printed text into
+                    # `description` and the player edits it from there. Rebuilt with the
+                    # panel when the Virtue changes, so the options always match.
+                    samples = [f for f in ruleset.virtue_flaw_catalog.values()
+                               if vf is not None and f.virtue == vf.virtue]
+                    if samples:
+                        ui.select({f.id: f.name for f in sorted(samples, key=lambda f: f.name)},
+                                  label="Sample Flaw (fills the description)", value=None,
+                                  on_change=lambda e: set_virtue_flaw_sample(e.value)
+                                  ).props("dense").classes("w-full")
                     ui.input("Description", value=vf.description if vf else "",
                              on_change=lambda e: set_virtue_flaw_desc(e.value)).classes("w-full")
+                    # The Limit Break Condition is the half that gets consulted at the
+                    # table, so it is shown rather than folded into the description.
+                    picked = next((f for f in samples
+                                   if vf is not None and f.description == vf.description), None)
+                    if picked is not None and picked.limit_break:
+                        ui.label(f"Limit Break: {picked.limit_break}").classes(
+                            "text-xs opacity-70").props('data-testid="vf-limit-break"')
             with panel("Bonus health levels per tier (charms raise, curses lower)").classes("flex-1"):
                 with ui.row().classes("w-full gap-3 no-wrap"):
                     for p in (0, -1, -2, -4):
@@ -1759,8 +1802,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     def set_weapon(idx: int, name: str) -> None:
         e = next((w for w in ruleset.weapon_catalog.values() if w.name == name), None)
+        # The row is REPLACED by the catalogue copy, so anything not in the copy is
+        # lost. `quantity` is the player's, not the catalogue's — carry it across.
+        quantity = character.weapons[idx].quantity
         if e:
             character.weapons[idx] = Weapon(
+                quantity=quantity,
                 name=e.name, speed=e.speed, accuracy=e.accuracy, damage=e.damage,
                 damage_type=e.damage_type, defense=e.defense, rate=e.rate, range=e.range,
                 min_strength=e.min_strength, min_dexterity=e.min_dexterity,
@@ -1774,7 +1821,26 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     def set_virtue_flaw_virtue(virtue: VirtueName) -> None:
         desc = character.virtue_flaw.description if character.virtue_flaw else ""
         character.virtue_flaw = VirtueFlaw(virtue=virtue, description=desc)
-        changed()
+        # `body.refresh()`, not just `changed()`: the sample-Flaw dropdown beside this
+        # select is built from the flawed Virtue, and `changed()` only redraws the
+        # sticky side column. Without the rebuild the options keep offering the OLD
+        # Virtue's Flaws — and they corrected themselves only when the player picked
+        # one, which is the worst version: the list is wrong exactly while it is being
+        # read (found in the browser, 2026-08-12).
+        body.refresh(); changed()
+
+    def set_virtue_flaw_sample(flaw_id: str) -> None:
+        """Copy a sample Flaw's printed text into the free-text description.
+
+        A COPY, not a reference (decision 0007's line: ids for invariant content,
+        inline copies for variable). The player is expected to edit the text — the book
+        offers these as a guide to severity for Flaws of their own — so storing the id
+        would make an edited Flaw claim to be the printed one."""
+        flaw = ruleset.virtue_flaw_catalog.get(flaw_id or "")
+        if flaw is None:
+            return
+        set_virtue_flaw_desc(flaw.description)
+        body.refresh(); changed()
 
     def set_virtue_flaw_desc(text: str) -> None:
         if character.virtue_flaw is None:

@@ -62,9 +62,28 @@ def make_font_decoder(map_path):
     spec = json.load(open(map_path))
     if spec.get("cipher") != "bands_per_font":
         return None
+
+    def bands(value, lo_ord, hi_ord):
+        """A class is either ONE constant covering the whole ASCII range, or a list of
+        explicit [k, lo_ord, hi_ord] sub-bands.
+
+        The list form exists because a subset that drops a glyph MID-CLASS shifts every
+        id after the gap, so one constant cannot cover the class: the display face has
+        no 'Q', which puts A-P and R-Z two ids apart. Solving such a font with a single
+        constant does not fail loudly — it silently shifts one side of the gap by one
+        and yields fluent nonsense ('Qoleaxe', 'Sesources'), which is the same failure
+        that made this book's per-font fix necessary in the first place.
+        """
+        if isinstance(value, list):
+            return [tuple(b) for b in value]
+        return [(value, lo_ord, hi_ord)]
+
     table = {}
     for font, b in spec["fonts"].items():
-        table[font] = (b["space"], b["lower"], b["upper"], b["punct"])
+        table[font] = (b["space"],
+                       bands(b["lower"], 97, 122),
+                       bands(b["upper"], 65, 90),
+                       bands(b["punct"], 40, 57))
     singles = {f: {} for f in table}
     for cid, info in spec.get("singles", {}).items():
         for f in info.get("fonts", list(table)):
@@ -88,12 +107,10 @@ def make_font_decoder(map_path):
                 return " "
             if n in sing:
                 return sing[n]
-            if lower - 122 <= n <= lower - 97:
-                return chr(lower - n)
-            if upper - 90 <= n <= upper - 65:
-                return chr(upper - n)
-            if punct - 57 <= n <= punct - 40:
-                return chr(punct - n)
+            for group in (lower, upper, punct):
+                for k, lo_ord, hi_ord in group:
+                    if k - hi_ord <= n <= k - lo_ord:
+                        return chr(k - n)
             return "\ufffd"
         return re.sub(r"\(cid:(\d+)\)", sub, text)
 

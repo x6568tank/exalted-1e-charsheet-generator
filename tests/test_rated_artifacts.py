@@ -671,3 +671,315 @@ async def test_the_combobox_offers_the_castebook_artifacts(user) -> None:
                  "Circlet of Spirits", "Hooked Daiklaves of Dual Prowess",
                  "Death Shield Ring", "Ring of the Deliberative"):
         assert name in combobox.options, f"{name!r} should be offered by the combobox"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_combobox_offers_the_corebook_wonders(user) -> None:
+    """The corebook's own artifacts were the ones a player was most likely to look for
+    and the ones the catalogue did not have: a daiklave was addable as a weapon but was
+    not in the artifact catalogue at all."""
+    from nicegui import ui as _ui
+    await user.open('/artifacts-advantages')
+    await user.should_see("7/7 combined")
+    combobox = next(e for e in user.client.elements.values()
+                    if isinstance(e, _ui.select)
+                    and e.props.get("label") == "Artifact name")
+    for name in ("Daiklave", "Grand Daiklave", "Reaver Daiklave", "Dire Lance",
+                 "Goremaul", "Grimcleaver", "Serpent-Sting Staff", "Smashfist",
+                 "Short Powerbow", "Long Powerbow", "Lightning Torment Hatchets",
+                 "Superheavy Plate (Artifact)", "Breastplate (Artifact)"):
+        assert name in combobox.options, f"{name!r} should be offered by the combobox"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_hearthstones_are_never_offered_as_artifact_purchases(user) -> None:
+    """A Hearthstone's dots are the MANSE's rating (core p.338). Offering one on the
+    artifact row would append an `ArtifactEntry` and charge the p.131 Artifact budget
+    for a stone Artifact dots never bought — the mis-charge is silent, which is why it
+    is pinned at the surface that would commit it rather than only in the engine."""
+    from nicegui import ui as _ui
+    await user.open('/artifacts-advantages')
+    await user.should_see("7/7 combined")
+    combobox = next(e for e in user.client.elements.values()
+                    if isinstance(e, _ui.select)
+                    and e.props.get("label") == "Artifact name")
+    for stone in ("Windhands Gemstone", "Gem of Adamant Skin", "The Freedom Stone",
+                  "Stone of Healing", "Gem of Incomparable Wellness"):
+        assert stone not in combobox.options, f"{stone!r} is bought with Manse"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_manse_row_offers_the_hearthstone_catalogue(user) -> None:
+    """...and the stones do have a home: the Manse row itself, where the pick lands in
+    `BackgroundEntry.hearthstones` rather than in `Character.artifacts`."""
+    await user.open('/manse-hearthstones')
+    await user.should_see("Manse")
+    buttons = [e for e in user.client.elements.values()
+               if "hearthstone-picker" in getattr(e, "_markers", [])]
+    assert len(buttons) == 1, "exactly the Manse row carries the picker, not Artifact"
+    user.find(marker="hearthstone-picker").click()
+    await user.should_see("Hearthstones")
+    await user.should_see("Gem of Adamant Skin")
+
+
+def test_every_catalogue_icon_resolves_in_the_font_nicegui_actually_ships() -> None:
+    """NiceGUI ships two icon fonts and a bare name resolves against the OLDER one,
+    Material Icons. A Symbols-only name renders as nothing at all — no error, no
+    fallback — which is how every melee weapon shipped with a blank where its icon
+    should be (browser, 2026-08-12). `swords` is the only Symbols-only name this build
+    wants, and it must keep Quasar's `sym_o_` prefix."""
+    from exalted_builder.ui import catalogue as cataloguemod
+    assert cataloguemod.icon_for(["melee"]) == "sym_o_swords"
+    assert cataloguemod.icon_for(["weapon"]) == "sym_o_swords"
+    # ...and nothing else acquired a Symbols-only name without the prefix. Each bare
+    # name below was verified present in Material Icons Outlined by reading the glyph
+    # order of the woff2 NiceGUI ships — see the note on `_ICON_BY_TAG` for the check.
+    verified_bare = {
+        "north_east", "air", "landscape", "local_fire_department", "water_drop",
+        "park", "diamond", "shield", "sports_motorsports", "sports_martial_arts",
+        "sports_handball", "sports_mma", "security", "visibility", "campaign",
+        "sailing", "handyman",
+    }
+    for tag, icon in cataloguemod._ICON_BY_TAG:
+        assert icon.startswith("sym_o_") or icon in verified_bare, (
+            f"{icon!r} (tag {tag!r}) is neither prefixed nor a verified Material Icons "
+            f"name — check it against the shipped font before adding it")
+
+
+# --------------------------------------------------------------------------- #
+# Hearthstones — the Savant and Sorcerer pp.66-67 allowance
+#
+# "The sum of the levels of all the Hearthstones produced can never exceed the level
+# of the Manse" (p.67). A Manse may be designed to yield several stones instead of one
+# (p.66), so the cap is on the TOTAL, not the count.
+#
+# ⚠ Every test here goes through `validate.validate` — the CALLER — and never calls
+# `check_hearthstones` directly. That is this project's most-repeated bug and the exact
+# shape the Backgrounds delegation shipped three times: nine tests reached past the
+# caller into the helper, so a rule that never ran in production passed all nine.
+# --------------------------------------------------------------------------- #
+
+def _with_manse(rs, exalt_type: str, name: str, rating: int, stones, **kw) -> Character:
+    from exalted_builder.models.character import HearthstoneEntry
+    c = Character(id="c.h", exalt_type=exalt_type, essence_rating=2,
+                  caste=kw.pop("caste", ""))
+    for k, v in kw.items():
+        setattr(c, k, v)
+    c.backgrounds = [BackgroundEntry(
+        name=name, rating=rating,
+        hearthstones=[HearthstoneEntry(name=n, rating=r) for n, r in stones],
+        **({"is_demesne": True} if kw.get("_demesne") else {}))]
+    return c
+
+
+def _hs_codes(rs, character) -> set[str]:
+    return {i.code for i in validate.validate(rs, character)}
+
+
+def test_hearthstone_levels_may_not_exceed_the_manse(rs) -> None:
+    """The p.67 sentence, on the corebook's own linear Manse: three dots is a level-3
+    Manse, so two level-2 stones is one level too many."""
+    over = _with_manse(rs, "Solar", "Manse", 3, [("A", 2), ("B", 2)], caste="Dawn")
+    assert "hearthstone-over-combined" in _hs_codes(rs, over)
+
+
+def test_several_hearthstones_are_legal_while_they_sum_to_the_manse(rs) -> None:
+    """The other half of p.66, and the half a naive "one stone, level = rating" check
+    would have got wrong: a Manse ••• may produce 2+1 as readily as a single 3."""
+    split = _with_manse(rs, "Solar", "Manse", 3, [("A", 2), ("B", 1)], caste="Dawn")
+    assert "hearthstone-over-combined" not in _hs_codes(rs, split)
+    whole = _with_manse(rs, "Solar", "Manse", 3, [("A", 3)], caste="Dawn")
+    assert "hearthstone-over-combined" not in _hs_codes(rs, whole)
+
+
+def test_the_dragonblooded_ladder_caps_the_largest_single_stone(rs) -> None:
+    """The DB and Abyssal Manse ladders are NOT linear — their rung 3 allows "no more
+    than six levels, total" but only "a level 3 Hearthstone" as the largest. Six levels
+    as 4+2 is therefore illegal while 3+2+1 is legal, which no combined cap alone can
+    express."""
+    c = _with_manse(rs, "Dragon-Blooded", "Manse", 3, [("Big", 4), ("Small", 2)],
+                    caste="Earth")
+    codes = _hs_codes(rs, c)
+    assert "hearthstone-over-individual" in codes
+    assert "hearthstone-over-combined" not in codes, "six levels is within the rung"
+    ok = _with_manse(rs, "Dragon-Blooded", "Manse", 3,
+                     [("A", 3), ("B", 2), ("C", 1)], caste="Earth")
+    assert not ({"hearthstone-over-individual", "hearthstone-over-combined"}
+                & _hs_codes(rs, ok))
+
+
+def test_the_dragonblooded_one_dot_rung_allows_a_single_stone(rs) -> None:
+    """"She may have ONE Hearthstone of level 1 or 2" — a printed COUNT, which the two
+    maxima cannot express: combined 2 with individual 2 would permit two level-1
+    stones."""
+    c = _with_manse(rs, "Dragon-Blooded", "Manse", 1, [("A", 1), ("B", 1)],
+                    caste="Earth")
+    assert "hearthstone-over-count" in _hs_codes(rs, c)
+
+
+def test_the_corebook_manse_is_not_given_the_dragonblooded_allowance(rs) -> None:
+    """The six Manse variants share two names between them, so the allowance must be
+    resolved through the SPLAT-FILTERED catalogue. A Solar Manse ••• is a level-3 Manse
+    (three levels of stone), not the Dragon-Blooded rung's six — matching on the bare
+    name would hand the Solar whichever copy the lookup met first, which is the
+    Illuminated Artifact scar."""
+    c = _with_manse(rs, "Solar", "Manse", 3, [("A", 3), ("B", 3)], caste="Dawn")
+    assert "hearthstone-over-combined" in _hs_codes(rs, c)
+
+
+def test_the_mountain_folk_manse_carries_two_levels_per_dot(rs) -> None:
+    """CH6 prints no ladder, only prose: "Each dot in this Background provides two dots
+    worth of Manses". Manse •• is therefore four levels of stone, not two."""
+    ok = _with_manse(rs, "Mountain-Folk", "Manse", 2, [("A", 2), ("B", 2)],
+                     caste="artisan")
+    assert "hearthstone-over-combined" not in _hs_codes(rs, ok)
+    over = _with_manse(rs, "Mountain-Folk", "Manse", 2,
+                       [("A", 2), ("B", 2), ("C", 1)], caste="artisan")
+    assert "hearthstone-over-combined" in _hs_codes(rs, over)
+
+
+def test_a_demesne_grows_no_hearthstones(rs) -> None:
+    """The human's ruling, 2026-08-12: rather than model S&S p.66's Demesne stones
+    (one level weaker, and they decay once removed), a row flipped to Demesne simply
+    produces none."""
+    from exalted_builder.models.character import HearthstoneEntry
+    c = Character(id="c.d", exalt_type="Solar", caste="Dawn", essence_rating=2)
+    c.backgrounds = [BackgroundEntry(name="Manse", rating=3, is_demesne=True,
+                                     hearthstones=[HearthstoneEntry(name="A",
+                                                                    rating=1)])]
+    assert "hearthstone-without-manse" in _hs_codes(rs, c)
+
+
+def test_a_background_that_is_not_a_manse_grows_no_hearthstones(rs) -> None:
+    """A stone stranded by renaming the row it sat on. Reported rather than ignored —
+    it is the one way a stone can outlive the allowance that justified it."""
+    from exalted_builder.models.character import HearthstoneEntry
+    c = Character(id="c.r", exalt_type="Solar", caste="Dawn", essence_rating=2)
+    c.backgrounds = [BackgroundEntry(name="Resources", rating=3,
+                                     hearthstones=[HearthstoneEntry(name="A",
+                                                                    rating=1)])]
+    assert "hearthstone-without-manse" in _hs_codes(rs, c)
+
+
+def test_the_hearthstone_cap_still_binds_after_the_lock(rs) -> None:
+    """The human's ruling: hard on BOTH sides of the lock. The allowance is keyed to a
+    Background the story raises and lowers, so a chargen-only check would fall silent
+    exactly when the cap started moving — the house bug, which in this build has shipped
+    four times."""
+    c = _with_manse(rs, "Solar", "Manse", 3, [("A", 2), ("B", 2)], caste="Dawn")
+    c.chargen_locked = True
+    assert "hearthstone-over-combined" in _hs_codes(rs, c)
+
+
+def test_each_manse_row_gets_its_own_allowance(rs) -> None:
+    """Per-row, not per-character: a Manse • and a Manse ••••• are two Manses with two
+    separate allowances, and a summed check would let the small one carry the big one's
+    stone."""
+    from exalted_builder.models.character import HearthstoneEntry
+    c = Character(id="c.two", exalt_type="Solar", caste="Dawn", essence_rating=2)
+    c.backgrounds = [
+        BackgroundEntry(name="Manse", rating=1,
+                        hearthstones=[HearthstoneEntry(name="Big", rating=4)]),
+        BackgroundEntry(name="Manse", rating=5, hearthstones=[]),
+    ]
+    assert "hearthstone-over-combined" in _hs_codes(rs, c)
+
+
+def test_a_manse_with_no_stones_is_never_a_finding(rs) -> None:
+    """Owning a Manse and carrying no Hearthstone is ordinary — it is the Underworld
+    ladder's own rung-1 case, and the corebook's Manse Background exists to be bought
+    before a stone is chosen."""
+    c = _with_manse(rs, "Solar", "Manse", 3, [], caste="Dawn")
+    assert not any(i.code.startswith("hearthstone-") for i in validate.validate(rs, c))
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_picking_a_hearthstone_records_its_rating(user) -> None:
+    """The pick must land STRUCTURALLY, with the stone's level.
+
+    The first cut appended the name to the row's free-text `note` and kept no rating,
+    so the S&S p.67 total was uncheckable — and `note` is bound to a text input that
+    rewrites it on every keystroke, so reading the names back out would have been the
+    catalogue-dialog discriminator bug over again: a rule switched on by state the
+    player can edit to switch it off.
+
+    ⚠ Asserted THROUGH THE UI rather than by importing `_ui_main`'s character: the
+    harness loads that file as its own module object, so an `from tests._ui_main import`
+    in the test binds a different instance and the assertion passes alone and fails in
+    the suite. The running total is the strongest thing to read anyway — it can only
+    say "4" if the pick recorded the stone's RATING, which is the whole point.
+    """
+    await user.open('/manse-pick')
+    user.find(marker="hearthstone-picker").click()
+    await user.should_see("Gem of Adamant Skin")
+    user.find("Gem of Adamant Skin").click()
+    # Manse ••• allows 3 levels; the Gem of Adamant Skin is 4, so the total both
+    # proves the rating landed and shows the row is now over its allowance.
+    await user.should_see("Hearthstones: 4 / 3 levels")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_demesne_row_keeps_its_toggle_but_loses_the_picker(user) -> None:
+    """The permission must move the OFFER as well as the bar, and it must be
+    reversible — hiding the toggle along with the picker would strand the row as a
+    Demesne with no way back (the mortal-Artifact lesson, 2026-08-12)."""
+    await user.open('/manse-demesne')
+    await user.should_see("Manse")
+    pickers = [e for e in user.client.elements.values()
+               if "hearthstone-picker" in getattr(e, "_markers", [])]
+    toggles = [e for e in user.client.elements.values()
+               if "demesne-toggle" in getattr(e, "_markers", [])]
+    assert pickers == [], "a Demesne grows no Hearthstones"
+    assert len(toggles) == 1, "the toggle must survive so the row can be flipped back"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_tiered_manse_row_renders_its_printed_allowance(user) -> None:
+    """The Abyssal and Dragon-Blooded ladders are a different code path from the
+    corebook's linear Manse — a printed tier with its own combined total and a ceiling
+    on the largest single stone. Underworld Manse ••• allows six levels, so a lone
+    level-4 stone is WITHIN the total and over the per-stone ceiling: the row must
+    print 4 / 6 rather than reading as over budget."""
+    await user.open('/manse-tiered')
+    await user.should_see("Hearthstones: 4 / 6 levels")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_stranded_stone_still_renders_and_can_be_removed(user) -> None:
+    """A stone on a row that grows none — what renaming a Manse row leaves behind. The
+    allowance is None here, a branch nothing else reaches, and the row must still draw
+    its delete control: an Issue the player has no widget to act on is worse than no
+    Issue at all."""
+    await user.open('/manse-stranded')
+    await user.should_see("Resources")
+    await user.should_see("Stone of Healing")
+    pickers = [e for e in user.client.elements.values()
+               if "hearthstone-picker" in getattr(e, "_markers", [])]
+    assert pickers == [], "Resources grows no Hearthstones"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_raising_the_manse_moves_the_hearthstone_denominator(user) -> None:
+    """BOTH halves of "4 / 3" move. The numerator when a stone is added or re-rated;
+    the DENOMINATOR when the Manse rating changes, because a bigger Manse legalises a
+    stone that was over budget a moment ago.
+
+    Found in the browser (2026-08-12): the allowance was computed once when the row was
+    built and captured in the closure, so raising the Manse moved the printed rung and
+    left the total insisting the row was still over. The suite could not see it — every
+    test until this one read the total on a freshly built panel, which is exactly the
+    phase the stale value agrees with."""
+    await user.open('/manse-raise')
+    await user.should_see("Hearthstones: 4 / 3 levels")
+    # `.clear()` first — `.type()` APPENDS, and typing "5" into a field holding "3"
+    # sets the Manse to 35 rather than 5.
+    user.find(marker="bg-rating").clear().type("5")
+    await user.should_see("Hearthstones: 4 / 5 levels")

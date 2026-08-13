@@ -957,3 +957,74 @@ async def test_the_specialty_panel_has_no_rating_control(user) -> None:
     await user.open('/editor-locked')
     await user.should_see("max 3 per Ability")
     await user.should_see("take one twice to stack it")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_retargeting_a_specialty_row_clears_the_stale_cap_error(user) -> None:
+    """The reported bug: three Melee + three Dodge + one Awareness specialty read back
+    as "Melee has 4 specialties". The MODEL was right; the sticky issues column was
+    stale. `add_spec` appends the row on Melee and calls `changed()`, so the transient
+    over-cap error renders — and the row's Ability select used to write the model
+    WITHOUT re-running validation, leaving that error on screen forever."""
+    from nicegui.elements.select import Select
+    await user.open('/specialty-retarget')
+    await user.should_see("4 specialties")
+    spec_selects = [el for el in user.client.elements.values()
+                    if isinstance(el, Select) and isinstance(el.options, dict)
+                    and set(el.options) == set(A)]
+    spec_selects[-1].set_value(A.DODGE)
+    await user.should_not_see("4 specialties")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_virtue_flaw_offers_the_books_samples_for_that_virtue(user) -> None:
+    """core pp.131-133 print ten sample Flaws and the build had none of them — the
+    player typed free text where the book prints a named list. The dropdown is keyed to
+    the FLAWED Virtue: offering a Compassion Flaw beside a flawed Valor would be
+    offering a pick p.131 does not allow."""
+    from nicegui.elements.select import Select
+    await user.open('/virtue-flaw')
+    await user.should_see("Virtue Flaw")
+    sel = next(e for e in user.client.elements.values()
+               if isinstance(e, Select)
+               and "Sample Flaw" in (e.props.get("label") or ""))
+    assert set(sel.options.values()) == {"Berserk Anger", "Foolhardy Contempt"}
+    # Picking one fills the free-text description with the printed text and surfaces
+    # the Limit Break Condition beside it.
+    sel.set_value("virtue-flaw.berserk-anger")
+    await user.should_see("he simply loses all control")
+    await user.should_see("Limit Break: The character is insulted")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_changing_the_flawed_virtue_reloads_the_sample_flaws(user) -> None:
+    """Found in the browser: the sample list kept offering the OLD Virtue's Flaws until
+    the player picked one from it — the list was wrong exactly while it was being read.
+    `changed()` redraws only the sticky side column; this dropdown is built from the
+    flawed Virtue and needs the body rebuilt."""
+    from nicegui.elements.select import Select
+    await user.open('/virtue-flaw')
+
+    def _samples():
+        sel = [e for e in user.client.elements.values()
+               if isinstance(e, Select) and "Sample Flaw" in (e.props.get("label") or "")]
+        assert sel, "no sample-Flaw dropdown on the page"
+        return set(sel[-1].options.values())
+
+    assert _samples() == {"Berserk Anger", "Foolhardy Contempt"}       # Valor
+    virtue_sel = next(e for e in user.client.elements.values()
+                      if isinstance(e, Select)
+                      and e.props.get("label") == "Flawed Virtue")
+    virtue_sel.set_value(VirtueName.COMPASSION)
+    # Poll: a select's OPTIONS are props, not page text, so `should_see` cannot wait on
+    # them and the rebuild is async.
+    import asyncio
+    expected = {"Compassionate Martyrdom", "Heart of Tears", "Red Rage of Compassion"}
+    for _ in range(100):
+        if _samples() == expected:
+            break
+        await asyncio.sleep(0.02)
+    assert _samples() == expected

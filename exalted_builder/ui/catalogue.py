@@ -66,6 +66,69 @@ def gear_cost_note(resources_cost: int, affordability: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# Row icons — "what am I looking at?" at a glance
+# --------------------------------------------------------------------------- #
+# Keyed on the tags the data already carries, so nothing new is authored per entry and
+# an untagged entry simply gets the dialog's default. Order matters: the FIRST tag that
+# matches wins, so the specific kinds are listed before the generic ones — an arrow is
+# tagged ["archery", "ammunition"] and must not read as a bow.
+#
+# ⚠ NiceGUI ships TWO icon fonts and a bare name resolves against the older one,
+# **Material Icons**. A name that exists only in **Material Symbols** — `swords` is the
+# one this build wanted — renders as NOTHING: no error, no fallback, just a blank where
+# the icon should be, which is how every melee weapon in the catalogue shipped iconless
+# (found in the browser, 2026-08-12). Quasar's `sym_o_` prefix selects Material Symbols
+# Outlined, so that is the fix; keep the prefix on any Symbols-only name.
+#
+# To check a name before adding it, read the glyph order of the fonts NiceGUI ships:
+#
+#   pip install --target /tmp/ft fonttools brotli
+#   PYTHONPATH=/tmp/ft python -c "from fontTools.ttLib import TTFont; \
+#     print('swords' in TTFont('<nicegui>/static/fonts/<hash>.woff2').getGlyphOrder())"
+#
+# (the hashed filenames are mapped to font families in nicegui/static/fonts.css). Every
+# bare name below was verified present in Material Icons Outlined that way.
+_ICON_BY_TAG: tuple[tuple[str, str], ...] = (
+    ("ammunition", "north_east"),          # an arrow in flight
+    # The Hearthstone elements come BEFORE the generic hearthstone entry: every stone
+    # carries both tags, and the element is the more useful half on a list of ten.
+    ("air", "air"),
+    ("earth", "landscape"),
+    ("fire", "local_fire_department"),
+    ("water", "water_drop"),
+    ("wood", "park"),
+    ("hearthstone", "diamond"),
+    ("shield", "shield"),
+    ("helm", "sports_motorsports"),
+    ("archery", "sports_martial_arts"),
+    ("thrown", "sports_handball"),
+    ("melee", "sym_o_swords"),
+    ("martial_arts", "sports_mma"),
+    ("weapon", "sym_o_swords"),
+    ("armor", "security"),
+    ("protection", "security"),
+    ("senses", "visibility"),
+    ("communication", "campaign"),
+    ("transport", "sailing"),
+    ("tool", "handyman"),
+    ("combat", "sym_o_swords"),
+)
+
+
+def icon_for(tags: Sequence[str], default: str = "") -> str:
+    """The dialog icon for an entry with these tags, or `default` when none match.
+
+    Presentation only — an icon is never a discriminator. (The catalogue dialogs' own
+    scar: a "kind" flag anything on screen can edit turns into a broken row. An icon
+    derived from tags at render time cannot be edited into a lie.)"""
+    have = {t.lower() for t in tags}
+    for tag, icon in _ICON_BY_TAG:
+        if tag in have:
+            return icon
+    return default
+
+
+# --------------------------------------------------------------------------- #
 # The dialog
 # --------------------------------------------------------------------------- #
 
@@ -78,6 +141,8 @@ def catalogue_dialog(
     custom_label: str = "Custom",
     subtitle: str = "",
     dimmed: frozenset[str] | set[str] = frozenset(),
+    icons: dict[str, str] | None = None,
+    default_icon: str = "",
 ) -> None:
     """Open a modal listing catalogue entries to choose from.
 
@@ -88,6 +153,10 @@ def catalogue_dialog(
     `on_pick(key)` and closes. The "Custom" row calls `on_pick(None)` and closes.
 
     The list is filtered live by a text input over name + summary + full.
+
+    `icons` maps a key to a Material icon name (see `icon_for`, which derives one from
+    an entry's tags); `default_icon` covers the keys it omits. Both are optional — a
+    dialog that passes neither renders exactly as it did before.
 
     `dimmed` holds keys to render faded — gear the character cannot afford (core p.325).
     They stay PICKABLE: the affordability of a purchase is the Storyteller's business,
@@ -127,8 +196,15 @@ def catalogue_dialog(
                     # expansion stay siblings: a click on the expansion header must
                     # toggle the full text, not pick the entry.
                     with ui.column().classes("w-full gap-0 cursor-pointer"):
-                        ui.label(name).classes("text-sm font-semibold leading-tight"
-                                               ).on("click", lambda k=key: _pick(k))
+                        icon = (icons or {}).get(key, default_icon)
+                        with ui.row().classes("items-center gap-2 no-wrap"):
+                            if icon:
+                                # Part of the pick target, not decoration beside it: a
+                                # click that lands on the icon must still choose the row.
+                                ui.icon(icon).classes("text-base opacity-60"
+                                                      ).on("click", lambda k=key: _pick(k))
+                            ui.label(name).classes("text-sm font-semibold leading-tight"
+                                                   ).on("click", lambda k=key: _pick(k))
                         if summary:
                             ui.label(summary).classes(
                                 "text-xs opacity-70 line-clamp-2 leading-snug"

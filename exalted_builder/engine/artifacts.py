@@ -40,6 +40,11 @@ from ..models.rules import BackgroundBudgetTier, BackgroundRule
 # build, so it is matched by lowercased name like every other Background lookup.
 ARTIFACT_BACKGROUND = "artifact"
 
+# The Background a Hearthstone comes with. A stone is a rated object like any other in
+# `data/artifacts.json`, but its dots are the MANSE's rating, not Artifact dots — see
+# `ArtifactType.background`.
+MANSE_BACKGROUND = "manse"
+
 # Item-key prefixes. A key is "<source>:<lowercased name>" — stable across a save,
 # readable in a JSON file, and resolvable to nothing (gracefully) when the item it
 # names has been renamed or deleted.
@@ -105,6 +110,91 @@ def find_item(character: Character, key: str) -> Optional[ArtifactItem]:
         if item.key == key:
             return item
     return None
+
+
+def purchasable_with_artifact(catalog) -> list:
+    """The catalogue entries the Artifact Background actually buys, sorted by name.
+
+    `data/artifacts.json` is the catalogue of RATED OBJECTS, which since the corebook
+    Hearthstones (pp.338-340) landed is not the same set as the objects Artifact dots
+    pay for: a Hearthstone's rating is the rating of the Manse that grew it, and it
+    arrives with the Manse Background. Both surfaces that spend Artifact dots — the
+    artifact row's name combobox and its catalogue dialog — filter through here, so a
+    stone can never be picked into `Character.artifacts` and charged against the p.131
+    budget. `ArtifactType.background` defaults to "artifact", so every entry authored
+    before the field existed keeps its old behaviour.
+    """
+    return sorted((a for a in catalog.values() if a.background == ARTIFACT_BACKGROUND),
+                  key=lambda a: a.name)
+
+
+def hearthstones(catalog) -> list:
+    """The catalogue entries the MANSE Background brings, sorted by name — the other
+    half of `purchasable_with_artifact`."""
+    return sorted((a for a in catalog.values() if a.background == MANSE_BACKGROUND),
+                  key=lambda a: a.name)
+
+
+class HearthstoneAllowance(BaseModel):
+    """What one Manse Background row at a given rating may hold in Hearthstones.
+
+    `individual_max` 0 means "no ceiling beyond the combined one", matching
+    `BackgroundBudgetTier`; `max_items` 0 means the page states no count. Resolved from
+    the BackgroundType so both the validator and the picker read the same numbers —
+    the picker greys the stones this says are too large, and greying a stone the
+    validator would have accepted (or the reverse) is the failure mode that split
+    control from rule here in the first place."""
+    combined_max: int
+    individual_max: int = 0
+    max_items: int = 0
+    tier_name: str = ""
+
+
+def grows_hearthstones(bg_type) -> bool:
+    """Whether this Background produces Hearthstones at all — the ONE test, replacing
+    the `"manse" in name.lower()` substring the first cut used.
+
+    The substring was not merely inelegant: it is a free-text NAME, so a row typed
+    "Manse (destroyed)" grew stones and a Sidereal row renamed by its table stopped,
+    and it could say nothing about HOW MANY levels the row carries, which differs per
+    splat. A Background that authors neither field grows nothing, so every non-Manse
+    entry in the catalogue is unaffected without being listed anywhere."""
+    return bool(bg_type is not None
+                and (bg_type.hearthstone_tiers or bg_type.hearthstone_per_dot))
+
+
+def hearthstone_allowance(bg_type, rating: int) -> Optional[HearthstoneAllowance]:
+    """The allowance for `bg_type` at `rating` dots, or None when this Background grows
+    no stones.
+
+    Tiers win over the linear rate where a Background authors both (nothing does). A
+    rating with no exact tier row takes the highest row BELOW it — the same treatment
+    `budget_tier` gives the Artifact table, and for the same reason: the printed tables
+    stop at five because Backgrounds do, so there is nothing above the top row to fall
+    off. A rating below every row (i.e. 0) yields a zero allowance rather than None:
+    owning Manse 0 is owning no Manse, and a stone on it is a real finding, not an
+    absent rule."""
+    if not grows_hearthstones(bg_type):
+        return None
+    if bg_type.hearthstone_tiers:
+        at_or_below = [t for t in bg_type.hearthstone_tiers if t.rating <= rating]
+        if not at_or_below:
+            return HearthstoneAllowance(combined_max=0)
+        tier = max(at_or_below, key=lambda t: t.rating)
+        return HearthstoneAllowance(combined_max=tier.combined_max,
+                                    individual_max=tier.individual_max,
+                                    max_items=tier.max_items, tier_name=tier.name)
+    total = rating * bg_type.hearthstone_per_dot
+    # A linear Manse may put its whole allowance into one stone (S&S p.66: a Manse
+    # "either produces a single Hearthstone at the same level as the Manse or multiple
+    # Hearthstones that, combined, are equal in level"), so the individual ceiling is
+    # the combined one and is left at 0 rather than restated.
+    return HearthstoneAllowance(combined_max=total)
+
+
+def hearthstone_total(bg) -> int:
+    """Levels of Hearthstone held on one Background row — the number S&S p.67 caps."""
+    return sum(stone.rating for stone in bg.hearthstones)
 
 
 def combined_rating(character: Character) -> int:

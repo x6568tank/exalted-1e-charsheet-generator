@@ -2398,17 +2398,76 @@ class PoolRow:
 class PoolSidebarView:
     """Everything the dice-pool sidebar renders: the shared controls at the top, the
     grouped roll list in the middle, and the standing exclusions at the bottom."""
-    weapons: list[str]
+    # (index into character.weapons, display name). PAIRS rather than a bare list
+    # because the list is now FILTERED — ammunition is excluded — and a filtered list
+    # whose position was used as the index would attack with the wrong weapon.
+    weapons: list[tuple[int, str]]
     groups: list[tuple[str, list[PoolRow]]]  # (category, rows), in catalogue order
     excludes: list[str]
     wound_label: str = ""                    # "-1", "Incapacitated", or ""
     fatigue_points: int = 0
     mobility_lines: list[str] = dc_field(default_factory=list)
     any_below_one: bool = False
+    # Ammunition the character carries, same (index, name) shape. Only populated when
+    # the chosen weapon is one that fires it.
+    arrows: list[tuple[int, str]] = dc_field(default_factory=list)
+    # The chosen arrow's printed damage line — REFERENCE, never a pool term. An arrow
+    # changes what the shot does, not what you roll to hit (core p.330 gives arrows a
+    # base damage and a soak clause and no accuracy at all), and decision 0008 keeps
+    # damage out of this build entirely. Shown beside the Archery rows so the player
+    # can see which arrow is nocked without it touching a single die.
+    arrow_note: str = ""
+
+
+def _ammunition_indices(ruleset: RuleSet, character: Character) -> set[int]:
+    """Positions in `character.weapons` holding ammunition rather than a weapon.
+
+    The character's `Weapon` is an inline copy carrying no tags (decision 0007), so the
+    kind is recovered by matching the name back to the catalogue — the same recovery
+    `pools.weapon_abilities` does, and with the same failure direction: a homebrew name
+    matches nothing and is treated as a weapon, because a custom weapon that silently
+    stopped being attackable-with would be the worse bug."""
+    ammo = {w.name for w in ruleset.weapon_catalog.values() if "ammunition" in w.tags}
+    return {i for i, w in enumerate(character.weapons) if w.name in ammo}
+
+
+def _fires_ammunition(ruleset: RuleSet, weapon: Optional[Weapon]) -> bool:
+    """Whether this weapon takes arrows — an Archery weapon that is not itself ammo."""
+    if weapon is None:
+        return False
+    entry = next((w for w in ruleset.weapon_catalog.values() if w.name == weapon.name),
+                 None)
+    return entry is not None and "archery" in entry.tags and "ammunition" not in entry.tags
+
+
+def clamp_pool_selection(state: dict, sidebar: PoolSidebarView) -> None:
+    """Drop a weapon/arrow choice that no longer names a row, in place.
+
+    `state` OUTLIVES the weapon list it indexes: the Play tab's sidebar is rebuilt on
+    every play-state change, and between two builds the player can delete a weapon on
+    the equipment surface. A `ui.select` whose value is not among its options raises at
+    BUILD time and takes the whole tab down with it, siblings included
+    (`docs/adding-a-splat.md` trap #3).
+
+    Clearing rather than remapping is deliberate: the list renumbers when a row is
+    deleted, so the index that survives names a DIFFERENT weapon than the one chosen.
+
+    A pure function on purpose. The same clamp lived inline in `play.py` and could only
+    be tested by driving the browser harness through a delete-and-rebuild, which turned
+    out to be untestable in a full-suite run: a `@ui.page` route builds once per session
+    and `user.client.elements` accumulates across every route the session has opened, so
+    "the last select labelled X" — and `user.find(marker=...)` with it — can belong to
+    another page entirely. The test passed alone and failed in the suite, firing its
+    rebuild trigger at somebody else's widget.
+    """
+    for key, rows in (("weapon", sidebar.weapons), ("arrow", sidebar.arrows)):
+        if state.get(key) not in {i for i, _ in rows}:
+            state[key] = None
 
 
 def build_pool_sidebar(ruleset: RuleSet, character: Character, *,
                        weapon_index: Optional[int] = None,
+                       arrow_index: Optional[int] = None,
                        include_mobility: bool = True,
                        include_wound: bool = True,
                        include_fatigue: bool = True) -> PoolSidebarView:
@@ -2455,8 +2514,23 @@ def build_pool_sidebar(ruleset: RuleSet, character: Character, *,
         for spec in poolsmod.specialties_for(character, roll):
             rows.append(_row(roll, f"{roll.name} · {spec.name}", specialty=spec))
 
+    ammo_idx = _ammunition_indices(ruleset, character)
+    arrows: list[tuple[int, str]] = []
+    arrow_note = ""
+    if _fires_ammunition(ruleset, weapon):
+        arrows = [(i, character.weapons[i].name or "(unnamed)") for i in sorted(ammo_idx)]
+        if arrow_index is not None and arrow_index in ammo_idx:
+            arrow = character.weapons[arrow_index]
+            sign = "+" if arrow.damage >= 0 else ""
+            arrow_note = (f"{arrow.name}: Strength {sign}{arrow.damage}"
+                          f"{arrow.damage_type or 'L'} base damage"
+                          + (f" — {arrow.notes}" if arrow.notes else ""))
+
     return PoolSidebarView(
-        weapons=[w.name or "(unnamed)" for w in character.weapons],
+        weapons=[(i, w.name or "(unnamed)") for i, w in enumerate(character.weapons)
+                 if i not in ammo_idx],
+        arrows=arrows,
+        arrow_note=arrow_note,
         groups=list(groups.items()),
         excludes=list(poolsmod.EXCLUDES),
         wound_label=wound_label,

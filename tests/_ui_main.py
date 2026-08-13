@@ -8,8 +8,9 @@ from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
     MeritFlawPurchase,
     Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
-    ArtifactEntry, FetterEntry, HouseRules, PassionEntry, PathRating, PlayState,
-    RitualEntry, ScienceRating, Specialty, ThaumaturgyState, Weapon)
+    ArtifactEntry, FetterEntry, HearthstoneEntry, HouseRules, PassionEntry,
+    PathRating, PlayState,
+    RitualEntry, ScienceRating, Specialty, ThaumaturgyState, VirtueFlaw, Weapon)
 from exalted_builder.engine import adversaries as adversaries_engine
 from exalted_builder.models.adversary import (Adversary, AdversaryAttack,
                                               AdversaryTrait)
@@ -1817,3 +1818,112 @@ CHAR_RESOURCES_2.backgrounds = [BackgroundEntry(name="Resources", rating=2)]
 @ui.page('/gear-resources')
 def page_gear_resources():
     editor.build_editor(RS, CHAR_RESOURCES_2, Path("x.json"), with_header=False)
+
+# A chargen character sitting on the transient over-cap state the editor creates every
+# time a specialty row is appended: `add_spec` writes the row on Melee and the player
+# retargets it afterwards, so row 4 is blank-and-Melee until the select is touched. Its
+# own route because the test edits this character's specialty list through the UI.
+CHAR_SPEC_STALE = Character(id="spec", name="Specialist", exalt_type="Solar", caste="dawn")
+CHAR_SPEC_STALE.specialties = [
+    Specialty(ability=AbilityName.MELEE, name="Daiklaives", rating=1) for _ in range(3)
+] + [Specialty(ability=AbilityName.MELEE, name="", rating=1)]
+
+@ui.page('/specialty-retarget')
+def page_specialty_retarget():
+    editor.build_editor(RS, CHAR_SPEC_STALE, Path("x.json"), with_header=False)
+
+# A character holding a Manse, for the Hearthstone picker. Its own route because the
+# test reads this character's Background list and note text.
+CHAR_MANSE = Character(id="manse", name="Stonekeeper", exalt_type="Solar", caste="dawn")
+CHAR_MANSE.backgrounds = [BackgroundEntry(name="Manse", rating=3),
+                          BackgroundEntry(name="Artifact", rating=3)]
+
+@ui.page('/manse-hearthstones')
+def page_manse_hearthstones():
+    advantages.build_advantages(RS, CHAR_MANSE, Path("x.json"), with_header=False)
+
+# Picking a Hearthstone MUTATES the character, so it needs a character of its own — a
+# @ui.page route builds once per session and a shared global leaks between render
+# tests.
+CHAR_MANSE_PICK = Character(id="mansep", name="Picker", exalt_type="Solar",
+                            caste="dawn")
+CHAR_MANSE_PICK.backgrounds = [BackgroundEntry(name="Manse", rating=3)]
+
+@ui.page('/manse-pick')
+def page_manse_pick():
+    advantages.build_advantages(RS, CHAR_MANSE_PICK, Path("x.json"),
+                                with_header=False)
+
+# Raising the Manse rating must move the DENOMINATOR of the running total. Its own
+# route because the test mutates this character's rating.
+# LOCKED, so the rating control is the play regime's number input rather than the
+# chargen dot track — a Manse grows or falls through the story, which is when this
+# actually bites, and the dots are unmarked icons no test can aim at.
+CHAR_MANSE_RAISE = Character(id="mr", name="Climber", exalt_type="Solar", caste="dawn",
+                             chargen_locked=True)
+CHAR_MANSE_RAISE.backgrounds = [BackgroundEntry(
+    name="Manse", rating=3,
+    hearthstones=[HearthstoneEntry(name="Gem of Adamant Skin", rating=4)])]
+
+@ui.page('/manse-raise')
+def page_manse_raise():
+    advantages.build_advantages(RS, CHAR_MANSE_RAISE, Path("x.json"),
+                                with_header=False)
+
+# A Manse row flipped to Demesne: it keeps the toggle (so it can be flipped back) but
+# loses the Hearthstone picker.
+CHAR_DEMESNE = Character(id="dem", name="Wildling", exalt_type="Solar", caste="dawn")
+CHAR_DEMESNE.backgrounds = [BackgroundEntry(name="Manse", rating=3, is_demesne=True)]
+
+@ui.page('/manse-demesne')
+def page_manse_demesne():
+    advantages.build_advantages(RS, CHAR_DEMESNE, Path("x.json"), with_header=False)
+
+# A TIERED Manse allowance (Abyssal / Dragon-Blooded ladders), which is a different
+# code path from the linear one — it carries a printed tier label and a per-stone
+# ceiling the corebook's Manse has no equivalent of.
+CHAR_MANSE_TIERED = Character(id="mt", name="Graveward", exalt_type="Abyssal",
+                              caste="Dusk")
+CHAR_MANSE_TIERED.backgrounds = [BackgroundEntry(
+    name="Underworld Manse", rating=3,
+    hearthstones=[HearthstoneEntry(name="Gem of Adamant Skin", rating=4)])]
+
+@ui.page('/manse-tiered')
+def page_manse_tiered():
+    advantages.build_advantages(RS, CHAR_MANSE_TIERED, Path("x.json"),
+                                with_header=False)
+
+# A STRANDED stone: one held on a row that grows none, which is what renaming a Manse
+# row leaves behind. The allowance is None here, so the row renders through a branch
+# nothing else reaches.
+CHAR_STRANDED = Character(id="st", name="Magpie", exalt_type="Solar", caste="dawn")
+CHAR_STRANDED.backgrounds = [BackgroundEntry(
+    name="Resources", rating=3,
+    hearthstones=[HearthstoneEntry(name="Stone of Healing", rating=1)])]
+
+@ui.page('/manse-stranded')
+def page_manse_stranded():
+    advantages.build_advantages(RS, CHAR_STRANDED, Path("x.json"), with_header=False)
+
+# An archer carrying arrows, for the nocked-arrow control on the Play tab. Its own
+# route because the test reads this character's weapon list.
+CHAR_ARCHER = Character(id="arch", name="Fletcher", exalt_type="Solar", caste="dawn")
+CHAR_ARCHER.attributes[AttributeName.DEXTERITY] = 4
+CHAR_ARCHER.abilities[AbilityName.ARCHERY] = 3
+CHAR_ARCHER.weapons.append(Weapon(name="Long Bow", accuracy=1, rate=3, range=200,
+                                  max_strength=4))
+CHAR_ARCHER.weapons.append(Weapon(name="Frog Crotch Arrow", damage=4, damage_type="L",
+                                  quantity=20,
+                                  notes="the lethal soak of the target's armour is doubled"))
+
+@ui.page('/archer-pools')
+def page_archer_pools():
+    play.build_play(RS, CHAR_ARCHER, Path("x.json"), with_header=False)
+
+# A Solar with a flawed Valor, for the sample-Flaw dropdown.
+CHAR_VFLAW = Character(id="vf", name="Cursed", exalt_type="Solar", caste="dawn")
+CHAR_VFLAW.virtue_flaw = VirtueFlaw(virtue=VirtueName.VALOR)
+
+@ui.page('/virtue-flaw')
+def page_virtue_flaw():
+    editor.build_editor(RS, CHAR_VFLAW, Path("x.json"), with_header=False)
