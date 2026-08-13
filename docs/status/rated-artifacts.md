@@ -620,7 +620,7 @@ it stays out of the catalogue.
   Advantages tab's combobox.
 
 
-## Gear `resources_cost` — the Resources System (DONE 2026-08-12, NOT browser-verified)
+## Gear `resources_cost` — the Resources System (DONE 2026-08-12, browser-verified)
 **Core p.325, the "THE RESOURCES SYSTEM" sidebar**, is the whole rule. Items carry no
 money price; they are rated in the Resources dots needed to buy them. Cost **lower** than
 the rating is an out-of-pocket expense ("as many of the items as she wants"); cost

@@ -7,6 +7,13 @@ things wrong at once: offering every splat every other splat's Backgrounds, sayi
 same sentence at one dot as at five, and (for Ghosts) never warning about an unspent
 pool. The authoring brief that drove the sweep is `docs/briefs-backgrounds-sweep.md`.
 
+⚠ **The Manse Background gained real mechanics on 2026-08-12** — the Hearthstone
+allowance (S&S pp.66-67), which lives on `BackgroundType.hearthstone_tiers` /
+`hearthstone_per_dot` rather than on `BackgroundRule`. That is a deliberate exception to
+the convention stated in the `ladder` field's comment, and the reason is written up in
+**`docs/status/corebook-wonders.md`** — read it before moving those fields. It also adds
+`BackgroundEntry.hearthstones` and `is_demesne`, and `BackgroundBudgetTier.max_items`.
+
 ## What shipped
 
 **Per-splat catalogues.** Every splat/origin row in `chargen_budgets.json` (18 of 33

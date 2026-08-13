@@ -1,6 +1,8 @@
 # The corebook Wonders chapter — DONE 2026-08-12
 
-**Not yet browser-verified.** Tests green; `preflight` not yet run.
+**Browser-verified 2026-08-12.** Suite **2,285**. The Hearthstone ALLOWANCE — the S&S
+pp.66-67 rules that came after the first click-through — is written up at the bottom of
+this file and is browser-verified too.
 
 The corebook's own artifacts were the ones a player was most likely to reach for and
 the ones the catalogue did not have. `data/artifacts.json` held **8** core entries, all
@@ -87,10 +89,14 @@ split, and both artifact-spending surfaces — the row's name combobox and its c
 dialog — read it. `test_hearthstones_are_never_offered_as_artifact_purchases` pins it at
 the surface that would commit the charge, not only in the engine.
 
-The stones' home is the **Manse Background row**, which grows a diamond-icon picker
-(`_is_manse` matches any row whose name contains "manse", so a Sidereal's Celestial
-Manse and an Abyssal's Underworld Manse get it too). A pick appends the stone's name to
-that row's note. It deliberately creates no `ArtifactEntry`.
+The stones' home is the **Manse Background row**, which grows a diamond-icon picker. It
+deliberately creates no `ArtifactEntry`.
+
+⚠ **Both halves of that sentence were superseded the same day** — see *Hearthstone
+allowances* at the bottom of this file. The picker was gated by `_is_manse` (a substring
+test on the row's free-text name) and a pick appended the stone's NAME to the row's note.
+The gate is now `artifacts.grows_hearthstones`, reading the data, and the pick lands in
+`BackgroundEntry.hearthstones` with its rating.
 
 ## The re-sweep, and what it found
 
@@ -188,3 +194,120 @@ authority has not ruled on whether it is an erratum** — do not silently align 
 * `ui/catalogue.py` (icons), `ui/advantages.py` (filtered artifact surfaces, Manse
   picker), `ui/editor.py` (quantity, Virtue Flaw dropdown), `ui/view.py` + `ui/play.py`
   (nocked arrow)
+
+---
+
+# Hearthstone allowances — DONE 2026-08-12, browser-verified
+
+Suite **2,285**. The follow-up to the section above: the Wonders pass gave Hearthstones
+a home on the Manse Background row, and the human's click-through found that nothing
+checked them — *"Hearthstones don't check their Manse rating against your background
+(or use the multiple-Hearthstone math from Savant and Sorceror p66)."*
+
+The governing sentence is **S&S p.67**: "The sum of the levels of all the Hearthstones
+produced can never exceed the level of the Manse." p.66's *Multiple Hearthstones by
+Design* is the other half — a Manse can be built to yield several stones instead of one,
+so the rule caps the **total**, never the count.
+
+## Why it could not be checked at all
+
+The first cut appended the picked stone's NAME to the Background row's `note` and kept
+no rating. There was no number to check. And `note` is bound to a text input that
+rewrites it on every keystroke, so parsing the names back out would have been the
+**catalogue-dialog discriminator bug** exactly — a rule switched on by state the player
+can edit to switch off (see `catalogue-dialogs.md`).
+
+So stones are stored structurally: `BackgroundEntry.hearthstones`, a list of
+`HearthstoneEntry(name, rating)`. The rating is an inline COPY of the catalogue entry's
+(decision 0007) — S&S p.67 says every Manse is unique and the printed ten are examples,
+so a stone renamed at the table must not keep claiming the printed one's level.
+
+## The allowance is data, and it is not uniform
+
+⚠ **The assumption that nearly shipped: "a Manse row's rating IS the Manse's level."**
+True for the corebook and false for three of the six variants. The printed ladders
+already carried the real numbers:
+
+| Variant | Shape | Source |
+|---|---|---|
+| core `Manse`; Sidereal + Dragon-King `Celestial Manse` | linear, 1 level/dot | "Level N Manse" / "Produces a level N Hearthstone" |
+| Dragon-Blooded `Manse`; Abyssal `Underworld Manse` | tiers **2/3/6/8/10**, largest single stone **2/2/3/4/5** | their ladders, rung by rung |
+| Mountain Folk `Manse` | 2 levels/dot | CH6 prose; the splat prints no ladder |
+
+The DB and Abyssal rung 3 is the one that proves the shape is needed: six levels total
+but no stone above 3, so 4+2 is illegal where 3+2+1 is legal. No single cap expresses
+that, and `BackgroundBudgetTier` (the Abyssal Artifact budget's row model) already did.
+
+**These live on `BackgroundType`, not on `BackgroundRule`.** That is a deliberate
+departure from the convention stated in the `ladder` field's own comment ("the numeric
+rules a ladder happens to state belong in the per-splat `BackgroundRule`"), for one
+reason: `background_rules` is keyed per BUDGET ROW and Dragon-Blooded has **14** of
+them, so the DB tiers would have been authored up to fourteen times. The Manse variants
+are already six distinct per-splat catalogue entries with their own ids, and
+`background_catalogue_for` already resolves the right one per character. One authoring
+site each, beside the ladder text they were transcribed from.
+
+⚠ `BackgroundBudgetTier.max_items` is new and is set on exactly one rung: the DB and
+Abyssal single-dot row prints *"She may have **one** Hearthstone of level 1 or 2"*, a
+COUNT the two maxima cannot express (combined 2 + individual 2 permits two level-1
+stones). Read out of prose rather than a table; **the human signed it off 2026-08-12.**
+
+## Demesnes are deliberately not modelled
+
+Every Manse ladder doubles as the Demesne ladder one rung up, and S&S p.66 gives Demesne
+stones their own rule (one level BELOW the Demesne, decaying once removed). **Human's
+ruling 2026-08-12:** "Demesne hearthstones are barely a thing and are directly said to
+barely exist." So `BackgroundEntry.is_demesne` marks the row and it grows no stones —
+that toggle is the whole of the support they get.
+
+The toggle stays visible on a row already flipped, or there would be no way back; and a
+stone stranded by flipping (or by renaming the row) still renders with its delete
+control, because **an Issue the player has no widget to act on is worse than no Issue.**
+
+## Enforcement
+
+`validate.check_hearthstones`, called unconditionally from `validate` — **hard on both
+sides of the lock, the human's ruling.** The allowance is keyed to a Background the story
+raises and lowers, so a chargen-only check would fall silent exactly when the cap started
+moving. **Per ROW, not per character**: two Manse rows are two Manses with two
+allowances. Four codes: `hearthstone-over-combined`, `-over-individual`, `-over-count`,
+`-without-manse`.
+
+The `"manse" in name.lower()` substring test is GONE, replaced by
+`artifacts.grows_hearthstones` reading the data. The substring both over-matched (a row
+typed "Manse (destroyed)") and could say nothing about how many levels a row carries.
+
+## What the work turned up
+
+* **Two UI bugs in one line, both invisible to a green suite.** The running total
+  captured its allowance when the row was BUILT, so raising the Manse moved the printed
+  rung and left "4 / 3" insisting the row was still over budget; and the rating control's
+  sync hook drove only the rung label, never the stone total. Found in the browser.
+  **Why the suite could not see it: every test until the regression read the total on a
+  freshly built panel, which is the one phase a stale captured value agrees with.** The
+  fix recomputes the allowance inside the repaint and chains the total's sync onto
+  `row_sync["fn"]`.
+* **Preflight caught the sibling before the browser did.** The stone's rating
+  `ui.number` called `refresh_all()`, which rebuilds the panel — and a rebuilt input eats
+  every keystroke after the first. That lesson was already written twenty lines away on
+  the Background description label and still got re-broken. Repaint in place; only
+  removal rebuilds, because a click carries no in-progress typing.
+* **A test that passed alone and failed in the suite**, for the reason already recorded
+  in `nicegui-harness-one-route-per-test`: it imported `_ui_main`'s character to assert
+  on it, and the harness loads that file as its own module object, so the import bound a
+  different instance. Asserting through the UI is both correct and stronger here — the
+  printed total can only read "4" if the pick recorded the stone's RATING.
+
+## Files
+
+* `models/rules.py` — `BackgroundType.hearthstone_tiers` / `hearthstone_per_dot`;
+  `BackgroundBudgetTier.max_items`; the tier class MOVED above `BackgroundType` so the
+  annotation resolves
+* `models/character.py` — `HearthstoneEntry`, `BackgroundEntry.hearthstones` /
+  `is_demesne`
+* `engine/artifacts.py` — `HearthstoneAllowance`, `grows_hearthstones`,
+  `hearthstone_allowance`, `hearthstone_total`
+* `engine/validate.py` — `check_hearthstones`, called from `validate`
+* `ui/advantages.py` — structured picker, Demesne toggle, per-stone rows, the running
+  total, `bg-rating` marker
+* `data/backgrounds.json` — the six Manse variants
