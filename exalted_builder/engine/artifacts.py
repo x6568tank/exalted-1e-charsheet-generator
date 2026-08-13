@@ -48,6 +48,13 @@ MANSE_BACKGROUND = "manse"
 # Item-key prefixes. A key is "<source>:<lowercased name>" — stable across a save,
 # readable in a JSON file, and resolvable to nothing (gracefully) when the item it
 # names has been renamed or deleted.
+# How an item was acquired — see `models.character.ArtifactEntry.acquired`. The
+# Background is the pre-game channel ("to start the game owning", core p.342); cash is
+# the in-play one (Manacle and Coin pp.122-125). Only the first is charged to the
+# budget.
+ACQUIRED_BACKGROUND = "background"
+ACQUIRED_PURCHASED = "purchased"
+
 SOURCE_ARTIFACT = "artifact"
 SOURCE_WEAPON = "weapon"
 SOURCE_ARMOR = "armor"
@@ -65,6 +72,7 @@ class ArtifactItem(BaseModel):
     name: str
     rating: int
     source: str                            # SOURCE_ARTIFACT / _WEAPON / _ARMOR
+    acquired: str = ACQUIRED_BACKGROUND    # ACQUIRED_BACKGROUND / _PURCHASED
 
 
 def item_key(source: str, name: str) -> str:
@@ -88,7 +96,7 @@ def artifact_items(character: Character) -> list[ArtifactItem]:
         if art.name.strip():
             out.append(ArtifactItem(
                 key=item_key(SOURCE_ARTIFACT, art.name), name=art.name,
-                rating=art.rating, source=SOURCE_ARTIFACT,
+                rating=art.rating, source=SOURCE_ARTIFACT, acquired=art.acquired,
             ))
     # A gear row that is the stat line of a standalone artifact is the SAME OBJECT, and
     # counting it again would charge the budget twice for one daiklave — see
@@ -106,6 +114,7 @@ def artifact_items(character: Character) -> list[ArtifactItem]:
                 out.append(ArtifactItem(
                     key=item_key(source, item.name), name=item.name,
                     rating=item.artifact_rating, source=source,
+                    acquired=item.acquired,
                 ))
     return out
 
@@ -278,9 +287,30 @@ def hearthstone_total(bg) -> int:
     return sum(stone.rating for stone in bg.hearthstones)
 
 
+def budgeted_items(character: Character) -> list[ArtifactItem]:
+    """The artifacts the Artifact Background actually PAID FOR — everything owned,
+    minus what was bought with cash (human's ruling 2026-08-13).
+
+    Split from `artifact_items` rather than replacing it, because the two questions are
+    different and only one of them is about money. The BUDGET asks what the Background
+    bought; Damaged Artifact, the sheet and the picker ask what the character OWNS, and
+    a purchased daiklave can be damaged, wielded and displayed like any other. Every
+    budget read site goes through here; nothing else should.
+    """
+    return [i for i in artifact_items(character)
+            if i.acquired != ACQUIRED_PURCHASED]
+
+
+def purchased_items(character: Character) -> list[ArtifactItem]:
+    """The other half — artifacts acquired with cash rather than Background dots."""
+    return [i for i in artifact_items(character)
+            if i.acquired == ACQUIRED_PURCHASED]
+
+
 def combined_rating(character: Character) -> int:
-    """Total artifact rating owned, which is what the p.131 budget caps."""
-    return sum(item.rating for item in artifact_items(character))
+    """Total artifact rating the Background is charged for, which is what the p.131
+    budget caps. Purchased artifacts are excluded — see `budgeted_items`."""
+    return sum(item.rating for item in budgeted_items(character))
 
 
 def artifact_rule(budgets) -> Optional[BackgroundRule]:

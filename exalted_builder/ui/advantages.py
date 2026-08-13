@@ -578,7 +578,11 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             (5→4→5) was silently lost, the stored rating desynced from the number on
             screen, and the two-flagships warning never came back. The header and the
             readout are the only things a rating edit moves."""
-            items = artifactsmod.artifact_items(character)
+            # The BUDGET's items, not everything owned: a purchased artifact is charged
+            # to nothing, so counting it here would print a number the validator does
+            # not agree with — the header and the rule must tell the same story.
+            items = artifactsmod.budgeted_items(character)
+            bought = artifactsmod.purchased_items(character)
             rule = artifactsmod.artifact_rule(validate.effective_budgets(rs, character))
             budgeted = rule is not None and bool(rule.budget_tiers)
             header = "Artifacts"
@@ -611,6 +615,12 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                     "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
                 ui.label("bought with the Artifact Background").classes(
                     "text-xs text-gray-500")
+                if bought:
+                    # Said out loud, because the alternative is a header whose count is
+                    # lower than the visible list for no stated reason.
+                    ui.label(f"+ {len(bought)} bought with Resources, not charged to "
+                             f"the Background").classes("text-xs text-gray-500"
+                                                        ).props('data-testid="art-bought"')
 
         # The name combobox is fed from the catalogue (`data/artifacts.json`). Option
         # labels stay plain names so `art.name` stores cleanly; the rating and
@@ -646,6 +656,21 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                                            _artifacts_header.refresh(),
                                            changed())
                                        ).props("dense").classes("w-24")
+                    # How it was acquired. POST-LOCK ONLY: at creation the Background
+                    # is the only channel there is (core p.342, "to start the game
+                    # owning"), so offering the choice would be offering an illegal
+                    # pick — the same reasoning that filters the Virtue Flaw dropdown
+                    # to the flawed Virtue. `validate` bars it either way; this stops
+                    # the player reaching the bar.
+                    if character.chargen_locked:
+                        ui.select({artifactsmod.ACQUIRED_BACKGROUND: "Background",
+                                   artifactsmod.ACQUIRED_PURCHASED: "Bought"},
+                                  value=art.acquired, label="Acquired",
+                                  on_change=lambda e, art=art: (
+                                      setattr(art, "acquired",
+                                              e.value or artifactsmod.ACQUIRED_BACKGROUND),
+                                      _artifacts_header.refresh(), changed())
+                                  ).props("dense").classes("w-32").mark("art-acquired")
                     ui.button(icon="delete",
                               on_click=lambda e=None, idx=idx: remove_artifact(idx)
                               ).props("flat dense round")

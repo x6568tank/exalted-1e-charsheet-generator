@@ -154,6 +154,7 @@ costs — read the record before proposing anything that contradicts it.
 | 0014 | Essence is XP-purchasable to the splat cap; the age chart is gone |
 | 0015 | **Exalt tiers are RANKED** — Terrestrial < Celestial < Solar; a splat reaches its own tier and every tier below, never up |
 | 0016 | **Base dice pools are in scope; resolution is not** — narrows 0008's boundary, leaves 0009 untouched |
+| 0017 | **Artifacts have TWO acquisition channels** — the Artifact Background is pre-game ("to start the game owning", core p.342), cash is in-play (M&C pp.122-125); only Background-funded artifacts are budgeted, and purchase is barred at chargen |
 
 **Permanently out of scope** — decisions 0008, 0009 and 0010 (no combat/attack
 derivation, no dice rolling of any kind, no Fair Folk). Read them before proposing any

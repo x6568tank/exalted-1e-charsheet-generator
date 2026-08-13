@@ -1443,6 +1443,29 @@ def page_artifact_grant():
 def page_artifact_grant_editor():
     editor.build_editor(RS, CHAR_ARTIFACT_GRANT, Path("x.json"), with_header=False)
 
+# A LOCKED character who bought an artifact with cash (Manacle and Coin pp.122-125) —
+# the acquisition control exists only post-lock, and the budget must not charge for it.
+CHAR_ARTIFACT_BOUGHT = Character(id="artb", name="Merchant", exalt_type="Solar",
+                                 caste="dawn")
+CHAR_ARTIFACT_BOUGHT.backgrounds.append(BackgroundEntry(name="Artifact", rating=2))
+CHAR_ARTIFACT_BOUGHT.backgrounds.append(BackgroundEntry(name="Resources", rating=4))
+CHAR_ARTIFACT_BOUGHT.artifacts.append(ArtifactEntry(name="Tattered Wings", rating=2))
+lifecycle.lock_chargen(CHAR_ARTIFACT_BOUGHT, RS)
+
+@ui.page('/artifact-bought')
+def page_artifact_bought():
+    advantages.build_advantages(RS, CHAR_ARTIFACT_BOUGHT, Path("x.json"), with_header=False)
+
+# The same shape UNLOCKED, where the control must not exist at all.
+CHAR_ARTIFACT_UNLOCKED = Character(id="artu", name="Fresh", exalt_type="Solar",
+                                   caste="dawn")
+CHAR_ARTIFACT_UNLOCKED.backgrounds.append(BackgroundEntry(name="Artifact", rating=2))
+CHAR_ARTIFACT_UNLOCKED.artifacts.append(ArtifactEntry(name="Tattered Wings", rating=2))
+
+@ui.page('/artifact-unlocked')
+def page_artifact_unlocked():
+    advantages.build_advantages(RS, CHAR_ARTIFACT_UNLOCKED, Path("x.json"), with_header=False)
+
 # Damaged Artifact held by a character owning NO artifacts — the empty-options case
 # for the artifact picker, which is the NiceGUI build-time crash class (a ui.select
 # whose value is not among its options takes the whole tab down, siblings included).

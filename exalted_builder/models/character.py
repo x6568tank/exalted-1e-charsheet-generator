@@ -119,6 +119,24 @@ class ArtifactEntry(BaseModel):
     name: str
     rating: int = Field(ge=1, le=5)
     note: str = ""
+    # HOW the character came to own it — `engine.artifacts.ACQUIRED_BACKGROUND` (the
+    # default) or `ACQUIRED_PURCHASED`. The two are different channels, both printed:
+    #
+    #   * the Artifact Background is the PRE-GAME one, and the corebook says so in as
+    #     many words — every gear table defines its Artifact column as "the number of
+    #     dots in the Artifact Background the character must spend TO START THE GAME
+    #     OWNING one of these" (core p.342, repeated for armour on p.345);
+    #   * cash is the IN-PLAY one: Manacle and Coin pp.122-125 prices the same wonders
+    #     in Resources ("Daiklave ••••" where the Background rates it Artifact ••),
+    #     and says outright that its tables "closely follow the Wonders and Equipment
+    #     tables on pp. 324-346 in the main Exalted book".
+    #
+    # Only Background-funded items are charged to the Artifact budget — a bought
+    # daiklave is equipment you paid for. ⚠ Unlike `Weapon.from_artifact` this
+    # discriminator is MEANT to be player-editable, so it is a hole in the budget by
+    # construction; `validate.check_artifacts` closes it at chargen, where the printed
+    # phrase above says purchase does not happen (human's ruling 2026-08-13).
+    acquired: str = "background"
 
 
 class FetterEntry(BaseModel):
@@ -419,6 +437,7 @@ class Weapon(BaseModel):
     # resolves, so renaming or deleting the artifact makes the gear stand on its own
     # again rather than becoming an artifact nothing counts.
     from_artifact: str = ""
+    acquired: str = "background"           # see ArtifactEntry.acquired
 
 
 class Armor(BaseModel):
@@ -433,6 +452,7 @@ class Armor(BaseModel):
     resources_cost: int = Field(default=0, ge=0)
     material: str = ""                     # magical material id; "" = mundane
     from_artifact: str = ""                # see Weapon.from_artifact — same contract
+    acquired: str = "background"           # see ArtifactEntry.acquired
 
 
 class VirtueFlaw(BaseModel):

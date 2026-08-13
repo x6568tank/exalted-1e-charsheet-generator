@@ -2363,6 +2363,33 @@ def check_hearthstones(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def _purchased_at_chargen_issues(character: Character) -> list[Issue]:
+    """Artifacts may not be BOUGHT during character creation (human's ruling
+    2026-08-13).
+
+    The corebook defines the Artifact column of every gear table as "the number of dots
+    in the Artifact Background the character must spend TO START THE GAME OWNING one of
+    these" (p.342; p.345 for armour), so the Background is the pre-game channel and cash
+    is the in-play one. Without this, `acquired` would be a hole straight through the
+    budget at exactly the phase the budget exists for: a player could mark every artifact
+    purchased and start play with a hoard the Background never paid for.
+
+    Post-lock it is silent — buying an artifact with money is the whole point of the
+    other channel, and Resources is a hint rather than a validation (core p.325).
+    """
+    if character.chargen_locked:
+        return []
+    bought = artifacts.purchased_items(character)
+    if not bought:
+        return []
+    return [Issue(
+        code="artifact-purchased-at-chargen", where=item.name,
+        message=(f"{item.name} is marked as purchased, but artifacts are bought with "
+                 f"cash only in play; at creation the Artifact Background is what "
+                 f"buys them (core p.342)."),
+    ) for item in bought]
+
+
 def _corebook_artifact_issues(items: list, rating: int) -> list[Issue]:
     """The corebook Artifact Background: ONE artifact, rated no higher than the
     Background (human ruling 2026-08-13).
@@ -2425,7 +2452,12 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
         reported as warnings rather than errors; the combined budget is not.
     """
     issues: list[Issue] = []
-    items = artifacts.artifact_items(character)
+    # The BUDGET counts what the Artifact Background bought. A purchased artifact is
+    # equipment paid for in cash and is charged to nothing here — see
+    # `artifacts.budgeted_items` and the ruling in `ArtifactEntry.acquired`. The chargen
+    # bar below is what stops that being a free pass at creation.
+    issues += _purchased_at_chargen_issues(character)
+    items = artifacts.budgeted_items(character)
     if not items:
         return issues
     budgets = effective_budgets(ruleset, character)

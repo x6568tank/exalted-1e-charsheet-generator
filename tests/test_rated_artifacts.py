@@ -1254,3 +1254,99 @@ def test_the_two_catalogues_agree_on_every_shared_artifact_rating(rs) -> None:
                     f"{entry.name}: artifacts.json {art.rating} vs gear "
                     f"{entry.artifact_rating}")
     assert not disagreements, "; ".join(disagreements)
+
+
+# --- the two acquisition channels (2026-08-13) ------------------------------ #
+
+def test_a_purchased_artifact_is_not_charged_to_the_background(rs):
+    """Two printed channels: the Artifact Background is the PRE-GAME one — every gear
+    table defines its Artifact column as the dots "the character must spend to start
+    the game owning one of these" (core p.342, p.345) — and cash is the IN-PLAY one
+    (Manacle and Coin pp.122-125, which prices the same daiklave the Background rates
+    Artifact •• at Resources ••••).
+
+    So a bought artifact is equipment, and the budget must not see it.
+    """
+    c = Character(id="c.b", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                  chargen_locked=True, backgrounds=[_bg("Artifact", 2)],
+                  artifacts=[_art(name="Wings", rating=2),
+                             _art(name="Daiklave", rating=2,
+                                  acquired=artifacts.ACQUIRED_PURCHASED)])
+    assert [i.name for i in artifacts.budgeted_items(c)] == ["Wings"]
+    assert [i.name for i in artifacts.purchased_items(c)] == ["Daiklave"]
+    assert artifacts.combined_rating(c) == 2
+    # One Background artifact rated 2 on Artifact 2 — legal under the corebook rule,
+    # and it stays legal with a bought daiklave beside it.
+    assert validate.check_artifacts(rs, c) == []
+
+
+def test_the_character_still_OWNS_a_purchased_artifact(rs):
+    """`budgeted_items` answers "what did the Background pay for"; `artifact_items`
+    answers "what does she own", and only the first is about money. Damaged Artifact,
+    the sheet and the pickers read the second — a bought daiklave can be damaged and
+    wielded like any other."""
+    c = Character(id="c.b2", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                  chargen_locked=True,
+                  artifacts=[_art(name="Daiklave", rating=2,
+                                  acquired=artifacts.ACQUIRED_PURCHASED)])
+    assert [i.name for i in artifacts.artifact_items(c)] == ["Daiklave"]
+    assert artifacts.find_item(
+        c, artifacts.item_key(artifacts.SOURCE_ARTIFACT, "Daiklave")) is not None
+
+
+def test_artifacts_may_not_be_BOUGHT_at_chargen(rs):
+    """⚠ `acquired` is a discriminator the player is MEANT to edit, so it is a hole
+    through the budget by construction — mark everything purchased and the Artifact
+    Background stops binding. The ruling closes it where it matters: creation, the
+    phase the budget exists for and the one the printed phrase excludes ("to start the
+    game owning"). Post-lock the same character is silent."""
+    def _codes(locked: bool):
+        c = Character(id="c.b3", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                      chargen_locked=locked, backgrounds=[_bg("Artifact", 2)],
+                      artifacts=[_art(name="Daiklave", rating=2,
+                                      acquired=artifacts.ACQUIRED_PURCHASED)])
+        return [i.code for i in validate.check_artifacts(rs, c)]
+    assert _codes(locked=False) == ["artifact-purchased-at-chargen"]
+    assert _codes(locked=True) == []
+
+
+def test_an_artifact_WEAPON_can_be_purchased_too(rs):
+    """The provenance lives on all three ownables, because artifacts live in three
+    places — a bought daiklave is usually a weapon row, not a standalone artifact."""
+    c = Character(id="c.b4", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                  chargen_locked=True, backgrounds=[_bg("Artifact", 1)])
+    c.weapons.append(Weapon(name="Daiklave", artifact_rating=2,
+                            acquired=artifacts.ACQUIRED_PURCHASED))
+    assert artifacts.budgeted_items(c) == []
+    assert validate.check_artifacts(rs, c) == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_acquisition_control_is_POST_LOCK_only(user) -> None:
+    """At creation the Background is the only channel there is, so offering the choice
+    would be offering an illegal pick — the same reasoning that filters the Virtue Flaw
+    dropdown to the flawed Virtue. The validator bars it either way; this stops the
+    player reaching the bar."""
+    await user.open('/artifact-bought')
+    await user.should_see("Acquired")
+    await user.open('/artifact-unlocked')
+    await user.should_see("Tattered Wings")        # the panel is there…
+    await user.should_not_see("Acquired")          # …without the control
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_header_says_what_the_background_did_NOT_pay_for(user) -> None:
+    """A header counting only budgeted items sits above a list showing every artifact,
+    so the difference has to be stated or the count reads as a bug. CHAR_ARTIFACT_BOUGHT
+    holds one Background artifact; the test flips it to Bought and watches both move."""
+    from nicegui import ui as _ui
+    await user.open('/artifact-bought')
+    await user.should_see("1/1")
+    await user.should_not_see("bought with Resources")
+    sel = next(e for e in user.client.elements.values()
+               if isinstance(e, _ui.select) and "art-acquired" in getattr(e, "_markers", []))
+    sel.set_value("purchased")
+    await user.should_see("bought with Resources")
+    await user.should_see("0/1")

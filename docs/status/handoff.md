@@ -63,11 +63,16 @@ characters (the dot-counting parser is not needed for it), the same tables fulle
 two the corebook lacks — the Resources↔cash conversion (p.122) and Everyday / Greater &
 Lesser Wonders (p.125). The two books agree on all 39 shared rows.
 
-⚠ **One ruling needed before authoring p.125:** it prices ARTIFACTS in Resources
-("Daiklave ••••", "Hearthstone Amulet •••") where the artifact catalogue rates that
-daiklave **Artifact ••**. Two different currencies, and read literally it lets a
-character buy an artifact for cash — directly on top of the one-artifact corebook rule
-ruled the same day.
+**That ruling is now CLOSED as decision 0017** — the two numbers measure different
+things and the corebook says so: its gear tables define the Artifact column as the dots
+spent "to start the game owning" the item (p.342). So the Background is the pre-game
+channel and cash is the in-play one. **The model and the rule are BUILT** (`acquired` on
+the three ownables, `artifacts.budgeted_items`, the post-lock-only control, the
+`artifact-purchased-at-chargen` bar); **the M&C prices are NOT yet authored** — that is
+the next slice, along with `data/gear.json`.
+
+⚠ NOT browser-verified: the Acquired control appears only post-lock, and flipping it to
+Bought must drop the header count and print "+ 1 bought with Resources".
 
 Also still open: the Resources hint on the gear dialogs is unclicked.
 
