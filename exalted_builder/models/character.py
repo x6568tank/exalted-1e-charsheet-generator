@@ -403,6 +403,22 @@ class Weapon(BaseModel):
     # in the engine reads it, because nothing derives an attack (decision 0008) and a
     # stack of twenty arrows is still one Strength + 2 shot.
     quantity: int = Field(default=1, ge=1)
+    # The standalone artifact this row is the STAT LINE of — `engine.artifacts.item_key`
+    # of an entry in `Character.artifacts`, or "" for ordinary gear.
+    #
+    # Twenty names live in both the artifact catalogue and the gear catalogues (Daiklave,
+    # Grand Daiklave, Myrmidon Carapace…), and the artifact row carries no stats — so the
+    # natural way to play a daiklave is to own it as an artifact AND add a weapon row to
+    # swing it. That counted the same daiklave twice against the p.131 budget, which the
+    # corebook one-artifact rule turns from a wart into a false error.
+    #
+    # ⚠ Set ONCE, when the artifact grants the row, and editable by nothing on screen —
+    # this is a discriminator, and the catalogue dialogs' own scar is a discriminator a
+    # widget could write (see docs/status/catalogue-dialogs.md). It is a SOFT reference
+    # in the Backgrounds mould: `artifact_items` counts this row unless the key still
+    # resolves, so renaming or deleting the artifact makes the gear stand on its own
+    # again rather than becoming an artifact nothing counts.
+    from_artifact: str = ""
 
 
 class Armor(BaseModel):
@@ -416,6 +432,7 @@ class Armor(BaseModel):
     attunement: int = Field(default=0, ge=0)
     resources_cost: int = Field(default=0, ge=0)
     material: str = ""                     # magical material id; "" = mundane
+    from_artifact: str = ""                # see Weapon.from_artifact — same contract
 
 
 class VirtueFlaw(BaseModel):

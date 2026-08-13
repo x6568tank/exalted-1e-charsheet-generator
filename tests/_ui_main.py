@@ -1414,6 +1414,35 @@ CHAR_ARTIFACTS_SOLAR.artifacts.append(ArtifactEntry(name="Tattered Wings", ratin
 def page_artifacts_advantages_solar():
     advantages.build_advantages(RS, CHAR_ARTIFACTS_SOLAR, Path("x.json"), with_header=False)
 
+# The same Solar past the lock, where the Background rating control is a NUMBER input
+# (the unlocked regime draws dots, which a test can only click one pip at a time). The
+# corebook Artifacts header reads the Artifact BACKGROUND, which is edited in a
+# different panel — its own route because the test MUTATES this character's rating.
+CHAR_ARTIFACT_HEADER = CHAR_ARTIFACTS_SOLAR.model_copy(deep=True)
+CHAR_ARTIFACT_HEADER.id = "arth"
+lifecycle.lock_chargen(CHAR_ARTIFACT_HEADER, RS)
+
+@ui.page('/artifact-header-sync')
+def page_artifact_header_sync():
+    advantages.build_advantages(RS, CHAR_ARTIFACT_HEADER, Path("x.json"), with_header=False)
+
+# Picking an artifact that is ALSO a weapon must grant the stat line, linked, so the
+# budget counts one daiklave rather than two. Its own character: the test picks from the
+# catalogue and mutates it.
+CHAR_ARTIFACT_GRANT = Character(id="artg", name="Swordbearer", exalt_type="Solar",
+                                caste="dawn")
+CHAR_ARTIFACT_GRANT.backgrounds.append(BackgroundEntry(name="Artifact", rating=3))
+
+@ui.page('/artifact-grant')
+def page_artifact_grant():
+    advantages.build_advantages(RS, CHAR_ARTIFACT_GRANT, Path("x.json"), with_header=False)
+
+# The equipment surface for the SAME character, so a test can pick an artifact on one
+# page and see the granted stat line on the other without reaching into module state.
+@ui.page('/artifact-grant-editor')
+def page_artifact_grant_editor():
+    editor.build_editor(RS, CHAR_ARTIFACT_GRANT, Path("x.json"), with_header=False)
+
 # Damaged Artifact held by a character owning NO artifacts — the empty-options case
 # for the artifact picker, which is the NiceGUI build-time crash class (a ui.select
 # whose value is not among its options takes the whole tab down, siblings included).

@@ -38,9 +38,9 @@ from nicegui import context, ui
 from .. import persistence, rules_db
 from ..engine import (advancement, artifacts as artifactsmod, costs as costsmod,
                       derive as derivemod, merits as meritsmod, validate)
-from ..models.character import (ArtifactEntry, BackgroundEntry, Character,
+from ..models.character import (Armor, ArtifactEntry, BackgroundEntry, Character,
                                 FetterEntry, HearthstoneEntry, MeritFlawPurchase,
-                                PassionEntry)
+                                PassionEntry, Weapon)
 from ..models.rules import RuleSet, VirtueName
 from . import catalogue as cataloguemod
 from . import theme
@@ -288,6 +288,19 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         _sync_total()
         return _sync_total
 
+    # The Artifacts header reads the Artifact BACKGROUND's rating, which is edited in a
+    # different panel — so the panel that owns the number cannot refresh the panel that
+    # displays it. Registered by the artifacts panel (built after these rows) and called
+    # by every Background rating change; a no-op for a splat whose tab has no artifacts
+    # panel. The alternative, rebuilding the whole tab on a rating click, is the thing
+    # the header's own docstring forbids: a rebuilt input eats the keystroke.
+    #
+    # ⚠ This is the SECOND consumer of a Background rating to go stale in this panel —
+    # the Hearthstone denominator was the first (see `row_sync`'s rebind below, and its
+    # comment). A third one will happen: when you add anything that reads a Background
+    # rating from outside this panel, hook it here.
+    artifact_header_sync: dict = {"fn": lambda: None}
+
     def _background_rows(bg_cap) -> None:
         """The Background list itself — identical in both regimes but for the rating
         control, which is `bg_cap`'s business. This body is the whole reason the tab
@@ -369,6 +382,11 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 rung_text = viewmod.background_rung(bg_catalog, bg.name, bg.rating)
                 rung.set_text(rung_text)
                 rung.set_visibility(bool(rung_text))
+                # …and the Artifacts header in the panel below, which counts against
+                # this rating. Called for every Background because a RENAME moves it
+                # too: typing "Artifact" over "Allies" changes the budget as surely as
+                # clicking a dot does, and `_sync` is the one place both arrive.
+                artifact_header_sync["fn"]()
 
             row_sync["fn"] = _sync
             sel.on_value_change(lambda e, bg=bg, sync=_sync: (
@@ -479,8 +497,52 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         refresh_all()
 
     def remove_artifact(idx: int) -> None:
+        # The gear row this artifact granted is deliberately LEFT BEHIND. It may have
+        # been edited, and deleting a player's equipment to tidy up a link is not this
+        # panel's business; the orphaned row simply counts as an artifact in its own
+        # right again (see `artifacts.artifact_items`), which is visible rather than
+        # free. Deleting the weapon is one click and theirs to make.
         del character.artifacts[idx]
         refresh_all()
+
+    def grant_gear(art_name: str) -> None:
+        """Give a newly picked artifact its stat line on the equipment surface.
+
+        The human's note from the 2026-08-13 click-through: owning "Daiklave" as an
+        artifact and then adding a "Daiklave" weapon to actually swing it counted the
+        same object twice, which the corebook one-artifact rule turns into a false
+        error. So the artifact grants the row and stamps `from_artifact` on it, and the
+        budget counts the pair once.
+
+        Silent when the artifact has no gear half (202 of the 222 do not), and when the
+        row is already there — picking the same artifact twice must not breed daiklaves.
+        """
+        found = artifactsmod.gear_stat_line(rs, art_name)
+        if found is None:
+            return
+        source, entry = found
+        key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, art_name)
+        rows = (character.weapons if source == artifactsmod.SOURCE_WEAPON
+                else character.armor)
+        if any(row.from_artifact == key for row in rows):
+            return
+        if source == artifactsmod.SOURCE_WEAPON:
+            rows.append(Weapon(
+                name=entry.name, speed=entry.speed, accuracy=entry.accuracy,
+                damage=entry.damage, damage_type=entry.damage_type,
+                defense=entry.defense, rate=entry.rate, range=entry.range,
+                min_strength=entry.min_strength, min_dexterity=entry.min_dexterity,
+                min_martial_arts=entry.min_martial_arts,
+                max_strength=entry.max_strength, artifact_rating=entry.artifact_rating,
+                attunement=entry.attunement, resources_cost=entry.resources_cost,
+                notes=entry.notes, from_artifact=key))
+        else:
+            rows.append(Armor(
+                name=entry.name, soak_lethal=entry.soak_lethal,
+                soak_bashing=entry.soak_bashing,
+                mobility_penalty=entry.mobility_penalty, fatigue=entry.fatigue,
+                artifact_rating=entry.artifact_rating, attunement=entry.attunement,
+                resources_cost=entry.resources_cost, from_artifact=key))
 
     def _artifacts_panel() -> None:
         """The standalone artifacts — those that are neither weapon nor armour.
@@ -488,8 +550,14 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         On the Advantages tab because artifacts are bought with the Artifact Background
         and budgeted by it (E:Ab p.131), so the two belong under one eye. Weapons and
         armour keep their own `artifact_rating` on the equipment surface and are NOT
-        editable here — they are only counted, in the budget line below, which is what
-        stops a daiklave being entered twice.
+        editable here — they are only counted, in the budget line below.
+
+        ⚠ That count used to be the whole story, and the comment here claimed it was
+        what "stops a daiklave being entered twice". It did the opposite: twenty names
+        exist in both catalogues, so a player who owned the artifact AND added the gear
+        row to swing it was charged for two daiklaves. Picking an artifact now GRANTS
+        its stat line, stamped with `from_artifact`, and the budget counts the pair
+        once — see `grant_gear` and `artifacts.artifact_items`.
 
         One panel, both regimes: an artifact is equipment, and equipment has never been
         XP-priced or log-tracked on either side of the lock.
@@ -557,6 +625,9 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                      for a in art_catalog}
         with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
             _artifacts_header()
+            # The Background rows were built above and hold this hook lazily, so
+            # registering here — after the header exists — is both legal and required.
+            artifact_header_sync["fn"] = _artifacts_header.refresh
             for idx, art in enumerate(character.artifacts):
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     sel = (DescribedSelect(_opts_with(art_names, art.name),
@@ -605,6 +676,9 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                         # recomputes the total but must NOT rebuild the body (see
                         # the header docstring), so the number is pushed directly.
                         number.value = entry.rating
+                        # Choosing a catalogue artifact HERE is the same act as
+                        # choosing one in the dialog, so it grants the same stat line.
+                        grant_gear(entry.name)
                     else:
                         art.name = e.value or ""
                     sync()
@@ -644,6 +718,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 if entry is not None:
                     character.artifacts.append(
                         ArtifactEntry(name=entry.name, rating=entry.rating))
+                    grant_gear(entry.name)
                 else:
                     character.artifacts.append(ArtifactEntry(name=name, rating=1))
                 refresh_all()

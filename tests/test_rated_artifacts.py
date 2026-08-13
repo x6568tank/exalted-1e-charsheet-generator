@@ -1102,3 +1102,155 @@ def test_dragon_kings_read_their_OWN_artifact_entry_not_the_dragon_blooded_one(r
     # The Dragon-Blooded keep theirs — the displacement must not have moved it.
     assert [b.id for b in rs.backgrounds_for("Dragon-Blooded")
             if b.name == "Artifact"] == ["background.artifact-dragonblooded"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_raising_the_artifact_background_moves_the_artifacts_header(user) -> None:
+    """The header states the corebook allowance ("one artifact rated up to 4"), and the
+    rating it reads is edited in the BACKGROUNDS panel — a different panel, which cannot
+    refresh this one without a hook. Found in the browser 2026-08-13: raising Artifact
+    left the header at the old number until the player switched tabs and back.
+
+    ⚠ The second consumer of a Background rating to go stale here; the Hearthstone
+    denominator was the first, and its test above says the same thing. Every test until
+    these two read the header on a freshly built panel — the one phase a stale closure
+    agrees with.
+    """
+    await user.open('/artifact-header-sync')
+    await user.should_see("one artifact rated up to 4")
+    # `.clear()` first — `.type()` appends. See the Manse test above.
+    user.find(marker="bg-rating").clear().type("5")
+    await user.should_see("one artifact rated up to 5")
+
+
+# --- the artifact/gear link (2026-08-13) ------------------------------------ #
+
+def test_a_granted_gear_row_is_not_a_SECOND_artifact(rs):
+    """Twenty names live in both catalogues, and the artifact row carries no stats — so
+    owning "Daiklave" as an artifact and adding a "Daiklave" weapon to swing it is the
+    natural way to play one. That counted the same object twice, which the corebook
+    one-artifact rule turns from a wart into a false error."""
+    c = Character(id="c.g", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                  backgrounds=[_bg("Artifact", 3)],
+                  artifacts=[_art(name="Daiklave", rating=3)])
+    key = artifacts.item_key(artifacts.SOURCE_ARTIFACT, "Daiklave")
+    c.weapons.append(Weapon(name="Daiklave", artifact_rating=3, from_artifact=key))
+    assert [(i.name, i.source) for i in artifacts.artifact_items(c)] == [
+        ("Daiklave", "artifact")]
+    assert artifacts.combined_rating(c) == 3
+    assert validate.check_artifacts(rs, c) == []
+
+
+def test_an_UNLINKED_duplicate_still_counts_twice(rs):
+    """The negative control, and the honest behaviour: the link is what dedupes, not
+    the shared name. A player who types a second daiklave by hand owns two as far as
+    this build can tell, and the budget says so."""
+    c = Character(id="c.g2", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                  backgrounds=[_bg("Artifact", 3)],
+                  artifacts=[_art(name="Daiklave", rating=3)])
+    c.weapons.append(Weapon(name="Daiklave", artifact_rating=3))
+    assert len(artifacts.artifact_items(c)) == 2
+    assert [i.code for i in validate.check_artifacts(rs, c)] == [
+        "artifact-over-background-dots"]
+
+
+def test_an_ORPHANED_link_counts_on_its_own_rather_than_vanishing(rs):
+    """⚠ The failure direction that matters. `from_artifact` is a SOFT reference, and
+    the artifact it names can be renamed or deleted out from under it. If the flag were
+    trusted as stored, the gear would then be an artifact nothing counts — a free
+    daiklave. Resolved against the artifacts actually owned instead, so an orphan
+    stands on its own and is visible."""
+    key = artifacts.item_key(artifacts.SOURCE_ARTIFACT, "Daiklave")
+    c = Character(id="c.g3", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                  backgrounds=[_bg("Artifact", 3)])
+    c.weapons.append(Weapon(name="Daiklave", artifact_rating=3, from_artifact=key))
+    assert [(i.name, i.source) for i in artifacts.artifact_items(c)] == [
+        ("Daiklave", "weapon")]
+    # And it comes back under the artifact's wing when the artifact returns.
+    c.artifacts.append(_art(name="Daiklave", rating=3))
+    assert [i.source for i in artifacts.artifact_items(c)] == ["artifact"]
+
+
+def test_gear_stat_line_matches_only_ARTIFACT_rated_gear(rs):
+    """A mundane row sharing a name with an artifact must not be granted as that
+    artifact's stat line — it would then be excluded from the budget, and a mundane
+    hatchet would quietly cancel a real artifact."""
+    assert artifacts.gear_stat_line(rs, "Daiklave")[0] == artifacts.SOURCE_WEAPON
+    assert artifacts.gear_stat_line(rs, "Myrmidon Carapace")[0] == artifacts.SOURCE_ARMOR
+    assert artifacts.gear_stat_line(rs, "Hatchet") is None      # mundane in weapons.json
+    assert artifacts.gear_stat_line(rs, "Tattered Wings") is None   # artifact, no stats
+    assert artifacts.gear_stat_line(rs, "") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_picking_an_artifact_weapon_grants_its_stat_line_ONCE(user) -> None:
+    """The BUY PATH, which is the only place the link is actually created — the engine
+    tests above build `from_artifact` by hand and so cannot see a UI that never sets it.
+
+    Asserted ENTIRELY on screen, in two ways that a first draft got wrong:
+
+    * The header reading "1/1" IS the dedup. A granted row that counted as a second
+      artifact would say 2/1 and raise the corebook error, so this one string covers
+      the whole feature.
+    * The stat line is checked on the EDITOR route for the same character rather than
+      by importing the fixture: `from tests._ui_main import …` can bind a different
+      module instance than the one the harness loaded for the page, so the assertion
+      read a character nothing had mutated — it passed alone and failed in the suite.
+
+    The row is clicked by DISPATCHING to the name label itself. Two things make the
+    obvious `user.find("Reaver Daiklave").click()` wrong here: it also matches Grand
+    Daiklave, Reaver Daiklave and Hooked Daiklaves (and which one it lands on varies
+    with Python's per-run string hashing), and `find` matches an INPUT'S VALUE too — so
+    filtering the list first and then clicking the match clicks the filter box, leaving
+    the dialog open and the pick unmade, which is exactly how this failed.
+    """
+    from nicegui import ui as _ui
+    def _pick(name: str) -> None:
+        rows = [e for e in user.client.elements.values()
+                if isinstance(e, _ui.label) and e.text == name and e._event_listeners]
+        assert len(rows) == 1, f"{len(rows)} clickable labels read exactly {name!r}"
+        el = rows[0]
+        el._handle_event({"id": el.id,
+                          "listener_id": list(el._event_listeners)[0], "args": {}})
+
+    await user.open('/artifact-grant')
+    user.find("Add artifact").click()
+    await user.should_see("Reaver Daiklave")
+    _pick("Reaver Daiklave")
+    await user.should_see("1/1")
+    await user.should_see("one artifact rated up to 3")
+
+    # The granted stat line, on the equipment surface it was granted to.
+    await user.open('/artifact-grant-editor')
+    await user.should_see("Reaver Daiklave")
+
+    # Picking it again adds a second ARTIFACT row (the player asked for one), but must
+    # NOT grant a second stat line — 2 countable items, not 3.
+    await user.open('/artifact-grant')
+    user.find("Add artifact").click()
+    await user.should_see("Reaver Daiklave")
+    _pick("Reaver Daiklave")
+    await user.should_see("2/1")
+    await user.should_not_see("3/1")
+
+
+def test_the_two_catalogues_agree_on_every_shared_artifact_rating(rs) -> None:
+    """Twenty entries are in `artifacts.json` AND in the gear catalogues, and picking
+    the artifact grants the gear row — so the two ratings sit side by side on screen.
+    If they ever diverge, the sheet shows one daiklave priced two ways and the budget
+    silently uses the artifact's. Nothing enforces this at load; this test is the
+    enforcement.
+    """
+    by_name = {a.name.strip().lower(): a for a in rs.artifact_catalog.values()}
+    disagreements = []
+    for catalog in (rs.weapon_catalog, rs.armor_catalog):
+        for entry in catalog.values():
+            art = by_name.get(entry.name.strip().lower())
+            if art is not None and entry.artifact_rating > 0 \
+                    and art.rating != entry.artifact_rating:
+                disagreements.append(
+                    f"{entry.name}: artifacts.json {art.rating} vs gear "
+                    f"{entry.artifact_rating}")
+    assert not disagreements, "; ".join(disagreements)

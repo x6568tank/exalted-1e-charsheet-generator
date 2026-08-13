@@ -40,10 +40,36 @@ Advantages tab on a plain Solar and confirm the header reads `Artifacts (n/1 —
 N, one artifact rated up to N)`, that a second artifact raises an error, and that an
 artifact weapon + artifact armour counts as two.
 
-Still open from the session below: the Resources hint on the gear dialogs is unclicked,
-and mundane purchasable gear (`GearEntry` / `data/gear.json`) remains page-blocked on
-the corebook equipment tables — the same blocker as the 63 unattributed `resources_cost`
-values.
+**Items 1 and 2 of the gear/catalogue overhaul are done** (the human's plan, 2026-08-13;
+item 3 — `GearEntry` / `data/gear.json` / the services-vs-possessions ruling — is
+deliberately not started):
+
+* **The artifact/gear double-entry is fixed.** `from_artifact` links a granted stat line
+  to its artifact, and the budget counts the pair once. Details and the four traps in
+  `docs/status/rated-artifacts.md`.
+* **`tools/parse_resources_costs.py` reads the dot columns**, proven by `--verify`
+  against the hand-authored data: **42 agree, 0 disagree**. Found one typo (Reinforced
+  Buff Jacket ••• → ••).
+* **Shields and helms are priced after all** — Manacle and Coin p.124, supplied by the
+  human; all six authored. The corebook simply does not price them, and this file had
+  recorded that as "no printed cost", which was a stronger claim than the evidence.
+* ⚠ **`images/_extracted/Exalted Core.md` was the PRE-crack copy on this machine** and
+  has been re-extracted now that `sources/` is here. **The offset auto-detect fails on
+  this PDF — pass `--offset 2`.**
+
+**The purchasing catalogue is NO LONGER PAGE-BLOCKED.** The human's call, 2026-08-13:
+base it on **Manacle and Coin pp.122-125**, not the corebook. Clean text layer, real `•`
+characters (the dot-counting parser is not needed for it), the same tables fuller, and
+two the corebook lacks — the Resources↔cash conversion (p.122) and Everyday / Greater &
+Lesser Wonders (p.125). The two books agree on all 39 shared rows.
+
+⚠ **One ruling needed before authoring p.125:** it prices ARTIFACTS in Resources
+("Daiklave ••••", "Hearthstone Amulet •••") where the artifact catalogue rates that
+daiklave **Artifact ••**. Two different currencies, and read literally it lets a
+character buy an artifact for cash — directly on top of the one-artifact corebook rule
+ruled the same day.
+
+Also still open: the Resources hint on the gear dialogs is unclicked.
 
 ---
 

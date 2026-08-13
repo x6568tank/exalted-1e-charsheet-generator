@@ -208,6 +208,92 @@ unenforced, having probed `BackgroundType.max_rating` on the catalogue entry. Ca
 on **`BackgroundRule.max_rating` in `chargen_budgets.json`**, keyed by budget row, and
 both Dragon-King rows carry them correctly.
 
+### The artifact/gear link (2026-08-13)
+
+Twenty catalogue artifacts are ALSO gear rows (Daiklave, Grand Daiklave, Myrmidon
+Carapace…), because an artifact entry says what a thing IS and a gear row says what it
+DOES. The artifact row carries no stats, so the natural way to play a daiklave was to
+own it as an artifact AND add a weapon row to swing it — and both counted. Survivable
+under a combined-dots budget; a **false error** under the corebook one-artifact rule.
+
+* `Weapon.from_artifact` / `Armor.from_artifact` — the artifact key this row is the stat
+  line of. Set once, by the grant, and editable by nothing on screen (the catalogue
+  dialogs' own scar: a discriminator a widget could write).
+* Picking an artifact GRANTS its stat line (`ui/advantages.grant_gear`), stamped with
+  the key; `artifact_items` then counts the pair once.
+* ⚠ The dedup **resolves at read time**, against the artifacts actually owned — not off
+  the stored flag. An orphaned link (artifact renamed or deleted) makes the gear count
+  on its own, so the failure mode is a visible artifact rather than a free one.
+* ⚠ `set_weapon`/`set_armor` REPLACE the row with a catalogue copy. `from_artifact` has
+  to be carried across like `quantity`, or re-picking the same daiklave from the
+  dropdown silently drops the link and charges the budget twice.
+* Deleting the artifact deliberately LEAVES the gear row. It may have been edited, and
+  the orphan is counted rather than free.
+
+`test_the_two_catalogues_agree_on_every_shared_artifact_rating` pins the invariant the
+grant creates: the two halves sit side by side on screen, so a divergence would show one
+daiklave priced two ways. Nothing enforces it at load; that test is the enforcement.
+
+### Reading the Resources column — `tools/parse_resources_costs.py` (2026-08-13)
+
+The corebook prices gear in DOTS, and the dot is a glyph the thirteen-cipher map does not
+decode, so every cost read as U+FFFD. **It never needed decoding, only identifying:** the
+dot is `(cid:10)` in `ZTR41CA.tmp,Bold`, and the count of that glyph inside the Resources
+column IS the rating. This is a text-layer glyph count, exact — NOT the VLM dot-counting
+the Lunar note warns about.
+
+**`--verify` diffs the parse against the hand-authored values and is the point of the
+tool.** Result: **42 agree, 0 disagree**, the other 19 authored costs being items from
+other books. It also found a transcription typo — **Reinforced Buff Jacket was authored
+Resources ••• and the page (p.331, "5/6 −2 2 ••") says ••**; corrected in `armor.json`.
+
+Four parser bugs, each of which looked like working code:
+
+1. **Whole-row dot counts are wrong and look right.** The weapon tables carry a
+   `Minimums` column also drawn in dots, so summing a row charged a hatchet its Strength
+   minimum as Resources. Only the diff against hand-authored values caught it.
+2. **A header with no Resources column must CLEAR the band**, not inherit the previous
+   table's. p.330 stacks the thrown table over the hand-to-hand table. This one hid
+   behind a GREEN `--verify` — the correct row won the dict first.
+3. **Splitting a name at the first digit-or-sign cuts hyphens**: "Seven-Section Staff"
+   became "Seven" and vanished into the not-found list, looking like a page the parser
+   never reached rather than a bug.
+4. **"Resources Cost" is ONE word on pp.323-324 and TWO on the weapon tables** (a 1.2pt
+   gap threshold). An exact-match test made the entire mundane-equipment table parse as
+   zero rows — indistinguishable from a page range holding no table.
+
+⚠ **Shields and helms have no cost in the COREBOOK** — p.334 describes Buckler,
+Target/Tower Shield and the three helms in prose with no cost column. They are priced in
+**Manacle and Coin p.124**, which the human supplied, and all six are now authored
+(Buckler •, Target Shield ••, Tower Shield •••, Pot Helm ••, Slotted Helmet ••, Masked
+Helm •••). **The lesson is the standing one, pointed at myself:** "the corebook does not
+print it" is not "the line is unpriced", and I had written the stronger claim into this
+file. A gap in one book is a question for the human, not a finding.
+
+**Manacle and Coin pp.122-125 supersede the corebook as the base for the purchasing
+catalogue** (the human's call, 2026-08-13), and the parser above is not needed for them:
+that book has a clean text layer with real `•` characters. It carries the same tables
+FULLER, plus two the corebook has not got:
+
+* p.122 — the Resources ↔ cash conversion (jade and silver);
+* p.123 — Clothing & Jewelry, Slaves & Animals, Ships & Property, with Peasant/Fine
+  clothes and per-week stabling rows the corebook omits;
+* p.124 — Weapons, Armor, Helmets & Shields **in full**;
+* p.125 — **Everyday Wonders** (prayer papers, sacrifices, healing pastes, talismans)
+  and **Greater & Lesser Wonders**.
+
+The two books AGREE on all 39 shared rows (0 disagreements), so there is no
+reconciliation to do — and M&C independently confirms the Reinforced Buff Jacket
+correction above.
+
+⚠ **A ruling is needed before authoring p.125.** It prices ARTIFACTS in Resources —
+"Daiklave ••••", "Grand Daiklave •••••", "Hearthstone Amulet •••" — where the artifact
+catalogue rates the same daiklave **Artifact ••**. Those are two different currencies
+(what the Background rates vs what cash buys), and taken literally the page lets a
+character BUY an artifact outright, which sits directly on top of the corebook
+one-artifact rule ruled the same day. Do not author p.125 until the human has ruled on
+whether Resources can buy artifacts at all.
+
 ## Traps recorded
 
 * **`points_limited_by` → `points_limits`.** Anything reading the old singular field is

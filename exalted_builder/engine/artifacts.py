@@ -90,10 +90,19 @@ def artifact_items(character: Character) -> list[ArtifactItem]:
                 key=item_key(SOURCE_ARTIFACT, art.name), name=art.name,
                 rating=art.rating, source=SOURCE_ARTIFACT,
             ))
+    # A gear row that is the stat line of a standalone artifact is the SAME OBJECT, and
+    # counting it again would charge the budget twice for one daiklave — see
+    # `Weapon.from_artifact`. Resolved against the keys just collected rather than
+    # trusting the stored flag: an orphaned link (the artifact renamed or deleted) makes
+    # the gear count on its own, so the failure mode is a visible artifact rather than a
+    # free one. Same graceful-unresolvable-id contract `find_item` gives its callers.
+    owned = {item.key for item in out}
     for source, gear in ((SOURCE_WEAPON, character.weapons),
                          (SOURCE_ARMOR, character.armor)):
         for item in gear:
             if item.artifact_rating > 0 and item.name.strip():
+                if item.from_artifact and item.from_artifact in owned:
+                    continue
                 out.append(ArtifactItem(
                     key=item_key(source, item.name), name=item.name,
                     rating=item.artifact_rating, source=source,
@@ -109,6 +118,31 @@ def find_item(character: Character, key: str) -> Optional[ArtifactItem]:
     for item in artifact_items(character):
         if item.key == key:
             return item
+    return None
+
+
+def gear_stat_line(ruleset, name: str):
+    """The catalogue weapon or armour that IS this artifact, as `(source, entry)`, or
+    None when the artifact is neither.
+
+    Twenty of the 222 catalogue artifacts are also gear rows — Daiklave, Grand Daiklave,
+    Myrmidon Carapace — because an artifact entry describes what a thing IS and a gear
+    row carries what it DOES, and a daiklave needs both. Matched on the normalised name,
+    which is the same soft reference `item_key` already uses; a catalogue whose two
+    halves disagree about a name simply grants nothing, rather than guessing.
+
+    Only artifact-rated gear qualifies. A mundane row sharing a name with an artifact
+    would otherwise be granted as that artifact's stat line and then excluded from the
+    budget by `artifact_items` — a mundane hatchet quietly cancelling a real one.
+    """
+    want = name.strip().lower()
+    if not want:
+        return None
+    for source, catalog in ((SOURCE_WEAPON, ruleset.weapon_catalog),
+                            (SOURCE_ARMOR, ruleset.armor_catalog)):
+        for entry in catalog.values():
+            if entry.name.strip().lower() == want and entry.artifact_rating > 0:
+                return source, entry
     return None
 
 

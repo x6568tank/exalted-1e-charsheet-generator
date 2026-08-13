@@ -1795,7 +1795,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 name=entry.name, soak_lethal=entry.soak_lethal, soak_bashing=entry.soak_bashing,
                 mobility_penalty=entry.mobility_penalty, fatigue=entry.fatigue,
                 artifact_rating=entry.artifact_rating, attunement=entry.attunement,
-                resources_cost=entry.resources_cost)
+                resources_cost=entry.resources_cost,
+                # Carried across for the same reason as the weapon row below.
+                from_artifact=character.armor[idx].from_artifact)
         else:
             character.armor[idx].name = name or ""
         body.refresh(); changed()
@@ -1803,11 +1805,15 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     def set_weapon(idx: int, name: str) -> None:
         e = next((w for w in ruleset.weapon_catalog.values() if w.name == name), None)
         # The row is REPLACED by the catalogue copy, so anything not in the copy is
-        # lost. `quantity` is the player's, not the catalogue's — carry it across.
+        # lost. `quantity` is the player's, not the catalogue's — carry it across, and
+        # `from_artifact` with it: that link is what stops the artifact this row belongs
+        # to being counted twice, and re-picking the same daiklave from the dropdown
+        # would otherwise drop it silently and charge the budget again.
         quantity = character.weapons[idx].quantity
+        from_artifact = character.weapons[idx].from_artifact
         if e:
             character.weapons[idx] = Weapon(
-                quantity=quantity,
+                quantity=quantity, from_artifact=from_artifact,
                 name=e.name, speed=e.speed, accuracy=e.accuracy, damage=e.damage,
                 damage_type=e.damage_type, defense=e.defense, rate=e.rate, range=e.range,
                 min_strength=e.min_strength, min_dexterity=e.min_dexterity,
