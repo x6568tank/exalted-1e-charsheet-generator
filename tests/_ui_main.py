@@ -8,7 +8,8 @@ from exalted_builder.engine import lifecycle
 from exalted_builder.models.character import (
     MeritFlawPurchase,
     Armor, ArtSpecialty, BackgroundEntry, Character, CollegeRating, Damage,
-    ArtifactEntry, FetterEntry, HearthstoneEntry, HouseRules, PassionEntry,
+    ArtifactEntry, FetterEntry, GearEntry, HearthstoneEntry, HouseRules,
+    PassionEntry,
     PathRating, PlayState,
     RitualEntry, ScienceRating, Specialty, ThaumaturgyState, VirtueFlaw, Weapon)
 from exalted_builder.engine import adversaries as adversaries_engine
@@ -1810,6 +1811,35 @@ CHAR_MF_RES.backgrounds = [BackgroundEntry(name="Resources", rating=3)]
 @ui.page('/mf-resources')
 def page_mf_resources():
     advantages.build_advantages(RS, CHAR_MF_RES, Path("x.json"), with_header=False)
+
+# The mundane-goods section and the services price list (M&C p.123). Its own character
+# because the goods test MUTATES the list, and its own Resources rating so the
+# affordability hint has something to say.
+CHAR_GOODS = Character(id="goods", name="Buyer", exalt_type="Solar", caste="dawn",
+                       essence_rating=2)
+CHAR_GOODS.backgrounds = [BackgroundEntry(name="Resources", rating=3)]
+
+@ui.page('/goods')
+def page_goods():
+    editor.build_editor(RS, CHAR_GOODS, Path("x.json"), with_header=False)
+
+# The inventory VIEW: one character owning something of every kind at once, including
+# the overlap that makes the filters non-exclusive (an artifact daiklave is a weapon
+# AND an artifact) and an ammunition stack.
+CHAR_INV = Character(id="inv", name="Packrat", exalt_type="Solar", caste="dawn",
+                     essence_rating=2)
+CHAR_INV.backgrounds = [BackgroundEntry(name="Artifact", rating=2),
+                        BackgroundEntry(name="Resources", rating=3)]
+CHAR_INV.weapons.append(Weapon(name="Daiklave", artifact_rating=2, accuracy=2, damage=5))
+CHAR_INV.weapons.append(Weapon(name="Long Bow", accuracy=1))
+CHAR_INV.weapons.append(Weapon(name="Frog Crotch Arrow", damage=4, quantity=20))
+CHAR_INV.armor.append(Armor(name="Buff Jacket", soak_lethal=3, soak_bashing=4))
+CHAR_INV.artifacts.append(ArtifactEntry(name="Tattered Wings", rating=2))
+CHAR_INV.gear.append(GearEntry(name="Fine clothes", resources_cost=2))
+
+@ui.page('/inventory')
+def page_inventory():
+    editor.build_editor(RS, CHAR_INV, Path("x.json"), with_header=False)
 
 CHAR_MF_ART_PLAY = CHAR_MF_ART.model_copy(deep=True)
 CHAR_MF_ART_PLAY.id = "mfartx"

@@ -1,0 +1,677 @@
+[
+  {
+    "id": "gear.peasant-clothes",
+    "name": "Peasant clothes",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 1,
+    "cash": "1 obol 8 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.fine-clothes",
+    "name": "Fine clothes",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 2,
+    "cash": "1 mina 50 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.fancy-clothes",
+    "name": "Fancy clothes",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 2,
+    "cash": "2 minae 150 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.courtly-clothes",
+    "name": "Courtly clothes",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 3,
+    "cash": "4 bars 2 dirhams",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.royal-raiment",
+    "name": "Royal raiment",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 4,
+    "cash": "5 talents 19 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.noble-jewelry",
+    "name": "Noble jewelry",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 3,
+    "cash": "6 bars 3 dirhams",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.royal-jewelry",
+    "name": "Royal jewelry",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 4,
+    "cash": "7 talents 33 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.imperial-jewelry",
+    "name": "Imperial jewelry",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 5,
+    "cash": "15 talents 70 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.unskilled-slave",
+    "name": "Unskilled slave",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 2,
+    "cash": "5 shekels 370 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.skilled-slave",
+    "name": "Skilled slave",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 3,
+    "cash": "4 minae 600 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.concubine",
+    "name": "Concubine",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 4,
+    "cash": "3 bars 750 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.keep-for-a-slave-per-year",
+    "name": "Keep for a slave per year",
+    "kind": "service",
+    "category": "Slaves and Animals",
+    "resources_cost": 2,
+    "cash": "1 shekel 70 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.domestic-animal",
+    "name": "Domestic Animal",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 2,
+    "cash": "1 shekel 60 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.fine-camel-horse",
+    "name": "Fine camel/horse",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 3,
+    "cash": "6 minae 950 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.elephant-or-mammoth",
+    "name": "Elephant or mammoth",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 3,
+    "cash": "1 bar 3 dirhams",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.fodder-for-horse-per-month",
+    "name": "Fodder for horse per month",
+    "kind": "service",
+    "category": "Slaves and Animals",
+    "resources_cost": 1,
+    "cash": "1 bit 2 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.fodder-for-elephant-per-month",
+    "name": "Fodder for elephant per month",
+    "kind": "service",
+    "category": "Slaves and Animals",
+    "resources_cost": 2,
+    "cash": "2 obols 14 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.stabling-for-work-horse-per-week",
+    "name": "Stabling for work horse per week",
+    "kind": "service",
+    "category": "Slaves and Animals",
+    "resources_cost": 2,
+    "cash": "3 bits 5 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.stabling-for-fine-horse-per-week",
+    "name": "Stabling for fine horse per week",
+    "kind": "service",
+    "category": "Slaves and Animals",
+    "resources_cost": 3,
+    "cash": "6 bits 10 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.buy-an-estate",
+    "name": "Buy an estate",
+    "kind": "goods",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "7 talents 35 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.build-country-or-town-house",
+    "name": "Build country or town house",
+    "kind": "goods",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "6 talents 30 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.staff-a-country-villa-or-townhouse",
+    "name": "Staff a country villa or townhouse",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 3,
+    "cash": "7 bars 1 talent",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.furnish-townhouse-or-villa-spartan",
+    "name": "Furnish townhouse or villa (Spartan)",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 3,
+    "cash": "4 bars 780 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.furnish-townhouse-or-villa-posh",
+    "name": "Furnish townhouse or villa (posh)",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "2 talents 10 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.build-a-grand-palace",
+    "name": "Build a grand palace",
+    "kind": "goods",
+    "category": "Ships and Property",
+    "resources_cost": 5,
+    "cash": "15 talents 75 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.staff-a-grand-palace-for-a-month",
+    "name": "Staff a grand palace for a month",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "3 talents 15 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.furnish-a-grand-palace-spartan",
+    "name": "Furnish a grand palace (Spartan)",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "5 talents 25 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.furnish-a-grand-palace-posh",
+    "name": "Furnish a grand palace (posh)",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 5,
+    "cash": "18 talents 90 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.lavish-feast-for-two-dozen",
+    "name": "Lavish feast for two dozen",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 3,
+    "cash": "6 bars 1,450 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.grand-banquet-for-200",
+    "name": "Grand banquet for 200",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "2 talents 10 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.erect-a-manse-rating-to-1",
+    "name": "Erect a Manse (rating • to •••)",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "8 talents 45 talents",
+    "notes": "The construction cost of a Manse, which is the Manse Background — not a piece of gear. Listed for reference only.",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.erect-a-manse-rating-to-2",
+    "name": "Erect a Manse (rating •••• to •••••)",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 5,
+    "cash": "20 talents 100 talents",
+    "notes": "The construction cost of a Manse, which is the Manse Background — not a piece of gear. Listed for reference only.",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.passage-across-the-inland-sea",
+    "name": "Passage across the Inland Sea",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 2,
+    "cash": "12 obols 80 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.buy-a-yacht-or-ship",
+    "name": "Buy a yacht or ship",
+    "kind": "goods",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "1 talent 5 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.crew-and-provender-for-a-ship-for-a-month",
+    "name": "Crew and provender for a ship for a month",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "6 bars 1,300 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.crew-and-provender-for-a-yacht-for-a-month",
+    "name": "Crew and provender for a yacht for a month",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 3,
+    "cash": "3 bars 650 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.rent-a-mercenary-company-for-a-month",
+    "name": "Rent a mercenary company for a month",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "2 talents 10 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.rent-a-crack-mercenary-company-for-a-month",
+    "name": "Rent a crack mercenary company for a month",
+    "kind": "service",
+    "category": "Ships and Property",
+    "resources_cost": 4,
+    "cash": "4 talents 20 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.commission-price-field-command",
+    "name": "Commission price (field command)",
+    "kind": "service",
+    "category": "Realm Expenses",
+    "resources_cost": 3,
+    "cash": "4 minae 500 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.commission-price-legion-command",
+    "name": "Commission price (legion command)",
+    "kind": "service",
+    "category": "Realm Expenses",
+    "resources_cost": 4,
+    "cash": "2 talents 8 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.donatives-necessary-to-be-named-an-imperial-pref",
+    "name": "Donatives necessary to be named an imperial prefect",
+    "kind": "service",
+    "category": "Realm Expenses",
+    "resources_cost": 4,
+    "cash": "5 talents 25 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.donatives-necessary-to-be-named-an-imperial-satr",
+    "name": "Donatives necessary to be named an imperial satrap",
+    "kind": "service",
+    "category": "Realm Expenses",
+    "resources_cost": 5,
+    "cash": "3 talents 15 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.donatives-necessary-to-have-a-child-accepted-at-",
+    "name": "Donatives necessary to have a child accepted at a good school",
+    "kind": "service",
+    "category": "Realm Expenses",
+    "resources_cost": 3,
+    "cash": "3 bars 600 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 123
+    }
+  },
+  {
+    "id": "gear.premade-prayer-papers",
+    "name": "Premade prayer papers",
+    "kind": "goods",
+    "category": "Everyday Wonders — Offerings and Prayers",
+    "resources_cost": 1,
+    "cash": "1 obol / 12 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.special-prayer-papers",
+    "name": "Special prayer papers",
+    "kind": "goods",
+    "category": "Everyday Wonders — Offerings and Prayers",
+    "resources_cost": 2,
+    "cash": "4 obols / 30 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.small-animal-sacrifices",
+    "name": "Small animal sacrifices",
+    "kind": "service",
+    "category": "Everyday Wonders — Offerings and Prayers",
+    "resources_cost": 2,
+    "cash": "7 obols / 90 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.large-animal-sacrifices",
+    "name": "Large animal sacrifices",
+    "kind": "service",
+    "category": "Everyday Wonders — Offerings and Prayers",
+    "resources_cost": 3,
+    "cash": "2 minae / 400 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.burning-incense",
+    "name": "Burning incense",
+    "kind": "goods",
+    "category": "Everyday Wonders — Offerings and Prayers",
+    "resources_cost": 4,
+    "cash": "1 talent / 5 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.seven-bounties-paste",
+    "name": "Seven Bounties Paste",
+    "kind": "goods",
+    "category": "Everyday Wonders — Healing",
+    "resources_cost": 3,
+    "cash": "2 bars / 6 dirhams",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.sweet-cordial",
+    "name": "Sweet Cordial",
+    "kind": "goods",
+    "category": "Everyday Wonders — Healing",
+    "resources_cost": 4,
+    "cash": "2 talents / 10 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.found-good-luck-talisman",
+    "name": "Found good luck talisman",
+    "kind": "goods",
+    "category": "Everyday Wonders — Talismans",
+    "resources_cost": 1,
+    "cash": "6 obols / 50 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.found-disease-talisman",
+    "name": "Found disease talisman",
+    "kind": "goods",
+    "category": "Everyday Wonders — Talismans",
+    "resources_cost": 2,
+    "cash": "9 obols / 85 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.found-warding-charm",
+    "name": "Found warding charm",
+    "kind": "goods",
+    "category": "Everyday Wonders — Talismans",
+    "resources_cost": 3,
+    "cash": "3 minae / 400 dinars",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.created-warding-charm",
+    "name": "Created warding charm",
+    "kind": "goods",
+    "category": "Everyday Wonders — Talismans",
+    "resources_cost": 4,
+    "cash": "1 talent / 6 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.created-good-luck-charm",
+    "name": "Created good luck charm",
+    "kind": "goods",
+    "category": "Everyday Wonders — Talismans",
+    "resources_cost": 4,
+    "cash": "2 talents / 8 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    }
+  },
+  {
+    "id": "gear.created-walkaway",
+    "name": "Created walkaway",
+    "kind": "goods",
+    "category": "Everyday Wonders — Talismans",
+    "resources_cost": 5,
+    "cash": "8 talents / 36 talents",
+    "source": {
+      "book": "Manacle and Coin",
+      "page": 125
+    },
+    "notes": "Printed exactly so. Its three siblings are named '… charm' (Found warding charm, Created warding charm, Created good luck charm) and this row is not; the word appears nowhere else in the book. Transcribed as printed, NOT completed."
+  }
+]

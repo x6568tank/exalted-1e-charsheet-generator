@@ -169,6 +169,107 @@ def armor_stat_line(armor, *, material: str = "") -> str:
             f"Mob{armor.mobility_penalty:+d} Ftg{armor.fatigue}{tag}")
 
 
+@dataclass
+class InventoryRow:
+    """One thing the character owns, whatever list it is stored in.
+
+    The INVENTORY is a VIEW, not a storage shape (human's model, 2026-08-13: "your
+    inventory, which is Everything, but you can filter it down to certain types of
+    goods, some of which would overlap"). The three lists stay typed and separate —
+    a weapon carries accuracy and rate, armour carries soak and fatigue, goods carry
+    neither, and collapsing them would mean a save migration plus rewriting every index
+    into `character.weapons` (the dice-pool sidebar's, for one) to buy nothing.
+
+    `kinds` is a SET because the categories genuinely overlap: an artifact daiklave is a
+    weapon AND an artifact, a shield is armour, an arrow is a weapon and ammunition. A
+    filter picks rows whose kinds INTERSECT what it asks for, so the same row can appear
+    under two filters and be one object underneath.
+    """
+    name: str
+    kinds: tuple[str, ...]                 # "weapon" / "armor" / "artifact" / "goods" …
+    detail: str = ""                       # the stat line, or the price, or ""
+    quantity: int = 1
+    resources_cost: int = 0
+    artifact_rating: int = 0
+    acquired: str = ""                     # only meaningful for artifacts
+    index: int = 0                         # position in its OWN list
+    list_name: str = ""                    # which list that is — the edit route back
+
+
+INVENTORY_FILTERS = ("all", "weapon", "armor", "artifact", "goods",
+                     "ammunition")
+
+
+def inventory_rows(ruleset: RuleSet, character: Character) -> list[InventoryRow]:
+    """Everything the character owns, from all four lists, in one list of rows.
+
+    Pure and presentation-only: it computes no rule and validates nothing. The artifact
+    kind is taken from `engine.artifacts.artifact_items` rather than from
+    `artifact_rating` directly, so a gear row that is the STAT LINE of a standalone
+    artifact is not tagged as a second artifact — the same dedup the budget uses, read
+    from the same place, so the inventory and the budget cannot disagree about what is
+    an artifact.
+    """
+    owned = {i.key: i for i in artifactsmod.artifact_items(character)}
+    # A character's `Weapon` carries no tags (decision 0007: inline copies), so
+    # ammunition is recovered from the catalogue by name — the same recovery, with the
+    # same failure direction, as the dice-pool sidebar's.
+    ammo = _ammunition_indices(ruleset, character)
+
+    def _art(source: str, name: str):
+        return owned.get(artifactsmod.item_key(source, name))
+
+    rows: list[InventoryRow] = []
+    for idx, w in enumerate(character.weapons):
+        item = _art(artifactsmod.SOURCE_WEAPON, w.name)
+        kinds = ["weapon"]
+        if item is not None:
+            kinds.append("artifact")
+        if idx in ammo:
+            kinds.append("ammunition")
+        rows.append(InventoryRow(
+            name=w.name or "(unnamed)", kinds=tuple(kinds),
+            detail=weapon_stat_line(w), quantity=w.quantity,
+            resources_cost=w.resources_cost, artifact_rating=w.artifact_rating,
+            acquired=w.acquired if item is not None else "",
+            index=idx, list_name="weapons"))
+    for idx, a in enumerate(character.armor):
+        item = _art(artifactsmod.SOURCE_ARMOR, a.name)
+        kinds = ["armor"] + (["artifact"] if item is not None else [])
+        rows.append(InventoryRow(
+            name=a.name or "(unnamed)", kinds=tuple(kinds),
+            detail=armor_stat_line(a), resources_cost=a.resources_cost,
+            artifact_rating=a.artifact_rating,
+            acquired=a.acquired if item is not None else "",
+            index=idx, list_name="armor"))
+    for idx, art in enumerate(character.artifacts):
+        rows.append(InventoryRow(
+            name=art.name or "(unnamed)", kinds=("artifact",),
+            detail=art.note, artifact_rating=art.rating, acquired=art.acquired,
+            index=idx, list_name="artifacts"))
+    for idx, g in enumerate(character.gear):
+        rows.append(InventoryRow(
+            name=g.name or "(unnamed)", kinds=("goods",), detail=g.note,
+            quantity=g.quantity, resources_cost=g.resources_cost,
+            index=idx, list_name="gear"))
+    return rows
+
+
+def filter_inventory(rows: list[InventoryRow], kind: str) -> list[InventoryRow]:
+    """The rows matching one filter — `"all"`, or any kind. Overlapping by design: an
+    artifact daiklave answers to both `weapon` and `artifact`."""
+    if kind == "all":
+        return list(rows)
+    return [r for r in rows if kind in r.kinds]
+
+
+def inventory_counts(rows: list[InventoryRow]) -> dict[str, int]:
+    """How many rows each filter would show — for the filter labels, so a player can
+    see that a tab is empty before clicking it. Sums to MORE than the row count when
+    anything overlaps, which is correct and is why the filters are not a partition."""
+    return {k: len(filter_inventory(rows, k)) for k in INVENTORY_FILTERS}
+
+
 def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) -> Optional[CharmDetail]:
     """Display detail for a single Charm: its requirements (gating ability + min
     essence), prerequisite Charms by name, and the character's relationship to it.

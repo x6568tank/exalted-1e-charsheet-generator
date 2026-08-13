@@ -26,8 +26,8 @@ from nicegui import ui
 from .. import persistence, rules_db
 from ..engine import advancement, costs, derive, elder, merits, validate
 from ..models.character import (
-    Armor, BackgroundEntry, Character, CollegeRating, CraftRating, HealthLevel,
-    MeritFlawPurchase, Specialty, VirtueFlaw, Weapon)
+    Armor, BackgroundEntry, Character, CollegeRating, CraftRating, GearEntry,
+    HealthLevel, MeritFlawPurchase, Specialty, VirtueFlaw, Weapon)
 
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import catalogue as cataloguemod
@@ -1327,6 +1327,83 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             ui.number(label=label, value=getattr(item, attr), format="%d",
                       on_change=_on, **kwargs).classes("w-20").props("dense")
 
+        # ---- INVENTORY: everything owned, in one filterable list ---------------- #
+        # The human's model (2026-08-13): "your inventory, which is Everything, but you
+        # can filter it down to certain types of goods, some of which would overlap."
+        # A VIEW over the four typed lists, never a storage shape — see
+        # `view.inventory_rows`. The per-type editors below stay: this answers "what do
+        # I have", they answer "change its stats", and merging those two jobs into one
+        # widget is how the equipment surface got unreadable in the first place.
+        inv_filter = {"kind": "all"}
+
+        @ui.refreshable
+        def _inventory() -> None:
+            rows = viewmod.inventory_rows(ruleset, character)
+            counts = viewmod.inventory_counts(rows)
+            # The heading names the ACTIVE filter, not just the total. Without it the
+            # only evidence of a filter click is rows disappearing, which reads as loss
+            # rather than as a view — and a test has nothing new to wait for either.
+            # ⚠ EVERY state names its filter, including "all". A heading that reads
+            # "Inventory (6)" when unfiltered is a strict PREFIX of the filtered one,
+            # so anything matching on it — a test's `should_see`, a player's glance —
+            # cannot tell the two apart.
+            active = inv_filter["kind"]
+            shown = "Everything" if active == "all" else active.capitalize()
+            heading = (f"Inventory ({len(rows)}) · showing {shown} "
+                       f"({counts.get(active, 0)})")
+            with panel(heading):
+                if not rows:
+                    ui.label("Nothing owned yet — add weapons, armour or goods below."
+                             ).classes("text-xs text-gray-500")
+                    return
+                with ui.row().classes("w-full gap-1 flex-wrap items-center"):
+                    for kind in viewmod.INVENTORY_FILTERS:
+                        n = counts.get(kind, 0)
+                        if kind != "all" and not n:
+                            continue        # an empty filter is noise, not a choice
+                        label = ("Everything" if kind == "all"
+                                 else kind.capitalize()) + f" ({n})"
+                        ui.button(label, on_click=lambda k=kind: (
+                                      inv_filter.__setitem__("kind", k),
+                                      _inventory.refresh())
+                                  ).props("dense flat"
+                                          + ("" if inv_filter["kind"] == kind
+                                             else " outline")).classes("text-xs")
+                # ⚠ The counts SUM TO MORE than the row count whenever anything
+                # overlaps — an artifact daiklave is both a weapon and an artifact —
+                # and that is correct. The filters are not a partition.
+                shown = viewmod.filter_inventory(rows, inv_filter["kind"])
+                for row in shown:
+                    with ui.row().classes("w-full items-baseline gap-2 no-wrap"):
+                        # Marked so a test can address the INVENTORY's rows: the
+                        # per-type editors below list the same names, so a bare
+                        # `should_not_see` after a filter click passes on the wrong
+                        # widget (it did, first time).
+                        ui.label(row.name).classes(
+                            "text-sm leading-tight shrink-0").mark("inv-row")
+                        if row.quantity > 1:
+                            ui.label(f"×{row.quantity}").classes(
+                                "text-xs opacity-70 shrink-0")
+                        ui.label(row.detail).classes(
+                            "text-xs opacity-70 flex-1 min-w-0 truncate")
+                        for kind in row.kinds:
+                            if kind == "artifact":
+                                tag = ("Artifact " + "•" * row.artifact_rating
+                                       + (" · bought" if row.acquired == "purchased"
+                                          else ""))
+                            elif kind in ("weapon", "armor", "ammunition"):
+                                continue    # the stat line already says which it is
+                            else:
+                                tag = kind.capitalize()
+                            ui.label(tag).classes(
+                                "text-xs px-1 rounded shrink-0"
+                                f" bg-{pal.fam}-900/10")
+                        if row.resources_cost:
+                            ui.label("Res " + "•" * row.resources_cost).classes(
+                                "text-xs opacity-60 shrink-0")
+
+        _inventory()
+
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
             with panel("Armor (sets soak)").classes("flex-1"):
                 for idx, ar in enumerate(character.armor):
@@ -1395,7 +1472,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                             ui.number(value=wp.quantity, min=1, format="%d", label="Qty",
                                       on_change=lambda e, wp=wp: (
                                           setattr(wp, "quantity",
-                                                  max(1, int(e.value or 1))), changed())
+                                                  max(1, int(e.value or 1))),
+                                          _inventory.refresh(), changed())
                                       ).props("dense").classes("w-16")
                             ui.button(icon="delete", on_click=lambda e=None, idx=idx: remove_item("weapons", idx)).props("flat dense round")
                         with ui.expansion("Edit stats", icon="tune").classes("w-full"):
@@ -1449,6 +1527,111 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
                 ui.button("Add weapon", icon="add", on_click=_open_weapon_catalogue
                           ).props("flat dense")
+
+        # Mundane goods (M&C p.123) — the third equipment section. Its own list because
+        # a bolt of silk has no stats; the SERVICE rows of the same tables are not
+        # ownable and live in the reference panel below (human's ruling 2026-08-13).
+        with ui.row().classes("w-full gap-3 items-start"):
+            with panel("Goods").classes("flex-1"):
+                for idx, item in enumerate(character.gear):
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        # ⚠ `_inventory.refresh()`, never `body.refresh()`: the
+                        # inventory panel is a different widget tree from this input,
+                        # so refreshing it leaves the keystroke alone. Rebuilding the
+                        # body from an input's on_change eats every character typed.
+                        ui.input(value=item.name, label="Item",
+                                 on_change=lambda e, it=item: (
+                                     setattr(it, "name", e.value or ""),
+                                     _inventory.refresh(), changed())
+                                 ).props("dense").classes("flex-1")
+                        ui.number(value=item.quantity, min=1, format="%d", label="Qty",
+                                  on_change=lambda e, it=item: (
+                                      setattr(it, "quantity", max(1, int(e.value or 1))),
+                                      _inventory.refresh(), changed())
+                                  ).props("dense").classes("w-16")
+                        # LABELLED. A bare "•••" beside an item is unreadable — the
+                        # browser asked what it meant (2026-08-13), and every other dot
+                        # column on the sheet is a rated trait, which this is not: it
+                        # is what the thing COST.
+                        ui.label(f"Res {'•' * item.resources_cost}"
+                                 if item.resources_cost else "Res —"
+                                 ).classes("text-xs opacity-70 w-20 shrink-0").tooltip(
+                            "The Resources rating needed to buy one (M&C p.123). "
+                            "A record of the price, not a trait.")
+                        ui.button(icon="delete",
+                                  on_click=lambda e=None, idx=idx: remove_item("gear", idx)
+                                  ).props("flat dense round")
+
+                def _open_gear_catalogue() -> None:
+                    rows, unaffordable, icons = [], set(), {}
+                    for g in sorted(ruleset.gear_catalog.values(), key=lambda g: g.name):
+                        if g.kind != "goods":       # services are never owned
+                            continue
+                        afford = validate.gear_affordability(ruleset, character,
+                                                             g.resources_cost)
+                        note = cataloguemod.gear_cost_note(g.resources_cost, afford)
+                        summary = " · ".join(x for x in (g.category, note) if x)
+                        rows.append((g.id, g.name, summary, g.notes or None))
+                        icons[g.id] = cataloguemod.icon_for(g.tags, "inventory_2")
+                        if afford == "unaffordable":
+                            unaffordable.add(g.id)
+                    cataloguemod.catalogue_dialog(pal, "Goods", rows, _pick_gear,
+                                                  dimmed=unaffordable, icons=icons)
+
+                def _pick_gear(key) -> None:
+                    entry = ruleset.gear_catalog.get(key or "")
+                    character.gear.append(
+                        GearEntry(name=entry.name,
+                                  resources_cost=entry.resources_cost)
+                        if entry is not None else GearEntry(name=""))
+                    body.refresh(); changed()
+
+                ui.button("Add goods", icon="add", on_click=_open_gear_catalogue
+                          ).props("flat dense")
+
+            # The other half of the same tables, and NOT inventory: upkeep, events,
+            # commissions and rentals. A character does not carry a month of stabling
+            # in her pack, so these are a price list she can consult — the same
+            # reference treatment the nocked arrow and the Great Geas panel get.
+            #
+            # ⚠ The first cut printed a name and a dot column and nothing else, and the
+            # browser called it useless — correctly. `GearType.cash` (the printed jade
+            # and silver equivalents) had ZERO read sites: the actual prices sat in the
+            # data unread, so a PRICE list showed no prices. The house bug, in
+            # same-day code. What makes a reference panel worth its space is the
+            # information you cannot get anywhere else, which here is the cash.
+            with panel("Prices — services & upkeep").classes("flex-1"):
+                services = [g for g in ruleset.gear_catalog.values()
+                            if g.kind == "service"]
+                if services:
+                    ui.label("Reference only — not owned, and nothing here is tracked. "
+                             "Jade and silver are the printed equivalents (M&C p.123); "
+                             "the conversion is the Storyteller's call, so nothing is "
+                             "computed from them.").classes("text-xs text-gray-500")
+                    with ui.scroll_area().classes("w-full flex-1 min-h-0"
+                                                  ).style("height:16rem"):
+                        last_category = ""
+                        for g in sorted(services, key=lambda g: (g.category, g.name)):
+                            if g.category != last_category:
+                                last_category = g.category
+                                ui.label(g.category).classes(
+                                    "text-xs font-bold tracking-wide pt-2"
+                                    ).style(f"color:{pal.accent}")
+                            afford = validate.gear_affordability(ruleset, character,
+                                                                 g.resources_cost)
+                            faded = " opacity-50" if afford == "unaffordable" else ""
+                            with ui.row().classes(
+                                    "w-full items-baseline gap-2 no-wrap" + faded):
+                                ui.label("•" * g.resources_cost).classes(
+                                    "text-xs w-14 shrink-0")
+                                ui.label(g.name).classes(
+                                    "text-xs leading-tight flex-1 min-w-0")
+                                if g.cash:
+                                    ui.label(g.cash).classes(
+                                        "text-xs opacity-70 shrink-0 text-right")
+                            if g.notes:
+                                ui.label(g.notes).classes(
+                                    "text-xs italic opacity-60 pl-14 leading-tight")
 
         # Permanent Resonance / Limit (Death's Taint, PG p.41). Its own panel rather
         # than a dot track, because it moves in BOTH directions at DIFFERENT prices:
@@ -1765,7 +1948,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
 
     # equipment / health-level / virtue-flaw mutators
     def add_item(field: str) -> None:
-        factory = {"armor": lambda: Armor(name=""), "weapons": lambda: Weapon(name="")}[field]
+        factory = {"armor": lambda: Armor(name=""), "weapons": lambda: Weapon(name=""),
+                   "gear": lambda: GearEntry(name="")}[field]
         getattr(character, field).append(factory())
         body.refresh(); changed()
 

@@ -455,6 +455,24 @@ class Armor(BaseModel):
     acquired: str = "background"           # see ArtifactEntry.acquired
 
 
+class GearEntry(BaseModel):
+    """One piece of mundane goods the character owns (M&C p.123).
+
+    An inline copy like every other possession (decision 0007): the player may rename a
+    "Fine camel/horse" to "Dust, my roan mare" and the row must not keep claiming to be
+    the catalogue entry. `resources_cost` rides along so the sheet can say what it was
+    worth without a RuleSet.
+
+    ⚠ Only `goods` land here. The price tables' `service` rows — upkeep, feasts,
+    commissions, rentals — are a reference price list and are never owned (human's
+    ruling 2026-08-13); see `rules.GearType`.
+    """
+    name: str
+    resources_cost: int = Field(default=0, ge=0)
+    quantity: int = Field(default=1, ge=1)
+    note: str = ""
+
+
 class VirtueFlaw(BaseModel):
     virtue: VirtueName
     description: str = ""
@@ -904,6 +922,12 @@ class Character(BaseModel):
     # there is no BP or XP row for them — what they cost is the Background dots, which
     # the existing rows already price. See ArtifactEntry.
     artifacts: list[ArtifactEntry] = Field(default_factory=list)
+    # Mundane goods bought with cash (M&C p.123). Its own list rather than more rows
+    # on `weapons`/`armor` because a bolt of silk has no stats — and its own list
+    # rather than one unified inventory because the three carry genuinely different
+    # fields. The INVENTORY is a view over all of them (`view.inventory_rows`), not a
+    # storage shape; see GearEntry.
+    gear: list[GearEntry] = Field(default_factory=list)
     # Ghosts only (E:Ab p.126-127). Fetters are bought out of their own chargen pool
     # and with their own BP/XP rates; Passions are DERIVED from the Virtues and only
     # distributed here — see PassionEntry for why neither cost table has a row for

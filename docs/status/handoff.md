@@ -1,5 +1,74 @@
 # Session handoff — 2026-08-13
 
+## Gear item 3 — STARTED, half shipped
+
+**Human's ruling 2026-08-13: services are a REFERENCE PRICE LIST, not inventory.** The
+price tables hold two kinds of thing and only one is ownable — `GearType.kind` is
+`goods` (clothes, jewelry, an animal, an estate) or `service` (upkeep, events,
+commissions, rentals).
+
+Shipped: `data/gear.json` (**43 rows off Manacle and Coin p.123**, 18 goods / 25
+services), `GearType` + `RuleSet.gear_catalog` + loader, `GearEntry` +
+`Character.gear`, a **Goods** section on the equipment surface with the shared
+catalogue dialog, and a **services price list** panel beside it. `tests/test_gear_catalogue.py`.
+
+**The inventory VIEW shipped** (same day): `view.inventory_rows` / `filter_inventory` /
+`inventory_counts` + an Inventory panel at the top of the equipment surface, with filter
+chips. `tests/test_inventory_view.py`.
+
+* It is a **VIEW, never a storage shape** — the four lists stay typed because they carry
+  different fields and because `character.weapons` is indexed by position elsewhere (the
+  dice-pool sidebar).
+* **The filters are NOT a partition.** An artifact daiklave answers to `weapon` AND
+  `artifact`, an arrow to `weapon` and `ammunition`, so the counts sum to more than the
+  rows. A later change that "fixes" that has broken the feature.
+* The artifact kind comes from `artifacts.artifact_items`, the same enumeration the
+  budget reads, so a granted stat line is not tagged as a second artifact — the
+  inventory and the validator cannot disagree about what is owned.
+
+⚠ **Two UI lessons from the browser, both mine, both same-day:**
+* **`GearType.cash` had ZERO read sites** — the services panel printed a name and a dot
+  column, so a PRICE list showed no prices and the human called it useless. Correctly.
+  It now prints the jade/silver equivalents, category headings and the Manse note.
+* **A bare dot column is unreadable.** `•••` beside a good was asked about in the
+  browser: every other dot column on the sheet is a rated trait, and this one is a
+  PRICE. Labelled `Res •••` with a tooltip.
+* And a test-scoping one worth keeping: the per-type editors list the same item names as
+  the inventory, so `should_not_see` after a filter click asserts against the wrong
+  panel. Inventory rows carry a `inv-row` marker for that reason.
+
+⚠ **NOT done, and next:**
+* **M&C p.125 is UNBLOCKED and authored** — `tools/parse_mc_prices.py` reads these
+  two-column price pages properly. **Proved by re-parsing p.123 and reproducing all 43
+  rows** that had been authored independently from that page's clean single-column
+  extraction (`--verify` → 43/43). Then p.125 yielded 20 rows: **13 Everyday Wonders →
+  `gear.json`** (56 rows now) and **7 Greater & Lesser Wonders → `resources_cost` on
+  `ArtifactType`**, which is decision 0017 made concrete — a daiklave is Artifact ••
+  AND Resources ••••, two scales, two channels.
+
+  Four parser bugs, each of which looked like working code, and all four are recorded in
+  the tool's docstrings:
+  1. a continuation threshold of 7.0 taken from an exploratory dump that had HALVED
+     every gap (`round(top/2)`) — it joined nothing and 27 of 43 names silently lost
+     their second line;
+  2. continuations must CHAIN ("Crew and provender / for a ship for a / month");
+  3. a line in a continuation slot continues the row WHATEVER is on it — "(rating • to
+     •••)" carries dots and is not a price;
+  4. the running head carries a bullet ("EXALTED • MANACLE AND COIN") and parsed as a
+     one-dot row.
+
+  ⚠ **"Created walkaway" is transcribed as printed** — its three siblings are "… charm"
+  and it is not, and the word appears nowhere else in the book. Flagged in `notes`, NOT
+  completed; needs the rules authority.
+* **Fold the three Add buttons into one Buy surface** — the human's next unification
+  (2026-08-13): "Add weapon" / "Add armor" / "Add goods" open the same dialog against
+  three catalogues, and should be one shop filtered by type. The Artifact Background
+  stays its own surface on Advantages, per decision 0017 — the shop may never sell an
+  artifact at chargen.
+* Not browser-verified: the Goods section, the price list, the Add-goods dialog.
+
+
+
 **The human clicked through the corebook Wonders work overnight and it passed.** Two
 things shipped the morning after, both off a preflight run:
 

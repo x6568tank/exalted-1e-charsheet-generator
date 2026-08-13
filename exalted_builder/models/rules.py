@@ -1072,6 +1072,39 @@ class ArmorWeight(str, Enum):
     SUPERHEAVY = "Superheavy"
 
 
+class GearType(BaseModel):
+    """One row of the mundane price tables (Manacle and Coin p.123, which follows the
+    corebook's pp.323-324 and prices it in cash as well as Resources dots).
+
+    Two kinds, and the split is the human's ruling of 2026-08-13:
+
+    * `goods` — something the character then HOLDS: clothes, jewelry, an animal, an
+      estate. These can be bought into `Character.gear` and appear in the inventory.
+    * `service` — upkeep, an event, a commission or a rental ("Staff a grand palace for
+      a month", "Rent a mercenary company", "Donatives necessary to be named an
+      imperial prefect"). Priced, never owned, and shown as a REFERENCE price list. A
+      character does not carry a month of stabling in her pack, and modelling one as an
+      inventory row would be the tracker pretending to be a chronicle simulator — the
+      same reasoning that keeps training times out (see CLAUDE.md).
+
+    `cash` is the printed jade/silver equivalent kept verbatim as text ("6 minae 950
+    dinars"). It is REFERENCE, never arithmetic: the book says outright that the
+    Resources ladder is not linear and that converting it is a Storyteller judgement
+    (M&C p.122), so this build stores what is printed and computes nothing from it.
+    """
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    name: str
+    kind: str = "goods"                    # "goods" (ownable) | "service" (reference)
+    category: str = ""                     # the printed table heading
+    resources_cost: int = Field(default=0, ge=0)
+    cash: str = ""                         # printed jade/silver equivalent, verbatim
+    notes: str = ""
+    tags: list[str] = Field(default_factory=list)
+    source: Source = Field(default_factory=Source)
+
+
 class ArmorType(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -1155,6 +1188,12 @@ class ArtifactType(BaseModel):
     rating_notes: str = ""                  # e.g. "• or •••", "• to •••••"
     description: str = ""                   # short, human-vetted from the source page
     source: str = ""                        # e.g. "MF p.279"
+    # What it costs to BUY one, in Resources dots (Manacle and Coin p.125). A different
+    # question from `rating`, and a different scale — a daiklave is Artifact •• and
+    # Resources ••••, because `rating` is what the Background spends "to start the game
+    # owning" it (core p.342) and this is what cash buys in play. Decision 0017; only
+    # the seven wonders M&C prices carry it, and 0 means the book gives no price.
+    resources_cost: int = Field(default=0, ge=0)
     tags: list[str] = Field(default_factory=list)   # kind: tool/communication/weapon/...
     # WHICH Background pays for this entry, and therefore which budget its rating is
     # denominated in. Everything in the catalogue was Artifact until the corebook
@@ -2710,6 +2749,9 @@ class RuleSet(BaseModel):
     charms: dict[str, Charm]
     spells: dict[str, Spell] = Field(default_factory=dict)
     armor_catalog: dict[str, ArmorType] = Field(default_factory=dict)
+    # The mundane price tables (M&C p.123). Ownable `goods` feed the
+    # inventory; `service` rows are a reference price list — see GearType.
+    gear_catalog: dict[str, GearType] = Field(default_factory=dict)
     weapon_catalog: dict[str, WeaponType] = Field(default_factory=dict)
     artifact_catalog: dict[str, ArtifactType] = Field(default_factory=dict)
     background_catalog: dict[str, BackgroundType] = Field(default_factory=dict)

@@ -1959,7 +1959,8 @@
     "tags": [
       "senses",
       "tool"
-    ]
+    ],
+    "resources_cost": 4
   },
   {
     "id": "artifact.core.good-luck-charm",
@@ -1980,7 +1981,8 @@
     "tags": [
       "tool",
       "utility"
-    ]
+    ],
+    "resources_cost": 3
   },
   {
     "id": "artifact.core.walkaway",
@@ -2012,7 +2014,8 @@
     "tags": [
       "combat",
       "protection"
-    ]
+    ],
+    "resources_cost": 4
   },
   {
     "id": "artifact.core.slayer-khatar",
@@ -2034,7 +2037,8 @@
     "tags": [
       "social",
       "protection"
-    ]
+    ],
+    "resources_cost": 3
   },
   {
     "id": "artifact.savant-sorcerer.mask",
@@ -2045,7 +2049,8 @@
     "tags": [
       "social",
       "utility"
-    ]
+    ],
+    "resources_cost": 4
   },
   {
     "id": "artifact.savant-sorcerer.ring-of-being",
@@ -2240,7 +2245,8 @@
     "tags": [
       "weapon",
       "combat"
-    ]
+    ],
+    "resources_cost": 4
   },
   {
     "id": "artifact.core.grand-daiklave",
@@ -2251,7 +2257,8 @@
     "tags": [
       "weapon",
       "combat"
-    ]
+    ],
+    "resources_cost": 5
   },
   {
     "id": "artifact.core.reaver-daiklave",

@@ -26,6 +26,7 @@ Expected layout:
       charms/*.json          each an array of Charm
       spells.json            array of Spell           (optional)
       armor.json             array of ArmorType       (optional)
+      gear.json              array of GearType        (optional)
       weapons.json           array of WeaponType      (optional)
       natures.json           array of NatureType      (optional)
       virtue_flaws.json      array of VirtueFlawType  (optional)
@@ -47,6 +48,7 @@ from .models.adversary import Adversary
 from .models.rules import (
     AttributeName,
     ArmorType,
+    GearType,
     ArtifactType,
     BackgroundType,
     BonusPointCosts,
@@ -585,6 +587,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
 
     spells = _index(_load_array(data_dir / "spells.json", Spell, problems), "id", "spell", problems)
     armor = _index(_load_array(data_dir / "armor.json", ArmorType, problems), "id", "armor", problems)
+    gear = _index(_load_array(data_dir / "gear.json", GearType, problems), "id", "gear", problems)
     weapons = _index(_load_array(data_dir / "weapons.json", WeaponType, problems), "id", "weapon", problems)
     artifacts = _index(_load_array(data_dir / "artifacts.json", ArtifactType, problems),
                        "id", "artifact", problems)
@@ -663,6 +666,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         charms=charms,
         spells=spells,
         armor_catalog=armor,
+        gear_catalog=gear,
         weapon_catalog=weapons,
         artifact_catalog=artifacts,
         background_catalog=backgrounds,
