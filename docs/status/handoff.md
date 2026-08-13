@@ -1,3 +1,52 @@
+# Session handoff — 2026-08-13
+
+**The human clicked through the corebook Wonders work overnight and it passed.** Two
+things shipped the morning after, both off a preflight run:
+
+1. **The Play tab's unarmed notice was re-parented** (`ui/play.py`). Its `else` belonged
+   to `if sv.weapons:`, and `4f875d3` inserted the nocked-arrow controls between the
+   `if` and the `else` — so an armed character with nothing nocked was told "No weapon
+   owned" beneath a dropdown listing their weapon. The unarmed case still read correctly
+   *by accident*, which is why the suite stayed green. Fixed, with a two-route
+   regression test and its negative control.
+2. **The corebook Artifact Background is now enforced** — human ruling 2026-08-13, full
+   record in `docs/status/rated-artifacts.md`. One artifact, rated no higher than the
+   Background, for every splat whose book alters nothing. `check_artifacts` used to
+   `return issues` when a splat had no `BackgroundRule`, so the check did not run for
+   plain Solar, Lunar, Sidereal, Ghost, Godblooded or the Abyssal renegade. **Three
+   tests asserted `== []` on that gap** — they encoded the bug as the spec.
+
+**Then an audit of every splat's Artifact rule**, prompted by the human asking what the
+new default does to the others. It turned up two more:
+
+3. **Mountain Folk with no Enlightenment chosen were being handed the corebook rule** —
+   theirs is the ONE splat with no base budget row, so an origin-less character resolves
+   to no rule at all. A regression the fallback itself introduced: before it, a missing
+   rule meant no check. Now guarded by `artifacts.rule_is_pending_an_origin` — silence
+   beats the wrong rule. ⚠ The first cut of that guard asked "does any row in this
+   splat's cascade print a rule?", and `Solar:illuminated` answered yes, **switching the
+   corebook default off for every ordinary Solar** — the guard disabled the feature it
+   was protecting. Caught by the negative control in the same test.
+4. **Dragon Kings were reading the Dragon-Blooded Artifact entry** — CLOSED. The page
+   (PG p.175-176, in `images/_extracted/Player's Guide.md`) prints them their own:
+   "Weapons and tools, either vegetative, crystal or orichalcum", whose footnote borrows
+   the Terrestrial RULE explicitly ("See E:DB, p. 157 for details"). Authored as
+   `background.artifact-dragonkings` with `ladder_from` the DB entry — the human's call,
+   since the page's own cross-reference points there. The rule was right the whole time,
+   which is why nothing caught it. `docs/status/rated-artifacts.md`.
+
+Suite **2,292 passing**. ⚠ The artifact work is NOT browser-verified: click the
+Advantages tab on a plain Solar and confirm the header reads `Artifacts (n/1 — Artifact
+N, one artifact rated up to N)`, that a second artifact raises an error, and that an
+artifact weapon + artifact armour counts as two.
+
+Still open from the session below: the Resources hint on the gear dialogs is unclicked,
+and mundane purchasable gear (`GearEntry` / `data/gear.json`) remains page-blocked on
+the corebook equipment tables — the same blocker as the 63 unattributed `resources_cost`
+values.
+
+---
+
 # Session handoff — 2026-08-12
 
 **Rewritten each session.** The durable operating guide is `CLAUDE.md`.

@@ -278,3 +278,28 @@ async def test_the_arrow_control_is_hidden_for_a_weapon_that_fires_nothing(user)
     """A duelist with a short sword and no ammunition never sees it."""
     await user.open('/pools')
     await user.should_not_see("Nocked arrow")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_armed_character_is_never_told_they_own_no_weapon(user: User) -> None:
+    """The unarmed notice belongs to `sv.weapons`, and it drifted onto `sv.arrow_note`
+    when the arrow controls were inserted between the two — so a duelist holding a
+    short sword, and an archer with nothing nocked, were both told they were unarmed
+    while an "Attack with" select sat directly above the sentence.
+
+    Asserted on two shapes because only the second one moves if the `else` is
+    re-parented onto the arrows control instead: /pools owns no ammunition at all.
+    """
+    for route in ('/pools', '/archer-pools'):
+        await user.open(route)
+        await user.should_see("Attack with")
+        await user.should_not_see("No weapon owned")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_unarmed_character_still_gets_the_notice(user: User) -> None:
+    """The negative control for the test above — deleting the branch would pass it."""
+    await user.open('/pools-bare')
+    await user.should_see("No weapon owned")

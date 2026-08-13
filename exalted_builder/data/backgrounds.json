@@ -805,6 +805,13 @@
     "ladder_from": "background.artifact"
   },
   {
+    "id": "background.artifact-dragonkings",
+    "name": "Artifact",
+    "exalt_type": "Dragon-Kings",
+    "description": "Weapons and tools, either vegetative, crystal or orichalcum. Minor Dragon King artifacts are relatively plentiful. Like the Terrestrial Exalted, the Artifact Background of the Dragon Kings provides twice as many dots worth of artifacts as normal. This Background provides the Dragon King with one artifact with a number of dots equal to the Background as well as two or more artifacts whose total number of dots add up to this number of dots. (See E:DB, p. 157 for details.)",
+    "ladder_from": "background.artifact-dragonblooded"
+  },
+  {
     "id": "background.backing-mountainfolk",
     "name": "Backing",
     "exalt_type": "Mountain-Folk",

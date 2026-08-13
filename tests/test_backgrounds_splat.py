@@ -658,6 +658,8 @@ def test_a_splats_own_copy_displaces_the_untagged_one(rs):
 
 def test_the_storyteller_override_still_shows_every_books_version(rs):
     """The displacement must NOT reach `all_available`: there the ST asked for every
-    book's version, and the six differently-reworked Artifacts are the point."""
+    book's version, and the seven differently-reworked Artifacts are the point —
+    core, Illuminated, Dragon-Blooded, Abyssal, Alchemical, Mountain Folk and (since
+    2026-08-13, PG p.175-176) Dragon-Kings."""
     rows = rs.backgrounds_for("Solar", all_available=True)
-    assert len([b for b in rows if b.name == "Artifact"]) == 6
+    assert len([b for b in rows if b.name == "Artifact"]) == 7

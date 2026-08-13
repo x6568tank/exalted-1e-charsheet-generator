@@ -265,6 +265,13 @@ def dice_pool_sidebar(ruleset: RuleSet, character: Character,
                       label="Attack with", clearable=True,
                       on_change=lambda e: _set("weapon", e.value)
                       ).classes("w-full").props("dense outlined")
+        else:
+            # ⚠ Stays attached to `sv.weapons`. When the arrow controls were added
+            # below, this `else` was left after them and re-parented onto
+            # `sv.arrow_note`, so an armed character with nothing nocked — the
+            # ordinary case — was told they owned no weapon.
+            ui.label("No weapon owned — the attack rows are unarmed.").classes(
+                "text-xs text-gray-600")
         if sv.arrows:
             # Only for a weapon that fires them, and deliberately a SEPARATE control
             # from "Attack with": the bow is what you roll, the arrow is what lands.
@@ -280,9 +287,6 @@ def dice_pool_sidebar(ruleset: RuleSet, character: Character,
                                             ).props('data-testid="arrow-note"')
             ui.label("Damage only — an arrow adds no dice to the attack pool."
                      ).classes("text-xs italic opacity-60")
-        else:
-            ui.label("No weapon owned — the attack rows are unarmed.").classes(
-                "text-xs text-gray-600")
 
         with ui.column().classes("gap-0"):
             if sv.wound_label and sv.wound_label != "Incapacitated":

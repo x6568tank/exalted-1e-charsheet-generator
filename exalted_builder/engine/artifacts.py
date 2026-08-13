@@ -112,6 +112,53 @@ def find_item(character: Character, key: str) -> Optional[ArtifactItem]:
     return None
 
 
+def uses_corebook_rule(rule) -> bool:
+    """Whether this splat gets the COREBOOK Artifact Background — one artifact, rated
+    no higher than the Background (human ruling 2026-08-13).
+
+    True when the splat's book alters nothing: no rule row at all (plain Solar, Lunar,
+    Sidereal, Ghost, Godblooded, the Abyssal renegade), or a row that prints neither a
+    tier table nor a multiplier. One predicate rather than two copies of the condition,
+    because the validator and the on-screen budget line have to agree about which rule
+    is running — a header that says nothing while the validator raises an error is the
+    shape that has bitten this area before.
+    """
+    return rule is None or (not rule.budget_tiers and rule.rating_per_dot <= 1)
+
+
+def rule_is_pending_an_origin(ruleset, exalt_type: str, origin: str) -> bool:
+    """Whether this character resolves to no Artifact rule only because they have not
+    chosen an ORIGIN yet — in which case nothing should be judged.
+
+    The guard on the corebook fallback, and it exists because of the Mountain Folk:
+    theirs is the one splat with NO base budget row, only `Mountain-Folk:enlightened`
+    and `:unenlightened`, both carrying the doubled rule. A Mountain Folk who has not
+    yet chosen an Enlightenment — a fresh character, or a save written before the axis
+    — resolves to no rule at all, and handing them the corebook's one-artifact limit
+    would enforce a rule their own book overrides.
+
+    All three conditions are load-bearing, and the middle one is the one that bit:
+
+    * an origin already chosen means the cascade RESOLVED, and whatever it found (rule
+      or no rule) is this character's answer;
+    * a splat with a BASE row has also resolved — a plain Solar is a finished thing,
+      not a half-built Illuminated one. Without this clause `Solar:illuminated`'s tier
+      table counted as "the splat prints a rule" and switched the corebook default off
+      for every ordinary Solar, which is the whole feature;
+    * and only then does an origin row carrying a rule mean the character is
+      mid-build.
+
+    Applying the wrong rule is worse than applying none, which is why this is silence
+    rather than a best guess. It is separate from `uses_corebook_rule` because that one
+    answers a question about the SPLAT and this one about the CHARACTER.
+    """
+    if origin or exalt_type in ruleset.budgets:
+        return False
+    prefix = f"{exalt_type}:"
+    return any(key.startswith(prefix) and artifact_rule(budgets) is not None
+               for key, budgets in ruleset.budgets.items())
+
+
 def purchasable_with_artifact(catalog) -> list:
     """The catalogue entries the Artifact Background actually buys, sorted by name.
 

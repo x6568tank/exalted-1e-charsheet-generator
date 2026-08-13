@@ -163,24 +163,78 @@ def test_artifacts_without_the_background_are_flagged(rs):
 def test_renegade_abyssals_use_the_core_background(rs):
     """p.131: "Renegade Abyssals use the Artifact Background found in Chapter Four:
     Traits of the main Exalted rulebook." The `Abyssal:fugitive` budget row must carry
-    no `budget_tiers`, and the cascade must not hand it the loyal row's."""
+    no `budget_tiers`, and the cascade must not hand it the loyal row's — but "uses the
+    core Background" is a RULE, not an absence of one (ruling 2026-08-13), so the
+    renegade lands in the corebook branch rather than escaping the check."""
     assert rs.budgets_for("Abyssal", "fugitive").background_rules == {}
     c = _abyssal(origin="fugitive", backgrounds=[_bg("Artifact", 1)],
                  artifacts=[_art(name="Wings", rating=5)])
-    assert validate.check_artifacts(rs, c) == []
+    assert [i.code for i in validate.check_artifacts(rs, c)] == [
+        "artifact-item-over-background"]
+    ok = _abyssal(origin="fugitive", backgrounds=[_bg("Artifact", 5)],
+                  artifacts=[_art(name="Wings", rating=5)])
+    assert validate.check_artifacts(rs, ok) == []
 
 
 @pytest.mark.parametrize("splat,caste", [
     ("Solar", "Dawn"), ("Lunar", "Full Moon"),
 ])
-def test_other_splats_have_no_artifact_budget(rs, splat, caste):
-    """Opt-in per splat, like every other Background mechanic. Solar and Lunar have
-    no Artifact rule at all; the multiplier splats (DB/DK/Alchemical) DO have a budget
-    — the double/triple-dots rule — and are covered by the test below."""
+def test_splats_with_no_artifact_rule_get_the_corebook_one(rs, splat, caste):
+    """Human ruling 2026-08-13: the corebook Artifact Background is ONE artifact rated
+    no higher than the Background, and a splat whose book alters nothing uses it. The
+    multiplier splats (DB/DK/MF/Alchemical) are the ones that get several, and the
+    tiered splats (loyal Abyssal, Illuminated) print their own table.
+
+    ⚠ This test asserted `== []` until the ruling — a splat with no `BackgroundRule`
+    was reading as "no budget", so a Solar could hold a 5-dot artifact on Artifact 0
+    and nothing said a word."""
     c = Character(id="c.x", exalt_type=splat, caste=caste, essence_rating=2,
                   backgrounds=[_bg("Artifact", 1)],
                   artifacts=[_art(name="Wings", rating=5)])
+    assert [i.code for i in validate.check_artifacts(rs, c)] == [
+        "artifact-item-over-background"]
+
+
+@pytest.mark.parametrize("splat,caste", [
+    ("Solar", "Dawn"), ("Lunar", "Full Moon"),
+])
+def test_the_corebook_background_permits_exactly_one_artifact(rs, splat, caste):
+    """The count half of the same ruling: every rung of the printed ladder describes a
+    SINGLE item ("A useful item, a weapon or suit of armor"), where the Dragon-Blooded
+    ladder spells out pairs. Artifact ••• is one 3-dot artifact, not three 1-dot ones
+    and not a 2 plus a 1."""
+    def _issues(**kw):
+        return [i.code for i in validate.check_artifacts(
+            rs, Character(id="c.x", exalt_type=splat, caste=caste, essence_rating=2,
+                          **kw))]
+
+    assert _issues(backgrounds=[_bg("Artifact", 3)],
+                   artifacts=[_art(name="Daiklave", rating=3)]) == []
+    assert _issues(backgrounds=[_bg("Artifact", 3)],
+                   artifacts=[_art(name="Sword", rating=2),
+                              _art(name="Amulet", rating=1)]) == [
+        "artifact-over-background-dots"]
+    # Owning artifacts with no Background at all is the same finding every branch
+    # raises, with the same code — a player who deletes the Background must not see a
+    # different error than one who never bought it.
+    assert _issues(artifacts=[_art(name="Amulet", rating=1)]) == [
+        "artifact-without-background"]
+
+
+def test_the_corebook_rule_counts_artifact_WEAPONS_and_ARMOUR_too(rs):
+    """The count is over `artifact_items`, which folds all three homes together — the
+    surface a player actually breaches it on is a daiklave plus a suit of articulated
+    plate, neither of which lives in `character.artifacts`. Mundane gear alongside them
+    is untouched: `artifact_rating` 0 is the mundane default, not a zero-dot artifact.
+    """
+    c = Character(id="c.aw", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                  backgrounds=[_bg("Artifact", 3)])
+    c.weapons.append(Weapon(name="Daiklave", artifact_rating=3))
+    c.weapons.append(Weapon(name="Short Sword"))
     assert validate.check_artifacts(rs, c) == []
+    c.armor.append(Armor(name="Articulated Plate", artifact_rating=3))
+    assert [i.code for i in validate.check_artifacts(rs, c)] == [
+        "artifact-over-background-dots"]
 
 
 def test_the_dragon_blooded_double_dots_rule_is_enforced(rs):
@@ -524,12 +578,15 @@ async def test_the_artifacts_panel_is_on_the_bar_post_lock(user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
-async def test_a_splat_with_no_budget_still_edits_artifacts(user) -> None:
-    """The budget is opt-in; the list is not. A Solar owns artifacts too — the page's
-    own worked example is a Solar's — they are just not budgeted by a table."""
+async def test_a_splat_with_no_budget_TABLE_states_the_corebook_rule(user) -> None:
+    """A Solar is not budgeted by a TABLE, but is governed by the corebook rule (ruling
+    2026-08-13), and the header has to say so — the player must not first learn of the
+    one-artifact limit from a validation error raised after they picked the second.
+    CHAR_ARTIFACTS_SOLAR holds Artifact 4 and one 4-dot artifact, which is legal."""
     await user.open('/artifacts-advantages-solar')
-    await user.should_see("Artifacts")
     await user.should_see("Tattered Wings")
+    await user.should_see("1/1")
+    await user.should_see("one artifact rated up to 4")
     await user.should_not_see("combined")
 
 
@@ -983,3 +1040,65 @@ async def test_raising_the_manse_moves_the_hearthstone_denominator(user) -> None
     # sets the Manse to 35 rather than 5.
     user.find(marker="bg-rating").clear().type("5")
     await user.should_see("Hearthstones: 4 / 5 levels")
+
+
+def test_a_splat_whose_rule_lives_only_on_its_ORIGIN_rows_is_not_given_the_corebook(rs):
+    """The Mountain Folk cascade has no base row — only `Mountain-Folk:enlightened`
+    and `:unenlightened`, both carrying the doubled rule. A Mountain Folk who has not
+    chosen an Enlightenment yet resolves to NO rule, and the corebook fallback would
+    hand them a one-artifact limit their own book overrides.
+
+    ⚠ This is the regression the fallback introduced: before the corebook default, a
+    missing rule meant no check and this character was merely unvalidated. Silence is
+    the right answer for a half-built character; the wrong rule is not.
+    """
+    def _codes(**kw):
+        c = Character(id="mf", exalt_type="Mountain-Folk", caste="artisan",
+                      essence_rating=2, backgrounds=[_bg("Artifact", 3)],
+                      artifacts=[_art(name="A", rating=1), _art(name="B", rating=1)],
+                      **kw)
+        return [i.code for i in validate.check_artifacts(rs, c)]
+
+    assert _codes() == [], "an origin-less Mountain Folk must not be judged"
+    # Both origins print the doubled rule, under which two 1-dot artifacts on
+    # Artifact 3 are legal — so the ORIGIN-LESS answer above must not be the corebook's.
+    assert _codes(origin="enlightened") == []
+    assert _codes(origin="unenlightened") == []
+    # The negative control, and it is not decoration — it caught the first cut of the
+    # guard. That version asked "does ANY row in this splat's cascade print a rule?",
+    # and `Solar:illuminated`'s tier table answered yes, so the corebook default
+    # switched off for every ordinary Solar: the guard silently disabled the feature
+    # it was protecting. A plain Solar has a BASE budget row, so its cascade has
+    # resolved and it is judged.
+    solar = Character(id="s", exalt_type="Solar", caste="Dawn", essence_rating=2,
+                      backgrounds=[_bg("Artifact", 3)],
+                      artifacts=[_art(name="A", rating=1), _art(name="B", rating=1)])
+    assert [i.code for i in validate.check_artifacts(rs, solar)] == [
+        "artifact-over-background-dots"]
+
+
+def test_dragon_kings_read_their_OWN_artifact_entry_not_the_dragon_blooded_one(rs):
+    """PG p.175-176 prints a Dragon King Artifact Background — "Weapons and tools,
+    either vegetative, crystal or orichalcum" — whose changed-background footnote
+    borrows the Terrestrial RULE and says so ("See E:DB, p. 157 for details").
+
+    The build had `background.artifact-dragonblooded` in the Dragon-Kings catalogue,
+    so a Dragon King read the DB entry: House assignments, the Realm's arsenal. ⚠ The
+    RULE was right either way — PG gives them the same doubled shape — which is why
+    nothing caught it. Correct behaviour, borrowed mechanism.
+
+    The ladder is still the DB one, via `ladder_from`, because the page's own
+    cross-reference points there (human's call 2026-08-13).
+    """
+    entries = [b for b in rs.backgrounds_for("Dragon-Kings", "ancient")
+               if b.name == "Artifact"]
+    assert [b.id for b in entries] == ["background.artifact-dragonkings"]
+    assert "vegetative, crystal or orichalcum" in entries[0].description
+    # The borrow resolved at load time, so the read sites see real rungs.
+    assert entries[0].ladder and "A pair of level 1 artifacts." in entries[0].ladder
+    # And the modern origin, which has its own catalogue row.
+    assert [b.id for b in rs.backgrounds_for("Dragon-Kings")
+            if b.name == "Artifact"] == ["background.artifact-dragonkings"]
+    # The Dragon-Blooded keep theirs — the displacement must not have moved it.
+    assert [b.id for b in rs.backgrounds_for("Dragon-Blooded")
+            if b.name == "Artifact"] == ["background.artifact-dragonblooded"]

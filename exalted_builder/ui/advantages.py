@@ -514,9 +514,18 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             rule = artifactsmod.artifact_rule(validate.effective_budgets(rs, character))
             budgeted = rule is not None and bool(rule.budget_tiers)
             header = "Artifacts"
-            if budgeted:
-                rating = sum(bg.rating for bg in character.backgrounds
-                             if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
+            rating = sum(bg.rating for bg in character.backgrounds
+                         if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
+            if artifactsmod.uses_corebook_rule(rule):
+                # The corebook rule (ruling 2026-08-13) governs most splats, and until
+                # it was enforced this header said the bare word "Artifacts" — so the
+                # first a player heard of the one-artifact limit was a validation error
+                # after they had picked two. The line states the rule whether or not
+                # they are over it.
+                header = (f"Artifacts ({len(items)}/1 — Artifact {rating}, "
+                          f"one artifact rated up to {rating})" if rating
+                          else f"Artifacts ({len(items)} — no Artifact Background)")
+            elif budgeted:
                 tier = artifactsmod.budget_tier(
                     validate.effective_budgets(rs, character), rating)
                 combined = sum(i.rating for i in items)

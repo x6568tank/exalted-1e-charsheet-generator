@@ -62,7 +62,13 @@ as pasted markdown (`images/Mortals/Dragon Kings/CH 4 - The Dragon Kings.md`).
    `elder.trait_ceiling` (no new field); Virtues via a DK-only
    `virtue_max_by_essence` table (decided over extending the trait ceiling to Virtues,
    which would silently let every splat raise Virtues past 5).
-7. **The DB/DK Artifact rule** (E:DB p.157 / PG p.176) — "twice the dots' worth":
+7. **The DB/DK Artifact rule** (E:DB p.157 / PG p.176) — "twice the dots' worth". ⚠
+   **2026-08-13:** the rule was right but the ENTRY was borrowed — the Dragon-Kings
+   catalogue pointed at `background.artifact-dragonblooded`, so a Dragon King read the
+   Realm's-arsenal ladder. They have their own text on PG p.175-176 ("vegetative,
+   crystal or orichalcum"), now `background.artifact-dragonkings`, keeping the DB rungs
+   via `ladder_from` because the page's own footnote says to. See
+   `docs/status/rated-artifacts.md`. The rule below is unchanged:
    **total artifact dots ≤ Background × 2, no single artifact above the Background
    rating, and at most ONE artifact rated AT the Background rating** (the flagship;
    the "two or more smaller artifacts" must be below it). Human correction

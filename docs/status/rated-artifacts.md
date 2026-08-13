@@ -135,6 +135,79 @@ useless" cannot be exceeded.
 * **The sheet** gets an Artifacts panel, marking a damaged item with its point value —
   its soak is already reduced above, and an unexplained low figure reads as a bug.
 
+## The corebook default — the fourth rule, added 2026-08-13
+
+**Human ruling, 2026-08-13:** *"Default Artifact core is one artifact per background.
+The ones with different rulings (DB, DK, MF, Alchemical) are the ones that can have
+multiple per background. If a splat has the Artifact background, and it isn't altered
+in any way, then it uses the Corebook's."*
+
+Resolved with the human before authoring, because "one artifact per background" has
+three readings that differ materially: **exactly one artifact, rated no higher than the
+Background** — not one per DOT, and not a combined-rating pool. Artifact ••• is one
+3-dot daiklave; a 2-dot sword plus a 1-dot amulet is illegal. Reported as an **error**,
+not a warning: the corebook ladder carries no "without Storyteller permission" clause,
+which is the thing that made the Abyssal per-item cap a warning.
+
+The printed ladder is the corroboration and is already in `data/backgrounds.json` —
+every rung describes a SINGLE item ("A useful item, a weapon or suit of armor"), where
+`background.artifact-dragonblooded` spells out pairs at every rung from •• up.
+
+⚠ **What this fixed is the house bug in its purest form.** `check_artifacts` had
+`if rule is None: return issues` — a splat with no `BackgroundRule` read as *no budget*
+rather than *the default budget*. So the rule was implemented, tested and green, and
+did not run for **plain Solar, Lunar, Sidereal, Ghost, Godblooded or the Abyssal
+renegade** — most of the roster. A Solar could hold five 5-dot daiklaves on Artifact 0
+in silence. Three tests asserted `== []` on exactly that behaviour, which is why the
+suite never noticed: **the tests encoded the gap as the specification.**
+
+* `engine/artifacts.uses_corebook_rule(rule)` is the ONE predicate — the validator and
+  the on-screen budget line both call it, so they cannot disagree about which of the
+  four rules is running.
+* `validate._corebook_artifact_issues` raises `artifact-item-over-background` per
+  oversized item and `artifact-over-background-dots` for a second item;
+  `artifact-without-background` at rating 0, the same code the other branches use.
+* The count is over `artifacts.artifact_items`, so an artifact **weapon** plus an
+  artifact **armour** is a breach — that is the surface a player actually hits it on,
+  and neither lives in `Character.artifacts`.
+* The Advantages header now READS the rule (`Artifacts (1/1 — Artifact 4, one artifact
+  rated up to 4)`) instead of the bare word "Artifacts". A limit whose first appearance
+  is a validation error after the second pick is the "permission must move the offer as
+  well as the bar" lesson pointed the other way.
+
+### The Dragon King entry (PG p.175-176, authored 2026-08-13)
+
+Found by auditing every splat after the corebook default landed: `chargen_budgets.json`
+listed `background.artifact-dragonblooded` in the **Dragon-Kings** catalogue, so a
+Dragon King read the DB entry — House assignments, the Realm's arsenal of First Age war
+machines. The page shows they have their own:
+
+> •**Artifact** — Weapons and tools, either vegetative, crystal or orichalcum.\*
+>
+> \* Minor Dragon King artifacts are relatively plentiful. Like the Terrestrial Exalted,
+> the Artifact Background of the Dragon Kings provides twice as many dots worth of
+> artifacts as normal. This Background provides the Dragon King with one artifact with a
+> number of dots equal to the Background as well as two or more artifacts whose total
+> number of dots add up to this number of dots. **(See E:DB, p. 157 for details.)**
+
+Authored as `background.artifact-dragonkings` with `ladder_from:
+background.artifact-dragonblooded` — the borrow is what the page itself instructs, and
+the human confirmed keeping the DB rungs (2026-08-13). The footnote also corroborates
+the flagship rule already enforced: *one* artifact at the Background rating, plus others
+summing to it.
+
+⚠ **The rule was right the whole time** — PG gives Dragon Kings the same doubled shape,
+so the doubled budget, the flagship check and the per-item cap all produced correct
+answers off a borrowed entry. Nothing could catch it but reading the page. The same
+species as the Cult of the Illuminated Artifact (`illuminated.md`): a splat silently
+served another's copy of a shared Background NAME.
+
+⚠ **A false finding worth recording**, because the next reader will make it too: the
+audit first reported the Yu-Shan two-dot cap on Celestial Manse and Salary as
+unenforced, having probed `BackgroundType.max_rating` on the catalogue entry. Caps live
+on **`BackgroundRule.max_rating` in `chargen_budgets.json`**, keyed by budget row, and
+both Dragon-King rows carry them correctly.
+
 ## Traps recorded
 
 * **`points_limited_by` → `points_limits`.** Anything reading the old singular field is

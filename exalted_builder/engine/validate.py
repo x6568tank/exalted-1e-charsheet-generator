@@ -2363,6 +2363,41 @@ def check_hearthstones(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
+def _corebook_artifact_issues(items: list, rating: int) -> list[Issue]:
+    """The corebook Artifact Background: ONE artifact, rated no higher than the
+    Background (human ruling 2026-08-13).
+
+    The rule every splat gets unless its own book prints something else, so it is the
+    branch that runs for plain Solars, Lunars, Sidereals, Ghosts, Godblooded and the
+    Abyssal renegade. Both findings are ERRORS, not warnings: the corebook ladder
+    carries no "without Storyteller permission" clause, which is the thing that made
+    the Abyssal per-item cap a warning. An ST who wants to hand out more has the same
+    escape every hard rule here has — the Storyteller is not the validator.
+
+    Rating 0 is "No Artifact." on the printed ladder, so owning anything at all is the
+    same finding the tiered and multiplier branches raise, with the same code.
+    """
+    if rating == 0:
+        return [Issue(
+            code="artifact-without-background", where="Artifact",
+            message=f"This character owns {len(items)} artifact(s) but has no Artifact "
+                    f"Background; artifacts are bought with its dots.",
+        )]
+    issues = [Issue(
+        code="artifact-item-over-background", where=item.name,
+        message=f"Artifact {rating} permits no artifact rated above {rating}; "
+                f"{item.name} is {item.rating}.",
+    ) for item in items if item.rating > rating]
+    if len(items) > 1:
+        issues.append(Issue(
+            code="artifact-over-background-dots", where="Artifact",
+            message=f"Artifact {rating} permits ONE artifact rated no higher than "
+                    f"{rating}; this character owns {len(items)} "
+                    f"({', '.join(i.name for i in items)}).",
+        ))
+    return issues
+
+
 def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
     """The p.131 Artifact BUDGET: combined rating and per-item ceiling, keyed by the
     character's Artifact Background rating (E:Ab p.131).
@@ -2375,13 +2410,14 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
     also why artifacts are absent from `ChargenSnapshot`, which weapons and armour
     already are.
 
-    A no-op for every splat whose Artifact `BackgroundRule` prints no `budget_tiers`,
-    which is all of them but the loyal Abyssal — renegades "use the Artifact Background
-    found in Chapter Four" (p.131), and their `Abyssal:fugitive` budget row carries no
-    rules at all, so `budget_tier` returns None and nothing below runs. It is also a
-    no-op for anyone owning no artifacts, which is most characters.
+    Three rules, one per branch: the printed TIER table (loyal Abyssal, Illuminated),
+    the MULTIPLIER (DB and Dragon-Kings at two dots per dot, Alchemical at three), and
+    otherwise the COREBOOK default — see `_corebook_artifact_issues`. Only the last is
+    reachable without a `BackgroundRule` at all, which is why the `rule is None` early
+    return above became a fallback rather than an exit. A no-op for anyone owning no
+    artifacts, which is most characters.
 
-    Three findings:
+    The tiered branch's three findings:
       * owning artifacts with no Artifact Background at all,
       * combined rating over the row's `combined_max`,
       * a single item over the row's `individual_max` (the lower rows only). The page
@@ -2394,11 +2430,24 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
         return issues
     budgets = effective_budgets(ruleset, character)
     rule = artifacts.artifact_rule(budgets)
-    # A splat with no Artifact rule at all (Solar, Abyssal renegade) prices artifacts
-    # by free text and imposes no budget — nothing to check.
-    if rule is None:
-        return issues
     rating = background_rating(character.backgrounds, artifacts.ARTIFACT_BACKGROUND)
+    # A splat with no Artifact rule at all (plain Solar, Lunar, Sidereal, Ghost,
+    # Godblooded, the Abyssal renegade who "uses the Artifact Background found in
+    # Chapter Four", p.131) falls back to the COREBOOK rule, which is not "no budget".
+    # Human ruling 2026-08-13: the corebook default is ONE artifact, rated no higher
+    # than the Background — every rung of the printed ladder describes a single item
+    # ("A useful item, a weapon or suit of armor"), and the splats that hand out
+    # several (DB, Dragon-Kings, Mountain Folk, Alchemical) are exactly the ones whose
+    # own ladder says so. This branch used to `return issues`, which meant a Solar
+    # could hold five daiklaves on Artifact 0 in silence.
+    if artifacts.uses_corebook_rule(rule):
+        # …unless this splat DOES print a rule and the character simply has not reached
+        # the row that carries it — a Mountain Folk with no Enlightenment chosen. See
+        # `artifacts.splat_prints_its_own_rule`: silence beats the wrong rule.
+        if rule is None and artifacts.rule_is_pending_an_origin(
+                ruleset, character.exalt_type, character.origin):
+            return issues
+        return issues + _corebook_artifact_issues(items, rating)
     if rule.budget_tiers:
         tier = artifacts.budget_tier(budgets, rating)
         if tier is None:
