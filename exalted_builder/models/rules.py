@@ -346,6 +346,22 @@ class Charm(BaseModel):
     # them these styles with no data or code change. Like `open_to_all`, a Charm
     # learned this way is an ordinary Martial Arts Charm for the learner.
     open_to_tiers: list[str] = Field(default_factory=list)
+    # The martial-arts TIER of the style this Charm belongs to ("Terrestrial" /
+    # "Celestial" / "Sidereal"), "" for a non-martial-arts Charm or a style whose
+    # page prints no tier.
+    #
+    # ⚠ NOT AUTHORED IN THE CHARM FILES. `rules_db` projects it from the style
+    # catalogue at load time, so `MartialArtsStyle.tier` stays the single authored
+    # copy and cannot drift from this one. Setting it in a charms JSON is a mistake
+    # — the loader overwrites it.
+    #
+    # It exists because `open_to_tiers` was doing two unrelated jobs: "who may learn
+    # this" AND, in the p.101 Sidereal chargen cap, "is this a Sidereal Martial Arts
+    # form". Those diverged — the cap counted 140 Charms across twelve styles when
+    # only 41 across three are Sidereal MA, so a ronin could not take a single
+    # Celestial Monkey Charm. Ask `ma_tier` what KIND of style a Charm is; ask
+    # `open_to_tiers` who may learn it. See docs/status/martial-arts-styles.md.
+    ma_tier: str = ""
     # A style whose OWN text names who may learn it, narrower than any tier. Entries
     # are "<Splat>" or "<Splat>:<caste>", and the character must satisfy ONE of them.
     # Dreaming Pearl Courtesan (PG p.249): "it can be mastered only by the Solar

@@ -1766,7 +1766,7 @@ def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView
                     else:
                         reason = f"only {len(ids)} Charm(s) authored, needs {choice.pick}"
                     options.append(CampChoiceOption(
-                        key=cat, label=_style_label(cat), charm_ids=ids,
+                        key=cat, label=_style_label(cat, ruleset), charm_ids=ids,
                         available=ok, reason=reason))
                     if ids and any(c in held for c in ids):
                         chosen = cat
@@ -1831,8 +1831,19 @@ def _charm_name(ruleset: RuleSet, charm_id: str) -> str:
     return charm.name if charm is not None else charm_id
 
 
-def _style_label(category: str) -> str:
-    """"martial_arts:ebon-shadow" -> "Ebon Shadow Style"."""
+def _style_label(category: str, ruleset=None) -> str:
+    """"martial_arts:ebon-shadow" -> "Ebon Shadow Style".
+
+    The AUTHORED name wins when the style catalogue has one, because the slug is
+    not always the printed name: `martial_arts:praying-mantis` is printed "Mantis
+    Style" (Caste Book: Eclipse p.73). Without this the same style is called two
+    things on two surfaces. The slug remains the fallback — homebrew styles are
+    minted at runtime and have no catalogue entry (decision 0012).
+    """
+    if ruleset is not None:
+        for style in getattr(ruleset, "martial_arts_styles", {}).values():
+            if style.category == category:
+                return style.name
     slug = category.split(":", 1)[-1]
     return " ".join(w.capitalize() for w in slug.replace("_", "-").split("-")) + " Style"
 
@@ -1849,13 +1860,33 @@ class StyleView:
     mechanics: list[str]
     source_label: str         # "Player's Guide p.239", "" when unattributed
 
+    @property
+    def heading(self) -> str:
+        """The panel's title. `tier` is optional — most books print no `Type:` line
+        — so interpolating it unconditionally yields "Air Dragon Style — " with a
+        dangling separator.
+
+        Derived HERE rather than inline in `ui/picker.py` for two reasons: CLAUDE.md
+        asks for derived state in the presenter so the Qt port carries it over, and
+        it gives the tier-less case a home that can be unit-tested with a synthetic
+        StyleView. That second reason is load-bearing — every style in the catalogue
+        now has a tier, so there is no real subject left to point a render test at,
+        and a control with no subject silently stops testing anything.
+        """
+        return f"{self.name} — {self.tier}" if self.tier else self.name
+
 
 def style_for_category(ruleset: RuleSet, category: str) -> Optional[StyleView]:
     """The authored style for a `martial_arts:*` category, or None.
 
-    None is the ordinary case for now, not an error: 18 of the 22 styles are still
-    unauthored (Phase 2), and a homebrew style has no page to have a preamble from.
+    None is an ordinary answer, not an error: three styles are documented absences
+    whose pages print no style-level material (`snake`, `hungry-ghost`,
+    `enlightenment`), and a homebrew style has no page to have a preamble from.
     A caller must render nothing rather than an empty panel.
+
+    ⚠ A returned StyleView can still have an EMPTY `tier` or an empty `preamble` —
+    only the Player's Guide prints both. Callers must treat each field as optional
+    rather than assuming a non-None style is a fully populated one.
     """
     if not category or not category.startswith("martial_arts:"):
         return None
@@ -2867,7 +2898,7 @@ def custom_category_options(ruleset: RuleSet) -> dict[str, str]:
     then the sentinel that creates a NEW style. Keys are the stored `category`
     strings, values the labels."""
     opts = {a.value: _label(a.value) for a in AbilityName}
-    opts.update({cat: _style_label(cat) for cat in _style_categories(ruleset)})
+    opts.update({cat: _style_label(cat, ruleset) for cat in _style_categories(ruleset)})
     opts["sorcery"] = "Sorcery (no gating Ability)"
     opts[NEW_STYLE] = "New Martial Arts style…"
     return opts
@@ -3091,7 +3122,7 @@ def build_custom_library(ruleset: RuleSet, charm_rows: list[dict],
         loaded = ruleset.charms.get(rid)
         out.append(CustomRow(
             id=rid, name=row.get("name") or rid, kind="charm",
-            detail=(_style_label(loaded.category) if loaded and loaded.category.startswith("martial_arts:")
+            detail=(_style_label(loaded.category, ruleset) if loaded and loaded.category.startswith("martial_arts:")
                     else _label(loaded.category) if loaded
                     else row.get("category", "?")),
             valid=loaded is not None and loaded.custom,

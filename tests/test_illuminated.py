@@ -1007,7 +1007,14 @@ def test_camp_view_lists_all_four_styles_with_readable_labels(rs):
     """A closed ui.select never puts its options in the DOM, so the option LABELS are
     asserted here rather than in a render test. All four styles are authored: Snake
     (core), Tiger (Caste Book: Dawn p.73-74), Praying Mantis (Caste Book: Eclipse
-    p.73-75) and Ebon Shadow (Caste Book: Night p.67-70)."""
+    p.73-75) and Ebon Shadow (Caste Book: Night p.67-70).
+
+    ⚠ The middle one reads **"Mantis Style"**, not "Praying Mantis Style". The
+    category slug is `martial_arts:praying-mantis` and the label used to be derived
+    from it, but the page prints "Mantis Style" (Caste Book: Eclipse p.73) and
+    `view._style_label` now prefers the authored name over the slug
+    (docs/status/martial-arts-styles.md). The slug is unchanged and must stay —
+    `camps.json` keys on it."""
     from exalted_builder.ui import view
     tab = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
                        granted_charms=rs.camps["sequestered-tabernacle"].granted_charms)
@@ -1015,9 +1022,9 @@ def test_camp_view_lists_all_four_styles_with_readable_labels(rs):
     assert choice.is_category_choice
     assert choice.pick == 2
     assert [o.label for o in choice.options] == [
-        "Ebon Shadow Style", "Praying Mantis Style", "Snake Style", "Tiger Style"]
+        "Ebon Shadow Style", "Mantis Style", "Snake Style", "Tiger Style"]
     pools = {o.label: len(o.charm_ids) for o in choice.options}
-    assert pools == {"Ebon Shadow Style": 11, "Praying Mantis Style": 10,
+    assert pools == {"Ebon Shadow Style": 11, "Mantis Style": 10,
                      "Snake Style": 10, "Tiger Style": 9}
     assert choice.chosen_key == ""            # nothing taken, so unresolved
 
@@ -1142,7 +1149,7 @@ def test_all_four_tabernacle_styles_are_pickable(rs):
 
     by_label = {o.label: o for o in choice.options}
     assert len(by_label) == 4
-    for label in ("Ebon Shadow Style", "Praying Mantis Style", "Snake Style",
+    for label in ("Ebon Shadow Style", "Mantis Style", "Snake Style",
                   "Tiger Style"):
         assert by_label[label].available, label
         assert by_label[label].reason == "", label

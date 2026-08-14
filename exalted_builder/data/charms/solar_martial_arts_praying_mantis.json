@@ -19,7 +19,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 74
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.iron-arm-block",
@@ -45,7 +48,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 74
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.mantis-form",
@@ -71,7 +77,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 74
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.grasping-claw-method",
@@ -97,7 +106,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 75
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.grasping-mantis-defense",
@@ -123,7 +135,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 75
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.joint-locking-technique",
@@ -149,7 +164,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 75
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.joint-breaking-attack",
@@ -175,7 +193,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 75
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.flying-mantis-kick",
@@ -201,7 +222,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 75
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.crushing-claw-technique",
@@ -227,7 +251,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 75
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.unfolding-retribution-stance",
@@ -262,6 +289,9 @@
     "source": {
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 75
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   }
 ]

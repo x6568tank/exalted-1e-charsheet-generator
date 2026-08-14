@@ -1,10 +1,15 @@
 # Plan — the martial-arts STYLE entity
 
-**Status:** **Phase 1 SHIPPED 2026-08-14** (model, loader, link check, picker panel,
-4 of 22 styles), suite 2,420, **not browser-verified**. Phase 2 — the remaining 18
-preambles — is open. What actually shipped and the traps it produced are in
-**`docs/status/martial-arts-styles.md`**; read that first, this is the plan it was
-built from. Closes the modelling half of open TODO 2 in `CLAUDE.md`.
+**Status: BOTH PHASES SHIPPED 2026-08-14.** Phase 1 (model, loader, link check,
+picker panel, 4 styles) browser-verified; Phase 2 authored 15 more, closing the
+catalogue at **19 of 22** with three documented absences (`snake`, `hungry-ghost`,
+`enlightenment`) that are NOT pending work. What actually shipped and the traps it
+produced are in **`docs/status/martial-arts-styles.md`**; read that first, this is
+the plan it was built from. Closes the TODO in `CLAUDE.md`.
+
+⚠ **This plan's premise was half wrong and the status doc records how.** It assumed
+every style has a preamble to author. Only the Player's Guide prints one per style;
+most books print a rules sidebar and nothing else, and two print nothing at all.
 
 ## The problem
 
@@ -13,7 +18,7 @@ Charms and nowhere to put their PREAMBLE — the style-level text that sits abov
 Charm list on the page. Some of it is pure flavour; some of it is mechanical and is
 currently lost:
 
-- **Jade Mountain** (Aspect Book: Earth p.71) — non-Earth Aspects pay a 1-mote
+- **Jade Mountain** (Aspect Book: Earth **p.75** — this plan said p.71, off by four) — non-Earth Aspects pay a 1-mote
   elemental surcharge; the style fails unless the Exalt touches the ground; Charms
   may be used freely with armour and treat one-handed crushing weapons as unarmed.
   The worked example, recorded in `docs/status/dragonblooded-aspect-books.md`.

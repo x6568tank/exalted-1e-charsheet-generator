@@ -109,15 +109,32 @@ def test_each_castebook_style_is_a_self_contained_single_root_cascade(rs, catego
                 assert pid in ids, f"{c.id} reaches outside its style: {pid}"
 
 
-def test_castebook_styles_are_solar_only(rs):
-    """Unlike Falling Blossom (a Terrestrial style, so `open_to_all`), nothing on these
-    three styles' pages opens them to other Exalt types. Do not widen them without a
-    page that says so."""
+def test_the_castebook_styles_are_celestial(rs):
+    """Tiger, Mantis and Ebon Shadow are Celestial styles — open to the Celestial
+    Exalted, and to Dragon-Blooded who hold an initiation pair (PG pp.235-236).
+
+    ⚠ **This test used to assert the opposite** — that all three were Solar-only,
+    with the docstring "Do not widen them without a page that says so." That guard
+    did its job: widening Tiger failed it, which is how the widening got reviewed
+    rather than slipping through. Its escape clause was then met, and the human ruled
+    on 2026-08-14:
+      * PG p.236's Celestial-initiation `Examples:` names Tiger Style;
+      * Sidereals p.195 has a Sidereal invoking "Tiger Form and Ebon Shadow Form or
+        Snake Form and Charcoal March of Spiders Form";
+      * DB p.241's sidebar: "if taught, the Dragon-Blooded could master Snake Style,
+        Tiger Style or any of the other styles more commonly practiced by the
+        Anathema."
+
+    Falling Blossom stays Terrestrial (`open_to_all`) and is deliberately not here.
+    """
     for category in ("martial_arts:tiger", "martial_arts:praying-mantis",
                      "martial_arts:ebon-shadow"):
-        for c in (x for x in rs.charms.values() if x.category == category):
-            assert not c.open_to_all, c.id
-            assert c.open_to_tiers == [], c.id
+        charms = [x for x in rs.charms.values() if x.category == category]
+        assert charms, category
+        for c in charms:
+            assert not c.open_to_all, c.id       # Celestial, not a Terrestrial style
+            assert c.open_to_tiers == ["Celestial"], c.id
+            assert c.ma_tier == "Celestial", c.id
 
 
 # --------------------------------------------------------------------------- #

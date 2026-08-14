@@ -2111,4 +2111,19 @@ def page_style_authored():
 def page_style_unauthored():
     picker.build_picker(RS, CHAR_STYLE, Path("x.json"), with_header=False,
                         initial_group="styles",
-                        initial_category="martial_arts:tiger")
+                        initial_category="martial_arts:enlightenment")
+
+# The SHAPE Phase 1 could not produce: a style whose page prints only a rules
+# sidebar — no `Type:` word and no prose. Righteous Devil has both, so the authored
+# route above cannot catch a dangling "— " in the heading or an empty label.
+# ⚠ Must point at a style with an EMPTY `tier`. Only four are left
+# (ebon-shadow, praying-mantis, violet-bier-of-sorrows, hungry-ghost) — this route
+# already had to move once, off air-dragon, when the Player's Guide initiation
+# sweep gave the five Dragon Paths a tier. Check `tier` is still "" before trusting
+# this route; the test asserts the absence of a substring and so goes quiet rather
+# than red when its subject stops having the shape.
+@ui.page('/style-rules-only')
+def page_style_rules_only():
+    picker.build_picker(RS, CHAR_STYLE, Path("x.json"), with_header=False,
+                        initial_group="styles",
+                        initial_category="martial_arts:ebon-shadow")

@@ -221,7 +221,17 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,420 passing** (2026-08-14), with one warning.
+The suite is green: **2,384 passing, 1 skipped** of **2,385 collected** (2026-08-14,
+after the martial-arts Phase 2 and the access work), with the one machine-dependent
+failure described immediately below.
+
+⚠ **The test COUNT is machine-dependent too, and by more than one test.** The line
+above read 2,420 on the other machine before this session, which added 19 tests net,
+so ~54 tests are collected there and not here. That is
+the `images/`-presence deferral pattern showing up in COLLECTION rather than in
+outcomes — **do not treat a lower count here as tests having been deleted**, and do
+not "reconcile" the two numbers. Record the number you measured, on the machine you
+measured it on, with the date.
 
 ⚠ **One MACHINE-DEPENDENT test, and the dependency is the point:**
 `test_every_description_matches_the_source_text` **defers** entries whose source
@@ -279,7 +289,7 @@ full record.
 | **Elder Exalts — DONE, browser-verified** (simplified 2026-08-06: Essence XP-purchasable to the splat cap — 9 flat, Terrestrial-7 held; trait ceilings follow Essence; age chart removed; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 | **Dice pools — DONE 2026-08-12, browser-verified** (decision 0016; `data/dice_pools.json` + `RollDefinition` + a pure `engine/pools.py` + a **left sidebar on the Play tab listing every roll at once**, each with its own one-line arithmetic, plus a custom Attribute + Ability builder in the main column that shares the sidebar's state. An ITEMISED base pool — never a bare number, and the on-screen "does not include" list is the mitigation 0016 accepted for 0008's objection, so do not collapse it. Mobility is a PER-ROLL fact off p.332, not a blanket subtraction; wound penalties apply to EVERY roll including Virtue/Willpower, with p.233's resist-infection the one printed exemption, gated in the engine; **accumulated armour fatigue is now a manual `PlayState.fatigue` counter** (p.332) that subtracts from every pool. ⚠ `Armor.mobility_penalty` is stored NEGATIVE in the data — a new consumer that reads it as a magnitude adds dice) | `docs/status/dice-pools.md` |
 | **Corebook Wonders — DONE 2026-08-12, browser-verified 2026-08-13** (the ten Hearthstones + sixteen Greater Wonders → `artifacts.json` 196→222; the four arrows as `ammunition` gear rows, FREE per the human's ruling, with `Weapon.quantity` for stacking; the three cosmetic helms; the ten sample Virtue Flaws as a Virtue-filtered dropdown over the free-text field; catalogue row icons; a nocked-arrow REFERENCE control on the Play tab. ⚠ **A Hearthstone's dots are its MANSE rating, not Artifact** — `ArtifactType.background` keeps the stones off both Artifact-spending surfaces, and their picker lives on the Manse Background row. **The Hearthstone ALLOWANCE followed the same day, browser-verified** (S&S pp.66-67: stones on a Manse row may not exceed the Manse's level, hard on BOTH sides of the lock per the human's ruling): stored structurally as `BackgroundEntry.hearthstones`, never in the row's note; the allowance is DATA on `BackgroundType.hearthstone_tiers`/`hearthstone_per_dot` and is **not uniform** — linear 1/dot for the core and Celestial Manses, an irregular 2/3/6/8/10 tier table with per-stone ceilings for Dragon-Blooded and Abyssal, 2/dot for Mountain Folk; Demesnes grow NO stones and get a per-row toggle instead (human's ruling). ⚠ Unblocked by cracking `ZTR41D0`, the face that draws the corebook's entry NAMES: the pages were on disk and readable and still unauthorable, because the missing 2.5% was the identifying half) | `docs/status/corebook-wonders.md` |
-| **Martial-arts STYLE entity — Phase 1 done 2026-08-14, not browser-verified** (`MartialArtsStyle`: printed `Type:`, preamble, style-level `mechanics`; 4 of 22 authored off the Player's Guide, 18 remain as a pinned worklist. ⚠ `tier` is DISPLAY ONLY and a test bars `engine/` from reading the catalogue — access stays on the Charms. ⚠ Righteous Devil's "Blessing of Righteous Solar Spark Meditation" is a DOCUMENTED exception, correct as printed. ⚠ Style-name matching failed three ways in one session; **book + page off the Charms' own `source` is what worked**) | `docs/status/martial-arts-styles.md` |
+| **Martial-arts STYLE entity — DONE 2026-08-14, BROWSER-VERIFIED (all 8 checklist items + the label fix)** (`MartialArtsStyle`: printed `Type:`, preamble, style-level `mechanics`. **21 of 22 authored**; the only category left, `enlightenment`, is the Dragon-Path initiation tree and not a style. ⚠⚠ **A style's rules need not be printed with its Charms.** Snake and Hungry Ghost were briefly written off as absences because their OWN pages print nothing — but **Player's Guide p.200's `MARTIAL ARTS WEAPONS` table exists precisely to supply form weapons for styles printed before the association was formalised**, and PG pp.234-239's initiation `Examples:` lines supply a tier. Checking the style's own chapter is necessary and NOT sufficient. ⚠ **The Player's Guide is the ONLY book that prints a `Type:` line per style** — `tier` comes from that line where it exists and from the initiation `Examples:` lines otherwise (human's ruling 2026-08-14); four entries are still legitimately blank. A Phase-1 test demanding tier + a 200-char preamble encoded a one-book sample and was relaxed. ⚠ `tier` is DISPLAY ONLY and a test bars `engine/` from reading the catalogue — access stays on the Charms. ⚠ Righteous Devil's "Blessing of Righteous Solar Spark Meditation" is a DOCUMENTED exception, correct as printed. ⚠ `view._style_label` prefers the AUTHORED name (`praying-mantis` prints as **Mantis Style**). ⚠ **Negative-control tests went stale THREE times in one session and every one kept PASSING** — after authoring content that used to be missing, grep the tests for the names you just added. ⚠ The Sidereals PDF is offset by **3**, every other book by 1 — measure it off a footer. **ACCESS WORK, same day:** `Charm.ma_tier` is **projected by the loader** from `MartialArtsStyle.tier` and is NEVER authored in a charms JSON — the style stays the single authored copy and `engine/` still may not read the catalogue. It exists because `open_to_tiers` was doing two jobs; the p.101 Sidereal chargen cap used it as a proxy for "is a Sidereal MA form" and counted **140 Charms across twelve styles when only 41 across three are** — a ronin could not take a single Celestial Monkey Charm. Also landed: the PG p.235 grant (an INITIATED Dragon-Blood reaches Celestial styles — the enlightenment tree already GATED this and never GRANTED it) and the PG p.235 Lunar bar (**"they" is Lunars specifically**, not the Celestial tier). ⚠ **The grant was nearly scoped to the TIER** — four splats are Terrestrial-tier and `db_enlightenment_met` returns True for every non-Dragon-Blood, so Dragon-Kings/God-Blooded/Mountain-Folk would have got every Celestial style free. **A predicate that answers "True, not applicable" outside its subject is a grant waiting to happen.** ⚠ **EVERY style now carries a tier** (human, 2026-08-14): Snake and Tiger Celestial, then Mantis, Ebon Shadow, Violet Bier and Hungry Ghost Celestial too — 49 Charms gained `open_to_tiers`. Two tests asserting the older, narrower access were rewritten on purpose; the castebook Solar-only guard is the one that CAUGHT the widening, which is why it existed. ⚠ **Violet Bier is Celestial but is NOT a Sidereal MA form** — it never counts against the p.101 cap; that is `ma_tier`, and conflating the two is the bug this work removed. ⚠ **The negative control for the tier-less panel went stale FOUR times in one session** and was finally rebuilt on a SYNTHETIC fixture (`StyleView.heading`) because no real subject remains — when nothing is absent any more, rebuild the control, never delete it. ⚠ **The click-through found a SECOND label generator**: `view._style_label` was taught the authored name and `picker._pretty` was not, so the panel read "Mantis Style" while the dropdown read "Praying-Mantis" on the same screen — and `.title()` mangled EVERY multi-word slug ("Charcoal-March-Of-Spiders"); only the one style whose printed name differs from its slug made it visible. **When you teach one formatter a new fact, grep for its siblings** — a per-module display helper touches no engine code, so the containment tests never see it) | `docs/status/martial-arts-styles.md` |
 | **Printable / PDF sheet — DONE 2026-08-14, browser- AND packaged-build-verified** (a real generated PDF via reportlab, NOT a print stylesheet — the human rejected `Ctrl+P`; `ui/pdf.py` takes a `SheetView` and nothing else and imports no `nicegui`, so the builder, the GM party export and the tests share one renderer and the Qt port carries it over unchanged. Charms/spells print as **names and costs only**, notes print but rules text does not, the Validation panel and XP ledger do NOT print, paper size is chosen at export time. ⚠ Every glyph is drawn or ASCII — and the ones that bite arrive as DATA, not from this module's source: `view.health` carries `★` on a Charm-granted level and `PathRow.favored` IS a glyph, so the guard asserts on the rendered page, in **cp1252 not latin-1**. ⚠ The health track WRAPS — nineteen Ox-Body levels ran over the Virtues panel) | `docs/status/printable-sheet.md` |
 | **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
@@ -287,8 +297,9 @@ full record.
 (`engine-and-ui.md`); every shipped splat's data, engine and UI is browser-verified,
 including Mountain Folk (2026-08-07). **A character can now be put on paper**: the
 generated PDF sheet shipped 2026-08-14, browser- and packaged-build-verified
-(`printable-sheet.md`). Martial-arts styles became a real entity the same day, with
-4 of 22 preambles authored (`martial-arts-styles.md`).
+(`printable-sheet.md`). Martial-arts styles became a real entity the same day and the
+catalogue closed the same day too — **21 of 22 authored**, the one remaining category
+being the Dragon-Path initiation tree, which is not a style (`martial-arts-styles.md`).
 
 **The catalogue is COMPLETE as of 2026-08-14 and browser-verified the same day.** All 647
 rows of the content-gap discovery set are resolved — the 2026-08-11 sweep, the corebook
@@ -320,16 +331,11 @@ Ship dates for everything else live in the per-splat status docs and the git log
 
 ### 👉 Open work
 
-The three TODOs recorded on 2026-08-14 when the catalogue closed. **One is done** (the
-printable sheet — see the status table and the traps list below; it is not repeated
-here). These two remain, in no fixed order.
+The three TODOs recorded on 2026-08-14 when the catalogue closed. **Two are done** (the
+printable sheet, and the martial-arts styles — both in the status table above; neither
+is repeated here). One remains.
 
-1. **Martial-arts styles, PHASE 2 — the remaining 18 preambles.**
-   `docs/status/martial-arts-styles.md`. Phase 1 shipped the entity and 4 styles;
-   `rules_db.unauthored_martial_arts_styles` is the pinned worklist and every source is
-   in `sources/`. **Jade Mountain is the first target** — its three mechanics are
-   already transcribed in `docs/status/dragonblooded-aspect-books.md`.
-2. **Split `engine/validate.py`** — 5,791 lines, 182 functions, **47% of the whole
+1. **Split `engine/validate.py`** — 5,791 lines, 182 functions, **47% of the whole
    engine**, with a 643-line `validate_chargen` at its centre. **Plan and measurements:
    `docs/plans/validate-refactor.md`.** ⚠ The seam is DOMAIN, not splat (only 4 of the 182
    functions name a splat — the splat differences already live in `data/`), and the
@@ -465,6 +471,12 @@ survive any status rewrite:
   names against the books failed **three ways in one session**: a loose matcher found
   "snake"/"tiger" anywhere, a strict header matcher reported 18 present styles as
   absent, and a `WEAPONS AND ARMOR` regex missed the sidebar spelled `WEAPONSAND ARMOR`.
+  ⚠ **Phase 2 found the strict matcher's real defect, and it generalises past matching:**
+  it required a `Type:` line, and **14 of the 18 styles print none** — it was searching
+  for a shape that mostly does not exist, so every "absent" style was present all along.
+  That is the verification-shape trap, not a regex bug. ⚠ And **a section heading need
+  not contain the style's name**: the Sidereals book heads each style by its Maiden's
+  domain (`THE SWORD: MARTIAL ARTS` is Violet Bier of Sorrows).
   **Book + page off the Charms' own `source` is what worked.** ⚠ And a name match can
   land in the wrong CHAPTER of the right book — two "Celestial Monkey Style" hits in the
   Player's Guide are an astrology correlations table, not the style section.

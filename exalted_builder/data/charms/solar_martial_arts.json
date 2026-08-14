@@ -15,7 +15,10 @@
     "source": {
       "book": "Core",
       "page": 160
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.serpentine-evasion",
@@ -37,7 +40,10 @@
     "source": {
       "book": "Core",
       "page": 160
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.snake-form",
@@ -59,7 +65,10 @@
     "source": {
       "book": "Core",
       "page": 160
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.essence-fangs-and-scales-technique",
@@ -81,7 +90,10 @@
     "source": {
       "book": "Core",
       "page": 160
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.armor-penetrating-fang-strike",
@@ -104,7 +116,10 @@
     "source": {
       "book": "Core",
       "page": 161
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.snake-strikes-the-heel",
@@ -126,7 +141,10 @@
     "source": {
       "book": "Core",
       "page": 161
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.crippling-pressure-point-strike",
@@ -148,7 +166,10 @@
     "source": {
       "book": "Core",
       "page": 161
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.uncoiling-serpent-prana",
@@ -170,7 +191,10 @@
     "source": {
       "book": "Core",
       "page": 161
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.striking-serpent-speed",
@@ -193,7 +217,10 @@
     "source": {
       "book": "Core",
       "page": 162
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.essence-venom-strike",
@@ -223,6 +250,9 @@
     "source": {
       "book": "Core",
       "page": 162
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   }
 ]

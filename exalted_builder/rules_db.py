@@ -215,6 +215,30 @@ def _check_martial_arts_styles(styles: dict, charms: dict, problems: list[str]) 
     # a test pins so the list can only ever shrink.
 
 
+def _project_style_tier_onto_charms(styles: dict, charms: dict) -> None:
+    """Copy each style's `tier` onto its Charms as `Charm.ma_tier`, in place.
+
+    **The style stays the single AUTHORED copy.** `engine/` needs to know what kind
+    of style a Charm belongs to — the p.101 Sidereal chargen cap and the PG p.235
+    Terrestrial-initiation grant both turn on it — but a test bars `engine/` from
+    reading the style catalogue, and duplicating the tier into 232 charm JSON rows
+    would be the two-live-descriptions shape decision 0011 exists to prevent.
+    Projecting at load time gives the engine a Charm-level field to read while
+    leaving exactly one place to author it.
+
+    A style with a blank `tier` leaves its Charms blank, and so does a category with
+    no style entry (`martial_arts:enlightenment`, and every homebrew style). Blank
+    means "no tier is printed for this", never "Terrestrial" — every consumer must
+    treat it as unknown rather than defaulting it, because 46 of the 232 martial-arts
+    Charms are in that state.
+    """
+    by_category = {s.category: s.tier for s in styles.values() if s.tier}
+    for cid, charm in list(charms.items()):
+        tier = by_category.get(getattr(charm, "category", ""), "")
+        if tier and getattr(charm, "ma_tier", "") != tier:
+            charms[cid] = charm.model_copy(update={"ma_tier": tier})
+
+
 def unauthored_martial_arts_styles(ruleset) -> list[str]:
     """The `martial_arts:*` categories that have printed Charms but no style entry
     — i.e. the styles whose preamble is still unauthored. Sorted, so a test can pin
@@ -697,6 +721,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
                                    MartialArtsStyle, problems),
                        "id", "martial arts style", problems)
     _check_martial_arts_styles(ma_styles, charms, problems)
+    _project_style_tier_onto_charms(ma_styles, charms)
     # Named base dice pools (decision 0016). Cross-splat and optional: absent means
     # the pool calculator simply offers no presets.
     rolls = _index(_load_array(data_dir / "dice_pools.json", RollDefinition, problems),

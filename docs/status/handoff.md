@@ -1,75 +1,172 @@
-# Session handoff — 2026-08-14 (printed sheet + martial-arts styles)
+# Session handoff — 2026-08-14 (martial-arts styles, Phase 2)
 
-**Rewritten each session.** Suite: **2,420 passing**, one warning (the pre-existing
-71-entry M&F source-text deferral — see the ⚠ in CLAUDE.md's Status section; it is
-machine-dependent, not a regression).
+**Rewritten each session.** Previous session: the printed/PDF sheet (DONE, fully
+verified, `02da1cd`) and the martial-arts STYLE entity Phase 1 (`037ca2f`).
 
-Two of the three open TODOs were closed or half-closed today.
+**Suite: 2,384 passing, 1 skipped of 2,385 collected**, plus the one known
+machine-dependent failure — `test_every_description_matches_the_source_text`, which
+FAILS on this machine because the Godblooded chapter markdown is present here and
+DEFERS where it is not. CLAUDE.md says neither outcome is a regression; it is not.
 
-## 1. The printable / PDF sheet — DONE, fully verified
+⚠ **The collected COUNT is machine-dependent as well** — the last session recorded
+2,420 on the other machine and this session added 19 tests net, so roughly 54 collect
+there and not here. Do not reconcile the two figures; record what you measured and
+where.
 
-`docs/status/printable-sheet.md`. **Browser-verified AND packaged-build-verified by
-the human the same day** (loaded a character and printed from a freshly rebuilt
-`dist/ExaltedBuilder`), so `collect_all("reportlab")` in the spec is confirmed
-sufficient. Committed as `02da1cd`.
+## What happened this session
 
-⚠ **There is no print stylesheet and there must not be one.** `Ctrl+P` prints the
-app's DOM and was rejected. `ui/pdf.py` takes a `SheetView` and nothing else and
-imports no `nicegui`.
+1. **Phase 1 was browser-verified.** You clicked the preamble panel and confirmed it.
+2. **Phase 2 is DONE** — 17 styles authored, the catalogue closed at **21 of 22**.
+   `docs/status/martial-arts-styles.md` is the full record.
 
-The one review finding — *"Specialties box doesn't zero out when there's nothing in
-it"* — generalised to **a panel holding nothing is dropped, never printed as a box
-saying "—"**, applied to Specialties, Backgrounds and Equipment. `ui/app.py` keeps
-the placeholder and should: the two surfaces differ deliberately.
+⚠ **It closed at 19 first, and your question is what found the other two.** I had
+recorded Snake and Hungry Ghost as documented absences because their own pages print
+no style-level material — which is true, and was the wrong conclusion. **Player's
+Guide p.200's `MARTIAL ARTS WEAPONS` table exists specifically to supply form weapons
+for styles printed before the association was formalised**, Snake and Hungry Ghost
+among them, and it also gave Five-Dragon the mechanics it had shipped without. The
+rule that generalises: **checking a style's own chapter is necessary and not
+sufficient — a later book can carry the rule the original omitted.**
 
-## 2. Martial-arts STYLE entity — PHASE 1 DONE, **not browser-verified**
+That closes the second of the three TODOs written when the content gap closed.
+**`engine/validate.py` is the only one left.**
 
-`docs/status/martial-arts-styles.md`, plan `docs/plans/martial-arts-styles.md`.
-`MartialArtsStyle` (printed `Type:`, preamble, style-level `mechanics`), the loader
-and link check, a collapsible preamble panel on the picker's Martial Arts page, and
-**4 of 22 styles authored** off the Player's Guide. 13 tests.
+## The click-through — DONE 2026-08-14, all eight items
 
-### 👉 What to click (the only thing outstanding on this work)
+The human clicked all eight. **One real bug, two errors in my checklist, and one
+incidental finding.**
 
-Nobody has seen the preamble panel in a browser. Charms tab → Martial Arts page:
+### The bug: a SECOND style-label generator (fixed)
 
-1. **Righteous Devil** — the panel should carry its `Type: Celestial`, two
-   paragraphs of prose, the firewand "Weapons and Armor" rule, and `Player's Guide
-   p.254`. Check the paragraph break survived (`whitespace-pre-line`).
-2. **Tiger, or any of the other 17 unauthored styles** — there must be **no panel at
-   all**, not an empty box.
-3. **Dreaming Pearl Courtesan** — four `mechanics` rules, the longest list; check it
-   does not crowd the tree.
+The preamble panel said "Mantis Style"; the dropdown above it said
+"Praying-Mantis". `view._style_label` had been taught the authored name and
+`ui/picker.py`'s own `_pretty` had not. ⚠ It was wrong for **every multi-word slug**
+("Charcoal-March-Of-Spiders") — Mantis is just the one where it was noticeable.
+Fixed by deferral, with a test, and **the fix is browser-verified** — the dropdown
+now reads "Martial Arts: Mantis".
 
-## Open question waiting on you
+### Two checklist items where the APP was right and I was wrong
 
-**None.** The one rules question this work raised — Righteous Devil's
-`open_to_tiers` divergence — you ruled on: **correct as printed, Solar-only**. It is
-recorded in the test as a documented exception with a second test pinning the
-exception set to exactly that one Charm, and in CLAUDE.md as *do not "fix" it*.
+* **Ebon Shadow needed an initiation pair to appear.** Correct — Ebon Shadow became
+  Celestial on the same day's ruling, so uninitiated Dragon-Bloods are properly
+  barred. I wrote that item before the ruling and did not revise it.
+* **An uninitiated Dragon-Blood was offered Falling Blossom and Crimson Pentacle
+  Blade** as well as Five-Dragon and Jade Mountain. Correct — both are TERRESTRIAL
+  styles, and `_is_dragon_path_style`'s docstring names them. My item under-specified.
+
+**Both are the same mistake: a checklist written from what I expected rather than
+from what the rules say.** A click-through item that asserts too little is as
+misleading as one that asserts the wrong thing — the human has to decide whether an
+unexpected extra is a bug, and only the code knows.
+
+### Incidental: two shipped examples have an unresolvable caste
+
+`ruleset.castes.get()` is case-sensitive and caste ids are lowercase slugs, but
+`examples/yarak.character.json` carries `"Twilight"` and
+`examples/ashes-of-dawn.character.json` carries `"Dawn"`. Both render a blank caste
+panel. `gearheart` and `nine-bells-ringing` are fine. **Not fixed** — unrelated to
+this work, and it is a two-word data change someone should make deliberately.
+
+⚠ It also cost three rebuilds of the click-through fixtures, because I copied
+`yarak` as the base and inherited its bad caste on top of my own two mistakes
+(replacing the abilities dict wholesale, then the caste casing). **Validate a
+hand-built fixture through the real model AND check its ids resolve before handing
+it to a human.**
+
+## Two decisions I made that are yours to reverse
+
+* **The five Immaculate Dragon Paths duplicate their shared rules.** DB pp.242-243
+  prints the Signature Weapons rule, the per-path weapon benefit and the elemental
+  cost sidebar **once for all five paths**. Each of the five entries now carries its
+  own weapon rule plus the two shared ones. I left **"Switching Paths"** and **"The
+  Path of Elemental Mastery"** out as chapter-level system text about moving between
+  Paths rather than about any one style. Say the word and they go in.
+* **`tier` now has TWO printed sources, on your ruling.** The style's own `Type:`
+  line where it has one, and otherwise the Player's Guide initiation `Examples:`
+  lines (pp.234-239) — Five-Dragon Terrestrial; Snake, Tiger and the five Glorious
+  Dragon Paths Celestial. They agree with each other where both exist, and with the
+  Charms' `open_to_tiers`. **Four entries are still blank** (Ebon Shadow, Mantis,
+  Violet Bier, Hungry Ghost): no `Type:` line, named by no `Examples:` list.
+
+## One thing I found and did NOT fix
+
+**The seven Jade Mountain Charms cite Aspect Book: Earth p.71. The style and its
+Charms are on pp.74-77.** Read off the PDF's own text layer with the printed footer
+visible. I recorded p.75 on the style and left the Charms alone — that is an
+attribution sweep, not this job. Flagging it so it does not get lost.
+
+## The traps worth carrying out of today
+
+* **A test can encode a one-book sample as a rule.** Phase 1 asserted every style
+  has a `tier` and a 200-character `preamble`; that held only because all four
+  samples were Player's Guide styles, and **14 of the other 18 print neither**. The
+  same fact explains why Phase 1's strict name matcher "found" only 4 of 22: it
+  required a `Type:` line, so it was searching for a shape that mostly does not
+  exist. Not a regex bug — the verification-shape trap.
+* **A negative control can go positive underneath you.**
+  `test_an_unauthored_style_shows_no_empty_panel` pointed at Tiger, which this
+  session authored. It kept passing for the wrong reason (Tiger's rule is headed
+  "Tiger's Claws", not "Weapons and Armor"), so it silently stopped testing
+  anything. Re-pointed at Snake.
+* **Measure the PDF page offset, never guess it.** The Sidereals is offset by 3 and
+  every other book by 1. Two pages off in that book lands you in the Bureaucracy
+  Charms on a page that looks entirely plausible.
+* **A section heading need not contain the style's name.** The Sidereals book heads
+  each style by its Maiden's domain — Violet Bier of Sorrows is printed under
+  `THE SWORD: MARTIAL ARTS`.
+
+## The access work — DONE 2026-08-14 (option A, your call)
+
+Verifying your Snake/Tiger ruling turned up a **live pre-existing bug**; it and three
+related items are fixed. Full detail in `docs/status/martial-arts-styles.md`.
+
+* **`Charm.ma_tier`, PROJECTED by the loader** from `MartialArtsStyle.tier` — not
+  authored in the charm files. The style stays the single authored copy, `engine/`
+  gets a Charm-level field, and the Phase-1 boundary test still passes. Better than
+  the scripted 232-file migration option A first implied; a test asserts no charms
+  JSON sets it.
+* **The p.101 Sidereal cap** counted 140 Charms across twelve styles as "Sidereal
+  Martial Arts forms"; only 41 across three are. **A ronin could not take a single
+  Celestial Monkey Charm.** Now `ma_tier == "Sidereal"`.
+* **The PG p.235 grant** — an initiated Dragon-Blood reaches Celestial styles. Your
+  initiation machinery was already complete and correct; it gated but never granted.
+* **The Lunar bar** on Sidereal MA — Lunars only, Solars and Abyssals unaffected.
+* **Snake and Tiger** set to Celestial per your ruling.
+
+⚠ **The trap the grant nearly shipped with:** it was first scoped to the TIER, and
+four splats are Terrestrial-tier while `db_enlightenment_met` returns True for every
+non-Dragon-Blood — so Dragon-Kings, God-Blooded and Mountain-Folk would have got
+every Celestial style free, PG p.235 barring Dragon Kings outright. Scoped to the
+splat, with a test. **A helper that answers "True, not applicable" for everyone
+outside its subject is a grant waiting to happen when used as a condition.**
+
+## The four tier-less styles — RESOLVED, all Celestial (your ruling)
+
+Ebon Shadow, Mantis, Violet Bier and Hungry Ghost are all Celestial. **Every style in
+the catalogue now has a tier**, and 30 Charms gained `open_to_tiers: ["Celestial"]`,
+so Celestial Exalts and initiated Dragon-Blooded reach all four.
+
+Two tests asserted the old narrower access and were rewritten deliberately — the
+castebook Solar-only guard (which did its job: it caught the Tiger widening) and the
+Sidereal one that had Violet Bier closed. **The distinction that mattered survived:**
+Violet Bier is still not a Sidereal MA *form* and still never counts against the
+p.101 cap.
+
+⚠ **The negative control went stale a fourth time — and this time it went RED**,
+because the previous re-point had added a premise assertion. There is now no
+tier-less style left to aim it at, so it was rebuilt around a synthetic fixture
+instead of deleted: the heading logic moved to `StyleView.heading` (derived state in
+the presenter, which the Qt port wants anyway) and is tested against a constructed
+tier-less StyleView. The preamble-less half still has ten real subjects and keeps
+its render route plus its own guard.
 
 ## Where the work goes next
 
-1. **Martial-arts Phase 2 — the other 18 preambles.**
-   `rules_db.unauthored_martial_arts_styles` is the pinned worklist; every source is
-   in `sources/`. **Jade Mountain first** — the example the TODO was written around,
-   its three mechanics already transcribed in `dragonblooded-aspect-books.md`.
-   ⚠ `martial_arts:enlightenment` is the Dragon-Path initiation tree, **not a
-   style** — it gets an entry only if its page carries a preamble of its own.
-2. **Split `engine/validate.py`** — unchanged, `docs/plans/validate-refactor.md`.
-   Write the roll-up membership test FIRST.
+**Split `engine/validate.py`** — 5,791 lines, 182 functions, 47% of the engine.
+`docs/plans/validate-refactor.md`. The seam is DOMAIN, not splat. **Write the
+roll-up membership test FIRST** — a `check_*` dropped from `validate()` still
+passes its own unit tests and never runs.
 
-## The trap worth carrying out of today
-
-**Matching content by NAME failed three separate ways in one session** — a loose
-matcher that found "snake"/"tiger" in every book, a strict header matcher that then
-declared 18 present styles absent, and a regex that missed `WEAPONSAND ARMOR`
-(no space). **Book + page off the entry's own `source` is what worked every time.**
-And a name match can land in the wrong CHAPTER of the right book: two "Celestial
-Monkey Style" hits in the Player's Guide are an astrology correlations table.
-
-This is `feedback_gap_matchers_wrong_both_ways` firing three more times, in an area
-it had never bitten before. It is now in CLAUDE.md's traps list.
-
-Still deferred indefinitely and **not** gaps: the Mist numina, Cult Abyssals.
+Still deferred indefinitely and **not** gaps: the Mist numina, Cult Abyssals, and
+now the three martial-arts absences (`snake`, `hungry-ghost`, `enlightenment`).
 Training times are still a no.

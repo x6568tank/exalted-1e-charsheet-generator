@@ -157,7 +157,20 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     def _pretty(cat: str) -> str:
         if ":" in cat:                          # 'martial_arts:snake' -> 'Martial Arts: Snake'
             base, style = cat.split(":", 1)
-            return f"{base.replace('_', ' ').title()}: {style.replace('_', ' ').title()}"
+            # ⚠ The AUTHORED style name wins, exactly as it does on the Charm detail
+            # card and the preamble panel. Title-casing the slug is only a fallback,
+            # and it was wrong twice over for a style whose printed name is not its
+            # slug: `praying-mantis` is printed "Mantis Style" (Caste Book: Eclipse
+            # p.73), and `.title()` does not repair the hyphen either, so the
+            # dropdown read "Martial Arts: Praying-Mantis".
+            #
+            # This was a SECOND label generator living beside `view._style_label`.
+            # Fixing that one left this one wrong, so the panel and the dropdown
+            # disagreed about the same style on the same screen. One fact, one
+            # implementation: defer, and strip the " Style" suffix the dropdown's
+            # own format has never carried.
+            name = viewmod._style_label(cat, ruleset).removesuffix(" Style")
+            return f"{base.replace('_', ' ').title()}: {name}"
         return cat.replace("_", " ").title()
 
     # A toggle splits the picker into three pages: the ability Charm trees, the
@@ -924,21 +937,27 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         prose, and the "Weapons and Armor" rules that never had anywhere to live
         (docs/plans/martial-arts-styles.md).
 
-        Renders NOTHING when the selected category is not an authored style — which
-        is the common case while Phase 2 is outstanding, and permanently so for a
-        homebrew style. An empty panel on every other category would be worse than
+        Renders NOTHING when the selected category is not an authored style — the
+        three documented absences, and permanently so for a homebrew style. An empty panel on every other category would be worse than
         no panel, the same rule the sheet's conditional panels follow.
         """
         style = viewmod.style_for_category(ruleset, state["category"])
         if style is None or not _is_graph_page():
             return
-        with ui.expansion(f"{style.name} — {style.tier}").classes(
+        # ⚠ Both of these are conditional because most books print NEITHER a `Type:`
+        # line nor prose — eight of the 19 styles have an empty `tier` and six have
+        # no preamble at all (docs/status/martial-arts-styles.md). Interpolating them
+        # unconditionally gives "Air Dragon Style — " with a dangling em-dash above
+        # an empty label. Same rule the printed sheet follows: nothing is rendered as
+        # nothing, never as an empty box.
+        with ui.expansion(style.heading).classes(
                 f"w-full {pal.card_soft} rounded").props("dense"):
             with ui.column().classes("w-full gap-2 p-2"):
                 # `whitespace-pre-line` or NiceGUI eats the paragraph breaks —
                 # see docs/status/backgrounds.md, which learned this the hard way.
-                ui.label(style.preamble).classes(
-                    "text-sm whitespace-pre-line").style("max-width:60rem")
+                if style.preamble:
+                    ui.label(style.preamble).classes(
+                        "text-sm whitespace-pre-line").style("max-width:60rem")
                 for rule in style.mechanics:
                     with ui.row().classes("w-full items-start gap-2 no-wrap"):
                         ui.icon("gavel", size="0.9rem").classes("mt-1").style(

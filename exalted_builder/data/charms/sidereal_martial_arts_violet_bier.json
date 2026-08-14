@@ -19,7 +19,10 @@
     "source": {
       "book": "Exalted 1e The Sidereals",
       "page": 179
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "sidereal.violet-bier-of-sorrows.flight-of-mercury",
@@ -41,7 +44,10 @@
     "source": {
       "book": "Exalted 1e The Sidereals",
       "page": 180
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "sidereal.violet-bier-of-sorrows.blade-of-the-battle-maiden",
@@ -67,7 +73,10 @@
     "source": {
       "book": "Exalted 1e The Sidereals",
       "page": 180
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "sidereal.violet-bier-of-sorrows.joy-in-adversity-stance",
@@ -93,7 +102,10 @@
     "source": {
       "book": "Exalted 1e The Sidereals",
       "page": 180
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "sidereal.violet-bier-of-sorrows.violet-bier-of-sorrows-form",
@@ -125,7 +137,10 @@
     "source": {
       "book": "Exalted 1e The Sidereals",
       "page": 181
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "sidereal.violet-bier-of-sorrows.death-parrying-stroke",
@@ -151,7 +166,10 @@
     "source": {
       "book": "Exalted 1e The Sidereals",
       "page": 181
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "sidereal.violet-bier-of-sorrows.life-severing-blow",
@@ -173,7 +191,10 @@
     "source": {
       "book": "Exalted 1e The Sidereals",
       "page": 181
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "sidereal.violet-bier-of-sorrows.metal-storm",
@@ -199,7 +220,10 @@
     "source": {
       "book": "Exalted 1e The Sidereals",
       "page": 181
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "sidereal.violet-bier-of-sorrows.conclusion-pursuing-approach",
@@ -228,6 +252,9 @@
     "source": {
       "book": "Exalted 1e The Sidereals",
       "page": 181
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   }
 ]

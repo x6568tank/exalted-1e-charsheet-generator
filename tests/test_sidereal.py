@@ -358,14 +358,28 @@ def test_sidereal_category_coverage(rs):
         assert f"martial_arts:{style}" in cats
 
 
-def test_sidereal_martial_arts_styles_are_celestial_open(rs):
-    """The 3 supernatural SMA styles are learnable by any Celestial Exalt (source
-    preamble: 'treat Sidereal Martial Arts as Solar Charms'); Violet Bier is not."""
+def test_sidereal_book_martial_arts_styles_are_celestial_open(rs):
+    """All four martial-arts styles in The Sidereals are learnable by Celestial
+    Exalts — the three secret styles (source preamble: 'treat Sidereal Martial Arts
+    as Solar Charms') and Violet Bier of Sorrows.
+
+    ⚠ **Violet Bier was widened on 2026-08-14** (human's ruling: the four styles that
+    printed no `Type:` line are all Celestial). This test used to assert it carried
+    NO `open_to_tiers` — a conservative default from when the splat was authored, not
+    a printed exclusivity. Sidereals p.184 positions it as the lesser style Sidereals
+    learn *before* the secret arts, which makes it Celestial rather than Sidereal.
+
+    **The distinction that actually matters did not move**, and is asserted below:
+    Violet Bier is not a Sidereal Martial Arts FORM, so it never counts against the
+    p.101 chargen cap. That is now `ma_tier`, not `open_to_tiers` — the two were
+    conflated, which is the bug `test_a_celestial_style_is_not_a_sidereal_martial_
+    arts_form` exists for.
+    """
     for c in _sid_charms(rs):
-        if c.category.startswith("martial_arts:") and "violet-bier" not in c.category:
+        if c.category.startswith("martial_arts:"):
             assert c.open_to_tiers == ["Celestial"], c.id
     vb = [c for c in _sid_charms(rs) if c.category == "martial_arts:violet-bier-of-sorrows"]
-    assert vb and all(not c.open_to_tiers for c in vb)
+    assert vb and all(c.ma_tier == "Celestial" for c in vb)
 
 
 def test_sidereal_sorcery_initiations_grant_circles(rs):
@@ -485,3 +499,47 @@ def test_sidereal_ronin_may_take_no_martial_arts_forms(rs):
     assert _codes(validate.validate_chargen(rs, c), "charm-too-many-martial-arts-forms") != []
     c.charms = [_VB_FLIGHT]                              # Violet Bier remains legal
     assert _codes(validate.validate_chargen(rs, c), "charm-too-many-martial-arts-forms") == []
+
+
+def test_a_celestial_style_is_not_a_sidereal_martial_arts_form(rs):
+    """⚠ REGRESSION, 2026-08-14. The p.101 cap identified a "Sidereal Martial Arts
+    form" as any martial-arts Charm with a non-empty `open_to_tiers`. That is a
+    proxy for "Celestial-open", not for "Sidereal", and it matched 140 Charms across
+    TWELVE styles when only 41 across three are Sidereal MA — the five Immaculate
+    Dragon Paths, Celestial Monkey, Dreaming Pearl, Righteous Devil and Hungry Ghost
+    all counted against the cap.
+
+    The sharpest symptom: a RONIN, whose cap is 0, could not take a single Celestial
+    Monkey Charm — a style with no Sidereal connection whatsoever.
+
+    The discriminator is now `Charm.ma_tier`, projected from the style catalogue at
+    load. This test pins the distinction from the OTHER side of the cap, so a future
+    proxy that happens to satisfy the tests above cannot reintroduce it.
+    """
+    celestial = [c.id for c in rs.charms.values()
+                 if c.category == "martial_arts:celestial-monkey"][:4]
+    assert len(celestial) == 4
+
+    c = _sidereal("endings")
+    c.charms = celestial
+    assert _codes(validate.validate_chargen(rs, c),
+                  "charm-too-many-martial-arts-forms") == []
+
+    # And for the ronin, whose cap of 0 made the bug unmissable.
+    c = _sidereal("endings"); c.origin = "ronin"
+    c.charms = celestial[:1]
+    assert _codes(validate.validate_chargen(rs, c),
+                  "charm-too-many-martial-arts-forms") == []
+
+
+def test_only_the_three_sidereal_styles_count_as_forms(rs):
+    """Pin the SET, not just a sample. Sidereals pp.184-201 print exactly three
+    secret styles; everything else with a martial-arts category is a lesser style.
+    A new style authored with the wrong tier fails here rather than silently
+    changing what a Sidereal may buy at chargen."""
+    forms = {c.category for c in rs.charms.values() if c.ma_tier == "Sidereal"}
+    assert forms == {
+        "martial_arts:charcoal-march-of-spiders",
+        "martial_arts:citrine-poxes-of-contagion",
+        "martial_arts:prismatic-arrangement-of-creation",
+    }

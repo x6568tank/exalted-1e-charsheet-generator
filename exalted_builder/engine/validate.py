@@ -4997,14 +4997,22 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
 
     # --- Sidereal Martial Arts form cap (p.101) ------------------------------ #
     # "no more than 3 [chargen Charms] may be from a Sidereal Martial Arts form;
-    # ronin ... none". A "form" is a supernatural SMA style — a martial_arts Charm
-    # that is open_to_tiers (Celestial-open); the Violet Bier auspicious tree is not
-    # open_to_tiers and is uncapped. None on every other splat = no cap.
+    # ronin ... none". A "form" is a SIDEREAL martial-arts style — the three secret
+    # styles of Sidereals pp.184-201. The Violet Bier auspicious tree is a lesser
+    # (Celestial) style and is uncapped. None on every other splat = no cap.
+    #
+    # ⚠ This used to test `c.open_to_tiers`, i.e. "any Celestial-open martial-arts
+    # Charm", as a proxy for "is a Sidereal MA form". The proxy was wrong and got
+    # worse as the catalogue grew: it matched 140 Charms across TWELVE styles when
+    # only 41 across three are Sidereal MA, so the five Immaculate Dragon Paths,
+    # Celestial Monkey, Dreaming Pearl, Righteous Devil and Hungry Ghost all counted
+    # against this cap — and a ronin, whose cap is 0, could not take a single
+    # Celestial Monkey Charm. `ma_tier` names the style KIND directly.
     if b.martial_arts_form_charm_cap is not None:
         n_form = sum(
             1 for cid in charms
             if (c := ruleset.charms.get(cid)) is not None
-            and c.category.startswith("martial_arts") and c.open_to_tiers)
+            and c.ma_tier == "Sidereal")
         if n_form > b.martial_arts_form_charm_cap:
             cap = b.martial_arts_form_charm_cap
             issues.append(Issue(
@@ -5339,12 +5347,49 @@ def charm_matches_splat(character: Character, charm: Charm,
     if (character.exalt_type == "Alchemical" and is_martial_arts_charm(charm)
             and not has_perfected_lotus_matrix(character)):
         return False
+    # A Lunar may NEVER learn Sidereal martial arts (PG p.235, in the LUNAR MARTIAL
+    # ARTISTS section: "They may not learn Sidereal martial arts under any
+    # circumstances"). "They" is the Lunar Exalted specifically — the sentence sits
+    # inside that section — so this is a LUNAR bar and not a Celestial-tier one:
+    # Solars and Abyssals reach the Sidereal styles by tier exactly as before.
+    #
+    # Above the grants below, because the three Sidereal styles carry
+    # `open_to_tiers: ["Celestial"]` and a Lunar reaches Celestial, so the tier
+    # branch would otherwise hand them over.
+    if character.exalt_type == "Lunar" and charm.ma_tier == "Sidereal":
+        return False
     if charm.open_to_all or splat_of(charm) == character.exalt_type:
         return True
     if ruleset is not None and charm.open_to_tiers:
         if tier_reaches(ruleset.exalt_for(character.exalt_type).tier,
                         charm.open_to_tiers):
             return True
+    # A TERRESTRIAL who has been initiated reaches the CELESTIAL martial arts
+    # (PG pp.235-236: "It is possible for the Terrestrial Exalted to practice
+    # Celestial martial arts. Indeed, many Terrestrials do"). The initiation is the
+    # enlightenment Charm pair — any one of the three, which `db_enlightenment_met`
+    # already decides and `category_available` already uses as a GATE.
+    #
+    # ⚠ The gate was never a grant. A Dragon-Blood reached her own Dragon Paths by
+    # SPLAT OWNERSHIP, so the gate only ever narrowed that; an initiated DB was still
+    # refused Celestial Monkey, which has carried `open_to_tiers: ["Celestial"]` all
+    # along. This branch is the missing half. It grants nothing to an UNINITIATED
+    # Terrestrial, and nothing at all above Celestial — a Dragon-Blood never reaches
+    # Solar-tier or Sidereal material, which decision 0015's "never reaches up" and
+    # the Lunar-style bars above both preserve.
+    # ⚠ Gated on the SPLAT, not on the tier. Four splats are Terrestrial-tier
+    # (Dragon-Blooded, Dragon-Kings, God-Blooded, Mountain-Folk) and
+    # `db_enlightenment_met` returns True for every non-Dragon-Blood — so a tier test
+    # would hand the other three every Celestial style for free, having met no
+    # initiation at all. PG p.235 also bars one of them outright: "Dragon Kings ...
+    # can never master anything other than Terrestrial styles designed specifically
+    # for Dragon Kings." The printed passage says "the Dragon-Blood must also have
+    # her perceptions opened", and the initiation pairs are Dragon-Blooded Charms, so
+    # Dragon-Blooded is the correct and faithful scope.
+    if (charm.ma_tier == "Celestial"
+            and character.exalt_type == "Dragon-Blooded"
+            and db_enlightenment_met(character)):
+        return True
     return False
 
 

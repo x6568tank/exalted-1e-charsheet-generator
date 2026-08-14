@@ -9,7 +9,10 @@
       "Weapons and Armor: Disciples of this martial-arts style are proficient with the use of polearms and shields, and Charms in the Crimson Pentacle Blade Style treat attacks made with a spear (or other polearm) and shield as unarmed attacks. A polearm is any weapon that has an extended haft a minimum of four and a half feet in length.",
       "Characters cannot use this style while wearing armor."
     ],
-    "source": {"book": "Player's Guide", "page": 239}
+    "source": {
+      "book": "Player's Guide",
+      "page": 239
+    }
   },
   {
     "id": "style.celestial-monkey",
@@ -21,7 +24,10 @@
       "As practitioners of moderation in all things, those who would grow in the wisdom of the Celestial Monkey can not have any Virtue rating higher than 3.",
       "Weapons and Armor: This martial-arts style is an unarmed style, and the Charms within it are not conducive to the use of any weapons. Characters cannot use this style while wearing armor. Masters of this style, however, do not suffer these prohibitions. See the Charm Celestial Godbody Understanding for details."
     ],
-    "source": {"book": "Player's Guide", "page": 246}
+    "source": {
+      "book": "Player's Guide",
+      "page": 246
+    }
   },
   {
     "id": "style.dreaming-pearl-courtesan",
@@ -35,7 +41,10 @@
       "The Charm Lethal Paper Fan Attack allows characters to use frail props as lethal weapons.",
       "Characters cannot use this style while wearing armor."
     ],
-    "source": {"book": "Player's Guide", "page": 250}
+    "source": {
+      "book": "Player's Guide",
+      "page": 250
+    }
   },
   {
     "id": "style.righteous-devil",
@@ -47,6 +56,266 @@
       "Weapons and Armor: Originally developed for use with the discharge of various flame-discharge weapons lost to the modern day, disciples of the Righteous Devil Style use firewands and other weapons that project bolts of flame as the focus for their martial arts. Charms of this style treat attacks with these weapons as Martial Arts attacks.",
       "Painfully, the Charms of this style cannot generally be used with any other weapons or even unarmed. Without their weapons, practitioners of the Righteous Devil Style are as helpless as a disarmed swordsman."
     ],
-    "source": {"book": "Player's Guide", "page": 254}
+    "source": {
+      "book": "Player's Guide",
+      "page": 254
+    }
+  },
+  {
+    "id": "style.jade-mountain",
+    "name": "Jade Mountain Style",
+    "category": "martial_arts:jade-mountain",
+    "tier": "Terrestrial",
+    "preamble": "This Terrestrial-level martial art channels the overwhelming strength and resilience of the mountain, similar in tone and yet far less powerful than the Immaculate Earth Dragon Style. Jade Mountain Style sees most use among the Dragon-Blooded soldiers of Lookshy, where each practitioner may hold a pass against a talon of mortals.",
+    "mechanics": [
+      "Unless specifically noted otherwise, all Charms in this cascade may be used freely with armor and treat one-handed crushing weapons as unarmed attacks. These include clubs, hammers, maces and goremauls, but not the sledges or grand goremauls favored by Earth Immaculates.",
+      "Unlike Five-Dragon Form and most other Terrestrial-level martial arts, all Charms in this style draw heavily on the Essence of the earth. As a result, only Earth Aspect Terrestrial Exalted and God-Blooded children of earth elementals or earth-associated deities may use this style for the listed activation costs. All other characters must pay the standard 1 mote elemental surcharge to use any of these Charms.",
+      "Jade Mountain Style does not function unless the Exalt touches the ground. He need not actually make contact with the earth itself and may use these Charms inside structures, when wearing boots, standing on one foot and so forth, but he cannot wield such magic while swimming, flying or leaping through the air."
+    ],
+    "source": {
+      "book": "Exalted 1e Aspect Book: Earth",
+      "page": 75
+    }
+  },
+  {
+    "id": "style.falling-blossom",
+    "name": "Falling Blossom Style",
+    "category": "martial_arts:falling-blossom",
+    "tier": "Terrestrial",
+    "preamble": "Falling Blossom Style centers on the ideal of the expendable warrior. Followers of this martial art believe strongly in something greater than themselves. Willing to sacrifice their lives for their ideal, their utter disregard for personal survival allows for astonishing feats of combat. Because of the high mortality rate, few practitioners of this style achieve mastery. Paradoxically, those who master the path of self-sacrifice are too rare to be thrown away. Thus, Falling Blossom martial artists learn to sell their lives dearly, withholding the fullness of their technique until the most dire of circumstances. Generally, this technique is taught to outcaste Dragon-Blooded, but occasionally, a mortal cultist will achieve a great enough mastery of his own Essence to learn it. Dragon-Blooded and mortals who serve at Kether Rock disdain the technique, for they believe that a Solar protects his warriors, his people, not the other way around.",
+    "mechanics": [
+      "Falling Blossom Style is a Terrestrial Style, and thus, Dragon-Blooded may learn it at no penalty, and mortals with the Essence Mastery Merit (see the Exalted Players Guide, p. 121) may also learn it.",
+      "Falling Blossom Style practitioners may use swords and knives with their Martial Arts Ability, and attacks with those weapons count as unarmed attacks for the purpose of the style. Falling Blossom Style is incompatible with the use of armor."
+    ],
+    "source": {
+      "book": "Exalted 1e Cult of the Illuminated",
+      "page": 102
+    }
+  },
+  {
+    "id": "style.praying-mantis",
+    "name": "Mantis Style",
+    "category": "martial_arts:praying-mantis",
+    "tier": "Celestial",
+    "preamble": "Based on observations of the praying mantis, the Mantis Style focuses on blocks, punches and, most importantly, holds and joint-locks. While an effective offensive style, the primary aims of the Mantis Style are to allow the user to block attacks and disarm or disable a foe without killing him. The Eclipse Caste finds it much easier to negotiate with a living opponent than a dead one, and having someone in a painful joint lock can be a most effective bargaining position.",
+    "mechanics": [
+      "The Mantis Style can be combined freely with all martial arts weapons, but it is most commonly used either unarmed, with a pair of war fans or with a seven-section staff."
+    ],
+    "source": {
+      "book": "Exalted 1e Caste Book: Eclipse",
+      "page": 73
+    }
+  },
+  {
+    "id": "style.tiger",
+    "name": "Tiger Style",
+    "category": "martial_arts:tiger",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Tiger's Claws: Characters may use Tiger's Claws freely with all the Charms in the cascade derived from Crimson Leaping Cat Technique."
+    ],
+    "source": {
+      "book": "Exalted 1e Caste Book: Dawn",
+      "page": 73
+    }
+  },
+  {
+    "id": "style.ebon-shadow",
+    "name": "Ebon Shadow Style",
+    "category": "martial_arts:ebon-shadow",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Ebon Shadow Weapon Use: Characters may use both fighting chains and sai freely with all Charms in the Ebon Style Martial Arts cascade."
+    ],
+    "source": {
+      "book": "Exalted 1e Caste Book: Night",
+      "page": 67
+    }
+  },
+  {
+    "id": "style.violet-bier-of-sorrows",
+    "name": "Violet Bier of Sorrows Style",
+    "category": "martial_arts:violet-bier-of-sorrows",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Staff and Blade: Charms in the cascade derived from Secrets of Future Strife treat attacks the Sidereal makes with knives, swords, staves and seven-section staves as unarmed attacks. This includes daiklaves and serpent-sting staves. These Charms do not function in armor."
+    ],
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": 179
+    }
+  },
+  {
+    "id": "style.charcoal-march-of-spiders",
+    "name": "Charcoal March of Spiders Style",
+    "category": "martial_arts:charcoal-march-of-spiders",
+    "tier": "Sidereal",
+    "preamble": "Charcoal March of Spiders Style is a standard advanced martial art. It has a variety of applications for younger students, a potent Form and a fair number of applications requiring elder-level Essence.",
+    "mechanics": [
+      "Weapons and Armor: Charms in the Charcoal March of Spiders Style treat attacks the Sidereal makes with knives or seven-section staves, including serpent-sting staves, as unarmed attacks. A stave represents the nimble leg of a spider, while the knife represents its fang. Also treat the wires/threads generated by certain Charms in this style as unarmed attacks. If a Charm allows the character to choose between issuing bashing or lethal damage, this applies only to barehanded, staff-based and thread-based attacks. A knife must do lethal damage. Characters cannot use this style while wearing armor. (p. 185)",
+      "Each of these secret styles requires a qualitative increase in focus and dedication over the other supernatural martial arts and rewards it with a qualitative increase in power. To acquire basic competence with these styles — that is to say, their Forms — a character must first master a lesser style entirely.",
+      "Creatures outside of Fate have no special resistance to Sidereal Martial Arts."
+    ],
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": 184
+    }
+  },
+  {
+    "id": "style.prismatic-arrangement-of-creation",
+    "name": "Prismatic Arrangement of Creation Style",
+    "category": "martial_arts:prismatic-arrangement-of-creation",
+    "tier": "Sidereal",
+    "preamble": "Prismatic Arrangement of Creation Style is less typical and is often recommended for young, fresh Sidereal Exalted. The Charm tree develops into four lesser Forms and a greater Form, all available at Essence 5. Learning the Prismatic Arrangement of Creation Form helps a student take better advantage of lesser martial-arts styles while developing the breadth and depth of skill necessary to reach the high-Essence Charms.",
+    "mechanics": [
+      "Weapons and Armor: Characters cannot use this style while wearing armor. (p. 189)",
+      "Each of these secret styles requires a qualitative increase in focus and dedication over the other supernatural martial arts and rewards it with a qualitative increase in power. To acquire basic competence with these styles — that is to say, their Forms — a character must first master a lesser style entirely.",
+      "Creatures outside of Fate have no special resistance to Sidereal Martial Arts."
+    ],
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": 184
+    }
+  },
+  {
+    "id": "style.citrine-poxes-of-contagion",
+    "name": "Citrine Poxes of Contagion Style",
+    "category": "martial_arts:citrine-poxes-of-contagion",
+    "tier": "Sidereal",
+    "preamble": "Citrine Poxes of Contagion Style focuses on disrupting the natural Essence flows of its targets, inflicting or curing a variety of debilitating spiritual conditions. It is geared somewhat toward younger Exalted, with relatively few applications that require high Essence to master.",
+    "mechanics": [
+      "Weapons and Armor: Charms in the Citrine Poxes of Contagion Style treat attacks the Sidereal makes with a staff, seven-section staff, serpent-sting staff, hammer or goremaul as unarmed attacks, but only if the character inflicts bashing damage with them. This usually means accepting a +1 difficulty penalty and “pulling ones blows.” The primary purpose of the style's attacks is to affect the target's Essence flows by connecting with a series of key pressure points. Crushing the target's bones lacks the subtlety and precision this technique requires. Characters cannot use this style while wearing armor. (p. 195)",
+      "Each of these secret styles requires a qualitative increase in focus and dedication over the other supernatural martial arts and rewards it with a qualitative increase in power. To acquire basic competence with these styles — that is to say, their Forms — a character must first master a lesser style entirely.",
+      "Creatures outside of Fate have no special resistance to Sidereal Martial Arts."
+    ],
+    "source": {
+      "book": "Exalted 1e The Sidereals",
+      "page": 184
+    }
+  },
+  {
+    "id": "style.five-dragon",
+    "name": "Five-Dragon Style",
+    "category": "martial_arts:five-dragon",
+    "tier": "Terrestrial",
+    "preamble": "The Immaculate Dragon Mela realized that not every one of the Terrestrial Exalted had the commitment or fortitude to endure training in one of the Five Glorious Dragon Paths of the Immaculate Order. To that end, she created her famous treatise Five Dragons Fight as One. In it, she detailed a less powerful but more accessible form of personal combat — one that it was possible for any Dragon-Blooded to learn. The resulting art, called the Five-Dragon Style, does not contain the true secrets of Dragon-Blooded martial arts prowess. It is what is learned by the common Terrestrial Exalted — those without the fortitude to endure the training of the Immaculates.\n\nWhile the Five-Dragon Style is distinctly less powerful that the Five Glorious Dragon Paths, the Martial Arts Charms presented should not be underestimated. Combined with the other Charms available to the Terrestrial Exalted, they represent a powerful weapon in any Dragon-Blooded's arsenal. Still, these Charms pale in comparison to the powerful combat techniques the Immaculates practice.",
+    "mechanics": [
+      "Form Weapons: sword, spear. A martial artist using the form weapons of a style is considered to be attacking unarmed when using Charms of that style, unless specific Charm effects state otherwise. Form weapons from one style do not enjoy this benefit while the character is not using Charms of that style, and a character cannot be under the effects of a Form-type Charm when not unarmed or fighting with an in-form weapon. A martial-arts style is automatically associated with the Magical Materials versions of a form's weapons. (Player's Guide p.200)"
+    ],
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 199
+    }
+  },
+  {
+    "id": "style.air-dragon",
+    "name": "Air Dragon Style",
+    "category": "martial_arts:air-dragon",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Signature Weapons: The training that they are given allows Immaculate Dragons to use their path's signature weapon with their Martial Arts Ability and to apply any Charms that would normally affect a hand-to-hand martial arts attack. Additionally, each path has a small benefit that comes with the intense training. Signature Weapon training comes “for free” with the first Charm of the appropriate Dragon Path. (p. 242)",
+      "Air Dragon — Chakram: An Air Dragon Immaculate may throw up to his Martial Arts Ability in chakrams in a single attack. The Exalted must have the chakrams on her, and all must be thrown at a single target. Make a single attack roll and apply it to all of the chakrams, and apply the target's defense roll likewise. (p. 242)",
+      "The Dragon Paths and Elements: Dragon Path martial arts maneuvers are not Earth-aspected Charms the way Five-Dragon Style Martial Arts Charms are. For the purposes of determining the cost of using a Charm, the Dragon Path Charms are elementally aligned with the element they are aligned with — and not with Earth. Thus, Fire Dragon Path Charms cost only the listed Essence for Aspects of Fire to use, while Earth-aspected Dragon-Blooded who learned them would be required to pay the 1 mote penalty for using non-aspected Charms. (p. 241)"
+    ],
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 243
+    }
+  },
+  {
+    "id": "style.earth-dragon",
+    "name": "Earth Dragon Style",
+    "category": "martial_arts:earth-dragon",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Signature Weapons: The training that they are given allows Immaculate Dragons to use their path's signature weapon with their Martial Arts Ability and to apply any Charms that would normally affect a hand-to-hand martial arts attack. Additionally, each path has a small benefit that comes with the intense training. Signature Weapon training comes “for free” with the first Charm of the appropriate Dragon Path. (p. 242)",
+      "Earth Dragon — Tetsubo: Earth Dragon martial artists specialize in the tetsubo, a type of huge studded war-club. Use the stats for sledge in the Exalted main book to represent this weapon. Followers of the Earth Dragon Path may ignore the Strength penalty and Accuracy penalty for this weapon, and they may halve the Speed penalty. (p. 243)",
+      "The Dragon Paths and Elements: Dragon Path martial arts maneuvers are not Earth-aspected Charms the way Five-Dragon Style Martial Arts Charms are. For the purposes of determining the cost of using a Charm, the Dragon Path Charms are elementally aligned with the element they are aligned with — and not with Earth. Thus, Fire Dragon Path Charms cost only the listed Essence for Aspects of Fire to use, while Earth-aspected Dragon-Blooded who learned them would be required to pay the 1 mote penalty for using non-aspected Charms. (p. 241)"
+    ],
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 247
+    }
+  },
+  {
+    "id": "style.fire-dragon",
+    "name": "Fire Dragon Style",
+    "category": "martial_arts:fire-dragon",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Signature Weapons: The training that they are given allows Immaculate Dragons to use their path's signature weapon with their Martial Arts Ability and to apply any Charms that would normally affect a hand-to-hand martial arts attack. Additionally, each path has a small benefit that comes with the intense training. Signature Weapon training comes “for free” with the first Charm of the appropriate Dragon Path. (p. 242)",
+      "Fire Dragon — Paired Short Swords: Fire Dragons may use these weapons independently. They can attack or parry with both swords using their full pool. Attacks against separate targets must apply all normal penalties for two-weapon fighting. Attacking two or more separate targets subjects the character to a -1 penalty for her offhand. Otherwise, there are no penalties for using a weapon in both hands. (p. 243)",
+      "The Dragon Paths and Elements: Dragon Path martial arts maneuvers are not Earth-aspected Charms the way Five-Dragon Style Martial Arts Charms are. For the purposes of determining the cost of using a Charm, the Dragon Path Charms are elementally aligned with the element they are aligned with — and not with Earth. Thus, Fire Dragon Path Charms cost only the listed Essence for Aspects of Fire to use, while Earth-aspected Dragon-Blooded who learned them would be required to pay the 1 mote penalty for using non-aspected Charms. (p. 241)"
+    ],
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 252
+    }
+  },
+  {
+    "id": "style.water-dragon",
+    "name": "Water Dragon Style",
+    "category": "martial_arts:water-dragon",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Signature Weapons: The training that they are given allows Immaculate Dragons to use their path's signature weapon with their Martial Arts Ability and to apply any Charms that would normally affect a hand-to-hand martial arts attack. Additionally, each path has a small benefit that comes with the intense training. Signature Weapon training comes “for free” with the first Charm of the appropriate Dragon Path. (p. 242)",
+      "Water Dragon — Tiger Claws: Water Dragons ignore the normal Speed and Accuracy penalties for these weapons when using them. (p. 243)",
+      "The Dragon Paths and Elements: Dragon Path martial arts maneuvers are not Earth-aspected Charms the way Five-Dragon Style Martial Arts Charms are. For the purposes of determining the cost of using a Charm, the Dragon Path Charms are elementally aligned with the element they are aligned with — and not with Earth. Thus, Fire Dragon Path Charms cost only the listed Essence for Aspects of Fire to use, while Earth-aspected Dragon-Blooded who learned them would be required to pay the 1 mote penalty for using non-aspected Charms. (p. 241)"
+    ],
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 255
+    }
+  },
+  {
+    "id": "style.wood-dragon",
+    "name": "Wood Dragon Style",
+    "category": "martial_arts:wood-dragon",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Signature Weapons: The training that they are given allows Immaculate Dragons to use their path's signature weapon with their Martial Arts Ability and to apply any Charms that would normally affect a hand-to-hand martial arts attack. Additionally, each path has a small benefit that comes with the intense training. Signature Weapon training comes “for free” with the first Charm of the appropriate Dragon Path. (p. 242)",
+      "Wood Dragon — Bow: In the hands of a Wood-aspected Immaculate, any arrow adds +2 to its damage bonus. (p. 243)",
+      "The Dragon Paths and Elements: Dragon Path martial arts maneuvers are not Earth-aspected Charms the way Five-Dragon Style Martial Arts Charms are. For the purposes of determining the cost of using a Charm, the Dragon Path Charms are elementally aligned with the element they are aligned with — and not with Earth. Thus, Fire Dragon Path Charms cost only the listed Essence for Aspects of Fire to use, while Earth-aspected Dragon-Blooded who learned them would be required to pay the 1 mote penalty for using non-aspected Charms. (p. 241)"
+    ],
+    "source": {
+      "book": "Exalted 1e Dragon-Blooded",
+      "page": 259
+    }
+  },
+  {
+    "id": "style.snake",
+    "name": "Snake Style",
+    "category": "martial_arts:snake",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Form Weapons: seven-section staff, hook swords. A martial artist using the form weapons of a style is considered to be attacking unarmed when using Charms of that style, unless specific Charm effects state otherwise. Form weapons from one style do not enjoy this benefit while the character is not using Charms of that style, and a character cannot be under the effects of a Form-type Charm when not unarmed or fighting with an in-form weapon. A martial-arts style is automatically associated with the Magical Materials versions of a form's weapons. (Player's Guide p.200)"
+    ],
+    "source": {
+      "book": "Player's Guide",
+      "page": 200
+    }
+  },
+  {
+    "id": "style.hungry-ghost",
+    "name": "Hungry Ghost Style",
+    "category": "martial_arts:hungry-ghost",
+    "tier": "Celestial",
+    "preamble": "",
+    "mechanics": [
+      "Form Weapons: tiger claws (shade talons). A martial artist using the form weapons of a style is considered to be attacking unarmed when using Charms of that style, unless specific Charm effects state otherwise. Form weapons from one style do not enjoy this benefit while the character is not using Charms of that style, and a character cannot be under the effects of a Form-type Charm when not unarmed or fighting with an in-form weapon. A martial-arts style is automatically associated with the Magical Materials versions of a form's weapons. (Player's Guide p.200)"
+    ],
+    "source": {
+      "book": "Player's Guide",
+      "page": 200
+    }
   }
 ]

@@ -19,7 +19,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 67
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.wall-climbing-technique",
@@ -45,7 +48,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 67
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.distracting-finger-gesture-attack",
@@ -71,7 +77,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 68
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.ebon-shadow-form",
@@ -97,7 +106,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 68
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.seven-points-of-weakness-strike",
@@ -123,7 +135,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 68
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.limb-immobilizing-method",
@@ -149,7 +164,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 69
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.paralyzing-touch-attack",
@@ -175,7 +193,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 69
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.elusive-flicker-evasion",
@@ -201,7 +222,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 69
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.blow-concealing-gesture-technique",
@@ -227,7 +251,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 69
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.shadow-body-style",
@@ -253,7 +280,10 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 69
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   },
   {
     "id": "solar.martial-arts.shadow-stepping-motion",
@@ -282,6 +312,9 @@
     "source": {
       "book": "Exalted 1e Caste Book: Night",
       "page": 70
-    }
+    },
+    "open_to_tiers": [
+      "Celestial"
+    ]
   }
 ]
