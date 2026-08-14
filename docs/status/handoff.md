@@ -121,10 +121,19 @@ browser time.
 remaining unauthored areas — the Mist numina and Cult Abyssals — are **deferred
 indefinitely** and are not gaps.
 
-1. **Commit and push.** ~25 files are uncommitted: the inventory merge, ~120 catalogue
-   entries across nine books, the Occult fix, and the doc corrections.
-2. **The Qt port** remains the standing post-1.0 goal, still not scheduled
-   (`docs/plans/qt-port.md`). Do not treat it as a 1.0 blocker.
+**Three TODOs were recorded 2026-08-14** once the catalogue closed and nothing else was
+outstanding. They are in CLAUDE.md under *The three open TODOs*:
+
+1. **A printable / PDF character sheet** — there is no print stylesheet and no PDF export
+   anywhere in the build. The biggest gap between what the tool does and what a user
+   expects of it.
+2. **A martial-arts STYLE entity** — 22 styles have Charms but nowhere to put their
+   preambles. A modelling job; the content is already on disk.
+3. **Split `engine/validate.py`** — 5,791 lines and 47% of the engine
+   (`docs/plans/validate-refactor.md`). Human: *"it is becoming seriously unwieldy."*
+
+**The Qt port** remains the standing post-1.0 goal, still not scheduled
+(`docs/plans/qt-port.md`). Do not treat it as a 1.0 blocker.
 
 # Session handoff — 2026-08-13 (late)
 

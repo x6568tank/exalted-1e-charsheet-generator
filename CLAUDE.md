@@ -308,6 +308,32 @@ Ship dates for everything else live in the per-splat status docs and the git log
   history: the reason they were removed is the reason no caller may name a Merit id.
   See `docs/status/merits-flaws.md`.
 
+### 👉 The three open TODOs (human, 2026-08-14)
+
+Recorded after the catalogue closed, when nothing else was outstanding. In no fixed order.
+
+1. **A printable / PDF character sheet.** The build has nine tabs including a read-only
+   **Sheet**, and saves/loads JSON — but there is **no print stylesheet and no PDF export
+   anywhere in the codebase.** A tool for building characters that cannot put one on paper
+   is missing the last step. The shape is favourable: `SheetView` is already a pure
+   presenter that renders from itself with no ruleset and no callbacks (decision 0002's
+   disposable UI, honoured), so a `@media print` route over it is cheap; a real PDF export
+   is a genuine feature on top. ⚠ Keep it in `ui/` — nothing about it is game logic.
+2. **A martial-arts STYLE entity.** Categories are bare strings (`martial_arts:<slug>`),
+   so **22 styles** have their Charms but no home for their PREAMBLE — Jade Mountain's
+   elemental surcharge for non-Earth Aspects and its must-touch-the-ground rule, Falling
+   Blossom's, the five Immaculate Dragon styles', the Sidereal styles'. The content exists
+   in books already on disk; this is a MODELLING job, not a reading one. Every style
+   preamble authored so far has been dropped on the floor for want of this —
+   `docs/status/dragonblooded-aspect-books.md` names the worked example.
+3. **Split `engine/validate.py`** — 5,791 lines, 182 functions, **47% of the whole
+   engine**, with a 643-line `validate_chargen` at its centre. **Plan and measurements:
+   `docs/plans/validate-refactor.md`.** ⚠ The seam is DOMAIN, not splat (only 4 of the 182
+   functions name a splat — the splat differences already live in `data/`), and the
+   refactor's failure mode is **the house bug**: a `check_*` dropped from the `validate()`
+   roll-up still passes its own unit tests and never runs. Write the roll-up membership
+   test FIRST.
+
 ### Deferred (still open, just not now)
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond
   what's authored — optional, loader falls back to model defaults.
