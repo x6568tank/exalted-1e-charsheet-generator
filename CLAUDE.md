@@ -274,6 +274,7 @@ full record.
 | **Elder Exalts — DONE, browser-verified** (simplified 2026-08-06: Essence XP-purchasable to the splat cap — 9 flat, Terrestrial-7 held; trait ceilings follow Essence; age chart removed; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 | **Dice pools — DONE 2026-08-12, browser-verified** (decision 0016; `data/dice_pools.json` + `RollDefinition` + a pure `engine/pools.py` + a **left sidebar on the Play tab listing every roll at once**, each with its own one-line arithmetic, plus a custom Attribute + Ability builder in the main column that shares the sidebar's state. An ITEMISED base pool — never a bare number, and the on-screen "does not include" list is the mitigation 0016 accepted for 0008's objection, so do not collapse it. Mobility is a PER-ROLL fact off p.332, not a blanket subtraction; wound penalties apply to EVERY roll including Virtue/Willpower, with p.233's resist-infection the one printed exemption, gated in the engine; **accumulated armour fatigue is now a manual `PlayState.fatigue` counter** (p.332) that subtracts from every pool. ⚠ `Armor.mobility_penalty` is stored NEGATIVE in the data — a new consumer that reads it as a magnitude adds dice) | `docs/status/dice-pools.md` |
 | **Corebook Wonders — DONE 2026-08-12, browser-verified 2026-08-13** (the ten Hearthstones + sixteen Greater Wonders → `artifacts.json` 196→222; the four arrows as `ammunition` gear rows, FREE per the human's ruling, with `Weapon.quantity` for stacking; the three cosmetic helms; the ten sample Virtue Flaws as a Virtue-filtered dropdown over the free-text field; catalogue row icons; a nocked-arrow REFERENCE control on the Play tab. ⚠ **A Hearthstone's dots are its MANSE rating, not Artifact** — `ArtifactType.background` keeps the stones off both Artifact-spending surfaces, and their picker lives on the Manse Background row. **The Hearthstone ALLOWANCE followed the same day, browser-verified** (S&S pp.66-67: stones on a Manse row may not exceed the Manse's level, hard on BOTH sides of the lock per the human's ruling): stored structurally as `BackgroundEntry.hearthstones`, never in the row's note; the allowance is DATA on `BackgroundType.hearthstone_tiers`/`hearthstone_per_dot` and is **not uniform** — linear 1/dot for the core and Celestial Manses, an irregular 2/3/6/8/10 tier table with per-stone ceilings for Dragon-Blooded and Abyssal, 2/dot for Mountain Folk; Demesnes grow NO stones and get a per-row toggle instead (human's ruling). ⚠ Unblocked by cracking `ZTR41D0`, the face that draws the corebook's entry NAMES: the pages were on disk and readable and still unauthorable, because the missing 2.5% was the identifying half) | `docs/status/corebook-wonders.md` |
+| **Printable / PDF sheet — implemented 2026-08-14, NOT YET browser-verified** (a real generated PDF via reportlab, NOT a print stylesheet — the human rejected `Ctrl+P`; `ui/pdf.py` takes a `SheetView` and nothing else and imports no `nicegui`, so the builder, the GM party export and the tests share one renderer and the Qt port carries it over unchanged. Charms/spells print as **names and costs only**, notes print but rules text does not, the Validation panel and XP ledger do NOT print, paper size is chosen at export time. ⚠ Every glyph is drawn or ASCII — and the ones that bite arrive as DATA, not from this module's source: `view.health` carries `★` on a Charm-granted level and `PathRow.favored` IS a glyph, so the guard asserts on the rendered page, in **cp1252 not latin-1**. ⚠ The health track WRAPS — nineteen Ox-Body levels ran over the Virtues panel) | `docs/status/printable-sheet.md` |
 | **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
 **State of the world:** the foundation (models, persistence, engine, UI) is done
@@ -312,13 +313,16 @@ Ship dates for everything else live in the per-splat status docs and the git log
 
 Recorded after the catalogue closed, when nothing else was outstanding. In no fixed order.
 
-1. **A printable / PDF character sheet.** The build has nine tabs including a read-only
-   **Sheet**, and saves/loads JSON — but there is **no print stylesheet and no PDF export
-   anywhere in the codebase.** A tool for building characters that cannot put one on paper
-   is missing the last step. The shape is favourable: `SheetView` is already a pure
-   presenter that renders from itself with no ruleset and no callbacks (decision 0002's
-   disposable UI, honoured), so a `@media print` route over it is cheap; a real PDF export
-   is a genuine feature on top. ⚠ Keep it in `ui/` — nothing about it is game logic.
+1. ~~**A printable / PDF character sheet.**~~ **IMPLEMENTED 2026-08-14, suite green,
+   AWAITING BROWSER VERIFICATION** — `docs/status/printable-sheet.md`,
+   plan `docs/plans/print-pdf.md`. ⚠ **There is no print stylesheet and there must not
+   be one**: the human tried `Ctrl+P` on the Sheet tab and rejected it ("looks like
+   shit" — it prints the app's DOM). `ui/pdf.py` generates a real PDF with reportlab
+   from the same `SheetView` the screen sheet uses, and a Print button sits on the
+   builder header (plus per-member and "Print all" on the GM party page).
+   ⚠ **`test_every_sheetview_field_is_printed_or_declared_omitted` will fail the day a
+   new splat adds a SheetView field** — that is deliberate, and the fix is to decide
+   whether the field prints, not to add its name to `DELIBERATELY_OMITTED`.
 2. **A martial-arts STYLE entity.** Categories are bare strings (`martial_arts:<slug>`),
    so **22 styles** have their Charms but no home for their PREAMBLE — Jade Mountain's
    elemental surcharge for non-Earth Aspects and its must-touch-the-ground rule, Falling

@@ -37,7 +37,7 @@ from . import gear as gear_mod
 from . import app as sheet_app
 from . import combos as combos_mod
 from . import custom as custom_mod
-from . import editor, picker, theme
+from . import editor, pdf, picker, theme
 from . import play as play_mod
 from . import storyteller as st_mod
 from . import view as viewmod
@@ -275,6 +275,57 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         dialog.close()
         ui.notify(f"Downloading {filename}", type="positive")
 
+    # ---- print / PDF export ----------------------------------------------- #
+    # The button lives HERE and not on the Sheet tab on purpose: `render_sheet`
+    # takes a SheetView and nothing else — no callbacks — and that purity is what
+    # lets the GM party screen and the render tests reuse it. A button inside it
+    # would need one.
+    def export_pdf() -> None:
+        default = pdf.suggested_filename(viewmod.build_sheet_view(ruleset, ctx["char"]))
+        with ui.dialog() as dialog, ui.card().classes("gap-2"):
+            ui.label("Export character sheet").classes("text-lg font-bold")
+            ui.label("A print-ready PDF of the Sheet tab.").classes(
+                "text-sm text-gray-600")
+            # Paper size is a per-export choice (the human's call), not a stored
+            # setting — so it is asked here rather than living in HouseRules.
+            paper = ui.radio(list(pdf.PAPER_SIZES), value="A4").props("inline")
+            name_input = ui.input("File name", value=default).classes("w-96")
+            with ui.row():
+                ui.button("Cancel", on_click=dialog.close).props("flat")
+                ui.button("Export PDF", icon="picture_as_pdf",
+                          on_click=lambda: _do_export(paper.value, name_input.value,
+                                                      dialog)
+                          ).props(f"color={_pal().button}")
+        dialog.open()
+
+    async def _do_export(paper: str, name: str, dialog) -> None:
+        view = viewmod.build_sheet_view(ruleset, ctx["char"])
+        try:
+            data = pdf.build_pdf(view, paper=paper or "A4")
+        except Exception as ex:                     # noqa: BLE001 - surface render errors
+            ui.notify(f"Export failed: {ex}", type="negative")
+            return
+        filename = pdf.normalize_pdf_filename(name, view)
+        dialog.close()
+        # Same split as save(): the native window gets the OS dialog, a plain
+        # browser gets a download.
+        win = _native_window()
+        if win is None:
+            ui.download.content(data, filename)
+            ui.notify(f"Downloading {filename}", type="positive")
+            return
+        chosen = await win.create_file_dialog(
+            _dialog_type("save"), directory=str(ctx["dir"]), save_filename=filename)
+        if not chosen:                              # cancelled
+            return
+        target = Path(chosen if isinstance(chosen, str) else chosen[0])
+        try:
+            target.write_bytes(data)
+        except Exception as ex:                     # noqa: BLE001 - surface write errors
+            ui.notify(f"Export failed: {ex}", type="negative")
+            return
+        ui.notify(f"Sheet written to {target}", type="positive")
+
     def _apply_loaded(loaded: Character, path: Path | None, source_label: str) -> None:
         """Swap in a freshly loaded character. With a real path, future saves land
         beside it; for an uploaded file (no path) they default to the save dir.
@@ -399,6 +450,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             ui.button("New", icon="note_add", on_click=confirm_new).props("flat color=white")
             ui.button("Save", icon="save", on_click=save).props("flat color=white")
             ui.button("Load", icon="folder_open", on_click=open_load).props("flat color=white")
+            ui.button("Print", icon="picture_as_pdf", on_click=export_pdf).props(
+                "flat color=white").tooltip("Export a print-ready PDF character sheet")
             ui.button("Finish & Lock", icon="lock", on_click=finish).props("flat color=white")
             ui.button("Unlock", icon="lock_open", on_click=unlock).props("flat color=white")
 

@@ -37,6 +37,7 @@ from ..models.rules import RuleSet
 from . import adversaries as adversaries_mod
 from . import app as sheet_app
 from . import builder as builder_mod
+from . import pdf
 from . import play as play_mod
 from . import theme
 from . import view as viewmod
@@ -187,6 +188,68 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
         ctx["party_path"] = ctx["dir"] / filename
         dialog.close()
         ui.notify(f"Downloading {filename}", type="positive")
+
+    # ---- print / PDF export ----------------------------------------------- #
+    def export_pdf(character: Character | None = None) -> None:
+        """One member's sheet, or every member's in one document. Same renderer
+        the builder's Print button uses — `ui/pdf.py` takes SheetViews and nothing
+        else, so the party case is a list rather than a second layout."""
+        members = [character] if character is not None else [
+            m.character for m in party().members]
+        if not members:
+            ui.notify("The party is empty.", type="info")
+            return
+        views = [viewmod.build_sheet_view(ruleset, c) for c in members]
+        default = (pdf.suggested_filename(views[0]) if character is not None
+                   else f"{(party().name or 'party').replace(' ', '-')}-sheets.pdf")
+
+        with ui.dialog() as dialog, ui.card().classes("gap-2"):
+            ui.label("Export character sheet" if character is not None
+                     else f"Export {len(views)} character sheets").classes(
+                "text-lg font-bold")
+            if character is None:
+                ui.label("One party member per page.").classes(
+                    "text-sm text-gray-600")
+            paper = ui.radio(list(pdf.PAPER_SIZES), value="A4").props("inline")
+            name_input = ui.input("File name", value=default).classes("w-96")
+            with ui.row():
+                ui.button("Cancel", on_click=dialog.close).props("flat")
+                ui.button("Export PDF", icon="picture_as_pdf",
+                          on_click=lambda: _do_export(views, paper.value,
+                                                      name_input.value, dialog))
+        dialog.open()
+
+    async def _do_export(views, paper: str, name: str, dialog) -> None:
+        try:
+            data = (pdf.build_pdf(views[0], paper=paper or "A4") if len(views) == 1
+                    else pdf.build_party_pdf(views, paper=paper or "A4",
+                                             party_name=party().name))
+        except Exception as ex:                         # noqa: BLE001 - surface render errors
+            ui.notify(f"Export failed: {ex}", type="negative")
+            return
+        # ⚠ A party export whose name field was cleared must not be named after the
+        # first member — it holds everyone's sheet.
+        filename = pdf.normalize_pdf_filename(
+            name, views[0],
+            fallback="" if len(views) == 1 else f"{party().name or 'party'}-sheets")
+        dialog.close()
+        win = builder_mod._native_window()
+        if win is None:
+            ui.download.content(data, filename)
+            ui.notify(f"Downloading {filename}", type="positive")
+            return
+        chosen = await win.create_file_dialog(
+            builder_mod._dialog_type("save"), directory=str(ctx["dir"]),
+            save_filename=filename)
+        if not chosen:                                  # cancelled
+            return
+        target = Path(chosen if isinstance(chosen, str) else chosen[0])
+        try:
+            target.write_bytes(data)
+        except Exception as ex:                         # noqa: BLE001 - surface write errors
+            ui.notify(f"Export failed: {ex}", type="negative")
+            return
+        ui.notify(f"Sheets written to {target}", type="positive")
 
     def _apply_loaded_party(loaded: Party, path: Path | None) -> None:
         ctx["party"] = loaded
@@ -452,6 +515,9 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
             with ui.row().classes("gap-1 justify-end w-full"):
                 ui.button("Sheet", icon="description",
                           on_click=lambda c=character: show_sheet(c)).props("flat dense")
+                ui.button(icon="picture_as_pdf",
+                          on_click=lambda c=character: export_pdf(c)).props(
+                    "flat dense").tooltip("Export a print-ready PDF sheet")
                 ui.button("Builder", icon="open_in_new",
                           on_click=lambda i=index: open_in_builder(i)).props("flat dense")
                 ui.button(icon="delete", on_click=lambda i=index: confirm_remove(i)).props(
@@ -478,6 +544,9 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
                 ui.button("Add character", icon="person_add", on_click=add_to_party).props("flat")
                 ui.button("Save party", icon="save", on_click=save_party).props("flat")
                 ui.button("Load party", icon="folder_open", on_click=load_party).props("flat")
+                ui.button("Print all", icon="picture_as_pdf",
+                          on_click=lambda: export_pdf()).props("flat").tooltip(
+                    "Export every member's sheet as one PDF, one per page")
                 ui.button("New party", icon="group_add", on_click=confirm_new_party).props("flat")
 
             _reference_panel(ruleset, pal)

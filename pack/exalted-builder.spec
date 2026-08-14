@@ -14,7 +14,15 @@ ROOT = Path(SPECPATH).parent
 # Pull in NiceGUI's web assets, binaries, and submodules.
 ng_datas, ng_binaries, ng_hidden = collect_all("nicegui")
 
-datas = ng_datas + [
+# reportlab (ui/pdf.py, the printable character sheet) ships DATA it loads at
+# runtime -- the base-14 AFM font metrics under reportlab/fonts, plus its
+# rl_settings. A plain import scan finds the modules but not those files, and the
+# failure only shows up when someone clicks Print in the packaged app, which is
+# exactly the sort of thing nobody exercises before shipping. collect_all also
+# picks up the optional _rl_accel C extension when it is installed.
+rl_datas, rl_binaries, rl_hidden = collect_all("reportlab")
+
+datas = ng_datas + rl_datas + [
     (str(ROOT / "exalted_builder" / "data"), "exalted_builder/data"),
     (str(ROOT / "exalted_builder" / "ui" / "vendor"), "exalted_builder/ui/vendor"),
     (str(ROOT / "examples"), "examples"),
@@ -23,9 +31,9 @@ datas = ng_datas + [
 a = Analysis(
     [str(ROOT / "pack" / "run_app.py")],
     pathex=[str(ROOT)],
-    binaries=ng_binaries,
+    binaries=ng_binaries + rl_binaries,
     datas=datas,
-    hiddenimports=ng_hidden,
+    hiddenimports=ng_hidden + rl_hidden,
     hookspath=[],
     runtime_hooks=[],
     # The app runs in the browser; keep the native (pywebview/Qt) stack out of the

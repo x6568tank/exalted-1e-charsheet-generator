@@ -14,14 +14,22 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
+    # The PDF sheet and the tests that read it back. Both are dev-time needs too:
+    # tests/test_pdf.py renders real documents and extracts their text.
+    "reportlab>=4",
+    "pypdf>=4",
 ]
 ui = [
     "nicegui>=2",
+    # ui/pdf.py — the printable character sheet. A hard requirement of the UI, not
+    # an optional extra within it: the Print button is always on the header bar.
+    "reportlab>=4",
 ]
 # Tools needed to build the standalone desktop executable (see pack/). The packaged
 # app opens in the browser, so no native-window (pywebview/Qt) dependencies.
 desktop = [
     "nicegui>=2",
+    "reportlab>=4",
     "pyinstaller>=6",
 ]
 
