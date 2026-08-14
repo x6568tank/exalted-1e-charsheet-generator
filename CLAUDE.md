@@ -221,12 +221,17 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,362 passing**. ⚠ **One machine-specific exception:**
-`test_every_description_matches_the_source_text` fails with 46 entries on a machine
-where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
-summarize the fuller printed text → below 92%) and passes where it is absent (entries
-defer). It is green on the laptop, red here, and is not a regression — see
-`docs/status/godblooded.md`.
+The suite is green: **2,420 passing** (2026-08-14), with one warning.
+
+⚠ **One MACHINE-DEPENDENT test, and the dependency is the point:**
+`test_every_description_matches_the_source_text` **defers** entries whose source
+chapter is not on the machine — it emitted a 71-entry deferral warning and PASSED on
+the 2,420 run. On a machine where the Godblooded chapter markdown IS present it
+instead fails those entries (descriptions summarize the fuller printed text → below
+92%). **Neither outcome is a regression**, and do not "fix" it by editing a path:
+`images/` is gitignored, never travels, and each machine lays it out differently
+(the folder is `images/Mortals/Godblooded` here and `images/Non-Exalts/Godblooded`
+elsewhere — both correct). See `docs/status/godblooded.md`.
 
 The detailed build log lives in `docs/status/` — one file per topic/splat. **Read the
 relevant file before touching that area**; the summaries below are pointers, not the
@@ -274,12 +279,16 @@ full record.
 | **Elder Exalts — DONE, browser-verified** (simplified 2026-08-06: Essence XP-purchasable to the splat cap — 9 flat, Terrestrial-7 held; trait ceilings follow Essence; age chart removed; + the p.259 downtime calculator) | `docs/status/elder-exalts.md` |
 | **Dice pools — DONE 2026-08-12, browser-verified** (decision 0016; `data/dice_pools.json` + `RollDefinition` + a pure `engine/pools.py` + a **left sidebar on the Play tab listing every roll at once**, each with its own one-line arithmetic, plus a custom Attribute + Ability builder in the main column that shares the sidebar's state. An ITEMISED base pool — never a bare number, and the on-screen "does not include" list is the mitigation 0016 accepted for 0008's objection, so do not collapse it. Mobility is a PER-ROLL fact off p.332, not a blanket subtraction; wound penalties apply to EVERY roll including Virtue/Willpower, with p.233's resist-infection the one printed exemption, gated in the engine; **accumulated armour fatigue is now a manual `PlayState.fatigue` counter** (p.332) that subtracts from every pool. ⚠ `Armor.mobility_penalty` is stored NEGATIVE in the data — a new consumer that reads it as a magnitude adds dice) | `docs/status/dice-pools.md` |
 | **Corebook Wonders — DONE 2026-08-12, browser-verified 2026-08-13** (the ten Hearthstones + sixteen Greater Wonders → `artifacts.json` 196→222; the four arrows as `ammunition` gear rows, FREE per the human's ruling, with `Weapon.quantity` for stacking; the three cosmetic helms; the ten sample Virtue Flaws as a Virtue-filtered dropdown over the free-text field; catalogue row icons; a nocked-arrow REFERENCE control on the Play tab. ⚠ **A Hearthstone's dots are its MANSE rating, not Artifact** — `ArtifactType.background` keeps the stones off both Artifact-spending surfaces, and their picker lives on the Manse Background row. **The Hearthstone ALLOWANCE followed the same day, browser-verified** (S&S pp.66-67: stones on a Manse row may not exceed the Manse's level, hard on BOTH sides of the lock per the human's ruling): stored structurally as `BackgroundEntry.hearthstones`, never in the row's note; the allowance is DATA on `BackgroundType.hearthstone_tiers`/`hearthstone_per_dot` and is **not uniform** — linear 1/dot for the core and Celestial Manses, an irregular 2/3/6/8/10 tier table with per-stone ceilings for Dragon-Blooded and Abyssal, 2/dot for Mountain Folk; Demesnes grow NO stones and get a per-row toggle instead (human's ruling). ⚠ Unblocked by cracking `ZTR41D0`, the face that draws the corebook's entry NAMES: the pages were on disk and readable and still unauthorable, because the missing 2.5% was the identifying half) | `docs/status/corebook-wonders.md` |
-| **Printable / PDF sheet — implemented 2026-08-14, NOT YET browser-verified** (a real generated PDF via reportlab, NOT a print stylesheet — the human rejected `Ctrl+P`; `ui/pdf.py` takes a `SheetView` and nothing else and imports no `nicegui`, so the builder, the GM party export and the tests share one renderer and the Qt port carries it over unchanged. Charms/spells print as **names and costs only**, notes print but rules text does not, the Validation panel and XP ledger do NOT print, paper size is chosen at export time. ⚠ Every glyph is drawn or ASCII — and the ones that bite arrive as DATA, not from this module's source: `view.health` carries `★` on a Charm-granted level and `PathRow.favored` IS a glyph, so the guard asserts on the rendered page, in **cp1252 not latin-1**. ⚠ The health track WRAPS — nineteen Ox-Body levels ran over the Virtues panel) | `docs/status/printable-sheet.md` |
+| **Martial-arts STYLE entity — Phase 1 done 2026-08-14, not browser-verified** (`MartialArtsStyle`: printed `Type:`, preamble, style-level `mechanics`; 4 of 22 authored off the Player's Guide, 18 remain as a pinned worklist. ⚠ `tier` is DISPLAY ONLY and a test bars `engine/` from reading the catalogue — access stays on the Charms. ⚠ Righteous Devil's "Blessing of Righteous Solar Spark Meditation" is a DOCUMENTED exception, correct as printed. ⚠ Style-name matching failed three ways in one session; **book + page off the Charms' own `source` is what worked**) | `docs/status/martial-arts-styles.md` |
+| **Printable / PDF sheet — DONE 2026-08-14, browser- AND packaged-build-verified** (a real generated PDF via reportlab, NOT a print stylesheet — the human rejected `Ctrl+P`; `ui/pdf.py` takes a `SheetView` and nothing else and imports no `nicegui`, so the builder, the GM party export and the tests share one renderer and the Qt port carries it over unchanged. Charms/spells print as **names and costs only**, notes print but rules text does not, the Validation panel and XP ledger do NOT print, paper size is chosen at export time. ⚠ Every glyph is drawn or ASCII — and the ones that bite arrive as DATA, not from this module's source: `view.health` carries `★` on a Charm-granted level and `PathRow.favored` IS a glyph, so the guard asserts on the rendered page, in **cp1252 not latin-1**. ⚠ The health track WRAPS — nineteen Ox-Body levels ran over the Virtues panel) | `docs/status/printable-sheet.md` |
 | **Adversary roster — DONE, browser-verified** (GM-mode extras/beasts/NPCs; one small model that is NOT a Character; 49 generic templates; instancing) | `docs/status/adversary-roster.md` |
 
 **State of the world:** the foundation (models, persistence, engine, UI) is done
 (`engine-and-ui.md`); every shipped splat's data, engine and UI is browser-verified,
-including Mountain Folk (2026-08-07).
+including Mountain Folk (2026-08-07). **A character can now be put on paper**: the
+generated PDF sheet shipped 2026-08-14, browser- and packaged-build-verified
+(`printable-sheet.md`). Martial-arts styles became a real entity the same day, with
+4 of 22 preambles authored (`martial-arts-styles.md`).
 
 **The catalogue is COMPLETE as of 2026-08-14 and browser-verified the same day.** All 647
 rows of the content-gap discovery set are resolved — the 2026-08-11 sweep, the corebook
@@ -309,28 +318,18 @@ Ship dates for everything else live in the per-splat status docs and the git log
   history: the reason they were removed is the reason no caller may name a Merit id.
   See `docs/status/merits-flaws.md`.
 
-### 👉 The three open TODOs (human, 2026-08-14)
+### 👉 Open work
 
-Recorded after the catalogue closed, when nothing else was outstanding. In no fixed order.
+The three TODOs recorded on 2026-08-14 when the catalogue closed. **One is done** (the
+printable sheet — see the status table and the traps list below; it is not repeated
+here). These two remain, in no fixed order.
 
-1. ~~**A printable / PDF character sheet.**~~ **IMPLEMENTED 2026-08-14, suite green,
-   AWAITING BROWSER VERIFICATION** — `docs/status/printable-sheet.md`,
-   plan `docs/plans/print-pdf.md`. ⚠ **There is no print stylesheet and there must not
-   be one**: the human tried `Ctrl+P` on the Sheet tab and rejected it ("looks like
-   shit" — it prints the app's DOM). `ui/pdf.py` generates a real PDF with reportlab
-   from the same `SheetView` the screen sheet uses, and a Print button sits on the
-   builder header (plus per-member and "Print all" on the GM party page).
-   ⚠ **`test_every_sheetview_field_is_printed_or_declared_omitted` will fail the day a
-   new splat adds a SheetView field** — that is deliberate, and the fix is to decide
-   whether the field prints, not to add its name to `DELIBERATELY_OMITTED`.
-2. **A martial-arts STYLE entity.** Categories are bare strings (`martial_arts:<slug>`),
-   so **22 styles** have their Charms but no home for their PREAMBLE — Jade Mountain's
-   elemental surcharge for non-Earth Aspects and its must-touch-the-ground rule, Falling
-   Blossom's, the five Immaculate Dragon styles', the Sidereal styles'. The content exists
-   in books already on disk; this is a MODELLING job, not a reading one. Every style
-   preamble authored so far has been dropped on the floor for want of this —
-   `docs/status/dragonblooded-aspect-books.md` names the worked example.
-3. **Split `engine/validate.py`** — 5,791 lines, 182 functions, **47% of the whole
+1. **Martial-arts styles, PHASE 2 — the remaining 18 preambles.**
+   `docs/status/martial-arts-styles.md`. Phase 1 shipped the entity and 4 styles;
+   `rules_db.unauthored_martial_arts_styles` is the pinned worklist and every source is
+   in `sources/`. **Jade Mountain is the first target** — its three mechanics are
+   already transcribed in `docs/status/dragonblooded-aspect-books.md`.
+2. **Split `engine/validate.py`** — 5,791 lines, 182 functions, **47% of the whole
    engine**, with a 643-line `validate_chargen` at its centre. **Plan and measurements:
    `docs/plans/validate-refactor.md`.** ⚠ The seam is DOMAIN, not splat (only 4 of the 182
    functions name a splat — the splat differences already live in `data/`), and the
@@ -451,6 +450,24 @@ follow-ups.
 The full record lives in `docs/status/`. These are the cross-cutting lessons that
 survive any status rewrite:
 
+* **The printed sheet** (`docs/status/printable-sheet.md`) — ⚠ **there is no print
+  stylesheet and there must not be one.** `Ctrl+P` prints the app's DOM and the human
+  rejected it; `ui/pdf.py` generates a real PDF from the same `SheetView`. Three rules
+  that outlive the job: **a panel holding nothing is DROPPED, never printed as a box
+  saying "—"** (the screen sheet deliberately differs — do not "fix" the PDF to match);
+  **a glyph that arrives as DATA cannot be caught by reading the renderer**
+  (`view.health` carries `★`, `PathRow.favored` IS a glyph), so the guard asserts on the
+  RENDERED page in **cp1252, not latin-1**; and
+  `test_every_sheetview_field_is_printed_or_declared_omitted` **will fail the day a new
+  splat adds a SheetView field** — deliberate, and the fix is to decide whether the
+  field prints, not to add its name to `DELIBERATELY_OMITTED`.
+* **Style-name matching** (`docs/status/martial-arts-styles.md`) — matching 22 style
+  names against the books failed **three ways in one session**: a loose matcher found
+  "snake"/"tiger" anywhere, a strict header matcher reported 18 present styles as
+  absent, and a `WEAPONS AND ARMOR` regex missed the sidebar spelled `WEAPONSAND ARMOR`.
+  **Book + page off the Charms' own `source` is what worked.** ⚠ And a name match can
+  land in the wrong CHAPTER of the right book — two "Celestial Monkey Style" hits in the
+  Player's Guide are an astrology correlations table, not the style section.
 * **Gear `resources_cost`** (`docs/status/rated-artifacts.md`) — core p.325's Resources
   System shipped as an affordability HINT on the gear dialogs, never a validation.
   **The trap, and it generalises: a printed rule can contradict an ownership invariant

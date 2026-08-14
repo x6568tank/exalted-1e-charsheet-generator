@@ -2094,3 +2094,21 @@ CHAR_VFLAW.virtue_flaw = VirtueFlaw(virtue=VirtueName.VALOR)
 @ui.page('/virtue-flaw')
 def page_virtue_flaw():
     editor.build_editor(RS, CHAR_VFLAW, Path("x.json"), with_header=False)
+
+# (z) the martial-arts STYLE preamble panel (docs/plans/martial-arts-styles.md).
+# A Solar landed directly on an AUTHORED style's tree, and — as the negative
+# control — on an UNAUTHORED one, where the panel must render nothing at all
+# rather than an empty box.
+CHAR_STYLE = Character(id="ms", name="Stylist", exalt_type="Solar", caste="dawn")
+
+@ui.page('/style-authored')
+def page_style_authored():
+    picker.build_picker(RS, CHAR_STYLE, Path("x.json"), with_header=False,
+                        initial_group="styles",
+                        initial_category="martial_arts:righteous-devil")
+
+@ui.page('/style-unauthored')
+def page_style_unauthored():
+    picker.build_picker(RS, CHAR_STYLE, Path("x.json"), with_header=False,
+                        initial_group="styles",
+                        initial_category="martial_arts:tiger")

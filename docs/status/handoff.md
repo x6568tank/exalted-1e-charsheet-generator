@@ -1,105 +1,75 @@
-# Session handoff — 2026-08-14 (printable / PDF sheet)
+# Session handoff — 2026-08-14 (printed sheet + martial-arts styles)
 
-**This file is rewritten each session.** The previous handoff covered the Book of
-Three Circles and Groups A/B/C of the content re-triage; all of that is closed and
-lives in `docs/status/content-gap-retriage.md` and
-`docs/status/book-of-three-circles.md`. Nothing from it is outstanding.
+**Rewritten each session.** Suite: **2,420 passing**, one warning (the pre-existing
+71-entry M&F source-text deferral — see the ⚠ in CLAUDE.md's Status section; it is
+machine-dependent, not a regression).
 
-## What shipped: open TODO 1, the printable character sheet
+Two of the three open TODOs were closed or half-closed today.
 
-**A real generated PDF, not a print stylesheet.** The human tried `Ctrl+P` on the
-Sheet tab first and rejected it — *"Looks like shit"* — because it prints the app's
-DOM: tinted cards, truncated flex rows, tab chrome. **There is no `@media print`
-route in the build and there must not be one.**
+## 1. The printable / PDF sheet — DONE, fully verified
 
-- `exalted_builder/ui/pdf.py` — reportlab. `build_pdf(view, *, paper="A4") -> bytes`,
-  `build_party_pdf(views, …)`, `suggested_filename`, `normalize_pdf_filename`.
-- A **Print** button on the builder header bar; a per-member PDF button and a
-  **Print all** button on the GM party page (one document, one member per page).
-- `tests/test_pdf.py` — 41 tests. Suite green.
-- reportlab in the `ui` / `desktop` / `dev` extras, pypdf in `dev`;
-  `pack/exalted-builder.spec` now `collect_all("reportlab")`.
+`docs/status/printable-sheet.md`. **Browser-verified AND packaged-build-verified by
+the human the same day** (loaded a character and printed from a freshly rebuilt
+`dist/ExaltedBuilder`), so `collect_all("reportlab")` in the spec is confirmed
+sufficient. Committed as `02da1cd`.
 
-Full record, including the human's six content rulings:
-**`docs/status/printable-sheet.md`**. Plan: `docs/plans/print-pdf.md`.
+⚠ **There is no print stylesheet and there must not be one.** `Ctrl+P` prints the
+app's DOM and was rejected. `ui/pdf.py` takes a `SheetView` and nothing else and
+imports no `nicegui`.
 
-## ⚠ Two things that are NOT done
+The one review finding — *"Specialties box doesn't zero out when there's nothing in
+it"* — generalised to **a panel holding nothing is dropped, never printed as a box
+saying "—"**, applied to Specialties, Backgrounds and Equipment. `ui/app.py` keeps
+the placeholder and should: the two surfaces differ deliberately.
 
-1. **The human has not looked at it.** "Looks good" is the acceptance criterion for
-   this feature and only they can call it. Ten sample PDFs were generated for that
-   purpose — see *What to click* below.
-2. **The packaged build is unverified.** `collect_all("reportlab")` is in the spec
-   on reasoning, not on evidence. reportlab loads its base-14 AFM font metrics from
-   data files at RUNTIME, so an import-only scan would miss them and the failure
-   appears the first time somebody clicks Print in the packaged `.exe`. Build it and
-   export from it.
+## 2. Martial-arts STYLE entity — PHASE 1 DONE, **not browser-verified**
 
-## What to click, in priority order
+`docs/status/martial-arts-styles.md`, plan `docs/plans/martial-arts-styles.md`.
+`MartialArtsStyle` (printed `Type:`, preamble, style-level `mechanics`), the loader
+and link check, a collapsible preamble panel on the picker's Martial Arts page, and
+**4 of 22 styles authored** off the Player's Guide. 13 tests.
 
-Sample PDFs are already rendered under the session scratchpad (`sheets/`): the four
-examples, five blank splats (Mortal / Ghost / Lunar / Dragon-Kings / Mountain Folk)
-and a four-member party document. Regenerate any of them with `pdf.build_pdf`.
+### 👉 What to click (the only thing outstanding on this work)
 
-1. **`yarak.pdf`** — the richest one. Locked, Ox-Body (a nineteen-box wrapped health
-   track), artifacts, a spell, orichalcum gear. If anything is ugly it is here.
-2. **The Print button itself**, on a character you have edited but not saved — the
-   export renders from the live in-memory character, not from disk.
-3. **Print all** on a mixed-splat party. Each member starts a new page and carries
-   its OWN splat accent colour.
-4. **`nine-bells-ringing.pdf`** — Sidereal purple, Colleges with their House names
-   printed (they are hover-only on screen), and no Charms at all.
-5. **Letter as well as A4** — the selector is in the dialog, and it is a per-export
-   choice by your ruling, not a stored setting.
+Nobody has seen the preamble panel in a browser. Charms tab → Martial Arts page:
 
-## Open question for you (rules/presentation, not code)
+1. **Righteous Devil** — the panel should carry its `Type: Celestial`, two
+   paragraphs of prose, the firewand "Weapons and Armor" rule, and `Player's Guide
+   p.254`. Check the paragraph break survived (`whitespace-pre-line`).
+2. **Tiger, or any of the other 17 unauthored styles** — there must be **no panel at
+   all**, not an empty box.
+3. **Dreaming Pearl Courtesan** — four `mechanics` rules, the longest list; check it
+   does not crowd the tree.
 
-**Nothing mechanical.** One presentational call you may want to reverse: Charm
-`category` prints title-cased (`craft` → `Craft`, `martial_arts:snake-style` →
-`Martial Arts: Snake-Style`) where the screen sheet prints the raw string. That was
-my call, on the grounds that the raw form reads as a leaked internal on paper. Say
-if you would rather the two surfaces matched exactly.
+## Open question waiting on you
 
-## Your one review finding so far, and what it generalised to
+**None.** The one rules question this work raised — Righteous Devil's
+`open_to_tiers` divergence — you ruled on: **correct as printed, Solar-only**. It is
+recorded in the test as a documented exception with a second test pinning the
+exception set to exactly that one Charm, and in CLAUDE.md as *do not "fix" it*.
 
-*"Specialties box doesn't zero out when there's nothing in it."* — **a panel holding
-nothing is now dropped, never printed as a box containing "—".** `ui/app.py` keeps
-the placeholder and should: on screen the panel is a landmark, on paper it is a
-blank rectangle. **The two surfaces deliberately differ here.**
+## Where the work goes next
 
-Fixed in all three places rather than the one reported: Specialties, Backgrounds and
-Equipment. That turned up two more of the same shape — the Equipment panel is not
-empty just because there is no gear (it also holds Forms / Anima / Virtue Flaw), and
-the Advantages heading can now outlive its content the way the Charms heading could.
+1. **Martial-arts Phase 2 — the other 18 preambles.**
+   `rules_db.unauthored_martial_arts_styles` is the pinned worklist; every source is
+   in `sources/`. **Jade Mountain first** — the example the TODO was written around,
+   its three mechanics already transcribed in `dragonblooded-aspect-books.md`.
+   ⚠ `martial_arts:enlightenment` is the Dragon-Path initiation tree, **not a
+   style** — it gets an entry only if its page carries a preamble of its own.
+2. **Split `engine/validate.py`** — unchanged, `docs/plans/validate-refactor.md`.
+   Write the roll-up membership test FIRST.
 
-## The traps this job produced — worth carrying past it
+## The trap worth carrying out of today
 
-- **⚠ A glyph that arrives as DATA cannot be caught by reading the renderer.**
-  reportlab's base-14 fonts are WinAnsi, and `ui/view.py` bakes marks into display
-  STRINGS: `view.health` carries `★` on a Charm-granted level, and
-  `PathRow.favored` *is* a glyph (`★`/`✚`). The guard therefore asserts on the
-  RENDERED page, not on the module source. ⚠ And it checks **cp1252, not latin-1** —
-  the em dash and middle dot are in WinAnsi and print fine; a latin-1 check failed
-  on healthy text.
-- **⚠ Translating a mark is not enough — say what it MEANS.** Paper has no tooltip.
-  `★` became `*` *with a printed legend*; the Sidereal House names and the
-  custom/missing content marks became words for the same reason.
-- **⚠ A heading must not outlive its content.** A Sidereal fresh out of chargen owns
-  no Charms, and an empty "CHARMS" rule ruled across the page reads as a renderer
-  that lost the list rather than a character who has none.
-- **The field-coverage test is the house-bug guard, and it is the point of the
-  file.** `test_every_sheetview_field_is_printed_or_declared_omitted` walks
-  `dataclasses.fields(SheetView)`. On a PDF, an unread field is simply absent from
-  the paper — there is no accidental second mechanism to cover for it the way the
-  Ghost catalogue covered for `heritage_traits.magic_track`. **It will fail the day
-  a new splat adds a field. Decide; do not silence it.**
+**Matching content by NAME failed three separate ways in one session** — a loose
+matcher that found "snake"/"tiger" in every book, a strict header matcher that then
+declared 18 present styles absent, and a regex that missed `WEAPONSAND ARMOR`
+(no space). **Book + page off the entry's own `source` is what worked every time.**
+And a name match can land in the wrong CHAPTER of the right book: two "Celestial
+Monkey Style" hits in the Player's Guide are an astrology correlations table.
 
-## The two remaining open TODOs (unchanged)
-
-2. **A martial-arts STYLE entity** — 22 styles have their Charms but no home for
-   their preamble. A modelling job, not a reading one.
-3. **Split `engine/validate.py`** — 5,791 lines, 47% of the engine.
-   `docs/plans/validate-refactor.md`. ⚠ Write the roll-up membership test FIRST; the
-   failure mode is the house bug.
+This is `feedback_gap_matchers_wrong_both_ways` firing three more times, in an area
+it had never bitten before. It is now in CLAUDE.md's traps list.
 
 Still deferred indefinitely and **not** gaps: the Mist numina, Cult Abyssals.
 Training times are still a no.

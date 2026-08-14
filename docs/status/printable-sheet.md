@@ -1,6 +1,10 @@
 # The printable / PDF character sheet
 
-**Status: implemented 2026-08-14, suite green, NOT YET BROWSER-VERIFIED.**
+**Status: DONE 2026-08-14 — browser-verified AND packaged-build-verified the same
+day** (the human loaded a character and printed from a freshly rebuilt
+`dist/ExaltedBuilder`; `collect_all("reportlab")` in the spec is confirmed
+sufficient, so reportlab's runtime AFM font data does reach the onefile bundle).
+Suite green at 2407.
 Plan and the decisions behind it: `docs/plans/print-pdf.md`. Closes open TODO 1 in
 `CLAUDE.md`.
 

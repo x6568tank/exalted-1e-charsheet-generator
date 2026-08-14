@@ -56,6 +56,7 @@ from .models.rules import (
     ChargenBudgets,
     Charm,
     College,
+    MartialArtsStyle,
     TrainingCamp,
     Calling,
     ElementalPower,
@@ -178,6 +179,60 @@ def _load_keyed_table(path: Path, model: Type[M], problems: list[str]) -> dict[s
         return {"default": model()}  # type: ignore[call-arg]
     tables.setdefault("default", model())  # type: ignore[call-arg]
     return tables
+
+
+def _check_martial_arts_styles(styles: dict, charms: dict, problems: list[str]) -> None:
+    """Link-check the style catalogue against the Charms, BOTH WAYS.
+
+    A style whose `category` no Charm uses is a typo in the slug — it would load
+    clean and simply never appear. A printed Charm in a `martial_arts:*` category
+    with no style is the gap this entity exists to close, and naming it here is how
+    Phase 2 knows what is left to author.
+
+    ⚠ Custom styles are exempt. `custom_content.py` mints `martial_arts:<slug>`
+    for user-authored styles at runtime, and there is no page to write a preamble
+    from — decision 0012 makes homebrew errors non-fatal, and reporting one here
+    would put a permanent "problem" on the load of anyone with a homebrew style.
+    A category is exempt when EVERY Charm in it is custom.
+    """
+    used: dict[str, list] = {}
+    for charm in charms.values():
+        category = getattr(charm, "category", "")
+        if isinstance(category, str) and category.startswith("martial_arts:"):
+            used.setdefault(category, []).append(charm)
+
+    for style in styles.values():
+        if style.category not in used:
+            problems.append(
+                f"martial arts style '{style.id}' has category '{style.category}', "
+                "which no Charm uses (slug typo?)")
+
+    # NB the reverse direction — a Charm category with no style — is deliberately
+    # NOT a `problem`. Styles are authored in batches (docs/plans/martial-arts-
+    # styles.md), so an unauthored preamble is a WORKLIST ENTRY, not a data error;
+    # raising on it would stop the app from starting for the eighteen styles Phase 2
+    # has not reached yet. It is reported by `unauthored_martial_arts_styles`, which
+    # a test pins so the list can only ever shrink.
+
+
+def unauthored_martial_arts_styles(ruleset) -> list[str]:
+    """The `martial_arts:*` categories that have printed Charms but no style entry
+    — i.e. the styles whose preamble is still unauthored. Sorted, so a test can pin
+    it and Phase 2 can print it.
+
+    Custom (homebrew) styles are excluded: there is no page to author a preamble
+    from, so they are not work anyone is going to do.
+    """
+    used: dict[str, list] = {}
+    for charm in ruleset.charms.values():
+        category = getattr(charm, "category", "")
+        if isinstance(category, str) and category.startswith("martial_arts:"):
+            used.setdefault(category, []).append(charm)
+    described = {s.category for s in ruleset.martial_arts_styles.values()}
+    return sorted(
+        category for category, rows in used.items()
+        if category not in described
+        and not all(getattr(c, "custom", False) for c in rows))
 
 
 def _resolve_borrowed_ladders(backgrounds: dict, problems: list[str]) -> None:
@@ -636,6 +691,12 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
                        "id", "material", problems)
     colleges = _index(_load_array(data_dir / "colleges.json", College, problems),
                       "id", "college", problems)
+    # Martial-arts styles — the preamble the `martial_arts:<slug>` categories always
+    # implied. Optional and INERT: nothing in engine/ reads it (see MartialArtsStyle).
+    ma_styles = _index(_load_array(data_dir / "martial_arts_styles.json",
+                                   MartialArtsStyle, problems),
+                       "id", "martial arts style", problems)
+    _check_martial_arts_styles(ma_styles, charms, problems)
     # Named base dice pools (decision 0016). Cross-splat and optional: absent means
     # the pool calculator simply offers no presets.
     rolls = _index(_load_array(data_dir / "dice_pools.json", RollDefinition, problems),
@@ -711,6 +772,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         virtue_flaw_catalog=virtue_flaws,
         material_catalog=materials,
         colleges=colleges,
+        martial_arts_styles=ma_styles,
         roll_catalog=rolls,
         paths=paths,
         merits_flaws=merits_flaws,

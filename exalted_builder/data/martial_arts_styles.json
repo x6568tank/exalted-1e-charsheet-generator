@@ -1,0 +1,52 @@
+[
+  {
+    "id": "style.crimson-pentacle-blade",
+    "name": "Crimson Pentacle Blade Style",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "tier": "Terrestrial",
+    "preamble": "Of the many “mastered today, defeated tomorrow” styles that come and go in the world of Terrestrial martial arts, one that has remained through the centuries is the Crimson Pentacle Blade. This is a military-style martial art utilizing the efficiency, power and versatility of formation fighting. While definitely effective in singular combat, it is its focus on the choreography of multiple combatants to achieve victory that has gifted this martial-art style with its staying power. It is ideal both for exhibition and for the small-team fighting style the Dragon-Blooded favor.\n\nA potent and grandiose martial art that combines the speed and extended reach of polearms with the defensive capabilities of shields, “speardancers,” as practitioners of this style are colloquially known, are capable of beautiful and awe-inspiring displays of martial prowess. It was the claim of the public founder and premier master of this style, Vajra Mul, that the style was initially conceptualized by an Anathema patron of her family in the years before the Great Uprising. She often claimed it had been specially designed to more perfectly express the poesy of Dragon-Blooded in battle, making it aesthetically more pleasing to the eye. Practitioners of this often strive to implement that goal into every aspect of their lives. Haughty and flamboyant, speardancers are the divas of the battlefield.",
+    "mechanics": [
+      "Weapons and Armor: Disciples of this martial-arts style are proficient with the use of polearms and shields, and Charms in the Crimson Pentacle Blade Style treat attacks made with a spear (or other polearm) and shield as unarmed attacks. A polearm is any weapon that has an extended haft a minimum of four and a half feet in length.",
+      "Characters cannot use this style while wearing armor."
+    ],
+    "source": {"book": "Player's Guide", "page": 239}
+  },
+  {
+    "id": "style.celestial-monkey",
+    "name": "Celestial Monkey Style",
+    "category": "martial_arts:celestial-monkey",
+    "tier": "Celestial",
+    "preamble": "At the root of this martial-arts style lies the teachings of an ancient text known as The Perfected Lotus Sutras. Disciples of this style practice a doctrine of “selfless mind” and, through the meditation of moderation, strive to disassociate themselves from impure concepts and trappings, such as the rise and decline of monetary fortune; the transitory concepts of religion, social mores and politics; and the like. “Blissful Sages”, as they are also known, view these ultimately unimportant things as mere distractions counterproductive for those who would live lives of purity, in compassionate harmony with the whole of Creation.\n\nThe practitioners of this discipline undergo a grueling physical conditioning and dizzying tests of mental acumen, honing their reflexes to lightning speed. Also, the sharpening of their intense physical prowess gives them prodigious insight into the fighting styles of their opponents, which can be used to their benefit.",
+    "mechanics": [
+      "As practitioners of moderation in all things, those who would grow in the wisdom of the Celestial Monkey can not have any Virtue rating higher than 3.",
+      "Weapons and Armor: This martial-arts style is an unarmed style, and the Charms within it are not conducive to the use of any weapons. Characters cannot use this style while wearing armor. Masters of this style, however, do not suffer these prohibitions. See the Charm Celestial Godbody Understanding for details."
+    ],
+    "source": {"book": "Player's Guide", "page": 246}
+  },
+  {
+    "id": "style.dreaming-pearl-courtesan",
+    "name": "Dreaming Pearl Courtesan Style",
+    "category": "martial_arts:dreaming-pearl-courtesan",
+    "tier": "Celestial",
+    "preamble": "To the savants of the Dreaming Pearl Courtesan Style, Creation is indeed the penultimate work of art. It is the perfect expression of form from chaos, tempered and shaped by the dreams and desires of sentient creatures in their endless possibilities. These martial artists are consummate performers with charisma and grace to spare and can be as elusive as dreams. This style, at lower levels, is unassuming as an actual martial art and relies on technique and finesse, instead of on brute prowess and weapon strength.\n\nHowever, if ever there was ever considered to be a truly “heretical” style, this one is it. Although not widely known, as it can be mastered only by the Solar Exalted and Moonshadow Caste Abyssals, as it requires the understanding of certain Solar techniques of persuasion. No one can instill fear in his enemies like a disciple of this style.",
+    "mechanics": [
+      "Weapons and Armor: Charms in the Dreaming Pearl Courtesan Style treat attacks made with a fan, sash, cape or whip as unarmed attacks. Practitioners of this martial style have also been known to use the long, flowing sleeves of monk's robes as well as the intricate hem of a ball gown's train to equal effect.",
+      "Simple practice of this martial art does not make props combat-worthy. Fans and similar props that have been strengthened for battle use the stats for wind-fire wheels. Sashes, capes and whips used in this style are weighted and use the stats for the seven-section staff. Detecting that such items are weapons is relatively easy — a difficulty 1 Perception + Investigation roll while directly examining the item, or a difficulty 3 Perception + Awareness roll while looking the character over in general.",
+      "The Charm Lethal Paper Fan Attack allows characters to use frail props as lethal weapons.",
+      "Characters cannot use this style while wearing armor."
+    ],
+    "source": {"book": "Player's Guide", "page": 250}
+  },
+  {
+    "id": "style.righteous-devil",
+    "name": "Righteous Devil Style",
+    "category": "martial_arts:righteous-devil",
+    "tier": "Celestial",
+    "preamble": "As pervasive and as inescapable as the light of the sun at it's highest meridian is the undeniable destiny of those who serve at the feet of unrighteousness. For those who would exist for the sole purpose of Creation's defilement, Heaven prepares a gift of harmonious vengeance. At the hands of those who serve the Principle of Righteousness, all who defy the Mandate of Heaven will be cleansed by anointment in purifying, Celestial flame. These are the precepts of those who would walk in the footsteps of the Righteous Devil.\n\nThis is not to say that the martial artists who follow this style are paragons of virtue. Usually, quite the opposite is true. Disciples of this style strive to exist, not in terms of good or evil, but instead, in terms of right or wrong; appropriate or needlessly excessive; necessary or wastefully destructive. Theirs is a discerning wisdom, one they believe is the common truth.",
+    "mechanics": [
+      "Weapons and Armor: Originally developed for use with the discharge of various flame-discharge weapons lost to the modern day, disciples of the Righteous Devil Style use firewands and other weapons that project bolts of flame as the focus for their martial arts. Charms of this style treat attacks with these weapons as Martial Arts attacks.",
+      "Painfully, the Charms of this style cannot generally be used with any other weapons or even unarmed. Without their weapons, practitioners of the Righteous Devil Style are as helpless as a disarmed swordsman."
+    ],
+    "source": {"book": "Player's Guide", "page": 254}
+  }
+]

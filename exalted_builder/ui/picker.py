@@ -122,7 +122,7 @@ from ..engine.thaum_actions import (  # noqa: F401  (re-export for existing call
 
 def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                  *, with_header: bool = True, register_events: bool = True,
-                 initial_group: str = ""):
+                 initial_group: str = "", initial_category: str = ""):
     """Render the picker. Returns its `toggle(charm_id)` so an embedding app can
     own a single charm_toggle event handler (set register_events=False then).
     with_header=False omits the title/Save bar and the head <script> (the host
@@ -130,7 +130,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     `initial_group` opens the picker on one of its other pages — 'spells', 'thaum',
     'styles', 'forms', 'panoply' — instead of the Charm trees. Ignored when this
-    character has no such page, so a caller may pass one unconditionally."""
+    character has no such page, so a caller may pass one unconditionally.
+    `initial_category` opens a Charm-tree page on one particular tree, and is
+    likewise ignored unless that category is actually on offer to this character."""
     pal = theme.palette(character.exalt_type)
 
     def in_play() -> bool:
@@ -349,8 +351,16 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if _is_graph_page():
             # A Charm-tree page needs a category that exists in it, or the dropdown
             # would render a value outside its own options.
-            state["category"] = next(iter(_visible_category_options()),
-                                     state["category"])
+            options = _visible_category_options()
+            # ⚠ `initial_category` is honoured ONLY if it is genuinely on offer for
+            # this character. A caller-supplied value that is not in the options is
+            # the `ui.select` build-time crash that blanks every sibling tab
+            # (adding-a-splat.md trap #3) — so it falls back rather than trusting
+            # the caller.
+            if initial_category and initial_category in options:
+                state["category"] = initial_category
+            else:
+                state["category"] = next(iter(options), state["category"])
 
     widgets: dict = {}                          # holds the live group toggle + category <select>
 
@@ -907,6 +917,35 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         else:
             btn.props("disable").tooltip(
                 f"{cost} XP — only {advancement.xp_available(character)} available")
+
+    @ui.refreshable
+    def style_panel() -> None:
+        """The style-level text above a martial-arts tree: its printed `Type:`, its
+        prose, and the "Weapons and Armor" rules that never had anywhere to live
+        (docs/plans/martial-arts-styles.md).
+
+        Renders NOTHING when the selected category is not an authored style — which
+        is the common case while Phase 2 is outstanding, and permanently so for a
+        homebrew style. An empty panel on every other category would be worse than
+        no panel, the same rule the sheet's conditional panels follow.
+        """
+        style = viewmod.style_for_category(ruleset, state["category"])
+        if style is None or not _is_graph_page():
+            return
+        with ui.expansion(f"{style.name} — {style.tier}").classes(
+                f"w-full {pal.card_soft} rounded").props("dense"):
+            with ui.column().classes("w-full gap-2 p-2"):
+                # `whitespace-pre-line` or NiceGUI eats the paragraph breaks —
+                # see docs/status/backgrounds.md, which learned this the hard way.
+                ui.label(style.preamble).classes(
+                    "text-sm whitespace-pre-line").style("max-width:60rem")
+                for rule in style.mechanics:
+                    with ui.row().classes("w-full items-start gap-2 no-wrap"):
+                        ui.icon("gavel", size="0.9rem").classes("mt-1").style(
+                            f"color:{pal.accent}")
+                        ui.label(rule).classes("text-sm flex-1")
+                if style.source_label:
+                    ui.label(style.source_label).classes("text-xs text-gray-500 italic")
 
     @ui.refreshable
     def spells_panel() -> None:
@@ -1891,6 +1930,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         _apply_group()                # sync canvas-vs-Augmentation-cards for the new category
         if not _is_augment_page():
             init_graph()
+        style_panel.refresh()
         readout.refresh()
 
     def set_circle(value: str) -> None:
@@ -2072,6 +2112,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                             ui.icon("circle", size="0.7rem").style(f"color:{color}")
                             ui.label(text)
                 ui.label("scroll to zoom · drag to pan").classes("text-gray-400 italic")
+            style_panel()
             # A real element (not ui.html, whose inline style gets sanitised away),
             # with an explicit DOM id for Cytoscape to mount into.
             widgets["graph"] = (ui.element("div").props("id=charm-graph")

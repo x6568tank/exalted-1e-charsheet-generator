@@ -843,6 +843,39 @@ class College(BaseModel):
     house_label: str = ""                   # printed astrological house name (display)
 
 
+class MartialArtsStyle(BaseModel):
+    """One martial-arts STYLE — the thing the `martial_arts:<slug>` Charm categories
+    have always implied without ever existing as an entity.
+
+    It holds what the page prints ABOVE the Charm list: the style's `Type:` line,
+    its prose, and its style-level rules (the "Weapons and Armor" sidebar, and
+    oddities like Celestial Monkey's Virtue ceiling). Before this, all of that was
+    dropped on the floor — see docs/status/dragonblooded-aspect-books.md, where Jade
+    Mountain's three mechanics are recorded as content waiting for a home.
+
+    ⚠ **`tier` is DISPLAY ONLY. Nothing in engine/ may read it** (a test enforces
+    this). It is the same fact the Charms' `open_to_tiers` / `open_to_all` already
+    carry, and the moment two descriptions of one rule are both live they disagree —
+    the shape decision 0011 exists to prevent. Who may learn a style is decided by
+    the CHARM fields, exactly as before; this entity changed no access rule.
+    The human's scoping call, 2026-08-14: preamble and Type only.
+    """
+    model_config = ConfigDict(frozen=True)
+    id: str                                 # "style.righteous-devil"
+    name: str                               # "Righteous Devil Style", as printed
+    category: str                           # "martial_arts:righteous-devil"
+    # The printed `Type:` word ("Terrestrial" / "Celestial" / "Sidereal"). A plain
+    # str, not an enum: the set of printed values is an observation about the pages
+    # read so far, and closing it from memory is what decision 0001 forbids.
+    tier: str = ""
+    preamble: str = ""                      # the style's prose, as printed
+    # Style-level RULES, one entry per printed rule, kept out of `preamble` because
+    # a Storyteller needs to find them rather than read past them. [] for a style
+    # whose page carries only flavour.
+    mechanics: list[str] = Field(default_factory=list)
+    source: Source = Field(default_factory=Source)
+
+
 class PathPower(BaseModel):
     """One dot-level power of a Dragon-King Path (PG pp.177-191). Each Path has
     exactly six, one per dot 1..6; the dot IS the Path rating at which the power is
@@ -2779,6 +2812,12 @@ class RuleSet(BaseModel):
     virtue_flaw_catalog: dict[str, VirtueFlawType] = Field(default_factory=dict)
     material_catalog: dict[str, MagicalMaterial] = Field(default_factory=dict)
     colleges: dict[str, College] = Field(default_factory=dict)   # Astrological Colleges (Sidereal)
+    # Martial-arts styles, keyed by MartialArtsStyle.id. The preamble the
+    # `martial_arts:<slug>` categories always implied. Cross-splat and inert:
+    # ⚠ nothing in engine/ reads this — access is still decided by the CHARM fields
+    # (see MartialArtsStyle). Empty when the file is absent, which simply means the
+    # picker shows a style tree with no preamble above it, as it always did.
+    martial_arts_styles: dict[str, MartialArtsStyle] = Field(default_factory=dict)
     # Named base dice pools (decision 0016), keyed by RollDefinition.id. Cross-splat
     # — every character rolls Dexterity + Melee the same way. Empty when the file is
     # absent, which simply means the pool calculator offers no presets.

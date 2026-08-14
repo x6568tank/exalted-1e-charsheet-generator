@@ -1837,6 +1837,38 @@ def _style_label(category: str) -> str:
     return " ".join(w.capitalize() for w in slug.replace("_", "-").split("-")) + " Style"
 
 
+@dataclass
+class StyleView:
+    """The style-level text above a martial-arts Charm tree — the preamble the
+    `martial_arts:<slug>` categories always implied (docs/plans/martial-arts-
+    styles.md). Presentation only: `tier` is the printed `Type:` word and NOTHING
+    reads it to decide access, which is still the Charms' business."""
+    name: str
+    tier: str                 # printed "Type:" — DISPLAY ONLY
+    preamble: str
+    mechanics: list[str]
+    source_label: str         # "Player's Guide p.239", "" when unattributed
+
+
+def style_for_category(ruleset: RuleSet, category: str) -> Optional[StyleView]:
+    """The authored style for a `martial_arts:*` category, or None.
+
+    None is the ordinary case for now, not an error: 18 of the 22 styles are still
+    unauthored (Phase 2), and a homebrew style has no page to have a preamble from.
+    A caller must render nothing rather than an empty panel.
+    """
+    if not category or not category.startswith("martial_arts:"):
+        return None
+    for style in ruleset.martial_arts_styles.values():
+        if style.category != category:
+            continue
+        src = style.source
+        label = f"{src.book} p.{src.page}" if src and src.book and src.page else ""
+        return StyleView(name=style.name, tier=style.tier, preamble=style.preamble,
+                         mechanics=list(style.mechanics), source_label=label)
+    return None
+
+
 def calling_ability_marks(ruleset: RuleSet, character: Character) -> set:
     """The Ability names the Calling discounts, for the editor's ✦ marks. A separate
     set from the Caste/Favoured one on purpose: an Ability can be both, and the two
