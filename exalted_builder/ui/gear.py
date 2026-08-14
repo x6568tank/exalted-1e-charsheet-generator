@@ -275,10 +275,20 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
     # out of `_artifacts_panel` when the row editor moved into the inventory: a closure
     # over a name defined in a function it no longer lives in is a NameError that
     # NiceGUI reports as an EMPTY PANEL, not as a crash.
-    art_catalog = artifactsmod.purchasable_with_artifact(rs.artifact_catalog)
-    art_names = [a.name for a in art_catalog]
-    art_descs = {a.name: f"{a.rating_notes or ('•' * a.rating)} — {a.description}"
-                 for a in art_catalog}
+    # Merit-gated plot devices join the list only once the character holds the Merit —
+    # `purchasable_artifacts` moves the OFFER with the permission, not just the bar.
+    #
+    # ⚠ A FUNCTION, not a value computed here. The list now depends on character state
+    # that changes on ANOTHER tab (taking or dropping the Legendary Artifact Merit), and
+    # this body runs once per page build — captured, it would be the stale-closure trap
+    # verbatim: a player takes the Merit, comes back, and the artifact she just paid ten
+    # bonus points for is not in the dropdown. Every call site recomputes.
+    def _art_catalog() -> list:
+        return artifactsmod.purchasable_artifacts(rs.artifact_catalog, character)
+
+    def _art_descs(catalog) -> dict:
+        return {a.name: f"{a.rating_notes or ('•' * a.rating)} — {a.description}"
+                for a in catalog}
 
     def _artifact_editor(idx, art) -> None:
         """One standalone artifact's editor, rendered inside its inventory row.
@@ -287,6 +297,9 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         one list of what is owned, and a panel repeating four of its rows was a
         second surface editing the same objects.
         """
+        art_catalog = _art_catalog()
+        art_names = [a.name for a in art_catalog]
+        art_descs = _art_descs(art_catalog)
         with ui.row().classes("w-full items-center gap-2 no-wrap"):
             sel = (DescribedSelect(_opts_with(art_names, art.name),
                                    descriptions=art_descs,
@@ -312,7 +325,8 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
             # the player reaching the bar.
             if character.chargen_locked:
                 ui.select({artifactsmod.ACQUIRED_BACKGROUND: "Background",
-                           artifactsmod.ACQUIRED_PURCHASED: "Bought"},
+                           artifactsmod.ACQUIRED_PURCHASED: "Bought",
+                           artifactsmod.ACQUIRED_LEGENDARY: "Merit"},
                           value=art.acquired, label="Acquired",
                           on_change=lambda e, art=art: (
                               setattr(art, "acquired",
@@ -346,6 +360,11 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                           if a.name == (e.value or "")), None)
             if entry is not None:
                 art.name, art.rating = entry.name, entry.rating
+                # A merit-gated artifact is charged to no budget: the Merit was its
+                # price. Stamped from the CATALOGUE at pick time rather than chosen,
+                # so the player never has to know the channel exists.
+                if entry.requires_merit:
+                    art.acquired = artifactsmod.ACQUIRED_LEGENDARY
                 # Keep the on-screen control in sync: the header refresh
                 # recomputes the total but must NOT rebuild the body (see
                 # the header docstring), so the number is pushed directly.
@@ -411,6 +430,8 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
             # catalogue (name + rating + description), pick one — name AND rating
             # autofilled — or choose Custom for a blank row.
             def _open_artifact_catalogue() -> None:
+                # Recomputed per OPEN, not captured — see `_art_catalog`.
+                art_catalog = _art_catalog()
                 rows = [(a.name, a.name,
                          f"{a.rating_notes or ('•' * a.rating)} — {a.description}",
                          a.description)
@@ -424,10 +445,13 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                 if name is None:
                     add_artifact()
                     return
-                entry = next((a for a in art_catalog if a.name == name), None)
+                entry = next((a for a in _art_catalog() if a.name == name), None)
                 if entry is not None:
-                    character.artifacts.append(
-                        ArtifactEntry(name=entry.name, rating=entry.rating))
+                    character.artifacts.append(ArtifactEntry(
+                        name=entry.name, rating=entry.rating,
+                        acquired=(artifactsmod.ACQUIRED_LEGENDARY
+                                  if entry.requires_merit
+                                  else artifactsmod.ACQUIRED_BACKGROUND)))
                     grant_gear(entry.name)
                 else:
                     character.artifacts.append(ArtifactEntry(name=name, rating=1))
@@ -700,9 +724,17 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                             "text-xs opacity-70 flex-1 min-w-0 truncate")
                         for kind in row.kinds:
                             if kind == "artifact":
-                                tag = ("Artifact " + "•" * row.artifact_rating
-                                       + (" · bought" if row.acquired == "purchased"
-                                          else ""))
+                                # A plot device has no rating to print — its dots are a
+                                # placeholder the model's 1-5 bound demands and its page
+                                # prints "(ARTIFACT N/A)". Showing "Artifact •••••" here
+                                # would be the one place in the build that states the
+                                # fiction as a fact.
+                                if row.acquired == artifactsmod.ACQUIRED_LEGENDARY:
+                                    tag = "Artifact N/A · by Merit"
+                                else:
+                                    tag = ("Artifact " + "•" * row.artifact_rating
+                                           + (" · bought"
+                                              if row.acquired == "purchased" else ""))
                             elif kind in ("weapon", "armor", "ammunition"):
                                 continue    # the stat line already says which it is
                             else:

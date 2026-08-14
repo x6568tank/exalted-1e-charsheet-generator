@@ -154,7 +154,7 @@ costs — read the record before proposing anything that contradicts it.
 | 0014 | Essence is XP-purchasable to the splat cap; the age chart is gone |
 | 0015 | **Exalt tiers are RANKED** — Terrestrial < Celestial < Solar; a splat reaches its own tier and every tier below, never up |
 | 0016 | **Base dice pools are in scope; resolution is not** — narrows 0008's boundary, leaves 0009 untouched |
-| 0017 | **Artifacts have TWO acquisition channels** — the Artifact Background is pre-game ("to start the game owning", core p.342), cash is in-play (M&C pp.122-125); only Background-funded artifacts are budgeted, and purchase is barred at chargen |
+| 0017 | **Artifacts have TWO acquisition channels** — the Artifact Background is pre-game ("to start the game owning", core p.342), cash is in-play (M&C pp.122-125); only Background-funded artifacts are budgeted, and purchase is barred at chargen. ⚠ **A THIRD joined them 2026-08-13** (human's ruling, not yet its own record): a plot device printing "(ARTIFACT N/A)" is bought with the **Legendary Artifact 10-pt Merit** and charged to no budget — `docs/status/book-of-three-circles.md` |
 
 **Permanently out of scope** — decisions 0008, 0009 and 0010 (no combat/attack
 derivation, no dice rolling of any kind, no Fair Folk). Read them before proposing any
@@ -236,6 +236,9 @@ full record.
 |---|---|
 | **Session handoff — rewritten each session** | `docs/status/handoff.md` |
 | **The 1.0 catalogue sweep — DONE for everything on disk** (six delegated batches; the `sources/` extraction pipeline and its three glyph ciphers; five traps worth re-reading) | `docs/status/catalogue-sweep.md` |
+| **The content gap, re-triaged 2026-08-13** (467 of 647 discovery rows now authored; the 180 left split into 63 extract-now / 101 rasterise-and-read / 8 misses / 8 closed rulings — **nothing is page-blocked**; and 19 of the old count were a `name`-only matcher missing `variants`) | `docs/status/content-gap-retriage.md` |
+| **Book of Three Circles — DONE 2026-08-13, NOT yet browser-verified** (all 62 gap entries: spells 246 → **294**, artifacts 222 → **237**, the Crimson Bow's weapon row; read off a PURE SCAN with `pdftoppm -r 110`, no VLM leg; **S&S wins every conflict** per the human; the ch.4 circle is **Solar**, not the index's "Adamant"; ch.5 rates by **LEVEL N heading**; and the two `(ARTIFACT N/A)` plot devices became a **THIRD acquisition channel** — see the row below) | `docs/status/book-of-three-circles.md` |
+| **Merit-gated artifacts — the third acquisition channel** (human, 2026-08-13: the Mantle of Brigid, the Sword of Ice and the B&E **Insidious Ebon Xoanon** — every `ARTIFACT N/A` entry in the build — are plot devices bought with the **Legendary Artifact 10-pt Merit**, charged to no budget — amends decision 0017's "two channels". `ArtifactType.requires_merit` is DATA so no module names a Merit id; the OFFER moves with the Merit (`purchasable_artifacts`) and the BAR runs both sides of the lock (`artifact-missing-merit`). ⚠ The bar keys on the artifact NAME, not on the player-editable `acquired`; `rating: 5` is a placeholder the model's 1-5 bound demands and the inventory prints "Artifact N/A · by Merit") | `docs/status/book-of-three-circles.md` |
 | How `source.book` is written, and why it rots | `docs/source-attribution.md` |
 | **How it works** (module boundaries, lifecycle, invariants) | `docs/ARCHITECTURE.md` |
 | **Why** (closed decisions, one record each) | `docs/decisions/` |
@@ -275,13 +278,16 @@ full record.
 **State of the world:** the foundation (models, persistence, engine, UI) is done
 (`engine-and-ui.md`); every shipped splat's data, engine and UI is browser-verified,
 including Mountain Folk (2026-08-07). **The 1.0 catalogue sweep finished 2026-08-11
-(`catalogue-sweep.md`): 1,836 Charms/Arcanoi, 246 spells, 196 rated artifacts**, all
+(`catalogue-sweep.md`): 1,836 Charms/Arcanoi, then-246 spells, then-196 rated artifacts**, all
 browser-verified. **The corebook Wonders chapter followed on 2026-08-12** — artifacts
 **196 → 222** (the ten Hearthstones + sixteen Greater Wonders), plus the four arrows,
 three helms and the ten sample Virtue Flaws, unblocked by solving the corebook's
 thirteenth font, and followed the same day by the Hearthstone allowance rules
-(`docs/status/corebook-wonders.md`); all browser-verified 2026-08-13. Everything still missing — 213 entries — is blocked on page syncs,
-not on work. `sources/` extraction is authorised and eight books are decoded into
+(`docs/status/corebook-wonders.md`); all browser-verified 2026-08-13. **The Book of Three
+Circles followed on 2026-08-13** — spells **246 → 294**, artifacts **222 → 237**, read
+straight off a pure scan (`docs/status/book-of-three-circles.md`), not yet
+browser-verified. **120 catalogue entries are still missing and, since the 2026-08-13
+re-triage, NONE of them is page-blocked** (`docs/status/content-gap-retriage.md`). `sources/` extraction is authorised and eight books are decoded into
 `images/_extracted/` — and **`sources/` itself is now on this machine (2026-08-13)**, which unblocks several syncs the catalogue sweep had listed as page-blocked. **A top-level Gear tab shipped 2026-08-13** — everything owned on one surface, with mundane goods and a shop (`docs/status/gear-and-inventory.md`).
 Ship dates for everything else live in the per-splat status docs and the git log.
 
@@ -351,15 +357,25 @@ durable operating guide; do not re-accumulate handoff narrative here.
 `images/_extracted/` — three of them were ciphered, the corebook with thirteen fonts
 each carrying its own cipher (`tools/glyph_maps/`, `tools/solve_cid_bands.py`).
 
-**What remains is 213 entries** — 112 artifacts, 61 spells, ~31 Charms. Highest combined
-yield per sync: Book of Three Circles (63), Savage Seas (18), The Lunars (17), Time of
-Tumult (14), Abyssals pp.254-261 (16).
+**RE-TRIAGED 2026-08-13 → `docs/status/content-gap-retriage.md`, which supersedes both
+the sweep's closing section and `content-gap-entries.md`'s "Pages on disk?" column.**
+467 of the 647 discovery rows have been authored; **180 remained and NONE was
+page-blocked** — then the **Book of Three Circles was read on 2026-08-13** (60 authored,
+2 unauthorable), leaving **120**: 63 sit in born-digital books never extracted (five
+Aspect Books, Abyssals pp.254-261, Blood and Salt, Halta, Cult, Manacle and Coin), 39
+behind pure scans that rasterise fine (Savage Seas 17, Time of Tumult 13, Sidereals 5, ST
+Companion 4), 8 are per-entry misses in books already extracted, and 10 are closed. **Every book
+named above is in `sources/` — check it before recording anything as blocked.**
 
-⚠ **"Page-blocked" is STALE as a blanket claim: `sources/` landed on this machine
-2026-08-13.** Abyssals pp.254-261 extracts cleanly right now (16 entries). The Lunars is
-present but a PURE SCAN, so its 17 still need the VLM leg. Book of Three Circles, Savage
-Seas and Time of Tumult are genuinely absent. Check `sources/` before recording anything
-here as blocked.
+⚠ **19 of the old 213 were never missing** — the Lunar 17 and 3 of the PG 5 are Deadly
+Beastman Transformation **Gifts**, authored as `variants` on the parent Charm, and a
+`name`-only diff cannot see them. **A gap number is an upper bound until the matcher has
+been pointed at every shape a Charm takes here** (`name`, `variants[].label`, the
+parameterised entries).
+
+⚠ **The Ollama VLM leg is for NON-VISUAL models** (human, 2026-08-13). A vision-capable
+model rasterises a scan with `pdftoppm` and reads the pages itself; the
+`vlm-cannot-count-dots` caution is about the small local VLM, not about page reading.
 
 ⚠ **Two rules that came out of it and generalise beyond it:**
 - **"Missing from the build" is not "should be authored."** The gap diff cannot see a

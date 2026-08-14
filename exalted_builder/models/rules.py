@@ -1205,6 +1205,24 @@ class ArtifactType(BaseModel):
     # bought. `engine.artifacts.purchasable_with_artifact` is the read site; the
     # artifact row's combobox and its catalogue dialog are both filtered through it.
     background: str = "artifact"            # "artifact" | "manse"
+    # A MERIT id this entry is gated behind, or "" for the ordinary majority. The third
+    # acquisition channel, and the reason `rating` can be a polite fiction: the Mantle
+    # of Brigid and the Sword of Ice (Book of Three Circles pp.25-27) print
+    # "(ARTIFACT N/A)" where every other entry prints dots, because they are plot
+    # devices rather than items a Background buys. The human's ruling 2026-08-13 is
+    # that they cost the **Legendary Artifact 10-pt Merit** (PG p.24) — which the Merit's
+    # own printed text all but says, naming "the Mantle of Brigid or the Eye of
+    # Autochthon" as its examples and warning that Storytellers "do not need to allow
+    # this Merit ever".
+    #
+    # ⚠ The id lives HERE, in data, and nowhere in code: no module outside
+    # `engine/merits.py` may name a Merit id (decision 0011, and a test greps for it).
+    # Every read site is generic — it compares this field against the ids the character
+    # holds. Read sites: `engine.artifacts.purchasable_with_artifact` (which EXCLUDES
+    # these, so they never reach an Artifact-dot surface), `engine.artifacts.
+    # purchasable_artifacts` (which adds them back once the Merit is held) and
+    # `engine.validate.check_artifacts` (which reports owning one without it).
+    requires_merit: str = ""
 
 
 class BackgroundBudgetTier(BaseModel):

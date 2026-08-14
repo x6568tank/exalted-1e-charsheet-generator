@@ -1433,6 +1433,29 @@ CHAR_ARTIFACTS_XP.xp_earned = 20
 def page_artifacts_advantages_xp():
     gear.build_gear(RS, CHAR_ARTIFACTS_XP, Path("x.json"), with_header=False)
 
+# The merit-gated plot devices (human's ruling 2026-08-13). Two shapes, because the
+# whole mechanism is "the offer moves with the permission": WITH the Legendary Artifact
+# Merit the Mantle is ownable and the readout is clean, WITHOUT it the same row is an
+# Issue. Both routes are Gear, which is where artifacts live.
+CHAR_LEGENDARY = Character(id="leg", name="Brigid's Heir", caste="twilight",
+                           essence_rating=3)
+CHAR_LEGENDARY.merits_flaws.append(MeritFlawPurchase(merit_id="mf.legendary-artifact"))
+CHAR_LEGENDARY.artifacts.append(ArtifactEntry(name="Mantle of Brigid", rating=5,
+                                              acquired="legendary"))
+
+@ui.page('/legendary-gear')
+def page_legendary_gear():
+    gear.build_gear(RS, CHAR_LEGENDARY, Path("x.json"), with_header=False)
+
+# The same artifact with no Merit behind it — the bar, on the tab that shows it.
+CHAR_LEGENDARY_BARE = CHAR_LEGENDARY.model_copy(deep=True)
+CHAR_LEGENDARY_BARE.id = "legbare"
+CHAR_LEGENDARY_BARE.merits_flaws = []
+
+@ui.page('/legendary-gear-bare')
+def page_legendary_gear_bare():
+    gear.build_gear(RS, CHAR_LEGENDARY_BARE, Path("x.json"), with_header=False)
+
 # A splat with no budget table: the panel still edits artifacts, but prints no budget.
 CHAR_ARTIFACTS_SOLAR = Character(id="arts", name="Velgash", caste="dawn")
 CHAR_ARTIFACTS_SOLAR.backgrounds.append(BackgroundEntry(name="Artifact", rating=4))

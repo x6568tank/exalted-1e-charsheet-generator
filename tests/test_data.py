@@ -208,7 +208,7 @@ def test_full_melee_chain_is_legal_on_real_data():
 
 def test_spells_load_with_expected_circle_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.spells) == 246
+    assert len(rs.spells) == 294
     by_circle: dict = {}
     for s in rs.spells.values():
         by_circle[s.circle] = by_circle.get(s.circle, 0) + 1
@@ -222,9 +222,15 @@ def test_spells_load_with_expected_circle_counts():
     # (17 Labyrinth, 32 Shadowlands, 10 Void) and Savant and Sorcerer (51 Terrestrial,
     # 32 Celestial, 9 Solar). Cleansing Solar Flames (B&E p.139, human-ruled attribution)
     # brought Solar to 16 and the total to 244. See docs/status/spell-batch-notes.md.
-    assert by_circle == {SpellCircle.TERRESTRIAL: 67,
-                         SpellCircle.CELESTIAL: 41,
-                         SpellCircle.SOLAR: 17,
+    # 2026-08-13: the Book of Three Circles adds 48 — 31 Terrestrial (ch.2), 3 Celestial
+    # (ch.3) and 14 Solar (ch.4). ⚠ The fan spell index labels the ch.4 group "Adamant";
+    # the BOOK's chapter head reads "THE SOLAR CIRCLE" and the book wins. Read off the
+    # scanned pages directly (pdftoppm -r 110; PDF page = book page + 1). Where the two
+    # books print the same spell, Savant and Sorcerer wins (human's ruling), so the S&S
+    # copies were left untouched and only names absent from the build were authored.
+    assert by_circle == {SpellCircle.TERRESTRIAL: 98,
+                         SpellCircle.CELESTIAL: 44,
+                         SpellCircle.SOLAR: 31,
                          SpellCircle.SHADOWLANDS: 42,
                          SpellCircle.LABYRINTH: 24,
                          SpellCircle.VOID: 17,
@@ -302,7 +308,9 @@ def test_weapon_and_armor_catalogs_load():
     # damage ("broadhead arrows do the firing character's Strength + 2"), which is why
     # every bow row in this catalogue carries none. They have no printed Resources cost
     # and are free unless a specific type states otherwise (human, 2026-08-12).
-    assert len(rs.weapon_catalog) == 102
+    # + The Crimson Bow (Book of Three Circles p.95), the one BOTC artifact printed with
+    # a full weapon stat line, so it gets a stat row here as well as a catalogue entry.
+    assert len(rs.weapon_catalog) == 103
     # 17 corebook + the artifact Chain Shirt (Dawn p.81), Cloak of Vanishing
     # Escape (Night p.81) and the Most Terrifying Armor of the Air Dragon (Air p.81),
     # + the three p.335 SHIELDS, which are armour rows tagged "shield" rather than a
@@ -330,7 +338,17 @@ def test_artifact_catalog_loads_the_ten_mountain_folk():
     # 2026-08-12: +26 from the corebook Wonders chapter, unblocked when the display
     # face that draws its entry NAMES was decoded (tools/glyph_maps/exalted-core.json)
     # — the ten Hearthstones (pp.338-340) and sixteen Greater Wonders (pp.340-346).
-    assert len(rs.artifact_catalog) == 222
+    # 2026-08-13: +12 from the Book of Three Circles — 3 from ch.1 (pp.24-27) and 9 from
+    # ch.5 "New Wonders" (pp.92-96), whose ratings come from LEVEL N section headings
+    # rather than per-entry dot strings. +2 the same day: the Mantle of Brigid (p.25)
+    # and the Sword of Ice (p.27), which print "(ARTIFACT N/A)" because they are plot
+    # devices — the human ruled 2026-08-13 that they cost the Legendary Artifact 10-pt
+    # Merit instead, which `requires_merit` carries. Their `rating` of 5 is a placeholder
+    # the model's 1-5 bound requires and nothing charges: `rating_notes` says N/A, and
+    # `purchasable_with_artifact` keeps them off every Artifact-dot surface.
+    # +1 more: the Insidious Ebon Xoanon (B&E p.104), unauthorable since the 2026-08-11
+    # sweep for exactly that reason and ruled the same way by the human on 2026-08-13.
+    assert len(rs.artifact_catalog) == 237
     # Ratings and the printed ranges, from the Technology chapter (pp.279-283).
     visor = rs.artifact_catalog["artifact.mountain-folk.essence-scrying-visor"]
     assert visor.rating == 1 and visor.source == "Mountain Folk p.279"
@@ -707,10 +725,14 @@ def test_the_ten_corebook_hearthstones_are_rated_by_manse_not_artifact():
     elements = [t for s in stones for t in s.tags if t != "hearthstone"]
     assert sorted(elements) == sorted(["air"] * 2 + ["earth"] * 2 + ["fire"] * 2
                                       + ["water"] * 2 + ["wood"] * 2)
-    # Nothing else in the catalogue moved off the Artifact Background.
+    # Nothing else in the catalogue moved off the Artifact Background — except the
+    # merit-gated plot devices, which are off it for their own reason (a Merit is their
+    # price, not dots) and are counted here so this stays a total.
     artifact_bought = artifacts_engine.purchasable_with_artifact(rs.artifact_catalog)
-    assert len(artifact_bought) + len(stones) == len(rs.artifact_catalog)
-    assert all(a.background == "artifact" for a in artifact_bought)
+    gated = artifacts_engine.merit_gated(rs.artifact_catalog)
+    assert len(artifact_bought) + len(stones) + len(gated) == len(rs.artifact_catalog)
+    assert all(a.background == "artifact" and not a.requires_merit
+               for a in artifact_bought)
 
 
 def test_the_sample_virtue_flaws_load_keyed_to_their_virtue():

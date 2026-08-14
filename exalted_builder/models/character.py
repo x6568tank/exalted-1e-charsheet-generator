@@ -131,11 +131,18 @@ class ArtifactEntry(BaseModel):
     #     and says outright that its tables "closely follow the Wonders and Equipment
     #     tables on pp. 324-346 in the main Exalted book".
     #
+    # A THIRD channel joined them on 2026-08-13: `ACQUIRED_LEGENDARY`, the plot-device
+    # artifacts that print "(ARTIFACT N/A)" and are paid for with the Legendary Artifact
+    # 10-pt Merit instead of any budget — see `rules.ArtifactType.requires_merit`. The
+    # picker sets it from the catalogue entry, so the player does not choose it.
+    #
     # Only Background-funded items are charged to the Artifact budget — a bought
     # daiklave is equipment you paid for. ⚠ Unlike `Weapon.from_artifact` this
     # discriminator is MEANT to be player-editable, so it is a hole in the budget by
     # construction; `validate.check_artifacts` closes it at chargen, where the printed
-    # phrase above says purchase does not happen (human's ruling 2026-08-13).
+    # phrase above says purchase does not happen (human's ruling 2026-08-13). The
+    # Merit requirement does NOT rely on it: that check keys on the artifact's NAME
+    # against the catalogue, so editing this field cannot shake the Merit off.
     acquired: str = "background"
 
 

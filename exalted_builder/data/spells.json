@@ -3197,5 +3197,629 @@
       "book": "Savant and Sorcerer",
       "page": 142
     }
+  },
+  {
+    "id": "spell.terrestrial.assassin-s-fatal-touch",
+    "name": "Assassin's Fatal Touch",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 20
+    },
+    "description": "After a ritual of at least 15 minutes over a touched target or an object they handled, the caster's next light, non-hostile touch deals 5L plus 1L per success on a reflexive Intelligence + Medicine roll, instantly and painlessly; armour does not protect and mortals get no resistance roll, while survivors fall unconscious for (6 - Stamina) turns. Exalted, Fair Folk and spirits roll permanent Essence — one success negates it entirely — and subtract innate lethal soak. It has no effect on the undead, Deathlords or Abyssals, lasts until the touch lands or one full day, allows only one nemesis at a time, and fails if combined with a physical attack.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 31
+    }
+  },
+  {
+    "id": "spell.terrestrial.calling-the-stalwart-servitor",
+    "name": "Calling the Stalwart Servitor",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "Summons a clay humanoid about five feet tall that lifts up to 10 tons, moves 10 yards a turn, and digs, builds and performs simple manual tasks. It cannot be ordered to attack and vanishes instantly if struck. It lasts a number of hours equal to the summoner's Essence unless dispelled.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 32
+    }
+  },
+  {
+    "id": "spell.terrestrial.cirrus-skiff",
+    "name": "Cirrus Skiff",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "A cloud platform carries the sorcerer plus 100 pounds per point of permanent Essence at up to 3 mph per point of permanent Essence. It hovers indefinitely, so it imposes no penalty on Archery or other Abilities needing a steady base. It lasts one scene or until the caster steps off.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 33
+    }
+  },
+  {
+    "id": "spell.terrestrial.coin-of-distant-vision",
+    "name": "Coin of Distant Vision",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "A half-hour ritual links a small black ceramic coin to the caster, who can then concentrate to see and hear events around it as though standing there, and always knows its rough distance and direction. Only one coin may be linked at a time; breaking the link takes a turn's concentration and 5 motes, and crumbles the coin.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 33
+    }
+  },
+  {
+    "id": "spell.terrestrial.commanding-presence-of-fire",
+    "name": "Commanding Presence of Fire",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "A giant flaming image of the caster appears and speaks with him, greatly amplifying his voice and adding his Occult score to Presence dice pools. It lasts one turn, extended each turn by a reflexive Stamina roll to a maximum of one scene; a botch costs one bashing health level and ends it.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 33
+    }
+  },
+  {
+    "id": "spell.terrestrial.curtain-of-quartz",
+    "name": "Curtain of Quartz",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "A globe of hovering crystals reflects light away from the caster: for one scene, all sorcery requiring visual contact, Ability rolls and attacks within three yards suffer -3 successes. The caster is unaffected, and non-visual targeting such as scent is not hindered.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 34
+    }
+  },
+  {
+    "id": "spell.terrestrial.dragon-of-smoke-serpent-of-flame",
+    "name": "Dragon of Smoke/Serpent of Flame",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 20
+    },
+    "description": "A serpentine guidepost of inky smoke by day, and of heatless white flame in darkness giving daylight-equivalent light, winds ahead of the traveller. Guiding to a well-known place needs no roll; finding a place by described properties needs Wits + Occult at difficulty 1-5 by how common those properties are, and unique properties cannot be found at all. It lasts one full day, until the destination is reached, or until dismissed.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 35
+    }
+  },
+  {
+    "id": "spell.terrestrial.droning-suggestion",
+    "name": "Droning Suggestion",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "A low hum puts everyone within 10 yards into a light trance, leaving them highly susceptible to plausibly phrased suggestions; listeners resist with a Willpower roll at difficulty 1, rising by 1 per turn of exposure, and completely blocking the ears protects. It lasts as many turns as the caster's permanent Essence, and victims afterwards remember what happened.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 36
+    }
+  },
+  {
+    "id": "spell.terrestrial.empathic-wind",
+    "name": "Empathic Wind",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Commits the caster's current sense impressions to the wind and carries them to one recipient up to 50 miles per point of permanent Essence away, who relives them for one turn and knows who sent them. A Perception + Awareness roll sets how many senses carry; above five successes the caster's emotions carry as well.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 36
+    }
+  },
+  {
+    "id": "spell.terrestrial.the-eye-and-the-mouth",
+    "name": "The Eye and the Mouth",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Conjures a floating golden eye that reads any living or dead human language — though not codes — and a golden mouth that dictates the translation. It will not repeat text it has already translated, and both fade after 10 minutes.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 36
+    }
+  },
+  {
+    "id": "spell.terrestrial.floral-ferry",
+    "name": "Floral Ferry",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Grows a light, seaworthy craft out of any nearby plant. It carries up to a ton of cargo as far as 10 miles per point of the caster's permanent Essence, sails smoothly in all but the worst conditions and shelters its contents from the weather. The caster names the destination as it enters the water, and it sails there in a straight line.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 37
+    }
+  },
+  {
+    "id": "spell.terrestrial.impervious-sphere-of-water",
+    "name": "Impervious Sphere of Water",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Surrounds the caster and those beside her in a 10-foot-radius sphere of breathable conjured water that turns aside every attack and hazard from outside — and equally blocks those inside from acting outward. Occupants move as if swimming. The sphere has 20B/20L soak and 25 health levels and must be destroyed before anything reaches them. It lasts only while the caster concentrates and does nothing else.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 39
+    }
+  },
+  {
+    "id": "spell.terrestrial.lesser-golem",
+    "name": "Lesser Golem",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Raises an elemental warrior from a fistful of earth plus one other element, with the caster's Physical Attributes, one dot of Mental and Social Attributes, the Dawn Caste Abilities at the caster's ratings, and as many -0 health levels as the caster has health. The second element sets its gift: Magma (Fire) doubles Dexterity and movement; Shadow (Air) adds the Night Caste Abilities; Mud (Water) gains two dice defending the caster and is the only golem that acts defensively; Forest (Wood) doubles Strength and Stamina at half movement. Golems attack anyone threatening the caster unless telepathically directed, cannot be healed, and disperse at the end of the scene.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 39
+    }
+  },
+  {
+    "id": "spell.terrestrial.magician-s-pleasant-path",
+    "name": "Magician's Pleasant Path",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 20
+    },
+    "description": "The caster and up to twice her permanent Essence in fellow travellers, all within 30 yards, find the terrain levelled, the road cleared of snow and debris and the weather flowing around them, with temporary bridges appearing over crossings up to (Essence x 10) yards wide. Travellers make 30 miles a day on foot and up to 100 mounted and pushing. It lasts until the sun next crosses the horizon, and offers no protection from temperature extremes, storms, roadblocks or bandits.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 40
+    }
+  },
+  {
+    "id": "spell.terrestrial.malediction-of-the-distorted-compass",
+    "name": "Malediction of the Distorted Compass",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "The victim can no longer find her way anywhere — maps are misread, directions mangled, and crossing a small town can take five days; only being led by someone else works. It is delivered at close range with eye contact and resisted with a Willpower roll at a difficulty equal to the sorcerer's Essence, success costing only -1 on all actions for a turn. It ends at the caster's will or the following sunrise.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 41
+    }
+  },
+  {
+    "id": "spell.terrestrial.mirror-of-bending-light",
+    "name": "Mirror of Bending Light",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "Bends light around the sorcerer and up to four others held close, cloaking them in illusions of their surroundings for up to an hour. The caster's player rolls Willpower + Occult, and a viewer must beat that total on a reflexive Perception + Awareness roll to notice anything odd. Wounding anyone inside dispels it, and it conceals neither sound, odour nor tracks.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 41
+    }
+  },
+  {
+    "id": "spell.terrestrial.the-parting-of-the-seas",
+    "name": "The Parting of the Seas",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Twin summoned giants wade into a body of water and hold it back like a falling screen, opening a dry corridor one yard wide and 100 yards long per point of the caster's permanent Essence. It lasts only while the caster concentrates — walking and simple talk are fine, anything vigorous dissipates it — and anyone still between the walls when the giants let go takes massive bashing damage from the impact before facing drowning and whatever lives there.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 42
+    }
+  },
+  {
+    "id": "spell.terrestrial.purifying-flames",
+    "name": "Purifying Flames",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Heatless white flames sear corruption out of food and drink, rendering all non-magical poisons inert and halting rot. It can cleanse a fouled well, or cure poison in as many people as the caster's permanent Essence, rendering it inert inside the body. Damage already done is not healed.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 43
+    }
+  },
+  {
+    "id": "spell.terrestrial.shadowy-simulacrums-of-smoke",
+    "name": "Shadowy Simulacrums of Smoke",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Dark smoke fills a 15-yard radius around the caster: attacks and Perception checks into or within it are at +2 difficulty and every roll made inside is hindered, the caster alone excepted. A solidified-smoke simulacrum forms for each person in the cloud; every other character rolls reflexive Perception + Awareness at a difficulty equal to the caster's permanent Essence to tell the real from the false, and a botch mistakes an ally for an enemy. Simulacrums pop when hit but re-form while the cloud lasts. It lasts a scene; winds over 30 mph reduce its difficulties and a sustained wind disperses it.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 45
+    }
+  },
+  {
+    "id": "spell.terrestrial.shedding-the-serpent-s-skin",
+    "name": "Shedding the Serpent's Skin",
+    "circle": "Terrestrial",
+    "cost": {
+      "raw": "10+ motes"
+    },
+    "description": "The caster sheds a motionless shell of his own skin as a decoy; it is felled by a single blow and crumbles to powder, looking as though he teleported clear. Undisturbed it lasts two turns per five motes spent. Cast unobserved, it grants a Stealth bonus equal to the turns the shell would last, declining as those turns pass.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 46
+    }
+  },
+  {
+    "id": "spell.terrestrial.song-of-the-waves",
+    "name": "Song of the Waves",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Conjures a water elemental shaped like the head and forelimbs of a horse surging from a wave, which breathes water and symphonic force at one victim. The caster's player rolls Manipulation + Occult plus automatic successes equal to permanent Essence; the victim soaks with Willpower and the remaining successes are rolled as damage, each success enchanting him for one turn to attack every apparent enemy of the caster, friend or foe. Victims know exactly who to blame afterwards.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 47
+    }
+  },
+  {
+    "id": "spell.terrestrial.song-of-vertigo",
+    "name": "Song of Vertigo",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "A high wail heard 50 yards around leaves everyone feeling the ground shift beneath them, and all affected act at -3 dice. Only living creatures that can hear are affected — the undead, constructs, animate objects, the deaf and the caster are immune. It lasts one scene unless dispelled or the caster is incapacitated.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 47
+    }
+  },
+  {
+    "id": "spell.terrestrial.spoke-the-wooden-face",
+    "name": "Spoke the Wooden Face",
+    "circle": "Terrestrial",
+    "cost": {
+      "raw": "10 motes to carve the face, 5 motes to speak through it"
+    },
+    "description": "An overnight ritual carves the sorcerer's likeness into a living tree, channelling 10 motes uninterrupted and completed with a Perception + Crafts roll. Afterwards a turn's concentration and 5 motes let her see, hear and speak through the face at any distance. While linked she perceives nothing around her own body, and an attack requires a Stamina + Resistance roll at a difficulty equal to the damage dealt to keep contact.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 48
+    }
+  },
+  {
+    "id": "spell.terrestrial.stalwart-earth-guardian",
+    "name": "Stalwart Earth Guardian",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "The caster scribes a figure up to 20 yards across, and the earth inside it turns against all intruders until she leaves the region. Sand and soil try to swallow anyone approaching within 10 yards of the boundary while stones strike and trip: trespassers cannot approach silently, cannot move faster than seven feet a turn, and take eight dice of soakable bashing damage every turn. Everyone inside the figure is immune to attack, interlopers included.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 49
+    }
+  },
+  {
+    "id": "spell.terrestrial.summoning-of-the-harvest",
+    "name": "Summoning of the Harvest",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Accelerates the natural cycles of every pregnant creature and harvestable plant within 50 yards: within five turns crops are ready and animals have given birth unharmed. It cannot hasten the pregnancy of intelligent creatures.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 50
+    }
+  },
+  {
+    "id": "spell.terrestrial.the-titan-s-icy-breath",
+    "name": "The Titan's Icy Breath",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "The head and shoulders of a giant frozen humanoid rise and loose a gout of freezing wind, sheathing everything in its path in ice before shattering it. The caster's player rolls Wits + Occult with automatic successes equal to his Occult score; those caught soak lethal damage equal to the result, and any creature taking even one level has its movement halved for the scene.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 50
+    }
+  },
+  {
+    "id": "spell.terrestrial.tongue-of-the-element-spirit",
+    "name": "Tongue of the Element Spirit",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "A flickering tongue of elemental energy over the caster's head grants dice in one Eclipse Caste Ability, one die per point of permanent Essence, chosen by element: Air gives Linguistics (each die also granting one more spoken language family), Earth gives Bureaucracy, Flame gives Socialize, Water gives Sail and Wood gives Ride. The bonus may never exceed the caster's current rating in that Ability, the total may not exceed 5, and it does not count as base Ability for Charm doubling. It lasts one scene.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 51
+    }
+  },
+  {
+    "id": "spell.terrestrial.venom-of-the-heart",
+    "name": "Venom of the Heart",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "The target, who may be the caster, becomes poisonous: blood and saliva turn to lethal poison, her kiss is deadly, and anything that eats part of her dies in agony. A victim who kisses or consumes any part of her takes lethal damage equal to the caster's permanent Essence, soaked only by Stamina and never rolled. It lasts until the target next eats or drinks.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 52
+    }
+  },
+  {
+    "id": "spell.terrestrial.the-violent-opening-of-closed-portals",
+    "name": "The Violent Opening of Closed Portals",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 20
+    },
+    "description": "Blows every non-magical door in a single continuous structure off its hinges, shattering flimsy ones. Cast from inside a doorless room it instead blasts an oval opening up to three yards by two through the nearest wall, piercing walls over 30 feet thick. The caster must be touching or inside the structure, and doors behind magical wards are unaffected.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 52
+    }
+  },
+  {
+    "id": "spell.terrestrial.water-from-stone",
+    "name": "Water from Stone",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "Struck after the invocation, a large boulder begins to trickle and within minutes cuts a new stream of pure, drinkable water, enough for as many men or animals as the combined permanent Willpower of the caster and the witnesses. The witnesses may not outnumber the caster's Occult dots. The stream lasts years where water is abundant, months in average country and days in arid regions.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 53
+    }
+  },
+  {
+    "id": "spell.terrestrial.written-upon-the-water",
+    "name": "Written Upon the Water",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 10
+    },
+    "description": "Inscribes a message on the surface of the body of liquid nearest the target, anywhere in the world, appearing once at writing speed and vanishing the moment the target looks away. The caster may write no more words than his permanent Essence, and may only address someone he has personally met.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 53
+    }
+  },
+  {
+    "id": "spell.celestial.the-crumbling-walls",
+    "name": "The Crumbling Walls",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 25
+    },
+    "description": "A ritual in which the sorcerer and four hand-picked allies march five full circuits around a city, at least one circuit a day, taking no part in violence and unable to parry or dodge (though soak Charms still work). As each circuit completes, a shadow image of Saturn, Maiden of Endings, appears at one of the city's five corners; when the fifth appears all five make the sign of Saturn and the defensive walls shake and collapse in a cloud of dust. It harms nothing but the outer walls, and the Essence stays committed until they fall.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 57
+    }
+  },
+  {
+    "id": "spell.celestial.venus-disfavor",
+    "name": "Venus' Disfavor",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 30
+    },
+    "description": "Chanted over at least two full turns, each turn past the first adding a die to the Charisma + Occult check, it looses a swirling mass of burning dust that afflicts every creature within 100 yards per point of the caster's permanent Essence + Willpower with festering boils, sparing the caster and his chosen allies. The boils do no damage, but mortals must make daily Stamina + Endurance checks merely to function and suffer -1 die on all actions regardless; animals turn on anyone who provokes them; and Exalted make the same daily check to avoid the penalty. It lasts a lunar month unless countermagic breaks it.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 66
+    }
+  },
+  {
+    "id": "spell.celestial.voice-of-distant-command",
+    "name": "Voice of Distant Command",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 35
+    },
+    "description": "An hour-long ritual enchants a small item worn by the target, who need be neither willing nor conscious. The caster may then communicate mentally at any distance, and the target obeys her commands while unaware he is controlled; truly extreme orders allow a Willpower roll at difficulty 2, and resisting half a dozen such orders breaks the spell. It holds while the target stays within 5 yards of the item. A caster may control as many targets as her permanent Willpower, and Exalted may only control mortals and beings of lower permanent Essence than their own.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 66
+    }
+  },
+  {
+    "id": "spell.solar.enemy-of-nature",
+    "name": "Enemy of Nature",
+    "circle": "Solar",
+    "cost": {
+      "motes": 50
+    },
+    "description": "Makes the target the mortal enemy of every normal animal and plant for a lunar month: nearby life attacks, and a targeted city, army or fleet is ruined as water is fouled, food devoured and mounts turn on their riders. The target may be no larger than a single city, army or fleet. Individuals almost certainly die within days; over three quarters of a town's population dies and every survivor takes at least three levels of lethal damage, two for extras. The caster must be within sight to cast it, and only the targeted group is affected.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 71
+    }
+  },
+  {
+    "id": "spell.solar.light-of-solar-cleansing",
+    "name": "Light of Solar Cleansing",
+    "circle": "Solar",
+    "cost": {
+      "raw": "20 motes + 5 motes per attack"
+    },
+    "description": "For a full day no undead, Deathlord or Abyssal may approach within (Essence x 2) yards of the caster, and his skin glows as brightly as clear morning for (Essence x 5) yards. For 5 more motes he may instantly slay a single undead standing within that light, or deal a Deathlord or deathknight aggravated health levels equal to his permanent Essence. Only one such attack may be made in a turn.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 72
+    }
+  },
+  {
+    "id": "spell.solar.loyal-golem",
+    "name": "Loyal Golem",
+    "circle": "Solar",
+    "cost": {
+      "raw": "40+ motes"
+    },
+    "description": "A far more resilient kin of the Lesser Golem: it has its creator's Attributes and Dawn Caste Abilities, full use of Mental Attributes, free will, fierce loyalty (an effective Willpower of 10 against being turned against its creator), and halves all unsoaked damage. It heals at a human rate while in contact with earth and its other component element, and if reduced to zero health levels it re-forms a fortnight later at full health. It always senses its master's location. A sorcerer may have only one at a time, and it serves a year and a day.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 72
+    }
+  },
+  {
+    "id": "spell.solar.mirage-of-protective-shelter",
+    "name": "Mirage of Protective Shelter",
+    "circle": "Solar",
+    "cost": {
+      "motes": 40
+    },
+    "description": "For a full year, anyone approaching a protected camp or city intending to conquer it or harm its people simply cannot find it — besieging armies included, along with their domestic animals — growing dizzier and more disoriented the closer they come, and wandering off the road. Thieves, lone assassins, merchants and diplomats are unaffected, and anyone attacked by the inhabitants is immune for the next full scene. Only Adamant Countermagic defeats it outright, though magical sight can lead in up to a dozen blindfolded, roped-together mortal soldiers.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 73
+    }
+  },
+  {
+    "id": "spell.solar.mystic-travel",
+    "name": "Mystic Travel",
+    "circle": "Solar",
+    "cost": {
+      "motes": 30
+    },
+    "description": "Anointed travellers on a road, trail, frozen river or well-defined sea route move at up to 2,000 miles a day, diverted around every obstacle and threat, the landscape misty to either side, arriving as if they had marched a few hours in ideal conditions. Up to 10,000 people may be moved; anything unanointed is left behind, and only physically breaking the road ends it early.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 73
+    }
+  },
+  {
+    "id": "spell.solar.pressed-beyond-the-veil-of-time",
+    "name": "Pressed Beyond the Veil of Time",
+    "circle": "Solar",
+    "cost": {
+      "motes": 60
+    },
+    "description": "A year-and-a-day ritual sends a named structure or region Elsewhere, where it cannot be seen, felt or visited, returning for one whole day at intervals set by a trigger event chosen at the start. Time compresses Elsewhere in proportion to the interval: a month between reappearances makes a week in Creation a day inside, while centuries make a year a day. The caster must build an exact replica (Perception + Craft, difficulty 5) and feed it to a fire on hourglass sand for the year and a day, never leaving it. The effect is permanent unless the trigger can be prevented from occurring.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 73
+    }
+  },
+  {
+    "id": "spell.solar.solar-sanctuary",
+    "name": "Solar Sanctuary",
+    "circle": "Solar",
+    "cost": {
+      "motes": 60
+    },
+    "description": "Five pre-prepared statues are placed at the five corners of an enclosed region and the caster, at its highest point, chants three full turns to close a mystic dome over it. Inside, the unExalted have their memories of events dimmed and mortals present at the casting take -1 die resisting the caster and his allies; every Demesne becomes a Manse dedicated to the caster and every Manse rises to its Demesne's level, drawable from anywhere inside; existing Hearthstones go powerless while new ones form in days equal to their Manse's rating; the caster may see through any corner statue; and Charms and spells cast inside cost half, provided their effects do not reach beyond it. The statues have 24B/12L soak and 500 health levels and heal 10 levels an hour, and breaking one ends the otherwise permanent spell. Sanctuaries may not overlap except at a shared corner statue.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 74
+    }
+  },
+  {
+    "id": "spell.solar.soul-seal",
+    "name": "Soul Seal",
+    "circle": "Solar",
+    "cost": {
+      "motes": 50
+    },
+    "description": "A ritual that removes the mind and soul of a willing, living subject and stores them in a vessel, the first step toward immortality. The vessel is a hollow container the size of a human head made of all Five Magical Materials, into which caster and subject imbue five chosen qualities, at least a week each. The subject undergoes years of training and diet, a nine-day fast in a lightless chamber and a bathing in the waterfalls at the world's five corners, while the caster spends a year etching each surface of the chamber. The vessel can only be broken by someone with Craft, Lore and Occult of 4 or higher, a sorcerous workroom and several weeks of effort.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 75
+    }
+  },
+  {
+    "id": "spell.solar.summon-animal-avatar",
+    "name": "Summon Animal Avatar",
+    "circle": "Solar",
+    "cost": {
+      "motes": 40
+    },
+    "description": "Summons the living avatar of any normal animal species the caster has seen — a fully intelligent spirit that commands and shares the senses of every animal of its type within 100 miles. The avatar is well disposed but under no compulsion, and any attempt to coerce it earns its instant enmity; it must be bargained with, its price set by how the character has treated that species. It will not agree to bring harm to large numbers of its own kind unless doing so avoids greater harm. Its Physical Attributes equal a normal member's +4, with Charisma 6, Manipulation 5, Appearance 6, Perception 5, Intelligence 5, Wits 5, all Virtues 4, Abilities at 5 (Presence, Occult and Survival 6), Backgrounds at 5 and all spirit Charms.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 76
+    }
+  },
+  {
+    "id": "spell.solar.technique-mirror",
+    "name": "Technique Mirror",
+    "circle": "Solar",
+    "cost": {
+      "raw": "20+ motes"
+    },
+    "description": "For one scene the sorcerer can duplicate any Charm used in his presence while the spell is active, regardless of its normal prerequisites, and may substitute the original owner's Traits for his own where they are superior — but only for using that Charm, and he pays every cost himself. Charms observed before the casting do not count unless performed again in front of him. There is no limit on how many are stolen, and all are instantly forgotten when the spell ends.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 77
+    }
+  },
+  {
+    "id": "spell.solar.theft-of-years",
+    "name": "Theft of Years",
+    "circle": "Solar",
+    "cost": {
+      "motes": 50
+    },
+    "description": "Each turn the spell operates, the sorcerer and victim make opposed Willpower + Essence rolls: on every turn the sorcerer accumulates more successes the victim ages ten years, with all the normal effects of age, and the sorcerer grows one year younger. Accumulating fewer successes for five turns running ruptures the spell and returns both to their original ages. The caster may stop at any point, but it is usually continued until the victim ages to death.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 78
+    }
+  },
+  {
+    "id": "spell.solar.unity-of-the-closed-fist",
+    "name": "Unity of the Closed Fist",
+    "circle": "Solar",
+    "cost": {
+      "raw": "40+ motes"
+    },
+    "description": "Merges up to five conscious, willing individuals into a single composite being: its height is the tallest member's plus 25 percent per extra member; its Strength and Stamina are the greatest present plus one dot per extra member; its health levels are the largest set plus one -1 and two -2 levels per extra member, always starting undamaged; and every other Attribute or Ability is the best any member possesses. It can use any contributor's Charms, pools their Essence, fuses their Hearthstones into a single emerald stone in its forehead, and bears composite armour and a weapon built from the best each carried. Contributors are unharmed when it ends normally, but are ejected at a single health level if it is destroyed. It lasts one scene per point of the caster's permanent Essence, and may be cast only once per day.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 78
+    }
+  },
+  {
+    "id": "spell.solar.the-whisperers-in-the-mirror",
+    "name": "The Whisperers in the Mirror",
+    "circle": "Solar",
+    "cost": {
+      "motes": 50
+    },
+    "description": "Shadows lurk in every reflective surface the target passes, whispering that his friends and allies betray him. Each time he looks into one his player rolls Willpower reflexively against the sorcerer's, and after 10 failed rolls he is clinically paranoid; continued exposure drives him fully insane, the form — catatonia, schizophrenia or homicidal mania — depending on his personality and fears. Only Adamant Countermagic or the sorcerer's death banishes the whisperers, and that death does not cure the insanity already caused.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 79
+    }
+  },
+  {
+    "id": "spell.solar.winds-of-confusion",
+    "name": "Winds of Confusion",
+    "circle": "Solar",
+    "cost": {
+      "motes": 45
+    },
+    "description": "A howling gale strips memory and purpose for a mile around: anyone not sheltered by terrain or solid walls loses a dot of Intelligence each turn, and those reduced to none wander mindlessly with no volition. Sheltering or leaving the area restores a lost dot every two turns. It lasts a full hour, and the caster alone is safe — the winds part for him. Afterwards Intelligence returns at a dot per turn, but memories of the period stay blurred.",
+    "source": {
+      "book": "Book of Three Circles",
+      "page": 79
+    }
   }
 ]

@@ -2438,6 +2438,33 @@ def _purchased_at_chargen_issues(character: Character) -> list[Issue]:
     ) for item in bought]
 
 
+def _missing_merit_issues(ruleset, character: Character) -> list[Issue]:
+    """Owning a plot-device artifact without the Merit that is its whole price.
+
+    The Mantle of Brigid and the Sword of Ice (BoTC pp.25-27) print "(ARTIFACT N/A)" —
+    no Background buys them, so no budget can catch them, and without this check they
+    would be the one thing in the catalogue that is free. The human's ruling
+    2026-08-13 is that they cost the Legendary Artifact 10-pt Merit; this is the bar,
+    and `artifacts.purchasable_artifacts` is the matching OFFER.
+
+    Runs on BOTH sides of the lock, like every other artifact rule, and for the reason
+    the house bug keeps teaching: the Merit can be dropped after creation as easily as
+    it can be skipped during it, and a chargen-only check would go quiet exactly then.
+    Which Merit is DATA (`ArtifactType.requires_merit`) — no id is named here.
+    """
+    issues: list[Issue] = []
+    for name, merit_id in artifacts.missing_merits(ruleset.artifact_catalog, character):
+        merit = ruleset.merits_flaws.get(merit_id)
+        label = merit.name if merit is not None else merit_id
+        issues.append(Issue(
+            code="artifact-missing-merit", where=name,
+            message=(f"{name} is a plot device rather than a rated artifact — it is "
+                     f"owned through the {label} Merit, which this character does not "
+                     f"have."),
+        ))
+    return issues
+
+
 def _corebook_artifact_issues(items: list, rows: list[int]) -> list[Issue]:
     """The corebook Artifact Background: ONE artifact per Background ROW, each rated no
     higher than its own row (human's rulings 2026-07-31 and 2026-08-13).
@@ -2526,6 +2553,10 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
     # `artifacts.budgeted_items` and the ruling in `ArtifactEntry.acquired`. The chargen
     # bar below is what stops that being a free pass at creation.
     issues += _purchased_at_chargen_issues(character)
+    # The merit-gated plot devices are charged to no budget at all, so this must run
+    # before the `not items` early return below — a character who owns nothing BUT a
+    # Mantle of Brigid has an empty budgeted list and still needs the Merit.
+    issues += _missing_merit_issues(ruleset, character)
     items = artifacts.budgeted_items(character)
     if not items:
         return issues

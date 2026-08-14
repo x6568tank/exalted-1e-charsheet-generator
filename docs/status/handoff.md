@@ -1,3 +1,69 @@
+# Session handoff — 2026-08-13 (late)
+
+## The Book of Three Circles is authored — all 62 entries, ⚠ NOT browser-verified
+
+**Record: `docs/status/book-of-three-circles.md`.** Spells **246 → 294**, artifacts
+**222 → 237**, plus the Crimson Bow's weapon row. Suite **2,355 passing / 2,356 total** —
+the one failure is the known machine-only M&F description test.
+
+It is a **pure scan** and was read with `pdftoppm -r 110`, no VLM leg — **PDF page = book
+page + 1**. Four things worth carrying forward:
+
+* **S&S wins every conflict** (human's ruling). Free to honour: the gap list is by
+  construction the names the build lacks, and its copies of the shared spells came from
+  S&S. Nothing existing was touched; a fuzzy sweep of all 48 new names found one near
+  match that is a genuinely different spell printed on the same page.
+* **The ch.4 circle is SOLAR.** The fan spell index calls that group "Adamant"; the book's
+  chapter head says *THE SOLAR CIRCLE*. Adamant appears only as *Adamant Countermagic*.
+* **ch.5 rates its artifacts by `LEVEL N` SECTION HEADING**, not per-entry dot strings —
+  an entry's rating is whichever block it sits in. All nine agreed with the fan index.
+* **The two `(ARTIFACT N/A)` entries became a THIRD acquisition channel** (your ruling:
+  they are plot devices costing the **Legendary Artifact 10-pt Merit**, which the Merit's
+  own text all but says, naming the Mantle as its example). This **amends decision 0017**.
+  `ArtifactType.requires_merit` is data, the offer moves with the Merit, the bar
+  (`artifact-missing-merit`) runs both sides of the lock, and nothing is charged to a
+  budget. The **B&E Insidious Ebon Xoanon** was ruled the same way the same day and is
+  authored, so **no `ARTIFACT N/A` entry is left unauthored anywhere in the build**.
+
+**Next on this thread:** a click-through — the spell picker's Circle dropdown, the
+artifact/weapon comboboxes, and the merit-gated pair (take Legendary Artifact on
+Advantages, then look for the Mantle in the Gear tab's artifact dropdown; drop the Merit
+and confirm the Issue appears). Preflight is clean and the two render routes are green.
+Then **Group A — 63 entries in born-digital books that only
+need an `extract_born_digital.py` run** (five Aspect Books, Abyssals pp.254-261, Blood and
+Salt, Halta, Cult, Manacle and Coin).
+
+## The content gap was re-triaged — nothing is page-blocked any more
+
+**Record: `docs/status/content-gap-retriage.md`.** All 647 discovery rows were re-diffed
+against the current catalogues: **467 have been authored since 2026-08-10; 180 remain**
+(**120** after the Book of Three Circles, above),
+and the old "213 entries, every one page-blocked" line is wrong in both halves.
+
+| Group | Entries | Needs |
+|---|---|---|
+| A — born-digital books never extracted | **63** | one `extract_born_digital.py` run each |
+| B — pure scans | **101** → **39** | `pdftoppm`, then read the pages |
+| C — misses in already-extracted books | **8** | a look at Markdown already on disk |
+| (closed rulings, not work) | 8 | — |
+
+~~Biggest single read: **Book of Three Circles is 62**.~~ **Done, same session.** The next
+biggest is **Savage Seas (17)**, which unlike BOTC spans Charms, spells and artifacts.
+
+⚠ **The Lunar 17 was a FALSE GAP and is closed.** All 16 (plus 3 of the PG 5) are Deadly
+Beastman Transformation **Gifts**, authored as `variants` on the parent Charm since the
+Lunar splat shipped. The gap diff compares `name` fields and a variant has no `name` —
+19 of the "213" were never missing. Any gap number is an upper bound until the matcher
+has been pointed at every shape a Charm takes here.
+
+⚠ **The Ollama VLM leg is for non-visual models** (human, 2026-08-13). A vision-capable
+model reads the rasterised pages itself; don't route a scan through `vlm_read_ratings.py`
+out of habit. The `vlm-cannot-count-dots` caution is about that small local VLM.
+
+**Also this session:** `git pull` was a divergent-branch rebase — the local `docs` commit
+went on top of six remote commits, with three conflicts resolved (test count → 2,347, the
+Wonders row keeping its Hearthstone-allowance paragraph, the handoff taking the remote's).
+
 # Session handoff — 2026-08-13
 
 ## Gear, inventory, goods and the shop — DONE, browser-verified 2026-08-13
@@ -30,11 +96,12 @@ new extraction tools are in `rated-artifacts.md`; the gear library is in
 
 Nothing is blocking and nothing is half-finished. Open threads, in rough order of value:
 
-1. **The 213 catalogue entries** — re-triage now that `sources/` has landed;
-   `catalogue-sweep.md` ranks them by yield but its "page-blocked" claims are stale.
+1. ~~**The 213 catalogue entries** — re-triage now that `sources/` has landed.~~ **DONE
+   2026-08-13** — see the late entry at the top of this file.
 2. **The Mist aspect** — the last unauthored piece of the Outcaste book, possibly
    unblocked; needs a page read and probably a ruling.
-3. **The Lunar 17** — needs the VLM leg on a pure scan; never exercised.
+3. ~~**The Lunar 17** — needs the VLM leg on a pure scan; never exercised.~~ **CLOSED
+   2026-08-13: a false gap. They are the DBT Gifts, already authored as `variants`.**
 
 ⚠ **One printed oddity is recorded and confirmed, not fixed:** M&C p.125 prints "Created
 walkaway" where its three siblings are "… charm". The human confirmed 2026-08-13 that the

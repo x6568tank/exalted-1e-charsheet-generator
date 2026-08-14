@@ -54,6 +54,12 @@ MANSE_BACKGROUND = "manse"
 # budget.
 ACQUIRED_BACKGROUND = "background"
 ACQUIRED_PURCHASED = "purchased"
+# The third channel (human's ruling 2026-08-13): a plot-device artifact that prints
+# "(ARTIFACT N/A)" and is paid for with the Legendary Artifact 10-pt Merit rather than
+# with dots of anything. Charged to no budget, exactly like a purchased item, but for
+# the opposite reason — not "you bought it with money" but "there is no rating to
+# charge". See `rules.ArtifactType.requires_merit`.
+ACQUIRED_LEGENDARY = "legendary"
 
 SOURCE_ARTIFACT = "artifact"
 SOURCE_WEAPON = "weapon"
@@ -214,8 +220,62 @@ def purchasable_with_artifact(catalog) -> list:
     budget. `ArtifactType.background` defaults to "artifact", so every entry authored
     before the field existed keeps its old behaviour.
     """
-    return sorted((a for a in catalog.values() if a.background == ARTIFACT_BACKGROUND),
+    return sorted((a for a in catalog.values()
+                   if a.background == ARTIFACT_BACKGROUND and not a.requires_merit),
                   key=lambda a: a.name)
+
+
+def merit_gated(catalog) -> list:
+    """The catalogue entries a MERIT unlocks rather than a Background — the plot
+    devices printed "(ARTIFACT N/A)". Sorted by name, like its sibling above.
+
+    Kept apart from `purchasable_with_artifact` for the reason the Hearthstones were:
+    an entry no Background pays for must never reach a surface that spends Background
+    dots, or picking it charges a budget for something that budget never bought.
+    """
+    return sorted((a for a in catalog.values() if a.requires_merit),
+                  key=lambda a: a.name)
+
+
+def held_merit_ids(character: Character) -> set:
+    """The Merit/Flaw ids this character holds. Generic by construction — no module
+    outside `engine/merits.py` may NAME a Merit id (decision 0011), so the gating field
+    lives in data and every comparison here is against whatever it happens to say."""
+    return {p.merit_id for p in character.merits_flaws if p.merit_id}
+
+
+def purchasable_artifacts(catalog, character: Character) -> list:
+    """What this character may actually pick: everything the Artifact Background buys,
+    plus the merit-gated entries whose Merit she already holds.
+
+    The offer moves with the permission — a Merit the character does not hold hides its
+    artifact, and taking the Merit reveals it. Backgrounds taught this: a permission
+    toggle that moves the BAR but not the OFFER leaves the player unable to find the
+    thing she was just allowed, which is worse than no toggle at all.
+    """
+    held = held_merit_ids(character)
+    return sorted(purchasable_with_artifact(catalog)
+                  + [a for a in merit_gated(catalog) if a.requires_merit in held],
+                  key=lambda a: a.name)
+
+
+def missing_merits(catalog, character: Character) -> list:
+    """(artifact name, required merit id) for every owned artifact whose catalogue entry
+    is merit-gated and whose Merit the character does not hold.
+
+    Keys on the NAME against the catalogue rather than on `ArtifactEntry.acquired`,
+    which is player-editable: a discriminator anything on the screen can write is not a
+    discriminator (the catalogue-dialog lesson). Renaming the row IS how you disclaim
+    the artifact, and that is fine — the row then names something else.
+    """
+    held = held_merit_ids(character)
+    by_name = {a.name.casefold(): a for a in catalog.values() if a.requires_merit}
+    out = []
+    for art in character.artifacts:
+        entry = by_name.get((art.name or "").casefold())
+        if entry is not None and entry.requires_merit not in held:
+            out.append((entry.name, entry.requires_merit))
+    return out
 
 
 def hearthstones(catalog) -> list:
@@ -298,7 +358,7 @@ def budgeted_items(character: Character) -> list[ArtifactItem]:
     budget read site goes through here; nothing else should.
     """
     return [i for i in artifact_items(character)
-            if i.acquired != ACQUIRED_PURCHASED]
+            if i.acquired not in (ACQUIRED_PURCHASED, ACQUIRED_LEGENDARY)]
 
 
 def purchased_items(character: Character) -> list[ArtifactItem]:

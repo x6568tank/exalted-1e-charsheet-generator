@@ -2413,5 +2413,179 @@
       "armor",
       "protection"
     ]
+  },
+  {
+    "id": "artifact.botc.anastacia-s-chains-and-catches",
+    "name": "Anastacia's Chains and Catches",
+    "rating": 4,
+    "description": "Ornamental bracelets by the Sidereal spirit-binder Anastacia, each catch a tiny lock holding a spirit or demon of at least Essence 5 — some hostile, some benevolent, with no way to tell which. A catch opens only to its own (usually lost) key or to Adamant Countermagic directed at its enchantments; opened by the key, the being within is bound to serve the opener for a year and a day. The wards decay measurably with time.",
+    "source": "Book of Three Circles p.24",
+    "tags": [
+      "spirit",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.botc.the-crucible-of-tarim",
+    "name": "The Crucible of Tarim",
+    "rating": 5,
+    "description": "A great copper vessel that distils a cast spell into drinkable liquid — roughly an hour per mote spent casting, over coal or charcoal, with plain wood doubling the time — decanted into a stoppered flask. Unstoppering it is a normal action on the character's initiative and the spell takes effect as directed by whoever pulls the stopper, making it formidable in magical duels; the Essence stays committed until the distillate is released. Learning to operate it requires the lost instructions or an extended Intelligence + Occult roll at difficulty 5 for 10 successes, one month per roll. It cannot hold Solar Circle spells and ruptures if one is attempted, dealing lethal damage equal to the motes spent to the operator and everyone nearby. It distils only one spell at a time.",
+    "source": "Book of Three Circles p.24",
+    "tags": [
+      "sorcery",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.botc.spirit-ring",
+    "name": "Spirit Ring",
+    "rating": 4,
+    "description": "A sorcerer imprisoned in a ring: a disembodied voice that only a wearer who knows at least Terrestrial Circle sorcery can perceive. It possesses only Intelligence, Perception, Wits, Manipulation and Charisma, rated by the Storyteller for the trapped individual, and knows everything the original did — enough to advise, tutor or perform theoretical work through a willing pair of hands. It sees and hears its surroundings as a normal human, trades wisdom for favours whose nature varies wildly with the soul inside, and is as hard to break as a Hearthstone. Occupants can sleep to stave off madness but are forced awake whenever the ring is worn.",
+    "source": "Book of Three Circles p.26",
+    "tags": [
+      "spirit",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.botc.wedding-bands",
+    "name": "Wedding Bands",
+    "rating": 1,
+    "description": "Paired rings made for a Solar and Lunar marriage — orichalcum for the Lunar, moonsilver for the Solar — each partner committing one mote at the ceremony that cannot be regained until the spouse's death. Both wearers feel the other's emotional state and gain four additional dice on Social or Perception rolls dealing with the partner. The orichalcum ring adds two dice to track the spouse through any terrain without penalty; the moonsilver ring grants two additional bashing and lethal soak.",
+    "source": "Book of Three Circles p.92",
+    "tags": [
+      "social",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.botc.horn-of-the-ways",
+    "name": "Horn of the Ways",
+    "rating": 2,
+    "description": "A horn taken from a beast of the Wyld and inlaid with moonsilver; blowing it makes a mournful howl and opens a path that did not exist before and vanishes shortly after the Exalt follows it. Use commits 5 motes until the destination is reached. In the wilderness it adds +4 dice to Survival rolls to travel between locations or escape an area and eliminates all penalties for adverse conditions; used against an impassable barrier such as a fortress wall it adds +4 dice to Larceny rolls to open doors or passages and eliminates penalties for lacking tools.",
+    "source": "Book of Three Circles p.93",
+    "tags": [
+      "utility",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.botc.thunderbolt-shield",
+    "name": "Thunderbolt Shield",
+    "rating": 2,
+    "description": "An enchanted target shield that adds 2 to the difficulty of melee or ranged attacks against its bearer and causes no mobility penalty, for 5 committed motes — doubled if its material is dissimilar to the wielder's type; otherwise it works as a normal target shield. Orichalcum and soulsteel shields raise the difficulty by 3 rather than 2; moonsilver subtracts 1 from any mobility penalty the user suffers; jade adds +2 soak; and starmetal subtracts one success from damage rolls inflicted on a Sidereal carrying it, cumulative with starmetal armour.",
+    "source": "Book of Three Circles p.93",
+    "tags": [
+      "protection",
+      "armor",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.botc.traveler-s-staff",
+    "name": "Traveler's Staff",
+    "rating": 2,
+    "description": "A gnarled branch from an ancient tree, usable as a normal quarterstaff, though that is not its purpose. Planted into the earth at sunset for 5 committed motes it grows into a full-size fruit tree — usually apple — bearing enough ripe fruit to feed the Exalt and several companions for the evening, and its branches yield readily burning firewood. Come morning she cuts a large branch to replace the original staff; the tree dies and rots away, leaving no sign by sunset, and the Essence is released.",
+    "source": "Book of Three Circles p.94",
+    "tags": [
+      "utility",
+      "tool"
+    ]
+  },
+  {
+    "id": "artifact.botc.blood-seed",
+    "name": "Blood Seed",
+    "rating": 3,
+    "description": "A fist-sized hollow acorn with a razor-edged hole: the Exalt cuts a finger on it and fills it with blood, taking one health level that cannot be soaked or reduced, then commits 10 motes and sprinkles the blood over an area in a line, circle or similar shape. Over five turns, one armed and armoured elite trooper rises per turn from the marked ground; they are never treated as extras and return to the earth at the end of the scene. The seed forges no anima bond, so a mismatched Magical Material costs nothing extra. Orichalcum seeds add a dot to each Physical Attribute; moonsilver gives bestial soldiers whose fists do one extra point of lethal damage and who can follow a scent trail; jade adds +3 soak; starmetal adds three initiative and two to all attack and defense; soulsteel animates the dead, ignoring wound penalties and adding three health levels.",
+    "source": "Book of Three Circles p.94",
+    "tags": [
+      "summoning",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.botc.dark-rider",
+    "name": "Dark Rider",
+    "rating": 3,
+    "description": "A miniature figurine, human or animal, that appears to be an expensive knickknack when inactive. Ten motes activates it and its shadow grows to replace the Exalt's own, riding along with her for the scene: it gives two extra dice on intimidation or Leadership rolls against mortals who witness the merger and makes her impossible to sneak up on without concealment Charms. She may send the shadow away to spy — moving at her Willpower in yards per turn, or riding along inside another's shadow — and see through its eyes at will, leaving her shadowless until it returns or the scene ends. Dark riders have no Traits but soak and health levels (five levels, 3L soak), are harmed only by fire, and are dispelled by extremely bright light, including the Zenith anima and Solar Charms that burn creatures of darkness; those so dispelled are destroyed forever.",
+    "source": "Book of Three Circles p.94",
+    "tags": [
+      "utility",
+      "senses"
+    ]
+  },
+  {
+    "id": "artifact.botc.the-crimson-bow",
+    "name": "The Crimson Bow",
+    "rating": 4,
+    "description": "A six-foot composite bow of crimson-stained wood and horn strung with the tendons of a Behemoth, once the weapon of the Dawn Caste archer Ai. It is simply impossible to draw for anyone not attuned, whatever their Strength; attuning takes 30 minutes' handling and 10 committed motes, after which it adjusts itself to the wielder's Strength and adds +6 damage beyond arrow type. Accuracy +4, Damage +6, Rate 3, Range 500, minimum Strength 3. Its legendary Crimson Arrows change course in flight to strike their targets, adding +2 difficulty to any attempt to dodge them; twenty of them require the Artifact • background.",
+    "source": "Book of Three Circles p.95",
+    "tags": [
+      "weapon",
+      "archery",
+      "combat"
+    ]
+  },
+  {
+    "id": "artifact.botc.blackened-bones",
+    "name": "Blackened Bones",
+    "rating": 5,
+    "description": "An incomplete human skeleton — ribs and limb bones only — carved with runes and inlaid with starmetal, reputed to be the mortal shell of Hesiesh or Pasiap. Attuning takes at least an hour of handling and contemplation and must be renewed by handling them once a day. To use them the Exalt clearly states the knowledge he seeks, casts the bones into the air and reads how they fall, receiving a vision of past, present or future; simple questions give straightforward answers and complex ones unfold in dreamlike symbols, always accurate but often hard to interpret. He is comatose throughout — a few minutes for a simple question, a day or more for an involved one. The bones never reveal whose they were.",
+    "source": "Book of Three Circles p.96",
+    "tags": [
+      "utility",
+      "sorcery"
+    ]
+  },
+  {
+    "id": "artifact.botc.the-crown-of-thunders",
+    "name": "The Crown of Thunders",
+    "rating": 5,
+    "description": "An orichalcum crown inset with five Hearthstone settings, forged by the servants of the Unconquered Sun for the Solar Merela. The wearer automatically receives three extra dots of Strength, Dexterity and Stamina. Ten motes adds five dice to all Social tasks for the scene; ten more issues a command to everyone in earshot that must be obeyed unless the hearer's player beats a Willpower roll at a difficulty equal to the wearer's Charisma — never suicidal, but anything short of it, and deeply resented. Ten motes invokes the crown's aura: normal humans can take no action but look on in fascination, and an Exalted witness must make a Wits + Valor roll at a difficulty equal to the wearer's Charisma or be struck with terror at the thought of harming her, resistible for one temporary Willpower, though all actions against her remain at +1 difficulty.",
+    "source": "Book of Three Circles p.96",
+    "tags": [
+      "social",
+      "utility"
+    ]
+  },
+  {
+    "id": "artifact.botc.mantle-of-brigid",
+    "name": "Mantle of Brigid",
+    "rating": 5,
+    "rating_notes": "N/A — a plot device; owned through the Legendary Artifact 10-pt Merit",
+    "description": "A seven-foot by six-foot section of the finest scarlet silk, faded and worn with centuries of use and embroidered with hair-fine orichalcum thread, bearing the silhouette of a woman believed to be Brigid the Magic Bearer. It may be the cloak she was given in the East or the most elaborate forgery ever made; it is possibly the single most studied artifact known to the Exalted, and the controversy over it still rages. It was the Empress's personal possession and a regular part of her wardrobe when working magic. If it truly works: it increases the Essence of any being wearing it by 5, with Personal and Peripheral pools refigured accordingly, those extra motes available only while it is worn and spent from personal stores first — and if the mantle is removed after the magician has spent more than her own stores and not yet regenerated them, she takes bashing damage equal to the difference, soaked with Stamina alone and reducible by no armour, Charm or sorcery. It also lifts the wearer one circle of sorcery: those who could work none, such as mortals, gain the Terrestrial Circle; Terrestrial-only casters such as the Dragon-Blooded gain the Celestial; Lunars and Sidereals gain all three. Solars and Abyssals, who already reach all three, gain nothing. The mantle grants only the ABILITY to use these spells and Charms — they must still be learned as usual.",
+    "source": "Book of Three Circles p.25",
+    "tags": [
+      "sorcery",
+      "utility"
+    ],
+    "requires_merit": "mf.legendary-artifact"
+  },
+  {
+    "id": "artifact.botc.the-sword-of-ice",
+    "name": "The Sword of Ice",
+    "rating": 5,
+    "rating_notes": "N/A — a plot device; owned through the Legendary Artifact 10-pt Merit",
+    "description": "A legendary blade said to be tied not only to the past but also to the future. Brigid, the First Sorcerer, reputedly bore this sword — cool to the touch and constructed of purest crystal — until the day of her death. Extreme in both its beauty and its power, the weapon seemed to grow in its abilities even as Brigid expanded hers, and it served the Mother of Spells as advisor and confidant as well as a form of offense; whether the power of speech was inherent to the sword, the work of some spirit bound to the blade, or a reflection of Brigid's own power and personality is unclear, but it was her most trusted friend and ally. Upon her death the weapon is said to have melted into water on the spot and soaked into the ground around its fallen mistress's body. True believers assert that it will re-form when Brigid's true heir appears in the land to claim it, and that this heir will take up the sword of ice and, after dispatching her foes, lead Exalted and unExalted alike into a new era of magic in which feats of sorcery beyond even Brigid herself will be performed and the face of the world changed forever. Clearly no true heir has yet claimed the blade — but the believers say the signs are there, in the stars, on the sea and in the deep places of the earth: the time of the heir is coming. Game effects: if the Sword of Ice does exist, it would be an item of world-shattering power, on par with the Eye of Autocthon, and its powers are left up to the Storyteller to determine.",
+    "source": "Book of Three Circles p.27",
+    "tags": [
+      "weapon",
+      "sorcery"
+    ],
+    "requires_merit": "mf.legendary-artifact"
+  },
+  {
+    "id": "artifact.bone-ebony.the-insidious-ebon-xoanon",
+    "name": "The Insidious Ebon Xoanon",
+    "rating": 5,
+    "rating_notes": "N/A — a plot device; owned through the Legendary Artifact 10-pt Merit",
+    "description": "The First and Forsaken Lion's warstrider, built to equal any in Creation but modified to channel Oblivion: not forged from metal but crudely carved from Essence-hardened ebony, its joints taken from a dead giant and animated with necromancy, part idol and part armour, shaped as some unspeakable horned horror and covered in the unholy glyphs of necromancy, with midriff, forearms and shins wrapped in blackened human skin studded with soulsteel and ridges of bone shards down the spine and arms. It is the equivalent of a royal warstrider (Savant and Sorcerer pp.149, 154) in size and strength — soak 24L/24B, Strength 18 — with necromantic advantages. It may carry necromantic weaponry powered by Oblivion's Avatar, though size constraints then forbid traditional warstrider weapons. Every Chosen of the Unconquered Sun within direct line of sight loses a mote of Essence per turn to its soulsteel Essence collectors, channelled straight to the wearer. Its Oblivion-tainted fists double all damage inflicted on Essence channelers before it is applied to health levels, and each health level so inflicted steals a further 2 motes. Every 50 hours of operation its joints must be tended by nemissaries using Instauration of the Fleshly Vessel and greased with the rendered tallow of a sentient creature, or it suffers the usual warstrider disabilities (S&S p.153). Worn by the Lion himself, and most often by his favoured Abyssal, Walking on Laughter.",
+    "source": "Book of Bone and Ebony p.104",
+    "tags": [
+      "armor",
+      "weapon",
+      "combat"
+    ],
+    "requires_merit": "mf.legendary-artifact"
   }
 ]

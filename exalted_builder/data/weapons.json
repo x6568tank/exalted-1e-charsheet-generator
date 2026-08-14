@@ -1645,5 +1645,22 @@
       "book": "Exalted",
       "page": 330
     }
+  },
+  {
+    "id": "weapon.archery.the-crimson-bow",
+    "name": "The Crimson Bow",
+    "accuracy": 4,
+    "damage": 6,
+    "damage_type": "L",
+    "rate": 3,
+    "range": 500,
+    "min_strength": 3,
+    "artifact_rating": 4,
+    "attunement": 10,
+    "notes": "Undrawable by anyone not attuned, whatever their Strength; attuning takes 30 minutes' handling and 10 committed motes, after which it adjusts to the wielder's Strength. The +6 damage is beyond arrow type. Crimson Arrows change course in flight, adding +2 difficulty to dodge them; twenty require the Artifact • background. (Book of Three Circles, p.95)",
+    "tags": [
+      "archery",
+      "artifact"
+    ]
   }
 ]

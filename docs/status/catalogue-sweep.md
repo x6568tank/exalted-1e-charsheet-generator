@@ -126,8 +126,17 @@ bar sitting below `open_to_all` so it missed Terrestrial styles.
 * **Savant and Sorcerer `(cid:144)`** and seven rarer codes (25 occurrences) remain
   unmapped and are left verbatim.
 
-## What is left, and it is all page-blocked
+## What is left — ⚠ RE-TRIAGED 2026-08-13, this section is superseded
 
-**213 entries**: 112 artifacts, 61 spells, ~31 Charms. Nothing further can be authored
-without new page syncs. Highest combined yield: **Book of Three Circles** (63), Savage
-Seas (18), The Lunars (17), Time of Tumult (14), Abyssals pp.254-261 (16).
+~~**213 entries**: 112 artifacts, 61 spells, ~31 Charms. Nothing further can be authored
+without new page syncs.~~ **Both halves of that are now wrong.** `sources/` landed on this
+machine and the residue was re-diffed against the current catalogues:
+**180 entries, none page-blocked** — 63 sit in born-digital books that were never
+extracted, 101 behind pure scans that rasterise fine, 8 are per-entry misses in books
+already extracted, and 8 are closed rulings. **19 of the 213 were never missing**: the
+Lunar 17 and 3 of the PG 5 are DBT Gifts authored as `variants`, invisible to a
+`name`-only diff — trap #1 above, one level up.
+
+**`docs/status/content-gap-retriage.md` is the current picture.** The entry lists in
+`content-gap-entries.md` remain correct as discovery; its "Pages on disk?" column does
+not.

@@ -1393,3 +1393,122 @@ def test_two_artifact_backgrounds_buy_TWO_artifacts(rs):
     # One row is unchanged — the morning's ruling, still exactly as ruled.
     assert [i.code for i in validate.check_artifacts(
         rs, _c([3], [("A", 3), ("B", 1)]))] == ["artifact-over-background-dots"]
+
+
+# --------------------------------------------------------------------------- #
+# Merit-gated plot devices — the Mantle of Brigid and the Sword of Ice.
+# Human's ruling 2026-08-13: the two Book of Three Circles entries that print
+# "(ARTIFACT N/A)" are plot devices owned through the Legendary Artifact 10-pt
+# Merit, not through any Background.
+# --------------------------------------------------------------------------- #
+
+LEGENDARY = "mf.legendary-artifact"
+# All three `(ARTIFACT N/A)` entries in the build. The Xoanon (B&E p.104) had been
+# unauthorable since the 2026-08-11 sweep for exactly the reason the other two were,
+# and the human ruled it the same way on 2026-08-13.
+PLOT_DEVICES = ("Mantle of Brigid", "The Sword of Ice", "The Insidious Ebon Xoanon")
+
+
+def _solar(**kw) -> Character:
+    return Character(id="c.s", exalt_type="Solar", caste="Twilight", essence_rating=2,
+                     **kw)
+
+
+def test_the_two_plot_devices_are_merit_gated_in_the_catalogue(rs):
+    gated = {a.name: a for a in artifacts.merit_gated(rs.artifact_catalog)}
+    assert set(gated) == set(PLOT_DEVICES)
+    for a in gated.values():
+        assert a.requires_merit == LEGENDARY
+        # `rating` is a placeholder the model's 1-5 bound demands; the NOTE is what the
+        # page actually prints, and it must say so or the 5 reads as a printed value.
+        assert "N/A" in a.rating_notes and a.description
+
+
+def test_a_merit_gated_artifact_never_reaches_an_artifact_dot_surface(rs):
+    """The Hearthstone lesson: an entry no Background pays for must not appear on a
+    surface that spends Background dots, or picking it charges a budget that never
+    bought it."""
+    offered = {a.name for a in artifacts.purchasable_with_artifact(rs.artifact_catalog)}
+    assert not (offered & set(PLOT_DEVICES))
+
+
+def test_the_offer_moves_with_the_merit(rs):
+    """A permission that moves the BAR but not the OFFER leaves the player unable to
+    find what she was just allowed — the Backgrounds lesson, stated in
+    `docs/status/backgrounds.md`."""
+    without = _solar()
+    assert not ({a.name for a in artifacts.purchasable_artifacts(
+        rs.artifact_catalog, without)} & set(PLOT_DEVICES))
+    with_merit = _solar(merits_flaws=[MP(merit_id=LEGENDARY)])
+    assert set(PLOT_DEVICES) <= {a.name for a in artifacts.purchasable_artifacts(
+        rs.artifact_catalog, with_merit)}
+
+
+def test_owning_a_plot_device_without_the_merit_is_reported_on_both_sides(rs):
+    """Runs on BOTH sides of the lock: the Merit can be dropped after creation as
+    easily as skipped during it, and the artifact is charged to no budget, so nothing
+    else in `check_artifacts` would notice."""
+    for locked in (False, True):
+        c = _solar(chargen_locked=locked,
+                   artifacts=[_art(name="Mantle of Brigid", rating=5,
+                                   acquired=artifacts.ACQUIRED_LEGENDARY)])
+        assert [i.code for i in validate.check_artifacts(rs, c)] == [
+            "artifact-missing-merit"], locked
+        # …and the Merit clears it, with no budget complaint taking its place.
+        c.merits_flaws = [MP(merit_id=LEGENDARY)]
+        assert validate.check_artifacts(rs, c) == [], locked
+
+
+def test_the_merit_check_survives_editing_the_acquired_field(rs):
+    """`ArtifactEntry.acquired` is player-editable by design, so the Merit requirement
+    keys on the artifact's NAME against the catalogue instead — a discriminator anything
+    on the screen can write is not a discriminator (the catalogue-dialog lesson)."""
+    for channel in (artifacts.ACQUIRED_BACKGROUND, artifacts.ACQUIRED_PURCHASED,
+                    artifacts.ACQUIRED_LEGENDARY):
+        c = _solar(chargen_locked=True,
+                   artifacts=[_art(name="The Sword of Ice", rating=5,
+                                   acquired=channel)])
+        assert "artifact-missing-merit" in [
+            i.code for i in validate.check_artifacts(rs, c)], channel
+
+
+def test_a_plot_device_is_charged_to_no_budget(rs):
+    """It has no rating to charge — that is what "(ARTIFACT N/A)" means. A Solar with
+    no Artifact Background at all may hold one, and the corebook one-artifact rule must
+    not see it."""
+    c = _solar(merits_flaws=[MP(merit_id=LEGENDARY)],
+               artifacts=[_art(name="Mantle of Brigid", rating=5,
+                               acquired=artifacts.ACQUIRED_LEGENDARY)])
+    assert artifacts.budgeted_items(c) == []
+    assert artifacts.combined_rating(c) == 0
+    assert validate.check_artifacts(rs, c) == []
+    # It is still OWNED, so the sheet and Damaged Artifact can still see it.
+    assert [i.name for i in artifacts.artifact_items(c)] == ["Mantle of Brigid"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_gear_tab_renders_a_merit_gated_artifact(user) -> None:
+    """The Gear tab builds for a character owning a plot device, and the artifact is
+    editable rather than merely counted."""
+    await user.open('/legendary-gear')
+    await user.should_see("Mantle of Brigid")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_gear_tab_reports_a_plot_device_with_no_merit(user) -> None:
+    """The bar, on the tab that shows it. The artifact is charged to no budget, so
+    without this the row would be silently free."""
+    await user.open('/legendary-gear-bare')
+    await user.should_see("Legendary Artifact")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_inventory_prints_N_A_rather_than_five_dots(user) -> None:
+    """The rating of 5 is a placeholder the model's 1-5 bound demands; the page prints
+    "(ARTIFACT N/A)". The inventory line is the one place that could state the fiction
+    as a fact, so it says N/A and names the channel instead."""
+    await user.open('/legendary-gear')
+    await user.should_see("Artifact N/A · by Merit")
