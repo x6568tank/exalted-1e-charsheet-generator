@@ -345,5 +345,31 @@
       "page": 246
     },
     "open_to_all": true
+  },
+  {
+    "id": "solar.martial-arts.crimson-pentacle-blade.five-directions-formation-protocol",
+    "name": "Five Directions Formation Protocol",
+    "category": "martial_arts:crimson-pentacle-blade",
+    "type": "Special",
+    "min_ability": 0,
+    "min_essence": 1,
+    "prerequisites": [
+      [
+        "solar.martial-arts.crimson-pentacle-blade.eastern-root-protocol"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "Varies"
+    },
+    "duration": "Varies",
+    "description": "The page prints Cost, Duration, Type, Minimum Martial Arts and Minimum Essence all as \"Varies\" — the entry is not one Charm but the licence to build protocols out of others. One of the most potent aspects of this style is the ability for speardancers to work together in formations to accomplish martial effects otherwise impossible to them. While not a proper Charm in its own right, Five Directions Formation Protocol is an endless list of varying Charm Combos, or protocols, designed by practitioners of Crimson Pentacle Blade Style. Protocols are a form of Combo empowered by a military formation instead of by one person: when a formation performs a protocol the martial artists leap as one into a bounding choreography, their bodies exploring three-dimensional space, leaping and tumbling in concert as they perform the Charms in the protocol while always maintaining a shoulder-to-shoulder, back-to-back formation. Protocols are a form of multi-participant Combo developed between specific individuals practicing the style, and like Combos they must be named and have a signature appearance that distinguishes them to those who have seen them before. The most distantly located martial artists performing a protocol may be separated by no more than 10 yards, and all must be within this area prior to invoking it. Movement speed for all participants equals that of the Exalt with the lowest, unless a Charm that boosts movement speed is part of the protocol, in which case all may enjoy its benefits so long as the critical distance limit is not broken. If any participant is ever more than 10 yards from any other for any other reason, the protocol ends instantly; individuals are aware before they break it and will not stumble outside its borders without some reason, and all participants may make a reflexive Perception + Awareness roll at difficulty 1 to note the failure in time to invoke any reflexive effects in the instant before it breaks. All members must be present to activate a protocol — casualties or absentees render it impossible to perform, and the pursuit of flexibility and loss-resilience can lead speardancer ensembles to expend great energy developing alternates. All participants must be conscious, mobile and able to take reflexive actions, meaning none can be ambushed. Activating a protocol is effectively activating a Combo, and every Exalt in it must be eligible to do so, meaning none can have used another Charm or Combo that turn. When one member attempts to activate a legal protocol, every member is instantly aware of the attempt and may choose to join; only if all join does it actually activate, and otherwise no costs are paid or actions forgone. Attempting to activate is a reflexive action generally taken immediately after initiative is rolled and before any actions. On activation every Exalt in the group must spend a point of temporary Willpower and has access to all the Charms in the protocol. The rules for developing Combos still apply: every Exalt must know Five Directions Formation Protocol, but only one need know any given Charm in the protocol, and only those who know a Charm need meet its Minimum Essence and Minimum Ability requirements. The experience cost and development time are the same as for a Combo, the cost divided among the group as evenly as possible, with the Exalts with the highest Essence + Martial Arts paying the extra point if it cannot divide evenly (in the case of a tie, all eligible Dragon-Blooded pay it). The Essence cost to fuel a protocol is split evenly by the members of the formation; with an odd number, the person with the highest Martial Arts must pay the extra.",
+    "source": {
+      "book": "Player's Guide",
+      "page": 242
+    },
+    "open_to_all": true
   }
 ]

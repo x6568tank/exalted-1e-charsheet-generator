@@ -249,5 +249,155 @@
       "book": "Exalted 1e Caste Book: Eclipse",
       "page": 77
     }
+  },
+  {
+    "id": "solar.sail.seeking-the-earths-bounty-method",
+    "name": "Seeking the Earth's Bounty Method",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.sail.perfect-reckoning-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 0,
+      "health": 0,
+      "raw": "6 motes"
+    },
+    "duration": "One turn",
+    "description": "By casting his will forth upon the waters, the Chosen can uncover where the nearest safe harbor or beaching site is located and how to get there. Although the approach to the harbor will be clear of hazards and the beach there usable for small craft — even if the vessel itself cannot beach — the harbor will not necessarily be safe for the crew. There might well be monsters in the bay or surroundings, the nearby natives (if any) may be unfriendly, or other hidden dangers may exist.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 115
+    }
+  },
+  {
+    "id": "solar.sail.fires-kiss-resistance-prana",
+    "name": "Fire's Kiss Resistance Prana",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.sail.wind-defying-course-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 6,
+      "willpower": 1,
+      "health": 0,
+      "raw": "6 motes, 1 Willpower"
+    },
+    "duration": "One day",
+    "description": "Fire is rightly feared on all sea-going vessels. Even a ship with a First Age hull is filled with furnishings and supplies that will burn — and the crew has nowhere to go. Even small fires are tolerated only because of necessity, and the galley on a ship is the most carefully designed part of most vessels. This Charm renders a vessel completely immune to the ravages of fire altogether: while it is in effect, no natural fire can start aboard the ship. Although existing fires will not be affected, neither will they spread further, confining themselves to destroying what they are actually burning at that moment; any fuel added to the fire will simply refuse to burn. Magical or elemental fires can be set normally, but they will burn for half as long and take half the effort to douse than usual. While burning, they will inflict whatever damage they normally would, however.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 115
+    }
+  },
+  {
+    "id": "solar.sail.masts-unbreakable-will-prana",
+    "name": "Mast's Unbreakable Will Prana",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.sail.wind-defying-course-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 4,
+      "willpower": 0,
+      "health": 0,
+      "raw": "4 motes"
+    },
+    "duration": "One scene",
+    "description": "A ship's mast is its life; without the mast, a sailing vessel is utterly subject to tide and current, and few vessels survive an attack or sudden squall that wrecks the mast. By way of this Charm the Exalt can render the mast of a ship he is on immune to even the greatest winds or the strongest attacks. Only actions taken by Deathlords, extremely powerful elementals or spirits, and the most powerful Exalted — those with a permanent Essence of 6 or greater — can hope to destroy a ship's mast while this Charm is in effect. (The page prints this Charm's prerequisite as 'Wind-Defying Course Method'; the two Charms printed beside it cite 'Wind-Defying Course Technique', which is the Charm that exists.)",
+    "source": {
+      "book": "Savage Seas",
+      "page": 115
+    }
+  },
+  {
+    "id": "solar.sail.ignore-the-winds-course-technique",
+    "name": "Ignore the Wind's Course Technique",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.sail.wind-defying-course-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 0,
+      "health": 0,
+      "raw": "10 motes"
+    },
+    "duration": "One scene",
+    "description": "By dint of this Charm, an Exalted helmsman can not only tack deeper into the wind than any mortal helmsman, she may ignore its direction completely. So long as the Charm is in effect, her vessel moves as if the wind were full in its sails, no matter what direction the winds actually blow or what course the helmsman sets. Anyone watching the Exalted's vessel while it sails in defiance of the winds will obviously know that some sort of powerful magic is in use.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 115
+    }
+  },
+  {
+    "id": "solar.sail.harden-the-hull-practice",
+    "name": "Harden the Hull Practice",
+    "category": "sail",
+    "type": "Reflexive",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.sail.storm-weathering-essence-infusion"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes + 2 per (Essence)L of soak"
+    },
+    "duration": "One scene",
+    "description": "Unseen hazards and dangers are a threat to every sailing vessel. Using this Charm, an Exalt can reinforce the hull of her vessel to resist these unforeseen problems. For every 2 motes of Essence she spends, the hull gains lethal soak equal to the Exalted's permanent Essence. This Charm can be applied multiple times to the same vessel in a scene, but under no circumstances can the soak gained through its use exceed the highest Stamina + Sail total of any Exalt who used this Charm on the ship during the scene.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 115
+    }
+  },
+  {
+    "id": "solar.sail.ships-hull-maintenance-technique",
+    "name": "Ship's Hull Maintenance Technique",
+    "category": "sail",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.sail.harden-the-hull-practice"
+      ]
+    ],
+    "cost": {
+      "motes": 10,
+      "willpower": 2,
+      "health": 0,
+      "raw": "10 motes, 2 Willpower"
+    },
+    "duration": "One day",
+    "description": "Breaches, cracks and holes in the hull will send even the largest ship to a watery grave. By means of this Charm the Exalt can stave off this doom, if not prevent it altogether. The Solar summons his Essence and lets it flow into the hull, temporarily sealing any breaks or missing portions and making it seaworthy again for a time. While this Charm is in effect the vessel will act in all ways as if it were whole: water will be kept out of holds, and the ship will maneuver and travel just as if undamaged. If subjected to further damage, however, the ship will continue to deteriorate until it is incapable of floating at all. The Charm requires something resembling an intact vessel to work — it cannot replace whole missing sections of a ship, nor can it turn the skeletal remnants of a ruined hulk back into a functioning vessel on its own.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 116
+    }
   }
 ]

@@ -13,6 +13,7 @@ from exalted_builder.models.character import (
     PathRating, PlayState,
     RitualEntry, ScienceRating, Specialty, ThaumaturgyState, VirtueFlaw, Weapon)
 from exalted_builder.engine import adversaries as adversaries_engine
+from exalted_builder.engine import artifacts as artifacts_engine
 from exalted_builder.models.adversary import (Adversary, AdversaryAttack,
                                               AdversaryTrait)
 from exalted_builder.models.party import Party, PartyMember
@@ -1898,6 +1899,22 @@ CHAR_INV.gear.append(GearEntry(name="Fine clothes", resources_cost=2))
 @ui.page('/inventory')
 def page_inventory():
     gear.build_gear(RS, CHAR_INV, Path("x.json"), with_header=False)
+
+# An artifact and the stat line `grant_gear` stamped for it: ONE object, ONE row. Its
+# OWN route, not a second read of CHAR_INV — a test that reads a shared module-level
+# fixture's content passes alone and fails in the suite.
+CHAR_INV_MERGED = Character(id="invm", name="Swordbearer", exalt_type="Solar",
+                            caste="dawn", essence_rating=2)
+CHAR_INV_MERGED.backgrounds = [BackgroundEntry(name="Artifact", rating=2)]
+CHAR_INV_MERGED.artifacts.append(ArtifactEntry(name="Daiklave", rating=2))
+CHAR_INV_MERGED.weapons.append(Weapon(
+    name="Daiklave", artifact_rating=2, accuracy=2, damage=5,
+    from_artifact=artifacts_engine.item_key(artifacts_engine.SOURCE_ARTIFACT,
+                                            "Daiklave")))
+
+@ui.page('/inventory-merged')
+def page_inventory_merged():
+    gear.build_gear(RS, CHAR_INV_MERGED, Path("x.json"), with_header=False)
 
 CHAR_MF_ART_PLAY = CHAR_MF_ART.model_copy(deep=True)
 CHAR_MF_ART_PLAY.id = "mfartx"

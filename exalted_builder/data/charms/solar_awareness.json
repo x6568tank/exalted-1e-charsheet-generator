@@ -160,5 +160,80 @@
       "book": "Exalted 1e Caste Book: Night",
       "page": 75
     }
+  },
+  {
+    "id": "solar.awareness.piercing-the-nights-veil-practice",
+    "name": "Piercing the Night's Veil Practice",
+    "category": "awareness",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.awareness.sensory-acuity-prana"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "This Charm allows the user to see in darkness as if she were in broad daylight. The Exalted needs no light source of any kind so long as this Charm is in effect; whether down in the deepest cave or under a new moon on a cloudy night, she will see with normal clarity and detail. Charms used to increase her vision will work just like they normally do — if she uses the Hundred Leagues Sight Procedure after activating this Charm, she will be able to flawlessly focus on a target dozens of leagues away, as if in daylight. As with the Sensory Acuity Prana, the Exalted is not more or less susceptible to bright lights or sudden flashes: if she enters a torch-lit tent she will see normally, and if suddenly startled by the flare of an anima banner she will be blinded no longer than someone using his ordinary senses would.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 114
+    }
+  },
+  {
+    "id": "solar.awareness.vision-of-the-murky-depths-method",
+    "name": "Vision of the Murky Depths Method",
+    "category": "awareness",
+    "type": "Simple",
+    "min_ability": 4,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.awareness.keen-sense-technique"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "One scene",
+    "description": "The Exalted shifts his vision so that he can see in water as if in air. For the duration of the Charm he can adjust his vision to see in water, in air, or to see through them both. While shifted to see in either water or air, he sees normally. When looking through both — as when peering over the railing of a vessel to see if there is anything in the waters below, or looking up onto the deck of a ship from below the water's surface to locate a guard — he sees without the distortions and shifting that normally occurs, but his vision is halved. It takes one turn to change sight over from water to air, or from either to seeing in both.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 114
+    }
+  },
+  {
+    "id": "solar.awareness.hundred-leagues-sight-procedure",
+    "name": "Hundred Leagues Sight Procedure",
+    "category": "awareness",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.awareness.unsurpassed-sense-discipline"
+      ]
+    ],
+    "cost": {
+      "motes": 5,
+      "willpower": 0,
+      "health": 0,
+      "raw": "5 motes"
+    },
+    "duration": "One scene",
+    "description": "Whereas before the Exalted could extend his vision out to a mile or more using the Unsurpassed Sight Discipline, with this Charm he can see further than even the sharpest-eyed mospid. The user can clearly focus and notice details out to a range equal to his (Essence x 20) miles. Anything within that range can be seen just as if it were close to hand — even the furthest objects will appear as if they were no more than 100 yards or so away. This ability is rarely of use on land, where terrain ensures that the Exalted will never actually be able to see that far, but at sea the information gleaned may prove vital.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 115
+    }
   }
 ]

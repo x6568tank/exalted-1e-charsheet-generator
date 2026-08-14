@@ -1662,5 +1662,144 @@
       "archery",
       "artifact"
     ]
+  },
+  {
+    "id": "weapon.thrown.sky-cutter",
+    "name": "Sky-Cutter",
+    "accuracy": 2,
+    "damage": 5,
+    "damage_type": "L",
+    "rate": 2,
+    "range": 50,
+    "artifact_rating": 2,
+    "attunement": 4,
+    "notes": "Always returns to its master's hand at the end of the turn if it misses; returning after a hit needs a reflexive Dexterity + Thrown roll at difficulty 2. Per-Material benefits vary — see the artifact entry. (Kingdom of Halta, p.95)",
+    "tags": [
+      "thrown",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.cold-wind-knives",
+    "name": "Cold Wind Knives",
+    "speed": 4,
+    "accuracy": 2,
+    "damage": 4,
+    "damage_type": "L",
+    "defense": 2,
+    "artifact_rating": 4,
+    "notes": "A pair. A target who takes even one health level from them cannot speak for an hour; +3 dice to Stealth while unsheathed; the blades track a bloodied victim and cannot harm their attuned wielder or any Night Caste Solar. (Kingdom of Halta, p.93)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.shining-daiklave-of-darkness",
+    "name": "Shining Daiklave of Darkness",
+    "speed": 1,
+    "accuracy": 4,
+    "damage": 8,
+    "damage_type": "L",
+    "defense": 3,
+    "rate": 6,
+    "min_strength": 1,
+    "min_dexterity": 1,
+    "artifact_rating": 4,
+    "attunement": 5,
+    "notes": "Rate 6 is the Exalted Power Combat figure. Subtracts 3 from the difficulty of all Larceny and Stealth rolls for its attuned Sidereal user; two Hearthstone settings. (Cult of the Illuminated, p.70)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.archery.light-implosion-bow",
+    "name": "Light Implosion Bow",
+    "accuracy": 3,
+    "damage": 7,
+    "damage_type": "B",
+    "rate": 1,
+    "range": 500,
+    "artifact_rating": 2,
+    "notes": "Emplaced: the pedestal must be mounted to a solid surface, with a 360-degree horizontal and 90-degree vertical arc. Damage is chosen before firing and depends on motes channelled — 1 mote for 7B or 5L, 2 motes for 15B or 12L — over a 10-foot radius at the target. Naval range Long, naval rate 3/turn. Only a character able to channel Essence can fire it. (Blood and Salt, p.120)",
+    "tags": [
+      "archery",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.whip-of-devouring-serpents",
+    "name": "Whip of Devouring Serpents",
+    "speed": 5,
+    "accuracy": 1,
+    "damage": 2,
+    "damage_type": "L",
+    "defense": -2,
+    "artifact_rating": 5,
+    "attunement": 9,
+    "notes": "On a damaging hit each of the seven heads rolls a die; each success drains a point of Willpower (tens double, max seven, never below zero). One target per attack and no dice-pool splitting, though Charms still work. Must be fed Willpower or it drains its wielder. (The Abyssals, p.261)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.archery.repeating-maggot-caster",
+    "name": "Repeating Maggot-Caster",
+    "accuracy": 2,
+    "damage": 0,
+    "damage_type": "A",
+    "rate": 2,
+    "range": 50,
+    "artifact_rating": 3,
+    "notes": "Damage is Special: a hit does nothing immediately, then the maggot burrows in and inflicts one level of AGGRAVATED damage per scene it remains. Cutting one out needs Medicine 2 and a difficulty 3 Dexterity + Medicine roll, or 3 unsoakable lethal levels to the patient. Six maggots per cylinder; each shot also drains 1 mote from its mounted soulfire crystal. (The Abyssals, p.259)",
+    "tags": [
+      "archery",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.thrown.vessel-of-the-pyre",
+    "name": "Vessel of the Pyre",
+    "damage": 3,
+    "damage_type": "A",
+    "artifact_rating": 1,
+    "notes": "Splits on impact, splashing pyre flame. Size sets both radius and damage: Small (handheld, Artifact •) two feet/3A; Medium (two-handed, ••) five feet/7A; Large (three feet, •••) ten feet/15A; Massive (six feet, ••••) twenty feet/30A. The stats here are the Small vessel. Pyre flame clings and does two lethal levels per turn until scraped off. (The Abyssals, p.256)",
+    "tags": [
+      "thrown",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.melee.wavecleaver-daiklaive",
+    "name": "Wavecleaver Daiklaive",
+    "speed": 3,
+    "accuracy": 2,
+    "damage": 5,
+    "damage_type": "L",
+    "defense": 1,
+    "min_strength": 2,
+    "artifact_rating": 2,
+    "notes": "The shortest of daiklaives, rarely over three feet of blade — made for belowdecks work. Two Hearthstone sockets. (Savage Seas, p.126)",
+    "tags": [
+      "melee",
+      "artifact"
+    ]
+  },
+  {
+    "id": "weapon.archery.lightning-ballista",
+    "name": "Lightning Ballista",
+    "accuracy": 2,
+    "damage": 20,
+    "damage_type": "L",
+    "rate": 1,
+    "range": 1000,
+    "artifact_rating": 3,
+    "notes": "Emplaced ship weapon on a swivel mount, 270-degree arc. Stats are the COMMON version (Artifact •••, Occult •• + Archery •, 3 motes/shot); the elemental version is Artifact •••• and needs Occult •••, and the Hearthstone version is Artifact •••• at 25L and Naval Rate 2/turn. Naval range Very Long, naval rate 3/turn. Fired with Archery, but Archery Charms cannot enhance it. (Savage Seas, p.127)",
+    "tags": [
+      "archery",
+      "artifact"
+    ]
   }
 ]

@@ -118,3 +118,239 @@ And **19 of the 213 were never missing at all.** Treat any gap number as an uppe
 until the matcher has been pointed at every shape a Charm takes in this build — `name`,
 `variants[].label`, and the parameterised entries the original generator already warned
 about.
+
+---
+
+## Group A — DONE 2026-08-14 (all 68 authored)
+
+All ten books extracted with `tools/extract_born_digital.py`, which is all Group A was
+ever supposed to need. Catalogues: artifacts **237 → 302**, spells **294 → 296**,
+weapons **103 → 110**.
+
+| Book | Authored | Notes |
+|---|---|---|
+| The Abyssals pp.254-261 | 16 | the OCR'd copy carries a text layer |
+| Blood and Salt | 13 | 11 artifacts + 2 Terrestrial spells (p.125) |
+| Aspect Book: Air | 13 | |
+| Aspect Book: Earth | 6 | |
+| Cult of the Illuminated | 5 | |
+| Kingdom of Halta | 5 | incl. the Iron Puzzle Box — see below |
+| Aspect Book: Wood | 4 | |
+| Aspect Book: Water | 3 | |
+| Aspect Book: Fire | 2 | |
+| Manacle and Coin p.31 | 1 | |
+
+### ⚠ Group A was 68, not 63 — the fuzzy matcher over-matched again
+
+Re-checking each name by EXACT match rather than substring/fuzzy found five entries the
+retriage had scored as present:
+
+* **Abyssals 14 → 16.** *Implosion Bow, Light* fuzzy-matched the already-authored
+  **Medium Implosion Bow**; the Light bow is a different weapon on a different page.
+* **Cult 4 → 5.**
+* **Blood and Salt 11 → 13.** *Masks that Command Animals* matched the unrelated
+  artifact literally named **Mask**.
+
+This is the retriage's own trap — *"a search shaped like what you expect proves nothing
+about a thing shaped differently"* — firing on the retriage. **Any gap count produced by
+a fuzzy matcher is a LOWER bound on the work and an UPPER bound on what is present.**
+The far cheaper check is exact name equality plus a manual eye over the near-misses; a
+0.86 cutoff over a 300-name catalogue produces false positives at a rate that matters
+when each one silently deletes a real entry from the worklist.
+
+### Two source-reading notes
+
+* **Six of the seven GARBLED markers were running heads** — letter-spaced furniture
+  (`E XALTED • A SPECT B OOK : W ATER`) that the `SPACED_OUT` regex catches and the
+  running-head stripper does not. They block nothing. Read the marked line before
+  treating a marker as a blocker.
+* **The extractor's column-split detection has false NEGATIVES.** Aspect Book: Wood p.81
+  was correctly flagged `COLUMN SPLIT FAILED`, but **Cult of the Illuminated p.70 was
+  interleaved and NOT flagged** — the Tears of the Harvest and the Shining Daiklave of
+  Darkness had their sentences spliced together mid-clause, and nothing said so. Both
+  pages were resolved by rasterising with `pdftoppm -r 110` and reading them directly,
+  the Book of Three Circles method. ⚠ **An unflagged page is not a clean page.** Where an
+  entry's prose stops making sense mid-sentence, suspect the columns and rasterise.
+
+### The Iron Puzzle Box (Halta p.93) — ruled, and authored
+
+It prints **`(ARTIFACT N/A)`** — a fourth entry of the shape `book-of-three-circles.md`
+said none remained of. Its text reads as a plot device of exactly the Mantle of Brigid
+class (it opens onto any realm in or outside Creation, and can open onto Yozi and then
+refuse to close). It was **held rather than authored on the pattern** — that ruling had
+been given per-entry each time, and a plot device charged to no budget is not a decision
+to make on the human's behalf. **Human, 2026-08-14: "Legendary Artifact, yes."** Authored
+with `requires_merit`, verified against all six behaviours of the channel (off the
+Artifact-dot surface, hidden without the Merit, offered with it, `artifact-missing-merit`
+when the Merit is dropped, charged to nothing).
+
+⚠ **It is the standing counter-example to "no `(ARTIFACT N/A)` entry remains
+unauthored."** That was only ever a claim about the books read so far — a book nobody has
+extracted yet can hold a fifth, and Group B still has three unsynced.
+
+---
+
+## Group C — resolved 2026-08-14 (3 authored, 2 false gaps, 3 pending one sign-off)
+
+Of the eight listed as "real and each is small", **two were already authored** and one was
+**misfiled**. The eight were really five.
+
+| Entry | Outcome |
+|---|---|
+| Five Directions Formation Protocol (PG p.242) | **AUTHORED** — a Crimson Pentacle Blade **Charm**, not an artifact |
+| Transference of the Sanctum (GoD p.49) | **AUTHORED** — Solar Circle spell, 45 motes |
+| Gift of Knowledge (`E:S` p.123) | **AUTHORED** — `E:S` **is** The Sidereals (see below) |
+| Implosion Bow, Medium (Outcaste p.59) | **FALSE GAP** — authored as `artifact.outcaste.medium-implosion-bow`, same page |
+| Nutrient Recycling Engine (Autochthonians p.185) | **FALSE GAP** — the book prints **"Portable Nutriment Recycling Engine"**, authored, same page |
+| Crystal of Protection / Ring of Disguise / Ring of Images (Rathess p.86) | **PENDING** — needs one sign-off, see below |
+
+### `E:S` is The Sidereals — the code is resolved
+
+Sidereals p.123 (PDF page = book page + 3) prints **all three** of that book's spells in
+one paragraph: *Open the Spirit Door* (which it says originally appeared in Games of
+Divinity), *Gift of Knowledge* and *Summoning the Heavenly Portal*. The gap list filed
+Gift of Knowledge under `E:S` and the other two under "Sidereals", splitting one page
+across two book codes. **`E:S` should be folded into Sidereals wherever it appears.**
+
+⚠ This also means **Gift of Knowledge was never a Group C entry** — Group C is "leftovers
+in books already extracted", and Sidereals has never been extracted. It is a pure scan
+and belongs to Group B. It is authored here only because resolving the code required
+reading the page anyway.
+
+### Two more false gaps — that is SEVEN across Groups A and C
+
+Group A produced five (`Implosion Bow, Light` → *Medium Implosion Bow*, `Masks that
+Command Animals` → *Mask*, and three more). Group C produced two, and one of them is the
+**same** Medium Implosion Bow that caused a Group A false positive from the other
+direction. Both Group C misses are the same shape: **the fan index's name is not the
+book's name**, and the build correctly stores the printed one. `Nutrient` vs the printed
+`Portable Nutriment`, `Implosion Bow, Medium` vs the printed `Medium Implosion Bow`.
+
+**The check that works is: match on NAME, then when that fails, match on BOOK + PAGE.**
+Every false gap so far would have been caught instantly by the page number — both of
+Group C's cite the exact page of the entry already in the catalogue. No fuzzy name
+matcher was ever going to close that gap, and one keyed on page would have closed all
+seven without a single false positive.
+
+### Ruins of Rathess p.86 ×3 — RESOLVED by reading the page, not the reassembly
+
+**The book landed in `sources/` on 2026-08-14**, which made the sign-off moot: p.86 was
+rasterised with `pdftoppm -r 110` (PDF page = book page + 1) and read directly. All three
+are authored — **Ring of Images ••, Crystal of Protection •••, Ring of Disguise •••**.
+
+⚠ **Both independent reassemblies turned out to be exactly right** — every rating, every
+mechanic, every clause. That is worth recording in BOTH directions:
+
+* the reassembly method is sound where the interleave is strictly line-alternating and
+  each column reads as continuous coherent prose, which is a checkable condition and not
+  a matter of judgement;
+* **and it still should not have been authored on that basis.** Two batches were right to
+  skip it. The correct resolution took one `pdftoppm` call the moment the book existed,
+  and "my reconstruction is probably right" would have bought three entries at the price
+  of a precedent for guessing. **When a marked page is blocked, the answer is to acquire
+  the page, not to argue about the reassembly.**
+
+### Sidereals — 3 of 5 done (2026-08-14)
+
+Reading pp.122-123 for the `E:S` identification gave all three of that book's spells for
+the price of one page, so all three are authored: **Gift of Knowledge** (Celestial 25m),
+**Open the Spirit Door** (Terrestrial, 15m + 5m per additional target) and **Summoning
+the Heavenly Portal** (Celestial 35m). Sidereals' remaining **2 artifacts (pp.24, 39)**
+are still open and need those two pages read.
+
+
+---
+
+## Group B — DONE 2026-08-14, browser-verified same day. The content gap is CLOSED.
+
+All four remaining books landed in `sources/` and all 39 entries were read and authored.
+**Every one of the four is a PURE SCAN** — 0 of the first 40 pages carries text in any of
+them — so `extract_born_digital.py` was inapplicable throughout and each page was
+rasterised with `pdftoppm -r 110` and read directly, the Book of Three Circles method.
+
+| Book | Entries | Offset | Notes |
+|---|---|---|---|
+| Savage Seas | 18 | PDF = book + 1 | 10 Charms, 4 spells, 4 artifacts |
+| Time of Tumult | 14 | PDF = book + 1 | 3 Craft Charms, 11 artifacts |
+| Storyteller's Companion | 6 | PDF = book + 1 | incl. the **Eye of Autochthon** |
+| The Sidereals | 6 | PDF = book + 3 | 3 spells + 3 artifacts |
+
+Final catalogue state: **artifacts 330, spells 304, Charms 1,910, weapons 112, armour 28.**
+
+### The counts were low again — every book had more than the triage said
+
+Savage Seas 17→**18**, Time of Tumult 13→**14**, Storyteller's Companion 4→**6**,
+Sidereals 5→**6**. Same cause as Groups A and C: fuzzy name matching scored real gaps as
+present. Across all three groups the triage undercounted by **11 entries**. The rule
+stands and is now proven three times: **a fuzzy gap count is a LOWER bound on the work**,
+and the cheap corrective is to match on **book + page** when the name match fails.
+
+### The fifth `(ARTIFACT N/A)`: the Eye of Autochthon
+
+Storyteller's Companion p.80. The `book-of-three-circles.md` note predicted a fifth would
+turn up in an unread book, and it did — one book later. It is **the** exemplar of the
+channel: the Legendary Artifact Merit's own text names *"the Mantle of Brigid or the Eye
+of Autochthon"*, and the artifact's System paragraph says its active powers "may be
+summarized as 'plot device.'" Authored with `requires_merit` on the human's standing
+ruling. `PLOT_DEVICES` is now five.
+
+### Four printed-name corrections, and the book won each time
+
+* *Orichalcum Lined Cloak* (index) → **The Fur Merchant's Cloak** (ToT p.15)
+* *Wavecleaver Daiklave* → **Wavecleaver Daiklaive** (Savage Seas p.126)
+* *Collar of Dutiful Submission* → **The Collar of Dutiful Submission** (Sidereals p.39)
+* *Masks that Command Animals* → **The Masks That Command the Animals** (B&S p.123)
+
+### Shared entries across books — authored ONCE
+
+Savage Seas reprints **Water's Ally**, **Steelsilk Sails**, **Storm Sapphire**, **Cord of
+Winds** and the **Light Implosion Bow**, all of which Blood and Salt also prints with the
+same text. One entry each, authored off whichever book was read first. A name-keyed dedup
+caught them; a page-keyed one would not have, which is the counter-case to the matcher
+lesson above — **use both.**
+
+### ⚠ Two printed defects, recorded and NOT silently fixed
+
+1. **Time of Tumult p.96 prints "Minimum Offult: 3"** for World Within a Picture Style's
+   second Ability minimum. Checked at **300 dpi**: the ligature is unmistakably "ff", so
+   it is the book's typo and not a rasterisation artifact. **RULED 2026-08-14 (human):
+   "Should be Occult"** — encoded as `extra_min_abilities: [{occult, 3}]`, and the
+   printed spelling is recorded in the Charm's own description so the book's text is not
+   lost. Barring verified both ways: Occult 2 raises `charm-min-ability`, Occult 3 is
+   clean.
+2. **Savage Seas p.115 cites "Wind-Defying Course Method"** as Mast's Unbreakable Will
+   Prana's prerequisite, while the two Charms printed beside it cite "Wind-Defying Course
+   **Technique**". There is exactly one such Charm and it is in the **COREBOOK, Exalted
+   p.209-210** (the Solar Sail tree, after Salty Dog Method) — NOT in Savant and
+   Sorcerer, which is where it was looked for first. Wired to the Charm that exists, with
+   the discrepancy noted in the data; the links resolve.
+
+### One matcher lesson that is NOT about names
+
+Savage Seas cites **"Keen Sight Technique"** and **"Unsurpassed Sight Discipline"** as
+prerequisites. Neither name exists in the build — because both are authored
+**parameterised**, as `Keen (Sense) Technique` and `Unsurpassed (Sense) Discipline`, with
+Sight as one instance. This is the `variants` trap from the top of this file wearing a
+different hat: **a prerequisite that resolves to nothing may be a naming shape, not a
+missing entry.** Check the parameterised forms before authoring a "missing" prerequisite.
+
+
+## Browser click-through — 2026-08-14, clean
+
+Four items, all passing, against a Solar Twilight at Essence 5 / Occult 3 / Craft 5
+holding Legendary Artifact (`/tmp/sweep.character.json`):
+
+1. **The inventory merge with real catalogue content** — five rows, not eight. The three
+   dual-nature pairs merged, the armour one rendering `Soak 10L/12B, Mob-2, Ftg1`, and
+   both editors present under each merged row's Edit.
+2. **The `Offult`→Occult gate** — World Within a Picture Style reads "Craft 5, Occult 3"
+   and is legal at exactly those ratings.
+3. **The merit-gated five** — Eye of Autochthon and Iron Puzzle Box offered alongside the
+   original three, printing "Artifact N/A · by Merit"; dropping the Merit raises the
+   Issue and withdraws all five from the dropdown.
+4. **The new catalogue** — spell circle counts, the six new Sail Charms with Mast's
+   Unbreakable Will Prana resolving to *Wind-Defying Course Technique*, and artifact
+   spot-checks.
+
+**No defects found.** Preflight caught the one gap beforehand: the armour side of the
+merge had no test, and the Armor of Aquatic Puissance had just made it a live shape.

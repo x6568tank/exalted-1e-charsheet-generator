@@ -1,4 +1,4 @@
-# Book of Three Circles — DONE 2026-08-13 (not yet browser-verified)
+# Book of Three Circles — DONE 2026-08-13, browser-verified 2026-08-14
 
 The largest single item in the post-sweep gap: **62 entries, a third of everything left**
 (`content-gap-retriage.md`). **All 62 authored** — the last two after the human ruled on
@@ -103,8 +103,13 @@ ten bonus points for is missing from the dropdown.
 
 **The Insidious Ebon Xoanon (B&E p.104) was the same shape and is now authored the same
 way** — human, 2026-08-13: *"it is."* The First and Forsaken Lion's necromantic warstrider
-had been unauthorable since the 2026-08-11 sweep for precisely this reason. That closes
-**every `ARTIFACT N/A` entry in the build**; artifacts stand at **237**.
+had been unauthorable since the 2026-08-11 sweep for precisely this reason.
+
+⚠ **This file once said that closed "every `ARTIFACT N/A` entry in the build". It did
+not, and could not.** That is a claim about the books READ SO FAR, never about the game:
+the **Iron Puzzle Box** (Kingdom of Halta p.93) turned up on 2026-08-14 the moment Group A
+was extracted, and was ruled the same way. Three Group B books are still unsynced and any
+of them can hold a fifth. See `content-gap-retriage.md`.
 
 ## The Crimson Bow is in two places on purpose
 
@@ -113,10 +118,24 @@ Rate 3, Range 500, Artifact ••••, Minimums Strength •••), so it fo
 dual pattern — 14 names already live in both — with a catalogue entry in `artifacts.json`
 and a stat row in `weapons.json` carrying `artifact_rating: 4` and `attunement: 10`.
 
+## The click-through — 2026-08-14, clean
+
+Four items, all passing: the spell picker's Circle dropdown (Terrestrial **98** /
+Celestial **44** / Solar **31**, and the four names where the book overruled the fan index
+read as printed); the artifact and weapon name comboboxes; **the merit gate in both
+directions** (holding Legendary Artifact offers the Mantle, the Sword of Ice and the
+Xoanon; dropping it raises `artifact-missing-merit` AND withdraws them from the dropdown —
+the `_art_catalog` stale-closure trap did not fire, and flipping `acquired` could not
+shake the gate off); and their absence from the Artifact-dot surfaces.
+
+**One finding, and it was presentational rather than a defect:** the Crimson Bow showed as
+an artifact row and a weapon row, which the human read as *"odd, and a little obtuse."*
+That was `grant_gear` working correctly — the two stored halves of one object — but the
+inventory rendered them as unrelated peers. Fixed the same day by merging the pair into
+one row; the record is in `gear-and-inventory.md`, because it is the inventory's behaviour
+and not this book's.
+
 ## Still open here
 
-* **Not browser-verified.** The change is catalogue data only — no engine or UI code — so
-  the click-through is the spell picker's Circle dropdown (Terrestrial/Celestial/Solar all
-  grew) and the artifact/weapon name comboboxes.
 * Nothing in the book that the index lists is now unauthored, and no `ARTIFACT N/A`
   entry remains unauthored anywhere in the build.

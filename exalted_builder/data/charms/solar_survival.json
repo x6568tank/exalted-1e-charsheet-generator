@@ -370,5 +370,26 @@
       "book": "Exalted 1e Caste Book: Zenith",
       "page": 76
     }
+  },
+  {
+    "id": "solar.survival.earths-unceasing-beacon",
+    "name": "Earth's Unceasing Beacon",
+    "category": "survival",
+    "type": "Reflexive",
+    "min_ability": 2,
+    "min_essence": 1,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2,
+      "willpower": 0,
+      "health": 0,
+      "raw": "2 motes"
+    },
+    "duration": "One scene",
+    "description": "By means of this Charm the Exalt can instantly know in what direction the Elemental Pole of Earth lies, at least in a general sense. The player must make a Perception + Survival roll for the character. With even a single success the character will have a general idea — able to point in the direction of — where the Pole of Earth is located. Each additional success makes this sense of direction more precise; with three or more successes the Exalt will know exactly where the pole is in relation to his current location, with sufficient clarity to be able to navigate with the aid of a compass and map. Any additional successes beyond three may be applied as bonus dice to any rolls involving navigation or plotting a course, until the end of the scene.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 116
+    }
   }
 ]

@@ -80,20 +80,77 @@ def test_filtering_picks_rows_whose_kinds_intersect(rs):
     assert len(viewmod.filter_inventory(rows, "all")) == 6
 
 
-def test_a_granted_stat_line_is_not_a_SECOND_artifact_in_the_inventory(rs):
-    """The inventory reads `artifact_items`, the same enumeration the budget reads, so
-    a weapon row that is the stat line of a standalone artifact is tagged once. Reading
-    `artifact_rating` directly instead would show two artifacts where the budget counts
-    one — the inventory and the validator must not disagree about what is owned."""
+def _linked_daiklave() -> tuple[Character, str]:
     from exalted_builder.engine import artifacts as artifactsmod
     c = Character(id="g", exalt_type="Solar", caste="dawn", essence_rating=2)
     key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, "Daiklave")
     c.artifacts.append(ArtifactEntry(name="Daiklave", rating=2))
-    c.weapons.append(Weapon(name="Daiklave", artifact_rating=2, from_artifact=key))
+    c.weapons.append(Weapon(name="Daiklave", artifact_rating=2, accuracy=3,
+                            from_artifact=key))
+    return c, key
+
+
+def test_a_granted_stat_line_is_ONE_row_with_its_artifact(rs):
+    """An artifact and the stat line `grant_gear` stamped for it are ONE OBJECT, and the
+    inventory shows one row (the human, 2026-08-13 click-through: two peer rows for one
+    daiklave "feels odd, and a little obtuse").
+
+    The merge is display-only — `character.weapons` still holds the stat line, so the
+    dice-pool sidebar's positional indices and the typed lists are untouched. What
+    changes is that the row answers to BOTH filters instead of the pair splitting one
+    object across two lines.
+    """
+    c, _ = _linked_daiklave()
     rows = viewmod.inventory_rows(rs, c)
+    assert len(rows) == 1
+    row = rows[0]
+    assert set(row.kinds) == {"weapon", "artifact"}
+    # It is the ARTIFACT that owns the row — that is the object; the weapon is its
+    # stat line, and rides in `detail` and as the linked editor.
+    assert (row.list_name, row.index) == ("artifacts", 0)
+    assert (row.linked_list_name, row.linked_index) == ("weapons", 0)
+    assert "Acc" in row.detail
+    assert row.artifact_rating == 2
+    # …and the budget still counts one, which is what it counted before the merge.
     assert viewmod.inventory_counts(rows)["artifact"] == 1
-    # …and it is the standalone row that carries the artifact tag, not the stat line.
-    assert [set(r.kinds) for r in rows] == [{"weapon"}, {"artifact"}]
+
+
+def test_the_merged_row_answers_to_BOTH_filters(rs):
+    """The merge must not cost the weapon filter its row — a daiklave you cannot find
+    under Weapons is a worse answer than two rows."""
+    c, _ = _linked_daiklave()
+    rows = viewmod.inventory_rows(rs, c)
+    assert [r.name for r in viewmod.filter_inventory(rows, "weapon")] == ["Daiklave"]
+    assert [r.name for r in viewmod.filter_inventory(rows, "artifact")] == ["Daiklave"]
+    assert viewmod.inventory_counts(rows) == {
+        "all": 1, "weapon": 1, "armor": 0, "artifact": 1, "goods": 0, "ammunition": 0}
+
+
+def test_an_ORPHANED_stat_line_stands_on_its_own(rs):
+    """`from_artifact` pointing at an artifact that has been renamed or deleted must not
+    silently swallow the gear row. Same failure direction `artifact_items` chose: the
+    orphan is visible on its own line rather than merged into nothing and lost — and
+    because nothing now claims it as a stat line, it counts as an artifact ON ITS OWN,
+    which is the budget's answer too. A merge that hid it would make it free.
+    """
+    c, _ = _linked_daiklave()
+    c.artifacts.clear()
+    rows = viewmod.inventory_rows(rs, c)
+    assert [(r.name, set(r.kinds)) for r in rows] == [("Daiklave", {"weapon", "artifact"})]
+    assert rows[0].linked_list_name == ""
+    assert viewmod.inventory_counts(rows)["artifact"] == 1
+
+
+def test_an_UNLINKED_gear_row_sharing_a_name_is_still_its_own_row(rs):
+    """The merge keys on `from_artifact`, not on the name. A player who owns the
+    artifact and separately hand-enters a same-named weapon has two objects as far as
+    the budget is concerned (`artifact_items` charges both), and the inventory must not
+    hide one of them behind the other."""
+    c, _ = _linked_daiklave()
+    c.weapons.append(Weapon(name="Daiklave", artifact_rating=2))   # no from_artifact
+    rows = viewmod.inventory_rows(rs, c)
+    assert len(rows) == 2
+    assert viewmod.inventory_counts(rows)["artifact"] == 2
 
 
 def test_a_purchased_artifact_says_so(rs):
@@ -198,6 +255,74 @@ async def test_each_row_carries_its_OWN_editor(user) -> None:
     # chip, so a bare word cannot tell a deleted panel from live UI — the negative
     # control has to name something only the panel said.
     assert "Armor (sets soak)" not in labels
+
+
+def test_the_ARMOUR_side_of_the_merge_works_too(rs):
+    """The merge loops over weapons AND armour, but every other test here exercises the
+    weapon half. The Armor of Aquatic Puissance (Savage Seas p.124) is the catalogue's
+    first armour-side merge, so the shape now has real content behind it and a bug here
+    would be invisible until someone owned one.
+
+    ⚠ Also pins the SIGN: `mobility_penalty` is stored negative, and the stat line must
+    render it as the printed -2, not +2.
+    """
+    from exalted_builder.engine import artifacts as artifactsmod
+    c = Character(id="am", exalt_type="Solar", caste="dawn", essence_rating=2)
+    key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, "Armor of Aquatic Puissance")
+    c.artifacts.append(ArtifactEntry(name="Armor of Aquatic Puissance", rating=4))
+    c.armor.append(Armor(name="Armor of Aquatic Puissance", soak_lethal=10, soak_bashing=12,
+                         mobility_penalty=-2, fatigue=1, artifact_rating=4,
+                         attunement=8, from_artifact=key))
+    rows = viewmod.inventory_rows(rs, c)
+    assert len(rows) == 1
+    row = rows[0]
+    assert set(row.kinds) == {"artifact", "armor"}
+    assert (row.list_name, row.index) == ("artifacts", 0)
+    assert (row.linked_list_name, row.linked_index) == ("armor", 0)
+    assert "Soak" in row.detail and "Mob-2" in row.detail, row.detail
+    assert viewmod.inventory_counts(rows) == {
+        "all": 1, "weapon": 0, "armor": 1, "artifact": 1, "goods": 0, "ammunition": 0}
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_merged_row_carries_BOTH_editors(user) -> None:
+    """The binding test for the merge, and the reason it needs one: the stat line no
+    longer has a row of its own, so if the merged row does not render the linked editor
+    the weapon's stats become UNEDITABLE — a regression the pure view tests cannot see,
+    because the view is right and the panel is what dropped it.
+
+    Names the surface the merge produces, not the helper: `inventory_rows` returning a
+    good `linked_index` proves nothing about whether `build_gear` reads it.
+    """
+    from nicegui import ui as _ui
+    await user.open('/inventory-merged')
+    await user.should_see("Inventory")
+    names = [e.text for e in user.client.elements.values()
+             if "inv-row" in getattr(e, "_markers", [])]
+    assert names == ["Daiklave"], names          # one object, one row
+    labels = {e.text for e in user.client.elements.values() if isinstance(e, _ui.label)}
+    assert any("Acc" in t for t in labels), "the stat line lost its editor in the merge"
+    await user.should_see("Stat line")
+    await user.should_see("Artifact ••")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_merged_row_is_reachable_under_both_filters(user) -> None:
+    """The merge must not cost the object a filter. Clicking Weapon and clicking
+    Artifact must each land on the same single row."""
+    def _names() -> set[str]:
+        return {e.text for e in user.client.elements.values()
+                if "inv-row" in getattr(e, "_markers", [])}
+
+    await user.open('/inventory-merged')
+    user.find("Weapon (1)").click()
+    await user.should_see("showing Weapon (1)")
+    assert _names() == {"Daiklave"}
+    user.find("Artifact (1)").click()
+    await user.should_see("showing Artifact (1)")
+    assert _names() == {"Daiklave"}
 
 
 @pytest.mark.asyncio

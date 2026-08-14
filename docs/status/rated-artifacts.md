@@ -648,10 +648,22 @@ model, and the tell was in the rule's own text.
   declined it): the app cannot know a purchase happened.
 - **Nothing validates ownership**, and a test asserts that on both sides of the lock.
 
-⚠ **The other 63 `resources_cost` values are still unattributed.** The human verified
-Self/Long/Composite Bow at 1/2/3 against the p.330 table and those three now carry a
-`source`; every other row's cost has no book or page behind it. The extracted corebook
-cannot settle them — the Cost column is dot glyphs that did not survive the font cipher,
-and p.330 carries an explicit `GARBLED … NOT authorable without a human read` marker. The
-hint makes wrong values MORE visible, which is the argument for shipping it first, but
-the values are a page-blocked job.
+~~⚠ **The other 63 `resources_cost` values are still unattributed.**~~ **RESOLVED
+2026-08-13 — do not re-open this.** The Cost column was unreadable because core prices in
+DOTS and the dot is a glyph the corebook's thirteen-cipher map does not decode. The fix
+was that the dot never needed DECODING, only IDENTIFYING: it is `(cid:10)` in
+`ZTR41CA.tmp,Bold`, and the count of that glyph in a row IS the rating.
+`tools/parse_resources_costs.py` reads the columns straight out of the text layer and
+verifies 42/42 against the hand-authored values (it also found a typo). Manacle and Coin's
+two-column price pages were done the same day by `tools/parse_mc_prices.py`, 43/43, which
+is why all 56 `gear.json` rows carry a `source`.
+
+⚠ **What is left is METADATA, not correctness.** 3 of the 72 weapon/armour rows carry a
+per-row `source` string; the other 69 do not, even though their values are page-backed and
+reproducibly re-derivable by re-running the parser. Writing those strings is cosmetic and
+nobody has asked for it.
+
+⚠ **This paragraph misled a later session** (2026-08-14) into offering the job as an open
+gap. The lesson generalises past this file: **when a tool closes a blocker, the prose that
+DESCRIBED the blocker is part of the change.** A stale "page-blocked" line reads exactly
+like a live one.

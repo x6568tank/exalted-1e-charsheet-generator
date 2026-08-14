@@ -1,3 +1,131 @@
+# Session handoff — 2026-08-14
+
+## The Book of Three Circles is browser-verified, and Group A is done
+
+**Three things shipped.**
+
+**1. BOTC click-through — clean.** All four items passed: the spell picker's Circle
+dropdown, the artifact/weapon comboboxes, the merit gate in both directions (the
+`_art_catalog` stale-closure trap did not fire), and the merit-gated names' absence from
+the Artifact-dot surfaces. `book-of-three-circles.md` is marked verified.
+
+**2. The one finding was presentational, and is fixed.** The Crimson Bow showed as two
+peer inventory rows — the artifact and the stat line `grant_gear` stamped for it — which
+the human read as *"odd, and a little obtuse."* It was the mechanism working; the
+inventory just rendered one object as two unrelated lines. **They are now ONE row**, the
+artifact owning it with the stat line in `detail` and `InventoryRow.linked_list_name` /
+`.linked_index` as a second route back to the gear editor. Display-only: the typed lists
+are untouched, so the dice-pool sidebar's positional indices into `character.weapons`
+still hold. Record: `gear-and-inventory.md`. The binding test names `build_gear`, not
+`inventory_rows` — the stat line has no row of its own now, so a panel that ignored
+`linked_index` would make it silently uneditable.
+
+**3. Group A — all 68 authored.** All ten books extracted with
+`extract_born_digital.py`, which is all Group A ever needed. Artifacts **237 → 302**,
+spells **294 → 296**, weapons **103 → 110**. Full record and the per-book table:
+`content-gap-retriage.md`.
+
+⚠ **Group A was 68, not 63.** Exact-name re-checking found five entries the retriage's
+fuzzy matcher had scored as present — *Implosion Bow, Light* against **Medium Implosion
+Bow**, *Masks that Command Animals* against the unrelated artifact named **Mask**. The
+retriage's own trap, firing on the retriage. **A fuzzy gap count is a LOWER bound on the
+work.**
+
+⚠ **An unflagged extraction page is not a clean page.** Six of seven GARBLED markers were
+running heads and blocked nothing — but **Cult p.70 was column-interleaved and NOT
+flagged**, splicing two artifacts' sentences together mid-clause with nothing to say so.
+Both that and Wood p.81 were resolved by rasterising with `pdftoppm -r 110`.
+
+## The fourth `(ARTIFACT N/A)` entry — ruled and shipped
+
+**The Iron Puzzle Box (Halta p.93)** prints `(ARTIFACT N/A)` and reads as a plot device
+of exactly the Mantle of Brigid class. **Human, 2026-08-14: "Legendary Artifact, yes."**
+Authored with `requires_merit`; `PLOT_DEVICES` in `test_rated_artifacts.py` is now four.
+
+⚠ **It is the standing counter-example to "no `(ARTIFACT N/A)` entry remains unauthored
+anywhere in the build."** That claim was only ever about the books read so far. Three
+Group B books are still unsynced and any of them can hold a fifth.
+
+## Group C — done the same day (3 authored, 2 false gaps, 3 pending your sign-off)
+
+The eight were really five. **Authored:** Five Directions Formation Protocol (PG p.242 —
+a Crimson Pentacle Blade **Charm**, not an artifact), Transference of the Sanctum (GoD
+p.49) and Gift of Knowledge. **False gaps:** *Implosion Bow, Medium* and *Nutrient
+Recycling Engine* were both already authored off the exact pages listed, under the
+BOOK's names — *Medium Implosion Bow* and *Portable Nutriment Recycling Engine*.
+
+**`E:S` is resolved: it is The Sidereals.** p.123 prints all three of that book's spells
+in one paragraph, so the gap list had split one page across two book codes. Fold `E:S`
+into Sidereals wherever it appears.
+
+⚠ **Seven false gaps across Groups A and C now, and a matcher that would have caught
+every one:** match on NAME, and when that fails, **match on BOOK + PAGE**. Both Group C
+misses cite the exact page of an entry already in the catalogue. No name matcher, fuzzy
+or exact, closes that; a page-keyed one closes all seven with no false positives.
+
+**Ruins of Rathess p.86 ×3 — RESOLVED, and not by the reassembly.** The book landed in
+`sources/`, so the page was rasterised and read directly: **Ring of Images ••, Crystal of
+Protection •••, Ring of Disguise •••**, all authored. Both independent reassemblies turned
+out to be exactly right — and it still should not have been authored on that basis. Two
+batches were right to skip it, and the real fix took one `pdftoppm` call the moment the
+book existed. **When a marked page is blocked, acquire the page; do not argue about the
+reassembly.**
+
+## Group B — DONE the same day. **The content gap is CLOSED.**
+
+All four remaining books landed in `sources/` and all 39 entries are authored. Every one
+is a **pure scan**, so each page was rasterised with `pdftoppm -r 110` and read directly.
+Record: `content-gap-retriage.md`.
+
+| | Session start | Now |
+|---|---|---|
+| Artifacts | 237 | **330** |
+| Spells | 294 | **304** |
+| Charms | 1,896 | **1,910** |
+| Weapons | 103 | **112** |
+| Armour | 27 | **28** |
+
+**Every book held more than the triage said** — Savage Seas 17→18, Time of Tumult 13→14,
+Storyteller's Companion 4→6, Sidereals 5→6. Across Groups A, B and C the fuzzy matcher
+undercounted by **11 entries**. Proven three times now: **a fuzzy gap count is a LOWER
+bound on the work**; when a name match fails, match on **book + page**.
+
+**The fifth `(ARTIFACT N/A)` arrived exactly where the record said it might** — the **Eye
+of Autochthon** (Storyteller's Companion p.80), the artifact the Legendary Artifact Merit
+names as its own exemplar. Authored on your standing ruling; `PLOT_DEVICES` is five.
+
+## Two printed defects — both closed 2026-08-14
+
+1. **"Minimum Offult: 3"** (Time of Tumult p.96, World Within a Picture Style). Verified
+   at 300 dpi that the "ff" is the book's typo, not the scan's. **Human ruled: it is
+   Occult.** Encoded as `extra_min_abilities: [{occult, 3}]`; the printed spelling stays
+   in the Charm's description so the book's text is not lost. Barring verified both ways.
+2. **"Wind-Defying Course Method"** (Savage Seas p.115) vs **"…Technique"** two entries
+   away. One Charm exists, and it is in the **COREBOOK at p.209-210**, not Savant and
+   Sorcerer. Wired and resolving.
+
+## The click-through — 2026-08-14, clean, no defects
+
+Four items, all passing, against a Solar Twilight at Essence 5 / Occult 3 / Craft 5
+holding Legendary Artifact: **the inventory merge with real content** (five rows not
+eight, the armour half rendering `Mob-2` correctly), **the Occult gate**, **the
+merit-gated five**, and **the new catalogue** counts and names.
+
+Preflight earned its keep beforehand: the **armour side of the merge had no test**, and
+the Armor of Aquatic Puissance had just made it a live shape. Test added before booking
+browser time.
+
+## Next
+
+**Nothing is blocked, nothing is half-finished, and the catalogue is complete.** The two
+remaining unauthored areas — the Mist numina and Cult Abyssals — are **deferred
+indefinitely** and are not gaps.
+
+1. **Commit and push.** ~25 files are uncommitted: the inventory merge, ~120 catalogue
+   entries across nine books, the Occult fix, and the doc corrections.
+2. **The Qt port** remains the standing post-1.0 goal, still not scheduled
+   (`docs/plans/qt-port.md`). Do not treat it as a 1.0 blocker.
+
 # Session handoff — 2026-08-13 (late)
 
 ## The Book of Three Circles is authored — all 62 entries, ⚠ NOT browser-verified

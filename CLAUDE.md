@@ -154,7 +154,7 @@ costs — read the record before proposing anything that contradicts it.
 | 0014 | Essence is XP-purchasable to the splat cap; the age chart is gone |
 | 0015 | **Exalt tiers are RANKED** — Terrestrial < Celestial < Solar; a splat reaches its own tier and every tier below, never up |
 | 0016 | **Base dice pools are in scope; resolution is not** — narrows 0008's boundary, leaves 0009 untouched |
-| 0017 | **Artifacts have TWO acquisition channels** — the Artifact Background is pre-game ("to start the game owning", core p.342), cash is in-play (M&C pp.122-125); only Background-funded artifacts are budgeted, and purchase is barred at chargen. ⚠ **A THIRD joined them 2026-08-13** (human's ruling, not yet its own record): a plot device printing "(ARTIFACT N/A)" is bought with the **Legendary Artifact 10-pt Merit** and charged to no budget — `docs/status/book-of-three-circles.md` |
+| 0017 | **Artifacts have TWO acquisition channels** — the Artifact Background is pre-game ("to start the game owning", core p.342), cash is in-play (M&C pp.122-125); only Background-funded artifacts are budgeted, and purchase is barred at chargen. ⚠ **A THIRD joined them 2026-08-13** (human's ruling, not yet its own record): a plot device printing "(ARTIFACT N/A)" is bought with the **Legendary Artifact 10-pt Merit** and charged to no budget — re-affirmed 2026-08-14 on a fourth entry, so treat it as the standing answer for the shape rather than a per-entry call, while still confirming each — `docs/status/book-of-three-circles.md` |
 
 **Permanently out of scope** — decisions 0008, 0009 and 0010 (no combat/attack
 derivation, no dice rolling of any kind, no Fair Folk). Read them before proposing any
@@ -221,7 +221,7 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,347 passing**. ⚠ **One machine-specific exception:**
+The suite is green: **2,362 passing**. ⚠ **One machine-specific exception:**
 `test_every_description_matches_the_source_text` fails with 46 entries on a machine
 where `images/Non-Exalts/Godblooded/CH2 - Godblooded.md` is present (descriptions
 summarize the fuller printed text → below 92%) and passes where it is absent (entries
@@ -236,10 +236,11 @@ full record.
 |---|---|
 | **Session handoff — rewritten each session** | `docs/status/handoff.md` |
 | **The 1.0 catalogue sweep — DONE for everything on disk** (six delegated batches; the `sources/` extraction pipeline and its three glyph ciphers; five traps worth re-reading) | `docs/status/catalogue-sweep.md` |
-| **The content gap, re-triaged 2026-08-13** (467 of 647 discovery rows now authored; the 180 left split into 63 extract-now / 101 rasterise-and-read / 8 misses / 8 closed rulings — **nothing is page-blocked**; and 19 of the old count were a `name`-only matcher missing `variants`) | `docs/status/content-gap-retriage.md` |
-| **Book of Three Circles — DONE 2026-08-13, NOT yet browser-verified** (all 62 gap entries: spells 246 → **294**, artifacts 222 → **237**, the Crimson Bow's weapon row; read off a PURE SCAN with `pdftoppm -r 110`, no VLM leg; **S&S wins every conflict** per the human; the ch.4 circle is **Solar**, not the index's "Adamant"; ch.5 rates by **LEVEL N heading**; and the two `(ARTIFACT N/A)` plot devices became a **THIRD acquisition channel** — see the row below) | `docs/status/book-of-three-circles.md` |
-| **Merit-gated artifacts — the third acquisition channel** (human, 2026-08-13: the Mantle of Brigid, the Sword of Ice and the B&E **Insidious Ebon Xoanon** — every `ARTIFACT N/A` entry in the build — are plot devices bought with the **Legendary Artifact 10-pt Merit**, charged to no budget — amends decision 0017's "two channels". `ArtifactType.requires_merit` is DATA so no module names a Merit id; the OFFER moves with the Merit (`purchasable_artifacts`) and the BAR runs both sides of the lock (`artifact-missing-merit`). ⚠ The bar keys on the artifact NAME, not on the player-editable `acquired`; `rating: 5` is a placeholder the model's 1-5 bound demands and the inventory prints "Artifact N/A · by Merit") | `docs/status/book-of-three-circles.md` |
+| **The content gap — CLOSED 2026-08-14** (all 647 discovery rows resolved: Groups A, B and C authored, artifacts **330**, spells **304**, Charms **1,910**. ⚠ **The triage undercounted by 11 across all three groups** — fuzzy name matching scores real gaps as present, so a fuzzy gap count is a LOWER bound on the work; when the name match fails, **match on book + page**. ⚠ Two printed defects were found and both are CLOSED: ToT p.96's "Minimum **Offult**: 3" (verified a real typo at 300 dpi; human ruled it Occult, now encoded as `extra_min_abilities`, with the printed spelling kept in the description) and Savage Seas p.115's "Wind-Defying Course **Method**" vs "Technique" (one Charm, in the COREBOOK p.209-210 — not S&S). ⚠ A prerequisite that resolves to nothing may be a **parameterised** name, not a missing entry — "Keen Sight Technique" is the Sight instance of `Keen (Sense) Technique`) | `docs/status/content-gap-retriage.md` |
+| **Book of Three Circles — DONE 2026-08-13, browser-verified 2026-08-14** (all 62 gap entries: spells 246 → **294**, artifacts 222 → **237**, the Crimson Bow's weapon row; read off a PURE SCAN with `pdftoppm -r 110`, no VLM leg; **S&S wins every conflict** per the human; the ch.4 circle is **Solar**, not the index's "Adamant"; ch.5 rates by **LEVEL N heading**; and the two `(ARTIFACT N/A)` plot devices became a **THIRD acquisition channel** — see the row below) | `docs/status/book-of-three-circles.md` |
+| **Merit-gated artifacts — the third acquisition channel** (human, 2026-08-13 and again 2026-08-14: the Mantle of Brigid, the Sword of Ice, the B&E **Insidious Ebon Xoanon** and the Halta **Iron Puzzle Box** are plot devices bought with the **Legendary Artifact 10-pt Merit**, charged to no budget — amends decision 0017's "two channels". `ArtifactType.requires_merit` is DATA so no module names a Merit id; the OFFER moves with the Merit (`purchasable_artifacts`) and the BAR runs both sides of the lock (`artifact-missing-merit`). ⚠ The bar keys on the artifact NAME, not on the player-editable `acquired`; `rating: 5` is a placeholder the model's 1-5 bound demands and the inventory prints "Artifact N/A · by Merit". ⚠ **"That is every `ARTIFACT N/A` entry in the build" is a claim about the books READ SO FAR and was falsified TWICE in one day** — the Iron Puzzle Box (Halta p.93) surfaced the moment Group A was extracted, and the **Eye of Autochthon** (Storyteller's Companion p.80) — the artifact the Merit's own text names as its exemplar — surfaced in Group B. Five entries; `PLOT_DEVICES` in `test_rated_artifacts.py` asserts the set) | `docs/status/book-of-three-circles.md` |
 | How `source.book` is written, and why it rots | `docs/source-attribution.md` |
+| **Mist numina / the Mist aspect — DEFERRED INDEFINITELY** (read 2026-08-14, never page-blocked; there is no numen effect LIST to author — the ST and player define one per point of Essence. Holds the transformation package and corrects two claims CLAUDE.md used to make) | `docs/status/mist-numina.md` |
 | **How it works** (module boundaries, lifecycle, invariants) | `docs/ARCHITECTURE.md` |
 | **Why** (closed decisions, one record each) | `docs/decisions/` |
 | **The rules data** (conventions, what the loader checks) | `docs/content.md` |
@@ -251,7 +252,7 @@ full record.
 | Lunar (chargen, Attribute-keyed Charms, Gifts, Combos) | `docs/status/lunar.md` |
 | Sidereal (Colleges, ronin, Paradox, Charms, SMA wiring) | `docs/status/sidereal.md` |
 | Alchemical (Charm Slots, Arrays, Submodules, Clarity, Vat Refit) | `docs/status/alchemical.md` |
-| Solar alt-origin: Cult of the Illuminated (Camps, Callings, granted Charms) — **plus the Cult's own Artifact Background and the Cult DRAGON-BLOODED origin, both browser-verified 2026-08-12**; Cult Abyssals deliberately deferred | `docs/status/illuminated.md` |
+| Solar alt-origin: Cult of the Illuminated (Camps, Callings, granted Charms) — **plus the Cult's own Artifact Background and the Cult DRAGON-BLOODED origin, both browser-verified 2026-08-12**; Cult Abyssals **DEFERRED INDEFINITELY** (human, 2026-08-14 — 56 Charms would need human-approved mappings; not a gap, do not propose it) | `docs/status/illuminated.md` |
 | DB origins: Lookshy / Forest Witches / Lost Eggs / Pirates (`upbringing` axis) | `docs/status/dragonblooded-origins.md` |
 | DB Aspect Books CH6 (87 Charms, Jade Mountain, breadth prereqs, gear) | `docs/status/dragonblooded-aspect-books.md` |
 | **Thaumaturgy — DONE** (cross-splat Arts/Sciences/Rituals/Formulas; engine + UI, browser-verified) | `docs/status/thaumaturgy.md` |
@@ -277,18 +278,27 @@ full record.
 
 **State of the world:** the foundation (models, persistence, engine, UI) is done
 (`engine-and-ui.md`); every shipped splat's data, engine and UI is browser-verified,
-including Mountain Folk (2026-08-07). **The 1.0 catalogue sweep finished 2026-08-11
-(`catalogue-sweep.md`): 1,836 Charms/Arcanoi, then-246 spells, then-196 rated artifacts**, all
-browser-verified. **The corebook Wonders chapter followed on 2026-08-12** — artifacts
-**196 → 222** (the ten Hearthstones + sixteen Greater Wonders), plus the four arrows,
-three helms and the ten sample Virtue Flaws, unblocked by solving the corebook's
-thirteenth font, and followed the same day by the Hearthstone allowance rules
-(`docs/status/corebook-wonders.md`); all browser-verified 2026-08-13. **The Book of Three
-Circles followed on 2026-08-13** — spells **246 → 294**, artifacts **222 → 237**, read
-straight off a pure scan (`docs/status/book-of-three-circles.md`), not yet
-browser-verified. **120 catalogue entries are still missing and, since the 2026-08-13
-re-triage, NONE of them is page-blocked** (`docs/status/content-gap-retriage.md`). `sources/` extraction is authorised and eight books are decoded into
-`images/_extracted/` — and **`sources/` itself is now on this machine (2026-08-13)**, which unblocks several syncs the catalogue sweep had listed as page-blocked. **A top-level Gear tab shipped 2026-08-13** — everything owned on one surface, with mundane goods and a shop (`docs/status/gear-and-inventory.md`).
+including Mountain Folk (2026-08-07).
+
+**The catalogue is COMPLETE as of 2026-08-14 and browser-verified the same day.** All 647
+rows of the content-gap discovery set are resolved — the 2026-08-11 sweep, the corebook
+Wonders chapter (2026-08-12), the Book of Three Circles (2026-08-13) and Groups A, B and C
+of the re-triage (2026-08-14). Final counts: **Charms 1,910 · spells 304 · artifacts 330 ·
+weapons 112 · armour 28.** `docs/status/content-gap-retriage.md` is the record.
+**Nothing is page-blocked and nothing is a known gap.** The only unauthored content is
+deliberately deferred — the Mist numina and Cult Abyssals, both **indefinitely**, and
+neither is a gap (see their entries; a sweep that lists them is counting a deferral as an
+oversight).
+
+⚠ **The gap counts were LOW at every stage** — the fuzzy name matcher scored real gaps as
+already present, undercounting Groups A/B/C by 11 entries. **A fuzzy gap count is a LOWER
+bound on the work; when a name match fails, match on BOOK + PAGE.** And a prerequisite that
+resolves to nothing may be a **parameterised** name rather than a missing entry
+("Keen Sight Technique" is the Sight instance of `Keen (Sense) Technique`).
+
+**A top-level Gear tab shipped 2026-08-13** — everything owned on one surface, with mundane
+goods and a shop (`docs/status/gear-and-inventory.md`); its inventory now shows an artifact
+and its granted stat line as **one row** (browser-verified 2026-08-14).
 Ship dates for everything else live in the per-splat status docs and the git log.
 
 ### Removed
@@ -357,21 +367,22 @@ durable operating guide; do not re-accumulate handoff narrative here.
 `images/_extracted/` — three of them were ciphered, the corebook with thirteen fonts
 each carrying its own cipher (`tools/glyph_maps/`, `tools/solve_cid_bands.py`).
 
-**RE-TRIAGED 2026-08-13 → `docs/status/content-gap-retriage.md`, which supersedes both
-the sweep's closing section and `content-gap-entries.md`'s "Pages on disk?" column.**
-467 of the 647 discovery rows have been authored; **180 remained and NONE was
-page-blocked** — then the **Book of Three Circles was read on 2026-08-13** (60 authored,
-2 unauthorable), leaving **120**: 63 sit in born-digital books never extracted (five
-Aspect Books, Abyssals pp.254-261, Blood and Salt, Halta, Cult, Manacle and Coin), 39
-behind pure scans that rasterise fine (Savage Seas 17, Time of Tumult 13, Sidereals 5, ST
-Companion 4), 8 are per-entry misses in books already extracted, and 10 are closed. **Every book
-named above is in `sources/` — check it before recording anything as blocked.**
+**RE-TRIAGED 2026-08-13, then FINISHED 2026-08-14 → `docs/status/content-gap-retriage.md`,
+which supersedes both the sweep's closing section and `content-gap-entries.md`'s "Pages on
+disk?" column.** All 647 discovery rows are resolved; **the gap is CLOSED and
+browser-verified.** Nothing here is page-blocked or outstanding.
 
-⚠ **19 of the old 213 were never missing** — the Lunar 17 and 3 of the PG 5 are Deadly
-Beastman Transformation **Gifts**, authored as `variants` on the parent Charm, and a
-`name`-only diff cannot see them. **A gap number is an upper bound until the matcher has
-been pointed at every shape a Charm takes here** (`name`, `variants[].label`, the
-parameterised entries).
+⚠ **The matcher was wrong in BOTH directions, and both are worth carrying:**
+- **It over-reported.** 19 of the old 213 were never missing — the Lunar 17 and 3 of the
+  PG 5 are Deadly Beastman Transformation **Gifts**, authored as `variants` on the parent
+  Charm, which a `name`-only diff cannot see.
+- **It under-reported.** Fuzzy matching scored 11 REAL gaps as already present across
+  Groups A/B/C (*"Implosion Bow, Light"* matched **Medium Implosion Bow**; *"Masks that
+  Command Animals"* matched the unrelated artifact **Mask**). **A fuzzy gap count is a
+  LOWER bound on the work.** Every one of those would have been caught by matching on
+  **BOOK + PAGE** when the name match fails — but note the converse: five entries printed
+  in two books each were caught by NAME and would have slipped a page-keyed check. **Use
+  both.**
 
 ⚠ **The Ollama VLM leg is for NON-VISUAL models** (human, 2026-08-13). A vision-capable
 model rasterises a scan with `pdftoppm` and reads the pages itself; the
@@ -386,17 +397,25 @@ model rasterises a scan with `pdftoppm` and reads the pages itself; the
   status file.
 
 ### Blocked / not started
-* **Dragon-Blooded numina / the Mist aspect** — the ONE piece of the Outcaste book
-  left unauthored (deliberate, human's call 2026-07-29). The Forest Witch summary
-  (p.133) gives Mist as an aspect with NO Aspect Abilities whose power is "one numen
-  effect per point of Essence"; a numen must buy Cult • or Cult ••, replaces one Charm
-  with Dematerialize, and reduces Temperance by one dot if it has a blight or affliction
-  (p.132). ⚠ **No longer page-blocked as recorded — RE-CHECK BEFORE PLANNING.**
-  `sources/` landed on 2026-08-13 and **Outcaste p.118 is readable**; it carries the
-  Cult •/•• effects. Whether it also carries the numen effect LIST is unconfirmed, and
-  *Games of Divinity* — which this entry cites for it — does not contain the word
-  "numina" on any page. Read the pages before authoring, and do not trust this
-  paragraph's cross-references.
+
+**Nothing is blocked.** As of 2026-08-14 the catalogue is complete, `sources/` holds every
+book the discovery set names, and no work item is waiting on a page. The entries below are
+**deferred by ruling, not blocked** — they are not gaps and must not be offered as
+follow-ups.
+
+* ~~**Dragon-Blooded numina / the Mist aspect**~~ — **DEFERRED INDEFINITELY** (human,
+  2026-08-14: *"a very specific sub-section of a splat that can be indefinitely
+  deferred"*, the same standing as the God-Blooded corners). **Do not propose it or offer
+  it as a follow-up.** It was fully READ on 2026-08-14 and was never page-blocked;
+  `docs/status/mist-numina.md` holds the mechanics and the two things this file used to
+  say about it that were wrong. ⚠ **It is not a gap** — there is no numen effect LIST to
+  author, because the book has the ST and player define one effect per point of Essence.
+  A sweep that lists it as unauthored is counting a deferral as an oversight.
+* ~~**Cult Abyssals** (Cult of the Illuminated p.96)~~ — **DEFERRED INDEFINITELY** (human,
+  2026-08-14, alongside the Mist numina). The blocker is "their Calling Charms and required
+  Charms are replaced with the closest Abyssal equivalent" — **56 unmapped Charms**, each
+  needing a human ruling, to buy one alt-origin of one splat. `docs/status/illuminated.md`.
+  ⚠ Also not a gap.
 
 ### Recently shipped — traps to remember
 The full record lives in `docs/status/`. These are the cross-cutting lessons that
@@ -408,9 +427,13 @@ survive any status rewrite:
   in its own text.** Buying at cost EQUAL to your Resources lowers the rating by one, so
   the book's own outcome is a character holding gear she could not now afford — a static
   "no item above your rating" check would flag the rule working correctly. The Artifact
-  budget looked like the precedent and was the wrong model. ⚠ 63 of the 66 costs are
-  still unattributed (the corebook's Cost column is dot glyphs the font cipher did not
-  resolve, on a page flagged GARBLED).
+  budget looked like the precedent and was the wrong model. ⚠ The "63 costs unattributed"
+  line that sat here is **RESOLVED (2026-08-13) — do not re-open it.** The corebook's dot
+  glyph never needed decoding, only identifying (`(cid:10)` in `ZTR41CA.tmp,Bold`, counted
+  per row); `tools/parse_resources_costs.py` verifies 42/42 and `parse_mc_prices.py` did
+  Manacle and Coin 43/43. Only per-row `source` STRINGS are missing on 69 weapon/armour
+  rows — metadata, not correctness. ⚠ The stale line misled a session on 2026-08-14:
+  **when a tool closes a blocker, the prose describing the blocker is part of the change.**
 * **Backgrounds** (`docs/status/backgrounds.md`) — **`catalogue_backgrounds` is what the
   dropdown OFFERS; `allowed_backgrounds` is HARD validation.** Two more that generalise:
   **when a structural invariant is relaxed, name where it moved TO in the same change**

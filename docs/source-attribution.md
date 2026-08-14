@@ -87,3 +87,23 @@ The never-author-from-memory rule applies to `source.book` exactly as it does to
 or a minimum. If you do not know which printing a value came from, **ask** — do not
 guess from the splat, and do not copy the neighbouring record's book because it looks
 right. A wrong attribution is worse than an absent one: it reads as verified.
+
+
+## ⚠ `images/_extracted/Exalted Core.md` page markers run ONE LOW (found 2026-08-14)
+
+The extractor emits `<!--PAGE n-->` *before* the page body, so content after a marker
+belongs to page n — but for the **corebook extraction specifically** that `n` is one
+lower than the printed folio. Verified against the PDF at `pdftoppm -r 100`:
+
+* Wind-Defying Course Technique sits between the extraction's `PAGE 209` and `PAGE 210`
+  markers, but is printed on **210** (and the corebook index agrees).
+* The extraction's `PAGE 210` marker is followed by Storm-Weathering Essence Infusion,
+  which is printed on **211**.
+
+**So: a page number read off that file's markers needs +1.** This bit once already — an
+attribution was questioned as "should be 209" when the stored 210 was correct all along.
+Cite from the printed folio or the book's own index, not from the marker, and when the
+two disagree, rasterise the page and look at the number in the footer.
+
+The offset is a property of THIS extraction, not of the tool. Do not assume it for other
+books; check one known entry per book before trusting the markers.

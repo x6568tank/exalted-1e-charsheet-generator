@@ -168,12 +168,16 @@ Solar still getting the corebook Artifact. Suite at 2,172.
 
 ### Deliberately NOT authored
 
-- **Cult Abyssals (p.96)** — deferred (human, 2026-08-12). The budget deltas are
-  trivial (as Cult Solars, but 7 Background dots and none of the Indoctrination
-  flaws); the blocker is "their Calling Charms and required Charms are replaced with
-  the closest Abyssal equivalent", which is **56 unmapped Charms** — only 3 of the 59
-  Solar ids in the camps and Callings exist by name in the Abyssal catalogue. Needs a
-  human-approved mapping, not an inference.
+- **Cult Abyssals (p.96)** — **DEFERRED INDEFINITELY** (human, 2026-08-12 as a deferral,
+  confirmed indefinite 2026-08-14 alongside the Mist numina: a very specific sub-section
+  of a splat). **Do not propose it or offer it as a follow-up.** The budget deltas are
+  trivial (as Cult Solars, but 7 Background dots and none of the Indoctrination flaws);
+  the blocker is "their Calling Charms and required Charms are replaced with the closest
+  Abyssal equivalent", which is **56 unmapped Charms** — only 3 of the 59 Solar ids in the
+  camps and Callings exist by name in the Abyssal catalogue. That mapping is a design job
+  requiring 56 human rulings, not an inference, and it buys one alt-origin of one splat.
+  ⚠ **It is not a gap.** A sweep that lists these Charms as missing is counting a
+  deferral as an oversight.
 - **Tiger Warriors for Cult Dragon-Blooded** — the pages say Dragon-Blooded sometimes
   *are* tiger warriors and appear as attendants at •••• and •••••, never that they may
   buy the Background. Left out; flag if the table wants it.

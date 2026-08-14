@@ -61,6 +61,33 @@ would overlap."*
   / `.index`. The three per-kind panels are gone: an inventory listing everything, beside
   panels editing the same objects, was four surfaces for one job — and only the list can
   show a daiklave as both weapon and artifact.
+* **An artifact and the stat line `grant_gear` stamped for it are ONE ROW** (2026-08-14,
+  the human on the BOTC click-through: two peer rows for one Crimson Bow *"feels odd, and
+  a little obtuse"*). **Browser-verified 2026-08-14** against real catalogue content — the
+  Wavecleaver Daiklaive and Lightning Ballista on the weapon side, and the **Armor of
+  Aquatic Puissance** on the armour side, whose `mobility_penalty` renders as the printed
+  **-2** (the sign that has bitten twice). ⚠ The armour half had **no test** until
+  preflight caught it on the day the Armor of Aquatic Puissance made it a live shape —
+  the merge loops over both lists, but every test written for it had used a weapon.
+  The artifact owns the row — it is the object; the gear row is what
+  it DOES — and the stat line rides in `detail` with `InventoryRow.linked_list_name` /
+  `.linked_index` as a SECOND route back. Three things this had to preserve, each with a
+  test:
+  - **the merged row keeps BOTH filter kinds**, so a daiklave is still under Weapons.
+    Merging two rows must not cost the object a filter it used to appear under;
+  - **the expansion renders BOTH editors** (the artifact's, then the gear half under a
+    "Stat line" heading). The stat line has no row of its own any more, so a panel that
+    ignored `linked_index` would make it silently uneditable — the view would be right
+    and the surface wrong, which is why the binding test names `build_gear` and not
+    `inventory_rows`;
+  - **an ORPHANED link does not merge** (`from_artifact` pointing at a renamed or deleted
+    artifact). The gear row stands alone AND counts as an artifact on its own, matching
+    `artifact_items` — a merge that hid it would make it free.
+  ⚠ The merge keys on `from_artifact`, **never on the name**: a hand-entered same-named
+  weapon is a second object that the budget charges for, and hiding it behind the first
+  would contradict the validator.
+  ⚠ Display-only. The typed lists are untouched, so `character.weapons` keeps the
+  positional indices the dice-pool sidebar reads.
 
 ### Buy — one shop over every priced catalogue
 Replaces four per-panel dialogs ("Add weapon" / "Add armor" / "Add goods" / artifacts),

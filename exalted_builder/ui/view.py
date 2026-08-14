@@ -194,6 +194,16 @@ class InventoryRow:
     acquired: str = ""                     # only meaningful for artifacts
     index: int = 0                         # position in its OWN list
     list_name: str = ""                    # which list that is — the edit route back
+    # An artifact and the gear row `grant_gear` stamped for it are ONE OBJECT and get
+    # ONE row (the human, 2026-08-13: two peer rows for one daiklave "feels odd, and a
+    # little obtuse"). The artifact owns the row; its stat line rides in `detail` and
+    # its editor is reached through this SECOND route back. Empty for every unmerged
+    # row, which is all but twenty of the catalogue.
+    #
+    # ⚠ Display-only. The typed lists are untouched, so `character.weapons` keeps its
+    # positional indices — the dice-pool sidebar reads them.
+    linked_list_name: str = ""
+    linked_index: int = 0
 
 
 INVENTORY_FILTERS = ("all", "weapon", "armor", "artifact", "goods",
@@ -219,8 +229,29 @@ def inventory_rows(ruleset: RuleSet, character: Character) -> list[InventoryRow]
     def _art(source: str, name: str):
         return owned.get(artifactsmod.item_key(source, name))
 
+    # Which standalone artifact each granted gear row belongs to, as
+    # `(list_name, gear index) -> artifact index`. Resolved against the artifacts
+    # actually present rather than trusting the stored key, so an ORPHANED link (the
+    # artifact renamed or deleted) leaves the gear row standing on its own line instead
+    # of merging into nothing and vanishing — the same failure direction
+    # `artifact_items` picked for the same link.
+    art_index = {}
+    for idx, art in enumerate(character.artifacts):
+        if art.name.strip():
+            art_index.setdefault(
+                artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, art.name), idx)
+    merged: dict[int, tuple[str, int]] = {}          # artifact idx -> (list, gear idx)
+    for list_name, gear in (("weapons", character.weapons), ("armor", character.armor)):
+        for idx, item in enumerate(gear):
+            target = art_index.get(item.from_artifact)
+            if item.from_artifact and target is not None and target not in merged:
+                merged[target] = (list_name, idx)
+    merged_gear = {v for v in merged.values()}
+
     rows: list[InventoryRow] = []
     for idx, w in enumerate(character.weapons):
+        if ("weapons", idx) in merged_gear:
+            continue          # shown on its artifact's row, as one object
         item = _art(artifactsmod.SOURCE_WEAPON, w.name)
         kinds = ["weapon"]
         if item is not None:
@@ -234,6 +265,8 @@ def inventory_rows(ruleset: RuleSet, character: Character) -> list[InventoryRow]
             acquired=w.acquired if item is not None else "",
             index=idx, list_name="weapons"))
     for idx, a in enumerate(character.armor):
+        if ("armor", idx) in merged_gear:
+            continue
         item = _art(artifactsmod.SOURCE_ARMOR, a.name)
         kinds = ["armor"] + (["artifact"] if item is not None else [])
         rows.append(InventoryRow(
@@ -243,10 +276,24 @@ def inventory_rows(ruleset: RuleSet, character: Character) -> list[InventoryRow]
             acquired=a.acquired if item is not None else "",
             index=idx, list_name="armor"))
     for idx, art in enumerate(character.artifacts):
+        kinds, detail, link = ["artifact"], art.note, ("", 0)
+        if idx in merged:
+            list_name, gear_idx = merged[idx]
+            gear = getattr(character, list_name)[gear_idx]
+            # The STAT LINE is what the merged row shows, because that is the half a
+            # player is looking for on a weapon they own — the artifact's own note is
+            # prose and lives in its editor. `kinds` gains the gear's kind so the row
+            # still answers to the Weapons/Armor filter: merging two rows must not cost
+            # the object a filter it used to appear under.
+            kinds.append("weapon" if list_name == "weapons" else "armor")
+            detail = (weapon_stat_line(gear) if list_name == "weapons"
+                      else armor_stat_line(gear))
+            link = (list_name, gear_idx)
         rows.append(InventoryRow(
-            name=art.name or "(unnamed)", kinds=("artifact",),
-            detail=art.note, artifact_rating=art.rating, acquired=art.acquired,
-            index=idx, list_name="artifacts"))
+            name=art.name or "(unnamed)", kinds=tuple(kinds),
+            detail=detail, artifact_rating=art.rating, acquired=art.acquired,
+            index=idx, list_name="artifacts",
+            linked_list_name=link[0], linked_index=link[1]))
     for idx, g in enumerate(character.gear):
         rows.append(InventoryRow(
             name=g.name or "(unnamed)", kinds=("goods",), detail=g.note,

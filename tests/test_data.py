@@ -208,7 +208,19 @@ def test_full_melee_chain_is_legal_on_real_data():
 
 def test_spells_load_with_expected_circle_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
-    assert len(rs.spells) == 294
+    # 2026-08-14: +2 Terrestrial from Blood and Salt p.125 (Song of the Lintha, Water's
+    # Ally) — Group A of the content re-triage, read with `extract_born_digital.py`.
+    # 2026-08-14, Group C: +1 Solar (Transference of the Sanctum, Games of Divinity p.49)
+    # and +1 Celestial (Gift of Knowledge, The Sidereals p.123 — the entry the gap list
+    # filed under the unresolved book code `E:S`, which IS Sidereals: p.123 names all
+    # three of that book's spells together).
+    # +2 more: the other two Sidereals p.122-123 spells (Open the Spirit Door,
+    # Summoning the Heavenly Portal), read off the same rasterised pages.
+    # +4 more on 2026-08-14, finishing Group B: Savage Seas pp.117-118 (Water's Chilling
+    # Grasp Terrestrial; Storm Rider Enchantment, Summon Spirit Boat and Swift Journey
+    # Celestial). ⚠ Water's Ally is printed in BOTH Savage Seas p.117 and Blood and Salt
+    # p.125 with identical text — one spell, authored once off Blood and Salt.
+    assert len(rs.spells) == 304
     by_circle: dict = {}
     for s in rs.spells.values():
         by_circle[s.circle] = by_circle.get(s.circle, 0) + 1
@@ -228,9 +240,9 @@ def test_spells_load_with_expected_circle_counts():
     # scanned pages directly (pdftoppm -r 110; PDF page = book page + 1). Where the two
     # books print the same spell, Savant and Sorcerer wins (human's ruling), so the S&S
     # copies were left untouched and only names absent from the build were authored.
-    assert by_circle == {SpellCircle.TERRESTRIAL: 98,
-                         SpellCircle.CELESTIAL: 44,
-                         SpellCircle.SOLAR: 31,
+    assert by_circle == {SpellCircle.TERRESTRIAL: 102,
+                         SpellCircle.CELESTIAL: 49,
+                         SpellCircle.SOLAR: 32,
                          SpellCircle.SHADOWLANDS: 42,
                          SpellCircle.LABYRINTH: 24,
                          SpellCircle.VOID: 17,
@@ -310,7 +322,15 @@ def test_weapon_and_armor_catalogs_load():
     # and are free unless a specific type states otherwise (human, 2026-08-12).
     # + The Crimson Bow (Book of Three Circles p.95), the one BOTC artifact printed with
     # a full weapon stat line, so it gets a stat row here as well as a catalogue entry.
-    assert len(rs.weapon_catalog) == 103
+    # + 7 on 2026-08-14 with Group A: the stat lines printed alongside their artifact
+    # entries, the same dual-nature pattern the Crimson Bow follows — Sky-Cutter and
+    # Cold Wind Knives (Halta pp.95/93), Shining Daiklave of Darkness (Cult p.70),
+    # Light Implosion Bow (Blood and Salt p.120), and the Whip of Devouring Serpents,
+    # Repeating Maggot-Caster and Vessel of the Pyre (Abyssals pp.261/259/256).
+    # +2 on 2026-08-14 with Group B: the Wavecleaver Daiklaive and the Lightning
+    # Ballista (Savage Seas pp.126-127), both printed with full stat lines beside their
+    # artifact entries.
+    assert len(rs.weapon_catalog) == 112
     # 17 corebook + the artifact Chain Shirt (Dawn p.81), Cloak of Vanishing
     # Escape (Night p.81) and the Most Terrifying Armor of the Air Dragon (Air p.81),
     # + the three p.335 SHIELDS, which are armour rows tagged "shield" rather than a
@@ -319,8 +339,11 @@ def test_weapon_and_armor_catalogs_load():
     # + the three p.334-335 HELMS, which are armour rows tagged "helm" and carry no
     # stats at all — the book says all helms are mechanically identical and largely
     # cosmetic. rs.body_armor() excludes both accessories.
-    assert len(rs.armor_catalog) == 27
-    assert len(rs.body_armor()) == 21
+    # +1 on 2026-08-14: the Armor of Aquatic Puissance (Savage Seas p.124), which prints
+    # a full armour line beside its artifact entry — Soak 10L/12B, Mobility -2, Fatigue
+    # 1, Commitment 8. ⚠ Mobility is stored NEGATIVE, matching the printed "-2/0".
+    assert len(rs.armor_catalog) == 28
+    assert len(rs.body_armor()) == 22
     assert len(rs.shields()) == 3
     assert len(rs.helms()) == 3
     assert all(h.soak_lethal == 0 and h.soak_bashing == 0 and h.fatigue == 0
@@ -348,7 +371,33 @@ def test_artifact_catalog_loads_the_ten_mountain_folk():
     # `purchasable_with_artifact` keeps them off every Artifact-dot surface.
     # +1 more: the Insidious Ebon Xoanon (B&E p.104), unauthorable since the 2026-08-11
     # sweep for exactly that reason and ruled the same way by the human on 2026-08-13.
-    assert len(rs.artifact_catalog) == 237
+    # 2026-08-14: +28 from the five Dragon-Blooded Aspect Books (Group A of the content
+    # re-triage), each printing its artifacts in the same three-page slot: Air 13
+    # (pp.75-78, 81), Earth 6 (pp.79-81), Wood 4 (pp.79-81), Water 3 (pp.80-81), Fire 2
+    # (p.79). Read with `extract_born_digital.py`, which is all Group A needed. One
+    # entry — the Prey Stalking Bow (Wood p.81) — sat under a COLUMN SPLIT FAILED marker
+    # and was read instead off `pdftoppm -r 110`, the Book of Three Circles method.
+    # +40 more the same day, finishing Group A: the Abyssals pp.254-261 (16 — the OCR'd
+    # copy carries a text layer), Blood and Salt (11), Cult of the Illuminated (5),
+    # Kingdom of Halta (4 of 5) and Manacle and Coin p.31 (1), plus the four Aspect
+    # Books above. ⚠ The gap list called Abyssals 14 and Cult 4; exact-name matching
+    # says 16 and 5. The retriage's fuzzy matcher over-matched — "Implosion Bow, Light"
+    # against "Medium Implosion Bow", "Masks that Command Animals" against "Mask" — so
+    # Group A was 68 entries, not 63. Same trap the retriage itself documents.
+    # Halta's fifth, the Iron Puzzle Box, prints "(ARTIFACT N/A)"; the human ruled it a
+    # Legendary Artifact plot device on 2026-08-14, the same as the other three, so it
+    # is authored with `requires_merit` and charged to no budget.
+    # +3 on 2026-08-14: Ruins of Rathess p.86 (Ring of Images ••, Crystal of Protection
+    # •••, Ring of Disguise •••). Two batches had skipped these behind a
+    # `COLUMN SPLIT FAILED` marker; the book landed in `sources/` and the page was read
+    # directly off `pdftoppm -r 110`, so nothing here rests on the reassembly — though
+    # both independent reassemblies turned out to be exactly right.
+    # +24 on 2026-08-14, closing Group B — the last of the content gap that needed a
+    # page read. Storyteller's Companion 6 (pp.77-80), Time of Tumult 11 (pp.15-95),
+    # Savage Seas 4 (pp.123-127) and The Sidereals 3 (pp.24, 39). All four books are
+    # PURE SCANS, so `extract_born_digital` was inapplicable and every page was
+    # rasterised with `pdftoppm -r 110` and read directly.
+    assert len(rs.artifact_catalog) == 330
     # Ratings and the printed ranges, from the Technology chapter (pp.279-283).
     visor = rs.artifact_catalog["artifact.mountain-folk.essence-scrying-visor"]
     assert visor.rating == 1 and visor.source == "Mountain Folk p.279"

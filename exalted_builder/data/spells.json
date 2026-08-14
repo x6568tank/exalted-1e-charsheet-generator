@@ -3821,5 +3821,137 @@
       "book": "Book of Three Circles",
       "page": 79
     }
+  },
+  {
+    "id": "spell.terrestrial.song-of-the-lintha",
+    "name": "Song of the Lintha",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 25
+    },
+    "description": "Taught to the Lintha Terrestrial Exalted by Dukantha, a ritual spell that takes six days to fully cast. For the whole of the casting period the caster must keep her eyes closed and remain in a state of concentration and meditation. On the sixth day she sings a repeating three-note, seven-syllable song that grows in volume and power as the day proceeds and virulent Infernal energies coalesce around her. When the spell is complete a door of black putrescent flesh appears before her as she opens her eyes. The door does not open: the caster, or anyone else present when the spell is finished, may enter by slicing the thick flesh open with a blade forged of one of the Five Magical Materials and sliding her body into the dripping wound, emerging in an exitless cave of hard black stone — a chancre on the heel of Malfeas, a place where the Yozi can hear the voice of a mortal and either send a minion to speak with the caster, or cut the chancre off, hurling everyone inside into the emptiness beyond knowing, forever lost. Should the Yozi — specifically Kimberry, the Sea That Marched Against the Flame — deign to hear, she will send Dukantha or some demon of strength commensurate with the importance of the request and how sympathetic she is at that moment. The minion may be more or less delighted to see the caster, but will listen to her petition. In the case of a demon some price must be paid, especially if the requested service requires immediate action; as Dukantha is a Lintha himself he may be inclined to offer aid, especially if the request is in line with the interests of the Great Mother.",
+    "source": {
+      "book": "Blood and Salt",
+      "page": 125
+    }
+  },
+  {
+    "id": "spell.terrestrial.waters-ally",
+    "name": "Water's Ally",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "For a day and a night the caster becomes kin to water and can exist in water or air with equal ease. She can swim at the same speed as she moves upon land, may breathe water or air, and can see underwater just as she can in the air. She is not affected by the water's crushing depths or its chilling cold, and while in the water she may add two dice to her Stealth dice pool as she blends into the deep colours. The spell provides no protection against predators or other active threats of the ocean — it merely adapts the caster for existence in the water, and a sorcerer has to deal with the creatures of the depths on her own.",
+    "source": {
+      "book": "Blood and Salt",
+      "page": 125
+    }
+  },
+  {
+    "id": "spell.solar.transference-of-the-sanctum",
+    "name": "Transference of the Sanctum",
+    "circle": "Solar",
+    "cost": {
+      "motes": 45
+    },
+    "description": "Allows an Exalted to transfer a small god's sanctum into the mortal world. If the sanctum is modeled on the spirit's charge, such as a tree or a building, the sanctum physically replaces that object. Until the sun next crosses the horizon the sanctum is physically present and accessible to all mortals and Exalted, and anything removed from it remains in the mortal world once the spell ends; at the spell's end the sanctum and everything inside it dematerializes and is replaced by whatever was previously in that location. The caster need not fight the sanctum's owner to move it, although she may have to battle an angry spirit once the spell has been cast. The spell can also be used to move a small god's sanctum into the mortal world PERMANENTLY. To accomplish this prodigious feat the caster must perform a complex ritual lasting from sunrise to sunset; unless she has the permission of all the sanctum's current residents, at the end of the ritual the sorcerer's player must make an opposed Willpower + Essence roll with the Storyteller for each and every spirit that has made the sanctum its home. Every 5 motes of temporary Essence the caster spends reduces the Essence + Willpower dice pool of her current opponent by one die. In addition to fighting these spirits, many small gods call upon all their allies when their home is attacked in such a direct fashion. A sanctum may make a wonderfully secure new home and can be used as the basis for a potent Manse, but capturing one belonging to a powerful spirit often requires an epic battle. The spell can only be used upon sanctums controlled by spirits whose permanent Essence is no greater than the caster's — it is impossible to affect the sanctums of the greatest gods with it.",
+    "source": {
+      "book": "Games of Divinity",
+      "page": 49
+    }
+  },
+  {
+    "id": "spell.celestial.gift-of-knowledge",
+    "name": "Gift of Knowledge",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 25
+    },
+    "description": "Allows the sorcerer to directly transfer knowledge of a particular subject or skill to another individual. The spell requires an hour-long ritual during which the sorcerer and the subject must be in physical contact; both enter a deep meditative trance, and knowledge flows from the sorcerer to the subject. It can impart a particular memory or experience, or understanding of a particular Trait including Abilities, specialties, spells or Charms. It does not work on Essence. The spell obviates the need for training time for the Sidereal to learn the subject or improve the Trait, so long as the caster's rating in that Trait is greater than the subject's. The subject must still have sufficient experience to improve the Trait's rating, and can only improve a Trait by one dot per casting, as she must still integrate the acquired knowledge — though multiple castings can allow a subject to increase a Trait in hours rather than weeks or months. Gift of Knowledge does not grant subjects the ability to learn Traits they cannot normally acquire, so it cannot teach a mortal to use Exalted Charms, for example, or teach a spell to a character who cannot cast it.",
+    "source": {
+      "book": "The Sidereals",
+      "page": 123
+    }
+  },
+  {
+    "id": "spell.terrestrial.open-the-spirit-door",
+    "name": "Open the Spirit Door",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15,
+      "raw": "15 motes + 5 motes per additional target"
+    },
+    "description": "Allows the caster and anyone she cares to bring with her to physically enter the sanctum of any spirit with an Essence equal to or lower than the caster's. She can also use it to enter the sanctums of more powerful spirits, but only with the owner's permission. The spell does allow the caster to dematerialize, it can only be used to enter a small god's sanctum, and the caster rematerializes when he leaves. To cast it, the caster and everyone she is bringing must be within three yards of one of the sanctum's entrances. To locate a sanctum the caster can either ask a spirit, use the Spirit Detecting Glance Charm, or perform a complex divination requiring several hours and a Perception + Occult roll at difficulty 3; on a success the Exalt has located all sanctum entrances within a 100-yard radius. Once the entrance has been found the caster and her companions need only stand before it and cast, and in the next instant they all find themselves on the threshold of the sanctum. For the duration everyone under its influence can interact physically with the sanctum and all its inhabitants and furnishings. The spell lasts until the sun next crosses the horizon; if the caster wishes to leave before then she can simply cast it again, and she and everyone she brings will find themselves back in the mortal world. Regardless of how they leave, they always find themselves back in the exact place where the spell was first cast — a number of clever Exalted have used it to hide from mundane pursuit, but it cannot be used to intangibly move through space. Anyone using this spell can carry items and furnishings out of the sanctum so long as she can pick them up and carry them. Spirits generally object strongly to having their sanctums invaded by greedy or aggressive Exalted, and anyone known to make a habit of attacking the sanctums of small gods will eventually have to deal with the wrath of more powerful spirits who object to their underlings being harmed or robbed. The spell can also be used to gain entrance to the Celestial City of Yu-Shan, but anyone entering in this fashion must also talk their way past the celestial lions who guard it.",
+    "source": {
+      "book": "The Sidereals",
+      "page": 122
+    }
+  },
+  {
+    "id": "spell.celestial.summoning-the-heavenly-portal",
+    "name": "Summoning the Heavenly Portal",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 35
+    },
+    "description": "As the personal servants and messengers of the Five Maidens, the Sidereal Exalted were given knowledge of how to actually summon the Calibration Gate. To cast it the Exalt must meditate and pray for five minutes, at the end of which the caster's player rolls the character's Essence + Occult. On a failure, some other Celestial Exalted used this spell recently and the gate is not available; if the caster rolls even a single success, the gateway appears within arm's reach. The gateway normally stays until the next dawn, and it may not be summoned by another Exalt for half an hour after the caster summoned it. The spell is available to any Sidereal who wishes to learn it, and all of them know of its existence. So far no member of the Gold Faction has taught it to any of the Solar Exalted they are mentoring, and almost no Solars even know it exists — even the Gold Faction fear what might happen if the Solars could travel as easily as they do, though all Sidereals know it is only a matter of time before some Solar learns it. A handful of Lunar Exalted of the No Moon Caste know this spell, but guard it jealously and will only give it to other Lunars they consider truly worthy. Although they are normally capable of learning Celestial Circle Sorcery, Abyssal Exalted are incapable of casting this spell — their nature is too antithetical to Heaven's for them to possess any ability to command it. The spell can only be cast in Creation and can only be used to call the gateway to the caster. A Sidereal can use it to gain access to Yu-Shan in less than 10 minutes, but once in Yu-Shan the caster cannot move this gateway; instead, an Exalt desiring to move rapidly from one portion of Creation to another must summon the gateway, enter Yu-Shan and then leave it via another gateway near her destination.",
+    "source": {
+      "book": "The Sidereals",
+      "page": 123
+    }
+  },
+  {
+    "id": "spell.terrestrial.waters-chilling-grasp",
+    "name": "Water's Chilling Grasp",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "The sorcerer causes a number of chill tentacles of water equal to twice her permanent Essence to rise up from the waters surrounding a nearby vessel — no further than 100 x permanent Essence yards from her — and attack that ship's crew. Each tentacle is up to 30 feet long and attacks once a turn without direction, randomly attempting to grab a crewmember, lifting him from the deck and constricting him in its cold grasp. Each tentacle has an Initiative of 6 and an Attack of 5, and does 8 bashing damage per turn that a foe is in its coils. The tentacles attack as a group: roll one attack and compare it to each defender's dodge or parry separately, so if the tentacles roll 3 successes each defender needs 4 successes to avoid being grabbed. Only one tentacle will attack each target. If attacked, the tentacles do not dodge or soak and take 20 health levels of damage before dispersing; edged weapons do half damage to them, fire-based weapons double. If the sorcerer wishes, he can take an action and directly control one tentacle, using his own Melee pool to attack at a two-dice penalty, or he can reform a tentacle that has been 'slain', although this takes the entire turn. The tentacles last a number of turns equal to the caster's permanent Essence + 2 and then dissolve, leaving the enemy vessel awash in water and any victims either in the ocean or dashed to the decks (50 percent chance of either). Players of victims who fall to the deck must make a Dexterity + Athletics roll at difficulty 2 to avoid an additional 8B damage from the fall. Victims that fall into the ocean take no damage but will have to be rescued, and will start drowning if they cannot swim. If attacking in group combat, add the caster's Essence rather than her Charisma to a single attack roll, and add 2 to the damage of the attack for each tentacle after the first.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 117
+    }
+  },
+  {
+    "id": "spell.celestial.storm-rider-enchantment",
+    "name": "Storm Rider Enchantment",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 30
+    },
+    "description": "With the aid of this spell a ship can travel in even the mightiest storm without fear or danger, even taking advantage of the storm's power to lend speed to its journey. Cast when a ship first encounters a storm, it renders the vessel totally immune to the storm's effects; if cast while the ship is already in the storm, the spell has no effect. For the duration — as long as the storm or three days, whichever is shorter — no lightning will strike the ship nor waves dash over its decks. The enchanted ship will sail safely over the deepest swells and the highest waves and remain calm under even the fiercest winds. The ship has only slight control over where it goes, but will at least keep somewhat on course for its destination if the navigator and helmsmen are competent; this requires Wits or Stamina + Sail rolls for each, with the difficulty ranging from 2 to 4 depending on the ferocity of the storm, and the player or Storyteller may choose whether to use Wits or Stamina, as both quick thinking and dogged determination can see one through a storm safely. If the storm is traveling in the same general direction as the vessel was heading, the ship will benefit from its passage, typically cutting one to two days — or more in the case of truly savage storms, up to a week — from the length of the journey.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 117
+    }
+  },
+  {
+    "id": "spell.celestial.summon-spirit-boat",
+    "name": "Summon Spirit Boat",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 30,
+      "raw": "30 motes base, +2 motes per additional day of existence"
+    },
+    "description": "The sorcerer calls forth a sailing ship constructed of pure Essence to take him where he wants to go. This spirit-crafted vessel remains in existence for a week and a day, plus one day for every additional 2 motes spent, during which it will go wherever the sorcerer commands without need of crew or navigator. A simple command such as 'Take me to the city of Lookshy by the most direct path' suffices to set course and set the vessel upon its journey. If the sorcerer desires, he may place the vessel under the command of another by merely commanding the ship to take her orders as it would his own, and he may also place restrictions upon this gift as desired — the ship will understand moderately complicated conditions and restrictions placed upon its usage and follow them accordingly. The vessel appears fully stocked with provisions and takes whatever form the sorcerer requests, so long as it is a fine one: the spirits will not create a crippled-looking scow or an aged rowboat, instead interpreting these commands in ways that better suit their aesthetic sensibilities. There are limits to the size of the vessel this spell can create — ships as large as a large yacht or a small coaster are within its ability, but a ship as large as a blue-water merchant is beyond it. While on a course, the vessel travels at three times the normal speed for a ship of its kind, even against the wind or tides, and it will cleverly avoid reefs, shoals and other submerged hazards. It provides no inherent protection against predators or the weather, but local spirits will generally not harass those aboard such a ship unless ordered to do so by another sorcerer who holds sway over them, or by their superiors in their spirit court. If attacked, the spirit ship has twice the soak and health levels of a vessel of its type, but it is not armed and will attempt to run, not fight.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 117
+    }
+  },
+  {
+    "id": "spell.celestial.swift-journey",
+    "name": "Swift Journey",
+    "circle": "Celestial",
+    "cost": {
+      "motes": 25
+    },
+    "description": "This spell enables the vessel it is cast upon to travel incredible distances in just a single day. When it is cast, the sorcerer specifies a destination, which must be no further away than 1,500 miles times the caster's permanent Essence. So long as the final stopping point is within that range, the journey will take no more than a full day from the time the spell is cast. The crew and passengers will notice nothing unusual about their journey, save that it takes such a short time. While this spell is in effect, only great powers such as elemental dragons, the gods and perhaps elder Sidereals and the like can interfere with the ship until it reaches its goal.",
+    "source": {
+      "book": "Savage Seas",
+      "page": 118
+    }
   }
 ]

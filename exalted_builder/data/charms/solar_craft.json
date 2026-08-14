@@ -260,5 +260,88 @@
       "book": "Exalted 1e Caste Book: Twilight",
       "page": 70
     }
+  },
+  {
+    "id": "solar.craft.rock-spinning-technique",
+    "name": "Rock-Spinning Technique",
+    "category": "craft",
+    "type": "Simple",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.craft.shattering-grasp"
+      ]
+    ],
+    "cost": {
+      "motes": 3,
+      "willpower": 0,
+      "health": 0,
+      "raw": "3 motes"
+    },
+    "duration": "One hour",
+    "description": "This Charm enables a Solar to spin raw stone into flexible thread or yarn. Rock thread is fireproof but no stronger than linen and rather scratchy to wear. It is entirely adequate for tapestries, tablecloths, rugs and other utilitarian purposes, though, and in large quantities it makes excellent insulation. The thread or yarn remains the same color as the original rock, making most spun rock rather drab — but a Solar with this Charm can spin jade or diamond as easily as slate or sandstone, and a handkerchief of spun jewels would make an understated yet truly royal gift. The basic Charm requires no more than a simple drop-spindle or spinning wheel and a quantity of rock. The listed Essence cost and duration are for spinning a cubic foot of rock into a cubic yard of fluffy fiber; the process takes a full hour. A more elaborate apparatus reduces the Essence cost to 1 mote, and the machine runs by itself once set running — indeed, such an apparatus reduces rock-spinning to magic that even unExalted mortals can perform.",
+    "source": {
+      "book": "Time of Tumult",
+      "page": 95
+    }
+  },
+  {
+    "id": "solar.craft.world-within-a-picture-style",
+    "name": "World Within a Picture Style",
+    "category": "craft",
+    "type": "Simple",
+    "min_ability": 5,
+    "min_essence": 3,
+    "prerequisites": [
+      [
+        "solar.craft.flawless-handiwork-method"
+      ]
+    ],
+    "cost": {
+      "motes": 20,
+      "willpower": 0,
+      "health": 0,
+      "raw": "20 motes"
+    },
+    "duration": "One day or more",
+    "description": "The page prints this Charm's second Ability minimum as \"Minimum Offult: 3\" — a typo in the book (verified at 300 dpi, so not a scan artifact). Human's ruling, 2026-08-14: it is Occult, and the requirement is encoded as Occult 3. A Solar who truly masters some form of representational art — most obviously painting, but other possibilities include tapestry-weaving, carving and metal-casting — can fashion miniature worlds within a lifelike representation. A being that knows how to expend Essence can step into the image and experience it as if it were real. Although the examples within the Invisible Fortress are \"life sized,\" a World Within a Picture's physical matrix could be much smaller; for instance, a metal brooch chased and enameled with an uncannily realistic miniature scene. The World Within a Picture can include plants, animals or even people, but none of the people are actually real — they react only in simple, stereotyped ways, like automata. (A Solar can trap real people or spirits within a still life to become permanent characters, but this involves a spell of Celestial Circle Sorcery.) A World Within a Picture's simulated world cannot exceed one acre in area, although it may look much larger: a person who tries to travel beyond the boundaries of the still life either goes in a circle or steps out of the still life. Creating a World Within a Picture takes weeks or months, depending on the artist's medium and the level of detail the artist desires. Once created, a World Within a Picture lasts until someone or something destroys it. Other Charms and sorceries can piggyback on a World Within a Picture if the artist wants to include magical effects within the simulated world, such as a still life in which people can fly, or one that transforms visitors into other forms. Entering a World Within a Picture costs 1 mote of Essence; departing is free. Anyone caught within a completely destroyed Still Life dies. A Still Life that is merely damaged can be repaired, and prisoners retrieved, but only by someone who knows the World Within a Picture Style Charm.",
+    "source": {
+      "book": "Time of Tumult",
+      "page": 96
+    },
+    "extra_min_abilities": [
+      {
+        "abilities": [
+          "occult"
+        ],
+        "rating": 3
+      }
+    ]
+  },
+  {
+    "id": "solar.craft.spiritual-sustenance",
+    "name": "Spiritual Sustenance",
+    "category": "craft",
+    "type": "Simple",
+    "min_ability": 3,
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "solar.craft.object-strengthening-touch"
+      ]
+    ],
+    "cost": {
+      "motes": 0,
+      "willpower": 0,
+      "health": 0,
+      "raw": "Variable"
+    },
+    "duration": "Variable",
+    "description": "Characters utilizing this Charm can mold edible food out of any other material, be it rock, wood or even snow. The simpler the food and the smaller the portion, the less it costs to make: conjuring a loaf of bread requires just 1 mote of Essence and about five minutes, while sculpting an entire feast can cost 10 motes or more and take an entire day. This food can be stored. However, it will gradually lose its reality and after a week it will fade to wisps of Essence when handled. While it will fill the belly, conjured food offers little in the way of vitamins or minerals: for every week that food created in this manner makes up more than 50 percent of a character's diet, he will lose one dot in Willpower. Obviously, if a character has mastered a sorcery that allows him to conjure real food, these penalties do not apply.",
+    "source": {
+      "book": "Time of Tumult",
+      "page": 98
+    }
   }
 ]

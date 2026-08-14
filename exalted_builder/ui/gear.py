@@ -749,6 +749,18 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                         owner = getattr(character, row.list_name)
                         if row.index < len(owner):
                             editors[row.list_name](row.index, owner[row.index])
+                        # A merged row is one object with TWO stored halves — the
+                        # artifact and the stat line `grant_gear` stamped for it — so
+                        # its editor is both, under one Edit. Without this the stat
+                        # line would be uneditable: the per-kind panels are gone, and
+                        # the row it used to own is no longer on the list.
+                        if row.linked_list_name:
+                            linked = getattr(character, row.linked_list_name)
+                            if row.linked_index < len(linked):
+                                ui.label("Stat line").classes(
+                                    "text-xs uppercase tracking-wide opacity-60 mt-2")
+                                editors[row.linked_list_name](
+                                    row.linked_index, linked[row.linked_index])
 
         # ---- BUY: one shop over every catalogue ------------------------------- #
         # The human's unification (2026-08-13): "Add weapon" / "Add armor" / "Add goods"

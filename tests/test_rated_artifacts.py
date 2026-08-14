@@ -1403,10 +1403,24 @@ def test_two_artifact_backgrounds_buy_TWO_artifacts(rs):
 # --------------------------------------------------------------------------- #
 
 LEGENDARY = "mf.legendary-artifact"
-# All three `(ARTIFACT N/A)` entries in the build. The Xoanon (B&E p.104) had been
+# All four `(ARTIFACT N/A)` entries in the build. The Xoanon (B&E p.104) had been
 # unauthorable since the 2026-08-11 sweep for exactly the reason the other two were,
 # and the human ruled it the same way on 2026-08-13.
-PLOT_DEVICES = ("Mantle of Brigid", "The Sword of Ice", "The Insidious Ebon Xoanon")
+#
+# The Iron Puzzle Box (Kingdom of Halta p.93) joined them 2026-08-14, on the same
+# ruling, when Group A of the content re-triage was read. ⚠ It is the standing proof
+# that "no `(ARTIFACT N/A)` entry remains unauthored" is a claim about the books READ
+# SO FAR, never about the game: a book nobody has extracted yet can hold a fifth. It
+# was held back for the human's call rather than authored on the pattern, because the
+# ruling had been given per-entry each time and a plot device charged to no budget is
+# not a decision to make on someone's behalf.
+# The **Eye of Autochthon** (Storyteller's Companion p.80) joined 2026-08-14, and it is
+# the entry the whole channel was named after: the Legendary Artifact Merit's own text
+# cites "the Mantle of Brigid or the Eye of Autochthon" as its two examples, and the
+# artifact's own System paragraph says its active powers "may be summarized as 'plot
+# device.'" It arrived one book after the note above predicted a fifth would.
+PLOT_DEVICES = ("Mantle of Brigid", "The Sword of Ice", "The Insidious Ebon Xoanon",
+                "Iron Puzzle Box", "Eye of Autochthon")
 
 
 def _solar(**kw) -> Character:
@@ -1414,7 +1428,7 @@ def _solar(**kw) -> Character:
                      **kw)
 
 
-def test_the_two_plot_devices_are_merit_gated_in_the_catalogue(rs):
+def test_every_plot_device_is_merit_gated_in_the_catalogue(rs):
     gated = {a.name: a for a in artifacts.merit_gated(rs.artifact_catalog)}
     assert set(gated) == set(PLOT_DEVICES)
     for a in gated.values():

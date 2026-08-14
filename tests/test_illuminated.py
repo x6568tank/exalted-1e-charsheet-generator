@@ -704,6 +704,13 @@ def test_extra_min_abilities_is_empty_for_every_other_charm(rs):
         # General Arcanoi page, so Occult is its ONLY ability gate and lives here.
         "godblooded.general-arcanoi.shadowlands-circle-necromancy",
         "solar.brawl.ascendant-battle-visage",
+        # Time of Tumult p.96 — the page prints "Minimum Craft: 5 / Minimum OFFULT: 3".
+        # "Offult" is a typo in the book, confirmed at 300 dpi rather than assumed (the
+        # "ff" ligature is unmistakable, so it is not a rasterisation artifact), and the
+        # human ruled it Occult on 2026-08-14. Craft is primary — it is the category and
+        # what pricing keys off. The printed spelling is preserved in the Charm's own
+        # description so the book's text survives the correction.
+        "solar.craft.world-within-a-picture-style",
         # Caste Book: Eclipse p.73 — "Minimum Linguistics: 5 / Minimum Lore: 3".
         "solar.linguistics.masterful-training-manual",
         # Caste Book: Zenith p.78 — "Minimum Performance: 5 / Minimum Presence: 3".
