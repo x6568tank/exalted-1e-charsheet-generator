@@ -10,6 +10,74 @@ Source survey and architecture written up 2026-07-29; build started same day.
 Source: `images/Mortals/Mortals & Heroic Mortals/Player's Guide.md` (pasted text,
 pp. 11-12 + 96-150) and `Exalted p103.png` (corebook heroic-mortal chargen).
 
+
+## ⚠ Rituals from the Book of Bone and Ebony — pp.118-119, authored 2026-08-14
+
+BoBE's "NOT QUITE NECROMANCY" sidebar gives **mortal thaumaturges** three rituals for
+necromancy-like effects: **Jawbone Echoes** (Ritual •, question a corpse),
+**Garrote and Murder Mansion** (Ritual ••, animate one as a common zombie) and
+**Obstinate Crumbs** (Ritual •••, a longer-lasting variant that degrades the corpse).
+The `ThaumaturgicRitual` model already fits — it was written knowing the catalogue is
+a seed the book expects to grow (PG p.148).
+
+⚠ **My gap scan could not have found these, and the reason generalises.** The scan
+keyed on printed stat blocks (`Cost:` / `Prerequisite Charms:` lines). **Rituals have
+no stat block at all** — the model's own docstring says so: "the heading is the name
+with its dot rating inline and everything else is prose." A stat-block detector is
+blind to an entire content type by construction, not by accident. **Before trusting a
+gap sweep, ask which record shapes it is structurally incapable of seeing.**
+
+⚠ **Obstinate Crumbs has no heading of its own** — it is introduced mid-paragraph
+inside Garrote and Murder Mansion's prose ("There is another ritual called Obstinate
+Crumbs (Ritual •••)"). Even a *ritual-aware* sweep looking for headings misses it.
+
+Also on p.118 and NOT authored: guidance for summoning a **nemissary** with the
+existing Art of Summoning (difficulty 2 Intelligence + Occult to know whether a given
+ghost can manipulate dead flesh; +2 difficulty to cast a general call). That is advice
+on using a shipped Art, not a new entry.
+
+## ⚠ "Formulas From Other Works" — PG p.143, authored 2026-08-14
+
+Found by the transcribed-book gap scan. The Alchemy section ends with a table of
+**16 compounds printed in other books**, and the PG supplies their mechanical values
+itself: *"For the Storyteller's convenience, the difficulties and material costs are
+listed here."* The section text supplies the two columns the table omits — *"a
+formula's required Alchemy level is equal to its difficulty"* and *"all of these
+substances are produced using an Intelligence + Occult (Alchemy) roll."*
+
+**`effects` is the table's own Effects cell, cross-reference included.** The PG says
+*"for precise effects, Storytellers and players should reference the original
+works"*, so the pointer IS the printed effect text — writing more would mean
+authoring from four other books when the page in hand already says what it says.
+Books referenced: Manacle and Coin, Caste Book: Night, the corebook, Savage Seas.
+
+⚠ **The gap this closed was sharper than a missing row.** Seven Bounties Paste and
+Sweet Cordial already existed as **gear** — purchasable goods off Manacle and Coin
+p.125 — but not as formulas. A thaumaturge could buy them and not brew them, with
+Alchemy shipped as a Science. The other 14 were absent entirely.
+
+### The two calls the human made
+
+* **Greater Poisons and Lesser Poisons are ONE ROW EACH**, as the book designs them —
+  each names several venoms across two books rather than being a single substance.
+* **Variable material costs needed no new machinery.** Four rows print a
+  region-dependent cost (`•• (••• outside the East)`) and two print a pointer
+  (`Cost of firedust`, `Cost of pollen`). **`ThaumaturgicFormula.materials_raw`
+  already existed for exactly this** — "authoritative when set, because one printed
+  formula costs 'Equal to poison cost' rather than a number of Resources dots" — so
+  the printed string goes in verbatim and `materials_resources` keeps the base
+  number. A UI toggle was considered and is unnecessary: it would add per-character
+  state to what is a display string.
+
+### ⚠ Scope: this is REFERENCE, not creation
+
+The build records what a formula is and whether a character knows it.
+`difficulty`, `roll` and `materials_*` have **zero engine reads** — a grep confirms
+it — and `thaum_actions.py` dispatches *learning* a formula, never brewing one.
+Resolving a brew (rolling, spending the days, producing N doses, tracking potency
+expiry) is simulation and stays out, the same bucket as dice rolling (decision 0009)
+and training times. Authoring these 16 applied that boundary; it did not move it.
+
 ## Build log
 Tests: `tests/test_thaumaturgy_data.py` (38, catalogue + cost ladder),
 `tests/test_thaumaturgy_engine.py` (119, integration) and

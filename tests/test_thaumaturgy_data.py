@@ -153,25 +153,67 @@ def test_the_other_three_sciences_stop_at_five(ruleset):
 # Rituals and formulas
 # --------------------------------------------------------------------------- #
 
-def test_the_chapter_prints_five_rituals_as_eight_purchasable_ids(ruleset):
+def test_the_pg_chapter_prints_five_rituals_as_eight_purchasable_ids(ruleset):
     """Dishonest Spirit's Rebuke is one printed entry but four separate purchases:
     "This is actually four related rituals — one each for spirits, demons,
-    elementals and ghosts … each must be learned separately" (p.150)."""
+    elementals and ghosts … each must be learned separately" (p.150).
+
+    Counted per SOURCE BOOK, because the catalogue is explicitly a seed the book
+    expects to grow (p.148) — a bare total would blur "the PG chapter lost one"
+    with "another book added one".
+    """
     rituals = ruleset.thaum_rituals
-    assert len(rituals) == 8
-    rebuke = [r for r in rituals.values() if r.name.startswith("Dishonest Spirit")]
+    pg = [r for r in rituals.values() if r.source.book == "Player's Guide"]
+    assert len(pg) == 8
+    rebuke = [r for r in pg if r.name.startswith("Dishonest Spirit")]
     assert len(rebuke) == 4
     assert all(r.level == 3 for r in rebuke)
+
+
+def test_the_book_of_bone_and_ebony_minor_rituals(ruleset):
+    """BoBE pp.118-119, "Not Quite Necromancy" — three thaumaturgic rituals a MORTAL
+    can use to achieve necromancy-like effects. Found 2026-08-14 by the human, after a
+    gap scan that structurally could not see them: rituals print no stat block at all
+    (the model says so), so a detector keyed on `Cost:` / `Prerequisite Charms:` lines
+    has nothing to match.
+
+    ⚠ **Obstinate Crumbs has no heading of its own.** It is introduced mid-paragraph
+    inside Garrote and Murder Mansion's description — "There is another ritual called
+    Obstinate Crumbs (Ritual •••)". A heading-based sweep misses it even when looking
+    for rituals specifically.
+    """
+    bobe = {r.name: r for r in ruleset.thaum_rituals.values()
+            if r.source.book == "Book of Bone and Ebony"}
+    assert set(bobe) == {"Jawbone Echoes", "Garrote and Murder Mansion",
+                         "Obstinate Crumbs"}
+    assert bobe["Jawbone Echoes"].level == 1
+    assert bobe["Garrote and Murder Mansion"].level == 2
+    assert bobe["Obstinate Crumbs"].level == 3
 
 
 def test_every_ritual_is_within_the_printed_one_to_five_band(ruleset):
     assert all(1 <= r.level <= 5 for r in ruleset.thaum_rituals.values())
 
 
-def test_all_fourteen_alchemical_formulas_load(ruleset):
+def test_the_alchemical_formulas_load(ruleset):
+    """14 formulas printed in the PG's own Alchemy section (pp.139-142), plus the 16
+    of its p.143 "Formulas From Other Works" table — compounds printed in Manacle and
+    Coin, Caste Book: Night, the corebook and Savage Seas, whose difficulty and
+    material cost the PG reprints for the Storyteller's convenience.
+
+    Split by source page rather than asserted as a bare 30, so losing one group cannot
+    be masked by gaining the other.
+    """
     formulas = ruleset.thaum_formulas
-    assert len(formulas) == 14
+    own = [f for f in formulas.values() if f.source.page != 143]
+    other_works = [f for f in formulas.values() if f.source.page == 143]
+    assert len(own) == 14
+    assert len(other_works) == 16
     assert all(f.science_id == "science.alchemy" for f in formulas.values())
+    # The p.143 table prints no Alchemy column; the section text says the required
+    # level EQUALS the difficulty, so that equality is the authoring rule and a
+    # future edit that sets one without the other is a mistake.
+    assert all(f.level == f.difficulty for f in other_works)
 
 
 def test_a_formula_may_price_its_materials_in_prose_instead_of_dots(ruleset):

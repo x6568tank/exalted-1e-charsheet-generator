@@ -196,5 +196,233 @@
       "book": "Player's Guide",
       "page": 142
     }
+  },
+  {
+    "id": "formula.age-staving-cordial",
+    "name": "Age-Staving Cordial",
+    "science_id": "science.alchemy",
+    "level": 3,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 3,
+    "materials_resources": 2,
+    "effects": "Anagathic. (See Manacle & Coin, pp. 45-46.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.cocaine",
+    "name": "Cocaine",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 2,
+    "materials_resources": 1,
+    "effects": "Stimulant. (See Manacle & Coin, p. 40.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.firedust-grenade",
+    "name": "Firedust Grenade",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 2,
+    "materials_raw": "Cost of firedust",
+    "effects": "Small explosive device. (See Caste Book: Night, p. 77.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.ghost-flower",
+    "name": "Ghost Flower",
+    "science_id": "science.alchemy",
+    "level": 3,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 3,
+    "materials_resources": 3,
+    "materials_raw": "••• (Varies)",
+    "effects": "Allows communication with ghosts. (See Manacle & Coin, p. 45.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.greater-poisons",
+    "name": "Greater Poisons",
+    "science_id": "science.alchemy",
+    "level": 3,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 3,
+    "materials_raw": "••-••••",
+    "effects": "Coral snake or arrow frog venom. (See Exalted, p. 243.) Sea adder venom or stonefish poison. (See Savage Seas, p. 106.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.hallucinogenic-woad",
+    "name": "Hallucinogenic Woad",
+    "science_id": "science.alchemy",
+    "level": 1,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 1,
+    "materials_resources": 1,
+    "materials_raw": "• (•• outside the East)",
+    "effects": "Hallucinogen, mild painkiller. Rare outside of the East. (See Manacle & Coin, pp. 42-43.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.heroin",
+    "name": "Heroin",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 2,
+    "materials_resources": 1,
+    "effects": "Painkiller, mild soporific. Must know how to produce opium. Highly guarded secret (Guild). (See Manacle & Coin, pp. 41-42.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.ice-fern-spores",
+    "name": "Ice Fern Spores",
+    "science_id": "science.alchemy",
+    "level": 3,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 3,
+    "materials_resources": 2,
+    "materials_raw": "•• (••• outside the North)",
+    "effects": "Dream enhancer, mild divination enhancer. (See Manacle & Coin, p. 44.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.lesser-poisons",
+    "name": "Lesser Poisons",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 2,
+    "materials_resources": 1,
+    "effects": "Court poison or poison snake venom. (See Exalted, p. 243.) River spider or lesser sea serpent venom or pelagic phantom sting. (See Savage Seas, p. 106.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.maiden-tea",
+    "name": "Maiden Tea",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 2,
+    "materials_resources": 1,
+    "effects": "Contraceptive and abortifacient. (See Manacle & Coin, p. 45.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.opium",
+    "name": "Opium",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 2,
+    "materials_resources": 1,
+    "effects": "Painkiller, dysentery cure. (See Manacle & Coin, p. 41.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.rasp-spider-venom",
+    "name": "Rasp Spider Venom",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 2,
+    "materials_resources": 2,
+    "materials_raw": "•• (••• outside the East)",
+    "effects": "Hallucinogen, poison in unadulterated form. Rare outside of the East. (See Manacle & Coin, pp. 43-44.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.rock-cocaine",
+    "name": "Rock Cocaine",
+    "science_id": "science.alchemy",
+    "level": 1,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 1,
+    "materials_resources": 1,
+    "effects": "Must know how to produce cocaine. Highly addictive stimulant. (See Manacle & Coin, pp. 40-41.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.seven-bounties-paste",
+    "name": "Seven Bounties Paste",
+    "science_id": "science.alchemy",
+    "level": 4,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 4,
+    "materials_resources": 2,
+    "effects": "Disease cure-all. (See Exalted, p. 336.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.sleep-grenade",
+    "name": "Sleep Grenade",
+    "science_id": "science.alchemy",
+    "level": 2,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 2,
+    "materials_raw": "Cost of pollen",
+    "effects": "Sleep-gas bomb. (See Caste Book: Night, pp. 77-78.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
+  },
+  {
+    "id": "formula.sweet-cordial",
+    "name": "Sweet Cordial",
+    "science_id": "science.alchemy",
+    "level": 4,
+    "roll": "Intelligence + Occult (Alchemy)",
+    "difficulty": 4,
+    "materials_resources": 3,
+    "effects": "Narcotic healing potion. (See Exalted, p. 336.)",
+    "source": {
+      "book": "Player's Guide",
+      "page": 143
+    }
   }
 ]

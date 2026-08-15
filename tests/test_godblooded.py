@@ -1746,6 +1746,22 @@ SPIRIT_IDS = [
     # Occult 5, so it is Ability-gated like the Ghost-Blooded necromancy
     # initiation it mirrors. See SORCERY_INIT below.
     SORCERY_INIT,
+    # Autochthonians pp.178-180 — ten machine-spirit Charms, authored 2026-08-14.
+    # ⚠ Listing them here is not bookkeeping: this roster is what the picker tests
+    # assert a God/Demon-Blooded can REACH, so adding a spirit Charm widens what that
+    # heritage may buy. Two of these are restricted by the book to crystal elementals
+    # and design weavers, which the build cannot enforce — see
+    # test_the_autochthonian_machine_spirit_charms.
+    "spirit.spirit-templates.call",
+    "spirit.spirit-templates.cannibalize",
+    "spirit.spirit-templates.chrysalis-of-preservation",
+    "spirit.spirit-templates.crystallize",
+    "spirit.spirit-templates.denial-of-the-forges-yoke",
+    "spirit.spirit-templates.diagnostics",
+    "spirit.spirit-templates.inurement",
+    "spirit.spirit-templates.ossify-pattern",
+    "spirit.spirit-templates.sabotage",
+    "spirit.spirit-templates.shatter",
 ]
 
 
@@ -1964,3 +1980,39 @@ def test_the_pg_spirit_charms_gate_on_their_own_virtue(rs):
     c.charms = ["spirit.spirit-templates.tiny-damnation",
                 "spirit.spirit-templates.imprecation"]
     assert validate.meets_charm_requirements(rs, c, curse)
+
+
+def test_the_autochthonian_machine_spirit_charms(rs):
+    """Autochthonians pp.178-180, "Spirit Charms" — ten Charms "relatively common in
+    Autochthonia" and "unknown to (or very rare among) Creation's spirits". They join
+    the flat `spirit_templates` catalogue because that is what they are: Virtue-keyed
+    spirit Charms, no new machinery.
+
+    ⚠ **TWO of them are restricted to a SPECIES of spirit and the build does not
+    enforce it** — Crystallize is "possessed only by crystal elementals", and Ossify
+    Pattern ends "only crystal elementals and design weavers can use this Charm".
+    There is no species field: `Charm.restricted_to` takes "<Splat>" / "<Splat>:<caste>"
+    and a crystal elemental is neither. The restriction is carried verbatim in each
+    description and is a KNOWN NON-ENFORCEMENT, in the same bucket as the narrative
+    Merits & Flaws — the exposure is that a God/Demon-Blooded, who reaches this
+    catalogue through `heritage_charm_access`, could take one. Add a species field
+    when a THIRD instance appears, not for two.
+
+    ⚠ Ossify Pattern's restriction sits in its LAST sentence, not its first. A scan
+    that reads the opening line of each block finds Crystallize and misses it.
+    """
+    auto = [c for c in rs.charms.values()
+            if c.source.book == "Exalted 1e The Autochthonians"
+            and c.category == "spirit_templates"]
+    assert len(auto) == 10
+    assert all(c.exalt_type == "Spirit" for c in auto)
+    assert all(c.min_virtue and c.min_ability for c in auto), "all ten are Virtue-keyed"
+    assert all(c.prerequisites == [] for c in auto), "every one prints 'Prerequisite Charms: None'"
+
+    # ⚠ Matched on "crystal elementals" alone, deliberately: the two sentences differ
+    # in wording AND case — "Possessed only BY crystal elementals" versus "ONLY crystal
+    # elementals and design weavers can use this Charm" — so the obvious substring
+    # ("only crystal elementals") matches NEITHER. This is the same shape as the style
+    # scan: a matcher built from one sample's phrasing.
+    restricted = {c.name for c in auto if "crystal elementals" in c.description}
+    assert restricted == {"Crystallize", "Ossify Pattern"}

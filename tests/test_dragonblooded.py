@@ -372,7 +372,10 @@ def test_shipped_db_air_ability_charm_counts(rs):
            if c.exalt_type == "Dragon-Blooded" and c.element == "Air" and not c.immaculate]
     assert Counter(c.category for c in air) == Counter(
         # Aspect Book: Air (Miracles of Mela) CH6 added the second wave.
-        {"linguistics": 11, "lore": 11, "occult": 10, "stealth": 11, "thrown": 12})
+        # +1 linguistics on 2026-08-14: Subtle Comprehension Technique (The Outcaste
+        # p.150), found by the transcribed-book gap scan. Element follows the ABILITY,
+        # so a Linguistics Charm is Air even though the Outcaste book has no aspect.
+        {"linguistics": 12, "lore": 11, "occult": 10, "stealth": 11, "thrown": 12})
     # all ability charms carry element but are not Immaculate MA
     for c in air:
         assert ":" not in c.category and c.immaculate is False

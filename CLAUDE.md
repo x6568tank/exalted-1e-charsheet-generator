@@ -221,9 +221,13 @@ delegation is stated above: **correct behaviour is not evidence the mechanism ex
 
 ## Status — the record lives in `docs/status/`
 
-The suite is green: **2,384 passing, 1 skipped** of **2,385 collected** (2026-08-14,
-after the martial-arts Phase 2 and the access work), with the one machine-dependent
-failure described immediately below.
+The suite is green: **2,386 passing, 1 skipped** (2026-08-14, after the martial-arts
+Phase 2, the access work and the transcribed-book gap scan), with the one
+machine-dependent failure described immediately below.
+
+⚠ Quote the RUN's numbers, not `--collect-only`'s: the two disagree by one here
+(2,386 outcomes vs 2,385 collected) and the cause was not chased. The run is what
+tells you the suite is green.
 
 ⚠ **The test COUNT is machine-dependent too, and by more than one test.** The line
 above read 2,420 on the other machine before this session, which added 19 tests net,
@@ -304,8 +308,21 @@ being the Dragon-Path initiation tree, which is not a style (`martial-arts-style
 **The catalogue is COMPLETE as of 2026-08-14 and browser-verified the same day.** All 647
 rows of the content-gap discovery set are resolved — the 2026-08-11 sweep, the corebook
 Wonders chapter (2026-08-12), the Book of Three Circles (2026-08-13) and Groups A, B and C
-of the re-triage (2026-08-14). Final counts: **Charms 1,910 · spells 304 · artifacts 330 ·
-weapons 112 · armour 28.** `docs/status/content-gap-retriage.md` is the record.
+of the re-triage (2026-08-14). Final counts as of the 2026-08-14 close: **Charms 1,921 · spells 306 · artifacts 330 ·
+weapons 112 · armour 28 · thaumaturgy 4 Arts / 4 Sciences / 30 formulas / 11 rituals.** `docs/status/content-gap-retriage.md` is the record.
+⚠ **The 2026-08-14 transcribed-book gap scan reopened it once more and found 30 more
+entries** — 1 Charm + 2 spells + 16 "Formulas From Other Works" (PG p.143) + 3 Book of
+Bone and Ebony rituals + 10 Autochthonian machine-spirit Charms. **Read
+`docs/status/thaumaturgy.md` and `godblooded.md` for the traps.** The one that
+generalises: **a gap scan keyed on printed stat blocks is structurally blind to whole
+record types** — rituals print no stat block at all, so nothing keyed on `Cost:` /
+`Prerequisite Charms:` can see them, and one ritual (Obstinate Crumbs) has no heading
+either, being introduced mid-paragraph inside another ritual's prose. **Before trusting
+a sweep, ask which shapes it CANNOT see.** Still unswept by any method: Merits,
+Backgrounds and prose-described artifacts in the eight transcribed books, and
+everything in the scan-only books (Sidereals, Dragon-Blooded, castebooks, Lunars,
+Abyssals).
+
 **Nothing is page-blocked and nothing is a known gap.** The only unauthored content is
 deliberately deferred — the Mist numina and Cult Abyssals, both **indefinitely**, and
 neither is a gap (see their entries; a sweep that lists them is counting a deferral as an

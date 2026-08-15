@@ -8,8 +8,9 @@ I made this because I was annoyed. Anathema is long dead and every tool still st
 targets 2E, 2.5E, 3E or Essence. I don't play any of those, so I started working on this for 1E alone.
 If you want 2.5E, fork it. The docs are good enough to let you.
 
-There are 1,836 Charms and Arcanoi, 294 spells, 237 rated artifacts, 18 Martial Arts styles 
-plus the ten Dragon-Kings Paths, the cost and budget tables, weapons, armour, gear. The engine 
+There are 1,921 Charms and Arcanoi, 306 spells, 330 rated artifacts, 21 Martial Arts styles
+plus the ten Dragon-Kings Paths, the cost and budget tables, 112 weapons, 28 pieces of
+armour and 56 rows of mundane gear. The engine
 is pure functions and does no I/O; the UI holds no game logic. That's mostly so *I* can add content
 without touching code, but it means you can too. See [Homebrew](#homebrew).
 
@@ -21,11 +22,10 @@ rather fortunately, a better designer.
 
 ## Screenshots
 
-These are out of date! I haven't bothered updating them in a bit, but I will.
-One day.
-
 ![The builder](assets/screenshot-builder.png)
 ![The Charm tree picker](assets/screenshot-charms.png)
+![Backgrounds and Merits & Flaws, with the live bonus-point breakdown](assets/screenshot-advantages.png)
+![Gear: inventory, the shop, and the Artifact budget](assets/screenshot-gear.png)
 ![A finished character sheet](assets/screenshot-sheet.png)
 ![Storyteller party view](assets/screenshot-gm.png)
 
@@ -153,7 +153,7 @@ dice, on a table, with your hands.
 ## Running a game
 
 **Party** in the header is the ST page: everyone in the group as a card, play state and
-notes side by side, plus a roster of adversaries — 49 generic extras, beasts and NPCs
+notes side by side, plus a roster of adversaries — 52 generic extras, beasts and NPCs
 to instance and drop in. Cards touch play state and notes and nothing else. "Builder"
 on a card opens that character properly.
 
@@ -172,8 +172,8 @@ Every **Exalted** splat, complete: chargen, Charms, advancement, UI.
 
 | Splat | Charms | Notes |
 |---|---:|---|
-| Solar | 381 | Core plus all five castebooks, and the Cult of the Illuminated origin |
-| Dragon-Blooded | 325 | Dynastic and Outcaste, the Immaculate Order path, all five Aspect Books |
+| Solar | 441 | Core plus all five castebooks, and the Cult of the Illuminated origin |
+| Dragon-Blooded | 335 | Dynastic and Outcaste, the Immaculate Order path, all five Aspect Books |
 | Abyssal | 233 | Necromancy, the five Deathlord castes |
 | Lunar | 217 | Attribute-keyed Charms, Deadly Beastman Transformation, the Gift menu |
 | Sidereal | 193 | Astrological Colleges, Sidereal Martial Arts, Paradox |
@@ -184,7 +184,7 @@ And the non-Exalts:
 | Splat | Notes |
 |---|---|
 | Mortals & Heroic Mortals | One splat, two origins. No Charms, Essence pinned at 1; magic comes via Merits & Flaws |
-| Ghosts | 56 Arcanoi across the six paths, Fetters and Passions, two chargen axes |
+| Ghosts | 127 Arcanoi across thirteen paths plus a common set, Fetters and Passions, two chargen axes |
 | Godblooded | Ghost-Blooded, Half-Caste and Fae-Blooded heritages, the God/Demon-Blooded axis, an 80-Charm spirit catalogue |
 | Dragon-Kings | The ten Paths of Prehuman Mastery (a rated subsystem, 60 powers), four Breeds, Terrestrial sorcery |
 | Mountain Folk | The Enlightenment origin axis, the five-Pattern Charm economy (94 Charms), the Great Geas |
@@ -271,7 +271,7 @@ exalted_builder/
 docs/status/        What is built, splat by splat
 pack/               PyInstaller packaging and build instructions
 tools/              Data authoring spec and a validator for hand-written Charm files
-tests/             ~2,347 tests, engine-first
+tests/             ~2,385 tests, engine-first
 ```
 
 Dependencies run one way only: `ui → engine → models`.

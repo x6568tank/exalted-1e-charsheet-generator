@@ -275,7 +275,10 @@ def test_abyssal_necromancy_spells_authored(rs):
     # are the E:Ab originals plus that batch (docs/status/spell-batch-notes.md).
     assert len(by_circle[SpellCircle.SHADOWLANDS]) == 42
     assert len(by_circle[SpellCircle.LABYRINTH]) == 24
-    assert len(by_circle[SpellCircle.VOID]) == 17
+    # +1 on 2026-08-14: Oblivion's Avatar (Book of Bone and Ebony p.102), found by the
+    # transcribed-book gap scan. Its heading is a SHATTERED HEADING in the extract —
+    # the marker itself records the name, which is why it was authorable.
+    assert len(by_circle[SpellCircle.VOID]) == 18
     # a known spell of each circle
     assert "spell.shadowlands.summon-ghost" in rs.spells
     assert "spell.labyrinth.ivory-razor-forest" in rs.spells

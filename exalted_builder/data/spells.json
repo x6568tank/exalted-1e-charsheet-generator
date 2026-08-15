@@ -3953,5 +3953,31 @@
       "book": "Savage Seas",
       "page": 118
     }
+  },
+  {
+    "id": "spell.terrestrial.the-ravenous-fire",
+    "name": "The Ravenous Fire",
+    "circle": "Terrestrial",
+    "cost": {
+      "motes": 15
+    },
+    "description": "Target: One inanimate object. This spell conjures a magical fire that will consume any non-magical material as if it were dry timber. The sorcerer concentrates on the spell for a turn and then points at the object she wishes to incinerate. A jet of blue-white flame shoots from her fingertip up to one yard away and will instantly ignite the substance at which she points. Dead wood will be instantly consumed. Granite will soften and burn like candle wax. Metals will crumble to ash and slag under the heat of the ravenous fire. The flames will only consume the material to which it was first set, but they can spread to any other material of the same type as long as it is in contact with the substance first touched. Thus, if the sorcerer were to set fire to a marble pillar, it would spread to any other marble that pillar touches, such as the floor or the ceiling. It would not, however, burn any metal inlays or gems set into the marble. The Ravenous Fire can consume 27 cubic feet (the size of a human-sized statue and base) for every point of permanent Essence the caster possesses, and it takes approximately one minute to consume that 27 cubic feet.",
+    "source": {
+      "book": "Savant and Sorcerer",
+      "page": 113
+    }
+  },
+  {
+    "id": "spell.void.oblivions-avatar",
+    "name": "Oblivion's Avatar",
+    "circle": "Void",
+    "cost": {
+      "raw": "10 motes (committed) per power, or 40 motes and 5 experience points per power to make the effect permanent"
+    },
+    "description": "Target: One war machine. Animating a war machine is sometimes just the first step in creating a truly devastating weapon. Oblivion's Avatar invests a walking war machine with a portion of the power of the Malfeans themselves, granting it the ability to carry pure entropy into Creation, which might manifest as a black nimbus of destruction akin to Crypt Bolt or (Material) Withering Method (see Exalted: The Abyssals pp. 191 and 187-188, respectively), the ability to spread disease or some other form of direct channeling of Oblivion into the realm of the living. The prayer-blocking ability of the weapon of mephitic desolation is a product of this spell. Other examples of the power of Oblivion's Avatar are listed in the sidebar “Necromantic Weaponry” on page 109.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 102
+    }
   }
 ]

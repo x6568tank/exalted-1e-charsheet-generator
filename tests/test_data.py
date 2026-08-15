@@ -220,7 +220,11 @@ def test_spells_load_with_expected_circle_counts():
     # Grasp Terrestrial; Storm Rider Enchantment, Summon Spirit Boat and Swift Journey
     # Celestial). ⚠ Water's Ally is printed in BOTH Savage Seas p.117 and Blood and Salt
     # p.125 with identical text — one spell, authored once off Blood and Salt.
-    assert len(rs.spells) == 304
+    # +2 on 2026-08-14 from the transcribed-book gap scan: The Ravenous Fire
+    # (Savant and Sorcerer p.113 — a one-spell hole in that book's alphabetical
+    # Terrestrial run, p.112 and p.114 both authored) and Oblivion's Avatar
+    # (Book of Bone and Ebony p.102, Void).
+    assert len(rs.spells) == 306
     by_circle: dict = {}
     for s in rs.spells.values():
         by_circle[s.circle] = by_circle.get(s.circle, 0) + 1
@@ -240,12 +244,12 @@ def test_spells_load_with_expected_circle_counts():
     # scanned pages directly (pdftoppm -r 110; PDF page = book page + 1). Where the two
     # books print the same spell, Savant and Sorcerer wins (human's ruling), so the S&S
     # copies were left untouched and only names absent from the build were authored.
-    assert by_circle == {SpellCircle.TERRESTRIAL: 102,
+    assert by_circle == {SpellCircle.TERRESTRIAL: 103,
                          SpellCircle.CELESTIAL: 49,
                          SpellCircle.SOLAR: 32,
                          SpellCircle.SHADOWLANDS: 42,
                          SpellCircle.LABYRINTH: 24,
-                         SpellCircle.VOID: 17,
+                         SpellCircle.VOID: 18,
                          SpellCircle.MAN_MACHINE: 23,
                          SpellCircle.GOD_MACHINE: 15}
 

@@ -38,7 +38,7 @@
       "motes": 4
     },
     "duration": "One scene",
-    "description": "The character speaking in tongues can easily speak and understand any spoken language for the Charm's duration. If speaking to beings who each speak a different language, she can understand them all and they can all understand her \u2014 but they still cannot understand each other. The maximum number of beings she may speak in tongues to at once equals her permanent Essence. This grants only the most basic communication (the equivalent of baby or pidgin speech): any social or communicative action attempted is at -4 dice, reduced by -1 for each point of permanent Essence above the minimum requirement. It works only on actual speech; sign language cannot be understood through it.",
+    "description": "The character speaking in tongues can easily speak and understand any spoken language for the Charm's duration. If speaking to beings who each speak a different language, she can understand them all and they can all understand her — but they still cannot understand each other. The maximum number of beings she may speak in tongues to at once equals her permanent Essence. This grants only the most basic communication (the equivalent of baby or pidgin speech): any social or communicative action attempted is at -4 dice, reduced by -1 for each point of permanent Essence above the minimum requirement. It works only on actual speech; sign language cannot be understood through it.",
     "source": {
       "book": "Exalted 1e Dragon-Blooded",
       "page": 177
@@ -89,7 +89,7 @@
       "raw": "5+ motes, 1 Willpower"
     },
     "duration": "One scene",
-    "description": "With more complete mastery of the Air element, the Dragon-Blooded enhances the effect of her spoken words so they resonate with listeners, seeming more persuasive, threatening, or seductive \u2014 whatever she wishes. For the Charm's duration she adds her Essence in dice to her dice pool for any interaction involving speech (seduction, persuasion, intimidation). The Charm normally affects one listener; each additional mote doubles the number of people affected. She must be able to speak the target's language, naturally or through Charms.",
+    "description": "With more complete mastery of the Air element, the Dragon-Blooded enhances the effect of her spoken words so they resonate with listeners, seeming more persuasive, threatening, or seductive — whatever she wishes. For the Charm's duration she adds her Essence in dice to her dice pool for any interaction involving speech (seduction, persuasion, intimidation). The Charm normally affects one listener; each additional mote doubles the number of people affected. She must be able to speak the target's language, naturally or through Charms.",
     "source": {
       "book": "Exalted 1e Dragon-Blooded",
       "page": 178
@@ -135,7 +135,7 @@
       "raw": "3 motes, plus distance"
     },
     "duration": "One minute",
-    "description": "Some Dynasts of Air extend their senses through the air to listen to what people far away say. The further away a character wants to eavesdrop, the more expensive the Charm: for the base cost an Air-aspected Dragon-Blood can clearly hear normal speech from 100 feet away, multiplied by permanent Essence, and doubling the Essence spent multiplies that base range by 10. He also gets a general sense of the target's direction. Limitations: he must specify a single person to spy upon (he cannot 'listen for people plotting against me' \u2014 at most he lists suspects and eavesdrops on them one by one); he cannot hear anything spoken in an airtight chamber (many powerful Dynasts build such chambers to defeat this Charm); and listening from far away demands total concentration, so he can perform no other action while listening.",
+    "description": "Some Dynasts of Air extend their senses through the air to listen to what people far away say. The further away a character wants to eavesdrop, the more expensive the Charm: for the base cost an Air-aspected Dragon-Blood can clearly hear normal speech from 100 feet away, multiplied by permanent Essence, and doubling the Essence spent multiplies that base range by 10. He also gets a general sense of the target's direction. Limitations: he must specify a single person to spy upon (he cannot 'listen for people plotting against me' — at most he lists suspects and eavesdrops on them one by one); he cannot hear anything spoken in an airtight chamber (many powerful Dynasts build such chambers to defeat this Charm); and listening from far away demands total concentration, so he can perform no other action while listening.",
     "source": {
       "book": "Exalted 1e Dragon-Blooded",
       "page": 179
@@ -266,5 +266,40 @@
         "count": 3
       }
     ]
+  },
+  {
+    "id": "dragonblooded.linguistics.subtle-comprehension-technique",
+    "name": "Subtle Comprehension Technique",
+    "category": "linguistics",
+    "exalt_type": "Dragon-Blooded",
+    "element": "Air",
+    "type": "Simple",
+    "min_ability": 3,
+    "extra_min_abilities": [
+      {
+        "abilities": [
+          "lore"
+        ],
+        "rating": 3
+      }
+    ],
+    "min_essence": 2,
+    "prerequisites": [
+      [
+        "dragonblooded.linguistics.language-learning-ritual"
+      ],
+      [
+        "dragonblooded.lore.elemental-concentration-trance"
+      ]
+    ],
+    "cost": {
+      "motes": 3
+    },
+    "duration": "Instant",
+    "description": "This Charm allows the Dragon-Blood to parse the hidden layers of metaphor and symbolism after reading a text. Under normal circumstances, where the layers are apparent to those of a creative enough mind with sufficient study, the deeper meanings stand revealed instantly. The Dragon-Blood using this Charm is automatically aware of what each symbol or metaphor represents according to the author's intent and subconscious meanderings, even if the relevance or obviousness of such a symbol would not be apparent to someone living in the present day, as is often the case when reading ancient texts.\n\nHowever, if the writer tried to bury the symbols purposely, either through a conscious effort at ciphering them (requiring an Intelligence + Lore roll) or with a Charm, then the Dragon-Blood's player must make an opposed roll against the successes of the concealing effort.",
+    "source": {
+      "book": "Exalted 1e The Outcaste",
+      "page": 150
+    }
   }
 ]

@@ -694,6 +694,11 @@ def test_extra_min_abilities_is_empty_for_every_other_charm(rs):
         # Aspect Book: Air p.68 — "Minimum Craft: 4 / Minimum Linguistics: 1". Craft is
         # the primary gate (it is the Charm's category and what pricing keys off).
         "dragonblooded.craft.diligent-engineer-discipline",
+        # The Outcaste p.150 — "Minimum Linguistics: 3 / Minimum Lore: 3", two gates at
+        # the same rating. Linguistics is primary: it is the Charm's category and what
+        # pricing keys off, and its printed prerequisites are one Linguistics Charm and
+        # one Lore Charm, so neither is "the section it is printed in".
+        "dragonblooded.linguistics.subtle-comprehension-technique",
         # Aspect Book: Fire — "Minimum Dodge: 4 / Minimum Melee: 4", two gates at the
         # same rating; Melee is primary because that is the section it is printed in.
         "dragonblooded.melee.style-countering-meditation",

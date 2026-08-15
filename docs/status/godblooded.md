@@ -8,6 +8,43 @@ through both heritages. Phase A surfaced the missing necromancy initiation (and 
 General Arcanoi grouping); Phase B surfaced the Arcanoi tab showing for a Half-Caste
 (see below) and confirmed the Essence-pool numbers.
 
+
+## ⚠ The Spirit catalogue grew to 90 — Autochthonians pp.178-180 (2026-08-14)
+
+Ten machine-spirit Charms, "relatively common in Autochthonia" and "unknown to (or
+very rare among) Creation's spirits". They joined the flat `spirit_templates`
+catalogue unchanged — Virtue-keyed, all printing `Prerequisite Charms: None`, no new
+machinery, no model edit. The catalogue already spanned six books; this is a seventh.
+
+**⚠ This widened what a God/Demon-Blooded may buy**, which is not obvious from the
+data edit alone. `heritage_charm_access` gives that heritage the whole Spirit
+catalogue ("learn the Charms of their magical parents, exactly as their parents",
+PG p.47), so every Charm added here appears in their picker.
+`tests/test_godblooded.py`'s hand-maintained `SPIRIT_IDS` roster is what pins this,
+and it is asserted by the picker-reach tests — **adding a spirit Charm without adding
+its id there fails, which is the design.**
+
+**⚠ TWO are restricted to a SPECIES of spirit, and the build does not enforce it.**
+Crystallize is "possessed only by crystal elementals"; Ossify Pattern ends "only
+crystal elementals and design weavers can use this Charm". There is no species
+field — `Charm.restricted_to` takes `"<Splat>"` / `"<Splat>:<caste>"` and a crystal
+elemental is neither — so the restriction rides verbatim in each description as a
+**known non-enforcement**, the same treatment the narrative Merits & Flaws get. The
+exposure is a God-Blooded taking a crystal-elemental Charm: flavour, not mechanics.
+**Add a species field when a THIRD instance appears, not for two.**
+
+Two traps worth carrying:
+
+* **Ossify Pattern's restriction is its LAST sentence, not its first.** A scan that
+  reads the opening line of each block finds Crystallize and misses it. I reported
+  "9 of 10 unrestricted" on that basis and was wrong; reading the full text of all
+  ten is what corrected it.
+* **The two restriction sentences differ in wording AND case** — "Possessed only BY
+  crystal elementals" versus "ONLY crystal elementals and design weavers" — so the
+  obvious substring `"only crystal elementals"` matches NEITHER. The test matches on
+  `"crystal elementals"` alone. Same shape as the martial-arts style scan: a matcher
+  built from one sample's phrasing.
+
 ## Phase D — Fae-Blooded (2026-08-02, browser-verified — including the code-review fixes below)
 
 The third heritage (of five), the day after the review brief. Source: PG pp.60, 73-80.

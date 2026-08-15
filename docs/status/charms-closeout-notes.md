@@ -4,6 +4,11 @@
 The last batch authorable from text already on disk. 16 entries across five record
 shapes, five different files. All values traced to `images/_extracted/` page text.
 
+⚠ **CORRECTED 2026-08-14.** This file used to record Investiture of Infernal Glory as
+authored. It was not, and that was a DELIBERATE CHOICE, not an oversight — see
+"Entries skipped" below. A gap scan found the discrepancy; the doc was wrong, the data
+was right.
+
 **Result:** 1,837 Charms (1,828 + 5 Outcaste + 3 Player's Guide + 1 Spirit; the
 Beastman Gifts are variants, not records), 13 elemental powers. The brief's check
 script passes (no duplicate ids, every prerequisite id resolves). Full suite: see the
@@ -11,10 +16,23 @@ test line below.
 
 ## Entries skipped
 
-None. All sixteen entries were authorable from the on-disk text; no GARBLED /
-COLUMN SPLIT FAILED / SHATTERED HEADING marker covered any authored content. The one
-p.89 GARBLED marker in the Player's Guide extract is past Investiture of Infernal
-Glory's block and was not needed.
+**Investiture of Infernal Glory (PG p.85) — DELIBERATELY NOT AUTHORED.**
+
+The page prints **three** Virtue minimums — `Minimum Compassion: 3`,
+`Minimum Conviction: 5`, `Minimum Valor: 4` — plus `Minimum Essence: 7`. The `Charm`
+model holds **one** (`min_virtue` + `min_ability`). Encoding it means picking the
+strictest single gate and **silently dropping the other two floors**, so a character
+who fails Compassion 3 or Valor 4 would be offered a Charm the page forbids her. That
+is a wrong answer wearing the costume of a right one, and it is worse than an absent
+entry — the entry is visibly missing, the missing gate is not.
+
+Authoring it needs a model change (multiple Virtue minimums) and is not a DATA-ONLY
+batch's business. Until then it stays out. ⚠ **Its absence is a decision. Do not
+"fix" it by encoding a single Virtue minimum.**
+
+No other entry was skipped. No GARBLED / COLUMN SPLIT FAILED / SHATTERED HEADING
+marker covered any authored content; the p.89 GARBLED marker in the Player's Guide
+extract is past Investiture's block and was not needed.
 
 `Five Directions Formation Protocol` (PG p.242) was **not** in this batch — still
 unauthored per the brief's NOT-in-this-batch section (prints `Varies` for Cost,
@@ -35,7 +53,6 @@ None. Every cost, minimum and prerequisite was read with certainty from the extr
 | Power-Investing Prana | Will-Bolstering Method | `solar.lore.will-bolstering-method` |
 | Dragon-Soul Enlightening Method | Tiger-Warrior Training Technique | `solar.performance.tiger-warrior-training-technique` |
 | Wise Commander's Gift | Benevolent Master's Blessing | `dragonblooded.bureaucracy.benevolent-masters-blessing` |
-| Investiture of Infernal Glory | Endowment, Geas, Memory Transference, Scourge | all four `spirit.spirit-templates.*` (existing) |
 | Soaring Pinions (Beastman Gift) | Prerequisite Gift: Fluttering Wings | variant-key group `[["fluttering-wings"]]` on the same Charm |
 
 Atsiluth's Bounty and Flawless Training Execution print `Prerequisite Charms: None`.
@@ -75,16 +92,10 @@ Reflexes and Enhanced Senses, which explicitly do), so all three were encoded
    test.
 
 2. **Investiture of Infernal Glory prints THREE Virtue minimums, and the model holds
-   ONE.** The page (PG p.85) reads `Minimum Compassion: 3`, `Minimum Conviction: 5`,
-   `Minimum Valor: 4`, `Minimum Essence: 7`. The `Charm` model carries a single
-   `min_virtue` (the VirtueName) + `min_ability` (the rating in that Virtue). I
-   encoded the strictest single gate — `min_virtue: "conviction"`, `min_ability: 5` —
-   and `min_essence: 7`. The Compassion-3 and Valor-4 floors are therefore **not
-   enforced**. Encoding all three would need a model/engine change (out of scope for a
-   DATA-ONLY batch). Flagged for the human/rules authority. Note the brief's example
-   shape (`min_virtue: conviction`, `min_ability: 5`, `min_essence: 4`) is exactly
-   this shape — the printed data happens to agree on the Virtue/rating and differ on
-   Essence (7, not 4).
+   ONE** — which is why it was **skipped rather than encoded**. See "Entries skipped".
+   Its printed prerequisites (Endowment, Geas, Memory Transference, Scourge) all exist
+   as `spirit.spirit-templates.*`, so only the Virtue-minimum model change stands
+   between the page and a record.
 
 3. **The `element` field was added to the five Dragon-Blooded Charms and Wise
    Commander's Gift** (`Water` for the two Investigation Charms, `Wood` for the three

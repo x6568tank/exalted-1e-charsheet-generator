@@ -1,17 +1,54 @@
-# Session handoff — 2026-08-14 (martial-arts styles, Phase 2)
+# Session handoff — 2026-08-14 (martial-arts Phase 2, access rules, gap scan)
 
-**Rewritten each session.** Previous session: the printed/PDF sheet (DONE, fully
-verified, `02da1cd`) and the martial-arts STYLE entity Phase 1 (`037ca2f`).
+# 👉 YOU ARE HERE
 
-**Suite: 2,384 passing, 1 skipped of 2,385 collected**, plus the one known
-machine-dependent failure — `test_every_description_matches_the_source_text`, which
-FAILS on this machine because the Godblooded chapter markdown is present here and
-DEFERS where it is not. CLAUDE.md says neither outcome is a regression; it is not.
+**Everything below is DONE and GREEN. Nothing is half-finished. Nothing is waiting on
+a decision from you.** Sections after this one are the detail; you do not need to read
+them to pick the work back up.
 
-⚠ **The collected COUNT is machine-dependent as well** — the last session recorded
-2,420 on the other machine and this session added 19 tests net, so roughly 54 collect
-there and not here. Do not reconcile the two figures; record what you measured and
-where.
+**State: 24 files uncommitted, suite green, browser-verified.**
+
+```
+git add -A          # ⚠ TWO screenshots are UNTRACKED — `commit -a` alone misses them
+git commit
+.venv/bin/python -m pytest -q     # expect: 2,386 passed, 1 skipped, 1 failed
+```
+
+⚠ **The 1 failure is expected on this machine** — `test_every_description_matches_the_
+source_text` fails here because the Godblooded chapter markdown is present, and defers
+where it is not. CLAUDE.md says neither outcome is a regression. **Not something to fix.**
+
+## Versioning — one small thing to decide, nothing depends on it
+
+**v0.9.9 is already tagged, and the tree has moved past it** (the gap scan's 30 entries,
+the access fixes, the README/screenshot work). `pyproject.toml` currently reads
+**0.9.9**. If you tag again, bump it to **0.9.10** in the same commit — your own
+"worse comes to worst we go to 0.9.10". That is the whole decision.
+
+**1.0 is NOT this.** 1.0 was scoped as: README truthfulness (**done**), screenshots
+(**done**), pyproject sync (**done modulo the number above**), and **packaged builds on
+the Releases page (NOT done — the only one left)**.
+
+## If you do one thing next
+
+**Commit.** Then, in whatever order suits:
+
+1. **Packaged builds** — the last 1.0 item. A re-run, not new work; the PDF sheet was
+   already packaged-build-verified.
+2. **Split `engine/validate.py`** — the last of the three post-catalogue TODOs.
+   `docs/plans/validate-refactor.md`. Write the roll-up membership test FIRST.
+3. **The unswept catalogue** — see the gap-scan section below. Bigger than it sounds;
+   scope it on its own, do not assume today's scan covered it.
+
+## Nothing is pending your ruling
+
+Every question I raised today you answered, and all of them are implemented:
+Snake/Tiger Celestial · the other four tier-less styles Celestial · option A for the
+`ma_tier` discriminator · poisons one row each · creature-embedded Charms ignored ·
+Han-Tha path is a worked example (so **not authored anywhere** — it would go in
+`custom/` if you ever want it).
+
+---
 
 ## What happened this session
 
@@ -159,6 +196,34 @@ instead of deleted: the heading logic moved to `StyleView.heading` (derived stat
 the presenter, which the Qt port wants anyway) and is tested against a constructed
 tier-less StyleView. The preamble-less half still has ten real subjects and keeps
 its render route plus its own guard.
+
+## The transcribed-book gap scan — 30 entries authored
+
+Prompted by "can you scan the transcribed books for anything I've missed". Full detail
+in `thaumaturgy.md`, `godblooded.md` and `charms-closeout-notes.md`.
+
+| Found | Where |
+|---|---|
+| Subtle Comprehension Technique | The Outcaste p.150 |
+| The Ravenous Fire, Oblivion's Avatar | S&S p.113, BoBE p.102 |
+| 16 "Formulas From Other Works" | PG p.143 |
+| 3 minor rituals | BoBE pp.118-119 — **the human found these, not the scan** |
+| 10 machine-spirit Charms | Autochthonians pp.178-180 |
+
+**Corrected, not authored:** Investiture of Infernal Glory. `charms-closeout-notes.md`
+claimed it was authored; it was deliberately skipped because the page prints THREE
+Virtue minimums and the model holds one. The doc now says so.
+
+**Ruled out of scope by the human:** the ~9 creature-embedded Charms in bestiary stat
+blocks, and the Han-Tha Dark Path (a "worked example" the book invites STs to extend →
+belongs in `custom/`, not `data/`; not authored anywhere yet).
+
+⚠ **The lesson, and it cost a wrong "nothing is a known gap" claim:** the scan keyed on
+printed stat blocks, so it was **structurally blind to rituals**, which print none at
+all — and to one ritual that has no heading either. **Ask what shapes a sweep cannot
+see before trusting it.** Still unswept by any method: Merits, Backgrounds and
+prose-described artifacts in the transcribed books, and everything in the scan-only
+books (Sidereals, Dragon-Blooded, castebooks, Lunars, Abyssals).
 
 ## Where the work goes next
 

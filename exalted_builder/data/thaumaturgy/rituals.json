@@ -92,5 +92,38 @@
       "book": "Player's Guide",
       "page": 150
     }
+  },
+  {
+    "id": "ritual.jawbone-echoes",
+    "name": "Jawbone Echoes",
+    "level": 1,
+    "cost": "1 mote or one Willpower",
+    "description": "Jawbone Echoes is used to speak with the dead — not with spirits, but with the corpses themselves. Its influence is weak and fleeting, however, and the thaumaturge willing to use this ritual to speak with a corpse at length is often a lone thaumaturge. The ritual requires a single mote of Essence or one Willpower, spent as the name of the ritual is repeated face to face with the body. The thaumaturge then kisses the corpse, straining to kiss ever more deeply until a sickeningly sour taste hits the tip of his tongue. The thaumaturge may then ask one question of the corpse and get one answer. The corpse knows only what it experienced in life and what happened to it after all potence left it with its hun and po souls. The jawbone must be present and in one piece for this ritual to be effective, and the ritual can work even if only the jawbone is available.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 118
+    }
+  },
+  {
+    "id": "ritual.garrote-and-murder-mansion",
+    "name": "Garrote and Murder Mansion",
+    "level": 2,
+    "cost": "One Willpower; approximately one hour",
+    "description": "The thaumaturge must begin this ritual by carefully making chalk from the bone of the subject corpse. The chalk is used to lay out the floor plan and make a rough image of the body's former house, home or haunt. The thaumaturge must know and whisper one hundred fondnesses that the corpse's former hun held while she forms the images, making this ritual expensive in knowledge, if not in silver or jade. The ritual takes approximately an hour and costs one Willpower. The body will then animate and follow the thaumaturge's commands. Use the template for the common zombie (see Exalted, p. 299), except that a zombie raised by Garrote and Murder Mansion constantly exhales air from an unknown source. An ear laid close to the zombie's mouth will hear the thaumaturge's voice whispering the one hundred fondnesses, repeated ad infinitum.\n\nThe chalk drawings are gradually blown away by an intangible wind, disappearing entirely over the course of a week. As the week of unlife nears its end, the zombie begins to slow and stumble, indicating to its master that the time has come to reinvest it with life. Reinvestment is the same ritual as the original animation and takes the same amount of time. The only limit to the number of times an individual body may be reanimated is the amount of bone that may be ground to chalk without reducing the subject beyond all usefulness.\n\nAny Charm or spell that influences the command of an animated corpse preempts the thaumaturge's meager power.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 118
+    }
+  },
+  {
+    "id": "ritual.obstinate-crumbs",
+    "name": "Obstinate Crumbs",
+    "level": 3,
+    "cost": "",
+    "description": "A corpse-animating ritual in the manner of Garrote and Murder Mansion. It centers around the once-favorite foods of the corpse's hun. The animated servant is constantly leaving crumbs of these foods where it walks, though they can provide no nourishment. Zombies created with this ritual last for 20 days before they must be re-imbued, but lose a dot in all Attributes each time they're imbued, to a minimum of •.\n\nAny Charm or spell that influences the command of an animated corpse preempts the thaumaturge's meager power.",
+    "source": {
+      "book": "Book of Bone and Ebony",
+      "page": 119
+    }
   }
 ]

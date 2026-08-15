@@ -1901,5 +1901,207 @@
       "book": "Player's Guide",
       "page": 48
     }
+  },
+  {
+    "id": "spirit.spirit-templates.call",
+    "name": "Call",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2
+    },
+    "duration": "Instant",
+    "description": "The spirit may send out a call for the aid of like spirits. If other such spirits are within range (as determined by the Storyteller), they will arrive within (7 - Essence) turns.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 178
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.cannibalize",
+    "name": "Cannibalize",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 3,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "One scene",
+    "description": "This useful Charm lets machine spirits nourish and repair themselves by feeding on other machine spirits. By absorbing parts from a fallen comrade, an automaton can repair itself. The remains consumed must be of another machine spirit. Cannibalize heals two health levels per turn, up to a maximum of half of the destroyed spirit's total health levels. This Charm can be used offensively (and often is by gremlins), in which case the Storyteller makes a contested Valor (or Power) roll for the two spirits, with the attacking spirit draining one health level for every success above his target's. This attack only works after the target has already taken four or more health levels of damage.\n\nAlternatively, spirits may use this Charm to obtain motes of Essence instead. This is particularly useful in blight zones, where there is no Essence to respire. Spending 2 motes of Essence cannibalizes 5 motes from the target of this Charm (netting the cannibalizing spirit 3 motes). A spirit can jumpstart Cannibalize by spending 1 point of Willpower to absorb up to 10 motes of Essence from a fallen machine spirit.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 178
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.chrysalis-of-preservation",
+    "name": "Chrysalis of Preservation",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 3,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5
+    },
+    "duration": "Indefinite",
+    "description": "With this Charm, the spirit coats an object or automaton with a fine filament cocoon. The object so covered is placed in a state of perfect stasis until the spirit needs it again. While in this cocoon, the object takes no damage and is immune to fire, lightning, physical force and even the ravages of time. Until the item is removed from its static web, only the machine spirit that wove the cocoon can retrieve the object from the cocoon without using potent magic (e.g., Sapphire Countermagic). Spirits with Essence of 6 or more use a similar Charm on living creatures.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 178
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.crystallize",
+    "name": "Crystallize",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Supplemental",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 5,
+      "willpower": 1
+    },
+    "duration": "Permanent",
+    "description": "Possessed only by crystal elementals, this Charm allows a spirit to transform part of a creature's substance into pure crystal. The spirit must first touch its intended target. Once it succeeds and spends the Essence, roll the spirit's Essence rating. Each success inflicts one health level of aggravated damage by turning a portion of the target's form to pure crystal. Exalted can attempt to soak this damage with their Essence. If a target loses all of its health levels to this form of attack, it becomes a crystal statue of itself and dies unless it can be healed of at least three health levels within 24 hours. Only magic that heals aggravated damage can treat these wounds.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 178
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.denial-of-the-forges-yoke",
+    "name": "Denial of the Forge's Yoke",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Reflexive",
+    "min_virtue": "temperance",
+    "min_ability": 2,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 6
+    },
+    "duration": "One scene",
+    "description": "Weapons made of mortal metal won't hurt the spirit. Any damage such a weapon would have inflicted is ignored. This does not protect against weapons of the Magical Materials, but another version requiring a minimum Temperance of 3 and Essence of 6 does. That variant requires this Charm as a prerequisite.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 179
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.diagnostics",
+    "name": "Diagnostics",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Supplemental",
+    "min_virtue": "conviction",
+    "min_ability": 2,
+    "min_essence": 2,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2
+    },
+    "duration": "Instant",
+    "description": "Spirits using this Charm may discern exactly what's wrong with a malfunctioning machine, automaton or machine spirit. The spirit's Essence is added to all Craft rolls to repair the machine.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 179
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.inurement",
+    "name": "Inurement",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "compassion",
+    "min_ability": 2,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2
+    },
+    "duration": "One day",
+    "description": "Spirits inside Autochthon often have to work in extraordinarily hostile conditions. This Charm makes them immune to all environmental damage, including damage caused by great pressure, acids, heat and extreme cold. Not even this Charm will protect a spirit from the most destructive environments inside Autochthon, but it does grant a solid basic level of protection against environmental damage (equivalent to three automatic successes on a Resistance roll).",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 179
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.ossify-pattern",
+    "name": "Ossify Pattern",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Supplemental",
+    "min_virtue": "conviction",
+    "min_ability": 4,
+    "min_essence": 4,
+    "prerequisites": [],
+    "cost": {
+      "motes": 10,
+      "willpower": 1
+    },
+    "duration": "(Essence) scenes",
+    "description": "This Charm saps the target's dynamism, putting him out of harmony with the flow of Essence. The spirit must successfully touch the target for this Charm to work. Once the spirit makes contact, the target gains no Essence while under the effects of this Charm, and all Essence costs are doubled. This Charm works differently on Fair Folk (excepting the Mountain Folk), in which case it causes (spirit's Essence rating) health levels of aggravated damage instead.\n\nOnly crystal elementals and design weavers can use this Charm.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 179
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.sabotage",
+    "name": "Sabotage",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 3,
+    "min_essence": 3,
+    "prerequisites": [],
+    "cost": {
+      "motes": 2
+    },
+    "duration": "One scene",
+    "description": "Using this Charm impairs and weakens a machine, a machine spirit or an automaton with but a touch. It doesn't actually cause damage, but it makes the object easier to damage. Each usage of this Charm reduces the object's soak by 1L/1B. An item reduced to 0 in both categories becomes as fragile as thin crystal and shatters the next time it is hit. Predictably, this Charm is especially popular with gremlins.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 180
+    }
+  },
+  {
+    "id": "spirit.spirit-templates.shatter",
+    "name": "Shatter",
+    "category": "spirit_templates",
+    "exalt_type": "Spirit",
+    "type": "Simple",
+    "min_virtue": "valor",
+    "min_ability": 4,
+    "min_essence": 5,
+    "prerequisites": [],
+    "cost": {
+      "motes": 15
+    },
+    "duration": "Instant",
+    "description": "The spirit opens its mouth and howls, inflicting (Essence x 2) dice in lethal damage to objects (or spirits) made of glass or crystal. Hearthstones and similar magical crystals and gems shatter after taking five health levels of damage.",
+    "source": {
+      "book": "Exalted 1e The Autochthonians",
+      "page": 180
+    }
   }
 ]
