@@ -17,7 +17,7 @@
     "duration": "Up to 24 hours",
     "description": "The character can use her Essence to temporarily appear to be dead. The instant she performs this Charm, she falls to the ground, seemingly deceased. A careful examination and a successful Perception + Medicine roll of difficulty 3 is necessary to determine that the character is actually still alive. While this Charm is in effect, the character can hold her breath 10 times as long as normal, and she does not need to eat or drink. Although the character can use her senses of hearing, touch and smell normally, she cannot see or move while this Charm is in effect. However, she can act normally the turn after she chooses to end this Charm.\n\nCharacters may use both fighting chains and sai freely with all Charms in the Ebon Shadow Style Martial Arts cascade.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 67
     },
     "open_to_tiers": [
@@ -46,7 +46,7 @@
     "duration": "One turn",
     "description": "The character using this Charm can climb walls, ropes, chains and other vertical surfaces as easily as he can walk along a floor. Using Wall Climbing Technique, the character can climb up to his normal movement rate per turn. In his next turn, the character must either activate the Charm again, remain where he is (if such is possible) or attempt to leap or climb down normally.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 67
     },
     "open_to_tiers": [
@@ -75,7 +75,7 @@
     "duration": "Instant",
     "description": "The character can make a complex sign with her fingers and charge it with Essence. This sign distracts and slows a single opponent. It takes only an instant to make and is performed at the beginning of the turn. The character's Martial Arts score is subtracted from a single opponent's initiative roll, and the Charm prevents this opponent from splitting her dice pool that turn (although the opponent may use Combos and reflexive and extra action Charms normally and may abort to dodge or parry as usual). If, for any reason, the opponent's initiative roll is reduced below 1, the opponent may not act that turn.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 68
     },
     "open_to_tiers": [
@@ -104,7 +104,7 @@
     "duration": "One scene",
     "description": "The Exalt moves with the speed and ease of a flickering shadow. While using the Ebon Shadow Form, she adds her Martial Arts score to her initiative total. In addition, she adds a number of dice equal to her permanent Essence to her Stealth score, and the difficulty of all attacks against the character is increased by a number equal to the character's permanent Essence. The character can also decide whether any of her attacks made with hands, feet, sai or fighting chains will do bashing or lethal damage. This decision must be made before a given attack is rolled. This Charm is incompatible with armor. Characters cannot use more than one Martial Arts Form-type Charm at a time. If a character is killed while under the effects of Ebon Shadow Form, her body dissipates into acrid black smoke. She leaves no ghost, and her physical remains provide no evidence of her identity (though her gear may).",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 68
     },
     "open_to_tiers": [
@@ -133,7 +133,7 @@
     "duration": "Instant",
     "description": "The character uses her Essence to guide her hand, foot or weapon so that it strikes the weakest point in her target's armor. As a result, a number of points equal to the character's Martial Arts score are subtracted from the target's lethal or bashing soak before damage from this attack is applied.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 68
     },
     "open_to_tiers": [
@@ -162,7 +162,7 @@
     "duration": "One scene",
     "description": "A character trained in the Ebon Shadow Style learns all of the weak points found in living bodies. With a slight touch, the martial artist can immobilize one of her target's limbs. The character need merely tap an unsuspecting target, a normal unarmed attack at +1 difficulty. The attack can be blocked or dodged as normal and does no damage. The attacker can choose which limb to paralyze, and the target limb is immobilized for the remainder of the scene. Immobilizing a human's leg halves his movement speed, and the target's player must make a reflexive Dexterity + Athletics roll every time his character is struck to keep him from falling. Characters with both legs immobilized can only crawl and must generally perform stunts to attack, dodge or parry. Immobilizing the leg of a horse or other animal with four or more legs merely halves the distance it can move every turn. Immobilizing an arm keeps the target from using that arm to attack. This attack does no actual damage to the target, but it may cause off-hand penalties, and paralyzing both of the target's arms makes it very difficult for him to fight effectively. This attack has no effect against the undead, automata and other beings that have no vital functions to obstruct.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 69
     },
     "open_to_tiers": [
@@ -191,7 +191,7 @@
     "duration": "One scene",
     "description": "This Charm allows the character to stun or incapacitate a target with a mere touch to one of the five vital centers. To perform this attack, the character must lightly tap the target on one of several possible nerve points, making a normal unarmed attack. This attack does no damage. However, the Exalt's player may roll a number of dice equal to her character's Martial Arts + the number of extra successes she made on the attack, against a difficulty equal to the target's Essence. Each extra success on this roll reduces the target's Dexterity by one dot. If the target's Dexterity is reduced to zero, he is paralyzed. Lost Dexterity returns at the end of the scene. The effect is also dispersed if the player of a character with Medicine and Martial Arts at 3 or higher makes a successful Wits + Martial Arts roll at difficulty 3 to remove the paralysis. Removing paralysis is a normal dice action, and the target may move normally in the next turn. With a successful Wits + Stealth roll of difficulty 1, this touch can be made to seem like a simple pat on a shoulder or an unintentional push. This attack cannot be used against the undead or other beings that lack vital centers.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 69
     },
     "open_to_tiers": [
@@ -220,7 +220,7 @@
     "duration": "One turn",
     "description": "The character becomes as difficult to hit as a dimly lit shadow. Until her next action, add a number of dice equal to her permanent Essence score to all dodge attempts, including Dodge attempts involving reflexive Charms such as Shadow Over Water. If, for some reason, she has no Dodge pool, she may reflexively dodge attacks with her Essence.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 69
     },
     "open_to_tiers": [
@@ -249,7 +249,7 @@
     "duration": "Instant",
     "description": "The character can make an Essence-enhanced gesture that renders his opponent unable to notice or react to an attack the character makes. The opponent cannot dodge or parry the character's blow without the use of Charms. The target's player may make a reflexive Wits + Awareness roll for the attack, with a difficulty equal to the attacking character's Essence. If the roll succeeds, the opponent may use any reflexive Charms or abilities she possesses to counter the attack but may not avoid it nonmagically. If the roll fails, the opponent may use only Charms that specifically state they work on attacks the character is not aware of. This Charm may explicitly be used in a Combo with Charms of other Abilities.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 69
     },
     "open_to_tiers": [
@@ -278,7 +278,7 @@
     "duration": "One scene",
     "description": "This Charm allows the character to flatten her body in order to pass through narrow spaces as easily as a shadow slides under a door. The character can fit her entire body through any space wide enough for her to fit her fingers through. The character is shadowy and indistinct, composed of tangible darkness and not flesh. It is impossible to identify the character while this Charm is in effect, though her gear may betray her. Even if her anima banner activates, only her Caste Mark will shine forth, and her anima banner, while bright, will be muted and generic.\n\nThe Exalt cannot wear any armor when using this Charm, but she adds a number of dice equal to her permanent Essence to both her lethal and bashing soaks while the Charm is in effect. This Charm is incompatible with any other Charms that increase the character's natural soak and have durations longer than Instant. A character using this Charm sees as easily in total darkness as in light, though she must actually use her eyes to see, and so, this magic lends no aid if she must fight blindfolded or in thick fog.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 69
     },
     "open_to_tiers": [
@@ -310,7 +310,7 @@
     "duration": "Instant",
     "description": "In ancient times, Exalted assassins circumvented the protections of their enemies by stepping directly through them. By using this Charm, the Exalt steps into a shadow and steps out of another shadow far away, near his destination. The Exalt must have a shadow to step into, and he must have seen his destination before, though seeing it through a familiar, sorcerous scrying or what have you also counts. The Exalt then steps into the shadow as a simple action. He reappears at the beginning of next turn in the nearest unobserved shadow near his intended destination. That destination cannot be more than a number of miles away equal to the Exalt's permanent Essence, and if there are no unobserved shadows within 100 yards of that location, the Charm fails (though the Essence and Willpower are still spent).\n\nThere are certain sorcerous wards (the same as those that will block teleportation, which is what this Charm is) that prevent the use of this Charm. Generally, it cannot penetrate the Manse of a sorcerer, a god's sanctum or any other such forbidden place.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 70
     },
     "open_to_tiers": [

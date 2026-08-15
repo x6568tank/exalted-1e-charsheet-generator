@@ -72,7 +72,7 @@
     ],
     "description": "Ocular implants. Purchasing awards TWO of the listed modifications free; each further modification costs 3 bonus points or 6 experience points. (The 'two free with the Charm' allotment is not auto-tracked here; a build that takes only two need not pay for them.)",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 124
     },
     "exalt_type": "Alchemical",
@@ -151,7 +151,7 @@
     ],
     "description": "An eye replaced by a detachable eight-legged sensory orb, telepathically controlled, relaying all the Exalt's senses (each drone action costs an action, with cumulative multiple-action penalties). Drone: Dexterity = Exalt's Dex + Essence; Perception/Abilities = Exalt's; Stamina/soak/health = Essence; twice the Exalt's speed; range Essence miles; serves as an arcane link. Extra installations (past the number of eyes) need no installation cost.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 125
     },
     "exalt_type": "Alchemical",
@@ -178,7 +178,7 @@
     "duration": "One hour",
     "description": "Superhuman taste and smell (roughly (Perception x 10) times normal sensitivity/range): detect trace chemicals, poison in food, subtle pheromones and the like. Largely narrative.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 127
     },
     "exalt_type": "Alchemical",
@@ -205,7 +205,7 @@
     "duration": "One hour",
     "description": "Cochlear implants extend hearing to ultrasonic/subsonic ranges, adding permanent Essence (an artificial specialty, may exceed +3, not cumulative with other specialties) to all sound-based Perception rolls. Spatial awareness is so keen the Exalt suffers only low-light-vision penalties while blind. Cannot be deafened by sensitivity.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 127
     },
     "exalt_type": "Alchemical",
@@ -232,7 +232,7 @@
     "duration": "Instant",
     "description": "Hear the vibrations or scent the biochemistry of a lie: roll Perception + (Awareness or Investigation) vs the target's Essence to know whether they believe a statement true or false (deceptive half-truths and any partly-false statement register as false). With the microscopic-lens upgrade, can scrutinize written text (vs the author's Manipulation).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 128
     },
     "exalt_type": "Alchemical",
@@ -261,7 +261,7 @@
     "duration": "Instant",
     "description": "A cognitive cluster filters all sensory data: roll Wits + (Awareness or Investigation); each success reveals or recalls one pertinent detail (including from earlier scenes) plus speculative connective hints. Deals in plausibility, so heavy misdirection can yield false suppositions.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 128
     },
     "exalt_type": "Alchemical",
@@ -288,7 +288,7 @@
     "duration": "One scene",
     "description": "Sense every soulgem within (Perception x 10) yards, whether it holds a soul and whether it is set in a mortal, an Exalt, or no one (focus on one gem, diceless, to read its Essence pattern). Lead-capped gems are hidden. Higher variants extend range to (Perception x 100) yards (Perception 3/Essence 5) or (Perception) miles (Perception 6/Essence 8).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 128
     },
     "exalt_type": "Alchemical",
@@ -314,7 +314,7 @@
     "duration": "One scene",
     "description": "For every 2 motes, perceive spirits, sanctum entrances and other incorporeal beings/effects as if solid with one sense; the Exalt never confuses immaterial for material.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 129
     },
     "exalt_type": "Alchemical",
@@ -340,7 +340,7 @@
     "duration": "Instant",
     "description": "Briefly dematerialize during an instant dice action: strike a dematerialized being, dodge a material attack as a limited perfect defense, parry immaterial attacks, or phase through a door/floor. Integrated mass sensors abort the shift if the Exalt couldn't fully cross an obstruction in the instant.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 129
     },
     "exalt_type": "Alchemical",
@@ -367,7 +367,7 @@
     "duration": "Instant",
     "description": "Emit a spherical ward up to (Charisma x 5) yards radius, impenetrable to dematerialized spirits and blocking outside spirits from affecting those within (unless their Essence exceeds the Exalt's Charisma). Spirits inside when it hardens may act but cannot re-enter if they leave; materialized or possessing spirits pass freely. Persists until the Alchemical dies or leaves it.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 129
     },
     "exalt_type": "Alchemical",

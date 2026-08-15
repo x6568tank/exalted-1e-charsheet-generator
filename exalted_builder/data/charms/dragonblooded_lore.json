@@ -16,7 +16,7 @@
     "duration": "One day",
     "description": "The most basic of Lore techniques known by the Dragon-Blooded. The character concentrates on her aligned element, centering herself and opening her mind, and can compact a week's worth of learning into a single day, assuming she has access to all the necessary materials. The Charm can be used on sequential days, but use for more days than the character's Lore skill causes one level of unsoakable lethal damage per day; this damage can only be healed by time and does not begin healing until one week after the character suffers it.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 180
     }
   },
@@ -41,7 +41,7 @@
     "duration": "Instant",
     "description": "Proper knowledge of the Elemental Dragons allows a Dynast to draw energy directly from an elemental source, restoring depleted reserves in times of crisis. The character must be able to physically touch the element she is aligned with to draw Essence from it. For every point of Willpower spent this way, she instantly gains Essence motes equal to her Lore, which can be spent normally. There is a price: if a character spends more Willpower in a single day to draw elemental energy than her permanent Essence score, each additional use of Willpower to increase her Essence causes one unsoakable level of bashing damage.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 180
     }
   },
@@ -65,7 +65,7 @@
     "duration": "Instant",
     "description": "A Dynast's connection to the Elemental Dragons can be a source of great resilience in desperate times. Element Succor Method lets a Dragon-Blood tap into the elemental energy of the Dragons to restore her body. She must be able to immerse herself in her favored element to the greatest degree possible (standing in a burning fire, submerged in water, etc.) and must spend 5 motes and 1 Willpower for every lethal health level healed, or 2 motes per bashing health level. It will not restore lost limbs or repair other such mutilations.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 181
     }
   },
@@ -85,7 +85,7 @@
     "duration": "Instant",
     "description": "The character extends her hand and a bolt of elemental force flashes forth \u2014 a shaft of ice, a blast of fire, a barbed wooden javelin, a stroke of lightning, or slashing shards of crystal. The player rolls Dexterity + Athletics or Archery (whichever she prefers) to hit. The attack has a range of 20 yards x permanent Essence and does a base damage of 2L for every mote of Essence spent; its accuracy equals the character's Essence. A character cannot spend more motes on this Charm than her Stamina.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 181
     }
   },
@@ -109,7 +109,7 @@
     "duration": "Instant",
     "description": "Similar to Element Bolt Attack, but it creates a blast of elemental power rather than hurling a bolt. The player rolls Dexterity + Athletics or Archery (whichever he prefers) to hit, with an accuracy bonus equal to permanent Essence. The attack has a range increment of 20 yards x permanent Essence and affects a circular area with a radius equal to permanent Essence in yards. Anyone in that area who fails to dodge or parry takes a base damage of 1L for every mote the Dragon-Blooded invested in the Charm.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 181
     }
   },
@@ -137,7 +137,7 @@
     "duration": "One scene",
     "description": "Rather than a temporary damaging burst, this Charm creates a deadly maelstrom of the character's elemental aspect \u2014 a sudden rain of fire, a roiling whirlwind of air, or a grinding cloud of stone and earth. Anyone in the area other than the character who summoned it takes lethal damage equal to the character's Essence every turn; this damage cannot be dodged or parried. The creator is exempt and may act normally. The vortex extends 10 feet from the character per point of permanent Essence, is stationary once invoked, and cannot be voluntarily terminated before its duration expires (though killing the character ends it).",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 182
     }
   },
@@ -161,7 +161,7 @@
     "duration": "Varies",
     "description": "Trance Diligence and intellect, properly applied, can surmount the most difficult of systemic or academic pursuits. Diligence and intellect coupled with the magical acumen of a talented Exalt can accomplish in a matter of hours what could otherwise require months of work from a dedicated team of scholars. Through the use of this Charm, a Dragon-Blooded scholar can virtually guarantee high-quality results on any academic or systemic task by using Essence to strengthen and structure his thoughts and mind, gain-ing a crystalline clarity. For each hour of dedicated work and 2 motes of Essence, the Dragon-Blood's player gains an automatic success on any roll pertaining to academic studies, research, analysis or any other type of \"book work\" the character is conducting, to a maximum of the character's Lore Ability (including specialties, if applicable). The hours spent in study for the use of this Charm must be concurrent, and any interruption of the character's activities will require him to begin anew, losing any Essence spent in the Charm's activation. Due to the highly structured changes worked on the mind by use of this Charm, characters suffer an effective -1 penalty to their Compassion Virtue Trait for a number of hours after using this Charm equal to the number of hours of study (even if the Charm fails due to interruption). Those who make repeated, long-term use of this Charm grow detached and often cold toward others. Storytellers may reduce the Compassion of characters who rely overmuch on this Charm but should warn players if they think their characters are overusing the Charm. Generally, more uses per lunar month than a character's Essence should be considered abuse.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   },
@@ -185,7 +185,7 @@
     "duration": "Instant",
     "description": "Study Sometimes, solutions to complicated problems are needed on the spot, without the luxury of analysis by engineers or scholars. When a dam or other vital structure is damaged, for example, an effective plan must be made before the structure fails and further hampers normal operating procedures. A Terrestrial scholar may bring the full force of his mind and accumulated academic training to bear on a single problem with the use of this Charm, straining his mind with Essence and condensing days of analysis into a single, staggering moment of insight. For every 2 motes of Essence spent, the character may purchase an automatic success on any roll involving an analytical or scholarly task, up to a limit of his Lore Ability. The remainder of the pool is then rolled normally. The character's player must then roll to soak, using the Dragon-Blood's Wits At-tribute, a number of bashing health levels equal to the total successes on the roll, as the Exalt attempts to mentally digest and sort the rush of information. It is common, after using this Charm, for a character to experience violent nosebleeds, sporadic weakening of vision and hearing and excruciating headaches. Regardless of the results of the soak roll, each use of this Charm counts as a full day's exertion for the character, who must then deal with the effects of sleep deprivation or use a Charm or item to counter it. The bashing damage dealt through the use of this Charm may be healed using whatever methods are available to the character.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   },
@@ -210,7 +210,7 @@
     "duration": "Instant",
     "description": "Study With a potential lifespan of centuries, and those centuries almost surely densely packed with all manner of both excitement and study, the memories of the Dragon-Blooded can become quite cluttered. Dedicated scholars especially, who have a long lifetime's worth of books and observations on which they likely wish to meditate, find that the enervation of the memory with Essence can allow them near-perfect recall of any event they have witnessed or any material they have read. After spending the required Essence, a Dragon-Blood spends a moment in contemplation, and his player rolls the Exalt's Intelligence + Lore, with the number of successes indicating how far into his memory the Dragon-Blood may explore. One success is enough to recall a hurried conversation from a few years prior, while five allows the user to reexperience events from primary school. Some savants have even claimed to recall memories of time spent in their mothers' wombs through the use of this Charm. While using this Charm, the character is not helpless or unaware of his surroundings, as he is not truly immersed in reexperiencing the events of his past. He experiences them normally, as memories, simply perfectly detailed and accurate memories.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   },
@@ -230,7 +230,7 @@
     "duration": "Instant",
     "description": "Savants entertain a great variety of individually focused fields of study. Nearly every scholar, dabbler and professional alike, has her favored era of history, mathematical discipline or school of philosophy. True pundits, through the use of this Charm, can enjoy flawlessly reliable intuition and produce repeatable results within their chosen areas of focus. For every 3 motes of Essence spent to fuel the use of this Charm, one of the character's levels of a Lore specialty can be converted to an automatic success. The rest of the character's Lore pool is rolled normally.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     },
     "prerequisite_counts": [
@@ -260,7 +260,7 @@
     "duration": "One day",
     "description": "Trance Individual study, for a savant, may be a relaxing and prestigious pastime, regardless of the specific area of endeavor. Professional undertakings and the work of students do not allow for the slow pace and low pressure necessary to produce the results enjoyed by those who study for leisure. In such cases, and others, it is efficient and effective to establish a hierarchy within which the more skilled savants are on hand to advise and to proof the work of the lesser savants or students. An overseer who uses this Charm can take this methodology a step further, weaving connections of Essence between herself and those under her to maximize the collective cognition of the group. On activation of the Charm, the player rolls his character's Charisma + Lore. For the remainder of the day's study, the character may use these successes as a pool from which he can reflexively allocate additional dice to rolls made by those under his tutelage, including during a roll that has resulted in a failure or botch. The character can, for example, add dice one at a time to his charge's roll until the pool of extra dice is depleted or the charge cancels his botch or failure.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   }

@@ -65,7 +65,7 @@ you were given, plus existing files in `data/`.
   "cost": { "motes": 3, "willpower": 1, "health": 0, "raw": "3 motes, 1 Willpower" },
   "duration": "Until used",
   "description": "…",
-  "source": { "book": "Exalted 1e Cult of the Illuminated", "page": 91 }
+  "source": { "book": "Cult of the Illuminated", "page": 91 }
 }
 ```
 

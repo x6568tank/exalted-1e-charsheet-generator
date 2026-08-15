@@ -152,7 +152,7 @@
     "duration": "One scene or special",
     "description": "When the character uses this Charm, she impresses a single target with the overwhelming power of her commanding nature. Targets whose players fail a Valor roll at a difficulty of 3 are frozen in place, unable to move for the next scene. This paralysis is emotional rather than physical, but cannot be broken as long as the attacking character continues to gaze intently at the target. While keeping this eye contact, the character can be no more than five yards from the target. She also cannot move faster than a walk or perform any complex or difficult actions (such as combat). The target’s player receives additional Valor rolls whenever anyone harms or obviously attempts to harm him. If the character ceases to gaze at the target, the paralysis continues for the next three full turns, but the target instantly breaks free if anyone harms or obviously attempts to harm him. This Charm has no effect on targets whose Essence is higher than the character using the Charm.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 104
     }
   },
@@ -178,7 +178,7 @@
     "duration": "Instant",
     "description": "The words of an Illuminated Solar are as forceful as his fists, allowing him to assert dominion over a social conflict. The saintly Solar turns to his target and speaks profound words, a deep insight fueled with Essence. The effect is immediate and powerful. As the target of his words contemplates their meaning, and either he accepts the fundamental truth of the words and the inherent sainthood of the Solar, finding his spirit uplifted, or he rejects them and the Solar, the words ripping through his soul like spurs. The Solar selects the target of his words and reveals his sagacious truth, his player rolling the Solar’s Charisma + Presence at a difficulty of his opponent’s Essence.\n\nIf the roll is successful, the target has a choice: submission or defiance. For one who submits to the Solar, accepting him as divine, everything in the world makes sense, and her place in the world is reaffirmed, and the target gains a temporary point of Willpower. For one who defies the inherent lordship of the Solar, she suffers beneath the weight of her own, false world view, unable to reconcile the truth of the Solar’s statement with her own ideology, losing a number of temporary points of Willpower equal to the number of successes the Solar’s player rolled beyond the requisite difficulty, to a maximum number of Willpower points equal to the Solar’s own Essence. The Solar cannot reduce a target below 0 Willpower points, and those who have no Willpower left as a result of this Charm can no longer bear the sight of the Solar and immediately flee his presence. This technique is as useful as a weapon against unbelievers as it is a way of strengthening the righteous. However, the Charm can only be used upon beings who truly are beneath the Solar and is not effective against anyone with an Essence equal to or higher than the Solar.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 105
     }
   },
@@ -204,7 +204,7 @@
     "duration": "Instant",
     "description": "The desperate, the downtrodden and the weak can find new hope and new joy in the words of the saintly Illuminated. With a gentle whisper and uncommon insight, a Solar may reveal someone’s true nature to herself, so that she may find the sense of purpose she longs for. This Charm only affects characters who have no remaining temporary Willpower points. The Solar makes a Manipulation + Presence roll at a difficulty of his target’s Conviction. If successful, the Solar molds the spent will of the target into a new form, and the Solar may select a new Nature to replace the target’s old one. For each success beyond the required difficulty, the Solar may rearrange one point of Virtue, making a cowardly man brave or a loving man cold and hard. The effects normally last a month. However, the Solar may spend 1 experience point to make the Nature change permanent, and 1 experience point per Virtue dot shifted during the target’s change to make that permanent. Some characters of strong will may overcome even these permanent changes with time. After a minimum number of months equal to (11 - the character’s Willpower), at the Storyteller’s discretion, even the permanent effects of this Charm subside. This Charm will not affect beings whose Essence exceeds the Solar’s.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 105
     }
   },
@@ -233,7 +233,7 @@
     "duration": "Instant",
     "description": "While any Solar who masters the Charms of Presence has a weighty aura of charisma and influence, those who master Horizon-to-Horizon Presence Method have vast auras that insinuate themselves into all aspects of life. Such an Exalt impacts people whom she has never met. Assassins abandon their quest for her destruction after seeing a painting of her. Hopeless young men devote their entire lives to her upon hearing mere stories of her deeds. The character may influence the world without raising a finger through the power of her charisma alone.\n\nUpon activating this Charm, the Solar may make a single use of her Presence Ability, usually rolled with either Charisma or Manipulation, against any single character irregardless of distance. The difficulty rating of the Presence roll is increased by an amount equal to the target’s Essence. The Solar need not speak or interact with the target in anyway. Indeed, the Charm may be activated unconsciously as the character’s charismatic aura affects people and events completely outside of her knowledge. However, the Charm requires some interaction, even if only distant rumor. The target must hear of her deeds or witness the impact the character has made upon the world. Further, when the character fails to impress someone through the use of this Charm, it diminishes in usefulness. Anytime the Charm is activated but fails to achieve a number of successes equal to the target’s Essence, the Charm may not be activated again for a full day, and the target of the Charm is rendered immune to its use for a month (or longer at the Storyteller’s discretion). Finally, the Charm only creates emotional impressions and vague ideas, not specific messages. While Horizon-to-Horizon Presence Method could persuade a king to seek the Solar’s amorous affections, it could not, for example, convey a secret password to him or convince him to perform a very specific task.\n\nWhile the primary use of this Charm is long-ranged interactions, the strength of the character’s aura does not diminish in close proximity. The Charm may be activated to affect someone in the character’s presence, allowing for powerful nonverbal interaction.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 105
     }
   },
@@ -259,7 +259,7 @@
     "duration": "One scene",
     "description": "The character surrounds herself with a potent aura of authority. Unlike Terrifying Apparition of Glory, this Charm does not produce an obvious or overwhelming effect. Instead, everyone who is inclined to follow orders — including peasants, servants, shop assistants, enlisted military personnel and similar individuals — will obey the character as if she were in a position of authority over them. Any target that makes a successful opposed Willpower roll against the character realizes that the character does not have the authority to command him. Everyone else will obey all reasonable-sounding commands given by the character. Orders to commit suicide, go on killing rampages, or requests to give the character most or all of the target's money or possessions will end the character's influence over the target. However, requests for information or admittance to otherwise restricted areas will be instantly granted, as will demands for moderately expensive merchandise (up to Resources ••) in a shop, even if the character does not pay for it.\n\nTargets may make another opposed Willpower roll to disobey the character if a recognized superior contradicts the character's orders. Targets who fail this roll will ignore their actual superior's requests. One of this Charm's most potent and useful features is that others observing the interaction will see nothing odd or magical about the character or the target's reaction. This Charm has no effect on beings with an Essence greater than 1, though it has proven effective on Fair Folk commoners and other supernatural creatures of an inherently servile nature.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 76
     }
   },
@@ -285,7 +285,7 @@
     "duration": "Instant",
     "description": "Infused with Essence, the Exalt becomes incredibly attractive to a particular person that she wishes to seduce. The Chosen's Presence Ability is doubled for the purpose of seducing her chosen target. These are Charm bonus dice and count against dice pool maximums.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 75
     }
   },
@@ -311,7 +311,7 @@
     "duration": "One turn",
     "description": "An Exalted acting in accordance with virtue is an impressive figure indeed — an Exalted using this Charm is even more so. By using this Charm, the Chosen puts the weight of her passions behind her arguments. She may add one of her Virtue ratings in automatic successes to a single Presence roll. The Virtue may be chosen when the Charm is invoked, but the Exalted must be acting in accordance with the virtue in question. If the Exalted is not, or does not, act according to the Virtue, the Essence is spent, but no bonus is gained. Invoking this Charm automatically adds one point to the character's Limit.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 78
     }
   },
@@ -337,7 +337,7 @@
     "duration": "One scene",
     "description": "When driven by his passions, an Exalted can be an almost irresistible force. Through the use of this Charm, one of the Chosen may spend Essence to let the strength of her virtue strike fear in the hearts of those who would oppose her. For the remainder of the Scene, any character with a Willpower lower than the Exalted's current Limit suffers a penalty to his dice pools equal to the Exalt's Essence when attempting to attack her. Invoking this Charm automatically adds one point to the character's Limit, which counts toward the Charm's effect for the purposes of determining this Charm's effect.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 79
     }
   }

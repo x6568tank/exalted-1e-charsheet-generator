@@ -14,7 +14,7 @@
     "duration": "One scene",
     "description": "Adopts flawless manners suited to any court or company: for the scene she commits no social gaffes and instinctively knows the correct etiquette, forms of address, and customs of those around her (even an alien or Underworld culture she has never encountered). She may pass as one familiar with the culture, though the Charm supplies decorum, not secret knowledge.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 221
     }
   },
@@ -37,7 +37,7 @@
     "duration": "One turn",
     "description": "Twists a target's tongue and bearing so he commits humiliating social blunders: per mote spent, add one die to a roll to make the target look foolish, or subtract one die from the target's next Socialize-related roll (not below his Essence). Cannot buy more dice than her permanent Essence.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 222
     }
   },
@@ -60,7 +60,7 @@
     "duration": "Varies",
     "description": "With subtle words and gestures, erodes the bonds of loyalty a target feels toward a person, cause, or institution: roll Manipulation + Socialize vs the target's Willpower. Each success weakens the targeted loyalty one step for a scene (or, with a Willpower spent, more lastingly at Storyteller discretion). Repeated use can turn a devoted servant indifferent or an ally into a traitor.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 222
     }
   },
@@ -83,7 +83,7 @@
     "duration": "Instant",
     "description": "Chills the warmth from a target's heart, leaving him cold and unmoved: roll Manipulation + Socialize vs the target's Willpower. On success the target becomes emotionally distant and indifferent toward a chosen person or ideal for the scene, unable to be swayed by appeals to that affection. Useful for severing sympathy before a betrayal.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 222
     }
   },
@@ -107,7 +107,7 @@
     "duration": "Instant",
     "description": "Recognizes that everyone can be bought — upon activating the Charm, the Abyssal knows precisely what object of desire, price, or secret vice a target cannot resist or refuse, even if it is a guilty pleasure rather than jade or jewels. He may not have the means to satisfy that desire, but at least he knows it. The Storyteller sets the nature of the weakness by the target's Nature and Temperance (low-Temperance targets are easier to satisfy). It is always possible some beatific saint exists on whom the Charm has no effect, but no deathknight has met one in the Age of Sorrows.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 222
     }
   },
@@ -126,7 +126,7 @@
     "duration": "Instant",
     "description": "Perceives the flickering aura of emotion and passion overlaying a target: the Abyssal's player rolls Perception + Socialize (standard difficulty if the target is not concealing his feelings; otherwise the target reflexively rolls Manipulation + Performance to resist). Simple success reveals the target's most dominant surface emotion; three successes sense all surface feelings and their rough proportions; five or more also give a rough sense of the target's permanent Willpower and Virtue allocation (weak/unremarkable/strong/overpowering). The Charm does not supply context — noticing tendrils of hatred does not reveal whom the target hates or why.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 222
     }
   },
@@ -149,7 +149,7 @@
     "duration": "One day",
     "description": "Seeds a target's mind with doubts about the true nature of life and death until he grows obsessed with his own mortality. The Abyssal must speak with the target at least briefly, then rolls Manipulation + Socialize at a difficulty of the target's permanent Essence. On success the target becomes depressed and withdrawn, suffering +2 difficulty to all Social rolls for the next 24 hours. If used continuously on an unExalted target for more days than her Conviction rating, his depression blossoms into an actual derangement, and he continues to suffer Social penalties even after the Charm wears off.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 222
     }
   }

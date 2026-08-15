@@ -15,7 +15,7 @@
     "duration": "Instant",
     "description": "The Dragon-Blooded appears surrounded by a group of fiery warriors, visible only in the target's peripheral vision \u2014 they are only phantoms, but intimidating ones that make her presence more imposing. She adds two dice to her Presence for every mote spent, but cannot more than double her Presence Ability.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 209
     }
   },
@@ -39,7 +39,7 @@
     "duration": "One scene",
     "description": "The Exalt calls up fiery passion in soldiers under his command, and they charge heedless of danger. He spends 1 mote per warrior commanded, to a maximum of twice his Essence, and each receives a single temporary Bruised health level \u2014 the first lost when damaged, and it cannot be healed back even by curative magic during that scene. If the soldier is undamaged when the scene ends the bonus fades; if damaged, the lost level disappears with no further ill effect. Usable only on soldiers he directly commands (typically bought with the Command Background); a subject who does not act as part of a unit under his command loses the bonus level immediately. A given individual benefits only once per scene.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 209
     }
   },
@@ -59,7 +59,7 @@
     "duration": "One turn",
     "description": "A nimbus of fire encircles the character's head and torso, making it difficult for others to so much as look at him, let alone attack him. Any foe wishing to attack the Exalt in hand-to-hand combat before his next turn must first succeed at a reflexive Willpower test; one success lets the enemy act normally. Enemies may attack the Exalt at range without concern.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 209
     }
   },
@@ -83,7 +83,7 @@
     "duration": "One scene",
     "description": "The character's force of personality takes on a life of its own; he stares down even the strongest foe, causing enemies to flinch before their weapons hit him. He gains a point of soak and three temporary Bruised health levels for the scene, which are the first lost when he takes damage and cannot be healed back even by restorative magic. When the scene ends the three levels fade whether lost or not, with no ill effect. A character cannot benefit from it more than once per scene.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 210
     }
   },
@@ -111,7 +111,7 @@
     "duration": "One scene or instant",
     "description": "The Exalt's aura of might and overwhelming charisma sway the loyalty of nearly any character. He spends 8 motes and 1 Willpower to attempt to gain a Storyteller character's loyalty: roll Manipulation + Presence, the target reflexively resisting with Willpower. For every net success the target serves as a loyal servant for one week (extendable at the Storyteller's discretion by asking only minor tasks); with five or more successes the target serves long-term, essentially becoming a Henchman \u2014 though such servants must be treated well or they may eventually overcome the Charm.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 210
     }
   },
@@ -135,7 +135,7 @@
     "duration": "Exalt's Essence in turns",
     "description": "The Dragon-Blood becomes adept at getting another's attention and making them look foolish. In combat it grabs the attention of an enemy within 20 yards: the target loses two dice from his dodge and parry pools when fighting anyone other than the Exalt who targeted him. Outside combat, a successful Manipulation + Presence roll and a suitably cutting comment make the target look foolish before an assembled crowd \u2014 a dangerous use, best applied sparingly and only before a friendly crowd.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 210
     }
   },
@@ -160,7 +160,7 @@
     "duration": "One turn",
     "description": "The character becomes an irresistible target to the Charm's subject, who will cross hazards and place himself in great danger to get off a hand-to-hand attack against her. The target must be within 10 yards and have a lower Essence than the Exalt; he must use his next action to approach and attack her if he can, regardless of intervening hazard. It cannot compel obvious suicide (he will not leap into a chasm), but he will cross damaging hazards such as fires and raging rivers to reach her.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 210
     }
   },
@@ -180,7 +180,7 @@
     "duration": "One scene",
     "description": "This simple Charm can only be used the first time the Dragon-Blood meets another in a social context. It allows the Exalt to read the other perfectly, allowing him to adjust his own behavior in any way necessary to make a perfect first impression. The Charm gives its user some insight into what drives the other person (political power, love, resentment, etc.) and also leaves a lasting impression on the target. The other person is left feeling that the Exalt is an unusually worthy individual of good breeding, great virtue or the like. The difficulty of all Social rolls against this individual are at -2 for this initial meeting and -1 the next time the Exalt meets the subject of this Charm (neither difficulty can be lowered below a minimum of 1). Even if the target never sees the Exalt again, she will be inclined to speak well of him to others. Note that this Charm works only in social circumstances where a pleasant first impression can realistically be expected. A Dragon-Blood trying to use this Charm on the field of battle is going to be sorely disappointed (although if the Dragon-Blood is killed after doing so, his enemy may be less likely to desecrate his corpse out of spite).",
     "source": {
-      "book": "Exalted 1e Aspect Book: Fire",
+      "book": "Aspect Book: Fire",
       "page": 74
     }
   },
@@ -200,7 +200,7 @@
     "duration": "One scene",
     "description": "The Presence-savvy Exalt knows that the three passions \u2014 lust, rage and terror \u2014 are all closely linked. Through the use of subtle vocal and facial cues, the Dragon-Blood can transform a target's passions from one to another, thereby making an enraged target feel amorous, a terrified target feel enraged or the like. Roll the character's Manipulation + Presence. The difficulty is the target's Essence, minus one for every point the character has above the target's (minimum of 1). The effects of this Charm do not take effect immediately. The Exalt must spend a number of turns in conversation with the target equal to 10 - her Essence in order to nudge the subject's emotional state in the right direction. Successful use of this Charm results in a two-die bonus on pertinent rolls (on seduction rolls if the Dragon-Blood changed rage into lust, for example). A target who has been manipulated into a rage by the Dragon-Blood acts as through he had a Temperance Virtue of 1 for the remainder of the scene.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Fire",
+      "book": "Aspect Book: Fire",
       "page": 74
     }
   },
@@ -224,7 +224,7 @@
     "duration": "Instant",
     "description": "The Dragon-Blood using this Charm binds his powerful affinity with the Fire Dragon to his voice, resulting in a shout so powerful that it ignites flammable objects, even up to 40 yards away. This Charm cannot damage flesh directly, but it can ignite clothes, wooden wagons, thatched huts and the like from a distance. The size of the fire started by this technique is not large, only about the size of a man's open hand, but the initial blaze is fairly hot and will easily ignite nearby material in the absence of countervailing conditions (rain, extreme humidity), often resulting in a huge blaze. If the substance is wet, the fire flickers out after one turn per point of the Exalt's Essence. The player of a target whose clothes have been ignited must succeed on a simple Stamina + Endurance roll, or her character takes a level of lethal damage each turn until the garment is removed or the fire is extinguished. This Charm has a range of (the Exalt's Essence x 20) feet.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Fire",
+      "book": "Aspect Book: Fire",
       "page": 74
     }
   }

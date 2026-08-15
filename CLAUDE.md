@@ -485,6 +485,8 @@ are pointers only; the traps and history live in the files.
 | Core data files, Charm counts, `tools/` | `status/data-and-tooling.md` |
 | The 1.0 catalogue sweep — six delegated batches, the `sources/` extraction pipeline and its glyph ciphers | `status/catalogue-sweep.md` |
 | The content gap — CLOSED 2026-08-14, all 647 discovery rows resolved | `status/content-gap-retriage.md` |
+| Phase-1 scan — the five never-opened books, DONE 2026-08-15; 22 gear rows | `status/phase-1-scan.md` |
+| Phase-2 scan — the two scan-only books, DONE 2026-08-15; **every book in `sources/` has now been opened** | `status/phase-2-scan.md` |
 | Book of Three Circles — spells, artifacts, the Merit-gated plot devices | `status/book-of-three-circles.md` |
 | Corebook Wonders — Hearthstones, Greater Wonders, the Hearthstone allowance | `status/corebook-wonders.md` |
 | Rated artifacts — the Artifact budget, dual-nature devices, the corebook default | `status/rated-artifacts.md` |
@@ -510,8 +512,17 @@ are pointers only; the traps and history live in the files.
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms
 1,921 · spells 306 · artifacts 330 · weapons 112 · armour 28 · thaumaturgy 4 Arts /
-4 Sciences / 30 formulas / 11 rituals. **Nothing is page-blocked and nothing is a known
-gap** — the only unauthored content is deliberately deferred (see **Standing bars**).
+4 Sciences / 30 formulas / 11 rituals. **Nothing is page-blocked**, and as of 2026-08-15
+**every book in `sources/` has been opened** (the phase-1 and phase-2 scans). Everything
+else unauthored is deliberately deferred (see **Standing bars**).
+
+⚠ **One known content gap remains: Backgrounds in the scan-only splat books.** Human's
+ruling 2026-08-15: Backgrounds are scattered across mainly the SPLAT BOOKS, and M&F are
+"pretty much all Player's Guide", so M&F are not a reason to open another book. Roughly
+**1,800 pages** of pure scan (Lunars, Dragon-Blooded, Sidereals, five Caste Books, five
+Aspect Books); method is phase 2's. ⚠ Backgrounds are the record type with **no discovery
+index to diff against**, and `source` is missing on **63/63** of them — backfilling that
+provenance first is what makes the sweep finite.
 
 ⚠ Still unswept by any method: Merits, Backgrounds and prose-described artifacts in the
 eight transcribed books, and everything in the scan-only books (Sidereals,

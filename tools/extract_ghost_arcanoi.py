@@ -258,7 +258,7 @@ def main() -> int:
             "cost": parse_cost(f["Cost"]),
             "duration": f["Duration"].strip(),
             "description": clean(c["body"]),
-            "source": {"book": "Exalted: The Abyssals", "page": c["page"]},
+            "source": {"book": "The Abyssals", "page": c["page"]},
         }
         out.setdefault(c["path"], []).append(row)
 

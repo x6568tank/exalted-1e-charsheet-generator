@@ -14,7 +14,7 @@
     "duration": "One scene",
     "description": "Every sensation is magnified fivefold — colors deeper, sounds more vivid, scents fuller: adds Essence to all Awareness rolls and lets the character differentiate sensations far more readily than any mortal. No more susceptible to sensory overload than normal.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 204
     }
   },
@@ -37,7 +37,7 @@
     "duration": "One scene",
     "description": "With a savage clawing motion, indicates an enemy in her line of sight and dulls his awareness: roll Manipulation + Awareness vs the target's permanent Essence; each success reduces all his Awareness pools by one die for the duration (not below his Essence). May also apply to other precise-sense tasks (e.g. Archery) at Storyteller discretion. Essence paid before the activation roll.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 204
     }
   },
@@ -60,7 +60,7 @@
     "duration": "One scene",
     "description": "Duplicates the Solar Charm Keen (Sense) Technique for one chosen sense (buy again per sense). Cannot be used together with Fivefold Sensory Exercise.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 205
     }
   },
@@ -83,7 +83,7 @@
     "duration": "Permanent",
     "description": "Gains a 'sixth sense' warning of imminent physical danger (a concealed pit, an assassin's knife): premonitions need no roll but the accompanying wave of horror drains 1 mote. Experiencing a premonition does not count as a Charm use, so other Charms may be invoked the same turn. Not infallible; warns only of physical, not spiritual or mental, threats. Cannot be Comboed.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 205
     }
   },
@@ -106,7 +106,7 @@
     "duration": "Permanent",
     "description": "Requires the Sight permutation of Superior (Sense) Focus. Thereafter he sees in darkness without penalty (piercing all gloom to the utter black of the Labyrinth), but becomes sensitive to bright light (murky-vision penalty near a torch). He can suppress/reactivate night vision at will, but each change takes a full turn, costs 1 mote, counts as a Charm (uncombobable), and leaves him blind (-4 attacks) that turn. Does not help see through fog/smoke or perceive invisible things.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 205
     }
   },
@@ -129,7 +129,7 @@
     "duration": "One scene",
     "description": "Duplicates the Solar Charm Unsurpassed (Sense) Discipline. Permutations may only be learned for senses already purchased with Superior (Sense) Focus. Incompatible with Superior (Sense) Focus and Fivefold Sensory Exercise (for the same activation).",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 205
     }
   }

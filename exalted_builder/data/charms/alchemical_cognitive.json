@@ -18,7 +18,7 @@
     "duration": "Indefinite",
     "description": "Memory crystals download Ability specialties from the Vats (1 mote each, done while resting at a Vat Complex), held while Essence is committed (any number of different specialties per Ability, capped at three natural-specialty dice per roll). Withdrawing the mote erases the specialty; 3 XP makes one permanent.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 137
     },
     "exalt_type": "Alchemical",
@@ -44,7 +44,7 @@
     "duration": "Instant",
     "description": "Replace one Ability's rating with total Clarity for one roll (specialties still apply; no Virtue channeling). Cost rises a cumulative mote per use, decaying 1/day. Grants 1 permanent Clarity on install and 1 temporary Clarity per use.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 137
     },
     "exalt_type": "Alchemical",
@@ -81,7 +81,7 @@
     ],
     "description": "Reduce a Mental Attribute roll's difficulty by 1 per 2 motes; once at difficulty 1, 2 motes add an automatic success (max Essence). Only for logical/deductive tasks (math, navigation, enigmas). Also a perfect mental clock.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 138
     },
     "exalt_type": "Alchemical",
@@ -111,7 +111,7 @@
     "duration": "Instant",
     "description": "Spend a turn analyzing a machine or artifact, then roll Perception + Lore (difficulty 1-2 mundane, or the artifact's rating): successes reveal function (1), condition (2), and full capabilities/condition (3). Two+ successes bank one automatic success to repair it, or double raw damage on the next attack to demolish it.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 138
     },
     "exalt_type": "Alchemical",
@@ -138,7 +138,7 @@
     "duration": "One hour",
     "description": "Fingers unfold into any simple tool, or any tool needed for an Ability the Exalt has at least one dot in (lockpicks need Larceny or Craft). Provides all needed tools for the scene, each adding one die (artificial specialty) to its use. Only crude weapons (clubs, -1 daggers).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 138
     },
     "exalt_type": "Alchemical",
@@ -164,7 +164,7 @@
     "duration": "Varies",
     "description": "Multiply cognition by permanent Essence for (motes) hours: divide the time for Mental-Attribute actions (and extended-action intervals) by Essence. For quick mental tasks, do up to Wits per turn, reducing each multiple-action penalty by Essence.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 139
     },
     "exalt_type": "Alchemical",
@@ -190,7 +190,7 @@
     "duration": "Indefinite",
     "description": "Declare a non-combat physical extended action (writing, digging, crafting, reading): while committing Essence and working without breaks over five minutes per hour, multiply the speed by permanent Essence. Cannot shorten learning/advancement time.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 139
     },
     "exalt_type": "Alchemical",
@@ -218,7 +218,7 @@
     "duration": "Instant",
     "description": "Declare next turn's action; the Storyteller gives its likely difficulty. Spend 3 motes per -1 difficulty (once per turn); if the Exalt follows through next turn, the roll's difficulty drops accordingly (excess motes wasted if not).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 140
     },
     "exalt_type": "Alchemical",
@@ -244,7 +244,7 @@
     "duration": "N/A",
     "description": "Perfectly recall anything experienced while the Core was installed; earlier memories need a reflexive Wits + Awareness (difficulty 1). Against memory-tampering magic, contest Wits + Awareness vs the aggressor's Manipulation + Performance to detect the truth.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 140
     },
     "exalt_type": "Alchemical",

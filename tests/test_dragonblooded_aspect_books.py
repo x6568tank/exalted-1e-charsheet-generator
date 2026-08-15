@@ -45,7 +45,7 @@ def rs():
 @pytest.fixture(scope="module")
 def aspect_charms(rs):
     return [c for c in rs.charms.values()
-            if c.source and c.source.book.startswith("Exalted 1e Aspect Book:")]
+            if c.source and c.source.book.startswith("Aspect Book:")]
 
 
 def test_all_87_aspect_book_charms_are_present(rs, aspect_charms):
@@ -163,7 +163,7 @@ def test_the_one_charm_whose_printed_type_the_enum_cannot_express(rs):
     # enum needs revisiting rather than another escape-hatch entry. (Special is used
     # legitimately elsewhere for genuinely special Charms — Ox-Body and the Unmakings.)
     forced = [x.id for x in rs.charms.values()
-              if x.source and x.source.book.startswith("Exalted 1e Aspect Book:")
+              if x.source and x.source.book.startswith("Aspect Book:")
               and x.type.value == "Special"]
     assert forced == ["dragonblooded.awareness.pulse-of-the-dragons-soul"]
 

@@ -20,7 +20,7 @@
     "duration": "Instant",
     "description": "Crystalline engrams read an opponent. Roll Wits + Awareness (difficulty 2); each success reveals one datum about a target (a Physical Attribute or combat Ability rating, its specialties, base initiative, current wound penalty, a weapon or armor's core stats, or the function of a visible combative Charm). A full minute observing the same target grants one free activation.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 92
     },
     "exalt_type": "Alchemical",
@@ -47,7 +47,7 @@
     "duration": "Instant",
     "description": "Two permutations, purchased and installed separately. The first parries one attack at full Dexterity + (Brawl, Martial Arts or Melee); the second dodges one attack at full Dexterity + Dodge without giving ground. Both require awareness of the attack; a character with both may use both against the same attack.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 93
     },
     "exalt_type": "Alchemical",
@@ -73,7 +73,7 @@
     "duration": "Instant",
     "description": "A mechanical assembly in the spine. Activated before initiative, it slows the Exalt's perception of the turn, adding +2 initiative per mote spent, to a maximum bonus of Dexterity x 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 93
     },
     "exalt_type": "Alchemical",
@@ -100,7 +100,7 @@
     "duration": "Instant",
     "description": "Two modes (not simultaneous). Primary (Extra Action): grants extra actions equal to permanent Essence, usable for any physical task or to refresh a full dodge/parry. Secondary (Reflexive, one scene): pick one target and dodge or parry its every attack at full pool without needing awareness, the Charm auto-selecting an applicable defense.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 93
     },
     "exalt_type": "Alchemical",
@@ -132,7 +132,7 @@
     "duration": "Instant",
     "description": "Starmetal monofilaments let the Exalt simulate the next several seconds. Spend 5 motes (gain 1 temporary Clarity) to begin; before the turn ends, spend 5 motes and 1 Willpower to 'rewind' to the initiative count of activation, replaying the turn as predicted until the Exalt deviates. Cannot be used when Primordials, Malfeans or unshaped raksha have acted.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 93
     },
     "exalt_type": "Alchemical",
@@ -170,7 +170,7 @@
     ],
     "description": "Ball-bearing joints grant superhuman flexibility: while active, add three dice (an artificial specialty, cumulative with real specialties) to escape bindings, control/escape a clinch, dodge by contortion, or any feat where preternatural flexibility helps.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 94
     },
     "exalt_type": "Alchemical",
@@ -197,7 +197,7 @@
     "duration": "Indefinite",
     "description": "Telescoping or moonsilver limbs reach (Essence x 2) extra yards at Essence 2-5, or (Essence x 4) at Essence 6+. Extend/retract reflexively at will. For every two yards of extra reach at full extension, add 1 to the speed of all hand-to-hand attacks; may also attack mounted targets without penalty.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 95
     },
     "exalt_type": "Alchemical",
@@ -222,7 +222,7 @@
     "duration": "Indefinite",
     "description": "Extra limbs at skeletal hardpoints. Simple type: one or two extra limbs per installation; when active they work as normal arms and reduce multiple-action penalties by one die for physical actions using any arm. Cannot install more times than the lower of Dexterity or Wits. Alternatively install as Permanent (installation 1 mote) to replace the arms (not counting against the max), adding 1 damage to hand-to-hand attacks. With Sustained Augmentation of Wits installed, no off-hand penalty applies to any limb.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 95
     },
     "exalt_type": "Alchemical",
@@ -255,7 +255,7 @@
     "duration": "One scene",
     "description": "A pair of metal tentacles (Essence yards long, or twice at Essence 6+) usable as extra arms, reducing multiple-action penalties like Multi-Limb Frame. As weapons: speed +(Essence x2), accuracy +Essence, damage +(Dexterity)L, defense +Essence; can sweep or clinch. Install up to Essence times. Spending 8m+1wp empowers all tentacles for independent multiple actions at full pool. The first installation grants 1 permanent Clarity.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 95
     },
     "exalt_type": "Alchemical",
@@ -290,7 +290,7 @@
     ],
     "description": "Hand-to-hand weapons (two per installation) built into the Multi-Limb Frame appendages, folded away or deployed reflexively (one weapon per limb at a time). Any weapon type; normal but near-indestructible. Cannot be disarmed; a destroyed weapon regrows over a week.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 96
     },
     "exalt_type": "Alchemical",
@@ -316,7 +316,7 @@
     "duration": "Instant",
     "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 97
     },
     "exalt_type": "Alchemical",
@@ -342,7 +342,7 @@
     "duration": "Instant",
     "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 97
     },
     "exalt_type": "Alchemical",
@@ -368,7 +368,7 @@
     "duration": "Instant",
     "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 97
     },
     "exalt_type": "Alchemical",
@@ -394,7 +394,7 @@
     "duration": "Instant",
     "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 97
     },
     "exalt_type": "Alchemical",
@@ -420,7 +420,7 @@
     "duration": "Instant",
     "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. Stacks with a magical weapon of the same Material.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 97
     },
     "exalt_type": "Alchemical",
@@ -446,7 +446,7 @@
     "duration": "Instant",
     "description": "One of six separately-purchased versions (the Five Magical Materials plus adamant); an Alchemical treats the version of her caste's Material as Favored. On a hand-to-hand strike, the weapon or limb trails the Material's dust and applies that Material's melee weapon bonus. The adamant version reduces the target's armored soak by 4 on a hit.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 97
     },
     "exalt_type": "Alchemical",
@@ -480,7 +480,7 @@
     "duration": "Indefinite",
     "description": "Caste-Material assemblies in the hands grow close-combat artifact weapons on demand (weapon templates equal to installations, none above Artifact 3, only simple expansions of mundane weapons). Activating a weapon costs its attunement; it is always the caste Material. Cannot be disarmed without amputation, after which the weapon shatters. The wielding hand can do nothing else.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 98
     },
     "exalt_type": "Alchemical",
@@ -505,7 +505,7 @@
     "duration": "Instant",
     "description": "Chakra conductor nodes deliver a jolt: on a successful hand-to-hand hit, 1L or 2B per mote (max Strength motes), soaked separately by natural soak only. Also usable as a retaliatory jolt when struck/parrying with metal (half-Strength cap, an unblockable counterattack), after a clinch roll, or through any casual contact.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 97
     },
     "exalt_type": "Alchemical",
@@ -558,7 +558,7 @@
     ],
     "description": "Torso vents pour thick black smoke filling an (Essence)-yard-radius sphere per mote (max Manipulation motes/turn). Obscures vision (murky to 10 yards, blind beyond; 3 yards in dim light) and chokes air-breathers (one unsoakable bashing per minute). Lingers ~20 minutes in still enclosed air. Only one submodule formula may be deployed per use.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 98
     },
     "exalt_type": "Alchemical",
@@ -578,7 +578,7 @@
     "duration": "N/A",
     "description": "Not Attribute-based, so never Caste/Favored — must sit in a General Slot. Lets an Alchemical learn Terrestrial and Celestial Martial Arts Charms like any Celestial Exalt; such Charms cost 6 bonus points or 11 experience and are stored in the Matrix rather than in Charm Slots. Removing the Matrix suspends access to those Martial Arts Charms. Available styles include Snake, Tiger, Mantis, Ebon Shadow, Celestial Monkey, Righteous Devil, Violet Bier of Sorrows, Five Dragon and Jade Mountain.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 99
     },
     "exalt_type": "Alchemical",

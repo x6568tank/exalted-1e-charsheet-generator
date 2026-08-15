@@ -11,7 +11,7 @@
       "archery"
     ],
     "source": {
-      "book": "Exalted",
+      "book": "Core",
       "page": 330
     }
   },
@@ -27,7 +27,7 @@
       "archery"
     ],
     "source": {
-      "book": "Exalted",
+      "book": "Core",
       "page": 330
     }
   },
@@ -44,7 +44,7 @@
       "archery"
     ],
     "source": {
-      "book": "Exalted",
+      "book": "Core",
       "page": 330
     }
   },
@@ -1597,7 +1597,7 @@
     ],
     "notes": "Broad triangle- or leaf-shaped head, wide to increase tissue damage but still tapered to penetrate armour. Base damage is the firing character's Strength + 2. Arrows have no printed Resources cost — they are free unless a specific type states otherwise (human, rules authority, 2026-08-12).",
     "source": {
-      "book": "Exalted",
+      "book": "Core",
       "page": 330
     }
   },
@@ -1612,7 +1612,7 @@
     ],
     "notes": "No point — a round wooden bulb at the tip. Normally used to hunt birds, which a normal arrow would ruin, but also used to stun targets without killing them. Base damage is the firing character's Strength + 2, and that damage is BASHING. Arrows have no printed Resources cost — they are free unless a specific type states otherwise (human, rules authority, 2026-08-12).",
     "source": {
-      "book": "Exalted",
+      "book": "Core",
       "page": 330
     }
   },
@@ -1627,7 +1627,7 @@
     ],
     "notes": "Y-shaped head with the arms facing forward, sharpened on the inside. Does hideous damage to tissue but performs terribly against armour: base damage is the firing character's Strength + 4, but the LETHAL SOAK OF THE TARGET'S ARMOUR IS DOUBLED before the damage is applied. Arrows have no printed Resources cost — they are free unless a specific type states otherwise (human, rules authority, 2026-08-12).",
     "source": {
-      "book": "Exalted",
+      "book": "Core",
       "page": 330
     }
   },
@@ -1642,7 +1642,7 @@
     ],
     "notes": "No blades on the head — simply a hardened steel tip. Base damage is the firing character's Strength, but the LETHAL SOAK OF THE TARGET'S ARMOUR COUNTS AS HALF its true value when the damage is applied. Arrows have no printed Resources cost — they are free unless a specific type states otherwise (human, rules authority, 2026-08-12).",
     "source": {
-      "book": "Exalted",
+      "book": "Core",
       "page": 330
     }
   },
@@ -1801,5 +1801,89 @@
       "archery",
       "artifact"
     ]
+  },
+  {
+    "id": "weapon.archery.firewand",
+    "name": "Firewand",
+    "accuracy": 1,
+    "damage": 12,
+    "damage_type": "L",
+    "rate": 1,
+    "range": 10,
+    "resources_cost": 3,
+    "tags": [
+      "archery"
+    ],
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 37
+    },
+    "notes": "A one-shot flamethrower powered by firedust, of finely turned brass with a wooden or metal stock. Attacks use Dexterity + Archery. ⚠ The table prints Rate as 'Special', not a number — the weapon holds a single shot and reloading takes one full turn in which the character does nothing else (no combat, dodging or movement); the 1 stored here is that single shot. Printed footnote on Range: 'Ten yards is the maximum range the jet of flame will reach. Firewands have no longer ranges.' Weight 4 lbs. Many soldiers fit a bayonet and use the spent firewand as a crude spear."
+  },
+  {
+    "id": "weapon.melee.bayonet",
+    "name": "Bayonet",
+    "speed": 0,
+    "accuracy": 1,
+    "damage": 3,
+    "damage_type": "L",
+    "defense": 0,
+    "min_strength": 1,
+    "resources_cost": 3,
+    "tags": [
+      "melee"
+    ],
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 37
+    },
+    "notes": "Fitted to the end of a firewand so the weapon can be used as a crude spear once it has been fired. Printed Minimums: Strength •."
+  },
+  {
+    "id": "weapon.thrown.war_boomerang",
+    "name": "War Boomerang",
+    "accuracy": 0,
+    "damage": 3,
+    "damage_type": "B",
+    "rate": 2,
+    "range": 20,
+    "resources_cost": 1,
+    "tags": [
+      "thrown"
+    ],
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 29
+    },
+    "notes": "A curved, flat piece of sharpened metal. Not normally designed to return, but a character with two or more dots in Thrown may make a second, reflexive Dexterity + Thrown roll if the boomerang misses: on a success it curves around and lands within 3 yards of the thrower, and on three or more successes it returns to the thrower's hand. Weight 0.5 lbs. ⚠ The printed table has NO damage-type column — it reads '+3' with no L or B. Bashing is the rules authority's ruling of 2026-08-15, not the page."
+  },
+  {
+    "id": "weapon.thrown.spear_thrower",
+    "name": "Spear Thrower",
+    "resources_cost": 1,
+    "tags": [
+      "thrown",
+      "accessory"
+    ],
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 29
+    },
+    "notes": "A specially carved, thin flat stick about the length of the thrower's forearm. NOT a weapon in its own right — it modifies a javelin, so it carries no attack line of its own. The user balances the javelin on the thrower and throws normally while keeping hold of the stick; like javelins it uses the Thrown Ability. Adds +2 to the damage of javelins and DOUBLES their range, without decreasing the accuracy of the weapon. Weight 0.5 lbs."
+  },
+  {
+    "id": "weapon.archery.firedust",
+    "name": "Firedust",
+    "damage": 0,
+    "tags": [
+      "archery",
+      "ammunition"
+    ],
+    "resources_cost": 2,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 37
+    },
+    "notes": "The charge a firewand fires; loaded down the front of the barrel, one shot at a time. Printed cost: 'firedust normally costs • per shot in the South. Outside the South it costs anywhere from •• to •••, and can be difficult to find in any but the largest cities.' ⚠ Stored at the LOW figure of the outside-the-South range on the rules authority's ruling of 2026-08-15; the full printed range is above. Southern travellers are advised to use their firewands sparingly."
   }
 ]

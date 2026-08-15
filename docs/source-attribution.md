@@ -40,46 +40,71 @@ reasons about provenance.** Fixed same day.
 
 The current values, and the one to write for new work:
 
+**All 31 are the bare form** as of the 2026-08-15 normalisation. `tests/test_data.py`
+holds the same list as `CANONICAL_BOOKS` and fails on any spelling not in it, so this
+table and that set must be edited together.
+
 | Book | Write |
 |---|---|
 | Exalted core rules | `Core` |
 | Player's Guide | `Player's Guide` |
-| The Abyssals | `Exalted: The Abyssals` |
-| The Dragon-Blooded | `Exalted 1e Dragon-Blooded` |
-| The Lunars | `Exalted 1e The Lunars` |
-| The Sidereals | `Exalted 1e The Sidereals` |
-| The Autochthonians | `Exalted 1e The Autochthonians` |
-| The Outcaste | `Exalted 1e The Outcaste` |
-| Aspect Books | `Exalted 1e Aspect Book: <Element>` |
-| Caste Books | `Exalted 1e Caste Book: <Caste>` |
-| Cult of the Illuminated | `Exalted 1e Cult of the Illuminated` |
-| Storyteller's Companion | `Exalted 1e Storyteller's Companion` |
-| Ruins of Rathess | `Exalted 1e Ruins of Rathess` |
+| The Abyssals | `The Abyssals` |
+| The Dragon-Blooded | `The Dragon-Blooded` |
+| The Lunars | `The Lunars` |
+| The Sidereals | `The Sidereals` |
+| The Autochthonians | `The Autochthonians` |
+| The Outcaste | `The Outcaste` |
+| Aspect Books | `Aspect Book: <Element>` |
+| Caste Books | `Caste Book: <Caste>` |
+| Cult of the Illuminated | `Cult of the Illuminated` |
+| Storyteller's Companion | `Storyteller's Companion` |
+| Ruins of Rathess | `Ruins of Rathess` |
 | Games of Divinity | `Games of Divinity` |
-| The Mountain Folk chapter (in *The Fair Folk*) | `Exalted: The Mountain Folk (CH6)` |
+| Savant and Sorcerer | `Savant and Sorcerer` |
+| Book of Bone and Ebony | `Book of Bone and Ebony` |
+| Book of Three Circles | `Book of Three Circles` |
+| Manacle and Coin | `Manacle and Coin` |
+| Blood and Salt | `Blood and Salt` |
+| Savage Seas | `Savage Seas` |
+| Time of Tumult | `Time of Tumult` |
+| Kingdom of Halta | `Kingdom of Halta` |
+| Bastions of the North | `Bastions of the North` |
+| Scavenger Sons | `Scavenger Sons` |
+| The Mountain Folk chapter (in *The Fair Folk*) | `The Mountain Folk (CH6)` |
 
 The model default is `Core` (`models/rules.py`), so a record that omits `source.book`
 silently claims the core rules. **Set it explicitly on anything that is not core.**
 
-## ⚠ The naming is not yet consistent — an open cleanup
+## The naming normalisation — DONE 2026-08-15
 
-Three prefix styles are in use: bare (`Core`, `Player's Guide`, `Games of Divinity`),
-`Exalted 1e …` (most books), and `Exalted: …` (the Abyssals, the Mountain Folk chapter).
-**This is cosmetic, not a correctness problem** — every value above is unambiguous — but
-it makes book-keyed tooling need an alias table.
+The three prefix styles (bare, `Exalted 1e …`, `Exalted: …`) collapsed onto the **bare
+form** in one commit: **1,635 replacements across 154 data files, 51 distinct book
+strings down to 31**, plus six `tools/` emitters that would have re-introduced the old
+spellings on their next run. Two guards now hold it — `test_every_source_book_is_a_
+canonical_name` and `test_no_book_is_spelled_two_ways`, both in `tests/test_data.py`.
 
-Normalising on the bare form (`The Abyssals`, `Aspect Book: Air`, …) is the obvious
-follow-up. It is **not done**, because it is a data-wide rename with live test
-assertions on the current strings:
+Three ambiguous spellings were resolved by looking at the pages, not by guessing:
+`Exalted` (weapons p.330, dice pools p.228) and `Exalted Core` (virtue flaws pp.131-132,
+artifacts pp.336-337) are both the **core book**; `Mountain Folk` (artifacts pp.279-283)
+and `Exalted: The Mountain Folk (CH6)` (Charms pp.245-256) are both **The Fair Folk ch.6**.
 
-- `tests/test_ghost.py` — `== "Exalted: The Abyssals"`
-- `tests/test_dragonblooded_origins.py` — `== "Exalted 1e The Outcaste"`
-- `tests/test_dragonblooded_aspect_books.py` — `startswith("Exalted 1e Aspect Book:")`,
-  and a `split(": ")[1]` that a rename must not break
-- `tests/test_illuminated.py` — a module-level `_ILL_BOOK` constant
+### ⚠ This file's own list of affected tests was incomplete — by three
 
-Do it as one deliberate commit with those four files, or not at all. Do **not** rename
-opportunistically while doing other work.
+It named four test files. **Seven sites existed.** The three it missed:
+
+- `tests/test_solar_castebooks.py` — eleven literals, the largest single site
+- `tests/test_godblooded.py` — `== "Exalted 1e The Autochthonians"`
+- `tests/test_data.py` — `== "Mountain Folk p.279"`
+
+The last one is the instructive one, and it is the **verification-shape trap** in its
+purest form. A grep for bare book names cannot see it, because the string-shaped
+`source` embeds the page in the same literal. **A `source` is two shapes — a
+`{book, page}` dict and a `"Book p.12"` string — and any sweep that knows only one
+silently passes the other.** `_authored_books()` in `tests/test_data.py` reads both;
+copy it rather than writing a third walker.
+
+The general lesson: **a doc's list of call sites is a hint, not an inventory.** This one
+was written when it was true and rotted exactly like the field it describes. Grep.
 
 ## When you cannot tell
 

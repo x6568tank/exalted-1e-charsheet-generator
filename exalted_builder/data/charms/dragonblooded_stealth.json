@@ -15,7 +15,7 @@
     "duration": "One scene",
     "description": "Allows a Dragon-Blooded to sense her surroundings through minute eddies and currents in the air. She may move and act in total darkness or with vision fully impaired at no penalty, though she cannot read, tell colors, or discern anything that requires vision rather than spatial awareness. The sense is not precise enough to be completely effective in combat, but it reduces the penalties for fighting blind by half.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 184
     }
   },
@@ -39,7 +39,7 @@
     "duration": "Varies",
     "description": "Eliminates the noise of any action taken directly by the character. Gravel crunches silently underfoot; a swung sword glances off a shield without sound. The effect lasts one minute per mote of Essence invested. It gives no direct bonus to Stealth rolls, but many actions no longer risk attracting attention. The suppression applies only to actions directly taken by the Dynast: she can put her fist through a window silently, but the falling glass tinkles, and a rock she throws crashes audibly. The character cannot speak while it is in effect but may communicate by any other method.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 184
     }
   },
@@ -64,7 +64,7 @@
     "duration": "One minute per point of permanent Essence",
     "description": "By stilling the air so it ceases to transmit sound, an Air-aspected Exalt ensures the sounds of whatever mayhem ensues will not reach others. A Zone of Silence suppresses all sound within its reach \u2014 ringing blades, the cries of wounded enemies. No normal sound communication can take place within it, so the character should say anything needed before invoking it (Dynasts favoring it learn sign language or a Charm such as With One Mind). The Zone extends a number of yards equal to twice permanent Essence; each extra mote invested adds a yard of radius, but she cannot spend more motes to increase the area than her permanent Essence. The Zone moves with the character.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 184
     }
   },
@@ -84,7 +84,7 @@
     "duration": "One scene",
     "description": "The character uses the wind to cause minor disturbances \u2014 a tickling wind in the ear, a suddenly guttering torch, a knocked-over spear \u2014 that distract those who might observe her passage. Every mote of Essence invested acts as 2 automatic successes against a single target that might detect the Exalt's presence, and the Charm may be directed at more than one target at once so long as the Essence is paid. The character must not be visible or easily detectable when it is activated, though even a moment out of sight suffices to invoke it. It does nothing to conceal her passage (she may still be tracked). A character cannot spend more motes on this Charm than her permanent Essence.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 184
     }
   },
@@ -108,7 +108,7 @@
     "duration": "Instant",
     "description": "Summons subtle air currents that conceal the traces of the passage of the character and her associates \u2014 obscuring footprints, obliterating scents, sweeping away broken branches and twigs. Every two motes invested completely obliterate all traces of one being's passage for a distance of one mile, including scent. Non-supernatural tracking fails automatically; supernatural tracking is subject to a standard tracking contest. The invoker may extend it to protect as many beings as he has points of permanent Essence.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 185
     }
   },
@@ -132,7 +132,7 @@
     "duration": "Until broken",
     "description": "The character gains the ability to move normally along any roughly horizontal surface, even those normally impossible to cross \u2014 mud, quicksand, even water. It also instills perfect balance and timing, letting her scamper across ropes, poles, beams, and scaffolding with no movement penalty. She may move in all respects (jumping, rolling, crawling), but must keep moving: if even a single turn is spent standing still, the magic breaks. She can carry her normal gear and up to her own weight in extra burdens; any more immediately breaks the Charm.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 186
     }
   },
@@ -160,7 +160,7 @@
     "duration": "One scene",
     "description": "Wraps the air itself around the character, concealing her even in broad daylight. She is not truly invisible, but her form is blurred and indistinct as light bends around her, making her very hard to see even when the observer knows she is there and nearly impossible when he does not. The shroud also muffles sound, masks scent, and suppresses body heat. A careful or lucky observer can still spot a blurry disturbance in the air. Every 3 motes invested act as one automatic opposing success against any action taken against her that requires she be seen, heard, or perceived with any of the five senses (including attacks and attempts to spot her sneaking), and it masks her identity. It has no lingering effect; she can be tracked as normal.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 186
     }
   },
@@ -184,7 +184,7 @@
     "duration": "One scene",
     "description": "There are situations and environments where moving unnoticed is preferable to moving unseen, and in many of those cases, failing to look inconspicuous can be far less damning than failing to hide. There are also simply scenarios where the best option for stealth is to look like you belong there, like part of the scenery. A Dragon-Blood who uses this Charm can, using Essence to make his body language resonate with his surroundings, walk down any street or hall, and anyone watching will simply fail to find anything noteworthy or out of place about him. Watchers in a court might assume the character is a page, think him a functionary while in an office or believe he's a soldier in a military camp. Any rolls to take note of the character are at a difficulty equal to his Stealth Ability, though this difficulty may be lowered if the character engages in very outlandish or attention-grabbing behavior. A character using this Charm can, for 1 additional mote per ally, include others in the effect, up to a maximum number of people equal to his Essence.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   },
@@ -208,7 +208,7 @@
     "duration": "Varies",
     "description": "Stealth is more than a subtle gait and the ability to remain still. There are a great number of mind games involved in going unnoticed: speed of movement, gait, body language, clothing choices, misdirection, capitalizing on distractions and more. These techniques and considerations, when mastered, can be applied to more specific and specialized types of subterfuge. This Charm is such a specialized application: The aim of the Dragon-Blood is not to conceal herself, but to conceal what she is carrying or manipulating with her hands. A character using this Charm can conceal an object that is no larger than half her size and not heavier than can be easily carried in two hands. Alternately, she can completely conceal what she is doing with her hands by allowing her Essence to guide her actions to make sure that observers have no line of sight to the object or activity concealed. The Essence cost for this Charm is 1 mote per minute per subject from whom the object or activity is concealed from sight, up to a maximum of the character's Essence + Manipulation. When concealing an object, the character can take any action she wishes without ending the Charm, including talking with or even embracing one of the targets, so long as she takes no action using the concealed object. Taking any action using the concealed object ends the Charm. Attacking with a weapon that has been concealed through the use of this Charm will, in most cases, surprise the target.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     },
     "extra_min_abilities": [
@@ -236,7 +236,7 @@
     "duration": "Instant",
     "description": "Through intense focus or long experience, a Dragon-Blood using this Charm has gained nearflawless mastery of the art of stealth in a particular environment or set of circumstances \u2014 or, possibly, when stalking a favored class of prey. The character's Stealth specialty dice may be converted into automatic successes for 3 motes of Essence per die converted. The remainder of the pool is rolled normally. This Charm only functions if the character is applying the specialty.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     },
     "prerequisite_counts": [
@@ -267,7 +267,7 @@
     "duration": "Instant",
     "description": "Distracting Breeze Meditation With this level of skill, a Dragon-Blood can accomplish with the most minimal or sudden of movements what would normally be a deliberate and careful attempt at stealth. Masters of this Charm can accomplish such feats as hiding in an opponent's shadow during combat, vanishing quietly to cover when an attacker blinks or assaulting someone on a busy street and easily making a stealthy escape. This powerful Charm permits the character to make a reflexive Stealth roll, even if others are directly observing him.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   }

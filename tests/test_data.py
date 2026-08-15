@@ -334,7 +334,7 @@ def test_weapon_and_armor_catalogs_load():
     # +2 on 2026-08-14 with Group B: the Wavecleaver Daiklaive and the Lightning
     # Ballista (Savage Seas pp.126-127), both printed with full stat lines beside their
     # artifact entries.
-    assert len(rs.weapon_catalog) == 112
+    assert len(rs.weapon_catalog) == 117
     # 17 corebook + the artifact Chain Shirt (Dawn p.81), Cloak of Vanishing
     # Escape (Night p.81) and the Most Terrifying Armor of the Air Dragon (Air p.81),
     # + the three p.335 SHIELDS, which are armour rows tagged "shield" rather than a
@@ -404,7 +404,7 @@ def test_artifact_catalog_loads_the_ten_mountain_folk():
     assert len(rs.artifact_catalog) == 330
     # Ratings and the printed ranges, from the Technology chapter (pp.279-283).
     visor = rs.artifact_catalog["artifact.mountain-folk.essence-scrying-visor"]
-    assert visor.rating == 1 and visor.source == "Mountain Folk p.279"
+    assert visor.rating == 1 and visor.source == "The Mountain Folk (CH6) p.279"
     assert rs.artifact_catalog["artifact.mountain-folk.myrmidon-carapace"].rating == 3
     talisman = rs.artifact_catalog["artifact.mountain-folk.talisman-of-suspended-evocation"]
     assert talisman.rating == 1 and talisman.rating_notes == "• to •••••"
@@ -815,3 +815,83 @@ def test_the_sample_virtue_flaws_load_keyed_to_their_virtue():
     # Transcribed as printed, flagged in `notes`, NOT silently corrected.
     cruelty = cat["virtue-flaw.deliberate-cruelty"]
     assert "Temperance" in cruelty.description and cruelty.notes
+
+
+# --- source.book provenance ------------------------------------------------
+# `source.book` is a zero-read-site field: nothing in the app consumes it, so a
+# wrong or drifting value survives indefinitely and every other test passes.
+# It rotted into 51 distinct strings for 31 books ("Aspect Book: Air" alongside
+# "Exalted 1e Aspect Book: Air") before the 2026-08-15 normalisation onto the
+# bare form. This is the guard that keeps it normalised — see
+# docs/source-attribution.md, which is the canonical list.
+CANONICAL_BOOKS = {
+    "Core", "Player's Guide", "The Abyssals", "The Dragon-Blooded", "The Lunars",
+    "The Sidereals", "The Autochthonians", "The Outcaste", "The Mountain Folk (CH6)",
+    "Aspect Book: Air", "Aspect Book: Earth", "Aspect Book: Fire",
+    "Aspect Book: Water", "Aspect Book: Wood",
+    "Caste Book: Dawn", "Caste Book: Eclipse", "Caste Book: Night",
+    "Caste Book: Twilight", "Caste Book: Zenith",
+    "Cult of the Illuminated", "Storyteller's Companion", "Ruins of Rathess",
+    "Games of Divinity", "Savant and Sorcerer", "Book of Bone and Ebony",
+    "Book of Three Circles", "Manacle and Coin", "Blood and Salt", "Savage Seas",
+    "Time of Tumult", "Kingdom of Halta", "Bastions of the North",
+    "Scavenger Sons",
+}
+
+
+def _authored_books():
+    """Every `source.book` in the shipped data, both shapes.
+
+    `source` is a {book, page} dict on most records but a plain "Book p.12"
+    string on some (artifacts, virtue flaws). A check that sees only one shape
+    silently passes the other — which is how the string-shaped Mountain Folk
+    rows escaped the first pass of the rename.
+    """
+    import json as _json
+    import re as _re
+
+    seen = {}
+    def walk(node, path):
+        if isinstance(node, dict):
+            src = node.get("source")
+            if isinstance(src, dict) and src.get("book"):
+                seen.setdefault(src["book"], path)
+            elif isinstance(src, str) and src.strip():
+                book = _re.sub(r"\s*(pp?\.|page)\s*[\dIVXivx\-–,\s]+$", "", src).strip()
+                seen.setdefault(book, path)
+            for value in node.values():
+                walk(value, path)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value, path)
+
+    for jf in sorted(DATA_DIR.rglob("*.json")):
+        walk(_json.loads(jf.read_text(encoding="utf-8")), jf.relative_to(DATA_DIR))
+    return seen
+
+
+def test_every_source_book_is_a_canonical_name():
+    """No new spelling of a book that already has one.
+
+    A new book is fine — add it to CANONICAL_BOOKS *and* to the table in
+    docs/source-attribution.md. What this bars is the second spelling of a book
+    already in the set, which is what broke book-keyed gap tooling in August.
+    """
+    stray = {b: str(p) for b, p in _authored_books().items() if b not in CANONICAL_BOOKS}
+    assert not stray, "non-canonical source.book values: " + "; ".join(
+        f"{b!r} (first seen in {p})" for b, p in sorted(stray.items()))
+
+
+def test_no_book_is_spelled_two_ways():
+    """The specific rot: 'Exalted 1e X' / 'Exalted: X' / bare 'X' for one book.
+
+    Catches a re-introduction even if someone also adds it to CANONICAL_BOOKS.
+    """
+    import re as _re
+    books = set(_authored_books())
+    bare = lambda b: _re.sub(r"^(Exalted 1e |Exalted: |The )", "", b).casefold()
+    groups = {}
+    for b in books:
+        groups.setdefault(bare(b), []).append(b)
+    dupes = {k: sorted(v) for k, v in groups.items() if len(v) > 1}
+    assert not dupes, f"one book under several spellings: {dupes}"

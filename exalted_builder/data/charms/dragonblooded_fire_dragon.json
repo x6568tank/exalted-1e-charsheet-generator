@@ -16,7 +16,7 @@
     "duration": "Instant",
     "description": "The Fire Immaculate acts with the speed of a spark igniting tinder: reroll initiative and use the better of the two results. Grants the Fire Dragon signature weapon (paired short swords) training with the Path's first Charm.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 252
     },
     "open_to_tiers": [
@@ -45,7 +45,7 @@
     "duration": "One turn",
     "description": "The Exalt's body shifts like a burning flame. Until her next action, all attempts to physically attack her are at +1 difficulty per mote of Essence spent. She cannot have more of this bonus active than her permanent Essence.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 252
     },
     "open_to_tiers": [
@@ -69,7 +69,7 @@
     "duration": "One turn",
     "description": "Damage is figured normally, but the burning sensation left where the attack lands distracts the target: a target that takes damage from the attack suffers a -1 penalty to his dice pools for the rest of the scene. Effects of multiple Searing Fist Attacks are cumulative.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 252
     },
     "open_to_tiers": [
@@ -97,7 +97,7 @@
     "duration": "Instant",
     "description": "After the character attacks but before the defense is rolled, the Immaculate's player may reroll the attack and pick which result to use. Only once per attack.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 252
     },
     "open_to_tiers": [
@@ -128,7 +128,7 @@
     "duration": "One scene",
     "description": "The Elemental Dragon Form of Fire (requires a Dexterity + Martial Arts check to invoke). For the scene the Exalt adds her Martial Arts score as successes to any dodge roll (added to each dodge separately; not usable as a reflexive action). Cumulative with other Charms but incompatible with armor; only one Form-type Charm at a time.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 253
     },
     "open_to_tiers": [
@@ -156,7 +156,7 @@
     "duration": "Instant",
     "description": "A successful attack does normal damage plus the Exalt's Martial Arts as lethal damage (even if it normally wouldn't), and on a hit the Immaculate reflexively rolls Strength + Martial Arts vs the target's Stamina + Resistance; if the target ties or wins there is no extra effect, but if she wins the target bursts into unquenchable magical flame, burning for the Exalt's Essence in turns (as a bonfire). Fire-aspected targets add two dice to resist.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 254
     },
     "open_to_tiers": [
@@ -185,7 +185,7 @@
     "duration": "Instant",
     "description": "The Immaculate spits a gout of fire up to her Essence in yards. Roll Perception + Martial Arts (Essence acts as automatic successes); the breath does the Exalt's Essence in lethal damage per mote invested, up to her Martial Arts score. Spending 1 Willpower empowers it to affect spirits as well as material objects.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 254
     },
     "open_to_tiers": [
@@ -214,7 +214,7 @@
     "duration": "Instant",
     "description": "Quick nerve touches flare the Essence in a target's body. On a hit the attack does no normal damage; instead, for every mote currently in the target's Personal Essence pool he takes one health level of lethal damage (up to twice the Exalt's permanent Essence), ignoring armor but soakable with Stamina and non-armor defenses. The target's Essence is the catalyst and is not reduced.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 255
     },
     "open_to_tiers": [
@@ -242,7 +242,7 @@
     "duration": "Until abandoned",
     "description": "By striking an aggressive pose the Exalt cows lesser foes. Anyone who can see and tries to attack her subtracts her Martial Arts from their dice pool; anyone attacking her clear allies subtracts half that (round down), out to her Essence in yards. She may defend and take normal actions but cannot attack or use Charms and moves at half speed; being struck for any health levels ends the stance immediately. Ending it voluntarily lets the effects linger one more turn.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 255
     },
     "open_to_tiers": [
@@ -270,7 +270,7 @@
     "duration": "Varies",
     "description": "Invests the blow with burning embers. If the attack damages the target, the wound smolders: at the start of the following turn the victim suffers the same post-soak damage the original attack caused (soak does not apply again, but the damage is rolled normally).",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 255
     },
     "open_to_tiers": [
@@ -302,7 +302,7 @@
     "duration": "One scene",
     "description": "Enhances the Fire Exalt's anima flare. For Fire Aspects it triples the fire damage the anima causes; a non-Fire-aspected user instead erupts into the Aspect of Fire anima power (without the tripled damage). Anyone viewing the invoker is subject to the same effects as if she were using Overwhelming Fire Majesty Stance, except the effect does not end if she attacks or uses Charms.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 255
     },
     "open_to_tiers": [

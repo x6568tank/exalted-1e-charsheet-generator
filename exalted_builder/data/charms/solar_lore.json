@@ -173,7 +173,7 @@
     "duration": "One week",
     "description": "The Exalt must spend an entire scene (30 minutes) boiling a small pot of water. During this time, she meditates and focuses her Essence into the water, transforming it into a deadly poison. The difficulty of the Stamina + Resistance roll to avoid the poison and the penalty it causes are both equal to the character's Lore Ability score. This penalty persists for a number of minutes equal to the character's permanent Essence.\n\nThe damage done if the victim's player succeeds in making a successful Stamina + Resistance roll is equal to half of the brewing character's Lore (round up), and the damage done by the poison if the victim's player fails the roll is equal to twice the brewing character's Lore.\n\nAt the character's choice, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or delivered via a weapon to be effective. Each pot made contains poison enough to envenom a dozen weapons or to poison a large meal. The poison is odorless, tasteless and colorless, requiring a Perception + Awareness roll of a difficulty equal to the brewing character's Essence to detect.\n\nLike all other weapon venoms, each dose of poison can only be used against a single target. Once it has been used, the poison must be applied to the weapon again to be effective. The poison transforms back into harmless water after a week. Each batch must be brewed as either a thick weapon venom or an ingested venom that is as thin as water. Charms such as Poison-Resisting Meditation and Immunity to Everything Technique affect this poison normally.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 71
     }
   },
@@ -199,7 +199,7 @@
     "duration": "One day",
     "description": "With a seemingly harmless touch, the character can envenom a single weapon, a single plate of food or a goblet of wine. The difficulty to resist the poison and the penalty and damage for the poison are all the same as for Brewing Venom Technique. At the character's option, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or enter a wound to be effective. The poison is odorless, tasteless and colorless. The poison lingers in the drink or the weapon for the next full day \u2014 after this time, it dissipates harmlessly. This Charm cannot be used to poison food or drink in the same turn that it is consumed or to envenom a weapon in the same turn that it is being used to strike a target.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 72
     }
   },
@@ -225,7 +225,7 @@
     "duration": "Instant",
     "description": "The character can use this Charm to either envenom a single weapon on the same turn that it is used to strike a target or to poison a single plate of food or goblet of drink. Also, the character may poison a weapon, food or drink that is up to one yard per point of permanent Essence away. The difficulty to resist the poison and the penalty and damage for the poison are all the same as for Brewing Venom Technique. At the character's choice, the poison brewed can either be a deadly toxin that does lethal damage or a powerful narcotic that only does bashing damage. Either poison must be ingested or enter a wound to be effective. The poison is odorless, tasteless and colorless. The poison lingers on the drink or the weapon for the next full scene \u2014 after this time, it harmlessly dissipates.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 72
     }
   },
@@ -251,7 +251,7 @@
     "duration": "One day",
     "description": "With this Charm, an Exalted can protect a large area from the ravages of the Wyld for a single day. While it lasts, the earth and vegetation within the warded area, together with any living beings present inside it, will not be affected by the Wyld's changes, and the air will remain breathable and safe. The Solar paces around the area that he wishes to ward (which may not have more than a five yard radius per dot of permanent Essence that he has) and invokes the Charm. Unfortunately, although the contents of the area will be safe from change, faeries or Wyld-mutated beings are not prevented from entering the protected area.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 71
     }
   },
@@ -277,7 +277,7 @@
     "duration": "Instant",
     "description": "With this Charm, an Exalt may transfer his current injuries to another person. The character must be in skin-to-skin contact with the target of the Charm for a turn, and his player must spend a point of temporary Willpower and the appropriate amount of Essence. The Exalt's wounds close up and heal on his own body, while appearing at the same time on that of the subject. The Solar using the Charm immediately heals a number of health levels of bashing or lethal damage, and the target of the Charm immediately takes a like number of levels of bashing damage. The maximum number of health levels transferable is the lower of the two characters' Staminas. This Charm cannot be used to transfer aggravated damage. However, it is quite possible to kill somebody with it. It can be used in combat, but it requires that the character have concluded a successful grab or clinch maneuver and have the target trapped at the time the Charm is used.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 71
     }
   },
@@ -303,7 +303,7 @@
     "duration": "Instant",
     "description": "By means of this Charm, an Exalt can use his singular knowledge of both chaos and order to restore a Wyld-corrupted living creature or object. By placing his hands upon the target and focusing his will, the Solar can restore it to its original physical and mental state. However, any time that has passed will be taken into account: The target of the Charm will be restored to his appropriate age and may age significantly if the Wyld has preserved him from the passing years. For a full day after this Charm has been used, the target is immune to the effects of the Wyld. However, if he remains in Wyld areas after that time, he will once again be subject to its changes and may eventually be returned to his previous altered form. Note that this Charm does nothing to cure Wyld addiction \u2014 exposure to the energies of the madlands is still pleasurable.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 71
     }
   },
@@ -329,7 +329,7 @@
     "duration": "Instant",
     "description": "By means of this Charm, a character can lend one of her spells to another Exalted sorcerer. For each dot of the loaning character's Essence, she can lend a spell for one use. The recipient must have the appropriate Sorcery Charm to be able to use the spell. These spells draw directly on the Essence of the Exalted who lent them, but the recipient must pay any non-Essence costs \u2014 for example the Willpower to activate the appropriate Sorcery Charm.\n\nThe Solar is still able to use these spells while the Charm is in effect, but as soon as the recipient has cast any of them as many times as the lending character has permanent Essence, the recipient loses the ability to cast that particular spell again. Use of this Charm does not aid in the study of the spell \u2014 it merely imprints the spell on the target, giving him the ability to use it once per dot of the lending character's Essence. Powerful Solars often used this ability to empower lesser minions \u2014 particularly the Dragon-Blooded \u2014 for particular missions.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 71
     }
   },

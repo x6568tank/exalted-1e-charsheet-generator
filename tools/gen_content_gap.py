@@ -8,13 +8,13 @@ CANON = {
     "seas": "Savage Seas", "SAS": "Savage Seas",
     "luna": "The Lunars", "E:LU": "The Lunars",
     "abys": "The Abyssals", "E:AB": "The Abyssals",
-    "outc": "The Outcaste", "side": "Sidereals", "E:SI": "Sidereals",
+    "outc": "The Outcaste", "side": "The Sidereals", "E:SI": "The Sidereals",
     "game": "Games of Divinity", "GOD": "Games of Divinity",
-    "time": "Time of Tumult", "core": "Exalted Core", "E:1": "Exalted Core",
-    "dbld": "Dragon-Blooded", "E:DB": "Dragon-Blooded",
+    "time": "Time of Tumult", "core": "Core", "E:1": "Core",
+    "dbld": "The Dragon-Blooded", "E:DB": "The Dragon-Blooded",
     "fair": "Fair Folk (Mountain Folk ch.)",
     "salt": "Blood and Salt", "B&S": "Blood and Salt",
-    "auto": "Autochthonians", "E:AU": "Autochthonians",
+    "auto": "The Autochthonians", "E:AU": "The Autochthonians",
     "comp": "Storyteller's Companion", "ruin": "Ruins of Rathess",
     "cult": "Cult of the Illuminated", "halt": "Kingdom of Halta",
     "coin": "Manacle and Coin",
@@ -24,14 +24,14 @@ CANON = {
     "cb_d": "Caste Book: Dawn", "cb_n": "Caste Book: Night",
     "cb_t": "Caste Book: Twilight", "cb_z": "Caste Book: Zenith",
     "cb_e": "Caste Book: Eclipse",
-    "E:S": "⚠ UNKNOWN CODE (`E:S` — legend omits it; likely Sidereals)",
+    "E:S": "⚠ UNKNOWN CODE (`E:S` — legend omits it; likely The Sidereals)",
     "?": "⚠ unresolved",
 }
 ONDISK = {"Caste Book: Dawn", "Caste Book: Night", "Caste Book: Twilight",
           "Caste Book: Zenith", "Caste Book: Eclipse", "Fair Folk (Mountain Folk ch.)"}
 # Extracted from sources/ on 2026-08-10 into images/_extracted/ — full text on disk.
 EXTRACTED = {"Book of Bone and Ebony", "Savant and Sorcerer", "Player's Guide",
-             "The Outcaste", "Games of Divinity", "Ruins of Rathess", "Autochthonians"}
+             "The Outcaste", "Games of Divinity", "Ruins of Rathess", "The Autochthonians"}
 
 charms = json.load(open("missing_charms_full.json"))
 spells = json.load(open("missing_spells_full.json"))

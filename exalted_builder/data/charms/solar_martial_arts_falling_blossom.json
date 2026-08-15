@@ -17,7 +17,7 @@
     "duration": "Instant",
     "description": "The life of an Illuminated One is paramount. This truth is the first principle of the Falling Blossom Style, and its lessons are hammered into the practitioner with every mantra and sutra. The first technique Falling Blossom practitioners must master is that of defending the body of their Shining One, taking arrows and sword blows that were meant for him or knocking him away from such attacks.\n\nThe martial artist may spend 1 mote to reflexively make himself the target of any attack aimed at his lord so long as he is within leaping distance (usually five yards, though this distance can be increased with Charms that increase leaping or sprinting distances). Use of this Charm does not require an action, and so, the martial artist may dodge or parry the attack that now targets him using normal rules. This Charm can only be used to protect a single person. The martial artist must declare whom he will defend at the beginning of combat, and he can defend only that person for the remainder of the scene.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 103
     },
     "open_to_all": true
@@ -44,7 +44,7 @@
     "duration": "One turn",
     "description": "A warrior uncaring for his safety can make attacks far more effectively than those who restrain themselves with an eye to their defense. By adopting an aggressive and indefensible posture, the martial artist can make devastatingly quick and accurate attacks, using offense as his only defense. Upon the activation of this Charm, the martial artist increases his initiative by his Martial Arts. In addition, all attacks made during this turn gain an automatic success. However, the martial artist may not make an active defense with any part of his action, and all attacks made against him gain an automatic success for the remainder of the turn. He may still benefit from defenses purchased from Charms or persistent effects such as Five-Dragon Blocking Technique or Fivefold Bulwark Stance, but without them, the martial artist is vulnerable. This Charm must be activated before initiative is rolled.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 103
     },
     "open_to_all": true
@@ -71,7 +71,7 @@
     "duration": "Instant",
     "description": "Except where it serves the Illuminated Ones, the life of a Falling Blossom master means nothing. By learning to tap into his own life force, the martial artist can enhance the deadliness of his blows. When activating this Charm, the martial artist pays 1 mote and one health level for every die of damage he wishes to convert into an automatic health level of damage inflicted upon his target. The health levels sacrificed by the martial artist are taken as levels of lethal damage. This damage is an effect of the Charm and cannot by bypassed or neutralized by Charms or other effects that reduce damage without negating the effect. This Charm must be activated after the martial artist’s player has rolled for his attack but before he has rolled for damage.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 103
     },
     "open_to_all": true
@@ -101,7 +101,7 @@
     "duration": "One scene",
     "description": "The character adopts an aggressive, dedicated stance as he focuses his entire mind upon the defense and desires of his divine lord, giving himself over completely to the ideal of victory. For the remainder of the scene, the character inflicts lethal damage with his unarmed attacks, and any successful attacks made with a knife convert one health level of damage to an automatic success. This bonus does not apply to attacks made with swords or fists. The form Charm is as much a state of mind as it is a state of Essence and body, and as a result, the character’s burning faith shields him from terror and fear of death. For the remainder of the scene, the character may substitute his Conviction for his Valor for any rolls made to resist effects based on fear or intimidation. Further, the brightness of the martial artist’s dedication powers his body when it fails him, allowing him to continue to act after he has been incapacitated. If bashing damage caused the incapacitation, the martial artist simply ignores his incapacitated state and may continue to act. If lethal damage caused the incapacitation, the character will die in a number of turns equal to his Stamina, as usual, but may continue to act until then. However, the character suffers from the normal wound penalties the damage has caused (-4 for Incapacitated). Finally, because of the fervor of the martial artist’s faith, any character killed while in this form goes instantly to his next incarnation. He leaves behind no ghost, and no hungry ghost inhabits his corpse. This effect offers only some protection against necromancy: If any necromantic effect would create a ghost, the martial artist’s player rolls a resisted Essence roll against the necromancer’s Essence, and should the roll be successful, the martial artist’s soul is reborn immediately. Otherwise, he becomes a ghost as dictated by the necromantic effect.\n\nA character cannot use more than one Form-type Charm at a time. Using a Form-type Charm ends the effects of another Form-type Charm the character was utilizing.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 103
     },
     "open_to_all": true
@@ -128,7 +128,7 @@
     "duration": "Instant",
     "description": "Once the martial artist has achieved mastery of the basics of Falling Blossom Style, he learns to dedicate his very soul to battle. With a willingness to sacrifice anything to achieve victory for his master, the character can achieve perfection in combat. After activating the Charm, the character makes an unarmed attack (or an attack with a sword or knife), his player rolling to attack as normal. So long as the character achieves a single success, his attack will strike its target, regardless of the difficulty of the attack. Should the difficulty of the attack, or the targets parry or dodge successes, reduce the successes to zero, the attack still does its base damage. Only a perfect defense can stop this attack.\n\nThe use of this Charm slowly aligns the soul of the martial artist closer and closer to the destiny of his master. The Storyteller should note every experience point spent on the activation of this Charm. Every 3 experience points spent purchases a point of the Destiny Merit (see the Exalted Players Guide, pp. 25-26) for the martial artist, though the nature of that destiny is up to the Storyteller. As a general guide, the destiny is seldom pleasant, though it usually provides an opportunity for the martial artist to die in a manner that proves his dedication and faith.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 104
     },
     "open_to_all": true
@@ -155,7 +155,7 @@
     "duration": "One scene",
     "description": "The faith that drives the martial artist exceeds the limitations of his mortal frame. By channeling that power through focused meditations and quick exercises, the character can overcome the weaknesses of his body. Each mote spent in the activation of this Charm negates one point of penalty caused by pain or disability of his body, such as wound penalties or the effects of Charms such as Crippling Pressure-Point Strike. This Charm will not negate penalties that stem from outside factors, such as environmental penalties.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 104
     },
     "open_to_all": true
@@ -185,7 +185,7 @@
     "duration": "One day",
     "description": "All warriors die, but a master of Falling Blossom Style chooses how and where he shall die, rather than trusting to the unpredictability of fate. Dedicating himself utterly to his goal, the master meditates upon his purpose and writes a 17-syllable poem that captures the essence of his life, his dedication and his purpose. He leaves the poem behind as he journeys to his fate, a final message to his loved ones and friends. For the remainder of the day, his focus is sharpened to divine proportions, and any time the character channels a Virtue for any roll that aids his goal, even remotely, his player gains a number of automatic successes to his roll equal to the channeled Virtue, rather than adding dice. Further, the Loom of Fate accepts the dying martial artists proposition and realigns events so that his death is honorable, giving him a chance at success. This has no mechanical benefits except to encourage the Storyteller to plan events around the character’s death that suit his sacrifice. However, this supreme clarity comes at an ultimate price. Fate ensures the death of the character before the rise of the sun on the next day. Often, this death occurs just as he predicted within his poem. Should the character manage to cheat death in some manner, he is broken, a spent and useless weapon without purpose. For the remainder of his sad life, the failed master may not regain Essence or Willpower.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 104
     },
     "open_to_all": true

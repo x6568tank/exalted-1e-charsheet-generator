@@ -237,7 +237,7 @@
     "duration": "Varies",
     "description": "By giving voice to the arcane patterns of this Charm, an Exalted can hamper an enemy's ability to use Essence. The character must be within a number of yards of the target equal to his Essence. The Solar's player and target's player must both make Will + Occult rolls: If the Solar's player scores more successes, then for the turn when this Charm is used and in every subsequent turn in which the character spends 5 motes of Essence, the chosen subject of the Charm must pay twice as much Essence to use any of his Charms or other Essence-fueled abilities. If the target scores more successes, then the Charm fails to function. While this Charm does not require continuous concentration by the Exalt, only the continued expenditure of Essence, and counts as the use of a simple Charm every turn, it will be nullified if the Solar using it is rendered unconscious or killed. This Charm may never be used as part of a Combo, nor does it affect beings with an Essence equal to or greater than the character.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 73
     }
   },
@@ -266,7 +266,7 @@
     "duration": "Multiple Turns",
     "description": "With a barehanded blow, the character using this Charm makes it impossible for his target to make any directed use of Essence for that turn and, potentially, for later turns. It must be used with a successful barehanded attack (which need do no damage but must penetrate the target's block or dodge) and is specifically permitted to be used as part of a Combo with Charms of other Abilities. The character may maintain the Charm as long as she continues to spend 10 motes of Peripheral Essence and 1 permanent Willpower for each turn that it is in use. This count's as the character's Charm use for the turn, as long as se continues to spend 7 motes and 1 temporary Willpower per turn.\n\nThe target — whether he is an Exalt, a spirit, one of the Fair Folk or anything else — will be unable to use any Essence-driven powers and must react on a purely physical level. Note that creatures that are magically aflame or that have magical venom are not restricted by this Charm, as such prodigies are expressions of their fundamental beings, and this attack bars only the working of magic. Likewise, this Charm cannot stop Lunar shapeshifting or the display and use of anima banners. Should the Solar invoking the Charm be rendered unconscious or killed, the magic is broken. It is whispered that there are more powerful versions of this Charm, which can suppress the powers of an Exalted for days, years or permanently, but if so, they are still not yet rediscovered.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 74
     }
   },
@@ -292,7 +292,7 @@
     "duration": "Instant",
     "description": "An Exalted can use this Charm to ward a building or room from unwanted entry by spirits. For the Charm to function, the area being warded must have a clearly defined main entrance and may not be larger than 20 yards square. The Exalt invokes the Charm by tracing his Caste Mark upon the main door of the area — or on the ground, if there is no actual door — to seal the entrance. Dematerialized spirits outside the warded area with permanent Essence lower than the character's may not use their Charms to affect those within the warded area, nor may they enter it unless invited by those within. Should they attempt to enter, whether or not they succeed, the mark upon the entrance blazes bright gold, visible to anybody nearby. This ward is a continuing effect that lasts until the room is broken or the ward is deliberately defiled by a being that is not a spirit.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 74
     }
   }

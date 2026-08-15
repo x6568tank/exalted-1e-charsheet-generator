@@ -131,7 +131,7 @@
     "duration": "Instant",
     "description": "When attacked, the Exalted makes a prodigious leap to take herself out of harms way. When making any dodge using this Charm, the character avoids the attack by leaping up to (Strength + Athletics) x 3 yards vertically or twice this distance horizontally. The Exalt can choose the exact direction and distance of this leap, so long as it is away from her attacker. Leaping Dodge Method is explicitly permitted to be part of a Combo with any Dodge Charms, including Reflex Sidestep Technique. This Charm will break multiple attack techniques if the attacker cannot follow the dodging character.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 75
     }
   }

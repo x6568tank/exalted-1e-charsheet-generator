@@ -14,7 +14,7 @@
     "duration": "One hour",
     "description": "By draining a victim's Essence (blood-drinking or magic) she can also steal her visage: after consuming 1+ motes from the target, roll Intelligence + Larceny (difficulty 6 minus motes taken; automatically 1 if she drains the victim entirely). Successes count as a mundane impersonation, except her features actually shift to resemble the victim. She takes only the appearance, not mannerisms; those who know the target can recognize the imposter by interacting. Humans only.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 207
     }
   },
@@ -38,7 +38,7 @@
     "duration": "One hour",
     "description": "Duplicates Theft of Face but also steals intuitive knowledge of the victim's mannerisms and habits, making the ruse far more effective (fools casual associates easily). Close family may still sense something is wrong.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 207
     }
   },
@@ -61,7 +61,7 @@
     "duration": "Until released",
     "description": "Consumes the flesh and spirit of a victim to steal her very identity: completely drain her of blood and spend one hour digesting the stolen Essence, then shift into her perfect likeness (every mark, scar, tic and mannerism). Not an illusion but a true transformation; she may draw on the victim's memories (Intelligence + Larceny). An Abyssal anima banner display spoils it. Humans of the same gender only; a guise can be assumed only once before the memories digest.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 207
     }
   },
@@ -85,7 +85,7 @@
     "duration": "One day",
     "description": "Channels the nascent Solar spark within her to shift her anima to resemble a Chosen of the Unconquered Sun: anima banner and Caste Mark appear as the appropriate Solar type (Dusk becomes Dawn, Midnight becomes Zenith, etc.). Affects only the anima banner; she keeps her true Caste's anima power. A Zenith Solar of higher permanent Essence can see through it. Only Abyssals can learn this Charm.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 208
     }
   },
@@ -104,7 +104,7 @@
     "duration": "One day",
     "description": "Taps into the web of shared regrets of the criminal dead for a wealth of information: intuitively picks out criminal establishments from honest businesses, discerns those wanting to sell/buy illegal goods, spots the lines of power in the local crime scene and tracks them to the crime-lords. He is at home in any criminal subculture. Cannot spot informers or undercover agents without sufficient clues.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 208
     }
   },
@@ -127,7 +127,7 @@
     "duration": "One scene",
     "description": "Leaves no more evidence of her passing than a ghost: she can still be spotted, but drops no unintentional clues and leaves no footprints, hair, etc. She can still leave clues deliberately (it only prevents unintentional evidence). Only supernatural tracking can find someone shrouded by this Charm.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 209
     }
   },
@@ -150,7 +150,7 @@
     "duration": "Instant",
     "description": "Bypasses any mundane lock with a gentle touch: the lock rusts away in a wisp of acrid smoke and falls open. Must be used separately on each lock; affects locked manacles as easily as the bolts of doors and safes.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 209
     }
   },
@@ -176,7 +176,7 @@
     "duration": "Instant",
     "description": "Becomes preternaturally deft at sleight of hand, performing feats of conjuration and legerdemain without a roll (impossible stunts like palming a coin from a belt pouch need a Dexterity + Larceny roll). For trickery and bedazzlement, not combat: he can palm a handful of shuriken but cannot create something from nothing or steal an opponent's possessions.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 209
     }
   },
@@ -199,7 +199,7 @@
     "duration": "Instant",
     "description": "Builds on Artful Conjuration Trick's supernatural deftness to snatch objects with blinding, snake-strike speed.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 209
     }
   }

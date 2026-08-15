@@ -16,7 +16,7 @@
     "duration": "Essence in turns",
     "description": "The Immaculate flows out of the way of blows like water. For her Essence in turns she subtracts one die from her own attack pools, but anyone attacking her subtracts three dice. Usable only once at any given time. Grants the Water Dragon signature weapon (tiger claws) training with the Path's first Charm.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 255
     },
     "open_to_tiers": [
@@ -44,7 +44,7 @@
     "duration": "Instant",
     "description": "The force of an attack spreads outward like ripples. The target takes normal damage, but everyone except the Immaculate within 10 feet takes bashing damage equal to the successes rolled on the damage roll (none if the target took no health levels). This bashing damage soaks normally and cannot become lethal. The Immaculate cannot choose who is affected.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 256
     },
     "open_to_tiers": [
@@ -72,7 +72,7 @@
     "duration": "Instant",
     "description": "Strikes the tides of blood so a victim drowns in his own. On a successful martial arts attack (no damage), the Immaculate rolls a reflexive opposed Strength + Martial Arts vs the target's Stamina + Resistance; if she wins, the target loses one point of Stamina for as many turns as extra successes. It deals no health levels itself but may set up rapid-fire punches; a target whose Stamina reaches zero dies. Cumulative.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 256
     },
     "open_to_tiers": [
@@ -100,7 +100,7 @@
     "duration": "Instant",
     "description": "With a focusing of Essence the Immaculate casts off any restraint, magical or physical: chains shatter, ropes snap, handcuffs drop away. Artifacts and natural phenomena restraining her have their effects suspended for turns equal to her Martial Arts score.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 256
     },
     "open_to_tiers": [
@@ -131,7 +131,7 @@
     "duration": "One scene",
     "description": "The Elemental Dragon Form of Water (requires a Dexterity + Martial Arts check to invoke). For the scene the Exalt gains a bonus to lethal and bashing soaks equal to her Martial Arts and may soak lethal with her Stamina; when successfully attacked she may spend extra Essence for extra soak at 1 mote per 2 soak (declared before damage is rolled). Her fluid form also raises her Martial Arts by her permanent Essence (a Charm enhancement, counting against the Charm cap on Martial Arts). Only one Form-type Charm at a time.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 256
     },
     "open_to_tiers": [
@@ -160,7 +160,7 @@
     "duration": "Instant",
     "description": "After a successful attack, the Immaculate's player rolls Essence + Martial Arts; for every success she steals 3 motes of Essence from the target into her own reserves (the target recovers it normally). Stolen Essence may be spent only on other Water Dragon Path Charms and fades from her at 1 mote per minute.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 257
     },
     "open_to_tiers": [
@@ -188,7 +188,7 @@
     "duration": "Instant",
     "description": "Reverses the fluid in a target's body. An unarmed martial arts attack doing normal damage; the target's player rolls Stamina + Resistance against the Immaculate's original attack roll (unreduced by dodge/parry). If they don't exceed the Exalt's successes: normal mortals and animals less than twice her size are killed outright, Exalted and magical beings take one unsoakable lethal level, aquatic/amphibious creatures take two. Even on success they subtract two dice from physical actions for the Exalt's Martial Arts in turns. Living corporeal beings only.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 258
     },
     "open_to_tiers": [
@@ -217,7 +217,7 @@
     "duration": "Until abandoned",
     "description": "Sets up a vortex of water Essence that immobilizes even powerful spirits. The Exalt spends her turn on the movements and rolls Dexterity + Martial Arts; spirits in the area (radius 10 x Essence yards) reflexively roll Essence opposed. For every success the Dynast gets, all spirits in the area add +1 difficulty to their actions; if that penalty exceeds a spirit's permanent Essence it is immobilized (unless its Essence exceeds hers). While sustaining it she adds +2 difficulty to her own tasks and cannot leave the area without dropping the Charm.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 257
     },
     "open_to_tiers": [
@@ -245,7 +245,7 @@
     "duration": "Instant",
     "description": "On a successful martial arts attack the Dynast may immediately make another attack at -1 die; if it hits, another follows, the penalty doubling each time (-2, -4, ...). If the penalties reduce her pool to zero she stops. The maximum number of attacks equals her Martial Arts rating.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 258
     },
     "open_to_tiers": [
@@ -278,7 +278,7 @@
     "duration": "One turn",
     "description": "The Immaculate takes a single health level of aggravated damage; all other damage she suffers for the rest of the turn is negated, drawn down into the bottomless abyss of the Water Dragon. Must be invoked reflexively before the damage for the attack is rolled.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 258
     },
     "open_to_tiers": [
@@ -307,7 +307,7 @@
     "duration": "Varies",
     "description": "Channels the smothering Essence of the Water Dragon to douse an opponent's magic. A normal martial arts attack (armed or unarmed) doing normal damage; if the target actually loses health levels, the Immaculate's player rolls Martial Arts + Essence (difficulty = the target's Essence). For turns equal to the successes, all Charms and sorcery affecting the target are suppressed; if the successes exceed the caster's Essence, an affected Charm or spell is actually dispelled. The target must take at least one health level of bashing damage to trigger it.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 258
     },
     "open_to_tiers": [
@@ -338,7 +338,7 @@
     "duration": "Instant",
     "description": "A wave of Water Essence radiates in a 45-degree arc out to the Exalt's Essence in yards. Anyone caught, friend or foe, takes twice the Dynast's Martial Arts + Essence as damage. Everyone caught makes a reflexive Essence check: on a botch the damage is aggravated and automatic; on a failure aggravated but rolled normally; on a success lethal and rolled normally; with at least three successes the damage is bashing.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 259
     },
     "open_to_tiers": [

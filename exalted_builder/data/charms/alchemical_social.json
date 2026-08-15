@@ -23,7 +23,7 @@
     "duration": "Indefinite",
     "description": "An Essence pulse sways an organization toward a policy it is considering (a member must be present). Members with Willpower under the Exalt's Essence come to favor it; up to twice Essence feel predisposed; higher are unmoved; Essence 2+ beings are immune. Affects up to (Charisma x 20) members, lowest Willpower first. Lasts until the agenda is endorsed/rejected or Essence is withdrawn.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 113
     },
     "exalt_type": "Alchemical",
@@ -44,7 +44,7 @@
     "duration": "One turn",
     "description": "Name a task achievable this turn and pay 1 mote per (perceived) target, including self. Each target working toward it adds one die (an artificial specialty) to one furthering roll this turn.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 114
     },
     "exalt_type": "Alchemical",
@@ -71,7 +71,7 @@
     "duration": "Indefinite",
     "description": "Form a hive-mind Assembly with other Exalted who have this Charm (two+ activating together; newcomers need all members present and willing). Members sense each other's direction/distance, can gauge a mate's health levels, and communicate telepathically (projective) within (Essence x 10) yards, relaying through a mutual third. Belong to at most Essence clusters; cluster size <= highest Charisma + Essence.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 115
     },
     "exalt_type": "Alchemical",
@@ -98,7 +98,7 @@
     "duration": "One scene",
     "description": "A database of sensual technique adds (Essence - target's Essence) automatic successes to all seduction rolls for the scene (targets of equal/greater Essence are unaffected). Consummation (Appearance + Performance) exceeding the partner's Willpower makes him suggestible (+Essence difficulty to resist the Alchemical, fading hourly) and, for mortals failing Temperance, addictively devoted.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 115
     },
     "exalt_type": "Alchemical",
@@ -123,7 +123,7 @@
     "duration": "N/A",
     "description": "Apply Social rolls without speaking or overtly acting, to any target who can perceive her (seduce, intimidate, attract attention, make friends, poison the waters), rolling no more Social-Attribute dice than Appearance. The feats are subtle: noticing one needs a reflexive Perception + Socialize roll at difficulty of her Essence.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 115
     },
     "exalt_type": "Alchemical",
@@ -145,7 +145,7 @@
     "duration": "One scene",
     "description": "Painful neural tendrils let the Exalt fake warmth: for the scene, reduce effective Clarity by Manipulation for Social penalties, but forgo the Compassion roll to shed Clarity from interacting with mortals, and gain a point of Clarity for simulating emotion.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 116
     },
     "exalt_type": "Alchemical",
@@ -170,7 +170,7 @@
     "duration": "N/A",
     "description": "Weaponizes Clarity for menace: add (Clarity / 2, rounded up) bonus dice (an artificial specialty) to all intimidation/interrogation Social rolls, forfeited while masking Clarity with Empathy Simulation Engine. Grants a point of permanent Clarity.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 116
     },
     "exalt_type": "Alchemical",
@@ -199,7 +199,7 @@
     "duration": "Indefinite",
     "description": "The mirror of Pattern Facilitation Module: only attacks a plan an organization is considering, making it seem foolish or dangerous (cannot promote an alternative). Fully-swayed members (Willpower < Essence) hate the plan and may use force. Beats a Pattern Facilitation Module of lower Essence; ties cancel.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 116
     },
     "exalt_type": "Alchemical",
@@ -227,7 +227,7 @@
     "duration": "One day",
     "description": "Order a present group (no target Essence 2+, up to Manipulation x 10 targets) to a task; for the day each adds one die (artificial specialty) to actions furthering it. At day's end each user loses 1 Willpower and suffers a cumulative Conviction-regain penalty; targets drained to 0 Willpower go listless.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 116
     },
     "exalt_type": "Alchemical",
@@ -254,7 +254,7 @@
     "duration": "Instant",
     "description": "A retractable stiletto-spike (piercing short sword) that, on piercing a sentient being of equal/lower Essence, threads the brain. Win opposed Essence + Willpower rolls (3 net successes) to conquer the mind, then per turn inflict one effect: raise/lower a Virtue or Willpower, change Nature, erase up to five years of memory per turn, knock out for the scene, or kill (Essence 1 mortals). Forced separation deals 3 unsoakable-but-natural lethal.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 117
     },
     "exalt_type": "Alchemical",
@@ -279,7 +279,7 @@
     "duration": "N/A",
     "description": "Once a victim's will is broken via the Personality Override Spike, read memories: ask a question the victim answers in vignettes, or (Wits + Awareness, cap successes at Essence) detect false or deleted memories made by beings of Essence up to the successes rolled.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 119
     },
     "exalt_type": "Alchemical",
@@ -304,7 +304,7 @@
     "duration": "N/A",
     "description": "Insert false memories after breaking a victim's will: Manipulation + (Performance/Presence/Lore) vs the target's Essence; successes scale the change from a superficial edit (1) to rewriting an entire life (5). Can also remove a known implanted falsehood or erased segment, restoring the truth.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 119
     },
     "exalt_type": "Alchemical",

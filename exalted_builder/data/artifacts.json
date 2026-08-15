@@ -4,7 +4,7 @@
     "name": "Essence-Scrying Visor",
     "rating": 1,
     "description": "Crystal goggles: 1 mote per scene ignores low-light penalties; 3 motes activates Essence sight, which negates all visual penalties, pierces smoke and darkness, and adds three dice to Awareness rolls to notice illuminated beings and objects. Useless inside Demesnes and Manses. Artifact •• versions provide constant Essence sight for 4 committed motes.",
-    "source": "Mountain Folk p.279",
+    "source": "The Mountain Folk (CH6) p.279",
     "tags": [
       "senses",
       "tool"
@@ -15,7 +15,7 @@
     "name": "Hammerfist Bracer",
     "rating": 1,
     "description": "Bulky jade bracer (4 committed motes) that transmutes the arm below the elbow into indestructible stone until removed: the petrified fist parries lethal attacks without a stunt and inflicts +8L damage against animate targets (+10L against inanimate objects), at speed -2. Predominantly used as an excavation tool by Worker Caste miners.",
-    "source": "Mountain Folk p.279",
+    "source": "The Mountain Folk (CH6) p.279",
     "tags": [
       "tool",
       "combat"
@@ -26,7 +26,7 @@
     "name": "Mask of Pure Breath",
     "rating": 1,
     "description": "Blue-jade mask that affixes to the face for 1 mote: absorbs and cleanses air, giving complete protection against toxin gases, smoke and airborne hazards; in vacuum it synthesizes breathable air for 2 motes/hour (muting the sense of smell). Distorts the voice: +1 die to intimidation Presence, +2 to the difficulty of identifying the speaker.",
-    "source": "Mountain Folk p.279",
+    "source": "The Mountain Folk (CH6) p.279",
     "tags": [
       "protection",
       "tool"
@@ -37,7 +37,7 @@
     "name": "Skirmish Pike",
     "rating": 1,
     "description": "Collapsible jade-and-crystal spear (four-foot pike or 18-inch baton, telescoped reflexively once per turn). The slender points puncture armour; any magical being can commit 5 motes to attune; no Hearthstone socket. Officer pikes add features (stun point, shock pulse, Essence capacitor) that raise the rating to •• or •••. Also a weapon — see the equipment catalogue.",
-    "source": "Mountain Folk p.280",
+    "source": "The Mountain Folk (CH6) p.280",
     "tags": [
       "weapon"
     ]
@@ -48,7 +48,7 @@
     "rating": 1,
     "rating_notes": "• or •••",
     "description": "Crystal disk rimmed in jade: 1 committed mote links it to other echo jewels, relaying every vocal utterance within half a mile (50 yards above ground). Artifact ••• versions are four-foot disk arrays laid in a Manse's central chamber that transmit life-sized images to one another across up to (Manse rating × 1,000) miles.",
-    "source": "Mountain Folk p.280",
+    "source": "The Mountain Folk (CH6) p.280",
     "tags": [
       "communication",
       "tool"
@@ -60,7 +60,7 @@
     "rating": 1,
     "rating_notes": "• to •••••",
     "description": "Artificial gem (tetrahedron • through icosahedron •••••) that stores Mountain Folk Charms: charging costs the Charm's full cost plus 1 Willpower; it holds Charms whose total minimum Essence is double its Artifact rating. Activation counts as a Charm use and cannot be part of a Combo. Only Mountain Folk can use these devices.",
-    "source": "Mountain Folk p.281",
+    "source": "The Mountain Folk (CH6) p.281",
     "tags": [
       "charm-store",
       "tool"
@@ -71,7 +71,7 @@
     "name": "Dragon Sigh Wand",
     "rating": 2,
     "description": "Two-foot red-jade firewand that needs no ammunition: 5 motes attune, 2 motes per blast of scarlet flame (12L, range 30, rate 1). A ruby capacitor stores 12 motes as an alternate power source. No Magical Material bonus; the delicate lenses need maintenance after every scene fired. Smaller foot-long variants (Artifact •• single, ••• a pair) trade damage for rate. Also a weapon — see the equipment catalogue.",
-    "source": "Mountain Folk p.281",
+    "source": "The Mountain Folk (CH6) p.281",
     "tags": [
       "weapon"
     ]
@@ -81,7 +81,7 @@
     "name": "Essence Pulse Grenade",
     "rating": 2,
     "description": "Reusable jade-and-crystal grenade that detonates on a timer (a turn to an hour) or a dead-man's switch; recharging costs 6 motes and a jewelled key. The jade's colour varies the blast: red 10L fire, blue 20B lightning, white 20B force, black 10L freezing (cutting Dexterity by 2), green poison gas. Also a weapon — see the equipment catalogue.",
-    "source": "Mountain Folk p.282",
+    "source": "The Mountain Folk (CH6) p.282",
     "tags": [
       "weapon",
       "thrown"
@@ -93,7 +93,7 @@
     "rating": 2,
     "rating_notes": "•• or •••",
     "description": "Fingerless glove (4 committed motes) that projects a luminous force shield (+2 to the difficulty of all attacks against the wearer) when the bearer presents the palm or back-of-hand stone. The Artifact ••• version can instead raise a freestanding wall of raw Essence with 3B/2L soak per mote spent.",
-    "source": "Mountain Folk p.282",
+    "source": "The Mountain Folk (CH6) p.282",
     "tags": [
       "protection",
       "tool"
@@ -104,7 +104,7 @@
     "name": "Myrmidon Carapace",
     "rating": 3,
     "description": "Articulated jade-and-alloy armour (soak 8/8, mobility penalty -1, fatigue 1) for 5 motes of attunement. The masked helmet integrates an Essence-scrying visor (night vision constant, no Essence infusions), an echo jewel and a mask-of-pure-breath filtration and voice system; the suit adds +1 to Strength for damage, lifting and feats. Also armour — see the equipment catalogue.",
-    "source": "Mountain Folk p.283",
+    "source": "The Mountain Folk (CH6) p.283",
     "tags": [
       "armor"
     ]
@@ -1630,7 +1630,7 @@
     "name": "Arc Protector",
     "rating": 1,
     "description": "Goggles faced with black crystal created by Luminor savants. Wearers can see in normal illumination and suffer no penalties or negative repercussions from staring at naked electrical arcs, open plasma furnaces and the like, though the goggles provide no protection against magic that happens to have a visual component and hamper vision in low-light conditions (a dice penalty of one to three).",
-    "source": "Autochthonians p.182",
+    "source": "The Autochthonians p.182",
     "tags": [
       "senses"
     ]
@@ -1641,7 +1641,7 @@
     "rating": 1,
     "description": "A navigational device: the gimbaled pointer in an autolabe points back to a fixed beacon, just as a jade needle compass points to the Elemental Pole of Earth in Creation. The beacon can be reset by leaving the autolabe in physical contact with a new beacon for 25 hours; exploration models come as a set with a base unit, and a rare variant has two autolabes always point back to one another. Most autolabes are spheres approximately three inches in diameter.",
     "rating_notes": "• or ••",
-    "source": "Autochthonians p.182",
+    "source": "The Autochthonians p.182",
     "tags": [
       "tool"
     ]
@@ -1652,7 +1652,7 @@
     "rating": 1,
     "description": "Elaborate polyhedral crystal jewels an inch wide fitted in a wire cage of orichalcum and condensed Primordial Essence, filling the technological niche Hearthstones serve in Creation (Autochthonia has no Demesnes or Manses). A working capacitor may be plugged into the sockets of large or advanced artifacts to supply constant power, exactly as a Hearthstone. Virtually indestructible, if broken they release a devastating pulse of the capacitor's rating x 10L damage (minus 1L per full yard away). They function for 25 hours before shutting down, recharge one hour for every two spent respiring Essence in Autochthonia, and must be calibrated to respire in other realms.",
     "rating_notes": "• to •••••",
-    "source": "Autochthonians p.183",
+    "source": "The Autochthonians p.183",
     "tags": [
       "utility"
     ]
@@ -1662,7 +1662,7 @@
     "name": "Flaw Scanner",
     "rating": 1,
     "description": "A disc-shaped amulet of carved amethyst an inch wide locked in a ring of orichalcum, worn on one hand so the jewel is centered against the palm. Activated for a scene by expending 1 Willpower or 2 motes, it projects a narrow cone of soft violet light in which any cracks, flaws or points of unintended stress appear highlighted in a bright purple-white aura, scanning up to a square yard each turn. Craft rolls made to repair detected flaws add a one-die bonus so long as the technician studies the damage for a full minute under the light.",
-    "source": "Autochthonians p.183",
+    "source": "The Autochthonians p.183",
     "tags": [
       "senses",
       "tool"
@@ -1674,7 +1674,7 @@
     "rating": 1,
     "description": "Goggles with a pair of narrow lenses or a single curved lens extending across both eyes. Wearers constantly receive the benefits and drawbacks provided by the light-intensification filters submodule of the Optical Enhancement Charm; some mortals have small versions surgically implanted in their eyes (three-hour surgery, Intelligence + Medicine at difficulty 5, permanent blindness on failure). Artifact •• versions provide thermal vision when powered — 1 Willpower charges the lenses for two hours, while a mote charges them for one hour. Alchemicals cannot have these artifacts implanted, although other varieties of Exalted may.",
     "rating_notes": "• or ••",
-    "source": "Autochthonians p.183",
+    "source": "The Autochthonians p.183",
     "tags": [
       "senses"
     ]
@@ -1684,7 +1684,7 @@
     "name": "Light Sphere",
     "rating": 1,
     "description": "Three-inch-wide globes of brass and tempered glass containing a treated orichalcum catalyst and a socket for inserting coin-sized discs of low-quality jade. The catalyst makes the jade sublime away in a slow incandescent display with the radiance of a torch, yet without heat or smoke. Each jade fuel disc (Resources • in Autochthonia or Yu-Shan, •• elsewhere) produces light for a full week; higher-quality discs last a month and perfectly calibrated ones a year. Rarer models (also Artifact •) have an articulated iris shutter and colored glass filters used for signaling, tripling the distance of illumination as a narrow cone.",
-    "source": "Autochthonians p.184",
+    "source": "The Autochthonians p.184",
     "tags": [
       "utility"
     ]
@@ -1694,7 +1694,7 @@
     "name": "Omnimodal Wardrobe Unit",
     "rating": 1,
     "description": "An entire wardrobe compressed into a single garment, appearing by default as a basic citizen uniform of artificial silk that is unusually light, glossy oil black and faintly iridescent, with a fine lattice of moonsilver wires. Attuned for 1 committed mote, it changes form with a thought: each change is a reflexive action costing 1 mote, as hundreds of thumbnail-sized spider automata weave and transmute the fibers into the new template in a single turn, also cleaning and repairing any damage. It can become any clothing type from a single glove to a full outfit; in all forms it is unusually durable (+1L soak, not armor or natural soak, cumulative with armor), but it can only become clothes, never actual armor.",
-    "source": "Autochthonians p.184",
+    "source": "The Autochthonians p.184",
     "tags": [
       "utility"
     ]
@@ -1704,7 +1704,7 @@
     "name": "Portable Nutriment Recycling Engine",
     "rating": 1,
     "description": "A machine approximately the size of a person and weighing a mere 30 pounds, with a clockwork power cell and a foot-wide intake chute on top; pressing a button collapses it into a rectangular steel box that fits in a backpack. Wound with a crank (five minutes of winding produces an hour of operation), spinning blades chew any organic material fed into the intake chute, and every two pounds of organic substance takes one minute to process into a thumbnail-sized white pellet that provides the same nourishment as a full meal. All toxins and diseases present in the matter are removed before the pellets emerge; ten pellets are a Resources •• item in Autochthonia.",
-    "source": "Autochthonians p.185",
+    "source": "The Autochthonians p.185",
     "tags": [
       "utility"
     ]
@@ -1714,7 +1714,7 @@
     "name": "Respirator Module",
     "rating": 1,
     "description": "Sophisticated filter masks with a central nodule of blue jade surrounded by wires of mystical alloys, usable as filter masks without any cleaning or upkeep. Flipping a switch with the tongue seals the device and synthesizes air out of Essence, completely protecting the user against harmful airborne effects and allowing travel underwater or through a vacuum without asphyxiating. Each chip of crystallized thaumaturgical reagent (Resources •• for a batch of 10) provides an hour of air; beings able to channel Essence may spend a mote reflexively to power it for an hour.",
-    "source": "Autochthonians p.185",
+    "source": "The Autochthonians p.185",
     "tags": [
       "protection",
       "utility"
@@ -1725,7 +1725,7 @@
     "name": "Courier Drone",
     "rating": 2,
     "description": "Three-inch-long automata reminiscent of large metallic dragonflies, one of the most common means of delivering messages between Autochthonian cities. They carry up to a quarter-pound of weight, navigate by Essence to track the emissions of metropoli, and fly at a top speed of 300 miles per hour. A less common exploration and military version (also Artifact ••) flies back and forth between two rings, infallibly tracking their target beacons in real time so long as they are on the same plane of reality.",
-    "source": "Autochthonians p.185",
+    "source": "The Autochthonians p.185",
     "tags": [
       "communication",
       "vehicle"
@@ -1736,7 +1736,7 @@
     "name": "Soulgem",
     "rating": 2,
     "description": "Every citizen of the Eight Nations receives one within a week of birth: needle-sharp soulsteel posts drive into the center of the forehead, and the gem is fused to skull and nerve with a touch of a living nerve of the Great Maker. When its bearer dies, the jewel absorbs her still-fused higher and lower soul and stores it until the spirit can be recycled; the Essence of a Celestial Exalt cannot be captured. Soulgems are as durable as Hearthstones, and deliberately breaking one is a capital crime throughout Autochthonia. Players do not spend Background points for one — everyone is assumed to have it.",
-    "source": "Autochthonians p.186",
+    "source": "The Autochthonians p.186",
     "tags": [
       "spirit"
     ]
@@ -1746,7 +1746,7 @@
     "name": "Industrial Exoskeleton",
     "rating": 3,
     "description": "A humanoid frame of steel and magical alloys close to 12 feet tall, covered in plates of armor over clockwork machinery, with long four-part vice pincer arms and articulated plate claws. A human or Essence 2-3 Alchemical climbs in; after a wire filament threads up into her brain, committing 8 motes (or 2 Willpower for beings unable to channel Essence) makes the exoskeleton an extension of her body. It adds 12 to Strength for lifting, breaking and strength-based damage, and counts as armor with soak 12L/12B (hardness 6L/6B), mobility penalty -8 and fatigue 2 (lighter unarmored models: soak 6L/6B, mobility -3, fatigue 1); heavily armored models halve the user's ground speed and cannot jump or climb. Requires a two-dot Essence capacitor installed to function at all.",
-    "source": "Autochthonians p.187",
+    "source": "The Autochthonians p.187",
     "tags": [
       "armor",
       "combat"
@@ -1758,7 +1758,7 @@
     "rating": 1,
     "description": "A light armor of high-quality fiber-weave threaded with a lattice of wires or embedded nodes of Magical Materials, extremely supple and thin and roughly equivalent to an enchanted chain shirt. It requires a commitment of 3 motes and is intended for discreet or covert situations, since it can be worn under normal clothes. Lethal piercing attacks based on actual kinetic penetration do not halve the armor's soak unless the raw damage is at least twice the base lethal soak. Artifact •• versions also incorporate all the properties of an omnimodal wardrobe unit except its soak bonus, with the same 3-mote attunement.",
     "rating_notes": "• or ••",
-    "source": "Autochthonians p.189",
+    "source": "The Autochthonians p.189",
     "tags": [
       "armor",
       "protection"
@@ -1769,7 +1769,7 @@
     "name": "Gyroscopic Chakram",
     "rating": 3,
     "description": "Six-inch metal disks with five holes spread for gripping, the most widely used and feared thrown weapons of the Alchemical Exalted, normally carried strapped to the small of the back or the side of the thigh. Hurled by an attuned owner (5-mote commitment), clockwork deploys a ring of three-inch blades that spin at high velocity and the disk banks to follow its quarry: if it misses due to a dodge or parry it swoops back for another attempt on the following turn, acting at initiative 20 with a pool of 10 dice until it hits or botches, then arcs back to its owner's hand at the end of the turn. Additional powers depend on the Magical Material used to make it, and the disks can also be used in close combat as saws.",
-    "source": "Autochthonians p.189",
+    "source": "The Autochthonians p.189",
     "tags": [
       "combat",
       "thrown",
@@ -1781,7 +1781,7 @@
     "name": "Beam-Klave",
     "rating": 4,
     "description": "The signature melee weapons of the Alchemical Exalted: unassuming cylinders of reinforced alloys and Magical Materials tipped with a small crystal spike, most between 9 and 12 inches long. Once attuned for a commitment of 3 motes, an additional 5 motes per scene extends a blade of glowing Essence from the jewel to an average length of three feet, combining heat and pure force; the blade can set flammable objects alight and emits a flickering light comparable to a torch, its color depending on the Magical Material. Active beam klaves have the same statistics and Magical Material benefits as daiklaves, and if a parry against a non-magical weapon achieves any successes, the parried weapon is destroyed by the heat and focused energy of the klave.",
-    "source": "Autochthonians p.190",
+    "source": "The Autochthonians p.190",
     "tags": [
       "combat",
       "weapon"
@@ -1944,7 +1944,7 @@
     "name": "Charm against Disease",
     "rating": 1,
     "description": "A talisman carried on the character's person that adds one die to the Stamina + Resistance roll to withstand disease and one die to the Stamina + Endurance roll to overcome its effects. Used to protect a household, it adds two dice to the Stamina + Resistance rolls of all those within, but only so long as they remain inside the warded house. Very strong charms against disease have double or even triple these effects.",
-    "source": "Exalted Core p.336",
+    "source": "Core p.336",
     "tags": [
       "protection",
       "healing"
@@ -1955,7 +1955,7 @@
     "name": "Dragon Tear Tiara",
     "rating": 2,
     "description": "Tiaras and circlets forged from all the Magical Materials, each with a setting for a Hearthstone located directly over the character's Caste Mark. They require the commitment of 2 motes of Essence to activate the Hearthstone and the tiara's own powers. When activated, a tiara adds 1 die to the character's Perception for normal perception rolls, a bonus that increases to 3 dice when she performs geomancy, astrology, detects spirits or otherwise attempts tasks requiring occult sensitivity.",
-    "source": "Exalted Core p.337",
+    "source": "Core p.337",
     "tags": [
       "senses",
       "tool"
@@ -1967,7 +1967,7 @@
     "name": "Good Luck Charm",
     "rating": 1,
     "description": "A talisman that doesn't so much give a character good luck as protect him from bad luck: once per story, a good luck charm protects the character from the negative effects of a botch, either one the player rolls or one another player rolls that would hurt the character carrying the talisman. Very powerful good luck charms will negate two or more botches in a single story.",
-    "source": "Exalted Core p.337",
+    "source": "Core p.337",
     "tags": [
       "protection"
     ]
@@ -1977,7 +1977,7 @@
     "name": "Hearthstone Amulet",
     "rating": 1,
     "description": "Amulets forged from the Five Magical Materials but too small to provide special benefits based on their material, each with a setting for a single Hearthstone. A character wearing such an amulet against her skin gains the basic benefits of a Hearthstone — the ability to regain Essence more quickly. Committing 1 mote of Essence makes the amulet resonate and activates the Hearthstone; if the amulet is removed, the benefit dissipates.",
-    "source": "Exalted Core p.337",
+    "source": "Core p.337",
     "tags": [
       "tool",
       "utility"
@@ -1989,7 +1989,7 @@
     "name": "Walkaway",
     "rating": 1,
     "description": "Naturally occurring talismans created from mementos of a memorable accident where the survivors should have been killed or maimed but instead emerged unharmed. Once per story, an effective walkaway negates one success on a single, life-threatening damage roll; very powerful walkaways can negate two or even three successes, all from the same damage roll.",
-    "source": "Exalted Core p.337",
+    "source": "Core p.337",
     "tags": [
       "protection"
     ]
@@ -1999,7 +1999,7 @@
     "name": "Warding Charms",
     "rating": 1,
     "description": "Talismans that protect against a particular type of being — Fair Folk, spirits and elementals, demons, or the walking dead. Each causes beings of the appropriate type to suffer a -1 penalty to all their dice pools when attempting to affect the wearer; very powerful warding charms may double or even triple this effect. Magical beings can sense when an individual is warded against their power and often react with hostility.",
-    "source": "Exalted Core p.337",
+    "source": "Core p.337",
     "tags": [
       "protection",
       "spirit"
@@ -2010,7 +2010,7 @@
     "name": "Hearthstone Bracers",
     "rating": 2,
     "description": "A pair of bracers, one with a setting for a single Hearthstone and the other imbued with magical power, providing powerful defensive bonuses that only work for an Exalted of the appropriate type. They require the commitment of 4 motes of Essence (2 for each bracer) and will not activate unless worn as a pair. The bonus depends on the material: orichalcum adds 2 to all attack damage, moonsilver adds 2 to lethal soak, jade adds 2 to base initiative, starmetal adds 1 to weapon attack, defense and initiative rolls, and soulsteel decreases a target's soak by 2 against the Abyssal's attacks, never below 0.",
-    "source": "Exalted Core p.338",
+    "source": "Core p.338",
     "tags": [
       "combat",
       "protection"
@@ -2022,7 +2022,7 @@
     "name": "Slayer Khatar",
     "rating": 2,
     "description": "The ultimate destructive weapon, forged with the aid of earth elementals from steel alloyed with yellow jade and orichalcum. It requires no commitment of Essence and can be used by any being, mortal or Exalted, though its powers truly blossom in the hands of an Exalted. It has no more effect on characters, even armored ones, than a normal khatar, but when wielded against objects these weapons shatter and destroy them: all damage inflicted against inanimate objects is doubled, an effect compatible with abilities such as the Brawl Charm Sledgehammer Fist Punch.",
-    "source": "Exalted Core p.344",
+    "source": "Core p.344",
     "tags": [
       "weapon",
       "combat"
@@ -2112,7 +2112,7 @@
     "rating": 3,
     "rating_notes": "Manse ••• (bought with the Manse Background, not Artifact)",
     "description": "Perfectly clear, so clear that it becomes invisible if submerged in clear water. The bearer's reflexes are enhanced, letting him knock aside or dodge arrows and thrown attacks with casual ease: whenever he is subject to a ranged attack he may make a reflexive roll to dodge or parry it (his option) at his full Dexterity + (Dodge or his highest combat Ability, whichever he chooses).",
-    "source": "Exalted Core p.338",
+    "source": "Core p.338",
     "tags": [
       "hearthstone",
       "air"
@@ -2125,7 +2125,7 @@
     "rating": 5,
     "rating_notes": "Manse ••••• (bought with the Manse Background, not Artifact)",
     "description": "A gem with no constant colour — depending on the angle it appears pale or brilliant, cloudy or translucent, green or blue. The bearer is treated as if constantly under the effects of the spell Sapphire Countermagic: Terrestrial Circle spells cast at her are snuffed out instantly and Celestial Circle spells that target her are torn asunder. It protects the bearer only — she cannot disrupt spells that do not include her in their effects, nor tear apart already-extant magic.",
-    "source": "Exalted Core p.339",
+    "source": "Core p.339",
     "tags": [
       "hearthstone",
       "air"
@@ -2138,7 +2138,7 @@
     "rating": 2,
     "rating_notes": "Manse •• (bought with the Manse Background, not Artifact)",
     "description": "White and porous, like salt or chalk, but like all Hearthstones almost impossible to mar without enchanted tools. The bearer is very difficult for unmanifested spirits to perceive: a spirit not actively looking for him will overlook him, and one that is looking suffers +1 difficulty on Perception + Awareness rolls to spot him (if he is using Stealth). An unmanifested spirit attacking him does so at a -2 dice penalty. No effect on spirits that have donned physical form.",
-    "source": "Exalted Core p.339",
+    "source": "Core p.339",
     "tags": [
       "hearthstone",
       "earth"
@@ -2151,7 +2151,7 @@
     "rating": 4,
     "rating_notes": "Manse •••• (bought with the Manse Background, not Artifact)",
     "description": "A glittering, flawless black ovoid. The bearer cannot be cut or have her bones broken: lethal damage done to her is automatically converted to bashing before soak is applied. No effect on aggravated damage.",
-    "source": "Exalted Core p.339",
+    "source": "Core p.339",
     "tags": [
       "hearthstone",
       "earth"
@@ -2164,7 +2164,7 @@
     "rating": 1,
     "rating_notes": "Manse • (bought with the Manse Background, not Artifact)",
     "description": "Teardrop shaped and the bright, glittering red of heart's blood. It banks the fires of the bearer's heart, letting him act out of reason rather than anger: he may spend Willpower to suppress a Valor check without adding to his Limit. No effect on Limit Break conditions.",
-    "source": "Exalted Core p.339",
+    "source": "Core p.339",
     "tags": [
       "hearthstone",
       "fire"
@@ -2177,7 +2177,7 @@
     "rating": 2,
     "rating_notes": "Manse •• (bought with the Manse Background, not Artifact)",
     "description": "Bright orange-red around the edges, deepening to a glowing brick red at the centre like the coals of a banked fire. The Hearthstone draws heat and flame into itself: add 6 to the bearer's soak when applying damage from fire attacks.",
-    "source": "Exalted Core p.339",
+    "source": "Core p.339",
     "tags": [
       "hearthstone",
       "fire"
@@ -2190,7 +2190,7 @@
     "rating": 3,
     "rating_notes": "Manse ••• (bought with the Manse Background, not Artifact)",
     "description": "Murky blue-black and full of shifting colours, like lake water rich with algae. The bearer can never be physically restrained: shackles fall from her wrists, the knots of lassos and nooses come undone when drawn tight, and all grapple, clinch, hold and throw manoeuvres against her automatically fail. She cannot be RESTRAINED — she can still be confined, as the stone does nothing against locked doors and barred gates.",
-    "source": "Exalted Core p.339",
+    "source": "Core p.339",
     "tags": [
       "hearthstone",
       "water"
@@ -2203,7 +2203,7 @@
     "rating": 4,
     "rating_notes": "Manse •••• (bought with the Manse Background, not Artifact)",
     "description": "A fist-sized drop of brilliant azure seawater caught in perfect stasis. The bearer has incredible luck at sea: no matter how severe the weather or how poor the handling, her ship will never founder and emerges totally unscathed. This protects only against weather — not shoals, pirates or anything of the sort. More powerful than it sounds: she can ride before a gale under full sail with no fear of ripped cloth or snapped masts.",
-    "source": "Exalted Core p.339",
+    "source": "Core p.339",
     "tags": [
       "hearthstone",
       "water"
@@ -2216,7 +2216,7 @@
     "rating": 1,
     "rating_notes": "Manse • (bought with the Manse Background, not Artifact)",
     "description": "A healthy earth-brown mottled with spots of green, round enough to have come from the bottom of any streambed were the colours not so vibrant. It enhances the medical talents and knowledge of whoever bears it, making an unskilled character a skilled surgeon and a gifted doctor a brilliant healer: add three dice to all the bearer's Medicine rolls.",
-    "source": "Exalted Core pp.339-340",
+    "source": "Core pp.339-340",
     "tags": [
       "hearthstone",
       "wood"
@@ -2229,7 +2229,7 @@
     "rating": 5,
     "rating_notes": "Manse ••••• (bought with the Manse Background, not Artifact)",
     "description": "A brilliant emerald stone of unearthly appearance, constantly changing shape as it grows outward from its ever-shrinking centre. The bearer cannot die: he regenerates one health level per turn even if rendered into ash (aggravated damage takes up to a minute per level), never sickens and never ages, and cannot drown, suffocate, starve or dehydrate. He can be destroyed only if the Hearthstone is broken, if the Manse is damaged enough that the stone goes inactive, or if the item the stone is set in is separated from him long enough for the committed Essence to dissipate (about a day).",
-    "source": "Exalted Core p.340",
+    "source": "Core p.340",
     "tags": [
       "hearthstone",
       "wood"
@@ -2241,7 +2241,7 @@
     "name": "Daiklave",
     "rating": 2,
     "description": "The traditional weapon of the Exalted: an elaborately decorated double-edged blade over four feet long and six or more inches wide, forged from steel alloyed with one of the Five Magical Materials and far too large for a mortal to wield. In an Exalt's hands the material resonates with her anima, making the blade light and wieldy. Each is unique, named, and treated as an honoured companion. Most have a setting for a single Hearthstone. Commit 5 motes to attune, which takes at least 20 minutes of handling and lapses if the wielder does not make daily skin contact; unattuned it is a 20-pound burden. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core pp.340-342",
+    "source": "Core pp.340-342",
     "tags": [
       "weapon",
       "combat"
@@ -2253,7 +2253,7 @@
     "name": "Grand Daiklave",
     "rating": 3,
     "description": "The battleblade or foecutter — a two-handed weapon with a blade six feet long and over a foot wide, wieldable at all only through the lightening effects of Essence, and even then only by the physically strongest of the Exalted. Never popular even in the First Age, but there have always been those willing to sacrifice defence and speed for the ultimate in killing power. Most bear settings for three Hearthstones and require the commitment of 8 motes rather than the usual 5. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core pp.341-342",
+    "source": "Core pp.341-342",
     "tags": [
       "weapon",
       "combat"
@@ -2265,7 +2265,7 @@
     "name": "Reaver Daiklave",
     "rating": 2,
     "description": "A cleaver-like single-edged blade four feet long and in some cases a foot wide, with a square or angled tip — slow and clumsy compared to a normal daiklave, but brutally powerful and capable of shearing through even the heaviest armour. Like normal daiklaves it typically has a setting for a single Hearthstone and requires 5 committed motes. Most popular in the First Age among the Dragon-Blooded and the Lunar Exalted, and favoured among them still. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core pp.341-342",
+    "source": "Core pp.341-342",
     "tags": [
       "weapon",
       "combat"
@@ -2276,7 +2276,7 @@
     "name": "Dire Lance",
     "rating": 2,
     "description": "The daiklave-grade spear. Like every weapon of this family it is much larger and swifter than its mortal equivalent, requires 5 committed motes to attune, and is almost always forged with a setting for a Hearthstone. Its statblock prints two lines — wielded as a spear, and couched as a lance. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core pp.341-342",
+    "source": "Core pp.341-342",
     "tags": [
       "weapon",
       "combat"
@@ -2287,7 +2287,7 @@
     "name": "Goremaul",
     "rating": 1,
     "description": "The daiklave-grade hammer or mace, much larger and swifter than its mortal equivalent. Requires the commitment of 5 motes of Essence, and is almost always forged with a setting for a Hearthstone. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core pp.341-342",
+    "source": "Core pp.341-342",
     "tags": [
       "weapon",
       "combat"
@@ -2298,7 +2298,7 @@
     "name": "Grimcleaver",
     "rating": 2,
     "description": "The daiklave-grade axe, much larger and swifter than its mortal equivalent. Requires the commitment of 5 motes of Essence, and is almost always forged with a setting for a Hearthstone. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core pp.341-342",
+    "source": "Core pp.341-342",
     "tags": [
       "weapon",
       "combat"
@@ -2309,7 +2309,7 @@
     "name": "Serpent-Sting Staff",
     "rating": 2,
     "description": "The daiklave-grade seven-section staff, much larger and swifter than its mortal equivalent. Requires the commitment of 5 motes of Essence, and is almost always forged with a setting for a Hearthstone. Its minimums are Dexterity and Martial Arts rather than Strength. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core pp.341-342",
+    "source": "Core pp.341-342",
     "tags": [
       "weapon",
       "combat"
@@ -2320,7 +2320,7 @@
     "name": "Smashfist",
     "rating": 1,
     "description": "The daiklave-grade cestus, much larger and swifter than its mortal equivalent. Requires the commitment of 5 motes of Essence, and is almost always forged with a setting for a Hearthstone. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core pp.341-342",
+    "source": "Core pp.341-342",
     "tags": [
       "weapon",
       "combat"
@@ -2331,7 +2331,7 @@
     "name": "Short Powerbow",
     "rating": 2,
     "description": "A baroque bow laminated from horn, rare woods and the Five Magical Materials — what a daiklave is to a sword. It must be invested with Essence to function at all (4 committed motes for a short powerbow), and has a setting for a single Hearthstone. Unlike a normal bow it has no maximum Strength: it yields to the weak and stiffens for the mighty, and ADDS to the user's Strength for damage. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core p.343",
+    "source": "Core p.343",
     "tags": [
       "weapon",
       "archery"
@@ -2342,7 +2342,7 @@
     "name": "Long Powerbow",
     "rating": 3,
     "description": "The greater of the two powerbows, laminated from horn, rare woods and the Five Magical Materials, with a setting for a single Hearthstone. It requires the commitment of 7 motes of Essence to bend at all. Like all powerbows it has no maximum Strength and ADDS to the user's Strength for damage. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core p.343",
+    "source": "Core p.343",
     "tags": [
       "weapon",
       "archery"
@@ -2353,7 +2353,7 @@
     "name": "Lightning Torment Hatchets",
     "rating": 5,
     "description": "Teak-handled throwing axes forged from moonsilver and white jade — the assassin's friend, and no more than an oversized throwing axe outside an Exalt's hands. They come in PAIRS and both must be activated for either to work (3 motes each, 6 total). They return to the wielder's hands after being thrown, whirling back at the end of the turn unless blocked or more than 100 yards away, in which case they can be recalled through Elsewhere as a reflexive action for one mote — and can be recalled until the invested Essence fades about a day after last being touched, which makes them easy to smuggle. A target struck is wrapped in crackling blue sparks until the end of the scene, subtracting 1 from all her dice pools; hits stack to a maximum of -3, but EACH hatchet inflicts the penalty separately. Also a weapon — see the equipment catalogue.",
-    "source": "Exalted Core pp.344-345",
+    "source": "Core pp.344-345",
     "tags": [
       "weapon",
       "combat"
@@ -2364,7 +2364,7 @@
     "name": "Breastplate (Artifact)",
     "rating": 1,
     "description": "Mundane breastplate reforged from steel alloyed with one of the Five Magical Materials: more protective than its mundane counterpart, and lighter and more flexible through the commitment of Essence (2 motes). Soak 6L/4B, mobility -0, fatigue 0. Unmistakably magical — it glitters with the colour of the material used to forge it. Also armour — see the equipment catalogue.",
-    "source": "Exalted Core pp.345-346",
+    "source": "Core pp.345-346",
     "tags": [
       "armor",
       "protection"
@@ -2375,7 +2375,7 @@
     "name": "Reinforced Buff Jacket (Artifact)",
     "rating": 2,
     "description": "A buff jacket reinforced with one of the Five Magical Materials. Soak 7L/10B, mobility -1, fatigue 0, commitment 3 motes. Also armour — see the equipment catalogue.",
-    "source": "Exalted Core pp.345-346",
+    "source": "Core pp.345-346",
     "tags": [
       "armor",
       "protection"
@@ -2386,7 +2386,7 @@
     "name": "Reinforced Breastplate (Artifact)",
     "rating": 3,
     "description": "A reinforced breastplate forged from steel alloyed with one of the Five Magical Materials. Soak 10L/9B, mobility -1, fatigue 1, commitment 4 motes. Also armour — see the equipment catalogue.",
-    "source": "Exalted Core pp.345-346",
+    "source": "Core pp.345-346",
     "tags": [
       "armor",
       "protection"
@@ -2397,7 +2397,7 @@
     "name": "Articulated Plate (Artifact)",
     "rating": 4,
     "description": "Articulated plate forged from steel alloyed with one of the Five Magical Materials, with fins or long flat spikes protruding from the back and shoulders to prevent uncomfortable Essence buildup between the plates and the wearer's skin. Soak 12/14, mobility -2, fatigue 1, commitment 6 motes. Also armour — see the equipment catalogue.",
-    "source": "Exalted Core pp.345-346",
+    "source": "Core pp.345-346",
     "tags": [
       "armor",
       "protection"
@@ -2408,7 +2408,7 @@
     "name": "Superheavy Plate (Artifact)",
     "rating": 5,
     "description": "The heaviest of the magical armours, forged from steel alloyed with one of the Five Magical Materials and finned to vent Essence buildup. Soak 15/15, mobility -2, fatigue 2, commitment 8 motes. Also armour — see the equipment catalogue.",
-    "source": "Exalted Core pp.345-346",
+    "source": "Core pp.345-346",
     "tags": [
       "armor",
       "protection"

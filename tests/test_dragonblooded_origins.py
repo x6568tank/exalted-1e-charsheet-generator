@@ -381,7 +381,7 @@ def test_pirate_sail_charm_stat_blocks(rs, slug):
     assert charm.element == "Water"
     assert charm.prerequisites == [[f"dragonblooded.sail.{prereq}"]]
     assert rs.charms.get(f"dragonblooded.sail.{prereq}") is not None
-    assert charm.source.book == "Exalted 1e The Outcaste"
+    assert charm.source.book == "The Outcaste"
 
 
 def test_the_pirate_charms_extend_the_shipped_sail_tree(rs):
@@ -391,7 +391,7 @@ def test_the_pirate_charms_extend_the_shipped_sail_tree(rs):
     sail = [c for c in rs.charms.values()
             if c.exalt_type == DB and c.category == "sail"]
     assert len(sail) == 13          # 5 core + 5 pirates + 3 from Aspect Book: Water
-    from_outcaste = [c for c in sail if c.source.book == "Exalted 1e The Outcaste"]
+    from_outcaste = [c for c in sail if c.source.book == "The Outcaste"]
     assert len(from_outcaste) == 5
     for c in sail:
         for group in c.prerequisites:
@@ -415,7 +415,7 @@ def test_pirate_spells_are_terrestrial_circle(rs, slug, motes):
     spell = rs.spells[f"spell.terrestrial.{slug}"]
     assert spell.circle.value == "Terrestrial"
     assert spell.cost.motes == motes
-    assert spell.source.book == "Exalted 1e The Outcaste"
+    assert spell.source.book == "The Outcaste"
 
 
 # --- the editor's two dropdowns ---------------------------------------------- #

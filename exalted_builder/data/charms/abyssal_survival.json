@@ -14,7 +14,7 @@
     "duration": "Permanent",
     "description": "Bloats his anima with stolen power (buyable repeatedly like Ox-Body): each purchase adds 10 motes to his Peripheral Essence pool. He can only fill this extra capacity by consuming flesh/blood or Essence-draining magic, never by Hearthstones, respiration or passive means. Cannot be taken more times than permanent Essence.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 184
     }
   },
@@ -37,7 +37,7 @@
     "duration": "Permanent",
     "description": "Subsists entirely on a diet of human blood: may drink permanent Essence in health levels of blood per day to replace regular food, with no dietary deficiencies. Blood consumed for sustenance does not itself provide Essence.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 184
     }
   },
@@ -56,7 +56,7 @@
     "duration": "One day",
     "description": "Intensifies his aura of menace to ward off animals: herbivores and domesticated beasts avoid him and panic if confronted; non-magical predators keep their distance and fight only as a cornered last resort. Magical beasts and super-predators (tyrant lizards, siaka) can overcome the aversion with a Willpower roll but still attack at +1 difficulty.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 184
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Instant",
     "description": "By beating an animal into submission she mystically chains a beast to her will, gaining one dot of the Familiar Background per use (only one Familiar at a time, so enslaving a wild beast takes three uses, two more to share senses). Dangerous animals require appropriately epic combat to subdue first.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 185
     }
   },
@@ -102,7 +102,7 @@
     "duration": "Permanent",
     "description": "Lets him draw power from lesser creatures: he may devour animals to regain Essence. The prey must be a predator or scavenger, consumed within minutes of death and unprepared; if so, he regains 1 mote per two health levels eaten (otherwise the meal is mere sustenance).",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 186
     }
   },
@@ -121,7 +121,7 @@
     "duration": "One day",
     "description": "Grants unnatural resilience to hostile environments regardless of attire: withstands brutal temperature extremes without ill effect and need never fear hypothermia, frostbite, parasites, sand blindness or other wilderness hazards. Applies to any condition a human body could survive even briefly; does not grant water-breathing or the like.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 186
     }
   },
@@ -144,7 +144,7 @@
     "duration": "One hour",
     "description": "Lets her readily consume spectral food and the flesh of the strange beasts of the Underworld, deriving full nourishment from an otherwise inedible meal in the realm of the dead.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 186
     }
   },
@@ -167,7 +167,7 @@
     "duration": "Until released",
     "description": "Sinks a full yard underground leaving no trace on the surface, slipping into suspended animation and not breathing (still hungers). Lasts one hour per 3 motes spent unless injured or uncovered by digging. On ending, he arises to the surface and regains consciousness; motes stay committed for the duration.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 186
     }
   },
@@ -190,7 +190,7 @@
     "duration": "Instant",
     "description": "Mentally unlocks the twisting paths of a labyrinth: add permanent Essence in automatic successes to a single attempt to navigate a maze or convoluted passages. Also aids navigating the Labyrinth beneath the Underworld (to a lesser degree). Only short stretches at a time; applies to a single navigation roll.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 187
     }
   },
@@ -213,7 +213,7 @@
     "duration": "Until released",
     "description": "Pursues a quarry with supernatural determination: add one die per mote to any roll to track a single target (chosen when invoked, not changeable), not more than double the pool. The bonus applies to all tracking until the quarry is found or the hunt abandoned, regardless of environment (a necropolis as readily as any wilderness). One application at a time.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 187
     }
   },
@@ -236,7 +236,7 @@
     "duration": "One day",
     "description": "Passes as unobtrusively as a phantom: leaves no footprints, scent or any sign detectable by conventional means. May extend the protection to up to permanent Essence companions at 5 motes each. Only supernatural trackers can hope to follow, resolved through a normal tracking contest.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 187
     }
   }

@@ -194,7 +194,7 @@
     "duration": "One day",
     "description": "The character using this Charm weaves sails out of pure Essence for a ship that has no sails (or badly damaged ones). The new sails are of a shimmering golden cloth, as light as silk but stronger than canvas. They appear on the ship's masts and furl or unfurl at their creator's command. They may bear an emblem of the Chosen's anima, if she wishes it. Golden Essence Sails have a soak value of (the Exalt's permanent Essence score + 2) for resisting attacks against the ship's rigging or sails, and they do not accumulate damage (they ignore any attack insufficient to damage them, just like the ship itself does). See Savage Seas, pages 92-93, for more information.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 76
     }
   },
@@ -220,7 +220,7 @@
     "duration": "One day",
     "description": "With this Charm, the Chosen calls into being phantom sailors able to crew any ship the character is aboard. The phantom crew speaks only when necessary and obeys all of its summoner's orders. The phantom sailors will sail the ship anywhere and perform any shipboard duties, although they will not fight and should be treated as extras with relevant Abilities equal to the Exalted's Essence. The character can summon a crew sufficient for a ship of up to (Essence x 40) feet in length.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 76
     }
   },
@@ -246,7 +246,7 @@
     "duration": "One day",
     "description": "The Exalted conjures an entire vessel from pure Essence, capable of bearing him and a number of passengers and crew. The ship has a maximum length of (the character's Essence rating x 20) feet and appears ready to sail, with all of the usual equipment on board. The Glorious Solar Ship has no crew; it is up to the Chosen to provide one, either mortal or otherwise. Other Sail Charms can be applied normally to the Glorious Solar Ship.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 77
     }
   },

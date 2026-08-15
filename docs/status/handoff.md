@@ -214,3 +214,23 @@ already in the engine and are carried, not invented.
 
 The Mist numina and Cult Abyssals (both indefinitely), and the one martial-arts absence
 (`enlightenment`). Training times are still a no.
+
+## Rebased in from the other machine — the 2026-08-15 scans
+
+The laptop's `4519309` was rebased onto this branch after 76 commits of divergence. It
+carries three things that are NOT part of the Qt work and were never on this branch:
+
+- **The `source.book` normalisation** — 146 charm files rewritten in place onto the bare
+  book form (`Caste Book: Zenith`, not `Exalted 1e Caste Book: Zenith`). Guards live in
+  `tests/test_data.py`; `docs/source-attribution.md` is the record. **A new book must be
+  added to `CANONICAL_BOOKS` and to that doc's table together.**
+- **The phase-1 and phase-2 scans** (`docs/status/phase-1-scan.md`, `phase-2-scan.md`) —
+  the last seven unopened books in `sources/`. **Every book has now been opened.** 37 gear
+  rows, 5 weapons, and the six Marukani horse breeds.
+- **Six Marukani beast templates** in `adversaries.json`. ⚠ They were authored against
+  the OLD singular `category` field and were migrated to `categories: ["Beast"]` during
+  the rebase — the roster's multi-category change (a79303e) landed on this branch while
+  they were being written.
+
+⚠ **One known content gap came with them: Backgrounds in the scan-only splat books.**
+See CLAUDE.md's *State of the world*. It is a reading job, not a blocked one.

@@ -16,7 +16,7 @@ import re
 
 SRC = "images/Mortals/Mountain Folk/CH 6 - The Mountain Folk.md"
 OUT = "exalted_builder/data/charms"
-BOOK = "Exalted: The Mountain Folk (CH6)"
+BOOK = "The Mountain Folk (CH6)"
 
 
 def slug(s: str) -> str:

@@ -17,7 +17,7 @@
     "duration": "Permanent",
     "description": "The character trains himself for instant acceptance of the twists and turns of circumstance. In any given combat, in the first turn he acts, he doubles his base initiative (Dexterity + Wits). Charms such as Opportune Shot and Thunderclap Rush Attack do not automatically win initiative over him. These advantages cease to apply once he takes his first non-reflexive action. There is no cost to use this Charm — learning this Charm permanently enhances the Exalt’s capabilities.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 179
     },
     "open_to_tiers": [
@@ -42,7 +42,7 @@
     "duration": "One scene",
     "description": "The character moves with the swift precision of one who knows her destiny. For each mote of Essence spent, she adds one point to her initiative for the remainder of the scene. Multiple applications of this Charm are cumulative, but she cannot add more than her Martial Arts to her initiative with any combination of effects that includes this Charm.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 180
     },
     "open_to_tiers": [
@@ -71,7 +71,7 @@
     "duration": "One scene",
     "description": "Essence shines around the characters hands (or weapons), tracing with their every movement crimson trails through the air. For each 2 motes spent, the character adds one die to each unarmed Martial Arts attack and parry she makes for the remainder of the scene. Multiple applications of this Charm are cumulative, but she cannot more than double her normal Dexterity + Martial Arts pool with any combination of effects. While under this effect, her hands may safely parry even lethal damage blows, although blocking arrows or magical attacks requires a well-described stunt.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 180
     },
     "open_to_tiers": [
@@ -100,7 +100,7 @@
     "duration": "One scene",
     "description": "Those who routinely face terrible odds can learn to take some measure of happiness in each moment’s survival. Once having activated this Charm, the player rolls the Sidereal’s Essence each time the character successfully blocks or dodges an attack. Each success indicates two motes of Essence, flavored by the tang of Serenity, that she recovers. This Charm does not activate against attacks not truly intended to harm the Sidereal, nor against attacks from enemies too weak to do her any real harm.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 180
     },
     "open_to_tiers": [
@@ -135,7 +135,7 @@
     "duration": "One scene",
     "description": "The character adopts the cold detachment with which Saturn makes her Sign against those things whose time has passed. While the character uses the Violet Bier of Sorrows Form, each successful attack also drains some of the victim’s passion. After damaging an opponent with an unarmed Martial Arts attack, the Exalt can remove one point of one of the target’s Virtues, to a minimum of 1. This cannot reduce a target’s Virtues below the minimums required for the Great Curse. For example, if a Solar’s Virtue Flaw is Compassionate Martyrdom (see Exalted, p. 131), this Form cannot reduce his Compassion below 3. However, it can reduce a spirit, elemental or demon’s Virtues below the minimum level necessary to use a given Charm, in which case the spirit loses access to that Charm until its Virtue recovers. Each Virtue heals at the rate of one point a day.\n\nThis Form changes the normal minimum for damage dice. While it is active, after a successful and potentially damaging unarmed Martial Arts attack, the character always rolls at least her Martial Arts score in damage dice.\n\nThis Charm is also called the “Endings Form.”",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 181
     },
     "open_to_tiers": [
@@ -164,7 +164,7 @@
     "duration": "Instant",
     "description": "In a blur of violet Essence, the character’s blade catches an attack that might otherwise have killed him. If the character tries and fails to parry a blockable attack, he may decide — after damage is rolled — to invoke this Charm, reducing the damage by one level per 2 motes spent.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 181
     },
     "open_to_tiers": [
@@ -189,7 +189,7 @@
     "duration": "Instant",
     "description": "Drawing on the Essence of Endings, a character can add power to a blow that he realizes is about to pierce his enemy’s defenses. As soon as a character hits an opponent with an unarmed attack, his player can declare the use of this Charm, purchasing automatic damage successes at a cost of 2 motes each. He cannot purchase more than his character’s Essence in automatic successes. This Charm applies to unarmed Brawl attacks and is explicitly permitted to share a Combo with Brawl Charms; the disciplined approach of a martial artist is necessary only in the last instant of the blow.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 181
     },
     "open_to_tiers": [
@@ -218,7 +218,7 @@
     "duration": "Instant",
     "description": "Not even the most cunning of opponents can evade a sword that strikes everywhere at once. For each 3 motes spent, the character can make an extra unarmed Martial Arts attack at her full dice pool. All her attacks must be made against the same target. She cannot make more total attacks than her Martial Arts, nor can she split her dice pool in the same turn she uses Metal Storm.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 181
     },
     "open_to_tiers": [
@@ -250,7 +250,7 @@
     "duration": "One scene",
     "description": "At the pinnacle of the Violet Bier of Sorrows Style, a character learns to draw strength from the pain of others. Her attacks gain resolve as her enemy falters. She is trained to take full advantage of the weakness of the wounded, stalking failing prey as death hunts those whose time has come. Whenever she successfully harms an opponent with an unarmed Martial Arts attack, she gains one point of Willpower. In addition, an opponent’s wound penalties are tripled when it comes to attacking her or defending against her unarmed Martial Arts attacks.\n\nSidereal Exalted, and those who learn this Charm as a Sidereal Charm, can enhance it with a prayer strip marked with the scripture of the Expectant Maiden. The character fixes it to her sword (or other allowed weapon), wrapping the whole in a radiant burgundy light. While the prayer strip survives, her weapon cannot be destroyed, and each successful Martial Arts attack subtracts a Willpower point from the target. Creatures outside of fate and targets with 0 Willpower instead lose 10 motes of Essence. If the target does not have 10 motes to lose, convert all damage dice to automatic successes instead.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 181
     },
     "open_to_tiers": [

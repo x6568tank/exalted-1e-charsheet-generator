@@ -17,7 +17,7 @@
     "duration": "One turn",
     "description": "The character charges her form with Essence, moving with the speed and agility of a leaping tiger. During the turn when this Charm is activated, the character adds her Martial Arts score to her Dexterity for purposes of determining how fast she can sprint, run or jump in a single turn.\n\nCharacters may use Tiger's Claws freely with all the Charms in the cascade derived from Crimson Leaping Cat Technique.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 73
     },
     "open_to_tiers": [
@@ -46,7 +46,7 @@
     "duration": "Instant",
     "description": "The character charges her anima with Essence, which in turn infuses her hands with the power of a tiger's deadly claws. Her blows do lethal damage even if she is not wearing tiger claws. If she is using tiger claws, she may add a number of damage dice equal to her Permanent Essence score to her raw damage for the attack.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 73
     },
     "open_to_tiers": [
@@ -75,7 +75,7 @@
     "duration": "One scene",
     "description": "The character adopts the attitude and stance of a raging tiger — crouching, ready to spring on its prey. While using the Tiger Form, he adds his Martial Arts score to his damage when making Martial Arts attacks and adds his Permanent Essence to his bashing and lethal soak totals. The damage bonus applies only if the character is attacking barehanded or wearing tiger claws. Also, the character's Martial Arts attacks automatically do lethal damage even if he is not wearing tiger claws, and the character suffers no penalties for fighting while prone. This Charm is incompatible with armor. Characters cannot use more than one martial arts form-type Charm at a time.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 73
     },
     "open_to_tiers": [
@@ -104,7 +104,7 @@
     "duration": "One turn",
     "description": "The character can use her Essence to guide her attacks in imitation of a tiger leaping on its prey. If her attack strikes her opponent, she automatically knocks that opponent down. Only Charms like Immaculate Balance or other similar magical effects that maintain the target character's balance can prevent the victim from falling.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 73
     },
     "open_to_tiers": [
@@ -133,7 +133,7 @@
     "duration": "Instant",
     "description": "The character can infuse his hands with Essence, hardening them to the degree that they cause massive and deadly wounds. The character's hands do base damage of 4L if he attacks unarmed, or add 4 to his base damage if he is attacking with tiger claws. For each additional mote of Essence spent on this Charm, the character may add one die to a single attack, up to a limit of double the character's regular Dexterity + Melee dice pool. The attacker's hands leave deep furrows in the target; they can even claw through wooden or iron-bound doors and deeply score stone in a single blow.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 73
     },
     "open_to_tiers": [
@@ -162,7 +162,7 @@
     "duration": "One scene",
     "description": "Like the tiger, the Exalted can stealthily stalk her prey. Whenever she sneaks up on an opponent, the character may add one die to all Stealth and Awareness rolls involved in the ambush for every two motes of Essence spent activating this Charm. The effects persist until the character ambushes her target or she is detected. The character cannot spend more motes to increase her dice pool than she has points of Permanent Essence. This Charm only works when a character is actually sneaking up on an opponent; no bonuses are gained if the character is attempting to sneak away from danger or for any other purpose (for example, stealing something or scouting enemy positions).",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 73
     },
     "open_to_tiers": [
@@ -191,7 +191,7 @@
     "duration": "Instant",
     "description": "The Exalted can spring from cover with the deadly force of a tiger leaping onto the back of an unsuspecting gazelle. When attacking a target unaware of the Exalted character's presence, the target's lethal or bashing soak score is halved before the raw damage of the attack is applied. If the target knows the attacker's location, or is aware of an impending attack, this Charm does not function. A target's successful use of the Surprise Anticipation Method (see Exalted, p. 197) completely negates the effects of this Charm.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 74
     },
     "open_to_tiers": [
@@ -220,7 +220,7 @@
     "duration": "One scene",
     "description": "Infusing her skin with the toughness of a tiger's hide, the character strengthens it against all forms of damage. The character may add her Martial Arts score to all bashing and lethal soak rolls for the duration of the scene. This Charm is incompatible with armor and has no effect on aggravated damage.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 74
     },
     "open_to_tiers": [
@@ -255,7 +255,7 @@
     "duration": "One scene",
     "description": "Burning with the passion of an enraged tiger, the character can lash out in a rain of deadly blows. A character using this Charm may make two attacks every turn, so long as she uses her Martial Arts ability. In addition, whenever she is successfully attacked, the character may immediately (before damage is determined) make a Martial Arts counterattack with a dice pool equal to her Martial Arts ability plus the attacker's extra successes from his attack. The damage from the opponent's attack and his own counterstrike are applied simultaneously. This Charm cannot be used to retaliate against any other counterattack Charm. Each blow does lethal damage even if the attacking character is not wearing tiger claws. If desired, a full parry or full dodge can be substituted for one or both of the character's two normal actions. However, the character cannot split any of these dice pools to obtain further multiple actions. This Charm is incompatible with armor. A character using Angry Predator Frenzy Style cannot use any other Extra Actions-type Charms while this Charm is active.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 74
     },
     "open_to_tiers": [

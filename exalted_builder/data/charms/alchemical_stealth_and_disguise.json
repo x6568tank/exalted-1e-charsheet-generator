@@ -14,7 +14,7 @@
     "duration": "Indefinite",
     "description": "Retracts visible Charms under the skin (1 mote each or 5 motes for all), deactivating non-permanent ones and freeing their commitment. Hidden Charms evade Essence sight unless the observer's Essence is 2+ higher. Essence 2-5 Alchemicals may also suppress all visible Charms and spend 1 Willpower to appear fully human (bleeding blood-like fluid) for a day. May be Comboed despite its duration.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 120
     },
     "exalt_type": "Alchemical",
@@ -40,7 +40,7 @@
     "duration": "Indefinite",
     "description": "Shields the Essence reservoir, lowering permanent Essence by any amount (min 1) for the duration, hiding the Exalt's nature from Essence sight. Charms above the dampened Essence shut off (disguise/medical concealment Charms exempt); at Essence 1 all Essence and the anima go dark and undetectable. May be Comboed despite its duration.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 120
     },
     "exalt_type": "Alchemical",
@@ -67,7 +67,7 @@
     "duration": "Instant",
     "description": "Recalibrate physical appearance (real and permanent): approximate someone (+3 dice to mundane impersonation, not an exact copy), set temporary Appearance 0-permanent (Appearance 0 horrors add +2 intimidation dice), change height by six inches, alter pigment/texture/scars, or (Essence 3+) swap or remove gender. Roll Appearance + Craft (Body); successes set how many separate changes; a botch forces Appearance 0 for a day.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 121
     },
     "exalt_type": "Alchemical",
@@ -89,7 +89,7 @@
     "duration": "Varies",
     "description": "Adjust pitch and modulation: duplicate a heard voice (Manipulation + Performance, difficulty 2-4), adopt an anonymous voice (no roll), mimic or play back any heard sound (1 mote per cluster), layer one subliminal emotional tone (+1 die, artificial specialty, to matching voice-based Social rolls), or amplify the voice to carry (Manipulation x 100) yards for a turn.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 122
     },
     "exalt_type": "Alchemical",
@@ -111,7 +111,7 @@
     "duration": "Indefinite",
     "description": "Exude a psychoactive scent tuned to one emotion, adding +1 die (artificial specialty) to matching Social rolls against targets within Charisma yards (detecting it needs Perception + Awareness difficulty 6). Alternatively mask all scent: mundane scent-tracking fails and supernatural tracking is at +Essence difficulty. One or the other, not both.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 122
     },
     "exalt_type": "Alchemical",
@@ -133,7 +133,7 @@
     "duration": "Indefinite",
     "description": "A crystal lattice renders the Exalt invisible while she stays still (small movements like drawing a weapon are fine; moving or striking breaks it). Spotting the mirage needs Perception + Awareness (standard to difficulty 5). Attackers/defenders vs an invisible character lose two successes. No concealment from direct Essence sight, but blocks Measure the Wind from pinpointing her.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 122
     },
     "exalt_type": "Alchemical",
@@ -158,7 +158,7 @@
     "duration": "N/A",
     "description": "White-jade baffles let the Exalt spend one extra mote on any Transitory Augmentation, anima power, or disguise/concealment Charm to treat all Peripheral Essence spent on it as Personal, so the expenditure never flares the anima and gives her away.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 122
     },
     "exalt_type": "Alchemical",
@@ -185,7 +185,7 @@
     "duration": "One hour",
     "description": "Adaptive camouflage that moves with the Exalt (a faint heat-wave silhouette). Noticing him needs Perception + Awareness at difficulty of his Essence (+2 if he stays nearly motionless a full turn). Ranged attackers lose Essence successes and cannot target him past 100 yards without a Charm or strong stunt. No concealment from direct Essence sight; blocks Measure the Wind pinpointing.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 123
     },
     "exalt_type": "Alchemical",
@@ -210,7 +210,7 @@
     "duration": "N/A",
     "description": "Improves Optical Shroud and Dynamic Cloaking Module so the Exalt is as hard to detect by Essence sight and magic as by sight, and quiets his sounds, raising the difficulty to notice him by hearing by his Essence.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 123
     },
     "exalt_type": "Alchemical",

@@ -1723,22 +1723,22 @@ _HOUSE_RULES = [
      "Starting characters may not buy a Science above three dots. Experience is "
      "unaffected: a Science raised past 3 in play stays legal."),
     ("st_foreign_charms", "May start play knowing foreign Charms", "character",
-     "Exalted p.127",
+     "Core p.127",
      "Storyteller permission for THIS character to begin play already knowing "
      "another Exalt type's Charms. After chargen the rule asks only for a willing "
      "tutor, so this stops mattering once the sheet is locked."),
     ("mortal_favored_ability", "Heroic mortal may pick a Favored Ability", "character",
-     "Exalted p.103",
+     "Core p.103",
      "Grants one Favored Ability, discount included. The price is a ceiling: no other "
      "Ability may be rated above it. Only affects splats with no castes."),
     ("st_celestial_manse_over_three", "Sidereal may hold Celestial Manse above 3 dots",
-     "character", "Sidereals p.106",
+     "character", "The Sidereals p.106",
      "Storyteller permission for THIS Sidereal to own a Celestial Manse above three "
      "dots — 'Characters cannot buy above Celestial Manse ••• without special "
      "Storyteller permission'. The ceiling binds on both sides of the lock, and this "
      "lifts it for one character only."),
     ("st_mortal_artifact_manse", "Mortal may hold Artifact and Manse", "character",
-     "Exalted p.103",
+     "Core p.103",
      "Storyteller permission for THIS mortal to take the Artifact or Manse Background "
      "— 'may not purchase the Artifacts or Manse Backgrounds without Storyteller "
      "permission; if a mortal has control over one of these, it's a plot device'. "

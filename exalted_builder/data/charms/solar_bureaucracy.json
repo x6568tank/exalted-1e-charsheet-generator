@@ -218,7 +218,7 @@
     "duration": "Special",
     "description": "Using this Charm, a character can effectively cause a single item to disappear into the depths of a bureaucracy and remain hidden from all efforts to find it until the Exalted ceases committing Essence to the Charm or chooses to retrieve the item herself. The item may be virtually anything that can be moved through human effort: a letter, an artifact, a piece of jewelry — even a statue or the like. It is shuffled from place to place, stored and forgotten, and it draws no attention to itself. Investigation attempts to find the concealed item have their difficulty increased by the Exalted's Essence.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 71
     }
   },
@@ -244,7 +244,7 @@
     "duration": "Instant",
     "description": "Forgetful Bureau Charm allows an Exalted character to erase all evidence of one item or individual from a particular bureaucracy. Records are lost or destroyed, officials misremember facts, and so forth. The effects take some time to make themselves felt. A small local bureaucracy is affected within a day. Larger organizations may take weeks, or even months, before the process is complete. So far as the bureaucracy is concerned, the item or individual in question does not exist. Those with direct contact with the subject still recall it normally, but official records and other documentation do not support their recollections. New records can come into being after this Charm is used, but previous records on the subject are permanently lost.\n\nThis Charm allows the Chosen to create difficulties for others by eliminating all official record of them or for the Exalted to protect their own secrets, such as removing evidence of a Circle's activities or of the location of a particular Demesne or Manse.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 71
     }
   }

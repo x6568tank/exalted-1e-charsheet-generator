@@ -25,11 +25,11 @@ from exalted_builder.models.rules import SpellCircle
 DATA_DIR = Path(__file__).resolve().parents[1] / "exalted_builder" / "data"
 
 CASTEBOOKS = {
-    "Exalted 1e Caste Book: Dawn",
-    "Exalted 1e Caste Book: Eclipse",
-    "Exalted 1e Caste Book: Night",
-    "Exalted 1e Caste Book: Twilight",
-    "Exalted 1e Caste Book: Zenith",
+    "Caste Book: Dawn",
+    "Caste Book: Eclipse",
+    "Caste Book: Night",
+    "Caste Book: Twilight",
+    "Caste Book: Zenith",
 }
 
 
@@ -63,19 +63,19 @@ def test_castebook_charm_counts_by_book(rs):
         # 3 Archery + 3 Brawl + 9 Tiger Style + 2 Melee + 4 Thrown + 3 Performance
         # + 1 Presence. Prey-Freezing Gaze (p.76) is NOT counted: it is already in
         # data/ from Cult of the Illuminated, which reprints it in an altered form.
-        "Exalted 1e Caste Book: Dawn": 25,
+        "Caste Book: Dawn": 25,
         # 2 Bureaucracy + 5 Linguistics + 10 Praying Mantis + 1 Presence + 4 Ride
         # + 3 Sail + 7 Socialize. Tireless Traveler's Stamina, Excellent Emissary's
         # Tongue and Graceful Courtier Attitude are already in data/ (Illuminated).
-        "Exalted 1e Caste Book: Eclipse": 32,
+        "Caste Book: Eclipse": 32,
         # 11 Ebon Shadow + 4 Melee + 1 Investigation + 3 Lore + 2 Medicine
         # + 7 Athletics + 3 Awareness + 1 Dodge + 2 Larceny + 1 Stealth.
-        "Exalted 1e Caste Book: Night": 35,
+        "Caste Book: Night": 35,
         # 4 Craft + 3 Investigation + 1 Linguistics + 4 Lore + 4 Medicine + 3 Occult.
-        "Exalted 1e Caste Book: Twilight": 19,
+        "Caste Book: Twilight": 19,
         # 7 Endurance + 8 Resistance + 5 Survival + 6 Performance + 2 Presence.
         # Game-Snaring Huntsman's Method is already in data/ (Illuminated, altered).
-        "Exalted 1e Caste Book: Zenith": 28,
+        "Caste Book: Zenith": 28,
     }
 
 
@@ -275,7 +275,7 @@ def test_twilight_castebook_spells(rs):
     p.76/77 break; p.77 then turns to hearthstones, which are out of scope per the
     human's note.md, so the castebook spell list is complete."""
     spells = [s for s in rs.spells.values()
-              if s.source.book == "Exalted 1e Caste Book: Twilight"]
+              if s.source.book == "Caste Book: Twilight"]
     assert len(spells) == 7
     by_circle = Counter(s.circle for s in spells)
     assert by_circle == {SpellCircle.TERRESTRIAL: 2, SpellCircle.CELESTIAL: 3,

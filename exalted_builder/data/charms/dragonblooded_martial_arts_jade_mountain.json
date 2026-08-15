@@ -15,7 +15,7 @@
     "duration": "Instant",
     "description": "The Exalt flexes and roots his Essence into the earth, momentarily locked in a stance of balanced immovability against any force. This Charm averts one effect that would knock the Exalt down, back or otherwise move him from his current position, but it does not prevent any associated damage. The character may have his flesh reduced to red mist by the fist of a Second Circle demon, but his Essence-laden bones will stand defiantly upright for a few seconds. This Charm costs 1 mote for the Exalt to prevent knockback, knockdown or similar effects from non-magical forces. If a Charm or other magic would move the character, the cost is the permanent Essence of the attacker, but the Exalt cannot defend against magical forces created by beings of higher Essence. Pillar of Marble Stance only functions if the Exalt touches the earth.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -39,7 +39,7 @@
     "duration": "One scene",
     "description": "The Exalt performs a slow kata with both feet planted firmly on the earth. At the conclusion of these ponderous movements, she freezes in place, while her flesh visibly hardens to stone with Essence. She adds 1L/ 1B to her natural soak for every 2 motes spent and ignores all fatigue penalties regardless of exertion or encumbrance. There is no upper limit on how many motes a character can channel into a single activation of this Charm. Fortress of One ends immediately if the character fully exhausts her Essence pool, breaks contact with the earth or moves more than a yard from her original location for any reason, so wise Exalted reinforce their position with Pillar of Marble Stance as needed to resist the knockback of forceful impacts. Owing to the movement restrictions of this Charm, characters protected by Fortress of One cannot dodge without a well-described stunt approved by the Storyteller or appropriate magic (such as Threshold Warding Stance, Exalted: The Dragon-Blooded, p. 204). Finally, this Charm ends immediately if characters attack with any weapons except those permitted by Jade Mountain Style.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -59,7 +59,7 @@
     "duration": "Until released",
     "description": "The Exalt seizes an opponent in a tightening clinch, his muscles and joints creaking like a cliff before an avalanche. If the clinch attempt succeeds, all damage the Exalt inflicts on the grappled opponent is lethal instead of bashing. This Charm ends as soon as the character releases his hold. Exalted may also use this Charm to enable similar feats of destructive gripping strength, such as a bone-pulping handshake. Resolve such attacks as lethal clinch attempts, except that victims will not usually defend themselves from attacks disguised as greetings. Characters may only activate Boulder-Crushing Grasp while touching the earth. If the character breaks contact with the earth without releasing his victim, the Charm remains active but his clinch reverts back to bashing damage until he sets foot on the ground once more.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -84,7 +84,7 @@
     "duration": "Instant",
     "description": "The Exalt holds an opponent with implacable strength, preventing any possibility of ending a locked struggle. This Charm may only be used immediately after an opponent wins an opposed clinch roll. The opponent loses the option of ending and escaping the clinch and must, instead, inflict damage or hold the martial artist without causing injury. Characters may only activate Sliding Glacier Grip while touching the earth.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -111,7 +111,7 @@
     "duration": "One scene",
     "description": "The Exalt strikes an impossibly forceful blow at the earth beneath his feet and straightens to his full majesty. His stature grows as he rises, adding nearly a foot of height and 100 pounds of weight. More dramatically, a second skin of stone rises and envelops the character's flesh in a carapace of plates extruded out of Essence from the ground itself. These plates absorb the character's other armor into themselves as they grind into place, allowing both forms of protection to coexist seamlessly. The transformation evoked by Jade Mountain Form adds the character's permanent Essence to his Strength and Stamina, while allowing his augmented Stamina to soak lethal damage as if it were bashing. Unfortunately, the character's Dexterity drops by one dot in this transformed state (to a minimum rating of 1), and his ground movement speed drops to half its normal rate. Two restrictions govern this Charm's use. First, characters may only activate Jade Mountain Form while in contact with the earth. If they break this contact for more than a turn while the Charm remains active, the Charm effects are immediately terminated. Additionally, characters may only have one Form-type Charm active at a time. Activating a second Form immediately ends and replaces the effects of the first.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -135,7 +135,7 @@
     "duration": "Instant",
     "description": "The Exalt gives ground a step and stamps thunderously as she suffers injury, transferring the energy of a blow to the ground beneath her. This Charm must be used after applying normal soak against injury but before rolling the remaining damage. Each mote spent cancels 1L or 2B damage. Pasiap Still Stands may reduce an attack to zero damage dice, but it provides no protection against aggravated damage. Any remaining damage dice left over after the use of this Charm (if any) should be rolled and applied normally. Damage averted by this Charm is not stopped, but redirected. The ground or structure beneath the character suffers levels of bashing or lethal damage (as appropriate to the type of averted injury) equal to the dice of damage prevented. Although this redirection has little effect on soil apart from tearing cratered fissures around the Exalt's feet, the effect can be dramatically inconvenient or dangerous for characters walking across a bridge, the frozen surface of a lake or standing on a wooden plank floor. Characters may only use this Charm while touching the ground.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -160,7 +160,7 @@
     "duration": "Instant",
     "description": "The Exalt turns the leverage of weight and Essence to crush an opponent in a brutal, choking hold. Characters may only use this Charm after winning a clinch roll but before inflicting damage. Falling Rockslide Onslaught doubles the damage dice pool (including extra successes from the clinch roll) and allows Exalted to choose whether they inflict lethal or bashing damage. Characters may only use this Charm while touching the ground.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   }
