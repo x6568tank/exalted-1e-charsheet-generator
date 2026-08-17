@@ -328,13 +328,23 @@ def test_charm_dice_are_never_added():
 def test_no_module_in_the_chargen_or_xp_path_imports_pools():
     """Play-state isolation, mechanically. `pools` is the only engine module that
     knows what a wound penalty is; if validate or advancement ever imports it, the
-    isolation that decision 0006 protects has been breached."""
+    isolation that decision 0006 protects has been breached.
+
+    ⚠ `validate` is a PACKAGE, so its target expands to every module inside it — a
+    check that named only `validate/__init__.py` would go blind to the domain
+    modules the 2026-08-17 split moved the rules into. The targets are asserted to
+    exist for the same reason: a missing file must fail, never silently pass.
+    """
     import re
     root = pathlib.Path(pools.__file__).parent
     importer = re.compile(r"^\s*(from\s+\S*\s+import\s+.*\bpools\b|import\s+.*\bpools\b)",
                           re.MULTILINE)
-    for name in ("validate.py", "advancement.py", "lifecycle.py", "costs.py"):
-        assert not importer.search((root / name).read_text()), name
+    targets = [root / name for name in ("advancement.py", "lifecycle.py", "costs.py")]
+    targets += sorted((root / "validate").rglob("*.py"))
+    assert len(targets) >= 4, f"target list collapsed to {targets} — the walk is broken"
+    for path in targets:
+        assert path.exists(), f"{path} does not exist — update this test's targets"
+        assert not importer.search(path.read_text()), path.name
 
 
 def test_pools_does_not_roll_anything():

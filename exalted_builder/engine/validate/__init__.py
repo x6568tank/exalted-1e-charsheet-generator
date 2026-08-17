@@ -1,5 +1,5 @@
 """
-engine/validate.py — pure legality checks: (RuleSet, Character) -> issues.
+engine/validate/__init__.py — pure legality checks: (RuleSet, Character) -> issues.
 
 Where the models guard *shape* and derive.py computes *values*, this module
 guards *rules*: that the traits a character actually holds are legal given the
@@ -29,9 +29,9 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from ..models.character import (
+from ...models.character import (
     Character, FormulaEntry, HouseRules, RitualEntry, ThaumaturgyState)
-from ..models.rules import (
+from ...models.rules import (
     AbilityName,
     AttributeName,
     Charm,
@@ -42,8 +42,8 @@ from ..models.rules import (
     TRACK_CIRCLES,
     VirtueName,
 )
-from . import artifacts, derive, elder, merits
-from . import paths as paths_mod   # aliased: `paths` is the local PathRating list in chargen accounting
+from .. import artifacts, derive, elder, merits
+from .. import paths as paths_mod   # aliased: `paths` is the local PathRating list in chargen accounting
 
 # Attribute categories and the order Strength/Dexterity/Stamina etc. (core p.104).
 # Which category receives which of the 8/6/4 pools is the player's priority and is
@@ -546,7 +546,7 @@ def thaum_purchase_bp_costs(ruleset: RuleSet, character: Character,
     """
     # Deferred import: costs.py imports this module, so a top-level import here would
     # cycle. The thaum_* rate functions depend on nothing in validate, hence safe.
-    from . import costs
+    from .. import costs
 
     out: list[int] = []
     for p in purchases:
@@ -5721,7 +5721,7 @@ def check_specialties(ruleset: RuleSet, character: Character) -> list[Issue]:
     shape this project keeps hitting.
     """
     from collections import Counter
-    from . import advancement as adv
+    from .. import advancement as adv
     issues: list[Issue] = []
     counts = Counter(s.ability for s in character.specialties)
     for ability, n in sorted(counts.items(), key=lambda kv: kv[0].value):
