@@ -54,7 +54,10 @@ python3 -m venv .venv
 .venv/bin/python -m exalted_builder.ui.builder      # then open http://localhost:8080
 ```
 
-**Tests:** `.venv/bin/python -m pytest` They take about ten minutes, as a warning, and you'll get one failure.
+**Tests:** `.venv/bin/python -m pytest` — about 2,456 of them, seven to ten minutes
+depending on the machine. Expect them all to pass, with one warning about deferred
+Merit descriptions: that check compares the shipped text against the rulebook chapters,
+which are gitignored and don't come with a clone, so it skips what it can't see.
 
 ## Making your first character
 
@@ -173,7 +176,7 @@ Every **Exalted** splat, complete: chargen, Charms, advancement, UI.
 | Splat | Charms | Notes |
 |---|---:|---|
 | Solar | 441 | Core plus all five castebooks, and the Cult of the Illuminated origin |
-| Dragon-Blooded | 335 | Dynastic and Outcaste, the Immaculate Order path, all five Aspect Books |
+| Dragon-Blooded | 336 | Dynastic and Outcaste, the Immaculate Order path, all five Aspect Books |
 | Abyssal | 233 | Necromancy, the five Deathlord castes |
 | Lunar | 217 | Attribute-keyed Charms, Deadly Beastman Transformation, the Gift menu |
 | Sidereal | 193 | Astrological Colleges, Sidereal Martial Arts, Paradox |
@@ -185,7 +188,7 @@ And the non-Exalts:
 |---|---|
 | Mortals & Heroic Mortals | One splat, two origins. No Charms, Essence pinned at 1; magic comes via Merits & Flaws |
 | Ghosts | 127 Arcanoi across thirteen paths plus a common set, Fetters and Passions, two chargen axes |
-| Godblooded | Ghost-Blooded, Half-Caste and Fae-Blooded heritages, the God/Demon-Blooded axis, an 80-Charm spirit catalogue |
+| Godblooded | Ghost-Blooded, Half-Caste and Fae-Blooded heritages, the God/Demon-Blooded axis, a 90-Charm spirit catalogue |
 | Dragon-Kings | The ten Paths of Prehuman Mastery (a rated subsystem, 60 powers), four Breeds, Terrestrial sorcery |
 | Mountain Folk | The Enlightenment origin axis, the five-Pattern Charm economy (94 Charms), the Great Geas |
 
@@ -262,8 +265,9 @@ exalted_builder/
     data/           The rulebook as JSON: charms/, spells, castes, costs, budgets, gear
     models/         Pydantic shapes for the rules and for a character. Structure only:
                     non-negative ratings, valid enums. Never game legality
-    engine/         Where the rules live: validate, derive, costs, advancement, refit.
-                    Pure functions of (RuleSet, Character)
+    engine/         Where the rules live: derive, costs, advancement, refit, and
+                    validate/ — the legality checks, split by domain. Pure functions
+                    of (RuleSet, Character)
     rules_db.py     Loads data/ into an immutable RuleSet and link-checks it
     custom_content.py   The homebrew library: paths, authoring, import/export
     persistence.py  Character and party save files
@@ -271,7 +275,7 @@ exalted_builder/
 docs/status/        What is built, splat by splat
 pack/               PyInstaller packaging and build instructions
 tools/              Data authoring spec and a validator for hand-written Charm files
-tests/             ~2,385 tests, engine-first
+tests/             ~2,456 tests, engine-first
 ```
 
 Dependencies run one way only: `ui → engine → models`.
