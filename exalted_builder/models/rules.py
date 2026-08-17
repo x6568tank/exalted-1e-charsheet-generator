@@ -1628,8 +1628,8 @@ class MeritFlaw(BaseModel):
     trait_prerequisites: dict[str, list[list[TraitRequirement]]] = Field(default_factory=dict)
     # A trait that caps how many TIMES this entry may be taken — Alternative Divination's
     # "characters may not purchase this Merit more times than their Occult rating"
-    # (p.17). A repeat limit, not a rating floor, so it is its own field. "" = no limit
-    # beyond `repeatable_by`.
+    # (PG p.24). A repeat limit, not a rating floor, so it is its own field. "" = no
+    # limit beyond `repeatable_by`.
     max_purchases_from_trait: str = ""
     # A repeat limit that varies by ORIGIN — the Fae-Blooded's Virtue Attunement:
     # "Fae-Blooded born of any of these fae types may only purchase this Merit once.

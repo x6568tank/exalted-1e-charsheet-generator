@@ -116,25 +116,47 @@ def test_a_trait_prerequisite_that_lapses_after_the_lock_is_warned_about(rs):
     assert found and found[0].severity == "warning"
 
 
-def test_the_repeat_trait_cap_is_currently_unreachable(rs):
-    """⚠ A DOCUMENTED GAP, not a passing feature. `max_purchases_from_trait` is
-    authored on exactly one entry, and that entry is not marked `repeatable_by` — so
-    a second copy is already illegal as `merit-repeated` and the trait cap can never
-    be the thing that binds.
+def test_a_repeat_cap_that_lapses_after_the_lock_is_warned_about(rs):
+    """Alternative Divination may be held no more times than Occult (PG p.24).
 
-    p.17 prints Alternative Divination as repeatable ("may not purchase this Merit
-    more times than their Occult rating"), so the DATA looks wrong rather than the
-    code. Flagged to the rules authority 2026-08-17; not fixed here, because marking
-    an entry repeatable is a rules change.
+    Two copies at Occult 3 are legal; a curse dropping Occult to 1 makes the second
+    copy unearned, and the sheet should say so."""
+    c = _solar(abilities={AbilityName.OCCULT: 3},
+               merits_flaws=[MP(merit_id=DIVINATION, detail="tea leaves"),
+                             MP(merit_id=DIVINATION, detail="entrails")])
+    lifecycle.lock_chargen(c, rs)
+    assert not _by_code(validate.validate(rs, c), "merit-repeats-above-trait"), \
+        "premise: two copies are legal at Occult 3"
 
-    The post-lock pass includes the gate anyway, so it starts working the day the
-    data is corrected. This test asserts the gap so it cannot be forgotten.
-    """
-    definition = rs.merits_flaws[DIVINATION]
-    assert definition.max_purchases_from_trait == "Occult"
-    assert not definition.repeatable_by, (
-        "Alternative Divination became repeatable — delete this test and write the "
-        "real drift test it was standing in for")
+    c.abilities[AbilityName.OCCULT] = 1
+    found = _by_code(validate.validate(rs, c), "merit-repeats-above-trait")
+    assert found and found[0].severity == "warning"
+
+
+def test_a_second_copy_is_no_longer_reported_as_an_illegal_repeat(rs):
+    """The regression the data fix exists to prevent. While `repeatable_by` was
+    empty, a second copy was refused as `merit-repeated` and the Occult cap could
+    never be the thing that bound — the printed rule was unreachable."""
+    c = _solar(abilities={AbilityName.OCCULT: 3},
+               merits_flaws=[MP(merit_id=DIVINATION, detail="tea leaves"),
+                             MP(merit_id=DIVINATION, detail="entrails")])
+    assert "merit-repeated" not in _codes(validate.merit_issues(rs, c))
+
+
+def test_buy_merit_refuses_a_repeat_above_the_trait_cap(rs):
+    """The buy path half: the cap must bind on XP purchases too."""
+    c = _locked_with_xp(rs, abilities={AbilityName.OCCULT: 1},
+                        merits_flaws=[MP(merit_id=DIVINATION, detail="tea leaves")])
+    with pytest.raises(advancement.AdvancementError, match="Occult"):
+        advancement.buy_merit(rs, c, DIVINATION, detail="entrails")
+
+
+def test_buy_merit_allows_a_repeat_within_the_trait_cap(rs):
+    """The positive control — the bar must not become "never repeatable"."""
+    c = _locked_with_xp(rs, abilities={AbilityName.OCCULT: 3},
+                        merits_flaws=[MP(merit_id=DIVINATION, detail="tea leaves")])
+    advancement.buy_merit(rs, c, DIVINATION, detail="entrails")
+    assert [p.merit_id for p in c.merits_flaws].count(DIVINATION) == 2
 
 
 # --------------------------------------------------------------------------- #

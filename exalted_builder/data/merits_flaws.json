@@ -42,7 +42,8 @@
     "category": "Supernatural",
     "cost": 1,
     "cost_note": "(1-PT. MERIT)",
-    "max_purchases_from_trait": "Occult",
+    "repeatable_by": "ritual",
+      "max_purchases_from_trait": "Occult",
     "description": "Characters with this Merit can crudely divine the workings of fate through methods other than astrology. Some read destiny in the pattern of tea leaves or the entrails of birds or upon the symbolic threads of a spider’s web, while others spout disjointed verses of prophecy from a drug-induced trance or read palms or gaze into crystals. Whatever the method, the rolls and effectiveness of divination remain the same as for conventional astrology (see Exalted, p. 251). Any divination ritual should take a minimum of one scene to complete, though most will be considerably longer. Methods less complicated and quicker than astrology suffer an increased difficulty assigned by the Storyteller, while complicated, well-described rituals should benefit from a stunt bonus. Characters may purchase this Merit multiple times, with each purchase granting knowledge of one effective ritual beyond astrology (or two rituals per purchase for Sidereal Exalted). However, characters may not purchase this Merit more times than their Occult rating. Alternative Divination methods exploit the tendency of a powerful fate to inscribe its marks upon certain unfolding patterns in Creation (or in the Underworld, for those who seek the shadowed destiny of that realm). Such patterns are never as reliable as the confluence of stars and almost never allow glimpses of the future beyond the diviner’s Occult rating in years.",
     "source": {
       "book": "Player's Guide",

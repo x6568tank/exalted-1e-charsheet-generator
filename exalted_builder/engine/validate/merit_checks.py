@@ -225,7 +225,7 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                 message=f"{definition.name} may only be taken once; found {count}.",
             ))
         # A repeatable entry may still be capped by a trait — "characters may not
-        # purchase this Merit more times than their Occult rating" (p.17).
+        # purchase this Merit more times than their Occult rating" (PG p.24).
         if definition.max_purchases_from_trait:
             limit = trait_rating(character, definition.max_purchases_from_trait,
                                  backgrounds)
