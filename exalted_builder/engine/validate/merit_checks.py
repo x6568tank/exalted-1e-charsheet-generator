@@ -29,23 +29,48 @@ from .backgrounds import background_best, trait_rating, unmet_trait_prerequisite
 from .charms import chargen_charm_picks, charm_picks
 
 
-def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
+# The gates that measure something which can CHANGE after the purchase — an artifact
+# lost, a Background dropped, a trait cursed down. These re-run post-lock as warnings;
+# every other gate here measures a frozen chargen choice and does not.
+DRIFT_CODES = frozenset({
+    "merit-artifact-unchosen",
+    "merit-points-above-background",
+    "merit-points-below-background",
+    "merit-trait-prerequisite",
+    "merit-repeats-above-trait",
+})
+
+
+def merit_issues(ruleset: RuleSet, character: Character, *,
+                 post_lock: bool = False) -> list[Issue]:
     """Legality of the character's Merits & Flaws (Player's Guide pp.120-122).
 
     Structural only — an unknown id, a missing prerequisite, a variable-cost entry
     with no valid tier, a repeat of a non-repeatable Merit, or a thaumaturges-only
     entry on a character who holds no thaumaturgy. What a Merit DOES is never checked
-    here; that is engine.merits' job (decision 0011)."""
+    here; that is engine.merits' job (decision 0011).
+
+    `post_lock=True` returns only the `DRIFT_CODES` subset, downgraded to warnings —
+    the same shape `background_issues(post_lock=True)` uses. Human's ruling
+    2026-08-17: a character holding a benefit they no longer qualify for should be
+    told, but the story can legitimately create the state, so it is not an error.
+
+    ⚠ Post-lock the gates read LIVE traits, not the snapshot. The snapshot holds the
+    values as they were AT the lock, so a snapshot read would re-check what was
+    already checked and never fire — the check would exist and do nothing.
+
+    ⚠ The frozen-choice gates (splat, caste, origin, tier) are deliberately NOT in
+    `DRIFT_CODES`. They cannot drift, so re-running them is noise.
+    """
     issues: list[Issue] = []
     held: dict[str, int] = {}
-    # "THAUMATURGES ONLY" asks whether the character holds any thaumaturgy at all;
-    # read through the snapshot so a locked sheet keeps the answer it was built with.
-    snap = character.chargen_snapshot
+    # "THAUMATURGES ONLY" asks whether the character holds any thaumaturgy at all.
+    # Read through the snapshot at chargen so a locked sheet keeps the answer it was
+    # built with; LIVE post-lock, where the question is what is true NOW.
+    snap = None if post_lock else character.chargen_snapshot
     thaum = (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character)
     has_thaum = bool(thaum.arts or thaum.sciences or thaum.rituals or thaum.formulas
                      or thaum.art_specialties)
-    # Read through the snapshot for the same reason: a purchase whose legality depends
-    # on a Background rating must keep the answer the locked sheet was built with.
     backgrounds = snap.backgrounds if snap else character.backgrounds
 
     for purchase in character.merits_flaws:
@@ -251,6 +276,9 @@ def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
                             f"(a Merit or Flaw they hold caps it); rating is "
                             f"{bg.rating}.",
                 ))
+    if post_lock:
+        return [i.model_copy(update={"severity": "warning"})
+                for i in issues if i.code in DRIFT_CODES]
     return issues
 
 

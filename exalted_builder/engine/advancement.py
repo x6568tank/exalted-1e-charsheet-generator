@@ -1741,6 +1741,71 @@ def _pay_or_owe(character: Character, target: str, detail: str, cost: int) -> Xp
     return entry
 
 
+def _merit_purchase_gates(ruleset: RuleSet, character: Character, definition,
+                          tier: str, points: int, taken_as: str) -> None:
+    """Raise AdvancementError if this character may not take `definition` right now.
+
+    The gates `validate.merit_issues` applies at chargen that a POST-LOCK purchase
+    must also respect. They are re-asked here rather than shared with that function
+    because the two differ in kind: this refuses a purchase, that reports a holding.
+
+    ⚠ Test the buy path, not the effect. Every gate below was implemented, ran at
+    chargen, and did nothing when a Merit was bought with XP — the house bug, found
+    by preflight 2026-08-17.
+    """
+    # The tier menu THIS character prices on, not the generic one: a tier printed for
+    # another splat otherwise passes and then prices at nothing.
+    own_options = validate.merit_cost_options(definition, character.exalt_type,
+                                              character.caste)
+    if definition.cost_options and tier not in own_options:
+        raise AdvancementError(
+            f"{definition.name} needs one of {sorted(own_options)}.")
+    if tier and validate.exalt_type_barred_from_tier(definition,
+                                                     character.exalt_type, tier):
+        raise AdvancementError(
+            f"{definition.name} at {tier!r} is not available to "
+            f"{character.exalt_type}.")
+    if definition.thaumaturges_only:
+        thaum = validate.thaum_state(character)
+        if not (thaum.arts or thaum.sciences or thaum.rituals or thaum.formulas
+                or thaum.art_specialties):
+            raise AdvancementError(
+                f"{definition.name} is open to thaumaturges only; this character "
+                f"holds no Arts, Sciences, rituals or formulas.")
+    purchase = MeritFlawPurchase(merit_id=definition.id, tier=tier,
+                                 taken_as=taken_as, points=points)
+    for group in validate.unmet_trait_prerequisites(character, definition, purchase,
+                                                    character.backgrounds):
+        want = " or ".join(f"{r.trait} {r.rating}" for r in group)
+        raise AdvancementError(f"{definition.name} requires {want}.")
+    # Point limits keyed to a Background or a named artifact (Damaged Artifact,
+    # Known Anathema, Debt). Measured LIVE — the purchase is happening now.
+    value = validate.merit_points(definition, purchase, character.exalt_type,
+                                  character.caste)
+    for limit in definition.points_limits:
+        if limit.per_entry:
+            continue        # needs an artifact_key the buy path does not carry yet
+        have = validate.background_best(character.backgrounds, limit.background)
+        rating = have + limit.offset
+        if limit.mode == "max" and value > rating:
+            raise AdvancementError(
+                f"{definition.name} may not be worth more than {max(0, rating)} "
+                f"point(s) at {limit.background} {have}; this is worth {value}.")
+        if limit.mode == "above" and value <= rating:
+            raise AdvancementError(
+                f"{definition.name} must exceed {limit.background} {have}; "
+                f"this is worth {value}.")
+    # A repeatable entry capped by a trait ("no more times than their Occult").
+    if definition.max_purchases_from_trait:
+        cap = validate.trait_rating(character, definition.max_purchases_from_trait,
+                                    character.backgrounds)
+        held = [p.merit_id for p in character.merits_flaws].count(definition.id)
+        if held >= cap:
+            raise AdvancementError(
+                f"{definition.name} may not be taken more times than "
+                f"{definition.max_purchases_from_trait} ({cap}).")
+
+
 def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
               *, tier: str = "", detail: str = "", arena: str = "",
               taken_as: str = "", points: int = 0) -> XpEntry:
@@ -1784,9 +1849,7 @@ def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
         if pid not in held:
             name = ruleset.merits_flaws[pid].name if pid in ruleset.merits_flaws else pid
             raise AdvancementError(f"{definition.name} requires {name}.")
-    if definition.cost_options and tier not in definition.cost_options:
-        raise AdvancementError(
-            f"{definition.name} needs one of {sorted(definition.cost_options)}.")
+    _merit_purchase_gates(ruleset, character, definition, tier, points, taken_as)
 
     cost = merit_change_xp(ruleset, character, definition, tier,
                            taken_as=taken_as, points=points)
@@ -1821,9 +1884,7 @@ def gain_flaw(ruleset: RuleSet, character: Character, merit_id: str,
             f"{definition.cost_note}; say which side is being taken.")
     if definition.kind == "merit":
         raise AdvancementError(f"{definition.name} is a Merit; buy it instead.")
-    if definition.cost_options and tier not in definition.cost_options:
-        raise AdvancementError(
-            f"{definition.name} needs one of {sorted(definition.cost_options)}.")
+    _merit_purchase_gates(ruleset, character, definition, tier, points, taken_as)
 
     award = merit_change_xp(ruleset, character, definition, tier,
                             taken_as=taken_as, points=points)

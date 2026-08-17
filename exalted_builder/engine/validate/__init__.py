@@ -180,6 +180,7 @@ from .backgrounds import (     # noqa: F401 — re-exported for callers
     unmet_trait_prerequisites,
 )
 from .merit_checks import (    # noqa: F401 — re-exported for callers
+    DRIFT_CODES,
     WITHHELD_CHARM_TARGET,
     effective_merit_kind,
     exalt_type_barred_from_tier,
@@ -320,6 +321,12 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     if character.chargen_locked:
         issues += background_issues(effective_budgets(ruleset, character),
                                     character.backgrounds, character, post_lock=True)
+        # The Merit gates that measure something the story can change after the
+        # purchase — an artifact lost, a Background dropped, a trait cursed down.
+        # Warnings, not errors: the character holds a benefit they no longer qualify
+        # for, but the state is one the story may legitimately have created (human's
+        # ruling 2026-08-17). The frozen-choice gates stay chargen-only.
+        issues += merit_issues(ruleset, character, post_lock=True)
     # Elemental Powers legality runs on BOTH sides of the lock, like every other
     # trait check here — the powers are bought in play as well as at creation, and a
     # chargen-only read would go dead the moment the character locks (the house bug).
