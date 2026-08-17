@@ -1,15 +1,21 @@
-# Session handoff — 2026-08-17 (the `engine/validate.py` split + the comment pass)
+# Session handoff — 2026-08-17 (the validate split, the comment pass, and 1.0)
 
 # 👉 YOU ARE HERE
 
-**Everything below is DONE, COMMITTED and GREEN — 2,441 passed, 0 failed.** Nothing is
+**Everything below is DONE, COMMITTED and GREEN — 2,455 passed, 1 skipped.** Nothing is
 half-finished and nothing is waiting on a decision.
 
-**State: clean tree, nine commits ahead of where the session started.**
+**`pyproject.toml` reads 1.0.0. The tag is not pushed — that is yours.**
+
+**State: clean tree, fifteen commits ahead of v0.9.9.**
 
 ```
-.venv/bin/python -m pytest -q     # expect: 2,441 passed, 1 warning
+.venv/bin/python -m pytest -q     # expect: 2,455 passed, 1 skipped, 1 warning
 ```
+
+⚠ The 1 SKIP is conditional and healthy: `test_buy_merit_prices_the_tier_against_the_
+characters_own_menu` skips when no tier exists that is generic-but-not-Solar. It is a
+guard against a bug shape, not a disabled test.
 
 ⚠ **The 71-entry M&F deferral WARNING is expected** and is not a failure. Unlike the
 last session, `test_every_description_matches_the_source_text` PASSES here — the
@@ -27,6 +33,31 @@ and **3 call sites changed out of 1,465**.
 
 All three of the TODOs written when the catalogue closed on 2026-08-14 are done (the
 printable sheet, martial-arts styles, and this).
+
+## Post-lock Merit legality — closed, and it was a real bug
+
+Found by the preflight before tagging, and **pre-existing** rather than caused by the
+refactor: `merit_issues` was called from exactly one place, `validate_chargen`, while
+`buy_merit` / `gain_flaw` / `drop_merit` all work post-lock. The split is what made it
+visible, because `merit_issues` landed in the chargen-only module.
+
+Two fixes, because the five unenforced gates were not one problem:
+
+* **The buy path** — `_merit_purchase_gates`, shared by `buy_merit` and `gain_flaw`.
+  `thaumaturges_only`, `tier_barred_exalt_types`, `trait_prerequisites`,
+  `points_limits` and `max_purchases_from_trait` were checked at chargen and skipped
+  entirely on XP purchases. Plus a real bug: both validated the tier against the
+  GENERIC `cost_options` rather than the character's own menu.
+* **The drift gates** — `merit_issues(..., post_lock=True)` returns just the three
+  gates that measure something the story can change, as WARNINGS (your ruling).
+
+⚠ The post-lock pass reads LIVE traits, not the snapshot. A snapshot read would check
+the values as they were AT the lock and never fire. Its own test asserts this.
+
+**Alternative Divination is now repeatable** (`repeatable_by: "ritual"`, PG p.24). It
+carried `""`, so a second copy was refused as `merit-repeated` and the printed Occult
+cap could never bind. ⚠ Two code comments cited "(p.17)" for that rule; p.17 is the
+unrelated 10-point Flaw cap. Corrected to PG p.24.
 
 ## The comment pass — DONE for `engine/validate/`
 
@@ -55,11 +86,28 @@ it is mechanical but not quick:
 lost. ⚠ It earned itself — it caught two citations (core p.325, BoTC pp.25-27) I dropped
 while rewriting `artifact_checks.py`.
 
-## If you do one thing next
+## 1.0 — `pyproject.toml` is bumped to 1.0.0; the tag is YOURS to push
 
-**Packaged builds** — the only open 1.0 item (README, screenshots and pyproject are done;
-`pyproject.toml` reads 0.9.9, so bump to 0.9.10 if you tag). Otherwise, carry the comment
-pass into `models/`, which is 61% prose and the densest area in the build.
+```
+git tag v1.0.0 && git push --tags
+```
+
+CI does the rest: `.github/workflows/release.yml` builds Linux + Windows on any `v*`
+tag and attaches both to the release. It has succeeded on every tag back to v0.9.2.
+
+⚠ **"Packaged builds" was never actually outstanding.** It sat in this file as the last
+1.0 blocker for three days while being complete — every release back to v0.9.4 already
+carries both binaries. I repeated the claim from the previous handoff without checking
+it. Verified 2026-08-17 against the GitHub API, and the release binary was built and run
+from this tree as well.
+
+⚠ **macOS is deliberately OFF** (commented out in the CI matrix: unsigned, so Gatekeeper
+quarantines it). 1.0 ships Linux + Windows. That is a standing decision, not an oversight.
+
+## If you do one thing after tagging
+
+Carry the comment pass into `models/`, which is 61% prose and the densest area in the
+build.
 
 ## Nothing is pending your ruling
 

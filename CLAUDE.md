@@ -419,8 +419,12 @@ the moment the package existed.
 **Human, 2026-08-10:** after the 1.0 ship (feature-complete — sourcebooks, the full
 artifact and spell catalogues), branch and rebuild the UI on **PySide6/Qt**, which
 becomes the bedrock of a 2.0. Nothing is committed; it becomes a numbered decision when
-it is (0016 has since been taken by the dice-pool boundary — use the next free number). **Do not start it before 1.0 and do not treat it as a 1.0 blocker** — a different
-widget toolkit is not a feature. Full plan, measured baseline and open questions:
+it is (0016 has since been taken by the dice-pool boundary — use the next free number).
+A different widget toolkit is not a feature, so it was never a 1.0 blocker.
+
+⚠ **1.0 has now shipped** (`pyproject.toml` 1.0.0, 2026-08-17), so the "do not start it
+before 1.0" half of this is spent. What remains is "NOT scheduled": it is still a
+standing goal awaiting the human's word, not the next job. Full plan, measured baseline and open questions:
 **`docs/plans/qt-port.md`**.
 
 The one part that affects work happening NOW: the port is cheap only because nothing
