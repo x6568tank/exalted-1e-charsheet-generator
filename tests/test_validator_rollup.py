@@ -20,6 +20,13 @@ still fails the moment a validator has no caller at all.
 ⚠ What this test canNOT see: a checker whose call site survives but is guarded by a
 condition that is never true. Reachability is not execution. The three roots are
 the entry points, not a claim that every branch runs.
+
+The second guard here is the FACADE's completeness. `validate.X` is the one public
+path to every name in the package (the human's call, 2026-08-17), which is what let
+the split leave 1,465 call sites untouched — but only while the re-export list in
+`__init__.py` stays exhaustive. Forget one line there and the failure surfaces in
+whichever unrelated caller happens to use that name, or in no test at all if the
+name is only read by `ui/`.
 """
 
 from __future__ import annotations
@@ -142,3 +149,59 @@ def test_the_reachability_check_can_fail(call_graph):
     reachable = _reachable(calls, ROOTS)
     assert "check_charm_prerequisites" in reachable, "premise: a known-wired checker"
     assert "check_a_rule_nobody_wrote" not in reachable
+
+
+# --------------------------------------------------------------------------- #
+# The facade
+# --------------------------------------------------------------------------- #
+
+def _toplevel_names(src: str) -> set[str]:
+    """Every name a module binds at top level: defs, classes and assignments."""
+    out: set[str] = set()
+    for node in ast.parse(src).body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            out.add(node.name)
+        elif isinstance(node, ast.Assign):
+            out |= {t.id for t in node.targets if isinstance(t, ast.Name)}
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            out.add(node.target.id)
+    return out
+
+
+def test_every_name_in_a_domain_module_is_reachable_as_validate_X():
+    """The facade contract. Callers reach everything through `validate.X`; a domain
+    module is an implementation detail, so a name that lands in one and is not
+    re-exported has silently left the public surface.
+
+    Private names count. `validate._chargen_source` and `validate._immaculate_path`
+    are read from other modules and from tests, so the underscore marks "internal to
+    the package", not "not re-exported".
+    """
+    from exalted_builder.engine import validate
+
+    package = Path(validate.__file__).parent
+    orphans: list[str] = []
+    for path in sorted(package.glob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        for name in sorted(_toplevel_names(path.read_text())):
+            if name.startswith("__"):
+                continue
+            if not hasattr(validate, name):
+                orphans.append(f"{name} ({path.name})")
+    assert not orphans, (
+        "defined in a domain module but NOT re-exported by validate/__init__.py: "
+        + ", ".join(orphans)
+        + "\nAdd it to the re-export list — `validate.X` is the one public path."
+    )
+
+
+def test_the_facade_check_has_something_to_check():
+    """Premise. If the package ever held only `__init__.py` again, the test above
+    would pass by iterating over nothing — the shape of vacuous pass this project
+    has been bitten by four times."""
+    from exalted_builder.engine import validate
+
+    package = Path(validate.__file__).parent
+    domains = [p.name for p in package.glob("*.py") if p.name != "__init__.py"]
+    assert domains, "no domain modules found — the facade test would be vacuous"
