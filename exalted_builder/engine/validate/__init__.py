@@ -57,7 +57,46 @@ from ._base import (           # noqa: F401 — re-exported for callers
     _chargen_source,
     ability_rating,
     craft_rating,
+    effective_budgets,
     thaum_state,
+)
+from .artifact_checks import (  # noqa: F401 — re-exported for callers
+    _corebook_artifact_issues,
+    _missing_merit_issues,
+    _purchased_at_chargen_issues,
+    check_artifacts,
+)
+from .backgrounds import (     # noqa: F401 — re-exported for callers
+    background_best,
+    background_catalogue_for,
+    background_dots_budget,
+    background_issues,
+    background_pool_dots,
+    background_pool_spend,
+    background_rating,
+    background_rating_cap,
+    background_rows,
+    background_rule,
+    background_st_permitted,
+    check_hearthstones,
+    effective_background_rating,
+    gear_affordability,
+    trait_rating,
+    unmet_trait_prerequisites,
+)
+from .merit_checks import (    # noqa: F401 — re-exported for callers
+    WITHHELD_CHARM_TARGET,
+    effective_merit_kind,
+    exalt_type_barred_from_tier,
+    magic_gate_issues,
+    merit_available_to,
+    merit_bonus_point_cost,
+    merit_cost_options,
+    merit_issues,
+    merit_points,
+    merit_tiers_available,
+    pool_requires_unlocking,
+    withheld_charm_credits,
 )
 from .castes import (          # noqa: F401 — re-exported for callers
     _caste_favored,
@@ -321,32 +360,6 @@ def chargen_house_rules(character: Character) -> HouseRules:
     return character.house_rules or HouseRules()
 
 
-def background_catalogue_for(ruleset: RuleSet, character: Character) -> list:
-    """The Background names this character may actually pick from — the ONE read site
-    for `HouseRules.all_backgrounds_available`, so no UI module has to know the flag
-    exists and the answer cannot differ between the two places Backgrounds are chosen
-    (the row dropdown and the catalogue dialog).
-
-    Reads the LIVE house rules rather than `chargen_house_rules`'s frozen snapshot: a
-    locked character keeps her Backgrounds either way, and a table that later opens
-    the catalogue should be able to add one in play. This flag changes which names are
-    OFFERED, never how a dot is priced, which is what the snapshot exists to protect.
-    """
-    hr = character.house_rules or HouseRules()
-    rows = ruleset.backgrounds_for(character.exalt_type, character.origin,
-                                   all_available=hr.all_backgrounds_available)
-    # A `barred` rule hides the Background until its Storyteller toggle lifts it, the
-    # same treatment `backgrounds_for` gives `banned_backgrounds`: the dropdown never
-    # offers a name the sheet cannot legally hold. The BAR and the OFFER are separate
-    # mechanisms and the toggle has to move both — the browser found exactly that
-    # (2026-08-12), with a mortal granted permission and still unable to find Artifact
-    # or Manse in the catalogue, because the bar lifted and the offer list did not.
-    budgets = effective_budgets(ruleset, character)
-    hidden = {name for name, rule in budgets.background_rules.items()
-              if rule.barred and not background_st_permitted(character, rule)}
-    if hidden:
-        rows = [bg for bg in rows if bg.name.strip().lower() not in hidden]
-    return rows
 
 
 def magic_for_everyone_grant(ruleset: RuleSet, character: Character) -> int:
@@ -1066,11 +1079,6 @@ def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
-def background_rule(budgets, name: str):
-    """The `BackgroundRule` for the Background called `name` under these budgets, or
-    None when it has no mechanics. Backgrounds are free text, so the lookup is by
-    lowercased, stripped NAME — not by `BackgroundType.id`."""
-    return budgets.background_rules.get(name.strip().lower())
 
 
 def camp_for(ruleset, character):
@@ -1336,781 +1344,40 @@ def _granted_charm_minima_met(ruleset, character, charm) -> tuple[bool, str]:
     return True, ""
 
 
-def background_pool_dots(rule, rating: int) -> int:
-    """How many dots of the chargen Background pool a rating of `rating` consumes.
-    Ordinarily one per dot; a rule may make the dots above a threshold cost more
-    (Alchemical Artifact: dots 4 and 5 cost two pool dots each, CH2 p.65), and may
-    grant the first `free_rating` dots outside the pool entirely (the Illuminated
-    Solar's Illumination •, p.90 — "in addition" to the nine dots, so it is free
-    rather than merely mandatory; contrast Alchemical Class •••, which is mandatory
-    and paid for)."""
-    if rule is None:
-        return rating
-    if rule.expensive_above and rating > rule.expensive_above:
-        cheap = rule.expensive_above
-        paid = cheap * rule.dot_cost + (rating - cheap) * rule.expensive_dot_cost
-    else:
-        paid = rating * rule.dot_cost
-    return max(0, paid - rule.free_rating)
-
-
-def background_rating(backgrounds, name: str) -> int:
-    """The character's rating in the Background called `name` (0 if absent). Sums
-    duplicates, since Backgrounds are free text and nothing stops two rows."""
-    key = name.strip().lower()
-    return sum(bg.rating for bg in backgrounds if bg.name.strip().lower() == key)
-
-
-def background_rows(backgrounds, name: str) -> list[int]:
-    """Every INSTANCE of the Background called `name`, as a list of ratings.
-
-    The third way to read a repeated Background, beside `background_rating` (the sum)
-    and `background_best` (the largest). A possession Background is held per possession
-    — "two Artifacts at 2 dots each are two artifacts, not one artifact at 4" — so a
-    rule that allows one thing PER ROW needs the rows themselves, not either summary.
-    """
-    key = name.strip().lower()
-    return [bg.rating for bg in backgrounds if bg.name.strip().lower() == key]
-
-
-def background_best(backgrounds, name: str) -> int:
-    """The HIGHEST single instance of the Background called `name` (0 if absent).
-
-    Backgrounds that name a specific possession are held per possession — two Artifacts
-    at 2 dots each are two artifacts, not one artifact at 4 — so a rule that measures
-    ONE of them must not read the sum. Damaged Artifact is the case: "may not gain more
-    points from this Flaw than the rating of the artifact it modifies" (p.37), singular.
-    Two 2-dot artifacts satisfied a 3-point Damaged Artifact until 2026-07-31.
-    """
-    key = name.strip().lower()
-    return max((bg.rating for bg in backgrounds if bg.name.strip().lower() == key),
-               default=0)
-
-
-def effective_background_rating(ruleset: RuleSet, character: Character,
-                                name: str) -> int:
-    """What a Background is WORTH to this character, which is not always what is stored.
-
-    Mountain Folk Resources is the case that needs it (CH6): "an effective Resources
-    rating equal to the number of dots invested in this Background + 2, but cannot have
-    more than three actual dots", plus a floor for characters who never bought it at all
-    — Resources •• Enlightened, • Unenlightened. So a stored 3 is worth 5, and a stored
-    0 is worth 2.
-
-    ⚠ The floor is NOT a bonus applied to zero. Adding `effective_bonus` at 0 dots would
-    make an unbought Background worth as much as one bought dot, which is a different
-    (and wrong) rule. They are separate fields and this is the only place both are read.
-
-    Every splat that prints neither field gets the stored rating unchanged, so this is
-    safe to call for any Background on any character.
-    """
-    stored = background_best(character.backgrounds, name)
-    rule = effective_budgets(ruleset, character).background_rules.get(name.strip().lower())
-    if rule is None:
-        return stored
-    if stored <= 0:
-        return max(rule.effective_floor, 0)
-    return stored + rule.effective_bonus
-
-
-def gear_affordability(ruleset: RuleSet, character: Character,
-                       resources_cost: int) -> str:
-    """How a piece of gear priced at `resources_cost` sits against this character's
-    Resources — core p.325, "The Resources System", the whole rule:
-
-        * cost LOWER than her Resources — an out-of-pocket expense; "within reason,
-          the character can purchase as many of the items as she wants";
-        * cost EQUAL to her Resources — "a serious expense. When she buys it, she
-          lowers her Resources rating by 1 until it is increased through roleplaying";
-        * cost GREATER — "too expensive for her, and she cannot afford to buy it".
-
-    Returns "easy" / "serious" / "unaffordable", or "" for gear with no printed cost
-    (56 of the 122 catalogue rows have none, and a missing price is not a free item).
-
-    ⚠ This answers a PURCHASE, and is deliberately NOT a validation of what a character
-    OWNS — no caller may turn it into one (human's ruling 2026-08-12). The printed rule
-    contradicts an ownership invariant in its own middle clause: buying at cost EQUAL
-    drops Resources by one, so the book's own outcome is a character holding a 3-cost
-    item at Resources 2. Loot and gifts break it the same way — nothing says a
-    character may not be GIVEN a daiklave. A static "no item above your rating" check
-    would flag both as errors.
-    """
-    if resources_cost <= 0:
-        return ""
-    # The EFFECTIVE rating, not the stored one — a Mountain Folk's Resources is worth
-    # her dots + 2 and is capped at 3 actual dots, so reading the row raw made every
-    # item above Resources ••• unaffordable to the richest Jadeborn in Creation (found
-    # in the browser, 2026-08-13). `effective_background_rating` also takes the HIGHEST
-    # single row rather than the sum: Resources is one lifestyle rating, and two rows of
-    # 2 is a character who wrote it down twice, not a character with 4.
-    #
-    # ⚠ `ruleset` is REQUIRED here, unlike the optional-ruleset shape `derive.soak` and
-    # friends use. That shape trades a TypeError for a silently wrong answer, and this
-    # function's wrong answer is "you cannot buy that" — invisible, and exactly the bug
-    # being fixed. A caller with no RuleSet has no business pricing gear.
-    rating = effective_background_rating(ruleset, character, "Resources")
-    if resources_cost < rating:
-        return "easy"
-    return "serious" if resources_cost == rating else "unaffordable"
-
-
-def trait_rating(character: Character, name: str, backgrounds=None) -> int:
-    """The character's rating in the trait called `name`, whatever kind of trait it is.
-
-    Merit prerequisites (cluster 7) name traits across four namespaces — Appearance is
-    an Attribute, Occult an Ability, Manse and Breeding and Celestial Patron are
-    Backgrounds — and the printed text gives only a name. So this resolves by name in
-    a fixed order: Attributes, Abilities, Virtues, then Backgrounds.
-
-    An unresolvable name reads as 0 rather than raising, the same graceful handling
-    unresolvable Charm and Background references already get. The order matters only if
-    a name ever collides across namespaces; none of the 1e trait names does.
-
-    Craft resolves through `craft_rating` (the best of the per-focus instances), since
-    the single AbilityName.CRAFT dot is unused.
-    """
-    key = name.strip().lower()
-    if not key:
-        return 0
-    for attr in AttributeName:
-        if attr.value == key:
-            return character.attributes.get(attr, 0)
-    for ab in AbilityName:
-        if ab.value == key:
-            return ability_rating(character, ab)
-    for v in VirtueName:
-        if v.value == key:
-            return character.virtues.get(v, 0)
-    return background_rating(
-        character.backgrounds if backgrounds is None else backgrounds, name)
-
-
-def unmet_trait_prerequisites(character: Character, definition, purchase,
-                              backgrounds=None) -> list[list]:
-    """The OR groups of `definition.trait_prerequisites` this purchase does NOT satisfy.
-
-    Empty for the great majority, which require no rated trait. The "" key holds the
-    requirements every tier carries; a named tier adds its own on top (Innocuous' two-
-    point version needs Appearance 2, its four-point version needs nothing).
-
-    A group is satisfied when ANY member of it is met — Cache's "Resources 4+ or
-    Salary 2+" — matching the AND-of-OR shape Charm prerequisites already use.
-    """
-    groups: list[list] = []
-    groups += definition.trait_prerequisites.get("", [])
-    if purchase.tier:
-        groups += definition.trait_prerequisites.get(purchase.tier, [])
-    return [g for g in groups
-            if not any(trait_rating(character, r.trait, backgrounds) >= r.rating
-                       for r in g)]
-
-
-def background_dots_budget(b, character: Character) -> int:
-    """The Background-dot budget for THIS character, honouring a per-caste override
-    (Mountain Folk, CH6 p.230: Artisans 13, Enlightened undercastes 10, Unenlightened
-    6). `background_dots_by_caste` keys on CasteDefinition.id; a caste absent from the
-    map falls back to `background_dots`. Every Background-budget consumer reads this,
-    so the warning and the overflow arithmetic can never disagree."""
-    if b.background_dots_by_caste:
-        return b.background_dots_by_caste.get(character.caste, b.background_dots)
-    return b.background_dots
-
-
-def background_pool_spend(ruleset: RuleSet, character: Character, b, backgrounds,
-                          bp_costs=None) -> tuple[int, list[int]]:
-    """(pool dots consumed, per-dot bonus-point rates still owed) for the character's
-    Backgrounds. The single arithmetic both the unspent-dot warning and
-    `bonus_point_breakdown` read, so the two can never disagree about what "spent from
-    the pool" means.
-
-    Ordinarily a dot at or below `background_cap_pre_bp` consumes a pool dot and a dot
-    above it is paid in bonus points at `background_above_3` (plus any per-Background
-    surcharge — Lookshy Breeding, p.66).
-
-    Heir Apparent (A6, p.24) moves some of the second group into the first: its
-    inherited dots "may raise a Background above a rating of three", so that many
-    above-cap dots are paid out of the ENLARGED pool the Merit granted instead of out
-    of bonus points. They are not free — `effective_budgets` added exactly as many pool
-    dots as are waived here, so the character pays for them once, through the pool.
-
-    Which Background received the inheritance is the player's choice and is not
-    recorded, so the waiver goes to the DEAREST above-cap dots the character actually
-    has: the player-favourable reading, matching how free dots are already assigned.
-    A waived dot counts as ONE pool dot rather than going back through
-    `background_pool_dots`, whose expensive-upper-dot rules are Alchemical-only.
-    """
-    if bp_costs is None:
-        bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin,
-                                           character.upbringing)
-    within = 0
-    above_rates: list[int] = []
-    for bg in backgrounds:
-        rule = background_rule(b, bg.name)
-        cap = bg.rating if (rule and rule.cap_pre_bp_exempt) else b.background_cap_pre_bp
-        # The God-Blooded Inheritance Background's FREE dots — the ST's series option
-        # (PG p.61, human 2026-08-02) — waive BOTH the pool cost and the above-cap
-        # bonus points: a free dot that sits above the cap must not appear in
-        # above_rates either, or "Inheritance 4 with the ST option at 4" still charges
-        # the two points for the fourth dot, which is exactly the complaint.
-        if bg.name.strip().lower() == "inheritance":
-            free = merits.inheritance_free_rating(ruleset, character)
-            within += max(0, min(bg.rating, cap) - free)
-            free_above = max(0, min(bg.rating, free) - cap)
-            rate = bp_costs.background_above_3
-            above_rates += [rate] * max(0, bg.rating - cap - free_above)
-            continue
-        # Dots ABOVE `bp_above_rating` are bought one bonus point each, NOT from the
-        # Background pool (Mountain Folk Artifact, CH6 p.234-235: "with each dot
-        # beyond 5 costing one bonus point"). The dots at or below it go through the
-        # normal accounting below — `cap_pre_bp_exempt` keeps the MF's dots in the
-        # pool — and any of those that still sit above the pre-BP cap owe the ordinary
-        # above-cap rate (none for the MF, whose exempt cap is its own rating).
-        if rule and rule.bp_above_rating and bg.rating > rule.bp_above_rating:
-            pool_rating = min(bg.rating, rule.bp_above_rating)
-            within += background_pool_dots(rule, min(pool_rating, cap))
-            mid_rate = bp_costs.background_above_3 + rule.bp_surcharge_per_dot
-            above_rates += [mid_rate] * max(0, pool_rating - cap)
-            above_rates += [1] * (bg.rating - rule.bp_above_rating)
-            continue
-        within += background_pool_dots(rule, min(bg.rating, cap))
-        rate = bp_costs.background_above_3 + (rule.bp_surcharge_per_dot if rule else 0)
-        above_rates += [rate] * max(0, bg.rating - cap)
-
-    exempt = merits.merits_and_flaws_calc(ruleset, character).background_cap_exempt_dots
-    if exempt:
-        above_rates.sort(reverse=True)
-        waived = min(exempt, len(above_rates))
-        within += waived
-        above_rates = above_rates[waived:]
-    return within, above_rates
-
-
-def background_issues(budgets, backgrounds, character=None, *,
-                      post_lock=False) -> list[Issue]:
-    """Legality for Backgrounds that carry mechanics (`background_rules`). Empty for
-    every splat with none — which is all of them but the Alchemical and the handful of
-    rules this brief adds.
-
-    `character` is OPTIONAL, the silent-fallback shape the merits-flaws precedent uses
-    (`derive.soak`, `lifecycle.lock_chargen`): a rule that needs the character — the
-    Attribute-sum ceiling (Sidereal Connections) or a PER-CHARACTER `st_toggle` — is
-    skipped (or reads as no permission) when called without one, rather than
-    TypeErroring at every call site.
-
-    `post_lock` runs the subset that binds on BOTH sides of the lock. `background_issues`
-    is called post-lock from `validate.validate`, and ONLY rules with
-    `BackgroundRule.bind_post_lock` are applied there — exactly the Sidereal Celestial
-    Manse ≤3 and Mountain Folk Artifact ≤10 (2026-08-12 rulings). Every other cap in
-    the build is chargen-only by design, because Backgrounds change through the story,
-    not by purchase; the allowed/banned lists, minimums, prerequisites and the mortal
-    bar all stay chargen-side.
-
-    The checks: a Background the splat receives automatically may not be below that
-    rating; a Background gated on another must have it; a hard ceiling — a literal
-    `max_rating`, the Attribute-sum ceiling, or a `barred` prohibition (rating must be
-    0) — may not be passed, each unless its `st_toggle` grants permission; the
-    universal trait cap (5) holds every Background on BOTH sides of the lock unless a
-    rule explicitly raises it; and, when the origin restricts WHICH Backgrounds it may
-    take at all (`allowed_backgrounds` — the Sidereal ronin, p.100), anything outside
-    that list is flagged. Blank rows are skipped: the editor adds an empty row for the
-    player to fill in, and an unnamed row is not yet an illegal Background.
-    """
-    issues: list[Issue] = []
-    if not post_lock:
-        allowed = {n.strip().lower() for n in budgets.allowed_backgrounds}
-        if allowed:
-            for bg in backgrounds:
-                name = bg.name.strip()
-                if name and name.lower() not in allowed:
-                    issues.append(Issue(
-                        code="background-not-allowed", where=name,
-                        message=f"{name} is not available to this origin; allowed: "
-                                f"{', '.join(sorted(n.title() for n in allowed))}.",
-                    ))
-        banned = {n.strip().lower() for n in budgets.banned_backgrounds}
-        if banned:
-            for bg in backgrounds:
-                name = bg.name.strip()
-                if name and name.lower() in banned:
-                    issues.append(Issue(
-                        code="background-banned", where=name,
-                        message=f"{name.title()} is prohibited for this origin: "
-                                f"{', '.join(sorted(n.title() for n in banned))}.",
-                    ))
-    for name, rule in budgets.background_rules.items():
-        if post_lock and not rule.bind_post_lock:
-            continue
-        rating = background_rating(backgrounds, name)
-        if not post_lock and rule.min_rating and rating < rule.min_rating:
-            issues.append(Issue(
-                code="background-below-minimum", where=name,
-                message=f"{name.title()} is automatically {rule.min_rating} at character "
-                        f"creation; this character has {rating}.",
-            ))
-        # The ceiling: a literal `max_rating`, or the Attribute-sum cap (Sidereal
-        # Connections, Sidereals pp.106-108). Both are HARD ceilings — an error rather
-        # than the bonus-point surcharge a soft cap produces — and both lift when the
-        # rule's `st_toggle` grants permission. The Attribute-sum variant needs the
-        # character; called without one it is skipped, the silent fallback.
-        cap = None
-        cap_is_attribute_sum = False
-        if rule.max_rating_is_attribute_sum and character is not None:
-            cap = sum(_chargen_source(character)[0].values())
-            cap_is_attribute_sum = True
-        elif rule.max_rating:
-            cap = rule.max_rating
-        if cap and rating > cap and not background_st_permitted(character, rule):
-            if cap_is_attribute_sum:
-                issues.append(Issue(
-                    code="background-above-attribute-cap", where=name,
-                    message=f"{name.title()} may not exceed {cap} for this character; "
-                            f"this character has {rating}.",
-                ))
-            else:
-                issues.append(Issue(
-                    code="background-above-origin-cap", where=name,
-                    message=f"{name.title()} may not exceed {cap} for this origin; "
-                            f"this character has {rating}.",
-                ))
-        # A BAR (rating must be 0) — mortals and Artifact/Manse, core p.103 — lifted
-        # by ST permission. Chargen only: there is no post-lock purchase to bar.
-        if not post_lock and rule.barred and rating > 0 \
-                and not background_st_permitted(character, rule):
-            issues.append(Issue(
-                code="background-barred", where=name,
-                message=f"{name.title()} may not be purchased for this origin without "
-                        f"Storyteller permission; this character has {rating}.",
-            ))
-        if not post_lock and rule.requires and rating > 0:
-            have = background_rating(backgrounds, rule.requires)
-            if have < rule.requires_rating:
-                issues.append(Issue(
-                    code="background-requires", where=name,
-                    message=f"{name.title()} requires {rule.requires.title()} "
-                            f"{rule.requires_rating}+; this character has {have}.",
-                ))
-    # The universal trait cap (5), enforced here now that `BackgroundEntry.rating` no
-    # longer carries it structurally — a hand-edited or older save could otherwise hold
-    # an Artifact 10 with no rule to flag it. Every Background is held to it on BOTH
-    # sides of the lock, EXCEPT where a rule explicitly raises it (Mountain Folk
-    # Artifact ≤10, whose higher ceiling the loop above enforces). A rule that caps
-    # LOWER (Backing ≤2) is chargen-only and falls away post-lock, so post-lock only
-    # this cap holds it. A rule that caps a TOTAL (Sidereal Connections) is skipped
-    # here — its own check above reads the summed rating against the attribute total.
-    for bg in backgrounds:
-        key = (bg.name or "").strip().lower()
-        if not key:
-            continue
-        rule = budgets.background_rules.get(key)
-        governs = rule is not None and (not post_lock or rule.bind_post_lock)
-        # A rule may RAISE the universal cap; it may never REMOVE it. The earlier
-        # version skipped this check whenever a rule merely EXISTED, which let the
-        # rules that state no maximum at all — Alchemical Class (`min_rating`),
-        # Alchemical Backing (`requires`), Illuminated Illumination (`min_rating`) —
-        # lose the cap at chargen while keeping it post-lock.
-        ceiling = (rule.max_rating if governs and rule.max_rating > merits.DOT_MAX
-                   else merits.DOT_MAX)
-        # Where the rule states its own LITERAL ceiling, that check has already spoken
-        # (an above-origin-cap issue) and saying it twice for one row is noise.
-        #
-        # A TOTAL-cap rule is different and must NOT skip: `max_rating_is_attribute_sum`
-        # reads `background_rating`, which SUMS every row sharing the name, so it has
-        # nothing to say about one row. Sidereal Connections is capped at 5 per row like
-        # every other Background (human's ruling 2026-08-12) while its printed total
-        # binds across rows — two ceilings measuring two different things.
-        if governs and rule.max_rating:
-            continue
-        if bg.rating > ceiling:
-            issues.append(Issue(
-                code="background-above-universal-cap", where=bg.name,
-                message=f"{bg.name.title()} may not exceed {merits.DOT_MAX}; "
-                        f"this character has {bg.rating}.",
-            ))
-    return issues
-
-
-def background_st_permitted(character, rule) -> bool:
-    """Whether THIS rule's Storyteller toggle lifts it for `character`.
-
-    The toggle is the PER-CHARACTER `HouseRules` field named by `BackgroundRule.st_toggle`
-    — R2's Sidereal Celestial Manse ≤3 and R3's mortal Artifact/Manse bar, both "without
-    Storyteller permission". ONE read site, the `validate.foreign_charms_permitted`
-    pattern: the UI never reaches into HouseRules for a name. `character` is optional —
-    called without one, no permission, the rule binds. A toggle the field names but a
-    HouseRules version lacks reads as False (graceful, like any dangling reference)."""
-    if character is None or not rule.st_toggle:
-        return False
-    hr = character.house_rules
-    if hr is None:
-        return False
-    return bool(getattr(hr, rule.st_toggle, False))
-
-
-def background_rating_cap(budgets, character, name, *, post_lock=False) -> int:
-    """The highest rating the Background `name` may be set to for THIS character on
-    THIS side of the lock — the single engine-side answer the rating controls take
-    their ceiling from (ui/advantages.py hardcoded 5 in both until 2026-08-12, which
-    made the Mountain Folk Artifact lift unrecordable).
-
-    A rating above this errors in `background_issues`; a control that offered more
-    would be the cap you can click past, which is not a ceiling. Layers, most
-    restrictive first:
-      * a `barred` rule (rating must be 0), unless its `st_toggle` grants permission;
-      * the rule's own `max_rating` ceiling;
-      * DOT_MAX, the universal trait cap (5).
-
-    The Attribute-sum rule (Sidereal Connections) is deliberately NOT a layer here: it
-    caps a TOTAL ("the total number of dots in Connections may not exceed" the sum,
-    Sidereals pp.106-108), so the per-row control keeps the universal ceiling and
-    `background_issues` enforces the total against the summed rating.
-
-    Post-lock only the `bind_post_lock` rules' ceilings apply. Backgrounds are free
-    story edits in play, so a chargen-only cap must NOT clamp the play control: a
-    locked Unenlightened Mountain Folk can be given Backing 4 by the story even though
-    he could not buy it at creation, and a mortal can be granted an artifact.
-    """
-    key = (name or "").strip().lower()
-    rule = budgets.background_rules.get(key)
-    if post_lock and not (rule and rule.bind_post_lock):
-        return merits.DOT_MAX
-    if rule is None:
-        return merits.DOT_MAX
-    if rule.barred and not background_st_permitted(character, rule):
-        return 0
-    if rule.max_rating and not background_st_permitted(character, rule):
-        return rule.max_rating
-    # The Attribute-sum rule (Sidereal Connections) is a TOTAL cap, not a per-row one:
-    # the printed rule says "the total number of dots in Connections may not exceed"
-    # the sum, and `background_rating` already sums duplicate rows for the check. The
-    # row keeps the universal 5 like every other Background (human's ruling
-    # 2026-08-12) and the total is `background_issues`' job — a row must never offer
-    # the whole attribute sum as pips.
-    return merits.DOT_MAX
-
-
-def check_hearthstones(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """The Hearthstone allowance on every Manse Background row (Savant and Sorcerer
-    pp.66-67).
-
-    The governing sentence is p.67: "The sum of the levels of all the Hearthstones
-    produced can never exceed the level of the Manse." A Manse may be built to yield
-    several stones rather than one (p.66), so the rule caps the TOTAL and not the count,
-    and the Dragon-Blooded and Abyssal ladders add a ceiling on the largest single stone
-    on top of that.
-
-    PER ROW, not per character: two Manse rows are two Manses with two separate
-    allowances, and summing them would let a Manse • and a Manse ••••• between them
-    carry a level-5 stone on the wrong one.
-
-    Runs on BOTH sides of the lock, following `check_artifacts` for the same reason it
-    does — the allowance is keyed to a Background the story can raise or take away, so
-    a chargen-only check would fall silent exactly when the cap started moving. That is
-    also the human's ruling for this rule specifically (2026-08-12).
-
-    The allowance comes from the BackgroundType, resolved through
-    `background_catalogue_for` so a splat sees its OWN Manse variant — the six variants
-    print six different allowances, and matching on the bare name would hand a
-    Dragon-Blooded the corebook's linear one. A row whose name matches no catalogue
-    entry (Backgrounds are free text) grows no stones, which is reported rather than
-    ignored: it is the only way a stone can end up stranded on a row that cannot hold
-    it, by renaming the row or flipping it to a Demesne after the fact.
-    """
-    by_name = {bg.name.strip().lower(): bg
-               for bg in background_catalogue_for(ruleset, character)}
-    issues: list[Issue] = []
-    for bg in character.backgrounds:
-        if not bg.hearthstones:
-            continue
-        held = artifacts.hearthstone_total(bg)
-        where = bg.name or "Background"
-        bg_type = by_name.get(bg.name.strip().lower())
-        allowance = (None if bg.is_demesne
-                     else artifacts.hearthstone_allowance(bg_type, bg.rating))
-        if allowance is None:
-            issues.append(Issue(
-                code="hearthstone-without-manse",
-                message=(f"{where} holds {len(bg.hearthstones)} Hearthstone(s) but "
-                         f"produces none"
-                         + (" — the row is marked as a Demesne" if bg.is_demesne
-                            else "")),
-                where=where))
-            continue
-        label = (f"{where} {bg.rating} ({allowance.tier_name})"
-                 if allowance.tier_name else f"{where} {bg.rating}")
-        if held > allowance.combined_max:
-            issues.append(Issue(
-                code="hearthstone-over-combined",
-                message=(f"{label} allows {allowance.combined_max} level(s) of "
-                         f"Hearthstone; {held} held"),
-                where=where))
-        if allowance.individual_max:
-            for stone in bg.hearthstones:
-                if stone.rating > allowance.individual_max:
-                    issues.append(Issue(
-                        code="hearthstone-over-individual",
-                        message=(f"{label} allows no Hearthstone above level "
-                                 f"{allowance.individual_max}; {stone.name} is level "
-                                 f"{stone.rating}"),
-                        where=where))
-        if allowance.max_items and len(bg.hearthstones) > allowance.max_items:
-            issues.append(Issue(
-                code="hearthstone-over-count",
-                message=(f"{label} allows {allowance.max_items} Hearthstone(s); "
-                         f"{len(bg.hearthstones)} held"),
-                where=where))
-    return issues
-
-
-def _purchased_at_chargen_issues(character: Character) -> list[Issue]:
-    """Artifacts may not be BOUGHT during character creation (human's ruling
-    2026-08-13).
-
-    The corebook defines the Artifact column of every gear table as "the number of dots
-    in the Artifact Background the character must spend TO START THE GAME OWNING one of
-    these" (p.342; p.345 for armour), so the Background is the pre-game channel and cash
-    is the in-play one. Without this, `acquired` would be a hole straight through the
-    budget at exactly the phase the budget exists for: a player could mark every artifact
-    purchased and start play with a hoard the Background never paid for.
-
-    Post-lock it is silent — buying an artifact with money is the whole point of the
-    other channel, and Resources is a hint rather than a validation (core p.325).
-    """
-    if character.chargen_locked:
-        return []
-    bought = artifacts.purchased_items(character)
-    if not bought:
-        return []
-    return [Issue(
-        code="artifact-purchased-at-chargen", where=item.name,
-        message=(f"{item.name} is marked as purchased, but artifacts are bought with "
-                 f"cash only in play; at creation the Artifact Background is what "
-                 f"buys them (core p.342)."),
-    ) for item in bought]
-
-
-def _missing_merit_issues(ruleset, character: Character) -> list[Issue]:
-    """Owning a plot-device artifact without the Merit that is its whole price.
-
-    The Mantle of Brigid and the Sword of Ice (BoTC pp.25-27) print "(ARTIFACT N/A)" —
-    no Background buys them, so no budget can catch them, and without this check they
-    would be the one thing in the catalogue that is free. The human's ruling
-    2026-08-13 is that they cost the Legendary Artifact 10-pt Merit; this is the bar,
-    and `artifacts.purchasable_artifacts` is the matching OFFER.
-
-    Runs on BOTH sides of the lock, like every other artifact rule, and for the reason
-    the house bug keeps teaching: the Merit can be dropped after creation as easily as
-    it can be skipped during it, and a chargen-only check would go quiet exactly then.
-    Which Merit is DATA (`ArtifactType.requires_merit`) — no id is named here.
-    """
-    issues: list[Issue] = []
-    for name, merit_id in artifacts.missing_merits(ruleset.artifact_catalog, character):
-        merit = ruleset.merits_flaws.get(merit_id)
-        label = merit.name if merit is not None else merit_id
-        issues.append(Issue(
-            code="artifact-missing-merit", where=name,
-            message=(f"{name} is a plot device rather than a rated artifact — it is "
-                     f"owned through the {label} Merit, which this character does not "
-                     f"have."),
-        ))
-    return issues
-
-
-def _corebook_artifact_issues(items: list, rows: list[int]) -> list[Issue]:
-    """The corebook Artifact Background: ONE artifact per Background ROW, each rated no
-    higher than its own row (human's rulings 2026-07-31 and 2026-08-13).
-
-    The rule every splat gets unless its own book prints something else, so this is the
-    branch that runs for plain Solars, Lunars, Sidereals, Ghosts, Godblooded and the
-    Abyssal renegade.
-
-    ⚠ **Per ROW, not per summed rating.** The first cut read the summed Background and
-    demanded exactly one artifact, so a character holding two Artifact •• Backgrounds
-    and two daiklaves was told "Artifact 4 permits ONE artifact rated no higher than 4"
-    (found in the browser, 2026-08-13). That contradicted an interpretation this build
-    had already recorded — `background_best`'s docstring says in as many words that
-    "two Artifacts at 2 dots each are two artifacts, not one artifact at 4", which is
-    why Damaged Artifact reads the best row rather than the sum. Two rulings, one of
-    them months old, and the new code agreed with neither.
-
-    Rows and items are matched largest-first: the biggest artifact must fit the biggest
-    row. That is the only assignment that can succeed if any can — a smaller artifact
-    fits anywhere a larger one does — so a greedy pass is exact here, not an
-    approximation.
-
-    Both findings are ERRORS, not warnings: the corebook ladder carries no "without
-    Storyteller permission" clause, which is what made the Abyssal per-item cap a
-    warning.
-    """
-    owned = sorted(items, key=lambda i: i.rating, reverse=True)
-    ladder = sorted((r for r in rows if r > 0), reverse=True)
-    if not ladder:
-        return [Issue(
-            code="artifact-without-background", where="Artifact",
-            message=f"This character owns {len(owned)} artifact(s) but has no Artifact "
-                    f"Background; artifacts are bought with its dots.",
-        )] if owned else []
-
-    issues: list[Issue] = []
-    for item, row in zip(owned, ladder):
-        if item.rating > row:
-            issues.append(Issue(
-                code="artifact-item-over-background", where=item.name,
-                message=f"Artifact {row} permits no artifact rated above {row}; "
-                        f"{item.name} is {item.rating}.",
-            ))
-    if len(owned) > len(ladder):
-        allowed = ("one artifact" if len(ladder) == 1
-                   else f"{len(ladder)} artifacts, one per Artifact Background")
-        issues.append(Issue(
-            code="artifact-over-background-dots", where="Artifact",
-            message=f"Artifact {'+'.join(str(r) for r in ladder)} permits {allowed} "
-                    f"({', '.join('rated up to ' + str(r) for r in ladder)}); this "
-                    f"character owns {len(owned)} "
-                    f"({', '.join(i.name for i in owned)}).",
-        ))
-    return issues
-
-
-def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """The p.131 Artifact BUDGET: combined rating and per-item ceiling, keyed by the
-    character's Artifact Background rating (E:Ab p.131).
-
-    Runs on BOTH sides of the lock, following `check_fetters_and_passions` — and for
-    the same reason. The budget is keyed to a Background that experience can raise, so
-    the ceiling MOVES: a loyal Abyssal who buys Artifact ••• with XP may hold a combined
-    7, and one who has an artifact taken away is under budget rather than over. A
-    chargen-only check would go quiet exactly when the cap started changing. This is
-    also why artifacts are absent from `ChargenSnapshot`, which weapons and armour
-    already are.
-
-    Three rules, one per branch: the printed TIER table (loyal Abyssal, Illuminated),
-    the MULTIPLIER (DB and Dragon-Kings at two dots per dot, Alchemical at three), and
-    otherwise the COREBOOK default — see `_corebook_artifact_issues`. Only the last is
-    reachable without a `BackgroundRule` at all, which is why the `rule is None` early
-    return above became a fallback rather than an exit. A no-op for anyone owning no
-    artifacts, which is most characters.
-
-    The tiered branch's three findings:
-      * owning artifacts with no Artifact Background at all,
-      * combined rating over the row's `combined_max`,
-      * a single item over the row's `individual_max` (the lower rows only). The page
-        makes these ST-overridable — "without Storyteller permission" — so they are
-        reported as warnings rather than errors; the combined budget is not.
-    """
-    issues: list[Issue] = []
-    # The BUDGET counts what the Artifact Background bought. A purchased artifact is
-    # equipment paid for in cash and is charged to nothing here — see
-    # `artifacts.budgeted_items` and the ruling in `ArtifactEntry.acquired`. The chargen
-    # bar below is what stops that being a free pass at creation.
-    issues += _purchased_at_chargen_issues(character)
-    # The merit-gated plot devices are charged to no budget at all, so this must run
-    # before the `not items` early return below — a character who owns nothing BUT a
-    # Mantle of Brigid has an empty budgeted list and still needs the Merit.
-    issues += _missing_merit_issues(ruleset, character)
-    items = artifacts.budgeted_items(character)
-    if not items:
-        return issues
-    budgets = effective_budgets(ruleset, character)
-    rule = artifacts.artifact_rule(budgets)
-    rating = background_rating(character.backgrounds, artifacts.ARTIFACT_BACKGROUND)
-    # A splat with no Artifact rule at all (plain Solar, Lunar, Sidereal, Ghost,
-    # Godblooded, the Abyssal renegade who "uses the Artifact Background found in
-    # Chapter Four", p.131) falls back to the COREBOOK rule, which is not "no budget".
-    # Human ruling 2026-08-13: the corebook default is ONE artifact, rated no higher
-    # than the Background — every rung of the printed ladder describes a single item
-    # ("A useful item, a weapon or suit of armor"), and the splats that hand out
-    # several (DB, Dragon-Kings, Mountain Folk, Alchemical) are exactly the ones whose
-    # own ladder says so. This branch used to `return issues`, which meant a Solar
-    # could hold five daiklaves on Artifact 0 in silence.
-    if artifacts.uses_corebook_rule(rule):
-        # …unless this splat DOES print a rule and the character simply has not reached
-        # the row that carries it — a Mountain Folk with no Enlightenment chosen. See
-        # `artifacts.splat_prints_its_own_rule`: silence beats the wrong rule.
-        if rule is None and artifacts.rule_is_pending_an_origin(
-                ruleset, character.exalt_type, character.origin):
-            return issues
-        return issues + _corebook_artifact_issues(
-            items, background_rows(character.backgrounds,
-                                   artifacts.ARTIFACT_BACKGROUND))
-    if rule.budget_tiers:
-        tier = artifacts.budget_tier(budgets, rating)
-        if tier is None:
-            issues.append(Issue(
-                code="artifact-without-background", where="Artifact",
-                message=f"This character owns {len(items)} artifact(s) but has no Artifact "
-                        f"Background; artifacts are bought with its dots.",
-            ))
-            return issues
-        combined = sum(i.rating for i in items)
-        if combined > tier.combined_max:
-            issues.append(Issue(
-                code="artifact-combined-over-budget", where="Artifact",
-                message=f"{artifacts.tier_label(rating, tier)} allows a combined rating "
-                        f"no higher than {tier.combined_max}; this character owns "
-                        f"{combined}.",
-            ))
-        if tier.individual_max:
-            for item in items:
-                if item.rating > tier.individual_max:
-                    issues.append(Issue(
-                        severity="warning",
-                        code="artifact-item-over-cap", where=item.name,
-                        message=f"{artifacts.tier_label(rating, tier)} allows no single "
-                                f"artifact above {tier.individual_max} without Storyteller "
-                                f"permission; {item.name} is {item.rating}.",
-                    ))
-        return issues
-    # The multiplier rule (DB/DK "twice the dots' worth" p.176, Alchemical three):
-    # each Background dot buys `rating_per_dot` dots of artifact, capping the combined
-    # rating at background × rating_per_dot. This was data-only — never enforced —
-    # before this check; a Dragon King with Artifact • and a 3-dot artifact passed
-    # silently. rating_per_dot 1 (a rule with no multiplier) is the Solar default and
-    # imposes nothing.
-    if rule.rating_per_dot > 1:
-        combined = artifacts.combined_rating(character)
-        if rating == 0:
-            issues.append(Issue(
-                code="artifact-without-background", where="Artifact",
-                message=f"This character owns {len(items)} artifact(s) but has no Artifact "
-                        f"Background; artifacts are bought with its dots.",
-            ))
-        else:
-            cap = rating * rule.rating_per_dot
-            if combined > cap:
-                issues.append(Issue(
-                    code="artifact-over-background-dots", where="Artifact",
-                    message=f"Artifact {rating} buys {cap} dots of artifacts "
-                            f"({rule.rating_per_dot} per dot, p.176); this character "
-                            f"owns combined rating {combined}.",
-                ))
-            # Human ruling 2026-08-05 (via a 1e-experienced source): the doubled rule
-            # is "you get (Rating x 2) artifact dots to spread around, with no one
-            # artifact having a rating higher than (Background rating)". So a 4-dot
-            # artifact needs Artifact 4 even though the doubled budget would fit it.
-            # Applies to the doubled rule (DB/DK, rating_per_dot 2); Alchemical's
-            # "three dots per dot" is left to the combined cap, whose per-item shape
-            # this code does not have a source for.
-            if rule.rating_per_dot == 2:
-                for item in items:
-                    if item.rating > rating:
-                        issues.append(Issue(
-                            code="artifact-item-over-background", where=item.name,
-                            message=f"Artifact {rating} permits no single artifact rated "
-                                    f"above {rating} (p.176); {item.name} is "
-                                    f"{item.rating}.",
-                        ))
-                # Human correction 2026-08-05: only ONE artifact may be rated AT the
-                # Background rating (the flagship) — the rest are smaller. Artifact 5
-                # + [5,5] is two flagships and invalid; Artifact 5 + [4,1] is the
-                # intended shape (flagship plus smaller artifacts).
-                if sum(1 for i in items if i.rating == rating) > 1:
-                    issues.append(Issue(
-                        code="artifact-two-flagships", where="Artifact",
-                        message=f"Artifact {rating} permits only one artifact rated at "
-                                f"{rating}; {sum(1 for i in items if i.rating == rating)} "
-                                f"are rated {rating}.",
-                    ))
-    return issues
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def eligible_array_charms(ruleset: RuleSet, character: Character) -> list[str]:
@@ -3033,340 +2300,18 @@ def elemental_power_issues(ruleset: RuleSet, character: Character,
     return issues
 
 
-def merit_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Legality of the character's Merits & Flaws (Player's Guide pp.120-122).
-
-    Structural only — an unknown id, a missing prerequisite, a variable-cost entry
-    with no valid tier, a repeat of a non-repeatable Merit, or a thaumaturges-only
-    entry on a character who holds no thaumaturgy. What a Merit DOES is never checked
-    here; that is engine.merits' job (decision 0011)."""
-    issues: list[Issue] = []
-    held: dict[str, int] = {}
-    # "THAUMATURGES ONLY" asks whether the character holds any thaumaturgy at all;
-    # read through the snapshot so a locked sheet keeps the answer it was built with.
-    snap = character.chargen_snapshot
-    thaum = (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character)
-    has_thaum = bool(thaum.arts or thaum.sciences or thaum.rituals or thaum.formulas
-                     or thaum.art_specialties)
-    # Read through the snapshot for the same reason: a purchase whose legality depends
-    # on a Background rating must keep the answer the locked sheet was built with.
-    backgrounds = snap.backgrounds if snap else character.backgrounds
-
-    for purchase in character.merits_flaws:
-        # A player-authored "Custom" row (2026-08-10) has no catalogue entry by
-        # design — display-only, no mechanical effect. Nothing about it is checkable
-        # here, so it is skipped entirely rather than reported as merit-unknown. The
-        # discriminator is the EMPTY merit_id (set at creation, never edited by the
-        # name input) — not custom_name, which the player can blank and must not
-        # turn back into a merit-unknown error.
-        if not purchase.merit_id:
-            continue
-        definition = ruleset.merits_flaws.get(purchase.merit_id)
-        if definition is None:
-            issues.append(Issue(
-                code="merit-unknown", where=purchase.merit_id,
-                message=f"Merit {purchase.merit_id!r} is not in the rule set.",
-            ))
-            continue
-        held[definition.id] = held.get(definition.id, 0) + 1
-
-        if purchase.tier and exalt_type_barred_from_tier(definition, character.exalt_type,
-                                                         purchase.tier):
-            issues.append(Issue(
-                code="merit-barred-splat-tier", where=definition.id,
-                message=(f"{definition.name} at {purchase.tier!r} is not available to "
-                         f"{character.exalt_type}; open options are "
-                         f"{', '.join(merit_tiers_available(definition, character.exalt_type, character.caste))}."),
-            ))
-        # Against the menu THIS character prices on, not the generic one — a Sidereal
-        # recording Lucky at 4 would otherwise pass validation and be worth 0 points.
-        own_options = merit_cost_options(definition, character.exalt_type, character.caste)
-        if definition.cost_options and purchase.tier not in own_options:
-            issues.append(Issue(
-                code="merit-bad-tier", where=definition.id,
-                message=f"{definition.name} needs one of "
-                        f"{sorted(own_options)}; got {purchase.tier!r}.",
-            ))
-        if definition.kind == "either" and purchase.taken_as not in ("merit", "flaw"):
-            issues.append(Issue(
-                code="merit-side-unchosen", where=definition.id,
-                message=f"{definition.name} is printed as a Merit OR a Flaw "
-                        f"{definition.cost_note}; record which side was taken.",
-            ))
-        if definition.exalt_types and character.exalt_type not in definition.exalt_types:
-            issues.append(Issue(
-                code="merit-wrong-splat", where=definition.id,
-                message=f"{definition.name} is restricted to "
-                        f"{', '.join(definition.exalt_types)}; this character is "
-                        f"{character.exalt_type}.",
-            ))
-        if character.exalt_type in definition.barred_exalt_types:
-            issues.append(Issue(
-                code="merit-barred-splat", where=definition.id,
-                message=f"{definition.name} is not available to "
-                        f"{', '.join(definition.barred_exalt_types)}.",
-            ))
-        if character.caste in definition.barred_castes:
-            caste = ruleset.castes.get(character.caste)
-            issues.append(Issue(
-                code="merit-barred-caste", where=definition.id,
-                message=f"{definition.name} is not available to the "
-                        f"{caste.label if caste else character.caste} caste.",
-            ))
-        if definition.required_origins and character.origin not in definition.required_origins:
-            issues.append(Issue(
-                code="merit-wrong-origin", where=definition.id,
-                message=f"{definition.name} is restricted to "
-                        f"{', '.join(definition.required_origins)}; this character "
-                        f"is a {character.origin or 'blank'} {character.caste}.",
-            ))
-        for limit in definition.points_limits:
-            points = merit_points(definition, purchase, character.exalt_type,
-                                  character.caste)
-            if limit.per_entry:
-                # The limit measures ONE named artifact, not the character's holdings.
-                # An unresolved key is reported rather than defaulted: choosing the
-                # best artifact on the character's behalf would make an illegal
-                # purchase legal without anyone deciding to.
-                item = artifacts.find_item(character, purchase.artifact_key)
-                if item is None:
-                    issues.append(Issue(
-                        code="merit-artifact-unchosen", where=definition.id,
-                        message=f"{definition.name} must name which artifact it "
-                                f"modifies; its point limit is the rating of that "
-                                f"artifact.",
-                    ))
-                    continue
-                if limit.measure == "acquisition_cost":
-                    budgets = effective_budgets(ruleset, character)
-                    have = artifacts.acquisition_cost(budgets, item.rating)
-                    shown = f"the {have} Background point(s) {item.name} cost"
-                else:
-                    have, shown = item.rating, f"{item.name} {item.rating}"
-            else:
-                have = background_best(backgrounds, limit.background)
-                shown = f"{limit.background} {have}"
-            rating = have + limit.offset
-            if limit.mode == "max" and points > rating:
-                issues.append(Issue(
-                    code="merit-points-above-background", where=definition.id,
-                    message=f"{definition.name} may not be worth more than "
-                            f"{max(0, rating)} point(s) at {shown}; "
-                            f"this purchase is worth {points}.",
-                ))
-            elif limit.mode == "above" and points <= rating:
-                issues.append(Issue(
-                    code="merit-points-below-background", where=definition.id,
-                    message=f"{definition.name} must exceed {shown}; "
-                            f"this purchase is worth {points}.",
-                ))
-        for group in unmet_trait_prerequisites(character, definition, purchase,
-                                               backgrounds):
-            want = " or ".join(f"{r.trait} {r.rating}" for r in group)
-            issues.append(Issue(
-                code="merit-trait-prerequisite", where=definition.id,
-                message=f"{definition.name} requires {want}.",
-            ))
-        # A structured `detail` (which Attribute category a forfeit comes from, which
-        # Attribute Legendary Attribute raises) is a CLOSED set. Unset or off-list, the
-        # effect silently does not happen — Legendary Attribute grants no cap at all,
-        # and a forfeit falls back to Physical. Reported rather than defaulted.
-        choices = merits.detail_choices(definition)
-        if choices and purchase.detail.strip().title() not in choices:
-            issues.append(Issue(
-                code="merit-detail-unchosen", where=definition.id,
-                message=(f"{definition.name} must name which of "
-                         f"{', '.join(choices)} it applies to; got "
-                         f"{purchase.detail or '(nothing)'!r}."),
-            ))
-        if definition.min_starting_essence:
-            start = effective_budgets(ruleset, character).essence_start
-            if start < definition.min_starting_essence:
-                issues.append(Issue(
-                    code="merit-starting-essence", where=definition.id,
-                    message=(f"{definition.name} is only open to characters whose splat "
-                             f"starts at Essence {definition.min_starting_essence} or "
-                             f"more; {character.exalt_type} starts at {start}, so the "
-                             f"Flaw would cost nothing and still pay its points."),
-                ))
-        if definition.thaumaturges_only and not has_thaum:
-            issues.append(Issue(
-                code="merit-thaumaturges-only", where=definition.id,
-                message=f"{definition.name} is open to thaumaturges only; this "
-                        f"character holds no Arts, Sciences, rituals or formulas.",
-            ))
-
-    for mid, count in held.items():
-        definition = ruleset.merits_flaws[mid]
-        if count > 1 and not definition.repeatable_by:
-            issues.append(Issue(
-                code="merit-repeated", where=mid,
-                message=f"{definition.name} may only be taken once; found {count}.",
-            ))
-        # A repeatable entry may still be capped by a trait — "characters may not
-        # purchase this Merit more times than their Occult rating" (p.17).
-        if definition.max_purchases_from_trait:
-            limit = trait_rating(character, definition.max_purchases_from_trait,
-                                 backgrounds)
-            if count > limit:
-                issues.append(Issue(
-                    code="merit-repeats-above-trait", where=mid,
-                    message=f"{definition.name} may not be taken more times than "
-                            f"{definition.max_purchases_from_trait} "
-                            f"({limit}); found {count}.",
-                ))
-        # ...or by origin — Virtue Attunement is once for a commoner Fae-Blooded,
-        # twice for a noble (PG p.74). An origin with no entry in the map is uncapped.
-        if character.origin in definition.max_purchases_by_origin:
-            limit = definition.max_purchases_by_origin[character.origin]
-            if count > limit:
-                issues.append(Issue(
-                    code="merit-repeats-above-origin", where=mid,
-                    message=f"{definition.name} may be taken at most {limit} time(s) "
-                            f"as a {character.origin}; found {count}.",
-                ))
-        for pid in definition.prerequisites:
-            if pid not in held:
-                name = ruleset.merits_flaws[pid].name if pid in ruleset.merits_flaws else pid
-                issues.append(Issue(
-                    code="merit-prerequisite", where=mid,
-                    message=f"{definition.name} requires {name}.",
-                ))
-
-    # Backgrounds a held entry caps or forbids (A6 — Innocuous' veiled tier, p.22).
-    # Asked of engine.merits, so no Merit id is named here.
-    effects = merits.merits_and_flaws_calc(ruleset, character)
-    if effects.background_caps or effects.barred_backgrounds:
-        for bg in backgrounds:
-            key = bg.name.strip().lower()
-            if not key or bg.rating <= 0:
-                continue
-            if key in effects.barred_backgrounds:
-                issues.append(Issue(
-                    code="background-barred-by-merit", where=bg.name,
-                    message=f"{bg.name} is closed to this character by a Merit or "
-                            f"Flaw they hold.",
-                ))
-            cap = effects.background_caps.get(key)
-            if cap is not None and bg.rating > cap:
-                issues.append(Issue(
-                    code="background-above-merit-cap", where=bg.name,
-                    message=f"{bg.name} may not exceed {cap} for this character "
-                            f"(a Merit or Flaw they hold caps it); rating is "
-                            f"{bg.rating}.",
-                ))
-    return issues
 
 
-def merit_bonus_point_cost(ruleset: RuleSet, character: Character) -> int:
-    """Bonus points SPENT on Merits. Flaws cost nothing to take — their point value is
-    a grant, accounted separately (see `MeritEffects.bonus_point_grant`), so only
-    `kind == "merit"` rows are charged here.
-
-    Every cost shape is resolved by `merit_points`, including the per-splat prices the
-    general chapter is full of — hence passing the character's Exalt type."""
-    total = 0
-    # A Merit whose price another Merit changes (Holy Mien -> Priest). Asked of
-    # engine.merits, so no Merit id is ever named here.
-    overrides = merits.merits_and_flaws_calc(ruleset, character).merit_cost_overrides
-    for purchase in character.merits_flaws:
-        definition = ruleset.merits_flaws.get(purchase.merit_id)
-        if definition is None:
-            continue
-        if effective_merit_kind(definition, purchase) != "merit":
-            continue
-        override = overrides.get(definition.id)
-        if override is not None and purchase.tier in override:
-            total += override[purchase.tier]
-            continue
-        total += merit_points(definition, purchase, character.exalt_type,
-                              character.caste)
-    return total
 
 
-def effective_merit_kind(definition, purchase) -> str:
-    """Whether THIS purchase counts as a Merit or a Flaw.
-
-    Fixed by the catalogue for the single-sided majority. A `kind: "either"` entry —
-    Mutation, Favor, Eternal Vow, each printed as "MERIT OR FLAW" — is the player's
-    choice, recorded on the purchase. An either-entry with no choice recorded defaults
-    to "merit" here so pricing never crashes; validate reports the missing choice
-    separately rather than letting it pass unnoticed."""
-    if definition.kind != "either":
-        return definition.kind
-    return purchase.taken_as if purchase.taken_as in ("merit", "flaw") else "merit"
 
 
-def merit_cost_options(definition, exalt_type: str = "", caste: str = "") -> dict[str, int]:
-    """The menu this character actually prices against — the ONE resolution order, so a
-    dropdown can never offer an option the pricer will not honour.
-
-    Caste outranks splat outranks the generic table, exactly as `merit_points` reads
-    them. Lucky is why this is not just `definition.cost_options`: it is "1- TO 5-PT.
-    MERIT, 1- TO 3-PT. FOR SIDEREALS", and reading the generic table offered a Sidereal
-    a 4- and 5-point option that priced at 0 — visible in the dropdown, worth nothing.
-    """
-    by_caste = definition.cost_options_by_caste.get(caste or "")
-    if by_caste:
-        return dict(by_caste)
-    by_splat = definition.cost_options_by_exalt_type.get(exalt_type or "")
-    if by_splat:
-        return dict(by_splat)
-    return dict(definition.cost_options)
 
 
-def merit_tiers_available(definition, exalt_type: str, caste: str = "") -> tuple[str, ...]:
-    """The options of a menu-priced entry this splat may actually choose.
-
-    Two things narrow the menu. `tier_barred_exalt_types` is Prodigy's, barred to four
-    splats for the half that grants a Favored Ability while its "increased aptitude"
-    half stays open to exactly those splats. `merit_cost_options` is Lucky's, where the
-    splat gets a SHORTER menu rather than a differently-priced one. Returns () for an
-    entry with no menu at all — callers should treat that as "no tier to choose", not
-    as "nothing available".
-    """
-    return tuple(t for t in merit_cost_options(definition, exalt_type, caste)
-                 if exalt_type not in definition.tier_barred_exalt_types.get(t, ()))
 
 
-def exalt_type_barred_from_tier(definition, exalt_type: str, tier: str) -> bool:
-    """Whether this splat is barred from one named option of a menu-priced entry."""
-    return exalt_type in definition.tier_barred_exalt_types.get(tier, ())
 
 
-def merit_available_to(definition, exalt_type: str, caste: str = "", *,
-                       origin: str = "", starting_essence: int | None = None) -> bool:
-    """Whether the catalogue opens this entry to this character at all.
-
-    The printed restrictions only — splat allow-list, splat bar, caste bar, origin
-    gate — which are inert catalogue DATA rather than effects, so no Merit id is named
-    and `engine.merits` is not consulted. Prerequisites, tiers and "thaumaturges only"
-    are NOT checked here: those depend on the rest of the sheet and change as it is
-    built, so hiding an entry for them would make the dropdown flicker.
-
-    Shares its three conditions with the `merit-wrong-splat` / `merit-barred-splat` /
-    `merit-barred-caste` issues above, so a UI that filters on this can never offer
-    something validation would immediately reject.
-    """
-    if definition.exalt_types and exalt_type not in definition.exalt_types:
-        return False
-    if exalt_type in definition.barred_exalt_types:
-        return False
-    if caste and caste in definition.barred_castes:
-        return False
-    if definition.required_origins and origin not in definition.required_origins:
-        return False
-    # A splat-level floor on starting Essence. Optional because not every caller has
-    # the budgets to hand; when it is not supplied the entry is NOT hidden, so a
-    # missing argument can only ever be permissive — validation still reports it.
-    if (starting_essence is not None and definition.min_starting_essence
-            and starting_essence < definition.min_starting_essence):
-        return False
-    # Barred at every option of its own menu = barred outright. Derived rather than
-    # duplicated, so a per-tier bar can never disagree with the whole-entry one.
-    if definition.cost_options and not merit_tiers_available(definition, exalt_type):
-        return False
-    return True
 
 
 def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attributes
@@ -3397,7 +2342,6 @@ def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attribu
             for (cat, spend), pool in zip(cat_spends, pools)]
 
 
-WITHHELD_CHARM_TARGET = "charms_withheld"
 
 # Permanent Resonance (Death's Taint) moves on the XP ledger like a curse, but with its
 # own prices in each direction — free to gain, five to shed — so it needs a target the
@@ -3407,143 +2351,14 @@ WITHHELD_CHARM_TARGET = "charms_withheld"
 PERMANENT_RESONANCE_TARGET = "limit_permanent"
 
 
-def withheld_charm_credits(ruleset: RuleSet, character: Character) -> tuple[int, int]:
-    """(granted, remaining) chargen Charm picks banked for XP-free use after the lock.
-
-    Weak Essence lets a new Exalt "withhold up to five Charms in reserve … Withheld
-    Charms waive their experience cost" (p.41), because a character pinned at Essence 1
-    cannot qualify for enough Charms to spend a full chargen budget.
-
-    NOTHING new is stored. How many were withheld is the unspent remainder of the
-    chargen Charm budget — the snapshot already records what was taken — capped by the
-    Flaw's own ceiling:
-
-        granted = min(charm_credits_max, charm_count − picks taken)
-
-    which is the human's rule ("keep the free Charms at 5; if more than five Charms are
-    selected during chargen, subtract the number over") stated so it holds for any
-    splat's budget rather than only Solar's 10. Banking can never yield MORE Charms than
-    the character's ordinary budget: it defers picks, it does not add them.
-
-    Redemptions are counted straight off the append-only XP log, so the pair always
-    reconciles with what was actually spent.
-    """
-    ceiling = merits.merits_and_flaws_calc(ruleset, character).charm_credits_max
-    if not ceiling:
-        return 0, 0
-    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
-    taken = len(chargen_charm_picks(ruleset, character))
-    granted = max(0, min(ceiling, b.charm_count - taken))
-    redeemed = sum(1 for e in character.xp_log if e.target == WITHHELD_CHARM_TARGET)
-    return granted, max(0, granted - redeemed)
 
 
-def effective_budgets(ruleset: RuleSet, character: Character):
-    """The character's chargen budgets, reduced by any trait-forfeit Flaw they hold.
-
-    Four Flaws (PG pp.35-36) pay bonus points for free chargen dots GIVEN UP rather
-    than for a disadvantage suffered — Callous trades Virtue dots, Unskilled Ability
-    dots, Weak-Willed permanent Willpower, Diminished Attributes Attribute dots. The
-    human's framing (2026-07-30) is that this is a budget delta and nothing more: a
-    Callous character who sold two Virtue dots has a Virtue budget of 3 rather than 5,
-    and every existing over-spend check then does the real work unchanged.
-
-    The printed budget stays the one in `data/`; this returns a COPY. Callers that want
-    to show the player what they gave up can diff the two.
-
-    Diminished Attributes is deliberately NOT applied here: `attribute_pools` are
-    matched to categories by spend rather than declared, so the forfeit has to be taken
-    off the pool that its category actually receives, at the point the two are zipped.
-    `MeritEffects.forfeited_attribute_dots` carries it; nothing consumes it yet.
-
-    A budget may also be ENLARGED the same way (A6): Heir Apparent's inheritance adds
-    Background dots. Same delta, opposite sign — that symmetry is why it belongs here
-    rather than anywhere the Background pool is read.
-    """
-    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
-    effects = merits.merits_and_flaws_calc(ruleset, character)
-    if not (effects.forfeited_ability_dots or effects.forfeited_virtue_dots
-            or effects.bonus_background_dots):
-        return b
-    return b.model_copy(update={
-        "ability_dots": max(0, b.ability_dots - effects.forfeited_ability_dots),
-        "virtue_dots": max(0, b.virtue_dots - effects.forfeited_virtue_dots),
-        "background_dots": b.background_dots + effects.bonus_background_dots,
-    })
 
 
-def merit_points(definition, purchase, exalt_type: str = "", caste: str = "") -> int:
-    if definition.variable_cost:
-        return max(0, purchase.points)
-    # A two-sided entry may price each side differently (Eternal Vow: 3 as a Merit,
-    # 1 as a Flaw), and that outranks every other shape.
-    if definition.cost_by_kind:
-        side = effective_merit_kind(definition, purchase)
-        if side in definition.cost_by_kind:
-            return definition.cost_by_kind[side]
-    options = merit_cost_options(definition, exalt_type, caste)
-    if options:
-        return options.get(purchase.tier, options.get("", 0))
-    return definition.cost
 
 
-def pool_requires_unlocking(ruleset: RuleSet, character: Character) -> bool:
-    """Whether the splat's Essence pool exists only after a Merit unlocks it — the
-    God-Blooded's (Awakened Essence, PG p.66; the per-heritage formula sits on the
-    caste's heritage_traits, not on the ExaltDefinition) and the mortal's (Essence
-    Awareness / Essence Mastery). True exactly when the splat has no NATIVE pool and
-    some unlocked spec exists to replace the empty one. One read site, shared by the
-    chargen gate (magic_gate_issues) and the advancement-side refusals, so the two
-    cannot disagree about which splats are gated."""
-    exalt = ruleset.exalt_for(character.exalt_type)
-    if exalt.essence.personal_essence_coeff or exalt.essence.personal_willpower_coeff:
-        return False                       # a native pool needs no unlocking
-    caste = ruleset.castes.get(character.caste)
-    if caste is not None and caste.heritage_traits is not None \
-            and caste.heritage_traits.unlocked_essence is not None:
-        return True
-    return exalt.unlocked_essence is not None
 
 
-def magic_gate_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """A splat whose Essence pool must be UNLOCKED (see `pool_requires_unlocking` —
-    the God-Blooded's pool comes from the Awakened Essence Merit, PG p.66) may not
-    hold Charms, spells, or Essence above its start until the pool is unlocked:
-    p.49, "Only God-Blooded with the Awakened Essence Merit may purchase or increase
-    magical Traits."
-
-    Mortals are deliberately skipped (`charms_available` False) — their bars already
-    live in charm_matches_splat and essence_start_cap, and this would double-report
-    the same Charm. God-Blooded hold Charms freely once unlocked (charms_available
-    True), so this gate is what stops an Awakened-Essence-less build from keeping the
-    seven-BP Charms. Mirrors the advancement-side refusal in learn_charm/learn_spell."""
-    exalt = ruleset.exalt_for(character.exalt_type)
-    if not pool_requires_unlocking(ruleset, character) or not exalt.charms_available:
-        return []
-    if merits.merits_and_flaws_calc(ruleset, character).essence_pool_unlocked:
-        return []
-    b = ruleset.budgets_for(character.exalt_type, character.origin,
-                            character.upbringing)
-    issues: list[Issue] = []
-    if list(charm_picks(ruleset, character)):
-        issues.append(Issue(
-            code="magic-requires-awakened-essence", where="charms",
-            message=f"{exalt.label} may not purchase Charms without the Awakened "
-                    "Essence Merit (PG p.49).",
-        ))
-    if character.spells:
-        issues.append(Issue(
-            code="magic-requires-awakened-essence", where="spells",
-            message=f"{exalt.label} may not learn spells without the Awakened Essence "
-                    "Merit (PG p.49).",
-        ))
-    if character.essence_rating > b.essence_start:
-        issues.append(Issue(
-            code="magic-requires-awakened-essence", where="essence",
-            message="Essence above the starting rating requires the Awakened Essence "
-                    "Merit (PG p.48).",
-        ))
-    return issues
 
 
 def heritage_origin_issues(ruleset: RuleSet, character: Character) -> list[Issue]:

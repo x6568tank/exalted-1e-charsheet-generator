@@ -65,9 +65,16 @@ def test_no_module_outside_engine_merits_names_a_merit_id():
     into merits_and_flaws_calc and give MeritEffects a field for it.
     """
     pkg = Path(exalted_builder.__file__).parent
+    # ⚠ The exemption is the ONE path `engine/merits.py`, not the basename
+    # "merits.py". While it was a basename check, creating any other merits.py
+    # anywhere in the package — `engine/validate/merits.py` was about to be one —
+    # would have silently exempted itself from the containment rule this test is
+    # the only enforcement of.
+    owner = pkg / "engine" / "merits.py"
+    assert owner.exists(), f"{owner} is gone — decision 0011's owner moved, fix this test"
     offenders = []
     for path in sorted(pkg.rglob("*.py")):
-        if path.name == "merits.py":
+        if path == owner:
             continue
         text = path.read_text()
         if "thaum.essence-" in text or "thaum.oathbound" in text:

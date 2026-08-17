@@ -25,7 +25,8 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 from ...models.character import Character, ThaumaturgyState
-from ...models.rules import AbilityName, AttributeName
+from ...models.rules import AbilityName, AttributeName, RuleSet
+from .. import merits
 
 # Attribute categories and the order Strength/Dexterity/Stamina etc. (core p.104).
 # Which category receives which of the 8/6/4 pools is the player's priority and is
@@ -103,3 +104,37 @@ def _chargen_source(character: Character):
         snap.favored_path if snap else character.favored_path,
         snap.elemental_powers if snap else character.elemental_powers,
     )
+
+
+def effective_budgets(ruleset: RuleSet, character: Character):
+    """The character's chargen budgets, reduced by any trait-forfeit Flaw they hold.
+
+    Four Flaws (PG pp.35-36) pay bonus points for free chargen dots GIVEN UP rather
+    than for a disadvantage suffered — Callous trades Virtue dots, Unskilled Ability
+    dots, Weak-Willed permanent Willpower, Diminished Attributes Attribute dots. The
+    human's framing (2026-07-30) is that this is a budget delta and nothing more: a
+    Callous character who sold two Virtue dots has a Virtue budget of 3 rather than 5,
+    and every existing over-spend check then does the real work unchanged.
+
+    The printed budget stays the one in `data/`; this returns a COPY. Callers that want
+    to show the player what they gave up can diff the two.
+
+    Diminished Attributes is deliberately NOT applied here: `attribute_pools` are
+    matched to categories by spend rather than declared, so the forfeit has to be taken
+    off the pool that its category actually receives, at the point the two are zipped.
+    `MeritEffects.forfeited_attribute_dots` carries it; nothing consumes it yet.
+
+    A budget may also be ENLARGED the same way (A6): Heir Apparent's inheritance adds
+    Background dots. Same delta, opposite sign — that symmetry is why it belongs here
+    rather than anywhere the Background pool is read.
+    """
+    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
+    effects = merits.merits_and_flaws_calc(ruleset, character)
+    if not (effects.forfeited_ability_dots or effects.forfeited_virtue_dots
+            or effects.bonus_background_dots):
+        return b
+    return b.model_copy(update={
+        "ability_dots": max(0, b.ability_dots - effects.forfeited_ability_dots),
+        "virtue_dots": max(0, b.virtue_dots - effects.forfeited_virtue_dots),
+        "background_dots": b.background_dots + effects.bonus_background_dots,
+    })
