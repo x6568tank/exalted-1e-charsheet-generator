@@ -1,14 +1,13 @@
 """
 engine/validate/alchemical.py — Charm Slots, Arrays and Submodules.
 
-The Alchemical Exalted install Charms into a fixed number of slots rather than
-learning them outright, group them into Arrays, and buy Submodules that hang off an
-installed Charm. This module owns Array and Submodule legality and the installation
-mote cost; the SLOT COUNTING itself is in `charms.py`, with the rest of the
-Charm economy.
+The Alchemical Exalted install Charms into a fixed number of Slots rather than learning
+them outright, group them into Arrays, and buy Submodules hanging off an installed
+Charm. This module owns Array and Submodule legality and the installation mote cost.
 
-`array_installation_motes` is the public cost of one Array; `_installation_motes`
-totals a character's, and is the one back-edge `charms.charm_slot_usage` reaches for.
+⚠ Slot COUNTING lives in `charms.py` with the rest of the Charm economy, not here.
+`_installation_motes` is the back-edge `charms.charm_slot_usage` reaches for, which is
+why that call is deferred to call time.
 """
 
 from __future__ import annotations

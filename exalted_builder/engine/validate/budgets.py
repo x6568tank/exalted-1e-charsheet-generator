@@ -105,28 +105,25 @@ def _ability_slots(abilities: dict, crafts: list):
 
 
 def two_pool_ability_accounting(b, character, abilities, crafts, bp_costs=None):
-    """The Mountain Folk two-pool Ability accounting (CH6 p.230), and the ONE read
-    site for it — `bonus_point_breakdown`, the unspent warning and the editor's
-    "N / M dots spent" readout all call this, so they cannot disagree.
+    """The Mountain Folk two-pool Ability accounting (CH6 p.230).
 
-    The free pool (`ability_dots`) funds ANY Ability's dots up to `ability_cap_pre_bp`
-    (3); the favored pool (`ability_favored_dots`) funds FAVORED Abilities' dots above
-    that and up to the chargen ability ceiling (5 — "can increase Abilities as high as
-    six dots with bonus points", so the sixth dot is bonus points). Dots neither pool
-    covers are bonus points at the existing tier rates: the ordinary rate for a
-    non-Favored Ability's 4th dot, the favored rate for a Favored Ability's 6th.
+    The free pool (`ability_dots`) funds ANY Ability up to `ability_cap_pre_bp` (3); the
+    favored pool (`ability_favored_dots`) funds FAVORED Abilities above that up to the
+    chargen ceiling of 5. Dots neither pool covers are bonus points at the ordinary or
+    favored tier rate.
 
-    Allocation between the pools is the player's choice and is not recorded, so this
-    computes the PLAYER-FAVOURABLE one — the cheapest legal assignment, the same
-    principle `background_pool_spend` uses for Heir Apparent's waived dots: the free
-    pool is spent first (it is free up to its budget), a Favored Ability's remaining
-    dots ride the favored pool, and the favored pool is overflowed (1 BP/dot) rather
-    than the free pool (2 BP/dot) when both run out.
+    Allocation between the pools is the player's and is not recorded, so this computes
+    the cheapest legal assignment: spend the free pool first, ride a Favored Ability's
+    remaining dots on the favored pool, and overflow the favored pool (1 BP/dot) rather
+    than the free one (2 BP/dot).
 
-    Returns `(within, ability_bp)`: `within` is how many pool dots are spent (counted
-    against the combined `ability_dots + ability_favored_dots` budget); `ability_bp`
-    is the bonus-point charge (0 when `bp_costs` is None, which is what the unspent
-    warning and the editor readout pass)."""
+    Returns `(within, ability_bp)` — pool dots spent against the combined budget, and
+    the bonus-point charge. `ability_bp` is 0 when `bp_costs` is None.
+
+    ⚠ The ONE read site for this rule. `bonus_point_breakdown`, the unspent warning and
+    the editor's "N / M dots spent" readout all call it; a second implementation drifts
+    from the others silently.
+    """
     cap = b.ability_cap_pre_bp
     ceiling = merits.DOT_MAX          # 5 — the chargen ability ceiling (p.230)
     favored_set = set(character.favored_abilities)
@@ -173,18 +170,17 @@ def _attr_bp_caste_favored(ruleset: RuleSet, character: Character, b, bp_costs,
 def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
     """Free chargen dots the character has NOT allocated, as non-blocking warnings.
 
-    The engine's budget arithmetic is otherwise entirely one-sided: every domain
-    computes `max(0, spend - budget)`, charges the overflow to bonus points and errors
-    only if THAT exceeds the allowance. Nothing ever noticed a character who spent too
-    LITTLE, so a completely blank sheet reported "✓ Legal" — visible on a mortal, whose
-    lack of caste rules leaves nothing else to report, but true of every splat.
+    Covers Attributes, Abilities, Virtues and Backgrounds. Reads the frozen snapshot
+    once locked, like the rest of the chargen accounting.
 
-    Warnings, not errors (rules-authority call, 2026-07-30): an unfinished sheet is
-    incomplete, not illegal, and the UI already treats severity="warning" as
-    non-blocking. Covers Attributes, Abilities, Virtues and **Backgrounds**; bonus
-    points are deliberately EXCLUDED — "BP are bonus for a reason", and a concept may
-    legitimately not want them. Reads the frozen snapshot once locked, like all the
-    other chargen accounting, so a locked sheet's warnings never drift.
+    ⚠ WARNINGS, never errors (human's ruling): an unfinished sheet is incomplete, not
+    illegal, and the UI treats severity="warning" as non-blocking. The rest of the
+    engine's budget arithmetic is one-sided — every domain charges `max(0, spend -
+    budget)` to bonus points and never notices a character who spent too LITTLE, which
+    is why a blank sheet read "✓ Legal" without this.
+
+    ⚠ Bonus points are deliberately EXCLUDED: unspent BP are not an omission, and a
+    concept may legitimately not want them.
     """
     b = effective_budgets(ruleset, character)
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
@@ -240,16 +236,13 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
                             for f in character.fetters)
         warn("Fetter", b.fetter_dots - fetter_within, b.fetter_dots)
 
-    # Charms — the one chargen pool counted in PICKS rather than dots, which is why
-    # it does not go through `warn`. A heroic ghost gets six Arcanoi and nothing said
-    # so: every other domain warned about its leftovers and this one never did, so a
-    # sheet with no magic at all still read as merely "incomplete elsewhere".
+    # Charms — the one chargen pool counted in PICKS rather than dots, so it does not
+    # go through `warn`. The pool is shared with Spells (p.100) and the Immaculate path
+    # swaps its size (DB p.151).
     #
-    # The pool is shared with Spells (p.100) and the Immaculate path swaps its size
-    # (DB p.151), both exactly as `bonus_point_breakdown` prices it — same two
-    # expressions, so the warning and the billing cannot drift. Skipped for the slot
-    # economy: an Alchemical buys Slots, not picks, and the picker already shows slot
-    # occupancy. `charm_noun` makes the message say Arcanoi to a ghost.
+    # ⚠ Both expressions must match `bonus_point_breakdown`'s, or the warning and the
+    # billing drift. Skipped for the slot economy: an Alchemical buys Slots, not picks.
+    # `charm_noun` makes the message say Arcanoi to a ghost.
     if b.charm_count and not uses_charm_slots(ruleset, character):
         pool = (b.immaculate_charm_count
                 if _immaculate_path(ruleset, charms, character.exalt_type)
@@ -398,14 +391,13 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                 attr_bp += (effective - 5) * bp_costs.attribute
 
     # --- Abilities: 25 free dots, pre-BP cap 3 -------------------------------- #
-    # Four rate tiers, because a Calling (Cult of the Illuminated, p.90) is a discount
-    # axis that STACKS with Caste/Favoured rather than replacing it:
+    # Four rate tiers, because a Calling (Cult of the Illuminated, p.90) STACKS with
+    # Caste/Favoured rather than replacing it:
     #   both      1 BP per `calling_ability_favored_caste_dots_per_point` dots (0.5/dot)
     #   cf only   bp_costs.ability_favored_caste                              (1/dot)
     #   calling   bp_costs.calling_ability                                    (1/dot)
     #   neither   bp_costs.ability                                            (2/dot)
-    # With no Calling the two Calling tiers stay empty and this reduces exactly to the
-    # previous two-tier arithmetic, so every other splat is unaffected.
+    # With no Calling the two Calling tiers stay empty, reducing to two-tier pricing.
     cap = b.ability_cap_pre_bp
     call_set = calling_abilities(ruleset, character)
     per_point = max(1, bp_costs.calling_ability_favored_caste_dots_per_point)
@@ -596,9 +588,8 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
 
     # --- Fetters (ghosts only, E:Ab p.126-127) -------------------------------- #
     # Same `within`/`above` shape as Backgrounds: dots at or below the pre-BP cap come
-    # out of the pool, dots above it are bonus points, and pool overflow is bonus
-    # points too. 0 for every other splat, whose fetter list is empty and whose
-    # `fetter_dots` budget is 0.
+    # from the pool, dots above it and any pool overflow are bonus points. 0 for every
+    # other splat, whose fetter list and `fetter_dots` budget are both empty.
     #
     # There is deliberately no Passion line. Passions are derived from the Virtues and
     # cost nothing at any point (p.283) — see models.character.PassionEntry.
@@ -685,19 +676,19 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
 def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attributes
                               ) -> list[tuple[str, int, int]]:
     """[(category, spend, pool)] for category-mode splats — which of the 8/6/4 pools
-    each Attribute category gets, and how many dots were spent against it.
+    each Attribute category receives, and the dots spent against it.
 
-    The pools are matched to categories BY SPEND, not declared: the biggest spend takes
-    the biggest pool. That is why Diminished Attributes cannot be applied as a budget
-    delta the way Callous and Unskilled are — the forfeit has to come off the pool its
-    category actually receives, which is only known once the matching is done. So the
-    matching happens first, on the character's real spends, and the forfeit is taken
-    off the pool afterwards.
+    Pools are matched to categories BY SPEND rather than declared: the biggest spend
+    takes the biggest pool.
 
-    A consequence the human accepted explicitly (2026-07-30): forfeiting dots lowers a
-    category's spend, which can drop it to a smaller pool, and that reshuffle can cost
-    bonus points elsewhere. "If BP need be consumed because of how the pools change,
-    then that's what happens."
+    ⚠ That is why Diminished Attributes cannot be a budget delta the way Callous and
+    Unskilled are. The forfeit must come off the pool its category ACTUALLY receives,
+    which is only known after matching — so matching runs first, on the real spends,
+    and the forfeit comes off afterwards.
+
+    ⚠ Accepted consequence (human's ruling): forfeiting dots lowers a category's spend,
+    which can drop it to a smaller pool, and the reshuffle can cost bonus points
+    elsewhere.
     """
     forfeits = merits.merits_and_flaws_calc(ruleset, character).forfeited_attribute_dots
     cat_spends = sorted(
@@ -715,18 +706,17 @@ def _chargen_attribute_range_issues(b, attributes, mf_caps) -> list[Issue]:
     for one named Attribute; the floor follows a Flaw-lowered ceiling down."""
     issues: list[Issue] = []
     for name, attr in attributes.items():
-        # The origin's own ceiling (Enlightened Mountain Folk 7; the Unenlightened's
-        # Intelligence 2, CH6 p.230) is the DEFAULT the Merit machinery raises or
-        # lowers from — an absent origin cap is the universal 5.
+        # The origin's own ceiling (Enlightened Mountain Folk 7, the Unenlightened's
+        # Intelligence 2, CH6 p.230) is the DEFAULT a Merit raises or lowers from; an
+        # absent origin cap is the universal 5.
         origin_cap = b.attribute_caps.get(name.value, b.attribute_cap or merits.DOT_MAX)
         cap = mf_caps.attribute_caps.get(name.value, origin_cap)
-        # A Flaw's ceiling can sit BELOW the normal chargen floor — Disfigured at four
-        # points is "an Appearance of 0", and the free dot every Attribute starts with
-        # is exactly what it takes away. So the floor follows the ceiling down. An
-        # origin's FLOOR (Enlightened Mountain Folk: "no Attribute ... lower than
-        # three", CH6 p.230) raises it — but must still follow a Flaw-lowered ceiling
-        # below itself, or a Disfigured Enlightened Jadeborn gets an unsatisfiable
-        # "3-0" range.
+        # ⚠ The floor must follow the ceiling DOWN. A Flaw's ceiling can sit below the
+        # normal chargen floor (Disfigured at four points is "an Appearance of 0",
+        # taking away the free dot every Attribute starts with), and an origin FLOOR
+        # (Enlightened Mountain Folk's "no Attribute ... lower than three", CH6 p.230)
+        # raises it — so a Disfigured Enlightened Jadeborn would otherwise be given an
+        # unsatisfiable "3-0" range.
         low = min(b.attribute_min or b.attribute_base, cap)
         if not (low <= attr <= cap):
             span = f"exactly {cap}" if low == cap else f"{low}-{cap}"
@@ -798,11 +788,9 @@ def _chargen_required_ability_issues(ruleset: RuleSet, character: Character, b, 
     the Sidereal per-house floor (p.98), the Illuminated camp regimen (p.89), and
     the group-sum floors where a rating is divided among a set of Abilities."""
     issues: list[Issue] = []
-    # Required minimum Abilities — the Dragon-Blooded Dynastic schooling floor
-    # (p.151) and the Sidereal per-house floor (p.98). Each requirement is satisfied
-    # by any one of its listed Abilities; the budget's (exalt-type-keyed) list is
-    # unioned with the caste's own (the Sidereal per-house minimums live on the caste
-    # because they differ per house, unlike the DB floor which is aspect-agnostic).
+    # Each requirement is satisfied by any ONE of its listed Abilities. The budget's
+    # exalt-type-keyed list is unioned with the caste's own, because the Sidereal
+    # per-house minimums differ per house while the DB floor is aspect-agnostic.
     # A ronin Sidereal keeps a Caste but "has no minimum required Ability scores"
     # (p.100), so that origin suppresses the caste half outright.
     caste_def = ruleset.castes.get(character.caste)
@@ -1156,17 +1144,14 @@ def _chargen_martial_arts_form_issues(ruleset: RuleSet, b, charms) -> list[Issue
     issues: list[Issue] = []
     # --- Sidereal Martial Arts form cap (p.101) ------------------------------ #
     # "no more than 3 [chargen Charms] may be from a Sidereal Martial Arts form;
-    # ronin ... none". A "form" is a SIDEREAL martial-arts style — the three secret
-    # styles of Sidereals pp.184-201. The Violet Bier auspicious tree is a lesser
-    # (Celestial) style and is uncapped. None on every other splat = no cap.
+    # ronin ... none". A "form" is one of the three secret Sidereal styles
+    # (Sidereals pp.184-201). No cap on any other splat.
     #
-    # ⚠ This used to test `c.open_to_tiers`, i.e. "any Celestial-open martial-arts
-    # Charm", as a proxy for "is a Sidereal MA form". The proxy was wrong and got
-    # worse as the catalogue grew: it matched 140 Charms across TWELVE styles when
-    # only 41 across three are Sidereal MA, so the five Immaculate Dragon Paths,
-    # Celestial Monkey, Dreaming Pearl, Righteous Devil and Hungry Ghost all counted
-    # against this cap — and a ronin, whose cap is 0, could not take a single
-    # Celestial Monkey Charm. `ma_tier` names the style KIND directly.
+    # ⚠ Keyed on `ma_tier`, NEVER on `open_to_tiers`. The latter means "who may learn
+    # this" and as a proxy here it matched 140 Charms across twelve styles when only
+    # 41 across three qualify — Violet Bier, the Immaculate Dragon Paths, Celestial
+    # Monkey and others counted, and a ronin (cap 0) could learn no Celestial Monkey
+    # Charm at all.
     if b.martial_arts_form_charm_cap is not None:
         n_form = sum(
             1 for cid in charms
@@ -1267,14 +1252,12 @@ def _chargen_essence_issues(b, mf, essence) -> list[Issue]:
             code="essence-below-start",
             message=f"Essence {essence} is below the starting {b.essence_start}.",
         ))
-    # A hard ceiling AFTER bonus points, where an origin sets one: the Illuminated
-    # Solar starts at 3 and may buy higher, but "under no circumstances" begins at 6+
-    # (p.90). 0 = no ceiling, which is every other splat.
-    # The universal creation ceiling, under every splat's own: no character may leave
-    # creation with Essence above 5 — Essence is XP-purchasable past it only after the
-    # lock (see advancement.raise_essence). Separate from `essence_start_cap` below,
-    # which is a narrower origin rule — this one holds even for a splat that sets no
-    # origin ceiling at all.
+    # The UNIVERSAL creation ceiling: no character leaves creation with Essence above 5,
+    # which is XP-purchasable only after the lock (advancement.raise_essence).
+    #
+    # ⚠ Distinct from `essence_start_cap` below, a narrower per-origin rule (the
+    # Illuminated Solar starts at 3 and may buy up, but "under no circumstances" begins
+    # at 6+, p.90). This one binds even for a splat that sets no origin ceiling.
     if essence > elder.DOT_MAX:
         issues.append(Issue(
             code="essence-above-elder-chargen-cap",
@@ -1291,18 +1274,20 @@ def _chargen_essence_issues(b, mf, essence) -> list[Issue]:
 
 
 def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Chargen budget predicates and bonus-point reconciliation (Exalted 1e core,
-    pp.104-105). Validates the creation allocation: current traits pre-lock, or
-    the frozen ChargenSnapshot once locked.
+    """Every chargen legality predicate, plus the bonus-point ceiling (core pp.104-105).
 
-    The per-domain bonus-point arithmetic lives in `bonus_point_breakdown`; this
-    function adds the legality predicates (ranges, Caste/Favoured minimums, the
-    Willpower start-cap, the Charm/Spell Caste-Favoured minimum) and the final
-    budget-ceiling check. One known simplification, flagged for the rules
-    authority: the "10 of 25 Ability dots / 5 of 10 Charms must be Caste or
-    Favoured" rules are checked as necessary conditions rather than jointly
-    optimised with the free-dot assignment; the two only interact in rare
-    over-spent builds.
+    Validates the creation allocation — live traits pre-lock, the frozen
+    ChargenSnapshot once locked. Delegates one section per printed domain to the
+    `_chargen_*_issues` helpers above, then reconciles the total against
+    `bonus_point_breakdown`.
+
+    ⚠ Known simplification, flagged to the rules authority: the "10 of 25 Ability dots
+    / 5 of 10 Charms must be Caste or Favoured" rules are checked as NECESSARY
+    conditions, not jointly optimised with the free-dot assignment. The two interact
+    only in rare over-spent builds.
+
+    ⚠ A section that binds on both sides of the lock does NOT belong here — it belongs
+    in its domain module, reached from `validate()`. This function runs at chargen only.
     """
     issues: list[Issue] = []
     b = effective_budgets(ruleset, character)
@@ -1312,9 +1297,10 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
      _favored_path, _elemental_powers) = _chargen_source(character)
 
     # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
-    # for every splat whose Backgrounds are purely narrative. The character goes in —
-    # the Attribute-sum cap (Sidereal Connections) and the PER-CHARACTER ST toggles
-    # both read it, and an omitted character silently skips them (the house bug).
+    # for every splat whose Backgrounds are purely narrative.
+    #
+    # ⚠ `character` must be passed. The Attribute-sum cap (Sidereal Connections) and the
+    # per-character ST toggles all read it, and omitting it skips them silently.
     issues += background_issues(b, backgrounds, character)
 
     # Thaumaturgy: Occult gates on Arts, aspects and rituals; per-Science ceilings.
@@ -1400,17 +1386,14 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     mf_caps = merits.merits_and_flaws_calc(ruleset, character)
     issues += _chargen_attribute_range_issues(b, attributes, mf_caps)
 
-    # Dragon-King breed attribute bonuses (PG pp.167-174): free dots ON TOP of the
-    # stored value — they do not consume the pools, and the EFFECTIVE total may pass
-    # 5 (a Pterok's stored Dexterity 5 reads as an effective 7), but each effective
-    # dot above 5 is bought with bonus points at the attribute rate, charged in
-    # bonus_point_breakdown. p.175's "cannot have any Attributes higher than 5
-    # without spending bonus or experience points" is read against the effective
-    # value — the 2026-08-06 "free past 5" reading was a misunderstanding and is
-    # reversed. The stored 5-ceiling (the range check above) is the trait cap Essence
-    # (max(5, Essence)); at chargen Essence 2/3/5 that is 5, so no stored dot above 5
-    # exists here to gate. Past 5 is the post-lock XP path at Essence 6 (see
-    # raise_attribute), and effective past 5 is BP-bought, not free.
+    # Dragon-King breed attribute bonuses (PG pp.167-174) are free dots ON TOP of the
+    # stored value: they consume no pool, and the EFFECTIVE total may pass 5 (a Pterok's
+    # stored Dexterity 5 reads as 7).
+    #
+    # ⚠ Effective dots above 5 are NOT free — each is BP-bought at the attribute rate,
+    # charged in `bonus_point_breakdown`, per p.175's "cannot have any Attributes higher
+    # than 5 without spending bonus or experience points". The STORED ceiling is the
+    # separate thing the range check above enforces.
     #
     issues += _chargen_caste_favored_attribute_issues(ruleset, character, b, attributes)
     issues += _chargen_ability_dot_issues(b, abilities, crafts, cf_set)

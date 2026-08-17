@@ -2,13 +2,13 @@
 engine/validate/elemental.py — Dragon-Blooded Elemental Powers.
 
 A rated subsystem gated on the character's Aspect. `elemental_powers_available` says
-whether the character has the subsystem at all, `legal_elemental_powers` is what the
-picker offers, and `elemental_power_issues` validates what they hold.
+whether the character has the subsystem, `legal_elemental_powers` is what the picker
+offers, `elemental_power_issues` validates what is held.
 
 ⚠ `elemental_power_issues` runs on BOTH sides of the lock and reads the LIVE
-`character.elemental_powers`, not the snapshot: powers are bought in play as well as
-at creation, so the snapshot only ever holds the chargen picks and a snapshot-only
-read would go dead at the lock.
+`character.elemental_powers`, never the snapshot. Powers are bought in play as well as
+at creation, so the snapshot holds only the chargen picks and a snapshot read goes dead
+at the lock.
 """
 
 from __future__ import annotations

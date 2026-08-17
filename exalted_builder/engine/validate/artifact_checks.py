@@ -1,28 +1,26 @@
 """
 engine/validate/artifact_checks.py — artifact legality and the Artifact budget.
 
-⚠ Named `artifact_checks`, not `artifacts`, deliberately: this module reads
-`engine/artifacts.py` throughout as `artifacts.X`, and a sibling called
-`validate/artifacts.py` would make every one of those references ambiguous to a
-reader and to grep. The rating/soak MECHANICS live in `engine/artifacts.py`; only
-the legality checks are here.
+Owns `check_artifacts` and its three helpers: the Background-funded budget (E:Ab p.131),
+the chargen purchase bar, and the corebook single-artifact default.
 
-Owns `check_artifacts` and its three helpers: the Background-funded budget
-(E:Ab p.131), the chargen purchase bar, and the corebook single-artifact default.
+⚠ Named `artifact_checks`, not `artifacts`: it reads `engine/artifacts.py` as
+`artifacts.X` throughout, which a same-named sibling would make ambiguous. The rating
+and soak MECHANICS live there; only legality lives here.
 
-⚠ Artifacts have THREE acquisition channels (decision 0017, amended 2026-08-13/14),
-and only the first is budgeted:
-  1. the **Artifact Background** — pre-game, "to start the game owning" (core p.342);
-  2. **cash** in play (M&C pp.122-125), barred at chargen;
-  3. the **Legendary Artifact 10-pt Merit** — five plot devices printing
-     "(ARTIFACT N/A)", charged to no budget at all.
+⚠ Artifacts have THREE acquisition channels (decision 0017, amended 2026-08-13/14) and
+only the first is budgeted:
+  1. the Artifact Background — pre-game, "to start the game owning" (core p.342);
+  2. cash in play (M&C pp.122-125), barred at chargen;
+  3. the Legendary Artifact 10-pt Merit — five plot devices printing "(ARTIFACT N/A)",
+     charged to no budget at all.
 
 ⚠ ONE ARTIFACT PER BACKGROUND ROW. Two Artifact •• rows are two artifacts, not one
-•••• — which is why this reads `background_rows`, never `background_rating`.
+••••, which is why this reads `background_rows` and never `background_rating`.
 
-⚠ The Merit-gated bar keys on the artifact NAME, not on the player-editable
-`acquired` field. `ArtifactType.requires_merit` is DATA precisely so no module here
-names a Merit id (decision 0011).
+⚠ The Merit-gated bar keys on the artifact NAME, not the player-editable `acquired`
+field. `ArtifactType.requires_merit` is DATA so that no module here names a Merit id
+(decision 0011).
 """
 
 from __future__ import annotations
@@ -35,18 +33,17 @@ from .backgrounds import background_rating, background_rows
 
 
 def _purchased_at_chargen_issues(character: Character) -> list[Issue]:
-    """Artifacts may not be BOUGHT during character creation (human's ruling
-    2026-08-13).
+    """Artifacts marked as PURCHASED before the lock; empty once locked.
 
     The corebook defines the Artifact column of every gear table as "the number of dots
     in the Artifact Background the character must spend TO START THE GAME OWNING one of
-    these" (p.342; p.345 for armour), so the Background is the pre-game channel and cash
-    is the in-play one. Without this, `acquired` would be a hole straight through the
-    budget at exactly the phase the budget exists for: a player could mark every artifact
-    purchased and start play with a hoard the Background never paid for.
+    these" (p.342, p.345 for armour), so the Background is the pre-game channel and cash
+    is the in-play one (human's ruling).
 
-    Post-lock it is silent — buying an artifact with money is the whole point of the
-    other channel, and Resources is a hint rather than a validation (core p.325).
+    ⚠ Without this, `acquired` is a hole straight through the budget at the one phase
+    the budget exists for. Silent post-lock by design — buying with money is the whole
+    point of the other channel, and Resources is a hint rather than a validation
+    (core p.325).
     """
     if character.chargen_locked:
         return []
@@ -62,18 +59,19 @@ def _purchased_at_chargen_issues(character: Character) -> list[Issue]:
 
 
 def _missing_merit_issues(ruleset, character: Character) -> list[Issue]:
-    """Owning a plot-device artifact without the Merit that is its whole price.
+    """Plot-device artifacts held without the Merit that is their whole price.
 
-    The Mantle of Brigid and the Sword of Ice (BoTC pp.25-27) print "(ARTIFACT N/A)" —
-    no Background buys them, so no budget can catch them, and without this check they
-    would be the one thing in the catalogue that is free. The human's ruling
-    2026-08-13 is that they cost the Legendary Artifact 10-pt Merit; this is the bar,
-    and `artifacts.purchasable_artifacts` is the matching OFFER.
+    The five "(ARTIFACT N/A)" entries — the Mantle of Brigid and the Sword of Ice
+    (BoTC pp.25-27) and three since — print no Background cost, so no budget can catch
+    them; they cost the Legendary Artifact 10-pt Merit instead (human's ruling). This is
+    the BAR; `artifacts.purchasable_artifacts` is the matching OFFER, and both must move
+    together.
 
-    Runs on BOTH sides of the lock, like every other artifact rule, and for the reason
-    the house bug keeps teaching: the Merit can be dropped after creation as easily as
-    it can be skipped during it, and a chargen-only check would go quiet exactly then.
-    Which Merit is DATA (`ArtifactType.requires_merit`) — no id is named here.
+    ⚠ Runs on BOTH sides of the lock. The Merit can be dropped after creation as easily
+    as skipped during it, so a chargen-only check goes quiet exactly then.
+
+    ⚠ Which Merit is DATA (`ArtifactType.requires_merit`); no id is named here
+    (decision 0011).
     """
     issues: list[Issue] = []
     for name, merit_id in artifacts.missing_merits(ruleset.artifact_catalog, character):
@@ -90,29 +88,19 @@ def _missing_merit_issues(ruleset, character: Character) -> list[Issue]:
 
 def _corebook_artifact_issues(items: list, rows: list[int]) -> list[Issue]:
     """The corebook Artifact Background: ONE artifact per Background ROW, each rated no
-    higher than its own row (human's rulings 2026-07-31 and 2026-08-13).
+    higher than its own row (human's rulings). The default branch for every splat whose
+    own book prints nothing else.
 
-    The rule every splat gets unless its own book prints something else, so this is the
-    branch that runs for plain Solars, Lunars, Sidereals, Ghosts, Godblooded and the
-    Abyssal renegade.
+    Rows and items are matched largest-first. That is exact rather than approximate: a
+    smaller artifact fits anywhere a larger one does, so if any assignment succeeds, the
+    greedy one does.
 
-    ⚠ **Per ROW, not per summed rating.** The first cut read the summed Background and
-    demanded exactly one artifact, so a character holding two Artifact •• Backgrounds
-    and two daiklaves was told "Artifact 4 permits ONE artifact rated no higher than 4"
-    (found in the browser, 2026-08-13). That contradicted an interpretation this build
-    had already recorded — `background_best`'s docstring says in as many words that
-    "two Artifacts at 2 dots each are two artifacts, not one artifact at 4", which is
-    why Damaged Artifact reads the best row rather than the sum. Two rulings, one of
-    them months old, and the new code agreed with neither.
+    ⚠ Per ROW, never per summed rating. Two Artifact •• Backgrounds are two artifacts,
+    not one rated 4 — the same reading `background_best` exists for.
 
-    Rows and items are matched largest-first: the biggest artifact must fit the biggest
-    row. That is the only assignment that can succeed if any can — a smaller artifact
-    fits anywhere a larger one does — so a greedy pass is exact here, not an
-    approximation.
-
-    Both findings are ERRORS, not warnings: the corebook ladder carries no "without
-    Storyteller permission" clause, which is what made the Abyssal per-item cap a
-    warning.
+    ⚠ Both findings are ERRORS, not warnings: the corebook ladder carries no "without
+    Storyteller permission" clause, which is what makes the Abyssal per-item cap a
+    warning instead.
     """
     owned = sorted(items, key=lambda i: i.rating, reverse=True)
     ladder = sorted((r for r in rows if r > 0), reverse=True)
@@ -145,30 +133,26 @@ def _corebook_artifact_issues(items: list, rows: list[int]) -> list[Issue]:
 
 
 def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """The p.131 Artifact BUDGET: combined rating and per-item ceiling, keyed by the
-    character's Artifact Background rating (E:Ab p.131).
+    """The Artifact BUDGET: combined rating and per-item ceiling, keyed by the
+    character's Artifact Background rating (E:Ab p.131). A no-op for a character owning
+    no artifacts.
 
-    Runs on BOTH sides of the lock, following `check_fetters_and_passions` — and for
-    the same reason. The budget is keyed to a Background that experience can raise, so
-    the ceiling MOVES: a loyal Abyssal who buys Artifact ••• with XP may hold a combined
-    7, and one who has an artifact taken away is under budget rather than over. A
-    chargen-only check would go quiet exactly when the cap started changing. This is
-    also why artifacts are absent from `ChargenSnapshot`, which weapons and armour
-    already are.
+    Three branches: the printed TIER table (loyal Abyssal, Illuminated), the MULTIPLIER
+    (DB and Dragon-Kings at two dots per dot, Alchemical at three), and otherwise the
+    COREBOOK default in `_corebook_artifact_issues`.
 
-    Three rules, one per branch: the printed TIER table (loyal Abyssal, Illuminated),
-    the MULTIPLIER (DB and Dragon-Kings at two dots per dot, Alchemical at three), and
-    otherwise the COREBOOK default — see `_corebook_artifact_issues`. Only the last is
-    reachable without a `BackgroundRule` at all, which is why the `rule is None` early
-    return above became a fallback rather than an exit. A no-op for anyone owning no
-    artifacts, which is most characters.
+    The tiered branch reports three things — artifacts with no Artifact Background at
+    all, a combined rating over `combined_max`, and a single item over `individual_max`.
+    The last two are WARNINGS because the page makes them ST-overridable ("without
+    Storyteller permission"); the combined budget is not.
 
-    The tiered branch's three findings:
-      * owning artifacts with no Artifact Background at all,
-      * combined rating over the row's `combined_max`,
-      * a single item over the row's `individual_max` (the lower rows only). The page
-        makes these ST-overridable — "without Storyteller permission" — so they are
-        reported as warnings rather than errors; the combined budget is not.
+    ⚠ Runs on BOTH sides of the lock. The budget is keyed to a Background experience can
+    raise, so the ceiling MOVES — a chargen-only check goes quiet exactly when the cap
+    starts changing. This is also why artifacts are absent from `ChargenSnapshot`.
+
+    ⚠ A splat with no `BackgroundRule` at all falls through to the COREBOOK default. It
+    must be a fallback, not an early return: "no rule" means the default budget, not
+    "no budget".
     """
     issues: list[Issue] = []
     # The BUDGET counts what the Artifact Background bought. A purchased artifact is

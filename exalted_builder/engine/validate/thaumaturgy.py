@@ -1,21 +1,20 @@
 """
 engine/validate/thaumaturgy.py — Arts, Sciences, Rituals and Formulas.
 
-Thaumaturgy is NOT a splat: it is a cross-splat capability layer that any character
-except the Fair Folk may hold, so this module is reachable from every splat's sheet.
-Ghosts are the edge case — they may hold it and may never use it.
+A cross-splat capability layer rather than a splat: any character except the Fair Folk
+may hold it, so this is reachable from every sheet. Owns the purchase enumeration, the
+BP costing, the four `*_locked_reason` helpers the UI greys controls with, and the two
+issue functions.
 
-Owns the purchase enumeration (`thaum_purchases` and the ONE `_thaum_purchases_from`
-that both sides of the lock go through), the BP costing, the four `*_locked_reason`
-helpers the UI greys controls with, and the two issue functions.
+⚠ Ghosts may HOLD thaumaturgy and may never USE it.
 
-⚠ The Science costs (5/7 BP, 7/current×6 XP) are the ONLY values in the build with
-no printed page behind them — the printed tables omit Sciences entirely, and the
-rates were supplied by the human on 2026-07-29.
+⚠ The Science costs (5/7 BP, 7/current×6 XP) are the only values in the build with no
+printed page behind them — the tables omit Sciences entirely. Rates supplied by the
+human 2026-07-29; do not "correct" them from a book.
 
 ⚠ Every Storyteller toggle lives on `HouseRules`, including the two optional p.113
-chargen caps read here. Fields are marked TABLE-WIDE or PER-CHARACTER in comments
-only, and a party-wide "apply to all" control may only touch the former.
+chargen caps read here. Fields are marked TABLE-WIDE or PER-CHARACTER in comments only,
+and a party-wide "apply to all" control may touch only the former.
 
 ⚠ p.116 Step Four errata: the pool is "5 in addition to recorded KNOWLEDGE", not
 Inheritance.
@@ -48,22 +47,19 @@ _ST_CHARGEN_SCIENCE_CAP = 3
 
 
 class ThaumPurchase(BaseModel):
-    """One thaumaturgic thing a character bought, in a shape both currencies price.
+    """One thaumaturgic purchase, in a shape both currencies price.
 
-    The Charm-pick enumeration's sibling, and for the same reason: four
-    heterogeneous purchasables (Arts, Art specialties, Sciences, rituals, formulas)
-    live on five different lists, and each of the BP breakdown, the XP audit and the
-    UI would otherwise walk all five and special-case each. They are enumerated once
-    here and priced once in `thaum_purchase_bp_costs`.
+    Arts, Art specialties, Sciences, rituals and formulas live on five different lists;
+    this enumerates them once so the BP breakdown, the XP audit and the UI need not walk
+    all five.
 
     `level` is the ritual's or formula's level, or the Science's rating; 0 where the
-    kind has none. `orientations` is how many regional versions are owned — the
-    first is included in the base price and each further one costs a flat point
-    (p.124), which is the whole reason a ritual is not a bare id.
+    kind has none. `orientations` is how many regional versions are owned — the first is
+    in the base price, each further one costs a flat point (p.124), which is why a
+    ritual is not a bare id.
 
-    Every kind is priced. Sciences briefly were not — the published cost tables have
-    no Science row — but that is a printing error Grabowski cleared up later, and the
-    rate came from the rules authority (5/7 BP, 7/rating×6 XP).
+    ⚠ EVERY kind is priced, Sciences included. The published cost tables have no Science
+    row; that is a printing error, and the rate comes from the rules authority.
     """
     kind: str                  # art | specialty | science | ritual | formula
     key: str                   # catalogue id, or "art_id:name" for a specialty
@@ -176,18 +172,18 @@ def magic_for_everyone_grant(ruleset: RuleSet, character: Character) -> int:
 
 
 def magic_for_everyone_eligible(ruleset: RuleSet, purchase: ThaumPurchase) -> bool:
-    """Whether `purchase` is the kind of thing the free grant may cover.
+    """Whether `purchase` is the kind of thing the Magic for Everyone grant may cover.
 
-    The rule is explicit about its own limits: "rituals, formulas or procedures of no
-    more than level 3, and only specialties in Arts, not the Arts themselves (so a
-    non-thaumaturge could chose to learn how to ward off ghosts, but not the Art of
-    Warding)". So Arts and Sciences are never free.
+    The rule states its own limits: "rituals, formulas or procedures of no more than
+    level 3, and only specialties in Arts, not the Arts themselves". Arts and Sciences
+    are never free.
 
-    "knowledge of one aspect" means a PRINTED aspect, so a player-invented narrower
-    specialty is not eligible — it is not one of the things the book enumerates.
-    (The sidebar's parenthetical "along with any appropriate specialties" is
-    deliberately unimplemented: the rules authority could not determine what it
-    means, human 2026-07-29. Do not guess at it.)
+    ⚠ "knowledge of one aspect" means a PRINTED aspect, so a player-invented narrower
+    specialty is not eligible.
+
+    ⚠ The sidebar's parenthetical "along with any appropriate specialties" is
+    deliberately UNIMPLEMENTED — the rules authority could not determine what it means.
+    Do not guess at it.
     """
     if purchase.kind in ("art", "science"):
         return False
@@ -333,19 +329,21 @@ def thaum_science_raise_reason(ruleset: RuleSet, character: Character,
 def thaumaturgy_issues(ruleset: RuleSet, character: Character,
                        state: ThaumaturgyState) -> list["Issue"]:
     """Legality of a thaumaturgic holding. Called from `validate_chargen` against the
-    chargen state; safe to call on the live state too.
+    chargen state; safe on the live state too.
 
-    The gates the source actually states:
-      * Ghosts hold thaumaturgy but may never use it (p.114) — a flag, not a bar, so
-        this is an info Issue and never blocks a purchase (rules-authority call 1).
-      * The Fair Folk cannot learn it at all (p.114) — `thaumaturgy_usable` False.
-      * "a thaumaturge must have an Occult score equal to or higher than the
-        ritual's level" (p.148).
-      * An Art's `min_occult`, and Summoning's per-aspect minima.
-      * A Science may not exceed its own `max_rating` (Alchemy 6, the rest 5).
+    The printed gates:
+      * Ghosts hold thaumaturgy but may never use it (p.114);
+      * the Fair Folk cannot learn it at all (p.114) — `thaumaturgy_usable` False;
+      * "a thaumaturge must have an Occult score equal to or higher than the ritual's
+        level" (p.148);
+      * an Art's `min_occult`, and Summoning's per-aspect minima;
+      * a Science may not exceed its own `max_rating` (Alchemy 6, the rest 5).
 
-    Deliberately NOT gated: owning an Art is not required to buy a specialty in it
-    (p.116 footnote, stated three times). Do not add that check.
+    ⚠ The ghost rule is a FLAG, not a bar: an info Issue that must never block a
+    purchase (human's ruling).
+
+    ⚠ Owning an Art is deliberately NOT required to buy a specialty in it (p.116
+    footnote, stated three times). Do not add that check.
     """
     issues: list[Issue] = []
     occult = ability_rating(character, AbilityName.OCCULT)

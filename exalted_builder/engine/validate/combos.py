@@ -1,12 +1,12 @@
 """
 engine/validate/combos.py — Combo legality.
 
-A Combo is a named bundle of Charms bought as one purchase. `combo_issues` checks a
-single Combo, `validate_combos` runs every one the character holds, and
-`eligible_combo_charms` is what the picker offers.
+A Combo is a named bundle of Charms bought as one purchase. `combo_issues` checks one,
+`validate_combos` checks every Combo held, `eligible_combo_charms` is what the picker
+offers.
 
-⚠ Combo legality is one of the corners 1e leaves ambiguous and errata'd; the rules
-authority is the human. Do not tighten a rule here from inference.
+⚠ Combo legality is one of the corners 1e leaves ambiguous and errata'd. The human is
+the rules authority; do not tighten a rule here from inference.
 """
 
 from __future__ import annotations

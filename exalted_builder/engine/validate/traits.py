@@ -1,25 +1,22 @@
 """
 engine/validate/traits.py — reference integrity, splat consistency and trait shape.
 
-The checks that ask whether the character's own record is coherent, rather than
-whether a purchase was affordable:
+The checks that ask whether the character's own record is coherent, rather than whether
+a purchase was affordable: reference integrity (`check_references`), caste/splat
+agreement, specialties, the Ghost Fetters and Passions, and the Godblooded heritage
+origin.
 
-  * `check_references` — every Charm/Spell/Elemental-Power id resolves in the
-    RuleSet. Equipment is an inline copy by design (decision 0007) and is
-    deliberately NOT checked here.
-  * `check_exalt_type` / `check_caste_splat` / `check_splat_consistency` /
-    `check_lunar_casteless_consistency` — the caste belongs to the splat, and the
-    Charms belong to both.
-  * `check_specialties` — a specialty is an INSTANCE, not a rated trait: you take
-    the same one again rather than raising it, capped at 3 per Ability (two Swords
-    plus one Parrying fills Melee).
-  * `check_fetters_and_passions` — Ghosts. Passions are a LIVE DERIVATION of the
-    Virtues on both sides of the lock, per-Virtue, never bought with BP or XP
-    (E:Ab p.283).
-  * `heritage_origin_issues` — the Godblooded parent-Exalt axis.
+⚠ Equipment is an inline copy by design (decision 0007) and is deliberately NOT
+reference-checked.
 
-⚠ These run on BOTH sides of the lock. A reference can rot after creation (a save
-edited by hand, a custom Charm deleted from the library), so none of them may become
+⚠ A specialty is an INSTANCE, not a rated trait: the same one is taken again rather
+than raised, capped at 3 per Ability — two Swords plus one Parrying fills Melee.
+
+⚠ Passions are a LIVE DERIVATION of the Virtues on both sides of the lock, per-Virtue,
+never bought with BP or XP (E:Ab p.283).
+
+⚠ These run on BOTH sides of the lock. A reference can rot after creation — a
+hand-edited save, a custom Charm deleted from the library — so none may become
 chargen-only.
 """
 
@@ -274,20 +271,16 @@ def check_specialties(ruleset: RuleSet, character: Character) -> list[Issue]:
 
 
 def check_fetters_and_passions(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """The two ghost-only rated traits (E:Ab p.126-127, p.283).
+    """The two ghost-only rated traits (E:Ab p.126-127, p.283). Empty for every other
+    splat, whose lists and Fetter budget are both empty.
 
-    Runs on BOTH sides of the lock, deliberately, because both rules do:
+    ⚠ Both rules run on BOTH sides of the lock, because both keep moving:
 
-      * the Fetter ceiling is "Willpower + Essence", which MOVES — a ghost who buys
-        Willpower may hold more Fetters, and one cursed down to a lower Willpower is
-        over the cap and has to be told. A chargen-only check would have gone quiet at
-        exactly the moment the cap started changing.
+      * the Fetter ceiling is "Willpower + Essence" — a ghost who buys Willpower may
+        hold more, and one cursed down to a lower Willpower is now over the cap;
       * the Passion pool tracks the Virtues forever (p.283: "There is no other way for
-        these Traits to increase"), so raising a Virtue with experience opens a dot to
-        distribute and leaving it undistributed is a live finding, not a chargen one.
-
-    Empty for every splat but the ghosts, whose lists are empty and whose Fetter budget
-    is 0 — the check costs nothing for anyone else.
+        these Traits to increase"), so an XP Virtue raise opens a dot to distribute and
+        leaving it undistributed is a live finding.
     """
     issues: list[Issue] = []
     if not character.fetters and not character.passions:

@@ -1,26 +1,22 @@
 """
-engine/validate/merit_checks.py — Merit & Flaw legality, cost and the magic gate.
+engine/validate/merit_checks.py — Merit & Flaw legality, cost, and the magic gate.
 
-⚠ Named `merit_checks`, not `merits`, for two reasons. It reads
-`engine/merits.py` as `merits.X`, which a sibling `validate/merits.py` would make
-ambiguous — and more importantly, decision 0011's containment test exempts exactly
-one path from the "no module may name a Merit id" grep. That exemption used to be a
-BASENAME check, so a second file called `merits.py` would have exempted itself from
-the only enforcement the rule has. The test was tightened to key on the path
-(2026-08-17); the name here keeps the two unmistakable anyway.
-
-Owns `merit_issues` (legality: prerequisites, tiers, caps, point limits),
-`merit_bonus_point_cost` and the cost helpers, plus `magic_gate_issues` and
-`pool_requires_unlocking` — the rules by which a mortal reaches magic at all, which
-arrive through Merits and so live with them.
+`merit_issues` (prerequisites, tiers, caps, point limits), `merit_bonus_point_cost` and
+the cost helpers, plus `magic_gate_issues` and `pool_requires_unlocking` — the rules by
+which a mortal reaches magic at all, which arrive through Merits and so live here.
 
 ⚠ No function here may name a Merit id (decision 0011). Every branch reads a
-`MeritEffects` field or a `MeritFlaw` data field; if a new rule seems to need an id,
-the branch belongs in `engine/merits.py` with a new `MeritEffects` field.
+`MeritEffects` field or a `MeritFlaw` data field; a rule that seems to need an id
+belongs in `engine/merits.py` with a new `MeritEffects` field instead.
 
-⚠ `withheld_charm_credits` ships without its printed counterweight: Weak Essence's
+⚠ Named `merit_checks`, not `merits`, for that rule's sake as much as readability:
+decision 0011's containment test used to exempt the BASENAME `merits.py`, so a second
+file of that name would have exempted itself from the only enforcement the rule has.
+The test now keys on the path.
+
+⚠ `withheld_charm_credits` ships without its printed counterweight — Weak Essence's
 withheld Charms "still require the same training time", and training times are not
-modelled (and are not going to be). The XP waiver is deliberately one-sided.
+modelled. The XP waiver is deliberately one-sided.
 """
 
 from __future__ import annotations
@@ -376,22 +372,19 @@ def withheld_charm_credits(ruleset: RuleSet, character: Character) -> tuple[int,
     """(granted, remaining) chargen Charm picks banked for XP-free use after the lock.
 
     Weak Essence lets a new Exalt "withhold up to five Charms in reserve … Withheld
-    Charms waive their experience cost" (p.41), because a character pinned at Essence 1
-    cannot qualify for enough Charms to spend a full chargen budget.
-
-    NOTHING new is stored. How many were withheld is the unspent remainder of the
-    chargen Charm budget — the snapshot already records what was taken — capped by the
-    Flaw's own ceiling:
+    Charms waive their experience cost" (p.41), since a character pinned at Essence 1
+    cannot qualify for enough Charms to spend a full budget.
 
         granted = min(charm_credits_max, charm_count − picks taken)
 
-    which is the human's rule ("keep the free Charms at 5; if more than five Charms are
-    selected during chargen, subtract the number over") stated so it holds for any
-    splat's budget rather than only Solar's 10. Banking can never yield MORE Charms than
-    the character's ordinary budget: it defers picks, it does not add them.
+    stated against the splat's own budget rather than Solar's 10. Redemptions are
+    counted off the append-only XP log, so the pair reconciles with what was spent.
 
-    Redemptions are counted straight off the append-only XP log, so the pair always
-    reconciles with what was actually spent.
+    ⚠ NOTHING new is stored — how many were withheld is derived from the unspent
+    remainder, which the snapshot already records.
+
+    ⚠ Banking defers picks, it never adds them: this cannot yield more Charms than the
+    ordinary budget.
     """
     ceiling = merits.merits_and_flaws_calc(ruleset, character).charm_credits_max
     if not ceiling:

@@ -1,18 +1,16 @@
 """
 engine/validate/spells.py — Sorcery and Necromancy circle access.
 
-A known spell requires a known Charm that grants its circle. `granted_circles`
-reads what the character's Charms open, `accessible_circles` adds what the splat
-reaches natively, and `chargen_barred_circle` is the one circle a character may not
-enter during creation.
+A known spell requires a known Charm granting its circle. `granted_circles` reads what
+the character's Charms open, `accessible_circles` adds what the splat reaches natively,
+`chargen_barred_circle` is the circle no character may enter during creation.
 
-⚠ The circle a splat reaches comes from `ExaltDefinition.highest_magic_circle_id` —
-the trap `docs/adding-a-splat.md` names first. A splat that omits it silently
-reaches nothing.
+⚠ The circle a splat reaches comes from `ExaltDefinition.highest_magic_circle_id` — the
+trap `docs/adding-a-splat.md` names first. A splat that omits it silently reaches
+nothing.
 
-⚠ Circles are RANKED and a character reaches their own and every one below, never
-up (decision 0015). `TRACK_CIRCLES` holds the two tracks; Sorcery and Necromancy are
-separate ladders, not one.
+⚠ Sorcery and Necromancy are SEPARATE ladders, not one. `TRACK_CIRCLES` holds both; a
+character reaches their own circle and every one below it, never up (decision 0015).
 """
 
 from __future__ import annotations

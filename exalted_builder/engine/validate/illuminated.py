@@ -1,19 +1,19 @@
 """
 engine/validate/illuminated.py — the Cult of the Illuminated: Camps and Callings.
 
-An alt-origin available to Solars and (since 2026-08-12) Dragon-Blooded. A character
-picks a Camp and a Calling; the Calling grants Charms and sets Ability minimums.
+An alt-origin for Solars and Dragon-Blooded. The character picks a Camp and a Calling;
+the Calling grants Charms and sets Ability minimums.
 
-⚠ `camp_for` searches EVERY camp while `camps_for` searches only the character's —
-harmless while one splat owned every camp, a blanked tab the day a second owner
-shipped. A UI select whose value resolves against a global table while its options
-are scoped is a build-time crash waiting for that second owner.
+⚠ `camp_for` searches EVERY camp while `camps_for` searches only the character's. A UI
+select whose value resolves against a global table while its options are scoped is a
+build-time crash waiting for a second owner to exist — which is what shipping Cult
+Dragon-Blooded did.
 
 ⚠ The Cult prints its OWN Artifact Background, so catalogue entries must be keyed by
-ID, not name: a name matches both the Cult's copy and the corebook's, and the
+ID, not name. A name matches both the Cult's copy and the corebook's, and the
 displacement rule then hands the wrong splat the reworked one.
 
-⚠ Cult Abyssals are DEFERRED INDEFINITELY (human, 2026-08-14) — 56 Charms would need
+⚠ Cult Abyssals are deferred indefinitely (human, 2026-08-14) — 56 Charms would need
 human-approved mappings. Not a gap; do not propose it.
 """
 
