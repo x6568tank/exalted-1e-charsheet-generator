@@ -169,13 +169,17 @@ def _toplevel_names(src: str) -> set[str]:
 
 
 def test_every_name_in_a_domain_module_is_reachable_as_validate_X():
-    """The facade contract. Callers reach everything through `validate.X`; a domain
-    module is an implementation detail, so a name that lands in one and is not
-    re-exported has silently left the public surface.
+    """The facade contract for the PUBLIC surface. Callers reach everything through
+    `validate.X`, so a public name that lands in a domain module and is not
+    re-exported has silently left the API.
 
-    Private names count. `validate._chargen_source` and `validate._immaculate_path`
-    are read from other modules and from tests, so the underscore marks "internal to
-    the package", not "not re-exported".
+    ⚠ Underscore-private names are deliberately exempt HERE, and covered by
+    `test_every_validate_dot_reference_in_the_codebase_resolves` instead. Several are
+    genuinely package-internal (`_chargen_charm_issues` and its fourteen siblings are
+    private sections of `validate_chargen` that no caller should reach), while others
+    (`_chargen_source`, `_immaculate_path`) ARE read from outside. The distinction
+    that matters is not the underscore but whether anything actually references it —
+    which is a question about call sites, so the call-site test is what answers it.
     """
     from exalted_builder.engine import validate
 
@@ -185,7 +189,7 @@ def test_every_name_in_a_domain_module_is_reachable_as_validate_X():
         if path.name == "__init__.py":
             continue
         for name in sorted(_toplevel_names(path.read_text())):
-            if name.startswith("__"):
+            if name.startswith("_"):
                 continue
             if not hasattr(validate, name):
                 orphans.append(f"{name} ({path.name})")
@@ -251,3 +255,161 @@ def test_every_validate_dot_reference_in_the_codebase_resolves():
         "call site(s) reference a name the validate package does not expose: "
         + "; ".join(missing)
     )
+
+
+# --------------------------------------------------------------------------- #
+# Undefined names
+# --------------------------------------------------------------------------- #
+
+def _module_scope(tree: ast.AST) -> set[str]:
+    """Names visible to every function in the module: imports, top-level defs and
+    top-level assignments, plus builtins."""
+    import builtins
+
+    out = set(dir(builtins))
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                out.add((alias.asname or alias.name).split(".")[0])
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            out.add(node.name)
+        elif isinstance(node, ast.Global):
+            out.update(node.names)
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            out |= {n.id for t in node.targets for n in ast.walk(t)
+                    if isinstance(n, ast.Name)}
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            out.add(node.target.id)
+    return out
+
+
+_SCOPES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)
+
+
+def _params(fn) -> set[str]:
+    a = fn.args
+    out = {x.arg for x in a.posonlyargs + a.args + a.kwonlyargs}
+    if a.vararg:
+        out.add(a.vararg.arg)
+    if a.kwarg:
+        out.add(a.kwarg.arg)
+    return out
+
+
+def _own_scope(fn) -> tuple[set[str], list]:
+    """(names this function binds, nested scopes to check separately).
+
+    Walks the body but does NOT descend into nested functions or lambdas — their
+    parameters belong to them, not here. Comprehensions ARE walked: their targets
+    are bound and their bodies may read enclosing names, so folding them in
+    over-approximates in the safe direction.
+    """
+    bound = _params(fn)
+    nested = []
+
+    def walk(node):
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, _SCOPES):
+                nested.append(child)
+                if not isinstance(child, ast.Lambda):
+                    bound.add(child.name)
+                continue
+            if isinstance(child, ast.ClassDef):
+                bound.add(child.name)
+                continue
+            if isinstance(child, ast.Name) and isinstance(child.ctx, ast.Store):
+                bound.add(child.id)
+            elif isinstance(child, (ast.Import, ast.ImportFrom)):
+                for alias in child.names:
+                    bound.add((alias.asname or alias.name).split(".")[0])
+            elif isinstance(child, ast.ExceptHandler) and child.name:
+                bound.add(child.name)
+            elif isinstance(child, ast.Global):
+                bound.update(child.names)
+            walk(child)
+
+    walk(fn)
+    return bound, nested
+
+
+def _loads(fn, skip) -> list[tuple[str, int]]:
+    """(name, lineno) for every Load in `fn`, excluding nested scopes in `skip`."""
+    out = []
+
+    def walk(node):
+        for child in ast.iter_child_nodes(node):
+            if child in skip:
+                continue
+            if isinstance(child, ast.Name) and isinstance(child.ctx, ast.Load):
+                out.append((child.id, child.lineno))
+            walk(child)
+
+    walk(fn)
+    return out
+
+
+def test_no_engine_function_reads_a_name_it_never_binds():
+    """A per-FUNCTION undefined-name check over all of `engine/`.
+
+    Both bugs the 2026-08-17 `validate_chargen` decomposition hit were this one
+    shape: a section boundary swallowed an assignment (`mf_caps`, then `wp_total`)
+    into the extracted helper while the parent still read it. A whole-FILE check
+    cannot see either — the name IS defined in the file, just not in the function
+    that reads it — and neither can an import smoke test, since the NameError only
+    fires when that branch executes. Only the suite caught them, and only by running
+    the branch; this catches them statically.
+
+    Scope handling is real rather than approximate: nested functions and lambdas own
+    their parameters and are checked separately against their enclosing scope, and
+    Python's function-wide (not block) scoping means an assignment anywhere in a body
+    binds for the whole body. Comprehensions are folded into the enclosing function,
+    which over-approximates what is bound — the safe direction for a guard that must
+    not cry wolf.
+    """
+    offenders: list[str] = []
+    for path in sorted(_ENGINE.rglob("*.py")):
+        tree = ast.parse(path.read_text(), filename=str(path))
+        module_names = _module_scope(tree)
+
+        def check(fn, enclosing: set[str]) -> None:
+            bound, nested = _own_scope(fn)
+            visible = bound | enclosing
+            for name, lineno in _loads(fn, skip=set(nested)):
+                if name not in visible and name not in module_names:
+                    label = getattr(fn, "name", "<lambda>")
+                    offenders.append(
+                        f"{path.relative_to(_ENGINE)}:{lineno} "
+                        f"{label}() reads undefined {name!r}")
+            for sub in nested:
+                check(sub, visible)
+
+        for node in tree.body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                check(node, set())
+
+    assert not offenders, ("function(s) read a name bound in no reachable scope:\n  "
+                           + "\n  ".join(sorted(set(offenders))))
+
+
+def test_the_undefined_name_check_can_fail(tmp_path):
+    """Negative control, on a synthetic module — the real subject is (correctly)
+    clean, so without this the check above could silently stop working."""
+    bad = tmp_path / "engine_probe.py"
+    bad.write_text("def f():\n    return not_bound_anywhere\n")
+    tree = ast.parse(bad.read_text())
+    module_names = _module_scope(tree)
+    fn = tree.body[0]
+    bound, nested = _own_scope(fn)
+    missing = [n for n, _ in _loads(fn, skip=set(nested))
+               if n not in bound and n not in module_names]
+    assert missing == ["not_bound_anywhere"]
+
+    ok = "def g(x):\n    return sorted(x, key=lambda s: s.name)\n"
+    tree = ast.parse(ok)
+    module_names = _module_scope(tree)
+    fn = tree.body[0]
+    bound, nested = _own_scope(fn)
+    assert not [n for n, _ in _loads(fn, skip=set(nested))
+                if n not in bound and n not in module_names], \
+        "a lambda parameter must not read as undefined"
