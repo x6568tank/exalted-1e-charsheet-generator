@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from ...models.character import Character, ThaumaturgyState
+from ...models.character import Character, HouseRules, ThaumaturgyState
 from ...models.rules import AbilityName, AttributeName, RuleSet
 from .. import merits
 
@@ -138,3 +138,16 @@ def effective_budgets(ruleset: RuleSet, character: Character):
         "virtue_dots": max(0, b.virtue_dots - effects.forfeited_virtue_dots),
         "background_dots": b.background_dots + effects.bonus_background_dots,
     })
+
+
+def chargen_house_rules(character: Character) -> HouseRules:
+    """The table toggles chargen accounting reads: the frozen snapshot once locked,
+    else the live setting, else the all-off default.
+
+    Kept as its own accessor rather than an 18th element of `_chargen_source` — that
+    tuple is trait state, and this is a setting about how trait state is priced.
+    """
+    snap = character.chargen_snapshot
+    if snap is not None:
+        return snap.house_rules or HouseRules()
+    return character.house_rules or HouseRules()

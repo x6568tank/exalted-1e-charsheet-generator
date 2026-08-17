@@ -269,12 +269,10 @@ def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
     Spells share the Charm pool but are not Charms and are priced by their caller.
     """
     bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin, character.upbringing)
-    # Deferred to call time, not imported at module scope: the Illuminated Calling
-    # rules still live in the package root, which imports THIS module — a top-level
-    # import would be a cycle. Moves to `from . import illuminated` when that domain
-    # is extracted in turn.
-    from . import calling_charm_ids
-    call_charms = calling_charm_ids(ruleset, character)
+    # Deferred to call time, not imported at module scope: `illuminated` imports
+    # this module (a Calling grants Charms), so a top-level import is a cycle.
+    from . import illuminated
+    call_charms = illuminated.calling_charm_ids(ruleset, character)
     costs: list[int] = []
     for pick in picks:
         if not pick.counts_toward_pool:
@@ -1050,10 +1048,10 @@ def charm_slot_usage(ruleset: RuleSet, character: Character) -> tuple[int, int, 
         installed += len(ox_body)
         if not _charm_is_caste_favored(ob_charm, cf_set, caste_attr_category, caste_fav_attrs):
             noncf += len(ox_body)
-    # Deferred for the same reason as `calling_charm_ids` above — the Alchemical
-    # array rules are still in the package root and import this module.
-    from . import _installation_motes
-    install_motes = _installation_motes(ruleset, charms, arrays)
+    # Deferred for the same reason as `calling_charm_ids` above — `alchemical`
+    # imports this module.
+    from . import alchemical
+    install_motes = alchemical._installation_motes(ruleset, charms, arrays)
     if ob_charm is not None:
         install_motes += ob_charm.installation_cost * len(ox_body)
     return installed, noncf, install_motes

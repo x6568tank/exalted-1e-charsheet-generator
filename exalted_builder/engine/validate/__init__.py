@@ -56,9 +56,76 @@ from ._base import (           # noqa: F401 — re-exported for callers
     _attribute_category,
     _chargen_source,
     ability_rating,
+    chargen_house_rules,
     craft_rating,
     effective_budgets,
     thaum_state,
+)
+from .alchemical import (      # noqa: F401 — re-exported for callers
+    _installation_motes,
+    array_installation_motes,
+    array_issues,
+    eligible_array_charms,
+    owns_submodule,
+    submodule_block_reason,
+    submodule_def,
+    validate_arrays,
+    validate_submodules,
+)
+from .combos import (          # noqa: F401 — re-exported for callers
+    _COMBO_DURATION,
+    _MIXED_COMBO_CASTES,
+    combo_issues,
+    eligible_combo_charms,
+    validate_combos,
+)
+from .elemental import (       # noqa: F401 — re-exported for callers
+    elemental_power_issues,
+    elemental_power_shortfalls,
+    elemental_powers_available,
+    legal_elemental_powers,
+    meets_elemental_power_requirements,
+)
+from .illuminated import (     # noqa: F401 — re-exported for callers
+    _granted_charm_minima_met,
+    calling_abilities,
+    calling_charm_ids,
+    calling_for,
+    camp_for,
+    camp_min_abilities,
+    check_camp_and_calling,
+    default_camp_and_calling,
+    granted_charm_ids,
+    granted_charm_issues,
+    is_calling_charm,
+)
+from .spells import (          # noqa: F401 — re-exported for callers
+    accessible_circles,
+    chargen_barred_circle,
+    check_spell_access,
+    granted_circles,
+    meets_spell_requirements,
+)
+from .thaumaturgy import (     # noqa: F401 — re-exported for callers
+    _MAGIC_FOR_EVERYONE_MAX_LEVEL,
+    _ST_CHARGEN_RITUAL_CAP,
+    _ST_CHARGEN_SCIENCE_CAP,
+    ThaumPurchase,
+    _thaum_label,
+    _thaum_purchases_from,
+    chargen_thaum_purchases,
+    magic_for_everyone_eligible,
+    magic_for_everyone_grant,
+    thaum_art_locked_reason,
+    thaum_aspect_locked_reason,
+    thaum_formula_level,
+    thaum_purchase_bp_costs,
+    thaum_purchases,
+    thaum_ritual_level,
+    thaum_ritual_locked_reason,
+    thaum_science_raise_reason,
+    thaumaturgy_chargen_issues,
+    thaumaturgy_issues,
 )
 from .artifact_checks import (  # noqa: F401 — re-exported for callers
     _corebook_artifact_issues,
@@ -223,225 +290,32 @@ from .charms import (          # noqa: F401 — re-exported for callers
 # The canonical Thaumaturgy-purchase enumeration
 # --------------------------------------------------------------------------- #
 
-# "Magic for Everyone" (p.115) covers "rituals, formulas or procedures of no more
-# than level 3". Not in a cost table — it is a limit on an optional grant rather
-# than a rate, so it has no natural home in costs_bonus.json.
-_MAGIC_FOR_EVERYONE_MAX_LEVEL = 3
-
-# The two optional ST chargen restrictions of p.113: "no more than three-dot rituals
-# and/or the third level of knowledge in any Science". Off unless the table turns
-# them on -- see HouseRules.restrict_chargen_*.
-_ST_CHARGEN_RITUAL_CAP = 3
-_ST_CHARGEN_SCIENCE_CAP = 3
-
-
-
-class ThaumPurchase(BaseModel):
-    """One thaumaturgic thing a character bought, in a shape both currencies price.
-
-    The Charm-pick enumeration's sibling, and for the same reason: four
-    heterogeneous purchasables (Arts, Art specialties, Sciences, rituals, formulas)
-    live on five different lists, and each of the BP breakdown, the XP audit and the
-    UI would otherwise walk all five and special-case each. They are enumerated once
-    here and priced once in `thaum_purchase_bp_costs`.
-
-    `level` is the ritual's or formula's level, or the Science's rating; 0 where the
-    kind has none. `orientations` is how many regional versions are owned — the
-    first is included in the base price and each further one costs a flat point
-    (p.124), which is the whole reason a ritual is not a bare id.
-
-    Every kind is priced. Sciences briefly were not — the published cost tables have
-    no Science row — but that is a printing error Grabowski cleared up later, and the
-    rate came from the rules authority (5/7 BP, 7/rating×6 XP).
-    """
-    kind: str                  # art | specialty | science | ritual | formula
-    key: str                   # catalogue id, or "art_id:name" for a specialty
-    label: str                 # display-ready
-    level: int = 0
-    orientations: int = 1
-    narrowed: bool = False
-
-
-def thaum_purchases(ruleset: RuleSet, character: Character) -> list[ThaumPurchase]:
-    """Everything the character has bought in thaumaturgy RIGHT NOW, in sheet order:
-    Arts, Art specialties, Sciences, rituals, formulas.
-
-    This is what the UI must consume instead of reading the five `ThaumaturgyState`
-    lists. Unresolvable ids are still yielded, with the raw id as the label, so a
-    stale save shows the problem rather than dropping a row.
-    """
-    return _thaum_purchases_from(ruleset, thaum_state(character))
-
-
-def chargen_thaum_purchases(ruleset: RuleSet, character: Character) -> list[ThaumPurchase]:
-    """`thaum_purchases` over the traits chargen accounting reads: the frozen
-    snapshot once locked, else the live state."""
-    snap = character.chargen_snapshot
-    state = (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character)
-    return _thaum_purchases_from(ruleset, state)
-
-
-def thaum_ritual_level(ruleset: RuleSet, entry: RitualEntry) -> int:
-    """A ritual entry's level, from the catalogue when it references one and from the
-    inline fields when it is custom (rituals are catalogue + custom by decision)."""
-    ritual = ruleset.thaum_rituals.get(entry.ritual_id) if entry.ritual_id else None
-    return ritual.level if ritual is not None else entry.level
-
-
-def thaum_formula_level(ruleset: RuleSet, entry: FormulaEntry) -> int:
-    formula = ruleset.thaum_formulas.get(entry.formula_id) if entry.formula_id else None
-    return formula.level if formula is not None else entry.level
-
-
-def _thaum_purchases_from(ruleset: RuleSet, state: ThaumaturgyState) -> list[ThaumPurchase]:
-    """Build the purchase list from an explicit state, so the same enumeration serves
-    both the live character and the chargen snapshot."""
-    out: list[ThaumPurchase] = []
-
-    for art_id in state.arts:
-        art = ruleset.thaum_arts.get(art_id)
-        out.append(ThaumPurchase(kind="art", key=art_id,
-                                 label=art.name if art else art_id))
-
-    for spec in state.art_specialties:
-        art = ruleset.thaum_arts.get(spec.art_id)
-        art_name = art.name if art else spec.art_id
-        out.append(ThaumPurchase(
-            kind="specialty", key=f"{spec.art_id}:{spec.name}",
-            label=f"{art_name} ({spec.name})", narrowed=spec.narrowed))
-
-    for sci in state.sciences:
-        if sci.rating <= 0:
-            continue
-        science = ruleset.thaum_sciences.get(sci.science_id)
-        out.append(ThaumPurchase(
-            kind="science", key=sci.science_id,
-            label=f"{science.name if science else sci.science_id} {sci.rating}",
-            level=sci.rating))
-
-    for entry in state.rituals:
-        ritual = ruleset.thaum_rituals.get(entry.ritual_id) if entry.ritual_id else None
-        name = ritual.name if ritual is not None else (entry.name or entry.ritual_id)
-        level = thaum_ritual_level(ruleset, entry)
-        out.append(ThaumPurchase(
-            kind="ritual", key=entry.ritual_id or entry.name,
-            label=_thaum_label(name, level, entry.orientations),
-            level=level, orientations=len(entry.orientations)))
-
-    for entry in state.formulas:
-        formula = ruleset.thaum_formulas.get(entry.formula_id) if entry.formula_id else None
-        name = formula.name if formula is not None else (entry.name or entry.formula_id)
-        level = thaum_formula_level(ruleset, entry)
-        out.append(ThaumPurchase(
-            kind="formula", key=entry.formula_id or entry.name,
-            label=_thaum_label(name, level, entry.orientations),
-            level=level, orientations=len(entry.orientations)))
-
-    return out
-
-
-def _thaum_label(name: str, level: int, orientations: list) -> str:
-    """`Name (level N; North, Realm)` — orientation is display state as well as
-    accounting state, since which versions are owned is what the player reads back."""
-    regions = ", ".join(o.value for o in orientations)
-    return f"{name} (level {level}; {regions})" if regions else f"{name} (level {level})"
-
-
-def chargen_house_rules(character: Character) -> HouseRules:
-    """The table toggles chargen accounting reads: the frozen snapshot once locked,
-    else the live setting, else the all-off default.
-
-    Kept as its own accessor rather than an 18th element of `_chargen_source` — that
-    tuple is trait state, and this is a setting about how trait state is priced.
-    """
-    snap = character.chargen_snapshot
-    if snap is not None:
-        return snap.house_rules or HouseRules()
-    return character.house_rules or HouseRules()
 
 
 
 
-def magic_for_everyone_grant(ruleset: RuleSet, character: Character) -> int:
-    """How many thaumaturgy purchases this character gets FREE at creation under the
-    optional "Magic for Everyone" rule (p.115): "one ritual, one formula or procedure
-    or knowledge of one aspect for every two dots in Occult".
-
-    0 unless the table has switched the rule on. Occult is read from the chargen
-    source, so the allowance is fixed at creation — **raising Occult with XP does not
-    earn more free picks** (rules-authority call, human 2026-07-29). Post-lock that
-    happens for free: the snapshot holds chargen Occult.
-    """
-    if not chargen_house_rules(character).magic_for_everyone:
-        return 0
-    abilities, crafts = _chargen_source(character)[1], _chargen_source(character)[2]
-    occult = abilities.get(AbilityName.OCCULT, 0)
-    return occult // 2
 
 
-def magic_for_everyone_eligible(ruleset: RuleSet, purchase: ThaumPurchase) -> bool:
-    """Whether `purchase` is the kind of thing the free grant may cover.
-
-    The rule is explicit about its own limits: "rituals, formulas or procedures of no
-    more than level 3, and only specialties in Arts, not the Arts themselves (so a
-    non-thaumaturge could chose to learn how to ward off ghosts, but not the Art of
-    Warding)". So Arts and Sciences are never free.
-
-    "knowledge of one aspect" means a PRINTED aspect, so a player-invented narrower
-    specialty is not eligible — it is not one of the things the book enumerates.
-    (The sidebar's parenthetical "along with any appropriate specialties" is
-    deliberately unimplemented: the rules authority could not determine what it
-    means, human 2026-07-29. Do not guess at it.)
-    """
-    if purchase.kind in ("art", "science"):
-        return False
-    if purchase.kind == "specialty":
-        art_id, _, name = purchase.key.partition(":")
-        art = ruleset.thaum_arts.get(art_id)
-        return art is not None and any(
-            a.name.casefold() == name.casefold() for a in art.aspects)
-    return purchase.level <= _MAGIC_FOR_EVERYONE_MAX_LEVEL
 
 
-def thaum_purchase_bp_costs(ruleset: RuleSet, character: Character,
-                            purchases: list[ThaumPurchase],
-                            free_picks: int = 0) -> list[int]:
-    """The bonus-point price of each purchase, in purchase order — parallel to
-    `purchases`, so the UI can render a priced row per purchase. A Science's figure
-    is the whole ladder up to its rating, since chargen holds a rating rather than a
-    sequence of purchases.
 
-    `free_picks` is the "Magic for Everyone" allowance. It zeroes that many ELIGIBLE
-    purchases, dearest first — the player-favourable assignment this module already
-    uses everywhere a free pool meets mixed rates. The player does not tag which
-    purchases were free; the engine computes it, per the standing decision that
-    current state is canonical and the accounting is derived.
-    """
-    # Deferred import: costs.py imports this module, so a top-level import here would
-    # cycle. The thaum_* rate functions depend on nothing in validate, hence safe.
-    from .. import costs
 
-    out: list[int] = []
-    for p in purchases:
-        if p.kind == "art":
-            out.append(costs.thaum_art_bp(ruleset, character))
-        elif p.kind == "specialty":
-            out.append(costs.thaum_specialty_bp(ruleset, character, narrowed=p.narrowed))
-        elif p.kind == "science":
-            out.append(costs.thaum_science_bp(ruleset, character, p.level))
-        elif p.kind == "ritual":
-            out.append(costs.thaum_ritual_bp(ruleset, character, p.level, p.orientations))
-        elif p.kind == "formula":
-            out.append(costs.thaum_formula_bp(ruleset, character, p.orientations))
-        else:
-            out.append(0)
 
-    if free_picks > 0:
-        eligible = [i for i, p in enumerate(purchases)
-                    if magic_for_everyone_eligible(ruleset, p)]
-        for i in sorted(eligible, key=lambda i: out[i], reverse=True)[:free_picks]:
-            out[i] = 0
-    return out
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # --------------------------------------------------------------------------- #
@@ -459,230 +333,16 @@ def thaum_purchase_bp_costs(ruleset: RuleSet, character: Character,
 # legality once play starts, so they never appear when chargen=False.
 # --------------------------------------------------------------------------- #
 
-def thaum_art_locked_reason(ruleset: RuleSet, character: Character, art_id: str) -> str:
-    """Why the Art `art_id` may not be trained right now, or "" if it may be."""
-    art = ruleset.thaum_arts.get(art_id)
-    if art is None:
-        return f"Art {art_id} is not in the rule set."
-    occult = ability_rating(character, AbilityName.OCCULT)
-    if occult < art.min_occult:
-        return (f"The Art of {art.name} needs Occult {art.min_occult}; "
-                f"character has {occult}.")
-    return ""
 
 
-def thaum_aspect_locked_reason(ruleset: RuleSet, character: Character,
-                               art_id: str, aspect_name: str) -> str:
-    """Why this specialty may not be bought, or "" if it may be.
-
-    Owning the parent Art is NOT a requirement and must never become one (p.116
-    footnote, stated three times). Only a PRINTED aspect can be gated at all: a
-    player-invented specialty matches no aspect and is therefore always open.
-    """
-    art = ruleset.thaum_arts.get(art_id)
-    if art is None:
-        return f"Art {art_id} is not in the rule set."
-    aspect = next((a for a in art.aspects
-                   if a.name.casefold() == aspect_name.casefold()), None)
-    if aspect is None:
-        return ""
-    occult = ability_rating(character, AbilityName.OCCULT)
-    if occult < aspect.min_occult:
-        return (f"{art.name} ({aspect.name}) needs Occult "
-                f"{aspect.min_occult}; character has {occult}.")
-    return ""
 
 
-def thaum_ritual_locked_reason(ruleset: RuleSet, character: Character, level: int,
-                               *, chargen: bool = False) -> str:
-    """Why a level-`level` ritual may not be learned, or "" if it may be. Level is
-    passed rather than an id so a custom ritual is gated identically to a catalogue
-    one — the Occult rule is stated about the level, not the entry (p.148)."""
-    occult = ability_rating(character, AbilityName.OCCULT)
-    if occult < level:
-        return (f"A level-{level} ritual needs Occult {level}; "
-                f"character has {occult} (p.148).")
-    if (chargen and level > _ST_CHARGEN_RITUAL_CAP
-            and chargen_house_rules(character).restrict_chargen_ritual_level):
-        return (f"This table restricts starting characters to rituals of "
-                f"level {_ST_CHARGEN_RITUAL_CAP} or lower (p.113); this "
-                f"one is level {level}.")
-    return ""
 
 
-def thaum_science_raise_reason(ruleset: RuleSet, character: Character,
-                               science_id: str, *, chargen: bool = False) -> str:
-    """Why this Science may not gain its NEXT dot, or "" if it may.
-
-    The forward-looking counterpart of the `max_rating` check in
-    `thaumaturgy_issues`: that one asks whether a held rating is in range, this asks
-    whether one more dot is buyable. The ceiling is the Science's OWN `max_rating`
-    (Alchemy 6), never the project's usual 5 — see rules.ScienceLevel.
-    """
-    science = ruleset.thaum_sciences.get(science_id)
-    if science is None:
-        return f"Science {science_id} is not in the rule set."
-    held = next((s for s in thaum_state(character).sciences
-                 if s.science_id == science_id), None)
-    rating = held.rating if held is not None else 0
-    if rating >= science.max_rating:
-        return f"{science.name} is already at {science.max_rating}, its maximum."
-    if (chargen and rating >= _ST_CHARGEN_SCIENCE_CAP
-            and chargen_house_rules(character).restrict_chargen_science_rating):
-        return (f"This table restricts starting characters to "
-                f"{_ST_CHARGEN_SCIENCE_CAP} dots in any Science (p.113).")
-    return ""
 
 
-def thaumaturgy_issues(ruleset: RuleSet, character: Character,
-                       state: ThaumaturgyState) -> list["Issue"]:
-    """Legality of a thaumaturgic holding. Called from `validate_chargen` against the
-    chargen state; safe to call on the live state too.
-
-    The gates the source actually states:
-      * Ghosts hold thaumaturgy but may never use it (p.114) — a flag, not a bar, so
-        this is an info Issue and never blocks a purchase (rules-authority call 1).
-      * The Fair Folk cannot learn it at all (p.114) — `thaumaturgy_usable` False.
-      * "a thaumaturge must have an Occult score equal to or higher than the
-        ritual's level" (p.148).
-      * An Art's `min_occult`, and Summoning's per-aspect minima.
-      * A Science may not exceed its own `max_rating` (Alchemy 6, the rest 5).
-
-    Deliberately NOT gated: owning an Art is not required to buy a specialty in it
-    (p.116 footnote, stated three times). Do not add that check.
-    """
-    issues: list[Issue] = []
-    occult = ability_rating(character, AbilityName.OCCULT)
-    exalt = ruleset.exalt_for(character.exalt_type)
-    purchases = _thaum_purchases_from(ruleset, state)
-
-    # Announced BEFORE the no-purchases early return: under "Magic for Everyone" the
-    # allowance applies to every starting character, so the one who has bought no
-    # thaumaturgy at all is exactly the one who needs telling it is there. Silent at
-    # Occult 0-1, where the allowance is zero, and in every game without the toggle.
-    grant = magic_for_everyone_grant(ruleset, character)
-    if grant:
-        issues.append(Issue(
-            code="magic-for-everyone-grant", severity="info",
-            message=f"Magic for Everyone: {grant} free ritual(s), formula(s) or "
-                    f"printed aspect(s) at creation, from Occult {occult}. "
-                    f"Rituals and formulas are limited to level "
-                    f"{_MAGIC_FOR_EVERYONE_MAX_LEVEL}; Arts and Sciences are never free.",
-        ))
-
-    if not purchases:
-        return issues
-
-    if not exalt.thaumaturgy_usable:      # exalt_for never returns None
-        issues.append(Issue(
-            code="thaum-unusable", where=character.exalt_type,
-            message=f"{character.exalt_type} may hold thaumaturgy but can never "
-                    "use it (Player's Guide p.114).", severity="info",
-        ))
-
-    for art_id in state.arts:
-        if art_id not in ruleset.thaum_arts:
-            issues.append(Issue(code="unknown-thaum-art", where=art_id,
-                                message=f"Art {art_id} is not in the rule set."))
-            continue
-        reason = thaum_art_locked_reason(ruleset, character, art_id)
-        if reason:
-            issues.append(Issue(code="thaum-art-occult", where=art_id, message=reason))
-
-    for spec in state.art_specialties:
-        art = ruleset.thaum_arts.get(spec.art_id)
-        if art is None:
-            issues.append(Issue(
-                code="unknown-thaum-art", where=spec.art_id,
-                message=f"Specialty {spec.name!r} names Art {spec.art_id}, "
-                        "which is not in the rule set."))
-            continue
-        # A printed aspect carries its own Occult minimum (Summoning alone). A
-        # player-invented specialty matches no aspect and is ungated.
-        reason = thaum_aspect_locked_reason(ruleset, character, spec.art_id, spec.name)
-        if reason:
-            issues.append(Issue(
-                code="thaum-aspect-occult", where=f"{spec.art_id}:{spec.name}",
-                message=reason))
-        if spec.narrowed and not art.aspect_narrowing:
-            issues.append(Issue(
-                code="thaum-narrowing-unavailable", where=f"{spec.art_id}:{spec.name}",
-                message=f"Only Summoning allows an aspect to be further limited for "
-                        f"half cost (p.127); {art.name} does not.",
-            ))
-
-    for sci in state.sciences:
-        science = ruleset.thaum_sciences.get(sci.science_id)
-        if science is None:
-            issues.append(Issue(code="unknown-thaum-science", where=sci.science_id,
-                                message=f"Science {sci.science_id} is not in the rule set."))
-        elif sci.rating > science.max_rating:
-            issues.append(Issue(
-                code="thaum-science-range", where=sci.science_id,
-                message=f"{science.name} is {sci.rating}; its maximum is "
-                        f"{science.max_rating}.",
-            ))
-
-    for entry in state.rituals:
-        if entry.ritual_id and entry.ritual_id not in ruleset.thaum_rituals:
-            issues.append(Issue(code="unknown-thaum-ritual", where=entry.ritual_id,
-                                message=f"Ritual {entry.ritual_id} is not in the rule set."))
-            continue
-        level = thaum_ritual_level(ruleset, entry)
-        # chargen=False: the p.113 cap is a creation-time restriction and belongs to
-        # thaumaturgy_chargen_issues, which reports it with its own code.
-        reason = thaum_ritual_locked_reason(ruleset, character, level)
-        if reason:
-            issues.append(Issue(
-                code="thaum-ritual-occult", where=entry.ritual_id or entry.name,
-                message=reason))
-
-    for entry in state.formulas:
-        if entry.formula_id and entry.formula_id not in ruleset.thaum_formulas:
-            issues.append(Issue(
-                code="unknown-thaum-formula", where=entry.formula_id,
-                message=f"Formula {entry.formula_id} is not in the rule set."))
-
-    return issues
 
 
-def thaumaturgy_chargen_issues(ruleset: RuleSet, character: Character,
-                               state: ThaumaturgyState) -> list["Issue"]:
-    """The two OPTIONAL chargen restrictions of p.113, each switched on separately:
-    "Storytellers may choose to restrict starting characters to no more than
-    three-dot rituals and/or the third level of knowledge in any Science."
-
-    Separate from `thaumaturgy_issues` because these are creation-time only — they
-    cap what may be BOUGHT at chargen, not what may ever be known. A character who
-    legitimately raises a Science past 3 with XP must not start failing this check,
-    so it is only ever called with the chargen state, from `validate_chargen`.
-    """
-    issues: list[Issue] = []
-    rules = chargen_house_rules(character)
-
-    if rules.restrict_chargen_ritual_level:
-        for entry in state.rituals:
-            level = thaum_ritual_level(ruleset, entry)
-            if level > _ST_CHARGEN_RITUAL_CAP:
-                issues.append(Issue(
-                    code="thaum-ritual-chargen-cap", where=entry.ritual_id or entry.name,
-                    message=f"This table restricts starting characters to rituals of "
-                            f"level {_ST_CHARGEN_RITUAL_CAP} or lower (p.113); this "
-                            f"one is level {level}.",
-                ))
-
-    if rules.restrict_chargen_science_rating:
-        for sci in state.sciences:
-            if sci.rating > _ST_CHARGEN_SCIENCE_CAP:
-                science = ruleset.thaum_sciences.get(sci.science_id)
-                issues.append(Issue(
-                    code="thaum-science-chargen-cap", where=sci.science_id,
-                    message=f"This table restricts starting characters to "
-                            f"{_ST_CHARGEN_SCIENCE_CAP} dots in any Science (p.113); "
-                            f"{science.name if science else sci.science_id} is "
-                            f"{sci.rating}.",
-                ))
-    return issues
 
 
 
@@ -841,773 +501,107 @@ def two_pool_ability_accounting(b, character, abilities, crafts, bp_costs=None):
 # Spell-circle access
 # --------------------------------------------------------------------------- #
 
-def granted_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
-    """The set of magic circles the character can cast in, taken from the
-    `grants_circle` of every known initiation Charm PLUS any circle a Merit grants
-    outright. Track-agnostic (sorcery or, later, necromancy) — the circle enum
-    carries the distinction.
-
-    The Merit half is not a convenience: a splat that may hold no Charms at all
-    (mortals) can never satisfy the Charm half, so Essence Mastery's Terrestrial
-    sorcery would be permanently unreachable without it. This is the function the
-    *gates* use (meets_spell_requirements, check_spell_access), which is why the
-    grant has to land here and not only in accessible_circles."""
-    out = {
-        ruleset.charms[cid].grants_circle
-        for cid in character.charms
-        if cid in ruleset.charms and ruleset.charms[cid].grants_circle is not None
-    }
-    out |= set(merits.merits_and_flaws_calc(ruleset, character).granted_circles)
-    return out
 
 
-def accessible_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
-    """Every magic circle this character can reach — the circle granted by any
-    initiation Charm they may learn (their own Exalt type, or an `open_to_all`
-    Charm), unioned with circles already granted by known Charms.
-
-    This is what the spell picker should show, and it is deliberately NOT the same
-    as the Exalt's nominal `magic_track`: a splat whose Charm trees hold BOTH sorcery
-    and necromancy initiations (Abyssals carry Terrestrial/Celestial Sorcery AND the
-    three Necromancy circles) reaches both tracks, so its picker must too. Track is a
-    display-ordering hint, not an access gate — the gate is the granting Charm."""
-    # Merit-granted circles (mortals + Essence Mastery, capped at Terrestrial) arrive
-    # through granted_circles, which is where the gates read them too. See engine.merits.
-    out = granted_circles(ruleset, character)
-    for charm in ruleset.charms.values():
-        if charm.grants_circle is not None and charm_matches_splat(character, charm, ruleset):
-            out.add(charm.grants_circle)
-    return out
 
 
-def chargen_barred_circle(ruleset: RuleSet, character: Character) -> SpellCircle | None:
-    """The magic circle barred at character creation for this Exalt type, resolved
-    from ExaltDefinition.highest_magic_circle_id (Solars: the Solar Circle, core
-    p.100). Empty or unrecognised -> None (nothing barred at creation)."""
-    cid = ruleset.exalt_for(character.exalt_type).highest_magic_circle_id
-    try:
-        return SpellCircle(cid) if cid else None
-    except ValueError:
-        return None
 
 
-def meets_spell_requirements(ruleset: RuleSet, character: Character, spell,
-                             *, chargen: bool = True) -> bool:
-    """Whether the character could learn `spell` right now: a known Charm must grant
-    its circle, and at chargen the Exalt type's highest circle is barred (Solars:
-    Solar Circle, core p.100). Forward-looking counterpart to check_spell_access."""
-    if spell.id in ruleset.exalt_for(character.exalt_type).barred_spell_ids:
-        return False
-    if chargen and spell.circle == chargen_barred_circle(ruleset, character):
-        return False
-    return spell.circle in granted_circles(ruleset, character)
 
 
-def check_spell_access(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """A known Spell requires a known Charm whose `grants_circle` matches
-    the Spell's circle.
-
-    Exact-circle match is correct for 1e (core pp.191): the three initiation
-    Charms form a prerequisite chain — Celestial Circle Sorcery requires
-    Terrestrial, Solar requires Celestial — so a higher-circle sorcerer always
-    also holds the lower Charms (enforced by check_charm_prerequisites) and can
-    cast lower-circle spells through them. No separate circle-nesting rule is
-    needed here; the prerequisite chain provides it.
-    """
-    granted = granted_circles(ruleset, character)
-    barred = ruleset.exalt_for(character.exalt_type).barred_spell_ids
-    issues: list[Issue] = []
-    for sid in character.spells:
-        spell = ruleset.spells.get(sid)
-        if spell is None:
-            continue
-        # The splat-level spell bar, restated here as well as in
-        # meets_spell_requirements: the picker route and the already-held route are
-        # two ways to the same permission, and a bar on only one of them is this
-        # build's most-repeated bug.
-        if sid in barred:
-            issues.append(Issue(
-                code="spell-barred", where=sid,
-                message=(f"{spell.name}: {ruleset.exalt_for(character.exalt_type).label} "
-                         f"may never learn this spell."),
-            ))
-            continue
-        if spell.circle not in granted:
-            issues.append(Issue(
-                code="spell-circle", where=sid,
-                message=(f"{spell.name}: no known Charm grants the "
-                         f"{spell.circle.value} circle."),
-            ))
-    return issues
 
 
 # --------------------------------------------------------------------------- #
 # Combos
 # --------------------------------------------------------------------------- #
 
-# Only Charms of instant duration may be Comboed (core p.213). Compared against
-# Charm.duration, whose instant value is the model default "Instant".
-_COMBO_DURATION = "Instant"
-
-# Castes allowed to mix Ability-based and Attribute-based Charms in one Combo
-# (Lunars p.122): Solar Eclipse and Abyssal Moonshadow are "gifted generalists"
-# who may cross the two Charm systems; every other caste (including every
-# Lunar caste, whose native Charms are ALL Attribute-based already, and any
-# other splat's caste) may not. A Lunar combining native Attribute Charms with
-# an open_to_tiers Ability-keyed Martial Arts style (e.g. Five-Dragon Style, a
-# Celestial-tier style a Lunar can learn) hits this the same as anyone else —
-# the sourcebook names only Eclipse/Moonshadow for the crossover, not "any
-# Lunar." This checks Combo COMPOSITION legality only; the p.122 dice-pool cap
-# for a mixed Combo (2x Essence) is a play-time numeric limit with no home in
-# this engine, same as the rest of attack/damage math (see the Combat/attack
-# derivation out-of-scope decision).
-_MIXED_COMBO_CASTES = {"eclipse", "moonshadow"}
-
-
-def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
-    """Legality findings for a single Combo (core pp.213-214): two or more *known*
-    Charms of instant duration, no Charm twice, at most one Simple and at most one
-    Extra Action Charm. `where` is the Combo's name. The picker uses this per-Combo;
-    validate_combos aggregates it over the character."""
-    issues: list[Issue] = []
-    # The Dragon-King Path powers are Combo members (p.177 "Dragon Kings may purchase
-    # and use Combos normally") — their virtual Charm rows resolve via ruleset.charms
-    # in the loop below, so the only change is folding them into the "known" set.
-    known = set(character.charms) | set(paths_mod.path_power_ids(ruleset, character))
-    where = combo.name or "(unnamed combo)"
-    # A splat barred from Combos outright (the dead — E:Ab p.234, "The dead may never
-    # learn Combos and so may never use more than one Charm per turn"). Reported first
-    # and alone: every other finding below is about how this Combo is BUILT, which is
-    # noise for a character who may not have one at all.
-    if not ruleset.exalt_for(character.exalt_type).combos_available:
-        return [Issue(
-            code="combo-splat-barred", where=where,
-            message=(f"{ruleset.exalt_for(character.exalt_type).label} characters may "
-                     f"never learn Combos (E:Ab p.234)."),
-        )]
-    if len(combo.charm_ids) < 2:
-        issues.append(Issue(
-            code="combo-too-small", where=where,
-            message=f"Combo {where!r} has {len(combo.charm_ids)} Charm(s); a Combo "
-                    "must combine at least two.",
-        ))
-    seen: set[str] = set()
-    simple = extra_action = 0
-    has_attribute_charm = has_ability_charm = False
-    for cid in combo.charm_ids:
-        if cid in seen:
-            issues.append(Issue(
-                code="combo-duplicate-charm", where=where,
-                message=f"Combo {where!r} includes {cid!r} more than once; a Combo "
-                        "may not repeat a Charm.",
-            ))
-            continue
-        seen.add(cid)
-        if cid not in known:
-            issues.append(Issue(
-                code="combo-unknown-charm", where=where,
-                message=f"Combo {where!r} includes {cid!r}, which the character "
-                        "does not know.",
-            ))
-            continue
-        charm = ruleset.charms.get(cid)
-        if charm is None:                 # known id absent from the set: check_references reports it
-            continue
-        if charm.duration != _COMBO_DURATION:
-            issues.append(Issue(
-                code="combo-non-instant", where=where,
-                message=f"Combo {where!r}: {charm.name} has {charm.duration} duration; "
-                        "Combos may only contain instant-duration Charms.",
-            ))
-        if charm.type == CharmType.SIMPLE:
-            simple += 1
-        elif charm.type == CharmType.EXTRA_ACTION:
-            extra_action += 1
-        if charm.min_attribute:
-            has_attribute_charm = True
-        else:
-            has_ability_charm = True
-    if simple > 1:
-        issues.append(Issue(
-            code="combo-multiple-simple", where=where,
-            message=f"Combo {where!r} has {simple} Simple Charms; a Combo may "
-                    "contain at most one.",
-        ))
-    if extra_action > 1:
-        issues.append(Issue(
-            code="combo-multiple-extra-action", where=where,
-            message=f"Combo {where!r} has {extra_action} Extra Action Charms; a "
-                    "Combo may contain at most one.",
-        ))
-    if (has_attribute_charm and has_ability_charm
-            and character.caste not in _MIXED_COMBO_CASTES):
-        issues.append(Issue(
-            code="combo-mixed-attribute-ability", where=where,
-            message=f"Combo {where!r} mixes an Attribute-based Charm with an "
-                    "Ability-based Charm; only Solar Eclipse and Abyssal "
-                    "Moonshadow Charms may cross the two systems in one Combo.",
-        ))
-    return issues
-
-
-def eligible_combo_charms(ruleset: RuleSet, character: Character) -> list[str]:
-    """Ids of the character's known Charms that may legally go in a Combo — i.e.
-    those of instant duration (core p.213). Order follows the character's Charm
-    list, then the Dragon-King Path powers (owned dots projected into virtual Charm
-    rows; only instant-duration powers are Combo-legal, p.177). The picker offers
-    these when adding a Charm to a Combo."""
-    out: list[str] = []
-    for cid in character.charms:
-        charm = ruleset.charms.get(cid)
-        if charm is not None and charm.duration == _COMBO_DURATION:
-            out.append(cid)
-    for cid in paths_mod.path_power_ids(ruleset, character):
-        charm = ruleset.charms.get(cid)
-        if charm is not None and charm.duration == _COMBO_DURATION:
-            out.append(cid)
-    return out
-
-
-def validate_combos(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Legality of every Combo the character holds (core pp.213-214). The
-    Storyteller veto of specific Combos and the in-play activation rules are out of
-    scope here; the bonus-point cost is accounted in validate_chargen. Operates on
-    the character's current Charms/Combos (like the other reference checks)."""
-    issues: list[Issue] = []
-    for combo in character.combos:
-        issues += combo_issues(ruleset, character, combo)
-    return issues
-
-
-
-
-def camp_for(ruleset, character):
-    """The character's TrainingCamp, or None. `camp` is only meaningful for an origin
-    whose budget sets `requires_camp` (Cult of the Illuminated, p.89), but a stray id
-    still resolves here — legality is `check_camp_and_calling`'s job."""
-    return ruleset.camps.get(character.camp) if character.camp else None
-
-
-def calling_for(ruleset, character):
-    """The character's Calling, or None."""
-    return ruleset.callings.get(character.calling) if character.calling else None
-
-
-def calling_abilities(ruleset, character) -> set:
-    """The Abilities the character's Calling discounts (p.90). NOT Favored Abilities —
-    the discount stacks with the Caste/Favoured one, so the two sets stay separate and
-    a Calling Ability does NOT count toward the Caste/Favoured dot minimum."""
-    calling = calling_for(ruleset, character)
-    return set(calling.abilities) if calling else set()
-
-
-def calling_charm_ids(ruleset, character) -> set:
-    """The Charm ids the character's Calling discounts."""
-    calling = calling_for(ruleset, character)
-    return set(calling.charms) if calling else set()
-
-
-def is_calling_charm(ruleset, character, charm) -> bool:
-    charm_id = getattr(charm, "id", charm)
-    return charm_id in calling_charm_ids(ruleset, character)
-
-
-def camp_min_abilities(ruleset, character) -> list:
-    """The Ability floors imposed by the character's training camp (p.89), unioned
-    into the chargen minimums exactly as the caste's own are. Suppressed by the same
-    `ignore_caste_min_abilities` switch, on the grounds that an origin declaring
-    itself free of required Ability scores means all of them."""
-    camp = camp_for(ruleset, character)
-    return list(camp.required_min_abilities) if camp else []
-
-
-def granted_charm_ids(ruleset, character) -> list[str]:
-    """Every Charm the character holds for free from their camp package (p.90).
-
-    Read off `character.granted_charms`, which is the RESOLVED list (the camp's fixed
-    grants plus the player's choices). These are granted, not picked: they must never
-    count against the Charm pool or the Caste/Favoured Charm minimum."""
-    return list(character.granted_charms)
-
-
-def check_camp_and_calling(ruleset, character) -> list[Issue]:
-    """Camp/Calling legality (Cult of the Illuminated, p.89-93). Data-driven off the
-    budget's `requires_camp`/`requires_calling`, so no splat or origin is named here."""
-    issues: list[Issue] = []
-    budgets = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
-
-    if budgets.requires_camp:
-        camp = camp_for(ruleset, character)
-        if camp is None:
-            issues.append(Issue(
-                code="camp-required",
-                message="This origin requires a training camp; none is set."
-                        if not character.camp else
-                        f"Unknown training camp {character.camp!r}.",
-            ))
-        elif camp.exalt_type != character.exalt_type or (
-                camp.origin and camp.origin != character.origin):
-            issues.append(Issue(
-                code="camp-wrong-origin", where=camp.id,
-                message=f"Training camp {camp.label!r} belongs to "
-                        f"{camp.exalt_type}/{camp.origin or 'any'}, not "
-                        f"{character.exalt_type}/{character.origin or 'any'}.",
-            ))
-    elif character.camp:
-        issues.append(Issue(
-            code="camp-not-supported", where=character.camp,
-            message="This origin has no training camps, but one is set.",
-        ))
-
-    if budgets.requires_calling:
-        calling = calling_for(ruleset, character)
-        if calling is None:
-            issues.append(Issue(
-                code="calling-required",
-                message="This origin requires a Calling; none is set."
-                        if not character.calling else
-                        f"Unknown Calling {character.calling!r}.",
-            ))
-        # A Calling belongs to ONE camp (p.90-92): the Tabernacle's three are not on
-        # offer at Kether Rock.
-        elif character.camp and calling.camp and calling.camp != character.camp:
-            issues.append(Issue(
-                code="calling-wrong-camp", where=calling.id,
-                message=f"Calling {calling.label!r} is offered by {calling.camp!r}, "
-                        f"not by {character.camp!r}.",
-            ))
-    elif character.calling:
-        issues.append(Issue(
-            code="calling-not-supported", where=character.calling,
-            message="This origin has no Callings, but one is set.",
-        ))
-
-    return issues
-
-
-def default_camp_and_calling(ruleset, character) -> tuple[str, str, list[str]]:
-    """The (camp id, calling id, granted Charm ids) a character of this splat/origin
-    should default to — the first camp offered, its first Calling, and that camp's
-    automatic grants. All three empty when the origin has no camps.
-
-    Lives here rather than in the editor because "which camp is legal, and what does it
-    hand you" is a rules question, and the UI is meant to contain no game logic. It also
-    makes the behaviour testable without driving a browser: picking the Illuminated
-    origin has to leave the character LEGAL, not merely leave three more dropdowns to
-    fill in.
-
-    Keeps a camp/Calling the character already has if it is still valid, so re-running
-    this is idempotent and never silently discards a player's choice."""
-    camps = ruleset.camps_for(character.exalt_type, character.origin)
-    if not camps:
-        return "", "", []
-
-    camp = next((c for c in camps if c.id == character.camp), camps[0])
-    callings = ruleset.callings_for(camp.id)
-    calling = next((c.id for c in callings if c.id == character.calling),
-                   callings[0].id if callings else "")
-
-    granted = list(camp.granted_charms)
-    if camp.id == character.camp:
-        # Same camp: preserve whatever the player already resolved for each choice, and
-        # only top up the fixed grants.
-        granted = list(dict.fromkeys(granted + list(character.granted_charms)))
-    return camp.id, calling, granted
-
-
-def granted_charm_issues(ruleset, character) -> list[Issue]:
-    """Whether `character.granted_charms` is a legal resolution of the camp's free-Charm
-    package (p.90): every fixed grant present, each choice resolved, nothing extra, and
-    the character meeting each granted Charm's own minima ("As usual, the Solar must
-    meet the minimum requirements to gain these Charms")."""
-    issues: list[Issue] = []
-    camp = camp_for(ruleset, character)
-    granted = list(character.granted_charms)
-
-    if camp is None:
-        if granted:
-            issues.append(Issue(
-                code="granted-charm-not-supported",
-                message="Granted Charms are set, but the character has no training camp.",
-            ))
-        return issues
-
-    seen = set()
-    for cid in granted:
-        if cid not in ruleset.charms:
-            issues.append(Issue(code="granted-charm-unknown", where=cid,
-                                message=f"Unknown Charm {cid!r} in the camp package."))
-        if cid in seen:
-            issues.append(Issue(code="granted-charm-duplicate", where=cid,
-                                message=f"Charm {cid!r} is granted twice."))
-        seen.add(cid)
-
-    remaining = list(granted)
-    for cid in camp.granted_charms:
-        if cid in remaining:
-            remaining.remove(cid)
-        else:
-            issues.append(Issue(
-                code="granted-charm-missing", where=cid,
-                message=f"{camp.label} grants {_charm_name(ruleset, cid)} to every "
-                        f"graduate; it is not in the character's granted Charms.",
-            ))
-
-    for choice in camp.granted_charm_choices:
-        if choice.fixed_sets:
-            # Exactly one whole printed set, all-or-nothing.
-            match = next((grp for grp in choice.fixed_sets
-                          if all(c in remaining for c in grp)), None)
-            if match is None:
-                issues.append(Issue(
-                    code="granted-charm-choice-unresolved", where=choice.label,
-                    message=f"{camp.label}: {choice.label} — none of the "
-                            f"{len(choice.fixed_sets)} options is fully taken.",
-                ))
-            else:
-                for cid in match:
-                    remaining.remove(cid)
-        elif choice.from_categories:
-            # `pick` Charms, all from ONE of the listed categories.
-            by_cat: dict[str, list[str]] = {}
-            for cid in remaining:
-                charm = ruleset.charms.get(cid)
-                if charm is not None and charm.category in choice.from_categories:
-                    by_cat.setdefault(charm.category, []).append(cid)
-            chosen = next((cat for cat, ids in by_cat.items() if len(ids) >= choice.pick), None)
-            if chosen is None:
-                issues.append(Issue(
-                    code="granted-charm-choice-unresolved", where=choice.label,
-                    message=f"{camp.label}: {choice.label} — needs {choice.pick} Charm(s) "
-                            f"from ONE of {', '.join(choice.from_categories)}.",
-                ))
-            else:
-                if len(by_cat) > 1:
-                    issues.append(Issue(
-                        code="granted-charm-choice-mixed", where=choice.label,
-                        message=f"{camp.label}: {choice.label} — the Charms must all come "
-                                f"from ONE style; found "
-                                f"{', '.join(sorted(by_cat))}.",
-                    ))
-                for cid in by_cat[chosen][:choice.pick]:
-                    remaining.remove(cid)
-        else:
-            # A flat pool: `pick` Charms from anywhere in it, in any combination
-            # (Cult p.96, the Dragon-Blooded Tabernacle package). No cross-style
-            # complaint is possible here — mixing IS the shape — so the only failure
-            # is the wrong COUNT, and an over-count leaves the surplus in `remaining`
-            # to be reported as granted-charm-extra like any other stray id.
-            pool = set(choice.pool_charm_ids(ruleset.charms))
-            taken = [cid for cid in remaining if cid in pool]
-            if len(taken) < choice.pick:
-                issues.append(Issue(
-                    code="granted-charm-choice-unresolved", where=choice.label,
-                    message=f"{camp.label}: {choice.label} — needs {choice.pick} "
-                            f"Charm(s) from the package's list; {len(taken)} taken.",
-                ))
-            for cid in taken[:choice.pick]:
-                remaining.remove(cid)
-
-    for cid in remaining:
-        issues.append(Issue(
-            code="granted-charm-extra", where=cid,
-            message=f"{_charm_name(ruleset, cid)} is not part of {camp.label}'s package.",
-        ))
-
-    # The character must still qualify for what they were given.
-    for cid in granted:
-        charm = ruleset.charms.get(cid)
-        if charm is None:
-            continue
-        ok, why = _granted_charm_minima_met(ruleset, character, charm)
-        if not ok:
-            issues.append(Issue(code="granted-charm-minimum", where=cid, message=why))
-
-    return issues
-
-
-
-
-def _granted_charm_minima_met(ruleset, character, charm) -> tuple[bool, str]:
-    """A granted Charm is exempt from the Charm POOL, not from its own requirements
-    (p.90). Prerequisites are deliberately NOT checked: the package hands out Charms
-    like Iron Skin Concentration whose own tree the character has not climbed, and the
-    page grants them outright."""
-    short = charm_ability_shortfalls(character, charm)
-    if short:
-        label, want, have = short[0]
-        return False, (f"{charm.name} is granted by the camp but requires "
-                       f"{label} {want}; character has {have}.")
-    if character.essence_rating < charm.min_essence:
-        return False, (f"{charm.name} is granted by the camp but requires Essence "
-                       f"{charm.min_essence}; character has {character.essence_rating}.")
-    return True, ""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def eligible_array_charms(ruleset: RuleSet, character: Character) -> list[str]:
-    """Ids of the character's known Charms that may legally be linked into an Array
-    (p.89) — Attribute-based and `arrayable`, which excludes the Ability-based
-    supernatural martial arts and the Weaving Engines. Order follows the character's
-    Charm list. This is the Array counterpart of `eligible_combo_charms`: it does NOT
-    exclude Charms already sitting in an Array (`validate_arrays` reports reuse), so
-    the caller decides whether to offer them again."""
-    out: list[str] = []
-    for cid in character.charms:
-        charm = ruleset.charms.get(cid)
-        if charm is not None and charm.min_attribute and charm.arrayable:
-            out.append(cid)
-    return out
-
-
-def array_issues(ruleset: RuleSet, character: Character, array) -> list[Issue]:
-    """Legality findings for a single Alchemical Array (p.89): two or more *known*
-    Charms, no Charm twice, and every member Attribute-based (supernatural martial
-    arts, which are Ability-based, may not join). The instant-duration / one-Simple
-    limits are NOT checked here — they bound the integrated Combos an Array grants,
-    not the Array itself. `where` is the Array's name."""
-    issues: list[Issue] = []
-    known = set(character.charms)
-    where = array.name or "(unnamed array)"
-    if len(array.charm_ids) < 2:
-        issues.append(Issue(
-            code="array-too-small", where=where,
-            message=f"Array {where!r} has {len(array.charm_ids)} Charm(s); an Array "
-                    "must link at least two.",
-        ))
-    seen: set[str] = set()
-    for cid in array.charm_ids:
-        if cid in seen:
-            issues.append(Issue(
-                code="array-duplicate-charm", where=where,
-                message=f"Array {where!r} includes {cid!r} more than once; link a "
-                        "second copy of the Charm into a separate Array instead.",
-            ))
-            continue
-        seen.add(cid)
-        if cid not in known:
-            issues.append(Issue(
-                code="array-unknown-charm", where=where,
-                message=f"Array {where!r} includes {cid!r}, which the character "
-                        "does not know.",
-            ))
-            continue
-        charm = ruleset.charms.get(cid)
-        if charm is None:                 # known id absent from the set: check_references reports it
-            continue
-        if not charm.min_attribute:
-            issues.append(Issue(
-                code="array-non-attribute-charm", where=where,
-                message=f"Array {where!r}: {charm.name} is not Attribute-based; only "
-                        "Attribute-based Charms may be linked into an Array (this "
-                        "excludes supernatural martial arts).",
-            ))
-        elif not charm.arrayable:
-            issues.append(Issue(
-                code="array-charm-not-arrayable", where=where,
-                message=f"Array {where!r}: {charm.name} may not be placed in an Array.",
-            ))
-    return issues
-
-
-def validate_arrays(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Legality of every Array the character holds (p.89). Adds two cross-Array
-    rules to the per-Array checks: only a Charm-Slot splat may build Arrays (p.90 —
-    Eclipse/Moonshadow may not), and a Charm may sit in at most one Array unless
-    bought again (there is only one copy of each id on the character)."""
-    issues: list[Issue] = []
-    if not character.arrays:
-        return issues
-    slots = uses_charm_slots(ruleset, character)
-    seen_charms: set[str] = set()
-    for array in character.arrays:
-        where = array.name or "(unnamed array)"
-        if not slots:
-            issues.append(Issue(
-                code="array-not-supported", where=where,
-                message=f"Array {where!r}: only Alchemical Exalted build Arrays "
-                        "(Eclipse and Moonshadow Caste may not, p.90).",
-            ))
-        issues += array_issues(ruleset, character, array)
-        for cid in set(array.charm_ids):
-            if cid in seen_charms:
-                issues.append(Issue(
-                    code="array-charm-reused", where=where,
-                    message=f"Array {where!r} reuses {cid!r}, already linked into "
-                            "another Array; a Charm may join only one Array unless "
-                            "purchased again.",
-                ))
-            seen_charms.add(cid)
-    return issues
-
-
-def submodule_def(ruleset: RuleSet, charm_id: str, key: str):
-    """The rules.Submodule with `key` on Charm `charm_id`, or None if either the
-    Charm or the key is absent."""
-    charm = ruleset.charms.get(charm_id)
-    if charm is None:
-        return None
-    return next((s for s in charm.submodules if s.key == key), None)
-
-
-def owns_submodule(character: Character, charm_id: str, key: str) -> bool:
-    """Whether the character has already purchased this submodule."""
-    return any(s.charm_id == charm_id and s.key == key for s in character.submodules)
-
-
-def submodule_block_reason(ruleset: RuleSet, character: Character,
-                           charm_id: str, key: str) -> str:
-    """Why this submodule cannot be purchased right now — "" when it can. The same
-    gates `validate_submodules` and `advancement.learn_submodule` apply (parent Charm
-    installed, own Essence and Attribute minimums), phrased for the picker so the UI
-    never re-derives them. Says nothing about affordability: BP and XP are the
-    caller's budget question, not a legality one."""
-    definition = submodule_def(ruleset, charm_id, key)
-    if definition is None:
-        return "No such submodule."
-    if owns_submodule(character, charm_id, key):
-        return "Already purchased."
-    if charm_id not in character.charms:
-        charm = ruleset.charms.get(charm_id)
-        return f"Install {charm.name if charm else charm_id} first."
-    if character.essence_rating < definition.min_essence:
-        return f"Requires Essence {definition.min_essence}."
-    if definition.min_attribute:
-        try:
-            attr = AttributeName(definition.min_attribute)
-        except ValueError:
-            return f"Unknown Attribute {definition.min_attribute!r}."
-        if character.attributes.get(attr, 0) < definition.min_attribute_rating:
-            return (f"Requires {definition.min_attribute.title()} "
-                    f"{definition.min_attribute_rating}.")
-    return ""
-
-
-def validate_submodules(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Legality of every purchased submodule (p.89): its parent Charm must exist and
-    be known, the key must be a real submodule of that Charm, no submodule bought
-    twice, and the character must meet the submodule's own Essence / Attribute
-    minimums. Used for both chargen (BP) and post-lock (XP) purchases."""
-    issues: list[Issue] = []
-    seen: set[tuple[str, str]] = set()
-    known = set(character.charms)
-    for sub in character.submodules:
-        where = f"{sub.charm_id}:{sub.key}"
-        pair = (sub.charm_id, sub.key)
-        if pair in seen:
-            issues.append(Issue(
-                code="submodule-duplicate", where=where,
-                message=f"Submodule {where!r} is purchased more than once.",
-            ))
-            continue
-        seen.add(pair)
-        charm = ruleset.charms.get(sub.charm_id)
-        if charm is None:
-            issues.append(Issue(
-                code="submodule-unknown-charm", where=where,
-                message=f"Submodule {where!r} names Charm {sub.charm_id!r}, which is "
-                        "not in the rule set.",
-            ))
-            continue
-        definition = submodule_def(ruleset, sub.charm_id, sub.key)
-        if definition is None:
-            issues.append(Issue(
-                code="submodule-unknown", where=where,
-                message=f"{charm.name} has no submodule {sub.key!r}.",
-            ))
-            continue
-        if sub.charm_id not in known:
-            issues.append(Issue(
-                code="submodule-charm-not-known", where=where,
-                message=f"Submodule {definition.name}: its Charm {charm.name} is not "
-                        "known/installed.",
-            ))
-        if character.essence_rating < definition.min_essence:
-            issues.append(Issue(
-                code="submodule-essence", where=where,
-                message=f"Submodule {definition.name} requires Essence "
-                        f"{definition.min_essence}; has {character.essence_rating}.",
-            ))
-        if definition.min_attribute:
-            try:
-                attr = AttributeName(definition.min_attribute)
-            except ValueError:
-                attr = None
-            have = character.attributes.get(attr, 0) if attr is not None else 0
-            if have < definition.min_attribute_rating:
-                issues.append(Issue(
-                    code="submodule-attribute", where=where,
-                    message=f"Submodule {definition.name} requires "
-                            f"{definition.min_attribute} {definition.min_attribute_rating}; "
-                            f"has {have}.",
-                ))
-    return issues
-
-
-def array_installation_motes(ruleset: RuleSet, charm_ids) -> int:
-    """The combined installation cost of one Array's member Charms (p.89):
-    three-fourths of their summed cost, rounded up. Public so the UI can show an
-    Array's mote saving using the same arithmetic the chargen check applies."""
-    total = sum(ruleset.charms[cid].installation_cost
-                for cid in charm_ids if cid in ruleset.charms)
-    return (3 * total + 3) // 4              # ceil(3/4 * total)
-
-
-def _installation_motes(ruleset: RuleSet, charm_ids, arrays) -> int:
-    """Total Personal Essence committed to install `charm_ids`, applying the Array
-    discount (p.89): a Charm inside an Array contributes to that Array's combined
-    installation cost, which is three-fourths of the sum, rounded up; a Charm in no
-    Array contributes its own full installation cost."""
-    array_of: dict[str, int] = {}
-    for i, arr in enumerate(arrays):
-        for cid in arr.charm_ids:
-            array_of.setdefault(cid, i)      # first Array wins (reuse is flagged elsewhere)
-    loose = 0
-    grouped: dict[int, list[str]] = {}
-    for cid in charm_ids:
-        if cid not in ruleset.charms:
-            continue
-        if cid in array_of:
-            grouped.setdefault(array_of[cid], []).append(cid)
-        else:
-            loose += ruleset.charms[cid].installation_cost
-    return loose + sum(array_installation_motes(ruleset, ids)
-                       for ids in grouped.values())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # --------------------------------------------------------------------------- #
@@ -2204,100 +1198,14 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                                available=b.bonus_points + granted + inheritance_bp)
 
 
-def elemental_powers_available(ruleset: RuleSet, character: Character) -> bool:
-    """Whether the elemental-powers catalogue is open to this character at all — the
-    Elemental-origin God-Blooded gate (PG p.68, "descendents of elementals draw on the
-    innate powers of their heritage"). The UI reads this to decide whether the picker
-    page exists; every requirement check starts from it too.
-
-    The gate is CASTE-level, not just splat-and-origin: the retired Merit's printed
-    restriction barred every heritage but god-blooded (`barred_castes`), and "Elemental"
-    is only an origin option on the god-blooded row — so a hand-edited save with
-    `caste="demon-blooded"` + `origin="Elemental"` must NOT open the catalogue. `origin`
-    alone is not enough; a stray origin string could pass it."""
-    return (character.exalt_type == "God-Blooded"
-            and character.caste == "god-blooded"
-            and character.origin == "Elemental")
 
 
-def legal_elemental_powers(ruleset: RuleSet, character: Character) -> list[str]:
-    """The Elemental Powers a heritage change leaves the character able to hold.
-    The catalogue belongs to the Elemental origin alone (see elemental_powers_available),
-    so any structural switch away from it orphans every held power — the picker tab
-    vanishes, the BP breakdown keeps charging, and validation errors with no UI path to
-    remove them. The editor reads this after a heritage/caste/origin switch and drops
-    whatever it no longer authorizes (the same shape as default_camp_and_calling: the
-    engine decides, the UI applies)."""
-    return list(character.elemental_powers) if elemental_powers_available(ruleset, character) else []
 
 
-def meets_elemental_power_requirements(ruleset: RuleSet, character: Character, power) -> bool:
-    """Whether the character could legally learn `power` right now: Elemental origin,
-    min Essence, and every Merit in `required_merits` held. The forward-looking
-    counterpart of elemental_power_issues, used by the picker to decide which powers
-    are selectable. Ownership is excluded exactly as meets_charm_requirements excludes
-    it — the caller checks "already owned" separately."""
-    if not elemental_powers_available(ruleset, character):
-        return False
-    if character.essence_rating < power.min_essence:
-        return False
-    held = merits.merit_ids_held(character)
-    return all(mid in held for mid in power.required_merits)
 
 
-def elemental_power_shortfalls(ruleset: RuleSet, character: Character, power) -> list[str]:
-    """Human-readable reasons `power` is not learnable right now; empty when it is.
-    Used by the picker for the button tooltip."""
-    out = []
-    if not elemental_powers_available(ruleset, character):
-        out.append("only Elemental-origin God-Blooded may learn elemental powers")
-    if character.essence_rating < power.min_essence:
-        out.append(f"requires Essence {power.min_essence}")
-    held = merits.merit_ids_held(character)
-    for mid in power.required_merits:
-        if mid not in held:
-            definition = ruleset.merits_flaws.get(mid)
-            out.append(f"requires the {definition.name if definition else mid} Merit")
-    return out
 
 
-def elemental_power_issues(ruleset: RuleSet, character: Character,
-                           power_ids: list[str]) -> list[Issue]:
-    """Legality of the character's elemental powers (PG p.68): an unknown id, an
-    origin that bars them, Essence below minimum, or a missing required Merit.
-    Mirrors merit_issues — structural only, and what a power DOES is descriptive
-    text, not modelled mechanics (decision 0008)."""
-    issues: list[Issue] = []
-    for pid in power_ids:
-        power = ruleset.elemental_powers.get(pid)
-        if power is None:
-            # Unknown ids are check_references' job (the same split as unknown-charm /
-            # unknown-spell): this function only reports legality for RESOLVED powers,
-            # so a deleted/renamed power surfaces exactly one issue.
-            continue
-        if not elemental_powers_available(ruleset, character):
-            issues.append(Issue(
-                code="elemental-power-wrong-origin", where=pid,
-                message=f"{power.name} is restricted to Elemental-origin God-Blooded; "
-                        f"this character is a {character.origin or 'blank'} "
-                        f"{character.exalt_type}.",
-            ))
-        if character.essence_rating < power.min_essence:
-            issues.append(Issue(
-                code="elemental-power-low-essence", where=pid,
-                message=f"{power.name} requires Essence {power.min_essence}; "
-                        f"this character has Essence {character.essence_rating}.",
-            ))
-        held = merits.merit_ids_held(character)
-        for mid in power.required_merits:
-            if mid not in held:
-                definition = ruleset.merits_flaws.get(mid)
-                issues.append(Issue(
-                    code="elemental-power-missing-merit", where=pid,
-                    message=f"{power.name} requires the "
-                            f"{definition.name if definition else mid} Merit.",
-                ))
-    return issues
 
 
 
