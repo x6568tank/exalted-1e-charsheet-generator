@@ -1,11 +1,11 @@
-# Session handoff — 2026-08-17 (the `engine/validate.py` split)
+# Session handoff — 2026-08-17 (the `engine/validate.py` split + the comment pass)
 
 # 👉 YOU ARE HERE
 
 **Everything below is DONE, COMMITTED and GREEN — 2,441 passed, 0 failed.** Nothing is
 half-finished and nothing is waiting on a decision.
 
-**State: clean tree, six commits ahead of where the session started.**
+**State: clean tree, nine commits ahead of where the session started.**
 
 ```
 .venv/bin/python -m pytest -q     # expect: 2,441 passed, 1 warning
@@ -57,9 +57,9 @@ while rewriting `artifact_checks.py`.
 
 ## If you do one thing next
 
-The docstring pass. Otherwise: **packaged builds** are still the only open 1.0 item
-(README, screenshots and pyproject are done; `pyproject.toml` reads 0.9.9, so bump to
-0.9.10 if you tag).
+**Packaged builds** — the only open 1.0 item (README, screenshots and pyproject are done;
+`pyproject.toml` reads 0.9.9, so bump to 0.9.10 if you tag). Otherwise, carry the comment
+pass into `models/`, which is 61% prose and the densest area in the build.
 
 ## Nothing is pending your ruling
 
