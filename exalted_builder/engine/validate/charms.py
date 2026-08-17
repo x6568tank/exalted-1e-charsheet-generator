@@ -1,37 +1,32 @@
 """
 engine/validate/charms.py — Charm legality: who may learn what, and at what cost.
 
-The largest and most cross-referenced of the validation domains, extracted from the
-5,791-line `validate.py` on 2026-08-17 (plan: `docs/plans/validate-refactor.md`).
-It owns:
+Access (`charm_matches_splat`, `charm_learnable_by_splat`, `meets_charm_requirements`,
+the tier ladder, the Immaculate paths, foreign and heritage access), prerequisites
+(`check_charm_prerequisites` and the AND-of-OR graph), the chargen pick enumeration
+and its pricing, the Alchemical slot economy, and the repeatable Charms (Ox-Body and
+the Lunar Gifts, stored off `Character.charms` and counted separately).
 
-  * **Access** — `charm_matches_splat`, `charm_learnable_by_splat`, `meets_charm_
-    requirements`, the tier ladder (`tier_rank`/`tier_reaches`, decision 0015), the
-    Immaculate paths, foreign Charms, and heritage Charm access.
-  * **Prerequisites** — `check_charm_prerequisites` and the AND-of-OR graph, minimum
-    Essence/Ability/Attribute, and Charm-count requirements.
-  * **Picks and cost** — `charm_picks` and the ONE enumeration of a chargen Charm
-    pick (an architecture invariant: there must not be a second).
-  * **Slots** — the Alchemical Charm-slot economy (`charm_slot_counts`,
-    `uses_charm_slots`, `charm_fits_dedicated_slot`).
-  * **The repeatable Charms** — Ox-Body and the Lunar Gifts, which are stored off
-    `Character.charms` and so need their own counting.
+⚠ `charm_picks` is the ONE enumeration of a chargen Charm pick. A second one drifts
+out of step with the pricing that reads it; there must not be one.
 
 ⚠ Access is decided by the CHARM fields (`open_to_all`, `open_to_tiers`,
-`restricted_to`, `immaculate`, `ma_tier`), never by the style catalogue —
+`restricted_to`, `immaculate`, `ma_tier`), NEVER by the style catalogue.
 `tests/test_martial_arts_styles.py` bars `engine/` from reading
-`ruleset.martial_arts_styles` at all, and `Charm.ma_tier` is projected onto the
-Charm by the loader precisely so this module never has to.
+`ruleset.martial_arts_styles` at all; the loader projects `Charm.ma_tier` from the
+style so this module never needs to.
 
-⚠ `ma_tier` and `open_to_tiers` are DIFFERENT FACTS and conflating them is the bug
-the 2026-08-14 access work removed: `open_to_tiers` says who may learn the Charm,
-`ma_tier` says whether it is a Sidereal Martial Arts form for the p.101 chargen cap.
-Violet Bier of Sorrows is Celestial and is NOT a Sidereal MA form.
+⚠ `ma_tier` and `open_to_tiers` are DIFFERENT FACTS. `open_to_tiers` says who may
+learn the Charm; `ma_tier` says whether it is a Sidereal Martial Arts form, for the
+p.101 chargen cap alone. Violet Bier of Sorrows is Celestial and is NOT a Sidereal MA
+form — conflating the two capped twelve styles when only three qualify.
 
-Two back-edges to other domains are imported INSIDE their functions rather than at
-module scope, because those domains import this one: the Illuminated Calling
-(`calling_charm_ids`) and the Alchemical array installation cost
-(`_installation_motes`). See the call sites.
+⚠ Tiers are RANKED and a character reaches their own and every tier below, never up
+(decision 0015).
+
+Two back-edges are imported INSIDE the functions that need them, because those
+domains import this one: `illuminated.calling_charm_ids` and
+`alchemical._installation_motes`.
 """
 
 from __future__ import annotations
@@ -124,25 +119,20 @@ def gift_charm(ruleset: RuleSet, character: Character) -> Charm | None:
 
 
 class CharmPick(BaseModel):
-    """One Charm a character holds, wherever it is stored.
+    """One Charm a character holds, from whichever list stores it.
 
-    A repeatable Charm (Ox-Body Technique; Deadly Beastman Transformation) lives on
-    its OWN `Character` list rather than in `character.charms`, because N copies must
-    be representable. Granted Charms (a Cult of the Illuminated training camp, p.90)
-    are a third such list. Every consumer that walked `character.charms` therefore had
-    to special-case each list by hand — and four separately failed to when Gifts
-    landed. This type is the single enumeration they consume instead, so adding a
-    fourth list is one change here rather than a scavenger hunt.
+    Charms live on three separate `Character` lists — `charms`, the repeatables
+    (`ox_body`, `beastman_gifts`, which need N copies representable), and
+    `granted_charms` (a training camp's, p.90). This type is the single enumeration
+    consumers read instead of walking those lists themselves.
 
-    `counts_toward_pool` is False only for granted Charms: they cost no chargen pick
-    and no bonus points. `label` is display-ready and already folds in a repeatable
-    purchase's chosen variant(s). `caste_favored` is the Caste/Favoured decision for
-    THIS pick, resolved once here — the discount axis both the BP pricing and the
-    chargen Caste/Favoured minimum key off, whichever list the pick came from.
+    `counts_toward_pool` is False only for granted Charms, which cost no pick and no
+    bonus points. `label` is display-ready and folds in a repeatable's chosen
+    variants. `caste_favored` is resolved once here — the discount axis both the BP
+    pricing and the chargen Caste/Favoured minimum key off.
 
-    NOTE: this covers what a character HOLDS, plus the one trait of it (Caste/Favoured)
-    that does not depend on the accounting being done. The per-pick BP arithmetic is
-    `charm_pick_bp_costs`, which consumes this list.
+    ⚠ Holdings only. The per-pick BP arithmetic is `charm_pick_bp_costs`, which
+    consumes this list — do not add accounting here.
     """
     charm_id: str
     name: str                  # the Charm's own name, or the raw id if unresolved
@@ -154,16 +144,14 @@ class CharmPick(BaseModel):
 
 
 def charm_picks(ruleset: RuleSet, character: Character) -> list[CharmPick]:
-    """Every Charm the character holds RIGHT NOW, in sheet order: plain picks, then one
-    entry per repeatable purchase, then Charms granted by a training camp.
+    """Every Charm the character holds RIGHT NOW, in sheet order: plain picks, one
+    entry per repeatable purchase, then camp-granted Charms.
 
-    This is the enumeration the UI must use instead of reading `character.charms`,
-    `character.ox_body`, `character.beastman_gifts` and `character.granted_charms`
-    itself. Unresolvable ids are still yielded (with `name` set to the raw id) so a
-    stale save shows the problem rather than silently losing a row.
+    Unresolvable ids are still yielded, with `name` set to the raw id, so a stale save
+    shows the problem instead of silently losing a row.
 
-    Chargen accounting wants `chargen_charm_picks` instead — post-lock, the current
-    lists include Charms bought with XP.
+    ⚠ Chargen accounting wants `chargen_charm_picks`, not this — post-lock these lists
+    include Charms bought with XP.
     """
     return _charm_picks_from(
         ruleset, character,
@@ -173,9 +161,11 @@ def charm_picks(ruleset: RuleSet, character: Character) -> list[CharmPick]:
 
 
 def chargen_charm_picks(ruleset: RuleSet, character: Character) -> list[CharmPick]:
-    """`charm_picks` over the traits chargen accounting reads: the frozen snapshot once
-    locked, else the current lists. Granted Charms are read live either way — they are
-    a property of the training camp, cost nothing, and the snapshot does not hold them.
+    """`charm_picks` over the traits chargen accounting reads — the frozen snapshot
+    once locked, else the live lists.
+
+    Granted Charms are read live either way: they belong to the training camp, cost
+    nothing, and the snapshot does not hold them.
     """
     src = _chargen_source(character)
     return _charm_picks_from(
@@ -263,17 +253,16 @@ def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
                         picks: list[CharmPick]) -> list[int]:
     """The bonus-point price of each pool-counting pick in `picks`, in pick order.
 
-    The pricing half of the canonical enumeration: one rate ladder, applied to every
-    pick regardless of which `Character` list it came from. Most specific claim about
-    the Charm wins —
+    One rate ladder for every pick, whichever `Character` list it came from. The most
+    specific claim about the Charm wins:
 
       Calling         (Cult of the Illuminated, p.90)   4 BP, 3 if Caste/Favoured
       Immaculate      (DB, p.151)                       10 / 7
       Martial Arts    (Sidereal, p.101)                 8 / 6, None → the ordinary rate
       ordinary                                          charm / charm_favored_caste
 
-    Unresolvable ids are priced at nothing and dropped, matching every other consumer.
-    Spells share the Charm pool but are not Charms and are priced by their caller.
+    Unresolvable ids are dropped rather than priced. ⚠ Spells share the Charm pool but
+    are NOT Charms and are priced by the caller, not here.
     """
     bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin, character.upbringing)
     # Deferred to call time, not imported at module scope: `illuminated` imports
@@ -322,19 +311,21 @@ def charm_pick_bp_costs(ruleset: RuleSet, character: Character,
 
 
 def _repeatable_purchase_cap(charm: Charm, character: Character) -> int:
-    """Resolve a repeatable Charm's `repeatable_cap_ability` against the character:
-    an Ability, an Attribute, or the special value 'essence' (Deadly Beastman
-    Transformation, p.124 — "no more times than he has points of Essence"; Essence
-    isn't an Ability or Attribute, so it can't come through the normal lookups).
-    Or a Virtue, via `repeatable_cap_virtue` (the God-Blooded Ox-Body Technique, PG
-    p.83 — "no more times than their Conviction rating"; the same retarget `min_virtue`
-    performs for Charm minimums). The Mountain Folk add `repeatable_cap_highest_virtue`
-    (their Ox-Body "cannot develop ... more times than their highest Virtue", CH6
-    p.245 — the MAX of the four, which no single Virtue name can hold). A FLAT
-    `repeatable_cap_max` caps the trait-derived number (the Mountain Folk Satiation /
-    Stone-Still "three times", CH6 pp.245-246 — an Essence-5 Jadeborn still buys at
-    most three, the third gated on Essence 3). 0 if the Charm isn't repeatable or the
-    trait name resolves to none of these."""
+    """How many times `character` may buy this repeatable Charm; 0 if it is not
+    repeatable or its cap trait resolves to nothing.
+
+    The cap trait is one of four fields, checked in this order:
+
+      repeatable_cap_highest_virtue   the MAX of the four Virtues (Mountain Folk
+                                      Ox-Body, CH6 p.245)
+      repeatable_cap_virtue           a named Virtue (God-Blooded Ox-Body, PG p.83)
+      repeatable_cap_ability          an Ability, an Attribute, or the literal
+                                      'essence' (Deadly Beastman Transformation,
+                                      p.124), which is neither and needs its own case
+      repeatable_cap_max              a FLAT ceiling applied over whichever of the
+                                      above produced the number (Mountain Folk
+                                      Satiation / Stone-Still, CH6 pp.245-246)
+    """
     cap = 0
     if charm.repeatable_cap_highest_virtue:
         cap = max(character.virtues.values())
@@ -384,13 +375,14 @@ def _mountain_folk_pattern(charm: Charm) -> str | None:
 
 
 def _mountain_folk_unenlightened_bar(character: Character, charm: Charm) -> bool:
-    """True when an Unenlightened Jadeborn may never hold `charm`: "Unenlightened
-    characters can only learn the Charms of their own Caste Pattern or the Foundation
-    Pattern" (CH6 p.244) is a LIFETIME access rule, not a chargen one — it is read
-    here, beside the ghost Spirit-Walking bar in charm_matches_splat and in
-    meets_charm_requirements, so both the chargen picker and the XP buy path enforce
-    it. (A non-Mountain-Folk Charm is not this bar's business — foreign_charms_barred
-    closes those.)"""
+    """Whether an Unenlightened Jadeborn may never hold `charm` — anything outside
+    their own Caste Pattern and the Foundation Pattern (CH6 p.244).
+
+    ⚠ A LIFETIME access rule, not a chargen one, so it is read from BOTH
+    `charm_matches_splat` and `meets_charm_requirements` — the picker and the XP buy
+    path each need it. A non-Mountain-Folk Charm is not this bar's business;
+    `foreign_charms_barred` closes those.
+    """
     if character.exalt_type != "Mountain-Folk" or character.origin != "unenlightened":
         return False
     pat = _mountain_folk_pattern(charm)
@@ -413,20 +405,21 @@ def mountain_folk_cross_pattern(ruleset: RuleSet, character: Character,
 
 
 def _min_trait_rating(character: Character, charm: Charm) -> tuple[str, int] | None:
-    """The (trait name, character's rating) `charm.min_ability` is checked
-    against — a Virtue for the ghosts' Virtue-keyed Arcanoi (`min_virtue` set,
-    E:Ab p.234), an Attribute for Lunar's Attribute-keyed Charms (`min_attribute`
-    set, p.122), otherwise the Ability `category` resolves to. None if the Charm
-    gates on none of them (e.g. a `category` like 'sorcery' with no key).
+    """The (trait name, character's rating) that `charm.min_ability` is checked
+    against, or None if the Charm gates on no trait.
 
-    The named keys take priority over the category, and for the same reason in both
-    cases: some categories (e.g. 'melee') are ALSO valid AbilityName values, and a
-    Lunar Melee Charm must gate on the Dexterity/Strength/etc. `min_attribute` names,
-    never on the character's Melee Ability rating — the two collide by name, not by
-    meaning. An Arcanos is keyed the same way against its path's category.
+    Resolved in this order — a Charm sets at most one, and the order is the tiebreak
+    if data ever sets two:
 
-    A Charm sets at most one of the three; the order here is the tiebreak if data ever
-    sets two, and it is the order the model documents."""
+      min_virtue      a Virtue    (ghost Arcanoi, E:Ab p.234)
+      min_attribute   an Attribute (Lunar Attribute-keyed Charms, p.122)
+      category        the Ability the category names
+
+    ⚠ The named keys MUST outrank the category: some categories ('melee') are also
+    valid AbilityName values, so a Lunar Melee Charm gating on Dexterity would
+    otherwise be checked against the Melee Ability instead. They collide by name, not
+    by meaning.
+    """
     if charm.min_virtue:
         try:
             virtue = VirtueName(charm.min_virtue)
@@ -446,21 +439,19 @@ def _min_trait_rating(character: Character, charm: Charm) -> tuple[str, int] | N
 
 
 def charm_ability_shortfalls(character: Character, charm: Charm) -> list[tuple[str, int, int]]:
-    """Every Ability/Attribute minimum on `charm` the character FAILS, as
-    (trait label, required, held).
+    """Every trait minimum on `charm` the character FAILS, as
+    (trait label, required, held). Empty means all are met.
 
-    THE single place that answers "does this character meet this Charm's trait
-    minimums". Covers both the primary `min_ability` (resolved through `category`, or
-    through `min_attribute` for the Attribute-keyed splats) and any
-    `extra_min_abilities` — the rare Charm the page gates on more than one Ability,
-    e.g. Ascendant Battle Visage's "Minimum Brawl 5 / Minimum Endurance 5" (Cult of
-    the Illuminated, p.102).
+    Covers the primary `min_ability` (via `_min_trait_rating`) plus
+    `extra_min_abilities` and `extra_min_attributes` — the rare Charm gated on more
+    than one trait, e.g. Ascendant Battle Visage's "Minimum Brawl 5 / Minimum
+    Endurance 5" (Cult of the Illuminated, p.102). Each extra requirement is OR over
+    its own traits, so the best of them counts.
 
-    Every caller that used to compare `_min_trait_rating(...)[1] < charm.min_ability`
-    by hand goes through here instead, so adding the second gate could not miss a
-    call site — and a third gating axis has exactly one function to change.
-
-    Empty list means every minimum is met."""
+    ⚠ THE single place that answers this. Callers must not compare
+    `_min_trait_rating(...)[1] < charm.min_ability` themselves — that misses the extra
+    requirements, and a new gating axis would have to find every such site.
+    """
     out: list[tuple[str, int, int]] = []
     trait = _min_trait_rating(character, charm)
     if trait is not None:
@@ -503,16 +494,17 @@ def charm_ability_requirements(charm: Charm) -> list[tuple[str, int]]:
 def charm_count_shortfalls(ruleset: RuleSet, held_ids, charm: Charm
                            ) -> list[tuple[CharmCountRequirement, int]]:
     """Which of `charm`'s breadth prerequisites ("any three Lore Charms") are unmet,
-    as (requirement, how many the character actually holds).
+    as (requirement, how many the character holds).
 
-    The Charm never counts toward its own requirement — otherwise buying it would
-    part-satisfy the thing gating it. Counting is by `category`, which is exactly how
-    a Charm's Ability is identified everywhere else, so a Craft Charm printed in the
-    Air book still counts toward "any three Craft Charms".
+    Counting is by `category`, so a Craft Charm printed in the Air book still counts
+    toward "any three Craft Charms".
 
-    One function for both the retrospective check (`check_charm_prerequisites`) and the
-    forward-looking one (`meets_charm_requirements`), so the picker's "selectable" and
-    the sheet's "illegal" can never disagree.
+    ⚠ The Charm never counts toward its OWN requirement — otherwise buying it would
+    part-satisfy the thing gating it.
+
+    ⚠ Shared by `check_charm_prerequisites` (retrospective) and
+    `meets_charm_requirements` (forward-looking), so the picker's "selectable" and the
+    sheet's "illegal" cannot disagree. Do not fork it.
     """
     if not charm.prerequisite_counts:
         return []
@@ -542,13 +534,16 @@ def is_immaculate_charm(charm: Charm) -> bool:
 
 
 def _immaculate_path(ruleset: RuleSet, charm_ids, exalt_type: str) -> bool:
-    """Whether a chargen Charm selection puts the character on the Immaculate
-    martial-arts path — true when a Dragon-Blooded chooses ANY Immaculate Order
-    Charm. On this path the Charm rules change (single elemental tree, 5-Charm
-    free pool, Immaculate BP row, no Caste/Favoured minimum). The Immaculate
-    *package* is Dragon-Blooded-only: a non-DB learner (e.g. a Solar taking a
-    Terrestrial style, which is `open_to_all`) is priced/counted as ordinary
-    Martial Arts and never trips this path, so it gates on `exalt_type`."""
+    """Whether this chargen selection puts the character on the Immaculate
+    martial-arts path — a Dragon-Blooded holding ANY Immaculate Order Charm.
+
+    On that path the Charm rules change: single elemental tree, 5-Charm free pool, the
+    Immaculate BP row, and no Caste/Favoured minimum.
+
+    ⚠ Gates on `exalt_type` because the Immaculate PACKAGE is Dragon-Blooded-only. A
+    Solar taking a Terrestrial style (which is `open_to_all`) is priced as ordinary
+    Martial Arts and must not trip this path.
+    """
     return exalt_type == "Dragon-Blooded" and any(
         (c := ruleset.charms.get(cid)) is not None and c.immaculate
         for cid in charm_ids)
@@ -632,19 +627,16 @@ def check_charm_prerequisites(ruleset: RuleSet, character: Character) -> list[Is
     return issues
 
 
-# Dragon-Blooded martial-arts "Enlightenment" gate (DB p241-242). A Terrestrial
-# must master a PAIR of enlightenment Charms — one opening her perceptions, one
-# letting her act on what she perceives — before she may learn the Charms of any
-# Dragon Path. Celestial Exalted and Abyssals need no such initiation (the p241 box:
-# Exalted of any type can learn the Dragon Paths given a tutor), so the gate is
-# Dragon-Blooded-only; and Five-Dragon Style — a mundane DB style, not a Dragon Path
-# — is exempt.
+# The Dragon-Blooded martial-arts "Enlightenment" gate (DB p241-242): a Terrestrial
+# must master a PAIR of enlightenment Charms — one opening her perceptions, one letting
+# her act on what she perceives — before learning any Dragon Path Charm. The gate is
+# Dragon-Blooded-only (p241: any Exalt type can learn the Dragon Paths given a tutor),
+# and Five-Dragon Style, a mundane DB style rather than a Dragon Path, is exempt.
 #
-# There are THREE such pairs, and any ONE of them opens the gate. The Immaculate pair
-# is only the best known: PG p.236 says so outright — "The Immaculate Charms Spirit
-# Sight and Spirit Walking are just one set of such Charms. There are others" — and
-# then prints two more. Requiring the Immaculate pair specifically would make the
-# other four Charms buyable but inert, which is this codebase's oldest bug shape.
+# ⚠ THREE pairs, any ONE of which opens the gate (PG p.236: "The Immaculate Charms
+# Spirit Sight and Spirit Walking are just one set of such Charms. There are others").
+# Requiring the Immaculate pair specifically leaves the other four Charms buyable but
+# inert.
 DB_MA_ENLIGHTENMENT_PAIRS = (
     # Immaculate (DB p.241-242)
     ("dragonblooded.martial-arts.spirit-sight",
@@ -659,22 +651,16 @@ DB_MA_ENLIGHTENMENT_PAIRS = (
 
 
 def _is_dragon_path_style(ruleset: RuleSet, category: str) -> bool:
-    """A martial-arts style the Dragon-Blooded enlightenment gate applies to.
+    """Whether the Dragon-Blooded enlightenment gate applies to this style category.
 
-    The gate is about **Celestial** martial arts, not martial arts in general —
-    PG p.236 describes the initiation as what lets "the Terrestrial to, with
-    difficulty, grasp the principles and practice of the Celestial martial arts",
-    and the five Immaculate Dragon Paths are explicitly Celestial styles (human,
-    rules authority, 2026-08-11). So the test is the style's TIER.
+    The gate covers **Celestial** martial arts, not martial arts in general (PG p.236;
+    human's ruling 2026-08-11), so the test is the style's TIER — read off any Charm in
+    the category, since a style's Charms agree on it.
 
-    A Dragon-Blooded therefore reaches every TERRESTRIAL style uninitiated — Five
-    Dragon, Falling Blossom, Crimson Pentacle Blade — and Jade Mountain, which is a
-    Dragon-Blooded style carrying no tier at all.
-
-    Previously this exempted two styles BY NAME and gated everything else, which hid
-    every Terrestrial style from an uninitiated Dragon-Blooded. Falling Blossom had
-    been invisible to them since it was authored; adding Crimson Pentacle Blade is
-    what made the bug visible.
+    ⚠ Tier, never a name list. An uninitiated Dragon-Blooded reaches every TERRESTRIAL
+    style — Five Dragon, Falling Blossom, Crimson Pentacle Blade — plus Jade Mountain,
+    which carries no tier. Exempting styles by name hid every Terrestrial style from
+    them instead.
     """
     if not category.startswith("martial_arts:"):
         return False
@@ -685,10 +671,17 @@ def _is_dragon_path_style(ruleset: RuleSet, category: str) -> bool:
 
 
 def db_enlightenment_met(character: Character) -> bool:
-    """Whether the Dragon-Blooded Dragon-Path gate is OPEN for this character: always
-    True for non-Dragon-Blooded (they need no initiation); for a Dragon-Blooded, True
-    once she knows BOTH Charms of ANY ONE enlightenment pair — the Immaculate pair,
-    the Iris-Bulb pair or the Tiger-and-Bear pair (DB p.241-242, PG pp.236-237)."""
+    """Whether the Dragon-Path enlightenment gate is OPEN for this character.
+
+    True for a Dragon-Blooded who knows BOTH Charms of any one enlightenment pair —
+    Immaculate, Iris-Bulb or Tiger-and-Bear (DB p.241-242, PG pp.236-237).
+
+    ⚠ Also True for every NON-Dragon-Blooded, who need no initiation. That makes it a
+    "True, not applicable" answer outside its subject, so it is safe as a BAR and
+    dangerous as a GRANT: scoping the PG p.235 Celestial-style grant to this predicate
+    would hand every Terrestrial-tier splat those styles free. Scope a grant to the
+    splat.
+    """
     if character.exalt_type != "Dragon-Blooded":
         return True
     known = set(character.charms)
@@ -1110,23 +1103,24 @@ def charm_virtue_cap_met(character: Character, charm: Charm) -> bool:
 
 def charm_matches_splat(character: Character, charm: Charm,
                         ruleset: Optional[RuleSet] = None) -> bool:
-    """Whether `charm` is available to the character — the picker/graph filter and
-    the `charm-wrong-splat` check. A Charm matches when
+    """Whether `charm` is available to the character — the picker/graph filter, and the
+    `charm-wrong-splat` check. A Charm matches when
 
       * it belongs to the character's own Exalt type, OR
-      * it is flagged `open_to_all` (cross-splat Charms such as the Terrestrial
-        Immaculate Dragon martial-arts styles, which any splat may learn), OR
-      * the character's Exalt *tier* is listed in `charm.open_to_tiers` — the
-        Celestial-only styles (Hungry Ghost, Five-Dragon).
+      * it is flagged `open_to_all` (cross-splat, e.g. the Terrestrial Immaculate
+        Dragon styles), OR
+      * the character's Exalt TIER is listed in `charm.open_to_tiers`.
 
-    The tier test needs the splat table, so it only applies when `ruleset` is
-    given; without one the call degrades to the splat/`open_to_all` answer.
+    ⚠ The tier test needs the splat table, so it applies only when `ruleset` is passed.
+    Without one the answer degrades to splat/`open_to_all` — a caller that omits the
+    ruleset gets a narrower answer, not an error.
 
-    A splat that may not hold Charms at all (mortals, core p.103) matches NOTHING,
-    and that test comes first — `open_to_all` would otherwise hand a mortal the eight
-    cross-splat Charms whose minimums an Essence-1 character can actually meet. A
-    Merit can reopen part of that (Essence Mastery grants Terrestrial Martial Arts),
-    which is asked of engine.merits and never decided here."""
+    ⚠ A splat that may hold no Charms at all (mortals, core p.103) matches NOTHING, and
+    that test MUST come first: `open_to_all` otherwise hands a mortal every cross-splat
+    Charm whose minimums an Essence-1 character can meet. A Merit may reopen part of it
+    (Essence Mastery grants Terrestrial Martial Arts) — asked of `engine.merits`, never
+    decided here.
+    """
     # Virtual rows are never learnable, whatever else would reach them. They are the
     # Dragon-King Path powers projected into the charm catalogue so Combos and the
     # sheet can name them (rules_db._virtual_path_charms); the real Path state is the
@@ -1183,26 +1177,22 @@ def charm_matches_splat(character: Character, charm: Charm,
         if (splat_of(charm) == character.exalt_type
                 and heritage_charms_available(ruleset, character)):
             return True
-        # …the heritage's borrowed catalogue (God-Blooded, PG p.47): a Ghost-Blooded
-        # learns the Ghost Arcanoi "exactly as their parents". Still a NATIVE match —
-        # this sits inside the foreign-bar, so it is not the p.127 generalist privilege
-        # and is not restated separately in charm_learnable_by_splat's foreign branch.
+        # …the heritage's borrowed catalogue (God-Blooded, PG p.47). Still a NATIVE
+        # match: it sits inside the foreign-bar, so it is not the p.127 generalist
+        # privilege and is not restated in charm_learnable_by_splat's foreign branch.
         if splat_of(charm) in heritage_charm_access(ruleset, character):
             return True
-        # …with one printed exception: the Terrestrial supernatural martial arts
-        # (PG p.234). Same shape as the mortal Essence Mastery branch above, and for
-        # the same reason — a `martial_arts:<style>` category matches on its prefix so
-        # one rule covers every Terrestrial style.
+        # …with one printed exception, the Terrestrial supernatural martial arts
+        # (PG p.234). Matched on the `martial_arts:` category prefix, so one rule
+        # covers every Terrestrial style.
         return (ruleset.exalt_for(character.exalt_type).terrestrial_martial_arts
                 and is_terrestrial_martial_arts(charm))
-    # An Alchemical is a CELESTIAL Exalt (human, 2026-08-11) but reaches NO martial
-    # arts at all — Terrestrial or Celestial — without Perfected Lotus Matrix installed
-    # (CH3 p.100: with it she learns them "in the same manner as any other Celestial
-    # Exalted type"). The tier says what she could reach; PLM says whether she may.
+    # An Alchemical is a CELESTIAL Exalt but reaches NO martial arts, of any tier,
+    # without Perfected Lotus Matrix installed (CH3 p.100). The tier says what she
+    # could reach; PLM says whether she may.
     #
-    # This sits ABOVE `open_to_all`, because the Terrestrial styles are open_to_all and
-    # would otherwise be granted before any tier reasoning ran — the same ordering trap
-    # the mortal and ghost bars above document. Her own Charms are unaffected: no
+    # ⚠ Must sit ABOVE `open_to_all`: the Terrestrial styles are open_to_all and would
+    # be granted before any tier reasoning ran. Her own Charms are unaffected — no
     # Alchemical Charm lives in a `martial_arts:` category, PLM included.
     if (character.exalt_type == "Alchemical" and is_martial_arts_charm(charm)
             and not has_perfected_lotus_matrix(character)):
@@ -1224,28 +1214,14 @@ def charm_matches_splat(character: Character, charm: Charm,
         if tier_reaches(ruleset.exalt_for(character.exalt_type).tier,
                         charm.open_to_tiers):
             return True
-    # A TERRESTRIAL who has been initiated reaches the CELESTIAL martial arts
-    # (PG pp.235-236: "It is possible for the Terrestrial Exalted to practice
-    # Celestial martial arts. Indeed, many Terrestrials do"). The initiation is the
-    # enlightenment Charm pair — any one of the three, which `db_enlightenment_met`
-    # already decides and `category_available` already uses as a GATE.
+    # An INITIATED Terrestrial reaches the CELESTIAL martial arts (PG pp.235-236).
+    # Grants nothing to an uninitiated one, and nothing above Celestial — decision
+    # 0015's "never reaches up" still holds.
     #
-    # ⚠ The gate was never a grant. A Dragon-Blood reached her own Dragon Paths by
-    # SPLAT OWNERSHIP, so the gate only ever narrowed that; an initiated DB was still
-    # refused Celestial Monkey, which has carried `open_to_tiers: ["Celestial"]` all
-    # along. This branch is the missing half. It grants nothing to an UNINITIATED
-    # Terrestrial, and nothing at all above Celestial — a Dragon-Blood never reaches
-    # Solar-tier or Sidereal material, which decision 0015's "never reaches up" and
-    # the Lunar-style bars above both preserve.
-    # ⚠ Gated on the SPLAT, not on the tier. Four splats are Terrestrial-tier
-    # (Dragon-Blooded, Dragon-Kings, God-Blooded, Mountain-Folk) and
-    # `db_enlightenment_met` returns True for every non-Dragon-Blood — so a tier test
-    # would hand the other three every Celestial style for free, having met no
-    # initiation at all. PG p.235 also bars one of them outright: "Dragon Kings ...
-    # can never master anything other than Terrestrial styles designed specifically
-    # for Dragon Kings." The printed passage says "the Dragon-Blood must also have
-    # her perceptions opened", and the initiation pairs are Dragon-Blooded Charms, so
-    # Dragon-Blooded is the correct and faithful scope.
+    # ⚠ Gated on the SPLAT, not the tier. Four splats are Terrestrial-tier and
+    # `db_enlightenment_met` returns True for every non-Dragon-Blood, so a tier test
+    # hands Dragon-Kings, God-Blooded and Mountain-Folk every Celestial style free,
+    # having met no initiation at all — and PG p.235 bars Dragon Kings outright.
     if (charm.ma_tier == "Celestial"
             and character.exalt_type == "Dragon-Blooded"
             and db_enlightenment_met(character)):
@@ -1256,17 +1232,12 @@ def charm_matches_splat(character: Character, charm: Charm,
 PERFECTED_LOTUS_MATRIX_ID = "alchemical.close-combat.perfected-lotus-matrix"
 
 
-# The Exalt power hierarchy, low to high (human, rules authority, 2026-08-11):
-# Terrestrial = the Dragon-Blooded alone; Celestial = Lunars, Sidereals, Abyssals and
-# Alchemicals; Solar = the Solar Exalted, above all. A splat reaches its own tier AND
-# EVERY TIER BELOW IT — a Solar may learn Celestial and Terrestrial martial arts, a
-# Celestial may learn Terrestrial, a Terrestrial reaches only Terrestrial. Nothing
-# reaches UP: Lunars and Sidereals cannot touch Solar-tier material.
+# The Exalt power hierarchy, low to high (human's ruling 2026-08-11; decision 0015):
+# Terrestrial = Dragon-Blooded; Celestial = Lunars, Sidereals, Abyssals, Alchemicals;
+# Solar = the Solar Exalted. A splat reaches its own tier AND EVERY TIER BELOW.
 #
-# Before 2026-08-11 the tier test was exact string equality, so "Celestial or below"
-# was inexpressible and Solar had to be MISLABELLED `tier: "Celestial"` to reach
-# Celestial martial arts at all — which in turn left Alchemicals matching nothing and
-# needing a hardcoded Perfected Lotus Matrix special case.
+# ⚠ Never an exact-equality test. "Celestial or below" must be expressible, or Solar
+# has to be mislabelled `tier: "Celestial"` to reach Celestial martial arts at all.
 TIER_ORDER = ("Terrestrial", "Celestial", "Solar")
 
 
@@ -1318,15 +1289,14 @@ def foreign_charms_caste(ruleset: RuleSet, character: Character):
 
 
 def heritage_charm_access(ruleset: RuleSet, character: Character) -> frozenset[str]:
-    """The exalt_types whose Charm catalogues the character's heritage may learn
-    natively — the God-Blooded "learn the Charms of their magical parents, exactly
-    as their parents" (PG p.47). A Ghost-Blooded's heritage borrows the Ghost Arcanoi
-    catalogue; the Half-Caste heritage borrows its parent EXALT type, which rides the
-    `origin` axis (the Origin dropdown, human 2026-08-02). Read off the caste's
-    `heritage_traits`: the static `charm_access` list, or `character.origin` when
-    `charm_access_parent` is set (empty when no parent chosen). Empty for every
-    non-God-Blooded caste. One read site, so adding a heritage's catalogue is a data
-    edit."""
+    """The exalt_types whose Charm catalogues this heritage may learn natively; empty
+    for every non-God-Blooded caste.
+
+    The God-Blooded "learn the Charms of their magical parents, exactly as their
+    parents" (PG p.47). Read off the caste's `heritage_traits` — the static
+    `charm_access` list, or `character.origin` when `charm_access_parent` is set
+    (a Half-Caste's parent Exalt type rides the `origin` axis).
+    """
     caste = ruleset.castes.get(character.caste)
     if caste is None or caste.heritage_traits is None:
         return frozenset()
@@ -1366,19 +1336,20 @@ def heritage_barred_charm_ids(ruleset: RuleSet, character: Character) -> frozens
 
 
 def heritage_magic_track(ruleset: RuleSet, character: Character) -> str:
-    """The ONE magic track this heritage may be initiated into ("sorcery" /
-    "necromancy"), "" for no restriction, or "none" for a heritage that may initiate
-    into NOTHING. PG p.48: "Terrestrial Circle Sorcery is available to all the
-    remaining heritages save Ghost-Blooded and Abyssal Half-Caste. Conversely, only
-    these heritages may learn Shadowlands Circle Necromancy." — and the Fae-Blooded,
-    whose magic is glamour Merits rather than spells: "All God-Blooded with the
-    Awakened Essence Merit APART FROM Fae-Blooded may also learn to cast spells."
-    "none" is the third state the Phase C machinery needs; "" would mean no restriction,
-    which is the OPPOSITE for a Fae-Blooded (that trap is why the sentinel exists).
+    """The one magic track this heritage may be initiated into (PG p.48). Three states:
+
+      "sorcery" / "necromancy"   that track only
+      ""                         no restriction
+      "none"                     may initiate into NOTHING (Fae-Blooded, whose magic
+                                 is glamour Merits rather than spells)
+
+    ⚠ "none" and "" are OPPOSITES and the sentinel exists because of it. A Fae-Blooded
+    returning "" would be granted every track rather than none.
 
     Read off the caste's `heritage_traits`: the parent-keyed map wins where the parent
-    has an entry (the Half-Caste's track follows their PARENT, not their heritage),
-    otherwise the scalar. Empty for every non-God-Blooded caste."""
+    has an entry, since a Half-Caste's track follows their PARENT rather than their
+    heritage. Empty for every non-God-Blooded caste.
+    """
     caste = ruleset.castes.get(character.caste)
     if caste is None or caste.heritage_traits is None:
         return ""

@@ -1,22 +1,17 @@
 """
 engine/validate/castes.py — which traits a character's caste makes caste/favoured.
 
-A bottom-of-graph module like `_base`, split out because two domains need it and
-neither owns it: `charms` (is this Charm caste/favoured, hence cheaper and eligible
-for the ≥5 chargen minimum) and the chargen budgets (the same question for
-Attributes and Abilities).
+The Ability answer and the Attribute answer are separate functions: most splats
+favour Abilities, while the Lunars favour an Attribute CATEGORY instead.
 
-The Ability answer and the Attribute answer are deliberately separate functions.
-Most splats favour Abilities; the Lunars favour an Attribute CATEGORY
-(Physical/Social/Mental) instead, so `_caste_favored_attribute_category` returns
-None for everyone else and callers must handle that rather than assume a category
-exists.
+⚠ `_caste_favored_attribute_category` returns None for every splat that favours
+Abilities. Callers must handle None rather than assume a category exists.
 
-⚠ A splat with no castes at all is normal, not an error — mortals, Ghosts and the
-Fae-Blooded are casteless, and `splat_has_castes` is how the budget code asks
-before demanding caste minimums.
+⚠ A splat with no castes is normal, not misconfiguration — mortals, Ghosts and the
+Fae-Blooded are casteless. Ask `splat_has_castes` before demanding caste minimums,
+or every mortal sheet carries a spurious error.
 
-⚠ May import `_base` only. Nothing here may import a sibling domain module.
+⚠ May import `_base` only, never a sibling domain module.
 """
 
 from __future__ import annotations
@@ -27,20 +22,22 @@ from ._base import _attribute_category
 
 
 def splat_has_castes(ruleset: RuleSet, exalt_type: str) -> bool:
-    """Does this splat have any castes to choose from? False only for the casteless
-    splats — mortals "select Nature as normal but do not select a caste" (core p.103).
-    Distinct from a Lunar, who HAS castes that simply carry no Caste Abilities: a
-    Lunar caste row exists, so this is True for them and the missing-caste check
-    still applies. Data-driven, so the next casteless splat needs no code."""
+    """Whether any caste in the RuleSet belongs to `exalt_type`.
+
+    False for the casteless splats, which "do not select a caste" (core p.103).
+    ⚠ True for Lunars: they HAVE castes that merely carry no Caste Abilities, so the
+    missing-caste check still applies to them.
+    """
     return any(cd.exalt_type == exalt_type for cd in ruleset.castes.values())
 
 
 def _caste_favored(ruleset: RuleSet, character: Character) -> tuple[set, set] | None:
-    """(caste_abilities, favored_abilities) as sets, or None if the caste is not
-    in the RuleSet (caller emits an issue and skips caste-dependent checks). For a
-    Lunar caste (caste_attributes set, caste_abilities empty — p.90), the caste
-    contributes no Ability discount here; its discount is Attribute-keyed and
-    handled separately by `_caste_favored_attribute_category`."""
+    """(caste_abilities, favored_abilities) as sets, or None when the caste is not in
+    the RuleSet — the caller then reports it and skips caste-dependent checks.
+
+    A Lunar caste yields an empty caste_abilities set (p.90); its discount is
+    Attribute-keyed, via `_caste_favored_attribute_category`.
+    """
     caste_def = ruleset.castes.get(character.caste)
     if caste_def is None:
         return None
@@ -48,11 +45,12 @@ def _caste_favored(ruleset: RuleSet, character: Character) -> tuple[set, set] | 
 
 
 def _caste_favored_attribute_category(ruleset: RuleSet, character: Character) -> str | None:
-    """The Attribute category (Physical/Social/Mental) a Lunar's caste favors, or
-    None for a caste with no Caste Attributes (every non-Lunar caste, and the
-    Lunar Casteless caste, p.108). Full Moon/Changing Moon/No Moon's three Caste
-    Attributes are always exactly one whole ATTRIBUTE_CATEGORIES group (p.90-91),
-    so the category of any one of them is the caste's favored category."""
+    """The Attribute category a Lunar's caste favours, or None for any caste with no
+    Caste Attributes (every non-Lunar caste, and Lunar Casteless, p.108).
+
+    A Lunar caste's three Caste Attributes are always exactly one whole category
+    (p.90-91), so the category of the first one is the answer.
+    """
     caste_def = ruleset.castes.get(character.caste)
     if caste_def is None or not caste_def.caste_attributes:
         return None
@@ -62,11 +60,13 @@ def _caste_favored_attribute_category(ruleset: RuleSet, character: Character) ->
 def _caste_favored_attribute_sets(ruleset: RuleSet, character: Character
                                    ) -> tuple[set, set, set]:
     """(caste, favored, remaining) Attribute sets for a caste_favored-mode splat
-    (Alchemical, p.60), partitioning all nine Attributes disjointly. Caste
-    Attributes come from the caste; Favored are the player's chosen ones with any
-    that also happen to be Caste removed (that overlap is illegal and flagged
-    separately, but the accounting must not double-count); remaining is everything
-    else. An unknown caste yields an empty caste set (validate emits unknown-caste)."""
+    (Alchemical, p.60), partitioning all nine Attributes disjointly.
+
+    Caste comes from the caste; favored is the player's picks MINUS any that are also
+    Caste; remaining is the rest. ⚠ That subtraction matters: the Caste/Favoured
+    overlap is illegal and reported elsewhere, but the accounting here must not
+    double-count it. An unknown caste yields an empty caste set.
+    """
     caste_def = ruleset.castes.get(character.caste)
     caste = set(caste_def.caste_attributes) if caste_def else set()
     favored = set(character.favored_attributes) - caste
@@ -75,10 +75,8 @@ def _caste_favored_attribute_sets(ruleset: RuleSet, character: Character
 
 
 def caste_attributes(ruleset: RuleSet, character: Character) -> set[AttributeName]:
-    """The character's Caste Attributes (Lunar, p.90-91), or an empty set for a
-    caste with none (every non-Lunar caste and the Lunar Casteless caste). This is
-    the set that earns the Caste-Attribute XP/BP discount, the Attribute parallel
-    to `caste_favored_abilities`."""
+    """The character's Caste Attributes (Lunar, p.90-91), empty for a caste with
+    none — the set that earns the Caste-Attribute XP/BP discount."""
     caste_def = ruleset.castes.get(character.caste)
     if caste_def is None:
         return set()
@@ -86,12 +84,13 @@ def caste_attributes(ruleset: RuleSet, character: Character) -> set[AttributeNam
 
 
 def _caste_favored_attr_names(ruleset: RuleSet, character: Character) -> set:
-    """The set of AttributeName a caste_favored-mode splat (Alchemical) counts as
-    Caste-or-Favored for the purpose of Charm keying — the caste's Caste Attributes
-    plus the player's Favored Attributes. Empty for category-mode splats (Lunar/
-    Solar/...), which is also the discriminator: a non-empty set means caste_favored
-    mode, so a Charm's Caste/Favored-ness is a SPECIFIC-attribute match rather than
-    the category match category-mode splats use."""
+    """The Attributes a caste_favored-mode splat (Alchemical) counts as Caste-or-
+    Favoured for Charm keying: the caste's Caste Attributes plus the player's Favoured
+    Attributes. Empty for category-mode splats.
+
+    ⚠ Empty vs. non-empty IS the mode discriminator for callers: non-empty means match
+    a Charm on a SPECIFIC attribute, empty means match on the category instead.
+    """
     b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     if b.attribute_mode != "caste_favored":
         return set()
@@ -101,9 +100,9 @@ def _caste_favored_attr_names(ruleset: RuleSet, character: Character) -> set:
 
 
 def caste_favored_abilities(ruleset: RuleSet, character: Character) -> set[AbilityName]:
-    """The character's Caste ∪ Favoured abilities — the set that earns the discount
-    on Ability/Charm/spell costs. Falls back to just the Favoured set if the caste
-    is unknown to the RuleSet. Shared by chargen and XP costing."""
+    """Caste ∪ Favoured abilities — the set that earns the discount on Ability, Charm
+    and spell costs, both at chargen and on XP. Falls back to the Favoured set alone
+    when the caste is unknown to the RuleSet."""
     cf = _caste_favored(ruleset, character)
     if cf is None:
         return set(character.favored_abilities)
