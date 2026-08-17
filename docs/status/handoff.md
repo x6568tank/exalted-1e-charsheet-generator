@@ -28,30 +28,32 @@ and **3 call sites changed out of 1,465**.
 All three of the TODOs written when the catalogue closed on 2026-08-14 are done (the
 printable sheet, martial-arts styles, and this).
 
-## 👉 The one thing you asked for that is NOT done
+## The comment pass — DONE for `engine/validate/`
 
-**Slim the comments down** — your 2026-08-17 request, deliberately deferred until after
-the refactor so the moves stayed reviewable as pure moves.
+Your 2026-08-17 request, applied to all 15 modules: a docstring states input, output and
+mechanism; the narration moved to the git log and `docs/status/`. Kept per your ruling —
+every page citation, and every ⚠ record of a behavioural trap.
 
-> input, output, and how it gets from one to the other. No decision-making logs, no
-> chain of thought.
+⚠ **Prose only went 35% → 34%, and that is the right outcome.** Most of what came out was
+narration with a live trap buried inside it, so the trap came back as an explicit ⚠.
+About twenty are now findable that were mid-paragraph before. **Judge it by what the
+prose IS, not by line count.**
 
-It is now unblocked and is the obvious next job. Two things to settle before starting,
-because I would rather ask than guess wrong across 15 modules:
+The standard is recorded in CLAUDE.md and applies to all new code from here.
 
-1. **Page citations stay** — "core p.104", "CH6 p.230" say where a value came from and
-   the never-author-from-memory rule leans on them. I have assumed this.
-2. **The ⚠ blocks are the judgement call.** Many are decision-log prose and should go.
-   But some record a *live behavioural trap* and are the only copy of it in the code —
-   e.g. `Armor.mobility_penalty` is stored NEGATIVE; `background_best` must not read the
-   sum; `ma_tier` is not `open_to_tiers`. **My instinct is to keep those and cut
-   everything else, but say the word if you want them gone too** — they can live in
-   `docs/status/` instead.
+**Not done — the rest of the build**, in size order. Say the word and I will continue;
+it is mechanical but not quick:
 
-Also worth knowing: the refactor commits I just wrote are themselves heavy on exactly
-the narration you are asking me to stop putting in the code. That was on purpose — the
-commit message is where it belongs — but it means **the git log, not the source, is now
-the record of why**, and the docstring pass should not try to preserve it.
+| Area | Prose lines | % |
+|---|---|---|
+| `ui/` | 3,676 | 24% |
+| `models/` | 2,672 | **61%** — the densest in the build |
+| `engine/` outside validate | 2,496 | 38% |
+
+`tools/prose_guard.py` is the method: strip all docstrings, compare the AST
+(byte-identical ⇒ no code changed), then assert no page citation and no ⚠ marker was
+lost. ⚠ It earned itself — it caught two citations (core p.325, BoTC pp.25-27) I dropped
+while rewriting `artifact_checks.py`.
 
 ## If you do one thing next
 

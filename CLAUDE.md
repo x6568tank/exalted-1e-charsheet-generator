@@ -352,11 +352,32 @@ The three TODOs recorded on 2026-08-14 when the catalogue closed are **all done*
 printable sheet, the martial-arts styles (both in the status table above) and the
 validator split (below). Nothing structural is outstanding.
 
-**One request is open, and it is deliberately AFTER the refactor** (human, 2026-08-17):
-**slim the comments down** — a docstring carries *input, output, and how it gets from one
-to the other*, and nothing else. No decision-making logs, no chain of thought. ⚠ Page
-citations ("core p.104") are part of the contract and STAY; so do the ⚠ blocks that name
-a live behavioural trap. Ask before deleting one of those.
+### 📝 The comment standard (human, 2026-08-17) — applies to ALL new code
+
+A docstring carries **input, output, and how it gets from one to the other. Nothing
+else.** No decision-making logs, no chain of thought, no dated narration of how the code
+reached its shape. *"Commit messages are fine to be wordy… we do want a log, but that
+shouldn't bloat the code."* Put the reasoning, the alternatives and the bugs-found-along-
+the-way in the commit message and `docs/status/`.
+
+Three things STAY:
+- **Page citations** ("core p.104") — provenance, and the never-author-from-memory rule
+  leans on them. A bare "human's ruling" is the same kind of provenance where no page
+  exists; keep it short and undated.
+- **⚠ records of behavioural traps** — *"those are important to anyone working on this."*
+  A trap buried in narration should come OUT as an explicit ⚠, not be deleted with it.
+- The contract itself.
+
+**`engine/validate/` is DONE** (2026-08-17). ⚠ Its prose only went 35% → 34%, and that is
+the correct outcome, not a failure — most of what was cut was narration with a live trap
+inside it, so ~20 traps became findable ⚠ notes instead. **Judge this by what the prose
+IS, never by line count.**
+
+Not yet done, in size order: **`ui/` (3,676 prose lines, 24%)**, **`models/` (2,672, 61%
+— the densest in the build)**, **`engine/` outside validate (2,496, 38%)**. Use
+`prose_guard.py`'s method on any such pass: strip all docstrings, compare the AST
+(byte-identical ⇒ no code changed), then assert no page citation and no ⚠ marker was
+lost. It caught two citations I dropped mid-rewrite.
 
 ### `engine/validate.py` is SPLIT — DONE 2026-08-17
 
