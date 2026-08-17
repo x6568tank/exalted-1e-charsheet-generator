@@ -240,6 +240,21 @@ def thaum_purchase_bp_costs(ruleset: RuleSet, character: Character,
     return out
 
 
+# --------------------------------------------------------------------------- #
+# Per-purchase gates.
+#
+# `thaumaturgy_issues` below answers "is what this character HOLDS legal"; a picker
+# needs the forward-looking twin, "may they buy this ONE thing right now, and if not
+# why". Both questions share one implementation here so the UI can grey a row out
+# for exactly the reason the validator would later complain about — the reason
+# strings ARE the issue messages, which is why the issue builders below call these
+# rather than wording the same gate twice.
+#
+# `chargen=True` adds the two optional p.113 creation-only restrictions, mirroring
+# `meets_spell_requirements(..., chargen=...)`. They are not part of the holding's
+# legality once play starts, so they never appear when chargen=False.
+
+
 def thaum_art_locked_reason(ruleset: RuleSet, character: Character, art_id: str) -> str:
     """Why the Art `art_id` may not be trained right now, or "" if it may be."""
     art = ruleset.thaum_arts.get(art_id)

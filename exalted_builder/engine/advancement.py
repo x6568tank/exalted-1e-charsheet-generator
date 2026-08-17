@@ -283,7 +283,7 @@ def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
     # from 1 to 3, "the limit of human potential" (PG p.114) — so the override is
     # applied on top, and it names no Terrestrial hold.
     cap, terrestrial_limited = elder.essence_cap(ruleset, character)
-    override = validate.merits.merits_and_flaws_calc(ruleset, character).essence_cap_override
+    override = merits.merits_and_flaws_calc(ruleset, character).essence_cap_override
     if override is not None:
         cap, terrestrial_limited = override, False
     if frm >= cap:
@@ -785,7 +785,7 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
     # p.49, "Only God-Blooded with the Awakened Essence Merit may purchase or increase
     # magical Traits." The pool unlock IS the gate. Mirrored in validate for chargen.
     if (validate.pool_requires_unlocking(ruleset, character)
-            and not validate.merits.merits_and_flaws_calc(
+            and not merits.merits_and_flaws_calc(
                 ruleset, character).essence_pool_unlocked):
         raise AdvancementError(
             f"{ruleset.exalt_for(character.exalt_type).label} characters must hold "
@@ -863,7 +863,7 @@ def learn_spell(ruleset: RuleSet, character: Character, spell_id: str) -> XpEntr
     # unlocked pool (p.49). The Spell itself is cross-splat, so the splat check has to
     # live here rather than on any spell.
     if (validate.pool_requires_unlocking(ruleset, character)
-            and not validate.merits.merits_and_flaws_calc(
+            and not merits.merits_and_flaws_calc(
                 ruleset, character).essence_pool_unlocked):
         raise AdvancementError(
             f"{ruleset.exalt_for(character.exalt_type).label} characters must hold "

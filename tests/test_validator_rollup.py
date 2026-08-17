@@ -205,3 +205,49 @@ def test_the_facade_check_has_something_to_check():
     package = Path(validate.__file__).parent
     domains = [p.name for p in package.glob("*.py") if p.name != "__init__.py"]
     assert domains, "no domain modules found — the facade test would be vacuous"
+
+
+def test_every_validate_dot_reference_in_the_codebase_resolves():
+    """The facade's OTHER half, and the one the split actually broke.
+
+    `test_every_name_in_a_domain_module_is_reachable_as_validate_X` walks outward
+    from what the package defines. It cannot see a caller reaching a name the package
+    never defined but happened to expose — `validate.merits` worked for months only
+    because the old single file did `from .. import merits`, so trimming that
+    "unused" import broke 22 tests through `advancement.py`'s three call sites.
+
+    So this walks the other way: every `validate.<name>` attribute access anywhere in
+    the package or the suite must resolve. Imported MODULES are part of the public
+    surface whether or not anyone intended them to be.
+
+    Read with AST rather than a regex, so prose in docstrings that happens to write
+    `validate.py` or `validate.X` is not mistaken for a call site.
+    """
+    from exalted_builder.engine import validate
+
+    # Accesses guarded by an explicit `hasattr(validate, ...)` are deliberately
+    # optional and must NOT be required to resolve.
+    optional = {"commit_ox_body_purchase"}
+
+    root = Path(__file__).resolve().parents[1]
+    seen: dict[str, str] = {}
+    for sub in ("exalted_builder", "tests"):
+        for path in sorted((root / sub).rglob("*.py")):
+            try:
+                tree = ast.parse(path.read_text(), filename=str(path))
+            except SyntaxError:
+                continue
+            for node in ast.walk(tree):
+                if (isinstance(node, ast.Attribute)
+                        and isinstance(node.value, ast.Name)
+                        and node.value.id == "validate"):
+                    seen.setdefault(node.attr, str(path.relative_to(root)))
+
+    assert len(seen) > 100, f"only found {len(seen)} validate.X accesses — the walk broke"
+    missing = sorted(f"validate.{n} (first seen {where})"
+                     for n, where in seen.items()
+                     if n not in optional and not hasattr(validate, n))
+    assert not missing, (
+        "call site(s) reference a name the validate package does not expose: "
+        + "; ".join(missing)
+    )

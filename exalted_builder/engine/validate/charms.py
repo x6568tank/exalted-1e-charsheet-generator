@@ -61,6 +61,13 @@ from .castes import (
 )
 
 
+# The repeatable Ox-Body-equivalent Charm is per-splat: each ExaltDefinition names
+# its own (Solar's is solar.endurance.ox-body-technique). It is bought once per dot
+# of its cap trait (Endurance; Stamina for Lunar), each purchase choosing a
+# health-level package;
+# stored on Character.ox_body, not in Character.charms (so the count is representable).
+
+
 def ox_body_charm_id(ruleset: RuleSet, character: Character) -> str:
     """The id of this character's splat's repeatable Ox-Body-equivalent Charm (from
     its ExaltDefinition), or the heritage's parent-keyed one for a Half-Caste (a
