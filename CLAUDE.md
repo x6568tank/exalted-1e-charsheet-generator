@@ -348,17 +348,45 @@ Ship dates for everything else live in the per-splat status docs and the git log
 
 ### 👉 Open work
 
-The three TODOs recorded on 2026-08-14 when the catalogue closed. **Two are done** (the
-printable sheet, and the martial-arts styles — both in the status table above; neither
-is repeated here). One remains.
+The three TODOs recorded on 2026-08-14 when the catalogue closed are **all done** — the
+printable sheet, the martial-arts styles (both in the status table above) and the
+validator split (below). Nothing structural is outstanding.
 
-1. **Split `engine/validate.py`** — 5,791 lines, 182 functions, **47% of the whole
-   engine**, with a 643-line `validate_chargen` at its centre. **Plan and measurements:
-   `docs/plans/validate-refactor.md`.** ⚠ The seam is DOMAIN, not splat (only 4 of the 182
-   functions name a splat — the splat differences already live in `data/`), and the
-   refactor's failure mode is **the house bug**: a `check_*` dropped from the `validate()`
-   roll-up still passes its own unit tests and never runs. Write the roll-up membership
-   test FIRST.
+**One request is open, and it is deliberately AFTER the refactor** (human, 2026-08-17):
+**slim the comments down** — a docstring carries *input, output, and how it gets from one
+to the other*, and nothing else. No decision-making logs, no chain of thought. ⚠ Page
+citations ("core p.104") are part of the contract and STAY; so do the ⚠ blocks that name
+a live behavioural trap. Ask before deleting one of those.
+
+### `engine/validate.py` is SPLIT — DONE 2026-08-17
+
+Now the package `engine/validate/`: **15 modules, largest 1,492 lines**, `validate_chargen`
+645 → 176, and **3 call sites changed out of 1,465**. Six commits, suite green at each.
+**Record: `docs/plans/validate-refactor.md`** — read it before touching the package.
+
+The four things that generalise past this job:
+
+* **The seam was DOMAIN, not splat** (only 4 of 182 functions named a splat), and each
+  cluster was **measured** before moving — the Charm cluster had 12 inbound edges, Backgrounds
+  1, Artifacts 0. `_base` and `castes` exist because measurement found them, not design.
+* **`validate.X` is the ONE public path** into the package (the human's call). A domain
+  module is an implementation detail; a rule that moves gains a re-export line.
+  ⚠ **Imported MODULES are part of that surface too** — `advancement.py` reached
+  `validate.merits.merits_and_flaws_calc`, so trimming an "unused" import broke 22 tests.
+* ⚠ **`artifact_checks.py`/`merit_checks.py` are not named `artifacts.py`/`merits.py`**, and in
+  the Merit case that was a live trap: decision 0011's containment test exempted the
+  BASENAME `merits.py`, so a second one would have exempted itself from the only
+  enforcement that rule has. Now keyed on the path. **An exemption keyed on a basename is
+  an exemption anything can claim.**
+* ⚠ **A refactor that moves a section can swallow a binding the parent still reads** —
+  `mf_caps` and `wp_total`, 384 tests each, invisible to an import check and to a
+  FILE-scoped undefined-name check because the name is defined in the file, just not in
+  the function reading it. `test_no_engine_function_reads_a_name_it_never_binds` now does
+  per-function scope analysis over all of `engine/`.
+
+`tests/test_validator_rollup.py` is the safety net, written before anything moved, every
+guard proven by mutation. ⚠ It walks with **rglob**; a plain glob would have gone blind
+the moment the package existed.
 
 ### Deferred (still open, just not now)
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond

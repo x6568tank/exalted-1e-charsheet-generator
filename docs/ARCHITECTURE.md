@@ -91,7 +91,7 @@ no mutation.
 
 | Module | Answers |
 |---|---|
-| `validate.py` | Is this legal? Chargen budgets, trait minimums, Charm prerequisites, Combos, Arrays, spell access, splat gates, the canonical Charm-pick enumeration |
+| `validate/` | Is this legal? Chargen budgets, trait minimums, Charm prerequisites, Combos, Arrays, spell access, splat gates, the canonical Charm-pick enumeration. **A package of 15 domain modules** — see below |
 | `derive.py` | What follows from the traits? Willpower, Essence pools, the health track, soak, Clarity |
 | `costs.py` | What did chargen cost? Bonus-point accounting and the per-purchase breakdown |
 | `advancement.py` | What does this cost now, and was the ledger honest? Post-lock purchases and the XP audit |
@@ -100,9 +100,40 @@ no mutation.
 | `adversaries.py` | The little the GM roster needs: template instantiation, the printed health/trait/attack notation codec, damage track, armour+shield soak and dodge. No validation — an `Adversary` is never built to a budget |
 | `thaum_actions.py` | The lock-aware thaumaturgy purchases: a chargen list edit before the lock, an `advancement` purchase after it. Returns the message to show; raises `AdvancementError` on refusal (`ui/picker.py` catches exactly that) |
 
-`validate.py` is by far the largest module, and that is where the splat-specific
+`validate/` is by far the largest area, and that is where the splat-specific
 mechanics live — Charm Slots, Colleges, the Immaculate path, Attribute-keyed Charms.
 The data-driven design covers *content*; a splat's novel *subsystem* is code.
+
+#### `engine/validate/` — a package, split 2026-08-17
+
+It was one 5,791-line file. It is now 15 modules whose imports form a DAG, and the
+order below IS that DAG — a module may import only the ones above it:
+
+    _base            Issue, the shared trait readers, effective_budgets
+    castes           caste/favoured membership
+    charms           access, prerequisites, picks, slots, Ox-Body, Gifts
+    backgrounds · spells · combos · thaumaturgy · illuminated · alchemical · elemental
+    artifact_checks · merit_checks · traits
+    budgets          the chargen point accounting and validate_chargen
+    __init__         validate() and the facade
+
+Three rules hold it together, and `docs/plans/validate-refactor.md` is the full record:
+
+* **`validate.X` is the ONE public path in.** `__init__.py` re-exports every name, so a
+  domain module is an implementation detail rather than a second front door — that is
+  what let the split change 3 call sites out of 1,465. A rule that moves gains a
+  re-export line. ⚠ Imported MODULES count as public surface too.
+* **`_base` and `castes` are the bottom and must import no sibling.** Two genuine cycles
+  exist (`charms` ↔ `illuminated`, `charms` ↔ `alchemical`) and are handled by call-time
+  imports inside the two functions that need them, each with a comment saying why.
+* ⚠ **`artifact_checks.py` and `merit_checks.py` are deliberately not named after the
+  `engine/` modules they read.** They use `artifacts.X` and `merits.X` throughout, which a
+  same-named sibling makes ambiguous — and a second `merits.py` would have exempted itself
+  from decision 0011's containment test, which used to key on the basename.
+
+`tests/test_validator_rollup.py` guards all of it: every `check_*` must be reachable from
+`validate()`, `validate_chargen` or `validate_xp`; the facade must be complete in both
+directions; and no function in `engine/` may read a name it never binds.
 
 ### `persistence.py` — save files (an edge)
 

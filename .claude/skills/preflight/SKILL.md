@@ -46,7 +46,7 @@ output against these categories — the script flags, you judge:
 | Finding | What it usually means |
 |---|---|
 | **ZERO READS** — written by the calc, read by nothing in the package | Either dead (a real gap) or informational-for-display-only. Tests asserting the field prove nothing about behaviour. Decide which and say so. |
-| **Read only in `validate.py`** | Chargen-only. Ask: should this also bind post-lock? If the trait it governs can change in play, this is the Callous shape. |
+| **Read only in `validate/budgets.py`** | Chargen-only — that module IS the chargen path. Ask: should this also bind post-lock? If the trait it governs can change in play, this is the Callous shape. A read in any other `validate/` module binds on both sides. |
 | **Read only in `derive.py`** | Derived-only. Ask: should chargen have refused an illegal build in the first place? |
 | **Read only in `advancement.py`/`costs.py`** | Priced but never enforced, or vice versa. |
 | **Read only in `ui/`** | The engine does not know about this rule. Game logic in the UI violates the `ui → engine → models` rule in `docs/ARCHITECTURE.md`. |
