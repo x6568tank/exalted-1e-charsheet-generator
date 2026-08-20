@@ -1,9 +1,10 @@
 # Plan — a PySide6/Qt native app alongside the NiceGUI webapp
 
-**Status: a standing goal, not scheduled and not started.** Raised by the human
-2026-08-10 as the intended direction *after* the 1.0 ship (feature-complete: sourcebooks,
-the full artifact and spell catalogues). Nothing here is committed — when it is, it
-becomes **decision 0018** (0015–0017 are taken) and this file turns into its build record.
+**Status: COMMITTED — decision 0018, 2026-08-20.** Raised by the human 2026-08-10 as
+the intended direction *after* the 1.0 ship (feature-complete: sourcebooks, the full
+artifact and spell catalogues). The two spikes below answered its open questions and the
+human approved both; **decision 0018** records the commitment. This file is now the
+port's build record.
 
 **The goal, stated plainly by the human 2026-08-20: a native, non-Electron desktop app
 offered *alongside* the browser webapp.** That is the point of the port, and it settles
@@ -223,13 +224,45 @@ spike only and deliberately **not** in `pyproject.toml` — they join their prop
 when the port is committed. With the spike singing, **0018 writes itself**; the
 sequencing above stands.
 
+## The sheet-view spike — DONE 2026-08-20, human-approved
+
+The plan's other open rendering question — **does the sheet view become a
+`QTextDocument`?** — was answered with **`spikes/qt_sheet/`**: a standalone bare-Qt
+window that renders a real `ui.view.build_sheet_view` into a `QTextDocument` and prints
+it via `QDoc.print_(QPdfWriter)` — one source for the on-screen sheet and the PDF.
+It reuses `build_sheet_view`, `weapon_stat_line`, `armor_stat_line`, `theme.palette`,
+and the four example characters in `examples/`. The human drove it across all four
+splats and approved it.
+
+**Yes — the sheet becomes a `QTextDocument`.** Findings a port keeps:
+
+- **Dots (`●`/`○`/`□`) and accent colours render and print** — QTextDocument's HTML
+  subset is enough for a real sheet.
+- **The layout must be sized for the A4 page, not the window.** The 900px on-screen
+  view hides column-cramming that the ~550pt printable area exposes (truncation,
+  mid-word breaks). The spike settled on 3-column trait bands and 2-column advantages.
+- **⚠ A document shown in a QTextBrowser has its page size rewritten to the viewport**
+  (unbounded height) — printing it then makes Qt render PAGE NUMBERS. `print_pdf`
+  resets the page size to the paper first; without that, every in-app print carried a
+  "1"/"2" footer the offline path never had (a real, hard-to-find bug — the human
+  caught it).
+- **`page-break-before: always` IS honoured** — used to keep the trait band and
+  Charms on whole pages.
+- **Health labels pad in a MONOSPACE font**: proportional fonts make character-count
+  padding unequal ("Incap" pushed its boxes right); monospace makes nbsp padding exact.
+- **Health boxes group by level** (consecutive same-level boxes, one label), and the
+  ★ for Charm-granted levels is dropped — the boxes are identical in play.
+- **Specialties are instances, not rated traits** — "multiple dots" means multiple
+  copies of the specialty; the sheet merges them and shows plain dots, no 5-track
+  (human 2026-08-20).
+
+14 tests (offscreen). Run/test: `spikes/qt_sheet/README.md`.
+
 ## Open questions — not decided
 
-* **Porting the 228 NiceGUI harness tests.** The spike proved retained-mode widgets test
-  well with pytest-qt (28 tests, offscreen) — what each of the existing 228 harness tests
-  becomes in Qt is a per-test translation, done with the port.
-* **Does the sheet view become a `QTextDocument`?** That would give printing and the
-  on-screen sheet from one source, but it is a different rendering model again.
+* **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets
+  test well with pytest-qt (28 + 14 tests, offscreen) — what each of the existing 228
+  harness tests becomes in Qt is a per-test translation, done with the port.
 * **PySide6 licensing** is LGPL, which is fine for this project — noted so it is not
   re-researched.
 * **Theming.** `ui/theme.py`'s per-splat palettes are the design asset worth keeping;

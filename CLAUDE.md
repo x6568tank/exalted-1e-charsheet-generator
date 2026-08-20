@@ -182,6 +182,7 @@ costs — read the record before proposing anything that contradicts it.
 | 0015 | **Exalt tiers are RANKED** — Terrestrial < Celestial < Solar; a splat reaches its own tier and every tier below, never up |
 | 0016 | **Base dice pools are in scope; resolution is not** — narrows 0008, leaves 0009 untouched |
 | 0017 | **Artifacts have acquisition CHANNELS** — the Artifact Background is pre-game (core p.342, budgeted); cash is in-play (M&C pp.122-125). ⚠ A **third** joined 2026-08-13/14 and is not yet its own record: a plot device printing "(ARTIFACT N/A)" is bought with the **Legendary Artifact** 10-pt Merit and charged to no budget — the standing answer for the shape, still confirm each. `docs/status/book-of-three-circles.md` |
+| 0018 | **The Qt port is committed** — a PySide6 native app alongside the NiceGUI webapp; the plan doc becomes the build record |
 
 **Permanently out of scope** — 0008, 0009 and 0010 (no combat/attack derivation, no dice
 rolling of any kind, no Fair Folk); all three are closed. ⚠ 0008's boundary was NARROWED
@@ -201,16 +202,17 @@ pool calculation.
   Abyssals** (`docs/status/illuminated.md`: 56 Charms needing human-approved mappings).
   A sweep that lists either as unauthored is counting a deferral as an oversight. **Do
   not offer them as follow-ups.**
-- **The Qt port** (human, 2026-08-10) — branch and rebuild the UI on **PySide6/Qt** as
-  the bedrock of a 2.0. A standing goal, **NOT scheduled**; it becomes a numbered
-  decision when it is committed to (use the next free number). Plan, measured baseline
-  and open questions: **`docs/plans/qt-port.md`**. **The charm-tree spike (`spikes/qt_tree/`,
-  built and human-approved 2026-08-20) answered the port's two open questions:**
-  `QGraphicsView` fits the charm-tree picker, and retained-mode widgets test well with
-  pytest-qt (28 tests, offscreen) — see the spike section in the plan. The part that
-  affects work NOW: the port is cheap only because nothing outside `ui/` imports
-  `nicegui` and `ui/view.py` is a pure presenter. **Keep it that way** — prefer derived
-  state in `view.py` over inline computation in a widget module.
+- **The Qt port** — **COMMITTED as decision 0018 (2026-08-20)**: branch and rebuild the
+  UI on **PySide6/Qt** as the bedrock of a 2.0, offered alongside the NiceGUI webapp.
+  Plan and build record: **`docs/plans/qt-port.md`**. The two spikes (`spikes/qt_tree/`
+  + `spikes/qt_sheet/`, built and human-approved 2026-08-20) answered the port's open
+  questions: `QGraphicsView` fits the charm-tree picker; the sheet becomes a
+  `QTextDocument` (on-screen and print from one source); and retained-mode widgets
+  test well with pytest-qt (28 + 14 tests, offscreen). Both are in functional shape
+  except per-splat theming, which waits for the port. The part that affects work NOW:
+  the port is cheap only because nothing outside `ui/` imports `nicegui` and
+  `ui/view.py` is a pure presenter. **Keep it that way** — prefer derived state in
+  `view.py` over inline computation in a widget module.
 
 ## Stack
 - Python + pydantic v2 + pytest. Frontend: **NiceGUI** (chosen over Reflex), the optional
