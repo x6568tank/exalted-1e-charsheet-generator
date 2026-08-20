@@ -186,8 +186,8 @@ def _check_martial_arts_styles(styles: dict, charms: dict, problems: list[str]) 
 
     A style whose `category` no Charm uses is a typo in the slug — it would load
     clean and simply never appear. A printed Charm in a `martial_arts:*` category
-    with no style is the gap this entity exists to close, and naming it here is how
-    Phase 2 knows what is left to author.
+    with no style is the gap this entity exists to close, and naming it here is what
+    keeps the worklist honest.
 
     ⚠ Custom styles are exempt. `custom_content.py` mints `martial_arts:<slug>`
     for user-authored styles at runtime, and there is no page to write a preamble
@@ -210,9 +210,9 @@ def _check_martial_arts_styles(styles: dict, charms: dict, problems: list[str]) 
     # NB the reverse direction — a Charm category with no style — is deliberately
     # NOT a `problem`. Styles are authored in batches (docs/plans/martial-arts-
     # styles.md), so an unauthored preamble is a WORKLIST ENTRY, not a data error;
-    # raising on it would stop the app from starting for the eighteen styles Phase 2
-    # has not reached yet. It is reported by `unauthored_martial_arts_styles`, which
-    # a test pins so the list can only ever shrink.
+    # raising on it would stop the app from starting for any style whose preamble is
+    # still unauthored. It is reported by `unauthored_martial_arts_styles`, which a
+    # test pins so the list can only ever shrink.
 
 
 def _project_style_tier_onto_charms(styles: dict, charms: dict) -> None:
@@ -221,7 +221,7 @@ def _project_style_tier_onto_charms(styles: dict, charms: dict) -> None:
     **The style stays the single AUTHORED copy.** `engine/` needs to know what kind
     of style a Charm belongs to — the p.101 Sidereal chargen cap and the PG p.235
     Terrestrial-initiation grant both turn on it — but a test bars `engine/` from
-    reading the style catalogue, and duplicating the tier into 232 charm JSON rows
+    reading the style catalogue, and duplicating the tier into every charm JSON row
     would be the two-live-descriptions shape decision 0011 exists to prevent.
     Projecting at load time gives the engine a Charm-level field to read while
     leaving exactly one place to author it.
@@ -229,8 +229,8 @@ def _project_style_tier_onto_charms(styles: dict, charms: dict) -> None:
     A style with a blank `tier` leaves its Charms blank, and so does a category with
     no style entry (`martial_arts:enlightenment`, and every homebrew style). Blank
     means "no tier is printed for this", never "Terrestrial" — every consumer must
-    treat it as unknown rather than defaulting it, because 46 of the 232 martial-arts
-    Charms are in that state.
+    treat it as unknown rather than defaulting it — some martial-arts Charms are in
+    that state.
     """
     by_category = {s.category: s.tier for s in styles.values() if s.tier}
     for cid, charm in list(charms.items()):
@@ -241,8 +241,7 @@ def _project_style_tier_onto_charms(styles: dict, charms: dict) -> None:
 
 def unauthored_martial_arts_styles(ruleset) -> list[str]:
     """The `martial_arts:*` categories that have printed Charms but no style entry
-    — i.e. the styles whose preamble is still unauthored. Sorted, so a test can pin
-    it and Phase 2 can print it.
+    — i.e. the styles whose preamble is still unauthored. Sorted, so a test can pin it.
 
     Custom (homebrew) styles are excluded: there is no page to author a preamble
     from, so they are not work anyone is going to do.

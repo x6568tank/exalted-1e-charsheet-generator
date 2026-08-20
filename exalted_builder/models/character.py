@@ -427,7 +427,7 @@ class Weapon(BaseModel):
     # The standalone artifact this row is the STAT LINE of — `engine.artifacts.item_key`
     # of an entry in `Character.artifacts`, or "" for ordinary gear.
     #
-    # Twenty names live in both the artifact catalogue and the gear catalogues (Daiklave,
+    # Some names live in both the artifact catalogue and the gear catalogues (Daiklave,
     # Grand Daiklave, Myrmidon Carapace…), and the artifact row carries no stats — so
     # owning a daiklave as an artifact AND adding a weapon row to swing it is the normal
     # case. Without this link the one item counts twice against the p.131 budget.

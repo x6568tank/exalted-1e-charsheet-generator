@@ -143,10 +143,9 @@ class CharmDetail:
 # Gear stat lines — ONE format string per kind, for both the character's own gear
 # and a catalogue entry.
 #
-# These were written twice (editor.py's row readout and catalogue.py's dialog
-# summary) and had already drifted: the armour readout emitted two spaces before
-# "Mob" and the dialog emitted one, while the dialog's docstring claimed it matched.
-# Unified here on the ROW READOUT's spacing, which is the older, browser-verified one.
+# ⚠ ONE definition, used by the row readout and by the catalogue dialog alike. Two
+# copies drift on details no test looks at — the spacing before "Mob" differed while
+# one docstring claimed the two matched.
 #
 # Duck-typed on purpose: `Weapon`/`Armor` (a character's item, usually passed through
 # `derive.effective_*` so the material bonus is folded in) and `WeaponType`/`ArmorType`
@@ -198,7 +197,7 @@ class InventoryRow:
     # ONE row (the human, 2026-08-13: two peer rows for one daiklave "feels odd, and a
     # little obtuse"). The artifact owns the row; its stat line rides in `detail` and
     # its editor is reached through this SECOND route back. Empty for every unmerged
-    # row, which is all but twenty of the catalogue.
+    # row, which is the large majority.
     #
     # ⚠ Display-only. The typed lists are untouched, so `character.weapons` keeps its
     # positional indices — the dice-pool sidebar reads them.
@@ -413,7 +412,7 @@ UNKEYED_SUBTREE = "general"
 def virtue_split(ruleset: RuleSet, category: str) -> list[str]:
     """Sub-category keys for a data category whose Charms span several Virtues.
 
-    The spirit Charms are the one such category: 79 of the 80 sit under
+    The spirit Charms are the one such category: all but one sit under
     'spirit_templates', each keyed to one of the four Virtues via `min_virtue`.
     The picker presents them as four trees ('spirit_templates:compassion', ...)
     so the Virtue structure is visible. For a spirit Charm the Virtue IS the
@@ -423,13 +422,13 @@ def virtue_split(ruleset: RuleSet, category: str) -> list[str]:
     Virtues. For a ghost Arcanos the Virtue is a per-entry GATE, not an
     organizing axis -- the book prints each art as one tree and its chains cross
     Virtues freely (Soul Anchor, Temperance 2, roots the whole Conviction-keyed
-    body of Chains of the Ancient Monarchs). The six E:Ab paths were
-    single-Virtue so the split never fired for a ghost; the Book of Bone and
-    Ebony paths added 2026-08-11 are multi-Virtue, and the general rule below
-    mis-split them into sparse per-Virtue trees with cross-tree prereq edges.
-    They render as one tree per art. Anything not Virtue-keyed returns [].
+    body of Chains of the Ancient Monarchs). ⚠ A multi-Virtue path put through the
+    general rule below mis-splits into sparse per-Virtue trees with cross-tree
+    prereq edges; the E:Ab paths are single-Virtue and hide this, the Book of Bone
+    and Ebony ones do not. They render as one tree per art. Anything not
+    Virtue-keyed returns [].
 
-    A split category may also hold Charms that are NOT Virtue-keyed: the 80th
+    A split category may also hold Charms that are NOT Virtue-keyed: the one such
     spirit Charm is Terrestrial Circle Sorcery, whose printed minimums are
     Essence 3 and Occult 5 and no Virtue at all (PG p.48). Those go in a final
     ':general' sub-tree, because a per-Virtue split alone would drop them out of
@@ -1879,10 +1878,10 @@ class StyleView:
 def style_for_category(ruleset: RuleSet, category: str) -> Optional[StyleView]:
     """The authored style for a `martial_arts:*` category, or None.
 
-    None is an ordinary answer, not an error: three styles are documented absences
-    whose pages print no style-level material (`snake`, `hungry-ghost`,
-    `enlightenment`), and a homebrew style has no page to have a preamble from.
-    A caller must render nothing rather than an empty panel.
+    None is an ordinary answer, not an error: a category with no authored style
+    (`martial_arts:enlightenment`, which is the Dragon-Path initiation tree rather
+    than a style) returns None, and a homebrew style has no page to have a preamble
+    from. A caller must render nothing rather than an empty panel.
 
     ⚠ A returned StyleView can still have an EMPTY `tier` or an empty `preamble` —
     only the Player's Guide prints both. Callers must treat each field as optional
@@ -1987,7 +1986,7 @@ def charm_slot_budget(ruleset: RuleSet, character: Character) -> Optional[SlotBu
 # --- Augmentation grouping (Alchemical) ------------------------------------- #
 # The Alchemical "general" category is 9 Transitory + 9 Sustained "Augmentation of
 # (Attribute)" Charms — one template keyed per Attribute. They stay 18 distinct ids in
-# the data (82 other Charms name a SPECIFIC one as a prerequisite), but the picker
+# the data (many other Charms name a SPECIFIC one as a prerequisite), but the picker
 # collapses them into two per-type pop-ups so the page isn't 18 disconnected nodes.
 
 _AUGMENT_SPLIT = " Augmentation of "
@@ -2326,9 +2325,9 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
                     for p in path.powers[:rating]],
         ))
 
-    # Combos — the sheet never rendered them before; member names resolve through
-    # ruleset.charms, which includes the Dragon-King Path powers' virtual rows, so a
-    # DK Combo's members read as their power names.
+    # Combos — member names resolve through ruleset.charms, which includes the
+    # Dragon-King Path powers' virtual rows, so a DK Combo's members read as their
+    # power names.
     combos = []
     for combo in character.combos:
         members = []
@@ -2663,13 +2662,12 @@ def clamp_pool_selection(state: dict, sidebar: PoolSidebarView) -> None:
     Clearing rather than remapping is deliberate: the list renumbers when a row is
     deleted, so the index that survives names a DIFFERENT weapon than the one chosen.
 
-    A pure function on purpose. The same clamp lived inline in `play.py` and could only
-    be tested by driving the browser harness through a delete-and-rebuild, which turned
-    out to be untestable in a full-suite run: a `@ui.page` route builds once per session
-    and `user.client.elements` accumulates across every route the session has opened, so
-    "the last select labelled X" — and `user.find(marker=...)` with it — can belong to
-    another page entirely. The test passed alone and failed in the suite, firing its
-    rebuild trigger at somebody else's widget.
+    ⚠ A PURE function so it can be tested without the browser harness. Driving this
+    through a delete-and-rebuild is untestable in a full-suite run: a `@ui.page` route
+    builds once per session and `user.client.elements` accumulates across every route
+    the session has opened, so "the last select labelled X" — and `user.find(marker=
+    ...)` with it — can belong to another page entirely. Such a test passes alone and
+    fails in the suite, firing its trigger at somebody else's widget.
     """
     for key, rows in (("weapon", sidebar.weapons), ("arrow", sidebar.arrows)):
         if state.get(key) not in {i for i, _ in rows}:
@@ -2857,7 +2855,7 @@ def build_party_card_view(ruleset: RuleSet, character: Character) -> PartyCardVi
 # --------------------------------------------------------------------------- #
 
 # The health-cost damage types, for the form's dropdown. "" is "the source does not
-# say", which is how all 52 printed Charms with a health cost read.
+# say", which is how every printed Charm with a health cost reads.
 HEALTH_TYPE_OPTIONS = {"": "unspecified"} | {
     d.value: DAMAGE_LABELS[d] for d in Damage}
 
@@ -2867,8 +2865,8 @@ HEALTH_TYPE_OPTIONS = {"": "unspecified"} | {
 CHARM_DURATIONS = ["Instant", "One scene", "One turn", "One day", "One hour",
                    "Indefinite", "Permanent", "Varies", "Special", "N/A"]
 
-# v1 deliberately omits `keywords`: all 1,470 shipped Charms leave it empty, so a
-# control for it would be clutter. Phase 5 owns the rest of the advanced fields.
+# `keywords` is deliberately omitted: EVERY shipped Charm leaves it empty, so a
+# control for it would be clutter.
 
 
 @dataclass

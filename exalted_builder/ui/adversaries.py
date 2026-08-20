@@ -52,16 +52,16 @@ _VIRTUES = ["compassion", "conviction", "temperance", "valor"]
 
 
 # --------------------------------------------------------------------------- #
-# Ids, the trait/attack codec and the card presenters — MOVED 2026-08-10
+# Ids, the trait/attack codec and the card presenters — RE-EXPORTS
 #
-# None of them touched the toolkit. `next_id`, `_copy_name` and the
-# `parse_traits`/`trait_line` + `parse_attacks`/`attack_line` codec pairs went to
-# `engine/adversaries.py` (beside `expand_health`/`format_health`, the codec that
-# was already there); `summary_line` and `trait_map_line` went to `view.py` with
-# the other presenters.
+# None of these touch the toolkit, so none of them live here: `next_id`,
+# `_copy_name` and the `parse_traits`/`trait_line` + `parse_attacks`/`attack_line`
+# codec pairs belong to `engine/adversaries.py` (beside `expand_health`/
+# `format_health`); `summary_line` and `trait_map_line` are presenters and belong to
+# `view.py`.
 #
-# Re-exported because these names are the call shape used below and by
-# `tests/test_adversaries_ui.py`. The move changed no behaviour and no call site.
+# ⚠ Re-exported, not re-implemented: these names are the call shape used below and by
+# `tests/test_adversaries_ui.py`.
 # --------------------------------------------------------------------------- #
 
 from ..engine.adversaries import (  # noqa: F401  (re-export for existing callers)

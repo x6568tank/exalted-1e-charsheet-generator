@@ -86,7 +86,7 @@ class CharmType(str, Enum):
     # effect outlasts the instant but needs no committed Essence to sustain — "the new
     # 'enchantment' type ... treated as simple Charms with a duration longer than
     # instant. However, characters need not commit Essence to sustain these ongoing
-    # effects." 36 of the 78 Mountain Folk Charms are enchantments.
+    # effects." Roughly half the Mountain Folk Charms are enchantments.
     SIMPLE_ENCHANTMENT = "Simple/Enchantment"   # Living Earth Meditation (CH6 p.264),
     # the one Charm the book prints with a dual Type — usable as either a Simple or an
     # Enchantment. One entry; kept as a distinct value rather than collapsed, because
@@ -356,9 +356,9 @@ class Charm(BaseModel):
     # — the loader overwrites it.
     #
     # ⚠ Ask `ma_tier` what KIND of style a Charm belongs to; ask `open_to_tiers` who
-    # may learn it. They are NOT interchangeable — using `open_to_tiers` for the p.101
-    # Sidereal chargen cap counts 140 Charms across twelve styles where only 41 across
-    # three are Sidereal MA. See docs/status/martial-arts-styles.md.
+    # may learn it. They are NOT interchangeable — `open_to_tiers` is far wider, so
+    # using it for the p.101 Sidereal chargen cap counts every Celestial-open style
+    # where only the three Sidereal ones qualify. See docs/status/martial-arts-styles.md.
     ma_tier: str = ""
     # A style whose OWN text names who may learn it, narrower than any tier. Entries
     # are "<Splat>" or "<Splat>:<caste>", and the character must satisfy ONE of them.
@@ -379,9 +379,9 @@ class Charm(BaseModel):
     # (default) means the Charm gates on `category`'s Ability as usual. A Charm
     # should set at most one of min_attribute / an Ability-resolving category.
     min_attribute: str = ""
-    # For splats whose Charms are VIRTUE-keyed (ghosts, E:Ab p.234-253 — every one of
-    # the 56 Arcanoi prints exactly one "Minimum Compassion/Conviction/Temperance/
-    # Valor" alongside its Minimum Essence, and none prints an Ability at all). The
+    # For splats whose Charms are VIRTUE-keyed (ghosts, E:Ab p.234-253 — every Arcanos
+    # prints exactly one "Minimum Compassion/Conviction/Temperance/Valor" alongside
+    # its Minimum Essence, and none prints an Ability at all). The
     # VirtueName value `min_ability` is the required rating in, exactly as
     # `min_attribute` works — the third and last of the three keyings.
     #
@@ -543,7 +543,7 @@ class GodbloodedHeritage(BaseModel):
       by heritage because the formula varies within one splat.
     * `charm_access` — which OTHER splat's Charm catalogue this heritage learns
       "exactly as their parents" (p.47): Ghost-Blooded → ["Ghost"] (the Arcanoi);
-      Half-Caste → the parent Exalt's catalogue (later phase); Fae → none.
+      Half-Caste → the parent Exalt's catalogue (`charm_access_parent`); Fae → none.
     * `magic_track` / `magic_track_by_parent` — the ONE magic track this heritage may
       be initiated into, restricting which `grants_circle` Charms it can hold (p.48:
       "Terrestrial Circle Sorcery is available to all the remaining heritages save

@@ -1,11 +1,10 @@
 """Catalogue picker dialogs — the browse-before-you-choose affordance.
 
-The five "add" surfaces (weapons, armour, artifacts, backgrounds, Merits & Flaws) are
-comboboxes today: clicking "Add" appends a blank row and the player types into a
-`ui.select`. A `DescribedSelect` gives a hover tooltip, but nothing lets the player
-BROWSE the catalogue before choosing. `catalogue_dialog` is the shared pop-up every add
-button opens: a filterable list of name + one-line summary, with the full description
-collapsible, plus a "Custom" row for free-text items.
+`catalogue_dialog` is the shared pop-up the "add" buttons open — artifacts, gear,
+Backgrounds, Hearthstones and Merits & Flaws: a filterable list of name + one-line
+summary, with the full description collapsible, plus a "Custom" row for free-text
+items. A row's own combobox (`DescribedSelect`) still edits it afterwards; the dialog
+is what lets a player read the catalogue BEFORE choosing.
 
 Pure UI — no game logic, no validation. It reads whatever list the caller hands it
 (already filtered by availability/splat) and calls `on_pick(key)` when a row is clicked

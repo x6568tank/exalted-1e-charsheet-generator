@@ -12,11 +12,12 @@ free and reversible, and the readout tallies them against the chargen pool. Afte
 lock it is a shop — Charms, spells and Ox-Body packages are bought through
 engine.advancement (priced, legality-checked, appended to the XP log), the price
 rides on the button, and nothing can be dropped: the only refund is undoing the most
-recent purchase from the XP tab's ledger.
+recent purchase from the Edit tab's Experience card.
 
 No game logic here: the toggle asks engine.validate.meets_charm_requirements, prices
-come from engine.costs, and node states come from the engine. Cytoscape is loaded
-from a CDN, so the browser needs network access.
+come from engine.costs, and node states come from the engine. Cytoscape is VENDORED
+(`ui/assets.cytoscape_head_html` inlines `ui/vendor/cytoscape.min.js`), so the picker
+works offline and in a packaged build — never add a CDN dependency here.
 
 Run:
     python -m exalted_builder.ui.picker [path/to/foo.character.json] [--show] [--port N]
@@ -102,13 +103,12 @@ def _elements(graph: viewmod.CharmGraph) -> list[dict]:
 
 
 # --------------------------------------------------------------------------- #
-# Thaumaturgy purchases — MOVED to engine/thaum_actions.py (2026-08-10)
+# Thaumaturgy purchases — RE-EXPORTS from engine/thaum_actions.py
 #
-# They were game logic (they mutate the save and dispatch on the lock) and never
-# imported nicegui, so they did not belong in the UI layer. Re-exported here because
+# They are game logic (they mutate the save and dispatch on the lock) and import no
+# nicegui, so they do not live in the UI layer. Re-exported here because
 # `picker.buy_thaum_art(...)` is the call shape used by build_picker below, by
-# tests/_ui_main.py and by tests/test_thaumaturgy_ui.py — the move changed no
-# behaviour and no call site.
+# tests/_ui_main.py and by tests/test_thaumaturgy_ui.py.
 #
 # ⚠ They raise `advancement.AdvancementError`, which build_picker catches to turn a
 # refusal into a notification. Keep it that way.
@@ -159,16 +159,14 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             base, style = cat.split(":", 1)
             # ⚠ The AUTHORED style name wins, exactly as it does on the Charm detail
             # card and the preamble panel. Title-casing the slug is only a fallback,
-            # and it was wrong twice over for a style whose printed name is not its
-            # slug: `praying-mantis` is printed "Mantis Style" (Caste Book: Eclipse
-            # p.73), and `.title()` does not repair the hyphen either, so the
-            # dropdown read "Martial Arts: Praying-Mantis".
+            # and it is wrong for any style whose printed name is not its slug:
+            # `praying-mantis` is printed "Mantis Style" (Caste Book: Eclipse p.73),
+            # and `.title()` does not repair the hyphen either.
             #
-            # This was a SECOND label generator living beside `view._style_label`.
-            # Fixing that one left this one wrong, so the panel and the dropdown
-            # disagreed about the same style on the same screen. One fact, one
-            # implementation: defer, and strip the " Style" suffix the dropdown's
-            # own format has never carried.
+            # ⚠ ONE label generator, `view._style_label` — a second copy here is how
+            # the panel and the dropdown came to disagree about the same style on the
+            # same screen. Defer to it, then strip the " Style" suffix the dropdown's
+            # own format does not carry.
             name = viewmod._style_label(cat, ruleset).removesuffix(" Style")
             return f"{base.replace('_', ' ').title()}: {name}"
         return cat.replace("_", " ").title()
@@ -178,13 +176,13 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     # on the Martial Arts page — including the enlightenment tree
     # ('martial_arts:enlightenment'), which is the Dragon-Path initiation rather
     # than a style, but is martial arts and is looked for among them.
-    # The six ghost Arcanoi paths get their own page, like Thaumaturgy's — they are
-    # not Abilities and grouping them there would put "Shifting Ghost-Clay Path" in a
+    # The ghost Arcanoi paths get their own page, like Thaumaturgy's — they are not
+    # Abilities and grouping them there would put "Shifting Ghost-Clay Path" in a
     # dropdown of Ability names (human, 2026-08-01).
     #
-    # Identified by `min_virtue` rather than by a hardcoded list of the six category
-    # strings: being Virtue-keyed is what MAKES a Charm an Arcanos, so a seventh path
-    # (or another Virtue-keyed splat) needs no edit here.
+    # ⚠ Identified by `min_virtue`, never by a hardcoded list of category strings:
+    # being Virtue-keyed is what MAKES a Charm an Arcanos, so a new path (or another
+    # Virtue-keyed splat) needs no edit here.
     #
     # ...except the spirit Charms. The God/Demon-Blooded catalogue is ALSO
     # Virtue-keyed (same `min_virtue` axis as the Arcanoi) but is a different Charm
@@ -408,7 +406,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 f"color:{'#15803d' if available >= 0 else '#b91c1c'}")
             ui.label(f"earned {character.xp_earned} · spent {advancement.xp_spent(character)}"
                      ).classes("text-xs text-gray-600")
-            ui.label("Undo a purchase on the XP tab.").classes("text-xs text-gray-500")
+            ui.label("Undo a purchase in the Experience card on the Edit tab."
+                     ).classes("text-xs text-gray-500")
         else:
             slots = viewmod.charm_slot_budget(ruleset, character)
             if slots is not None:
@@ -559,7 +558,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.label(r.description).classes("text-xs text-gray-600")
                 if r.owned:
                     if in_play():
-                        # Post-lock the only refund is last-first undo on the XP tab,
+                        # Post-lock the only refund is last-first undo on the Edit tab,
                         # exactly as for Charms and Combos.
                         ui.label("Purchased.").classes("text-xs text-gray-500")
                     else:
@@ -678,7 +677,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- Deadly Beastman Transformation Gifts (repeatable, multi-pick; Lunar) -- #
     # Each purchase grants a fixed number of Gift picks (2 first, 1 after, p.124).
-    # There are 19 Gifts (p.126-127) with their own prerequisite chains, which is far
+    # The Gifts (p.126-127) have their own prerequisite chains, which is far
     # too much to cram into the sticky detail card the way Ox-Body's two variants fit:
     # the detail card just shows what has been bought and an Add button, and the
     # choosing happens in a dialog with room for every Gift's description.
@@ -771,7 +770,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 f"color:{pal.accent}")
             # p.126 heads the list "Sample Gifts … these are not the only possible
             # gifts": the roster is illustrative, and anything else is an ST call, so
-            # say so rather than implying these 19 are the whole rule.
+            # say so rather than implying the listed ones are the whole rule.
             ui.label("Sample Gifts (p.126-127) — the book's list is not exhaustive; "
                      "anything else is a Storyteller call.").classes("text-xs text-gray-500")
 
@@ -889,7 +888,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return False
         if spell_id in character.spells:
             ui.notify(f"{spell.name} is already known — undo the purchase on the "
-                      "XP tab to give it back.", type="info")
+                      "Edit tab to give it back.", type="info")
             return False
         cost = costs.spell_cost(ruleset, character, spell)
         if not _buy(lambda: advancement.learn_spell(ruleset, character, spell_id)):
@@ -936,15 +935,16 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         (docs/plans/martial-arts-styles.md).
 
         Renders NOTHING when the selected category is not an authored style — the
-        three documented absences, and permanently so for a homebrew style. An empty panel on every other category would be worse than
-        no panel, the same rule the sheet's conditional panels follow.
+        documented absences, and permanently so for a homebrew style. An empty panel
+        on every other category would be worse than no panel, the same rule the
+        sheet's conditional panels follow.
         """
         style = viewmod.style_for_category(ruleset, state["category"])
         if style is None or not _is_graph_page():
             return
-        # ⚠ Both of these are conditional because most books print NEITHER a `Type:`
-        # line nor prose — eight of the 19 styles have an empty `tier` and six have
-        # no preamble at all (docs/status/martial-arts-styles.md). Interpolating them
+        # ⚠ Both of these are conditional because a book may print NEITHER a `Type:`
+        # line nor prose, and a homebrew style has neither by default
+        # (docs/status/martial-arts-styles.md). Interpolating them
         # unconditionally gives "Air Dragon Style — " with a dangling em-dash above
         # an empty label. Same rule the printed sheet follows: nothing is rendered as
         # nothing, never as an empty box.
@@ -1056,7 +1056,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         _thaum_changed()
 
     def _no_thaum_drop() -> None:
-        ui.notify("Bought with experience — undo it on the XP tab.", type="info")
+        ui.notify("Bought with experience — undo it on the Edit tab.", type="info")
 
     def set_thaum_tab(value: str) -> None:
         if not value or value == state["thaum_tab"]:
@@ -1718,7 +1718,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                                         "overflow-wrap:anywhere; word-break:break-word")
 
     # ---- Augmentation pop-ups (Alchemical 'general') ---------------------- #
-    # The 18 Augmentation Charms stay distinct ids (82 other Charms name a specific one
+    # The 18 Augmentation Charms stay distinct ids (other Charms name a specific one
     # as a prerequisite); the picker just collapses them into two per-type cards, each
     # opening a dialog to install/remove per Attribute — like the Deadly Beastman dialog.
 
@@ -1813,7 +1813,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             if (!window.cytoscape) {{
               if (tries > 100) {{
                 if (el) el.innerHTML = '<div style="padding:1rem;color:#b91c1c">'
-                  + 'Could not load Cytoscape from the CDN (offline?).</div>';
+                  + 'Could not load Cytoscape (the bundled copy failed to '
+                  + 'initialise).</div>';
                 return;
               }}
               return setTimeout(go, 50);
@@ -1934,7 +1935,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return False
         if charm_id in character.charms:
             ui.notify(f"{charm.name} is already known — undo the purchase on the "
-                      "XP tab to give it back.", type="info")
+                      "Edit tab to give it back.", type="info")
             return False
         cost = costs.charm_cost(ruleset, character, charm)
         if not _buy(lambda: advancement.learn_charm(ruleset, character, charm_id)):

@@ -12,7 +12,7 @@ created empty, members added and removed, priced in bonus points. Once chargen i
 locked a Combo is *bought whole*: engine.advancement.add_combo prices it (Σ member
 min_ability, p.213), checks its legality and logs it in one go, so the in-play form
 composes the whole Combo first and buys it with one button. Bought Combos are then
-fixed — undo the purchase on the XP tab to take one back.
+fixed — undo the purchase in the Edit tab's Experience card to take one back.
 
 Run:
     python -m exalted_builder.ui.combos [path/to/foo.character.json] [--show] [--port N]
@@ -65,7 +65,8 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
                 f"color:{'#15803d' if available >= 0 else '#b91c1c'}")
             ui.label(f"earned {character.xp_earned} · spent {advancement.xp_spent(character)}"
                      ).classes("text-xs text-gray-600")
-            ui.label("Undo a purchase on the XP tab.").classes("text-xs text-gray-500")
+            ui.label("Undo a purchase in the Experience card on the Edit tab."
+                     ).classes("text-xs text-gray-500")
         else:
             ui.label(bp).classes("text-sm font-semibold").style(f"color:{pal.accent}")
         ui.label("✓ Legal" if not errors else f"✗ {len(errors)} error(s)").classes(
@@ -224,7 +225,7 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
                        for m in v.addable if m.id not in linked}
             with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
                 with ui.row().classes("w-full items-center justify-between no-wrap"):
-                    if in_play():      # a bought Array is fixed; undo it on the XP tab
+                    if in_play():      # a bought Array is fixed; undo it on the Edit tab
                         ui.label(arow.name).classes("text-sm font-bold").style(
                             f"color:{pal.accent}")
                     else:
@@ -326,7 +327,7 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
             options = {m.id: f"{m.name} · {m.type}" for m in v.addable if m.id not in in_combo}
             with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
                 with ui.row().classes("w-full items-center justify-between no-wrap"):
-                    if in_play():        # a bought Combo is fixed; undo it on the XP tab
+                    if in_play():        # a bought Combo is fixed; undo it on the Edit tab
                         ui.label(crow.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
                     else:
                         ui.input(value=crow.name,

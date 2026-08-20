@@ -265,8 +265,8 @@ class DescribedSelect(ui.select):
 
 # XP-log targets whose change moves OTHER rows' ceilings, so buying one has to rebuild
 # the whole editor body rather than its own dot row. Module-level and named so the rule
-# is greppable: the browser found it missing (human, 2026-07-31 — Essence clicked up to
-# 6 but the Ability tracks kept five pips until the tab was left and re-entered).
+# is greppable. ⚠ Omit a target here and its dependants keep their stale pips until the
+# tab is left and re-entered — Essence clicked to 6 with the Ability tracks still at 5.
 #
 # Essence is the only member: past 5 it IS the ceiling on every Ability and Attribute
 # (engine.elder). Add a target here if a new rule makes one trait govern another's cap.
@@ -378,7 +378,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     # One card, two regimes — the same shape the dot tracks take. Bonus points stop
     # being a live budget at the lock (they are frozen into the ChargenSnapshot), so
     # showing a bonus-point tally beside dots that now cost XP would name the wrong
-    # currency. The full ledger and Adjust XP arrive here in P3.
+    # currency. The ledger and Adjust XP sit in this same column — see `xp_card`.
     def bp_log() -> None:
         bd = validate.bonus_point_breakdown(ruleset, character)
         ui.label("Bonus Points").classes("text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
@@ -442,7 +442,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             el.props("disable")
         return el
 
-    # ---- the sticky column, in play (decision 0013 / P3) ------------------ #
+    # ---- the sticky column, in play (decision 0013) ----------------------- #
     # Post-lock the column is: what you can spend, what you spent it on, and only then
     # anything wrong. Pre-lock it is validation first, because a half-built character
     # is mostly a list of things not yet done.
@@ -544,7 +544,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
     def xp_controls() -> None:
         """Adjust XP, and the one control the read-only log would otherwise strand.
 
-        Traits are un-bought by clicking their dots down (the P1 dialog), but a Charm,
+        Traits are un-bought by clicking their dots down (the downward-click dialog),
+        but a Charm,
         Combo, spell, specialty or thaumaturgy purchase has no downward gesture of its
         own — the ledger's per-row undo button was the only way to reverse one. Keeping
         the log a printout means that button has to live here instead, and naming the
@@ -1284,10 +1285,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             else:
                 ui.button("Add specialty", icon="add", on_click=add_spec).props("flat dense")
 
-        # Equipment MOVED to the Gear tab (ui/gear.py) on 2026-08-13 — weapons, armour,
-        # goods, the inventory view and the price list. Edit is traits; possessions are
-        # not traits, and an artifact's stats living here while its budget lived on
-        # Advantages is what let one daiklave be entered and charged twice.
+        # ⚠ NO equipment here. Weapons, armour, goods, the inventory and the price list
+        # are the Gear tab's (ui/gear.py): Edit is traits, possessions are not traits,
+        # and an artifact's stats sitting here while its budget sits on Advantages is
+        # what lets one daiklave be entered and charged twice.
 
         # Permanent Resonance / Limit (Death's Taint, PG p.41). Its own panel rather
         # than a dot track, because it moves in BOTH directions at DIFFERENT prices:
@@ -1358,7 +1359,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                         ui.number(label=("-0" if p == 0 else str(p)), value=total, min=0, max=20, format="%d",
                                   on_change=lambda e, p=p: set_health_total(p, int(e.value or 0))).classes("w-16")
 
-        # charms/spells (read-only here; the picker is the next slice).
+        # charms/spells — read-only here; `ui/picker.py` owns the picking.
         # Alchemical pays for Slots, not picks — show occupancy; every other splat
         # counts picks via the engine's canonical enumeration (Ox-Body / Beastman
         # purchases live outside character.charms, so counting by hand undercounts).

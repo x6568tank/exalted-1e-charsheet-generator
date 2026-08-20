@@ -315,9 +315,8 @@ def render_sheet(view: viewmod.SheetView) -> None:
                                         "overflow-wrap:anywhere; word-break:break-word")
 
         # --- Combos ---------------------------------------------------------- #
-        # Previously absent from the sheet entirely; each Combo lists its member
-        # Charm names — a Dragon-King's Path powers included, since the members
-        # resolve through ruleset.charms' virtual rows.
+        # Each Combo lists its member Charm names — a Dragon-King's Path powers
+        # included, since the members resolve through ruleset.charms' virtual rows.
         if view.combos:
             _heading("Combos")
             with ui.row().classes("w-full gap-2 items-start no-wrap"):

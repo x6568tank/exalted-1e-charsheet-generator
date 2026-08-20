@@ -7,10 +7,10 @@ against it. Backgrounds and M&F are not that — they are one list edited under 
 budget regimes, which is the Charms/Combos shape, so they live on a tab that is on the
 bar throughout and switches mode at the lock.
 
-Filing them under the wrong shape is what forced each of them to be written twice, and
-the duplication shipped real bugs before it was removed: the XP tab filtered its Merit
-dropdown by splat and the editor did not, so a Solar could pick Chimera at chargen and
-only be told afterwards. Two near-identical Background panels drifted the same way.
+⚠ Filing them under the Edit/XP split is what forces each to be written twice, and the
+duplicates drift: one surface filtering its Merit dropdown by splat while the other does
+not lets a Solar pick Chimera at chargen and only be told afterwards, and two
+near-identical Background panels go the same way.
 **This module is one implementation of each. Do not grow a second one anywhere else.**
 
 Mode comes from the character, never from the caller (`_in_play`, reading
@@ -78,7 +78,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
     def readout() -> None:
         if _in_play():
             # Post-lock the relevant budget is experience, not bonus points. Read-only:
-            # the ledger and undo live on the XP tab, wherever a purchase was made.
+            # the ledger and undo live in the Edit tab's Experience card.
             available = advancement.xp_available(character)
             with ui.row().classes("w-full items-baseline gap-3"):
                 ui.label(f"{available}").classes("text-2xl font-bold").style(
@@ -88,7 +88,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             if debt:
                 ui.label(f"⚠ {debt} XP owed — all further experience clears this first."
                          ).classes("text-xs font-semibold text-amber-700")
-            ui.label("The ledger and undo are on the XP tab."
+            ui.label("The ledger and undo are in the Edit tab's Experience card."
                      ).classes("text-xs text-gray-500")
             return
         view = viewmod.build_sheet_view(rs, character)
@@ -97,9 +97,11 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         ui.separator()
         # Only the issues this tab can do anything about — the Edit tab reports the
         # rest, and repeating all of them here would make both readouts noise.
-        # Artifact issues belong here too: the Artifacts panel is on THIS tab, so the
-        # two-flagships/budget findings must update live when a rating is edited,
-        # rather than only appearing on the Sheet after a tab switch.
+        # Artifact issues appear here too, because the Artifact BACKGROUND rating is
+        # edited on this tab and the budget findings key off it — they must update live
+        # as the rating moves, not only on the Sheet after a tab switch. ⚠ The Gear tab
+        # renders the same findings beside the items themselves, so the two overlap by
+        # design; they read one issue list, so they cannot disagree.
         mine = [i for i in view.issues
                 if i.code != "bonus-points"
                 and ("background" in i.code or "merit" in i.code or "flaw" in i.code
@@ -288,14 +290,14 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         _sync_total()
         return _sync_total
 
-    # ⚠ Two consumers of a Background rating have gone stale in this panel — the
-    # Hearthstone denominator (see `row_sync`'s rebind below) and, until the Artifacts
-    # panel moved to the Gear tab, its budget header. Both were fixed by driving them
-    # from `_sync`, which is where a rating change arrives. When you add anything that
-    # reads a Background rating, drive it from there too.
+    # ⚠ Anything reading a Background rating MUST be driven from `_sync`, which is
+    # where a rating change arrives — two consumers have gone stale in this panel by
+    # not being (the Hearthstone denominator, see `row_sync`'s rebind below, and the
+    # artifact budget header back when it lived on this tab).
     #
-    # The cross-panel HOOK that served the artifact header is gone with the panel: two
-    # tabs render separately, so there is nothing here to refresh. The link that
+    # There is no cross-panel hook to the artifact header any more: it renders on the
+    # Gear tab, the two tabs render separately, so there is nothing here to refresh.
+    # The link that
     # replaced it is the "buys N dot(s)" note in `_sync`, which `_sync` recomputes.
 
     def _background_rows(bg_cap) -> None:
@@ -534,7 +536,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         refresh_all()
 
     # ---- Merits & Flaws: the filter bar ----------------------------------- #
-    # 99 entries in one flat dropdown, which is how both regimes shipped: the chargen
+    # The whole catalogue in one flat dropdown is unusable: the chargen
     # row select had no type-ahead at all, and the play one had type-ahead over a label
     # that leads with the name, so "combat" found nothing. One filter, used by both —
     # the same discipline as the rest of this module, since a second copy is what put

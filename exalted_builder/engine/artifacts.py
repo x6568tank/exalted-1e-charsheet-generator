@@ -140,7 +140,7 @@ def gear_stat_line(ruleset, name: str):
     """The catalogue weapon or armour that IS this artifact, as `(source, entry)`, or
     None when the artifact is neither.
 
-    Twenty of the 222 catalogue artifacts are also gear rows — Daiklave, Grand Daiklave,
+    A minority of catalogue artifacts are also gear rows — Daiklave, Grand Daiklave,
     Myrmidon Carapace — because an artifact entry describes what a thing IS and a gear
     row carries what it DOES, and a daiklave needs both. Matched on the normalised name,
     which is the same soft reference `item_key` already uses; a catalogue whose two

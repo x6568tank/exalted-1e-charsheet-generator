@@ -156,7 +156,7 @@ def gear_affordability(ruleset: RuleSet, character: Character,
         * cost GREATER — "too expensive for her, and she cannot afford to buy it".
 
     Returns "easy" / "serious" / "unaffordable", or "" for gear with no printed cost
-    (56 of the 122 catalogue rows have none, and a missing price is not a free item).
+    (many catalogue rows have none, and a missing price is not a free item).
 
     ⚠ Answers a PURCHASE, and must never become a validation of what a character OWNS
     (human's ruling). The printed rule contradicts an ownership invariant in its own

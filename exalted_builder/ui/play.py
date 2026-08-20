@@ -266,10 +266,10 @@ def dice_pool_sidebar(ruleset: RuleSet, character: Character,
                       on_change=lambda e: _set("weapon", e.value)
                       ).classes("w-full").props("dense outlined")
         else:
-            # ⚠ Stays attached to `sv.weapons`. When the arrow controls were added
-            # below, this `else` was left after them and re-parented onto
-            # `sv.arrow_note`, so an armed character with nothing nocked — the
-            # ordinary case — was told they owned no weapon.
+            # ⚠ This `else` belongs to `sv.weapons` and must stay attached to it.
+            # Left below the arrow controls it re-parents onto `sv.arrow_note`, and an
+            # armed character with nothing nocked — the ordinary case — is then told
+            # they own no weapon.
             ui.label("No weapon owned — the attack rows are unarmed.").classes(
                 "text-xs text-gray-600")
         if sv.arrows:
@@ -372,11 +372,6 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
         cur = character.play or PlayState()
         marks = list(cur.health) + [None] * max(0, len(pv.health_boxes) - len(cur.health))
 
-        # Two columns: the dice-pool sidebar on the left, the tracker on the right.
-        # `items-start` so the sidebar does not stretch to the tracker's height, and
-        # NO `no-wrap` on the outer row — on a narrow window the sidebar drops above
-        # the tracker instead of crushing it (a `no-wrap` row has done exactly that
-        # to a panel here before).
         def tracker() -> None:
             """The right-hand column: the play-state tracker proper."""
             # --- Health -------------------------------------------------- #
@@ -525,7 +520,7 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                                  f"so the track above runs to {lim_max}.").classes(
                             "text-xs text-gray-500")
                         ui.label(f"Permanent {lim} is a permanent trait — gain or shed "
-                                 f"it on the XP tab, not here.").classes(
+                                 f"it on the Edit tab, not here.").classes(
                             "text-xs text-gray-500")
 
             # Luck pools exist only because Lucky / Unlucky do. Spending them is
@@ -554,10 +549,9 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                 f"Willpower, Health, and {_curse} are left to you / the ST.")
 
         # Two columns: the dice-pool sidebar on the left, the tracker on the right.
-        # `items-start` so the sidebar does not stretch to the tracker's height, and
-        # deliberately NO `no-wrap` on the outer row — on a narrow window the sidebar
-        # drops above the tracker rather than crushing it, which is what a `no-wrap`
-        # row has already done to a panel in this build once.
+        # `items-start` so the sidebar does not stretch to the tracker's height.
+        # ⚠ NO `no-wrap` on the outer row — on a narrow window the sidebar must drop
+        # above the tracker rather than crush it, which is what `no-wrap` does here.
         with ui.row().classes("w-full gap-4 items-start justify-center"):
             if pool_state:
                 with ui.column().classes("w-80 shrink-0 gap-2"):

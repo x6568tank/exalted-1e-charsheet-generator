@@ -1148,10 +1148,10 @@ def _chargen_martial_arts_form_issues(ruleset: RuleSet, b, charms) -> list[Issue
     # (Sidereals pp.184-201). No cap on any other splat.
     #
     # ⚠ Keyed on `ma_tier`, NEVER on `open_to_tiers`. The latter means "who may learn
-    # this" and as a proxy here it matched 140 Charms across twelve styles when only
-    # 41 across three qualify — Violet Bier, the Immaculate Dragon Paths, Celestial
-    # Monkey and others counted, and a ronin (cap 0) could learn no Celestial Monkey
-    # Charm at all.
+    # this", and as a proxy it sweeps in every Celestial-open style when only the
+    # three Sidereal ones qualify — Violet Bier, the Immaculate Dragon Paths and
+    # Celestial Monkey all count, and a ronin (cap 0) can then learn no Celestial
+    # Monkey Charm at all.
     if b.martial_arts_form_charm_cap is not None:
         n_form = sum(
             1 for cid in charms

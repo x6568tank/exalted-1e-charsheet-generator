@@ -1,11 +1,10 @@
 """
 ui/gear.py — the Gear tab: everything the character OWNS, in one place.
 
-Split out of `ui/editor.py` (weapons, armour, goods, the price list) and
-`ui/advantages.py` (artifacts) on 2026-08-13, on the human's call. The two halves had
-drifted apart for a structural reason, not an accidental one: an artifact daiklave had
-its STATS on the Edit tab and its BUDGET on Advantages, and that split is what let the
-same object be entered twice and charged twice (see `docs/status/rated-artifacts.md`).
+One tab for weapons, armour, goods, artifacts and the price list (human's call,
+2026-08-13). ⚠ Keep them together: splitting an artifact daiklave's STATS onto Edit and
+its BUDGET onto Advantages is what lets the same object be entered twice and charged
+twice (see `docs/status/rated-artifacts.md`).
 
 ⚠ Why a TOP-LEVEL tab rather than a sub-tab of Advantages, which was the first proposal:
 "Advantages" is a 1e game term meaning Backgrounds plus Merits & Flaws, and equipment is
@@ -13,11 +12,10 @@ not one. Filing goods under it would read as wrong to anyone who knows the book,
 this build matches the book's vocabulary deliberately elsewhere (`charm_noun`, "Arrays"
 for Alchemicals). Nesting would also cost a click on a surface used during play.
 
-The Artifact Background link survives without nesting, and is stated in BOTH places: the
-budget header sits on the Artifacts panel here (it is about what you own), and the
-Artifact Background row on Advantages carries a one-line note saying what it buys. Two
-surfaces stating one rule is the pattern that has caught bugs all day; one surface
-owning it silently is the pattern that produced them.
+The Artifact Background link is stated in BOTH places: the budget line sits in this
+tab's readout (it is about what you own), and the Artifact Background row on Advantages
+carries a one-line note saying what it buys. Two surfaces stating one rule is
+deliberate — one surface owning it silently is what produced the double-charge above.
 
 Presentation only. Every derived list comes from `ui/view.py` and every rule from
 `engine/` — see the `ui → engine → models` rule in docs/ARCHITECTURE.md.
@@ -124,8 +122,9 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         turns into a false error (human's call, 2026-08-13). So the artifact grants the
         row and stamps `from_artifact` on it, and the budget counts the pair once.
 
-        Silent when the artifact has no gear half (202 of the 222 do not), and when the
-        row is already there — picking the same artifact twice must not breed daiklaves.
+        Silent when the artifact has no gear half (the large majority do not), and when
+        the row is already there — picking the same artifact twice must not breed
+        daiklaves.
         """
         found = artifactsmod.gear_stat_line(rs, art_name)
         if found is None:
@@ -292,9 +291,9 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
     def _artifact_editor(idx, art) -> None:
         """One standalone artifact's editor, rendered inside its inventory row.
 
-        Was the body of the Artifacts panel, which is gone: the inventory is the
-        one list of what is owned, and a panel repeating four of its rows was a
-        second surface editing the same objects.
+        ⚠ Rendered in the row, never in a panel of its own: the inventory is the ONE
+        list of what is owned, and a panel repeating four of its rows is a second
+        surface editing the same objects.
         """
         art_catalog = _art_catalog()
         art_names = [a.name for a in art_catalog]
@@ -388,9 +387,9 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         armour keep their own `artifact_rating` on the equipment surface and are NOT
         editable here — they are only counted, in the budget line below.
 
-        ⚠ Counting alone does NOT stop a daiklave being entered twice — twenty names
-        exist in both catalogues, so a player who owns the artifact AND adds the gear
-        row to swing it is charged for two daiklaves. Picking an artifact GRANTS its
+        ⚠ Counting alone does NOT stop a daiklave being entered twice — a number of
+        names exist in both catalogues, so a player who owns the artifact AND adds the
+        gear row to swing it is charged for two daiklaves. Picking an artifact GRANTS its
         stat line, stamped with `from_artifact`, and the budget counts the pair once —
         see `grant_gear` and `artifacts.artifact_items`.
 

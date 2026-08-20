@@ -1113,7 +1113,7 @@ async def test_advantages_tab_offers_merit_gain_and_loss_in_play(user) -> None:
     await user.should_see("Select an entry to see its rules text.")
     # Post-lock the budget on this tab is experience, not bonus points.
     await user.should_see("XP available")
-    await user.should_see("The ledger and undo are on the XP tab.")
+    await user.should_see("The ledger and undo are in the Edit tab's Experience card.")
 
 
 @pytest.mark.asyncio
@@ -2439,7 +2439,7 @@ async def test_play_tracker_shows_the_shortened_renamed_resonance_track(user) ->
     await user.should_see("Luck pool: 2")
     await user.should_see("Bad luck pool (Storyteller): 1")
     # Read-only: permanent Resonance is a permanent trait and moves on the XP ledger.
-    await user.should_see("gain or shed it on the XP tab")
+    await user.should_see("gain or shed it on the Edit tab")
 
 
 def test_permanent_resonance_occupies_the_track_rather_than_riding_alongside(rs):

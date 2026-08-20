@@ -95,7 +95,7 @@ def build_storyteller(ruleset: RuleSet, character: Character, save_path: Path,
                         "The settings below change how bonus points are spent, and "
                         "they were frozen into the chargen snapshot at lock. Changing "
                         "one now would re-price a chargen that has already been "
-                        "signed off. Use Unlock on the XP tab to reopen chargen if a "
+                        "signed off. Use Unlock in the top bar to reopen chargen if a "
                         "table rule really did change."
                     ).classes("text-xs text-amber-700")
 
