@@ -151,9 +151,9 @@ def clarity_band(total: int) -> tuple[str, str]:
 
 
 def uses_clarity(ruleset: RuleSet, character: Character) -> bool:
-    """Whether Clarity applies to this character. Data-driven: a splat uses Clarity if
-    any Charm it can hold grants permanent Clarity would be too loose, so this asks the
-    ExaltDefinition instead — see `ExaltDefinition.clarity`."""
+    """Whether Clarity applies to this character, from `ExaltDefinition.clarity`.
+    ⚠ Asked of the splat, never inferred from the Charms it can hold — "any Charm
+    granting permanent Clarity" is far too loose a test."""
     exalt = ruleset.exalt_for(character.exalt_type)
     return bool(exalt and exalt.clarity)
 
@@ -484,10 +484,9 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
         # Essence, all of which is considered Peripheral" (p.41). Merged AFTER both
         # are computed, so every term above still contributes exactly what it did.
         #
-        # Asked of `essence_pool_is_merged` rather than of `effects` directly: a ghost's
-        # pool is merged by its SPLAT, not by a Merit, and reading the Merit field here
-        # would have reported the right shape on the sheet while returning the wrong
-        # motes from this function — the exact split-brain this build keeps finding.
+        # ⚠ Asked of `essence_pool_is_merged`, never of `effects` directly: a ghost's
+        # pool is merged by its SPLAT, not by a Merit, so reading the Merit field here
+        # reports the right shape on the sheet while returning the wrong motes.
         peripheral += personal
         personal = 0
     return personal, peripheral

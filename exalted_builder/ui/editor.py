@@ -7,8 +7,8 @@ pools, and the full validation panel. Zero game logic here — the UI mutates th
 Character and asks the engine; legality is the engine's verdict. Save writes JSON
 via persistence.
 
-Charm/Spell editing is intentionally out of this first cut (the charm-tree picker
-is the next slice); they show read-only with the counts validation cares about.
+Charms and spells are NOT edited here — `ui/picker.py` owns the charm-tree picker.
+This surface shows them read-only, with the counts validation cares about.
 
 Run:
     python -m exalted_builder.ui.editor [path/to/foo.character.json] [--show] [--port N]
@@ -35,9 +35,9 @@ from . import theme
 from . import view as viewmod
 
 # The base wound track, TALLIED FROM THE ENGINE'S COPY — {penalty: how many base
-# levels sit at that tier}. It used to be a hand-written `{0: 1, -1: 2, -2: 2, -4: 1}`,
-# which was the same printed rule encoded a second time (and a rules table in the UI,
-# which the "no game logic here" rule forbids). Derived, it cannot drift from
+# levels sit at that tier}. ⚠ Never hand-write it: a literal `{0: 1, -1: 2, -2: 2,
+# -4: 1}` is the printed rule encoded a second time, and a rules table in the UI is
+# what "no game logic here" forbids. Derived, it cannot drift from
 # `derive.health_track`; if a splat ever changes the base track, this follows.
 _BASE_HEALTH = Counter(derive.BASE_WOUND_PENALTIES)
 
@@ -894,13 +894,12 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                  on_change=lambda e: (setattr(character, "name", e.value), changed())).classes("flex-1")
                         ui.input("Concept", value=character.concept,
                                  on_change=lambda e: setattr(character, "concept", e.value)).classes("flex-1")
-                        # Exalted years used to be a box here. It moved into the
-                        # Downtime dialog (2026-08-01, human's call): age and the
-                        # maturation experience of PG p.259 are the same passage of
-                        # time, and two controls for it invited them to drift — a
-                        # player could age a century in Identity and collect the
-                        # century's experience again from Downtime. One control now
-                        # does both, and it is post-lock like the age itself.
+                        # ⚠ NO Exalted-years box here. Age lives in the Downtime dialog
+                        # (human's call, 2026-08-01): age and the maturation experience
+                        # of PG p.259 are the same passage of time, and two controls for
+                        # it drift — a player ages a century in Identity and collects
+                        # the century's experience again from Downtime. One post-lock
+                        # control does both.
                     # Wraps (no `no-wrap`) so the identity controls flow onto a second
                     # line rather than squashing to truncated labels ("C…"); each gets
                     # a min width so its label always shows in full.
@@ -1670,10 +1669,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         character.virtue_flaw = VirtueFlaw(virtue=virtue, description=desc)
         # `body.refresh()`, not just `changed()`: the sample-Flaw dropdown beside this
         # select is built from the flawed Virtue, and `changed()` only redraws the
-        # sticky side column. Without the rebuild the options keep offering the OLD
-        # Virtue's Flaws — and they corrected themselves only when the player picked
-        # one, which is the worst version: the list is wrong exactly while it is being
-        # read (found in the browser, 2026-08-12).
+        # sticky side column. ⚠ Without the rebuild the options keep offering the OLD
+        # Virtue's Flaws and correct themselves only once the player picks one — the
+        # list is wrong exactly while it is being read.
         body.refresh(); changed()
 
     def set_virtue_flaw_sample(flaw_id: str) -> None:

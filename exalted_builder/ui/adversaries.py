@@ -19,10 +19,9 @@ Two interactions carry the whole feature:
   * **Duplicate** — five bandits off one row, each with its own health track.
     Without it the GM is back to hand-copying, which is the thing this replaces.
 
-Every computed number comes from engine.adversaries. This module draws widgets.
-The free-text trait/attack codec and the card's stat-line wording used to live here
-too; both moved out 2026-08-10 (see the re-export block below) and are re-exported,
-so this file is now widgets and nothing else.
+Every computed number comes from engine.adversaries; this module draws widgets and
+nothing else. The free-text trait/attack codec and the card's stat-line wording live
+outside the UI layer and are re-exported here — see the re-export block below.
 """
 
 from __future__ import annotations

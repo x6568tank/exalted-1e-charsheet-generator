@@ -577,9 +577,9 @@ def _advantage_panels(view: SheetView, width: float, st, accent, columns: int) -
 def _equipment_panel(view: SheetView, pw: float, st, accent) -> _Panel | None:
     """The left panel of the bottom band: gear, then Forms / Anima / Virtue Flaw.
 
-    None when it would hold nothing at all. Note it is NOT empty merely because the
-    character carries no gear — an Alchemical with no weapons still has an Anima,
-    and the panel used to print "—" above it for the gear that was not there.
+    None when it would hold nothing at all. ⚠ NOT empty merely because the character
+    carries no gear — an Alchemical with no weapons still has an Anima, and testing
+    for gear alone prints a "—" above it for the gear that is not there.
     """
     if not any((view.weapons, view.armor, view.totem, view.animal_forms,
                 view.anima, view.virtue_flaw)):

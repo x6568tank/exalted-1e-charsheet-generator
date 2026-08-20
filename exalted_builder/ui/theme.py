@@ -4,8 +4,8 @@ ui/theme.py — per-splat colour palette.
 The chrome (header bar, section headings, the owned-charm colour in the graph,
 card tints) is themed by the character's Exalt type so a Dragon-Blooded sheet
 reads red/terrestrial rather than the Solar gold. This is presentation only — no
-game logic. All UI modules derive their colours from ``palette(exalt_type)``
-instead of hardcoding the old ``_ACCENT = "#8a5a1a"`` constant.
+game logic. ⚠ Every UI module derives its colours from ``palette(exalt_type)``;
+never hardcode an accent value at a call site.
 
 Tailwind is served by NiceGUI's on-demand JIT compiler, so the ``fam``-derived
 class names (``bg-red-50/60`` etc.) are generated from the DOM at runtime — any
@@ -106,10 +106,9 @@ _SIDEREAL = Palette(
 )
 
 # Alchemical / Chosen of Autochthon: brass — a true metallic yellow-brass, warmer and
-# lighter than the Solar's orange-gold so the two metals do not read alike. An earlier
-# accent (#9a7b1f) sat too far toward olive; the red channel is up and the green down
-# to pull it back to brass. `fam` is the Tailwind yellow family, giving brassy card
-# tints rather than Solar amber.
+# lighter than the Solar's orange-gold so the two metals do not read alike. Pushed off
+# olive deliberately (red channel up, green down). `fam` is the Tailwind yellow family,
+# giving brassy card tints rather than Solar amber.
 _ALCHEMICAL = Palette(
     splat_label="Alchemical",
     accent="#a8792c", accent_dark="#75521c", ink="#2e2713",

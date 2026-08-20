@@ -17,16 +17,15 @@ is its own module rather than more of `advancement.py`: the dispatcher and the p
 purchase are two different things and cannot both be `advancement.raise_thaum_science`.
 Read `thaum_actions.x` as "the lock-aware x", `advancement.x` as "the XP purchase".
 
-Moved verbatim out of `ui/picker.py` 2026-08-10 — it is game logic and never imported
-`nicegui`, so it did not belong in the UI layer (CLAUDE.md: "don't leak game logic into
-the UI"). `picker.py` re-exports every public name, so existing call sites are
-unchanged. The move was behaviour-preserving: no edits beyond this docstring.
+This is game logic and imports no `nicegui`, so it does not belong in the UI layer
+(CLAUDE.md: "don't leak game logic into the UI"). `ui/picker.py` re-exports every
+public name.
 
-They were module-level rather than closures inside `build_picker` on the `ui/play.py`
-precedent, and that reasoning still holds here: these are the functions that actually
-mutate a save, and a bug in one silently corrupts a character's point accounting, so
-they must be reachable from tests without driving a browser (several buy buttons
-legitimately share a label, which makes click-testing them individually impossible).
+⚠ **Module-level, never closures inside a widget builder.** These are the functions
+that actually mutate a save, and a bug in one silently corrupts a character's point
+accounting, so they must be reachable from tests without driving a browser — several
+buy buttons legitimately share a label, which makes click-testing them individually
+impossible.
 """
 
 from __future__ import annotations

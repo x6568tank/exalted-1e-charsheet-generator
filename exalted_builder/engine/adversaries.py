@@ -176,11 +176,11 @@ def dodge_after_armor(ruleset: RuleSet, adversary: Adversary) -> Optional[int]:
     (p.278) — and the human confirmed the second is simply the first minus the
     mobility penalty. Only the base is stored and this derives the rest.
 
-    The SHIELD is why this takes two slots. p.335: a target shield "adds 1 to the
-    mobility penalty of her armor or suffers a 1 point mobility penalty, if she is
-    using no other armor" — the same figure either way, so it simply sums. That is
-    what closes the three rows that used to come out one too high: infantry
-    3-(2+1)=0 and elite troops 5-(2+1)=2, both now exactly as printed.
+    ⚠ The SHIELD is why this takes two slots, and omitting it puts the pool one too
+    high. p.335: a target shield "adds 1 to the mobility penalty of her armor or
+    suffers a 1 point mobility penalty, if she is using no other armor" — the same
+    figure either way, so it simply sums. Infantry 3-(2+1)=0 and elite troops
+    5-(2+1)=2, exactly as printed.
 
     None (not 0) when the entry does not dodge at all — a bear, or Nagezzer's
     printed "Does not dodge". Never returns a negative pool."""

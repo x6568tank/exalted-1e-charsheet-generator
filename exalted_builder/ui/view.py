@@ -2442,8 +2442,8 @@ class PlayView:
     # The two pools merged into one (Beacon of Power). Carried rather than inferred
     # from `personal_max == 0`, which cannot tell "merged by rule" from "this splat
     # has no Personal pool" — the same distinction `essence_single_pool` draws for
-    # the sheet. Without it the tracker rendered a Personal box reading 0/0, which
-    # looks like a bug rather than a rule (reported 2026-07-31).
+    # the sheet. ⚠ Without it the tracker renders a Personal box reading 0/0, which
+    # looks like a bug rather than a rule.
     single_pool: bool = False
     # Motes of that maximum drawable without a Willpower roll (Essence Awareness),
     # or None when all of them are. The tracker still counts spending against the

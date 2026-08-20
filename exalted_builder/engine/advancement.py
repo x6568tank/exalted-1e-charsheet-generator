@@ -79,11 +79,11 @@ def xp_debt(character: Character) -> int:
     Player's Guide p.17: "she pays whatever she has available and must allocate all
     further experience to the remaining balance until it is paid in full."
 
-    DERIVED, not stored, and that is load-bearing. An earlier cut stored the balance
-    and paid it down inside `add_xp`, which silently destroyed experience: the log
-    recorded only the part that was affordable, so the rest was never counted as
-    spent at all. Logging the FULL cost and letting `xp_available` go negative makes
-    the debt self-evident, self-clearing as XP is earned, and impossible to lose."""
+    ⚠ DERIVED, never stored, and that is load-bearing. Storing the balance and paying
+    it down inside `add_xp` silently DESTROYS experience: the log then records only the
+    affordable part and the rest is never counted as spent. Logging the FULL cost and
+    letting `xp_available` go negative makes the debt self-evident, self-clearing as XP
+    is earned, and impossible to lose."""
     return max(0, -xp_available(character))
 
 
@@ -567,8 +567,7 @@ def lower_willpower(character: Character, reason: str = "", *,
     # `ruleset` is optional to match its `lower_*` siblings, but OMITTING IT IS A BUG
     # for any character holding a Flaw that moves Willpower — Weak-Willed sells dots,
     # Callous keeps tracking the Virtues. Without it the "already at 1" guard tests the
-    # wrong number and the ledger records a reduction that never happened. Same class
-    # as the `raise_willpower` omission fixed earlier.
+    # wrong number and the ledger records a reduction that never happened.
     frm = derive.willpower(character, ruleset)
     if frm <= 1:
         raise AdvancementError("Willpower is already at 1 (the minimum).")
@@ -1244,9 +1243,9 @@ def raise_thaum_science(ruleset: RuleSet, character: Character, science_id: str)
     """Raise a Science by one dot: 7 XP for the first, then current rating × 6.
 
     The ceiling is the Science's OWN `max_rating` rather than the usual _DOT_MAX. All
-    four Sciences currently stop at 5 — Alchemy's printed six-dot rung turned out to be
-    a typo for five (human, 2026-07-30) — so this reads as a plain 5 today. Kept
-    per-Science because the ceiling is rules data, not an engine constant.
+    four Sciences stop at 5 — Alchemy's printed six-dot rung is a typo for five (human,
+    2026-07-30) — so this reads as a plain 5 today. Kept per-Science because the ceiling
+    is rules data, not an engine constant.
     """
     _ensure_locked(character)
     science = ruleset.thaum_sciences.get(science_id)

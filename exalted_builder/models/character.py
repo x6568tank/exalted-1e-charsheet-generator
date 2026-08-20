@@ -57,31 +57,28 @@ class HearthstoneEntry(BaseModel):
     Artifact-spending surfaces and why it lands here rather than in
     `Character.artifacts`.
 
-    ⚠ It is stored STRUCTURALLY, with its rating, rather than as text. The first cut
-    (2026-08-12) appended the stone's name to the row's `note` and kept no rating, so
-    the S&S p.67 total could not be checked at all; and `note` is bound to a text input
-    that rewrites it on every keystroke, so parsing the names back out would have been
-    the catalogue-dialog discriminator bug again — state that switches a rule on, sitting
-    on a field the player can edit to switch it off.
+    ⚠ Stored STRUCTURALLY, with its rating — never as text appended to the row's
+    `note`. `note` is bound to a text input that rewrites it on every keystroke, so
+    parsing stones back out of it would put state that switches a rule on inside a
+    field the player can edit to switch it off, and the S&S p.67 total could not be
+    checked at all.
 
     `rating` copies the catalogue entry's rather than referencing it (decision 0007:
     ids for invariant content, inline copies for variable). A Hearthstone is variable —
-    S&S p.67 says in as many words that every Manse is unique and the printed stones are
-    examples — so a stone renamed by the table must not keep claiming the printed one's
-    level."""
+    S&S p.67 says every Manse is unique and the printed stones are examples — so a
+    stone renamed by the table must not keep claiming the printed one's level."""
     name: str
     rating: int = Field(default=1, ge=0, le=5)
 
 
 class BackgroundEntry(BaseModel):
     name: str                              # open-ended: "Artifact", "Manse", "Resources"...
-    # The universal trait cap was 5 until the Mountain Folk Artifact lift (2026-08-12):
-    # "with each dot beyond 5 costing one bonus point" (CH6 p.234-235), ceiling 10 by
-    # the human's ruling. The model holds only a structural bound — the highest ceiling
-    # the build supports. Every REAL ceiling (the Sidereal Connections attribute-sum
-    # cap, the Celestial Manse ≤3, the MF Backing ≤2…) is the engine's job:
-    # `background_issues` and `background_rating_cap`, which know the data. The model
-    # cannot, by design (it has no RuleSet).
+    # ⚠ A STRUCTURAL bound only — the highest ceiling the build supports, 10, from the
+    # Mountain Folk Artifact lift: "with each dot beyond 5 costing one bonus point"
+    # (CH6 p.234-235), ceiling by the human's ruling. Every REAL ceiling (the Sidereal
+    # Connections attribute-sum cap, the Celestial Manse ≤3, the MF Backing ≤2…) is
+    # `background_issues` / `background_rating_cap` in the engine, which knows the
+    # data. The model cannot, by design — it has no RuleSet.
     rating: int = Field(ge=0, le=10)
     note: str = ""                         # the specific descriptor
     # Hearthstones held on THIS row. Per-row rather than per-character because the S&S
@@ -131,10 +128,10 @@ class ArtifactEntry(BaseModel):
     #     and says outright that its tables "closely follow the Wonders and Equipment
     #     tables on pp. 324-346 in the main Exalted book".
     #
-    # A THIRD channel joined them on 2026-08-13: `ACQUIRED_LEGENDARY`, the plot-device
-    # artifacts that print "(ARTIFACT N/A)" and are paid for with the Legendary Artifact
-    # 10-pt Merit instead of any budget — see `rules.ArtifactType.requires_merit`. The
-    # picker sets it from the catalogue entry, so the player does not choose it.
+    # A THIRD channel is `ACQUIRED_LEGENDARY`: the plot-device artifacts that print
+    # "(ARTIFACT N/A)" and are paid for with the Legendary Artifact 10-pt Merit instead
+    # of any budget — see `rules.ArtifactType.requires_merit`. The picker sets it from
+    # the catalogue entry, so the player does not choose it.
     #
     # Only Background-funded items are charged to the Artifact budget — a bought
     # daiklave is equipment you paid for. ⚠ Unlike `Weapon.from_artifact` this
@@ -411,31 +408,29 @@ class Weapon(BaseModel):
     min_strength: int = Field(default=0, ge=0)
     min_dexterity: int = Field(default=0, ge=0)
     min_martial_arts: int = Field(default=0, ge=0)
+    # ⚠ A dual-nature device's catalogue row carries BOTH minima (e.g. a Mountain Folk
+    # crossbow: "Resources •• / Artifact ••"); the player sets the one that was paid and
+    # zeroes the other — Artifact 0 is the mundane default, so a Resources-funded
+    # crossbow is not an artifact. Human's ruling 2026-08-08.
     artifact_rating: int = Field(default=0, ge=0)
     attunement: int = Field(default=0, ge=0)
     resources_cost: int = Field(default=0, ge=0)
-    # A dual-nature device's catalogue row carries BOTH minima (e.g. a Mountain Folk
-    # crossbow: "Resources •• / Artifact ••"); the player just sets the one that was
-    # paid and zeroes the other — Artifact 0 is the mundane default, so a
-    # Resources-funded crossbow is not an artifact. Human's ruling 2026-08-08.
     # Magical material (rules.MagicalMaterial id; "" = mundane). Its stat bonus is
     # applied by engine.derive only when the wielder's Exalt type matches.
     material: str = ""
     notes: str = ""
-    # How many the character carries. 1 for everything you wield — you own a daiklave,
-    # not four of them — and the reason the field exists is AMMUNITION, which players
-    # hold in quantity (human, 2026-08-12). It is a count, never a multiplier: nothing
-    # in the engine reads it, because nothing derives an attack (decision 0008) and a
-    # stack of twenty arrows is still one Strength + 2 shot.
+    # How many the character carries; 1 for anything wielded. It exists for AMMUNITION,
+    # which players hold in quantity (human, 2026-08-12). ⚠ A count, never a multiplier:
+    # nothing in the engine reads it, because nothing derives an attack (decision 0008)
+    # and a stack of twenty arrows is still one Strength + 2 shot.
     quantity: int = Field(default=1, ge=1)
     # The standalone artifact this row is the STAT LINE of — `engine.artifacts.item_key`
     # of an entry in `Character.artifacts`, or "" for ordinary gear.
     #
     # Twenty names live in both the artifact catalogue and the gear catalogues (Daiklave,
-    # Grand Daiklave, Myrmidon Carapace…), and the artifact row carries no stats — so the
-    # natural way to play a daiklave is to own it as an artifact AND add a weapon row to
-    # swing it. That counted the same daiklave twice against the p.131 budget, which the
-    # corebook one-artifact rule turns from a wart into a false error.
+    # Grand Daiklave, Myrmidon Carapace…), and the artifact row carries no stats — so
+    # owning a daiklave as an artifact AND adding a weapon row to swing it is the normal
+    # case. Without this link the one item counts twice against the p.131 budget.
     #
     # ⚠ Set ONCE, when the artifact grants the row, and editable by nothing on screen —
     # this is a discriminator, and the catalogue dialogs' own scar is a discriminator a
@@ -498,10 +493,9 @@ class BeastmanGiftPurchase(BaseModel):
     (Lunar, p.124-127). `gifts` are the Gift variant keys (rules.CharmVariant.key
     on that Charm) chosen with this purchase — 2 on the first purchase, 1 on each
     purchase after (rules.Charm.variant_picks_first_purchase/
-    variant_picks_per_purchase). The +Attribute points each purchase also grants
-    are intentionally NOT tracked here: they only apply while the Lunar is
-    actually in hybrid form, the same transient, play-time-only territory as
-    combat/attack derivation, which this engine deliberately does not model."""
+    variant_picks_per_purchase). ⚠ The +Attribute points each purchase also grants are
+    NOT tracked: they apply only while the Lunar is in hybrid form, which is
+    play-time-only territory this engine does not model."""
     gifts: list[str] = Field(default_factory=list)
 
 
@@ -516,10 +510,9 @@ class SubmodulePurchase(BaseModel):
 
 class AnimalForm(BaseModel):
     """One shape in a Lunar's Form Library — an animal whose heart's blood they have
-    taken and can wear. Deliberately FREE-FORM and unvalidated: it is a narrative
-    record, not a rated trait. There is no catalogue of animals to reference, no
-    cost, no cap checked here, and it never enters chargen validation or the XP
-    audit — same isolation as the play-state tracker, for the same reason."""
+    taken and can wear. FREE-FORM and unvalidated: a narrative record, not a rated
+    trait. No catalogue to reference, no cost, no cap, and it never enters chargen
+    validation or the XP audit — the same isolation as the play-state tracker."""
     name: str = ""
     notes: str = ""       # habitat, stats the ST assigned, when/where it was taken
 
@@ -556,24 +549,20 @@ class HouseRules(BaseModel):
     """Optional rules the table has switched on — ST choices, not character traits
     and not rulebook data.
 
-    They live on the Character rather than the RuleSet because the RuleSet is the
-    rulebook: static, shared and read-only. A table's choices are neither, and they
-    have to travel with a save file for its accounting to still add up on another
-    machine. `Character.play` set the precedent for an optional sub-document; this is
-    the same shape, and old saves load with `house_rules` None.
+    They live on the Character, not the RuleSet, because the RuleSet is the rulebook —
+    static, shared and read-only — while a table's choices must travel with the save
+    for its accounting to add up on another machine. Old saves load with `house_rules`
+    None, the `Character.play` shape.
 
-    A container from the outset even though it holds one flag, because the next such
-    toggle should not need a new field on Character. Anything that changes chargen
-    ACCOUNTING belongs here and must also be frozen into the ChargenSnapshot, or
-    flipping it post-lock would retroactively re-price a locked character.
+    ⚠ Anything here that changes chargen ACCOUNTING must ALSO be frozen into the
+    ChargenSnapshot, or flipping it post-lock retroactively re-prices a locked
+    character.
 
-    Each field below is marked TABLE-WIDE or PER-CHARACTER. Everything here is stored
-    per-character because HouseRules lives on the Character, but the distinction is
-    real: a TABLE-WIDE rule is one the ST turned on for the whole series and should
-    hold for every character in it, while a PER-CHARACTER one is permission granted to
-    this character alone. **A party-wide "apply to all" control may only touch the
-    TABLE-WIDE fields.** Nothing enforces this yet — it is a note for whoever builds
-    that control.
+    ⚠ Each field is marked TABLE-WIDE or PER-CHARACTER, in comments only. A TABLE-WIDE
+    rule is one the ST turned on for the whole series; a PER-CHARACTER one is
+    permission granted to this character alone. **A party-wide "apply to all" control
+    may only touch the TABLE-WIDE fields.** Nothing enforces this — it is a note for
+    whoever builds that control.
     """
     # TABLE-WIDE. "Magic for Everyone" (Player's Guide p.115): every starting
     # character begins with one ritual, formula or printed aspect per two dots of
@@ -634,19 +623,17 @@ class HouseRules(BaseModel):
     # other games where they are appropriate but are under no compulsion to allow
     # characters to take them unless the game is about Lookshy Dragon-Blooded".
     #
-    # Off by default, which is the printed default — a Background belongs to the book
-    # that prints it until a Storyteller says otherwise. Table-wide because the answer
-    # is about which books are in play, and a series where one player may take Arsenal
-    # and another may not is not a rules decision but an argument.
+    # Off by default: a Background belongs to the book that prints it until a
+    # Storyteller says otherwise. Table-wide because the answer is about which books
+    # are in play.
     #
-    # Read ONLY through `validate.background_catalogue_for`, never by reaching into
+    # ⚠ Read ONLY through `validate.background_catalogue_for`, never by reaching into
     # HouseRules at a call site: it lifts the splat and origin filters and must NOT
     # lift `banned_backgrounds`, which are in-fiction prohibitions (the Great Geas
     # forbids a Mountain Folk a Cult) rather than questions of which book is open.
     #
-    # NOT frozen into the ChargenSnapshot: Backgrounds are free text and this flag
-    # changes only which names the dropdown OFFERS, never how a dot is priced, so
-    # flipping it post-lock cannot re-price a locked character.
+    # NOT frozen into the ChargenSnapshot: it changes only which names the dropdown
+    # OFFERS, never how a dot is priced, so flipping it post-lock re-prices nothing.
     all_backgrounds_available: bool = False
 
     # TABLE-WIDE. How Merits & Flaws change AFTER character creation (Player's Guide
@@ -662,10 +649,10 @@ class HouseRules(BaseModel):
     #   "swap" — a lost Trait is eventually replaced by another of equal value, and a
     #       gained one erodes another.
     #
-    # NOTE the last two are mechanically IDENTICAL to this engine: neither moves any
-    # experience. They are kept as separate values because they oblige the Storyteller
-    # to different things at the table, and a sheet should record which was chosen —
-    # not because the engine does anything different. Do not "simplify" them into one.
+    # ⚠ The last two are mechanically IDENTICAL to this engine — neither moves any
+    # experience. They stay separate values because they oblige the Storyteller to
+    # different things at the table and the sheet records which was chosen. Do not
+    # "simplify" them into one.
     mf_change_method: str = "experience"
 
     # PER-CHARACTER. Storyteller permission for a TERRESTRIAL Exalt to pass the
@@ -1005,11 +992,11 @@ class Character(BaseModel):
     # inside the save so it survives being handed to someone whose machine has no
     # copy of the author's library. Keyed "charms"/"spells".
     #
-    # Deliberately OPAQUE dicts, not Charm/Spell models: those are rules data, and
-    # this module must not grow a dependency on the rules catalogue (see the module
-    # docstring). They are parsed and validated at the edge — custom_content writes
-    # them and rules_db loads them — so a save carrying a malformed row still loads
-    # as a Character, and the row is reported rather than fatal.
+    # ⚠ OPAQUE dicts, not Charm/Spell models: those are rules data, and this module
+    # must not grow a dependency on the rules catalogue (see the module docstring).
+    # They are parsed and validated at the edge — custom_content writes them and
+    # rules_db loads them — so a save carrying a malformed row still loads as a
+    # Character, and the row is reported rather than fatal.
     #
     # Populated on save and absorbed into the library on load; nothing in the engine
     # reads it, and an id that is in here but not in the RuleSet is still an
@@ -1021,11 +1008,11 @@ class Character(BaseModel):
     def _migrate_legacy_st_foreign_charms(cls, data: object) -> object:
         """Lift a pre-HouseRules top-level `st_foreign_charms` into `house_rules`.
 
-        The flag moved when the Storyteller options were gathered into one place. It
-        was a saved field, so without this every already-created Eclipse and
-        Moonshadow would silently lose its permission on load and its foreign Charms
-        would start failing validation. An explicit `house_rules` in the same payload
-        wins — a new save is authoritative over a legacy key.
+        Takes the raw payload; returns it with the legacy key popped and its value
+        set on `house_rules` unless that document already carries one — an explicit
+        `house_rules` wins, so a new save is authoritative over a legacy key. Without
+        this a saved Eclipse or Moonshadow silently loses its permission on load and
+        its foreign Charms start failing validation.
         """
         if not isinstance(data, dict) or "st_foreign_charms" not in data:
             return data

@@ -64,10 +64,10 @@ def lock_chargen(character: Character, ruleset=None) -> Character:
         wp_virtue_component=wp_component,
     )
     character.wp_virtue_component = wp_component
-    # Death's Taint buys a STARTING permanent Resonance out of its price. It is the only
-    # Flaw that seeds a trait rather than bounding one, and until 2026-07-31 the derived
-    # value was computed and read by nothing — the character always began at 0. Seeded
-    # here because lock is where chargen values become the character's own.
+    # Death's Taint buys a STARTING permanent Resonance out of its price — the only Flaw
+    # that seeds a trait rather than bounding one. ⚠ Seeded HERE: lock is where chargen
+    # values become the character's own, and deriving the value without writing it here
+    # leaves the character starting at 0 with nothing reading it.
     #
     # Never overwrites a track the ledger has already moved: a re-lock after play would
     # otherwise undo a Harrowing or re-inflict a shed dot.

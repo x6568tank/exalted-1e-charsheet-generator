@@ -349,9 +349,9 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
         do_add_from_path(path, dialog)
 
     def add_to_party() -> None:
-        """One dialog in both deployments. It used to jump straight to the OS file
-        picker when native, which made the other two sources (the character open in
-        the builder, and a blank one) unreachable there."""
+        """One dialog in both deployments. ⚠ Never jump straight to the OS file picker
+        when native: that makes the other two sources — the character open in the
+        builder, and a blank one — unreachable there."""
         native = builder_mod._native_window() is not None
         open_char = ctx["char"]
         with ui.dialog() as dialog, ui.card().classes("gap-2"):

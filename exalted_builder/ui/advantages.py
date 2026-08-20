@@ -300,10 +300,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
 
     def _background_rows(bg_cap) -> None:
         """The Background list itself — identical in both regimes but for the rating
-        control, which is `bg_cap`'s business. This body is the whole reason the tab
-        exists: it used to be two functions that differed only in their header.
+        control, which is `bg_cap`'s business. ONE body for both, never two functions
+        differing only in their header.
 
-        `bg_cap` is called with (bg, on_rating_change) and MUST invoke the callback
+        ⚠ `bg_cap` is called with (bg, on_rating_change) and MUST invoke the callback
         when the rating moves: the rung label under the row is keyed to the rating,
         and the play regime's number input does not rebuild the panel, so without it
         the rung would keep describing the rating the row was drawn at."""
@@ -521,9 +521,9 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
 
     def _default_tier(definition) -> str:
         """The option a fresh row should open on: the first this SPLAT may choose, not
-        merely the first authored. Prodigy's menu leads with `favored`, which four
-        splats are barred from — so a Solar's new row opened on an illegal tier and
-        flagged itself immediately (reported 2026-07-31)."""
+        merely the first authored. ⚠ Prodigy's menu leads with `favored`, which four
+        splats are barred from, so opening on the first authored tier gives a Solar a
+        new row that flags itself immediately."""
         if definition is None or not definition.cost_options:
             return ""
         return next(iter(validate.merit_tiers_available(
@@ -825,9 +825,9 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                 if definition is not None:
                     _merit_rules_text(definition)
 
-            # The catalogue picker replaces the blind "Add merit / flaw" (which used to
-            # append the cheapest available). Browse the filtered set, pick one, or
-            # choose Custom for a display-only player-authored row.
+            # The catalogue picker, never a blind "Add merit / flaw" that appends the
+            # cheapest available. Browse the filtered set, pick one, or choose Custom
+            # for a display-only player-authored row.
             def _open_mf_catalogue() -> None:
                 rows = [(m.id, _merit_label(m), m.description, m.description)
                         for m in available]

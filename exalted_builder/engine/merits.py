@@ -1,11 +1,9 @@
 """
 engine/merits.py — the ONE place Merits & Flaws have mechanical effects.
 
-Merits & Flaws were removed in June 2026 because the old implementation scattered
-their effects across every file they touched: a Merit that changed a Charm's cost
-edited the cost code, one that granted a pool edited the derivation, and there was no
-way to see what any of it did without grepping the tree. **Decision 0011** is that
-they come back as a single calculation, and this module is it.
+**Decision 0011**: every mechanical effect of a Merit or Flaw is computed here, in one
+calculation, and nowhere else. The alternative — each Merit editing the code it
+touches — is what got the old implementation deleted.
 
 The contract, and the thing to preserve:
 
@@ -19,12 +17,11 @@ The contract, and the thing to preserve:
     Merit needs an effect the object cannot express, add a FIELD here; do not add a
     lookup there. That rule is what stops the June situation recurring.
 
-`MeritEffects` is keyed by EFFECT, not by Merit taxonomy, deliberately: the general
-M&F chapter is a much broader set (social, physical, supernatural) and will attach new
-Merits to existing effects far more often than it invents new ones.
+`MeritEffects` is keyed by EFFECT, not by Merit taxonomy: a new Merit attaches to an
+existing effect far more often than it invents one.
 
-Source: Player's Guide pp.120-122 (the Thaumaturgy Merits). These were authored first
-because they are the mortal magic-access set — see docs/status/merits-flaws.md.
+Sources: the general M&F chapter and the Thaumaturgy Merits (Player's Guide
+pp.120-122). See docs/status/merits-flaws.md.
 """
 
 from __future__ import annotations
@@ -444,10 +441,10 @@ class MeritEffects:
     willpower_virtue_margin: int | None = None
     # Whether permanent Willpower's Virtue component keeps TRACKING the current Virtues
     # after the lock instead of being the frozen `wp_virtue_component`. True only for
-    # Callous, and it is the other half of the ruling above: the margin field alone is
-    # a chargen ceiling, which does nothing post-lock, so raising a Virtue on a Callous
-    # character left Willpower where it was (found in the 2026-07-31 click-through).
-    # Decision 0005 still governs everybody else.
+    # Callous, and the other half of the ruling above. ⚠ The margin field alone is a
+    # chargen ceiling and does nothing post-lock, so without this raising a Virtue on a
+    # Callous character leaves Willpower where it was. Decision 0005 governs everybody
+    # else.
     willpower_tracks_virtues: bool = False
     # A floor under starting permanent Willpower — Weak-Willed's "may not begin with a
     # Willpower rating lower than 4" for the Exalted, 2 for the un-Exalted or Callous.
@@ -646,9 +643,9 @@ def forfeit_trait_label(definition) -> str:
 
 def uses_arena(definition) -> bool:
     """Whether `MeritFlawPurchase.arena` means anything for this entry. True only for
-    Oathbound Magic, whose same-arena stacking rule (p.122) is the only thing that
-    reads it — the editor was showing an "arena (combat, food…)" box beside EVERY
-    menu-priced entry, Callous and Large Size included, where it does nothing."""
+    Oathbound Magic, whose same-arena stacking rule (p.122) is the only thing that reads
+    it. ⚠ The editor must gate its arena box on this, not on the entry being
+    menu-priced — the field does nothing for Callous, Large Size or any other tier."""
     return definition.id == OATHBOUND_MAGIC
 
 
@@ -656,16 +653,15 @@ def detail_choices(definition) -> tuple[str, ...]:
     """The closed set of values `MeritFlawPurchase.detail` may take for this entry, or
     () where the detail is genuinely free text (a note, an oath's wording).
 
-    Two entries structure their detail, and BOTH were broken by being free text:
+    ⚠ Two entries structure their detail, and free text breaks BOTH silently:
 
       * Diminished Attributes — which Attribute category the dots come out of. The page
         prints three versions of one Flaw, the Mental and Social variants being
         "considered Mental and Social Flaws rather than falling into the Physical
         category" (p.36). `_attribute_forfeits` title-cases whatever was typed and
-        defaults to Physical, so a typo silently became a fourth category.
+        defaults to Physical, so a typo becomes a fourth category.
       * Legendary Attribute — which Attribute gets the raised ceiling. Read as an
-        `AttributeName.value`, so anything else left the Merit inert with no complaint
-        at all (reported 2026-07-31).
+        `AttributeName.value`; anything else leaves the Merit inert with no complaint.
 
     Returned as display strings; the caller stores them verbatim. Values are matched
     case-insensitively downstream, which is why the Attribute names may be Title Case
@@ -695,22 +691,14 @@ def _forfeited_dots(ruleset: RuleSet, character: Character) -> dict[str, int]:
 
     Each of the four pays a FIXED number of bonus points per dot, so the dot count is
     recoverable from the point value the purchase already records — `_FORFEIT_RATES`
-    is that conversion. A purchase whose points are not a whole multiple of the rate
-    rounds DOWN — the player-unfavourable direction, so a mis-entered value can never
-    conjure budget out of nothing.
+    is that conversion.
 
-    That rounding is currently UNREACHABLE, and the note here that used to claim
-    otherwise was wrong about its own data (human, 2026-07-31): it read `mf.callous`'s
-    "2- TO 10-PT." as every integer in the range, but the authored menu is
-    {2, 4, 6, 8, 10} — every tier an exact multiple of the 2-point rate, which is
-    precisely how the drop-down avoids the problem. The other three forfeits close it
-    from the other end: Unskilled and Weak-Willed convert at 1, and Diminished
-    Attributes' editor collects DOTS and multiplies by 3, so its points are always a
-    whole multiple too.
-
-    The floor therefore only bites on a hand-edited save, and it rounds DOWN — the
+    A purchase whose points are not a whole multiple of the rate rounds DOWN, the
     player-unfavourable direction, so a mis-entered value can never conjure budget out
-    of nothing. Kept as a guard, not as a live concern.
+    of nothing. That rounding is a guard, not a live concern: every authored menu is
+    already a whole multiple of its rate (Callous is {2, 4, 6, 8, 10} at 2/dot;
+    Unskilled and Weak-Willed convert at 1; Diminished Attributes' editor collects
+    DOTS and multiplies by 3), so only a hand-edited save reaches it.
     """
     from .validate import merit_points                    # validate imports merits
 
@@ -1064,10 +1052,9 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
 
 BRIGIDS_HEIR = "mf.brigid-s-heir"
 PRODIGY = "mf.prodigy"
-# Prodigy's two independent halves, as its semantic cost tiers. The 2/3/4/5 menu it
-# used to carry conflated them: "aptitude only" and "Dragon King grant only" are both
-# 2 points, so the price could not say which had been bought — a collision that would
-# have detonated exactly when Dragon Kings landed.
+# Prodigy's two independent halves, as SEMANTIC tiers rather than prices. ⚠ A
+# price-keyed menu cannot express them: "aptitude only" and "Dragon King grant only"
+# are both 2 points, so the tier could not say which had been bought.
 PRODIGY_GRANTS_FAVORED = ("favored", "favored_aptitude")
 PRODIGY_GRANTS_APTITUDE = ("aptitude", "favored_aptitude")
 # "The increased aptitude lowers the cost of raising the Trait with experience to
@@ -1098,13 +1085,10 @@ def _terrestrial_sorcery_line(ruleset: RuleSet, character: Character) -> frozens
       * everything with it in the transitive prerequisite closure — the Charms that
         "include it as an ultimate prerequisite".
 
-    RULED 2026-07-31 (human, rules authority): the printed text names only the second
-    and third groups, so the initiating Charm itself is exempt here BY INFERENCE —
-    leaving the one Charm the Merit is *about* at double cost while everything either
-    side of it is exempt reads as a drafting slip rather than intent. The human kept
-    the inference but holds it lightly ("fine for now, but I don't mind"), so do NOT
-    cite it as precedent for any other exemption. Reverting to the literal reading is
-    still one token: drop `{tcs_id}` from the union below.
+    ⚠ The printed text names only the second and third groups; the initiating Charm
+    itself is exempt BY INFERENCE (human, rules authority, 2026-07-31 — held lightly,
+    "fine for now, but I don't mind"). Do NOT cite it as precedent for any other
+    exemption. To revert to the literal reading, drop `tcs_id` from the union below.
     """
     key = (id(ruleset), character.exalt_type)
     cached = _BRIGID_EXEMPT_CACHE.get(key)

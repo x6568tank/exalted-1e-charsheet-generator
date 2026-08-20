@@ -55,20 +55,17 @@ _TABS = ("Edit", "Gear", "Advantages", "Charms", "Combos", "Play", "ST",
 def visible_tabs(locked: bool, *, combos: bool = True) -> tuple[str, ...]:
     """The tabs for a character at this stage of its life.
 
-    **Edit is on the bar on BOTH sides of the lock** (decision 0013). It used to be
-    chargen-only, swapped for XP once locked, and that split is what let the two tabs
-    implement the same traits twice and disagree — a hardcoded trait ceiling on the XP
-    side made Legendary Attribute unbuyable there while chargen honoured it. The dot
-    tracks now change mode instead of being replaced: free setters pre-lock, steppers
-    that spend XP post-lock. Same treatment Charms, Combos and Advantages already had,
-    and for the same reason — Advantages is deliberately in that group, because filing
-    Backgrounds and M&F under the Edit/XP split is what made each of them exist twice.
+    **Edit is on the bar on BOTH sides of the lock** (decision 0013), as are Charms,
+    Combos and Advantages. The dot tracks change MODE rather than being replaced: free
+    setters pre-lock, steppers that spend XP post-lock.
 
-    There is no longer an XP tab at all. Everything it held moved to where the thing
-    it acts on already lives: traits to the dot tracks, the ledger and Adjust XP to
-    Edit's sticky column, permanent Resonance and the withheld-Charm note beside the
-    traits they belong to, and Crafts/Colleges/Specialties/equipment onto the panels
-    that already existed here in duplicate.
+    ⚠ There is no XP tab, and splitting one back out is how these traits come to be
+    implemented twice and disagree — a hardcoded trait ceiling on a separate XP surface
+    makes Legendary Attribute unbuyable there while chargen honours it. Everything an
+    XP tab would hold lives beside the thing it acts on: traits on the dot tracks, the
+    ledger and Adjust XP in Edit's sticky column, permanent Resonance and the
+    withheld-Charm note beside their traits, Crafts/Colleges/Specialties/equipment on
+    the panels that already exist here.
 
     Play is locked-only. The tracker overlays spent motes, marked health and Willpower
     onto capacities derived from the finished character, and every one of those moves
@@ -483,9 +480,10 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     tab_bar.on_value_change(lambda e: _on_tab_change(e.value))
 
     def _sync_tabs() -> None:
-        """Show the tab bar for the character's stage: Edit while building, XP once
-        locked. If the tab we are on is the one that just disappeared, land on its
-        counterpart instead of rendering a tab that is no longer on the bar."""
+        """Show the tabs this character's stage has (`visible_tabs`); Play appears at
+        the lock, Combos disappears for a splat that builds neither. If the tab we are
+        on is the one that just disappeared, land on its counterpart rather than
+        rendering a tab that is no longer on the bar."""
         locked = ctx["char"].chargen_locked
         combos = viewmod.has_combos_tab(ruleset, ctx["char"])
         for name in _TABS:

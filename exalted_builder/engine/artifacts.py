@@ -167,10 +167,11 @@ def uses_corebook_rule(rule) -> bool:
 
     True when the splat's book alters nothing: no rule row at all (plain Solar, Lunar,
     Sidereal, Ghost, Godblooded, the Abyssal renegade), or a row that prints neither a
-    tier table nor a multiplier. One predicate rather than two copies of the condition,
-    because the validator and the on-screen budget line have to agree about which rule
-    is running — a header that says nothing while the validator raises an error is the
-    shape that has bitten this area before.
+    tier table nor a multiplier.
+
+    ⚠ ONE predicate, never two copies of the condition: the validator and the on-screen
+    budget line must agree about which rule is running, or the header says nothing while
+    the validator raises an error.
     """
     return rule is None or (not rule.budget_tiers and rule.rating_per_dot <= 1)
 
@@ -186,20 +187,20 @@ def rule_is_pending_an_origin(ruleset, exalt_type: str, origin: str) -> bool:
     — resolves to no rule at all, and handing them the corebook's one-artifact limit
     would enforce a rule their own book overrides.
 
-    All three conditions are load-bearing, and the middle one is the one that bit:
+    ⚠ All three conditions are load-bearing, the middle one especially:
 
     * an origin already chosen means the cascade RESOLVED, and whatever it found (rule
       or no rule) is this character's answer;
     * a splat with a BASE row has also resolved — a plain Solar is a finished thing,
       not a half-built Illuminated one. Without this clause `Solar:illuminated`'s tier
-      table counted as "the splat prints a rule" and switched the corebook default off
-      for every ordinary Solar, which is the whole feature;
+      table reads as "the splat prints a rule" and switches the corebook default off
+      for every ordinary Solar;
     * and only then does an origin row carrying a rule mean the character is
       mid-build.
 
-    Applying the wrong rule is worse than applying none, which is why this is silence
-    rather than a best guess. It is separate from `uses_corebook_rule` because that one
-    answers a question about the SPLAT and this one about the CHARACTER.
+    Applying the wrong rule is worse than applying none, hence silence rather than a
+    best guess. Separate from `uses_corebook_rule`: that one answers a question about
+    the SPLAT, this one about the CHARACTER.
     """
     if origin or exalt_type in ruleset.budgets:
         return False
@@ -248,10 +249,10 @@ def purchasable_artifacts(catalog, character: Character) -> list:
     """What this character may actually pick: everything the Artifact Background buys,
     plus the merit-gated entries whose Merit she already holds.
 
-    The offer moves with the permission — a Merit the character does not hold hides its
-    artifact, and taking the Merit reveals it. Backgrounds taught this: a permission
-    toggle that moves the BAR but not the OFFER leaves the player unable to find the
-    thing she was just allowed, which is worse than no toggle at all.
+    ⚠ The offer moves with the permission — a Merit the character does not hold hides
+    its artifact, and taking the Merit reveals it. A permission toggle that moves the
+    BAR but not the OFFER leaves the player unable to find what she was just allowed,
+    which is worse than no toggle at all.
     """
     held = held_merit_ids(character)
     return sorted(purchasable_with_artifact(catalog)
@@ -289,11 +290,11 @@ class HearthstoneAllowance(BaseModel):
     """What one Manse Background row at a given rating may hold in Hearthstones.
 
     `individual_max` 0 means "no ceiling beyond the combined one", matching
-    `BackgroundBudgetTier`; `max_items` 0 means the page states no count. Resolved from
-    the BackgroundType so both the validator and the picker read the same numbers —
-    the picker greys the stones this says are too large, and greying a stone the
-    validator would have accepted (or the reverse) is the failure mode that split
-    control from rule here in the first place."""
+    `BackgroundBudgetTier`; `max_items` 0 means the page states no count.
+
+    ⚠ Resolved from the BackgroundType so the validator and the picker read the SAME
+    numbers: the picker greys the stones this calls too large, and greying one the
+    validator would accept (or the reverse) is the failure this exists to prevent."""
     combined_max: int
     individual_max: int = 0
     max_items: int = 0
@@ -301,14 +302,13 @@ class HearthstoneAllowance(BaseModel):
 
 
 def grows_hearthstones(bg_type) -> bool:
-    """Whether this Background produces Hearthstones at all — the ONE test, replacing
-    the `"manse" in name.lower()` substring the first cut used.
+    """Whether this Background produces Hearthstones at all — the ONE test. A Background
+    authoring neither field grows nothing, so every non-Manse entry is unaffected
+    without being listed anywhere.
 
-    The substring was not merely inelegant: it is a free-text NAME, so a row typed
-    "Manse (destroyed)" grew stones and a Sidereal row renamed by its table stopped,
-    and it could say nothing about HOW MANY levels the row carries, which differs per
-    splat. A Background that authors neither field grows nothing, so every non-Manse
-    entry in the catalogue is unaffected without being listed anywhere."""
+    ⚠ Never test the NAME. Backgrounds are free text: a row typed "Manse (destroyed)"
+    would grow stones and a Sidereal row renamed by its table would stop, and a name
+    says nothing about HOW MANY levels the row carries, which differs per splat."""
     return bool(bg_type is not None
                 and (bg_type.hearthstone_tiers or bg_type.hearthstone_per_dot))
 

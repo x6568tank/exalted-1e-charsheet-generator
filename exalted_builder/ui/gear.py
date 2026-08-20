@@ -119,11 +119,10 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
     def grant_gear(art_name: str) -> None:
         """Give a newly picked artifact its stat line on the equipment surface.
 
-        The human's note from the 2026-08-13 click-through: owning "Daiklave" as an
-        artifact and then adding a "Daiklave" weapon to actually swing it counted the
-        same object twice, which the corebook one-artifact rule turns into a false
-        error. So the artifact grants the row and stamps `from_artifact` on it, and the
-        budget counts the pair once.
+        ⚠ Owning "Daiklave" as an artifact and separately adding a "Daiklave" weapon to
+        swing it counts the same object twice, which the corebook one-artifact rule
+        turns into a false error (human's call, 2026-08-13). So the artifact grants the
+        row and stamps `from_artifact` on it, and the budget counts the pair once.
 
         Silent when the artifact has no gear half (202 of the 222 do not), and when the
         row is already there — picking the same artifact twice must not breed daiklaves.
@@ -271,10 +270,10 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                          f"the Background").classes("text-xs text-gray-500"
                                                     ).props('data-testid="art-bought"')
 
-    # The artifact catalogue, shared by the row editor and the panel's picker. Hoisted
-    # out of `_artifacts_panel` when the row editor moved into the inventory: a closure
-    # over a name defined in a function it no longer lives in is a NameError that
-    # NiceGUI reports as an EMPTY PANEL, not as a crash.
+    # The artifact catalogue, shared by the row editor and the panel's picker — hoisted
+    # so both can close over it. ⚠ A closure over a name defined in a function it no
+    # longer lives in is a NameError that NiceGUI reports as an EMPTY PANEL, not as a
+    # crash.
     # Merit-gated plot devices join the list only once the character holds the Merit —
     # `purchasable_artifacts` moves the OFFER with the permission, not just the bar.
     #
@@ -389,12 +388,11 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         armour keep their own `artifact_rating` on the equipment surface and are NOT
         editable here — they are only counted, in the budget line below.
 
-        ⚠ That count used to be the whole story, and the comment here claimed it was
-        what "stops a daiklave being entered twice". It did the opposite: twenty names
-        exist in both catalogues, so a player who owned the artifact AND added the gear
-        row to swing it was charged for two daiklaves. Picking an artifact now GRANTS
-        its stat line, stamped with `from_artifact`, and the budget counts the pair
-        once — see `grant_gear` and `artifacts.artifact_items`.
+        ⚠ Counting alone does NOT stop a daiklave being entered twice — twenty names
+        exist in both catalogues, so a player who owns the artifact AND adds the gear
+        row to swing it is charged for two daiklaves. Picking an artifact GRANTS its
+        stat line, stamped with `from_artifact`, and the budget counts the pair once —
+        see `grant_gear` and `artifacts.artifact_items`.
 
         One panel, both regimes: an artifact is equipment, and equipment has never been
         XP-priced or log-tracked on either side of the lock.
@@ -527,10 +525,9 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
     # ---- readout ----------------------------------------------------------- #
     @ui.refreshable
     def readout() -> None:
-        """The gear-relevant issues, live. Artifact findings moved here WITH the panel
-        that produces them — leaving them on Advantages would have been the Callous
-        shape in UI form: a report sitting where the thing it reports about no longer
-        is."""
+        """The gear-relevant issues, live. ⚠ Artifact findings belong HERE, with the
+        panel that produces them: a report sitting on a surface that no longer edits
+        the thing it reports about is the house bug in UI form."""
         rows = viewmod.inventory_rows(rs, character)
         ui.label(f"{len(rows)}").classes("text-2xl font-bold").style(
             f"color:{pal.accent}")
@@ -699,11 +696,11 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                 # overlaps — an artifact daiklave is both a weapon and an artifact —
                 # and that is correct. The filters are not a partition.
                 shown = viewmod.filter_inventory(rows, inv_filter["kind"])
-                # ⚠ Each row carries its OWN editor, in an expansion. The three
-                # per-type panels that used to sit below this list are gone (2026-08-13,
-                # the human's call): an inventory beside three panels editing the same
-                # objects is four surfaces for one job, and the list was the only one
-                # that could show a daiklave as both weapon and artifact.
+                # ⚠ Each row carries its OWN editor, in an expansion. There are NO
+                # per-type panels below this list (human's call, 2026-08-13): an
+                # inventory beside three panels editing the same objects is four
+                # surfaces for one job, and the list is the only one that can show a
+                # daiklave as both weapon and artifact.
                 #
                 # `row.list_name` / `row.index` are what make it possible — the view
                 # records where each row came FROM, so a display row can hand back the
@@ -751,9 +748,9 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                             editors[row.list_name](row.index, owner[row.index])
                         # A merged row is one object with TWO stored halves — the
                         # artifact and the stat line `grant_gear` stamped for it — so
-                        # its editor is both, under one Edit. Without this the stat
-                        # line would be uneditable: the per-kind panels are gone, and
-                        # the row it used to own is no longer on the list.
+                        # its editor is both, under one Edit. ⚠ Without this the stat
+                        # line is uneditable: there are no per-kind panels, and the
+                        # merged row is the only place it appears.
                         if row.linked_list_name:
                             linked = getattr(character, row.linked_list_name)
                             if row.linked_index < len(linked):
@@ -840,8 +837,8 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                 return
             kind, _, name = key.partition(":")
             if kind == "custom":
-                # "Custom <kind>" — a blank row of that kind, which is exactly what the
-                # per-panel Add buttons used to do.
+                # "Custom <kind>" — a blank row of that kind, for a player entering
+                # something the catalogue does not hold.
                 if name == "artifacts":
                     add_artifact()
                 else:
@@ -884,12 +881,10 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
             # in her pack, so these are a price list she can consult — the same
             # reference treatment the nocked arrow and the Great Geas panel get.
             #
-            # ⚠ The first cut printed a name and a dot column and nothing else, and the
-            # browser called it useless — correctly. `GearType.cash` (the printed jade
-            # and silver equivalents) had ZERO read sites: the actual prices sat in the
-            # data unread, so a PRICE list showed no prices. The house bug, in
-            # same-day code. What makes a reference panel worth its space is the
-            # information you cannot get anywhere else, which here is the cash.
+            # ⚠ `GearType.cash` (the printed jade and silver equivalents) is the whole
+            # point of this panel and its only read site. A name and a dot column alone
+            # is a PRICE list showing no prices — the house bug. What makes a reference
+            # panel worth its space is the information you cannot get anywhere else.
             with panel("Prices — services & upkeep").classes("flex-1"):
                 services = [g for g in ruleset.gear_catalog.values()
                             if g.kind == "service"]
@@ -903,9 +898,8 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                     # catalogue dialog's `h-[85vh]` card), and it is self-defeating
                     # here: this panel's card has no height, so `flex: 1 1 0%` collapses
                     # the area to its 0 basis and `min-h-0` removes the content-based
-                    # floor that would have saved it. The rows render — the tests see
-                    # them in the DOM — and the browser shows an empty panel under a
-                    # paragraph of explanation (found in the click-through, 2026-08-13).
+                    # floor that would have saved it. The rows still render — the tests
+                    # see them in the DOM — while the browser shows an empty panel.
                     with ui.scroll_area().classes("w-full").style("height:16rem"):
                         last_category = ""
                         for g in sorted(services, key=lambda g: (g.category, g.name)):

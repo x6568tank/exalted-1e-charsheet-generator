@@ -278,12 +278,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     _has_spells = bool(_spell_circles)
     _exalt_def = ruleset.exalt_for(character.exalt_type)
     _has_forms = bool(_exalt_def and _exalt_def.form_library)
-    # Each page exists only when this character has categories IN THAT GROUP. Asking
-    # `_all_categories` instead — as the Abilities line did until 2026-08-01 — is true
-    # for a splat with Charms of ANY kind, so a ghost got an Abilities page listing
-    # nothing (found in the browser). An empty Charm-tree page is not merely blank: its
-    # Category dropdown raises outright when its options are empty, taking the whole
-    # picker down with it (adding-a-splat.md trap #3).
+    # ⚠ Each page exists only when this character has categories IN THAT GROUP. Asking
+    # `_all_categories` instead is true for a splat with Charms of ANY kind, which gives
+    # a ghost an Abilities page listing nothing — and an empty Charm-tree page is not
+    # merely blank: its Category dropdown raises outright when its options are empty,
+    # taking the whole picker down with it (adding-a-splat.md trap #3).
     GROUPS: dict[str, str] = {}
     if _has_abilities:
         # Labelled "Charms", not "Abilities" (human, 2026-08-01) — so the tab bar reads
@@ -338,9 +337,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                 and state["category"] == _augment_category)
 
     # Every group that renders the Charm-tree canvas and owns the category dropdown.
-    # Named once, because it was hardcoded in four places and adding the Arcanoi page
-    # to three of them left the fourth rendering a blank tab (found in the browser,
-    # 2026-08-01 — the Arcanoi page showed nothing at all).
+    # ⚠ Named ONCE. Hardcoding the set at its four use sites means a new page added to
+    # three of them renders as a blank tab at the fourth.
     _GRAPH_GROUPS = ("abilities", "styles", "arcanoi")
 
     def _is_graph_page() -> bool:

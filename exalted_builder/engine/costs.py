@@ -223,8 +223,8 @@ def charm_cost(ruleset: RuleSet, character: Character, charm: Charm) -> int:
     # A splat whose martial-arts access is the PG p.234 exception (ghosts) prices every
     # Terrestrial style off that page, and this branch comes first — ahead of the
     # Immaculate rate below, which is Dragon-Blooded's own (p.292) and has no meaning
-    # for a ghost. Without the ordering a ghost learning an Immaculate Dragon Path was
-    # charged the DB Immaculate rate, which its cost row does not even author.
+    # for a ghost. ⚠ The ORDER is the rule: reversed, a ghost learning an Immaculate
+    # Dragon Path is charged a DB rate its own cost row does not even author.
     if (ruleset.exalt_for(character.exalt_type).terrestrial_martial_arts
             and validate.is_terrestrial_martial_arts(charm)):
         if _fighter_in_life_covers(ruleset, character, charm):

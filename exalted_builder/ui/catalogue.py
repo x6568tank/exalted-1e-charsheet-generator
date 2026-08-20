@@ -76,9 +76,8 @@ def gear_cost_note(resources_cost: int, affordability: str) -> str:
 # ⚠ NiceGUI ships TWO icon fonts and a bare name resolves against the older one,
 # **Material Icons**. A name that exists only in **Material Symbols** — `swords` is the
 # one this build wanted — renders as NOTHING: no error, no fallback, just a blank where
-# the icon should be, which is how every melee weapon in the catalogue shipped iconless
-# (found in the browser, 2026-08-12). Quasar's `sym_o_` prefix selects Material Symbols
-# Outlined, so that is the fix; keep the prefix on any Symbols-only name.
+# the icon should be. Quasar's `sym_o_` prefix selects Material Symbols Outlined; keep
+# the prefix on any Symbols-only name.
 #
 # To check a name before adding it, read the glyph order of the fonts NiceGUI ships:
 #
@@ -299,10 +298,10 @@ def catalogue_dialog(
             ui.separator()
 
         # The list scrolls; the Custom row and title stay put. `flex-1 min-h-0` lets the
-        # scroll area shrink below its content (the classic flexbox scroll trap) — a
-        # QScrollArea does NOT size itself from `max-h`, which is why the height changes
-        # before this looked like no-ops: the card is the real height constraint, and
-        # the scroll area fills the leftover space under the title/search/Custom row.
+        # scroll area shrink below its content (the classic flexbox scroll trap).
+        # ⚠ A QScrollArea does NOT size itself from `max-h`, so height changes applied
+        # to it read as no-ops: the CARD is the real height constraint, and the scroll
+        # area fills the leftover space under the title/search/Custom row.
         with ui.scroll_area().classes("w-full flex-1 min-h-0"):
             _list()
 

@@ -1,19 +1,14 @@
 """
 models/party.py — a Storyteller's party bundle.
 
-Character-data domain, like character.py: a `Party` is a container the GM keeps
-at the table, holding a full *copy* of each player's Character plus notes. It
-imports nothing game-specific — game legality still lives in engine.validate,
-which never looks at a Party at all.
+Character-data domain, like character.py: a `Party` holds a full copy of each
+player's Character, the GM's notes, and the adversaries being run against them.
+It carries no rules and no derived values — legality lives in engine.validate,
+which never looks at a Party, and the cards that render one read capacities from
+the engine the way the Play tab does.
 
-Why copies rather than references to .character.json files: the shipped build
-runs in the browser, where loading is an upload and there are no filesystem
-paths to reference. One bundle file loads and saves in one action. The
-consequence is deliberate — the GM's copy is the table copy and may drift from
-the player's own file.
-
-A Party carries no rules and no derived values; the cards that render it read
-capacities from the engine the same way the Play tab does.
+⚠ Members are COPIES, not references to .character.json files. The GM's copy is
+the table copy and may drift from the player's own.
 """
 
 from __future__ import annotations
@@ -32,13 +27,9 @@ class PartyMember(BaseModel):
 
 
 class Party(BaseModel):
-    """A named group of characters and the GM's session notes.
-
-    `adversaries` is the other half of the table: the extras, beasts and NPCs the
-    GM is running against the party. They live in the same bundle because they
-    are session state — the opposition in tonight's fight belongs with the notes
-    about tonight's fight, not in a separate file. Old bundles load with the list
-    empty."""
+    """A named group of characters, the GM's session notes, and the extras,
+    beasts and NPCs being run against them. `adversaries` defaults empty, so
+    bundles written before it existed still load."""
     id: str
     name: str = ""
     session_notes: str = ""

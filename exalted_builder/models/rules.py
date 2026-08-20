@@ -355,12 +355,10 @@ class Charm(BaseModel):
     # copy and cannot drift from this one. Setting it in a charms JSON is a mistake
     # — the loader overwrites it.
     #
-    # It exists because `open_to_tiers` was doing two unrelated jobs: "who may learn
-    # this" AND, in the p.101 Sidereal chargen cap, "is this a Sidereal Martial Arts
-    # form". Those diverged — the cap counted 140 Charms across twelve styles when
-    # only 41 across three are Sidereal MA, so a ronin could not take a single
-    # Celestial Monkey Charm. Ask `ma_tier` what KIND of style a Charm is; ask
-    # `open_to_tiers` who may learn it. See docs/status/martial-arts-styles.md.
+    # ⚠ Ask `ma_tier` what KIND of style a Charm belongs to; ask `open_to_tiers` who
+    # may learn it. They are NOT interchangeable — using `open_to_tiers` for the p.101
+    # Sidereal chargen cap counts 140 Charms across twelve styles where only 41 across
+    # three are Sidereal MA. See docs/status/martial-arts-styles.md.
     ma_tier: str = ""
     # A style whose OWN text names who may learn it, narrower than any tier. Entries
     # are "<Splat>" or "<Splat>:<caste>", and the character must satisfy ONE of them.
@@ -387,11 +385,10 @@ class Charm(BaseModel):
     # VirtueName value `min_ability` is the required rating in, exactly as
     # `min_attribute` works — the third and last of the three keyings.
     #
-    # Reusing `min_ability` as the rating rather than adding a fourth number is
-    # deliberate, and is the same trade `min_attribute` made: everything downstream
-    # (pricing, the picker's tree layout, Combo cost) already keys off `min_ability`,
-    # so a Charm keyed a new way costs nothing to price. The field is misnamed for
-    # this case and correctly named for the common one.
+    # ⚠ `min_ability` holds the RATING here, as it does for `min_attribute` —
+    # everything downstream (pricing, the picker's tree layout, Combo cost) keys off
+    # it, so a Charm keyed a new way costs nothing to price. The field name is wrong
+    # for this case and right for the common one.
     #
     # A Charm sets AT MOST ONE of min_virtue / min_attribute / an Ability-resolving
     # category. `validate._min_trait_rating` resolves them in that order.
@@ -649,9 +646,9 @@ class BreedTraits(BaseModel):
       pool, and the effective total (pool-spent + bonus) may pass 5, but each
       effective dot above 5 is bought with bonus points at the attribute rate
       (p.175: "Even after these modifiers are applied, Dragon Kings cannot have any
-      Attributes higher than 5 without spending bonus or experience points" — read
-      against the effective value; the 2026-08-06 "free past 5" reading was a
-      misunderstanding and is reversed. Charged in bonus_point_breakdown).
+      Attributes higher than 5 without spending bonus or experience points").
+      ⚠ Read against the EFFECTIVE value, not the pool spend; charged in
+      bonus_point_breakdown.
     * `innate_soak_bashing` / `innate_soak_lethal` — the breed's innate armour
       (Pterok +1B/1L, Raptok +3B/3L, Anklok +6B/6L, Mosok +4B/4L), folded into
       derive.soak. Read together with ExaltDefinition.stamina_adds_to_lethal_soak
@@ -865,9 +862,7 @@ class MartialArtsStyle(BaseModel):
 
     It holds what the page prints ABOVE the Charm list: the style's `Type:` line,
     its prose, and its style-level rules (the "Weapons and Armor" sidebar, and
-    oddities like Celestial Monkey's Virtue ceiling). Before this, all of that was
-    dropped on the floor — see docs/status/dragonblooded-aspect-books.md, where Jade
-    Mountain's three mechanics are recorded as content waiting for a home.
+    oddities like Celestial Monkey's Virtue ceiling).
 
     ⚠ **`tier` is DISPLAY ONLY. Nothing in engine/ may read it** (a test enforces
     this). It is the same fact the Charms' `open_to_tiers` / `open_to_all` already
@@ -1169,11 +1164,9 @@ class ArmorType(BaseModel):
     # Background needed to start with it; attunement is the motes to commit.
     artifact_rating: int = Field(default=0, ge=0)
     attunement: int = Field(default=0, ge=0)
-    # Everything the fields above cannot hold — WeaponType has carried this since the
-    # castebooks (Strength-relative damage, odd rates); armour needed it once the
-    # Most Terrifying Armor of the Air Dragon landed with a Strength bonus column and
-    # flight rules (Aspect Book: Air p.81). The asymmetry was an oversight: a `notes`
-    # key in armor.json was silently DROPPED on load before this.
+    # Everything the fields above cannot hold — the Most Terrifying Armor of the Air
+    # Dragon prints a Strength bonus column and flight rules (Aspect Book: Air p.81).
+    # The WeaponType twin holds Strength-relative damage and odd rates.
     notes: str = ""
     tags: list[str] = Field(default_factory=list)
     # SHIELDS ride on this model rather than getting one of their own. They are
@@ -1335,18 +1328,16 @@ class BackgroundType(BaseModel):
     # text, never hard-validated).
     excluded_origins: list[str] = Field(default_factory=list)
     # A Background that belongs to NO splat in particular, and is therefore offered to
-    # every splat regardless of what that splat's own book enumerates. Cult is the
-    # case that named the field: it is printed in Games of Divinity, which is not a
-    # splat book, so no character-creation summary anywhere lists it — and without
-    # this flag it would have been visible only to the splats whose lists had not been
-    # transcribed yet, vanishing one splat at a time as the sweep progressed.
+    # every splat regardless of what that splat's own book enumerates. Cult is the case
+    # that named the field: it is printed in Games of Divinity, which is not a splat
+    # book, so no character-creation summary anywhere lists it.
     #
     # Human's ruling, 2026-08-11: "Cult is universal, as are any other backgrounds not
     # in specific splats if such exist."
     #
-    # Marked explicitly rather than derived from "tagged by nobody, listed by nobody",
-    # because the derived version has a nasty non-local failure: the day a splat's book
-    # turned out to list Cult, Cult would silently disappear from every OTHER splat.
+    # ⚠ Marked explicitly, never derived from "tagged by nobody, listed by nobody": the
+    # derived version fails non-locally — the day one splat's book turns out to list
+    # Cult, Cult silently disappears from every OTHER splat.
     # `tests/test_backgrounds_splat.py` checks the flag against the data BOTH ways, so
     # it cannot rot: a universal Background must appear in no splat's list, and a
     # Background with no splat tag that no list names must be marked universal.
@@ -1518,16 +1509,13 @@ class BackgroundPointLimit(BaseModel):
 class MeritFlaw(BaseModel):
     """One purchasable Merit or Flaw.
 
-    Merits & Flaws were ripped out in June 2026 because the old implementation
-    scattered mechanical effects across every file they touched. Decision 0011 is that
-    they come back as ONE centralized calculation, and this entity is deliberately
-    INERT: it carries the printed text, the cost and the prerequisites, and NOTHING
-    about what a Merit does. Effects live in `engine.merits.merits_and_flaws_calc`,
-    keyed by id. A new Merit with no mechanical effect therefore needs data only.
+    ⚠ Deliberately INERT (decision 0011): it carries the printed text, the cost and
+    the prerequisites, and NOTHING about what a Merit does. Effects live in
+    `engine.merits.merits_and_flaws_calc`, keyed by id, so a new Merit with no
+    mechanical effect needs data only. The catalogue spans the general M&F chapter and
+    the Thaumaturgy Merits (Player's Guide pp.120-122).
 
-    The Thaumaturgy Merits (Player's Guide pp.120-122) are authored first because they
-    are the mortal unlock set and were already in hand; the general M&F chapter drops
-    into the same file. Shape notes for that:
+    Shape notes:
 
       * `cost` is the printed point value. Oathbound Magic has no single cost — it is
         a Flaw whose value depends on the oath sworn — so `cost_options` carries the
@@ -1641,12 +1629,12 @@ class MeritFlaw(BaseModel):
     # Ceilings (or floors) on this entry's point value set by a Background rating —
     # Known Anathema, Damaged Artifact and Debt. Empty for everything else.
     #
-    # PLURAL because Damaged Artifact prints TWO constraints and they measure different
+    # ⚠ PLURAL because Damaged Artifact prints TWO constraints that measure different
     # things (PG p.38): "may not gain more points from this Flaw than the rating of the
     # artifact it modifies" is per-item, while "characters must have at least one more
-    # dot of Artifact than the points obtained" is against the summed Background. They
-    # were collapsed into one summed check with offset -1, which let a character with a
-    # 4-dot daiklave and 2-dot wings take the full three points against the wings.
+    # dot of Artifact than the points obtained" is against the summed Background.
+    # Collapsing them into one summed check lets a character with a 4-dot daiklave and
+    # 2-dot wings take the full three points against the wings.
     points_limits: tuple[BackgroundPointLimit, ...] = ()
     repeatable_by: str = ""                # "" = once only
     # Whether a purchase of this entry may record STIPULATIONS — Heir Apparent's "add
@@ -2068,13 +2056,6 @@ class ExperienceCosts(BaseModel):
     calling_charm_discount: int = 0
 
 
-class _BackgroundBudgetTierMoved:
-    """`BackgroundBudgetTier` moved ABOVE `BackgroundType` (2026-08-12) so the
-    Hearthstone tiers could reuse it — a pydantic model cannot annotate a field with a
-    class defined later in the module. Nothing else changed. This marker exists only so
-    a `grep` landing on the old location finds the new one."""
-
-
 class BackgroundRule(BaseModel):
     """Mechanical rules attached to ONE Background for ONE splat (see
     `ChargenBudgets.background_rules`).
@@ -2150,10 +2131,10 @@ class BackgroundRule(BaseModel):
     # prints one shape or the other, and the tiers win where both appear.
     rating_per_dot: int = Field(default=1, ge=1)
     # Whether this rule binds on BOTH sides of the lock. The default (False) is
-    # chargen-only, which is how every rule shipped until 2026-08-12 — Backgrounds
-    # change through the story, not by purchase, and nothing checked them after the
-    # lock. Exactly two rules bind post-lock, both by human ruling (the ONLY ones in
-    # the build): Sidereal Celestial Manse ≤3 (Sidereals p.106, "cannot buy above
+    # chargen-only: Backgrounds change through the story, not by purchase, so nothing
+    # checks them after the lock. Exactly two rules bind post-lock, both by human
+    # ruling (the ONLY ones in the build): Sidereal Celestial Manse ≤3 (Sidereals
+    # p.106, "cannot buy above
     # Celestial Manse ••• without special Storyteller permission") and Mountain Folk
     # Artifact ≤10 (CH6 p.234-235; the ceiling itself is the human's call — the book
     # prints no upper bound). `background_issues` runs post-lock (from
@@ -2610,10 +2591,9 @@ class ExaltDefinition(BaseModel):
     # its own flag because `charm_count: 0` merely grants none at creation: the eight
     # `open_to_all` Charms with min_essence 1 would still be purchasable with bonus
     # points, and p.103 spends bonus points "on any Traits except Charms and Essence".
-    # When Merits & Flaws land this becomes the DEFAULT rather than the whole story —
-    # the right Merits reopen Terrestrial Martial Arts (all but Spirit Walking) and
-    # Terrestrial Sorcery, so expect this to be read through merits_and_flaws_calc
-    # rather than deleted. See CLAUDE.md's Merits & Flaws TODO.
+    # ⚠ It is the DEFAULT, not the whole story: the right Merits reopen Terrestrial
+    # Martial Arts (all but Spirit Walking) and Terrestrial Sorcery, so it is read
+    # through `engine.merits.merits_and_flaws_calc` (decision 0011).
     charms_available: bool = True
     # Hard ceiling on Essence for the whole of the character's life, XP included — as
     # opposed to ChargenBudgets.essence_start_cap, which only binds until the sheet is
@@ -2626,8 +2606,8 @@ class ExaltDefinition(BaseModel):
     # no way to gain access to their Essence pool." The way UP is the Essence Mastery
     # Merit (5-pt Supernatural, PG p.121), which "unlock[s] her Essence pool completely"
     # and after which a mortal may buy Essence to 3 with XP (human, rules authority,
-    # 2026-07-30 — the printed Merit text does not itself state the 3). So when Merits &
-    # Flaws land, merits_and_flaws_calc raises this 1 to 3 rather than removing it.
+    # 2026-07-30 — the printed Merit text does not itself state the 3). ⚠
+    # `merits_and_flaws_calc` RAISES this 1 to 3 rather than removing it.
     essence_cap: int = 0
     # The Essence formula that applies once a Merit has UNLOCKED the pool, for a splat
     # whose default `essence` spec is empty because it has no pool at all. Mortals
@@ -2658,8 +2638,7 @@ class ExaltDefinition(BaseModel):
     # learned in Creation, they are forever barred from using that knowledge …
     # The dead who knew magic in life can act as tutors for thaumaturges,
     # however." So this bars USE, not purchase or possession — a ghost keeps its
-    # Arts on the sheet, flagged unusable, and can still teach. True everywhere
-    # else; the Ghost splat sets it False when it lands.
+    # Arts on the sheet, flagged unusable, and can still teach. True everywhere else.
     thaumaturgy_usable: bool = True
     # Multiplier on the BP/XP cost of any Art, Science, ritual or formula. 2 for
     # spirits (p.114: "Spirits may use thaumaturgy, but they pay twice the normal
@@ -2671,11 +2650,10 @@ class ExaltDefinition(BaseModel):
     # Peripheral Essence pools, instead having a single Essence pool that serves all
     # of the character's needs."
     #
-    # The merge itself already existed for Beacon of Power, a MERIT — so it was
-    # reachable only through `merits_and_flaws_calc`. A splat whose pool is merged by
-    # its own nature cannot express that as a Merit, hence a second, splat-level
-    # source OR'd into the same one read site (`derive.essence_pool_is_merged`). Two
-    # sources, one consumer: adding a third here must not add a third read.
+    # ⚠ The SECOND source of a merged pool; the first is the Beacon of Power Merit,
+    # reachable only through `merits_and_flaws_calc`. Both are OR'd into the one read
+    # site, `derive.essence_pool_is_merged`. Two sources, one consumer — adding a
+    # third source here must not add a third read.
     single_essence_pool: bool = False
     # May this splat learn Charms belonging to ANYONE ELSE — including the
     # `open_to_all` Terrestrial martial-arts styles every other splat may pick up?
@@ -2923,13 +2901,13 @@ class RuleSet(BaseModel):
         Not to be confused with `ChargenBudgets.allowed_backgrounds`, which is the
         HARD validation list; see the field comment there.
 
-        Walks the `E:o:u` -> `E:o` -> `E` cascade for the first NON-EMPTY list, rather
-        than taking the most specific row the way `budgets_for` does. That is a
-        deliberate exception and it earns itself: budget rows REPLACE wholesale, so an
-        origin row that simply does not restate its splat's Background list — which is
-        most of the 30-odd rows — would otherwise read as "unrestricted" and silently
-        reopen the whole catalogue. Inheriting means an origin authors a list only
-        where its book prints a DIFFERENT one (Lookshy p.66 does; the pirates do not).
+        ⚠ Walks the `E:o:u` -> `E:o` -> `E` cascade for the first NON-EMPTY list,
+        rather than taking the most specific row the way `budgets_for` does. Budget
+        rows REPLACE wholesale, so an origin row that does not restate its splat's
+        Background list — most of the 30-odd rows — would read as "unrestricted" and
+        silently reopen the whole catalogue. Inheriting means an origin authors a list
+        only where its book prints a DIFFERENT one (Lookshy p.66 does; the pirates
+        do not).
         """
         for key in ([f"{exalt_type}:{origin}:{upbringing}"] if origin and upbringing else []) \
                 + ([f"{exalt_type}:{origin}"] if origin else []) + [exalt_type]:
@@ -3009,14 +2987,12 @@ class RuleSet(BaseModel):
                 if key in bg.excluded_origins:
                     continue
             out.append(bg)
-        # A splat's OWN copy of a name displaces the untagged one. Both survive the
+        # A splat's OWN copy of a name displaces the untagged one. ⚠ Both survive the
         # filters above whenever the tag is doing the whole job — a splat with no
         # transcribed summary, or one whose list is keyed by origin and the origin is
-        # blank (a save written before the axis existed, or a character built without
-        # one). The Mountain Folk shipped exactly that: ten of their own Backgrounds
-        # plus the ten core entries they replace, every name in the dropdown twice.
-        # Not applied under `all_available`: the Storyteller asked for every book's
-        # version, and there the five Artifacts are the point.
+        # blank (a save written before the axis existed) — which puts every name in the
+        # dropdown twice. Not applied under `all_available`: the Storyteller asked for
+        # every book's version, and there the five Artifacts are the point.
         if not all_available:
             owned = {bg.name.strip().lower() for bg in out if bg.exalt_type}
             out = [bg for bg in out
