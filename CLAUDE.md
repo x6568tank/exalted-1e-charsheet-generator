@@ -208,11 +208,17 @@ pool calculation.
   + `spikes/qt_sheet/`, built and human-approved 2026-08-20) answered the port's open
   questions: `QGraphicsView` fits the charm-tree picker; the sheet becomes a
   `QTextDocument` (on-screen and print from one source); and retained-mode widgets
-  test well with pytest-qt (28 + 14 tests, offscreen). Both are in functional shape
-  except per-splat theming, which waits for the port. The part that affects work NOW:
-  the port is cheap only because nothing outside `ui/` imports `nicegui` and
-  `ui/view.py` is a pure presenter. **Keep it that way** — prefer derived state in
-  `view.py` over inline computation in a widget module.
+  test well with pytest-qt (28 + 14 tests, offscreen). **Milestone 1 shipped
+  (2026-08-20, branch `qt-port`, human-clicked on the real display):** the native
+  shell (`exalted_builder/qt/`, run `python -m exalted_builder.qt [path]`) with the
+  Edit / Charms / Sheet tabs — Edit a retained-mode re-architecture, Charms the
+  spike's trees plus Learn/Remove buying (Charms, Spells, Thaumaturgy Arts +
+  specialties, Sciences, Rituals/Formulas with an orientation picker), Sheet the
+  spike's document. Theme is the human's desktop direction: one unified dark base,
+  the splat as a light accent (the dark printed accents are invisible on dark). The
+  part that affects work NOW: the port is cheap only because nothing outside `ui/`
+  imports `nicegui` and `ui/view.py` is a pure presenter. **Keep it that way** —
+  prefer derived state in `view.py` over inline computation in a widget module.
 
 ## Stack
 - Python + pydantic v2 + pytest. Frontend: **NiceGUI** (chosen over Reflex), the optional
@@ -255,7 +261,8 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,409 passing, 3 skipped** (2026-08-20, the `-ds` machine).
+**2,448 passing, 3 skipped** (2026-08-20, the `qt-port` branch on the `-ds` machine
+— the 2,409 baseline plus the Qt-port tests in `tests/test_qt_*.py`).
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
   here and the cause was not chased. The run is what tells you the suite is green.
@@ -307,6 +314,7 @@ are pointers only; the traps and history live in the files.
 | Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
+| The Qt port — decision 0018; the build record (milestone 1: the native shell + Edit/Charms/Sheet, human-clicked) | `plans/qt-port.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms

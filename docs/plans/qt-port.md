@@ -258,6 +258,106 @@ splats and approved it.
 
 14 tests (offscreen). Run/test: `spikes/qt_sheet/README.md`.
 
+## Milestone 1 — the native shell + Edit/Charms/Sheet (2026-08-20)
+
+The first build slice, on branch `qt-port`. `exalted_builder/qt/` holds the native
+shell (`main_window.py`, `__main__.py`) and the three ported tabs (`sheet.py`,
+`charms.py`, `editor.py`), each a retained-mode widget re-derived from the shared
+engine + `view.py`. Run: `.venv/bin/python -m exalted_builder.qt [path]`.
+
+- **Shell** mirrors `ui/builder.py`: a toolbar (New/Load/Save/Print/Finish & Lock/
+  Unlock/Party) over a tab bar whose visibility follows `view.visible_tabs` /
+  `resolve_tab` on both sides of the lock. Gear, Advantages, Combos, Play, ST and
+  Custom are explicit placeholders until their modules are ported. The Print button
+  uses reportlab `ui/pdf.py` (the plan settled printing without Qt); the Sheet tab's
+  on-screen document is the QTextDocument path from the qt_sheet spike.
+- **Sheet** = the qt_sheet spike's `sheet_html`/`build_document`/`print_pdf` carried
+  over; **Charms** = the qt_tree spike's layout/routing/view stack carried over,
+  reading the live character instead of the spike's throwaway per-splat one. Ghosts
+  correctly get Arcanoi and no Spells; Solar gets Charms/MA/Spells/Thaumaturgy.
+- **Edit** is a re-architecture, not a transliteration (the plan's "What does NOT
+  translate"): dot tracks are `DotTrack` widgets that free-set in chargen and hand
+  post-lock clicks to `engine.advancement` (decision 0013, with the refund-vs-curse
+  dialog). Covers Identity, the structural selects + cascades, Attributes, Abilities,
+  Crafts, Virtues, Essence/Willpower, the chargen/XP side column, and the read-only
+  Charm/Spell counts. **Deferred inside Edit** (each still ships on the webapp):
+  Training Camp & Calling, Colleges, Specialties, Permanent Resonance/Limit, the
+  Virtue Flaw, bonus health levels, and the Downtime calculator.
+- **Tier-3 moves done here** (to `ui/view.py`, toolkit-free; the NiceGUI modules
+  re-export the names so tests and callers keep working): `_TABS` +
+  `visible_tabs`/`resolve_tab` (from `ui/builder.py`), and `_SPLAT_ORIGINS` +
+  `_ORIGIN_UPBRINGINGS` + `_origin_options`/`upbringing_options`/
+  `_heritage_uses_origin` (from `ui/editor.py`).
+- `pyproject.toml` gained a `qt` extra (`PySide6`, `pytest-qt`) — the spikes' promise
+  kept. `tests/conftest.py` pins `QT_QPA_PLATFORM=offscreen` and shares a `ruleset`
+  fixture; **39 pytest-qt tests** cover the shell (tab set both sides of the lock,
+  ghost hides Combos, New resets, the theme), the sheet (sections, accent, print), the
+  charms trees (per-splat tabs, node/edge counts, layout, zoom, detail) and buying
+  (chargen append, post-lock XP, Thaum art/specialty/formula with unlearn + the
+  orientation combo), and the editor (DotTrack, the Favored picker, structural
+  cascades, post-lock XP buying). Full suite on the `qt-port` branch: **2,448 passed,
+  3 skipped** (2026-08-20).
+- **The nicegui-free grep is still green** — nothing in `exalted_builder/qt/` imports
+  NiceGUI, and nothing new does.
+
+### Buying — the picker's business half
+
+The Charms tab's spike was browse-only; this milestone added the purchase path, the
+same toggle semantics as the web picker (chargen picks against the budget, post-lock
+XP via `engine.advancement`):
+
+- **Charms** (tree node selected) and **Spells** (list row): Learn/Remove, priced on
+  the button post-lock (`Learn X — N XP`); a chargen pick is free and just says
+  `Learn X`. Already-known post-lock notifies to Undo on the Edit tab.
+- **Thaumaturgy**: Arts and their **specialties** (grouped under each Art in a
+  collapsible `QTreeWidget`), Sciences (Raise a dot), Rituals/Formulas. The detail and
+  the button carry the price (`N BP/XP`). Rituals/Formulas get an **orientation
+  picker** (North/South/East/West/Realm) that appears only when buying the first
+  orientation.
+
+### The theme — a desktop app, not a web-app mimicry
+
+The human's direction (2026-08-20): stop mimicking the web app; a native app should
+look native. One **unified dark** base (brighter than stock Qt6 dark-grey —
+`#333338`/`#3d3d45`, off-white text), with the splat showing as **light** touches —
+the printed palette accents are dark and invisible on dark, so `theme.accent` lightens
+each toward white; it carries the toolbar, headings, the selected tab and chips. No
+element borders anywhere (the card shade vs the page is the delineation); the Sheet
+tab stays light "paper" (it is a document), the charm trees get a slightly lighter
+canvas. `exalted_builder/qt/theme.py` holds the palette→Qt mapping.
+
+### Human-verified on the real display
+
+The human drove the shell across several click-through rounds and tuned against their
+feedback — this is not "tests green, unverified". Remaining to look at: the six
+placeholder tabs, per-splat theming beyond the accent, the picker's splat extras
+(Forms/Panoply/Paths/Elemental), and Edit's deferred panels.
+
+### Bugs that cost real iterations (all re-testable, all have tests now)
+
+- **The `deleteLater()` deferral.** `reload()` runs synchronously several times at
+  startup (constructor, the first tab-change signal, `_sync_tabs`); widgets that were
+  only pending-delete kept painting at stale geometry, stacking each build on the last
+  — "every element has its own boundary" + garbled text. Detach (`hide()` +
+  `setParent(None)`) before `deleteLater()`.
+- **Qt QSS reads 8-digit hex as AARRGGBB (alpha first).** `#RRGGBBAA` scrambled every
+  accent border into a mauve. ⚠ in `qt/theme.py`.
+- **Every side-column label stretched to ~72px** — the cards filled the splitter and
+  the labels stretched with them ("Live Validation too spaced out"). A trailing
+  `addStretch` keeps cards at natural height.
+- **A `QTabWidget` that is never `setCentralWidget` renders a blank window.**
+- **The tab widget fires `currentChanged` during construction** — block signals while
+  building, or the first page reloads before the other tabs exist.
+- **PySide6 QComboBox has `textActivated(str)`, not `activated[str]`** (IndexError).
+- **PySide6 stores an Enum's str value in a combo's userData** — reconstruct with
+  `Orientation(raw)`.
+- **The stale-selection trap.** After a buy/drop, the selected Thaumaturgy row kept
+  its pre-action `owned` flag, so the button stayed "Learn" (a re-click refused
+  "already known"). Re-find the entry in a fresh picker after the action.
+- **19/25 Thaumaturgy specialty rows have no description in the source** (they are
+  just aspect names in the book) — a data reality, not a bug. The price fills the
+  detail instead.
+
 ## Open questions — not decided
 
 * **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets

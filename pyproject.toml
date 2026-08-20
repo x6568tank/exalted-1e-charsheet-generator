@@ -32,6 +32,12 @@ desktop = [
     "reportlab>=4",
     "pyinstaller>=6",
 ]
+# The PySide6 native app (decision 0018) and its offscreen test story. Optional:
+# the NiceGUI webapp and the dev/test toolchain run without it.
+qt = [
+    "PySide6>=6.7",
+    "pytest-qt>=4",
+]
 
 # Auto-discovers exalted_builder and any subpackages (models now; engine, ui
 # later once they have an __init__.py), so this doesn't break before they exist.
