@@ -204,10 +204,13 @@ pool calculation.
 - **The Qt port** (human, 2026-08-10) — branch and rebuild the UI on **PySide6/Qt** as
   the bedrock of a 2.0. A standing goal, **NOT scheduled**; it becomes a numbered
   decision when it is committed to (use the next free number). Plan, measured baseline
-  and open questions: **`docs/plans/qt-port.md`**. The part that affects work NOW: the
-  port is cheap only because nothing outside `ui/` imports `nicegui` and `ui/view.py` is
-  a pure presenter. **Keep it that way** — prefer derived state in `view.py` over inline
-  computation in a widget module.
+  and open questions: **`docs/plans/qt-port.md`**. **The charm-tree spike (`spikes/qt_tree/`,
+  built and human-approved 2026-08-20) answered the port's two open questions:**
+  `QGraphicsView` fits the charm-tree picker, and retained-mode widgets test well with
+  pytest-qt (28 tests, offscreen) — see the spike section in the plan. The part that
+  affects work NOW: the port is cheap only because nothing outside `ui/` imports
+  `nicegui` and `ui/view.py` is a pure presenter. **Keep it that way** — prefer derived
+  state in `view.py` over inline computation in a widget module.
 
 ## Stack
 - Python + pydantic v2 + pytest. Frontend: **NiceGUI** (chosen over Reflex), the optional
@@ -250,7 +253,7 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,455 passing, 1 skipped** (2026-08-17, this machine).
+**2,409 passing, 3 skipped** (2026-08-20, the `-ds` machine).
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
   here and the cause was not chased. The run is what tells you the suite is green.
