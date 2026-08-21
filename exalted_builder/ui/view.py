@@ -1799,6 +1799,37 @@ def merit_rows(ruleset: RuleSet, character: Character
     return rows
 
 
+def merit_tier_label(tier: str) -> str:
+    """A tier key rendered readably. A key is either a bare point value ("4") or a
+    semantic name ("favored_aptitude"); both come back as display text."""
+    return tier.replace("_", " + ").title() if not tier.isdigit() else tier.title()
+
+
+def merit_option_label(definition) -> str:
+    """One catalogue entry as a menu line — "Name  (−4 supernatural)". The sign says
+    which way the transaction runs (a Flaw PAYS), and a variable-cost entry shows its
+    range rather than a single number."""
+    if definition.cost_options:
+        lo, hi = min(definition.cost_options.values()), max(definition.cost_options.values())
+        price = f"{lo}-{hi}"
+    else:
+        price = str(definition.cost)
+    sign = "−" if definition.kind == "merit" else "+"
+    return f"{definition.name}  ({sign}{price} {definition.category or definition.kind})"
+
+
+def default_merit_tier(definition, exalt_type: str, caste: str) -> str:
+    """The tier a fresh row of `definition` should open on: the first this SPLAT may
+    choose, not merely the first authored. "" for an entry with no tier menu.
+
+    ⚠ Prodigy's menu leads with `favored`, which four splats are barred from, so
+    opening on the first authored tier hands a Solar a row that flags itself
+    immediately."""
+    if definition is None or not definition.cost_options:
+        return ""
+    return next(iter(validate.merit_tiers_available(definition, exalt_type, caste)), "")
+
+
 def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, list[AbilityName]]]:
     """How to lay the Ability roster out in columns, for the sheet and the editor.
 

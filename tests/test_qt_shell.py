@@ -134,3 +134,22 @@ def test_shell_new_resets_the_character(ruleset, qtbot, monkeypatch):
     win._confirm_new()
     assert win._ctx["char"] is not char
     assert win._ctx["char"].name == ""
+
+
+def test_the_advantages_rail_item_is_the_real_page(ruleset, qtbot):
+    """Ported 2026-08-21 — the rail slot must hold AdvantagesPage, not the "still on
+    the webapp" placeholder, and switching to it must reload it from the shared
+    character (the rail handler's setCurrentIndex + reload)."""
+    from exalted_builder.qt.advantages import AdvantagesPage
+    from exalted_builder.models.character import BackgroundEntry
+
+    char = Character(id="char.new", exalt_type="Solar", caste="dawn")
+    win = MainWindow(ruleset, char, Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    page = win._pages["Advantages"]
+    assert isinstance(page, AdvantagesPage)
+    char.backgrounds.append(BackgroundEntry(name="Resources", rating=2))
+    win.rail.setCurrentRow(_RAIL_TABS.index("Advantages"))
+    assert win.stack.currentWidget() is page
+    assert any("Resources" in w.text()
+               for w in page._body_container.findChildren(type(page.issues)))

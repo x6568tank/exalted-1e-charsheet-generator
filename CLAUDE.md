@@ -326,7 +326,7 @@ are pointers only; the traps and history live in the files.
 | Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
-| The Qt port — decision 0018; the build record (milestone 1: the shell + Edit/Charms/Sheet; **milestone 2: the left-rail shell + Identity/Traits + bio fields**, both human-clicked) | `plans/qt-port.md` |
+| The Qt port — decision 0018; the build record (milestone 1: the shell + Edit/Charms/Sheet; milestone 2: the left-rail shell + Identity/Traits + bio fields, both human-clicked; **milestone 3: the Advantages tab — NOT yet human-clicked**) | `plans/qt-port.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms

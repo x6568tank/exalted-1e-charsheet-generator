@@ -181,3 +181,34 @@ Four tests in `tests/test_backgrounds_splat.py`, driving `/merits-backgrounds`, 
 locked `/backgrounds-description-xp` and `/advantages-unknown`: the descriptions render
 at chargen, a pick swaps them live, they print in play too, and a free-text name hides
 its blurb instead of crashing.
+
+## The native (Qt) Advantages tab — 2026-08-21
+
+`exalted_builder/qt/advantages.py`, milestone 3 of the port (`docs/plans/qt-port.md`).
+Same rules, same engine calls, a different idiom: retained-mode panels rebuilt by
+`reload()`, with anything a keystroke touches writing straight to the model and
+re-syncing only its own labels.
+
+**Two things moved OUT of the web widget first**, so no rules decision exists twice —
+`view.default_merit_tier` (with `merit_tier_label` / `merit_option_label`) and
+`advancement.gain_merit_or_flaw` (the merit-vs-flaw side resolution plus both of its
+refusals). `ui/advantages.py` delegates to them now; that is the whole reason the two
+shells cannot drift on the Prodigy default or on which side of the transaction a
+purchase is.
+
+⚠ The audit asked whether Advantages needed an `advantages_actions.py` the way Charms
+needed `charm_actions.py`. **It does not** — no lock-toggle, a post-lock half already in
+`engine/advancement.py`, a chargen half that is `list.append`. The reasoning is in the
+plan doc; do not re-derive it.
+
+Where the native tab deliberately differs from the web one:
+
+* **No bonus-point line of its own** — the shell's readout bar carries it, and printing
+  it here too showed the same sentence twice. The tab's line is its own issues
+  (Background / Merit / Flaw / Artifact codes), and XP available + debt post-lock.
+* **Printed prose is clamped, full text on the tooltip.** Qt has no CSS line-clamp, and
+  a Manse's paragraph pushed every other row off the panel.
+* **A merit row is two lines** (entry + delete, then the entry-specific controls). Qt has
+  no flex-wrap, and a no-wrap row crushes its later children to slivers.
+
+31 tests in `tests/test_qt_advantages.py`; they skip without the optional `qt` extra.

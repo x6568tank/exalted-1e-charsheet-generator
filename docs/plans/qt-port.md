@@ -440,6 +440,62 @@ lock, and the rail's Play appearing at the lock.
 - **The rail's `currentRowChanged` handler must call `stack.setCurrentIndex`** — a
   reload-on-select handler that forgets to switch the stack leaves the old page up.
 
+## Milestone 3 — the Advantages tab (2026-08-21)
+
+Backgrounds + Merits & Flaws + (for ghosts) Fetters and Passions, on one native
+surface: `qt/advantages.py`, filling the rail's placeholder. The two prep moves the
+previous milestone's "ask the question" audit called for were done FIRST, so no rules
+decision was copied into a second widget:
+
+- **`view.default_merit_tier(definition, exalt_type, caste)`** — the splat-aware
+  default a fresh M&F row opens on, plus `view.merit_tier_label` and
+  `view.merit_option_label` (the signed "−4 supernatural" menu line). `ui/advantages.py`
+  now delegates to all three.
+- **`advancement.gain_merit_or_flaw`** — the merit-vs-flaw side resolution and both of
+  its refusals ("Pick a Merit or Flaw first", "…is a Merit OR a Flaw — pick which
+  side"). Which of `buy_merit` / `gain_flaw` runs is what makes the XP positive or
+  negative, so it is a rules decision, not layout. Both shells call it now.
+
+- **`qt/catalogue.py`** — the native browse-before-you-choose dialog, taking the same
+  `(key, name, summary, full)` rows and `on_pick` contract as `ui/catalogue.py` (so
+  Gear can reuse it). The filter HIDES rows rather than removing them, which is what
+  keeps the current selection alive while typing.
+- **`qt/advantages.py`** — one row body per list, two regimes off `char.chargen_locked`:
+  a Background is a DotTrack pre-lock and a free QSpinBox post-lock (ceiling from
+  `background_rating_cap(..., post_lock=True)`, never a hardcoded 5); M&F are editable
+  rows pre-lock and the gain/lose card post-lock; a Fetter is a DotTrack pre-lock and
+  read-only pips + the priced Raise/Form/Shift controls after; a Passion keeps a FREE
+  dot track on both sides (its dots come from the Virtues — p.283 — and are never
+  bought).
+
+Three things the port had to decide for itself, all recorded because the web original
+answers them differently:
+
+- **The tab's own readout is the ISSUE list only.** The shell's readout bar already
+  prints the bonus-point total; printing it here too put the same sentence on screen
+  twice. Post-lock the line becomes XP available + any debt.
+- **Long printed prose is clamped with the full text on the tooltip** (`_clamp`). The
+  web app's blurbs are CSS line-clamped; Qt has none, and a Manse's full paragraph
+  pushed every other row off the panel.
+- **A merit row is TWO lines, not a wrapping one.** Qt has no flex-wrap, and a no-wrap
+  row crushes its later children to slivers — the entry combo + delete sit on the first
+  line, the entry-specific controls (side, tier, arena, points, artifact,
+  stipulations, detail) on the second.
+
+⚠ Traps carried over and re-tested here: the Prodigy default tier; the Hearthstone
+DENOMINATOR moving with the Manse rating; the custom-row discriminator being the EMPTY
+`merit_id` and never `custom_name`'s truthiness (the name box writes it per keystroke);
+and the filter re-optioning rows in place rather than rebuilding the search box.
+
+One shell fix fell out: the pages are built before the status strip existed, and
+`AdvantagesPage` derives its issue line during construction — `self.status` is now
+created before the pages, and the readout no longer opens on " · " post-lock.
+
+Tests: `tests/test_qt_advantages.py` (31), plus the extractions' own —
+`test_view.py` (4: the Prodigy default, the blank menu, the signed label, the tier
+label) and `test_merit_postlock.py` (5: the side resolution's two refusals and its
+three routes).
+
 ## Open questions — not decided
 
 * **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets

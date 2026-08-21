@@ -33,6 +33,7 @@ from exalted_builder.ui import pdf, theme
 from exalted_builder.ui import view as viewmod
 
 from . import theme as qtheme
+from .advantages import AdvantagesPage
 from .charms import CharmsPage
 from .editor import IdentityPage, TraitsPage
 from .sheet import SheetPage
@@ -152,6 +153,12 @@ class MainWindow(QMainWindow):
         for name in _RAIL_TABS:
             self.rail.addItem(QListWidgetItem(_RAIL_LABELS.get(name, name)))
 
+        # status strip — created BEFORE the pages, because a page's constructor may
+        # already fire `on_change` (the Advantages page derives its issue line as it
+        # builds) and `_refresh` writes to both readouts.
+        self.status = QLabel("")
+        self.status.setStyleSheet(f"color:{qtheme.MUTED}; padding:4px 8px;")
+
         # pages
         self._pages["Identity"] = IdentityPage(
             ruleset, ctx, notify=self._notify,
@@ -159,18 +166,18 @@ class MainWindow(QMainWindow):
         self._pages["Traits"] = TraitsPage(
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Gear"] = _PlaceholderPage(
-            "The Gear tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
-        self._pages["Advantages"] = _PlaceholderPage(
-            "The Advantages tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
+            "The Gear tab is still on the webapp.")
+        self._pages["Advantages"] = AdvantagesPage(
+            ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Charms"] = CharmsPage(ruleset, ctx, notify=self._notify)
         self._pages["Combos"] = _PlaceholderPage(
-            "The Combos tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
+            "The Combos tab is still on the webapp.")
         self._pages["Play"] = _PlaceholderPage(
-            "The Play tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
+            "The Play tab is still on the webapp.")
         self._pages["ST"] = _PlaceholderPage(
-            "The ST Options tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
+            "The ST Options tab is still on the webapp.")
         self._pages["Custom"] = _PlaceholderPage(
-            "The Custom (homebrew) tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
+            "The Custom (homebrew) tab is still on the webapp.")
         self._pages["Sheet"] = SheetPage(ruleset, ctx)
 
         self.stack = QStackedWidget()
@@ -178,10 +185,6 @@ class MainWindow(QMainWindow):
             self.stack.addWidget(self._pages[name])
         self.rail.currentRowChanged.connect(self._on_rail_changed)
         self.rail.setCurrentRow(0)
-
-        # status strip
-        self.status = QLabel("")
-        self.status.setStyleSheet(f"color:{qtheme.MUTED}; padding:4px 8px;")
 
         central = QWidget()
         lay = QVBoxLayout(central)
@@ -267,7 +270,8 @@ class MainWindow(QMainWindow):
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
         status = "✓ Legal" if not errors else f"✗ {len(errors)} error(s)"
-        self.readout.setText(f"{bp} · {status}")
+        # Post-lock there are no bonus points, so the line must not open on " · ".
+        self.readout.setText(" · ".join(part for part in (bp, status) if part))
         self.status.setText(
             f"Willpower {view.willpower} · {view.essence_pool_label()} · "
             f"Soak B{view.soak.bashing} / L{view.soak.lethal} / A{view.soak.aggravated}")

@@ -258,3 +258,53 @@ def test_buy_merit_prices_the_tier_against_the_characters_own_menu(rs):
     c = _locked_with_xp(rs)
     with pytest.raises(advancement.AdvancementError):
         advancement.buy_merit(rs, c, "mf.prodigy", tier=foreign[0])
+
+
+# --------------------------------------------------------------------------- #
+# The side resolution — one branch, both shells
+# --------------------------------------------------------------------------- #
+# Extracted from ui/advantages.py when the Qt Advantages tab was ported (2026-08-21):
+# which of buy_merit / gain_flaw runs is what makes the XP positive or negative, so it
+# is a rules decision and may not be hand-copied into each widget.
+
+MUTATION = "mf.mutation"                # kind: "either" — a Merit OR a Flaw
+
+
+def test_gain_merit_or_flaw_refuses_an_unknown_entry(rs):
+    c = _locked_with_xp(rs)
+    with pytest.raises(advancement.AdvancementError, match="Pick a Merit or Flaw"):
+        advancement.gain_merit_or_flaw(rs, c, "")
+
+
+def test_gain_merit_or_flaw_refuses_a_two_sided_entry_with_no_side_picked(rs):
+    c = _locked_with_xp(rs)
+    with pytest.raises(advancement.AdvancementError, match="pick which side"):
+        advancement.gain_merit_or_flaw(rs, c, MUTATION, points=2)
+    assert c.merits_flaws == []
+
+
+def test_gain_merit_or_flaw_routes_a_flaw_to_the_paying_side(rs):
+    """A Flaw PAYS the character — the log row is negative-cost — and the entry it
+    appends records the side that was chosen."""
+    c = _locked_with_xp(rs)
+    before = advancement.xp_available(c)
+    advancement.gain_merit_or_flaw(rs, c, MUTATION, taken_as="flaw", points=2)
+    assert advancement.xp_available(c) > before
+    assert c.merits_flaws[-1].taken_as == "flaw"
+
+
+def test_gain_merit_or_flaw_routes_a_merit_to_the_charging_side(rs):
+    c = _locked_with_xp(rs)
+    before = advancement.xp_available(c)
+    advancement.gain_merit_or_flaw(rs, c, MUTATION, taken_as="merit", points=2)
+    assert advancement.xp_available(c) < before
+    assert c.merits_flaws[-1].taken_as == "merit"
+
+
+def test_gain_merit_or_flaw_reads_the_side_off_a_one_sided_entry(rs):
+    """A plain Merit needs no `taken_as` — the ENTRY decides, not the button."""
+    c = _locked_with_xp(rs, backgrounds=[BackgroundEntry(name="Manse", rating=2)])
+    before = advancement.xp_available(c)
+    advancement.gain_merit_or_flaw(rs, c, HIDDEN_MANSE, tier="1")
+    assert advancement.xp_available(c) < before
+    assert HIDDEN_MANSE in [p.merit_id for p in c.merits_flaws]

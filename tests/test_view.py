@@ -308,3 +308,43 @@ def test_augmentation_view_empty_for_non_alchemical():
     solar = persistence.load_character(EXAMPLE)
     assert viewmod.augmentation_category(rs, solar) is None
     assert viewmod.build_augmentation_view(rs, solar) == []
+
+
+# --- the M&F presenters both shells share ----------------------------------- #
+
+def test_default_merit_tier_skips_a_tier_this_splat_may_not_choose():
+    """The Prodigy trap: its menu leads with `favored`, which a Solar is barred from.
+    Opening a fresh row on the first AUTHORED tier hands the player a row that flags
+    itself immediately, so the default is the first AVAILABLE one."""
+    rs = _rs()
+    prodigy = rs.merits_flaws["mf.prodigy"]
+    assert next(iter(prodigy.cost_options)) == "favored"      # the trap is still live
+    assert viewmod.default_merit_tier(prodigy, "Solar", "dawn") == "aptitude"
+
+
+def test_default_merit_tier_is_blank_without_a_tier_menu():
+    rs = _rs()
+    flat = next(m for m in rs.merits_flaws.values() if not m.cost_options)
+    assert viewmod.default_merit_tier(flat, "Solar", "dawn") == ""
+    assert viewmod.default_merit_tier(None, "Solar", "dawn") == ""
+
+
+def test_merit_option_label_signs_the_price_by_side():
+    """A Flaw PAYS, so its label reads +N; a Merit charges, so −N. A variable-cost
+    entry shows the range rather than one number."""
+    rs = _rs()
+    merit = next(m for m in rs.merits_flaws.values()
+                 if m.kind == "merit" and not m.cost_options)
+    flaw = next(m for m in rs.merits_flaws.values()
+                if m.kind == "flaw" and not m.cost_options)
+    assert viewmod.merit_option_label(merit).startswith(f"{merit.name}  (−{merit.cost}")
+    assert viewmod.merit_option_label(flaw).startswith(f"{flaw.name}  (+{flaw.cost}")
+    ranged = rs.merits_flaws["mf.prodigy"]
+    lo, hi = min(ranged.cost_options.values()), max(ranged.cost_options.values())
+    assert f"({'−' if ranged.kind == 'merit' else '+'}{lo}-{hi}" in \
+        viewmod.merit_option_label(ranged)
+
+
+def test_merit_tier_label_renders_both_key_shapes():
+    assert viewmod.merit_tier_label("4") == "4"
+    assert viewmod.merit_tier_label("favored_aptitude") == "Favored + Aptitude"

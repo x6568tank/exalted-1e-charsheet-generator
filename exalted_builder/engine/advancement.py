@@ -1911,6 +1911,35 @@ def gain_flaw(ruleset: RuleSet, character: Character, merit_id: str,
     return entry
 
 
+def gain_merit_or_flaw(ruleset: RuleSet, character: Character, merit_id: str,
+                       *, tier: str = "", detail: str = "", arena: str = "",
+                       taken_as: str = "", points: int = 0) -> XpEntry:
+    """Take on one catalogue entry in play, whichever side of the transaction it is.
+
+    Input: the entry's id plus whatever the row records (tier, points, detail, arena,
+    and `taken_as` for a two-sided entry). Output: the `XpEntry` `buy_merit` or
+    `gain_flaw` logged. Mechanism: the ENTRY decides the direction — a Flaw pays the
+    character, a Merit charges her — so the side is read off the definition and only a
+    `kind: "either"` entry consults `taken_as`.
+
+    ⚠ Every shell needs this branch, and it is a rules decision, not layout: which of
+    the two engine calls runs is what makes the XP positive or negative. Both refusals
+    (no entry, and a two-sided entry with no side picked) are raised here so no widget
+    has to restate them."""
+    definition = ruleset.merits_flaws.get(merit_id)
+    if definition is None:
+        raise AdvancementError("Pick a Merit or Flaw first.")
+    side = definition.kind
+    if side == "either":
+        side = taken_as
+        if side not in ("merit", "flaw"):
+            raise AdvancementError(
+                f"{definition.name} is a Merit OR a Flaw — pick which side.")
+    call = gain_flaw if side == "flaw" else buy_merit
+    return call(ruleset, character, merit_id, tier=tier, detail=detail, arena=arena,
+                taken_as=taken_as, points=points)
+
+
 def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry | None:
     """Lose a Merit, or buy off a Flaw. Mirrors the two above: losing a MERIT pays the
     character twice its value, losing a FLAW charges it (PG p.17). Returns None for a
