@@ -330,9 +330,16 @@ was living in a WIDGET is now `charm_actions.variant_menu_reason`, where every s
 runs it.
 
 **The general rule this milestone bought: a purchase surface gets its engine
-dispatcher BEFORE it is ported, not after.** Advantages (Backgrounds + M&F) is the
-next one — check whether its buy paths already have an engine home, and give them one
-if not, while there is still only a single copy to move.
+dispatcher BEFORE it is ported, not after.**
+
+⚠ **The rule is "ask the question", not "always extract".** Asked of Advantages
+(2026-08-21, before porting it) the answer came back NO: it has no lock-toggle to
+extract, its post-lock half is already `engine/advancement.py`, and its chargen half is
+`list.append`. An `advantages_actions.py` would be a module with nothing in it. What it
+needs instead is two small widget-resident decisions moved out (`_default_tier`'s
+splat-aware default, `_gain_mf`'s merit-vs-flaw side resolution) — the reasoning and
+the Prodigy trap are in `docs/status/handoff.md`, "Advantages is NOT shaped like
+Charms". **Apply the same test to each remaining tab rather than assuming its answer.**
 
 ### The theme — a desktop app, not a web-app mimicry
 

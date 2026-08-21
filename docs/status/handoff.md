@@ -97,6 +97,40 @@ Verified both ways: 72 pass with the extra, 4 clean skips without.
 The human is clearing context to port the **Advantages** tab (Backgrounds + Merits &
 Flaws). The shell has a placeholder Advantages rail item to fill.
 
+### ⚠ Read this before porting it — Advantages is NOT shaped like Charms
+
+The obvious move after `charm_actions` is "extract an `advantages_actions.py` first."
+**Checked 2026-08-21 against `ui/advantages.py`, and that is the wrong answer** — the
+duplication risk here is a different shape, and building a dispatcher it does not need
+would be busywork:
+
+- **There is no lock-toggle to extract.** Charms had ONE control that meant "pick" or
+  "buy" depending on the lock, which is what made a hand-copied dispatch dangerous.
+  Advantages has **two separate panels**: chargen row editors, and `_play_merits` /
+  the Fetter and Passion play cards.
+- **The post-lock side is already in the engine.** `buy_merit`, `gain_flaw`,
+  `drop_merit`, `raise_fetter`, `add_fetter`, `shift_fetter`, `shift_passion` all live
+  in `engine/advancement.py`, priced and logged. The widget only wraps them in `_do`.
+- **The pre-lock side has no rules in it.** `add_bg` / `remove_bg` / `remove_merit` are
+  `list.append` and `del`. There is nothing to share.
+
+What DOES need moving before a second shell copies it — small, widget-resident
+decisions that are rules or presentation, not layout:
+
+- **`_default_tier`** — "the first tier this SPLAT may choose, not merely the first
+  authored." It already carries a ⚠: Prodigy's menu leads with `favored`, which four
+  splats are barred from, so opening on the first authored tier hands a Solar a row
+  that flags itself immediately. `validate.merit_tiers_available` does the work; the
+  choose-the-default wrapper belongs in `view.py`.
+- **`_gain_mf`'s side resolution** — an `either` entry needs the player to say which
+  side, and a Flaw PAYS the character rather than costing. That branch plus its two
+  refusal messages is the one genuinely rules-shaped thing in the widget.
+
+⚠ And the standing trap that outranks all of the above: **no module outside
+`engine/merits.py` may name a Merit id** — a test greps for it. Add a `MeritEffects`
+FIELD, never an allowlist, and that applies to the Qt widgets exactly as it does to
+the NiceGUI ones.
+
 ## Still deferred, still NOT gaps
 The Mist numina and Cult Abyssals (both indefinitely), and the one martial-arts
 absence (`enlightenment`). Training times are still a no.
