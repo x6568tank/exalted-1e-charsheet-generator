@@ -267,8 +267,14 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,482 passing, 3 skipped** (2026-08-21, the `qt-port` branch on the `-ds` machine
-— the 2,409 baseline plus the Qt-port tests in `tests/test_qt_*.py`).
+**2,495 passing, 3 skipped** (2026-08-21, the `qt-port` branch — the 2,409 baseline
+plus the Qt-port tests in `tests/test_qt_*.py` and `tests/test_charm_actions.py`).
+
+- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (72 of them,
+  four whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
+  a bare import was a COLLECTION ERROR, which takes the entire run down rather than
+  those tests. **A count 72 lower on a webapp-only machine is that working**, not
+  tests going missing — install with `.venv/bin/pip install -e '.[qt]'`.
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
   here and the cause was not chased. The run is what tells you the suite is green.
