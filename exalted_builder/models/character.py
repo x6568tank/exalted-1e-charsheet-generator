@@ -845,6 +845,20 @@ class Character(BaseModel):
     concept: str = ""
     nature: str = ""
     anima: str = ""
+    # --- biography: free-fill flavour fields (human 2026-08-21). All default "" so
+    # every existing save loads unchanged; a missing key is pydantic's default. They
+    # are the Qt Identity tab's bio block and (eventually) the web app's. Not rules —
+    # nothing in the engine reads them.
+    sex: str = ""
+    age: str = ""
+    eye_color: str = ""
+    hair_color: str = ""
+    skin_color: str = ""
+    height: str = ""
+    weight: str = ""
+    description: str = ""
+    backstory: str = ""
+    notes: str = ""
     # Lunar Form Library (the "Totem" field on the 1e Lunar sheet). Narrative only —
     # see AnimalForm. Empty/unused for every other splat; old saves load with both
     # at their defaults.

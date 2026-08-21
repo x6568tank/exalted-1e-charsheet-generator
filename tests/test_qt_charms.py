@@ -9,18 +9,38 @@ from types import SimpleNamespace
 
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QWheelEvent
-from PySide6.QtWidgets import QLineEdit, QPushButton
+from PySide6.QtWidgets import QCheckBox, QLabel, QLineEdit, QPushButton
 
-from exalted_builder.engine import advancement, lifecycle, refit
+from exalted_builder.engine import advancement, lifecycle, refit, validate
 from exalted_builder.models.character import (AbilityName, Character,
                                                MeritFlawPurchase, PathRating)
-from exalted_builder.qt.charms import (CharmsPage, CharmTreeView, EdgeItem,
-                                       NodeItem, _tree_positions, populate)
+from exalted_builder.qt.charms import (CharmsPage, CharmTreeView, DotTrack,
+                                       EdgeItem, NodeItem, _tree_positions, populate)
 from exalted_builder.ui.view import build_thaum_picker
 
 
 def _visible_tabs(page):
     return [page.tabs.tabText(i) for i in range(page.tabs.count())]
+
+
+def _open_paths(page):
+    """Switch to the Paths tab; returns it."""
+    for i in range(page.tabs.count()):
+        if page.tabs.tabText(i) == "Paths":
+            page.tabs.setCurrentIndex(i)
+            return page.tabs.widget(i)
+    raise AssertionError("no Paths tab")
+
+
+def _select_path(page, path_id):
+    """Select one Path in the list and return the bound rating DotTrack."""
+    _open_paths(page)
+    lst = page._paths_list
+    for row in range(lst.count()):
+        if lst.item(row).data(Qt.UserRole) == path_id:
+            lst.setCurrentRow(row)
+            return page._path_box.findChild(DotTrack)
+    raise AssertionError(f"no list row for {path_id}")
 
 
 def test_solar_page_tabs(ruleset, qtbot):
@@ -379,13 +399,18 @@ def test_dragonkings_get_paths_tab_and_solar_does_not(ruleset, qtbot):
     assert "Paths" not in _visible_tabs(solar)
 
 
-def test_paths_pre_lock_rating_combo_writes_paths(ruleset, qtbot):
+def test_paths_pre_lock_dot_track_writes_paths(ruleset, qtbot):
     char = Character(id="dk", exalt_type="Dragon-Kings", caste="pterok")
     page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
     qtbot.addWidget(page)
-    page._path_combos["dk.solid-earth"].setCurrentIndex(2)
+    track = _select_path(page, "dk.solid-earth")
+    # A chargen Path rating is a free setter — the dot track writes character.paths.
+    track._pips[2].clicked.emit(2)
     assert any(p.path_id == "dk.solid-earth" and p.rating == 2 for p in char.paths)
-    page._path_combos["dk.solid-earth"].setCurrentIndex(0)
+    # Clicking the current top pip steps it back down; from 1 a further click removes
+    # the Path entirely (rating 0).
+    track._pips[0].clicked.emit(1)
+    track._pips[0].clicked.emit(1)
     assert not any(p.path_id == "dk.solid-earth" for p in char.paths)
 
 
@@ -427,7 +452,9 @@ def test_paths_post_lock_learn_spends_xp(ruleset, qtbot):
     page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
     qtbot.addWidget(page)
     available_before = advancement.xp_available(char)
-    page._path_adv("dk.solid-earth", +1)
+    _select_path(page, "dk.solid-earth")
+    assert "XP" in page.action_btn.text()   # the Learn button carries the price
+    page._path_act()
     assert any(p.path_id == "dk.solid-earth" and p.rating == 1 for p in char.paths)
     assert advancement.xp_available(char) < available_before
 
@@ -441,6 +468,189 @@ def test_paths_post_lock_essence_cap_refuses(ruleset, qtbot):
     page = CharmsPage(ruleset, {"char": char},
                       notify=lambda t, k="info": messages.append(t))
     qtbot.addWidget(page)
-    page._path_adv("dk.solid-earth", +1)
+    _select_path(page, "dk.solid-earth")
+    page._path_act()
     assert any(p.path_id == "dk.solid-earth" and p.rating == 3 for p in char.paths)
     assert messages
+
+
+def test_paths_selection_fills_detail_and_hides_on_other_tabs(ruleset, qtbot):
+    char = Character(id="dk", exalt_type="Dragon-Kings", caste="pterok")
+    char.paths.append(PathRating(path_id="dk.solid-earth", rating=2))
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    track = _select_path(page, "dk.solid-earth")
+    assert page._selected_path == "dk.solid-earth"
+    assert not page._path_box.isHidden()       # the rating row is up
+    assert "Solid Earth" in page.detail.toPlainText()
+    assert track is not None
+    # Leaving the Paths tab hides the rating row and drops the selection.
+    page.tabs.setCurrentIndex(0)
+    assert page._path_box.isHidden()
+    assert page._selected_path is None
+
+
+# ---- Augmentation templates (Alchemical) ---------------------------------- #
+
+def test_alchemical_gets_augmentations_tab(ruleset, qtbot):
+    page = CharmsPage(ruleset, {"char": Character(id="a", exalt_type="Alchemical")},
+                      notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    assert "Augmentations" in _visible_tabs(page)
+    # two type cards, each with a Pick Attributes button and a title
+    aug_page = page.tabs.widget(_visible_tabs(page).index("Augmentations"))
+    buttons = [b.text() for b in aug_page.findChildren(QPushButton)]
+    assert buttons.count("Pick Attributes") == 2
+    titles = [lbl.text() for lbl in aug_page.findChildren(QLabel)]
+    assert "Transitory Augmentation" in titles
+    assert "Sustained Augmentation" in titles
+
+
+def test_augmentation_templates_collapse_into_two_tree_nodes(ruleset, qtbot):
+    # The 18 '<Type> Augmentation of <Attribute>' templates render as ONE node per
+    # type (Transitory / Sustained) in every tree — including 'general' itself —
+    # not as eighteen disconnected nodes.
+    char = Character(id="a", exalt_type="Alchemical")
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    view = page._tree_views["abilities"]
+    cats = [view.category_combo.itemData(j) for j in range(view.category_combo.count())]
+    assert "general" in cats
+    for j in range(view.category_combo.count()):
+        view.category_combo.setCurrentIndex(j)
+        qtbot.wait(5)
+        labels = [n.label for n in view.graph.nodes]
+        # no raw '<Type> Augmentation of <Attribute>' variants leak anywhere...
+        assert all("Augmentation of" not in l for l in labels)
+        # ...and any summary nodes present are exactly the two types
+        summaries = {l for l in labels
+                     if l in ("Transitory Augmentation", "Sustained Augmentation")}
+        assert summaries <= {"Transitory Augmentation", "Sustained Augmentation"}
+    # a tree whose Charms NAME a template as a prerequisite shows BOTH summary nodes
+    view.category_combo.setCurrentIndex(view.category_combo.findData("close_combat"))
+    qtbot.wait(5)
+    labels = [n.label for n in view.graph.nodes]
+    assert {"Transitory Augmentation", "Sustained Augmentation"} <= set(labels)
+    # 'general' itself renders as exactly the two summary nodes
+    view.category_combo.setCurrentIndex(view.category_combo.findData("general"))
+    qtbot.wait(5)
+    assert {n.label for n in view.graph.nodes} == \
+        {"Transitory Augmentation", "Sustained Augmentation"}
+
+
+def test_augment_toggle_installs_and_removes(ruleset, qtbot):
+    char = Character(id="a", exalt_type="Alchemical")
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    aug_id = next(cid for cid in ruleset.charms
+                  if cid.startswith("alchemical.general."))
+    cb = QCheckBox("Strength")
+    cb.toggled.connect(lambda checked, cid=aug_id, c=cb: page._toggle_augment(cid, c))
+    cb.setChecked(True)
+    assert aug_id in char.charms
+    cb.setChecked(False)
+    assert aug_id not in char.charms
+
+
+# ---- Elemental Powers pre-lock price ------------------------------------- #
+
+def test_elemental_pre_lock_button_shows_bp_price(ruleset, qtbot):
+    # A chargen Elemental Power costs bonus points (PG p.68) — the Learn button
+    # carries the BP price on the chargen side, the way Thaumaturgy rows do.
+    page = CharmsPage(ruleset, {"char": _elemental_char()},
+                      notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._elemental_list.setCurrentRow(0)
+    assert "BP" in page.action_btn.text()
+
+
+# ---- Form Library Add button anchoring ------------------------------------ #
+
+def test_form_library_add_button_is_pinned_below_the_list(ruleset, qtbot):
+    # The "+ Add form" button lives in the page layout (pinned at the bottom), NOT
+    # inside the scrolling forms list — adding forms must never move it.
+    page = CharmsPage(ruleset, {"char": Character(id="l", exalt_type="Lunar")},
+                      notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    form_page = page.tabs.widget(_visible_tabs(page).index("Form Library"))
+    add = next(b for b in form_page.findChildren(QPushButton) if b.text() == "+ Add form")
+    assert add.parentWidget() is form_page
+
+
+# ---- Round two: augmentation in other trees, readouts, BP past the pool ------ #
+
+def test_augmentation_summary_node_selects_and_offers_pick(ruleset, qtbot):
+    # Selecting a collapsed 'Transitory Augmentation' node shows the type's detail
+    # and a Pick Attributes action (a Charm detail would not exist for the summary).
+    char = Character(id="a", exalt_type="Alchemical")
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    view = page._tree_views["abilities"]
+    view.category_combo.setCurrentIndex(view.category_combo.findData("general"))
+    qtbot.wait(5)
+    node_item = next(i for i in view.scene().items()
+                     if isinstance(i, NodeItem) and i.node.id.startswith("augment:"))
+    node_item.setSelected(True)
+    qtbot.wait(5)
+    assert page._selected_augment == "Transitory Augmentation"
+    assert page._selected_node is None
+    assert "Installed:" in page.detail.toPlainText()
+    assert page.action_btn.text() == "Pick Attributes"
+
+
+def test_alchemical_slots_readout_tracks_live_load(ruleset, qtbot):
+    # The Slots readout is the LIVE load, not the frozen chargen snapshot — buying a
+    # Charm moves it.
+    char = Character(id="a", exalt_type="Alchemical")
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._update_readout()
+    before = page.readout.text()
+    assert "Slots:" in before
+    cid = next(c.id for c in ruleset.charms.values()
+               if c.exalt_type == "Alchemical"
+               and validate.charm_occupies_slot(ruleset, char, c))
+    char.charms.append(cid)
+    page._update_readout()
+    assert page.readout.text() != before
+
+
+def test_dragonking_readout_shows_path_dots_not_charms(ruleset, qtbot):
+    char = Character(id="dk", exalt_type="Dragon-Kings", caste="pterok")
+    char.paths.append(PathRating(path_id="dk.solid-earth", rating=2))
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    assert "Path dots: 2" in page.readout.text()
+    assert "Charms:" not in page.readout.text()
+
+
+def test_chargen_pick_bp_zero_until_pool_full(ruleset, qtbot):
+    char = Character(id="s", exalt_type="Solar")
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    melee = [c.id for c in ruleset.charms.values()
+             if c.category == "melee" and c.exalt_type == "Solar"]
+    assert page._chargen_pick_bp(charm_id=melee[0]) == 0      # pool has room
+    for cid in melee[:10]:
+        char.charms.append(cid)
+    # a candidate NOT already held — the 12th melee Charm
+    assert page._chargen_pick_bp(charm_id=melee[11]) > 0       # pool full
+
+
+def test_chargen_learn_button_shows_bp_when_pool_full(ruleset, qtbot):
+    melee = [c.id for c in ruleset.charms.values()
+             if c.category == "melee" and c.exalt_type == "Solar"]
+    full = Character(id="s", exalt_type="Solar")
+    for cid in melee[:10]:
+        full.charms.append(cid)
+    page = CharmsPage(ruleset, {"char": full}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._selected_node = melee[10]
+    page._update_action()
+    assert "BP" in page.action_btn.text()
+    empty = Character(id="s2", exalt_type="Solar")
+    page2 = CharmsPage(ruleset, {"char": empty}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page2)
+    page2._selected_node = melee[0]
+    page2._update_action()
+    assert "BP" not in page2.action_btn.text()

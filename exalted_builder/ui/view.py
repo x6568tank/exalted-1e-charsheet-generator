@@ -1606,6 +1606,8 @@ class SheetView:
     concept: str
     nature: str
     anima: str
+    # free-fill biography (human 2026-08-21) — (label, value) pairs, empty ones dropped
+    biography: list[tuple[str, str]]
     # Lunar Form Library (narrative only — see models.character.AnimalForm)
     totem: str
     animal_forms: list[tuple[str, str]]               # (animal, notes)
@@ -2553,6 +2555,13 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         concept=character.concept,
         nature=character.nature,
         anima=character.anima,
+        biography=[(label, value) for label, value in (
+            ("Sex", character.sex), ("Age", character.age),
+            ("Eyes", character.eye_color), ("Hair", character.hair_color),
+            ("Skin", character.skin_color), ("Height", character.height),
+            ("Weight", character.weight), ("Description", character.description),
+            ("Backstory", character.backstory), ("Notes", character.notes))
+            if value],
         totem=character.totem,
         animal_forms=[(f.name, f.notes) for f in character.animal_forms],
         essence_rating=character.essence_rating,

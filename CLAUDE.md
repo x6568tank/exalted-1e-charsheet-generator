@@ -215,7 +215,13 @@ pool calculation.
   spike's trees plus Learn/Remove buying (Charms, Spells, Thaumaturgy Arts +
   specialties, Sciences, Rituals/Formulas with an orientation picker), Sheet the
   spike's document. Theme is the human's desktop direction: one unified dark base,
-  the splat as a light accent (the dark printed accents are invisible on dark). The
+  the splat as a light accent (the dark printed accents are invisible on dark).
+  **Milestone 2 shipped (2026-08-21, human-approved):** the shell is the approved
+  `spikes/qt_edit/` layout — a left rail of app tabs, a readout bar whose "≡ details"
+  opens a popover (validation + bonus points + post-lock Experience card), and a
+  bottom status strip — and the Edit tab split into Identity + Traits, with ten
+  free-fill bio fields on the Character model (the NiceGUI Identity does not expose
+  them yet, deferred). The
   part that affects work NOW: the port is cheap only because nothing outside `ui/`
   imports `nicegui` and `ui/view.py` is a pure presenter. **Keep it that way** —
   prefer derived state in `view.py` over inline computation in a widget module.
@@ -261,7 +267,7 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,448 passing, 3 skipped** (2026-08-20, the `qt-port` branch on the `-ds` machine
+**2,482 passing, 3 skipped** (2026-08-21, the `qt-port` branch on the `-ds` machine
 — the 2,409 baseline plus the Qt-port tests in `tests/test_qt_*.py`).
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
@@ -314,7 +320,7 @@ are pointers only; the traps and history live in the files.
 | Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
-| The Qt port — decision 0018; the build record (milestone 1: the native shell + Edit/Charms/Sheet, human-clicked) | `plans/qt-port.md` |
+| The Qt port — decision 0018; the build record (milestone 1: the shell + Edit/Charms/Sheet; **milestone 2: the left-rail shell + Identity/Traits + bio fields**, both human-clicked) | `plans/qt-port.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms

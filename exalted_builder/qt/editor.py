@@ -24,7 +24,7 @@ from PySide6.QtCore import QTimer, Qt, Signal
 from PySide6.QtWidgets import (
     QComboBox, QCompleter, QDialog, QFrame, QHBoxLayout, QLabel, QLineEdit,
     QListWidget, QListWidgetItem, QPushButton, QScrollArea, QSizePolicy,
-    QSpinBox, QSplitter, QVBoxLayout, QWidget,
+    QSpinBox, QTextEdit, QVBoxLayout, QWidget,
 )
 
 from exalted_builder.engine import advancement, costs, derive, elder, merits, validate
@@ -32,7 +32,7 @@ from exalted_builder.models.character import (
     AbilityName, AttributeName, Character, CraftRating, VirtueName,
 )
 from exalted_builder.models.rules import RuleSet
-from .theme import CARD, accent as accent_light
+from .theme import CARD, INPUT, accent as accent_light
 
 from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
@@ -237,20 +237,21 @@ class _Panel(QFrame):
         return self._lay
 
 
-class EditPage(QWidget):
-    """The Edit tab. See the module docstring; `reload()` rebuilds the body + side
-    column from the character in ctx, `_changed()` re-derives only the side column and
-    the registered tallies. `notify` is a (text, kind) callback for transient
-    messages; `on_theme_change` fires after the Exalt type changes."""
+class _EditorPage(QWidget):
+    """Shared machinery for the Identity and Traits pages: a retained-mode scrollable
+    body, the dot-track buying / downward-dialog plumbing, scroll-hold and layout
+    clearing. `reload()` rebuilds the body from the character in ctx; a subclass's
+    `_build_body()` supplies the content. `notify` surfaces transient messages;
+    `on_change` fires whenever the character changed so the shell can refresh its
+    readout/status (the old side column now lives in the shell's popover)."""
 
-    def __init__(self, ruleset, ctx, *, notify=None, on_theme_change=None, parent=None):
+    def __init__(self, ruleset, ctx, *, notify=None, on_change=None, parent=None):
         super().__init__(parent)
         self._ruleset = ruleset
         self._ctx = ctx
         self._notify = notify or (lambda text, kind="info": None)
-        self._on_theme_change = on_theme_change
+        self._on_change = on_change
         self._tallies: list[callable] = []
-
         self._body_container = QWidget()
         self._body_lay = QVBoxLayout(self._body_container)
         self._body_lay.setContentsMargins(0, 0, 0, 0)
@@ -259,20 +260,27 @@ class EditPage(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setWidget(self._body_container)
         self._body_scroll = scroll
-
-        self._side = QWidget()
-        self._side.setFixedWidth(320)
-        self._side_lay = QVBoxLayout(self._side)
-        self._side_lay.setContentsMargins(0, 0, 0, 0)
-        self._side_lay.setSpacing(8)
-
-        split = QSplitter()
-        split.addWidget(scroll)
-        split.addWidget(self._side)
-        split.setSizes([900, 320])
         outer = QVBoxLayout(self)
-        outer.addWidget(split)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.addWidget(scroll)
         self.reload()
+
+    def reload(self) -> None:
+        """Rebuild the body from the character in ctx. Pin the body's height across
+        the rebuild (clearing the layout collapses the content under the scrollbar,
+        clamping the saved value), then re-apply the scroll position for a short
+        settle window (see _hold_scroll)."""
+        saved = self._body_scroll.verticalScrollBar().value()
+        self._body_container.setMinimumHeight(self._body_container.height())
+        self._clear_lay(self._body_lay)
+        self._tallies.clear()
+        self._build_body()
+        self._body_lay.addStretch(1)
+        self._body_container.setMinimumHeight(0)
+        self._hold_scroll(saved)
+
+    def _build_body(self) -> None:
+        raise NotImplementedError
 
     def _char(self) -> Character:
         return self._ctx["char"]
@@ -346,166 +354,6 @@ class EditPage(QWidget):
                 w.deleteLater()
             elif item.layout() is not None:
                 self._clear_lay(item.layout())
-
-    def _issues(self, lay, view, ok_text: str) -> None:
-        """The findings into `lay` (a card's layout) — status line then each issue."""
-        errors = [i for i in view.issues if i.severity == "error"]
-        status = ok_text if not errors else f"✗ {len(errors)} error(s)"
-        label = QLabel(status)
-        label.setStyleSheet("font-weight:bold; color:%s;" % ("#15803d" if not errors else "#b91c1c"))
-        lay.addWidget(label)
-        for issue in view.issues:
-            if issue.code in ("bonus-points", "xp-summary"):
-                continue
-            color = {"error": "#b91c1c", "warning": "#b45309"}.get(issue.severity, "#a8a5a0")
-            l = QLabel(f"• {issue.message}")
-            l.setStyleSheet(f"color:{color};")
-            l.setWordWrap(True)
-            lay.addWidget(l)
-
-    def _card(self) -> QVBoxLayout:
-        card = QFrame()
-        card.setStyleSheet(f"QFrame {{ background:{CARD}; border:none; "
-                           f"border-radius:6px; }}")
-        lay = QVBoxLayout(card)
-        lay.setContentsMargins(10, 6, 10, 8)
-        lay.setSpacing(2)
-        self._side_lay.addWidget(card)
-        return lay
-
-    def _card_title(self, lay, title: str) -> None:
-        accent = theme.palette(self._char().exalt_type).accent
-        t = QLabel(title)
-        t.setStyleSheet(f"font-weight:bold; color:{accent};")
-        lay.addWidget(t)
-
-    def _build_side(self) -> None:
-        self._clear_lay(self._side_lay)
-        char = self._char()
-        pal = theme.palette(char.exalt_type)
-        if char.chargen_locked:
-            self._xp_card()
-            self._xp_log_card()
-            view = viewmod.build_sheet_view(self._ruleset, char)
-            if any(i.code != "xp-summary" for i in view.issues):
-                lay = self._card()
-                self._card_title(lay, "Validation")
-                self._issues(lay, view, "✓ Legal")
-        else:
-            lay = self._card()
-            self._card_title(lay, "Live Validation")
-            view = viewmod.build_sheet_view(self._ruleset, char)
-            bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
-            if bp:
-                b = QLabel(bp)
-                b.setStyleSheet("font-weight:600; color:%s;" % accent_light(pal))
-                lay.addWidget(b)
-            row = self._row(lay)
-            row.addWidget(QLabel(f"Willpower {view.willpower}"))
-            row.addWidget(QLabel(view.essence_pool_label()))
-            soak = QLabel(f"Soak  B{view.soak.bashing} / L{view.soak.lethal} / A{view.soak.aggravated}")
-            lay.addWidget(soak)
-            self._issues(lay, view, "✓ Legal chargen")
-            self._bp_card()
-        # The trailing stretch absorbs the splitter's extra height, so the cards keep
-        # their natural height — otherwise the labels stretch to fill and each single
-        # line of text floats in ~55px of empty space (the "Live Validation spaced
-        # out" report).
-        self._side_lay.addStretch(1)
-
-    def _bp_card(self) -> None:
-        bd = validate.bonus_point_breakdown(self._ruleset, self._char())
-        lay = self._card()
-        self._card_title(lay, "Bonus Points")
-        color = "#b91c1c" if bd.over_budget else "#15803d"
-        total = QLabel(f"{bd.total} / {bd.available} spent")
-        total.setStyleSheet(f"font-weight:600; color:{color};")
-        lay.addWidget(total)
-        for line in bd.lines:
-            row = self._row(lay)
-            domain = QLabel(line.domain)
-            if not line.points:
-                domain.setStyleSheet("color:#a8a5a0;")
-            row.addWidget(domain, 1)
-            pts = QLabel(str(line.points))
-            if not line.points:
-                pts.setStyleSheet("color:#a8a5a0;")
-            row.addWidget(pts)
-
-    def _xp_card(self) -> None:
-        char = self._char()
-        pal = theme.palette(char.exalt_type)
-        lay = self._card()
-        self._card_title(lay, "Experience")
-        available = advancement.xp_available(char)
-        row = self._row(lay)
-        av = QLabel(str(available))
-        av.setStyleSheet("font-weight:bold; font-size:18pt; color:%s;" % ("#15803d" if available >= 0 else "#b91c1c"))
-        row.addWidget(av)
-        row.addWidget(QLabel("XP available"))
-        earned = QLabel(f"earned {char.xp_earned} · spent {advancement.xp_spent(char)}")
-        earned.setStyleSheet("color:#a8a5a0;")
-        lay.addWidget(earned)
-        # Adjust XP
-        row = self._row(lay)
-        amount = QSpinBox()
-        amount.setRange(-999, 9999)
-        amount.setValue(5)
-        row.addWidget(amount, 1)
-        adjust = QPushButton("Adjust XP")
-        adjust.setStyleSheet(f"background:{accent_light(pal)}; color:#1a1a1a; border:none; border-radius:4px; padding:4px 8px;")
-        adjust.clicked.connect(lambda: self._do_add_xp(amount.value()))
-        row.addWidget(adjust)
-        # Downtime + undo
-        row = self._row(lay)
-        downtime = QPushButton("Downtime…")
-        downtime.setToolTip("The p.259 calculator is not ported to the native app yet.")
-        downtime.setEnabled(False)
-        row.addWidget(downtime, 1)
-        rows = viewmod.build_xp_log(self._ruleset, char)
-        if rows:
-            undo = QPushButton(f"Undo last: {rows[-1].label}")
-            undo.clicked.connect(self._do_undo)
-            lay.addWidget(undo)
-        granted, remaining = validate.withheld_charm_credits(self._ruleset, char)
-        if granted:
-            note = QLabel(f"{remaining} of {granted} withheld Charm(s) in reserve — the next "
-                          f"{remaining or 'no'} cost no XP.")
-            note.setStyleSheet(f"color:{accent_light(pal)}; font-weight:600;")
-            note.setWordWrap(True)
-            lay.addWidget(note)
-
-    def _xp_log_card(self) -> None:
-        char = self._char()
-        rows = viewmod.build_xp_log(self._ruleset, char)
-        lay = self._card()
-        self._card_title(lay, "Experience Ledger")
-        if not rows:
-            empty = QLabel("No XP spent yet.")
-            empty.setStyleSheet("color:#a8a5a0;")
-            lay.addWidget(empty)
-        for r in rows:
-            row = self._row(lay)
-            row.addWidget(QLabel(r.label), 1)
-            cost = QLabel(f"{r.cost} XP")
-            cost.setStyleSheet("color:#a8a5a0;")
-            row.addWidget(cost)
-
-    def _do_add_xp(self, amount: int) -> None:
-        advancement.add_xp(self._char(), amount)
-        self._changed()
-
-    def _do_undo(self) -> None:
-        try:
-            advancement.undo_last(self._ruleset, self._char())
-        except advancement.AdvancementError as ex:
-            self._notify(str(ex), "warning")
-            return
-        self.reload()
-
-    # ------------------------------------------------------------------ #
-    # post-lock buying (decision 0013)
-    # ------------------------------------------------------------------ #
 
     def _buy(self, target: str, current: int, wanted: int, refresh, detail: str = "") -> bool:
         """Handle a post-lock dot click. Returns False pre-lock, so the track falls
@@ -772,152 +620,56 @@ class EditPage(QWidget):
         except (RuntimeError, TypeError):
             pass
 
-    def reload(self) -> None:
-        """Rebuild the body + side column from the character in ctx. Called on
-        structural changes (Exalt type, caste, origin, favoured picks), on load/new/
-        lock/unlock, and on any change to a BODY_REBUILD_TARGET. Dot clicks use
-        `_changed()` instead and do not rebuild the body."""
-        saved = self._body_scroll.verticalScrollBar().value()
-        # Pin the body's height across the rebuild: clearing the layout collapses
-        # the content under the scrollbar, and the collapse clamps the scrollbar's
-        # value — the yank a structural edit produces on the real display. Holding
-        # the height steady means the scrollbar never sees a collapsed range.
-        self._body_container.setMinimumHeight(self._body_container.height())
-        self._clear_lay(self._body_lay)
-        self._tallies.clear()
+    def _changed(self) -> None:
+        """A change that only moves the readouts — dot clicks, name edits, Adjust XP.
+        Re-runs the registered tallies (the body's dot tracks have already refreshed
+        themselves) and pings the shell's readout/status via `on_change`."""
+        for tally in self._tallies:
+            tally()
+        if self._on_change is not None:
+            self._on_change()
+
+
+class IdentityPage(_EditorPage):
+    """The Identity tab: name/concept/anima, the structural selectors (Exalt type,
+    caste, origin, upbringing, nature), the free-fill biography, and the caste-info
+    block. Structural changes rebuild this page and re-theme the shell; the Traits
+    page stays fresh via reload-on-show."""
+
+    def __init__(self, ruleset, ctx, *, notify=None, on_theme_change=None,
+                 on_change=None, parent=None):
+        self._on_theme_change = on_theme_change
+        super().__init__(ruleset, ctx, notify=notify, on_change=on_change, parent=parent)
+
+    def _build_body(self) -> None:
         char = self._char()
         pal = theme.palette(char.exalt_type)
         locked = char.chargen_locked
         ruleset = self._ruleset
-        caste_def = ruleset.castes.get(char.caste)
-        caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
-        caste_attributes = set(caste_def.caste_attributes) if caste_def else set()
-        breed_bonus = (caste_def.breed_traits.attribute_bonuses
-                       if caste_def and caste_def.breed_traits else {})
-        cf_attr_mode = viewmod.uses_caste_favored_attributes(ruleset, char)
-        favored_attrs = set(char.favored_attributes)
-        b = validate.effective_budgets(ruleset, char)
-        mf = merits.merits_and_flaws_calc(ruleset, char)
-        essence_cap, _ = elder.essence_cap(ruleset, char)
-        if mf.essence_cap_override is not None:
-            essence_cap = mf.essence_cap_override
-        attr_trait_cap = elder.trait_ceiling(char, ruleset, domain="attribute")
-        abil_trait_cap = elder.trait_ceiling(char, ruleset, domain="ability")
-        virtue_cap = (mf.virtue_cap if mf.virtue_cap is not None else merits.DOT_MAX)
-        exalt_def = ruleset.exalt_for(char.exalt_type)
-        caste_noun = exalt_def.caste_noun
-        splat_has_castes = any(cd.exalt_type == char.exalt_type
-                               for cd in ruleset.castes.values())
+        accent = accent_light(pal)
 
-        def buy(target, current, wanted, refresh, detail=""):
-            return self._buy(target, current, wanted, refresh, detail)
-
-        def track(get, setv, lo, hi, target=None, detail=""):
-            return DotTrack(get, setv, lo, hi, accent=accent_light(pal), target=target,
-                            detail=detail, buy=buy, on_change=self._changed)
-
-        def dot_row(row, label, get, setv, lo, hi, target=None, detail="",
-                    extra=None, mark=""):
-            t = track(get, setv, lo, hi, target=target, detail=detail)
-            self._trait_row(row, mark, label, accent_light(pal), t, extra=extra)
-            return t
-
-        # ---- deferred-panels note (milestone scope) -------------------- #
-        note = QLabel("Native Edit covers the trait surface. Training Camp & Calling, "
-                      "the Colleges, Specialties, Permanent Resonance, the Virtue Flaw, "
-                      "bonus health levels and Downtime still live on the webapp.")
-        note.setWordWrap(True)
-        note.setStyleSheet("color:#a8a5a0; font-size:9pt;")
-        self._body_lay.addWidget(note)
-
-        # ---- caste info (left card) + identity (right panel) ------------ #
-        # Mirrors the web app's row: a fixed-width caste card on the left, the
-        # Identity panel filling the rest. Keeps its place even for a splat with no
-        # caste so the identity controls don't jump width between splats.
-        # ⚠ A bare nested QHBoxLayout is over-allocated height by the body layout (a
-        # Qt quirk: the row renders ~67px taller than its content wants, so the
-        # panels beside the caste card get stretched and the slack pools). Hosting
-        # the row on a QWidget gives it proper widget sizing — the body respects its
-        # natural height and the panels fill it exactly.
-        id_row_widget = QWidget()
-        id_row = QHBoxLayout(id_row_widget)
-        id_row.setContentsMargins(0, 0, 0, 0)
-        id_row.setSpacing(8)
-        self._body_lay.addWidget(id_row_widget)
-
-        caste_card = QFrame()
-        caste_card.setFixedWidth(280)
-        # Same as _Panel: natural height, never stretched to match the Identity
-        # panel beside it.
-        caste_card.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-        caste_card.setStyleSheet(
-            f"QFrame {{ background:{CARD}; border:none; border-radius:6px; }}")
-        caste_lay = QVBoxLayout(caste_card)
-        caste_lay.setContentsMargins(10, 8, 10, 10)
-        caste_lay.setSpacing(4)
-        if caste_def:
-            info = QLabel(f"{caste_def.label} {caste_noun}")
-            info.setWordWrap(True)
-            info.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
-            caste_lay.addWidget(info)
-            if caste_def.description:
-                desc = QLabel(caste_def.description)
-                desc.setWordWrap(True)
-                desc.setStyleSheet("color:#a8a5a0;")
-                caste_lay.addWidget(desc)
-            if caste_def.caste_attributes:
-                attr_line = QLabel(f"{caste_noun} Attributes: " + ", ".join(
-                    _label(a.value) for a in caste_def.caste_attributes))
-                attr_line.setWordWrap(True)
-                attr_line.setStyleSheet("font-style:italic; color:#a8a5a0;")
-                caste_lay.addWidget(attr_line)
-            elif caste_def.caste_abilities:
-                ab_line = QLabel(f"{caste_noun} Abilities: " + ", ".join(
-                    _label(a.value) for a in caste_def.caste_abilities))
-                ab_line.setWordWrap(True)
-                ab_line.setStyleSheet("font-style:italic; color:#a8a5a0;")
-                caste_lay.addWidget(ab_line)
-            if caste_def.anima_powers:
-                anima = QLabel("Anima Power")
-                anima.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
-                caste_lay.addWidget(anima)
-                ap_text = QLabel(caste_def.anima_powers)
-                ap_text.setWordWrap(True)
-                ap_text.setStyleSheet("color:#a8a5a0;")
-                caste_lay.addWidget(ap_text)
-        elif splat_has_castes:
-            caste_lay.addWidget(QLabel("Unknown caste"))
-        else:
-            splat = QLabel(exalt_def.label)
-            splat.setWordWrap(True)
-            splat.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
-            caste_lay.addWidget(splat)
-            caste_lay.addWidget(QLabel("Not one of the Chosen — no caste, no Charms, "
-                                      "Essence 1."))
-        caste_lay.addStretch(1)
-        id_row.addWidget(caste_card)
-
-        lay = self._panel("Identity", id_row)
         if locked:
-            frozen_note = QLabel("Caste, Exalt type, origin and Favoured picks are fixed "
-                                 "at the lock — they set the rates every later purchase "
-                                 "is priced at.")
-            frozen_note.setWordWrap(True)
-            frozen_note.setStyleSheet("font-style:italic; color:#a8a5a0;")
-            lay.addWidget(frozen_note)
+            note = QLabel("Caste, Exalt type, origin and Favoured picks are fixed "
+                          "at the lock — they set the rates every later purchase "
+                          "is priced at.")
+            note.setWordWrap(True)
+            note.setStyleSheet("font-style:italic; color:#a8a5a0;")
+            self._body_lay.addWidget(note)
 
-        def identity_field(label, text, on_change, frozen=False):
+        id_lay = self._panel("Identity")
+
+        def field(label, text, on_change, frozen=False):
             box = QHBoxLayout()
             box.addWidget(QLabel(label))
             edit = QLineEdit(text)
             edit.setEnabled(not (locked and frozen))
             edit.textChanged.connect(on_change)
             box.addWidget(edit, 1)
-            lay.addLayout(box)
+            id_lay.addLayout(box)
             return edit
 
-        identity_field("Name", char.name, lambda t: (setattr(char, "name", t), self._changed()))
-        identity_field("Concept", char.concept, lambda t: setattr(char, "concept", t))
+        field("Name", char.name, lambda t: (setattr(char, "name", t), self._changed()))
+        field("Concept", char.concept, lambda t: setattr(char, "concept", t))
 
         # exalt type
         box = QHBoxLayout()
@@ -926,8 +678,9 @@ class EditPage(QWidget):
         exalt_opts.setdefault(char.exalt_type, char.exalt_type)
         box.addWidget(self._combo(exalt_opts, char.exalt_type, frozen=locked,
                                   on_change=self.set_exalt_type), 1)
-        lay.addLayout(box)
+        id_lay.addLayout(box)
         # caste
+        caste_noun = ruleset.exalt_for(char.exalt_type).caste_noun
         caste_opts = {cd.id: cd.label for cd in ruleset.castes.values()
                       if cd.exalt_type == char.exalt_type}
         if caste_opts:
@@ -936,7 +689,7 @@ class EditPage(QWidget):
             box.addWidget(QLabel(caste_noun))
             box.addWidget(self._combo(caste_opts, char.caste, frozen=locked,
                                       on_change=self.set_caste), 1)
-            lay.addLayout(box)
+            id_lay.addLayout(box)
         # origin / upbringing
         origins = viewmod._origin_options(ruleset, char)
         if origins:
@@ -946,7 +699,7 @@ class EditPage(QWidget):
             box.addWidget(QLabel("Origin"))
             box.addWidget(self._combo(origins, char.origin, frozen=locked,
                                       on_change=self.set_origin), 1)
-            lay.addLayout(box)
+            id_lay.addLayout(box)
             ups = viewmod.upbringing_options(char.exalt_type,
                                              char.origin or next(iter(origins)))
             if ups:
@@ -955,7 +708,7 @@ class EditPage(QWidget):
                 value = char.upbringing if char.upbringing in ups else next(iter(ups))
                 box.addWidget(self._combo(ups, value, frozen=locked,
                                           on_change=self.set_upbringing), 1)
-                lay.addLayout(box)
+                id_lay.addLayout(box)
         # nature
         box = QHBoxLayout()
         box.addWidget(QLabel("Nature"))
@@ -969,40 +722,150 @@ class EditPage(QWidget):
         nature.setEnabled(not locked)
         nature.currentTextChanged.connect(lambda t: (setattr(char, "nature", t), self._changed()))
         box.addWidget(nature, 1)
-        lay.addLayout(box)
-        # anima
-        identity_field("Anima", char.anima, lambda t: setattr(char, "anima", t))
-        # favored abilities / attributes — type-to-filter pickers with chips.
+        id_lay.addLayout(box)
+        field("Anima", char.anima, lambda t: setattr(char, "anima", t))
+
+        # biography — free-fill flavour on real Character fields
+        bio_lay = self._panel("Biography")
+        for label, attr in (("Sex", "sex"), ("Age", "age"), ("Eye color", "eye_color"),
+                            ("Hair color", "hair_color"), ("Skin color", "skin_color"),
+                            ("Height", "height"), ("Weight", "weight")):
+            box = QHBoxLayout()
+            box.addWidget(QLabel(label))
+            edit = QLineEdit(getattr(char, attr))
+            edit.textChanged.connect(lambda t, a=attr: setattr(char, a, t))
+            box.addWidget(edit, 1)
+            bio_lay.addLayout(box)
+        for label, attr in (("Description", "description"), ("Backstory", "backstory"),
+                            ("Notes", "notes")):
+            box = QHBoxLayout()
+            box.addWidget(QLabel(label))
+            edit = QTextEdit(getattr(char, attr))
+            edit.setFixedHeight(56)
+            # ⚠ QTextEdit is a QAbstractScrollArea inside a _Panel whose own
+            # stylesheet forces the QSS renderer onto every descendant — the viewport
+            # then paints the CARD shade no matter what the QTextEdit palette says,
+            # and the theme's window QSS `background` paints only the frame. A widget
+            # stylesheet on the QTextEdit ITSELF wins over both and paints the text
+            # area the INPUT shade, so the fill-in reads like the line edits.
+            edit.setStyleSheet(
+                f"QTextEdit {{ background:{INPUT}; border:none; border-radius:4px; }}")
+            # QTextEdit.textChanged carries NO argument (unlike QLineEdit's) — read
+            # the text off the edit itself.
+            edit.textChanged.connect(lambda a=attr, e=edit: setattr(char, a, e.toPlainText()))
+            box.addWidget(edit, 1)
+            bio_lay.addLayout(box)
+
+        # caste info — the description, caste abilities/attributes and anima the old
+        # left-hand card carried, now a panel under the identity fields.
+        caste_lay = self._panel("Caste")
+        caste_def = ruleset.castes.get(char.caste)
+        splat_has_castes = any(cd.exalt_type == char.exalt_type
+                               for cd in ruleset.castes.values())
+        if caste_def:
+            info = QLabel(f"{caste_def.label} {caste_noun}")
+            info.setStyleSheet(f"font-weight:bold; color:{accent};")
+            caste_lay.addWidget(info)
+            if caste_def.description:
+                desc = QLabel(caste_def.description)
+                desc.setWordWrap(True)
+                desc.setStyleSheet("color:#a8a5a0;")
+                caste_lay.addWidget(desc)
+            if caste_def.caste_attributes:
+                line = QLabel(f"{caste_noun} Attributes: " + ", ".join(
+                    _label(a.value) for a in caste_def.caste_attributes))
+            elif caste_def.caste_abilities:
+                line = QLabel(f"{caste_noun} Abilities: " + ", ".join(
+                    _label(a.value) for a in caste_def.caste_abilities))
+            else:
+                line = None
+            if line:
+                line.setWordWrap(True)
+                line.setStyleSheet("font-style:italic; color:#a8a5a0;")
+                caste_lay.addWidget(line)
+            if caste_def.anima_powers:
+                anima = QLabel("Anima Power")
+                anima.setStyleSheet(f"font-weight:bold; color:{accent};")
+                caste_lay.addWidget(anima)
+                ap = QLabel(caste_def.anima_powers)
+                ap.setWordWrap(True)
+                ap.setStyleSheet("color:#a8a5a0;")
+                caste_lay.addWidget(ap)
+        elif splat_has_castes:
+            caste_lay.addWidget(QLabel("Unknown caste"))
+        else:
+            splat = QLabel(ruleset.exalt_for(char.exalt_type).label)
+            splat.setStyleSheet(f"font-weight:bold; color:{accent};")
+            caste_lay.addWidget(splat)
+            caste_lay.addWidget(QLabel("Not one of the Chosen — no caste, no Charms, "
+                                      "Essence 1."))
+
+
+class TraitsPage(_EditorPage):
+    """The Traits tab: the favoured-pick chips, the Attribute / Ability / Craft /
+    Virtue / Essence dot tracks, and the read-only Charm & Spells count. Dot clicks
+    buy on both sides of the lock (decision 0013); the validation/bonus/XP content
+    lives in the shell's popover."""
+
+    def _build_body(self) -> None:
+        char = self._char()
+        pal = theme.palette(char.exalt_type)
+        locked = char.chargen_locked
+        ruleset = self._ruleset
+        accent = accent_light(pal)
+        caste_def = ruleset.castes.get(char.caste)
+        caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
+        breed_bonus = (caste_def.breed_traits.attribute_bonuses
+                       if caste_def and caste_def.breed_traits else {})
+        cf_attr_mode = viewmod.uses_caste_favored_attributes(ruleset, char)
+        favored_attrs = set(char.favored_attributes)
+        b = validate.effective_budgets(ruleset, char)
+        mf = merits.merits_and_flaws_calc(ruleset, char)
+        essence_cap, _ = elder.essence_cap(ruleset, char)
+        if mf.essence_cap_override is not None:
+            essence_cap = mf.essence_cap_override
+        attr_trait_cap = elder.trait_ceiling(char, ruleset, domain="attribute")
+        abil_trait_cap = elder.trait_ceiling(char, ruleset, domain="ability")
+        virtue_cap = (mf.virtue_cap if mf.virtue_cap is not None else merits.DOT_MAX)
+
+        def buy(target, current, wanted, refresh, detail=""):
+            return self._buy(target, current, wanted, refresh, detail)
+
+        def track(get, setv, lo, hi, target=None, detail=""):
+            return DotTrack(get, setv, lo, hi, accent=accent, target=target,
+                            detail=detail, buy=buy, on_change=self._changed)
+
+        note = QLabel("Native Edit covers the trait surface. Training Camp & Calling, "
+                      "the Colleges, Specialties, Permanent Resonance, the Virtue Flaw, "
+                      "bonus health levels and Downtime still live on the webapp.")
+        note.setWordWrap(True)
+        note.setStyleSheet("color:#a8a5a0; font-size:9pt;")
+        self._body_lay.addWidget(note)
+
+        # favoured picks
+        fav_lay = self._panel("Favoured Picks")
         fav_n = validate.favored_ability_count(ruleset, char)
         if fav_n:
             label = QLabel(f"Favored abilities (pick {fav_n})")
-            label.setContentsMargins(0, 2, 0, 0)       # the panel's spacing clears the combo
-            lay.addWidget(label)
-            lay.addWidget(_FavoredPicker(
+            label.setContentsMargins(0, 2, 0, 0)
+            fav_lay.addWidget(label)
+            fav_lay.addWidget(_FavoredPicker(
                 {a: _label(a.value) for a in AbilityName},
-                list(char.favored_abilities), fav_n, accent_light(pal),
+                list(char.favored_abilities), fav_n, accent,
                 self.set_favored, frozen=locked))
         if cf_attr_mode:
             label = QLabel(f"Favored Attributes (pick {b.attribute_favored_count})")
-            label.setContentsMargins(0, 2, 0, 0)       # the panel's spacing clears the combo
-            lay.addWidget(label)
-            lay.addWidget(_FavoredPicker(
+            label.setContentsMargins(0, 2, 0, 0)
+            fav_lay.addWidget(label)
+            fav_lay.addWidget(_FavoredPicker(
                 {a: _label(a.value) for a in AttributeName},
-                list(char.favored_attributes), b.attribute_favored_count, accent_light(pal),
+                list(char.favored_attributes), b.attribute_favored_count, accent,
                 self.set_favored_attributes, frozen=locked))
-        # ⚠ The row widget's sizeHint is inflated beyond its content (a Qt quirk: the
-        # layout maxes at 290 but the widget reports 357), so the body allocates the
-        # row 357px and the panels sit in slack — the "blank space under the Favored
-        # abilities" look. Clamp the row to its content height so the identity panel
-        # fills it exactly; a taller splat's content raises the clamp with it.
-        id_row_widget.setMaximumHeight(id_row_widget.minimumSizeHint().height())
 
-        # ---- attributes --------------------------------------------------- #
+        # attributes
         ap = "/".join(str(p) for p in validate.effective_attribute_pools(ruleset, char))
         header = viewmod.attribute_budget_summary(ruleset, char) or f"prioritise {ap}"
         attr_lay = self._panel("Attributes" if locked else f"Attributes ({header})")
-        # The three categories as side-by-side COLUMNS (Physical | Social | Mental),
-        # mirroring the web app — not stacked full-width groups.
         cols = QHBoxLayout()
         cols.setSpacing(24)
         attr_lay.addLayout(cols)
@@ -1023,7 +886,7 @@ class EditPage(QWidget):
                 self._tallies.append(_spent_updater)
             group.addWidget(spent_label)
             for a in members:
-                mark = "●" if a in caste_attributes else ("✦" if a in favored_attrs else "")
+                mark = "●" if a in caste_abilities else ("✦" if a in favored_attrs else "")
                 extra = None
                 breed = breed_bonus.get(a, 0)
                 if breed:
@@ -1032,7 +895,7 @@ class EditPage(QWidget):
                 row = QHBoxLayout()
                 m = QLabel(mark)
                 m.setFixedWidth(12)
-                m.setStyleSheet(f"color:{accent_light(pal)};")
+                m.setStyleSheet(f"color:{accent};")
                 row.addWidget(m)
                 name = QLabel(_label(a.value))
                 name.setMinimumWidth(80)
@@ -1048,7 +911,7 @@ class EditPage(QWidget):
                 group.addLayout(row)
             cols.addLayout(group, 1)
 
-        # ---- abilities ---------------------------------------------------- #
+        # abilities
         ab_header = ("Abilities" if locked else
                      f"Abilities ({b.ability_dots} dots; ≥{b.ability_min_caste_favored} "
                      f"caste/favoured; ≤{b.ability_cap_pre_bp} each pre-bonus)")
@@ -1070,15 +933,13 @@ class EditPage(QWidget):
                     total = b.ability_dots
                 over = spent > total
                 label.setText(f"{spent} / {total} dots spent")
-                label.setStyleSheet("font-weight:600; color:%s;" % ("#b91c1c" if over else accent_light(pal)))
+                label.setStyleSheet("font-weight:600; color:%s;" % ("#b91c1c" if over else accent))
 
             _ability_tally()
             self._tallies.append(_ability_tally)
             ab_lay.addWidget(tally)
         groups = viewmod.ability_group_defs(ruleset, char.exalt_type)
         calling_marks = viewmod.calling_ability_marks(ruleset, char)
-        # Rows of three per-caste columns, mirroring the web app — not one stacked
-        # group after another.
         for start in range(0, len(groups), 3):
             cols = QHBoxLayout()
             cols.setSpacing(24)
@@ -1089,7 +950,7 @@ class EditPage(QWidget):
                 group = QVBoxLayout()
                 if group_label:
                     g = QLabel(group_label)
-                    g.setStyleSheet(f"font-weight:600; color:{accent_light(pal)};")
+                    g.setStyleSheet(f"font-weight:600; color:{accent};")
                     group.addWidget(g)
                 for a in abilities:
                     mark = "●" if a in caste_abilities else ("✦" if a in char.favored_abilities else "")
@@ -1099,7 +960,7 @@ class EditPage(QWidget):
                         row = QHBoxLayout()
                         m = QLabel(mark)
                         m.setFixedWidth(12)
-                        m.setStyleSheet(f"color:{accent_light(pal)};")
+                        m.setStyleSheet(f"color:{accent};")
                         row.addWidget(m)
                         row.addWidget(QLabel("Craft"), 1)
                         row.addWidget(QLabel("↓ per-focus"))
@@ -1108,7 +969,7 @@ class EditPage(QWidget):
                     row = QHBoxLayout()
                     m = QLabel(mark)
                     m.setFixedWidth(12)
-                    m.setStyleSheet(f"color:{accent_light(pal)};")
+                    m.setStyleSheet(f"color:{accent};")
                     row.addWidget(m)
                     name = QLabel(_label(a.value))
                     name.setMinimumWidth(80)
@@ -1120,7 +981,7 @@ class EditPage(QWidget):
                     group.addLayout(row)
                 cols.addLayout(group, 1)
 
-        # ---- crafts ------------------------------------------------------- #
+        # crafts
         craft_cf = AbilityName.CRAFT in caste_abilities or AbilityName.CRAFT in char.favored_abilities
         cf_tag = " · Caste/Favoured" if craft_cf else ""
         craft_lay = self._panel(f"Crafts (each focus a separate Ability{cf_tag})")
@@ -1140,7 +1001,7 @@ class EditPage(QWidget):
         add_craft.clicked.connect(self.add_craft)
         craft_lay.addWidget(add_craft)
 
-        # ---- virtues + essence + willpower -------------------------------- #
+        # virtues + essence + willpower
         ve_row = QHBoxLayout()
         ve_row.setSpacing(24)
         self._body_lay.addLayout(ve_row)
@@ -1185,7 +1046,7 @@ class EditPage(QWidget):
             row.addWidget(spin, 1)
             ew_lay.addLayout(row)
 
-        # ---- charms/spells — read-only here ------------------------------ #
+        # charms/spells — read-only here
         _slots = viewmod.charm_slot_budget(ruleset, char)
         if _slots is not None:
             charm_hdr = (f"Charm Slots {_slots.installed}/{_slots.general + _slots.dedicated} "
@@ -1201,20 +1062,6 @@ class EditPage(QWidget):
             charms_lay.addWidget(QLabel(f"{s.name} · {s.circle}"))
         for e in view.elemental_powers:
             charms_lay.addWidget(QLabel(f"{e.name} · Elemental Powers"))
-
-        self._body_lay.addStretch(1)
-        self._build_side()
-        self._body_container.setMinimumHeight(0)
-        self._hold_scroll(saved)
-
-    def _changed(self) -> None:
-        """A change that only moves the readouts — dot clicks, name edits, Adjust XP.
-        Rebuilds the side column and re-runs the registered tallies; the body's dot
-        tracks have already refreshed themselves."""
-        for tally in self._tallies:
-            tally()
-        self._build_side()
-
 
 def _label(value: str) -> str:
     return value.replace("_", " ").title()

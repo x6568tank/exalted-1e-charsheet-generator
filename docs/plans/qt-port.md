@@ -358,6 +358,57 @@ placeholder tabs, per-splat theming beyond the accent, the picker's splat extras
   just aspect names in the book) — a data reality, not a bug. The price fills the
   detail instead.
 
+## Milestone 2 — the left-rail shell; Edit splits into Identity + Traits (2026-08-21)
+
+The human approved the `spikes/qt_edit/` layout — the whole app as a master-detail
+(a left rail of tabs, a readout bar, a bottom status strip) — and it is now the real
+shell.
+
+- **Shell** (`qt/main_window.py`): the top QTabWidget became a left rail
+  (`QListWidget#appRail`, accent-selected) over a QStackedWidget, with the app's
+  `viewmod._TABS` where "Edit" is split into **Identity + Traits**. A readout bar
+  (budget · validation) whose "≡ details" opens a click-to-open popover holding the
+  issue list + bonus-point breakdown + (post-lock) the Experience card + ledger; a
+  bottom status strip (Willpower · pools · Soak). The old Edit-page side column is
+  gone — its content moved into the popover. `_sync_tabs` maps the old "Edit" key to
+  showing both Identity and Traits; a resolved "Edit" answer lands on Identity.
+- **Edit split** (`qt/editor.py`): the monolithic EditPage became `IdentityPage`
+  (name/concept/anima, the structural selectors, the free-fill biography, the caste
+  info) and `TraitsPage` (favoured-pick chips, Attributes/Abilities/Crafts/Virtues/
+  Essence, the read-only Charm & Spells count), sharing a `_EditorPage` base
+  (DotTrack, _FavoredPicker, _buy, the refund-vs-curse dialog, scroll-hold).
+- **Bio fields** (`models/character.py`): ten free-fill `str = ""` fields (sex, age,
+  eye/hair/skin colour, height, weight, description, backstory, notes) — pydantic
+  defaults keep every old save loadable. They print on the PDF sheet's header.
+  ⚠ The NiceGUI web app's Identity does NOT expose them yet (deferred by the human
+  2026-08-21).
+
+Test count: **2,482 passed, 3 skipped, 1 warning** (2026-08-21, the `-ds` machine).
+
+### Human-verified on the real display
+
+The user clicked through the new shell and approved it. What to look at: the Identity
+bio + caste info, the Traits dot tracks, the "≡ details" popover on both sides of the
+lock, and the rail's Play appearing at the lock.
+
+### Traps that cost real iterations (all re-testable)
+
+- **A QTextEdit inside a `_Panel` renders the card shade no matter what.** The
+  panel's own QSS (`QFrame { background:CARD }`) forces the stylesheet renderer onto
+  every descendant, so the QTextEdit's viewport paints CARD — the window QSS
+  `background` and a manually-set palette both lose. The fix is an inline stylesheet
+  ON the QTextEdit itself (`QTextEdit { background:INPUT; ... }`), which wins over
+  the ancestor. (The "Description/Backstory/Notes fill-in invisible" bug.)
+- **The INPUT shade was too close to CARD** — `#47474f` vs `#3d3d45` read as the
+  same shade on a real display; brightened to `#52525c`.
+- **`QTextEdit.textChanged` carries NO argument** (unlike QLineEdit's `str`) — a
+  lambda that reads the signal's argument crashes on first keystroke; read the text
+  off the widget instead.
+- **A `dict.fromkeys` rail-label dict yields None values** — every rail item rendered
+  empty. Build the label dict with a comprehension.
+- **The rail's `currentRowChanged` handler must call `stack.setCurrentIndex`** — a
+  reload-on-select handler that forgets to switch the stack leaves the old page up.
+
 ## Open questions — not decided
 
 * **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets

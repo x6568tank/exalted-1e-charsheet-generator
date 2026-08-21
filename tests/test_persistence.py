@@ -66,6 +66,20 @@ def test_string_round_trip():
     assert persistence.character_from_json(persistence.character_to_json(c)) == c
 
 
+def test_biography_fields_round_trip_and_old_saves_default(tmp_path):
+    # The Qt Identity tab's bio block rides on real Character fields. They must
+    # round-trip, and a save written before they existed must load with "" (a missing
+    # key is pydantic's default — the backwards-compat contract).
+    c = Character(id="bio", name="A", sex="M", age="32", eye_color="grey",
+                  hair_color="black", skin_color="pale", height="6'0\"",
+                  weight="180", description="d", backstory="b", notes="n")
+    path = persistence.save_character(c, tmp_path / "bio.character.json")
+    assert persistence.load_character(path) == c
+    old = persistence.character_from_json('{"id": "old", "name": "Old"}')
+    assert old.sex == "" and old.eye_color == "" and old.backstory == "" \
+        and old.notes == ""
+
+
 def test_legacy_capitalised_caste_migrates_to_id():
     """A pre-Phase-2 save stored the caste as its display name ("Dawn"); it now
     loads as the lowercase id ("dawn") so old saves keep working."""

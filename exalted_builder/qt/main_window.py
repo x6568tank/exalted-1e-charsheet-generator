@@ -1,15 +1,16 @@
 """exalted_builder/qt/main_window.py — the native builder window (decision 0018).
 
-The Qt shell mirrors ui/builder.py's composite: a toolbar (New / Load / Save / Print /
-Finish & Lock / Unlock / Party) over a tab bar whose pages are persistent widgets —
-Edit and Sheet and Charms are the ported pages; Gear, Advantages, Combos, Play, ST and
-Custom are placeholders until their modules are ported. All pages read the character
-from a shared context dict, and reload() (or the engine's lock/unlock) re-derives them
-from the untouched engine / models / ui.view layers.
+The shell is the master-detail the human approved in spikes/qt_edit: a left RAIL of
+app tabs (Identity / Traits / Gear / Advantages / Charms / Combos / Play / ST
+Options / Custom / Sheet) beside a stack of pages, a top toolbar (New / Load / Save /
+Print / Finish & Lock / Unlock / Party), a readout bar whose "≡ details" opens a
+popover with validation + bonus-points + the post-lock Experience card, and a bottom
+status strip (Willpower · pools · Soak).
 
-Tab visibility and the current tab follow view.visible_tabs / view.resolve_tab on both
-sides of the lock; a page's reload() runs whenever it is shown, so a change made on one
-tab is fresh on the next.
+The Identity/Traits split: the old monolithic Edit tab became two pages
+(qt/editor.py). Rail visibility follows view.visible_tabs with the old "Edit" key
+mapped to showing both; a page's reload() runs whenever it is shown, so a structural
+change on Identity is fresh when Traits opens.
 """
 
 from __future__ import annotations
@@ -18,12 +19,13 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QApplication, QComboBox, QDialog, QFileDialog, QLabel, QMainWindow,
-    QMessageBox, QPushButton, QTabWidget, QToolBar, QVBoxLayout, QWidget,
+    QApplication, QComboBox, QDialog, QFileDialog, QHBoxLayout, QLabel,
+    QListWidget, QListWidgetItem, QMainWindow, QMessageBox, QPushButton, QSpinBox,
+    QStackedWidget, QToolBar, QVBoxLayout, QWidget,
 )
 
 from exalted_builder import custom_content, persistence, rules_db
-from exalted_builder.engine import lifecycle, validate
+from exalted_builder.engine import advancement, lifecycle, validate
 from exalted_builder.models.character import Character
 from exalted_builder.models.party import Party
 from exalted_builder.models.rules import RuleSet
@@ -32,15 +34,18 @@ from exalted_builder.ui import view as viewmod
 
 from . import theme as qtheme
 from .charms import CharmsPage
-from .editor import EditPage
+from .editor import IdentityPage, TraitsPage
 from .sheet import SheetPage
 
-_TABS = viewmod._TABS
-
-# Tab names are identifiers (state, visible_tabs, resolve_tab all key off them);
-# where a name reads badly on the bar, the LABEL differs — see Combos/Arrays.
-_LABELS = {t: t for t in _TABS}
-_LABELS["ST"] = "ST Options"
+# The rail's tabs: the app's viewmod._TABS with the "Edit" tab split into Identity +
+# Traits (the human-approved spike layout).
+_RAIL_TABS = ("Identity", "Traits", "Gear", "Advantages", "Charms", "Combos",
+              "Play", "ST", "Custom", "Sheet")
+_RAIL_LABELS = {t: t for t in _RAIL_TABS}
+_RAIL_LABELS["ST"] = "ST Options"
+# Old tab keys ("Edit") ↔ rail keys. Everything else maps 1:1.
+_OLD_TO_RAIL = {"Edit": "Identity"}
+_RAIL_TO_OLD = {v: k for k, v in _OLD_TO_RAIL.items()}
 
 
 def make_context(character: Character, save_path: Path) -> dict:
@@ -68,20 +73,21 @@ class _PlaceholderPage(QWidget):
 
 
 class MainWindow(QMainWindow):
-    """The native builder: toolbar + tab bar over the shared character context."""
+    """The native builder: toolbar + readout bar, a left rail of app tabs, and a
+    bottom status strip over the shared character context."""
 
     def __init__(self, ruleset: RuleSet, character: Character, save_path: Path,
                  *, ctx: dict | None = None, parent=None):
         super().__init__(parent)
         self._ruleset = ruleset
         self._ctx = ctx if ctx is not None else make_context(character, save_path)
-        self._state = {"tab": "Edit"}
+        self._state = {"tab": "Identity"}
         self._syncing = False
         self._pages: dict[str, QWidget] = {}
 
         self.resize(1280, 880)
         self._build_toolbar()
-        self._build_tabs()
+        self._build_shell()
         self.statusBar().showMessage("")
         self._apply_chrome()
         self._sync_tabs()
@@ -104,7 +110,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"Exalted 1e — {pal.splat_label} Builder")
         qtheme.apply(self, pal)
 
-    # ---- toolbar + tabs ------------------------------------------------- #
+    # ---- toolbar + shell ------------------------------------------------- #
 
     def _build_toolbar(self) -> None:
         tb = QToolBar("Actions")
@@ -122,77 +128,269 @@ class MainWindow(QMainWindow):
         party = tb.addAction("Party", self._party)
         party.setToolTip("The Storyteller party screen is not part of this milestone.")
 
-    def _build_tabs(self) -> None:
-        self.tabs = QTabWidget()
-        self.tabs.setDocumentMode(True)
+    def _build_shell(self) -> None:
+        """The readout bar, the left rail + page stack, and the status strip."""
         ctx, ruleset = self._ctx, self._ruleset
-        self._pages["Edit"] = EditPage(ruleset, ctx, notify=self._notify,
-                                       on_theme_change=self._apply_chrome)
+
+        # readout bar
+        self.readout = QLabel("")
+        self.readout.setStyleSheet(
+            f"color:{qtheme.accent(self._pal())}; font-weight:600; padding:4px 8px;")
+        details = QPushButton("≡ details")
+        details.setToolTip("Validation issues, the bonus-point breakdown, and the "
+                           "post-lock Experience card")
+        details.clicked.connect(self._open_popover)
+        bar = QHBoxLayout()
+        bar.setContentsMargins(0, 0, 0, 0)
+        bar.addWidget(self.readout, 1)
+        bar.addWidget(details)
+
+        # left rail
+        self.rail = QListWidget()
+        self.rail.setObjectName("appRail")
+        self.rail.setFixedWidth(170)
+        for name in _RAIL_TABS:
+            self.rail.addItem(QListWidgetItem(_RAIL_LABELS.get(name, name)))
+
+        # pages
+        self._pages["Identity"] = IdentityPage(
+            ruleset, ctx, notify=self._notify,
+            on_theme_change=self._apply_chrome, on_change=self._refresh)
+        self._pages["Traits"] = TraitsPage(
+            ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Gear"] = _PlaceholderPage(
-            "The Gear tab is still on the webapp — this milestone ports Edit, Charms and Sheet.")
+            "The Gear tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
         self._pages["Advantages"] = _PlaceholderPage(
-            "The Advantages tab is still on the webapp — this milestone ports Edit, Charms and Sheet.")
+            "The Advantages tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
         self._pages["Charms"] = CharmsPage(ruleset, ctx, notify=self._notify)
         self._pages["Combos"] = _PlaceholderPage(
-            "The Combos tab is still on the webapp — this milestone ports Edit, Charms and Sheet.")
+            "The Combos tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
         self._pages["Play"] = _PlaceholderPage(
-            "The Play tab is still on the webapp — this milestone ports Edit, Charms and Sheet.")
+            "The Play tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
         self._pages["ST"] = _PlaceholderPage(
-            "The ST Options tab is still on the webapp — this milestone ports Edit, Charms and Sheet.")
+            "The ST Options tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
         self._pages["Custom"] = _PlaceholderPage(
-            "The Custom (homebrew) tab is still on the webapp — this milestone ports Edit, Charms and Sheet.")
+            "The Custom (homebrew) tab is still on the webapp — this milestone ports Identity, Traits, Charms and Sheet.")
         self._pages["Sheet"] = SheetPage(ruleset, ctx)
-        # Signals blocked during construction: addTab sets the current index to 0,
-        # which would fire currentChanged and reload the first page before the other
-        # tabs exist (and again on the redundant reload the constructor already ran).
-        self.tabs.blockSignals(True)
-        for name in _TABS:
-            self.tabs.addTab(self._pages[name], _LABELS.get(name, name))
-        self.tabs.blockSignals(False)
-        self.tabs.currentChanged.connect(self._on_tab_changed)
-        self.setCentralWidget(self.tabs)
 
-    def _on_tab_changed(self, index: int) -> None:
-        widget = self.tabs.widget(index)
+        self.stack = QStackedWidget()
+        for name in _RAIL_TABS:
+            self.stack.addWidget(self._pages[name])
+        self.rail.currentRowChanged.connect(self._on_rail_changed)
+        self.rail.setCurrentRow(0)
+
+        # status strip
+        self.status = QLabel("")
+        self.status.setStyleSheet(f"color:{qtheme.MUTED}; padding:4px 8px;")
+
+        central = QWidget()
+        lay = QVBoxLayout(central)
+        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setSpacing(4)
+        lay.addLayout(bar)
+        mid = QHBoxLayout()
+        mid.setSpacing(8)
+        mid.addWidget(self.rail)
+        mid.addWidget(self.stack, 1)
+        lay.addLayout(mid, 1)
+        lay.addWidget(self.status)
+        self.setCentralWidget(central)
+
+    def _on_rail_changed(self, row: int) -> None:
         # A freshly-shown page re-derives from the shared character, so a change made
-        # on one tab is fresh on the next. Skip while _sync_tabs is driving the bar.
-        if not self._syncing:
-            reload = getattr(widget, "reload", None)
-            if reload is not None:
-                reload()
-            # The internal name (not the label) is what resolve_tab keys off:
-            # "ST Options" → "ST", "Arrays" → "Combos".
-            for name, page in self._pages.items():
-                if page is widget:
-                    self._state["tab"] = name
-                    break
+        # on one tab is fresh on the next. Skip while _sync_tabs is driving the rail.
+        if self._syncing:
+            return
+        self.stack.setCurrentIndex(row)
+        widget = self.stack.widget(row)
+        reload = getattr(widget, "reload", None)
+        if reload is not None:
+            reload()
+        for name, page in self._pages.items():
+            if page is widget:
+                self._state["tab"] = name
+                break
 
-    def _sync_tabs(self) -> None:
-        """Show the tabs this character's stage has (view.visible_tabs); Play appears
-        at the lock, Combos disappears for a splat that builds neither. If the tab we
-        are on is the one that just disappeared, land on its counterpart."""
+    def _visible_rail_tabs(self) -> set[str]:
+        """The rail tabs to show: view.visible_tabs with the old "Edit" key mapped to
+        showing both Identity and Traits."""
         char = self._ctx["char"]
         locked = char.chargen_locked
         combos = viewmod.has_combos_tab(self._ruleset, char)
+        vis = set(viewmod.visible_tabs(locked, combos=combos))
+        if "Edit" in vis:
+            vis.discard("Edit")
+            vis |= {"Identity", "Traits"}
+        return vis
+
+    def _sync_tabs(self) -> None:
+        """Show the rail tabs this character's stage has; Play appears at the lock,
+        Combos disappears for a splat that builds neither. If the tab we are on just
+        disappeared, land on its counterpart."""
+        combos = viewmod.has_combos_tab(self._ruleset, self._ctx["char"])
+        visible = self._visible_rail_tabs()
         self._syncing = True
-        for name in _TABS:
-            self.tabs.setTabVisible(_TABS.index(name),
-                                    name in viewmod.visible_tabs(locked, combos=combos))
+        for name in _RAIL_TABS:
+            self.rail.item(_RAIL_TABS.index(name)).setHidden(name not in visible)
         # Relabel the Combos tab for a Charm-Slot splat (Alchemical builds Arrays).
         if combos:
-            label = "Arrays" if viewmod.uses_arrays(self._ruleset, char) else "Combos"
-            self.tabs.setTabText(_TABS.index("Combos"), label)
-        self._state["tab"] = viewmod.resolve_tab(self._state["tab"], locked, combos=combos)
-        idx = _TABS.index(self._state["tab"])
-        if self.tabs.currentIndex() != idx:
-            self.tabs.setCurrentIndex(idx)
+            label = "Arrays" if viewmod.uses_arrays(self._ruleset, self._ctx["char"]) \
+                else "Combos"
+            self.rail.item(_RAIL_TABS.index("Combos")).setText(label)
+        # resolve_tab speaks the old keys; map the current rail tab to old, resolve,
+        # map back (an "Edit" answer lands on Identity).
+        old = _RAIL_TO_OLD.get(self._state["tab"], self._state["tab"])
+        resolved = viewmod.resolve_tab(old, self._ctx["char"].chargen_locked,
+                                       combos=combos)
+        target = _OLD_TO_RAIL.get(resolved, resolved)
+        if target not in _RAIL_TABS:
+            target = next((n for n in _RAIL_TABS if n in visible), "Identity")
+        self._state["tab"] = target
+        idx = _RAIL_TABS.index(target)
+        if self.rail.currentRow() != idx:
+            self.rail.setCurrentRow(idx)
         self._syncing = False
         self._reload_current()
 
     def _reload_current(self) -> None:
-        reload = getattr(self.tabs.currentWidget(), "reload", None)
+        reload = getattr(self.stack.currentWidget(), "reload", None)
         if reload is not None:
             reload()
+        self._refresh()
+
+    # ---- readout + status + popover -------------------------------------- #
+
+    def _refresh(self) -> None:
+        """The readout bar's budget line + status, and the bottom status strip."""
+        ruleset, char = self._ruleset, self._ctx["char"]
+        view = viewmod.build_sheet_view(ruleset, char)
+        bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
+        errors = [i for i in view.issues if i.severity == "error"]
+        status = "✓ Legal" if not errors else f"✗ {len(errors)} error(s)"
+        self.readout.setText(f"{bp} · {status}")
+        self.status.setText(
+            f"Willpower {view.willpower} · {view.essence_pool_label()} · "
+            f"Soak B{view.soak.bashing} / L{view.soak.lethal} / A{view.soak.aggravated}")
+
+    def _open_popover(self) -> None:
+        """The click-to-open details: validation issues, the bonus-point breakdown,
+        and (post-lock) the Experience card + ledger."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Validation & experience")
+        root = QVBoxLayout(dialog)
+        root.setSpacing(4)
+
+        def rebuild() -> None:
+            while root.count():
+                item = root.takeAt(0)
+                w = item.widget()
+                if w is not None:
+                    w.setParent(None)
+            ruleset, char = self._ruleset, self._ctx["char"]
+            view = viewmod.build_sheet_view(ruleset, char)
+            errors = [i for i in view.issues if i.severity == "error"]
+            head = QLabel("✓ Legal" if not errors else f"✗ {len(errors)} error(s)")
+            head.setStyleSheet("font-weight:700; color:%s;"
+                               % ("#15803d" if not errors else "#b91c1c"))
+            root.addWidget(head)
+            for issue in view.issues:
+                if issue.code in ("bonus-points", "xp-summary"):
+                    continue
+                color = {"error": "#b91c1c", "warning": "#b45309"}.get(
+                    issue.severity, "#a8a5a0")
+                line = QLabel(f"• {issue.message}")
+                line.setWordWrap(True)
+                line.setStyleSheet(f"color:{color};")
+                root.addWidget(line)
+            bd = validate.bonus_point_breakdown(ruleset, char)
+            sep = QLabel("─" * 36)
+            sep.setStyleSheet("color:#a8a5a0;")
+            root.addWidget(sep)
+            total = QLabel(f"Bonus Points  {bd.total} / {bd.available} spent")
+            total.setStyleSheet("font-weight:600; color:%s;"
+                                % ("#b91c1c" if bd.over_budget else "#15803d"))
+            root.addWidget(total)
+            for line in bd.lines:
+                row = QHBoxLayout()
+                domain = QLabel(line.domain)
+                pts = QLabel(str(line.points))
+                if not line.points:
+                    domain.setStyleSheet("color:#a8a5a0;")
+                    pts.setStyleSheet("color:#a8a5a0;")
+                row.addWidget(domain, 1)
+                row.addWidget(pts)
+                root.addLayout(row)
+            if char.chargen_locked:
+                self._xp_section(root, rebuild)
+            done = QPushButton("Done")
+            done.clicked.connect(dialog.accept)
+            root.addWidget(done)
+
+        rebuild()
+        dialog.exec()
+
+    def _xp_section(self, root, rebuild) -> None:
+        """The post-lock Experience card + ledger inside the popover."""
+        char = self._ctx["char"]
+        pal = theme.palette(char.exalt_type)
+        head = QLabel("Experience")
+        head.setStyleSheet("font-weight:700; color:%s;" % qtheme.accent(pal))
+        root.addWidget(head)
+        available = advancement.xp_available(char)
+        row = QHBoxLayout()
+        av = QLabel(str(available))
+        av.setStyleSheet("font-weight:bold; font-size:18pt; color:%s;"
+                         % ("#15803d" if available >= 0 else "#b91c1c"))
+        row.addWidget(av)
+        row.addWidget(QLabel("XP available"))
+        root.addLayout(row)
+        earned = QLabel(f"earned {char.xp_earned} · spent {advancement.xp_spent(char)}")
+        earned.setStyleSheet("color:#a8a5a0;")
+        root.addWidget(earned)
+        row = QHBoxLayout()
+        amount = QSpinBox()
+        amount.setRange(-999, 9999)
+        amount.setValue(5)
+        row.addWidget(amount, 1)
+        adjust = QPushButton("Adjust XP")
+        adjust.clicked.connect(lambda: (self._do_add_xp(amount.value()), rebuild()))
+        row.addWidget(adjust)
+        root.addLayout(row)
+        rows = viewmod.build_xp_log(self._ruleset, char)
+        if rows:
+            undo = QPushButton(f"Undo last: {rows[-1].label}")
+            undo.clicked.connect(lambda: (self._do_undo(), rebuild()))
+            root.addWidget(undo)
+        granted, remaining = validate.withheld_charm_credits(self._ruleset, char)
+        if granted:
+            note = QLabel(f"{remaining} of {granted} withheld Charm(s) in reserve — "
+                          f"the next {remaining or 'no'} cost no XP.")
+            note.setStyleSheet("font-weight:600; color:%s;" % qtheme.accent(pal))
+            note.setWordWrap(True)
+            root.addWidget(note)
+        if not rows:
+            empty = QLabel("No XP spent yet.")
+            empty.setStyleSheet("color:#a8a5a0;")
+            root.addWidget(empty)
+        for r in rows:
+            row = QHBoxLayout()
+            row.addWidget(QLabel(r.label), 1)
+            cost = QLabel(f"{r.cost} XP")
+            cost.setStyleSheet("color:#a8a5a0;")
+            row.addWidget(cost)
+            root.addLayout(row)
+
+    def _do_add_xp(self, amount: int) -> None:
+        advancement.add_xp(self._ctx["char"], amount)
+        self._refresh()
+
+    def _do_undo(self) -> None:
+        try:
+            advancement.undo_last(self._ruleset, self._ctx["char"])
+        except advancement.AdvancementError as ex:
+            self._notify(str(ex), "warning")
+            return
+        self._reload_current()
 
     # ---- load / save / new ---------------------------------------------- #
 
@@ -250,7 +448,7 @@ class MainWindow(QMainWindow):
         self._ctx["dir"] = persistence.default_save_dir()
         self._ctx["path"] = self._ctx["dir"] / persistence.suggested_filename(self._ctx["char"])
         self._notify("Started a new character", "info")
-        self._state["tab"] = "Edit"
+        self._state["tab"] = "Identity"
         self._apply_chrome()
         self._sync_tabs()
 
@@ -275,7 +473,7 @@ class MainWindow(QMainWindow):
             return
         lifecycle.unlock_chargen(self._ctx["char"])
         self._notify("Chargen unlocked — editable again.", "info")
-        self._state["tab"] = "Edit"
+        self._state["tab"] = "Identity"
         self._apply_chrome()
         self._sync_tabs()
 

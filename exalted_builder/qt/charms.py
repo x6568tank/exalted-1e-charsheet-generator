@@ -24,26 +24,30 @@ from collections import defaultdict
 from PySide6.QtCore import QPointF, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPainterPath, QPen, QPolygonF
 from PySide6.QtWidgets import (
-    QComboBox, QFrame, QGraphicsItem, QGraphicsPathItem, QGraphicsRectItem,
-    QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QListWidget,
-    QListWidgetItem, QPushButton, QScrollArea, QSizePolicy, QSpinBox, QSplitter,
-    QStyle, QTabWidget, QTextBrowser, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
-    QWidget,
+    QCheckBox, QComboBox, QDialog, QFrame, QGraphicsItem, QGraphicsPathItem,
+    QGraphicsRectItem, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QPushButton, QScrollArea, QSizePolicy, QSpinBox,
+    QSplitter, QStyle, QTabWidget, QTextBrowser, QTreeWidget, QTreeWidgetItem,
+    QVBoxLayout, QWidget,
 )
 
-from exalted_builder.engine import advancement, costs, refit, thaum_actions, validate
+from exalted_builder.engine import (advancement, costs, merits, refit,
+                                    thaum_actions, validate)
 from exalted_builder.engine import paths as engine_paths
-from exalted_builder.models.character import AnimalForm, PathRating
+from exalted_builder.models.character import AbilityName, AnimalForm, PathRating
+from exalted_builder.qt.editor import DotTrack
 from exalted_builder.models.rules import Orientation
 from exalted_builder.ui import theme
 
 from .theme import CARD, MUTED, TREE, accent as accent_light
 from exalted_builder.ui.view import (CIRCLE_DISPLAY_ORDER, _cost_str, _style_label,
+                                     CharmGraph, CharmNode, augmentation_category,
+                                     build_augmentation_view,
                                      build_charm_detail, build_charm_graph,
                                      build_elemental_power_picker,
                                      build_sheet_view, build_spell_picker,
                                      build_thaum_picker, charm_on_splat_page,
-                                     charm_slot_budget, virtue_split)
+                                     virtue_split)
 
 ROW_H = 160            # vertical space between tree levels
 GAP_X = 40             # horizontal gap between sibling subtrees
@@ -84,9 +88,61 @@ def trees_for(ruleset, character, splat, group):
     out = []
     for key in found:
         graph = build_charm_graph(ruleset, character, key, splat)
+        graph = _collapse_augment_nodes(ruleset, character, graph)
         if graph.nodes:
             out.append((key, len(graph.nodes)))
     return sorted(out, key=lambda t: -t[1])
+
+
+def _collapse_augment_nodes(ruleset, character, graph):
+    """Collapse the Alchemical augmentation templates into ONE node per type
+    (Transitory / Sustained) inside the tree, rerouting prerequisite edges. The 18
+    '<Type> Augmentation of <Attribute>' ids stay distinct in the data (other Charms
+    name a specific one as a prerequisite); the tree shows two summary nodes —
+    selecting one offers 'Pick Attributes' — instead of eighteen disconnected nodes
+    cluttering every dependent tree (a close-combat Charm names 'Transitory
+    Augmentation of Dexterity')."""
+    aug_cat = augmentation_category(ruleset, character)
+    if aug_cat is None:
+        return graph
+    owned = set(character.charms)
+    types: dict[str, list[CharmNode]] = {}
+    for n in graph.nodes:
+        c = ruleset.charms.get(n.id)
+        if c is None or c.category != aug_cat:
+            continue
+        title = c.name.split(" Augmentation of ", 1)[0] + " Augmentation"
+        types.setdefault(title, []).append(n)
+    if not types:
+        return graph
+    drop = {n.id for ns in types.values() for n in ns}
+    title_of = {n.id: title for title, ns in types.items() for n in ns}
+
+    summaries: list[CharmNode] = []
+    summary_id: dict[str, str] = {}
+    for title, ns in types.items():
+        s = CharmNode(
+            id=f"augment:{title.split()[0].lower()}",
+            label=title,
+            state="owned" if any(n.id in owned for n in ns) else "available",
+            min_ability=0, min_essence=0,
+            external=True)
+        summaries.append(s)
+        summary_id[title] = s.id
+
+    nodes = [n for n in graph.nodes if n.id not in drop] + summaries
+    edges = []
+    for prereq, charm_id in graph.edges:
+        if prereq in title_of:
+            edges.append((summary_id[title_of[prereq]], charm_id))
+        elif prereq not in drop and charm_id not in drop:
+            edges.append((prereq, charm_id))
+    roots = [rid for rid in graph.roots if rid not in drop]
+    with_incoming = {child for _, child in edges}
+    for s in summaries:
+        if s.id not in with_incoming:
+            roots.append(s.id)
+    return CharmGraph(graph.category, nodes, edges, roots)
 
 
 def spell_circles(ruleset, character):
@@ -476,6 +532,7 @@ class CharmTreeView(QGraphicsView):
 
     def show_tree(self, category, splat):
         graph = build_charm_graph(self._ruleset, self._character, category, splat)
+        graph = _collapse_augment_nodes(self._ruleset, self._character, graph)
         self.graph = graph
         self._scene.clear()
         if not graph.nodes:
@@ -595,6 +652,8 @@ class CharmsPage(QWidget):
         self._selected_spell: str | None = None
         self._selected_thaum: tuple | None = None
         self._selected_elemental: str | None = None
+        self._selected_path: str | None = None
+        self._selected_augment: str | None = None
         self.detail = QTextBrowser()
         self.detail.setMinimumWidth(300)
         self.count_label = QLabel("")
@@ -625,6 +684,17 @@ class CharmsPage(QWidget):
         self._orientation_combo.setToolTip("Regional version of a ritual or formula")
         act_row.addWidget(self._orientation_combo)
         dp.addLayout(act_row)
+        # The Path rating dot track — visible only while a Path is selected on the
+        # Paths page (which binds the track). Hidden on every other selection.
+        self._path_box = QWidget()
+        self._path_box_lay = QHBoxLayout(self._path_box)
+        self._path_box_lay.setContentsMargins(0, 0, 0, 0)
+        self._path_box_lay.setSpacing(4)
+        rating_label = QLabel("Rating:")
+        rating_label.setStyleSheet(f"color:{MUTED};")
+        self._path_box_lay.addWidget(rating_label)
+        self._path_box.setVisible(False)
+        dp.addWidget(self._path_box)
         dp.addWidget(self.detail, 1)
 
         split = QSplitter()
@@ -666,6 +736,53 @@ class CharmsPage(QWidget):
     # buying (the picker's toggle, ported) — the one thing the spike left out
     # ------------------------------------------------------------------ #
 
+    def _chargen_pick_bp(self, *, charm_id=None, spell_id=None) -> int:
+        """The bonus-point price of ONE more chargen Charm/Spell pick, once the free
+        pool is exhausted (0 while it has room). Exact dearest-first accounting: the
+        pool covers the free dearest picks, so the marginal is the delta of the pool
+        sum, not the raw rate — a new cheap pick can sit below the pool and add
+        nothing, a dear one displaces a cheaper held pick."""
+        ruleset, char = self._ruleset, self._char()
+        if charm_id is not None and charm_id in char.charms:
+            return 0
+        if spell_id is not None and spell_id in char.spells:
+            return 0
+        b = validate.effective_budgets(ruleset, char)
+        immaculate = validate._immaculate_path(ruleset, list(char.charms),
+                                               char.exalt_type)
+        free = b.immaculate_charm_count if immaculate else b.charm_count
+        bp_costs = ruleset.bonus_costs_for(char.exalt_type, char.origin,
+                                           char.upbringing)
+        occult_cf = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, char)
+        spell_rate = bp_costs.charm_favored_caste if occult_cf else bp_costs.charm
+
+        def _pool_total(stage: bool) -> int:
+            """The pool sum with the candidate staged in (or not). Staging runs the
+            picker's own enumeration, so the candidate is priced with its favoured
+            flags and any Calling/Immaculate/MA/magic ladder it falls on."""
+            if stage:
+                if charm_id is not None:
+                    char.charms.append(charm_id)
+                else:
+                    char.spells.append(spell_id)
+            try:
+                pick_costs = validate.charm_pick_bp_costs(
+                    ruleset, char, validate.chargen_charm_picks(ruleset, char))
+                for sid in char.spells:
+                    if ruleset.spells.get(sid) is None:
+                        continue
+                    pick_costs.append(merits.adjust_spell_cost(ruleset, char, spell_rate))
+                pick_costs.sort(reverse=True)
+                return sum(pick_costs[free:])
+            finally:
+                if stage:
+                    if charm_id is not None:
+                        char.charms.remove(charm_id)
+                    else:
+                        char.spells.remove(spell_id)
+
+        return _pool_total(True) - _pool_total(False)
+
     def _update_action(self) -> None:
         """The Learn/Remove button follows the selection: a Charm tree node, a spell
         row, or a Thaumaturgy entry. Disabled with no selection; 'Remove' for an
@@ -683,8 +800,13 @@ class CharmsPage(QWidget):
                 return
             owned = cid in char.charms
             label = f"Remove {charm.name}" if owned else f"Learn {charm.name}"
-            if not owned and char.chargen_locked:
-                label += f" — {costs.charm_cost(self._ruleset, char, charm)} XP"
+            if not owned:
+                if char.chargen_locked:
+                    label += f" — {costs.charm_cost(self._ruleset, char, charm)} XP"
+                else:
+                    bp = self._chargen_pick_bp(charm_id=cid)
+                    if bp:
+                        label += f" — {bp} BP"
             self.action_btn.setText(label)
             self.action_btn.setEnabled(True)
             return
@@ -697,8 +819,13 @@ class CharmsPage(QWidget):
                 return
             owned = sid in char.spells
             label = f"Remove {spell.name}" if owned else f"Learn {spell.name}"
-            if not owned and char.chargen_locked:
-                label += f" — {costs.spell_cost(self._ruleset, char, spell)} XP"
+            if not owned:
+                if char.chargen_locked:
+                    label += f" — {costs.spell_cost(self._ruleset, char, spell)} XP"
+                else:
+                    bp = self._chargen_pick_bp(spell_id=sid)
+                    if bp:
+                        label += f" — {bp} BP"
             self.action_btn.setText(label)
             self.action_btn.setEnabled(True)
             return
@@ -759,9 +886,43 @@ class CharmsPage(QWidget):
                 self.action_btn.setEnabled(True)
                 self.action_btn.setToolTip("")
             else:
-                self.action_btn.setText(f"Learn {row.name}")
+                # A chargen Elemental Power costs bonus points (PG p.68) — the button
+                # carries the BP price on both sides of the lock, like the Thaum rows.
+                self.action_btn.setText(f"Learn {row.name} — {row.price} BP")
                 self.action_btn.setEnabled(row.available)
                 self.action_btn.setToolTip(row.reason if not row.available else "")
+            return
+        if self._selected_augment is not None:
+            self.action_btn.setText("Pick Attributes")
+            self.action_btn.setEnabled(True)
+            self.action_btn.setToolTip("")
+            return
+        if self._selected_path is not None:
+            path = self._ruleset.paths.get(self._selected_path)
+            if path is None:
+                self.action_btn.setEnabled(False)
+                self.action_btn.setText("Select an entry…")
+                return
+            rating = next((p.rating for p in self._char().paths
+                           if p.path_id == self._selected_path), 0)
+            if self._char().chargen_locked:
+                if rating >= 6:
+                    self.action_btn.setEnabled(False)
+                    self.action_btn.setText(f"{path.name} at max")
+                elif rating:
+                    cost = costs.path_step(self._ruleset, self._char(),
+                                           self._selected_path, rating)
+                    self.action_btn.setEnabled(True)
+                    self.action_btn.setText(f"Raise {path.name} — {cost} XP")
+                else:
+                    cost = costs.path_new_cost(self._ruleset, self._char(),
+                                               self._selected_path)
+                    self.action_btn.setEnabled(True)
+                    self.action_btn.setText(f"Learn {path.name} — {cost} XP")
+            else:
+                self.action_btn.setEnabled(rating < 6)
+                self.action_btn.setText(f"Raise {path.name}" if rating
+                                        else f"Learn {path.name}")
             return
         self.action_btn.setEnabled(False)
         self.action_btn.setText("Select an entry…")
@@ -775,6 +936,13 @@ class CharmsPage(QWidget):
             self._toggle_thaum(*self._selected_thaum)
         elif self._selected_elemental is not None:
             self._toggle_elemental(self._selected_elemental)
+        elif self._selected_path is not None:
+            self._path_act()
+        elif self._selected_augment is not None:
+            group = next((g for g in build_augmentation_view(self._ruleset, self._char())
+                          if g.title == self._selected_augment), None)
+            if group is not None:
+                self._open_augment_dialog(group)
 
     def _toggle_thaum(self, kind: str, *rest) -> None:
         """Buy/drop a Thaumaturgy entry via engine.thaum_actions — Arts and
@@ -933,15 +1101,23 @@ class CharmsPage(QWidget):
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
         status = "✓ Legal" if not errors else f"✗ {len(errors)} error(s)"
-        slots = charm_slot_budget(ruleset, char)
-        if slots is not None:
-            over = slots.over_slots or slots.over_general
-            picks = (f"Slots: {slots.installed}/{slots.general + slots.dedicated} used "
-                     f"(G {slots.general} · D {slots.dedicated})")
+        # ⚠ The Slots readout is the LIVE load, not the frozen chargen snapshot —
+        # the same conflation the Vat Refit page documents. charm_slot_budget reports
+        # the snapshot, so buying a Charm post-lock never moved the count.
+        if refit.supports_refit(ruleset, char):
+            load = refit.slot_load(ruleset, char)
+            picks = (f"Slots: {load.installed}/{load.total_slots} used "
+                     f"(G {load.general} · D {load.dedicated})")
         else:
-            noun = ruleset.exalt_for(char.exalt_type).charm_noun
-            picks = (f"{noun}: {validate.charm_pick_count(ruleset, char)} · "
-                     f"Spells: {len(char.spells)}")
+            b = ruleset.budgets_for(char.exalt_type, char.origin, char.upbringing)
+            if b.path_dots > 0:
+                # A Dragon-King learns Paths, not Charms — 'Charms: 0' is noise.
+                used = sum(p.rating for p in char.paths)
+                picks = f"Path dots: {used} · Spells: {len(char.spells)}"
+            else:
+                noun = ruleset.exalt_for(char.exalt_type).charm_noun
+                picks = (f"{noun}: {validate.charm_pick_count(ruleset, char)} · "
+                         f"Spells: {len(char.spells)}")
         parts = [picks, status]
         if bp:
             parts.append(bp)
@@ -996,18 +1172,47 @@ class CharmsPage(QWidget):
             self._selected_spell = None
             self._selected_thaum = None
             self._selected_elemental = None
+            self._selected_augment = None
             self._update_action()
             return
         node = sel[0].node
+        # A collapsed augmentation summary node ('augment:<type>') is not a Charm —
+        # show the type's installed-Attribute readout and offer Pick Attributes.
+        if node.id.startswith("augment:"):
+            self._selected_augment = node.label
+            self._selected_node = None
+            self._selected_spell = None
+            self._selected_thaum = None
+            self._selected_elemental = None
+            self.detail.setHtml(self._augment_summary_html(node.label))
+            self._update_action()
+            return
         self._selected_node = node.id
         self._selected_spell = None
         self._selected_thaum = None
         self._selected_elemental = None
+        self._selected_augment = None
         detail = build_charm_detail(self._ruleset, view._character, node.id)
         html_text = _detail_html(detail) if detail else f"<b>{node.label}</b>"
         state = {"owned": "Owned", "available": "Available"}.get(node.state, "Locked")
         self.detail.setHtml(f"<span style='color:#9a9894'>{state}</span><br>" + html_text)
         self._update_action()
+
+    def _augment_summary_html(self, title: str) -> str:
+        """The detail pane for a collapsed augmentation summary node: the type, the
+        installed Attributes, and where the Pick Attributes action leads."""
+        group = next((g for g in build_augmentation_view(self._ruleset, self._char())
+                      if g.title == title), None)
+        if group is None:
+            return f"<b>{html.escape(title)}</b>"
+        installed = [e.attribute for e in group.entries if e.owned]
+        parts = [f"<b>{html.escape(title)}</b>",
+                 f"<span style='color:#b8b6b2'><b>Installed:</b> "
+                 f"{', '.join(installed) if installed else 'None'}</span>",
+                 "<span style='color:#9a9894'>Each installed copy occupies a Charm "
+                 "Slot. Pick Attributes to install or remove one Attribute's copy."
+                 "</span>"]
+        return "<br>".join(parts)
 
     def _spells_page(self, circles):
         """A panel tab: circle dropdown over a spell-name list."""
@@ -1109,6 +1314,13 @@ class CharmsPage(QWidget):
         self._forms_lay.setSpacing(2)
         scroll.setWidget(forms_host)
         lay.addWidget(scroll, 1)
+        # Pinned BELOW the scroll area, not inside it: the Add button stays at the
+        # panel bottom however many forms are listed. Inside the list it rode the
+        # content block, and a short list was vertically centred in the viewport,
+        # so the button drifted from bottom to middle on the first add.
+        add = QPushButton("+ Add form")
+        add.clicked.connect(self._add_form)
+        lay.addWidget(add)
         self._rebuild_forms()
         return page
 
@@ -1121,8 +1333,8 @@ class CharmsPage(QWidget):
         self._rebuild_forms()
 
     def _rebuild_forms(self) -> None:
-        """Rebuild just the forms list (the totem field survives, so typing in it is
-        not interrupted by an add/remove)."""
+        """Rebuild just the forms list (the totem field and the pinned Add button
+        survive, so typing in either is not interrupted by an add/remove)."""
         self._clear_lay(self._forms_lay)
         char = self._char()
         if not char.animal_forms:
@@ -1143,9 +1355,9 @@ class CharmsPage(QWidget):
             rm.clicked.connect(lambda _, i=i: self._remove_form(i))
             row.addWidget(rm)
             self._forms_lay.addLayout(row)
-        add = QPushButton("+ Add form")
-        add.clicked.connect(self._add_form)
-        self._forms_lay.addWidget(add)
+        # Top-anchor the list: without a trailing stretch a short list is vertically
+        # centred in the scroll viewport, and the rows drift as forms are added.
+        self._forms_lay.addStretch(1)
 
     def _vat_page(self):
         """The Vat Refit page: swap Charms between the installed Slots and the
@@ -1284,6 +1496,122 @@ class CharmsPage(QWidget):
             self._refit_row(cid, installed=False)
         self._vat_content_lay.addStretch(1)
 
+    # ---- Augmentation templates (Alchemical 'general') ---------------------- #
+    # The 18 '<Type> Augmentation of <Attribute>' Charms stay distinct ids in the
+    # data (other Charms name a specific one as a prerequisite) but render as TWO
+    # groups — Transitory / Sustained — each with a per-Attribute picker, mirroring
+    # the web picker's collapsed cards. `build_augmentation_view` supplies the rows;
+    # the toggle is the same state change as a tree-node Charm buy.
+
+    def _augment_page(self):
+        """The Alchemical augmentations page: one card per type (Transitory /
+        Sustained) with its installed-Attribute readout and a Pick-Attributes dialog."""
+        char = self._char()
+        pal = theme.palette(char.exalt_type)
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setSpacing(4)
+        head = QLabel("Augmentations")
+        head.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
+        lay.addWidget(head)
+        cap = QLabel("Two templates, one per Attribute — each installed copy "
+                     "occupies a Charm Slot.")
+        cap.setWordWrap(True)
+        cap.setStyleSheet(f"color:{MUTED};")
+        lay.addWidget(cap)
+        self._augment_lay = QVBoxLayout()
+        lay.addLayout(self._augment_lay)
+        lay.addStretch(1)
+        self._rebuild_augments()
+        return page
+
+    def _rebuild_augments(self) -> None:
+        """Rebuild the two type cards from a live read — install state changes with
+        every toggle, so a stored group's `owned` flags go stale (the picker's
+        stale-selection trap)."""
+        self._clear_lay(self._augment_lay)
+        for group in build_augmentation_view(self._ruleset, self._char()):
+            self._augment_lay.addWidget(self._augment_card(group))
+
+    def _augment_card(self, group):
+        """One type card: title, the installed-Attribute readout, Pick Attributes."""
+        char = self._char()
+        pal = theme.palette(char.exalt_type)
+        card = QFrame()
+        card.setStyleSheet(
+            f"QFrame {{ background:{CARD}; border:none; border-radius:6px; }}")
+        card.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
+        card_lay = QVBoxLayout(card)
+        card_lay.setContentsMargins(10, 8, 10, 10)
+        card_lay.setSpacing(4)
+        row = QHBoxLayout()
+        title = QLabel(group.title)
+        title.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
+        row.addWidget(title)
+        row.addStretch(1)
+        pick = QPushButton("Pick Attributes")
+        pick.clicked.connect(lambda _=None, g=group: self._open_augment_dialog(g))
+        row.addWidget(pick)
+        card_lay.addLayout(row)
+        installed = [e.attribute for e in group.entries if e.owned]
+        summary = QLabel(", ".join(installed) if installed else "None installed.")
+        summary.setStyleSheet(f"color:{MUTED};")
+        card_lay.addWidget(summary)
+        return card
+
+    def _open_augment_dialog(self, group) -> None:
+        """A checkbox per Attribute for one type; toggling installs/removes it
+        immediately (the same guards as a tree-node buy), then re-syncs the checkbox
+        to the actual state — a refused toggle stays as it was."""
+        char = self._char()
+        dialog = QDialog(self)
+        dialog.setWindowTitle(group.title)
+        lay = QVBoxLayout(dialog)
+        intro = QLabel("Each installed Augmentation occupies a Charm Slot.")
+        intro.setStyleSheet(f"color:{MUTED};")
+        lay.addWidget(intro)
+        # Re-read the group so the checkbox states are live, not the card's snapshot.
+        grp = next((g for g in build_augmentation_view(self._ruleset, char)
+                    if g.title == group.title), group)
+        locked = char.chargen_locked
+        for e in grp.entries:
+            row = QHBoxLayout()
+            cb = QCheckBox(e.attribute)
+            cb.setChecked(e.owned)
+            # An owned copy is not droppable in play (undo on the Edit tab); an
+            # unavailable one is locked behind its requirement, shown as the reason.
+            if (locked and e.owned) or (not e.owned and not e.available):
+                cb.setEnabled(False)
+            cb.toggled.connect(lambda checked, cid=e.charm_id, c=cb:
+                               self._toggle_augment(cid, c))
+            row.addWidget(cb)
+            if e.reason:
+                reason = QLabel(e.reason)
+                reason.setStyleSheet("color:#b45309; font-style:italic;")
+                row.addWidget(reason, 1)
+            else:
+                row.addStretch(1)
+            lay.addLayout(row)
+        done = QPushButton("Done")
+        done.clicked.connect(dialog.accept)
+        lay.addWidget(done)
+        dialog.exec()
+
+    def _toggle_augment(self, charm_id: str, cb) -> None:
+        """The state change is `_toggle_charm`'s (guards, notify, both sides of the
+        lock); the checkbox is then re-synced to the truth, since a buy or remove can
+        be refused — requirements, a dependent Charm, or an advancement error."""
+        owned = charm_id in self._char().charms
+        if cb.isChecked() == owned:
+            return
+        self._toggle_charm(charm_id)
+        fresh = charm_id in self._char().charms
+        cb.blockSignals(True)
+        cb.setChecked(fresh)
+        cb.blockSignals(False)
+        self._rebuild_augments()
+
     def _section_header(self, text: str, pal) -> QLabel:
         lbl = QLabel(text)
         lbl.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
@@ -1337,6 +1665,7 @@ class CharmsPage(QWidget):
         self._selected_thaum = None
         if item is None:
             self._selected_elemental = None
+            self._selected_augment = None
             self._update_action()
             return
         row = item.data(Qt.UserRole)
@@ -1414,7 +1743,11 @@ class CharmsPage(QWidget):
         order, gated by Essence); each dot grants that level's power. Pre-lock the
         rating is a free setter into character.paths; post-lock it becomes XP +/-
         via advancement. The breed's two element Paths are auto-favoured (★) and the
-        player chooses one more (✚) from the other eight."""
+        player chooses one more (✚) from the other eight.
+
+        A selectable list, like Spells: picking a Path fills the shared detail pane
+        with its powers and the next-dot cost, the action button carries the buy
+        price, and the rating is a dot track bound to the selected Path."""
         char = self._char()
         pal = theme.palette(char.exalt_type)
         page = QWidget()
@@ -1431,20 +1764,187 @@ class CharmsPage(QWidget):
         cap.setWordWrap(True)
         cap.setStyleSheet(f"color:{MUTED};")
         lay.addWidget(cap)
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        content = QWidget()
-        self._paths_lay = QVBoxLayout(content)
-        self._paths_lay.setContentsMargins(4, 4, 4, 4)
-        self._paths_lay.setSpacing(2)
-        scroll.setWidget(content)
-        lay.addWidget(scroll, 1)
-        self._rebuild_paths()
+        fav_row = QHBoxLayout()
+        fav_row.addWidget(QLabel("Favoured Path"))
+        self._build_favoured_picker(fav_row)
+        note = QLabel("★ breed · ✚ your choice")
+        note.setStyleSheet(f"color:{MUTED}; font-style:italic;")
+        fav_row.addWidget(note)
+        lay.addLayout(fav_row)
+        self._paths_list = QListWidget()
+        self._paths_list.currentItemChanged.connect(self._path_selected)
+        lay.addWidget(self._paths_list, 1)
+        self._paths_page_widget = page
+        self._rebuild_paths_list()
         return page
+
+    def _build_favoured_picker(self, fav_row) -> None:
+        """The Favoured Path combo (a plain read-only label once locked): one choice
+        from the eight non-breed Paths. ⚠ A saved `favored_path` that is one of the
+        breed's two (an illegal-but-possible state) must still be an option — a combo
+        whose value is absent from its options misbehaves — and never index
+        `ruleset.paths[saved]` directly: a stale id from a catalogue rename would
+        KeyError and take the whole tab down (the web's setdefault fallback)."""
+        ruleset, char = self._ruleset, self._char()
+        breed_el = engine_paths.breed_element(ruleset, char)
+        breed_path_ids = {p.id for p in ruleset.paths.values() if p.element == breed_el}
+        fav_opts = {p.id: p.name for p in ruleset.paths.values()
+                    if p.id not in breed_path_ids}
+        if char.chargen_locked:
+            chosen = ruleset.paths.get(char.favored_path)
+            lbl = QLabel(chosen.name if chosen else "—")
+            lbl.setStyleSheet(f"color:{MUTED};")
+            fav_row.addWidget(lbl, 1)
+            return
+        combo = QComboBox()
+        combo.addItem("— none —", "")
+        for pid, pname in fav_opts.items():
+            combo.addItem(pname, pid)
+        combo.blockSignals(True)
+        if char.favored_path:
+            if combo.findData(char.favored_path) < 0:
+                p = ruleset.paths.get(char.favored_path)
+                combo.addItem(p.name if p is not None else char.favored_path,
+                              char.favored_path)
+            combo.setCurrentIndex(combo.findData(char.favored_path))
+        else:
+            combo.setCurrentIndex(0)
+        combo.blockSignals(False)
+        # ⚠ Capture the combo as a default arg — a bare `combo` in the closure is the
+        # shared local, and a rebuild after the change must read THIS one.
+        combo.currentIndexChanged.connect(lambda _, c=combo: (
+            setattr(char, "favored_path", c.currentData() or ""),
+            self._rebuild_paths_list()))
+        self._fav_path_combo = combo
+        fav_row.addWidget(combo, 1)
+
+    def _rebuild_paths_list(self) -> None:
+        """Rebuild the selectable Path list (★/✚ markers, element, held rating),
+        re-selecting the current Path with signals blocked so no selection handler
+        runs mid-rebuild. Clears the path pane when nothing survives (a reload)."""
+        ruleset, char = self._ruleset, self._char()
+        ratings = {p.path_id: p.rating for p in char.paths}
+        breed_el = engine_paths.breed_element(ruleset, char)
+        breed_path_ids = {p.id for p in ruleset.paths.values() if p.element == breed_el}
+        self._paths_list.blockSignals(True)
+        self._paths_list.clear()
+        for path in ruleset.paths.values():
+            marker = ("★ " if path.element and path.element == breed_el
+                      else ("✚ " if path.id == char.favored_path else ""))
+            rating = ratings.get(path.id, 0)
+            text = f"{marker}{path.name} · {path.element_label}"
+            if rating:
+                text += f" — {rating}"
+            item = QListWidgetItem(text)
+            item.setData(Qt.UserRole, path.id)
+            self._paths_list.addItem(item)
+            if path.id == self._selected_path:
+                self._paths_list.setCurrentItem(item)
+        self._paths_list.blockSignals(False)
+        if not self._paths_list.currentItem():
+            self._selected_path = None
+            self._path_box.setVisible(False)
+            self._update_action()
+
+    def _path_selected(self, current, _prev) -> None:
+        """A Path picked from the list: it owns the shared detail/action/rating pane —
+        the Spells-list pattern."""
+        if current is None:
+            self._selected_path = None
+            self._path_box.setVisible(False)
+            self._update_action()
+            return
+        self._selected_path = current.data(Qt.UserRole)
+        self._selected_node = None
+        self._selected_spell = None
+        self._selected_thaum = None
+        self._selected_elemental = None
+        self._selected_augment = None
+        self._update_path_detail()
+        self._update_action()
+
+    def _update_path_detail(self) -> None:
+        """Fill the detail pane and bind the rating dot track for the selected Path."""
+        if self._selected_path is None:
+            self._path_box.setVisible(False)
+            return
+        path = self._ruleset.paths.get(self._selected_path)
+        if path is None:
+            self._path_box.setVisible(False)
+            return
+        self._update_path_detail_text(path)
+        self._path_box.setVisible(True)
+        self._rebuild_path_track(self._selected_path)
+
+    def _update_path_detail_text(self, path) -> None:
+        """The detail pane for a Path: name, element, the granted powers (one per held
+        dot), and the XP step for the next dot."""
+        if path is None:
+            self.detail.setHtml("<b>Unknown Path</b>")
+            return
+        char = self._char()
+        rating = next((p.rating for p in char.paths if p.path_id == path.id), 0)
+        parts = [f"<b>{html.escape(path.name)}</b>"]
+        if path.element_label:
+            parts.append(f"<span style='color:#b8b6b2'>{html.escape(path.element_label)}"
+                         "</span>")
+        if char.chargen_locked:
+            if rating >= len(path.powers):
+                parts.append("<span style='color:#9a9894'>at maximum</span>")
+            else:
+                cost = (costs.path_new_cost(self._ruleset, char, path.id)
+                        if rating == 0 else
+                        costs.path_step(self._ruleset, char, path.id, rating))
+                parts.append(f"<span style='color:#b8b6b2'><b>Next dot:</b> {cost} XP"
+                             "</span>")
+        for power in path.powers[:rating]:
+            line = (f"<b>· {html.escape(power.name)}</b> — "
+                    f"{html.escape(power.duration)}")
+            if power.text:
+                line += f"<br><span style='color:#b8b6b2'>{html.escape(power.text)}</span>"
+            parts.append(f"<span style='color:#b8b6b2'>{line}</span>")
+        if not rating:
+            parts.append("<span style='color:#9a9894'>Not yet learned.</span>")
+        self.detail.setHtml("<br>".join(parts))
+
+    def _rebuild_path_track(self, path_id: str) -> None:
+        """A fresh DotTrack bound to one Path, dropped into the hidden rating row
+        (which a selection shows). Rebuilt per selection — the DotTrack captures
+        get/setv at construction, so it cannot be re-bound in place. Never called
+        from inside a track's own handler; the track refreshes itself there."""
+        while self._path_box_lay.count():
+            item = self._path_box_lay.takeAt(0)
+            w = item.widget()
+            if w is not None:
+                w.hide()
+                w.setParent(None)
+                w.deleteLater()
+        char = self._char()
+        locked = char.chargen_locked
+
+        def get():
+            return next((p.rating for p in char.paths if p.path_id == path_id), 0)
+
+        def setv(rating):
+            self._set_path_rating(path_id, rating)
+
+        def buy(_target, current, wanted, refresh, _detail):
+            self._path_buy(path_id, current, wanted, refresh)
+            return True
+
+        track = DotTrack(
+            get, setv, 0, 6,
+            accent=accent_light(theme.palette(char.exalt_type)),
+            target=path_id if locked else None,
+            buy=buy if locked else None,
+            on_change=self._update_readout)
+        self._path_box_lay.addWidget(track)
 
     def _set_path_rating(self, path_id: str, rating: int) -> None:
         """Pre-lock free setter into character.paths (validation via validate_chargen):
-        a rating of 0 removes the Path, otherwise append or update the PathRating."""
+        a rating of 0 removes the Path, otherwise append or update the PathRating.
+        Refreshes the list/detail/action/readout but NOT the dot track — this runs
+        from inside the track's own click handler, which refreshes itself."""
         char = self._char()
         existing = next((p for p in char.paths if p.path_id == path_id), None)
         if rating <= 0:
@@ -1454,140 +1954,67 @@ class CharmsPage(QWidget):
             existing.rating = rating
         else:
             char.paths.append(PathRating(path_id=path_id, rating=rating))
-        self._rebuild_paths()
-        self._update_readout()      # the path-dots pool is budgeted, pre-lock too
+        self._rebuild_paths_list()
+        self._update_path_detail_text(self._ruleset.paths.get(path_id))
+        self._update_action()
+        self._update_readout()
 
-    def _path_adv(self, path_id: str, direction: int) -> None:
-        """Post-lock XP raise/lower of one Path dot, via advancement."""
+    def _path_buy(self, path_id: str, current: int, wanted: int, refresh) -> None:
+        """Post-lock XP raise/lower of a Path to `wanted` dots, via advancement (each
+        dot its own XP step, PG p.176). `refresh` is the DotTrack's own pip refresh —
+        the track must not be rebuilt from inside its own callback."""
         ruleset, char = self._ruleset, self._char()
         try:
-            if direction > 0:
-                if any(p.path_id == path_id for p in char.paths):
-                    advancement.raise_path(ruleset, char, path_id)
-                else:
+            if wanted > current:
+                if not any(p.path_id == path_id for p in char.paths):
                     advancement.learn_path(ruleset, char, path_id)
+                for _ in range(current, wanted):
+                    advancement.raise_path(ruleset, char, path_id)
             else:
-                advancement.lower_path(ruleset, char, path_id)
+                for _ in range(wanted, current):
+                    advancement.lower_path(ruleset, char, path_id)
+        except advancement.AdvancementError as ex:
+            self._notify(str(ex), "warning")
+        refresh()
+        self._rebuild_paths_list()
+        self._update_path_detail_text(ruleset.paths.get(path_id))
+        self._update_action()
+        self._update_readout()
+
+    def _path_act(self) -> None:
+        """The action button for a selected Path: one-dot raise — free from the
+        chargen pool pre-lock, an XP step post-lock (a new Path is learned first).
+        The dot track is rebuilt here (an external click, safe) so its pips agree."""
+        path_id = self._selected_path
+        if path_id is None:
+            return
+        char = self._char()
+        rating = next((p.rating for p in char.paths if p.path_id == path_id), 0)
+        try:
+            if rating:
+                if char.chargen_locked:
+                    advancement.raise_path(self._ruleset, char, path_id)
+                else:
+                    self._set_path_rating(path_id, rating + 1)
+            elif char.chargen_locked:
+                advancement.learn_path(self._ruleset, char, path_id)
+            else:
+                self._set_path_rating(path_id, 1)
         except advancement.AdvancementError as ex:
             self._notify(str(ex), "warning")
             return
-        self._rebuild_paths()
+        self._rebuild_paths_list()
+        self._update_path_detail()
         self._update_readout()
 
     def _rebuild_paths(self) -> None:
-        """Rebuild the Paths page body: the Favoured Path row, then one row per Path
-        (marker + name + element + rating control) with the granted powers listed
-        under a rated Path."""
-        self._clear_lay(self._paths_lay)
-        self._path_combos: dict[str, QComboBox] = {}
-        self._fav_path_combo = None
-        ruleset, char = self._ruleset, self._char()
-        pal = theme.palette(char.exalt_type)
-        ratings = {p.path_id: p.rating for p in char.paths}
-        breed_el = engine_paths.breed_element(ruleset, char)
-        breed_path_ids = {p.id for p in ruleset.paths.values() if p.element == breed_el}
-        fav_opts = {p.id: p.name for p in ruleset.paths.values()
-                    if p.id not in breed_path_ids}
-
-        fav_row = QHBoxLayout()
-        fav_row.addWidget(QLabel("Favoured Path"))
-        if char.chargen_locked:
-            chosen = ruleset.paths.get(char.favored_path)
-            lbl = QLabel(chosen.name if chosen else "—")
-            lbl.setStyleSheet(f"color:{MUTED};")
-            fav_row.addWidget(lbl, 1)
-        else:
-            combo = QComboBox()
-            combo.addItem("— none —", "")
-            for pid, pname in fav_opts.items():
-                combo.addItem(pname, pid)
-            # ⚠ Trap #3 (the picker's Qt form): a saved `favored_path` that is one of
-            # the breed's two (an illegal-but-possible state) must still be an option
-            # — a combo whose value is absent from its options misbehaves. And it is
-            # a SAVE value, so never index `ruleset.paths[saved]` directly: a stale
-            # id from a catalogue rename would KeyError and take the whole tab down.
-            # Show the printed name when the id resolves, else the raw id as its own
-            # label (the web's setdefault fallback).
-            combo.blockSignals(True)
-            if char.favored_path:
-                if combo.findData(char.favored_path) < 0:
-                    p = ruleset.paths.get(char.favored_path)
-                    combo.addItem(p.name if p is not None else char.favored_path,
-                                  char.favored_path)
-                combo.setCurrentIndex(combo.findData(char.favored_path))
-            else:
-                combo.setCurrentIndex(0)
-            combo.blockSignals(False)
-            # ⚠ Capture the combo as a default arg — a bare `combo` in the closure is
-            # the shared local that the per-path rating loop below reassigns, so the
-            # handler would read the LAST path's rating combo instead of this one (a
-            # picked favoured path silently became '').
-            combo.currentIndexChanged.connect(lambda _, c=combo: (
-                setattr(char, "favored_path", c.currentData() or ""),
-                self._rebuild_paths()))
-            self._fav_path_combo = combo
-            fav_row.addWidget(combo, 1)
-        note = QLabel("★ breed · ✚ your choice")
-        note.setStyleSheet(f"color:{MUTED}; font-style:italic;")
-        fav_row.addWidget(note)
-        self._paths_lay.addLayout(fav_row)
-
-        for path in ruleset.paths.values():
-            rating = ratings.get(path.id, 0)
-            marker = ("★ " if path.element and path.element == breed_el
-                      else ("✚ " if path.id == char.favored_path else ""))
-            row = QHBoxLayout()
-            name_lbl = QLabel(f"{marker}{path.name}")
-            name_lbl.setStyleSheet("font-weight:600;")
-            row.addWidget(name_lbl, 1)
-            el = QLabel(path.element_label)
-            el.setStyleSheet(f"color:{MUTED};")
-            row.addWidget(el)
-            if char.chargen_locked:
-                minus = QPushButton("−")
-                minus.setEnabled(rating > 0)
-                minus.clicked.connect(lambda _, pid=path.id: self._path_adv(pid, -1))
-                row.addWidget(minus)
-                r = QLabel(str(rating))
-                r.setStyleSheet("font-family:monospace;")
-                r.setFixedWidth(20)
-                r.setAlignment(Qt.AlignCenter)
-                row.addWidget(r)
-                plus = QPushButton("+")
-                plus.clicked.connect(lambda _, pid=path.id: self._path_adv(pid, +1))
-                row.addWidget(plus)
-            else:
-                # ⚠ Block signals while populating + setting the initial index — an
-                # unblocked setCurrentIndex fires the handler → identical write →
-                # rebuild → infinite loop.
-                combo = QComboBox()
-                combo.blockSignals(True)
-                for i in range(0, 7):
-                    combo.addItem(str(i), i)
-                combo.setCurrentIndex(rating)
-                combo.blockSignals(False)
-                # ⚠ Capture the combo as a default arg — a bare `combo` in the
-                # closure is the LOOP variable, shared by every path's handler, so
-                # each one would read the LAST path's combo instead of its own.
-                combo.currentIndexChanged.connect(
-                    lambda _, c=combo, pid=path.id: self._set_path_rating(
-                        pid, c.currentData()))
-                self._path_combos[path.id] = combo
-                row.addWidget(combo)
-            self._paths_lay.addLayout(row)
-            if rating:
-                for power in path.powers[:rating]:
-                    pw = QLabel(f"• {power.name} — {power.duration}")
-                    pw.setContentsMargins(16, 0, 0, 0)
-                    pw.setStyleSheet(f"color:{MUTED}; font-weight:600;")
-                    self._paths_lay.addWidget(pw)
-                    if power.text:
-                        txt = QLabel(power.text)
-                        txt.setWordWrap(True)
-                        txt.setContentsMargins(16, 0, 0, 0)
-                        txt.setStyleSheet(f"color:{MUTED};")
-                        self._paths_lay.addWidget(txt)
-        self._paths_lay.addStretch(1)
+        """Full Paths refresh (reload / external change): rebuild the list and the
+        selected Path's detail + dot track, and refresh the readout."""
+        self._rebuild_paths_list()
+        if self._selected_path is not None:
+            self._update_path_detail()
+        self._update_action()
+        self._update_readout()
 
     def _art_selected(self, tree):
         """The Arts tree's selection: an Art or one of its specialties. Sets
@@ -1597,6 +2024,7 @@ class CharmsPage(QWidget):
         self._selected_node = None
         self._selected_spell = None
         self._selected_elemental = None
+        self._selected_augment = None
         if item is None:
             self._selected_thaum = None
             self._update_action()
@@ -1624,11 +2052,13 @@ class CharmsPage(QWidget):
             self._selected_spell = None
             self._selected_thaum = None
             self._selected_elemental = None
+            self._selected_augment = None
             self._update_action()
             return
         obj = item.data(Qt.UserRole)
         self._selected_node = None
         self._selected_elemental = None
+        self._selected_augment = None
         if isinstance(obj, tuple):          # a (kind, row) Thaumaturgy entry
             kind, row = obj
             self._selected_thaum = (kind, row)
@@ -1655,6 +2085,8 @@ class CharmsPage(QWidget):
         self._selected_spell = None
         self._selected_thaum = None
         self._selected_elemental = None
+        self._selected_augment = None
+        self._selected_path = None
         # Block tab signals across the rebuild: the QTabWidget fires currentChanged
         # during clear()/addTab (the qt-port.md construction trap), and with several
         # gated builders a mid-build signal could poke a panel that is only half
@@ -1666,6 +2098,8 @@ class CharmsPage(QWidget):
                                  ("arcanoi", "Arcanoi")):
                 if trees_for(self._ruleset, char, char.exalt_type, group):
                     self.tabs.addTab(self._tree_page(group), label)
+            if augmentation_category(self._ruleset, char) is not None:
+                self.tabs.addTab(self._augment_page(), "Augmentations")
             circles = spell_circles(self._ruleset, char)
             if circles:
                 self.tabs.addTab(self._spells_page(circles), "Spells")
@@ -1694,3 +2128,13 @@ class CharmsPage(QWidget):
                                      f"{len(view.graph.edges)} edges")
         else:
             self.count_label.setText("")
+        # The Path rating row lives in the shared detail panel but belongs to the
+        # Paths page alone — hide it (and drop the stale selection) on any other tab.
+        if self.tabs.currentWidget() is not getattr(self, "_paths_page_widget", None):
+            if self._selected_path is not None:
+                self._selected_path = None
+                self._path_box.setVisible(False)
+        # A summary-node selection lives on a tree tab; drop it elsewhere.
+        if self._selected_augment is not None:
+            self._selected_augment = None
+        self._update_action()

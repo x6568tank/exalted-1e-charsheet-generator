@@ -1,20 +1,29 @@
-"""The Qt Edit tab (exalted_builder/qt/editor.py) — retained-mode trait surface.
+"""The Qt Identity + Traits pages (exalted_builder/qt/editor.py) — retained-mode
+trait surface.
 
-Covers the DotTrack control (chargen free setter, post-lock XP buyer), the EditPage
-build + side column, and the structural cascades. The post-lock downward dialog is
-exercised only through its `_buy` preconditions — a modal QDialog.exec() would block
-a headless test.
+Covers the DotTrack control (chargen free setter, post-lock XP buyer), the two pages
+(Identity's structural + bio + caste info; Traits' favoured picks + dot tracks), the
+structural cascades and the scroll-hold. The post-lock downward dialog is exercised
+only through its `_buy` preconditions — a modal QDialog.exec() would block a headless
+test.
 """
 
 from PySide6.QtWidgets import QApplication, QPushButton
 
 from exalted_builder.engine import advancement, lifecycle
 from exalted_builder.models.character import AbilityName, AttributeName, Character
-from exalted_builder.qt.editor import DotTrack, EditPage, _FavoredPicker
+from exalted_builder.qt.editor import DotTrack, IdentityPage, TraitsPage, _FavoredPicker
 
 
-def _page(ruleset, character, **kw):
-    return EditPage(ruleset, {"char": character}, notify=lambda *a, **k: None, **kw)
+def _identity(ruleset, character, **kw):
+    return IdentityPage(ruleset, {"char": character},
+                        notify=lambda *a, **k: None,
+                        on_theme_change=lambda: None, **kw)
+
+
+def _traits(ruleset, character, **kw):
+    return TraitsPage(ruleset, {"char": character},
+                      notify=lambda *a, **k: None, **kw)
 
 
 # --------------------------------------------------------------------------- #
@@ -92,23 +101,40 @@ def test_dot_track_fires_on_change(qtbot):
 
 
 # --------------------------------------------------------------------------- #
-# EditPage — chargen side
+# The two pages — chargen side
 # --------------------------------------------------------------------------- #
 
-def test_edit_page_builds_for_a_fresh_character(qtbot, ruleset):
+def test_pages_build_for_a_fresh_character(qtbot, ruleset):
+    from PySide6.QtWidgets import QLabel
     char = Character(id="char.new")
-    page = _page(ruleset, char)
+    idp = _identity(ruleset, char)
+    trp = _traits(ruleset, char)
+    qtbot.addWidget(idp)
+    qtbot.addWidget(trp)
+    id_text = " | ".join(l.text() for l in idp.findChildren(QLabel))
+    tr_text = " | ".join(l.text() for l in trp.findChildren(QLabel))
+    assert "Identity" in id_text and "Biography" in id_text and "Caste" in id_text
+    assert "Favoured Picks" in tr_text and "Attributes" in tr_text
+
+
+def test_identity_bio_fields_bind_to_the_model(qtbot, ruleset):
+    from PySide6.QtWidgets import QLineEdit, QTextEdit
+    char = Character(id="char.new")
+    page = _identity(ruleset, char)
     qtbot.addWidget(page)
-    # The chargen side column carries Live Validation + Bonus Points.
-    text = page._side.findChild(type(page._side)).text() if False else ""
-    all_text = _side_text(page)
-    assert "Live Validation" in all_text
-    assert "Bonus Points" in all_text
+    edits = page.findChildren(QLineEdit)
+    # the bio fields are the trailing seven (Name/Concept/Anima and Nature's internal
+    # line edit come first); Sex is the first of them
+    edits[-7].setText("M")
+    assert char.sex == "M"
+    backs = page.findChildren(QTextEdit)      # Description, Backstory, Notes
+    backs[1].setPlainText("Born in the River Province")
+    assert char.backstory == "Born in the River Province"
 
 
-def test_edit_page_changed_updates_ability_tally(qtbot, ruleset):
+def test_traits_changed_updates_ability_tally(qtbot, ruleset):
     char = Character(id="char.new")
-    page = _page(ruleset, char)
+    page = _traits(ruleset, char)
     qtbot.addWidget(page)
     before = _ability_tally_text(page)
     char.abilities[AbilityName.MELEE] = 3
@@ -117,9 +143,9 @@ def test_edit_page_changed_updates_ability_tally(qtbot, ruleset):
     assert before != after
 
 
-def test_edit_page_structural_switch_cascades(qtbot, ruleset):
+def test_identity_structural_switch_cascades(qtbot, ruleset):
     char = Character(id="char.new")
-    page = _page(ruleset, char)
+    page = _identity(ruleset, char)
     qtbot.addWidget(page)
     page.set_exalt_type("Dragon-Blooded")
     assert char.exalt_type == "Dragon-Blooded"
@@ -133,11 +159,11 @@ def test_edit_page_structural_switch_cascades(qtbot, ruleset):
     assert char.origin == "heroic"
 
 
-def test_edit_page_post_lock_buy_spends_xp(qtbot, ruleset):
+def test_traits_post_lock_buy_spends_xp(qtbot, ruleset):
     char = Character(id="char.new")
     advancement.add_xp(char, 50)
     lifecycle.lock_chargen(char, ruleset)
-    page = _page(ruleset, char)
+    page = _traits(ruleset, char)
     qtbot.addWidget(page)
     available = advancement.xp_available(char)
     page._buy("attributes.strength", 1, 2, lambda: None)
@@ -145,20 +171,19 @@ def test_edit_page_post_lock_buy_spends_xp(qtbot, ruleset):
     assert advancement.xp_available(char) < available
 
 
-def test_edit_page_pre_lock_buy_falls_through(qtbot, ruleset):
+def test_traits_pre_lock_buy_falls_through(qtbot, ruleset):
     char = Character(id="char.new")
-    page = _page(ruleset, char)
+    page = _traits(ruleset, char)
     qtbot.addWidget(page)
     # Pre-lock the buy handler returns False so the track free-sets instead.
     assert page._buy("attributes.strength", 1, 2, lambda: None) is False
 
 
-def test_edit_page_reload_holds_scroll_position(qtbot, ruleset):
-    # A structural change (here: picking a different Dragon-King breed) rebuilds the
-    # whole body. The rebuild's transient content collapse can yank the scrollbar,
-    # so reload must hold the scroll position where it was.
-    char = Character(id="dk", exalt_type="Dragon-Kings", caste="pterok")
-    page = _page(ruleset, char)
+def test_traits_reload_holds_scroll_position(qtbot, ruleset):
+    # A body rebuild (here: adding a craft) can yank the scrollbar, so reload must
+    # hold the scroll position where it was.
+    char = Character(id="c", exalt_type="Solar")
+    page = _traits(ruleset, char)
     qtbot.addWidget(page)
     page.resize(1000, 700)
     page.show()
@@ -168,13 +193,13 @@ def test_edit_page_reload_holds_scroll_position(qtbot, ruleset):
     assert bar.maximum() > 0                # the form really overflows
     bar.setValue(bar.maximum() // 2)
     saved = bar.value()
-    page.set_caste("raptok")                # a structural reload
+    page.add_craft()                        # a body reload
     for _ in range(6):
         QApplication.processEvents()
     assert bar.value() == saved
 
 
-def test_edit_page_removing_a_favored_chip_holds_scroll(qtbot, ruleset):
+def test_traits_removing_a_favored_chip_holds_scroll(qtbot, ruleset):
     # The nasty one: deleting a FOCUSED chip (its ✕) makes Qt's focus handling
     # scroll the body to whatever focusable widget it picks next — a QSpinBox deep
     # in the form. The picker parks focus on its combo before deleting, and the
@@ -182,7 +207,7 @@ def test_edit_page_removing_a_favored_chip_holds_scroll(qtbot, ruleset):
     char = Character(id="c", exalt_type="Solar")
     char.favored_abilities = [AbilityName.MELEE, AbilityName.DODGE,
                               AbilityName.ARCHERY]
-    page = _page(ruleset, char)
+    page = _traits(ruleset, char)
     qtbot.addWidget(page)
     page.resize(1000, 700)
     page.show()
@@ -205,12 +230,6 @@ def test_edit_page_removing_a_favored_chip_holds_scroll(qtbot, ruleset):
 # --------------------------------------------------------------------------- #
 # helpers
 # --------------------------------------------------------------------------- #
-
-def _side_text(page) -> str:
-    """The concatenated text of the side column's labels."""
-    from PySide6.QtWidgets import QLabel
-    return " | ".join(label.text() for label in page._side.findChildren(QLabel))
-
 
 def _ability_tally_text(page) -> str:
     from PySide6.QtWidgets import QLabel

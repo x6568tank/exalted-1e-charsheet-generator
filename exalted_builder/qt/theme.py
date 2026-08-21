@@ -22,7 +22,9 @@ from exalted_builder.ui.theme import Palette
 # The unified dark base — brighter than Qt's default dark grey, per the human.
 BG = "#333338"          # page: a medium dark grey
 CARD = "#3d3d45"        # cards: a touch lighter than the page
-INPUT = "#47474f"       # editable fields: lighter still, so a fill-in is distinguishable
+INPUT = "#52525c"       # editable fields: a clear step lighter than CARD — the old
+                        # #47474f was only +10 over the card and read as the same
+                        # shade on a real display (the "fill-in invisible" report).
 TREE = "#41414a"        # charm-tree canvas: a little lighter than the page
 INK = "#e6e4e0"         # body text: off-white
 MUTED = "#9a9894"       # secondary text
@@ -73,7 +75,7 @@ QLabel {{ color:{INK}; }}
 QPushButton {{ background:{CARD}; color:{INK}; border:none;
                border-radius:4px; padding:4px 10px; }}
 QPushButton:hover {{ background:{ac}; color:#1a1a1a; }}
-QLineEdit, QSpinBox, QComboBox, QListWidget {{
+QLineEdit, QSpinBox, QComboBox, QListWidget, QTextEdit {{
     background:{INPUT}; color:{INK}; border:none;
     border-radius:4px; padding:2px 5px; }}
 QComboBox QAbstractItemView {{ background:{INPUT}; color:{INK};
@@ -81,6 +83,10 @@ QComboBox QAbstractItemView {{ background:{INPUT}; color:{INK};
 QCompleter QAbstractItemView {{ background:{INPUT}; color:{INK};
     selection-background-color:{ac}; selection-color:#1a1a1a; }}
 QTextBrowser {{ background:{CARD}; color:{INK}; border:none; }}
+QListWidget#appRail {{ background:{BG}; border:none; }}
+QListWidget#appRail::item {{ padding:8px 10px; border-radius:4px; }}
+QListWidget#appRail::item:hover {{ background:{CARD}; }}
+QListWidget#appRail::item:selected {{ background:{ac}; color:#1a1a1a; font-weight:600; }}
 """
 
 
