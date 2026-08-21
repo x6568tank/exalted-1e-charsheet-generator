@@ -272,6 +272,7 @@ from .charms import (          # noqa: F401 — re-exported for callers
     ox_body_charm,
     ox_body_charm_id,
     repeatable_cap_trait_name,
+    repeatable_cap_unit,
     splat_of,
     splat_uses_charm_slots,
     tier_rank,

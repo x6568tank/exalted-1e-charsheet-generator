@@ -7,6 +7,13 @@ File dialogs and the confirm box are monkeypatched away — the shell logic arou
 them is what is under test.
 """
 
+import pytest
+
+# ⚠ PySide6 is the OPTIONAL `qt` extra (pyproject), so it is legitimately absent on a
+# machine that only runs the webapp. Skip the module rather than letting a bare import
+# turn into a COLLECTION ERROR — that kills the whole run, not just these tests.
+pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
+
 from pathlib import Path
 
 from PySide6.QtGui import QPalette

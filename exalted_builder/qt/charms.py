@@ -31,8 +31,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QWidget,
 )
 
-from exalted_builder.engine import (advancement, costs, merits, refit,
-                                    thaum_actions, validate)
+from exalted_builder.engine import (advancement, charm_actions, costs, merits,
+                                    refit, thaum_actions, validate)
 from exalted_builder.engine import paths as engine_paths
 from exalted_builder.models.character import AbilityName, AnimalForm, PathRating
 from exalted_builder.qt.editor import DotTrack
@@ -979,75 +979,32 @@ class CharmsPage(QWidget):
         self._notify(msg, "info")
         self._refresh_current_tree()
 
+    def _act(self, action, *args) -> bool:
+        """Run an engine.charm_actions dispatcher and show what it says — its return
+        message, or its AdvancementError as a warning. True when the character
+        changed, so the caller can skip its repaint."""
+        try:
+            self._notify(action(*args), "info")
+        except advancement.AdvancementError as ex:
+            self._notify(str(ex), "warning")
+            return False
+        return True
+
     def _toggle_charm(self, charm_id: str) -> None:
-        """The web picker's toggle, ported: post-lock an XP purchase via
-        advancement.learn_charm (a known Charm is not droppable — undo on the Edit
-        tab); pre-lock an append/remove against the chargen budget."""
-        ruleset, char = self._ruleset, self._char()
-        charm = ruleset.charms.get(charm_id)
-        if charm is None:
-            return
-        if char.chargen_locked:
-            if charm_id in char.charms:
-                self._notify(f"{charm.name} is already known — undo the purchase on "
-                             "the Edit tab to give it back.", "info")
-                return
-            cost = costs.charm_cost(ruleset, char, charm)
-            try:
-                advancement.learn_charm(ruleset, char, charm_id)
-            except advancement.AdvancementError as ex:
-                self._notify(str(ex), "warning")
-                return
-            self._notify(f"Learned {charm.name} — {cost} XP", "info")
-        elif charm_id in char.charms:
-            blockers = validate.charms_depending_on(ruleset, char, charm_id)
-            if blockers:
-                self._notify(f"{charm.name}: can't remove — needed by "
-                             f"{', '.join(blockers)}", "warning")
-                return
-            char.charms.remove(charm_id)
-            self._notify(f"Removed {charm.name}", "info")
-        else:
-            if not validate.meets_charm_requirements(ruleset, char, charm):
-                self._notify(f"{charm.name}: prerequisites not met", "warning")
-                return
-            cap = validate._repeatable_purchase_cap(charm, char)
-            if cap and char.charms.count(charm_id) >= cap:
-                self._notify(f"{charm.name}: already bought {cap} times — its maximum.",
-                             "warning")
-                return
-            char.charms.append(charm_id)
-            self._notify(f"Learned {charm.name}", "info")
-        self._refresh_current_tree()
+        """A node click: learn an unowned Charm, drop an owned one, buy post-lock.
+
+        ⚠ The dispatch is engine.charm_actions.toggle_charm and must stay there — the
+        web picker holds the SAME logic and the two drifted once already (Ox-Body's
+        variant menu reached only the web copy, so this one would have appended the
+        package Charm's id straight into `char.charms`). `variant_menu_reason` now
+        refuses that here rather than relying on a widget-level branch."""
+        if self._act(charm_actions.toggle_charm, self._ruleset, self._char(), charm_id):
+            self._refresh_current_tree()
 
     def _toggle_spell(self, spell_id: str) -> None:
-        """The web picker's toggle_spell, ported — same chargen/XP split."""
-        ruleset, char = self._ruleset, self._char()
-        spell = ruleset.spells.get(spell_id)
-        if spell is None:
-            return
-        if char.chargen_locked:
-            if spell_id in char.spells:
-                self._notify(f"{spell.name} is already known — undo the purchase on "
-                             "the Edit tab to give it back.", "info")
-                return
-            cost = costs.spell_cost(ruleset, char, spell)
-            try:
-                advancement.learn_spell(ruleset, char, spell_id)
-            except advancement.AdvancementError as ex:
-                self._notify(str(ex), "warning")
-                return
-            self._notify(f"Learned {spell.name} — {cost} XP", "info")
-        elif spell_id in char.spells:
-            char.spells.remove(spell_id)
-            self._notify(f"Dropped {spell.name}", "info")
-        else:
-            if not validate.meets_spell_requirements(ruleset, char, spell):
-                self._notify(f"{spell.name}: not available", "warning")
-                return
-            char.spells.append(spell_id)
-            self._notify(f"Learned {spell.name}", "info")
-        self._refresh_current_tree()
+        """A spell row's click — the same chargen/XP split, same shared dispatcher."""
+        if self._act(charm_actions.toggle_spell, self._ruleset, self._char(), spell_id):
+            self._refresh_current_tree()
 
     def _refresh_current_tree(self) -> None:
         """Re-render the active tree so the owned/available state reflects the change

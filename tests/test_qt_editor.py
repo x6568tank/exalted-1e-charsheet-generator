@@ -8,6 +8,13 @@ only through its `_buy` preconditions — a modal QDialog.exec() would block a h
 test.
 """
 
+import pytest
+
+# ⚠ PySide6 is the OPTIONAL `qt` extra (pyproject), so it is legitimately absent on a
+# machine that only runs the webapp. Skip the module rather than letting a bare import
+# turn into a COLLECTION ERROR — that kills the whole run, not just these tests.
+pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
+
 from PySide6.QtWidgets import QApplication, QPushButton
 
 from exalted_builder.engine import advancement, lifecycle

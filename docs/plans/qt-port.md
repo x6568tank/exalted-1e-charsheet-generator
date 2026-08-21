@@ -315,6 +315,25 @@ XP via `engine.advancement`):
   picker** (North/South/East/West/Realm) that appears only when buying the first
   orientation.
 
+⚠ **This was the port's first duplicated RULE, and it is now extracted** (2026-08-21).
+Thaumaturgy was fine — it already went through `engine/thaum_actions.py`, which is why
+`qt/charms.py` could just call it. Charms, spells and the two variant-menu packages
+were not: the Qt picker re-implemented the lock dispatch, the guards and the message
+text by hand from `ui/picker.py`. They drifted **within one milestone** — the web
+picker branches to a variant menu in its detail card before an Add button is ever
+drawn, and the Qt picker toggles straight from a node click, so an Ox-Body click would
+have appended the package Charm's id into `character.charms`.
+
+`engine/charm_actions.py` is that logic in one place, `thaum_actions`' shape exactly,
+and both shells are now thin `_act(...)` notification wrappers over it. The guard that
+was living in a WIDGET is now `charm_actions.variant_menu_reason`, where every shell
+runs it.
+
+**The general rule this milestone bought: a purchase surface gets its engine
+dispatcher BEFORE it is ported, not after.** Advantages (Backgrounds + M&F) is the
+next one — check whether its buy paths already have an engine home, and give them one
+if not, while there is still only a single copy to move.
+
 ### The theme — a desktop app, not a web-app mimicry
 
 The human's direction (2026-08-20): stop mimicking the web app; a native app should

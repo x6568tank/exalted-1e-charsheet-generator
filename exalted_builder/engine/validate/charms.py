@@ -759,6 +759,18 @@ def repeatable_cap_trait_name(charm: Optional[Charm]) -> str:
     return name.replace("_", " ").title() if name else ""
 
 
+def repeatable_cap_unit(charm: Optional[Charm]) -> str:
+    """The noun the cap trait is counted in — "point" for Essence, "dot" for an
+    Ability or Attribute. "" alongside a "" from `repeatable_cap_trait_name`.
+
+    Split from the trait name because a message needs both ("once per dot of
+    Endurance", "once per point of Essence") and the pair had been derived twice."""
+    name = charm.repeatable_cap_ability if charm else ""
+    if not name:
+        return ""
+    return "point" if name == "essence" else "dot"
+
+
 def ox_body_cap(ruleset: RuleSet, character: Character) -> int:
     """Maximum number of Ox-Body Technique purchases: once per dot of the Charm's
     `repeatable_cap_ability` (Endurance for Solar/DB/Abyssal; Stamina — an

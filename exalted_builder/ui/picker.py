@@ -32,9 +32,10 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import advancement, costs, paths as engine_paths, refit, validate
-from ..models.character import (AnimalForm, BeastmanGiftPurchase, Character,
-                                OxBodyPurchase, PathRating, SubmodulePurchase)
+from ..engine import (advancement, charm_actions, costs, paths as engine_paths,
+                      refit, validate)
+from ..models.character import (AnimalForm, Character, PathRating,
+                                SubmodulePurchase)
 from ..models.rules import Orientation, RuleSet, circle_kind
 from . import theme
 from . import view as viewmod
@@ -119,6 +120,12 @@ from ..engine.thaum_actions import (  # noqa: F401  (re-export for existing call
     buy_thaum_specialty, drop_thaum_art, drop_thaum_entry, drop_thaum_specialty,
     find_thaum_entry, lower_thaum_science, raise_thaum_science, thaum_state_of)
 
+# Charm, spell and variant-menu purchases got the same treatment for the same reason
+# — `engine/charm_actions.py`. It is reached as a MODULE (`charm_actions.add_ox_body`)
+# rather than re-exported: several of build_picker's button handlers share a name with
+# the dispatcher they wrap, and importing both names into one file is how the wrapper
+# and the wrapped come to be confused for each other.
+
 
 def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                  *, with_header: bool = True, register_events: bool = True,
@@ -146,6 +153,17 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         prerequisites, cap) as a notice. True when the character changed."""
         try:
             action()
+        except advancement.AdvancementError as ex:
+            ui.notify(str(ex), type="warning")
+            return False
+        return True
+
+    def _act(action, *args, kind: str = "positive") -> bool:
+        """Run an `engine.charm_actions` dispatcher and show what it says — its return
+        value on success, its `AdvancementError` as a warning on refusal. True when the
+        character changed, so a caller can skip its refresh."""
+        try:
+            ui.notify(action(*args), type=kind)
         except advancement.AdvancementError as ex:
             ui.notify(str(ex), type="warning")
             return False
@@ -607,31 +625,13 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- Ox-Body Technique (repeatable, variant menu; chargen) ------------- #
     def add_ox_body(variant_key: str) -> None:
-        charm = validate.ox_body_charm(ruleset, character)
-        variant = next((v for v in charm.variants if v.key == variant_key), None) if charm else None
-        if variant is None:
-            return
-        if in_play():
-            cost = costs.ox_body_cost(ruleset, character)
-            if not _buy(lambda: advancement.learn_ox_body(ruleset, character, variant_key)):
-                return
-            ui.notify(f"Bought Ox-Body Technique ({variant.label}) — {cost} XP", type="positive")
-        else:
-            if len(character.ox_body) >= validate.ox_body_cap(ruleset, character):
-                trait, unit = viewmod.repeatable_cap_trait(charm)
-                ui.notify(f"Ox-Body: already bought once per {unit} of {trait}.",
-                          type="warning")
-                return
-            character.ox_body.append(
-                OxBodyPurchase(variant=variant_key, health_levels=list(variant.health_levels)))
-            ui.notify(f"Added Ox-Body Technique ({variant.label})", type="positive")
-        detail.refresh(); update_graph()
+        if _act(charm_actions.add_ox_body, ruleset, character, variant_key):
+            detail.refresh(); update_graph()
 
     def remove_ox_body(index: int) -> None:
-        if in_play():                     # bought with XP: undo it from the ledger
-            return
-        if 0 <= index < len(character.ox_body):
-            del character.ox_body[index]
+        # Post-lock this refuses with a notice rather than doing nothing: the button is
+        # still on screen beside an XP-bought package, and a dead button reads as a bug.
+        if _act(charm_actions.remove_ox_body, character, index, kind="info"):
             detail.refresh(); update_graph()
 
     def ox_body_detail() -> None:
@@ -683,31 +683,13 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     # choosing happens in a dialog with room for every Gift's description.
 
     def remove_gift_purchase(index: int) -> None:
-        if in_play():                     # bought with XP: undo it from the ledger
-            return
-        if 0 <= index < len(character.beastman_gifts):
-            del character.beastman_gifts[index]
+        if _act(charm_actions.remove_gift_purchase, character, index, kind="info"):
             detail.refresh(); update_graph()
 
     def commit_gift_purchase(keys: list[str]) -> bool:
         """Apply one purchase of the Gift Charm. True when the character changed."""
-        if in_play():
-            cost = costs.gift_cost(ruleset, character)
-            if not _buy(lambda: advancement.learn_gift(ruleset, character, keys)):
-                return False
-            ui.notify(f"Bought Deadly Beastman Transformation ({', '.join(keys)}) — "
-                      f"{cost} XP", type="positive")
-        else:
-            charm = validate.gift_charm(ruleset, character)
-            cap = validate.gift_purchase_cap(ruleset, character)
-            if charm is None or len(character.beastman_gifts) >= cap:
-                trait, unit = viewmod.repeatable_cap_trait(charm)
-                ui.notify(f"Deadly Beastman Transformation: already bought once per "
-                          f"{unit} of {trait}.", type="warning")
-                return False
-            character.beastman_gifts.append(BeastmanGiftPurchase(gifts=keys))
-            ui.notify(f"Added Deadly Beastman Transformation ({', '.join(keys)})",
-                      type="positive")
+        if not _act(charm_actions.add_gift_purchase, ruleset, character, keys):
+            return False
         detail.refresh(); update_graph()
         return True
 
@@ -862,39 +844,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- spell picker (spells share the Charm pool; core p.100) ----------- #
     def toggle_spell(spell_id: str) -> None:
-        if in_play():
-            if not buy_spell(spell_id):
-                return
-        elif spell_id in character.spells:
-            character.spells.remove(spell_id)
-            ui.notify(f"Dropped {ruleset.spells[spell_id].name}", type="info")
-        else:
-            spell = ruleset.spells.get(spell_id)
-            if spell is None:
-                return
-            if validate.meets_spell_requirements(ruleset, character, spell):
-                character.spells.append(spell_id)
-                ui.notify(f"Learned {spell.name}", type="positive")
-            else:
-                ui.notify(f"{spell.name}: not available", type="warning")
-                return
+        """Pre-lock a pick, post-lock an XP purchase — the split lives in
+        engine.charm_actions so the Qt picker takes the same one."""
+        if not _act(charm_actions.toggle_spell, ruleset, character, spell_id):
+            return
         spells_panel.refresh()
         readout.refresh()
-
-    def buy_spell(spell_id: str) -> bool:
-        """Post-lock half of `toggle_spell`: spend XP on a spell."""
-        spell = ruleset.spells.get(spell_id)
-        if spell is None:
-            return False
-        if spell_id in character.spells:
-            ui.notify(f"{spell.name} is already known — undo the purchase on the "
-                      "Edit tab to give it back.", type="info")
-            return False
-        cost = costs.spell_cost(ruleset, character, spell)
-        if not _buy(lambda: advancement.learn_spell(ruleset, character, spell_id)):
-            return False
-        ui.notify(f"Learned {spell.name} — {cost} XP", type="positive")
-        return True
 
     def _spell_button(r) -> None:
         if in_play():
@@ -1868,80 +1823,27 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         """)
         readout.refresh()
 
-    def toggle(charm_id: str) -> None:
-        if in_play():
-            if not buy_charm(charm_id):
-                return
-        elif charm_id in character.charms:
-            blockers = validate.charms_depending_on(ruleset, character, charm_id)
-            if blockers:
-                ui.notify(f"{ruleset.charms[charm_id].name}: can't remove — needed by "
-                          f"{', '.join(blockers)}", type="warning")
-                return
-            character.charms.remove(charm_id)
-            ui.notify(f"Removed {ruleset.charms[charm_id].name}", type="info")
-        else:
-            charm = ruleset.charms.get(charm_id)
-            if charm is None:
-                return
-            if validate.meets_charm_requirements(ruleset, character, charm):
-                # A generic repeatable Charm (Mountain Folk Satiation / Stone-Still,
-                # CH6 pp.245-246) is picked once per purchase, up to its trait cap.
-                cap = validate._repeatable_purchase_cap(charm, character)
-                if cap and character.charms.count(charm_id) >= cap:
-                    ui.notify(f"{charm.name}: already bought {cap} times — its maximum.",
-                              type="warning")
-                    return
-                character.charms.append(charm_id)
-                ui.notify(f"Learned {charm.name}", type="positive")
-            else:
-                ui.notify(f"{charm.name}: prerequisites not met", type="warning")
-                return
+    def _after_charm_change() -> None:
         update_graph()
         detail.refresh()
         spells_panel.refresh()        # a new/removed Sorcery Charm changes spell access
         _refresh_categories()         # learning/dropping DB enlightenment reveals/hides Dragon styles
 
+    def toggle(charm_id: str) -> None:
+        """Learn an unowned Charm, drop an owned one; post-lock, buy. The whole
+        dispatch is engine.charm_actions.toggle_charm — this is its notification and
+        repaint wrapper."""
+        if _act(charm_actions.toggle_charm, ruleset, character, charm_id):
+            _after_charm_change()
+
     def add_another(charm_id: str) -> None:
         """Pre-lock: buy ONE MORE copy of a generic repeatable Charm the character
         already owns (the Mountain Folk Essence Satiation Method / Stone-Still Lungs,
         CH6 pp.245-246). Owned-but-under-cap is the one case `toggle` cannot express —
-        it would REMOVE, not append — so the detail card's "Add another" calls this.
-        The cap is enforced here, mirroring toggle's append branch."""
-        if in_play():
-            return
-        charm = ruleset.charms.get(charm_id)
-        if charm is None or not validate.meets_charm_requirements(ruleset, character, charm):
-            ui.notify(f"{charm.name}: prerequisites not met", type="warning")
-            return
-        cap = validate._repeatable_purchase_cap(charm, character)
-        if cap and character.charms.count(charm_id) >= cap:
-            ui.notify(f"{charm.name}: already bought {cap} times — its maximum.",
-                      type="warning")
-            return
-        character.charms.append(charm_id)
-        ui.notify(f"Learned {charm.name}", type="positive")
-        update_graph()
-        detail.refresh()
-        spells_panel.refresh()
-        _refresh_categories()
-
-    def buy_charm(charm_id: str) -> bool:
-        """Post-lock half of `toggle`: spend XP on a Charm. Known Charms are not
-        droppable here — a purchase is undone from the XP ledger, which keeps the
-        append-only log and the traits in step."""
-        charm = ruleset.charms.get(charm_id)
-        if charm is None:
-            return False
-        if charm_id in character.charms:
-            ui.notify(f"{charm.name} is already known — undo the purchase on the "
-                      "Edit tab to give it back.", type="info")
-            return False
-        cost = costs.charm_cost(ruleset, character, charm)
-        if not _buy(lambda: advancement.learn_charm(ruleset, character, charm_id)):
-            return False
-        ui.notify(f"Learned {charm.name} — {cost} XP", type="positive")
-        return True
+        it would REMOVE, not append — so the detail card's "Add another" calls the
+        learn half directly."""
+        if _act(charm_actions.learn_charm, ruleset, character, charm_id):
+            _after_charm_change()
 
     def set_category(value: str) -> None:
         state["category"] = value

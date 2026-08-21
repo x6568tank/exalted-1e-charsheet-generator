@@ -1755,12 +1755,17 @@ def repeatable_cap_trait(charm) -> tuple[str, str]:
     Lunar (The Lunars p.132, "once per dot of human-form Stamina"), and Deadly
     Beastman Transformation caps on Essence (p.124), which is neither an Ability nor
     an Attribute. This mirrors engine.validate._repeatable_purchase_cap, which
-    resolves the same field to the actual number."""
+    resolves the same field to the actual number.
+
+    The UNIT comes from engine.validate.repeatable_cap_unit — engine.charm_actions
+    words the same "once per <unit> of <trait>" refusal, and the pair had been derived
+    in two places. Only the trait LABEL is local, so it gets `_label`'s display
+    formatting rather than the engine's plainer one."""
     name = getattr(charm, "repeatable_cap_ability", "") if charm else ""
     if not name:
         return ("", "")
-    # Essence is rated in points; Abilities and Attributes in dots.
-    return ("Essence", "point") if name == "essence" else (_label(name), "dot")
+    unit = validate.repeatable_cap_unit(charm)
+    return ("Essence", unit) if name == "essence" else (_label(name), unit)
 
 
 def merit_rows(ruleset: RuleSet, character: Character

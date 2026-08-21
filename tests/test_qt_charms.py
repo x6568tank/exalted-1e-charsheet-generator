@@ -5,6 +5,13 @@ node/edge/root counts, the tidy-tree layout, wheel zoom, and selection → detai
 layout and routing functions are pure, so they test without a widget at all.
 """
 
+import pytest
+
+# ⚠ PySide6 is the OPTIONAL `qt` extra (pyproject), so it is legitimately absent on a
+# machine that only runs the webapp. Skip the module rather than letting a bare import
+# turn into a COLLECTION ERROR — that kills the whole run, not just these tests.
+pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
+
 from types import SimpleNamespace
 
 from PySide6.QtCore import QPoint, Qt

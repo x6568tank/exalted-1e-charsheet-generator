@@ -6,6 +6,13 @@ non-empty, the print path writes a real PDF, and the page widget reloads from th
 shared context.
 """
 
+import pytest
+
+# ⚠ PySide6 is the OPTIONAL `qt` extra (pyproject), so it is legitimately absent on a
+# machine that only runs the webapp. Skip the module rather than letting a bare import
+# turn into a COLLECTION ERROR — that kills the whole run, not just these tests.
+pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
+
 from exalted_builder.models.character import Character
 from exalted_builder.qt.sheet import (SheetPage, build_document, print_pdf,
                                       sheet_html)
