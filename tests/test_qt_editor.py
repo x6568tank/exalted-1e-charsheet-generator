@@ -6,6 +6,8 @@ exercised only through its `_buy` preconditions — a modal QDialog.exec() would
 a headless test.
 """
 
+from PySide6.QtWidgets import QApplication, QPushButton
+
 from exalted_builder.engine import advancement, lifecycle
 from exalted_builder.models.character import AbilityName, AttributeName, Character
 from exalted_builder.qt.editor import DotTrack, EditPage, _FavoredPicker
@@ -149,6 +151,55 @@ def test_edit_page_pre_lock_buy_falls_through(qtbot, ruleset):
     qtbot.addWidget(page)
     # Pre-lock the buy handler returns False so the track free-sets instead.
     assert page._buy("attributes.strength", 1, 2, lambda: None) is False
+
+
+def test_edit_page_reload_holds_scroll_position(qtbot, ruleset):
+    # A structural change (here: picking a different Dragon-King breed) rebuilds the
+    # whole body. The rebuild's transient content collapse can yank the scrollbar,
+    # so reload must hold the scroll position where it was.
+    char = Character(id="dk", exalt_type="Dragon-Kings", caste="pterok")
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    page.resize(1000, 700)
+    page.show()
+    for _ in range(6):
+        QApplication.processEvents()
+    bar = page._body_scroll.verticalScrollBar()
+    assert bar.maximum() > 0                # the form really overflows
+    bar.setValue(bar.maximum() // 2)
+    saved = bar.value()
+    page.set_caste("raptok")                # a structural reload
+    for _ in range(6):
+        QApplication.processEvents()
+    assert bar.value() == saved
+
+
+def test_edit_page_removing_a_favored_chip_holds_scroll(qtbot, ruleset):
+    # The nasty one: deleting a FOCUSED chip (its ✕) makes Qt's focus handling
+    # scroll the body to whatever focusable widget it picks next — a QSpinBox deep
+    # in the form. The picker parks focus on its combo before deleting, and the
+    # reload's scroll-hold catches the residue, so the view must stay put.
+    char = Character(id="c", exalt_type="Solar")
+    char.favored_abilities = [AbilityName.MELEE, AbilityName.DODGE,
+                              AbilityName.ARCHERY]
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    page.resize(1000, 700)
+    page.show()
+    QApplication.processEvents()
+    qtbot.wait(250)                       # let the construction scroll-hold release
+    bar = page._body_scroll.verticalScrollBar()
+    assert bar.maximum() > 0
+    bar.setValue(bar.maximum() // 2)
+    QApplication.processEvents()
+    saved = bar.value()
+    picker = page.findChildren(_FavoredPicker)[0]
+    picker.findChildren(QPushButton)[0].setFocus()     # as a real click would
+    QApplication.processEvents()
+    picker._remove("melee")                # the whole removal path
+    for _ in range(8):
+        QApplication.processEvents()
+    assert bar.value() == saved
 
 
 # --------------------------------------------------------------------------- #

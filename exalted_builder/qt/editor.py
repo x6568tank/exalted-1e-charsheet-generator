@@ -20,11 +20,11 @@ Flaw, bonus health levels and the Downtime calculator. A note in the body says s
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QTimer, Qt, Signal
 from PySide6.QtWidgets import (
     QComboBox, QCompleter, QDialog, QFrame, QHBoxLayout, QLabel, QLineEdit,
-    QListWidget, QListWidgetItem, QPushButton, QScrollArea, QSpinBox,
-    QSplitter, QVBoxLayout, QWidget,
+    QListWidget, QListWidgetItem, QPushButton, QScrollArea, QSizePolicy,
+    QSpinBox, QSplitter, QVBoxLayout, QWidget,
 )
 
 from exalted_builder.engine import advancement, costs, derive, elder, merits, validate
@@ -200,10 +200,16 @@ class _FavoredPicker(QWidget):
         self._chips_row.addStretch(1)
 
     def _remove(self, key):
-        if key in self._picked:
-            self._picked.remove(key)
-            self._render_chips()
-            self._on_change(list(self._picked))
+        if key not in self._picked:
+            return
+        # The clicked ✕ has focus; deleting it lets Qt's focus handling scroll the
+        # surrounding scroll area to whatever focusable widget it picks next (a
+        # QSpinBox deep in the form), yanking the view to the bottom. Park focus on
+        # the combo — part of this picker, already on screen — before deleting.
+        self.combo.setFocus()
+        self._picked.remove(key)
+        self._render_chips()
+        self._on_change(list(self._picked))
 
 
 class _Panel(QFrame):
@@ -214,6 +220,11 @@ class _Panel(QFrame):
         super().__init__(parent)
         self.setStyleSheet(
             f"QFrame {{ background:{CARD}; border:none; border-radius:6px; }}")
+        # A card takes its content's natural height and never expands vertically —
+        # otherwise a card beside a taller sibling (the caste card next to the
+        # Identity panel) is stretched to match, and the extra height is spread
+        # across its labels. The body's trailing stretch absorbs leftover space.
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         lay = QVBoxLayout(self)
         lay.setContentsMargins(10, 8, 10, 10)
         lay.setSpacing(4)
@@ -247,6 +258,7 @@ class EditPage(QWidget):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setWidget(self._body_container)
+        self._body_scroll = scroll
 
         self._side = QWidget()
         self._side.setFixedWidth(320)
@@ -721,11 +733,56 @@ class EditPage(QWidget):
         origin_cap = b.attribute_caps.get(a.value)
         return min(cap, origin_cap) if origin_cap else cap
 
+    def _hold_scroll(self, saved: int) -> None:
+        """Keep the body scrolled where it was across the rebuild just done.
+
+        Belt-and-braces on top of the height pin above: the rebuild's relayout can
+        still yank the scrollbar (a direct setValue, not just a range change, on the
+        real display), so this re-applies the saved position on every range and value
+        change for a short settle window, then releases so the user's own scrolling
+        is free again. A prior hold is dropped first — reload() runs several times in
+        a row at startup, and a stale hold must not resurrect an old position."""
+        bar = self._body_scroll.verticalScrollBar()
+        self._drop_scroll_hold()
+        self._scroll_hold_saved = saved
+
+        def restore(*_args) -> None:
+            bar.setValue(min(saved, bar.maximum()))
+
+        self._scroll_hold_restore = restore
+        bar.rangeChanged.connect(restore)
+        bar.valueChanged.connect(restore)
+        bar.setValue(min(saved, bar.maximum()))
+
+        def release() -> None:
+            if self._scroll_hold_restore is restore:
+                self._drop_scroll_hold()
+
+        QTimer.singleShot(120, release)
+
+    def _drop_scroll_hold(self) -> None:
+        hold = getattr(self, "_scroll_hold_restore", None)
+        self._scroll_hold_restore = None
+        if hold is None:
+            return
+        try:
+            bar = self._body_scroll.verticalScrollBar()
+            bar.rangeChanged.disconnect(hold)
+            bar.valueChanged.disconnect(hold)
+        except (RuntimeError, TypeError):
+            pass
+
     def reload(self) -> None:
         """Rebuild the body + side column from the character in ctx. Called on
         structural changes (Exalt type, caste, origin, favoured picks), on load/new/
         lock/unlock, and on any change to a BODY_REBUILD_TARGET. Dot clicks use
         `_changed()` instead and do not rebuild the body."""
+        saved = self._body_scroll.verticalScrollBar().value()
+        # Pin the body's height across the rebuild: clearing the layout collapses
+        # the content under the scrollbar, and the collapse clamps the scrollbar's
+        # value — the yank a structural edit produces on the real display. Holding
+        # the height steady means the scrollbar never sees a collapsed range.
+        self._body_container.setMinimumHeight(self._body_container.height())
         self._clear_lay(self._body_lay)
         self._tallies.clear()
         char = self._char()
@@ -777,12 +834,22 @@ class EditPage(QWidget):
         # Mirrors the web app's row: a fixed-width caste card on the left, the
         # Identity panel filling the rest. Keeps its place even for a splat with no
         # caste so the identity controls don't jump width between splats.
-        id_row = QHBoxLayout()
+        # ⚠ A bare nested QHBoxLayout is over-allocated height by the body layout (a
+        # Qt quirk: the row renders ~67px taller than its content wants, so the
+        # panels beside the caste card get stretched and the slack pools). Hosting
+        # the row on a QWidget gives it proper widget sizing — the body respects its
+        # natural height and the panels fill it exactly.
+        id_row_widget = QWidget()
+        id_row = QHBoxLayout(id_row_widget)
+        id_row.setContentsMargins(0, 0, 0, 0)
         id_row.setSpacing(8)
-        self._body_lay.addLayout(id_row)
+        self._body_lay.addWidget(id_row_widget)
 
         caste_card = QFrame()
         caste_card.setFixedWidth(280)
+        # Same as _Panel: natural height, never stretched to match the Identity
+        # panel beside it.
+        caste_card.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         caste_card.setStyleSheet(
             f"QFrame {{ background:{CARD}; border:none; border-radius:6px; }}")
         caste_lay = QVBoxLayout(caste_card)
@@ -909,7 +976,7 @@ class EditPage(QWidget):
         fav_n = validate.favored_ability_count(ruleset, char)
         if fav_n:
             label = QLabel(f"Favored abilities (pick {fav_n})")
-            label.setContentsMargins(0, 4, 0, 2)       # clear of the combo below
+            label.setContentsMargins(0, 2, 0, 0)       # the panel's spacing clears the combo
             lay.addWidget(label)
             lay.addWidget(_FavoredPicker(
                 {a: _label(a.value) for a in AbilityName},
@@ -917,12 +984,18 @@ class EditPage(QWidget):
                 self.set_favored, frozen=locked))
         if cf_attr_mode:
             label = QLabel(f"Favored Attributes (pick {b.attribute_favored_count})")
-            label.setContentsMargins(0, 4, 0, 2)
+            label.setContentsMargins(0, 2, 0, 0)       # the panel's spacing clears the combo
             lay.addWidget(label)
             lay.addWidget(_FavoredPicker(
                 {a: _label(a.value) for a in AttributeName},
                 list(char.favored_attributes), b.attribute_favored_count, accent_light(pal),
                 self.set_favored_attributes, frozen=locked))
+        # ⚠ The row widget's sizeHint is inflated beyond its content (a Qt quirk: the
+        # layout maxes at 290 but the widget reports 357), so the body allocates the
+        # row 357px and the panels sit in slack — the "blank space under the Favored
+        # abilities" look. Clamp the row to its content height so the identity panel
+        # fills it exactly; a taller splat's content raises the clamp with it.
+        id_row_widget.setMaximumHeight(id_row_widget.minimumSizeHint().height())
 
         # ---- attributes --------------------------------------------------- #
         ap = "/".join(str(p) for p in validate.effective_attribute_pools(ruleset, char))
@@ -1131,6 +1204,8 @@ class EditPage(QWidget):
 
         self._body_lay.addStretch(1)
         self._build_side()
+        self._body_container.setMinimumHeight(0)
+        self._hold_scroll(saved)
 
     def _changed(self) -> None:
         """A change that only moves the readouts — dot clicks, name edits, Adjust XP.

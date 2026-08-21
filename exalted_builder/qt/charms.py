@@ -24,19 +24,23 @@ from collections import defaultdict
 from PySide6.QtCore import QPointF, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPainterPath, QPen, QPolygonF
 from PySide6.QtWidgets import (
-    QComboBox, QGraphicsItem, QGraphicsPathItem, QGraphicsRectItem,
-    QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-    QPushButton, QSizePolicy, QSplitter, QStyle, QTabWidget, QTextBrowser,
-    QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
+    QComboBox, QFrame, QGraphicsItem, QGraphicsPathItem, QGraphicsRectItem,
+    QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QListWidget,
+    QListWidgetItem, QPushButton, QScrollArea, QSizePolicy, QSpinBox, QSplitter,
+    QStyle, QTabWidget, QTextBrowser, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
+    QWidget,
 )
 
-from exalted_builder.engine import advancement, costs, thaum_actions, validate
+from exalted_builder.engine import advancement, costs, refit, thaum_actions, validate
+from exalted_builder.engine import paths as engine_paths
+from exalted_builder.models.character import AnimalForm, PathRating
 from exalted_builder.models.rules import Orientation
 from exalted_builder.ui import theme
 
-from .theme import TREE
+from .theme import CARD, MUTED, TREE, accent as accent_light
 from exalted_builder.ui.view import (CIRCLE_DISPLAY_ORDER, _cost_str, _style_label,
                                      build_charm_detail, build_charm_graph,
+                                     build_elemental_power_picker,
                                      build_sheet_view, build_spell_picker,
                                      build_thaum_picker, charm_on_splat_page,
                                      charm_slot_budget, virtue_split)
@@ -590,6 +594,7 @@ class CharmsPage(QWidget):
         self._selected_node: str | None = None
         self._selected_spell: str | None = None
         self._selected_thaum: tuple | None = None
+        self._selected_elemental: str | None = None
         self.detail = QTextBrowser()
         self.detail.setMinimumWidth(300)
         self.count_label = QLabel("")
@@ -638,6 +643,24 @@ class CharmsPage(QWidget):
 
     def _char(self):
         return self._ctx["char"]
+
+    def _clear_lay(self, lay: QVBoxLayout) -> None:
+        """Remove every widget/layout from `lay` and detach it NOW.
+
+        ⚠ `deleteLater()` alone is deferred to the event loop: a rebuild runs
+        synchronously right after a change, and a build whose children are merely
+        pending-delete keeps painting at stale geometry on top of the next build.
+        `setParent(None)` detaches it from rendering immediately; `deleteLater()`
+        still frees the C++ object. (Same pattern as the Edit tab's `_clear_lay`.)"""
+        while lay.count():
+            item = lay.takeAt(0)
+            w = item.widget()
+            if w is not None:
+                w.hide()
+                w.setParent(None)
+                w.deleteLater()
+            elif item.layout() is not None:
+                self._clear_lay(item.layout())
 
     # ------------------------------------------------------------------ #
     # buying (the picker's toggle, ported) — the one thing the spike left out
@@ -708,6 +731,38 @@ class CharmsPage(QWidget):
                 self._orientation_combo.setVisible(not row.owned)
                 self._orientation_combo.setEnabled(not row.owned)
             return
+        if self._selected_elemental is not None:
+            # Owned-ness is read live off the character, never off a stored row — a
+            # rebuilt list would leave the row's owned flag stale.
+            char = self._char()
+            row = next((r for r in build_elemental_power_picker(self._ruleset, char).powers
+                        if r.id == self._selected_elemental), None)
+            if row is None:
+                self.action_btn.setEnabled(False)
+                self.action_btn.setText("Select an entry…")
+                return
+            if self._selected_elemental in char.elemental_powers:
+                if char.chargen_locked:
+                    # A known power is not droppable in play — the undo lives on the
+                    # Edit tab, matching the picker's disabled check-icon.
+                    self.action_btn.setEnabled(False)
+                    self.action_btn.setText(f"{row.name} — known")
+                    self.action_btn.setToolTip(
+                        "Already known — undo the purchase on the Edit tab.")
+                else:
+                    self.action_btn.setText(f"Remove {row.name}")
+                    self.action_btn.setEnabled(True)
+                    self.action_btn.setToolTip("")
+                return
+            if char.chargen_locked:
+                self.action_btn.setText(f"Learn {row.name} — {row.price} XP")
+                self.action_btn.setEnabled(True)
+                self.action_btn.setToolTip("")
+            else:
+                self.action_btn.setText(f"Learn {row.name}")
+                self.action_btn.setEnabled(row.available)
+                self.action_btn.setToolTip(row.reason if not row.available else "")
+            return
         self.action_btn.setEnabled(False)
         self.action_btn.setText("Select an entry…")
 
@@ -718,6 +773,8 @@ class CharmsPage(QWidget):
             self._toggle_spell(self._selected_spell)
         elif self._selected_thaum is not None:
             self._toggle_thaum(*self._selected_thaum)
+        elif self._selected_elemental is not None:
+            self._toggle_elemental(self._selected_elemental)
 
     def _toggle_thaum(self, kind: str, *rest) -> None:
         """Buy/drop a Thaumaturgy entry via engine.thaum_actions — Arts and
@@ -938,12 +995,14 @@ class CharmsPage(QWidget):
             self._selected_node = None
             self._selected_spell = None
             self._selected_thaum = None
+            self._selected_elemental = None
             self._update_action()
             return
         node = sel[0].node
         self._selected_node = node.id
         self._selected_spell = None
         self._selected_thaum = None
+        self._selected_elemental = None
         detail = build_charm_detail(self._ruleset, view._character, node.id)
         html_text = _detail_html(detail) if detail else f"<b>{node.label}</b>"
         state = {"owned": "Owned", "available": "Available"}.get(node.state, "Locked")
@@ -1011,6 +1070,525 @@ class CharmsPage(QWidget):
         lay.addWidget(inner)
         return page
 
+    # ------------------------------------------------------------------ #
+    # splat-specific picker extras (Form Library / Vat Refit / Paths /
+    # Elemental Powers) — the picker's pages the spike deferred
+    # ------------------------------------------------------------------ #
+
+    def _form_library_page(self):
+        """The Lunar Form Library: the Totem plus every animal shape recorded.
+
+        Entirely free-form — no cost, no cap, no validation, never budget- or
+        XP-audited (play-state, decision 0006). Which animals a Lunar has heart's
+        blood for is a narrative record the Storyteller adjudicates, so this is a
+        notepad, not a picker. Available on both sides of the lock."""
+        char = self._char()
+        pal = theme.palette(char.exalt_type)
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setSpacing(4)
+        head = QLabel("Form Library")
+        head.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
+        lay.addWidget(head)
+        cap = QLabel("Narrative record — no cost, no limit checked here.")
+        cap.setStyleSheet(f"color:{MUTED};")
+        lay.addWidget(cap)
+        row = QHBoxLayout()
+        row.addWidget(QLabel("Totem"))
+        totem = QLineEdit(char.totem)
+        totem.textChanged.connect(lambda t: setattr(char, "totem", t))
+        row.addWidget(totem, 1)
+        self._totem_field = totem
+        lay.addLayout(row)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        forms_host = QWidget()
+        self._forms_lay = QVBoxLayout(forms_host)
+        self._forms_lay.setContentsMargins(4, 4, 4, 4)
+        self._forms_lay.setSpacing(2)
+        scroll.setWidget(forms_host)
+        lay.addWidget(scroll, 1)
+        self._rebuild_forms()
+        return page
+
+    def _add_form(self) -> None:
+        self._char().animal_forms.append(AnimalForm())
+        self._rebuild_forms()
+
+    def _remove_form(self, index: int) -> None:
+        del self._char().animal_forms[index]
+        self._rebuild_forms()
+
+    def _rebuild_forms(self) -> None:
+        """Rebuild just the forms list (the totem field survives, so typing in it is
+        not interrupted by an add/remove)."""
+        self._clear_lay(self._forms_lay)
+        char = self._char()
+        if not char.animal_forms:
+            empty = QLabel("No forms recorded yet.")
+            empty.setStyleSheet(f"color:{MUTED};")
+            self._forms_lay.addWidget(empty)
+        for i, form in enumerate(char.animal_forms):
+            row = QHBoxLayout()
+            animal = QLineEdit(form.name)
+            animal.setPlaceholderText("Animal")
+            animal.textChanged.connect(lambda t, f=form: setattr(f, "name", t))
+            row.addWidget(animal, 1)
+            notes = QLineEdit(form.notes)
+            notes.setPlaceholderText("Notes")
+            notes.textChanged.connect(lambda t, f=form: setattr(f, "notes", t))
+            row.addWidget(notes, 2)
+            rm = QPushButton("✕")
+            rm.clicked.connect(lambda _, i=i: self._remove_form(i))
+            row.addWidget(rm)
+            self._forms_lay.addLayout(row)
+        add = QPushButton("+ Add form")
+        add.clicked.connect(self._add_form)
+        self._forms_lay.addWidget(add)
+
+    def _vat_page(self):
+        """The Vat Refit page: swap Charms between the installed Slots and the
+        Panoply (Alchemical CH2/CH3 pp.88-89, or an Eclipse with a crossover Slot).
+        Play-state like the Form Library — the Charms are already paid for, so the
+        move costs nothing and writes no XP entry; only *which* are worn changes.
+
+        The load readout is refit.slot_load (the LIVE load), deliberately not
+        charm_slot_budget (the frozen chargen snapshot) — conflating the two is the
+        refit module's documented bug to avoid."""
+        char = self._char()
+        pal = theme.palette(char.exalt_type)
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setSpacing(4)
+        head = QLabel("Vat Refit")
+        head.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
+        lay.addWidget(head)
+        cap = QLabel("Swap Charms between your Slots and your Panoply. Costs nothing "
+                     "— they are already bought.")
+        cap.setWordWrap(True)
+        cap.setStyleSheet(f"color:{MUTED};")
+        lay.addWidget(cap)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        content = QWidget()
+        self._vat_content_lay = QVBoxLayout(content)
+        self._vat_content_lay.setContentsMargins(4, 4, 4, 4)
+        self._vat_content_lay.setSpacing(4)
+        scroll.setWidget(content)
+        lay.addWidget(scroll, 1)
+        self._rebuild_vat()
+        return page
+
+    def _do_uninstall(self, charm_id: str) -> None:
+        try:
+            refit.uninstall(self._ruleset, self._char(), charm_id)
+        except refit.RefitError as ex:
+            self._notify(str(ex), "warning")
+            return
+        self._rebuild_vat()
+
+    def _do_install(self, charm_id: str) -> None:
+        try:
+            refit.install(self._ruleset, self._char(), charm_id)
+        except refit.RefitError as ex:
+            self._notify(str(ex), "warning")
+            return
+        self._rebuild_vat()
+
+    def _refit_row(self, charm_id: str, *, installed: bool) -> None:
+        """One installed/Panoply Charm: name + the trait bits that decide which Slot
+        it fits, the block reason if a move is refused, and the move button."""
+        ruleset, char = self._ruleset, self._char()
+        charm = ruleset.charms.get(charm_id)
+        name = charm.name if charm is not None else charm_id
+        reason = (refit.uninstall_block_reason(ruleset, char, charm_id) if installed
+                  else refit.install_block_reason(ruleset, char, charm_id))
+        text = QVBoxLayout()
+        text.setSpacing(0)
+        text.addWidget(QLabel(name))
+        bits = []
+        if charm is not None:
+            if charm.min_attribute:
+                bits.append(f"{charm.min_attribute.title()} {charm.min_ability}")
+            if charm.installation_cost:
+                bits.append(f"{charm.installation_cost}m install")
+            if not validate.charm_fits_dedicated_slot(ruleset, char, charm):
+                bits.append("General Slot only")
+        if bits:
+            sub = QLabel(" · ".join(bits))
+            sub.setStyleSheet(f"color:{MUTED};")
+            text.addWidget(sub)
+        if reason:
+            r = QLabel(reason)
+            r.setStyleSheet("color:#b45309; font-style:italic;")
+            text.addWidget(r)
+        row = QHBoxLayout()
+        row.addLayout(text, 1)
+        btn = QPushButton("To Panoply" if installed else "Install")
+        if reason:
+            btn.setEnabled(False)
+            btn.setToolTip(reason)
+        else:
+            handler = self._do_uninstall if installed else self._do_install
+            btn.clicked.connect(lambda _, c=charm_id, h=handler: h(c))
+        row.addWidget(btn)
+        self._vat_content_lay.addLayout(row)
+
+    def _rebuild_vat(self) -> None:
+        """Rebuild the Vat page body: the live load readout, the Ox-Body note, then
+        the INSTALLED and PANOPLY rows. Rebuilt after every move."""
+        self._clear_lay(self._vat_content_lay)
+        ruleset, char = self._ruleset, self._char()
+        pal = theme.palette(char.exalt_type)
+        load = refit.slot_load(ruleset, char)
+        over = load.installed > load.total_slots or load.motes > load.personal
+        color = "#b91c1c" if over else accent_light(pal)
+        head = QHBoxLayout()
+        slots = QLabel(f"Slots {load.installed}/{load.total_slots} "
+                       f"({load.general} General · {load.dedicated} Dedicated)")
+        slots.setStyleSheet(f"font-weight:600; color:{color};")
+        head.addWidget(slots)
+        for text in (f"General used {load.noncf}/{load.general}",
+                     f"Committed {load.motes}m of {load.personal}m Personal"):
+            lbl = QLabel(text)
+            lbl.setStyleSheet(f"color:{MUTED};")
+            head.addWidget(lbl)
+        head.addStretch()
+        self._vat_content_lay.addLayout(head)
+        if char.ox_body:
+            note = QLabel(f"{len(char.ox_body)} Strain Resistant Chassis purchase(s) "
+                          "occupy Slots and are not refittable.")
+            note.setWordWrap(True)
+            note.setStyleSheet(f"color:{MUTED}; font-style:italic;")
+            self._vat_content_lay.addWidget(note)
+        self._vat_content_lay.addWidget(self._section_header("INSTALLED", pal))
+        # The refittable installed set — ox_body and PLM Charms occupy Slots but are
+        # not swappable, so they stay off this list (the web computes the same way).
+        slotted = [cid for cid in char.charms
+                   if (ch := ruleset.charms.get(cid)) is not None
+                   and validate.charm_occupies_slot(ruleset, char, ch)]
+        if not slotted:
+            empty = QLabel("No Charms installed.")
+            empty.setStyleSheet(f"color:{MUTED};")
+            self._vat_content_lay.addWidget(empty)
+        for cid in slotted:
+            self._refit_row(cid, installed=True)
+        self._vat_content_lay.addWidget(self._section_header("PANOPLY", pal))
+        if not char.retainer_charms:
+            empty = QLabel("Panoply empty — nothing on retainer.")
+            empty.setStyleSheet(f"color:{MUTED};")
+            self._vat_content_lay.addWidget(empty)
+        for cid in char.retainer_charms:
+            self._refit_row(cid, installed=False)
+        self._vat_content_lay.addStretch(1)
+
+    def _section_header(self, text: str, pal) -> QLabel:
+        lbl = QLabel(text)
+        lbl.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
+        return lbl
+
+    def _elemental_page(self):
+        """The Elemental Powers page: Elemental-origin God-Blooded only (Core p.296,
+        GoD p.56, PG p.68). A Charm-like catalogue — 7 BP each chargen, 14 XP in play
+        (double the bonus-point value, PG p.68). Selection drives the shared detail
+        pane and the Learn/Remove action button, exactly like Spells and Thaum."""
+        char = self._char()
+        pal = theme.palette(char.exalt_type)
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setSpacing(4)
+        head = QLabel("Elemental Powers")
+        head.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
+        lay.addWidget(head)
+        self._elemental_list = QListWidget()
+        self._elemental_list.currentItemChanged.connect(
+            lambda _c, _p: self._elemental_selected())
+        lay.addWidget(self._elemental_list, 1)
+        self._rebuild_elemental()
+        return page
+
+    def _rebuild_elemental(self) -> None:
+        """Rebuild the power list from a fresh picker so owned/available state is
+        live, then re-select the previously selected id (a stored row's owned flag
+        goes stale the moment the list is rebuilt)."""
+        picker = build_elemental_power_picker(self._ruleset, self._char())
+        self._elemental_list.clear()
+        for row in picker.powers:
+            item = QListWidgetItem(row.name)
+            item.setData(Qt.UserRole, row)
+            if not row.owned and not row.available:
+                item.setForeground(QColor("#8a8a8a"))      # locked, visually dimmed
+            self._elemental_list.addItem(item)
+        if self._selected_elemental is not None:
+            for i in range(self._elemental_list.count()):
+                if self._elemental_list.item(i).data(Qt.UserRole).id == self._selected_elemental:
+                    self._elemental_list.setCurrentRow(i)
+                    break
+        else:
+            self._update_action()
+
+    def _elemental_selected(self) -> None:
+        item = self._elemental_list.currentItem()
+        self._selected_node = None
+        self._selected_spell = None
+        self._selected_thaum = None
+        if item is None:
+            self._selected_elemental = None
+            self._update_action()
+            return
+        row = item.data(Qt.UserRole)
+        self._selected_elemental = row.id
+        self.detail.setHtml(self._elemental_detail_html(row))
+        self._update_action()
+
+    def _elemental_detail_html(self, row, currency: str | None = None) -> str:
+        """The detail pane for an ElementalPowerRow: name, Requires, Cost, activation
+        (italic) and description. The shared `_detail_html` reads `requirement`/`type`,
+        which this row does not carry, so it gets its own small formatter."""
+        if currency is None:
+            currency = "XP" if self._char().chargen_locked else "BP"
+        lines = []
+        if row.requires:
+            lines.append(f"<b>Requires:</b> {html.escape(row.requires)}")
+        lines.append(f"<b>Cost:</b> {row.price} {currency}")
+        if row.activation:
+            lines.append(f"<i>{html.escape(row.activation)}</i>")
+        if row.description:
+            lines.append(html.escape(row.description))
+        parts = [f"<b>{html.escape(row.name)}</b>"]
+        if lines:
+            parts.append("<br>".join(f"<span style='color:#b8b6b2'>{ln}</span>"
+                                     for ln in lines))
+        if not row.available and row.reason:
+            parts.append(f"<span style='color:#b45309'>{html.escape(row.reason)}</span>")
+        return "<br>".join(parts)
+
+    def _toggle_elemental(self, power_id: str) -> None:
+        """The web picker's elemental toggle, ported. Pre-lock: edit the chargen list
+        directly, gated by `validate.meets_elemental_power_requirements` (the 7-BP
+        charge is validation-side). Post-lock: `advancement.learn_elemental_power`
+        (14 XP); a known power is not droppable in play — undo on the Edit tab."""
+        ruleset, char = self._ruleset, self._char()
+        if char.chargen_locked:
+            if power_id in char.elemental_powers:
+                self._notify("Already known — undo the purchase on the Edit tab to "
+                             "give it back.", "info")
+                return
+            try:
+                advancement.learn_elemental_power(ruleset, char, power_id)
+            except advancement.AdvancementError as ex:
+                self._notify(str(ex), "warning")
+                return
+            power = ruleset.elemental_powers.get(power_id)
+            self._notify(f"Learned {power.name} — "
+                         f"{costs.elemental_power_xp(ruleset, char, power)} XP", "info")
+        elif power_id in char.elemental_powers:
+            char.elemental_powers.remove(power_id)
+            p = ruleset.elemental_powers.get(power_id)
+            self._notify(f"Dropped {p.name if p is not None else power_id}", "info")
+        else:
+            power = ruleset.elemental_powers.get(power_id)
+            if power is None:
+                return
+            if not validate.meets_elemental_power_requirements(ruleset, char, power):
+                self._notify(f"{power.name}: " + "; ".join(
+                    validate.elemental_power_shortfalls(ruleset, char, power)), "warning")
+                return
+            char.elemental_powers.append(power_id)
+            self._notify(f"Learned {power.name}", "info")
+        self._refresh_elemental()
+
+    def _refresh_elemental(self) -> None:
+        """After a toggle: rebuild the list (re-selecting the same id), refresh the
+        detail + action button, and the readout. Not routed through
+        `_refresh_current_tree` — that re-renders a CharmTreeView, wrong-shaped here."""
+        self._rebuild_elemental()
+        self._update_readout()
+
+    def _paths_page(self):
+        """The Dragon-King Paths page (PG pp.175-177): a rated-track subsystem with
+        its own chargen pool, NOT Charms. Each Path is rated 1-6 (learned in fixed
+        order, gated by Essence); each dot grants that level's power. Pre-lock the
+        rating is a free setter into character.paths; post-lock it becomes XP +/-
+        via advancement. The breed's two element Paths are auto-favoured (★) and the
+        player chooses one more (✚) from the other eight."""
+        char = self._char()
+        pal = theme.palette(char.exalt_type)
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setSpacing(4)
+        head = QLabel("Paths of Prehuman Mastery")
+        head.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
+        lay.addWidget(head)
+        b = self._ruleset.budgets_for(char.exalt_type, char.origin, char.upbringing)
+        cap = QLabel(f"{b.path_dots} free dots · ≥{b.path_min_breed_favored} from "
+                     f"Breed/Favoured Paths · none above {b.path_cap_pre_bp} without "
+                     "bonus points")
+        cap.setWordWrap(True)
+        cap.setStyleSheet(f"color:{MUTED};")
+        lay.addWidget(cap)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        content = QWidget()
+        self._paths_lay = QVBoxLayout(content)
+        self._paths_lay.setContentsMargins(4, 4, 4, 4)
+        self._paths_lay.setSpacing(2)
+        scroll.setWidget(content)
+        lay.addWidget(scroll, 1)
+        self._rebuild_paths()
+        return page
+
+    def _set_path_rating(self, path_id: str, rating: int) -> None:
+        """Pre-lock free setter into character.paths (validation via validate_chargen):
+        a rating of 0 removes the Path, otherwise append or update the PathRating."""
+        char = self._char()
+        existing = next((p for p in char.paths if p.path_id == path_id), None)
+        if rating <= 0:
+            if existing:
+                char.paths.remove(existing)
+        elif existing:
+            existing.rating = rating
+        else:
+            char.paths.append(PathRating(path_id=path_id, rating=rating))
+        self._rebuild_paths()
+        self._update_readout()      # the path-dots pool is budgeted, pre-lock too
+
+    def _path_adv(self, path_id: str, direction: int) -> None:
+        """Post-lock XP raise/lower of one Path dot, via advancement."""
+        ruleset, char = self._ruleset, self._char()
+        try:
+            if direction > 0:
+                if any(p.path_id == path_id for p in char.paths):
+                    advancement.raise_path(ruleset, char, path_id)
+                else:
+                    advancement.learn_path(ruleset, char, path_id)
+            else:
+                advancement.lower_path(ruleset, char, path_id)
+        except advancement.AdvancementError as ex:
+            self._notify(str(ex), "warning")
+            return
+        self._rebuild_paths()
+        self._update_readout()
+
+    def _rebuild_paths(self) -> None:
+        """Rebuild the Paths page body: the Favoured Path row, then one row per Path
+        (marker + name + element + rating control) with the granted powers listed
+        under a rated Path."""
+        self._clear_lay(self._paths_lay)
+        self._path_combos: dict[str, QComboBox] = {}
+        self._fav_path_combo = None
+        ruleset, char = self._ruleset, self._char()
+        pal = theme.palette(char.exalt_type)
+        ratings = {p.path_id: p.rating for p in char.paths}
+        breed_el = engine_paths.breed_element(ruleset, char)
+        breed_path_ids = {p.id for p in ruleset.paths.values() if p.element == breed_el}
+        fav_opts = {p.id: p.name for p in ruleset.paths.values()
+                    if p.id not in breed_path_ids}
+
+        fav_row = QHBoxLayout()
+        fav_row.addWidget(QLabel("Favoured Path"))
+        if char.chargen_locked:
+            chosen = ruleset.paths.get(char.favored_path)
+            lbl = QLabel(chosen.name if chosen else "—")
+            lbl.setStyleSheet(f"color:{MUTED};")
+            fav_row.addWidget(lbl, 1)
+        else:
+            combo = QComboBox()
+            combo.addItem("— none —", "")
+            for pid, pname in fav_opts.items():
+                combo.addItem(pname, pid)
+            # ⚠ Trap #3 (the picker's Qt form): a saved `favored_path` that is one of
+            # the breed's two (an illegal-but-possible state) must still be an option
+            # — a combo whose value is absent from its options misbehaves. And it is
+            # a SAVE value, so never index `ruleset.paths[saved]` directly: a stale
+            # id from a catalogue rename would KeyError and take the whole tab down.
+            # Show the printed name when the id resolves, else the raw id as its own
+            # label (the web's setdefault fallback).
+            combo.blockSignals(True)
+            if char.favored_path:
+                if combo.findData(char.favored_path) < 0:
+                    p = ruleset.paths.get(char.favored_path)
+                    combo.addItem(p.name if p is not None else char.favored_path,
+                                  char.favored_path)
+                combo.setCurrentIndex(combo.findData(char.favored_path))
+            else:
+                combo.setCurrentIndex(0)
+            combo.blockSignals(False)
+            # ⚠ Capture the combo as a default arg — a bare `combo` in the closure is
+            # the shared local that the per-path rating loop below reassigns, so the
+            # handler would read the LAST path's rating combo instead of this one (a
+            # picked favoured path silently became '').
+            combo.currentIndexChanged.connect(lambda _, c=combo: (
+                setattr(char, "favored_path", c.currentData() or ""),
+                self._rebuild_paths()))
+            self._fav_path_combo = combo
+            fav_row.addWidget(combo, 1)
+        note = QLabel("★ breed · ✚ your choice")
+        note.setStyleSheet(f"color:{MUTED}; font-style:italic;")
+        fav_row.addWidget(note)
+        self._paths_lay.addLayout(fav_row)
+
+        for path in ruleset.paths.values():
+            rating = ratings.get(path.id, 0)
+            marker = ("★ " if path.element and path.element == breed_el
+                      else ("✚ " if path.id == char.favored_path else ""))
+            row = QHBoxLayout()
+            name_lbl = QLabel(f"{marker}{path.name}")
+            name_lbl.setStyleSheet("font-weight:600;")
+            row.addWidget(name_lbl, 1)
+            el = QLabel(path.element_label)
+            el.setStyleSheet(f"color:{MUTED};")
+            row.addWidget(el)
+            if char.chargen_locked:
+                minus = QPushButton("−")
+                minus.setEnabled(rating > 0)
+                minus.clicked.connect(lambda _, pid=path.id: self._path_adv(pid, -1))
+                row.addWidget(minus)
+                r = QLabel(str(rating))
+                r.setStyleSheet("font-family:monospace;")
+                r.setFixedWidth(20)
+                r.setAlignment(Qt.AlignCenter)
+                row.addWidget(r)
+                plus = QPushButton("+")
+                plus.clicked.connect(lambda _, pid=path.id: self._path_adv(pid, +1))
+                row.addWidget(plus)
+            else:
+                # ⚠ Block signals while populating + setting the initial index — an
+                # unblocked setCurrentIndex fires the handler → identical write →
+                # rebuild → infinite loop.
+                combo = QComboBox()
+                combo.blockSignals(True)
+                for i in range(0, 7):
+                    combo.addItem(str(i), i)
+                combo.setCurrentIndex(rating)
+                combo.blockSignals(False)
+                # ⚠ Capture the combo as a default arg — a bare `combo` in the
+                # closure is the LOOP variable, shared by every path's handler, so
+                # each one would read the LAST path's combo instead of its own.
+                combo.currentIndexChanged.connect(
+                    lambda _, c=combo, pid=path.id: self._set_path_rating(
+                        pid, c.currentData()))
+                self._path_combos[path.id] = combo
+                row.addWidget(combo)
+            self._paths_lay.addLayout(row)
+            if rating:
+                for power in path.powers[:rating]:
+                    pw = QLabel(f"• {power.name} — {power.duration}")
+                    pw.setContentsMargins(16, 0, 0, 0)
+                    pw.setStyleSheet(f"color:{MUTED}; font-weight:600;")
+                    self._paths_lay.addWidget(pw)
+                    if power.text:
+                        txt = QLabel(power.text)
+                        txt.setWordWrap(True)
+                        txt.setContentsMargins(16, 0, 0, 0)
+                        txt.setStyleSheet(f"color:{MUTED};")
+                        self._paths_lay.addWidget(txt)
+        self._paths_lay.addStretch(1)
+
     def _art_selected(self, tree):
         """The Arts tree's selection: an Art or one of its specialties. Sets
         `_selected_thaum` to ("art", row) or ("art_specialty", art, spec) and shows
@@ -1018,6 +1596,7 @@ class CharmsPage(QWidget):
         item = tree.currentItem()
         self._selected_node = None
         self._selected_spell = None
+        self._selected_elemental = None
         if item is None:
             self._selected_thaum = None
             self._update_action()
@@ -1044,10 +1623,12 @@ class CharmsPage(QWidget):
         if item is None:
             self._selected_spell = None
             self._selected_thaum = None
+            self._selected_elemental = None
             self._update_action()
             return
         obj = item.data(Qt.UserRole)
         self._selected_node = None
+        self._selected_elemental = None
         if isinstance(obj, tuple):          # a (kind, row) Thaumaturgy entry
             kind, row = obj
             self._selected_thaum = (kind, row)
@@ -1064,21 +1645,46 @@ class CharmsPage(QWidget):
 
     def reload(self):
         """Rebuild the tab bar for the current character: a tree tab per non-empty
-        group, then Spells (if any circle is reachable), then Thaumaturgy."""
+        group, then Spells, Thaumaturgy and the splat-specific extras."""
         char = self._char()
         self._tree_views.clear()
-        self.tabs.clear()
-        for group, label in (("abilities", "Charms"), ("styles", "Martial Arts"),
-                             ("arcanoi", "Arcanoi")):
-            if trees_for(self._ruleset, char, char.exalt_type, group):
-                self.tabs.addTab(self._tree_page(group), label)
-        circles = spell_circles(self._ruleset, char)
-        if circles:
-            self.tabs.addTab(self._spells_page(circles), "Spells")
-        self.tabs.addTab(self._thaum_page(), "Thaumaturgy")
+        # Reset every selection: a reload rebuilds the pages, so any remembered
+        # selection points at widgets that no longer exist (or, worse, still exists
+        # but is a different character's entry).
+        self._selected_node = None
+        self._selected_spell = None
+        self._selected_thaum = None
+        self._selected_elemental = None
+        # Block tab signals across the rebuild: the QTabWidget fires currentChanged
+        # during clear()/addTab (the qt-port.md construction trap), and with several
+        # gated builders a mid-build signal could poke a panel that is only half
+        # built. `_tab_changed()` below runs explicitly once the bar is complete.
+        self.tabs.blockSignals(True)
+        try:
+            self.tabs.clear()
+            for group, label in (("abilities", "Charms"), ("styles", "Martial Arts"),
+                                 ("arcanoi", "Arcanoi")):
+                if trees_for(self._ruleset, char, char.exalt_type, group):
+                    self.tabs.addTab(self._tree_page(group), label)
+            circles = spell_circles(self._ruleset, char)
+            if circles:
+                self.tabs.addTab(self._spells_page(circles), "Spells")
+            if self._ruleset.exalt_for(char.exalt_type).form_library:
+                self.tabs.addTab(self._form_library_page(), "Form Library")
+            self.tabs.addTab(self._thaum_page(), "Thaumaturgy")
+            if refit.supports_refit(self._ruleset, char):
+                self.tabs.addTab(self._vat_page(), "Vat Refit")
+            if self._ruleset.budgets_for(char.exalt_type, char.origin,
+                                         char.upbringing).path_dots > 0:
+                self.tabs.addTab(self._paths_page(), "Paths")
+            if validate.elemental_powers_available(self._ruleset, char):
+                self.tabs.addTab(self._elemental_page(), "Elemental Powers")
+        finally:
+            self.tabs.blockSignals(False)
         self.detail.setText("Select an entry to see details.")
         self._tab_changed()
         self._update_readout()
+        self._update_action()
 
     def _tab_changed(self, *_):
         view = (self.tabs.currentWidget().findChild(CharmTreeView)
