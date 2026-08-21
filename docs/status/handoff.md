@@ -2,17 +2,31 @@
 
 # 👉 YOU ARE HERE
 
-**GREEN — 2,495 passed, 3 skipped, 1 warning** (this machine, 2026-08-21).
+**GREEN — 2,541 passed, 1 skipped, 1 warning** (2026-08-21, the main checkout, 7m00s).
 
 ```
-.venv/bin/python -m pytest -q     # expect: 2,495 passed, 3 skipped, 1 warning
+.venv/bin/python -m pytest -q     # expect: 2,541 passed, 1 skipped, 1 warning
 ```
 
-⚠ The 1 SKIP is conditional and healthy; the 1 warning is the 71-entry M&F deferral
-(Godblooded chapter markdown absent on this machine) — neither is a failure.
+⚠ The 1 SKIP is conditional and healthy; the 1 warning is the 71-entry M&F deferral —
+neither is a failure. **The Godblooded `CH 4 - Spirit Charms.md` IS present here now
+and the deferral is still 71**, so that chapter is not the one the test wants. That is
+pre-existing and unchased, not something the port broke.
 
-⚠ **On a machine WITHOUT the optional `qt` extra the count drops by 72 and four
-modules SKIP** — that is the `importorskip` below working, not tests going missing.
+⚠ **Without the optional `qt` extra the count drops by 72 and four modules SKIP** —
+that is the `importorskip` working, not tests going missing.
+`.venv/bin/pip install -e '.[qt]'` (already done here).
+
+## ⚠ Where the branch lives changed (2026-08-21)
+
+`qt-port` is now checked out in the **main** directory
+(`/home/gil/Projects/exalted-1e-charsheet-generator`); the `…-ds` worktree that held it
+was removed. Its `images/` was diffed first and the three chapters it uniquely held —
+Dragon Kings CH 4, Godblooded Spirit Charms CH 4, Mountain Folk CH 6 — were copied
+across and checksum-verified. **Any doc still pointing at `-ds` is stale**; the two
+that did (`plans/content-completeness.md`, this file) are fixed.
+
+`qt-port` has **no upstream** and is unpushed (9 commits). `origin` holds only `main`.
 
 ## What happened: the shell is now the approved spike layout
 

@@ -10,17 +10,28 @@ Three tracks, each keyed to a **discovery index** the human supplies:
 
 | # | Track | Discovery index | Index on disk? |
 |---|---|---|---|
-| 1 | Charms + Arcanoi | `charmtrees-20060324.pdf` | **YES** ⚠ in the `-ds` worktree |
-| 2 | Spells | `Ledaal Pongwin's Grand List of Spells and Protocols.md` | **YES** ⚠ in the `-ds` worktree |
+| 1 | Charms + Arcanoi | `charmtrees-20060324.pdf` | **YES** — `sources/` |
+| 2 | Spells | `Ledaal Pongwin's Grand List of Spells and Protocols.md` | **Ask the human** — see below |
 | 3 | Artifacts | `docs/status/artifact-backlog-entries.md` | **YES — already built** |
 
-> ⚠ **All three indexes live in the `deepseek-experiment` worktree**, not this one:
-> `/home/gil/Projects/Exalted 1E Charsheet Generator-ds/images/`. `images/` is
-> gitignored, so it does not travel between worktrees any more than it travels between
-> machines. **Look there before concluding an index is missing** — the `-ds` copy of
-> `images/` is also fuller than `main`'s (e.g. its `Non-Exalts/` tree). The human put
-> them there by accident 2026-08-10; whether they get copied to `main`'s `images/` or
-> read in place is a housekeeping call, not a blocker either way.
+> ⚠ **The `-ds` worktree these used to point at NO LONGER EXISTS** (removed 2026-08-21
+> when `qt-port` moved to the main checkout). Its `images/` was compared file-by-file
+> against this one first and the three chapters it uniquely held were copied across,
+> verified by checksum — nothing was lost in the move. But the pointers here were
+> written against a location, and a location that has been deleted reads exactly like a
+> live one.
+>
+> - The **charm-trees PDF** is in this worktree's `sources/` (and in the human's TTRPG
+>   archive). Not a blocker.
+> - The **spell masterlist** was not in the removed worktree's `images/` and is not on
+>   disk here. The human said 2026-08-21 they can restore it easily — **ask, do not go
+>   looking, and do not record it as missing content.** It is a discovery index, not
+>   rules data; nothing in `data/` depends on it.
+>
+> The general point, since it will recur: `images/` and `sources/` are gitignored, so
+> they travel between neither worktrees nor machines. **A path recorded in these docs
+> is a HINT, not a fact** (CLAUDE.md says this too) — look before concluding an index
+> is missing, and never "fix" a path to match the machine you are on.
 
 ## 2026-08-10 — the source gate moved: `sources/` extraction is AUTHORISED
 
@@ -481,8 +492,10 @@ Tracks are otherwise independent and can interleave freely.
 
 ## What the human owes
 
-- [x] the **charm-trees PDF** — on disk (`-ds` worktree), **diff DONE: 168 missing**
-- [x] the **spell masterlist** — on disk (`-ds` worktree), **diff DONE: 213 missing**
+- [x] the **charm-trees PDF** — on disk (`sources/`), **diff DONE: 168 missing**
+- [x] the **spell masterlist** — **diff DONE: 213 missing**; the file itself is not on
+      disk here (the human restores it on request — see the note at the top). The diff
+      it produced is what this plan consumes, and that survives its absence.
 - [x] ~~ruling: `Adamant` vs `Solar`~~ — **RESOLVED 2026-08-10: same circle, two
       in-universe naming schemes (Realm vs not). Nothing blocked.**
 - [ ] **page sync, highest leverage first — this is now the ONLY thing gating the plan:**

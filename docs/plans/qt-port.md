@@ -402,7 +402,12 @@ shell.
   ⚠ The NiceGUI web app's Identity does NOT expose them yet (deferred by the human
   2026-08-21).
 
-Test count: **2,482 passed, 3 skipped, 1 warning** (2026-08-21, the `-ds` machine).
+Test count at this milestone: **2,482 passed, 3 skipped, 1 warning** (2026-08-21,
+measured in the since-removed `-ds` worktree). After the `charm_actions` extraction
+below, and in the main checkout where `qt-port` now lives: **2,541 passed, 1 skipped,
+1 warning** (7m00s). ⚠ **The two are not reconcilable and must not be reconciled** —
+this checkout has `sources/` and a fuller `images/`, so dozens more tests COLLECT
+(the `images/`-presence deferral pattern). Record where you measured, as here.
 
 ### Human-verified on the real display
 
