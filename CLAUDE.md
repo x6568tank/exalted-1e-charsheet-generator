@@ -238,8 +238,12 @@ pool calculation.
     2026-08-21 after the `qt_advantages` spike: toolbar for actions · sub-tab per
     category where a tab has more than one · a sortable table with a header · a
     splitter with the selected entry's editor in a detail pane. Charms, Gear and
-    Advantages all have it; **Play, ST Options and Custom get it too — do not
-    re-litigate per tab.** Gear was built TWICE because its first version ported the
+    Advantages all have it; **ST Options and Custom get it too — do not re-litigate per
+    tab.** ⚠ **Play is the ONE stated exception** (human, 2026-08-22): it is a live
+    TRACKER, not a list — a health track you click to mark, mote pools, the dice-pool
+    sidebar — so there is nothing to select and a detail pane would hide numbers you
+    glance at mid-roll. It gets a toolbar over panels. **An exception that is written
+    down is not drift; a second unwritten one is.** Gear was built TWICE because its first version ported the
     webapp's structure by reflex (floating button, accordion expanders, card stack) and
     was rejected on sight with every test green. **Copy `qt/gear.py` or
     `qt/advantages.py`; never transliterate `ui/<tab>.py`.**
