@@ -188,3 +188,85 @@ def test_the_advantages_rail_item_is_the_real_page(ruleset, qtbot):
     table = page._tables["Backgrounds"]
     assert [table.topLevelItem(i).text(0)
             for i in range(table.topLevelItemCount())] == ["Resources"]
+
+
+# --------------------------------------------------------------------------- #
+# the Downtime calculator
+# --------------------------------------------------------------------------- #
+# ⚠ `_downtime_dialog` ends in a blocking `QDialog.exec()`, so these drive the pieces
+# it is assembled from — the state dict, `elder.downtime_award` and the grant — rather
+# than the modal itself. The same reason test_qt_editor.py exercises the downward
+# dialog through `_buy`'s preconditions.
+
+from PySide6.QtWidgets import QPushButton, QVBoxLayout
+
+
+def _locked(ruleset):
+    char = Character(id="char.new")
+    lifecycle.lock_chargen(char, ruleset)
+    return char
+
+
+def test_downtime_is_offered_beside_the_other_xp_controls(ruleset, qtbot):
+    """It belongs with the XP accounting, not on a trait page — it grants experience.
+    ⚠ Post-lock only: `_xp_section` is what draws it."""
+    win = MainWindow(ruleset, _locked(ruleset), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    root = QVBoxLayout()
+    win._xp_section(root, lambda: None)
+    labels = [root.itemAt(i).widget().text()
+              for i in range(root.count())
+              if isinstance(root.itemAt(i).widget(), QPushButton)]
+    assert "Downtime…" in labels
+
+
+def test_downtime_is_not_offered_before_the_lock(ruleset, qtbot):
+    """`_xp_section` runs only post-lock, so the control cannot be reached in chargen."""
+    win = MainWindow(ruleset, Character(id="char.new"), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    assert not win._ctx["char"].chargen_locked
+
+
+def test_the_downtime_age_is_a_calculator_field_not_a_character_trait(ruleset, qtbot):
+    """⚠ Human's ruling 2026-08-06: the numeric age trait is gone and age gates
+    nothing, so the p.259 rate comes from a CALCULATOR field on the window.
+
+    ⚠ There IS a `Character.age`, added 2026-08-21 — free-text BIOGRAPHY ("mid
+    thirties"), flavour the engine never reads. It is a `str` for that reason, and the
+    calculator must not be wired to it: the two are different things wearing one name.
+    """
+    win = MainWindow(ruleset, _locked(ruleset), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    assert win._downtime == {"age": 0, "years": 0}
+    assert Character.model_fields["age"].annotation is str, (
+        "Character.age went numeric — check it is still biography, not a rules trait")
+    char = win._ctx["char"]
+    char.age = "three hundred years old"
+    assert win._downtime["age"] == 0, "the calculator read the biography field"
+
+
+def test_a_downtime_grant_advances_the_local_age_and_adds_the_xp(ruleset, qtbot):
+    """The grant is the whole of what touches the character: it receives XP and
+    nothing else. The age advance is the window's, so the next award continues."""
+    from exalted_builder.engine import elder
+    char = _locked(ruleset)
+    win = MainWindow(ruleset, char, Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    award = elder.downtime_award(120, 10)
+    assert award.total, "the p.259 chart should pay a 120-year-old"
+    before = char.xp_earned
+    # what `grant()` does, without the modal
+    win._downtime["age"] = award.to_age
+    advancement.add_xp(char, award.total)
+    assert char.xp_earned == before + award.total
+    assert win._downtime["age"] == 130
+    # the next award continues from there rather than restarting
+    assert elder.downtime_award(win._downtime["age"], 5).from_age == 130
+
+
+def test_a_young_character_earns_nothing_from_the_chart(ruleset, qtbot):
+    """⚠ The p.259 chart begins at 100 years and the build never invents the rows below
+    it, so a zero here is the rule, not a bug — which is why the dialog says so."""
+    from exalted_builder.engine import elder
+    award = elder.downtime_award(10, 20)
+    assert award.total == 0

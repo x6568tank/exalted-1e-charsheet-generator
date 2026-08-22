@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 )
 
 from exalted_builder import custom_content, persistence, rules_db
-from exalted_builder.engine import advancement, lifecycle, validate
+from exalted_builder.engine import advancement, elder, lifecycle, validate
 from exalted_builder.models.character import Character
 from exalted_builder.models.party import Party
 from exalted_builder.models.rules import RuleSet
@@ -33,6 +33,7 @@ from exalted_builder.ui import pdf, theme
 from exalted_builder.ui import view as viewmod
 
 from . import theme as qtheme
+from .layout import clear_layout
 from .advantages import AdvantagesPage
 from .charms import CharmsPage
 from .gear import GearPage
@@ -90,6 +91,10 @@ class MainWindow(QMainWindow):
         self._ruleset = ruleset
         self._ctx = ctx if ctx is not None else make_context(character, save_path)
         self._state = {"tab": "Identity"}
+        # ⚠ A CALCULATOR field, not a character trait — `Character.age` is gone
+        # and age gates nothing (human, 2026-08-06). Kept on the window so a
+        # second downtime award is priced from where the last one ended.
+        self._downtime = {"age": 0, "years": 0}
         self._syncing = False
         self._pages: dict[str, QWidget] = {}
 
@@ -345,6 +350,110 @@ class MainWindow(QMainWindow):
         rebuild()
         dialog.exec()
 
+    def _downtime_dialog(self) -> None:
+        """The p.259 downtime calculator: years of skipped time to maturation XP.
+
+        A CALCULATOR that grants, never an enforcement — the 4:3:2:1 split prints as
+        advice and nothing downstream polices it (see engine.elder).
+
+        ⚠ The AGE is a calculator field, NOT a character trait (human's ruling
+        2026-08-06: `Character.age` is gone and age gates nothing). It lives on the
+        window so a second award is priced from where the last one ended; the character
+        itself only ever receives the XP.
+        """
+        state = self._downtime
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Downtime")
+        lay = QVBoxLayout(dialog)
+        intro = QLabel("Annual experience for skipped years (Player's Guide p.259). "
+                       "The award depends on the age entered, so a downtime that "
+                       "crosses 100, 250, 500 or 1,000 years changes rate partway.")
+        intro.setWordWrap(True)
+        intro.setStyleSheet(f"color:{qtheme.MUTED};")
+        lay.addWidget(intro)
+
+        row = QHBoxLayout()
+        age = QSpinBox()
+        age.setObjectName("downtime.age")
+        age.setRange(0, 100000)
+        age.setValue(state["age"])
+        row.addWidget(QLabel("Exalted years so far"))
+        row.addWidget(age, 1)
+        years = QSpinBox()
+        years.setObjectName("downtime.years")
+        years.setRange(0, 100000)
+        years.setValue(state["years"])
+        row.addWidget(QLabel("Years of downtime"))
+        row.addWidget(years, 1)
+        lay.addLayout(row)
+
+        preview_box = QVBoxLayout()
+        lay.addLayout(preview_box)
+
+        def redraw() -> None:
+            clear_layout(preview_box)
+            award = elder.downtime_award(age.value(), years.value())
+            head = QLabel(f"Age {award.from_age} → {award.to_age}")
+            head.setStyleSheet("font-weight:600;")
+            preview_box.addWidget(head)
+            for band in award.bands:
+                span = (f"{band.from_age}" if band.years == 1
+                        else f"{band.from_age}–{band.to_age}")
+                line = QLabel(f"age {span}: {band.years} yr × {band.rate} = "
+                              f"{band.experience} XP")
+                line.setStyleSheet(f"font-family:monospace; color:{qtheme.MUTED};")
+                preview_box.addWidget(line)
+            total = QLabel(f"{award.total} XP")
+            total.setObjectName("downtime.total")
+            total.setStyleSheet("font-size:16pt; font-weight:700; color:%s;"
+                                % qtheme.accent(theme.palette(self._ctx["char"].exalt_type)))
+            preview_box.addWidget(total)
+            if not award.total and years.value():
+                # The chart starts at 100 years and the build never invents the rows
+                # below it. Say so, or a zero reads as a bug.
+                note = QLabel("The p.259 chart begins at 100 years of Exaltation — a "
+                              "younger character earns no maturation experience from "
+                              "it. Ordinary play awards are the Storyteller's.")
+                note.setWordWrap(True)
+                note.setStyleSheet("color:#c08a3e;")
+                preview_box.addWidget(note)
+            for label, points in award.split:
+                srow = QHBoxLayout()
+                srow.addWidget(QLabel(label), 1)
+                srow.addWidget(QLabel(str(points)))
+                preview_box.addLayout(srow)
+            advice = QLabel("The split is what p.259 requires the experience be spent "
+                            "on. It is printed as guidance — nothing here enforces it.")
+            advice.setWordWrap(True)
+            advice.setStyleSheet(f"font-style:italic; color:{qtheme.MUTED};")
+            preview_box.addWidget(advice)
+
+        age.valueChanged.connect(redraw)
+        years.valueChanged.connect(redraw)
+        redraw()
+
+        def grant() -> None:
+            award = elder.downtime_award(age.value(), years.value())
+            state["age"] = award.to_age
+            state["years"] = years.value()
+            advancement.add_xp(self._ctx["char"], award.total)
+            dialog.accept()
+            self._notify(f"Granted {award.total} XP — age is now {award.to_age} "
+                         f"(for the next award).")
+            self._reload_current()
+
+        buttons = QHBoxLayout()
+        buttons.addStretch(1)
+        cancel = QPushButton("Cancel")
+        cancel.clicked.connect(dialog.reject)
+        buttons.addWidget(cancel)
+        go = QPushButton("Grant")
+        go.setObjectName("downtime.grant")
+        go.clicked.connect(grant)
+        buttons.addWidget(go)
+        lay.addLayout(buttons)
+        dialog.exec()
+
     def _xp_section(self, root, rebuild) -> None:
         """The post-lock Experience card + ledger inside the popover."""
         char = self._ctx["char"]
@@ -372,6 +481,10 @@ class MainWindow(QMainWindow):
         adjust.clicked.connect(lambda: (self._do_add_xp(amount.value()), rebuild()))
         row.addWidget(adjust)
         root.addLayout(row)
+        downtime = QPushButton("Downtime…")
+        downtime.setObjectName("xp.downtime")
+        downtime.clicked.connect(lambda: (self._downtime_dialog(), rebuild()))
+        root.addWidget(downtime)
         rows = viewmod.build_xp_log(self._ruleset, char)
         if rows:
             undo = QPushButton(f"Undo last: {rows[-1].label}")

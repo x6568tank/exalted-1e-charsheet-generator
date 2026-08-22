@@ -23,8 +23,8 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import (advancement, costs, derive, elder, health_actions, merits,
-                      validate)
+from ..engine import (advancement, camp_actions, costs, derive, elder,
+                      health_actions, merits, validate)
 from ..models.character import (
     Armor, BackgroundEntry, Character, CollegeRating, CraftRating, GearEntry,
     MeritFlawPurchase, Specialty, VirtueFlaw, Weapon)
@@ -1336,78 +1336,27 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                       "to the Elemental heritage (PG p.68).", type="warning")
 
     def set_camp(value: str, refresh: bool = True) -> None:
-        """Pick a training camp. The camp determines both the Calling list and the free
-        Charm package, so changing it clears any Calling and granted Charms that
-        belonged to the old one and re-seeds the fixed grants."""
-        character.camp = value
-        camp = ruleset.camps.get(value)
-        callings = ruleset.callings_for(value)
-        if character.calling not in {c.id for c in callings}:
-            character.calling = callings[0].id if callings else ""
-        # Fixed grants are automatic; the player still resolves each choice.
-        character.granted_charms = list(camp.granted_charms) if camp else []
+        camp_actions.set_camp(ruleset, character, value)
         if refresh:
             body.refresh(); changed()
 
     def set_calling(value: str) -> None:
-        character.calling = value
+        camp_actions.set_calling(character, value)
         body.refresh(); changed()
 
     def set_camp_choice(choice_index: int, key: str) -> None:
-        """Resolve one granted-Charm choice. Replaces whatever was previously selected
-        for THAT choice, leaving the fixed grants and the other choices alone."""
-        camp = ruleset.camps.get(character.camp)
-        if camp is None or choice_index >= len(camp.granted_charm_choices):
-            return
-        cv = viewmod.build_camp_view(ruleset, character)
-        cview = cv.choices[choice_index]
-        picked = next((o for o in cview.options if o.key == key), None)
-        if picked is None:
-            return
-        if not picked.available:
-            # Refuse, and say why. Previously this fell through and assigned an empty
-            # list, which cleared the control and looked like the dropdown was broken.
-            ui.notify(f"{picked.label} is not selectable — {picked.reason}.",
-                      type="warning")
-            body.refresh()          # snap the select back to the real selection
-            return
-        old = next((o.charm_ids for o in cview.options if o.key == cview.chosen_key), [])
-        new = list(picked.charm_ids)
-        choice = camp.granted_charm_choices[choice_index]
-        if choice.from_categories:
-            # A category choice takes `pick` Charms from the chosen style. Seed the
-            # lowest-requirement ones so the default is as reachable as possible; the
-            # player swaps individual Charms in the picker.
-            pool = sorted((c for c in ruleset.charms.values() if c.id in new),
-                          key=lambda c: (c.min_ability, c.min_essence, c.name))
-            new = [c.id for c in pool[:choice.pick]]
-        keep = [cid for cid in character.granted_charms if cid not in old]
-        character.granted_charms = keep + [cid for cid in new if cid not in keep]
+        refusal = camp_actions.set_camp_choice(ruleset, character, choice_index, key)
+        if refusal:
+            # ⚠ Both halves matter: say why, and REDRAW so the select snaps back to
+            # what the character actually holds.
+            ui.notify(refusal, type="warning")
         body.refresh(); changed()
 
     def set_camp_choice_charms(choice_index: int, ids: list[str]) -> None:
-        """Set WHICH Charms a category choice grants, within the already-chosen style.
-
-        The style select seeds a reachable default; this is how the player changes it.
-        Over-picking is refused rather than silently truncated — the package is exactly
-        `pick` Charms and quietly dropping one would misreport the grant. Under-picking
-        is allowed through so the control can be emptied and refilled; the engine's
-        `granted-charm-missing` issue covers the incomplete state."""
-        camp = ruleset.camps.get(character.camp)
-        if camp is None or choice_index >= len(camp.granted_charm_choices):
-            return
-        cview = viewmod.build_camp_view(ruleset, character).choices[choice_index]
-        allowed = {o.charm_id for o in cview.charm_options}
-        chosen = [cid for cid in ids if cid in allowed]
-        if len(chosen) > cview.pick:
-            ui.notify(f"{cview.label} grants only {cview.pick} Charm(s) — "
-                      f"deselect one first.", type="warning")
-            body.refresh()          # snap the control back to the real selection
-            return
-        # Replace this choice's Charms, leaving the fixed grants and any other choice
-        # untouched: drop everything from THIS style, then add the new selection.
-        keep = [cid for cid in character.granted_charms if cid not in allowed]
-        character.granted_charms = keep + chosen
+        refusal = camp_actions.set_camp_choice_charms(ruleset, character,
+                                                      choice_index, ids)
+        if refusal:
+            ui.notify(refusal, type="warning")
         body.refresh(); changed()
 
     def set_favored(values: list[AbilityName]) -> None:

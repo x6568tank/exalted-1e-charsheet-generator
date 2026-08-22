@@ -697,3 +697,115 @@ def test_removing_a_college_drops_that_row(qtbot, ruleset):
     qtbot.addWidget(page)
     page.remove_college(0)
     assert [cr.college_id for cr in char.colleges] == ids[1:]
+
+
+# --------------------------------------------------------------------------- #
+# Training Camp & Calling
+# --------------------------------------------------------------------------- #
+
+def _illuminated(ruleset, camp="kether-rock", **kw):
+    """A legal Illuminated Solar: Kether Rock / Deacon, meeting every camp floor
+    (p.89). Mirrors tests/test_illuminated.py's fixture."""
+    A = AbilityName
+    abilities = {A.BRAWL: 1, A.ENDURANCE: 1, A.MEDICINE: 1, A.MELEE: 2,
+                 A.PRESENCE: 1, A.RESISTANCE: 1, A.SURVIVAL: 3}
+    abilities.update(kw.pop("abilities", {}))
+    camp_def = ruleset.camps[camp]
+    data = dict(id="ill", name="Illuminated", exalt_type="Solar", caste="dawn",
+                origin="illuminated", camp=camp_def.id, calling="deacon",
+                essence_rating=3, abilities=abilities,
+                granted_charms=kw.pop("granted_charms", list(camp_def.granted_charms)))
+    data.update(kw)
+    return Character(**data)
+
+
+def test_the_camp_panel_appears_only_for_an_origin_that_uses_camps(qtbot, ruleset):
+    """Driven by the BUDGET via build_camp_view, so no splat or origin is named in the
+    widget layer and no other splat grows an empty panel."""
+    page = _identity(ruleset, _illuminated(ruleset))
+    assert _named(page, "camp.camp", QComboBox) is not None
+    plain = Character(id="c.s", exalt_type="Solar", caste="dawn")
+    assert _named(_identity(ruleset, plain), "camp.camp", QComboBox) is None
+
+
+def test_changing_the_camp_reseeds_the_package_and_clears_a_stale_calling(qtbot, ruleset):
+    """The camp determines both the Calling list and the free Charms, so switching must
+    not leave the old camp's Calling or grants behind."""
+    char = _illuminated(ruleset)
+    page = _identity(ruleset, char)
+    qtbot.addWidget(page)
+    other = next(cid for cid in ruleset.camps
+                 if cid != char.camp
+                 and ruleset.camps[cid].exalt_type == ruleset.camps[char.camp].exalt_type)
+    page.set_camp(other)
+    assert char.camp == other
+    assert set(char.granted_charms) == set(ruleset.camps[other].granted_charms)
+    assert char.calling in {c.id for c in ruleset.callings_for(other)} or not \
+        ruleset.callings_for(other)
+
+
+def test_the_camp_freezes_at_the_lock_but_stays_readable(qtbot, ruleset):
+    char = _illuminated(ruleset)
+    lifecycle.lock_chargen(char, ruleset)
+    page = _identity(ruleset, char)
+    qtbot.addWidget(page)
+    combo = _named(page, "camp.camp", QComboBox)
+    assert combo is not None and not combo.isEnabled()
+
+
+def test_a_category_choice_draws_both_controls(qtbot, ruleset):
+    """⚠ The Tabernacle package is "two Charms from ONE of four martial arts" (p.90) —
+    choosing the STYLE is only half of it, so a style select alone is an incomplete
+    control."""
+    from PySide6.QtWidgets import QListWidget
+    char = _illuminated(ruleset, camp="sequestered-tabernacle", calling="exemplar",
+                        abilities={AbilityName.MARTIAL_ARTS: 4})
+    page = _identity(ruleset, char)
+    qtbot.addWidget(page)
+    assert _named(page, "camp.choice.0", QComboBox) is not None
+    page.set_camp_choice(0, _named(page, "camp.choice.0", QComboBox).itemData(0)
+                         or list(ruleset.camps["sequestered-tabernacle"]
+                                 .granted_charm_choices[0].from_categories)[0])
+    assert _named(page, "camp.charms.0", QListWidget) is not None
+
+
+def test_over_picking_a_camp_package_is_refused_and_the_control_snaps_back(qtbot, ruleset):
+    """⚠ The package is exactly `pick` Charms. Silently truncating would misreport the
+    grant, so the write is refused — and the caller must BOTH warn and redraw, or the
+    control keeps showing a selection the character does not hold."""
+    warnings = []
+    char = _illuminated(ruleset, camp="sequestered-tabernacle", calling="exemplar",
+                        abilities={AbilityName.MARTIAL_ARTS: 4})
+    page = IdentityPage(ruleset, {"char": char},
+                        notify=lambda text, kind="info": warnings.append((text, kind)),
+                        on_theme_change=lambda: None)
+    qtbot.addWidget(page)
+    cv = ruleset.camps["sequestered-tabernacle"].granted_charm_choices[0]
+    category = list(cv.from_categories)[0]
+    page.set_camp_choice(0, category)
+    pool = [c.id for c in ruleset.charms.values() if c.category == category]
+    held_before = list(char.granted_charms)
+    assert len(pool) > cv.pick, "the style pool is too small to over-pick"
+    page.set_camp_choice_charms(0, pool[:cv.pick + 1])
+    assert warnings and warnings[-1][1] == "warning"
+    assert "grants only" in warnings[-1][0], warnings
+    assert char.granted_charms == held_before, "an over-pick was written anyway"
+
+
+def test_a_camp_with_no_calling_does_not_title_the_panel_after_one(qtbot, ruleset):
+    """Cult p.96 gives a Dragon-Blooded a camp but no Calling — the heading follows what
+    the panel CONTAINS rather than naming an absent control."""
+    from exalted_builder.qt.editor import _Panel
+    A = AbilityName
+    char = Character(id="cdb", name="Cult DB", exalt_type="Dragon-Blooded",
+                     caste="fire", origin="illuminated", camp="kether-rock-db",
+                     calling="", essence_rating=2,
+                     abilities={A.BRAWL: 1, A.ENDURANCE: 1, A.MEDICINE: 1, A.MELEE: 2,
+                                A.PRESENCE: 1, A.RESISTANCE: 1, A.SURVIVAL: 3},
+                     granted_charms=list(ruleset.camps["kether-rock-db"].granted_charms))
+    page = _identity(ruleset, char)
+    qtbot.addWidget(page)
+    assert _named(page, "camp.camp", QComboBox) is not None
+    assert _named(page, "camp.calling", QComboBox) is None
+    assert _panel_titled(page, "Training Camp & Calling") is None
+    assert _panel_titled(page, "Training Camp") is not None

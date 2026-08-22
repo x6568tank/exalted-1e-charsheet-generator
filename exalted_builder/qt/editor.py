@@ -13,8 +13,9 @@ NOT translate"): the NiceGUI editor rebuilds the page per click; this rebuilds o
 what a change moves (a dot click touches its row + the side column; a structural
 change — Exalt type, caste, origin, favoured picks — rebuilds the body).
 
-Deferred from this milestone (still on the webapp): Training Camp & Calling and the
-Downtime calculator. A note in the body says so.
+Nothing on this tab is deferred to the webapp any more (2026-08-22). The Downtime
+calculator lives with the other XP controls, in the shell's popover — see
+`qt/main_window.py::_downtime_dialog`, not here.
 """
 
 from __future__ import annotations
@@ -26,8 +27,8 @@ from PySide6.QtWidgets import (
     QSpinBox, QTextEdit, QVBoxLayout, QWidget,
 )
 
-from exalted_builder.engine import (advancement, costs, derive, elder,
-                                    health_actions, merits, validate)
+from exalted_builder.engine import (advancement, camp_actions, costs, derive,
+                                    elder, health_actions, merits, validate)
 from exalted_builder.models.character import (
     AbilityName, AttributeName, Character, CollegeRating, CraftRating, Specialty,
     VirtueFlaw, VirtueName,
@@ -551,6 +552,30 @@ class _EditorPage(QWidget):
         del self._char().crafts[idx]
         self.reload()
 
+    def set_camp(self, camp_id: str) -> None:
+        camp_actions.set_camp(self._ruleset, self._char(), camp_id)
+        self.reload()
+
+    def set_calling(self, calling_id: str) -> None:
+        camp_actions.set_calling(self._char(), calling_id)
+        self.reload()
+
+    def set_camp_choice(self, choice_index: int, key: str) -> None:
+        self._camp_write(camp_actions.set_camp_choice(
+            self._ruleset, self._char(), choice_index, key))
+
+    def set_camp_choice_charms(self, choice_index: int, ids: list) -> None:
+        self._camp_write(camp_actions.set_camp_choice_charms(
+            self._ruleset, self._char(), choice_index, ids))
+
+    def _camp_write(self, refusal) -> None:
+        """⚠ BOTH halves of a refusal matter: say why, and RELOAD regardless. A refused
+        pick leaves the control showing something the character does not hold, and the
+        rebuild is what snaps it back — without it the dropdown looks broken."""
+        if refusal:
+            self._notify(refusal, "warning")
+        self.reload()
+
     def add_college(self) -> None:
         """A fresh College row, defaulting to one of the character's own Maiden's house
         so it already counts toward the own-house minimum rather than starting in
@@ -876,6 +901,120 @@ class IdentityPage(_EditorPage):
             caste_lay.addWidget(QLabel("Not one of the Chosen — no caste, no Charms, "
                                       "Essence 1."))
 
+        self._build_camp_panel(locked, accent)
+
+    def _build_camp_panel(self, locked: bool, accent: str) -> None:
+        """The Training Camp & Calling panel (Cult of the Illuminated), or nothing.
+
+        Rendered only when the ORIGIN uses camps, which `build_camp_view` answers with
+        None otherwise — so no other splat grows an empty panel. Every write goes
+        through `engine.camp_actions`; this method only draws what the view describes."""
+        ruleset, char = self._ruleset, self._char()
+        cv = viewmod.build_camp_view(ruleset, char)
+        if cv is None:
+            return
+        # Cult p.96 gives a Dragon-Blooded a camp but no Calling, so the heading follows
+        # what the panel actually CONTAINS rather than naming a control that is absent.
+        camp_lay = self._panel("Training Camp & Calling" if cv.calling_options
+                               else "Training Camp")
+        row = QHBoxLayout()
+        row.setSpacing(24)
+        camp_lay.addLayout(row)
+
+        # left: the camp, its floors and its free-Charm package
+        left = QVBoxLayout()
+        left.setSpacing(_ROW_SPACING)
+        row.addLayout(left, 1)
+        pick_row = QHBoxLayout()
+        pick_row.addWidget(QLabel("Training camp"))
+        camp_combo = self._combo(
+            dict(cv.camp_options), cv.camp_id or None, frozen=locked,
+            on_change=lambda cid: cid and self.set_camp(cid))
+        camp_combo.setObjectName("camp.camp")
+        pick_row.addWidget(camp_combo, 1)
+        left.addLayout(pick_row)
+        for text, italic in ((cv.camp_description, False),
+                             ("Required Abilities: " + " · ".join(cv.minimums)
+                              if cv.minimums else "", True),
+                             ("Free Charms: " + ", ".join(n for _, n in cv.granted_fixed)
+                              if cv.granted_fixed else "", True)):
+            if not text:
+                continue
+            label = QLabel(text)
+            label.setWordWrap(True)
+            label.setStyleSheet("color:#a8a5a0;" + (" font-style:italic;" if italic else ""))
+            left.addWidget(label)
+
+        for idx, choice in enumerate(cv.choices):
+            # `pick` rather than `is_category_choice`: a flat-pool choice also picks N,
+            # and only a fixed-set choice (which leaves pick at 0) has no count to show.
+            suffix = f" (pick {choice.pick})" if choice.pick else ""
+            # An option the page offers but `data/` cannot yet satisfy stays LISTED —
+            # hiding it would misrepresent the rulebook — but is marked, and
+            # camp_actions refuses it rather than assigning nothing.
+            opts = {o.key: (o.label if o.available else f"{o.label} — {o.reason}")
+                    for o in choice.options}
+            # A flat-pool choice has no options and no style step; the Charm list below
+            # is the entire control, so a select over nothing is not drawn.
+            if opts:
+                sub = QHBoxLayout()
+                sub.addWidget(QLabel(choice.label + suffix))
+                style_combo = self._combo(
+                    opts, choice.chosen_key or None, frozen=locked,
+                    on_change=lambda key, i=idx: key and self.set_camp_choice(i, key))
+                style_combo.setObjectName(f"camp.choice.{idx}")
+                sub.addWidget(style_combo, 1)
+                left.addLayout(sub)
+            # Picking the style is only half the choice — the package is "two Charms
+            # from ONE of four martial arts" (p.90), so the player chooses WHICH.
+            if choice.charm_options:
+                heading = QLabel(f"Which {choice.pick}?" if opts
+                                 else choice.label + suffix)
+                left.addWidget(heading)
+                picks = QListWidget()
+                picks.setObjectName(f"camp.charms.{idx}")
+                picks.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+                picks.setMaximumHeight(140)
+                for o in choice.charm_options:
+                    item = QListWidgetItem(
+                        o.label if o.meets_minimums else f"{o.label} — {o.reason}")
+                    item.setData(Qt.ItemDataRole.UserRole, o.charm_id)
+                    picks.addItem(item)
+                    if o.charm_id in choice.chosen_charm_ids:
+                        item.setSelected(True)
+                picks.setEnabled(not locked)
+                picks.itemSelectionChanged.connect(
+                    lambda lw=picks, i=idx: self.set_camp_choice_charms(
+                        i, [lw.item(r).data(Qt.ItemDataRole.UserRole)
+                            for r in range(lw.count()) if lw.item(r).isSelected()]))
+                left.addWidget(picks)
+
+        # right: the Calling and what it discounts
+        right = QVBoxLayout()
+        right.setSpacing(_ROW_SPACING)
+        row.addLayout(right, 1)
+        if cv.calling_options:
+            sub = QHBoxLayout()
+            sub.addWidget(QLabel("Calling"))
+            calling_combo = self._combo(
+                dict(cv.calling_options), cv.calling_id or None, frozen=locked,
+                on_change=lambda cid: cid and self.set_calling(cid))
+            calling_combo.setObjectName("camp.calling")
+            sub.addWidget(calling_combo, 1)
+            right.addLayout(sub)
+            for text in (cv.calling_description,
+                         "✧ Calling Abilities: " + ", ".join(cv.calling_abilities)
+                         if cv.calling_abilities else "",
+                         f"✧ {len(cv.calling_charms)} Calling Charms — discounted at "
+                         f"chargen and in play" if cv.calling_charms else ""):
+                if not text:
+                    continue
+                label = QLabel(text)
+                label.setWordWrap(True)
+                label.setStyleSheet("color:#a8a5a0;")
+                right.addWidget(label)
+        right.addStretch(1)
+
 
 class TraitsPage(_EditorPage):
     """The Traits tab: the favoured-pick chips, the Attribute / Ability / Craft /
@@ -910,12 +1049,6 @@ class TraitsPage(_EditorPage):
         def track(get, setv, lo, hi, target=None, detail=""):
             return DotTrack(get, setv, lo, hi, accent=accent, target=target,
                             detail=detail, buy=buy, on_change=self._changed)
-
-        note = QLabel("Native Edit covers the trait surface. Training Camp & Calling "
-                      "and Downtime still live on the webapp.")
-        note.setWordWrap(True)
-        note.setStyleSheet("color:#a8a5a0; font-size:9pt;")
-        self._body_lay.addWidget(note)
 
         # favoured picks
         fav_lay = self._panel("Favoured Picks")
