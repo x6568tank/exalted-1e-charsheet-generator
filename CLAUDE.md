@@ -282,14 +282,14 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,648 passing, 1 skipped** (2026-08-21, main PC, the `qt-port` branch after Qt
+**2,653 passing, 1 skipped** (2026-08-21, main PC, the `qt-port` branch after Qt
 milestone 4 — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py` and `tests/test_gear_actions.py`).
 
-- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (149 of them,
+- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (151 of them,
   six whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
   a bare import was a COLLECTION ERROR, which takes the entire run down rather than
-  those tests. **A count 149 lower on a webapp-only machine is that working**, not
+  those tests. **A count 151 lower on a webapp-only machine is that working**, not
   tests going missing — install with `.venv/bin/pip install -e '.[qt]'`.
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one

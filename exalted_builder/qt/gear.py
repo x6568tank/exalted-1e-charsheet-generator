@@ -576,10 +576,12 @@ class GearPage(QWidget):
                                  (artifactsmod.ACQUIRED_LEGENDARY, "Merit")):
                 acquired.addItem(label, value)
             acquired.setCurrentIndex(max(0, acquired.findData(artifact.acquired)))
+            # ⚠ Through the engine, never `setattr`: changing the channel must
+            # re-stamp any stat line this artifact granted, or the two drift and the
+            # orphan is charged to the wrong budget.
             acquired.currentIndexChanged.connect(
-                lambda _i: (setattr(artifact, "acquired",
-                                    acquired.currentData()
-                                    or artifactsmod.ACQUIRED_BACKGROUND),
+                lambda _i: (gear_actions.set_acquired(char, index,
+                                                      acquired.currentData()),
                             self._rebuild()))
             head.addWidget(QLabel("Acquired"))
             head.addWidget(acquired)

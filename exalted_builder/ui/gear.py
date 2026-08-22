@@ -207,9 +207,11 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                            artifactsmod.ACQUIRED_PURCHASED: "Bought",
                            artifactsmod.ACQUIRED_LEGENDARY: "Merit"},
                           value=art.acquired, label="Acquired",
-                          on_change=lambda e, art=art: (
-                              setattr(art, "acquired",
-                                      e.value or artifactsmod.ACQUIRED_BACKGROUND),
+                          # ⚠ Through the engine, never setattr: changing the channel
+                          # must re-stamp any stat line this artifact granted, or the
+                          # two drift and the orphan is charged to the wrong budget.
+                          on_change=lambda e, idx=idx: (
+                              gear_actions.set_acquired(character, idx, e.value),
                               _artifacts_header.refresh(), changed())
                           ).props("dense").classes("w-32").mark("art-acquired")
             _library_button("artifacts", art)

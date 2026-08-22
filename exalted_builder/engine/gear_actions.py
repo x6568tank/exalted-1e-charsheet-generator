@@ -134,6 +134,13 @@ def grant_gear(ruleset: RuleSet, character: Character, artifact_name: str) -> bo
 
     Silent when the artifact has no gear half (the large majority do not), and when the
     row is already there — picking the same artifact twice must not breed daiklaves.
+
+    ⚠ The granted row inherits the artifact's `acquired`. While the pair is linked this
+    is invisible — `artifacts.artifact_items` merges them and reads the ARTIFACT's
+    channel — but the link can be broken: deleting the artifact deliberately leaves its
+    stat line behind, and an orphan defaulting to "background" would charge the p.131
+    budget for something Resources or a Merit had paid for. The stat line IS that
+    artifact, so it was acquired the same way.
     """
     found = artifactsmod.gear_stat_line(ruleset, artifact_name)
     if found is None:
@@ -145,8 +152,23 @@ def grant_gear(ruleset: RuleSet, character: Character, artifact_name: str) -> bo
     if any(row.from_artifact == key for row in rows):
         return False
     model = Weapon if weapon else Armor
-    rows.append(model(**_catalogue_stats(entry, model), from_artifact=key))
+    rows.append(model(**_catalogue_stats(entry, model), from_artifact=key,
+                      acquired=_channel_of(character, key)))
     return True
+
+
+def _channel_of(character: Character, key: str) -> str:
+    """How the artifact `key` names was come by, for a row being granted from it.
+
+    Read off the character rather than passed in, because every caller appends the
+    artifact immediately before granting — a parameter would be one more thing a future
+    caller could forget, which is the shape of the bug this whole module exists to stop.
+    Falls back to the model default when no artifact matches.
+    """
+    for art in character.artifacts:
+        if artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, art.name) == key:
+            return art.acquired
+    return artifactsmod.ACQUIRED_BACKGROUND
 
 
 def acquisition_for(entry) -> str:
@@ -159,6 +181,25 @@ def acquisition_for(entry) -> str:
     """
     return (artifactsmod.ACQUIRED_LEGENDARY if entry.requires_merit
             else artifactsmod.ACQUIRED_BACKGROUND)
+
+
+def set_acquired(character: Character, index: int, channel: str) -> None:
+    """Change how artifact `index` was come by, re-stamping any stat line it granted.
+
+    ⚠ The re-stamp is the point. Granting copies the channel once (`grant_gear`), so an
+    artifact switched from Background to Bought afterwards would leave its stat line
+    claiming the old channel — invisible while the pair is linked, and a wrong budget
+    charge the moment the artifact is deleted and the row is orphaned. One mutator, so
+    the two halves cannot drift.
+    """
+    rows = character.artifacts
+    if not (0 <= index < len(rows)):
+        return
+    rows[index].acquired = channel or artifactsmod.ACQUIRED_BACKGROUND
+    key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, rows[index].name)
+    for owned in (*character.weapons, *character.armor):
+        if owned.from_artifact == key:
+            owned.acquired = rows[index].acquired
 
 
 def add_artifact(ruleset: RuleSet, character: Character,
@@ -202,7 +243,9 @@ def set_artifact(ruleset: RuleSet, character: Character, index: int,
     rows[index].name = entry.name
     rows[index].rating = entry.rating
     if entry.requires_merit:
-        rows[index].acquired = artifactsmod.ACQUIRED_LEGENDARY
+        # Through `set_acquired`, so an ALREADY-granted stat line is re-stamped too:
+        # `grant_gear` below is a no-op once the row exists and would not fix it.
+        set_acquired(character, index, artifactsmod.ACQUIRED_LEGENDARY)
     grant_gear(ruleset, character, entry.name)
     return True
 

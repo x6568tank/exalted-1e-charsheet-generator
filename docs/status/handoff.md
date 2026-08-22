@@ -2,7 +2,7 @@
 
 # 👉 YOU ARE HERE
 
-Suite green and measured: **2,648 passed, 1 skipped** (main PC, `qt-port`, 6m20s). The
+Suite green and measured: **2,653 passed, 1 skipped** (main PC, `qt-port`, 7m39s). The
 branch is **4 commits ahead of where the session started, no upstream, unpushed.**
 
 Nothing is half-finished. **Pick up by clicking milestone 4 through on the real
@@ -42,6 +42,19 @@ exactly what gets silently discarded.
 **The reusable one-liner:** *when code copies one model into another field by field,
 derive the field set from the models. A hand-written list documents the fields someone
 thought of.*
+
+**Checking the neighbouring paths found two more routes to the same defect**, and both
+are now closed (`docs/status/gear-and-inventory.md` has the full three):
+`grant_gear` did not copy the channel onto the stat line it created, and switching the
+channel afterwards left that stat line on the old one. Both are invisible while the pair
+is linked — `artifact_items` merges them and reads the artifact's channel — and both
+surface the moment the artifact is deleted and its stat line is orphaned.
+`gear_actions.set_acquired` is now the only way either shell writes the field.
+
+⚠ **The negative control is the part worth remembering.** A "fix" that made every orphan
+uncharged would have passed both new tests and silently broken the documented ruling that
+a genuinely Background-funded orphan **is** still charged — *visible rather than free*.
+That control is `test_a_background_funded_orphan_is_still_charged`.
 
 ## Combos under Charms — and a negative control that went stale
 

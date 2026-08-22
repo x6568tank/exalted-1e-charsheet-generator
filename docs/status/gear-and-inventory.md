@@ -224,6 +224,29 @@ Both halves are tested in `tests/test_gear_actions.py`, armour included — ⚠ 
 half of this merge went untested once before, because every test written for it had used
 a weapon.
 
+### The same defect had two more routes, found by checking rather than by report
+
+`acquired` is the artifact's ACQUISITION CHANNEL (decision 0017), and three separate
+places could lose it. All three are closed:
+
+1. **The catalogue re-pick** — above.
+2. **`grant_gear` did not copy it onto the stat line it created.** Invisible while the
+   pair is linked, because `artifact_items` merges them and reads the ARTIFACT's channel.
+   It surfaces when the link breaks: deleting an artifact deliberately leaves its stat
+   line behind, and an orphan defaulting to `background` charged the budget for something
+   Resources or a Merit had paid for. The granted row now inherits the channel — the stat
+   line IS that artifact, so it was acquired the same way.
+3. **Switching the channel after the grant** left the stat line on the old one, since
+   granting copies it once. `gear_actions.set_acquired` is now the only way either shell
+   writes the field, and it re-stamps every row linked to that artifact.
+
+⚠ **The negative control matters more than the fixes here.** A change that made every
+orphan uncharged would pass (2) and (3) and silently break the documented ruling that a
+genuinely Background-funded orphan **is** still charged — "visible rather than free".
+`test_a_background_funded_orphan_is_still_charged` is that control, and
+`test_the_merged_pair_is_unaffected_by_the_channel_stamp` guards the common case the
+whole merge exists for.
+
 ## Open questions for the human
 
 None outstanding. The three rulings this work needed — services as reference, no sell

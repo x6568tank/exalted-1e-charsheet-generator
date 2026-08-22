@@ -118,6 +118,57 @@ def test_an_artifact_with_no_gear_half_grants_nothing(ruleset):
     assert char.weapons == [] and char.armor == []
 
 
+def test_a_granted_stat_line_inherits_the_artifacts_channel(ruleset):
+    char = _solar()
+    lifecycle.lock_chargen(char, ruleset)
+    gear_actions.buy(ruleset, char, "artifact:Daiklave")     # cash, charged to nothing
+    assert char.weapons[0].acquired == artifactsmod.ACQUIRED_PURCHASED
+
+
+def test_an_orphaned_cash_bought_stat_line_stays_uncharged(ruleset):
+    """⚠ Deleting an artifact deliberately leaves its stat line behind. While linked the
+    granted row's channel is invisible (the pair is merged and the ARTIFACT's channel is
+    read); orphaned, it is the only record there is — and defaulting to "background"
+    charged the p.131 budget for something Resources had paid for."""
+    char = _solar()
+    lifecycle.lock_chargen(char, ruleset)
+    gear_actions.buy(ruleset, char, "artifact:Daiklave")
+    gear_actions.remove_artifact(char, 0)
+    assert artifactsmod.budgeted_items(char) == []
+
+
+def test_a_background_funded_orphan_is_still_charged(ruleset):
+    """The negative control for the two above. The documented ruling stands: an orphan
+    counts as an artifact in its own right again, which is VISIBLE rather than free.
+    A fix that made every orphan uncharged would pass those two and break this."""
+    char = _solar(backgrounds=[BackgroundEntry(name="Artifact", rating=3)])
+    gear_actions.add_artifact(ruleset, char, "Daiklave")
+    gear_actions.remove_artifact(char, 0)
+    assert [i.name for i in artifactsmod.budgeted_items(char)] == ["Daiklave"]
+
+
+def test_switching_the_channel_restamps_the_granted_stat_line(ruleset):
+    """⚠ Granting copies the channel ONCE, so an artifact switched afterwards would
+    leave its stat line claiming the old one — invisible until the pair is broken."""
+    char = _solar()
+    lifecycle.lock_chargen(char, ruleset)
+    gear_actions.add_artifact(ruleset, char, "Daiklave")     # Background-funded
+    assert char.weapons[0].acquired == artifactsmod.ACQUIRED_BACKGROUND
+    gear_actions.set_acquired(char, 0, artifactsmod.ACQUIRED_PURCHASED)
+    assert char.weapons[0].acquired == artifactsmod.ACQUIRED_PURCHASED
+    gear_actions.remove_artifact(char, 0)
+    assert artifactsmod.budgeted_items(char) == []
+
+
+def test_the_merged_pair_is_unaffected_by_the_channel_stamp(ruleset):
+    # While linked, `artifact_items` merges the two and reads the ARTIFACT's channel.
+    char = _solar()
+    lifecycle.lock_chargen(char, ruleset)
+    gear_actions.buy(ruleset, char, "artifact:Daiklave")
+    assert artifactsmod.budgeted_items(char) == []
+    assert [i.name for i in artifactsmod.purchased_items(char)] == ["Daiklave"]
+
+
 def test_deleting_an_artifact_leaves_its_stat_line_behind(ruleset):
     # The row may have been edited, and the orphan counts as an artifact in its own
     # right again — visible rather than free.

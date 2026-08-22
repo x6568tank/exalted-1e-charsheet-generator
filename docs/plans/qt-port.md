@@ -667,7 +667,7 @@ The page is a **placeholder in its new home** — the Combos surface itself is s
 webapp.
 
 Tests: `tests/test_qt_gear.py` (26), `tests/test_gear_actions.py` (21), plus the shell's
-three new Combos tests. Full suite on `qt-port`, main PC: **2,648 passed, 1 skipped, 1
+three new Combos tests. Full suite on `qt-port`, main PC: **2,653 passed, 1 skipped, 1
 warning** (6m20s).
 
 ### NOT yet human-verified
