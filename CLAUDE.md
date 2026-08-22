@@ -238,7 +238,9 @@ pool calculation.
   (`ui/gm.py` + `ui/adversaries.py`, ~1,100 lines, and a second WINDOW rather than a tab,
   so the settled tab layout does not decide its shape); and the **within-tab gaps** —
   those are what decide whether the native app can replace the webapp.
-  `docs/status/handoff.md` carries the itemised list.
+  `docs/status/handoff.md` carries the itemised list. **The within-tab gaps are NEXT**
+  (human, 2026-08-22) — before any further tab is ported. ⚠ Nothing will remind you they
+  exist: every tab holding one is shipped, human-clicked and green.
 
   Four things that affect work NOW, so they live here:
   - ⚠ **A Qt tab is a COLLECTION, and there is ONE layout.** Settled by the human

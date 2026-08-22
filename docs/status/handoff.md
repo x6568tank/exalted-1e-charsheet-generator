@@ -88,9 +88,38 @@ webapp:**
 the webapp's, so that is parity. Both are wholly Storyteller-adjudicated (`PlayState`'s
 docstring).
 
-## Next up
+## Next up — group 4, the within-tab gaps (the human's call, 2026-08-22)
 
-**ST Options, then Custom** — the two rail placeholders above. After them, Combos.
+**Close the gaps in the tabs that already shipped, BEFORE porting another tab.** Not ST
+Options, not Custom, not Party — those wait.
+
+⚠ **Nothing will remind you these exist.** Every tab in group 4 is ported, human-clicked
+and green; the rail shows no placeholder and the suite reports no failure. That is the
+whole reason this went to the top of the list rather than the bottom, and it is the
+condition on which the native app can *replace* the webapp instead of sitting beside it.
+
+The list is group 4 above. Suggested order, cheapest and most load-bearing first:
+
+1. **The Ox-Body / Deadly Beastman variant MENU** in the Charm picker — the only one of
+   these with a closed bug behind it (`engine.charm_actions` already refuses a package
+   Charm from an ordinary toggle in both shells, so the mis-write cannot happen; what is
+   missing is the way to make the RIGHT pick).
+2. **Edit's deferred panels** — Training Camp & Calling, Colleges, Specialties, Permanent
+   Resonance/Limit, Virtue Flaw, bonus health levels, Downtime. Seven panels, and
+   Specialties and Permanent Resonance both have rulings attached (see
+   `docs/status/edit-xp-merge.md` and the Limit panel in `qt/play.py`, which shows
+   permanent Resonance READ-ONLY and points at Traits for the edit — that pointer is
+   currently to a panel that does not exist).
+3. **The per-splat Charm surfaces** — Alchemical submodules, the Immaculate-vs-standard
+   DB banner, the MA style panel, the foreign-charms splat dropdown, "Add another" for
+   repeatable Charms.
+
+⚠ **Audit before building.** The gap list was assembled milestone by milestone and has
+never been re-derived against the webapp. Diff each shipped Qt tab against its
+`ui/<tab>.py` counterpart before trusting the list to be complete — the same reasoning
+that put "a fuzzy gap count is a LOWER bound on the work" in `CLAUDE.md`.
+
+**After group 4:** ST Options, then Custom, then Combos, then Party.
 
 ## A live bug in shipped code, still unmigrated (carried from last session)
 
