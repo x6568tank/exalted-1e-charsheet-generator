@@ -1,13 +1,16 @@
-# Session handoff — 2026-08-21 (Gear + Advantages native; the Qt layout is settled)
+# Session handoff — 2026-08-22 (Gear + Advantages native; the Qt layout is settled;
+# milestone 6 prepped)
 
 # 👉 YOU ARE HERE
 
-Suite green and measured: **2,675 passed, 1 skipped** (main PC, `qt-port`, 6m55s). The
-branch is **6 commits ahead** of where the session started and **19 ahead of `main`**, no
+Last FULL green suite: **2,675 passed, 1 skipped** (main PC, `qt-port`, 6m55s) at
+`1f3ba76`. Three commits since are covered by targeted runs only — see **Next up**. The
+branch is **10 commits ahead** of where the session started and **23 ahead of `main`** (this handoff commit included), no
 upstream, **unpushed**.
 
-Nothing is half-finished. Everything below was human-clicked and approved on the real
-display. Pick up at **milestone 6, the Play tab**.
+Nothing is half-finished, and the tree is clean. Everything shipped below was
+human-clicked and approved on the real display. Pick up at **milestone 6's remaining
+half: building `qt/play.py`** — its engine prep is already done and committed.
 
 ## The one thing to read before touching the Qt port
 
@@ -39,6 +42,14 @@ shows its rules text post-lock (the old card showed nothing); and "Lose / buy of
 the table selection instead of a second dropdown naming the same entries.
 
 **`qt/layout.py::clear_layout`** — one teardown, replacing six hand-written copies.
+
+**A Traits spacing fix** (`c75b8c9`). ⚠ A nested layout whose spacing is unset (`-1`)
+INHERITS its parent's, so the 24px gap set between the Attribute COLUMNS became the gap
+between the ROWS inside them — 41px against the Virtues' 21, which reads as the card
+trying to fill itself vertically. Abilities had it too. One `_ROW_SPACING` constant now
+carries the warning.
+
+**`engine/play.py`** (`2ac4465`) — milestone 6's prep, see below.
 
 Full write-ups: `docs/plans/qt-port.md` (milestones 4 and 5),
 `docs/status/gear-and-inventory.md` (the Gear extraction and the bug below).
@@ -80,15 +91,37 @@ cash-bought artifact weapon.
   `findChildren(QSpinBox)[0]`, got the quantity box instead of the stat it meant, and
   passed a wrong assertion into existence.
 
-## Next up: milestone 6, the Play tab
+## Next up: milestone 6 — build `qt/play.py`
 
-Ask the milestone-2 question first — **Play's answer is not obvious.** `ui/play.py` still
-holds the PlayState mutators that tier 3 of the `ui/` audit wants in `engine/`, and
-⚠ **decision 0006** says that if they land in an `engine/play.py`, play-state must stay
-unreachable from validation.
+**Both questions are already answered and the prep is committed.** What remains is the
+widget.
 
-The layout question is already answered (see the top). After Play: ST Options, then
-Custom.
+*The engine question* was YES, and it is done: `engine/play.py` (`2ac4465`) holds
+`play_state`, `normalize_health`, `cycle_mark`, `set_motes`, `set_fatigue`, `set_count`,
+`clear_damage` and `clear_motes`. `ui/play.py` re-exports every name — ⚠ `ui/gm.py`
+imports several off that module by name, so do not remove the re-exports.
+
+⚠ **decision 0006 is now enforced structurally**, not by memory:
+`tests/test_play.py` walks the AST of every `engine/validate/` module and fails on any
+`play` import OR any `.play` attribute read. Both were verified against a planted
+violation. If you need play-state in validation, that is a decision to reopen with the
+human, not a guard to delete.
+
+*The layout question* was answered separately and is **the one stated exception to the
+collection rule** (human, 2026-08-22): Play is a live TRACKER with nothing to select — a
+health track you click to mark, mote pools, the dice-pool sidebar — so a detail pane
+would hide the numbers you glance at mid-roll. **Toolbar over panels.** Everything else
+(ST Options, Custom) still gets the collection layout.
+
+What the tab needs, from `ui/play.py` (617 lines) and `view.build_play_view`: the health
+track with its wound penalties, Personal/Peripheral motes, temporary Willpower, Limit,
+armour fatigue, the dice-pool sidebar and custom pools. Roughly Gear-sized.
+
+⚠ **Run the full suite before calling milestone 6 done** — the last full green run
+predates the spacing fix, the play extraction and this. Targeted runs since: 172 Qt tests
+(`c75b8c9`) and 228 play/pools/GM/shell tests (`2ac4465`).
+
+After Play: ST Options, then Custom.
 
 ## Known Qt gaps
 
