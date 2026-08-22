@@ -13,9 +13,8 @@ NOT translate"): the NiceGUI editor rebuilds the page per click; this rebuilds o
 what a change moves (a dot click touches its row + the side column; a structural
 change — Exalt type, caste, origin, favoured picks — rebuilds the body).
 
-Deferred from this milestone (still on the webapp): Training Camp & Calling, the
-Astrological Colleges, Specialties editing, Permanent Resonance/Limit, the Virtue
-Flaw, bonus health levels and the Downtime calculator. A note in the body says so.
+Deferred from this milestone (still on the webapp): Training Camp & Calling and the
+Downtime calculator. A note in the body says so.
 """
 
 from __future__ import annotations
@@ -27,9 +26,11 @@ from PySide6.QtWidgets import (
     QSpinBox, QTextEdit, QVBoxLayout, QWidget,
 )
 
-from exalted_builder.engine import advancement, costs, derive, elder, merits, validate
+from exalted_builder.engine import (advancement, costs, derive, elder,
+                                    health_actions, merits, validate)
 from exalted_builder.models.character import (
-    AbilityName, AttributeName, Character, CraftRating, VirtueName,
+    AbilityName, AttributeName, Character, CollegeRating, CraftRating, Specialty,
+    VirtueFlaw, VirtueName,
 )
 from exalted_builder.models.rules import RuleSet
 from .theme import CARD, INPUT, accent as accent_light
@@ -273,10 +274,19 @@ class _EditorPage(QWidget):
         self.reload()
 
     def reload(self) -> None:
-        """Rebuild the body from the character in ctx. Pin the body's height across
-        the rebuild (clearing the layout collapses the content under the scrollbar,
-        clamping the saved value), then re-apply the scroll position for a short
-        settle window (see _hold_scroll)."""
+        """Rebuild the body from the character in ctx, then ping the shell. Pin the
+        body's height across the rebuild (clearing the layout collapses the content
+        under the scrollbar, clamping the saved value), then re-apply the scroll
+        position for a short settle window (see _hold_scroll).
+
+        ⚠ The `on_change` ping lives HERE, not at the call sites. A full reload is what
+        every structural change does — Exalt type, caste, origin, favoured picks, a
+        craft row, `_do_trait`'s purchases, `_lower_willpower` — and all ten sites
+        moved the bonus-point spend or the validation errors while leaving the shell's
+        readout bar showing the previous answer. One ping in the wrapper is a mechanism;
+        ten remembered call sites is the same house bug waiting for an eleventh.
+        Re-entry is not a risk: the shell's `_refresh` writes labels and never reloads a
+        page."""
         saved = self._body_scroll.verticalScrollBar().value()
         self._body_container.setMinimumHeight(self._body_container.height())
         self._clear_lay(self._body_lay)
@@ -285,6 +295,8 @@ class _EditorPage(QWidget):
         self._body_lay.addStretch(1)
         self._body_container.setMinimumHeight(0)
         self._hold_scroll(saved)
+        if self._on_change is not None:
+            self._on_change()
 
     def _build_body(self) -> None:
         raise NotImplementedError
@@ -316,14 +328,25 @@ class _EditorPage(QWidget):
         return line
 
     def _combo(self, options: dict, value, *, frozen: bool, on_change) -> QComboBox:
+        """A select over `options` {key: label}, calling `on_change(key)` with the key
+        the caller supplied.
+
+        ⚠ **The key is looked up by INDEX, never read back out of the widget.** Qt
+        stores item data as a QVariant, and a `str`-valued Enum comes back out of
+        `currentData()` as a plain `str` — so a handler doing `setattr(row, "ability",
+        …)` writes "dodge" onto a field typed `AbilityName`, and the model has no
+        `validate_assignment` to catch it. Nothing fails at the write; it fails later
+        at the first `.value` on what is no longer an enum. Indexing the original dict
+        hands back the identical object for every key type."""
         combo = QComboBox()
-        for key, label in options.items():
-            combo.addItem(label, key)
-        idx = combo.findData(value)
-        if idx >= 0:
-            combo.setCurrentIndex(idx)
+        keys = list(options)
+        for key in keys:
+            combo.addItem(options[key], key)
+        if value in keys:
+            combo.setCurrentIndex(keys.index(value))
         combo.setEnabled(not frozen)
-        combo.currentIndexChanged.connect(lambda _: on_change(combo.currentData()))
+        combo.currentIndexChanged.connect(
+            lambda i: on_change(keys[i] if 0 <= i < len(keys) else None))
         return combo
 
     def _trait_row(self, lay, mark: str, label: str, accent: str, track: DotTrack,
@@ -527,6 +550,65 @@ class _EditorPage(QWidget):
     def remove_craft(self, idx: int) -> None:
         del self._char().crafts[idx]
         self.reload()
+
+    def add_college(self) -> None:
+        """A fresh College row, defaulting to one of the character's own Maiden's house
+        so it already counts toward the own-house minimum rather than starting in
+        violation of it."""
+        ruleset, char = self._ruleset, self._char()
+        own = next((cid for cid, col in ruleset.colleges.items()
+                    if col.house == char.caste), None)
+        char.colleges.append(
+            CollegeRating(college_id=own or next(iter(ruleset.colleges), ""), rating=1))
+        self.reload()
+
+    def remove_college(self, idx: int) -> None:
+        del self._char().colleges[idx]
+        self.reload()
+
+    def add_spec(self) -> None:
+        """A blank chargen row. The per-Ability cap is NOT enforced here — the row
+        starts on Melee and the player retargets it, so blocking the ADD would block it
+        on the wrong Ability. `validate.check_specialties` reports an over-capped
+        Ability instead, which is also what covers a save that arrives over the cap."""
+        self._char().specialties.append(
+            Specialty(ability=AbilityName.MELEE, name="", rating=1))
+        self.reload()
+
+    def remove_spec(self, idx: int) -> None:
+        del self._char().specialties[idx]
+        self.reload()
+
+    def set_virtue_flaw_virtue(self, virtue: VirtueName) -> None:
+        """Set which Virtue is flawed, keeping any description already written.
+
+        ⚠ Reloads rather than redrawing in place: the sample-Flaw dropdown beside this
+        one is built from the flawed Virtue, so without the rebuild it keeps offering
+        the OLD Virtue's Flaws — wrong exactly while it is being read."""
+        char = self._char()
+        desc = char.virtue_flaw.description if char.virtue_flaw else ""
+        char.virtue_flaw = VirtueFlaw(virtue=virtue, description=desc)
+        self.reload()
+
+    def set_virtue_flaw_sample(self, flaw_id: str) -> None:
+        """Copy a sample Flaw's printed text into the free-text description.
+
+        A COPY, not a reference (decision 0007: ids for invariant content, inline
+        copies for variable). The player is expected to edit the text — the book offers
+        these as a guide to severity for Flaws of their own — so storing the id would
+        make an edited Flaw claim to be the printed one."""
+        flaw = self._ruleset.virtue_flaw_catalog.get(flaw_id or "")
+        if flaw is None:
+            return
+        self.set_virtue_flaw_desc(flaw.description)
+        self.reload()
+
+    def set_virtue_flaw_desc(self, text: str) -> None:
+        char = self._char()
+        if char.virtue_flaw is None:
+            char.virtue_flaw = VirtueFlaw(virtue=VirtueName.COMPASSION, description=text)
+        else:
+            char.virtue_flaw.description = text
 
     def _do_trait(self, action) -> None:
         try:
@@ -829,9 +911,8 @@ class TraitsPage(_EditorPage):
             return DotTrack(get, setv, lo, hi, accent=accent, target=target,
                             detail=detail, buy=buy, on_change=self._changed)
 
-        note = QLabel("Native Edit covers the trait surface. Training Camp & Calling, "
-                      "the Colleges, Specialties, Permanent Resonance, the Virtue Flaw, "
-                      "bonus health levels and Downtime still live on the webapp.")
+        note = QLabel("Native Edit covers the trait surface. Training Camp & Calling "
+                      "and Downtime still live on the webapp.")
         note.setWordWrap(True)
         note.setStyleSheet("color:#a8a5a0; font-size:9pt;")
         self._body_lay.addWidget(note)
@@ -1041,6 +1122,224 @@ class TraitsPage(_EditorPage):
             spin.valueChanged.connect(lambda v: (setattr(char, "willpower_purchased", v), self._changed()))
             row.addWidget(spin, 1)
             ew_lay.addLayout(row)
+
+        # Astrological Colleges (Sidereal) — a rated Advantage with its own pool. Shown
+        # only for splats that ship colleges, which `b.college_dots` is the test for.
+        # Options are grouped by house label and the character's own Maiden's house is
+        # marked ★, because the budget has a minimum in it.
+        if b.college_dots > 0 and ruleset.colleges:
+            own_house = char.caste
+            college_opts = {
+                col.id: (f"{'★ ' if col.house == own_house else ''}{col.name}"
+                         f"  ·  {col.house_label}")
+                for col in ruleset.colleges.values()
+            }
+            own_dots = sum(cr.rating for cr in char.colleges
+                           if (c := ruleset.colleges.get(cr.college_id))
+                           and c.house == own_house)
+            col_lay = self._panel(
+                f"Astrological Colleges ({b.college_dots} dots; "
+                f"≥{b.college_min_own_house} in your Maiden's ★ house — have {own_dots}; "
+                f"≤{b.college_cap_pre_bp} pre-bonus)")
+            for idx, cr in enumerate(char.colleges):
+                row = QHBoxLayout()
+                # ⚠ An off-catalogue id from an old save keeps its own row entry, so the
+                # combo can show it instead of silently snapping to another college.
+                row_opts = (college_opts if cr.college_id in college_opts
+                            else {**college_opts, cr.college_id: cr.college_id})
+                row.addWidget(self._combo(
+                    row_opts, cr.college_id, frozen=False,
+                    on_change=lambda cid, cr=cr: (setattr(cr, "college_id", cid),
+                                                  self._changed())), 1)
+                # lo=0: Colleges can be REDUCED. A usability escape hatch, not a printed
+                # rule — same as Crafts (docs/status/edit-xp-merge.md).
+                row.addWidget(track(lambda cr=cr: cr.rating,
+                                    lambda v, cr=cr: setattr(cr, "rating", v),
+                                    0, 5, target="colleges", detail=cr.college_id))
+                drop = QPushButton("✕")
+                drop.setFixedWidth(28)
+                drop.clicked.connect(lambda _=False, idx=idx: self.remove_college(idx))
+                row.addWidget(drop)
+                col_lay.addLayout(row)
+            add_col = QPushButton("+ Add college")
+            add_col.clicked.connect(self.add_college)
+            col_lay.addWidget(add_col)
+
+        # Specialties. ⚠ A specialty is an INSTANCE, not a rated trait (human, rules
+        # authority, 2026-07-31): you do not raise one, you take the same one again, so
+        # there is no dot track here — "Swords" twice means two rows — and the cap of 3
+        # counts ROWS per Ability.
+        sp_lay = self._panel("Specialties (max 3 per Ability; take one twice to stack it)")
+        for idx, sp in enumerate(char.specialties):
+            row = QHBoxLayout()
+            if locked:
+                # Read-only after the lock for the reason the Charms tab's rows are:
+                # removal in play is undo, not deletion.
+                row.addWidget(QLabel(f"{_label(sp.ability.value)} — {sp.name}"), 1)
+                sp_lay.addLayout(row)
+                continue
+            # ⚠ BOTH handlers must fire `_changed()`. A row is appended blank on Melee
+            # and retargeted afterwards, so the add itself can legitimately push Melee
+            # over the cap until the real Ability is picked — and that transient
+            # `specialty-cap` error is already on screen. Without the re-run the
+            # retarget fixes the MODEL and leaves the stale error up: three Melee plus
+            # three Dodge reads back as "Melee has 4".
+            row.addWidget(self._combo(
+                {a: _label(a.value) for a in AbilityName}, sp.ability, frozen=False,
+                on_change=lambda a, sp=sp: (setattr(sp, "ability", a), self._changed())), 1)
+            name = QLineEdit(sp.name)
+            name.setPlaceholderText("Specialty")
+            name.textChanged.connect(
+                lambda t, sp=sp: (setattr(sp, "name", t), self._changed()))
+            row.addWidget(name, 1)
+            drop = QPushButton("✕")
+            drop.setFixedWidth(28)
+            drop.clicked.connect(lambda _=False, idx=idx: self.remove_spec(idx))
+            row.addWidget(drop)
+            sp_lay.addLayout(row)
+        if locked:
+            # Post-lock a specialty is a PURCHASE, so it is named and priced up front
+            # rather than appended blank — an empty row would already have cost XP.
+            row = QHBoxLayout()
+            row.addWidget(QLabel("Specialty in"))
+            pick = {"ability": AbilityName.MELEE}
+            row.addWidget(self._combo(
+                {a: _label(a.value) for a in AbilityName}, AbilityName.MELEE,
+                frozen=False, on_change=lambda a: pick.__setitem__("ability", a)), 1)
+            new_name = QLineEdit()
+            new_name.setObjectName("specialty.new")
+            new_name.setPlaceholderText("specialty name")
+            row.addWidget(new_name, 1)
+            row.addWidget(QLabel(f"{costs.specialty_cost(ruleset, char)} XP"))
+            buy = QPushButton("Buy")
+            buy.clicked.connect(lambda: self._do_trait(
+                lambda: advancement.add_specialty(
+                    ruleset, char, pick["ability"], new_name.text().strip())))
+            row.addWidget(buy)
+            sp_lay.addLayout(row)
+        else:
+            add = QPushButton("Add specialty")
+            add.clicked.connect(self.add_spec)
+            sp_lay.addWidget(add)
+
+        # Permanent Resonance — the Abyssal Death's Taint counterpart to the temporary
+        # track (p.41). Post-lock only, and only where the cap is non-zero, which is the
+        # engine's way of saying "this character has the Flaw" without naming a Merit id.
+        # ⚠ This is the EDIT surface for it: qt/play.py shows the same number READ-ONLY
+        # and points here, because gain and shed both go through the XP ledger.
+        perm_cap = derive.permanent_limit_cap(ruleset, char) if locked else 0
+        if perm_cap:
+            lim = derive.limit_label(ruleset, char)
+            res_lay = self._panel(f"Permanent {lim}")
+            note = QLabel(f"{char.limit_permanent} of {perm_cap} (capped at Essence). "
+                          f"Gained when the temporary track overflows; shed with a "
+                          f"Harrowing.")
+            note.setWordWrap(True)
+            note.setStyleSheet("color:#a8a5a0;")
+            res_lay.addWidget(note)
+            row = QHBoxLayout()
+            reason = QLineEdit()
+            reason.setPlaceholderText("reason (e.g. Resonance overflowed)")
+            row.addWidget(reason, 1)
+            gain = QPushButton("Gain (free)")
+            gain.clicked.connect(lambda: self._do_trait(
+                lambda: advancement.gain_permanent_resonance(
+                    ruleset, char, reason.text().strip())))
+            row.addWidget(gain)
+            shed = QPushButton(f"Shed ({merits.PERMANENT_RESONANCE_SHED_XP} XP)")
+            shed.clicked.connect(lambda: self._do_trait(
+                lambda: advancement.shed_permanent_resonance(
+                    ruleset, char, reason.text().strip())))
+            row.addWidget(shed)
+            res_lay.addLayout(row)
+
+        # Virtue Flaw — splat-gated: the Dragon-Blooded, Sidereals and Alchemicals have
+        # none. ⚠ NOT the same question as having a Limit track (a Sidereal has Paradox
+        # and no flawed Virtue), which is why this asks derive.has_virtue_flaw and not
+        # the limit label.
+        vf_row = QHBoxLayout()
+        vf_row.setSpacing(24)
+        self._body_lay.addLayout(vf_row)
+        if derive.has_virtue_flaw(ruleset, char):
+            vf = char.virtue_flaw
+            vf_lay = self._panel("Virtue Flaw", vf_row)
+            row = QHBoxLayout()
+            row.addWidget(QLabel("Flawed Virtue"))
+            # A blank leading entry only while none is chosen — Qt has no empty state
+            # for a combo, and defaulting to Compassion would write a pick the player
+            # never made.
+            opts = {} if vf else {None: "—"}
+            opts.update({v: _label(v.value) for v in VirtueName})
+            # ⚠ Named, not found by position. Three combos sit in this half of the page
+            # and `findChildren(QComboBox)[0]` is the Flawed Virtue box for all three
+            # callers that want a different one.
+            virtue_combo = self._combo(
+                opts, vf.virtue if vf else None, frozen=locked,
+                on_change=lambda v: v is not None and self.set_virtue_flaw_virtue(v))
+            virtue_combo.setObjectName("virtue_flaw.virtue")
+            row.addWidget(virtue_combo, 1)
+            vf_lay.addLayout(row)
+
+            # The book's SAMPLE Flaws for the Virtue that is actually flawed
+            # (pp.131-133) — offering a Compassion Flaw beside a flawed Valor would be
+            # offering an illegal pick. The list is a shortcut into the free-text field
+            # below, never a replacement for it: the page says in as many words that
+            # these are not the only Flaws an Exalt might develop.
+            samples = [f for f in ruleset.virtue_flaw_catalog.values()
+                       if vf is not None and f.virtue == vf.virtue]
+            if samples:
+                row = QHBoxLayout()
+                row.addWidget(QLabel("Sample Flaw"))
+                sample_opts = {None: "— fills the description —"}
+                sample_opts.update({f.id: f.name
+                                    for f in sorted(samples, key=lambda f: f.name)})
+                sample_combo = self._combo(
+                    sample_opts, None, frozen=False,
+                    on_change=lambda fid: fid and self.set_virtue_flaw_sample(fid))
+                sample_combo.setObjectName("virtue_flaw.sample")
+                row.addWidget(sample_combo, 1)
+                vf_lay.addLayout(row)
+
+            row = QHBoxLayout()
+            row.addWidget(QLabel("Description"))
+            desc = QLineEdit(vf.description if vf else "")
+            desc.setObjectName("virtue_flaw.description")
+            desc.textChanged.connect(self.set_virtue_flaw_desc)
+            row.addWidget(desc, 1)
+            vf_lay.addLayout(row)
+
+            # The Limit Break Condition is the half that gets consulted at the table, so
+            # it is shown rather than folded into the description.
+            picked = next((f for f in samples
+                           if vf is not None and f.description == vf.description), None)
+            if picked is not None and picked.limit_break:
+                lb = QLabel(f"Limit Break: {picked.limit_break}")
+                lb.setWordWrap(True)
+                lb.setStyleSheet("color:#a8a5a0;")
+                vf_lay.addWidget(lb)
+
+        # Bonus health levels per tier. The stored list is a DELTA from the printed
+        # track, which is why the box shows a TOTAL and the engine works out whether
+        # that means added levels or removed ones (engine/health_actions).
+        hl_lay = self._panel("Bonus health levels per tier "
+                             "(charms raise, curses lower)", vf_row)
+        hl_row = QHBoxLayout()
+        for p in health_actions.EDITABLE_TIERS:
+            col = QVBoxLayout()
+            col.addWidget(QLabel("-0" if p == 0 else str(p)))
+            spin = QSpinBox()
+            # ⚠ Named, not positional: the Attributes panel's spin boxes are the ones a
+            # `findChildren(QSpinBox)[0]` would reach.
+            spin.setObjectName(f"health.{p}")
+            spin.setRange(0, 20)
+            spin.setValue(health_actions.level_total(char, p))
+            spin.valueChanged.connect(
+                lambda v, p=p: (health_actions.set_level_total(char, p, v),
+                                self._changed()))
+            col.addWidget(spin)
+            hl_row.addLayout(col)
+        hl_row.addStretch(1)
+        hl_lay.addLayout(hl_row)
 
         # charms/spells — read-only here
         _slots = viewmod.charm_slot_budget(ruleset, char)

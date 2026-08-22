@@ -18,16 +18,16 @@ With no path it starts from the bundled example character.
 from __future__ import annotations
 
 import argparse
-from collections import Counter
 from pathlib import Path
 
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import advancement, costs, derive, elder, merits, validate
+from ..engine import (advancement, costs, derive, elder, health_actions, merits,
+                      validate)
 from ..models.character import (
     Armor, BackgroundEntry, Character, CollegeRating, CraftRating, GearEntry,
-    HealthLevel, MeritFlawPurchase, Specialty, VirtueFlaw, Weapon)
+    MeritFlawPurchase, Specialty, VirtueFlaw, Weapon)
 
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import catalogue as cataloguemod
@@ -39,24 +39,9 @@ from . import view as viewmod
 from .view import (_ORIGIN_UPBRINGINGS, _SPLAT_ORIGINS, _heritage_uses_origin,
                    _origin_options, upbringing_options)
 
-# The base wound track, TALLIED FROM THE ENGINE'S COPY — {penalty: how many base
-# levels sit at that tier}. ⚠ Never hand-write it: a literal `{0: 1, -1: 2, -2: 2,
-# -4: 1}` is the printed rule encoded a second time, and a rules table in the UI is
-# what "no game logic here" forbids. Derived, it cannot drift from
-# `derive.health_track`; if a splat ever changes the base track, this follows.
-_BASE_HEALTH = Counter(derive.BASE_WOUND_PENALTIES)
-
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DATA_DIR = _REPO_ROOT / "exalted_builder" / "data"
 _EXAMPLE = _REPO_ROOT / "examples" / "ashes-of-dawn.character.json"
-
-
-def _health_total(character: Character, penalty: int) -> int:
-    """Effective number of health levels at a tier: base + added - removed."""
-    delta = sum((-1 if hl.removed else 1)
-                for hl in character.health_bonus_levels if hl.penalty == penalty)
-    return max(0, _BASE_HEALTH.get(penalty, 0) + delta)
-
 
 
 def _label(value: str) -> str:
@@ -1218,7 +1203,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             with panel("Bonus health levels per tier (charms raise, curses lower)").classes("flex-1"):
                 with ui.row().classes("w-full gap-3 no-wrap"):
                     for p in (0, -1, -2, -4):
-                        total = _health_total(character, p)
+                        total = health_actions.level_total(character, p)
                         ui.number(label=("-0" if p == 0 else str(p)), value=total, min=0, max=20, format="%d",
                                   on_change=lambda e, p=p: set_health_total(p, int(e.value or 0))).classes("w-16")
 
@@ -1474,16 +1459,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
         body.refresh(); changed()
 
     def set_health_total(penalty: int, total: int) -> None:
-        # Rebuild this tier: add bonus levels above base, or removed levels below it.
-        base_n = _BASE_HEALTH.get(penalty, 0)
-        kept = [hl for hl in character.health_bonus_levels if hl.penalty != penalty]
-        if total > base_n:
-            kept += [HealthLevel(penalty=penalty, source_charm="Bonus")
-                     for _ in range(total - base_n)]
-        elif total < base_n:
-            kept += [HealthLevel(penalty=penalty, source_charm="Curse", removed=True)
-                     for _ in range(base_n - total)]
-        character.health_bonus_levels = kept
+        health_actions.set_level_total(character, penalty, total)
         changed()
 
     def remove_item(field: str, idx: int) -> None:
