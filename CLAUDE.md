@@ -227,11 +227,18 @@ pool calculation.
   left-rail shell + Identity/Traits; the Advantages tab). **Milestones 4 and 5 — the Gear tab
   with Combos moving under Charms, and Advantages rebuilt as a collection — have
   shipped and are human-clicked.** **Milestone 6 — the Play tab (`qt/play.py`) — has
-  shipped and is tests-green, but is NOT yet human-clicked.** Run it
+  shipped and is human-clicked (2026-08-22).** Run it
   with `python -m exalted_builder.qt [path]`; the code is `exalted_builder/qt/`. **What
   each milestone contains, and every trap it cost, is in `docs/plans/qt-port.md` — read
-  that before touching the port rather than re-deriving it here.** Rail placeholders
-  still on the webapp: **ST Options and Custom**, plus the Combos sub-tab.
+  that before touching the port rather than re-deriving it here.**
+
+  ⚠ **The RAIL is not the measure of what is left.** Four things are, and the rail shows
+  only the first: the **ST Options and Custom** placeholders; the **Combos sub-tab**
+  under Charms; the **Party / ST screen**, which has no Qt counterpart at all
+  (`ui/gm.py` + `ui/adversaries.py`, ~1,100 lines, and a second WINDOW rather than a tab,
+  so the settled tab layout does not decide its shape); and the **within-tab gaps** —
+  those are what decide whether the native app can replace the webapp.
+  `docs/status/handoff.md` carries the itemised list.
 
   Four things that affect work NOW, so they live here:
   - ⚠ **A Qt tab is a COLLECTION, and there is ONE layout.** Settled by the human
@@ -367,7 +374,7 @@ are pointers only; the traps and history live in the files.
 | Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
-| The Qt port — decision 0018; the build record (milestones 1–5: the shell + Edit/Charms/Sheet, the left-rail shell + Identity/Traits + bio fields, Advantages, the Gear tab + Combos-under-Charms, and Advantages rebuilt as a collection — **1–5 all human-clicked**; milestone 5 also SETTLES the one layout every remaining tab gets, and milestone 6 — the Play tab, **not yet human-clicked** — is its one written exception) | `plans/qt-port.md` |
+| The Qt port — decision 0018; the build record (milestones 1–5: the shell + Edit/Charms/Sheet, the left-rail shell + Identity/Traits + bio fields, Advantages, the Gear tab + Combos-under-Charms, and Advantages rebuilt as a collection, then the Play tab; **all six human-clicked**. Milestone 5 SETTLES the one layout every remaining tab gets, and milestone 6 is its one written exception) | `plans/qt-port.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms

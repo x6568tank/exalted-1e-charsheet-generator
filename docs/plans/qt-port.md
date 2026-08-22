@@ -856,11 +856,12 @@ it, because `ui/gm.py` reaches it through that module by name.
 
 Tests: `tests/test_qt_play.py` (32).
 
-### Human-verified on the real display
+### Human-verified on the real display — 2026-08-22
 
-**Not yet clicked** — the tab is tests-green and smoke-driven across the four example
-characters. ⚠ Milestone 4 is the standing reminder that neither of those can tell anyone
-whether a surface is right.
+Clicked and **approved** — *"I like it; looks good."* First build, no rebuild. **The
+toolbar-over-panels exception and the tracker-left / rolls-right split are both
+confirmed**, which is what the click was for: those two were my calls, and the second is
+the reverse of the webapp.
 
 ## Open questions — not decided
 

@@ -6,9 +6,8 @@ Last FULL green suite: **2,710 passed, 1 skipped** (main PC, `qt-port`, 6m51s) a
 session's tip — a fresh run AFTER the last code change, not the one that was in flight
 while `_pool_row` was rebuilt.
 
-The tree is clean and nothing is half-finished. **`qt/play.py` is built, tests-green and
-smoke-rendered, and has NOT been human-clicked.** That is the one thing this session
-leaves open, and it is the only thing that has ever caught a wrong Qt design.
+The tree is clean and nothing is half-finished. **`qt/play.py` shipped and was
+human-clicked and approved on the real display** — first build, no rebuild.
 
 ## What shipped: milestone 6 — the Play tab
 
@@ -51,26 +50,31 @@ Full write-up, with every trap: `docs/plans/qt-port.md`, milestone 6.
   first call, so the draw path reads `char.play or PlayState()` — otherwise merely
   OPENING the tab makes a never-played character save dirty. There is a test.
 
-## The one thing left
+## ⚠ What is actually left — the rail is NOT the measure
 
-⚠ **Get the tab human-clicked on the real display.** Milestone 4 is the standing proof
-that tests-green plus a smoke render cannot tell anyone whether a surface is right — the
-first Gear tab was both and was rejected on sight.
+Counted at the end of the session — the human asked *"ST Options & Custom are all that's
+left?"* and immediately added *"And Combos, and Party."* **Two rail tabs, one sub-tab,
+one whole window, and a list of within-tab gaps.** Written down because the RAIL shows
+only the first of those four: a rail with no placeholders left will look finished while
+Combos is empty, Party answers "not part of this milestone", and the tabs that are
+"ported" are still missing panels.
 
-```sh
-python -m exalted_builder.qt examples/ashes-of-dawn.character.json
-```
+**1 — the last two rail placeholders.** `ui/storyteller.py` (183 lines) and
+`ui/custom.py` (576). Both get the COLLECTION layout — toolbar · sub-tab per category ·
+sortable table · splitter with a detail pane. Copy `qt/gear.py` or `qt/advantages.py`;
+never transliterate `ui/<tab>.py`.
 
-Then **Finish & Lock** — Play only appears at the lock — and open Play.
+**2 — the Combos sub-tab** (`ui/combos.py`, 423 lines) is still a placeholder in its new
+home under Charms. ⚠ **It is easy to miss because it is not on the rail** — a rail with
+no placeholders left will look finished while this is empty.
 
-## Next up
+**3 — the Party / ST screen has NO Qt counterpart at all.** `ui/gm.py` (610) +
+`ui/adversaries.py` (489) ≈ 1,100 lines, and the toolbar's `Party` button still answers
+"not part of this milestone". This is a second WINDOW, not a tab, so the settled tab
+layout does not decide its shape — that is an open design question, not a port.
 
-**ST Options, then Custom** — both get the COLLECTION layout (toolbar · sub-tab per
-category · sortable table · splitter with a detail pane). Copy `qt/gear.py` or
-`qt/advantages.py`; never transliterate `ui/<tab>.py`. That leaves the Combos sub-tab and
-the known gaps below.
-
-## Known Qt gaps
+**4 — the within-tab gaps, which are what decide whether the native app can replace the
+webapp:**
 
 - **Ox-Body Technique + Deadly Beastman gifts**: the picker still needs the variant MENU.
   The mis-write is closed — `engine.charm_actions` refuses a package Charm from an
@@ -79,10 +83,14 @@ the known gaps below.
   foreign-charms splat dropdown, "Add another" for repeatable Charms.
 - Edit's deferred panels: Training Camp & Calling, Colleges, Specialties, Permanent
   Resonance/Limit, Virtue Flaw, bonus health levels, Downtime.
-- Still on the webapp: **ST Options and Custom**, plus the Combos sub-tab.
-- The Play tab does not render Lunar **Renown** or **face** — neither does the webapp's,
-  so this is parity, not a port gap. Both are wholly Storyteller-adjudicated
-  (`PlayState`'s docstring).
+
+**NOT a gap:** the Play tab does not render Lunar **Renown** or **face** — neither does
+the webapp's, so that is parity. Both are wholly Storyteller-adjudicated (`PlayState`'s
+docstring).
+
+## Next up
+
+**ST Options, then Custom** — the two rail placeholders above. After them, Combos.
 
 ## A live bug in shipped code, still unmigrated (carried from last session)
 
