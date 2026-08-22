@@ -836,11 +836,6 @@ class CharmsPage(QWidget):
         if spell_id is not None and spell_id in char.spells:
             return 0
         b = validate.effective_budgets(ruleset, char)
-        # The public form over the character's chargen Charm source; this runs pre-lock
-        # only, where that is the live list, so it agrees with the private
-        # `_immaculate_path` it replaced while naming no underscore.
-        free = (b.immaculate_charm_count
-                if validate.immaculate_martial_artist(ruleset, char) else b.charm_count)
         bp_costs = ruleset.bonus_costs_for(char.exalt_type, char.origin,
                                            char.upbringing)
         occult_cf = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, char)
@@ -849,13 +844,23 @@ class CharmsPage(QWidget):
         def _pool_total(stage: bool) -> int:
             """The pool sum with the candidate staged in (or not). Staging runs the
             picker's own enumeration, so the candidate is priced with its favoured
-            flags and any Calling/Immaculate/MA/magic ladder it falls on."""
+            flags and any Calling/Immaculate/MA/magic ladder it falls on.
+
+            ⚠ The free-pool SIZE is derived inside here, under the staged state, not
+            once outside. A Dragon-Blooded's pool is 7 on the standard path and 5 on
+            the Immaculate one, and the pick that flips the path changes its own
+            denominator: computing `free` before staging sliced the staged pool at 7
+            when it had become 5, so the two Charms the flip evicted stayed counted as
+            free. The button quoted 7 BP for a pick that charged 21."""
             if stage:
                 if charm_id is not None:
                     char.charms.append(charm_id)
                 else:
                     char.spells.append(spell_id)
             try:
+                free = (b.immaculate_charm_count
+                        if validate.immaculate_martial_artist(ruleset, char)
+                        else b.charm_count)
                 pick_costs = validate.charm_pick_bp_costs(
                     ruleset, char, validate.chargen_charm_picks(ruleset, char))
                 for sid in char.spells:
@@ -914,16 +919,19 @@ class CharmsPage(QWidget):
                     bp = self._chargen_pick_bp(charm_id=cid)
                     if bp:
                         label += f" — {bp} BP"
-            elif not char.chargen_locked:
+            else:
                 # A generic repeatable Charm is owned-but-not-full while its copies are
                 # under the trait cap (Mountain Folk Essence Satiation Method /
-                # Stone-Still Lungs, CH6 pp.245-246). Chargen only, matching the web
-                # picker: post-lock a known Charm offers no second copy here.
+                # Stone-Still Lungs, CH6 pp.245-246). Offered on BOTH sides of the lock;
+                # post-lock the button carries the XP price, like Learn does.
                 cap = validate._repeatable_purchase_cap(charm, char)
-                if cap and char.charms.count(cid) < cap:
+                held = char.charms.count(cid)
+                if cap and held < cap:
                     self.again_btn.setVisible(True)
-                    self.again_btn.setToolTip(
-                        f"{char.charms.count(cid)} of {cap} copies")
+                    self.again_btn.setText(
+                        f"Add another — {costs.charm_cost(self._ruleset, char, charm)} XP"
+                        if char.chargen_locked else "Add another")
+                    self.again_btn.setToolTip(f"{held} of {cap} copies")
             self.action_btn.setText(label)
             self.action_btn.setEnabled(True)
             return

@@ -1168,15 +1168,57 @@ def test_add_another_disappears_at_the_cap(ruleset, qtbot):
     assert page.again_btn.isHidden()
 
 
-def test_add_another_is_chargen_only(ruleset, qtbot):
-    """Matches the web picker: post-lock a known Charm offers no second copy here —
-    the in-play card shows "Known." and buying runs through the XP path."""
+def test_add_another_is_offered_post_lock_with_its_xp_price(ruleset, qtbot):
+    """⚠ This used to be refused. `charm_actions.learn_charm`'s post-lock guard was a
+    bare `charm_id in character.charms` with no cap in it, so it caught repeatables in
+    a net meant for ordinary Charms — and made `advancement.learn_charm`'s deliberate,
+    page-cited support for exactly this purchase (CH6 pp.245-246) unreachable from
+    either shell."""
+    from exalted_builder.engine import costs
     char = _repeatable_char()
     char.charms = [REPEATABLE]
     char.chargen_locked = True
+    char.xp_earned = 100
     page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
     qtbot.addWidget(page)
     _show_repeatable(ruleset, page, REPEATABLE)
+    _select(page, REPEATABLE)
+    assert not page.again_btn.isHidden()
+    price = costs.charm_cost(ruleset, char, ruleset.charms[REPEATABLE])
+    assert f"{price} XP" in page.again_btn.text()
+
+    spent = advancement.xp_spent(char)
+    page._add_another()
+    assert char.charms.count(REPEATABLE) == 2
+    assert advancement.xp_spent(char) - spent == price      # and it was charged
+
+
+def test_a_non_repeatable_charm_still_cannot_be_bought_twice(ruleset, qtbot):
+    """The negative control for the guard that was loosened: an ordinary Charm has no
+    cap, and re-learning it post-lock must still be refused."""
+    char = _learnable_char()
+    cid = _first_available(ruleset, char)[0]
+    assert validate._repeatable_purchase_cap(ruleset.charms[cid], char) == 0
+    char.charms = [cid]
+    char.chargen_locked = True
+    char.xp_earned = 100
+    with pytest.raises(advancement.AdvancementError):
+        charm_actions.learn_charm(ruleset, char, cid)
+    assert char.charms.count(cid) == 1
+
+
+def test_the_cap_still_binds_post_lock(ruleset, qtbot):
+    char = _repeatable_char()
+    cap = validate._repeatable_purchase_cap(ruleset.charms[REPEATABLE], char)
+    char.charms = [REPEATABLE] * cap
+    char.chargen_locked = True
+    char.xp_earned = 500
+    with pytest.raises(advancement.AdvancementError):
+        charm_actions.learn_charm(ruleset, char, REPEATABLE)
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    _show_repeatable(ruleset, page, REPEATABLE)
+    _select(page, REPEATABLE)
     assert page.again_btn.isHidden()
 
 
@@ -1450,3 +1492,63 @@ def test_the_path_line_is_chargen_only(ruleset, qtbot):
     page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
     qtbot.addWidget(page)
     assert "path" not in page.readout.text()
+
+
+# --- the chargen BP preview agrees with what is actually charged ------------- #
+
+
+def _bp_spent(ruleset, char):
+    view = viewmod.build_sheet_view(ruleset, char)
+    msg = next((i.message for i in view.issues if i.code == "bonus-points"), "0")
+    return int(msg.split(" of ")[0])
+
+
+def test_the_pick_that_flips_the_immaculate_path_quotes_its_real_price(ruleset, qtbot):
+    """⚠ A Dragon-Blooded's free pool is 7 on the standard path and 5 on the Immaculate
+    one, so the pick that FLIPS the path changes its own denominator. Deriving the pool
+    size before staging the candidate sliced the staged pool at 7 when it had become 5:
+    the button quoted 7 BP for a pick the accounting charged 21."""
+    char = Character(id="d", exalt_type="Dragon-Blooded", caste="air", essence_rating=3)
+    char.abilities = {a: 5 for a in AbilityName}
+    for c in ruleset.charms.values():
+        if c.exalt_type == "Dragon-Blooded" and "enlighten" in (c.category or ""):
+            char.charms.append(c.id)          # the DB p241 Dragon-style gate
+    immaculate = [c.id for c in ruleset.charms.values()
+                  if validate.is_immaculate_charm(c)
+                  and c.exalt_type == "Dragon-Blooded"
+                  and validate.meets_charm_requirements(ruleset, char, c)]
+    assert immaculate, "no reachable Immaculate Charm to flip the path with"
+    b = ruleset.budgets_for("Dragon-Blooded", char.origin, char.upbringing)
+    assert b.immaculate_charm_count < b.charm_count      # the flip SHRINKS the pool
+    for c in ruleset.charms.values():                    # fill the standard pool
+        if len(char.charms) >= b.charm_count:
+            break
+        if (c.exalt_type == "Dragon-Blooded" and c.id not in char.charms
+                and not validate.is_immaculate_charm(c)
+                and validate.meets_charm_requirements(ruleset, char, c)):
+            char.charms.append(c.id)
+
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    cand = immaculate[0]
+    assert not validate.immaculate_martial_artist(ruleset, char)
+    quoted = page._chargen_pick_bp(charm_id=cand)
+    before = _bp_spent(ruleset, char)
+    char.charms.append(cand)
+    charged = _bp_spent(ruleset, char) - before
+    assert validate.immaculate_martial_artist(ruleset, char)   # the pick flipped it
+    assert quoted == charged, f"button quoted {quoted} BP, accounting charged {charged}"
+
+
+def test_an_ordinary_pick_still_quotes_its_price(ruleset, qtbot):
+    """The negative control: the fix must not disturb the common case, where the
+    candidate does not move the pool size at all."""
+    char = _learnable_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    avail = _first_available(ruleset, char)
+    for cid in avail[:8]:                     # spend past the free pool
+        quoted = page._chargen_pick_bp(charm_id=cid)
+        before = _bp_spent(ruleset, char)
+        char.charms.append(cid)
+        assert quoted == _bp_spent(ruleset, char) - before

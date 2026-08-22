@@ -70,25 +70,34 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> str:
     """Add one copy of a Charm: an XP purchase after the lock, an append to the
     chargen pick list before it.
 
-    Owned-but-under-cap is a legitimate call (the picker's "Add another" for a generic
-    repeatable Charm — Mountain Folk Essence Satiation / Stone-Still Lungs, CH6
-    pp.245-246); it is `toggle_charm` that reads a second click as a removal."""
+    Owned-but-under-cap is a legitimate call on BOTH sides of the lock (the picker's
+    "Add another" for a generic repeatable Charm — Mountain Folk Essence Satiation /
+    Stone-Still Lungs, CH6 pp.245-246); it is `toggle_charm` that reads a second click
+    as a removal."""
     charm = ruleset.charms.get(charm_id)
     if charm is None:
         _refuse(f"Unknown Charm {charm_id!r}.")
     reason = variant_menu_reason(ruleset, character, charm_id)
     if reason:
         _refuse(reason)
+    cap = validate._repeatable_purchase_cap(charm, character)
     if character.chargen_locked:
-        if charm_id in character.charms:
+        # ⚠ The cap is consulted on BOTH sides of the lock. This guard used to be a
+        # bare `charm_id in character.charms`, which refused every second copy after
+        # the lock — and `advancement.learn_charm` below it has supported exactly that
+        # purchase, cap check and page citation included (CH6 pp.245-246), since it was
+        # written. A dispatcher guard written for ordinary Charms caught repeatables in
+        # its net and made the deliberate support unreachable from either shell.
+        if charm_id in character.charms and not cap:
             _refuse(f"{charm.name} is already known — undo the purchase on the "
                     "Edit tab to give it back.")
+        if cap and character.charms.count(charm_id) >= cap:
+            _refuse(f"{charm.name}: already bought {cap} times — its maximum.")
         cost = costs.charm_cost(ruleset, character, charm)
         advancement.learn_charm(ruleset, character, charm_id)
         return f"Learned {charm.name} — {cost} XP"
     if not validate.meets_charm_requirements(ruleset, character, charm):
         _refuse(f"{charm.name}: prerequisites not met")
-    cap = validate._repeatable_purchase_cap(charm, character)
     if cap and character.charms.count(charm_id) >= cap:
         _refuse(f"{charm.name}: already bought {cap} times — its maximum.")
     if not cap and charm_id in character.charms:

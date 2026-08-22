@@ -595,12 +595,25 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
     def _charm_buy_button(d) -> None:
         """The in-play detail-card action: buy at the engine's price. A known Charm
-        offers no Remove — undo lives in the XP ledger, which owns the log."""
-        if d.owned:
-            ui.label("Known.").classes("text-xs text-gray-500")
-            return
+        offers no Remove — undo lives in the XP ledger, which owns the log — but a
+        generic repeatable one under its cap offers ANOTHER copy (CH6 pp.245-246),
+        which is the one purchase "Known." used to hide."""
         charm = ruleset.charms.get(d.id)
         if charm is None:
+            return
+        if d.owned:
+            _cap = validate._repeatable_purchase_cap(charm, character)
+            if not _cap or character.charms.count(d.id) >= _cap:
+                ui.label("Known.").classes("text-xs text-gray-500")
+                return
+            _price = costs.charm_cost(ruleset, character, charm)
+            _btn = ui.button(f"Add another · {_price} XP", icon="add",
+                             on_click=lambda: add_another(d.id)).props(
+                                 "dense color=positive")
+            if not _afford(_price):
+                _btn.props("disable")
+            ui.label(f"{character.charms.count(d.id)} of {_cap} copies").classes(
+                "text-xs text-gray-500")
             return
         cost = costs.charm_cost(ruleset, character, charm)
         if not d.available:
