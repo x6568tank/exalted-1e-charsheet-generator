@@ -809,3 +809,92 @@ def test_a_camp_with_no_calling_does_not_title_the_panel_after_one(qtbot, rulese
     assert _named(page, "camp.calling", QComboBox) is None
     assert _panel_titled(page, "Training Camp & Calling") is None
     assert _panel_titled(page, "Training Camp") is not None
+
+
+# --------------------------------------------------------------------------- #
+# found in the click-through, 2026-08-22
+# --------------------------------------------------------------------------- #
+
+def test_an_unresolved_choice_does_not_announce_a_pick(qtbot, ruleset):
+    """⚠ Qt has no empty state for a combo: given a value that is not among the keys it
+    sits on index 0, so the control ANNOUNCES a pick the character does not hold.
+
+    FOUND IN THE CLICK-THROUGH. The camp style select displayed the first martial art
+    with no Charm list beneath it, which read as "a style is chosen and its Charms
+    failed to load" — the character had simply not resolved the choice. Every offscreen
+    test passed, because the MODEL was right the whole time."""
+    char = _illuminated(ruleset, camp="sequestered-tabernacle", calling="exemplar",
+                        abilities={AbilityName.MARTIAL_ARTS: 4})
+    from exalted_builder.engine.camp import build_camp_view
+    assert not any(c in char.granted_charms
+                   for o in build_camp_view(ruleset, char).choices[0].options
+                   for c in o.charm_ids), "fixture already resolved the choice"
+    page = _identity(ruleset, char)
+    qtbot.addWidget(page)
+    combo = _named(page, "camp.choice.0", QComboBox)
+    assert combo.currentData() is None, (
+        f"an unresolved style choice displays {combo.currentText()!r}")
+
+
+def test_a_resolved_choice_carries_no_blank_option(qtbot, ruleset):
+    """The placeholder row exists only while the value is missing — a resolved control
+    must not offer "— choose one —" as something you can go back to."""
+    char = _illuminated(ruleset, camp="sequestered-tabernacle", calling="exemplar",
+                        abilities={AbilityName.MARTIAL_ARTS: 4})
+    page = _identity(ruleset, char)
+    qtbot.addWidget(page)
+    category = list(ruleset.camps["sequestered-tabernacle"]
+                    .granted_charm_choices[0].from_categories)[0]
+    page.set_camp_choice(0, category)
+    combo = _named(page, "camp.choice.0", QComboBox)
+    assert combo.currentData() == category
+    assert all(combo.itemData(i) is not None for i in range(combo.count()))
+
+
+def test_resolving_the_style_opens_the_charm_list(qtbot, ruleset):
+    """The other half of the click-through finding: the "Which N?" list appears once a
+    style is actually chosen."""
+    from PySide6.QtWidgets import QListWidget
+    char = _illuminated(ruleset, camp="sequestered-tabernacle", calling="exemplar",
+                        abilities={AbilityName.MARTIAL_ARTS: 4})
+    page = _identity(ruleset, char)
+    qtbot.addWidget(page)
+    assert _named(page, "camp.charms.0", QListWidget) is None
+    category = list(ruleset.camps["sequestered-tabernacle"]
+                    .granted_charm_choices[0].from_categories)[0]
+    page.set_camp_choice(0, category)
+    assert _named(page, "camp.charms.0", QListWidget) is not None
+
+
+def test_a_camp_without_a_calling_does_not_hold_an_empty_column_open(qtbot, ruleset):
+    """⚠ FOUND IN THE CLICK-THROUGH. A Cult Dragon-Blooded has a camp and no Calling
+    (p.96); the two-column panel held its right half open and empty, which reads as
+    something failing to load. Asserts the SHAPE — the camp column is a direct child of
+    the panel body, not one side of a splitter row."""
+    from exalted_builder.qt.editor import _Panel
+    A = AbilityName
+    char = Character(id="cdb", name="Cult DB", exalt_type="Dragon-Blooded",
+                     caste="fire", origin="illuminated", camp="kether-rock-db",
+                     calling="", essence_rating=2,
+                     granted_charms=list(ruleset.camps["kether-rock-db"].granted_charms))
+    for ability, rating in {A.BRAWL: 1, A.ENDURANCE: 1, A.MEDICINE: 1, A.MELEE: 2,
+                            A.PRESENCE: 1, A.RESISTANCE: 1, A.SURVIVAL: 3}.items():
+        char.abilities[ability] = rating
+    page = _identity(ruleset, char)
+    qtbot.addWidget(page)
+    panel = _panel_titled(page, "Training Camp")
+    assert panel is not None
+    from PySide6.QtWidgets import QHBoxLayout
+    body = panel.body()
+    two_col = [body.itemAt(i).layout() for i in range(body.count())
+               if isinstance(body.itemAt(i).layout(), QHBoxLayout)
+               and body.itemAt(i).layout().count() == 2]
+    assert not two_col, "the panel still builds a two-column row with nothing in one"
+
+
+def test_an_illuminated_solar_still_gets_both_columns(qtbot, ruleset):
+    """The negative control for the above — the single-column path must not swallow the
+    Calling for a character who has one."""
+    page = _identity(ruleset, _illuminated(ruleset))
+    qtbot.addWidget(page)
+    assert _named(page, "camp.calling", QComboBox) is not None

@@ -328,7 +328,8 @@ class _EditorPage(QWidget):
         line.setStyleSheet("background:#55535a;")
         return line
 
-    def _combo(self, options: dict, value, *, frozen: bool, on_change) -> QComboBox:
+    def _combo(self, options: dict, value, *, frozen: bool, on_change,
+               placeholder: str | None = None) -> QComboBox:
         """A select over `options` {key: label}, calling `on_change(key)` with the key
         the caller supplied.
 
@@ -338,13 +339,24 @@ class _EditorPage(QWidget):
         …)` writes "dodge" onto a field typed `AbilityName`, and the model has no
         `validate_assignment` to catch it. Nothing fails at the write; it fails later
         at the first `.value` on what is no longer an enum. Indexing the original dict
-        hands back the identical object for every key type."""
+        hands back the identical object for every key type.
+
+        ⚠ **`placeholder` is REQUIRED wherever "nothing chosen" is a real state.** Qt
+        has no empty state for a combo: given a `value` that is not among the keys it
+        simply sits on index 0, so the control ANNOUNCES a pick the character does not
+        hold. Found on the camp style select, which displayed the first martial art
+        while the package was unresolved and no Charm list beneath it (human,
+        2026-08-22). The placeholder row is added only while the value is missing, so a
+        resolved control never carries a blank option.
+        """
         combo = QComboBox()
         keys = list(options)
-        for key in keys:
+        if placeholder is not None and value not in keys:
+            keys.insert(0, None)
+            combo.addItem(placeholder, None)
+        for key in (k for k in keys if k is not None):
             combo.addItem(options[key], key)
-        if value in keys:
-            combo.setCurrentIndex(keys.index(value))
+        combo.setCurrentIndex(keys.index(value) if value in keys else 0)
         combo.setEnabled(not frozen)
         combo.currentIndexChanged.connect(
             lambda i: on_change(keys[i] if 0 <= i < len(keys) else None))
@@ -917,18 +929,26 @@ class IdentityPage(_EditorPage):
         # what the panel actually CONTAINS rather than naming a control that is absent.
         camp_lay = self._panel("Training Camp & Calling" if cv.calling_options
                                else "Training Camp")
-        row = QHBoxLayout()
-        row.setSpacing(24)
-        camp_lay.addLayout(row)
+        # ⚠ TWO columns only when there is a Calling to put in the second one. A Cult
+        # Dragon-Blooded has a camp and no Calling (p.96), and holding an empty half of
+        # the panel open reads as something failing to load (human, 2026-08-22).
+        two_columns = bool(cv.calling_options)
+        if two_columns:
+            row = QHBoxLayout()
+            row.setSpacing(24)
+            camp_lay.addLayout(row)
+        else:
+            row = None
 
         # left: the camp, its floors and its free-Charm package
         left = QVBoxLayout()
         left.setSpacing(_ROW_SPACING)
-        row.addLayout(left, 1)
+        (row.addLayout(left, 1) if two_columns else camp_lay.addLayout(left))
         pick_row = QHBoxLayout()
         pick_row.addWidget(QLabel("Training camp"))
         camp_combo = self._combo(
             dict(cv.camp_options), cv.camp_id or None, frozen=locked,
+            placeholder="— choose a camp —",
             on_change=lambda cid: cid and self.set_camp(cid))
         camp_combo.setObjectName("camp.camp")
         pick_row.addWidget(camp_combo, 1)
@@ -961,6 +981,7 @@ class IdentityPage(_EditorPage):
                 sub.addWidget(QLabel(choice.label + suffix))
                 style_combo = self._combo(
                     opts, choice.chosen_key or None, frozen=locked,
+                    placeholder="— choose one —",
                     on_change=lambda key, i=idx: key and self.set_camp_choice(i, key))
                 style_combo.setObjectName(f"camp.choice.{idx}")
                 sub.addWidget(style_combo, 1)
@@ -990,14 +1011,15 @@ class IdentityPage(_EditorPage):
                 left.addWidget(picks)
 
         # right: the Calling and what it discounts
-        right = QVBoxLayout()
-        right.setSpacing(_ROW_SPACING)
-        row.addLayout(right, 1)
-        if cv.calling_options:
+        if two_columns:
+            right = QVBoxLayout()
+            right.setSpacing(_ROW_SPACING)
+            row.addLayout(right, 1)
             sub = QHBoxLayout()
             sub.addWidget(QLabel("Calling"))
             calling_combo = self._combo(
                 dict(cv.calling_options), cv.calling_id or None, frozen=locked,
+                placeholder="— choose a Calling —",
                 on_change=lambda cid: cid and self.set_calling(cid))
             calling_combo.setObjectName("camp.calling")
             sub.addWidget(calling_combo, 1)
@@ -1013,7 +1035,7 @@ class IdentityPage(_EditorPage):
                 label.setWordWrap(True)
                 label.setStyleSheet("color:#a8a5a0;")
                 right.addWidget(label)
-        right.addStretch(1)
+            right.addStretch(1)
 
 
 class TraitsPage(_EditorPage):
@@ -1398,16 +1420,13 @@ class TraitsPage(_EditorPage):
             vf_lay = self._panel("Virtue Flaw", vf_row)
             row = QHBoxLayout()
             row.addWidget(QLabel("Flawed Virtue"))
-            # A blank leading entry only while none is chosen — Qt has no empty state
-            # for a combo, and defaulting to Compassion would write a pick the player
-            # never made.
-            opts = {} if vf else {None: "—"}
-            opts.update({v: _label(v.value) for v in VirtueName})
+            opts = {v: _label(v.value) for v in VirtueName}
             # ⚠ Named, not found by position. Three combos sit in this half of the page
             # and `findChildren(QComboBox)[0]` is the Flawed Virtue box for all three
             # callers that want a different one.
             virtue_combo = self._combo(
                 opts, vf.virtue if vf else None, frozen=locked,
+                placeholder="— none —",
                 on_change=lambda v: v is not None and self.set_virtue_flaw_virtue(v))
             virtue_combo.setObjectName("virtue_flaw.virtue")
             row.addWidget(virtue_combo, 1)
@@ -1423,11 +1442,11 @@ class TraitsPage(_EditorPage):
             if samples:
                 row = QHBoxLayout()
                 row.addWidget(QLabel("Sample Flaw"))
-                sample_opts = {None: "— fills the description —"}
-                sample_opts.update({f.id: f.name
-                                    for f in sorted(samples, key=lambda f: f.name)})
+                sample_opts = {f.id: f.name
+                               for f in sorted(samples, key=lambda f: f.name)}
                 sample_combo = self._combo(
                     sample_opts, None, frozen=False,
+                    placeholder="— fills the description —",
                     on_change=lambda fid: fid and self.set_virtue_flaw_sample(fid))
                 sample_combo.setObjectName("virtue_flaw.sample")
                 row.addWidget(sample_combo, 1)

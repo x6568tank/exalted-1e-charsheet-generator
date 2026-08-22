@@ -20,8 +20,8 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QFileDialog, QHBoxLayout, QLabel,
-    QListWidget, QListWidgetItem, QMainWindow, QMessageBox, QPushButton, QSpinBox,
-    QStackedWidget, QToolBar, QVBoxLayout, QWidget,
+    QListWidget, QListWidgetItem, QMainWindow, QMessageBox, QPushButton,
+    QScrollArea, QSpinBox, QStackedWidget, QToolBar, QVBoxLayout, QWidget,
 )
 
 from exalted_builder import custom_content, persistence, rules_db
@@ -295,18 +295,31 @@ class MainWindow(QMainWindow):
 
     def _open_popover(self) -> None:
         """The click-to-open details: validation issues, the bonus-point breakdown,
-        and (post-lock) the Experience card + ledger."""
+        and (post-lock) the Experience card + ledger.
+
+        The body SCROLLS and the dialog has a floor width, because the content is
+        unbounded — a character can carry a dozen word-wrapped validation issues plus a
+        full XP ledger. Sized to its hint it came up too narrow, and word-wrapped labels
+        in a too-narrow dialog wrap into each other (human, 2026-08-22).
+        """
         dialog = QDialog(self)
         dialog.setWindowTitle("Validation & experience")
-        root = QVBoxLayout(dialog)
+        dialog.setMinimumSize(560, 420)
+        outer = QVBoxLayout(dialog)
+        body = QWidget()
+        root = QVBoxLayout(body)
         root.setSpacing(4)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(body)
+        outer.addWidget(scroll, 1)
 
         def rebuild() -> None:
-            while root.count():
-                item = root.takeAt(0)
-                w = item.widget()
-                if w is not None:
-                    w.setParent(None)
+            # ⚠ `clear_layout`, never a hand-written loop: `item.widget()` is None for a
+            # nested QLayout, so a widget-only sweep leaves the bonus-point ROWS' labels
+            # parented and painting over the new build. That is what made the issues
+            # look like they clipped into each other.
+            clear_layout(root)
             ruleset, char = self._ruleset, self._ctx["char"]
             view = viewmod.build_sheet_view(ruleset, char)
             errors = [i for i in view.issues if i.severity == "error"]
@@ -343,11 +356,12 @@ class MainWindow(QMainWindow):
                 root.addLayout(row)
             if char.chargen_locked:
                 self._xp_section(root, rebuild)
-            done = QPushButton("Done")
-            done.clicked.connect(dialog.accept)
-            root.addWidget(done)
+            root.addStretch(1)
 
         rebuild()
+        done = QPushButton("Done")
+        done.clicked.connect(dialog.accept)
+        outer.addWidget(done)
         dialog.exec()
 
     def _downtime_dialog(self) -> None:

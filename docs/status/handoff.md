@@ -112,13 +112,15 @@ the webapp's, so that is parity. Both are wholly Storyteller-adjudicated.
 
 **After group 4:** ST Options, then Custom, then Combos, then Party.
 
-## A live bug in shipped code, still unmigrated (carried, two sessions now)
+## CLOSED: the `acquired` migration is not a thing to do
 
-`set_weapon` / `set_armor` used to drop an artifact's `acquired` channel, re-charging the
-p.131 budget for something Resources had already paid for. **The routes are all closed**
-— `gear_actions.set_acquired` is the only writer in either shell — but there is **no
-migration**: a save already damaged has `acquired` sitting at `background` on disk. Worth
-a look if you have a character with a cash-bought artifact weapon.
+`set_weapon` / `set_armor` used to drop an artifact's `acquired` channel; the routes are
+all closed (`gear_actions.set_acquired` is the only writer in either shell) and it was
+carried for two sessions as "no migration exists". **The human closed it 2026-08-22:
+there are no characters with cash-bought artifacts, and the build is ~2 months old — do
+not write migrations for pre-1.0 save damage.** ⚠ Applies generally: **backwards
+compatibility with old saves is NOT a standing concern on this project.** Do not add a
+migration, a version field or a compat shim without asking.
 
 ## No open questions
 
