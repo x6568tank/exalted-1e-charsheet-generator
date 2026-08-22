@@ -47,8 +47,10 @@ from exalted_builder.ui.view import (CIRCLE_DISPLAY_ORDER, _cost_str, _style_lab
                                      build_augmentation_view,
                                      build_charm_detail, build_charm_graph,
                                      build_elemental_power_picker,
-                                     build_sheet_view, build_spell_picker,
+                                     build_package_menu, build_sheet_view,
+                                     build_spell_picker,
                                      build_thaum_picker, charm_on_splat_page,
+                                     package_menu_kind, prune_package_selection,
                                      virtue_split)
 
 ROW_H = 160            # vertical space between tree levels
@@ -821,6 +823,17 @@ class CharmsPage(QWidget):
                 self.action_btn.setEnabled(False)
                 self.action_btn.setText("Select an entry…")
                 return
+            # A variant-menu Charm is bought as a PACKAGE and is not toggleable —
+            # `charm_actions.variant_menu_reason` refuses the toggle, so the button
+            # must open the chooser instead of offering Learn.
+            menu = build_package_menu(self._ruleset, char, cid)
+            if menu is not None:
+                verb = "Choose Gifts…" if menu.kind == "gift" else "Choose a package…"
+                self.action_btn.setText(
+                    f"{verb} — {menu.price} XP each" if menu.price else verb)
+                self.action_btn.setEnabled(True)
+                self.action_btn.setToolTip("")
+                return
             owned = cid in char.charms
             label = f"Remove {charm.name}" if owned else f"Learn {charm.name}"
             if not owned:
@@ -952,7 +965,10 @@ class CharmsPage(QWidget):
 
     def _on_action(self) -> None:
         if self._selected_node is not None:
-            self._toggle_charm(self._selected_node)
+            if package_menu_kind(self._ruleset, self._char(), self._selected_node):
+                self._open_package_dialog(self._selected_node)
+            else:
+                self._toggle_charm(self._selected_node)
         elif self._selected_spell is not None:
             self._toggle_spell(self._selected_spell)
         elif self._selected_thaum is not None:
@@ -1179,8 +1195,23 @@ class CharmsPage(QWidget):
         detail = build_charm_detail(self._ruleset, view._character, node.id)
         html_text = _detail_html(detail) if detail else f"<b>{node.label}</b>"
         state = {"owned": "Owned", "available": "Available"}.get(node.state, "Locked")
+        menu = build_package_menu(self._ruleset, view._character, node.id)
+        if menu is not None:
+            html_text += self._package_summary_html(menu)
         self.detail.setHtml(f"<span style='color:#9a9894'>{state}</span><br>" + html_text)
         self._update_action()
+
+    def _package_summary_html(self, menu) -> str:
+        """The packages already bought and the cap, appended to a variant-menu
+        Charm's detail. The tree paints the node "owned" off a single Charm id; what
+        a player needs here is HOW MANY packages and which."""
+        rows = [f"<b>Bought:</b> {menu.bought} / {menu.cap} · once per "
+                f"{html.escape(menu.cap_unit)} of {html.escape(menu.cap_trait)}"]
+        for h in menu.held:
+            rows.append("• " + html.escape(h.label))
+        if not menu.held:
+            rows.append("<span style='color:#9a9894'>Nothing bought yet.</span>")
+        return "<br><br><span style='color:#b8b6b2'>" + "<br>".join(rows) + "</span>"
 
     def _augment_summary_html(self, title: str) -> str:
         """The detail pane for a collapsed augmentation summary node: the type, the
@@ -1615,6 +1646,174 @@ class CharmsPage(QWidget):
         cb.setChecked(fresh)
         cb.blockSignals(False)
         self._rebuild_augments()
+
+    # ---- Variant-menu packages (Ox-Body, Deadly Beastman Gifts) ------------ #
+    # Neither Charm is toggleable: each purchase is a PACKAGE of picks landing in its
+    # own character field, so the node's action button opens this instead of Learn.
+    # ONE dialog for both, off `view.build_package_menu` — Ox-Body picks one variant
+    # of two, Gifts pick 2-then-1 out of a prerequisite-chained roster, and the only
+    # difference the widget sees is `menu.needed` and the picks' reasons.
+
+    def _open_package_dialog(self, charm_id: str) -> None:
+        dialog = self._build_package_dialog(charm_id)
+        if dialog is not None:
+            dialog.exec()
+
+    def _build_package_dialog(self, charm_id: str):
+        """Build the package chooser WITHOUT running it (`exec()` blocks a headless
+        run, so this is the tested seam — the Gear and Advantages pages' shape).
+        None when `charm_id` is not a variant-menu Charm.
+
+        The dialog shows the packages already bought (each removable pre-lock), then a
+        checkbox per pick, then Add/Buy. The selection is local and only reaches the
+        character on confirm, so Cancel is a true cancel. Legality is not decided
+        here — the picks' reasons come from `view.build_package_menu` and the purchase
+        from `engine.charm_actions`, which refuses an over-cap or unaffordable buy.
+
+        Handles for tests and for the rebuild: `.selection`, `.checks` (keyed by pick
+        key — never index a `findChildren` list), `.confirm`, `.rebuild`."""
+        first = build_package_menu(self._ruleset, self._char(), charm_id)
+        if first is None:
+            return None
+        dialog = QDialog(self)
+        dialog.setWindowTitle(first.name)
+        dialog.setMinimumWidth(560)
+        outer = QVBoxLayout(dialog)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        inner = QWidget()
+        body = QVBoxLayout(inner)
+        scroll.setWidget(inner)
+        outer.addWidget(scroll, 1)
+        selection: list[str] = []
+        # The live menu's shape, as one-element lists so the handlers below read what
+        # the LAST rebuild computed rather than a snapshot taken before any purchase.
+        menu_needed = [1]
+        menu_kind = [""]
+
+        buttons = QHBoxLayout()
+        buttons.addStretch(1)
+        cancel = QPushButton("Cancel")
+        cancel.clicked.connect(dialog.reject)
+        confirm = QPushButton("Add")
+        buttons.addWidget(cancel)
+        buttons.addWidget(confirm)
+        outer.addLayout(buttons)
+
+        def flip(key: str, checked: bool) -> None:
+            if checked:
+                if menu_needed[0] == 1:
+                    # A one-pick menu reads as radio buttons: picking replaces.
+                    selection[:] = [key]
+                elif key not in selection:
+                    selection.append(key)
+            else:
+                if key in selection:
+                    selection.remove(key)
+                selection[:] = prune_package_selection(
+                    self._ruleset, self._char(), charm_id, selection)
+            rebuild()
+
+        def buy() -> None:
+            if menu_kind[0] == "gift":
+                ok = self._act(charm_actions.add_gift_purchase, self._ruleset,
+                               self._char(), sorted(selection))
+            else:
+                ok = self._act(charm_actions.add_ox_body, self._ruleset,
+                               self._char(), selection[0])
+            if ok:
+                self._refresh_current_tree()
+                dialog.accept()
+
+        def remove(index: int) -> None:
+            action = (charm_actions.remove_gift_purchase if menu_kind[0] == "gift"
+                      else charm_actions.remove_ox_body)
+            if self._act(action, self._char(), index):
+                selection.clear()
+                self._refresh_current_tree()
+                rebuild()
+
+        def rebuild() -> None:
+            clear_layout(body)
+            char = self._char()
+            menu = build_package_menu(self._ruleset, char, charm_id, selection)
+            if menu is None:                      # the Charm left the rule set
+                dialog.reject()
+                return
+            menu_needed[0] = menu.needed
+            menu_kind[0] = menu.kind
+            pal = theme.palette(char.exalt_type)
+            # The Charm's own description is NOT repeated here — it is already in the
+            # detail pane this dialog opened from, and Deadly Beastman's runs eleven
+            # lines, which pushes the picks themselves off the first screen.
+            if menu.note:
+                note = QLabel(menu.note)
+                note.setWordWrap(True)
+                note.setStyleSheet(f"color:{MUTED};")
+                body.addWidget(note)
+            # Which trait caps the purchases is per-splat data, never a literal:
+            # Lunar Ox-Body counts Stamina where every other splat counts Endurance.
+            head = QLabel(f"Bought {menu.bought} / {menu.cap}  ·  once per "
+                          f"{menu.cap_unit} of {menu.cap_trait}")
+            head.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
+            body.addWidget(head)
+            for h in menu.held:
+                row = QHBoxLayout()
+                row.addWidget(QLabel("• " + h.label), 1)
+                if not char.chargen_locked:
+                    drop = QPushButton("Remove")
+                    drop.clicked.connect(lambda _=None, i=h.index: remove(i))
+                    row.addWidget(drop)
+                body.addLayout(row)
+            if menu.bought >= menu.cap:
+                over = QLabel(f"Raise {menu.cap_trait} to buy more." if menu.cap
+                              else f"Needs at least 1 {menu.cap_unit} of "
+                                   f"{menu.cap_trait}.")
+                over.setStyleSheet(f"color:{MUTED};")
+                body.addWidget(over)
+            choose = QLabel(f"Choose {menu.needed} — {len(selection)}/{menu.needed} "
+                            f"selected")
+            choose.setStyleSheet("font-weight:bold;")
+            body.addWidget(choose)
+            full = len(selection) >= menu.needed
+            dialog.checks = {}
+            for pick in menu.picks:
+                row = QHBoxLayout()
+                cb = QCheckBox(pick.label)
+                dialog.checks[pick.key] = cb
+                cb.setChecked(pick.key in selection)
+                # A one-pick menu never disables an unpicked row — picking replaces —
+                # so its two variants stay clickable the way radio buttons would.
+                blocked = bool(pick.reason) or (full and menu.needed > 1)
+                cb.setEnabled(pick.key in selection or not blocked)
+                cb.toggled.connect(lambda checked, k=pick.key: flip(k, checked))
+                row.addWidget(cb)
+                if pick.max_purchases > 1:
+                    rep = QLabel(f"repeatable ×{pick.max_purchases}")
+                    rep.setStyleSheet(f"color:{MUTED};")
+                    row.addWidget(rep)
+                if pick.reason:
+                    why = QLabel(pick.reason)
+                    why.setStyleSheet("color:#b45309; font-style:italic;")
+                    row.addWidget(why)
+                row.addStretch(1)
+                body.addLayout(row)
+                if pick.description:
+                    text = QLabel(pick.description)
+                    text.setWordWrap(True)
+                    text.setContentsMargins(24, 0, 0, 4)
+                    text.setStyleSheet(f"color:{MUTED};")
+                    body.addWidget(text)
+            body.addStretch(1)
+            confirm.setText(f"Buy · {menu.price} XP" if menu.price else "Add")
+            confirm.setEnabled(len(selection) == menu.needed)
+
+        confirm.clicked.connect(buy)
+        dialog.selection = selection
+        dialog.confirm = confirm
+        dialog.rebuild = rebuild
+        rebuild()
+        return dialog
 
     def _section_header(self, text: str, pal) -> QLabel:
         lbl = QLabel(text)

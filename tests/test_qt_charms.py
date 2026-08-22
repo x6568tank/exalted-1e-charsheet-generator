@@ -719,3 +719,145 @@ def test_the_build_cache_scans_for_the_augmentation_category_once(ruleset):
         assert len(calls) > 1
     finally:
         charmsmod.augmentation_category = real
+
+
+# ---- Variant-menu packages (Ox-Body, Deadly Beastman Gifts) ---------------- #
+# ⚠ The dialog is reached through `_build_package_dialog`, which returns one WITHOUT
+# running it — `exec()` would block a headless run. Same seam as Gear/Advantages.
+
+def _ox_char():
+    char = Character(id="c.ox")
+    char.abilities[AbilityName.ENDURANCE] = 3
+    return char
+
+
+def _gift_char():
+    char = Character(id="c.lunar", exalt_type="Lunar", caste="full-moon")
+    char.essence_rating = 3
+    return char
+
+
+def _select_charm_node(page, qtbot, charm_id, category):
+    """Select one Charm's node in the abilities tree, the way a click does."""
+    view = page._tree_views["abilities"]
+    view.category_combo.setCurrentIndex(view.category_combo.findData(category))
+    qtbot.wait(5)
+    node_item = next(i for i in view.scene().items()
+                     if isinstance(i, NodeItem) and i.node.id == charm_id)
+    node_item.setSelected(True)
+    qtbot.wait(5)
+
+
+def test_ox_body_node_offers_the_chooser_not_learn(ruleset, qtbot):
+    # Ox-Body is bought as a PACKAGE into character.ox_body — an ordinary Learn would
+    # be refused by charm_actions, so the button must open the chooser instead.
+    char = _ox_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    _select_charm_node(page, qtbot, validate.ox_body_charm_id(ruleset, char),
+                       "endurance")
+    assert page.action_btn.text() == "Choose a package…"
+    assert "Bought: 0 / 3" in page.detail.toPlainText()
+
+
+def test_ox_body_dialog_buys_one_package(ruleset, qtbot):
+    char = _ox_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    oid = validate.ox_body_charm_id(ruleset, char)
+    dialog = page._build_package_dialog(oid)
+    qtbot.addWidget(dialog)
+    assert not dialog.confirm.isEnabled()          # nothing picked yet
+    key = next(iter(dialog.checks))
+    dialog.checks[key].setChecked(True)
+    assert dialog.confirm.isEnabled()
+    dialog.confirm.click()
+    assert [p.variant for p in char.ox_body] == [key]
+    assert oid not in char.charms                  # never the ordinary Charm list
+
+
+def test_a_one_pick_menu_replaces_rather_than_blocking(ruleset, qtbot):
+    # Ox-Body picks exactly one variant, so its rows read as radio buttons: choosing
+    # a second replaces the first instead of greying every other row out.
+    char = _ox_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    dialog = page._build_package_dialog(validate.ox_body_charm_id(ruleset, char))
+    qtbot.addWidget(dialog)
+    first, second = list(dialog.checks)[:2]
+    dialog.checks[first].setChecked(True)
+    assert dialog.checks[second].isEnabled()
+    dialog.checks[second].setChecked(True)
+    assert dialog.selection == [second]
+    assert dialog.confirm.isEnabled()
+
+
+def test_ox_body_dialog_removes_a_chargen_package(ruleset, qtbot):
+    char = _ox_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    oid = validate.ox_body_charm_id(ruleset, char)
+    dialog = page._build_package_dialog(oid)
+    qtbot.addWidget(dialog)
+    dialog.checks[next(iter(dialog.checks))].setChecked(True)
+    dialog.confirm.click()
+    assert len(char.ox_body) == 1
+    fresh = page._build_package_dialog(oid)
+    qtbot.addWidget(fresh)
+    remove = next(b for b in fresh.findChildren(QPushButton) if b.text() == "Remove")
+    remove.click()
+    assert char.ox_body == []
+
+
+def test_a_locked_package_dialog_prices_in_xp_and_offers_no_remove(ruleset, qtbot):
+    char = _ox_char()
+    char.essence_rating = 2
+    lifecycle.lock_chargen(char, ruleset)
+    char.xp_earned = 50
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    dialog = page._build_package_dialog(validate.ox_body_charm_id(ruleset, char))
+    qtbot.addWidget(dialog)
+    assert "XP" in dialog.confirm.text()
+    assert not [b for b in dialog.findChildren(QPushButton) if b.text() == "Remove"]
+
+
+def test_gift_dialog_needs_two_and_honours_the_chain(ruleset, qtbot):
+    char = _gift_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    dialog = page._build_package_dialog(validate.gift_charm_id(ruleset, char))
+    qtbot.addWidget(dialog)
+    # A Gift behind a prerequisite starts disabled, and the prerequisite picked in
+    # the SAME purchase unlocks it (p.124).
+    assert not dialog.checks["spider-foot-climbing"].isEnabled()
+    dialog.checks["bestial-reflexes"].setChecked(True)
+    assert dialog.checks["spider-foot-climbing"].isEnabled()
+    assert not dialog.confirm.isEnabled()          # 1 of 2 picked
+    dialog.checks["spider-foot-climbing"].setChecked(True)
+    assert dialog.confirm.isEnabled()
+    dialog.confirm.click()
+    assert [p.gifts for p in char.beastman_gifts] == \
+        [["bestial-reflexes", "spider-foot-climbing"]]
+
+
+def test_unchecking_a_gift_prunes_what_depended_on_it(ruleset, qtbot):
+    char = _gift_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    dialog = page._build_package_dialog(validate.gift_charm_id(ruleset, char))
+    qtbot.addWidget(dialog)
+    dialog.checks["bestial-reflexes"].setChecked(True)
+    dialog.checks["spider-foot-climbing"].setChecked(True)
+    dialog.checks["bestial-reflexes"].setChecked(False)
+    assert dialog.selection == []                  # the dependant went with its root
+
+
+def test_an_ordinary_charm_still_has_no_package_dialog(ruleset, qtbot):
+    # The negative control: only the two package Charms get the chooser, and the
+    # discriminator is the character's own package ids, not a name or a category.
+    char = _ox_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    ordinary = next(cid for cid in ruleset.charms if cid.startswith("solar.melee."))
+    assert page._build_package_dialog(ordinary) is None

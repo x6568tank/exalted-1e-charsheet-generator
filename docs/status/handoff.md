@@ -2,9 +2,10 @@
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **2,710 passed, 1 skipped** (main PC, `qt-port`, 6m51s) at this
-session's tip — a fresh run AFTER the last code change, not the one that was in flight
-while `_pool_row` was rebuilt.
+Last FULL green suite: **2,726 passed, 1 skipped** (main PC, `qt-port`, 7m05s) — after
+group 4's first item. The 16 new tests are the variant-menu chooser's, 8 on the
+presenter and 8 on the widget. ⚠ Two cosmetic edits landed after that run (the Charm
+description dropped from the dialog); the touched modules' tests were re-run green.
 
 The tree is clean and nothing is half-finished. **`qt/play.py` shipped and was
 human-clicked and approved on the real display** — first build, no rebuild.
@@ -76,9 +77,9 @@ layout does not decide its shape — that is an open design question, not a port
 **4 — the within-tab gaps, which are what decide whether the native app can replace the
 webapp:**
 
-- **Ox-Body Technique + Deadly Beastman gifts**: the picker still needs the variant MENU.
-  The mis-write is closed — `engine.charm_actions` refuses a package Charm from an
-  ordinary toggle in both shells.
+- ~~**Ox-Body Technique + Deadly Beastman gifts**: the picker still needs the variant
+  MENU.~~ **DONE 2026-08-22**, not yet human-clicked — `view.build_package_menu` +
+  `CharmsPage._build_package_dialog`; see `docs/plans/qt-port.md`, "Group 4 … item 1".
 - Submodules (Alchemical), the Immaculate-vs-standard DB banner, the MA style panel, the
   foreign-charms splat dropdown, "Add another" for repeatable Charms.
 - Edit's deferred panels: Training Camp & Calling, Colleges, Specialties, Permanent
@@ -100,10 +101,10 @@ condition on which the native app can *replace* the webapp instead of sitting be
 
 The list is group 4 above. Suggested order, cheapest and most load-bearing first:
 
-1. **The Ox-Body / Deadly Beastman variant MENU** in the Charm picker — the only one of
-   these with a closed bug behind it (`engine.charm_actions` already refuses a package
-   Charm from an ordinary toggle in both shells, so the mis-write cannot happen; what is
-   missing is the way to make the RIGHT pick).
+1. ~~**The Ox-Body / Deadly Beastman variant MENU** in the Charm picker.~~ **SHIPPED
+   2026-08-22 — awaiting a click on the real display.** Both Charms buy through one
+   dialog off one presenter (`view.build_package_menu`), and the web picker's Gift
+   cascade moved to that presenter too, so the two shells cannot drift again.
 2. **Edit's deferred panels** — Training Camp & Calling, Colleges, Specialties, Permanent
    Resonance/Limit, Virtue Flaw, bonus health levels, Downtime. Seven panels, and
    Specialties and Permanent Resonance both have rulings attached (see

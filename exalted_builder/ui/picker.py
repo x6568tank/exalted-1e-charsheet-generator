@@ -703,39 +703,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             return
         bought = len(character.beastman_gifts)
         needed = validate.gifts_per_purchase(charm, bought)
-        known = validate.known_gift_keys(character)
-        taken: dict[str, int] = {}
-        for k in known:
-            taken[k] = taken.get(k, 0) + 1
-        labels = {v.key: v.label for v in charm.variants}
         selection: list[str] = []          # ordered, so the cascade prune is stable
         gift_xp = costs.gift_cost(ruleset, character) if in_play() else 0
 
-        def _blocked(key_set: set[str], v) -> str:
-            """Why Gift `v` cannot be picked, given `key_set` as the Gifts held; ''
-            when it can. A Gift chosen in the SAME purchase satisfies a prerequisite
-            (p.124), so key_set includes the pending selection."""
-            if v.max_purchases - taken.get(v.key, 0) <= 0:
-                return ("Already taken" if v.max_purchases == 1
-                        else f"Taken {taken.get(v.key, 0)}/{v.max_purchases}")
-            for group in v.prerequisites:
-                if not any(g in key_set for g in group):
-                    return "Requires " + " or ".join(labels.get(g, g) for g in group)
-            return ""
-
-        def _prune() -> None:
-            """Unchecking a Gift must drop anything selected that depended on it —
-            otherwise the dialog could confirm a chain whose root is gone."""
-            changed = True
-            while changed:
-                changed = False
-                for key in list(selection):
-                    v = next(x for x in charm.variants if x.key == key)
-                    held = set(known) | {k for k in selection if k != key}
-                    if _blocked(held, v):
-                        selection.remove(key)
-                        changed = True
-
+        # Which Gifts are pickable given the pending selection, and the cascade that
+        # drops a chain whose root is unchecked, both live in viewmod.build_package_menu
+        # / prune_package_selection — the Qt chooser runs the SAME two.
         def _flip(key: str, on: bool) -> None:
             if on:
                 if key not in selection:
@@ -743,7 +716,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             else:
                 if key in selection:
                     selection.remove(key)
-                _prune()
+                selection[:] = viewmod.prune_package_selection(
+                    ruleset, character, charm.id, selection)
             body.refresh()
 
         with ui.dialog() as dialog, ui.card().classes(
@@ -758,16 +732,15 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
 
             @ui.refreshable
             def body() -> None:
-                held = set(known) | set(selection)
+                menu = viewmod.build_package_menu(ruleset, character, charm.id,
+                                                  selection)
                 ui.label(f"Choose {needed} Gift{'s' if needed != 1 else ''} for this "
                          f"purchase — {len(selection)}/{needed} selected.").classes(
                     "text-xs font-semibold")
                 with ui.column().classes("w-full gap-0 max-h-[55vh] overflow-y-auto pr-2"):
-                    for v in charm.variants:
+                    for v in menu.picks:
                         picked = v.key in selection
-                        # A pending pick is judged WITHOUT itself, or it would read as
-                        # its own prerequisite; unpicked ones see the full held set.
-                        reason = _blocked(held - ({v.key} if picked else set()), v)
+                        reason = v.reason
                         full = len(selection) >= needed
                         disabled = not picked and bool(reason or full)
                         with ui.row().classes("w-full items-start no-wrap gap-2 py-1"):

@@ -863,6 +863,59 @@ toolbar-over-panels exception and the tracker-left / rolls-right split are both
 confirmed**, which is what the click was for: those two were my calls, and the second is
 the reverse of the webapp.
 
+## Group 4 (within-tab gaps) — item 1: the variant-menu chooser (2026-08-22)
+
+Not a milestone: the first of the **within-tab gaps**, which the human put ahead of
+porting any further tab. The gap was that Ox-Body Technique and Deadly Beastman
+Transformation had no way to be bought in Qt at all — `engine.charm_actions` already
+refused the ordinary toggle (so the mis-write could not happen), but nothing offered the
+RIGHT pick, and the Charm's node sat there answering "bought as a package — choose from
+its detail panel" about a panel that did not exist.
+
+### One presenter, one dialog, both Charms
+
+`view.build_package_menu(ruleset, character, charm_id, selection)` is the new seam:
+`PackageMenu` (kind, cap, cap trait/unit, `needed`, price, held packages, picks) plus
+`package_menu_kind` and `prune_package_selection`. Ox-Body and Gifts differ in exactly
+two things the widget can see — `menu.needed` and the picks' `reason` — so
+`CharmsPage._build_package_dialog` draws both.
+
+The web picker's `open_gift_dialog` now runs the SAME two functions; its local
+`_blocked`/`_prune` are gone. That is the point of doing it in `view.py`: the Gift
+legality cascade existed in one shell only, which is how `charm_actions` came about in
+the first place.
+
+⚠ **`CharmVariant.max_purchases` is 1 for every Ox-Body variant and means nothing
+there** — a repeat purchase picks a variant again, same or different. The taken/max rule
+is applied to Gifts ONLY; applying it to both greys the whole Ox-Body menu out after one
+purchase, and every test on the Gift side still passes. There is a test for it.
+
+### What the widget adds
+
+* The node's action button reads **"Choose a package…" / "Choose Gifts…"** (with the XP
+  price post-lock) instead of Learn, keyed on `package_menu_kind` — the character's own
+  package-Charm ids, which no widget can edit.
+* The detail pane appends **Bought N / cap** and each package's picks. The tree paints a
+  node owned off one Charm id; how MANY packages is what a player needs here.
+* The dialog: held packages each with **Remove** (pre-lock only — post-lock the undo is
+  the XP ledger), the cap line in the splat's own cap trait, a checkbox per pick with its
+  reason, and Add / Buy · N XP.
+* A **one-pick menu replaces rather than blocks** — with `needed == 1` (Ox-Body always,
+  Gifts after the first purchase) picking a second row swaps it in, so the rows read as
+  radio buttons instead of greying out the moment one is ticked.
+* The Charm's own description is **not** repeated in the dialog: it is already in the
+  detail pane behind it, and Deadly Beastman's runs eleven lines, which pushed the picks
+  off the first screen. The offscreen grab is what showed that.
+
+`_build_package_dialog` returns the dialog WITHOUT running it (`exec()` blocks a headless
+run) — the Gear/Advantages seam. Its handles are `.selection`, `.checks` (keyed by pick
+key, never a `findChildren` index), `.confirm`, `.rebuild`.
+
+Tests: 8 in `tests/test_view.py`, 8 in `tests/test_qt_charms.py`. Suite **2,726 passed,
+1 skipped** (main PC, 7m05s).
+
+**Not yet human-clicked on the real display.**
+
 ## Open questions — not decided
 
 * **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets
