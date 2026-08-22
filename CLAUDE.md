@@ -72,9 +72,12 @@ where no page exists); **⚠ records of behavioural traps** — *"those are impo
 anyone working on this"*, and a trap buried in narration should come OUT as an explicit
 ⚠, not be deleted with it; and the contract itself.
 
-`engine/validate/` has had this pass (2026-08-17). Not yet done, in size order: **`ui/`**
-(3,676 prose lines, 24%), **`models/`** (2,672, 61% — densest in the build), **`engine/`
-outside validate** (2,496, 38%). Use `prose_guard.py`'s method: strip all docstrings,
+`engine/validate/` has had this pass (2026-08-17). Not yet done, in size order as
+measured THEN: **`ui/`** (3,676 prose lines, 24%), **`models/`** (2,672, 61% — densest in
+the build), **`engine/` outside validate** (2,496, 38%) — plus **`qt/`**, which did not
+exist at that measurement and has never had the pass. ⚠ Re-measure before acting on those
+numbers; `ui/` in particular has shrunk as the port moved logic into `engine/` and
+`view.py`. Use `prose_guard.py`'s method: strip all docstrings,
 compare the AST (byte-identical ⇒ no code changed), then assert no page citation and no
 ⚠ marker was lost. ⚠ **Judge such a pass by what the prose IS, never by line count** —
 validate's only went 35% → 34% and that was the correct outcome.
@@ -295,7 +298,7 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,674 passing, 1 skipped** (2026-08-21, main PC, the `qt-port` branch after Qt
+**2,675 passing, 1 skipped** (2026-08-22, main PC, the `qt-port` branch after Qt
 milestone 5 — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py` and `tests/test_gear_actions.py`).
 
@@ -307,6 +310,10 @@ milestone 5 — includes the Qt-port tests in `tests/test_qt_*.py`,
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
   here and the cause was not chased. The run is what tells you the suite is green.
+- ⚠ **Read the "passed" count off a run that was GREEN.** `2674 passed` on a line that
+  also says `1 failed` is not the suite's number, and it went into three docs on
+  2026-08-21 before the fix put the real figure one higher. Check the failure count
+  before you copy the pass count.
 - ⚠ **The SKIP is conditional and healthy, not a disabled test:**
   `test_buy_merit_prices_the_tier_against_the_characters_own_menu` skips when no Merit
   tier exists that is generic-but-not-Solar.

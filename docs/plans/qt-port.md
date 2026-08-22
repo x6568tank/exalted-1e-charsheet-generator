@@ -775,8 +775,8 @@ carry the five printed categories as `group_of` chips plus their own search box.
   post-lock Fetter test caught it. Check what a deleted range actually spanned.
 
 Tests: `tests/test_qt_advantages.py` (54 — the 44 retargeted at tables and the pane, plus
-10 for what shape B newly guarantees). Full suite: **2,674 passed, 1 skipped** (main PC,
-`qt-port`, 6m45s).
+10 for what shape B newly guarantees). Full suite: **2,675 passed, 1 skipped** (main PC,
+`qt-port`, 6m55s).
 
 ### Human-verified on the real display — 2026-08-21
 

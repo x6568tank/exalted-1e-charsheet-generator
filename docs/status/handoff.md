@@ -2,8 +2,9 @@
 
 # 👉 YOU ARE HERE
 
-Suite green and measured: **2,674 passed, 1 skipped** (main PC, `qt-port`, 6m45s). The
-branch is **8 commits ahead** of where the session started, no upstream, **unpushed**.
+Suite green and measured: **2,675 passed, 1 skipped** (main PC, `qt-port`, 6m55s). The
+branch is **5 commits ahead** of where the session started and **18 ahead of `main`**, no
+upstream, **unpushed**.
 
 Nothing is half-finished. Everything below was human-clicked and approved on the real
 display. Pick up at **milestone 6, the Play tab**.
