@@ -83,6 +83,19 @@ QComboBox QAbstractItemView {{ background:{INPUT}; color:{INK};
 QCompleter QAbstractItemView {{ background:{INPUT}; color:{INK};
     selection-background-color:{ac}; selection-color:#1a1a1a; }}
 QTextBrowser {{ background:{CARD}; color:{INK}; border:none; }}
+/* ⚠ The trees MUST be styled here, not left to the QPalette. Setting a stylesheet on
+   the window hands the stylesheet renderer every descendant, and it ignores
+   `QPalette.Base` — so the Gear and Advantages trees painted WHITE on the dark page
+   while every other widget themed correctly. Same trap as the QTextEdit-in-a-_Panel
+   one: an ancestor stylesheet beats a set palette, every time. */
+QTreeWidget, QTreeView {{ background:{CARD}; color:{INK}; border:none;
+                          alternate-background-color:{CARD}; }}
+QTreeWidget::item, QTreeView::item {{ padding:2px 0px; }}
+QTreeWidget::item:selected, QTreeView::item:selected {{
+    background:{ac}; color:#1a1a1a; }}
+QHeaderView::section {{ background:{BG}; color:{MUTED}; border:none;
+                        padding:4px 6px; font-weight:600; }}
+QTreeWidget QHeaderView::section:hover {{ color:{INK}; }}
 QListWidget#appRail {{ background:{BG}; border:none; }}
 QListWidget#appRail::item {{ padding:8px 10px; border-radius:4px; }}
 QListWidget#appRail::item:hover {{ background:{CARD}; }}

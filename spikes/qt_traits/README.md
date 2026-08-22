@@ -18,6 +18,8 @@ thing that differs is the container**, which is what is being decided.
 | 1 | **Sub-tabs** | already the settled layout's own idiom — "a sub-tab per category where a tab has more than one". Cheapest route to "in line with the rest of the app". |
 | 2 | **Sheet grid** | one pane, newspaper columns, headings instead of cards. Closest to the paper sheet. |
 | 3 | **Flat rules** | one scroll like today, cards replaced by headings + hairlines. Isolates whether it is the CARDS or the SCROLLING that reads wrong. |
+| 4 | **Collection** | the app's *actual* design language — a QTreeWidget like Gear and Advantages, grouped by category, toolbar above, detail pane beside. Dots ride in the Rating column. |
+| 5 | **Sheet grid v2** | variant 2 with the human's notes applied: Attributes narrowed to one column, Crafts moved under Abilities, Virtues/Essence/Willpower/Virtue Flaw merged, Specialties inline on their Ability. |
 
 ## What to weigh
 

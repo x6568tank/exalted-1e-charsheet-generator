@@ -37,7 +37,8 @@ import exalted_builder
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QFrame, QGridLayout, QHBoxLayout, QLabel,
-    QMainWindow, QScrollArea, QTabWidget, QVBoxLayout, QWidget,
+    QMainWindow, QScrollArea, QSplitter, QTabWidget, QToolBar, QTreeWidget,
+    QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
 from exalted_builder.engine import elder, merits, validate
@@ -53,7 +54,8 @@ from exalted_builder.models.character import AbilityName, AttributeName, VirtueN
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 EXAMPLES = sorted(Path("examples").glob("*.character.json"))
 
-VARIANTS = ["0 · Cards (today)", "1 · Sub-tabs", "2 · Sheet grid", "3 · Flat rules"]
+VARIANTS = ["0 · Cards (today)", "1 · Sub-tabs", "2 · Sheet grid", "3 · Flat rules",
+            "4 · Collection (app language)", "5 · Sheet grid v2"]
 
 # The panels Edit grew after the card layout was designed. Their home is part of the
 # question, so the spike names them rather than placing them.
@@ -96,13 +98,46 @@ class TraitData:
                                     lambda v: char.attributes.__setitem__(a, v),
                                     1, self.attr_cap))
 
-    def ability_row(self, a: AbilityName):
+    def ability_row(self, a: AbilityName, *, specialties: bool = False):
         char = self.char
         mark = "●" if a in self.caste_abilities else ("✦" if a in self.favored else "")
-        return self._row(_label(a.value), mark,
-                         self.track(lambda: char.abilities[a],
-                                    lambda v: char.abilities.__setitem__(a, v),
-                                    0, self.abil_cap))
+        row = self._row(_label(a.value), mark,
+                        self.track(lambda: char.abilities[a],
+                                   lambda v: char.abilities.__setitem__(a, v),
+                                   0, self.abil_cap))
+        if specialties:
+            # Specialties hang off the Ability they belong to rather than living in a
+            # section of their own (human, 2026-08-22). ⚠ A specialty is an INSTANCE,
+            # not a rated trait — taking "Swords" twice is two instances, which is why
+            # a repeat shows as ×2 and never as a second dot.
+            row.insertWidget(row.count() - 1, self._specialty_chips(a))
+        return row
+
+    def specialties_for(self, a: AbilityName) -> dict:
+        """{name: how many instances} for one Ability, in insertion order."""
+        counts: dict = {}
+        for sp in self.char.specialties:
+            if sp.ability == a and sp.name:
+                counts[sp.name] = counts.get(sp.name, 0) + 1
+        return counts
+
+    def _specialty_chips(self, a: AbilityName) -> QWidget:
+        holder = QWidget()
+        lay = QHBoxLayout(holder)
+        lay.setContentsMargins(8, 0, 0, 0)
+        lay.setSpacing(4)
+        for name, count in self.specialties_for(a).items():
+            chip = QLabel(f"{name} ×{count}" if count > 1 else name)
+            chip.setStyleSheet(
+                f"color:{self.accent}; border:1px solid #55535a; border-radius:7px; "
+                f"padding:0px 6px; font-size:8pt;")
+            lay.addWidget(chip)
+        add = QLabel("+")
+        add.setToolTip(f"Add a specialty in {_label(a.value)}")
+        add.setCursor(Qt.PointingHandCursor)
+        add.setStyleSheet(f"color:{qtheme.MUTED}; font-weight:700; padding:0px 4px;")
+        lay.addWidget(add)
+        return holder
 
     def virtue_row(self, v: VirtueName):
         char = self.char
@@ -446,7 +481,270 @@ def build_flat_rules(data: TraitData) -> QWidget:
     return scroll
 
 
-BUILDERS = [build_cards, build_subtabs, build_sheet_grid, build_flat_rules]
+# --------------------------------------------------------------------------- #
+# variant 4 — the app's own design language: toolbar + table + detail pane
+# --------------------------------------------------------------------------- #
+
+def build_collection(data: TraitData) -> QWidget:
+    """Traits as a COLLECTION — the shape Gear and Advantages already use.
+
+    ⚠ A **QTreeWidget**, not a QTableWidget: that is what `qt/gear.py` and
+    `qt/advantages.py` are built from, so it is what "the app's design language"
+    actually means here. It also groups for free — category as a top-level row, traits
+    as its children — which a flat table cannot do without sorting Appearance, Archery
+    and Athletics into one meaningless run.
+
+    Toolbar of actions · the tree with a header · a splitter with the selected trait's
+    detail pane. The dots ride in the Rating column as item widgets, so the dot track
+    survives intact; what changes is that a trait becomes a row you select.
+    """
+    char = data.char
+    outer = QWidget()
+    lay = QVBoxLayout(outer)
+    lay.setContentsMargins(0, 0, 0, 0)
+    lay.setSpacing(0)
+
+    bar = QToolBar()
+    bar.setMovable(False)
+    for action in ("Add craft", "Add specialty", "Favoured picks…"):
+        bar.addAction(action)
+    lay.addWidget(bar)
+
+    split = QSplitter(Qt.Orientation.Horizontal)
+    lay.addWidget(split, 1)
+    tree = QTreeWidget()
+    tree.setColumnCount(3)
+    tree.setHeaderLabels(["Trait", "Rating", "Specialties"])
+    tree.setRootIsDecorated(True)
+    tree.setUniformRowHeights(False)
+    tree.setAlternatingRowColors(False)
+    split.addWidget(tree)
+
+    detail = QWidget()
+    detail_lay = QVBoxLayout(detail)
+    detail_lay.setContentsMargins(14, 12, 14, 12)
+    detail_lay.setSpacing(6)
+    split.addWidget(detail)
+    split.setStretchFactor(0, 3)
+    split.setStretchFactor(1, 2)
+
+    def dots_cell(track) -> QWidget:
+        """⚠ Wrap the track and pad it. A bare DotTrack in a column wider than itself
+        spreads its pips across the whole width — QHBoxLayout hands the slack to the
+        gaps between fixed-size children."""
+        holder = QWidget()
+        box = QHBoxLayout(holder)
+        box.setContentsMargins(2, 1, 2, 1)
+        box.addWidget(track)
+        box.addStretch(1)
+        return holder
+
+    def group(title: str) -> QTreeWidgetItem:
+        node = QTreeWidgetItem(tree, [title])
+        font = node.font(0)
+        font.setBold(True)
+        node.setFont(0, font)
+        node.setExpanded(True)
+        return node
+
+    def leaf(parent, name: str, mark: str, track, note: str = ""):
+        item = QTreeWidgetItem(parent, [f"{mark} {name}".strip(), "", note])
+        tree.setItemWidget(item, 1, dots_cell(track))
+        item.setData(0, Qt.ItemDataRole.UserRole, name)
+        return item
+
+    for category, members in validate.ATTRIBUTE_CATEGORIES.items():
+        node = group(f"Attributes · {category}")
+        for a in members:
+            leaf(node, _label(a.value),
+                 "●" if a in data.caste_abilities else "",
+                 data.track(lambda k=a: char.attributes[k],
+                            lambda v, k=a: char.attributes.__setitem__(k, v),
+                            1, data.attr_cap))
+    for group_label, abilities in data.ability_groups:
+        node = group(f"Abilities · {group_label}" if group_label else "Abilities")
+        for a in abilities:
+            extra = data.specialties_for(a)
+            note = " · ".join(f"{n} ×{c}" if c > 1 else n for n, c in extra.items())
+            leaf(node, _label(a.value),
+                 "●" if a in data.caste_abilities else ("✦" if a in data.favored else ""),
+                 data.track(lambda k=a: char.abilities[k],
+                            lambda v, k=a: char.abilities.__setitem__(k, v),
+                            0, data.abil_cap),
+                 note)
+    if char.crafts:
+        node = group("Abilities · Craft")
+        for cr in char.crafts:
+            leaf(node, cr.focus or "(unnamed craft)", "",
+                 data.track(lambda k=cr: k.rating,
+                            lambda v, k=cr: setattr(k, "rating", v),
+                            0, data.abil_cap))
+    node = group("Virtues · Essence · Willpower")
+    for v in VirtueName:
+        leaf(node, _label(v.value), "",
+             data.track(lambda k=v: char.virtues[k],
+                        lambda val, k=v: char.virtues.__setitem__(k, val),
+                        1, data.virtue_cap))
+    leaf(node, "Essence", "",
+         data.track(lambda: char.essence_rating,
+                    lambda v: setattr(char, "essence_rating", v),
+                    1, min(elder.DOT_MAX, data.essence_cap)))
+    QTreeWidgetItem(node, ["Willpower", "6", ""])
+    QTreeWidgetItem(node, ["Virtue Flaw", "", "none chosen"])
+
+    tree.setColumnWidth(0, 240)
+    tree.setColumnWidth(1, 150)
+
+    def show_detail():
+        clear_layout(detail_lay)
+        item = tree.currentItem()
+        name = item.data(0, Qt.ItemDataRole.UserRole) if item else None
+        if not name:
+            detail_lay.addWidget(_sub("Select a trait."))
+            detail_lay.addStretch(1)
+            return
+        parent = item.parent()
+        detail_lay.addWidget(_heading(name.upper(), data, size=11))
+        detail_lay.addWidget(_sub(parent.text(0) if parent else ""))
+        detail_lay.addWidget(_rule())
+        if parent is not None and parent.text(0).startswith("Abilities"):
+            detail_lay.addWidget(QLabel("Specialties"))
+            detail_lay.addWidget(_sub("max 3 per Ability; take one twice to stack it"))
+            detail_lay.addWidget(_sub("[ + add specialty ]"))
+        elif parent is not None and parent.text(0).startswith("Virtues"):
+            detail_lay.addWidget(QLabel("Virtue Flaw"))
+            detail_lay.addWidget(_sub("the flawed Virtue and its sample Flaws sit with "
+                                      "the Virtue they belong to"))
+        else:
+            detail_lay.addWidget(_sub("caps, breed bonuses and the buy price print here"))
+        detail_lay.addStretch(1)
+
+    tree.currentItemChanged.connect(lambda *_: show_detail())
+    show_detail()
+    return outer
+
+
+# --------------------------------------------------------------------------- #
+# variant 5 — the sheet grid, revised against the human's notes
+# --------------------------------------------------------------------------- #
+
+def build_sheet_grid_v2(data: TraitData) -> QWidget:
+    """Variant 2 with the three notes applied (human, 2026-08-22):
+
+    * Attributes are no longer three wide columns — nine rows in one narrow column,
+      which is what nine traits deserve next to twenty-five.
+    * Crafts moved UNDER Abilities, where they belong: each focus is an Ability.
+    * Virtues, Essence, Willpower and the Virtue Flaw merged into ONE section — none
+      of them has enough in it to hold a section open alone.
+    * Specialties are gone as a section; they hang off their Ability's row.
+    """
+    body = QWidget()
+    grid = QGridLayout(body)
+    grid.setContentsMargins(18, 14, 18, 14)
+    grid.setHorizontalSpacing(28)
+    grid.setVerticalSpacing(6)
+
+    def section(row: int, col: int, title: str, sub: str, block) -> int:
+        grid.addWidget(_heading(title, data, size=10), row, col)
+        r = row + 1
+        if sub:
+            grid.addWidget(_sub(sub), r, col)
+            r += 1
+        grid.addWidget(_rule(), r, col)
+        r += 1
+        if isinstance(block, QWidget):
+            grid.addWidget(block, r, col)
+        else:
+            holder = QWidget()
+            holder.setLayout(block)
+            grid.addWidget(holder, r, col)
+        return r + 2
+
+    # left: attributes in ONE column, then the merged virtue/essence block
+    attrs = QVBoxLayout()
+    attrs.setSpacing(_ROW_SPACING)
+    for category, members in validate.ATTRIBUTE_CATEGORIES.items():
+        cap = QLabel(category)
+        cap.setStyleSheet(f"font-weight:600; color:{qtheme.MUTED};")
+        attrs.addWidget(cap)
+        for a in members:
+            attrs.addLayout(data.attr_row(a))
+    attrs.addStretch(1)
+    left = section(0, 0, "ATTRIBUTES", data.attr_header(), attrs)
+
+    merged = QVBoxLayout()
+    merged.setSpacing(_ROW_SPACING)
+    for v in VirtueName:
+        merged.addLayout(data.virtue_row(v))
+    merged.addSpacing(6)
+    merged.addLayout(data._row(
+        "Essence", "",
+        data.track(lambda: data.char.essence_rating,
+                   lambda v: setattr(data.char, "essence_rating", v),
+                   1, min(elder.DOT_MAX, data.essence_cap))))
+    wp = QHBoxLayout()
+    wp.addWidget(QLabel("Willpower"))
+    wp.addWidget(QLabel("6"))
+    wp.addStretch(1)
+    merged.addLayout(wp)
+    merged.addSpacing(6)
+    flaw = QLabel("Virtue Flaw:  ▫ none chosen")
+    flaw.setStyleSheet(f"color:{qtheme.MUTED}; font-style:italic;")
+    merged.addWidget(flaw)
+    merged.addStretch(1)
+    left = section(left, 0, "VIRTUES · ESSENCE · WILLPOWER", "", merged)
+
+    # right: abilities with inline specialties, then crafts underneath them
+    abilities = QVBoxLayout()
+    abilities.setSpacing(8)
+    groups = data.ability_groups
+    for start in range(0, len(groups), 2):
+        cols = QHBoxLayout()
+        cols.setSpacing(24)
+        for j, (group_label, members) in enumerate(groups[start:start + 2]):
+            if j:
+                cols.addWidget(_vsep())
+            group = QVBoxLayout()
+            group.setSpacing(_ROW_SPACING)
+            if group_label:
+                g = QLabel(group_label)
+                g.setStyleSheet(f"font-weight:600; color:{data.accent};")
+                group.addWidget(g)
+            for a in members:
+                group.addLayout(data.ability_row(a, specialties=True))
+            group.addStretch(1)
+            cols.addLayout(group, 1)
+        for _ in range(2 - len(groups[start:start + 2])):
+            cols.addStretch(1)
+        abilities.addLayout(cols)
+    crafts_head = QLabel("Craft")
+    crafts_head.setStyleSheet(f"font-weight:600; color:{data.accent};")
+    abilities.addWidget(crafts_head)
+    abilities.addLayout(_crafts_column(data))
+    right = section(0, 1, "ABILITIES", data.ability_header(), abilities)
+
+    still = QVBoxLayout()
+    still.setSpacing(2)
+    still.addWidget(_sub("— still unplaced —"))
+    for name in ("Astrological Colleges", "Bonus health levels",
+                 "Permanent Resonance"):
+        row = QLabel(f"▫ {name}")
+        row.setStyleSheet(f"color:{qtheme.MUTED}; font-style:italic;")
+        still.addWidget(row)
+    right = section(right, 1, "STILL TO PLACE", "", still)
+    grid.setRowStretch(max(left, right), 1)
+    grid.setColumnStretch(0, 2)
+    grid.setColumnStretch(1, 3)
+
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+    scroll.setWidget(body)
+    scroll.setFrameShape(QFrame.Shape.NoFrame)
+    return scroll
+
+
+BUILDERS = [build_cards, build_subtabs, build_sheet_grid, build_flat_rules,
+            build_collection, build_sheet_grid_v2]
 
 
 # --------------------------------------------------------------------------- #
