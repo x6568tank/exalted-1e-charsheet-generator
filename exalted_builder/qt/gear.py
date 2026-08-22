@@ -38,6 +38,7 @@ from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
 from .catalogue import CatalogueDialog
+from .layout import clear_layout
 from .editor import _FilterCombo
 from .theme import MUTED, accent as accent_light
 
@@ -197,23 +198,10 @@ class GearPage(QWidget):
         return accent_light(self._pal())
 
     def _clear_lay(self, lay) -> None:
-        """Remove every widget/layout from `lay` and detach it NOW.
-
-        ⚠ RECURSES into nested layouts: `item.widget()` is None for a `QLayout`, so a
-        widget-only sweep detaches nothing inside a row and the previous build paints
-        ON TOP of the next. ⚠ `deleteLater()` alone is deferred to the event loop, so
-        hide and unparent now. (The same shape as the Edit, Charms and Advantages tabs —
-        this has bitten three times; copy it, do not write a fresh loop.)
-        """
-        while lay.count():
-            item = lay.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.hide()
-                widget.setParent(None)
-                widget.deleteLater()
-            elif item.layout() is not None:
-                self._clear_lay(item.layout())
+        """Empty `lay`, detaching every descendant NOW. One line, because the shape is
+        subtle enough that six hand-written copies produced a wrong one — see
+        `qt/layout.py`, which owns both traps and the reason they matter."""
+        clear_layout(lay)
 
     def reload(self) -> None:
         """Rebuild the table and the price list for the character in ctx, keeping the

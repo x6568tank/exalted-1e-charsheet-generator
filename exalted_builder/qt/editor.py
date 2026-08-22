@@ -34,6 +34,7 @@ from exalted_builder.models.character import (
 from exalted_builder.models.rules import RuleSet
 from .theme import CARD, INPUT, accent as accent_light
 
+from .layout import clear_layout
 from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
@@ -336,24 +337,11 @@ class _EditorPage(QWidget):
     # side column
     # ------------------------------------------------------------------ #
 
-    def _clear_lay(self, lay: QVBoxLayout) -> None:
-        """Remove every widget/layout from `lay` and detach it NOW.
-
-        ⚠ `deleteLater()` alone is deferred to the event loop: `reload()` runs
-        synchronously several times at startup (the constructor, the first tab-change
-        signal, `_sync_tabs`), and a build whose children are merely pending-delete
-        keeps painting at stale geometry on top of the next build — every element
-        stacked with its own ghost border. `setParent(None)` detaches it from
-        rendering immediately; `deleteLater()` still frees the C++ object."""
-        while lay.count():
-            item = lay.takeAt(0)
-            w = item.widget()
-            if w is not None:
-                w.hide()
-                w.setParent(None)
-                w.deleteLater()
-            elif item.layout() is not None:
-                self._clear_lay(item.layout())
+    def _clear_lay(self, lay) -> None:
+        """Empty `lay`, detaching every descendant NOW. One line, because the shape is
+        subtle enough that six hand-written copies produced a wrong one — see
+        `qt/layout.py`, which owns both traps and the reason they matter."""
+        clear_layout(lay)
 
     def _buy(self, target: str, current: int, wanted: int, refresh, detail: str = "") -> bool:
         """Handle a post-lock dot click. Returns False pre-lock, so the track falls

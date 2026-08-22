@@ -2,12 +2,15 @@
 
 Run: `.venv/bin/python -m spikes.qt_advantages [path/to/character.json]`
 
-A top tab bar switches between the SHIPPED Advantages page and three candidate
-redesigns, all reading the same live character, so the comparison is direct rather
-than remembered. Nothing in `exalted_builder/` is edited; the shipped tab is the real
+A top tab bar switches between the SHIPPED Advantages page and the surviving candidate
+redesigns, all reading the same live character, so the comparison is direct rather than
+remembered. Nothing in `exalted_builder/` is edited; the shipped tab is the real
 `qt.advantages.AdvantagesPage`.
 
-⚠ The three candidates are LAYOUT MOCKUPS. They render real data and their controls
+⚠ A third candidate — the shipped structure natively dressed — was ruled out by the
+human on sight (2026-08-21) and removed. It is in git at 2a45a34.
+
+⚠ The candidates are LAYOUT MOCKUPS. They render real data and their controls
 move, but they do not buy, price or validate anything — the point is the shape, and
 wiring three throwaway surfaces to `engine.advancement` would cost more than the
 answer is worth. Read them as "what would this feel like", not "does this work".
@@ -20,8 +23,8 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView, QApplication, QComboBox, QFormLayout, QFrame, QHBoxLayout,
-    QHeaderView, QLabel, QLineEdit, QMainWindow, QScrollArea, QSpinBox, QSplitter,
+    QAbstractItemView, QApplication, QComboBox, QFormLayout, QHBoxLayout,
+    QHeaderView, QLabel, QLineEdit, QMainWindow, QScrollArea, QSplitter,
     QTabWidget, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
@@ -32,7 +35,8 @@ from exalted_builder.models.character import Character
 from exalted_builder.qt import theme as qtheme
 from exalted_builder.qt.advantages import AdvantagesPage
 from exalted_builder.qt.editor import DotTrack
-from exalted_builder.qt.theme import CARD, MUTED, accent as accent_light
+from exalted_builder.qt.layout import clear_layout
+from exalted_builder.qt.theme import MUTED, accent as accent_light
 from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
@@ -41,17 +45,23 @@ DEFAULT = (Path(exalted_builder.__file__).parent.parent / "examples"
 
 
 # --------------------------------------------------------------------------- #
-# the rows every candidate renders — one derivation, so the four shapes differ
+# the rows every candidate renders — one derivation, so the shapes differ
 # only in LAYOUT and a difference on screen is never a difference in data
 # --------------------------------------------------------------------------- #
 
 def advantage_rows(ruleset, character) -> list[dict]:
     """Everything this tab owns, flattened: Backgrounds, M&F, Fetters, Passions."""
     rows: list[dict] = []
+    # ⚠ The SPLAT-FILTERED catalogue, not the global one. Several Background NAMES
+    # belong to two splats with different printed text (a Dragon-Blooded's Connections
+    # is not a Sidereal's), and `BackgroundEntry` stores a name rather than an id — so
+    # a global lookup would hand this character another splat's rungs.
+    bg_catalog = validate.background_catalogue_for(ruleset, character)
     for index, bg in enumerate(character.backgrounds):
         rows.append({"kind": "Background", "name": bg.name or "—",
                      "rating": bg.rating, "cost": "", "note": bg.note,
-                     "obj": bg, "index": index, "list": "backgrounds"})
+                     "obj": bg, "index": index, "list": "backgrounds",
+                     "bg_catalog": bg_catalog})
     for index, mp in enumerate(character.merits_flaws):
         definition = ruleset.merits_flaws.get(mp.merit_id)
         # ⚠ The custom-row discriminator is the EMPTY merit_id, never custom_name's
@@ -91,6 +101,49 @@ def heading(text: str, accent: str) -> QLabel:
     label = QLabel(text)
     label.setStyleSheet(f"font-weight:700; color:{accent};")
     return label
+
+
+def describe(row, accent: str) -> list[QLabel]:
+    """The full printed text for one advantage — the thing the human asked both
+    candidates for (2026-08-21).
+
+    A Merit or Flaw has one description. A **Background has a LADDER**: the printed
+    text differs per rating, and the rung you hold is the part that matters, so the
+    whole ladder shows with your rung marked. `view.background_ladder` already renders
+    it for the catalogue dialog, so the spike reuses that rather than inventing a
+    second format.
+    """
+    out: list[QLabel] = []
+    definition = row.get("definition")
+    if definition is not None:
+        out.append(muted(definition.description))
+        if getattr(definition, "cost_note", ""):
+            out.append(muted(definition.cost_note))
+        return out
+    catalog = row.get("bg_catalog")
+    if catalog is None:
+        return out
+    entry = next((b for b in catalog if b.name == row["name"]), None)
+    if entry is None:
+        # Backgrounds are free text; a name no catalogue holds simply has no printed
+        # text to show, which is not an error.
+        return out
+    out.append(muted(entry.description))
+    ladder = viewmod.background_ladder(catalog, row["name"])
+    if not ladder:
+        return out
+    out.append(heading("What each rating buys", accent))
+    for rung, (dot_text, text) in enumerate(ladder):
+        line = QLabel(f"{dot_text}  {text}")
+        line.setWordWrap(True)
+        if rung == row["rating"]:
+            # The rung actually held, called out — it is the one line on the panel
+            # that describes this character rather than the Background in general.
+            line.setStyleSheet(f"color:{accent}; font-weight:600;")
+        else:
+            line.setStyleSheet(f"color:{MUTED};")
+        out.append(line)
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -179,10 +232,12 @@ class CandidateA(QWidget):
             self.table.setCurrentItem(self.table.topLevelItem(0))
 
     def _show_detail(self):
-        while self._detail_lay.count():
-            item = self._detail_lay.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
+        # ⚠ `clear_layout`, not a hand-written loop. The first version of this spike
+        # wrote one and got it wrong: it skipped nested layouts, so the QFormLayout
+        # holding each DotTrack was never torn down and every Background you clicked
+        # left its dots painted on top of the next — the "ghosty effect" the human
+        # reported (2026-08-21). Fourth occurrence of that trap; hence the helper.
+        clear_layout(self._detail_lay)
         item = self.table.currentItem()
         if item is None:
             return
@@ -201,8 +256,8 @@ class CandidateA(QWidget):
         note.setPlaceholderText("note")
         form.addRow("Note", note)
         self._detail_lay.addLayout(form)
-        if row.get("definition") is not None:
-            self._detail_lay.addWidget(muted(row["definition"].description))
+        for widget in describe(row, accent):
+            self._detail_lay.addWidget(widget)
         self._detail_lay.addStretch(1)
 
 
@@ -279,10 +334,12 @@ class CandidateB(QWidget):
             self._show_detail(self._tables[0])
 
     def _show_detail(self, table):
-        while self._detail_lay.count():
-            item = self._detail_lay.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
+        # ⚠ `clear_layout`, not a hand-written loop. The first version of this spike
+        # wrote one and got it wrong: it skipped nested layouts, so the QFormLayout
+        # holding each DotTrack was never torn down and every Background you clicked
+        # left its dots painted on top of the next — the "ghosty effect" the human
+        # reported (2026-08-21). Fourth occurrence of that trap; hence the helper.
+        clear_layout(self._detail_lay)
         item = table.currentItem()
         if item is None:
             self.detail_title.setText("")
@@ -300,96 +357,24 @@ class CandidateB(QWidget):
             form.addRow("Cost", QLabel(viewmod.merit_option_label(row["definition"])))
         form.addRow("Note", QLineEdit(row["note"]))
         self._detail_lay.addLayout(form)
-        if row.get("definition") is not None:
-            self._detail_lay.addWidget(muted(row["definition"].description))
+        for widget in describe(row, accent):
+            self._detail_lay.addWidget(widget)
         self._detail_lay.addStretch(1)
-
-
-# --------------------------------------------------------------------------- #
-# Candidate C — the shipped structure, natively dressed
-# --------------------------------------------------------------------------- #
-
-class CandidateC(QWidget):
-    """One scroll, sections instead of cards, everything aligned in a form grid.
-
-    The conservative answer, and the one that takes the human's "it's fine as is"
-    seriously: keep the shipped page's structure — every Background visible at once,
-    edited in place — and remove only what makes it read as a web page. No card
-    chrome; a rule beneath each section heading; ratings, names and notes on aligned
-    columns rather than each row laying itself out.
-
-    ⚠ Its bet is that Advantages is a FORM, not a list of objects: you fill it in
-    once at chargen and rarely revisit it, and a form wants every field visible.
-    """
-
-    def __init__(self, ruleset, character, parent=None):
-        super().__init__(parent)
-        self._ruleset, self._char = ruleset, character
-        accent = accent_light(theme.palette(character.exalt_type))
-        rows = advantage_rows(ruleset, character)
-
-        body = QWidget()
-        lay = QVBoxLayout(body)
-        lay.setContentsMargins(16, 12, 16, 12)
-        lay.setSpacing(4)
-
-        groups = [("Backgrounds", ("Background",)),
-                  ("Merits & Flaws", ("Merit", "Flaw")),
-                  ("Fetters", ("Fetter",)), ("Passions", ("Passion",))]
-        for label, kinds in groups:
-            mine = [r for r in rows if r["kind"] in kinds]
-            if not mine and label in ("Fetters", "Passions"):
-                continue
-            lay.addWidget(heading(label.upper(), accent))
-            rule = QFrame()
-            rule.setFrameShape(QFrame.HLine)
-            rule.setStyleSheet(f"color:{CARD};")
-            lay.addWidget(rule)
-            grid = QFormLayout()
-            grid.setLabelAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            grid.setHorizontalSpacing(16)
-            for row in mine:
-                right = QHBoxLayout()
-                if row["rating"] is not None:
-                    right.addWidget(DotTrack(
-                        lambda r=row: r["obj"].rating,
-                        lambda v, r=row: setattr(r["obj"], "rating", v),
-                        0, 5, accent=accent))
-                if row["cost"]:
-                    cost = QLabel(row["cost"])
-                    cost.setStyleSheet(f"color:{MUTED};")
-                    cost.setMinimumWidth(48)
-                    right.addWidget(cost)
-                note = QLineEdit(row["note"])
-                note.setPlaceholderText("note")
-                right.addWidget(note, 1)
-                holder = QWidget()
-                holder.setLayout(right)
-                grid.addRow(row["name"], holder)
-            lay.addLayout(grid)
-            lay.addSpacing(12)
-        lay.addStretch(1)
-
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setWidget(body)
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.addWidget(scroll)
 
 
 # --------------------------------------------------------------------------- #
 # the window
 # --------------------------------------------------------------------------- #
 
+# ⚠ Candidate C (the shipped structure natively dressed) was RULED OUT on sight by the
+# human, 2026-08-21, and removed rather than left as noise. It is in git at 2a45a34 if
+# anyone wants to look again.
 NOTES = {
     0: "SHIPPED — the real qt/advantages.py. Card stack, rows edited in place.",
     1: "A · ONE TABLE — Gear's shape exactly. Maximum consistency; you see one "
        "rating at a time.",
     2: "B · SUB-TABS — Charms' shape. Categories stay distinct; the two budgets "
        "can no longer be read together.",
-    3: "C · NATIVE FORM — the shipped structure with the web chrome removed. "
-       "Everything visible at once.",
 }
 
 
@@ -420,7 +405,6 @@ class Window(QMainWindow):
         tabs.addTab(AdvantagesPage(ruleset, {"char": character}), "As shipped")
         tabs.addTab(CandidateA(ruleset, character), "A · One table")
         tabs.addTab(CandidateB(ruleset, character), "B · Sub-tabs")
-        tabs.addTab(CandidateC(ruleset, character), "C · Native form")
         tabs.currentChanged.connect(lambda i: self.note.setText(NOTES.get(i, "")))
 
         central = QWidget()

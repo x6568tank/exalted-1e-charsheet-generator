@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
 
 from exalted_builder.ui.theme import Palette
 
+from .layout import clear_layout
 from .theme import MUTED, accent
 
 
@@ -228,26 +229,10 @@ class CatalogueDialog(QDialog):
         self._sync_confirm(key)
 
     def _clear_extras(self, lay=None) -> None:
-        """Tear the caller's controls down between selections.
-
-        ⚠ RECURSES into nested layouts. The caller builds its controls as rows, and a
-        `QHBoxLayout` yields `item.widget() is None` — so a widget-only sweep detaches
-        nothing inside one and the previous entry's text paints on top of the next
-        (human, 2026-08-21).
-
-        ⚠ `deleteLater` alone leaves the widget parented and visible until the event
-        loop runs, so hide and unparent it NOW. Same shape as `AdvantagesPage._clear_lay`.
-        """
-        lay = self.extras_lay if lay is None else lay
-        while lay.count():
-            item = lay.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.hide()
-                widget.setParent(None)
-                widget.deleteLater()
-            elif item.layout() is not None:
-                self._clear_extras(item.layout())
+        """Tear the caller's controls down between selections. `qt/layout.py` owns the
+        shape and the two traps behind it — the caller builds its controls as rows, and
+        a widget-only sweep leaves the previous entry painting on top of the next."""
+        clear_layout(self.extras_lay if lay is None else lay)
 
     def _sync_confirm(self, key: str | None) -> None:
         """Re-label the confirm button for the selected entry and enable or disable it.

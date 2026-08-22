@@ -36,6 +36,7 @@ from exalted_builder.engine import (advancement, charm_actions, costs, merits,
 from exalted_builder.engine import paths as engine_paths
 from exalted_builder.models.character import AbilityName, AnimalForm, PathRating
 from exalted_builder.qt.editor import DotTrack
+from exalted_builder.qt.layout import clear_layout
 from exalted_builder.models.rules import Orientation
 from exalted_builder.ui import theme
 
@@ -748,23 +749,11 @@ class CharmsPage(QWidget):
     def _char(self):
         return self._ctx["char"]
 
-    def _clear_lay(self, lay: QVBoxLayout) -> None:
-        """Remove every widget/layout from `lay` and detach it NOW.
-
-        ⚠ `deleteLater()` alone is deferred to the event loop: a rebuild runs
-        synchronously right after a change, and a build whose children are merely
-        pending-delete keeps painting at stale geometry on top of the next build.
-        `setParent(None)` detaches it from rendering immediately; `deleteLater()`
-        still frees the C++ object. (Same pattern as the Edit tab's `_clear_lay`.)"""
-        while lay.count():
-            item = lay.takeAt(0)
-            w = item.widget()
-            if w is not None:
-                w.hide()
-                w.setParent(None)
-                w.deleteLater()
-            elif item.layout() is not None:
-                self._clear_lay(item.layout())
+    def _clear_lay(self, lay) -> None:
+        """Empty `lay`, detaching every descendant NOW. One line, because the shape is
+        subtle enough that six hand-written copies produced a wrong one — see
+        `qt/layout.py`, which owns both traps and the reason they matter."""
+        clear_layout(lay)
 
     # ------------------------------------------------------------------ #
     # buying (the picker's toggle, ported) — the one thing the spike left out
