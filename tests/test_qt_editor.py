@@ -18,6 +18,7 @@ pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed"
 from PySide6.QtWidgets import QApplication, QPushButton
 
 from exalted_builder.engine import advancement, lifecycle
+from exalted_builder.ui import view as viewmod
 from exalted_builder.models.character import AbilityName, AttributeName, Character
 from exalted_builder.qt.editor import DotTrack, IdentityPage, TraitsPage, _FavoredPicker
 
@@ -529,101 +530,128 @@ def test_editing_one_health_tier_leaves_the_others_alone(qtbot, ruleset):
 # specialties
 # --------------------------------------------------------------------------- #
 
-def _spec_rows(page):
+def _spec_add(page, ability):
     from PySide6.QtWidgets import QPushButton
-    return [b for b in page._body_container.findChildren(QPushButton)
-            if b.text() == "✕"]
+    return _named(page, f"specialty.add.{ability.value}", QPushButton)
+
+
+def _spec_names(page, ability):
+    """The specialty child rows under one Ability, by their own object names."""
+    from PySide6.QtWidgets import QLineEdit
+    prefix = f"specialty.name.{ability.value}."
+    return [w for w in page._body_container.findChildren(QLineEdit)
+            if w.objectName().startswith(prefix)]
 
 
 def test_a_specialty_is_an_instance_not_a_rated_track(qtbot, ruleset):
     """⚠ The ruling (human, 2026-07-31): you do not RAISE a specialty, you take the
-    same one again. Taking Swords twice must be two rows, and there must be no dot
-    track offering to raise one."""
+    same one again. So two "Swords" are ONE group taken twice — shown ×2, never as a
+    dot track — and `view.specialty_groups` is what says so."""
     from exalted_builder.models.character import Specialty
     char = Character(id="c.s", exalt_type="Solar", caste="dawn")
     char.specialties = [Specialty(ability=AbilityName.MELEE, name="Swords", rating=1),
-                        Specialty(ability=AbilityName.MELEE, name="Swords", rating=1)]
+                        Specialty(ability=AbilityName.MELEE, name="Swords", rating=1),
+                        Specialty(ability=AbilityName.MELEE, name="Parrying", rating=1)]
     page = _traits(ruleset, char)
     qtbot.addWidget(page)
-    assert len(_spec_rows(page)) == 2
+    assert viewmod.specialty_groups(char, AbilityName.MELEE) == [("Swords", 2),
+                                                                 ("Parrying", 1)]
+    assert len(_spec_names(page, AbilityName.MELEE)) == 2      # two GROUPS, three rows
 
 
-def test_adding_a_specialty_pre_lock_appends_a_blank_row(qtbot, ruleset):
-    """⚠ The cap is deliberately NOT enforced on the add: the row starts on Melee and
-    is retargeted, so blocking here would block it on the wrong Ability."""
+def test_specialties_hang_off_their_own_ability(qtbot, ruleset):
+    """⚠ The panel is GONE (human, 2026-08-22). A specialty belongs to one Ability, so
+    it is a child row under that Ability — and the add control is per-Ability, which is
+    what removes the old blank-row-on-Melee-then-retarget dance."""
     char = Character(id="c.s", exalt_type="Solar", caste="dawn")
     page = _traits(ruleset, char)
     qtbot.addWidget(page)
-    for _ in range(4):
-        page.add_spec()
+    assert _spec_add(page, AbilityName.DODGE) is not None
+    assert _panel_titled(page, "Specialties") is None, "the old panel is still drawn"
+    page.add_spec_to(AbilityName.DODGE, "Rolling")
+    assert [(sp.ability, sp.name) for sp in char.specialties] == [
+        (AbilityName.DODGE, "Rolling")]
+    assert _spec_names(page, AbilityName.DODGE)
+
+
+def test_the_add_button_knows_its_own_ability(qtbot, ruleset):
+    """The regression the new shape is FOR: clicking + on Archery must not append a
+    row on Melee for the player to retarget."""
+    char = Character(id="c.s", exalt_type="Solar", caste="dawn")
+    page = _traits(ruleset, char)
+    qtbot.addWidget(page)
+    _spec_add(page, AbilityName.ARCHERY).click()
+    assert [sp.ability for sp in char.specialties] == [AbilityName.ARCHERY]
+
+
+def test_the_cap_is_not_enforced_on_the_add(qtbot, ruleset):
+    """⚠ Deliberately permissive, and this is NOT the old reason (there is no retarget
+    any more). Chargen writes the list straight and `validate.check_specialties`
+    reports an over-capped Ability — enforcing here would invent a rule the engine does
+    not ask for, and would also have to cover a save that arrives over the cap."""
+    from exalted_builder.engine import validate
+    char = Character(id="c.s", exalt_type="Solar", caste="dawn")
+    page = _traits(ruleset, char)
+    qtbot.addWidget(page)
+    for i in range(4):
+        page.add_spec_to(AbilityName.MELEE, f"S{i}")
     assert len(char.specialties) == 4
-    assert all(sp.ability == AbilityName.MELEE for sp in char.specialties)
+    codes = {i.code for i in validate.check_specialties(ruleset, char)}
+    assert "specialty-cap" in codes, "the engine stopped reporting the over-cap"
 
 
-def test_retargeting_a_specialty_re_runs_validation(qtbot, ruleset):
-    """⚠ The stale-error trap. Four blank rows land on Melee and put a `specialty-cap`
-    error on screen; retargeting one fixes the MODEL, and without a re-run the old
-    error stays up — three Melee plus three Dodge reading back as "Melee has 4"."""
-    pings = []
+def test_renaming_a_group_renames_every_instance_in_it(qtbot, ruleset):
+    """⚠ The group IS the specialty — two rows named "Swords" are one specialty taken
+    twice. Renaming one and not the other would silently split it in half."""
     char = Character(id="c.s", exalt_type="Solar", caste="dawn")
-    page = TraitsPage(ruleset, {"char": char}, notify=lambda *a, **k: None,
-                      on_change=lambda: pings.append(1))
+    page = _traits(ruleset, char)
     qtbot.addWidget(page)
-    for _ in range(4):
-        page.add_spec()
-    combos = [c for c in page._body_container.findChildren(QComboBox)
-              if c.count() == len(list(AbilityName)) and c.currentIndex() ==
-              list(AbilityName).index(AbilityName.MELEE)]
-    assert combos, "no specialty ability combo found"
-    before = len(pings)
-    combos[-1].setCurrentIndex(combos[-1].findData(AbilityName.DODGE))
-    assert char.specialties[-1].ability == AbilityName.DODGE
-    assert len(pings) > before, "the retarget left the stale cap error on screen"
+    page.add_spec_to(AbilityName.MELEE, "Swords")
+    page.add_spec_to(AbilityName.MELEE, "Swords")
+    page.rename_spec_group(AbilityName.MELEE, "Swords", "Blades")
+    assert [sp.name for sp in char.specialties] == ["Blades", "Blades"]
 
 
-def test_specialties_go_read_only_at_the_lock(qtbot, ruleset):
-    """Removal in play is undo, not deletion — the same reason the Charms rows are."""
+def test_dropping_an_instance_leaves_the_rest_of_the_group(qtbot, ruleset):
+    char = Character(id="c.s", exalt_type="Solar", caste="dawn")
+    page = _traits(ruleset, char)
+    qtbot.addWidget(page)
+    for _ in range(3):
+        page.add_spec_to(AbilityName.MELEE, "Swords")
+    page.drop_spec_instance(AbilityName.MELEE, "Swords")
+    assert viewmod.specialty_groups(char, AbilityName.MELEE) == [("Swords", 2)]
+    page.drop_spec_instance(AbilityName.MELEE, "Swords")
+    page.drop_spec_instance(AbilityName.MELEE, "Swords")
+    assert viewmod.specialty_groups(char, AbilityName.MELEE) == []
+
+
+def test_specialty_rows_go_read_only_at_the_lock(qtbot, ruleset):
+    """Removal in play is undo, not deletion — the rule the Charms rows follow."""
     from exalted_builder.models.character import Specialty
     char = Character(id="c.s", exalt_type="Solar", caste="dawn")
     char.specialties = [Specialty(ability=AbilityName.MELEE, name="Swords", rating=1)]
     lifecycle.lock_chargen(char, ruleset)
     page = _traits(ruleset, char)
     qtbot.addWidget(page)
-    assert not _spec_rows(page), "existing specialties are still deletable post-lock"
-    assert _named(page, "specialty.new", QLineEdit) is not None
+    assert not _spec_names(page, AbilityName.MELEE), "still editable post-lock"
+    assert _spec_add(page, AbilityName.MELEE) is not None, "no way to buy one"
 
 
 def test_buying_a_specialty_post_lock_spends_xp(qtbot, ruleset):
+    """Post-lock the + prices and buys instead of appending — an empty row would
+    already have cost XP. Driven through the engine call the dialog makes, since
+    QDialog.exec() would block a headless test."""
     char = Character(id="c.s", exalt_type="Solar", caste="dawn")
     advancement.add_xp(char, 50)
     lifecycle.lock_chargen(char, ruleset)
     page = _traits(ruleset, char)
     qtbot.addWidget(page)
     available = advancement.xp_available(char)
-    _named(page, "specialty.new", QLineEdit).setText("Swords")
-    next(b for b in page._body_container.findChildren(QPushButton)
-         if b.text() == "Buy").click()
+    advancement.add_specialty(ruleset, char, AbilityName.MELEE, "Swords")
+    page.reload()
     assert [sp.name for sp in char.specialties] == ["Swords"]
     assert advancement.xp_available(char) < available
-
-
-def test_a_combo_hands_back_the_key_object_not_a_qt_degraded_copy(qtbot, ruleset):
-    """⚠ Qt stores item data as a QVariant and a `str`-valued Enum comes back out of
-    `currentData()` as a plain `str`. `Character` has no `validate_assignment`, so a
-    handler writing that onto an enum-typed field succeeds silently and fails later at
-    the first `.value`. Pins the mechanism at the helper, where one fix covers every
-    caller."""
-    from exalted_builder.models.character import Specialty
-    char = Character(id="c.s", exalt_type="Solar", caste="dawn")
-    page = _traits(ruleset, char)
-    qtbot.addWidget(page)
-    page.add_spec()
-    combo = next(c for c in page._body_container.findChildren(QComboBox)
-                 if c.count() == len(list(AbilityName)) and c.currentIndex() ==
-                 list(AbilityName).index(AbilityName.MELEE))
-    combo.setCurrentIndex(list(AbilityName).index(AbilityName.DODGE))
-    assert type(char.specialties[-1].ability) is AbilityName
-    assert char.specialties[-1].ability.value == "dodge"
+    assert not _spec_names(page, AbilityName.MELEE)
 
 
 # --------------------------------------------------------------------------- #
@@ -898,3 +926,51 @@ def test_an_illuminated_solar_still_gets_both_columns(qtbot, ruleset):
     page = _identity(ruleset, _illuminated(ruleset))
     qtbot.addWidget(page)
     assert _named(page, "camp.calling", QComboBox) is not None
+
+
+# --------------------------------------------------------------------------- #
+# the _combo contract
+# --------------------------------------------------------------------------- #
+# ⚠ These two were nearly LOST. The original was written against the Specialties
+# panel's Ability dropdown; when specialties moved under their Abilities that dropdown
+# went away, and deleting the test with it would have retired a live trap — `_combo`
+# still carries enum keys for the Virtue Flaw and the camp selects. Rebuilt on a
+# synthetic subject so the next surface to move cannot take it down again.
+
+def test_a_combo_hands_back_the_key_object_not_a_qt_degraded_copy(qtbot, ruleset):
+    """⚠ Qt stores item data as a QVariant, and a `str`-valued Enum comes back out of
+    `currentData()` as a plain `str`. `Character` has no `validate_assignment`, so a
+    handler writing that onto an enum-typed field succeeds SILENTLY and fails later at
+    the first `.value`. `_combo` indexes the caller's own dict to avoid it."""
+    got = []
+    page = _traits(ruleset, Character(id="c.s", exalt_type="Solar", caste="dawn"))
+    qtbot.addWidget(page)
+    options = {v: _label_of(v) for v in VirtueName}
+    combo = page._combo(options, VirtueName.COMPASSION, frozen=False,
+                        on_change=got.append)
+    combo.setCurrentIndex(list(options).index(VirtueName.VALOR))
+    assert got == [VirtueName.VALOR]
+    assert type(got[0]) is VirtueName, f"degraded to {type(got[0]).__name__}"
+
+
+def test_a_combo_placeholder_appears_only_while_the_value_is_missing(qtbot, ruleset):
+    """The other half of the contract: Qt has no empty state for a combo, so an unset
+    value must get an explicit blank rather than silently sitting on index 0."""
+    page = _traits(ruleset, Character(id="c.s", exalt_type="Solar", caste="dawn"))
+    qtbot.addWidget(page)
+    options = {v: _label_of(v) for v in VirtueName}
+    unset = page._combo(options, None, frozen=False, on_change=lambda _v: None,
+                        placeholder="— none —")
+    assert unset.currentData() is None and unset.currentText() == "— none —"
+    setv = page._combo(options, VirtueName.VALOR, frozen=False,
+                       on_change=lambda _v: None, placeholder="— none —")
+    # ⚠ Assert the INDEX, not `currentData()`. currentData is still the degraded copy
+    # — Qt gives no way around that — which is the whole reason `_combo` resolves the
+    # key by index instead. An identity assertion on currentData fails here even
+    # though the widget is correct, and this test caught exactly that mistake.
+    assert setv.currentIndex() == list(options).index(VirtueName.VALOR)
+    assert setv.count() == len(options), "a resolved combo still carries a blank row"
+
+
+def _label_of(value) -> str:
+    return value.value.replace("_", " ").title()

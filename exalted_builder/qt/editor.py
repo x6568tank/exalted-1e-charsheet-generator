@@ -46,6 +46,14 @@ from exalted_builder.ui import view as viewmod
 # 5 it IS the ceiling on every Ability and Attribute (engine.elder).
 BODY_REBUILD_TARGETS = {"essence"}
 
+# ⚠ The QSS gives every QPushButton `background:CARD` — which is the shade of the
+# _Panel it sits on, so a small button inside a card is INVISIBLE. The same
+# ancestor-stylesheet trap as the QTextEdit-in-a-_Panel one; the only fix is an inline
+# stylesheet on the widget. INPUT is the shade the human already tuned to read as a
+# clear step off CARD.
+_TINY_BUTTON = (f"background:{INPUT}; color:#e8e6e1; border:none; border-radius:3px; "
+                f"padding:0px; font-weight:700;")
+
 
 class _Pip(QLabel):
     """One clickable pip of a dot track. Emits its 1-based pip index on click."""
@@ -603,17 +611,111 @@ class _EditorPage(QWidget):
         del self._char().colleges[idx]
         self.reload()
 
-    def add_spec(self) -> None:
-        """A blank chargen row. The per-Ability cap is NOT enforced here — the row
-        starts on Melee and the player retargets it, so blocking the ADD would block it
-        on the wrong Ability. `validate.check_specialties` reports an over-capped
-        Ability instead, which is also what covers a save that arrives over the cap."""
+    def _specialty_rows(self, group, ability: AbilityName, locked: bool) -> None:
+        """One indented child row per specialty GROUP under its Ability's dot row.
+
+        Pre-lock the name is editable and ✕ drops one instance; post-lock the row is
+        read-only, because removal in play is undo, not deletion — the same rule the
+        Charms rows follow."""
+        char = self._char()
+        for name, count in viewmod.specialty_groups(char, ability):
+            row = QHBoxLayout()
+            row.setContentsMargins(24, 0, 0, 0)
+            if locked:
+                label = QLabel(f"{name or '(unnamed)'}{f'  ×{count}' if count > 1 else ''}")
+                label.setStyleSheet("color:#a8a5a0; font-size:9pt;")
+                row.addWidget(label, 1)
+            else:
+                edit = QLineEdit(name)
+                edit.setObjectName(f"specialty.name.{ability.value}.{name}")
+                edit.setPlaceholderText("specialty")
+                edit.setMaximumWidth(150)
+                edit.setStyleSheet("font-size:9pt;")
+                edit.editingFinished.connect(
+                    lambda a=ability, old=name, e=edit:
+                    e.text() != old and self.rename_spec_group(a, old, e.text()))
+                row.addWidget(edit)
+                if count > 1:
+                    tally = QLabel(f"×{count}")
+                    tally.setStyleSheet("color:#a8a5a0; font-size:9pt;")
+                    row.addWidget(tally)
+                drop = QPushButton("✕")
+                drop.setFixedSize(18, 18)
+                drop.setStyleSheet(_TINY_BUTTON)
+                drop.setToolTip("Remove one instance")
+                drop.clicked.connect(
+                    lambda _=False, a=ability, n=name: self.drop_spec_instance(a, n))
+                row.addWidget(drop)
+                row.addStretch(1)
+            group.addLayout(row)
+
+    def _add_specialty(self, ability: AbilityName) -> None:
+        """Pre-lock: append a blank row to name in place. Post-lock: a specialty is a
+        PURCHASE, so it is named and priced up front — an empty row would already have
+        cost XP."""
+        if not self._char().chargen_locked:
+            self.add_spec_to(ability)
+            return
+        ruleset, char = self._ruleset, self._char()
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Buy a specialty in {_label(ability.value)}")
+        lay = QVBoxLayout(dialog)
+        lay.addWidget(QLabel(f"{_label(ability.value)} — "
+                             f"{costs.specialty_cost(ruleset, char)} XP"))
+        name = QLineEdit()
+        name.setObjectName("specialty.new")
+        name.setPlaceholderText("specialty name")
+        lay.addWidget(name)
+        note = QLabel("Max 3 per Ability; take the same one twice to stack it.")
+        note.setWordWrap(True)
+        note.setStyleSheet("color:#a8a5a0;")
+        lay.addWidget(note)
+
+        def _go() -> None:
+            try:
+                advancement.add_specialty(ruleset, char, ability, name.text().strip())
+            except advancement.AdvancementError as ex:
+                self._notify(str(ex), "warning")
+                return
+            dialog.accept()
+            self.reload()
+
+        buy = QPushButton("Buy")
+        buy.clicked.connect(_go)
+        lay.addWidget(buy)
+        cancel = QPushButton("Cancel")
+        cancel.clicked.connect(dialog.reject)
+        lay.addWidget(cancel)
+        dialog.exec()
+
+    def add_spec_to(self, ability: AbilityName, name: str = "") -> None:
+        """Append one instance of a specialty to a NAMED Ability.
+
+        ⚠ The per-Ability control knows its Ability, so there is no blank-row-on-Melee
+        -then-retarget dance any more. The cap is still NOT enforced here: chargen
+        writes the list straight and `validate.check_specialties` reports an over-capped
+        Ability, which is also what covers a save that arrives over it. Enforcing on the
+        add would be inventing a rule the engine does not ask for."""
         self._char().specialties.append(
-            Specialty(ability=AbilityName.MELEE, name="", rating=1))
+            Specialty(ability=ability, name=name, rating=1))
         self.reload()
 
-    def remove_spec(self, idx: int) -> None:
-        del self._char().specialties[idx]
+    def rename_spec_group(self, ability: AbilityName, old: str, new: str) -> None:
+        """Rename every instance in a group. The group IS the specialty — two rows
+        named "Swords" are one specialty taken twice — so renaming one and not the
+        other would silently split it in half."""
+        for sp in self._char().specialties:
+            if sp.ability == ability and sp.name == old:
+                sp.name = new
+        self._changed()
+
+    def drop_spec_instance(self, ability: AbilityName, name: str) -> None:
+        """Remove ONE instance from a group; the row disappears when the last goes."""
+        specialties = self._char().specialties
+        for i, sp in enumerate(specialties):
+            if sp.ability == ability and sp.name == name:
+                del specialties[i]
+                break
         self.reload()
 
     def set_virtue_flaw_virtue(self, virtue: VirtueName) -> None:
@@ -1210,8 +1312,21 @@ class TraitsPage(_EditorPage):
                               lambda v, a=a: char.abilities.__setitem__(a, v),
                               0, abil_trait_cap, target=f"abilities.{a.value}")
                     row.addWidget(t)
+                    add = QPushButton("+")
+                    add.setObjectName(f"specialty.add.{a.value}")
+                    add.setFixedSize(18, 18)
+                    add.setStyleSheet(_TINY_BUTTON)
+                    add.setToolTip(f"Add a specialty in {_label(a.value)}")
+                    add.clicked.connect(lambda _=False, a=a: self._add_specialty(a))
+                    row.addWidget(add)
                     group.addLayout(row)
+                    self._specialty_rows(group, a, locked)
                 cols.addLayout(group, 1)
+
+        # ⚠ There is no Specialties PANEL any more (human, 2026-08-22). A specialty
+        # belongs to one Ability, so it is drawn as a child row under that Ability
+        # rather than in a section of its own where the Ability had to be re-picked
+        # from a dropdown. `_specialty_rows` above is the whole of it.
 
         # crafts
         craft_cf = AbilityName.CRAFT in caste_abilities or AbilityName.CRAFT in char.favored_abilities
@@ -1319,63 +1434,6 @@ class TraitsPage(_EditorPage):
             add_col = QPushButton("+ Add college")
             add_col.clicked.connect(self.add_college)
             col_lay.addWidget(add_col)
-
-        # Specialties. ⚠ A specialty is an INSTANCE, not a rated trait (human, rules
-        # authority, 2026-07-31): you do not raise one, you take the same one again, so
-        # there is no dot track here — "Swords" twice means two rows — and the cap of 3
-        # counts ROWS per Ability.
-        sp_lay = self._panel("Specialties (max 3 per Ability; take one twice to stack it)")
-        for idx, sp in enumerate(char.specialties):
-            row = QHBoxLayout()
-            if locked:
-                # Read-only after the lock for the reason the Charms tab's rows are:
-                # removal in play is undo, not deletion.
-                row.addWidget(QLabel(f"{_label(sp.ability.value)} — {sp.name}"), 1)
-                sp_lay.addLayout(row)
-                continue
-            # ⚠ BOTH handlers must fire `_changed()`. A row is appended blank on Melee
-            # and retargeted afterwards, so the add itself can legitimately push Melee
-            # over the cap until the real Ability is picked — and that transient
-            # `specialty-cap` error is already on screen. Without the re-run the
-            # retarget fixes the MODEL and leaves the stale error up: three Melee plus
-            # three Dodge reads back as "Melee has 4".
-            row.addWidget(self._combo(
-                {a: _label(a.value) for a in AbilityName}, sp.ability, frozen=False,
-                on_change=lambda a, sp=sp: (setattr(sp, "ability", a), self._changed())), 1)
-            name = QLineEdit(sp.name)
-            name.setPlaceholderText("Specialty")
-            name.textChanged.connect(
-                lambda t, sp=sp: (setattr(sp, "name", t), self._changed()))
-            row.addWidget(name, 1)
-            drop = QPushButton("✕")
-            drop.setFixedWidth(28)
-            drop.clicked.connect(lambda _=False, idx=idx: self.remove_spec(idx))
-            row.addWidget(drop)
-            sp_lay.addLayout(row)
-        if locked:
-            # Post-lock a specialty is a PURCHASE, so it is named and priced up front
-            # rather than appended blank — an empty row would already have cost XP.
-            row = QHBoxLayout()
-            row.addWidget(QLabel("Specialty in"))
-            pick = {"ability": AbilityName.MELEE}
-            row.addWidget(self._combo(
-                {a: _label(a.value) for a in AbilityName}, AbilityName.MELEE,
-                frozen=False, on_change=lambda a: pick.__setitem__("ability", a)), 1)
-            new_name = QLineEdit()
-            new_name.setObjectName("specialty.new")
-            new_name.setPlaceholderText("specialty name")
-            row.addWidget(new_name, 1)
-            row.addWidget(QLabel(f"{costs.specialty_cost(ruleset, char)} XP"))
-            buy = QPushButton("Buy")
-            buy.clicked.connect(lambda: self._do_trait(
-                lambda: advancement.add_specialty(
-                    ruleset, char, pick["ability"], new_name.text().strip())))
-            row.addWidget(buy)
-            sp_lay.addLayout(row)
-        else:
-            add = QPushButton("Add specialty")
-            add.clicked.connect(self.add_spec)
-            sp_lay.addWidget(add)
 
         # Permanent Resonance — the Abyssal Death's Taint counterpart to the temporary
         # track (p.41). Post-lock only, and only where the cap is non-zero, which is the

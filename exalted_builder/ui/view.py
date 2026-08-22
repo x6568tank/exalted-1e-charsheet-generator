@@ -2166,6 +2166,26 @@ def style_for_category(ruleset: RuleSet, category: str) -> Optional[StyleView]:
     return None
 
 
+def specialty_groups(character: Character,
+                     ability: AbilityName) -> list[tuple[str, int]]:
+    """One Ability's specialties as [(name, how many times taken)], first-seen order.
+
+    ⚠ A specialty is an INSTANCE, not a rated trait (human, 2026-07-31): "you don't
+    raise specialties, you just take the same one multiple times". So the COUNT is the
+    stacking, and a group of two is two `Specialty` rows on the character — never one
+    row rated 2. A renderer showing "Swords ×2" is describing two instances; anything
+    that writes back must add or drop whole instances.
+
+    Unnamed rows are kept (they group under ""), because chargen appends a blank row and
+    the player names it afterwards — dropping them here would make a fresh row vanish.
+    """
+    counts: dict[str, int] = {}
+    for sp in character.specialties:
+        if sp.ability == ability:
+            counts[sp.name] = counts.get(sp.name, 0) + 1
+    return list(counts.items())
+
+
 def calling_ability_marks(ruleset: RuleSet, character: Character) -> set:
     """The Ability names the Calling discounts, for the editor's ✦ marks. A separate
     set from the Caste/Favoured one on purpose: an Ability can be both, and the two
