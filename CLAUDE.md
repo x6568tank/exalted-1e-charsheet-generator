@@ -125,6 +125,14 @@ Each is written up in full where it happened; these are the reusable one-liners.
 - **An exemption keyed on a basename is an exemption anything can claim** — key on path.
 - **Check sign conventions against `data/`** before consuming a field (`Armor.mobility_penalty`
   is stored NEGATIVE; a consumer reading it as a magnitude adds dice).
+- **A GUI toolkit can silently degrade a value you hand it and hand back.** Qt stores
+  combo item data as a QVariant, and a `str`-valued Enum returns from `currentData()` as
+  a plain `str`; with no `validate_assignment` on the model, writing it succeeds and
+  fails later somewhere else. **Never read a key back out of a widget — index the dict
+  you built the widget from.**
+- **A gap-list entry can name the wrong MODULE, not just the wrong size.** Downtime sat
+  under "Edit's deferred panels" for two sessions and is a shell control. Check where
+  the webapp puts a thing before porting it to where the list says it is.
 - **A "free" ruling that contradicts the book's price language needs the human's intent
   confirmed** — a mistaken "free" ships as a silent under-charge.
 - **When a tool closes a blocker, the prose describing the blocker is part of the change.**
@@ -244,10 +252,13 @@ pool calculation.
   those are what decide whether the native app can replace the webapp.
   `docs/status/handoff.md` carries the itemised list. **The within-tab gaps are NEXT**
   (human, 2026-08-22) — before any further tab is ported. ⚠ Nothing will remind you they
-  exist: every tab holding one is shipped, human-clicked and green. **The first is
-  done** — the Ox-Body / Deadly Beastman variant menu (human-clicked 2026-08-22); the
-  list is not, and it is a LOWER bound: closing it turned up a stale shell readout that
-  appeared nowhere on it.
+  exist: every tab holding one is shipped, human-clicked and green. **Two are done** —
+  the Ox-Body / Deadly Beastman variant menu (human-clicked 2026-08-22) and **Edit's
+  seven deferred panels (2026-08-22, green but NOT yet clicked)**. The list is not done,
+  and **it is a LOWER bound**: closing the first turned up a stale shell readout that
+  appeared nowhere on it, and closing the second turned up two more — a `reload()` that
+  never pinged the shell, and `_combo` degrading enum keys to plain strings.
+  **Audit each remaining tab against its `ui/` counterpart before trusting the list.**
 
   Four things that affect work NOW, so they live here:
   - ⚠ **A Qt tab is a COLLECTION, and there is ONE layout.** Settled by the human
@@ -319,8 +330,8 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,729 passing, 1 skipped** (2026-08-22, main PC, the `qt-port` branch after group 4's
-variant-menu chooser — includes the Qt-port tests in `tests/test_qt_*.py`,
+**2,766 passing, 1 skipped** (2026-08-22, main PC, the `qt-port` branch after group 4's
+Edit panels — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py` and `tests/test_gear_actions.py`).
 
 - ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (203 of them,

@@ -948,6 +948,92 @@ Tests: 8 in `tests/test_view.py`, 11 in `tests/test_qt_charms.py`. Suite **2,729
 Clicked and **approved** — *"Looks good."* The two defects above are what that click
 bought; both were fixed and re-clicked before the approval.
 
+## Group 4 item 2 — Edit's seven deferred panels (2026-08-22)
+
+Closes the itemised Edit gaps. `d157913` (five panels) + `b9ee454` (the last two).
+**Green, NOT human-clicked** — the human's call was one click-through over the whole
+Edit surface rather than one per panel.
+
+| Panel | Home | Gate |
+|---|---|---|
+| Permanent Resonance / Limit | TraitsPage | `derive.permanent_limit_cap` — no caller names a Merit id |
+| Virtue Flaw | TraitsPage | `derive.has_virtue_flaw` |
+| Specialties | TraitsPage | always |
+| Astrological Colleges | TraitsPage | `b.college_dots` — the BUDGET, not the splat name |
+| Bonus health levels | TraitsPage | always |
+| Training Camp & Calling | IdentityPage | `build_camp_view is not None` |
+| Downtime | **`qt/main_window.py`** | post-lock, in `_xp_section` |
+
+### Three new engine modules, and a move
+
+Two shells driving one write is what the `*_actions` modules exist for, so each shared
+write went into one:
+
+* **`engine/health_actions.py`** — `level_total` / `set_level_total`. ⚠ The stored list
+  is a DELTA from the printed track, so an empty `health_bonus_levels` means
+  "unmodified", never "no health levels". `ui/editor.py` migrated onto it, its copies
+  deleted.
+* **`engine/camp_actions.py`** — the four camp writes. ⚠ **A refusal is RETURNED, not
+  raised and not notified.** It sits below the UI so it cannot call `ui.notify`, and
+  unlike a purchase there is no `AdvancementError` shape — a refused pick is an ordinary
+  outcome. Both halves matter at the call site: **say why, and REDRAW**, or the control
+  keeps showing a selection the character does not hold.
+* **`engine/labels.py`** — `_label` + `_style_label`, one copy each.
+
+**`build_camp_view` + `CampView` moved from `ui/view.py` to `engine/camp.py`** — the
+human's call (2026-08-22) over a `ui/`-side module or a duplicate. `camp_actions` needs
+the view, and `engine/` may not import `ui/`. `view.py` re-exports the names, so
+`viewmod.build_camp_view`, `viewmod.CampView`, `viewmod._style_label` and
+`viewmod._label` all still resolve — including `ui/picker.py` deferring to
+`view._style_label`, which a test asserts. `_charm_name` turned out to be a straight
+duplicate of `engine/validate`'s, so view.py re-exports that instead of keeping a second.
+
+### The two defects the audit found — neither was on the gap list
+
+The handoff said to audit before building, because last session's stale readout bar had
+appeared in none of its entries. It paid twice, both the house bug's first species.
+
+1. **`_EditorPage.reload()` never pinged `on_change`.** Ten call sites — every
+   structural change (Exalt type, caste, origin, upbringing, both favoured setters,
+   add/remove craft) plus `_do_trait` and `_lower_willpower` — moved the bonus-point
+   spend and the validation errors while the shell's readout bar kept showing the
+   previous answer. `_changed()` pinged; `reload()` did not, and the structural setters
+   only ever call `reload()`.
+   **The page's own body rebuilt correctly every time, which is what hid it.**
+   Fixed in the WRAPPER, not at the ten sites — one ping is a mechanism, ten remembered
+   call sites is the same bug waiting for an eleventh. ⚠ **The test asserts the PING.**
+   Asserting the page would have passed straight over it.
+2. **`_combo` degraded enum keys.** Qt stores item data as a QVariant and a `str`-valued
+   Enum comes back out of `currentData()` as a plain `str`. `Character` has no
+   `validate_assignment`, so `setattr(sp, "ability", "dodge")` onto a field typed
+   `AbilityName` **succeeded, silently** — it would have failed later at the first
+   `.value`. The key is now looked up by INDEX in the caller's own dict, so every key
+   type round-trips identically. Found by a test that failed with `KeyError: 'conviction'`.
+
+### Traps
+
+* ⚠ **"Address a widget by name, not position" bit while writing the TEST for it.** The
+  first Virtue Flaw locator walked out to the label's `parentWidget()` and took the
+  first `QComboBox` — but a `QHBoxLayout` does not reparent, so **every combo in a panel
+  shares one parent**, and it grabbed the Flawed Virtue box while looking for the sample
+  list. Every control added here has an `objectName`; the tests use
+  `findChild(kind, name)`.
+* ⚠ **A gap-list entry can name the wrong MODULE.** Downtime was filed under "Edit's
+  deferred panels" for two sessions. It is not a panel — in the webapp it is a button
+  beside Adjust XP, so its Qt home is the shell's popover.
+* ⚠ **Two different things wore the name `age`.** The 2026-08-06 ruling removed the
+  numeric age trait; a free-text biography `age` arrived 2026-08-21 and is unrelated. A
+  test pins that the calculator does not read the bio field.
+* ⚠ **`CharmVariant.max_purchases`-style parity traps in the camp panel:** the category
+  choice is TWO controls, not one — "two Charms from ONE of four martial arts" (p.90).
+  And the heading follows what the panel CONTAINS, because Cult p.96 gives a
+  Dragon-Blooded a camp and no Calling.
+
+Tests: 37 added across `tests/test_qt_editor.py` and `tests/test_qt_shell.py`. Suite
+**2,766 passed, 1 skipped** (main PC, 7m36s).
+
+### Human-verified on the real display — NOT YET
+
 ## Open questions — not decided
 
 * **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets
