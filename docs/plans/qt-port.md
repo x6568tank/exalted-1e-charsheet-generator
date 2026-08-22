@@ -439,6 +439,15 @@ lock, and the rail's Play appearing at the lock.
   empty. Build the label dict with a comprehension.
 - **The rail's `currentRowChanged` handler must call `stack.setCurrentIndex`** — a
   reload-on-select handler that forgets to switch the stack leaves the old page up.
+- ⚠ **A teardown sweep MUST recurse into nested layouts.** `item.widget()` is `None`
+  for a `QLayout`, so a widget-only loop detaches nothing inside a row and the previous
+  build paints ON TOP of the next. This has now bitten **twice** — `_clear_lay`
+  (milestone 1) and `CatalogueDialog._clear_extras` (milestone 3) — and it will bite any
+  new surface that builds its content as rows, which is all of them. Copy the recursive
+  shape; do not write a fresh loop. **Test it by thrashing the rebuild several times and
+  counting live descendants**: a single rebuild passes while leaking.
+- **`deleteLater()` alone is not enough** — it is deferred to the event loop, so hide
+  and unparent NOW or a pending-delete build keeps painting at stale geometry.
 
 ## Milestone 3 — the Advantages tab (2026-08-21)
 
@@ -491,10 +500,63 @@ One shell fix fell out: the pages are built before the status strip existed, and
 `AdvantagesPage` derives its issue line during construction — `self.status` is now
 created before the pages, and the readout no longer opens on " · " post-lock.
 
-Tests: `tests/test_qt_advantages.py` (31), plus the extractions' own —
+Tests: `tests/test_qt_advantages.py` (43), plus the extractions' own —
 `test_view.py` (4: the Prodigy default, the blank menu, the signed label, the tier
 label) and `test_merit_postlock.py` (5: the side resolution's two refusals and its
 three routes).
+
+### Human-verified on the real display — 2026-08-21
+
+Clicked through and **approved**. Backgrounds read correctly first time; the pickers did
+not, and the fix (buying moved INTO the catalogue dialog, for every picker that has a
+choice to make) plus the two bugs it introduced and the summary clamp are written up in
+full in `docs/status/advantages-tab.md`. The one line worth carrying here:
+
+⚠ **A control can be correct, reachable, tested, and still nowhere near the thing it
+configures.** The M&F tier/side controls sat on a card below the fold, so picking an
+entry looked like it did nothing. Every offscreen test passed, and a screenshot test
+would have passed too. **Watch for this shape in Gear, Combos and Play** — those all
+have pickers, and `qt/catalogue.py` now carries the answer (`extras` + `confirm` hooks,
+game logic staying in the caller).
+
+### The Charms tab's open delay — a catalogue-scan problem, not a rendering one
+
+The human reported "a notable loading delay" opening Charms and assumed the
+`QGraphicsView` trees were the cost. **They were not.** Profiling one page build found
+`charm_matches_splat` called **190,859 times**. Three helpers are pure functions of the
+ruleset (and, for the augmentation category, the character's splat) but each SCANS the
+whole 1,921-Charm catalogue — and each was being called from inside a loop over that
+same catalogue:
+
+| helper | calls per build | called from |
+|---|---|---|
+| `augmentation_category` | 93 | once per collapsed tree — ~180k of the total |
+| `virtue_split` | 2,870 | once per Charm |
+| `_arcanoi_categories` | 1,745 | once per `group_of` |
+
+`reload` compounds it: `trees_for` runs five times — three to decide which tabs exist,
+then again per page. A memo created fresh per rebuild and threaded through took the
+build **0.791s → 0.099s**, with no rendering or layout change. Human: "Instant now."
+
+⚠ **The obvious version of this fix is a bug.** Keying the cache on the RuleSet looks
+right and is wrong: `rules_db.reload_custom_layer` mutates `ruleset.charms` **IN PLACE**,
+deliberately, so that authoring a homebrew Charm becomes visible on every page already
+holding the object. A ruleset-keyed cache would serve a stale catalogue precisely when
+the player edits their custom content. So the memo is **per-build and never stored on the
+page**; the one longer-lived copy (on `CharmTreeView`) is safe only because `_tree_page`
+builds a new view every reload, and only splat-derived answers go in it — nothing keyed
+on which Charms are OWNED, which changes under a live view on a buy.
+
+Verified beyond the suite: cached and uncached `trees_for` agree for every example
+character × every group, **and for Alchemical specifically** — it is the only splat whose
+`augmentation_category` is non-`None`, so caching a `None` everywhere would pass a
+Solar-only test while breaking the one splat that uses the feature.
+
+⚠ The guard test pins the **mechanism** (one scan per build regardless of how many groups
+are asked for), not a timing and not a call-count ratio. Two earlier versions were wrong
+in instructive ways: the first asserted a 5× ratio *tuned until it passed*, the second
+was off by one against the data (the test character has exactly 10 trees). Its negative
+control now asserts only "more than once", so it will not rot when a Charm is added.
 
 ## Open questions — not decided
 

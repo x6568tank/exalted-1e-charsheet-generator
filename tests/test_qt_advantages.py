@@ -489,13 +489,34 @@ def test_confirming_the_gain_dialog_buys_the_configured_entry(qtbot, ruleset):
     side = next(w for w in dialog.extras_box.findChildren(QComboBox)
                 if w.findData("flaw") >= 0)
     side.setCurrentIndex(side.findData("flaw"))
-    # Mutation is variable-cost, so the point value is part of the configuration —
-    # at the spinner's opening 0 the Flaw is worth nothing and pays nothing.
+    # Mutation is variable-cost, so the point value is part of the configuration.
     dialog.extras_box.findChildren(QSpinBox)[0].setValue(2)
     dialog._choose()
     assert char.merits_flaws[-1].merit_id == MUTATION
     assert char.merits_flaws[-1].taken_as == "flaw"
     assert advancement.xp_available(char) > before
+
+
+def test_a_variable_cost_entry_opens_at_one_point_not_zero(qtbot, ruleset):
+    """Human's ruling, 2026-08-21. At zero a variable-cost entry prices to nothing, so
+    confirming it adds a row that neither costs nor pays — a purchase that looks made
+    and did nothing. ⚠ The value must be seeded into the STATE, not just the spinner:
+    the confirm button prices the state."""
+    char = _locked_with_xp(ruleset, _solar())
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    dialog = page._build_gain_dialog(page._available_merits())
+    qtbot.addWidget(dialog)
+    _select(dialog, MUTATION)
+    assert dialog.extras_box.findChildren(QSpinBox)[0].value() == 1
+    assert page._gain["points"] >= 1
+
+    # ...and the price shown follows from it, rather than reading "0 points".
+    side = next(w for w in dialog.extras_box.findChildren(QComboBox)
+                if w.findData("flaw") >= 0)
+    side.setCurrentIndex(side.findData("flaw"))
+    _points, xp = page._mf_price(ruleset.merits_flaws[MUTATION], page._gain)
+    assert xp > 0 and str(xp) in dialog.choose_btn.text()
 
 
 def test_switching_entries_does_not_carry_the_previous_tier_over(qtbot, ruleset):
@@ -512,7 +533,11 @@ def test_switching_entries_does_not_carry_the_previous_tier_over(qtbot, ruleset)
     other = next(m.id for m in available if m.id != MUTATION)
     _select(dialog, other)
     assert page._gain["id"] == other
-    assert page._gain["taken_as"] == "" and page._gain["points"] == 0
+    assert page._gain["taken_as"] == ""
+    # ⚠ NOT `points == 0`: a variable-cost entry legitimately opens at 1, so assert the
+    # stale value is gone rather than a literal that only holds while `other` happens
+    # to be fixed-cost.
+    assert page._gain["points"] != 4
 
 
 # --------------------------------------------------------------------------- #

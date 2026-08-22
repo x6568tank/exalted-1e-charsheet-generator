@@ -212,3 +212,99 @@ Where the native tab deliberately differs from the web one:
   no flex-wrap, and a no-wrap row crushes its later children to slivers.
 
 31 tests in `tests/test_qt_advantages.py`; they skip without the optional `qt` extra.
+
+### The click-through, and what it changed — 2026-08-21
+
+**Human-clicked on the real display 2026-08-21** (the deferral from the section above is
+closed). The Background rows, the rung + Hearthstone total under a Manse and the Demesne
+toggle all read correctly first time. **The pickers did not**, and the finding was
+structural rather than cosmetic:
+
+> "Clicking into the M/F catalogue and finding one to choose doesn't actually let me buy
+> it — there's no buy prompt. And that should probably just be in the dialogue box that
+> pops up; the rating, picking if it's a M/F for ones where that changes, etc."
+
+It *did* buy. Picking registered the entry and painted the tier/side/points controls onto
+a card **further down the page, below the fold** — so the dialog closed and nothing
+visibly happened. ⚠ **The decision was made in one place and configured in another**, and
+every offscreen test passed because each half worked. A screenshot test would have passed
+too. This is the shape to watch for in the remaining ports: *a control that is correct,
+reachable, and nowhere near the thing it configures.*
+
+The dialog is now the whole transaction, for **every picker that has a choice to make**
+(the human's call over an M&F-only fix — one rule, and Gear inherits it):
+
+| picker | control in the dialog | confirm button |
+|---|---|---|
+| Backgrounds | rating spinner, capped by `_bg_cap_for` | `Add at •••` / `Barred by a Flaw` |
+| M&F pre-lock | tier / points / side | `Take (3 points)` |
+| M&F post-lock | tier / points / side | `Gain for 12 XP` / `Gain — pays 8 XP` |
+
+**A Flaw PAYS, so the button says so** rather than reading as a cost. An `either` entry
+stays **disabled** on "Choose Merit or Flaw first": the side is what makes the
+transaction positive or negative, so it is not a detail to fix up after the row lands.
+That refusal now exists in both regimes — previously only the engine caught it, after
+the fact.
+
+The in-play card's bare "Gain" button and its pending-preview pane are **gone**; that
+pane was the thing below the fold. One way in.
+
+**What keeps the surfaces from drifting:** `_mf_purchase_block` is shared by the in-play
+card and both dialogs, so they cannot price the same purchase differently. It refreshes
+in place via a `sync()` closure rather than rebuilding — ⚠ deleting a widget from inside
+its own change handler is the Qt crash that shape exists to avoid. `catalogue.py` keeps
+**zero game logic**: it grows two caller-supplied hooks (`extras`, `confirm`) and still
+cannot tell a Merit from a Flaw.
+
+⚠ **The background cap was one edit away from existing twice** — the add-dialog needed
+the same ceiling the row's dot track uses. `_backgrounds_panel.cap_for` now delegates to
+`_bg_cap_for`. A second implementation would have been the house bug's first species,
+with the two ceilings drifting silently.
+
+**Testing seam:** `_build_*_dialog` returns the dialog *without* running it; `exec()`
+blocks, so that is the only way a test reaches the in-dialog controls.
+
+### Two bugs the click-through found in the first cut of the above
+
+Both were mine, both shipped in the same session they were found:
+
+* **Selecting a second entry painted its controls ON TOP of the first's.**
+  `_clear_extras` swept only *widgets*, but the controls are built as nested
+  `QHBoxLayout` rows and **a layout answers `item.widget() is None`** — so nothing inside
+  one was ever detached. The page's own `_clear_lay` already recursed; the new one did
+  not. ⚠ **This is the second instance of this exact shape in the codebase.** Any future
+  dialog that builds rows will hit it a third time. Negative-controlled rather than
+  trusted: with the recursion removed the guard test reports **31 live labels where 10
+  are expected**, climbing per selection — so the test had to thrash the selection
+  several times, because a single switch passes while leaking.
+* **The description printed twice** — scrollable in the detail pane, truncated
+  underneath. `_merit_rules_text` grows `with_description`; the cost / restriction /
+  requires lines stay, since those are genuinely *not* in the pane.
+
+### Catalogue summary lines, clamped
+
+The other click-through finding: printed summaries scrolled entries off the screen.
+Clamped to **14 words**, fixed in `catalogue.py` so every picker inherits it. Two
+exclusions are deliberate and load-bearing:
+
+* ⚠ **The filter still searches the FULL summary.** Filtering the truncated text would
+  make an entry unfindable by a word its own description contains.
+* The detail pane still shows everything.
+
+⚠ The Hearthstone rows had to move their over-budget warning to the **FRONT** of the
+summary. Appended at the end, it was exactly what the clamp ate — *anything tacked onto
+the end of a description is what a word clamp destroys first.*
+
+### The variable-cost opening value — ruled 2026-08-21
+
+A variable-cost entry (Mutation and its kind) **opens at 1 point, never 0** — the
+human's ruling on the one question this work raised. At 0 the entry priced to nothing,
+so confirming it added a row that neither cost nor paid: a purchase that looked made and
+did nothing.
+
+⚠ The opening value is seeded into the pending-purchase **state**, not only into the
+spinner — the confirm button prices the state, so a widget-only default would show
+"Gain for 4 XP" and buy a 0-point row. The spinner can still be driven back to 0
+deliberately; only the default moved.
+
+44 tests in `tests/test_qt_advantages.py`. **2,597 passing, 1 skipped** (main PC).

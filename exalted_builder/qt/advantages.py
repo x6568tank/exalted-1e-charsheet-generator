@@ -1263,18 +1263,26 @@ class AdvantagesPage(QWidget):
                 lambda _i, t=tier: (state.update(tier=t.currentData() or ""), sync()))
             controls.addWidget(tier)
         elif definition.variable_cost:
+            # ⚠ A variable-cost entry OPENS AT ONE, never at zero (human's ruling,
+            # 2026-08-21). At zero it prices to nothing, so confirming it would add a
+            # row that neither costs nor pays — a purchase that looks made and did
+            # nothing. The opening value is seeded into `state` as well as the spinner,
+            # because the confirm button prices `state`, not the widget.
             rate = meritsmod.forfeit_rate(definition)
             spin = QSpinBox()
             spin.setRange(0, 20)
             if rate:
                 controls.addWidget(QLabel(
                     f"{meritsmod.forfeit_trait_label(definition)} dots"))
-                spin.setValue(state.get("points", 0) // rate)
+                dots = (state.get("points", 0) // rate) or 1
+                state["points"] = dots * rate
+                spin.setValue(dots)
                 spin.valueChanged.connect(
                     lambda v, r=rate: (state.update(points=v * r), sync()))
             else:
                 controls.addWidget(QLabel("Points"))
-                spin.setValue(state.get("points", 0))
+                state["points"] = state.get("points", 0) or 1
+                spin.setValue(state["points"])
                 spin.valueChanged.connect(lambda v: (state.update(points=v), sync()))
             controls.addWidget(spin)
         choices = meritsmod.detail_choices(definition)

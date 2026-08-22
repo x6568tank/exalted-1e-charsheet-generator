@@ -1,66 +1,63 @@
-# Session handoff — 2026-08-21 (Advantages ported to Qt)
+# Session handoff — 2026-08-21 (Advantages clicked through; Charms tab made instant)
 
 # 👉 YOU ARE HERE
 
-**The full suite was NOT run to completion this session** (out of time). What WAS run,
-green: `test_qt_advantages.py` (31 new), `test_qt_shell.py`, `test_qt_editor.py`,
-`test_qt_charms.py`, `test_qt_sheet.py`, `test_view.py`, `test_merit_postlock.py`,
-`test_backgrounds_splat.py`, and the whole `-k "advantage or merit or flaw or fetter or
-passion or background"` slice (469 passed, 1 skipped). **First job at home:**
+Suite green and measured: **2,597 passed, 1 skipped** (main PC, `qt-port`). The branch is
+**3 commits ahead of where the session started, no upstream, unpushed.**
 
-```
-.venv/bin/python -m pytest -q     # last full-run baseline: 2,541 passed, 1 skipped
-```
+Nothing is half-finished. Pick up at **the Gear tab** (milestone 4).
 
-Expect roughly 2,581 — the baseline plus 31 Qt + 4 view + 5 advancement tests.
+## What happened
 
-## What happened: milestone 3 — the Advantages tab is native
+**Milestone 3 is now human-clicked and approved** — the deferral the last handoff opened
+is closed. Driving it on the real display found three things, all fixed and committed:
 
-`exalted_builder/qt/advantages.py` fills the rail's placeholder: Backgrounds, Merits &
-Flaws, and (for ghosts) Fetters and Passions, in both regimes. Full record:
-`docs/plans/qt-port.md` "Milestone 3"; the tab's own file is
-`docs/status/advantages-tab.md`.
+1. **The M&F and Background pickers didn't let you buy.** They did, technically: picking
+   an entry painted its tier/side/points controls onto a card **below the fold**, so the
+   dialog closed and nothing visibly happened. Buying now happens **inside the catalogue
+   dialog**, for every picker that has a choice to make.
+2. **Selecting a second catalogue entry painted over the first** — my bug, from (1).
+   `_clear_extras` swept only widgets and the controls are nested layouts.
+3. **The description printed twice**, and long summaries scrolled rows off the screen.
 
-**The two prep moves went in FIRST**, so no rules decision was copied into a second
-widget — this is the "extract before you port" rule from milestone 2:
+Full write-up: `docs/status/advantages-tab.md`. Commit `0d82513`.
 
-- **`view.default_merit_tier`** (+ `merit_tier_label`, `merit_option_label`) — the
-  splat-aware default a fresh M&F row opens on. The Prodigy trap is now tested in
-  `test_view.py`.
-- **`advancement.gain_merit_or_flaw`** — the merit-vs-flaw side resolution and both of
-  its refusals. Which of `buy_merit` / `gain_flaw` runs is what makes the XP positive or
-  negative, so it is a rules decision, not layout. `ui/advantages.py` delegates to all
-  four; that is what keeps the two shells from drifting.
-- **`qt/catalogue.py`** — the native browse-before-you-choose dialog, same
-  `(key, name, summary, full)` + `on_pick` contract as the web one, **reusable by Gear**.
-  Its filter HIDES rows rather than removing them.
+**The Charms tab's "notable loading delay" was not the trees.** It was 190,859
+`charm_matches_splat` calls per build — three catalogue-scanning helpers called from
+inside loops over that same catalogue. A per-build memo took it **0.791s → 0.099s**
+("Instant now"). Write-up in `docs/plans/qt-port.md`; commit `999abd4`.
 
-## ⚠ Not yet human-clicked
+## The two lessons worth carrying into Gear
 
-Everything above is tests + offscreen screenshots only. **The Advantages tab has not
-been driven on the real display** — that is the next thing to do, and the milestone is
-not "done" until it has been. What to look at: the Background rows (rung + Hearthstone
-total under a Manse, the Demesne toggle), a Merit row's second control line, and the
-post-lock gain/lose card.
+- ⚠ **A control can be correct, reachable, fully tested — and nowhere near the thing it
+  configures.** That was defect (1), and *every offscreen test passed*. A screenshot test
+  would have passed too. Gear, Combos and Play all have pickers. `qt/catalogue.py` now
+  carries the answer: `extras` + `confirm` hooks, with all game logic staying in the
+  caller (the dialog still cannot tell a Merit from a Flaw, and must not learn to).
+- ⚠ **A teardown sweep must recurse into nested layouts** — `item.widget()` is `None` for
+  a `QLayout`. This has now bitten **twice** (`_clear_lay`, then `_clear_extras`). Copy
+  the recursive shape; don't write a fresh loop. **Test it by thrashing the rebuild and
+  counting live descendants** — a single rebuild passes while leaking.
 
-## What the port had to decide for itself (all three are recorded in the plan)
+## No open rules questions
 
-- **The tab prints its own ISSUES only** — the shell's readout bar already carries the
-  bonus-point total, and printing it here too showed the same sentence twice. Post-lock
-  the line becomes XP available + debt.
-- **Long printed prose is clamped, full text on the tooltip** (`_clamp`) — Qt has no CSS
-  line-clamp and a Manse paragraph pushed every other row off the panel.
-- **A merit row is TWO lines** — Qt has no flex-wrap, and a no-wrap row crushes its later
-  children to slivers.
+The one that was outstanding is **ruled and implemented**: a variable-cost Merit/Flaw
+**opens at 1 point, never 0** (human, 2026-08-21). At 0 it priced to nothing, so
+confirming added a row that neither cost nor paid — a purchase that looked made and did
+nothing. `qt/advantages.py::_mf_purchase_block`. ⚠ The opening value is seeded into the
+pending-purchase STATE as well as the spinner, because the confirm button prices the
+state, not the widget.
 
-One shell fix fell out: `self.status` is now built BEFORE the pages (AdvantagesPage
-derives its issue line during construction and `_refresh` writes to both readouts), and
-the readout no longer opens on " · " post-lock.
+## Next up: the Gear tab
 
-## Known Qt gaps (unchanged by this milestone)
+Apply the milestone-2 question first — **does it need an engine dispatcher extracted?**
+(Advantages' answer was no; Charms' was yes.) `qt/catalogue.py` is ready for its pickers
+and now supports in-dialog configuration, which Gear wants for quantities and attunement.
 
-- **Ox-Body Technique + Deadly Beastman gifts**: the picker still needs the variant
-  MENU. The mis-write is closed — `engine.charm_actions` refuses a package Charm from an
+## Known Qt gaps (unchanged)
+
+- **Ox-Body Technique + Deadly Beastman gifts**: the picker still needs the variant MENU.
+  The mis-write is closed — `engine.charm_actions` refuses a package Charm from an
   ordinary toggle in both shells.
 - Submodules (Alchemical), the Immaculate-vs-standard DB banner, the MA style panel, the
   foreign-charms splat dropdown, "Add another" for repeatable Charms.
@@ -68,17 +65,7 @@ the readout no longer opens on " · " post-lock.
   Resonance/Limit, Virtue Flaw, bonus health levels, Downtime.
 - Rail placeholders still on the webapp: **Gear, Combos, Play, ST Options, Custom**.
 
-## Next up: the Gear tab
-
-Apply the milestone-2 question to it before porting — **does it need an engine
-dispatcher first?** (Advantages' answer was no; Charms' was yes.) `qt/catalogue.py`
-already exists for its pickers.
-
-## ⚠ Where the branch lives (unchanged)
-
-`qt-port` is checked out in the main directory; the `…-ds` worktree is gone. The branch
-has **no upstream** and is unpushed.
-
 ## Still deferred, still NOT gaps
+
 The Mist numina and Cult Abyssals (both indefinitely), and the one martial-arts absence
 (`enlightenment`). Training times are still a no.
