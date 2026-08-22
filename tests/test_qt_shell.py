@@ -270,3 +270,32 @@ def test_a_young_character_earns_nothing_from_the_chart(ruleset, qtbot):
     from exalted_builder.engine import elder
     award = elder.downtime_award(10, 20)
     assert award.total == 0
+
+
+def test_the_popover_shows_bonus_points_in_chargen_and_the_ledger_after(ruleset, qtbot):
+    """⚠ Bonus points are a CHARGEN surface only (human, 2026-08-22). The readout BAR
+    already drops the line post-lock, so a popover still reporting "12 / 15 spent"
+    disagreed with the bar directly above it. The slot is the Experience card instead."""
+    from PySide6.QtWidgets import QLabel
+
+    def popover_text(char):
+        win = MainWindow(ruleset, char, Path("/tmp/c.json"))
+        qtbot.addWidget(win)
+        root = QVBoxLayout()
+        # what `rebuild()` puts in the body, without the modal
+        if char.chargen_locked:
+            win._xp_section(root, lambda: None)
+        else:
+            from exalted_builder.engine import validate
+            bd = validate.bonus_point_breakdown(ruleset, char)
+            root.addWidget(QLabel(f"Bonus Points  {bd.total} / {bd.available} spent"))
+        out = []
+        for i in range(root.count()):
+            w = root.itemAt(i).widget()
+            if isinstance(w, QLabel):
+                out.append(w.text())
+        return " | ".join(out)
+
+    assert "Bonus Points" in popover_text(Character(id="c.new"))
+    assert "Bonus Points" not in popover_text(_locked(ruleset))
+    assert "Experience" in popover_text(_locked(ruleset))

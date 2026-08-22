@@ -1,0 +1,508 @@
+"""Qt spike: four shapes for the Traits tab, over one character, side by side.
+
+Input: a real RuleSet + Character (an examples/ file). Output: a window with a
+VARIANT switcher and a CHARACTER switcher, rendering the same traits four ways.
+Mechanism: each `build_*` fills a QWidget with the same rows — the real
+`qt.editor.DotTrack`, the real `qt.theme` palette — so the only thing that differs
+between variants is the CONTAINER.
+
+Answers the human's question (2026-08-22): "should we change the design of the Traits
+tab to be more inline with the rest of the app? The dot-displays are non-negotiable,
+but it feels a little odd being a UI of scrolled cards."
+
+The four:
+
+  0 · Cards       what ships today — a vertical scroll of _Panel cards. The baseline.
+  1 · Sub-tabs    a sub-tab per category, flat panes, no card chrome. This is already
+                  the settled tab layout's own idiom ("a sub-tab per category where a
+                  tab has more than one"), so it is the cheapest way to be "in line".
+  2 · Sheet grid  everything on ONE pane in newspaper columns, headings instead of
+                  cards. Closest to the paper sheet.
+  3 · Flat rules  one scroll like today, but the cards become headings + hairlines.
+                  Isolates "is it the CARDS or the SCROLLING that reads wrong?"
+
+⚠ This is a SPIKE. It renders the dot surface only — the deferred panels
+(Specialties, Colleges, Virtue Flaw, health levels, Permanent Resonance) are drawn as
+a labelled stub, because WHERE THEY LAND is part of what is being decided, not
+something the spike should presuppose. Nothing here is wired to buying: the tracks
+free-set, so clicking is safe and tells you nothing about the lock.
+
+Run:  .venv/bin/python spikes/qt_traits/traits_spike.py
+"""
+
+import sys
+from pathlib import Path
+
+import exalted_builder
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QApplication, QComboBox, QFrame, QGridLayout, QHBoxLayout, QLabel,
+    QMainWindow, QScrollArea, QTabWidget, QVBoxLayout, QWidget,
+)
+
+from exalted_builder.engine import elder, merits, validate
+from exalted_builder.persistence import load_character
+from exalted_builder.rules_db import load_ruleset
+from exalted_builder.qt import theme as qtheme
+from exalted_builder.qt.editor import DotTrack, _Panel, _ROW_SPACING
+from exalted_builder.qt.layout import clear_layout
+from exalted_builder.ui import theme
+from exalted_builder.ui import view as viewmod
+from exalted_builder.models.character import AbilityName, AttributeName, VirtueName
+
+DATA_DIR = Path(exalted_builder.__file__).parent / "data"
+EXAMPLES = sorted(Path("examples").glob("*.character.json"))
+
+VARIANTS = ["0 · Cards (today)", "1 · Sub-tabs", "2 · Sheet grid", "3 · Flat rules"]
+
+# The panels Edit grew after the card layout was designed. Their home is part of the
+# question, so the spike names them rather than placing them.
+EXTRA_PANELS = ["Specialties", "Astrological Colleges", "Virtue Flaw",
+                "Bonus health levels", "Permanent Resonance"]
+
+
+def _label(value: str) -> str:
+    return value.replace("_", " ").title()
+
+
+class TraitData:
+    """Everything the four builders need, derived once. Mirrors what
+    `qt/editor.py::TraitsPage._build_body` computes, minus the buying plumbing."""
+
+    def __init__(self, ruleset, char):
+        self.ruleset, self.char = ruleset, char
+        self.pal = theme.palette(char.exalt_type)
+        self.accent = qtheme.accent(self.pal)
+        caste_def = ruleset.castes.get(char.caste)
+        self.caste_abilities = set(caste_def.caste_abilities) if caste_def else set()
+        self.favored = set(char.favored_abilities)
+        self.b = validate.effective_budgets(ruleset, char)
+        self.mf = merits.merits_and_flaws_calc(ruleset, char)
+        self.attr_cap = elder.trait_ceiling(char, ruleset, domain="attribute")
+        self.abil_cap = elder.trait_ceiling(char, ruleset, domain="ability")
+        self.virtue_cap = (self.mf.virtue_cap if self.mf.virtue_cap is not None
+                           else merits.DOT_MAX)
+        self.essence_cap, _ = elder.essence_cap(ruleset, char)
+        self.ability_groups = viewmod.ability_group_defs(ruleset, char.exalt_type)
+
+    def track(self, get, setv, lo, hi):
+        return DotTrack(get, setv, lo, hi, accent=self.accent)
+
+    def attr_row(self, a: AttributeName):
+        char = self.char
+        return self._row(_label(a.value),
+                         "●" if a in self.caste_abilities else "",
+                         self.track(lambda: char.attributes[a],
+                                    lambda v: char.attributes.__setitem__(a, v),
+                                    1, self.attr_cap))
+
+    def ability_row(self, a: AbilityName):
+        char = self.char
+        mark = "●" if a in self.caste_abilities else ("✦" if a in self.favored else "")
+        return self._row(_label(a.value), mark,
+                         self.track(lambda: char.abilities[a],
+                                    lambda v: char.abilities.__setitem__(a, v),
+                                    0, self.abil_cap))
+
+    def virtue_row(self, v: VirtueName):
+        char = self.char
+        return self._row(_label(v.value), "",
+                         self.track(lambda: char.virtues[v],
+                                    lambda val: char.virtues.__setitem__(v, val),
+                                    1, self.virtue_cap))
+
+    def _row(self, name: str, mark: str, track) -> QHBoxLayout:
+        row = QHBoxLayout()
+        row.setSpacing(6)
+        m = QLabel(mark)
+        m.setFixedWidth(12)
+        m.setStyleSheet(f"color:{self.accent};")
+        row.addWidget(m)
+        label = QLabel(name)
+        label.setMinimumWidth(88)
+        row.addWidget(label)
+        row.addWidget(track)
+        # ⚠ The stretch goes AFTER the track, never on the label. On the label it
+        # pushes the dots to the far edge of the column — unnoticeable inside a narrow
+        # card, glaring the moment the column is full width.
+        row.addStretch(1)
+        return row
+
+    # --- headings the real tab shows ------------------------------------- #
+
+    def attr_header(self) -> str:
+        pools = "/".join(str(p) for p in
+                         validate.effective_attribute_pools(self.ruleset, self.char))
+        return (viewmod.attribute_budget_summary(self.ruleset, self.char)
+                or f"prioritise {pools}")
+
+    def ability_header(self) -> str:
+        b = self.b
+        return (f"{b.ability_dots} dots; ≥{b.ability_min_caste_favored} caste/favoured; "
+                f"≤{b.ability_cap_pre_bp} each pre-bonus")
+
+
+def _heading(text: str, data: TraitData, *, size: int = 0) -> QLabel:
+    label = QLabel(text)
+    css = f"font-weight:700; color:{data.accent}; letter-spacing:1px;"
+    if size:
+        css += f" font-size:{size}pt;"
+    label.setStyleSheet(css)
+    return label
+
+
+def _sub(text: str) -> QLabel:
+    label = QLabel(text)
+    label.setWordWrap(True)
+    label.setStyleSheet(f"color:{qtheme.MUTED}; font-size:9pt;")
+    return label
+
+
+def _rule() -> QFrame:
+    line = QFrame()
+    line.setFixedHeight(1)
+    line.setStyleSheet("background:#55535a;")
+    return line
+
+
+def _vsep() -> QFrame:
+    line = QFrame()
+    line.setFixedWidth(1)
+    line.setStyleSheet("background:#55535a;")
+    return line
+
+
+def _extras_stub(data: TraitData) -> QVBoxLayout:
+    """⚠ Deliberately a STUB. Where these five land is part of the decision."""
+    lay = QVBoxLayout()
+    lay.setSpacing(2)
+    lay.addWidget(_sub("— the panels that need a home in this layout —"))
+    for name in EXTRA_PANELS:
+        row = QLabel(f"▫ {name}")
+        row.setStyleSheet(f"color:{qtheme.MUTED}; font-style:italic;")
+        lay.addWidget(row)
+    return lay
+
+
+# --------------------------------------------------------------------------- #
+# the column builders — shared by every variant
+# --------------------------------------------------------------------------- #
+
+def _attribute_columns(data: TraitData) -> QHBoxLayout:
+    cols = QHBoxLayout()
+    cols.setSpacing(24)
+    for i, (category, members) in enumerate(validate.ATTRIBUTE_CATEGORIES.items()):
+        if i:
+            cols.addWidget(_vsep())
+        group = QVBoxLayout()
+        group.setSpacing(_ROW_SPACING)
+        cap = QLabel(category)
+        cap.setStyleSheet(f"font-weight:600; color:{qtheme.MUTED};")
+        group.addWidget(cap)
+        for a in members:
+            group.addLayout(data.attr_row(a))
+        group.addStretch(1)
+        cols.addLayout(group, 1)
+    return cols
+
+
+def _ability_columns(data: TraitData, per_row: int = 3) -> QVBoxLayout:
+    outer = QVBoxLayout()
+    outer.setSpacing(8)
+    groups = data.ability_groups
+    for start in range(0, len(groups), per_row):
+        cols = QHBoxLayout()
+        cols.setSpacing(24)
+        for j, (group_label, abilities) in enumerate(groups[start:start + per_row]):
+            if j:
+                cols.addWidget(_vsep())
+            group = QVBoxLayout()
+            group.setSpacing(_ROW_SPACING)
+            if group_label:
+                g = QLabel(group_label)
+                g.setStyleSheet(f"font-weight:600; color:{data.accent};")
+                group.addWidget(g)
+            for a in abilities:
+                group.addLayout(data.ability_row(a))
+            group.addStretch(1)
+            cols.addLayout(group, 1)
+        # A final row with fewer groups than the rest must be PADDED, or its columns
+        # spread to fill the width and stop lining up with the rows above.
+        for _ in range(per_row - len(groups[start:start + per_row])):
+            cols.addStretch(1)
+        outer.addLayout(cols)
+    return outer
+
+
+def _virtue_column(data: TraitData) -> QVBoxLayout:
+    group = QVBoxLayout()
+    group.setSpacing(_ROW_SPACING)
+    for v in VirtueName:
+        group.addLayout(data.virtue_row(v))
+    group.addStretch(1)
+    return group
+
+
+def _essence_column(data: TraitData) -> QVBoxLayout:
+    char = data.char
+    group = QVBoxLayout()
+    group.setSpacing(_ROW_SPACING)
+    group.addLayout(data._row(
+        "Essence", "",
+        data.track(lambda: char.essence_rating,
+                   lambda v: setattr(char, "essence_rating", v),
+                   1, min(elder.DOT_MAX, data.essence_cap))))
+    wp = QLabel("Willpower  6")
+    group.addWidget(wp)
+    group.addStretch(1)
+    return group
+
+
+def _crafts_column(data: TraitData) -> QVBoxLayout:
+    char = data.char
+    group = QVBoxLayout()
+    group.setSpacing(_ROW_SPACING)
+    if not char.crafts:
+        group.addWidget(_sub("no craft focuses"))
+    for cr in char.crafts:
+        group.addLayout(data._row(
+            cr.focus or "(unnamed craft)", "",
+            data.track(lambda cr=cr: cr.rating,
+                       lambda v, cr=cr: setattr(cr, "rating", v), 0, data.abil_cap)))
+    group.addStretch(1)
+    return group
+
+
+# --------------------------------------------------------------------------- #
+# variant 0 — cards (what ships today)
+# --------------------------------------------------------------------------- #
+
+def build_cards(data: TraitData) -> QWidget:
+    body = QWidget()
+    lay = QVBoxLayout(body)
+    lay.setSpacing(8)
+
+    def panel(title):
+        card = _Panel(title, data.pal)
+        lay.addWidget(card)
+        return card.body()
+
+    panel("Favoured Picks").addWidget(_sub("(the chip pickers)"))
+    panel(f"Attributes ({data.attr_header()})").addLayout(_attribute_columns(data))
+    panel(f"Abilities ({data.ability_header()})").addLayout(_ability_columns(data))
+    panel("Crafts (each focus a separate Ability)").addLayout(_crafts_column(data))
+    ve = QHBoxLayout()
+    lay.addLayout(ve)
+    v_card = _Panel("Virtues", data.pal)
+    ve.addWidget(v_card)
+    v_card.body().addLayout(_virtue_column(data))
+    e_card = _Panel("Essence & Willpower", data.pal)
+    ve.addWidget(e_card)
+    e_card.body().addLayout(_essence_column(data))
+    panel("…").addLayout(_extras_stub(data))
+    lay.addStretch(1)
+
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+    scroll.setWidget(body)
+    return scroll
+
+
+# --------------------------------------------------------------------------- #
+# variant 1 — a sub-tab per category, flat panes
+# --------------------------------------------------------------------------- #
+
+def build_subtabs(data: TraitData) -> QWidget:
+    tabs = QTabWidget()
+
+    def pane(*blocks) -> QWidget:
+        w = QWidget()
+        lay = QVBoxLayout(w)
+        lay.setContentsMargins(16, 12, 16, 12)
+        lay.setSpacing(10)
+        for block in blocks:
+            if isinstance(block, str):
+                lay.addWidget(_sub(block))
+            elif isinstance(block, QWidget):
+                lay.addWidget(block)
+            else:
+                lay.addLayout(block)
+        lay.addStretch(1)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(w)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        return scroll
+
+    tabs.addTab(pane(data.attr_header(), _attribute_columns(data)), "Attributes")
+    tabs.addTab(pane(data.ability_header(), _ability_columns(data)), "Abilities")
+    crafts = QHBoxLayout()
+    crafts.addLayout(_crafts_column(data), 1)
+    crafts.addWidget(_vsep())
+    crafts.addLayout(_extras_stub(data), 1)
+    tabs.addTab(pane("Each craft focus is a separate Ability.", crafts),
+                "Crafts && Specialties")
+    ve = QHBoxLayout()
+    ve.setSpacing(24)
+    v = QVBoxLayout()
+    v.addWidget(_heading("VIRTUES", data))
+    v.addLayout(_virtue_column(data))
+    ve.addLayout(v, 1)
+    ve.addWidget(_vsep())
+    e = QVBoxLayout()
+    e.addWidget(_heading("ESSENCE & WILLPOWER", data))
+    e.addLayout(_essence_column(data))
+    ve.addLayout(e, 1)
+    tabs.addTab(pane(ve), "Virtues && Essence")
+    return tabs
+
+
+# --------------------------------------------------------------------------- #
+# variant 2 — one sheet-like grid, no cards, no sub-tabs
+# --------------------------------------------------------------------------- #
+
+def build_sheet_grid(data: TraitData) -> QWidget:
+    body = QWidget()
+    grid = QGridLayout(body)
+    grid.setContentsMargins(18, 14, 18, 14)
+    grid.setHorizontalSpacing(28)
+    grid.setVerticalSpacing(6)
+
+    def section(row: int, col: int, title: str, sub: str, block) -> int:
+        """Place one section in `col` starting at `row`; return the next free row.
+
+        ⚠ The caller must ADVANCE by the returned value. Reusing the row a previous
+        section STARTED at drops the next heading on top of it — grid cells overlap
+        silently, and the first draft put CRAFTS through the middle of VIRTUES."""
+        grid.addWidget(_heading(title, data, size=10), row, col)
+        r = row + 1
+        if sub:
+            grid.addWidget(_sub(sub), r, col)
+            r += 1
+        grid.addWidget(_rule(), r, col)
+        r += 1
+        if isinstance(block, QWidget):
+            grid.addWidget(block, r, col)
+        else:
+            holder = QWidget()
+            holder.setLayout(block)
+            grid.addWidget(holder, r, col)
+        return r + 2          # +1 for the block, +1 for breathing room
+
+    left = section(0, 0, "ATTRIBUTES", data.attr_header(), _attribute_columns(data))
+    left = section(left, 0, "VIRTUES", "", _virtue_column(data))
+    left = section(left, 0, "CRAFTS", "", _crafts_column(data))
+    right = section(0, 1, "ABILITIES", data.ability_header(),
+                    _ability_columns(data, per_row=2))
+    right = section(right, 1, "ESSENCE & WILLPOWER", "", _essence_column(data))
+    right = section(right, 1, "STILL TO PLACE", "", _extras_stub(data))
+    grid.setRowStretch(max(left, right), 1)
+    grid.setColumnStretch(0, 1)
+    grid.setColumnStretch(1, 1)
+
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+    scroll.setWidget(body)
+    scroll.setFrameShape(QFrame.Shape.NoFrame)
+    return scroll
+
+
+# --------------------------------------------------------------------------- #
+# variant 3 — one scroll, cards replaced by headings + hairlines
+# --------------------------------------------------------------------------- #
+
+def build_flat_rules(data: TraitData) -> QWidget:
+    body = QWidget()
+    lay = QVBoxLayout(body)
+    lay.setContentsMargins(18, 14, 18, 14)
+    lay.setSpacing(6)
+
+    def section(title: str, sub: str, block):
+        lay.addSpacing(8)
+        lay.addWidget(_heading(title, data, size=10))
+        if sub:
+            lay.addWidget(_sub(sub))
+        lay.addWidget(_rule())
+        lay.addSpacing(4)
+        (lay.addWidget(block) if isinstance(block, QWidget) else lay.addLayout(block))
+
+    section("FAVOURED PICKS", "", _sub("(the chip pickers)"))
+    section("ATTRIBUTES", data.attr_header(), _attribute_columns(data))
+    section("ABILITIES", data.ability_header(), _ability_columns(data))
+    section("CRAFTS", "Each focus is a separate Ability.", _crafts_column(data))
+    ve = QHBoxLayout()
+    ve.setSpacing(24)
+    ve.addLayout(_virtue_column(data), 1)
+    ve.addWidget(_vsep())
+    ve.addLayout(_essence_column(data), 1)
+    section("VIRTUES · ESSENCE · WILLPOWER", "", ve)
+    section("STILL TO PLACE", "", _extras_stub(data))
+    lay.addStretch(1)
+
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+    scroll.setWidget(body)
+    scroll.setFrameShape(QFrame.Shape.NoFrame)
+    return scroll
+
+
+BUILDERS = [build_cards, build_subtabs, build_sheet_grid, build_flat_rules]
+
+
+# --------------------------------------------------------------------------- #
+
+class SpikeWindow(QMainWindow):
+    def __init__(self, ruleset, characters):
+        super().__init__()
+        self._ruleset = ruleset
+        self._characters = characters
+        self.resize(1180, 900)
+
+        central = QWidget()
+        outer = QVBoxLayout(central)
+        bar = QHBoxLayout()
+        bar.addWidget(QLabel("Variant"))
+        self.variant = QComboBox()
+        self.variant.addItems(VARIANTS)
+        self.variant.currentIndexChanged.connect(self._redraw)
+        bar.addWidget(self.variant)
+        bar.addSpacing(24)
+        bar.addWidget(QLabel("Character"))
+        self.character = QComboBox()
+        for label, _c in characters:
+            self.character.addItem(label)
+        self.character.currentIndexChanged.connect(self._redraw)
+        bar.addWidget(self.character, 1)
+        outer.addLayout(bar)
+        self._host = QVBoxLayout()
+        outer.addLayout(self._host, 1)
+        self.setCentralWidget(central)
+        self._redraw()
+
+    def _redraw(self):
+        clear_layout(self._host)
+        _label_, char = self._characters[self.character.currentIndex()]
+        data = TraitData(self._ruleset, char)
+        qtheme.apply(self, data.pal)
+        self.setWindowTitle(f"Traits spike — {VARIANTS[self.variant.currentIndex()]} "
+                            f"— {char.name or char.id}")
+        self._host.addWidget(BUILDERS[self.variant.currentIndex()](data))
+
+
+def main() -> None:
+    app = QApplication(sys.argv)
+    ruleset = load_ruleset(DATA_DIR)
+    characters = []
+    for path in EXAMPLES:
+        char = load_character(path)
+        characters.append((f"{char.name or path.stem} — {char.exalt_type}", char))
+    if not characters:
+        print("no examples/*.character.json found", file=sys.stderr)
+        raise SystemExit(1)
+    win = SpikeWindow(ruleset, characters)
+    win.show()
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

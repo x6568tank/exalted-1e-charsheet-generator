@@ -336,26 +336,32 @@ class MainWindow(QMainWindow):
                 line.setWordWrap(True)
                 line.setStyleSheet(f"color:{color};")
                 root.addWidget(line)
-            bd = validate.bonus_point_breakdown(ruleset, char)
             sep = QLabel("─" * 36)
             sep.setStyleSheet("color:#a8a5a0;")
             root.addWidget(sep)
-            total = QLabel(f"Bonus Points  {bd.total} / {bd.available} spent")
-            total.setStyleSheet("font-weight:600; color:%s;"
-                                % ("#b91c1c" if bd.over_budget else "#15803d"))
-            root.addWidget(total)
-            for line in bd.lines:
-                row = QHBoxLayout()
-                domain = QLabel(line.domain)
-                pts = QLabel(str(line.points))
-                if not line.points:
-                    domain.setStyleSheet("color:#a8a5a0;")
-                    pts.setStyleSheet("color:#a8a5a0;")
-                row.addWidget(domain, 1)
-                row.addWidget(pts)
-                root.addLayout(row)
+            # ⚠ Bonus points are a CHARGEN surface only (human, 2026-08-22). There are
+            # none to spend after the lock, which is why the readout bar already drops
+            # the line there — a popover still reporting "12 / 15 spent" for a locked
+            # character disagreed with the bar above it. Post-lock this slot is the
+            # Experience card and its ledger instead.
             if char.chargen_locked:
                 self._xp_section(root, rebuild)
+            else:
+                bd = validate.bonus_point_breakdown(ruleset, char)
+                total = QLabel(f"Bonus Points  {bd.total} / {bd.available} spent")
+                total.setStyleSheet("font-weight:600; color:%s;"
+                                    % ("#b91c1c" if bd.over_budget else "#15803d"))
+                root.addWidget(total)
+                for line in bd.lines:
+                    row = QHBoxLayout()
+                    domain = QLabel(line.domain)
+                    pts = QLabel(str(line.points))
+                    if not line.points:
+                        domain.setStyleSheet("color:#a8a5a0;")
+                        pts.setStyleSheet("color:#a8a5a0;")
+                    row.addWidget(domain, 1)
+                    row.addWidget(pts)
+                    root.addLayout(row)
             root.addStretch(1)
 
         rebuild()
