@@ -57,14 +57,30 @@ MAX_NODE_W = 260       # largest node box; longer labels elide with an ellipsis
 MAX_LEVEL_NODES = 6    # cap nodes in one tree-level row; wider levels sub-row
 
 
-def _arcanoi_categories(ruleset):
+def _cached(cache, key, compute):
+    """Memoize `compute()` under `key` in `cache`, or just run it when `cache` is None.
+
+    ⚠ The cache is per-BUILD and must never be stored on the page or keyed on the
+    RuleSet. `rules_db.reload_custom_layer` mutates `ruleset.charms` IN PLACE so that
+    authoring a homebrew Charm shows up on every page that already holds the object —
+    so a cache outliving one build would serve a catalogue the player has just edited.
+    """
+    if cache is None:
+        return compute()
+    if key not in cache:
+        cache[key] = compute()
+    return cache[key]
+
+
+def _arcanoi_categories(ruleset, cache=None):
     """Category names whose Charms are Arcanoi: Virtue-keyed and not the spirit Charms
     (which share the min_virtue axis but are a different class, exalt_type "Spirit")."""
-    return {c.category for c in ruleset.charms.values()
-            if c.min_virtue and c.exalt_type != "Spirit"}
+    return _cached(cache, "arcanoi_categories", lambda: {
+        c.category for c in ruleset.charms.values()
+        if c.min_virtue and c.exalt_type != "Spirit"})
 
 
-def group_of(category, ruleset):
+def group_of(category, ruleset, cache=None):
     """The picker group a category belongs to: 'styles' / 'arcanoi' / 'abilities'.
 
     Mirrors picker._group_of: martial-arts categories are named by prefix; a category
@@ -72,29 +88,37 @@ def group_of(category, ruleset):
     Virtue-keyed non-spirit categories; everything else is an ability Charm."""
     if category.startswith("martial_arts:"):
         return "styles"
-    return ("arcanoi" if category.split(":", 1)[0] in _arcanoi_categories(ruleset)
+    return ("arcanoi" if category.split(":", 1)[0] in _arcanoi_categories(ruleset, cache)
             else "abilities")
 
 
-def trees_for(ruleset, character, splat, group):
-    """[(category_key, node_count)] for one splat's page in `group`, biggest first."""
+def trees_for(ruleset, character, splat, group, cache=None):
+    """[(category_key, node_count)] for one splat's page in `group`, biggest first.
+
+    `cache` is an optional per-build memo shared with the other calls in the same
+    rebuild — see `_cached`. Every helper below is a pure function of the ruleset (and
+    for the augmentation category, the character's splat), but each one SCANS the whole
+    Charm catalogue, and a rebuild asks for them thousands of times.
+    """
     found: set[str] = set()
     for c in ruleset.charms.values():
         if not charm_on_splat_page(ruleset, character, c, splat):
             continue
-        for key in (virtue_split(ruleset, c.category) or [c.category]):
-            if group_of(key, ruleset) == group:
+        split = _cached(cache, ("virtue_split", c.category),
+                        lambda cat=c.category: virtue_split(ruleset, cat))
+        for key in (split or [c.category]):
+            if group_of(key, ruleset, cache) == group:
                 found.add(key)
     out = []
     for key in found:
         graph = build_charm_graph(ruleset, character, key, splat)
-        graph = _collapse_augment_nodes(ruleset, character, graph)
+        graph = _collapse_augment_nodes(ruleset, character, graph, cache)
         if graph.nodes:
             out.append((key, len(graph.nodes)))
     return sorted(out, key=lambda t: -t[1])
 
 
-def _collapse_augment_nodes(ruleset, character, graph):
+def _collapse_augment_nodes(ruleset, character, graph, cache=None):
     """Collapse the Alchemical augmentation templates into ONE node per type
     (Transitory / Sustained) inside the tree, rerouting prerequisite edges. The 18
     '<Type> Augmentation of <Attribute>' ids stay distinct in the data (other Charms
@@ -102,7 +126,10 @@ def _collapse_augment_nodes(ruleset, character, graph):
     selecting one offers 'Pick Attributes' — instead of eighteen disconnected nodes
     cluttering every dependent tree (a close-combat Charm names 'Transitory
     Augmentation of Dexterity')."""
-    aug_cat = augmentation_category(ruleset, character)
+    # ⚠ This is the expensive one: it scans every Charm through `charm_matches_splat`,
+    # and a rebuild collapses ~90 trees. Uncached it was 180,000 calls per page build.
+    aug_cat = _cached(cache, "augmentation_category",
+                      lambda: augmentation_category(ruleset, character))
     if aug_cat is None:
         return graph
     owned = set(character.charms)
@@ -513,10 +540,15 @@ class CharmTreeView(QGraphicsView):
     `graph` is the last rendered CharmGraph, for the detail panel and tests.
     `category_combo` is the owning tab's dropdown, read back by the window."""
 
-    def __init__(self, ruleset, character):
+    def __init__(self, ruleset, character, cache=None):
         super().__init__()
         self._ruleset = ruleset
         self._character = character
+        # The owning rebuild's memo (see `_cached`). Safe to hold for the view's whole
+        # life because `_tree_page` builds a NEW view on every reload, so the two
+        # lifetimes are the same one. ⚠ Only splat-derived answers go in it — nothing
+        # keyed on which Charms are OWNED, which changes under a live view on a buy.
+        self._cache = cache
         self.graph = None
         self.category_combo = None
         self._pending_fit = False
@@ -532,7 +564,8 @@ class CharmTreeView(QGraphicsView):
 
     def show_tree(self, category, splat):
         graph = build_charm_graph(self._ruleset, self._character, category, splat)
-        graph = _collapse_augment_nodes(self._ruleset, self._character, graph)
+        graph = _collapse_augment_nodes(self._ruleset, self._character, graph,
+                                        self._cache)
         self.graph = graph
         self._scene.clear()
         if not graph.nodes:
@@ -1081,18 +1114,22 @@ class CharmsPage(QWidget):
         self.readout.setText(" · ".join(parts))
         self.readout.setStyleSheet("color:#6b7280;")
 
-    def _tree_page(self, group):
-        """A tree tab: category dropdown filtered to `group`, over a CharmTreeView."""
+    def _tree_page(self, group, cache=None):
+        """A tree tab: category dropdown filtered to `group`, over a CharmTreeView.
+
+        `cache` is the caller's per-build memo (see `_cached`); `reload` shares one
+        across all of its `trees_for` calls, which otherwise rescan the whole Charm
+        catalogue once per group and again per page."""
         char = self._char()
         page = QWidget()
         combo = CappedCombo(15)
         combo.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         combo.setMaximumWidth(300)
-        view = CharmTreeView(self._ruleset, char)
+        view = CharmTreeView(self._ruleset, char, cache)
         view._scene.selectionChanged.connect(lambda: self._tree_detail(view))
         view.category_combo = combo
         self._tree_views[group] = view
-        trees = trees_for(self._ruleset, char, char.exalt_type, group)
+        trees = trees_for(self._ruleset, char, char.exalt_type, group, cache)
         combo.blockSignals(True)
         for key, count in trees:
             label = (_style_label(key, self._ruleset).removesuffix(" Style")
@@ -2051,11 +2088,15 @@ class CharmsPage(QWidget):
         self.tabs.blockSignals(True)
         try:
             self.tabs.clear()
+            # ⚠ Built fresh HERE, and deliberately not stored on the page: it is only
+            # valid for this one rebuild, against this character and this catalogue.
+            cache: dict = {}
             for group, label in (("abilities", "Charms"), ("styles", "Martial Arts"),
                                  ("arcanoi", "Arcanoi")):
-                if trees_for(self._ruleset, char, char.exalt_type, group):
-                    self.tabs.addTab(self._tree_page(group), label)
-            if augmentation_category(self._ruleset, char) is not None:
+                if trees_for(self._ruleset, char, char.exalt_type, group, cache):
+                    self.tabs.addTab(self._tree_page(group, cache), label)
+            if _cached(cache, "augmentation_category",
+                       lambda: augmentation_category(self._ruleset, char)) is not None:
                 self.tabs.addTab(self._augment_page(), "Augmentations")
             circles = spell_circles(self._ruleset, char)
             if circles:

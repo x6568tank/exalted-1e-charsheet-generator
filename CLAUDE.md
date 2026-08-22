@@ -267,8 +267,9 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,495 passing, 3 skipped** (2026-08-21, the `qt-port` branch — the 2,409 baseline
-plus the Qt-port tests in `tests/test_qt_*.py` and `tests/test_charm_actions.py`).
+**2,592 passing, 1 skipped** (2026-08-21, main PC, the `qt-port` branch after Qt
+milestone 3 — includes the Qt-port tests in `tests/test_qt_*.py`,
+`tests/test_charm_actions.py` and `tests/test_qt_advantages.py`).
 
 - ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (72 of them,
   four whole modules). `pytest.importorskip("PySide6")` guards each; before that guard

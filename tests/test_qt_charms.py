@@ -22,6 +22,7 @@ from exalted_builder.engine import advancement, lifecycle, refit, validate
 from exalted_builder.models.character import (AbilityName, Character,
                                                MeritFlawPurchase, PathRating)
 from exalted_builder.qt.charms import (CharmsPage, CharmTreeView, DotTrack,
+                                       trees_for,
                                        EdgeItem, NodeItem, _tree_positions, populate)
 from exalted_builder.ui.view import build_thaum_picker
 
@@ -661,3 +662,57 @@ def test_chargen_learn_button_shows_bp_when_pool_full(ruleset, qtbot):
     page2._selected_node = melee[0]
     page2._update_action()
     assert "BP" not in page2.action_btn.text()
+
+
+# --------------------------------------------------------------------------- #
+# The per-build memo (charms.py `_cached`)
+# --------------------------------------------------------------------------- #
+
+def test_the_build_cache_does_not_change_which_trees_are_found(ruleset):
+    """`trees_for` memoizes three whole-catalogue scans across one rebuild. The memo is
+    an optimisation ONLY: passing a cache must produce exactly the uncached answer, for
+    a splat with an augmentation category (Alchemical) and one without."""
+    for exalt_type, caste in (("Alchemical", "orichalcum"), ("Solar", "dawn"),
+                              ("Ghost", "")):
+        char = Character(id="c.cache", exalt_type=exalt_type, caste=caste,
+                         essence_rating=3)
+        for group in ("abilities", "styles", "arcanoi"):
+            shared: dict = {}
+            assert (trees_for(ruleset, char, exalt_type, group, shared)
+                    == trees_for(ruleset, char, exalt_type, group)), (exalt_type, group)
+
+
+def test_the_build_cache_scans_for_the_augmentation_category_once(ruleset):
+    """⚠ The regression this guards is a PERFORMANCE one, so it pins the MECHANISM
+    rather than a timing or a ratio: `augmentation_category` scans the whole Charm
+    catalogue through `charm_matches_splat`, and uncached it ran once per collapsed
+    tree — ~190,000 calls and a visible pause on the tab (human, 2026-08-21). With a
+    shared cache it must run exactly once no matter how many groups are asked for."""
+    import exalted_builder.qt.charms as charmsmod
+
+    char = Character(id="c.cache", exalt_type="Alchemical", caste="orichalcum",
+                     essence_rating=3)
+    calls = []
+    real = charmsmod.augmentation_category
+
+    def counted(rs, ch):
+        calls.append(1)
+        return real(rs, ch)
+
+    charmsmod.augmentation_category = counted
+    try:
+        shared: dict = {}
+        for group in ("abilities", "styles", "arcanoi"):
+            charmsmod.trees_for(ruleset, char, "Alchemical", group, shared)
+        assert len(calls) == 1, f"scanned {len(calls)} times with a shared cache"
+
+        calls.clear()
+        for group in ("abilities", "styles", "arcanoi"):
+            charmsmod.trees_for(ruleset, char, "Alchemical", group)
+        # The negative control: uncached it is scanned once per COLLAPSED TREE. The
+        # exact number is a property of the data, so assert only that it is more than
+        # one — that is the whole difference, and it will not rot when a Charm is
+        # added.
+        assert len(calls) > 1
+    finally:
+        charmsmod.augmentation_category = real
