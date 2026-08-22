@@ -28,6 +28,9 @@ INPUT = "#52525c"       # editable fields: a clear step lighter than CARD — th
 TREE = "#41414a"        # charm-tree canvas: a little lighter than the page
 INK = "#e6e4e0"         # body text: off-white
 MUTED = "#9a9894"       # secondary text
+CUSTOM = "#a78bfa"      # the homebrew mark — violet, deliberately NOT a splat accent,
+                        # so "no rulebook backs this up" reads the same on every splat.
+                        # The webapp's text-violet-700 is a dark violet and vanishes here.
 
 
 def accent(pal: Palette) -> str:
@@ -75,6 +78,12 @@ QLabel {{ color:{INK}; }}
 QPushButton {{ background:{CARD}; color:{INK}; border:none;
                border-radius:4px; padding:4px 10px; }}
 QPushButton:hover {{ background:{ac}; color:#1a1a1a; }}
+/* ⚠ Without this a DISABLED button is pixel-identical to a live one: the rule above
+   gives every QPushButton the card shade, and a stylesheet beats the palette Qt would
+   otherwise have greyed. Every "Add" whose prerequisites are unmet — the blocked
+   submodules, the locked Charm button — read as clickable across the whole port. */
+QPushButton:disabled {{ background:{BG}; color:{MUTED}; }}
+QPushButton:disabled:hover {{ background:{BG}; color:{MUTED}; }}
 QLineEdit, QSpinBox, QComboBox, QListWidget, QTextEdit {{
     background:{INPUT}; color:{INK}; border:none;
     border-radius:4px; padding:2px 5px; }}

@@ -40,7 +40,7 @@ from exalted_builder.qt.layout import clear_layout
 from exalted_builder.models.rules import Orientation
 from exalted_builder.ui import theme
 
-from .theme import CARD, MUTED, TREE, accent as accent_light
+from .theme import CARD, CUSTOM, MUTED, TREE, accent as accent_light
 from exalted_builder.ui import view as viewmod
 from exalted_builder.ui.view import (CIRCLE_DISPLAY_ORDER, _cost_str, _style_label,
                                      CharmGraph, CharmNode, augmentation_category,
@@ -120,6 +120,33 @@ def trees_for(ruleset, character, splat, group, cache=None):
         if graph.nodes:
             out.append((key, len(graph.nodes)))
     return sorted(out, key=lambda t: -t[1])
+
+
+def splats_for(ruleset, character, group, cache=None):
+    """[exalt_type] the Splat dropdown offers on one tree group: the character's own
+    always first, then every other Exalt type with Charms in `group` while the caste
+    generalist privilege is open (core p.127).
+
+    One entry means the dropdown has nothing to choose and the caller hides it.
+
+    Scans the catalogue rather than calling `trees_for` per splat: `trees_for` builds
+    every category's graph, and asking it once per Exalt type per group would lay out
+    the whole Charm tree of every splat to fill a dropdown.
+    """
+    own = character.exalt_type
+    if not validate.foreign_charms_open(ruleset, character):
+        return [own]
+    found: set[str] = set()
+    for c in ruleset.charms.values():
+        if not c.exalt_type or c.exalt_type == own:
+            continue
+        if not charm_on_splat_page(ruleset, character, c, c.exalt_type):
+            continue
+        split = _cached(cache, ("virtue_split", c.category),
+                        lambda cat=c.category: virtue_split(ruleset, cat))
+        if any(group_of(key, ruleset, cache) == group for key in (split or [c.category])):
+            found.add(c.exalt_type)
+    return [own] + sorted(found)
 
 
 def _collapse_augment_nodes(ruleset, character, graph, cache=None):
@@ -542,7 +569,8 @@ class CharmTreeView(QGraphicsView):
     """One category's Charm tree: repopulates its scene from build_charm_graph.
 
     `graph` is the last rendered CharmGraph, for the detail panel and tests.
-    `category_combo` is the owning tab's dropdown, read back by the window."""
+    `category_combo` and `splat_combo` are the owning tab's dropdowns, read back by
+    `reload_tree`."""
 
     def __init__(self, ruleset, character, cache=None):
         super().__init__()
@@ -555,6 +583,9 @@ class CharmTreeView(QGraphicsView):
         self._cache = cache
         self.graph = None
         self.category_combo = None
+        self.splat_combo = None
+        self.style_head = None          # the martial-arts style panel, when the tab
+        self.style_body = None          # has one — see CharmsPage._style_panel
         self._pending_fit = False
         self._fit_attempts = 0
         self._just_zoomed = False
@@ -565,6 +596,18 @@ class CharmTreeView(QGraphicsView):
         self.setResizeAnchor(QGraphicsView.AnchorViewCenter)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QColor(TREE))
+
+    def reload_tree(self):
+        """Re-render from the two dropdowns this view owns.
+
+        ⚠ The ONE place the (category, splat) pair is read. Three call sites passed
+        `character.exalt_type` straight to `show_tree` before the Splat dropdown
+        existed, and the one on the purchase path is invisible until you buy something:
+        a foreign tree silently reverted to the native splat on the next click."""
+        category = (self.category_combo.currentData()
+                    if self.category_combo is not None else "")
+        splat = self.splat_combo.currentData() if self.splat_combo is not None else ""
+        self.show_tree(category or "", splat or self._character.exalt_type)
 
     def show_tree(self, category, splat):
         graph = build_charm_graph(self._ruleset, self._character, category, splat)
@@ -716,6 +759,13 @@ class CharmsPage(QWidget):
         dp.setSpacing(4)
         act_row = QHBoxLayout()
         act_row.addWidget(self.action_btn, 1)
+        # Owned-but-under-cap is the one state `action_btn` cannot express: it says
+        # Remove, and a generic repeatable Charm wants one MORE copy. Its own button,
+        # shown only in that state — see `_update_action`.
+        self.again_btn = QPushButton("Add another")
+        self.again_btn.setVisible(False)
+        self.again_btn.clicked.connect(self._add_another)
+        act_row.addWidget(self.again_btn)
         # The regional version of a ritual or formula (p.124) — enabled only when a
         # ritual/formula is selected for its first purchase.
         self._orientation_combo = QComboBox()
@@ -737,6 +787,15 @@ class CharmsPage(QWidget):
         self._path_box.setVisible(False)
         dp.addWidget(self._path_box)
         dp.addWidget(self.detail, 1)
+        # Submodules (Alchemical p.89) sit UNDER the detail text rather than in it:
+        # each row buys, so they need real buttons and the detail pane is a
+        # QTextBrowser. Hidden for the Charms that have none, which is most of them.
+        self._submodule_box = QWidget()
+        self._submodule_lay = QVBoxLayout(self._submodule_box)
+        self._submodule_lay.setContentsMargins(0, 0, 0, 0)
+        self._submodule_lay.setSpacing(2)
+        self._submodule_box.setVisible(False)
+        dp.addWidget(self._submodule_box)
 
         split = QSplitter()
         split.addWidget(self.tabs)
@@ -777,9 +836,11 @@ class CharmsPage(QWidget):
         if spell_id is not None and spell_id in char.spells:
             return 0
         b = validate.effective_budgets(ruleset, char)
-        immaculate = validate._immaculate_path(ruleset, list(char.charms),
-                                               char.exalt_type)
-        free = b.immaculate_charm_count if immaculate else b.charm_count
+        # The public form over the character's chargen Charm source; this runs pre-lock
+        # only, where that is the live list, so it agrees with the private
+        # `_immaculate_path` it replaced while naming no underscore.
+        free = (b.immaculate_charm_count
+                if validate.immaculate_martial_artist(ruleset, char) else b.charm_count)
         bp_costs = ruleset.bonus_costs_for(char.exalt_type, char.origin,
                                            char.upbringing)
         occult_cf = AbilityName.OCCULT in validate.caste_favored_abilities(ruleset, char)
@@ -820,6 +881,12 @@ class CharmsPage(QWidget):
         Thaumaturgy buy show their cost."""
         char = self._char()
         self._orientation_combo.setVisible(False)      # a ritual/formula buy re-shows it
+        # ⚠ Hidden HERE, not on each branch: _update_action has a dozen early returns
+        # and a button left visible from the previous selection offers "Add another"
+        # against whatever is selected now. The submodule panel is torn down for the
+        # same reason — its rows buy against a charm_id captured when they were built.
+        self.again_btn.setVisible(False)
+        self._rebuild_submodules(self._selected_node)
         if self._selected_node is not None:
             cid = self._selected_node
             charm = self._ruleset.charms.get(cid)
@@ -847,6 +914,16 @@ class CharmsPage(QWidget):
                     bp = self._chargen_pick_bp(charm_id=cid)
                     if bp:
                         label += f" — {bp} BP"
+            elif not char.chargen_locked:
+                # A generic repeatable Charm is owned-but-not-full while its copies are
+                # under the trait cap (Mountain Folk Essence Satiation Method /
+                # Stone-Still Lungs, CH6 pp.245-246). Chargen only, matching the web
+                # picker: post-lock a known Charm offers no second copy here.
+                cap = validate._repeatable_purchase_cap(charm, char)
+                if cap and char.charms.count(cid) < cap:
+                    self.again_btn.setVisible(True)
+                    self.again_btn.setToolTip(
+                        f"{char.charms.count(cid)} of {cap} copies")
             self.action_btn.setText(label)
             self.action_btn.setEnabled(True)
             return
@@ -1044,6 +1121,119 @@ class CharmsPage(QWidget):
         if self._act(charm_actions.toggle_charm, self._ruleset, self._char(), charm_id):
             self._refresh_current_tree()
 
+    def _rebuild_submodules(self, charm_id) -> None:
+        """Rebuild the submodule rows for the selected Charm (Alchemical p.89), or hide
+        the panel when it has none — which is every Charm on most splats.
+
+        Each row is name · price · its own Essence/Attribute minimum, over an
+        Add/Buy/Remove button. The price shown follows the lock: bonus points at
+        chargen, experience after it, exactly as the page prints both."""
+        clear_layout(self._submodule_lay)
+        rows = (viewmod.build_submodule_rows(self._ruleset, self._char(), charm_id)
+                if charm_id else [])
+        self._submodule_box.setVisible(bool(rows))
+        if not rows:
+            return
+        char = self._char()
+        pal = theme.palette(char.exalt_type)
+        head = QLabel("SUBMODULES")
+        head.setStyleSheet(f"color:{accent_light(pal)}; font-weight:bold; "
+                           f"letter-spacing:1px;")
+        self._submodule_lay.addWidget(head)
+        for r in rows:
+            self._submodule_lay.addWidget(self._submodule_row(r, char))
+
+    def _submodule_row(self, r, char) -> QWidget:
+        """One submodule: its text block over the button its state calls for."""
+        box = QWidget()
+        lay = QVBoxLayout(box)
+        lay.setContentsMargins(0, 2, 0, 2)
+        lay.setSpacing(1)
+        top = QHBoxLayout()
+        name = QLabel(r.name)
+        name.setStyleSheet("font-weight:600;")
+        top.addWidget(name, 1)
+        price = QLabel(f"{r.xp_cost} XP" if char.chargen_locked else f"{r.bp_cost} BP")
+        price.setStyleSheet(f"color:{MUTED};")
+        top.addWidget(price)
+        lay.addLayout(top)
+        for text in (f"Requires {r.requirement}" if r.requirement else "",
+                     r.description):
+            if not text:
+                continue
+            sub = QLabel(text)
+            sub.setWordWrap(True)
+            sub.setStyleSheet(f"color:{MUTED};")
+            lay.addWidget(sub)
+        lay.addWidget(self._submodule_button(r, char))
+        return box
+
+    def _submodule_button(self, r, char) -> QWidget:
+        """The row's control: Remove pre-lock for an owned one, a disabled button
+        carrying the reason for a blocked one, Buy/Add otherwise. Post-lock an owned
+        submodule offers no Remove — the refund is the Edit tab's last-first undo."""
+        if r.owned:
+            if char.chargen_locked:
+                label = QLabel("Purchased.")
+                label.setStyleSheet(f"color:{MUTED};")
+                return label
+            btn = QPushButton("Remove")
+            btn.clicked.connect(
+                lambda _=False, c=r.charm_id, k=r.key: self._drop_submodule(c, k))
+            return btn
+        if r.block_reason:
+            btn = QPushButton("Add")
+            btn.setEnabled(False)
+            btn.setToolTip(r.block_reason)
+            return btn
+        btn = QPushButton(f"Buy · {r.xp_cost} XP" if char.chargen_locked else "Add")
+        btn.clicked.connect(
+            lambda _=False, c=r.charm_id, k=r.key: self._learn_submodule(c, k))
+        return btn
+
+    def _learn_submodule(self, charm_id: str, key: str) -> None:
+        """Buy a submodule — BP at chargen, XP after the lock, one dispatcher for both."""
+        if self._act(charm_actions.learn_submodule, self._ruleset, self._char(),
+                     charm_id, key):
+            self._after_submodule_change()
+
+    def _drop_submodule(self, charm_id: str, key: str) -> None:
+        if self._act(charm_actions.drop_submodule, self._char(), charm_id, key):
+            self._after_submodule_change()
+
+    def _after_submodule_change(self) -> None:
+        """A submodule spends bonus points or XP, so the budget readout — and the
+        shell's bar behind it — has to move. `_update_action` rebuilds the rows."""
+        self._update_action()
+        self._update_readout()
+
+    def _add_another(self) -> None:
+        """Buy ONE MORE copy of the selected generic repeatable Charm. Calls the LEARN
+        half directly — `toggle_charm` would see an owned Charm and remove it, which is
+        exactly why this needs a button of its own rather than a second click."""
+        cid = self._selected_node
+        if cid is None:
+            return
+        if not self._act(charm_actions.learn_charm, self._ruleset, self._char(), cid):
+            return
+        self._refresh_current_tree()
+        # Re-select the node in the freshly built scene. Buying copies is inherently
+        # repetitive (the cap is a trait rating, so it can be several), and rebuilding
+        # the tree drops the selection — without this the button vanishes under the
+        # cursor after every single copy.
+        self._reselect_node(cid)
+
+    def _reselect_node(self, charm_id: str) -> None:
+        """Select `charm_id`'s node in the current tab's rebuilt scene, if it is on it.
+        Selecting emits selectionChanged, which repaints the detail panel and button."""
+        view = self.tabs.currentWidget().findChild(CharmTreeView)
+        if view is None:
+            return
+        for item in view.scene().items():
+            if isinstance(item, NodeItem) and item.node.id == charm_id:
+                item.setSelected(True)
+                return
+
     def _toggle_spell(self, spell_id: str) -> None:
         """A spell row's click — the same chargen/XP split, same shared dispatcher."""
         if self._act(charm_actions.toggle_spell, self._ruleset, self._char(), spell_id):
@@ -1055,7 +1245,7 @@ class CharmsPage(QWidget):
         and re-find a selected Thaumaturgy entry so its owned state flips the button."""
         view = self.tabs.currentWidget().findChild(CharmTreeView)
         if view is not None and view.category_combo is not None:
-            view.show_tree(view.category_combo.currentData() or "", self._char().exalt_type)
+            view.reload_tree()
             self._tab_changed()
         if self._selected_thaum is not None:
             self._refresh_thaum_selection()
@@ -1130,15 +1320,43 @@ class CharmsPage(QWidget):
         parts = [picks, status]
         if bp:
             parts.append(bp)
+        path = self._immaculate_path_line()
+        if path:
+            parts.append(path)
         self.readout.setText(" · ".join(parts))
         self.readout.setStyleSheet("color:#6b7280;")
 
+    def _immaculate_path_line(self) -> str:
+        """For a Dragon-Blooded at chargen, which Charm path they are on; "" for
+        everyone else.
+
+        The Immaculate path is triggered by any *Immaculate* Charm — the five Dragon
+        style trees (Air/Earth/Fire/Water/Wood Dragon), NOT martial arts in general:
+        Five-Dragon Style is Martial Arts but a normal Charm and does not switch paths.
+        Counts come from the budget, never hardcoded."""
+        ruleset, char = self._ruleset, self._char()
+        if char.exalt_type != "Dragon-Blooded":
+            return ""
+        b = ruleset.budgets_for(char.exalt_type, char.origin, char.upbringing)
+        if validate.immaculate_martial_artist(ruleset, char):
+            return (f"Immaculate path — {b.immaculate_charm_count} Charms from one "
+                    f"Dragon style; Aspect/Favored minimum waived")
+        return (f"Standard path — {b.charm_count} Charms, "
+                f"≥{b.charm_min_caste_favored} Aspect/Favored. Pick a Dragon-style "
+                f"(Immaculate) Charm to switch to the Immaculate path")
+
     def _tree_page(self, group, cache=None):
-        """A tree tab: category dropdown filtered to `group`, over a CharmTreeView.
+        """A tree tab: Splat and category dropdowns filtered to `group`, over a
+        CharmTreeView.
 
         `cache` is the caller's per-build memo (see `_cached`); `reload` shares one
         across all of its `trees_for` calls, which otherwise rescan the whole Charm
-        catalogue once per group and again per page."""
+        catalogue once per group and again per page.
+
+        ⚠ The Splat dropdown is PER TAB here, unlike the web picker's single shared
+        one (core p.127). Each tab offers only the splats with trees in its own group,
+        so the picker's fall-back-to-another-group dance has nothing to handle: a
+        splat with no martial arts simply is not on the Martial Arts tab's list."""
         char = self._char()
         page = QWidget()
         combo = CappedCombo(15)
@@ -1148,30 +1366,137 @@ class CharmsPage(QWidget):
         view._scene.selectionChanged.connect(lambda: self._tree_detail(view))
         view.category_combo = combo
         self._tree_views[group] = view
-        trees = trees_for(self._ruleset, char, char.exalt_type, group, cache)
-        combo.blockSignals(True)
-        for key, count in trees:
-            label = (_style_label(key, self._ruleset).removesuffix(" Style")
-                     if key.startswith("martial_arts:") else key.replace("_", " ").title())
-            combo.addItem(f"{label} ({count})", key)
-        combo.blockSignals(False)
-        combo.currentIndexChanged.connect(lambda _i, v=view: self._load_tree(v))
+
+        splat_combo = CappedCombo(15)
+        splat_combo.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        splats = splats_for(self._ruleset, char, group, cache)
+        splat_combo.blockSignals(True)
+        for name in splats:
+            splat_combo.addItem(name, name)
+        splat_combo.blockSignals(False)
+        splat_combo.setToolTip("Another Exalt type's Charms — a willing tutor, and "
+                               "double to learn and to use (p.127)")
+        view.splat_combo = splat_combo
+        splat_combo.currentIndexChanged.connect(lambda _i, v=view: self._splat_changed(v))
+        # One entry is the character's own splat, which is no choice at all.
+        splat_label = QLabel("Splat:")
+        for w in (splat_label, splat_combo):
+            w.setVisible(len(splats) > 1)
+
+        self._fill_categories(view, group, cache)
+
+        style_head, style_body = self._style_panel(view)
+        combo.currentIndexChanged.connect(lambda _i, v=view: self._category_changed(v))
 
         lay = QVBoxLayout(page)
         row = QHBoxLayout()
+        row.addWidget(splat_label)
+        row.addWidget(splat_combo)
         row.addWidget(QLabel("Tree:"))
         row.addWidget(combo)
         row.addStretch()
         lay.addLayout(row)
+        lay.addWidget(style_head)
+        lay.addWidget(style_body)
         lay.addWidget(view, 1)
         # The first added item is already current (addItem selects it), so
         # setCurrentIndex(0) would not fire currentIndexChanged — load explicitly.
         if combo.count():
-            self._load_tree(view)
+            self._category_changed(view)
         return page
 
-    def _load_tree(self, view):
-        view.show_tree(view.category_combo.currentData() or "", self._char().exalt_type)
+    def _style_panel(self, view):
+        """The collapsible style-level text above a martial-arts tree: the printed
+        `Type:`, the prose and the "Weapons and Armor" rules that have nowhere else to
+        live (docs/status/martial-arts-styles.md). Returns its (header, body) widgets,
+        both hidden until `_sync_style_panel` finds an authored style for the category.
+
+        Collapsed by default: the tree canvas is what the tab is for, and a style's
+        preamble runs to paragraphs."""
+        head = QPushButton("")
+        head.setCheckable(True)
+        head.setCursor(Qt.PointingHandCursor)
+        head.setStyleSheet(
+            f"QPushButton {{ background:transparent; border:none; text-align:left; "
+            f"padding:2px 0; color:{accent_light(theme.palette(self._char().exalt_type))}; "
+            f"font-weight:600; }}")
+        body = QTextBrowser()
+        body.setMaximumHeight(190)
+        # ⚠ Inline, not a palette: an ancestor stylesheet beats a set palette every
+        # time, and a QTextBrowser inside a styled page otherwise paints the card shade.
+        body.setStyleSheet(f"QTextBrowser {{ background:{TREE}; border:none; "
+                           f"color:{MUTED}; }}")
+        body.setVisible(False)
+        head.setVisible(False)
+        head.toggled.connect(body.setVisible)
+        head.toggled.connect(
+            lambda on, b=head: b.setText(("▾" if on else "▸") + b.text()[1:]))
+        view.style_head = head
+        view.style_body = body
+        self._sync_style_panel(view)
+        return head, body
+
+    def _sync_style_panel(self, view) -> None:
+        """Point a tab's style panel at its current category. Renders NOTHING when the
+        category is not an authored style — `martial_arts:enlightenment` is the
+        Dragon-Path initiation tree, not a style, and a homebrew style has no page to
+        have a preamble from. An empty panel on every other category would be worse
+        than no panel, the rule the printed sheet follows."""
+        head = getattr(view, "style_head", None)
+        if head is None:
+            return
+        category = (view.category_combo.currentData()
+                    if view.category_combo is not None else "")
+        style = viewmod.style_for_category(self._ruleset, category or "")
+        if style is None:
+            head.setVisible(False)
+            view.style_body.setVisible(False)
+            return
+        head.setVisible(True)
+        # The arrow follows the expanded state, which SURVIVES a category change —
+        # a player who opened the panel wants the next style's prose open too.
+        head.setText(("▾ " if head.isChecked() else "▸ ") + style.heading)
+        # ⚠ Every field is optional even on a non-None style — only the Player's Guide
+        # prints both a Type: line and prose. Interpolating unconditionally gives an
+        # empty paragraph under a heading.
+        parts = []
+        if style.preamble:
+            parts.append("<p>" + html.escape(style.preamble).replace("\n", "<br>")
+                         + "</p>")
+        for rule in style.mechanics:
+            parts.append(f"<p>• {html.escape(rule)}</p>")
+        if style.source_label:
+            parts.append(f"<p><i>{html.escape(style.source_label)}</i></p>")
+        view.style_body.setHtml("".join(parts))
+        view.style_body.setVisible(head.isChecked())
+
+    def _category_changed(self, view) -> None:
+        """A category pick: re-render the tree and re-point the style panel at it."""
+        view.reload_tree()
+        self._sync_style_panel(view)
+
+    def _fill_categories(self, view, group, cache=None):
+        """(Re)stock a tab's category dropdown for the splat its Splat dropdown names.
+        Signals stay blocked throughout: the caller decides when the tree renders, and
+        clearing a combo emits currentIndexChanged with an index of -1."""
+        char = self._char()
+        splat = view.splat_combo.currentData() or char.exalt_type
+        combo = view.category_combo
+        combo.blockSignals(True)
+        combo.clear()
+        for key, count in trees_for(self._ruleset, char, splat, group, cache):
+            label = (_style_label(key, self._ruleset).removesuffix(" Style")
+                     if key.startswith("martial_arts:") else key.replace("_", " ").title())
+            combo.addItem(f"{label} ({count})", key)
+        combo.blockSignals(False)
+
+    def _splat_changed(self, view) -> None:
+        """Switch a tab's trees to another Exalt type's page. Category names collide
+        across splats, so the held category is almost never valid on the new page —
+        restock and land on its first, which `reload_tree` then renders."""
+        group = next((g for g, v in self._tree_views.items() if v is view), "")
+        self._fill_categories(view, group)
+        self._category_changed(view)
 
     def _tree_detail(self, view):
         # A scene emits selectionChanged as it is destroyed (window teardown); by then
@@ -1207,12 +1532,44 @@ class CharmsPage(QWidget):
         self._selected_augment = None
         detail = build_charm_detail(self._ruleset, view._character, node.id)
         html_text = _detail_html(detail) if detail else f"<b>{node.label}</b>"
+        if detail is not None:
+            html_text += self._charm_flags_html(detail)
         state = {"owned": "Owned", "available": "Available"}.get(node.state, "Locked")
         menu = build_package_menu(self._ruleset, view._character, node.id)
         if menu is not None:
             html_text += self._package_summary_html(menu)
         self.detail.setHtml(f"<span style='color:#9a9894'>{state}</span><br>" + html_text)
         self._update_action()
+
+    def _charm_flags_html(self, detail) -> str:
+        """The five callouts a Charm's detail card carries beyond its stat block:
+        homebrew, another splat's Charm, an Immaculate Order Charm, a discounted
+        Calling Charm, and one the training camp granted free.
+
+        Four of the five change what the Charm COSTS, which is why they sit next to
+        the price rather than on the sheet. Nothing is rendered when none apply.
+        """
+        char = self._char()
+        pal = theme.palette(char.exalt_type)
+        accent = accent_light(pal)
+        flags: list[tuple[str, str]] = []
+        if detail.custom:
+            flags.append((CUSTOM, "✎ Custom (homebrew) Charm — not from a rulebook"))
+        if detail.foreign_splat:
+            flags.append((accent, f"{html.escape(detail.foreign_splat)} Charm — needs a "
+                                  "willing tutor; costs double to learn and to use (p.127)"))
+        charm = self._ruleset.charms.get(detail.id)
+        if charm is not None and validate.is_immaculate_charm(charm):
+            flags.append((accent, "Immaculate Order Charm (Fivefold Dragon Method)"))
+        if viewmod.is_calling_charm(self._ruleset, char, detail.id):
+            flags.append((accent, "✧ Calling Charm — discounted"))
+        if detail.id in char.granted_charms:
+            flags.append((accent, "Granted by your training camp — no Charm pick spent"))
+        if not flags:
+            return ""
+        rows = "".join(f"<div style='color:{c}; font-weight:600'>{t}</div>"
+                       for c, t in flags)
+        return f"<div style='margin-top:6px'>{rows}</div>"
 
     def _package_summary_html(self, menu) -> str:
         """The packages already bought and the cap, appended to a variant-menu

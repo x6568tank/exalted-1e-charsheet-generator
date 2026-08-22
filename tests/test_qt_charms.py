@@ -18,13 +18,15 @@ from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QWheelEvent
 from PySide6.QtWidgets import QCheckBox, QLabel, QLineEdit, QPushButton
 
-from exalted_builder.engine import advancement, lifecycle, refit, validate
+from exalted_builder.engine import (advancement, charm_actions, lifecycle,
+                                    refit, validate)
 from exalted_builder.models.character import (AbilityName, Character,
                                                MeritFlawPurchase, PathRating)
 from exalted_builder.qt.charms import (CharmsPage, CharmTreeView, DotTrack,
                                        trees_for,
                                        EdgeItem, NodeItem, _tree_positions, populate)
-from exalted_builder.ui.view import build_thaum_picker
+from exalted_builder.ui import view as viewmod
+from exalted_builder.ui.view import build_charm_detail, build_thaum_picker
 
 
 def _visible_tabs(page):
@@ -906,3 +908,545 @@ def test_the_shell_wires_the_charms_tab_to_its_readout(ruleset, qtbot):
     win = MainWindow(ruleset, _learnable_char(), Path("unused.json"))
     qtbot.addWidget(win)
     assert win._pages["Charms"]._on_change == win._refresh
+
+
+# --- the Splat dropdown (foreign Charms, core p.127) ------------------------- #
+#
+# The web picker has ONE shared Splat dropdown over a group toggle; the Qt tab set
+# gives each tree tab its own, offering only the splats with trees in that group.
+
+
+def _eclipse(**kw) -> Character:
+    """An Eclipse with the generalist privilege actually open — the caste allows it
+    (data-driven, `CasteDefinition.foreign_charms`) and the Storyteller has said yes,
+    which is the pre-lock half of the rule."""
+    from exalted_builder.models.character import HouseRules
+    char = Character(id="x", exalt_type="Solar", caste="eclipse", essence_rating=5,
+                     house_rules=HouseRules(st_foreign_charms=True), **kw)
+    char.abilities = {a: 5 for a in AbilityName}
+    return char
+
+
+def _splat_row(page, tab_label):
+    """The (combo, label) pair of one tree tab's Splat dropdown."""
+    for i in range(page.tabs.count()):
+        if page.tabs.tabText(i) == tab_label:
+            view = page.tabs.widget(i).findChild(CharmTreeView)
+            return view, view.splat_combo
+    raise AssertionError(f"no {tab_label} tab")
+
+
+def test_splat_dropdown_is_hidden_without_the_privilege(ruleset, qtbot):
+    page = CharmsPage(ruleset, {"char": Character(id="c", exalt_type="Solar",
+                                                  caste="dawn")})
+    qtbot.addWidget(page)
+    _, combo = _splat_row(page, "Charms")
+    assert [combo.itemData(i) for i in range(combo.count())] == ["Solar"]
+    # ⚠ `isHidden()`, not `isVisible()`: a widget whose parent was never shown reports
+    # isVisible() False however it is configured, so the negative form passes vacuously
+    # (test_qt_advantages.py:490 records the same trap).
+    assert combo.isHidden()             # one entry is no choice at all
+
+
+def test_eclipse_is_offered_other_splats(ruleset, qtbot):
+    page = CharmsPage(ruleset, {"char": _eclipse()})
+    qtbot.addWidget(page)
+    _, combo = _splat_row(page, "Charms")
+    offered = [combo.itemData(i) for i in range(combo.count())]
+    assert offered[0] == "Solar"                    # the character's own, first
+    assert "Dragon-Blooded" in offered
+    assert offered[1:] == sorted(offered[1:])
+
+
+def test_switching_splat_restocks_the_categories_and_the_tree(ruleset, qtbot):
+    page = CharmsPage(ruleset, {"char": _eclipse()})
+    qtbot.addWidget(page)
+    view, combo = _splat_row(page, "Charms")
+    native = [view.category_combo.itemData(i)
+              for i in range(view.category_combo.count())]
+    native_nodes = {n.id for n in view.graph.nodes}
+
+    combo.setCurrentIndex([combo.itemData(i)
+                           for i in range(combo.count())].index("Dragon-Blooded"))
+    foreign_nodes = {n.id for n in view.graph.nodes}
+    assert foreign_nodes and not (foreign_nodes & native_nodes)
+    assert view.category_combo.count()              # landed on a real category
+    assert all(n.startswith("dragonblooded.") for n in foreign_nodes)
+    # Back again — the native page is unchanged, not a merged pile.
+    combo.setCurrentIndex(0)
+    assert [view.category_combo.itemData(i)
+            for i in range(view.category_combo.count())] == native
+    assert {n.id for n in view.graph.nodes} == native_nodes
+
+
+def test_a_purchase_does_not_revert_a_foreign_tree_to_the_native_splat(ruleset, qtbot):
+    """⚠ The house bug this port is prone to: the refresh-after-buy path had its own
+    hardcoded `character.exalt_type`, so the tree silently snapped back to the native
+    splat on the next click. Nothing else on screen showed it."""
+    char = _eclipse(chargen_locked=False)
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    view, combo = _splat_row(page, "Charms")
+    combo.setCurrentIndex([combo.itemData(i)
+                           for i in range(combo.count())].index("Dragon-Blooded"))
+    before = {n.id for n in view.graph.nodes}
+    cid = next(n.id for n in view.graph.nodes if n.state == "available")
+
+    page._toggle_charm(cid)
+    assert cid in char.charms
+    assert {n.id for n in view.graph.nodes} == before      # still the foreign page
+
+
+# --- the detail card's five flag lines --------------------------------------- #
+#
+# ⚠ These were absent from the Qt detail panel for six shipped milestones: it rendered
+# the stat block and nothing else. Four of the five change what the Charm COSTS.
+
+
+def _flags(page, detail):
+    return page._charm_flags_html(detail)
+
+
+def test_no_flags_renders_nothing(ruleset, qtbot):
+    """Nothing is rendered as nothing, never as an empty box."""
+    char = _learnable_char()
+    page = CharmsPage(ruleset, {"char": char})
+    qtbot.addWidget(page)
+    plain = build_charm_detail(ruleset, char, _first_available(ruleset, char)[0])
+    assert _flags(page, plain) == ""
+
+
+def test_a_foreign_charm_says_it_costs_double(ruleset, qtbot):
+    char = _eclipse()
+    page = CharmsPage(ruleset, {"char": char})
+    qtbot.addWidget(page)
+    view, combo = _splat_row(page, "Charms")
+    combo.setCurrentIndex([combo.itemData(i)
+                           for i in range(combo.count())].index("Dragon-Blooded"))
+    detail = build_charm_detail(ruleset, char, view.graph.nodes[0].id)
+    out = _flags(page, detail)
+    assert "Dragon-Blooded Charm" in out and "double" in out and "p.127" in out
+
+
+def test_a_calling_charm_is_marked_discounted(ruleset, qtbot):
+    char = Character(id="c", exalt_type="Solar", caste="dawn", origin="illuminated",
+                     camp="kether-rock", calling="deacon")
+    calling = validate.calling_charm_ids(ruleset, char)
+    if not calling:
+        pytest.skip("no Calling in this ruleset discounts any Charm")
+    page = CharmsPage(ruleset, {"char": char})
+    qtbot.addWidget(page)
+    detail = build_charm_detail(ruleset, char, sorted(calling)[0])
+    assert "Calling Charm" in _flags(page, detail)
+
+
+def test_a_camp_granted_charm_says_it_cost_no_pick(ruleset, qtbot):
+    char = _learnable_char()
+    cid = _first_available(ruleset, char)[0]
+    char.granted_charms = [cid]
+    page = CharmsPage(ruleset, {"char": char})
+    qtbot.addWidget(page)
+    out = _flags(page, build_charm_detail(ruleset, char, cid))
+    assert "training camp" in out and "no Charm pick" in out
+
+
+def test_an_immaculate_charm_is_named_as_one(ruleset, qtbot):
+    cid = next((c.id for c in ruleset.charms.values()
+                if validate.is_immaculate_charm(c)), None)
+    if cid is None:
+        pytest.skip("no Immaculate Charm in this ruleset")
+    char = Character(id="c", exalt_type="Dragon-Blooded")
+    page = CharmsPage(ruleset, {"char": char})
+    qtbot.addWidget(page)
+    detail = build_charm_detail(ruleset, char, cid)
+    assert "Immaculate Order Charm" in _flags(page, detail)
+
+
+def test_a_homebrew_charm_is_marked_as_unbacked(ruleset, qtbot):
+    cid = next((c.id for c in ruleset.charms.values() if getattr(c, "custom", False)),
+               None)
+    if cid is None:
+        # ⚠ Negative control rebuilt on a synthetic subject rather than deleted: the
+        # shipped catalogue holds no homebrew, so there is no real Charm to assert on.
+        page = CharmsPage(ruleset, {"char": _learnable_char()})
+        qtbot.addWidget(page)
+        fake = SimpleNamespace(id="custom.x", custom=True, foreign_splat="")
+        assert "homebrew" in _flags(page, fake)
+        return
+    page = CharmsPage(ruleset, {"char": _learnable_char()})
+    qtbot.addWidget(page)
+    assert "homebrew" in _flags(page, build_charm_detail(ruleset, _learnable_char(), cid))
+
+
+# --- "Add another" for generic repeatable Charms ----------------------------- #
+#
+# Owned-but-under-cap is the one state the single action button cannot express: it
+# reads "Remove", and a repeatable Charm wants one MORE copy.
+
+REPEATABLE = "solar.resistance.environmental-hazard-resisting-meditation"
+
+
+def _repeatable_char():
+    """A Solar who can actually learn REPEATABLE: it wants Resistance 5 and Essence 2,
+    and Resistance is also its cap trait — so the copy cap is 5."""
+    char = Character(id="c", exalt_type="Solar", caste="dawn", essence_rating=2)
+    char.abilities[AbilityName.RESISTANCE] = 5
+    return char
+
+
+def _select(page, charm_id):
+    """Select one node in the current tab's scene, as a click would.
+
+    ⚠ Clears first: a QGraphicsScene selection is not exclusive, so setSelected(True)
+    on a second node leaves BOTH selected and `_tree_detail` keeps reading the first —
+    a test that moved the selection would go on asserting about the old node."""
+    view = page.tabs.currentWidget().findChild(CharmTreeView)
+    view.scene().clearSelection()
+    for item in view.scene().items():
+        if isinstance(item, NodeItem) and item.node.id == charm_id:
+            item.setSelected(True)
+            return item
+    raise AssertionError(f"{charm_id} is not on the current tree")
+
+
+def _show_repeatable(ruleset, page, charm_id):
+    """Open the tab and category holding `charm_id`, then select it."""
+    category = ruleset.charms[charm_id].category
+    for i in range(page.tabs.count()):
+        view = page.tabs.widget(i).findChild(CharmTreeView)
+        if view is None or view.category_combo is None:
+            continue
+        for row in range(view.category_combo.count()):
+            if view.category_combo.itemData(row) == category:
+                page.tabs.setCurrentIndex(i)
+                view.category_combo.setCurrentIndex(row)
+                return _select(page, charm_id)
+    raise AssertionError(f"no tab offers {category}")
+
+
+def test_add_another_is_hidden_until_the_charm_is_owned(ruleset, qtbot):
+    char = _repeatable_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    _show_repeatable(ruleset, page, REPEATABLE)
+    assert page.again_btn.isHidden()               # unowned: Learn, not Add another
+    page._toggle_charm(REPEATABLE)
+    _select(page, REPEATABLE)
+    assert not page.again_btn.isHidden()
+
+
+def test_add_another_appends_a_copy_rather_than_removing(ruleset, qtbot):
+    """⚠ The whole point: `toggle_charm` on an owned Charm REMOVES it. A second copy
+    has to call the learn half directly."""
+    char = _repeatable_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    _show_repeatable(ruleset, page, REPEATABLE)
+    page._toggle_charm(REPEATABLE)
+    assert char.charms.count(REPEATABLE) == 1
+    _select(page, REPEATABLE)
+    page._add_another()
+    assert char.charms.count(REPEATABLE) == 2
+    # The selection survives the rebuild, so a third copy is one click, not three.
+    assert page._selected_node == REPEATABLE
+    assert not page.again_btn.isHidden()
+
+
+def test_add_another_disappears_at_the_cap(ruleset, qtbot):
+    char = _repeatable_char()
+    cap = validate._repeatable_purchase_cap(ruleset.charms[REPEATABLE], char)
+    assert cap == 5                                  # Resistance 5, per _repeatable_char
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    _show_repeatable(ruleset, page, REPEATABLE)
+    page._toggle_charm(REPEATABLE)
+    for _ in range(cap - 1):
+        _select(page, REPEATABLE)
+        page._add_another()
+    assert char.charms.count(REPEATABLE) == cap
+    _select(page, REPEATABLE)
+    assert page.again_btn.isHidden()
+
+
+def test_add_another_is_chargen_only(ruleset, qtbot):
+    """Matches the web picker: post-lock a known Charm offers no second copy here —
+    the in-play card shows "Known." and buying runs through the XP path."""
+    char = _repeatable_char()
+    char.charms = [REPEATABLE]
+    char.chargen_locked = True
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    _show_repeatable(ruleset, page, REPEATABLE)
+    assert page.again_btn.isHidden()
+
+
+def test_add_another_hides_when_the_selection_moves_on(ruleset, qtbot):
+    """⚠ The button is hidden at the TOP of _update_action, not per branch: a dozen
+    early returns would each have to remember, and one that forgot would offer
+    "Add another" against somebody else's Charm."""
+    char = _repeatable_char()
+    char.abilities[AbilityName.MELEE] = 3
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    _show_repeatable(ruleset, page, REPEATABLE)
+    page._toggle_charm(REPEATABLE)
+    _select(page, REPEATABLE)
+    assert not page.again_btn.isHidden()
+    other = next(n.id for n in
+                 page.tabs.currentWidget().findChild(CharmTreeView).graph.nodes
+                 if n.id != REPEATABLE)
+    _select(page, other)
+    assert page.again_btn.isHidden()
+
+
+# --- the martial-arts style panel -------------------------------------------- #
+
+
+def _styles_view(page):
+    for i in range(page.tabs.count()):
+        if page.tabs.tabText(i) == "Martial Arts":
+            page.tabs.setCurrentIndex(i)
+            return page.tabs.widget(i).findChild(CharmTreeView)
+    raise AssertionError("no Martial Arts tab")
+
+
+def _pick_category(view, key):
+    for row in range(view.category_combo.count()):
+        if view.category_combo.itemData(row) == key:
+            view.category_combo.setCurrentIndex(row)
+            return True
+    return False
+
+
+def test_a_style_tree_shows_its_style_text(ruleset, qtbot):
+    page = CharmsPage(ruleset, {"char": _learnable_char()})
+    qtbot.addWidget(page)
+    view = _styles_view(page)
+    key = view.category_combo.currentData()
+    style = viewmod.style_for_category(ruleset, key)
+    assert style is not None, f"{key} was expected to be an authored style"
+    assert not view.style_head.isHidden()
+    assert style.name in view.style_head.text()
+    # Collapsed by default — the canvas is what the tab is for.
+    assert view.style_body.isHidden()
+    view.style_head.setChecked(True)
+    assert not view.style_body.isHidden()
+    if style.preamble:
+        assert style.preamble.split("\n")[0][:40] in view.style_body.toHtml()
+
+
+def test_a_category_with_no_authored_style_renders_nothing(ruleset, qtbot):
+    """⚠ None is an ordinary answer, not an error: `martial_arts:enlightenment` is the
+    Dragon-Path initiation tree, not a style. An empty panel would be worse than none."""
+    char = Character(id="c", exalt_type="Dragon-Blooded")
+    char.abilities[AbilityName.MARTIAL_ARTS] = 5
+    char.abilities[AbilityName.OCCULT] = 5
+    char.essence_rating = 3
+    page = CharmsPage(ruleset, {"char": char})
+    qtbot.addWidget(page)
+    view = _styles_view(page)
+    if not _pick_category(view, "martial_arts:enlightenment"):
+        pytest.skip("this character's Martial Arts tab does not offer enlightenment")
+    assert viewmod.style_for_category(ruleset, "martial_arts:enlightenment") is None
+    assert view.style_head.isHidden() and view.style_body.isHidden()
+
+
+def test_the_style_panel_follows_the_category(ruleset, qtbot):
+    page = CharmsPage(ruleset, {"char": _learnable_char()})
+    qtbot.addWidget(page)
+    view = _styles_view(page)
+    keys = [view.category_combo.itemData(i)
+            for i in range(view.category_combo.count())]
+    styled = [k for k in keys if viewmod.style_for_category(ruleset, k) is not None]
+    if len(styled) < 2:
+        pytest.skip("needs two authored styles on one tab")
+    _pick_category(view, styled[0])
+    first = view.style_head.text()
+    _pick_category(view, styled[1])
+    assert view.style_head.text() != first
+    assert viewmod.style_for_category(ruleset, styled[1]).name in view.style_head.text()
+
+
+def test_the_expanded_state_survives_a_category_change(ruleset, qtbot):
+    page = CharmsPage(ruleset, {"char": _learnable_char()})
+    qtbot.addWidget(page)
+    view = _styles_view(page)
+    keys = [view.category_combo.itemData(i)
+            for i in range(view.category_combo.count())]
+    styled = [k for k in keys if viewmod.style_for_category(ruleset, k) is not None]
+    if len(styled) < 2:
+        pytest.skip("needs two authored styles on one tab")
+    _pick_category(view, styled[0])
+    view.style_head.setChecked(True)
+    _pick_category(view, styled[1])
+    assert not view.style_body.isHidden()
+    assert view.style_head.text().startswith("▾")     # the arrow agrees
+
+
+def test_a_charm_tree_tab_has_no_style_panel(ruleset, qtbot):
+    """The Charms tab's categories are Abilities, never styles."""
+    page = CharmsPage(ruleset, {"char": _learnable_char()})
+    qtbot.addWidget(page)
+    view = page._tree_views["abilities"]
+    assert view.style_head.isHidden()
+
+
+# --- Alchemical submodules (p.89) -------------------------------------------- #
+#
+# A submodule upgrades ONE Charm, so it is bought on that Charm's detail panel. The Qt
+# detail pane is a QTextBrowser, so the rows live in their own box beneath it.
+
+GAS = "alchemical.close-combat.chemical-fog-generator"     # four submodules, two tiers
+
+
+def _alch(**kw):
+    char = Character(id="a", exalt_type="Alchemical", caste="orichalcum", **kw)
+    for ab in (AbilityName.MELEE, AbilityName.MARTIAL_ARTS):
+        char.abilities[ab] = 5
+    return char
+
+
+def _sub_buttons(page):
+    return [b for b in page._submodule_box.findChildren(QPushButton)]
+
+
+def test_a_charm_without_submodules_shows_no_panel(ruleset, qtbot):
+    char = _learnable_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._selected_node = _first_available(ruleset, char)[0]
+    page._update_action()
+    assert page._submodule_box.isHidden()      # most Charms have none
+
+
+def test_the_panel_lists_every_submodule_of_the_selected_charm(ruleset, qtbot):
+    char = _alch()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._selected_node = GAS
+    page._update_action()
+    assert not page._submodule_box.isHidden()
+    names = {s.name for s in ruleset.charms[GAS].submodules}
+    shown = {l.text() for l in page._submodule_box.findChildren(QLabel)}
+    assert names <= shown
+
+
+def test_adding_a_submodule_at_chargen_appends_it(ruleset, qtbot):
+    char = _alch()
+    char.charms = [GAS]
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._selected_node = GAS
+    page._update_action()
+    page._learn_submodule(GAS, "knockout-gas")
+    assert [(s.charm_id, s.key) for s in char.submodules] == [(GAS, "knockout-gas")]
+    # The rows rebuilt, so the same one now offers Remove rather than Add.
+    assert any(b.text() == "Remove" for b in _sub_buttons(page))
+    page._drop_submodule(GAS, "knockout-gas")
+    assert char.submodules == []
+
+
+def test_a_blocked_submodule_is_disabled_with_its_reason(ruleset, qtbot):
+    """The nerve/soul gases want Essence 3; a starting Alchemical has Essence 1."""
+    char = _alch()
+    char.charms = [GAS]
+    assert char.essence_rating < 3
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._selected_node = GAS
+    page._update_action()
+    blocked = [b for b in _sub_buttons(page) if not b.isEnabled()]
+    assert blocked and all(b.toolTip() for b in blocked)
+
+
+def test_the_engine_refuses_a_blocked_submodule_even_unasked(ruleset, qtbot):
+    """⚠ The gate is in engine.charm_actions, not in the button's enabled state: a
+    shell that never asked could otherwise append a submodule whose minimum is unmet."""
+    from exalted_builder.engine import advancement as adv
+    char = _alch()
+    char.charms = [GAS]
+    with pytest.raises(adv.AdvancementError):
+        charm_actions.learn_submodule(ruleset, char, GAS, "nerve-gas")
+    assert char.submodules == []
+
+
+def test_the_panel_clears_when_the_selection_moves_on(ruleset, qtbot):
+    char = _alch()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._selected_node = GAS
+    page._update_action()
+    assert not page._submodule_box.isHidden()
+    page._selected_node = None
+    page._update_action()
+    assert page._submodule_box.isHidden()
+
+
+def test_a_submodule_purchase_moves_the_shell_readout(ruleset, qtbot):
+    """It spends bonus points, so the shell's bar has to hear about it."""
+    char = _alch()
+    char.charms = [GAS]
+    beats = []
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None,
+                      on_change=lambda: beats.append(1))
+    qtbot.addWidget(page)
+    page._selected_node = GAS
+    page._update_action()
+    beats.clear()
+    page._learn_submodule(GAS, "knockout-gas")
+    assert beats
+
+
+# --- the Immaculate-vs-standard path banner (Dragon-Blooded) ----------------- #
+
+
+def _db(**kw):
+    char = Character(id="d", exalt_type="Dragon-Blooded", caste="air", **kw)
+    char.abilities[AbilityName.MARTIAL_ARTS] = 5
+    char.essence_rating = 3
+    return char
+
+
+def test_a_dragon_blooded_is_told_which_chargen_path_they_are_on(ruleset, qtbot):
+    char = _db()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    b = ruleset.budgets_for("Dragon-Blooded", char.origin, char.upbringing)
+    text = page.readout.text()
+    assert "Standard path" in text
+    assert str(b.charm_count) in text            # from the budget, never hardcoded
+    assert "Immaculate" in text                  # and how to switch
+
+
+def test_an_immaculate_charm_switches_the_path_line(ruleset, qtbot):
+    """⚠ Immaculate is a DATA flag on the Charm (the five Dragon-style trees), not
+    "is a martial art" — Five-Dragon Style is Martial Arts and does not switch."""
+    cid = next((c.id for c in ruleset.charms.values()
+                if validate.is_immaculate_charm(c)
+                and c.exalt_type == "Dragon-Blooded"), None)
+    assert cid is not None, "no Dragon-Blooded Immaculate Charm to test with"
+    char = _db()
+    char.charms = [cid]
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    b = ruleset.budgets_for("Dragon-Blooded", char.origin, char.upbringing)
+    text = page.readout.text()
+    assert "Immaculate path" in text and "Standard path" not in text
+    assert str(b.immaculate_charm_count) in text
+    assert "waived" in text
+
+
+def test_no_other_splat_gets_a_path_line(ruleset, qtbot):
+    page = CharmsPage(ruleset, {"char": _learnable_char()})
+    qtbot.addWidget(page)
+    assert page._immaculate_path_line() == ""
+    assert "path" not in page.readout.text()
+
+
+def test_the_path_line_is_chargen_only(ruleset, qtbot):
+    """Post-lock the budget that matters is XP; the chargen path is settled."""
+    char = _db()
+    char.chargen_locked = True
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    assert "path" not in page.readout.text()

@@ -34,8 +34,7 @@ from nicegui import ui
 from .. import persistence, rules_db
 from ..engine import (advancement, charm_actions, costs, paths as engine_paths,
                       refit, validate)
-from ..models.character import (AnimalForm, Character, PathRating,
-                                SubmodulePurchase)
+from ..models.character import AnimalForm, Character, PathRating
 from ..models.rules import Orientation, RuleSet, circle_kind
 from . import theme
 from . import view as viewmod
@@ -539,23 +538,19 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
     # experience post-lock — the page prints both. Most Charms have none, in which
     # case this renders nothing at all.
     def add_submodule(charm_id: str, key: str) -> None:
-        character.submodules.append(SubmodulePurchase(charm_id=charm_id, key=key))
-        detail.refresh(); readout.refresh()      # spends BP: the budget readout moves
+        if _act(charm_actions.learn_submodule, ruleset, character, charm_id, key):
+            detail.refresh(); readout.refresh()  # spends BP: the budget readout moves
 
     def remove_submodule(charm_id: str, key: str) -> None:
-        for i in range(len(character.submodules) - 1, -1, -1):
-            s = character.submodules[i]
-            if s.charm_id == charm_id and s.key == key:
-                del character.submodules[i]
-                break
-        detail.refresh(); readout.refresh()
+        if _act(charm_actions.drop_submodule, character, charm_id, key,
+                kind="negative"):
+            detail.refresh(); readout.refresh()
 
     def buy_submodule(charm_id: str, key: str) -> None:
-        sub = validate.submodule_def(ruleset, charm_id, key)
-        if not _buy(lambda: advancement.learn_submodule(ruleset, character, charm_id, key)):
-            return
-        ui.notify(f"Bought {sub.name} — {sub.xp_cost} XP", type="positive")
-        detail.refresh(); readout.refresh()
+        # Post-lock the same dispatcher runs the XP purchase — `learn_submodule`
+        # branches on the lock, so this and `add_submodule` are one code path.
+        if _act(charm_actions.learn_submodule, ruleset, character, charm_id, key):
+            detail.refresh(); readout.refresh()
 
     def submodule_section(charm_id: str) -> None:
         rows = viewmod.build_submodule_rows(ruleset, character, charm_id)

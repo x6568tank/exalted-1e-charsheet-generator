@@ -31,7 +31,8 @@ where both shells run it.
 
 from __future__ import annotations
 
-from ..models.character import BeastmanGiftPurchase, Character, OxBodyPurchase
+from ..models.character import (BeastmanGiftPurchase, Character, OxBodyPurchase,
+                                SubmodulePurchase)
 from ..models.rules import RuleSet
 from . import advancement, costs, validate
 
@@ -233,3 +234,46 @@ def remove_gift_purchase(character: Character, index: int) -> str:
         _refuse("No such Deadly Beastman Transformation purchase.")
     del character.beastman_gifts[index]
     return "Removed a Deadly Beastman Transformation purchase"
+
+
+# ---- Alchemical submodules (p.89) --------------------------------------- #
+#
+# A submodule permanently upgrades ONE Charm, so it is bought on that Charm's detail
+# panel rather than from a catalogue. Dual cost: bonus points at chargen, experience
+# after the lock.
+
+def learn_submodule(ruleset: RuleSet, character: Character,
+                    charm_id: str, key: str) -> str:
+    """Buy one submodule: an XP purchase after the lock, an append to
+    `character.submodules` before it (where the bonus-point calc picks it up).
+
+    ⚠ The chargen half checks `validate.submodule_block_reason` — the same gate the
+    detail panel greys its button on. Without it a shell that drew the button anyway,
+    or one that never asked, could append a submodule whose Essence/Attribute minimum
+    the character does not meet."""
+    definition = validate.submodule_def(ruleset, charm_id, key)
+    if definition is None:
+        _refuse(f"No submodule {key!r} on Charm {charm_id!r}.")
+    if character.chargen_locked:
+        advancement.learn_submodule(ruleset, character, charm_id, key)
+        return f"Bought {definition.name} — {definition.xp_cost} XP"
+    if validate.owns_submodule(character, charm_id, key):
+        _refuse(f"{definition.name} is already owned.")
+    reason = validate.submodule_block_reason(ruleset, character, charm_id, key)
+    if reason:
+        _refuse(f"{definition.name}: {reason}")
+    character.submodules.append(SubmodulePurchase(charm_id=charm_id, key=key))
+    return f"Added {definition.name}"
+
+
+def drop_submodule(character: Character, charm_id: str, key: str) -> str:
+    """Give back one chargen submodule. Post-lock the only refund is the XP log's
+    last-first undo on the Edit tab, exactly as for Charms and Combos."""
+    if character.chargen_locked:
+        _refuse("That submodule was bought with XP — undo it on the Edit tab.")
+    for i in range(len(character.submodules) - 1, -1, -1):
+        s = character.submodules[i]
+        if s.charm_id == charm_id and s.key == key:
+            del character.submodules[i]
+            return "Removed a submodule"
+    _refuse("No such submodule purchase.")
