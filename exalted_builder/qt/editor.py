@@ -59,6 +59,12 @@ class _Pip(QLabel):
         self.clicked.emit(self._index)
 
 
+# ⚠ A nested layout whose spacing is unset (-1) INHERITS its parent's, so the 24px gap
+# set between the COLUMNS became the gap between the ROWS inside each column — the
+# attribute rows sat 41px apart against the Virtues' 21px, which reads as the card
+# trying to fill itself vertically (human, 2026-08-22). Set it explicitly.
+_ROW_SPACING = 4
+
 class DotTrack(QWidget):
     """A clickable dot-track rating control (decision 0013: the buy control on both
     sides of the lock). `get`/`setv` read and write the rating; pre-lock a click is a
@@ -861,6 +867,7 @@ class TraitsPage(_EditorPage):
             if i > 0:
                 cols.addWidget(self._vsep())
             group = QVBoxLayout()
+            group.setSpacing(_ROW_SPACING)          # ⚠ see _ROW_SPACING
             spent_label = QLabel("")
             spent_label.setStyleSheet("font-weight:600; color:#a8a5a0;")
 
@@ -936,6 +943,7 @@ class TraitsPage(_EditorPage):
                 if j > 0:
                     cols.addWidget(self._vsep())
                 group = QVBoxLayout()
+                group.setSpacing(_ROW_SPACING)      # ⚠ see _ROW_SPACING
                 if group_label:
                     g = QLabel(group_label)
                     g.setStyleSheet(f"font-weight:600; color:{accent};")

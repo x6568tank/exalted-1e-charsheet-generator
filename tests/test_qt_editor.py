@@ -244,3 +244,33 @@ def _ability_tally_text(page) -> str:
         if "dots spent" in label.text():
             return label.text()
     return ""
+
+
+def test_trait_columns_do_not_inherit_the_column_gap_as_row_spacing(ruleset, qtbot):
+    """⚠ A nested layout whose spacing is unset (-1) INHERITS its parent's.
+
+    The Attributes and Abilities panels put three columns in a QHBoxLayout with a 24px
+    gap between them; each column is a bare QVBoxLayout, which silently took that 24 as
+    its ROW spacing. Attribute rows sat 41px apart against the Virtues' 21, which reads
+    as the card trying to fill itself vertically (human, 2026-08-22).
+
+    Pins the MECHANISM — every column's spacing is the deliberate row spacing and none
+    is the column gap — rather than a pixel measurement, which would rot the first time
+    a font changed.
+    """
+    from PySide6.QtWidgets import QVBoxLayout
+    from exalted_builder.qt.editor import _ROW_SPACING, _Panel
+
+    page = TraitsPage(ruleset, {"char": Character(id="c.sp", exalt_type="Solar",
+                                                  caste="dawn")})
+    qtbot.addWidget(page)
+    columns = []
+    for card in page.findChildren(_Panel):
+        for lay in card.findChildren(QVBoxLayout):
+            # A trait column: a vertical layout holding rows, nested inside a card.
+            if lay.count() > 1 and lay is not card.layout():
+                columns.append(lay)
+    assert columns, "no nested trait columns found — has the layout changed?"
+    assert all(lay.spacing() == _ROW_SPACING for lay in columns), \
+        [lay.spacing() for lay in columns]
+    assert _ROW_SPACING != 24, "the column gap must not double as the row spacing"
