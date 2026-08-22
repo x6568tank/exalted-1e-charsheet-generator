@@ -1,10 +1,14 @@
 """The Qt Gear page (exalted_builder/qt/gear.py) — the inventory, the shop, the
 artifacts budget and the services price list.
 
-Covers what the widget decides for itself: that the inventory filter chips move the
-list, that a row's editor is built on expand and reaches the right object, that the
-shop's rows and chips come from the presenter and the purchase from the engine, that a
-merged artifact row exposes BOTH editors, and that a rebuild does not leak widgets.
+Covers what the widget decides for itself: that the inventory table lists every owned
+kind, that the filter and search narrow it, that selecting a row builds the editor for
+its kind in the detail pane, that the shop's rows and chips come from the presenter and
+the purchase from the engine, that a merged artifact row exposes BOTH editors, and that
+a rebuild does not leak widgets.
+
+⚠ The layout is the CHARMS tab's (toolbar + splitter + table + detail pane), not the
+NiceGUI page's. Tests address the table and the detail pane, never an accordion.
 
 ⚠ The dialogs are reached through `GearPage._build_*_dialog`, which returns one WITHOUT
 running it. `exec()` would block a headless run, so the `_open_*` wrappers are not
@@ -52,10 +56,32 @@ def _button(page, caption):
     return next(b for b in page.findChildren(QPushButton) if b.text() == caption)
 
 
+def _names(page):
+    """The Name column of every visible inventory row."""
+    table = page.table
+    return [table.topLevelItem(i).text(0) for i in range(table.topLevelItemCount())]
+
+
+def _row(page, name):
+    """One inventory row by name."""
+    table = page.table
+    return next(table.topLevelItem(i) for i in range(table.topLevelItemCount())
+                if table.topLevelItem(i).text(0) == name)
+
+
+def _select(page, name):
+    """Select an inventory row, which is what builds its editor in the detail pane."""
+    page.table.setCurrentItem(_row(page, name))
+
+
 def _stat(page, field):
     """The stat spin box for one field. ⚠ Addressed by objectName, never by position:
-    the head row's quantity box is a QSpinBox too and indexing finds it first."""
+    the quantity box is a QSpinBox too and indexing finds it first."""
     return page.findChild(QSpinBox, f"stat.{field}")
+
+
+def _set_filter(page, kind):
+    page.filter_combo.setCurrentIndex(page.filter_combo.findData(kind))
 
 
 # --------------------------------------------------------------------------- #
@@ -68,54 +94,95 @@ def test_inventory_lists_every_owned_kind(ruleset, qtbot):
                   gear=[GearEntry(name="Rope")])
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    labels = _texts(page)
-    assert "Hatchet" in labels and "Buff Jacket" in labels and "Rope" in labels
+    assert set(_names(page)) == {"Hatchet", "Buff Jacket", "Rope"}
     assert "3 items owned" in page.readout.text()
 
 
-def test_a_filter_chip_narrows_the_list_and_names_itself(ruleset, qtbot):
+def test_the_table_has_a_header_so_the_columns_align(ruleset, qtbot):
+    # The native affordance the QLabel rows did not have: real columns, sortable.
+    page = _page(ruleset, _solar(gear=[GearEntry(name="Rope")]))
+    qtbot.addWidget(page)
+    headers = [page.table.headerItem().text(i)
+               for i in range(page.table.columnCount())]
+    assert headers == ["Name", "Qty", "Res", "Kind", "Detail"]
+    assert page.table.isSortingEnabled()
+
+
+def test_the_filter_narrows_the_table(ruleset, qtbot):
     char = _solar(weapons=[Weapon(name="Hatchet")], gear=[GearEntry(name="Rope")])
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    page._set_filter("weapon")
-    labels = _texts(page)
-    assert "Hatchet" in labels
-    assert "Rope" not in labels
-    # ⚠ EVERY state names its filter. The unfiltered heading is a strict PREFIX of the
-    # filtered one, so a match on "Inventory (2)" alone cannot tell the two apart.
-    assert any("showing Weapon (1)" in text for text in labels)
+    _set_filter(page, "weapon")
+    assert _names(page) == ["Hatchet"]
 
 
-def test_the_unfiltered_heading_also_names_its_filter(ruleset, qtbot):
+def test_the_filter_survives_a_table_rebuild(ruleset, qtbot):
+    """⚠ `clear()` on the combo emits currentIndexChanged, so a refill that does not
+    block signals resets the filter to "all" every time the table rebuilds — which
+    makes the filter impossible to keep."""
+    char = _solar(weapons=[Weapon(name="Hatchet")], gear=[GearEntry(name="Rope")])
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    _set_filter(page, "weapon")
+    page.reload()
+    assert page._filter == "weapon"
+    assert _names(page) == ["Hatchet"]
+
+
+def test_the_search_box_narrows_by_name(ruleset, qtbot):
+    char = _solar(weapons=[Weapon(name="Hatchet")], gear=[GearEntry(name="Rope")])
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    page.search_box.setText("rop")
+    assert _names(page) == ["Rope"]
+
+
+def test_an_empty_filter_is_not_offered(ruleset, qtbot):
     page = _page(ruleset, _solar(gear=[GearEntry(name="Rope")]))
     qtbot.addWidget(page)
-    assert any("showing Everything (1)" in text for text in _texts(page))
+    offered = [page.filter_combo.itemData(i)
+               for i in range(page.filter_combo.count())]
+    assert "goods" in offered
+    assert "weapon" not in offered
 
 
-def test_an_empty_filter_is_not_offered_as_a_chip(ruleset, qtbot):
-    page = _page(ruleset, _solar(gear=[GearEntry(name="Rope")]))
+def test_selecting_a_row_builds_the_editor_for_its_kind(ruleset, qtbot):
+    char = _solar(weapons=[Weapon(name="Hatchet", accuracy=1)],
+                  gear=[GearEntry(name="Rope")])
+    page = _page(ruleset, char)
     qtbot.addWidget(page)
-    captions = [b.text() for b in page.findChildren(QPushButton)]
-    assert any(c.startswith("Goods (") for c in captions)
-    assert not any(c.startswith("Weapon (") for c in captions)
+    _select(page, "Rope")
+    assert _stat(page, "accuracy") is None     # goods have no weapon stats
+    _select(page, "Hatchet")
+    assert _stat(page, "accuracy") is not None
 
 
-def test_the_row_editor_is_built_on_expand_not_before(ruleset, qtbot):
-    page = _page(ruleset, _solar(weapons=[Weapon(name="Hatchet", accuracy=1)]))
+def test_the_detail_pane_titles_the_selection(ruleset, qtbot):
+    page = _page(ruleset, _solar(weapons=[Weapon(name="Hatchet")]))
     qtbot.addWidget(page)
-    # Collapsed: no stat spin boxes anywhere on the page.
-    assert not _stat(page, "accuracy")
-    _button(page, "Edit").setChecked(True)
-    assert _stat(page, "accuracy")
+    _select(page, "Hatchet")
+    assert page.detail_title.text() == "Hatchet"
 
 
 def test_editing_a_stat_writes_through_to_the_model(ruleset, qtbot):
     char = _solar(weapons=[Weapon(name="Hatchet", accuracy=1)])
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    _button(page, "Edit").setChecked(True)
+    _select(page, "Hatchet")
     _stat(page, "speed").setValue(3)
     assert char.weapons[0].speed == 3
+
+
+def test_a_stat_edit_updates_the_table_row_without_losing_the_selection(ruleset, qtbot):
+    """The table must track the detail pane. ⚠ Via a per-row refresh, not a full
+    rebuild — rebuilding mid-keystroke would drop focus out of the spin box."""
+    char = _solar(weapons=[Weapon(name="Hatchet")])
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    _select(page, "Hatchet")
+    _stat(page, "damage").setValue(7)
+    assert "Dmg+7" in _row(page, "Hatchet").text(4)
+    assert page._selected == ("weapons", 0)
 
 
 def test_the_mobility_penalty_editor_accepts_the_negative_it_is_stored_as(ruleset,
@@ -126,7 +193,7 @@ def test_the_mobility_penalty_editor_accepts_the_negative_it_is_stored_as(rulese
     char = _solar(armor=[Armor(name="Buff Jacket")])
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    _button(page, "Edit").setChecked(True)
+    _select(page, "Buff Jacket")
     _stat(page, "mobility_penalty").setValue(-2)
     assert char.armor[0].mobility_penalty == -2
 
@@ -135,10 +202,28 @@ def test_deleting_a_row_removes_it(ruleset, qtbot):
     char = _solar(gear=[GearEntry(name="Rope")])
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    _button(page, "Edit").setChecked(True)
+    _select(page, "Rope")
     _button(page, "Delete").click()
     assert char.gear == []
+    assert _names(page) == []
     assert "0 items owned" in page.readout.text()
+
+
+def test_the_actions_live_in_the_toolbar_not_the_content(ruleset, qtbot):
+    """⚠ The native shape, and the reason this tab was rebuilt: a Buy button floating
+    mid-page with a sentence beside it is a web call-to-action."""
+    page = _page(ruleset, _solar())
+    qtbot.addWidget(page)
+    assert page.buy_btn.text() == "Buy…"
+    assert page.add_artifact_btn.text() == "+ Artifact"
+
+
+def test_the_price_list_is_its_own_subtab(ruleset, qtbot):
+    # Reference material, not something owned — so it is not a card under the inventory.
+    page = _page(ruleset, _solar())
+    qtbot.addWidget(page)
+    assert [page.tabs.tabText(i) for i in range(page.tabs.count())] == ["Inventory",
+                                                                       "Prices"]
 
 
 # --------------------------------------------------------------------------- #
@@ -159,20 +244,21 @@ def test_an_artifact_with_a_stat_line_is_one_row_with_both_editors(ruleset, qtbo
     qtbot.addWidget(page)
     # ONE row, not two peers (human, 2026-08-14: two rows for one Crimson Bow "feels
     # odd, and a little obtuse").
-    assert len([b for b in page.findChildren(QPushButton) if b.text() == "Edit"]) == 1
-    _button(page, "Edit").setChecked(True)
-    # ⚠ BOTH halves are editable under the one Edit. The stat line has no row of its
-    # own, so a panel ignoring `linked_index` would make it silently uneditable.
+    assert _names(page) == ["Daiklave"]
+    _select(page, "Daiklave")
+    # ⚠ BOTH halves are editable in the one detail pane. The stat line has no row of
+    # its own, so a pane ignoring `linked_index` would make it silently uneditable —
+    # the artifact's Rating spin box AND the weapon's stat grid must both be present.
     assert "Stat line" in _texts(page)
-    assert any(b.text() == "Save to library" for b in page.findChildren(QPushButton))
+    assert _stat(page, "accuracy") is not None
 
 
 def test_the_merged_row_still_answers_the_weapon_filter(ruleset, qtbot):
     # Merging two rows must not cost the object a filter it used to appear under.
     page = _page(ruleset, _daiklave_owner(ruleset))
     qtbot.addWidget(page)
-    page._set_filter("weapon")
-    assert "Daiklave" in _texts(page)
+    _set_filter(page, "weapon")
+    assert _names(page) == ["Daiklave"]
 
 
 # --------------------------------------------------------------------------- #
@@ -332,24 +418,28 @@ def test_thrashing_the_rebuild_does_not_leak_widgets(ruleset, qtbot):
                   gear=[GearEntry(name="Rope")])
     page = _page(ruleset, char)
     qtbot.addWidget(page)
+    _select(page, "Hatchet")
     page.reload()
     baseline = len(page.findChildren(QLabel))
     for _ in range(5):
         page.reload()
+        _select(page, "Hatchet")
+        _select(page, "Rope")
+        _select(page, "Hatchet")
     assert len(page.findChildren(QLabel)) == baseline
 
 
-def test_leaving_an_untouched_name_combo_does_not_collapse_the_row(ruleset, qtbot):
+def test_leaving_an_untouched_name_combo_is_silent(ruleset, qtbot):
     """⚠ `editingFinished` fires on every focus loss, and a name change rebuilds the
-    body — so an untouched combo must stay silent or tabbing past it closes the editor
-    the player is working in."""
+    table — so an untouched combo must stay silent, or tabbing past it drops the player
+    out of the row they are working in."""
     char = _solar(weapons=[Weapon(name="Hatchet")])
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    _button(page, "Edit").setChecked(True)
+    _select(page, "Hatchet")
     combo = page.findChild(_FilterCombo)
     combo.lineEdit().editingFinished.emit()
-    assert _stat(page, "speed") is not None      # the editor is still open
+    assert page._selected == ("weapons", 0)      # still on the row being edited
 
 
 def test_changing_the_name_combo_does_repick(ruleset, qtbot):
@@ -357,7 +447,7 @@ def test_changing_the_name_combo_does_repick(ruleset, qtbot):
     char = _solar(weapons=[Weapon(name="Hatchet")])
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    _button(page, "Edit").setChecked(True)
+    _select(page, "Hatchet")
     combo = page.findChild(_FilterCombo)
     combo.setCurrentText("Long Bow")
     combo.lineEdit().editingFinished.emit()
@@ -370,8 +460,9 @@ def test_the_gear_page_builds_for_every_splat(ruleset, qtbot, locked):
     proves the page BUILDS for shapes nobody wrote a test for — a splat with no
     Charms (Mortal), a splat with no castes, and both sides of the lock.
 
-    Drives every shop chip and expands every row editor, because a crash in one of
-    those is invisible to a page that merely constructed.
+    Drives every shop chip, selects every inventory row (which builds its editor) and
+    opens the Prices sub-tab, because a crash in any of those is invisible to a page
+    that merely constructed.
     """
     from exalted_builder.engine import lifecycle
     for splat in ruleset.exalts:
@@ -388,6 +479,6 @@ def test_the_gear_page_builds_for_every_splat(ruleset, qtbot, locked):
         qtbot.addWidget(dialog)
         for group in list(dialog.group_buttons):
             dialog._set_group(group)
-        for button in page.findChildren(QPushButton):
-            if button.text() == "Edit":
-                button.setChecked(True)
+        for i in range(page.table.topLevelItemCount()):
+            page.table.setCurrentItem(page.table.topLevelItem(i))
+        page.tabs.setCurrentIndex(1)      # the Prices sub-tab

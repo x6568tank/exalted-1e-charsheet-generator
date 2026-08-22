@@ -618,28 +618,58 @@ leaves the confirm button labelled and enabled for something off screen, and `_c
 then silently refuses — a dead button with no stated reason. Typing is exempt because
 the selection must survive a half-typed word.
 
-### The tab itself
+### ⚠ The tab was built TWICE, and the second build is the lesson
 
-The inventory is one filterable list whose rows each expand to the editor for their kind
-(built on expand, torn down on collapse — eager construction would put a dozen spin
-boxes behind every row, which is the cost the Charms tab already paid once). A merged
-artifact row renders **both** editors under one Edit. Then the Buy shop, the artifacts
-budget panel, and the services price list with its `cash` column.
+**The first version was the NiceGUI page transliterated** — a Buy button floating
+mid-page with an explanatory sentence beside it, accordion "Edit" expanders, and a stack
+of cards in a scroll area. Every test passed. The human's verdict on seeing it: *"the
+page as a whole is a copy of the NiceGUI's look."* This plan predicted exactly that in
+"What does NOT translate" — *a port attempted as a mechanical translation will produce
+something that works and feels wrong* — and it happened anyway, because the content was
+ported thoughtfully and the STRUCTURE was ported by reflex.
 
-Traps this cost, all now tested:
+**The rule, and it governs every remaining tab: a new Qt surface copies
+`qt/charms.py`'s LAYOUT, not `ui/<tab>.py`'s.** Toolbar for actions, table with a header
+for lists, splitter with a detail pane for the selected thing.
+
+| Web idiom | Native replacement |
+|---|---|
+| Buy button floating in the content flow | a toolbar (`Buy…`, `+ Artifact`, filter, search) |
+| Filter pills | a `Show:` dropdown carrying live counts |
+| Accordion "Edit" expanders | select a row, edit in the detail pane |
+| `QLabel` rows in an HBox | `QTreeWidget` — sortable, five real columns, a header |
+| Card stack in one scroll area | a splitter; Prices became its own sub-tab |
+| Budget line inside a card | a status line under the splitter, spanning both panes |
+
+A merged artifact row still renders **both** editors, now in the one detail pane.
+
+Traps, all now tested:
 
 - ⚠ **`editingFinished` fires on every focus loss**, and a name re-pick rebuilds the
-  body — so an untouched combo must stay silent, or tabbing past it collapses the editor
-  the player is working in. The combo remembers its last text and compares.
-- ⚠ **The expanded-row set is keyed on POSITION**, and adding or deleting a row
-  renumbers everything after it. `_rebuild` clears the set rather than leaving a key
-  pointing at whatever slid into that slot.
+  table — so an untouched combo must stay silent, or tabbing past it drops the player out
+  of the row they are working in. The combo remembers its last text and compares.
+- ⚠ **Re-optioning a filter combo emits `currentIndexChanged`.** Without blocking
+  signals across the refill, the filter reset to "All" on every table rebuild — the
+  filter was un-keepable while editing. `test_the_filter_survives_a_table_rebuild`.
+- ⚠ **`setSortingEnabled(False)` across a fill.** With it on, Qt re-sorts after every
+  insert — quadratic, and it scrambles insertion order.
+- ⚠ **The selection is a POSITION**, and adding or deleting a row renumbers everything
+  after it. `_rebuild` drops it rather than re-selecting whatever slid into that slot;
+  `_fill_table` restores it when the row is still shown.
+- ⚠ **A stat edit refreshes only its own table ROW**, never the whole table — a rebuild
+  mid-keystroke would drop focus out of the spin box.
+- ⚠ **The stat grid wraps at three pairs per row.** Qt has no flex-wrap, and thirteen
+  weapon stats on one no-wrap line crush their later children to slivers — the trap the
+  Advantages merit rows already paid for once.
 - ⚠ **Address a widget by `objectName`, not by position in `findChildren`.** The first
   test of a stat edit grabbed `findChildren(QSpinBox)[0]` and got the row's *quantity*
   box — it passed a wrong assertion into existence. The stat boxes are named
   `stat.<field>`.
 - ⚠ `Armor.mobility_penalty` is stored NEGATIVE, so its spin box is signed. A box
   floored at 0 makes every printed armour penalty unenterable.
+- **No inline stylesheet on the inputs.** The window QSS already names `QSpinBox` /
+  `QLineEdit` / `QComboBox`; setting only `background` inline wins and drops their
+  colour, padding and radius.
 
 ### Combos is now a sub-tab of Charms
 
@@ -667,18 +697,37 @@ The page is a **placeholder in its new home** — the Combos surface itself is s
 webapp.
 
 Tests: `tests/test_qt_gear.py` (26), `tests/test_gear_actions.py` (21), plus the shell's
-three new Combos tests. Full suite on `qt-port`, main PC: **2,653 passed, 1 skipped, 1
+three new Combos tests. Full suite on `qt-port`, main PC: **2,659 passed, 1 skipped, 1
 warning** (6m20s).
 
-### NOT yet human-verified
+### Human-verified on the real display — 2026-08-21
 
-Milestone 4 is tests-green and smoke-driven offscreen across all four example characters
-(every rail page built, the shop dialog opened, chips correct, artifacts appearing only
-post-lock). **It has not been clicked on the real display** — and the standing warning
-applies hardest here: *a control can be correct, reachable, tested, and still nowhere
-near the thing it configures.*
+Clicked and **approved** — but only on the SECOND build. The first was rejected on sight
+as a copy of the webapp's look; see "The tab was built TWICE" above, which is the part of
+this section worth reading. Combos-under-Charms was approved in the same pass.
+
+⚠ **What the offscreen tests could not tell anyone:** the first version was tests-green
+and smoke-driven across all four example characters — every rail page built, the shop
+dialog opened, chips correct, artifacts appearing only post-lock — and it was still the
+wrong design. *A control can be correct, reachable, tested, and still nowhere near the
+thing it configures*; a whole tab can be all of those and still read as a web page.
 
 ## Open questions — not decided
+
+* **Is a tab a COLLECTION or a FORM?** Raised by the human 2026-08-21 after approving
+  the Gear rebuild — *"I think it's fine as is, but I am curious"* about Advantages.
+  A collection (browse, revisit) wants table + detail, the Gear/Charms pattern; a form
+  (fill in once at chargen) wants everything visible, which is what Advantages ships.
+  **`spikes/qt_advantages/` poses the question concretely**: one window, four tabs, the
+  same live character — the real `AdvantagesPage` beside three throwaway mockups (one
+  table / sub-tabs / native form). Run
+  `.venv/bin/python -m spikes.qt_advantages`.
+
+  It is worth settling even if the answer is "leave Advantages alone", because **Play,
+  ST Options and Custom are all unported** and each is one or the other. If the answer
+  is "two patterns, deliberately", write that down rather than drifting into it.
+  ⚠ **Delete the spike once answered** — the other three spikes were kept because they
+  became build records; a stale comparison is worse than none.
 
 * **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets
   test well with pytest-qt (28 + 14 tests, offscreen) — what each of the existing 228

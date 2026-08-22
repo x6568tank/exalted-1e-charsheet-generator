@@ -1,26 +1,34 @@
 """exalted_builder/qt/gear.py — the Gear tab: everything the character OWNS.
 
-Input: a RuleSet and the shared context's Character. Output: one scrollable surface
-carrying the inventory (every owned row, filterable, each expanding to the editor for
-its kind), the Buy shop, the artifacts budget panel and the services price list.
-Mechanism: `reload()` rebuilds the body; a row's editor is built on first expand and
-torn down on collapse, and anything a keystroke touches writes straight to the model
-and re-syncs only its own labels.
+Input: a RuleSet and the shared context's Character. Output: a master-detail surface —
+a readout bar, an action toolbar, a splitter holding the inventory table (and the
+services price list on its own sub-tab) beside the selected item's editor, and the
+artifacts budget line beneath. Mechanism: `reload()` rebuilds the table and re-selects
+whatever was selected before; changing the selection rebuilds only the detail pane, and
+anything a keystroke touches writes straight to the model and re-syncs its own labels.
+
+⚠ **This is the Charms tab's shape, deliberately** (human, 2026-08-21). The first
+version was the NiceGUI page transliterated — a floating Buy button with a sentence
+beside it, accordion "Edit" expanders, and a stack of cards in a scroll area. It worked
+and read as a web page. A desktop app puts actions in a toolbar, lists in a table with
+a header, and the thing you selected in a detail pane. **A new surface here copies
+`qt/charms.py`'s layout, not `ui/<tab>.py`'s.**
 
 ⚠ Keep the four lists on ONE tab. Splitting an artifact daiklave's STATS onto one
 surface and its BUDGET onto another is what let the same object be entered twice and
 charged twice (`docs/status/rated-artifacts.md`).
 
 Zero game logic. Every mutation goes through `engine.gear_actions`, every derived list
-and every line of text through `ui/view.py` — the milestone-2 question was asked of
-this tab before it was ported and the answer was yes, unlike Advantages.
+and every line of text through `ui/view.py`.
 """
 
 from __future__ import annotations
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QSpinBox,
-    QVBoxLayout, QWidget,
+    QAbstractItemView, QComboBox, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QPushButton, QScrollArea, QSpinBox, QSplitter, QTabWidget, QTreeWidget,
+    QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
 from exalted_builder import custom_content as customs
@@ -30,7 +38,7 @@ from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
 from .catalogue import CatalogueDialog
-from .editor import _FilterCombo, _Panel
+from .editor import _FilterCombo
 from .theme import MUTED, accent as accent_light
 
 # The issue codes this tab can do something about. ⚠ Artifact findings belong HERE,
@@ -39,6 +47,8 @@ from .theme import MUTED, accent as accent_light
 # renders the same findings beside the Artifact Background; one issue list, so the two
 # cannot disagree.
 _MY_ISSUES = ("artifact", "hearthstone")
+
+_COLUMNS = ("Name", "Qty", "Res", "Kind", "Detail")
 
 # The per-kind stat editors, as `(field, label, signed)`. A table rather than fifteen
 # hand-built spin boxes, so the two kinds cannot drift in layout or in bounds.
@@ -69,7 +79,7 @@ _RES_TOOLTIP = ("The Resources rating needed to buy one (M&C p.123). A record of
 
 
 class GearPage(QWidget):
-    """The tab widget. `reload()` rebuilds the body for the character in ctx; `notify`
+    """The tab widget. `reload()` rebuilds the table for the character in ctx; `notify`
     surfaces transient messages; `on_change` pings the shell so its readout bar and
     status strip re-derive."""
 
@@ -80,29 +90,97 @@ class GearPage(QWidget):
         self._notify = notify or (lambda text, kind="info": None)
         self._on_change = on_change
         self._filter = "all"
-        # Which inventory rows are expanded, keyed by `(list_name, index)` so the set
-        # survives a rebuild. ⚠ Keyed on POSITION, and a delete shifts every later row —
-        # so `_changed` clears it rather than leaving a stale key pointing at whatever
-        # slid into that slot.
-        self._open_rows: set[tuple[str, int]] = set()
+        self._search = ""
+        # The selected row as `(list_name, index)`. ⚠ Kept so a rebuild can re-select
+        # what the player was editing — but positions shift when a row is added or
+        # deleted, so `_rebuild` clears it rather than re-selecting whatever slid into
+        # that slot.
+        self._selected: tuple[str, int] | None = None
 
         self.readout = QLabel("")
         self.readout.setWordWrap(True)
         self.readout.setContentsMargins(8, 4, 8, 4)
 
-        self._body_container = QWidget()
-        self._body_lay = QVBoxLayout(self._body_container)
-        self._body_lay.setContentsMargins(0, 0, 0, 0)
-        self._body_lay.setSpacing(8)
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setWidget(self._body_container)
-        self._scroll = scroll
+        # ---- the action toolbar -------------------------------------- #
+        # ⚠ Actions live HERE, not in the content flow. A Buy button floating mid-page
+        # with an explanatory sentence beside it is a web call-to-action.
+        bar = QHBoxLayout()
+        bar.setContentsMargins(8, 0, 8, 0)
+        self.buy_btn = QPushButton("Buy…")
+        self.buy_btn.setObjectName("buyButton")
+        self.buy_btn.clicked.connect(self._open_shop)
+        bar.addWidget(self.buy_btn)
+        self.add_artifact_btn = QPushButton("+ Artifact")
+        self.add_artifact_btn.clicked.connect(self._open_artifact_catalogue)
+        bar.addWidget(self.add_artifact_btn)
+        bar.addSpacing(12)
+        show = QLabel("Show:")
+        show.setStyleSheet(f"color:{MUTED};")
+        bar.addWidget(show)
+        self.filter_combo = QComboBox()
+        self.filter_combo.currentIndexChanged.connect(self._filter_changed)
+        bar.addWidget(self.filter_combo)
+        self.search_box = QLineEdit()
+        self.search_box.setPlaceholderText("filter by name…")
+        self.search_box.setClearButtonEnabled(True)
+        self.search_box.textChanged.connect(self._search_changed)
+        bar.addWidget(self.search_box, 1)
+
+        # ---- the inventory table ------------------------------------- #
+        self.table = QTreeWidget()
+        self.table.setColumnCount(len(_COLUMNS))
+        self.table.setHeaderLabels(list(_COLUMNS))
+        self.table.setRootIsDecorated(False)
+        self.table.setAlternatingRowColors(True)
+        self.table.setSortingEnabled(True)
+        self.table.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.table.header().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.table.header().setSectionResizeMode(4, QHeaderView.Stretch)
+        self.table.itemSelectionChanged.connect(self._selection_changed)
+
+        self.tabs = QTabWidget()
+        self.tabs.setDocumentMode(True)
+        self.tabs.addTab(self.table, "Inventory")
+        self.prices = QWidget()
+        self._prices_lay = QVBoxLayout(self.prices)
+        prices_scroll = QScrollArea()
+        prices_scroll.setWidgetResizable(True)
+        prices_scroll.setWidget(self.prices)
+        self.tabs.addTab(prices_scroll, "Prices")
+        self.tabs.currentChanged.connect(lambda *_: self._sync_detail())
+
+        # ---- the detail pane ----------------------------------------- #
+        self.detail_title = QLabel("")
+        self.detail_title.setWordWrap(True)
+        self._detail_body = QWidget()
+        self._detail_lay = QVBoxLayout(self._detail_body)
+        self._detail_lay.setContentsMargins(0, 0, 0, 0)
+        detail_scroll = QScrollArea()
+        detail_scroll.setWidgetResizable(True)
+        detail_scroll.setWidget(self._detail_body)
+        detail_panel = QWidget()
+        dp = QVBoxLayout(detail_panel)
+        dp.setContentsMargins(8, 4, 8, 4)
+        dp.addWidget(self.detail_title)
+        dp.addWidget(detail_scroll, 1)
+
+        split = QSplitter()
+        split.addWidget(self.tabs)
+        split.addWidget(detail_panel)
+        split.setSizes([720, 460])
+
+        # The budget line sits UNDER the splitter, spanning both — it is about the
+        # collection, not about whichever row happens to be selected.
+        self.budget = QLabel("")
+        self.budget.setWordWrap(True)
+        self.budget.setContentsMargins(8, 2, 8, 4)
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.addWidget(self.readout)
-        outer.addWidget(scroll, 1)
+        outer.addLayout(bar)
+        outer.addWidget(split, 1)
+        outer.addWidget(self.budget)
         self.reload()
 
     # ------------------------------------------------------------------ #
@@ -138,19 +216,22 @@ class GearPage(QWidget):
                 self._clear_lay(item.layout())
 
     def reload(self) -> None:
-        self._clear_lay(self._body_lay)
-        self._build_body()
-        self._body_lay.addStretch(1)
+        """Rebuild the table and the price list for the character in ctx, keeping the
+        selection where the player left it."""
+        self._sync_filter_combo()
+        self._fill_table()
+        self._fill_prices()
         self._sync_readout()
+        self._sync_detail()
 
     def _rebuild(self) -> None:
-        """A change that moved the LISTS — rebuild the body and ping the shell.
+        """A change that moved the LISTS — rebuild everything and ping the shell.
 
-        ⚠ Clears the expanded-row set first. Those keys are positions, and adding or
-        deleting a row renumbers every row after it, so a surviving key would re-open
-        whatever slid into that slot.
+        ⚠ Drops the selection first. It is a POSITION, and adding or deleting a row
+        renumbers every row after it, so a surviving key would re-select whatever slid
+        into that slot.
         """
-        self._open_rows.clear()
+        self._selected = None
         self.reload()
         if self._on_change is not None:
             self._on_change()
@@ -158,6 +239,7 @@ class GearPage(QWidget):
     def _changed(self) -> None:
         """A change that only moves the readouts — a stat edit, a rename, a quantity."""
         self._sync_readout()
+        self._refresh_selected_row()
         if self._on_change is not None:
             self._on_change()
 
@@ -175,11 +257,12 @@ class GearPage(QWidget):
         worst = ("#b91c1c" if any(i.severity == "error" for i in issues)
                  else "#b45309" if issues else self._accent())
         self.readout.setStyleSheet(f"color:{worst};")
-
-    def _panel(self, title: str, parent_lay=None) -> QVBoxLayout:
-        card = _Panel(title, self._pal())
-        (parent_lay if parent_lay is not None else self._body_lay).addWidget(card)
-        return card.body()
+        self.budget.setText(viewmod.artifacts_header(ruleset, char))
+        self.budget.setStyleSheet(f"font-weight:600; color:{self._accent()};")
+        for extra in (viewmod.artifacts_bought_note(char),
+                      viewmod.artifacts_also_counted(char)):
+            if extra:
+                self.budget.setText(self.budget.text() + " · " + extra)
 
     def _muted(self, text: str, *, italic: bool = False) -> QLabel:
         label = QLabel(text)
@@ -188,121 +271,152 @@ class GearPage(QWidget):
                             + (" font-style:italic;" if italic else ""))
         return label
 
+    def _heading(self, text: str) -> QLabel:
+        label = QLabel(text)
+        label.setStyleSheet(f"font-weight:600; color:{self._accent()};")
+        return label
+
     # ------------------------------------------------------------------ #
-    # body
+    # the inventory table
     # ------------------------------------------------------------------ #
 
-    def _build_body(self) -> None:
-        self._inventory_panel()
-        self._buy_row()
-        self._artifacts_panel()
-        self._prices_panel()
+    def _sync_filter_combo(self) -> None:
+        """Re-option the kind filter with live counts, without disturbing the choice.
 
-    # ---- inventory ---------------------------------------------------- #
-
-    def _inventory_panel(self) -> None:
-        ruleset, char = self._ruleset, self._char()
-        rows = viewmod.inventory_rows(ruleset, char)
+        ⚠ Signals blocked across the refill: `clear()` emits `currentIndexChanged`, and
+        letting that through would reset the filter to "all" every time the table
+        rebuilds — the shape that makes a filter un-keepable.
+        """
+        rows = viewmod.inventory_rows(self._ruleset, self._char())
         counts = viewmod.inventory_counts(rows)
-        lay = self._panel(viewmod.inventory_heading(rows, counts, self._filter))
-        if not rows:
-            lay.addWidget(self._muted(
-                "Nothing owned yet — Buy below, or add something of your own."))
-            return
-
-        chips = QHBoxLayout()
+        self.filter_combo.blockSignals(True)
+        self.filter_combo.clear()
         for kind in viewmod.INVENTORY_FILTERS:
             n = counts.get(kind, 0)
             if kind != "all" and not n:
                 continue          # an empty filter is noise, not a choice
-            chip = QPushButton(viewmod.inventory_filter_label(kind, n))
-            chip.setCheckable(True)
-            chip.setChecked(kind == self._filter)
-            chip.clicked.connect(lambda _c=False, k=kind: self._set_filter(k))
-            chips.addWidget(chip)
-        chips.addStretch(1)
-        lay.addLayout(chips)
-        # ⚠ The counts SUM TO MORE than the row count whenever anything overlaps — an
-        # artifact daiklave is both a weapon and an artifact — and that is correct. The
-        # filters are not a partition.
+            self.filter_combo.addItem(viewmod.inventory_filter_label(kind, n), kind)
+        index = self.filter_combo.findData(self._filter)
+        if index < 0:
+            index, self._filter = 0, "all"
+        self.filter_combo.setCurrentIndex(index)
+        self.filter_combo.blockSignals(False)
+
+    def _filter_changed(self, _index: int) -> None:
+        self._filter = self.filter_combo.currentData() or "all"
+        self._fill_table()
+        self._sync_detail()
+
+    def _search_changed(self, text: str) -> None:
+        self._search = (text or "").strip().lower()
+        self._fill_table()
+        self._sync_detail()
+
+    def _fill_table(self) -> None:
+        """Rebuild the rows for the active filter, restoring the selection if its row
+        is still shown."""
+        ruleset, char = self._ruleset, self._char()
+        rows = viewmod.inventory_rows(ruleset, char)
+        # ⚠ Sorting OFF across the fill: with it on, Qt re-sorts after every insert,
+        # which is quadratic and scrambles the order the items were added in.
+        self.table.setSortingEnabled(False)
+        self.table.blockSignals(True)
+        self.table.clear()
+        restore = None
         for row in viewmod.filter_inventory(rows, self._filter):
-            self._inventory_row(lay, row)
+            if self._search and self._search not in row.name.lower():
+                continue
+            item = QTreeWidgetItem([
+                row.name or "—",
+                str(row.quantity) if row.quantity > 1 else "",
+                "•" * row.resources_cost,
+                " · ".join(viewmod.inventory_row_tags(row)),
+                row.detail])
+            item.setToolTip(2, _RES_TOOLTIP)
+            key = (row.list_name, row.index)
+            item.setData(0, Qt.UserRole, key)
+            # The linked half rides along so the detail pane can render both editors
+            # without re-deriving the merge.
+            item.setData(1, Qt.UserRole,
+                         (row.linked_list_name, row.linked_index)
+                         if row.linked_list_name else None)
+            self.table.addTopLevelItem(item)
+            if key == self._selected:
+                restore = item
+        self.table.blockSignals(False)
+        self.table.setSortingEnabled(True)
+        if restore is not None:
+            self.table.setCurrentItem(restore)
+        elif self.table.topLevelItemCount():
+            self.table.setCurrentItem(self.table.topLevelItem(0))
+        else:
+            self._selected = None
 
-    def _set_filter(self, kind: str) -> None:
-        self._filter = kind
-        self.reload()
-
-    def _inventory_row(self, lay, row) -> None:
-        """One owned thing: its summary line, and an Edit toggle that reveals the
-        editor for its kind.
-
-        ⚠ Each row carries its OWN editor. There are no per-kind panels (human's call,
-        2026-08-13): an inventory beside three panels editing the same objects is four
-        surfaces for one job, and the list is the only one that can show a daiklave as
-        both weapon and artifact. `row.list_name` / `row.index` are what make it
-        possible — the view records where each row came FROM.
-        """
-        head = QHBoxLayout()
-        name = QLabel(row.name or "—")
-        name.setStyleSheet("font-weight:600;")
-        head.addWidget(name)
-        if row.quantity > 1:
-            head.addWidget(self._muted(f"×{row.quantity}"))
-        detail = QLabel(row.detail)
-        detail.setStyleSheet(f"color:{MUTED};")
-        head.addWidget(detail, 1)
-        for tag in viewmod.inventory_row_tags(row):
-            chip = QLabel(tag)
-            chip.setStyleSheet(f"color:{self._accent()};")
-            head.addWidget(chip)
-        if row.resources_cost:
-            res = QLabel("Res " + "•" * row.resources_cost)
-            res.setStyleSheet(f"color:{MUTED};")
-            res.setToolTip(_RES_TOOLTIP)
-            head.addWidget(res)
-
-        key = (row.list_name, row.index)
-        toggle = QPushButton("Edit")
-        toggle.setCheckable(True)
-        toggle.setChecked(key in self._open_rows)
-        head.addWidget(toggle)
-        lay.addLayout(head)
-
-        editor_box = QWidget()
-        editor_lay = QVBoxLayout(editor_box)
-        editor_lay.setContentsMargins(16, 0, 0, 6)
-        lay.addWidget(editor_box)
-
-        def sync_editor(open_: bool) -> None:
-            # Built on expand and torn down on collapse. Eager construction would put
-            # a dozen spin boxes behind every row in a long inventory, which is the
-            # cost the Charms tab already paid once.
-            self._clear_lay(editor_lay)
-            editor_box.setVisible(open_)
-            if not open_:
-                self._open_rows.discard(key)
+    def _refresh_selected_row(self) -> None:
+        """Re-render just the selected row's cells after an edit, so the table tracks
+        the detail pane without a full rebuild (which would steal focus mid-keystroke)."""
+        item = self.table.currentItem()
+        if item is None or self._selected is None:
+            return
+        list_name, index = self._selected
+        for row in viewmod.inventory_rows(self._ruleset, self._char()):
+            if (row.list_name, row.index) == (list_name, index):
+                item.setText(0, row.name or "—")
+                item.setText(1, str(row.quantity) if row.quantity > 1 else "")
+                item.setText(2, "•" * row.resources_cost)
+                item.setText(3, " · ".join(viewmod.inventory_row_tags(row)))
+                item.setText(4, row.detail)
                 return
-            self._open_rows.add(key)
-            self._row_editor(editor_lay, row.list_name, row.index)
-            # A merged row is one object with TWO stored halves — the artifact and the
-            # stat line `grant_gear` stamped for it — so its editor is both, under one
-            # Edit. ⚠ Without this the stat line is uneditable: there are no per-kind
-            # panels, and the merged row is the only place it appears.
-            if row.linked_list_name:
-                editor_lay.addWidget(self._muted("Stat line"))
-                self._row_editor(editor_lay, row.linked_list_name, row.linked_index)
 
-        toggle.toggled.connect(sync_editor)
-        sync_editor(toggle.isChecked())
+    def _selection_changed(self) -> None:
+        item = self.table.currentItem()
+        self._selected = None if item is None else item.data(0, Qt.UserRole)
+        self._sync_detail()
+
+    # ------------------------------------------------------------------ #
+    # the detail pane
+    # ------------------------------------------------------------------ #
+
+    def _sync_detail(self) -> None:
+        """Rebuild the right-hand pane for the current selection."""
+        self._clear_lay(self._detail_lay)
+        if self.tabs.currentIndex() != 0:
+            self.detail_title.setText("")
+            self._detail_lay.addWidget(self._muted(
+                "The price list is reference only — nothing here is owned or tracked."))
+            self._detail_lay.addStretch(1)
+            return
+        item = self.table.currentItem()
+        if item is None or self._selected is None:
+            self.detail_title.setText("")
+            self._detail_lay.addWidget(self._muted(
+                "Select an item to edit it, or Buy something."))
+            self._detail_lay.addStretch(1)
+            return
+        list_name, index = self._selected
+        self.detail_title.setText(item.text(0))
+        self.detail_title.setStyleSheet(
+            f"font-weight:700; font-size:14px; color:{self._accent()};")
+        tags = item.text(3)
+        if tags:
+            self._detail_lay.addWidget(self._muted(tags))
+        self._row_editor(self._detail_lay, list_name, index)
+        # A merged row is one object with TWO stored halves — the artifact and the stat
+        # line `grant_gear` stamped for it. ⚠ Without this the stat line is uneditable:
+        # there are no per-kind panels, and the merged row is the only place it appears.
+        linked = item.data(1, Qt.UserRole)
+        if linked:
+            self._detail_lay.addWidget(self._heading("Stat line"))
+            self._row_editor(self._detail_lay, linked[0], linked[1])
+        self._detail_lay.addStretch(1)
 
     def _row_editor(self, lay, list_name: str, index: int) -> None:
         owner = getattr(self._char(), list_name)
         if not (0 <= index < len(owner)):
             return
-        item = owner[index]
         builder = {"weapons": self._weapon_editor, "armor": self._armor_editor,
                    "gear": self._goods_editor, "artifacts": self._artifact_editor}
-        builder[list_name](lay, index, item)
+        builder[list_name](lay, index, owner[index])
 
     # ---- the per-kind editors ------------------------------------------ #
 
@@ -340,29 +454,36 @@ class GearPage(QWidget):
         self._notify(f"Saved {item.name} to your library{extra}. It will appear in Buy "
                      f"the next time the app loads its rules.", "positive")
 
-    def _stat_row(self, lay, item, specs, resync) -> None:
-        """A grid of spin boxes over `specs`, each writing its field and re-running
-        `resync` so the summary line beside the row tracks the edit live."""
-        row = QHBoxLayout()
-        for field, label, signed in specs:
+    def _stat_grid(self, lay, item, specs, resync) -> None:
+        """The stat spin boxes, wrapped at three pairs a row.
+
+        ⚠ Qt has no flex-wrap, and a no-wrap row crushes its later children to slivers
+        (the lesson the Advantages merit rows already paid for). Thirteen weapon stats
+        on one line are unreadable, so the grid wraps by construction.
+        """
+        row = None
+        for position, (field, label, signed) in enumerate(specs):
+            if position % 3 == 0:
+                row = QHBoxLayout()
+                lay.addLayout(row)
             caption = QLabel(label)
             caption.setStyleSheet(f"color:{MUTED};")
+            caption.setMinimumWidth(48)
             row.addWidget(caption)
             spin = QSpinBox()
             # Named after the field it writes, so a test addresses the stat it means
-            # rather than a position in the child list — the head row's quantity box is
-            # a QSpinBox too, and indexing found that one first.
+            # rather than a position in the child list — the quantity box is a QSpinBox
+            # too, and indexing found that one first.
             spin.setObjectName(f"stat.{field}")
             spin.setRange(-20 if signed else 0, 99)
             spin.setValue(getattr(item, field))
-            # No inline stylesheet: the window QSS names QSpinBox, and setting only
-            # `background` here would win and drop its colour, padding and radius.
-            # (Advantages does the same and is human-verified inside a `_Panel`.)
             spin.valueChanged.connect(
                 lambda v, f=field: (setattr(item, f, v), resync(), self._changed()))
             row.addWidget(spin)
-        row.addStretch(1)
-        lay.addLayout(row)
+            if position % 3 == 2:
+                row.addStretch(1)
+        if row is not None and len(specs) % 3:
+            row.addStretch(1)
 
     def _material_combo(self, item, resync) -> QComboBox:
         """The magical material. "" is mundane; the bonus applies only for the matching
@@ -382,8 +503,8 @@ class GearPage(QWidget):
         the catalogue does not hold. Free text is a rename, never a failed lookup.
 
         ⚠ Fires only when the text actually CHANGED. `editingFinished` fires on every
-        focus loss, and `on_pick` rebuilds the body — so tabbing past an untouched combo
-        would collapse the row the player is working in, for no edit at all.
+        focus loss, and `on_pick` rebuilds the table — so tabbing past an untouched combo
+        would drop the player out of the row they are working in, for no edit at all.
         """
         combo = _FilterCombo()
         combo.setEditable(True)
@@ -402,9 +523,26 @@ class GearPage(QWidget):
         combo.activated.connect(lambda _i: fire())
         return combo
 
+    def _labelled(self, lay, caption: str, widget) -> None:
+        row = QHBoxLayout()
+        label = QLabel(caption)
+        label.setStyleSheet(f"color:{MUTED};")
+        label.setMinimumWidth(64)
+        row.addWidget(label)
+        row.addWidget(widget, 1)
+        lay.addLayout(row)
+
+    def _buttons_row(self, lay, kind: str, item, index: int) -> None:
+        row = QHBoxLayout()
+        row.addWidget(self._library_button(kind, item))
+        row.addWidget(self._delete_button(kind, index))
+        row.addStretch(1)
+        lay.addLayout(row)
+
     def _weapon_editor(self, lay, index, weapon) -> None:
         ruleset, char = self._ruleset, self._char()
         summary = QLabel("")
+        summary.setWordWrap(True)
         summary.setStyleSheet(f"color:{MUTED};")
 
         def resync() -> None:
@@ -416,55 +554,48 @@ class GearPage(QWidget):
                 derivemod.effective_weapon(ruleset, char, weapon),
                 material=material.name if material else ""))
 
-        head = QHBoxLayout()
         names = [w.name for w in ruleset.weapon_catalog.values()]
-        head.addWidget(self._name_combo(
+        self._labelled(lay, "Weapon", self._name_combo(
             names, weapon.name,
             lambda text: (gear_actions.set_weapon(ruleset, char, index, text),
-                          self._rebuild())), 1)
-        head.addWidget(summary)
-        qty = QLabel("Qty")
-        qty.setStyleSheet(f"color:{MUTED};")
-        head.addWidget(qty)
+                          self._rebuild())))
+        lay.addWidget(summary)
+
         # Stackable gear. Ammunition is the case that put it here — a player holds
         # arrows by the score — but nothing stops a stack of javelins. It is a COUNT
         # and nothing more: no engine reads it, because nothing derives an attack
         # (decision 0008).
-        spin = QSpinBox()
-        spin.setRange(1, 999)
-        spin.setValue(weapon.quantity)
-        spin.valueChanged.connect(
+        qty = QSpinBox()
+        qty.setRange(1, 999)
+        qty.setValue(weapon.quantity)
+        qty.valueChanged.connect(
             lambda v: (setattr(weapon, "quantity", v), self._changed()))
-        head.addWidget(spin)
-        head.addWidget(self._library_button("weapons", weapon))
-        head.addWidget(self._delete_button("weapons", index))
-        lay.addLayout(head)
+        self._labelled(lay, "Quantity", qty)
 
-        self._stat_row(lay, weapon, _WEAPON_STATS[:6], resync)
-        self._stat_row(lay, weapon, _WEAPON_STATS[6:], resync)
-
-        tail = QHBoxLayout()
         dtype = QComboBox()
         dtype.addItems(["L", "B"])
         dtype.setCurrentText(weapon.damage_type or "L")
         dtype.currentTextChanged.connect(
             lambda t: (setattr(weapon, "damage_type", t or "L"), resync(),
                        self._changed()))
-        tail.addWidget(QLabel("Type"))
-        tail.addWidget(dtype)
-        tail.addWidget(QLabel("Material"))
-        tail.addWidget(self._material_combo(weapon, resync))
+        self._labelled(lay, "Damage", dtype)
+        self._labelled(lay, "Material", self._material_combo(weapon, resync))
+
+        lay.addWidget(self._heading("Stats"))
+        self._stat_grid(lay, weapon, _WEAPON_STATS, resync)
+
         notes = QLineEdit(weapon.notes)
         notes.setPlaceholderText("notes")
         notes.textChanged.connect(
             lambda t: (setattr(weapon, "notes", t), self._changed()))
-        tail.addWidget(notes, 1)
-        lay.addLayout(tail)
+        self._labelled(lay, "Notes", notes)
+        self._buttons_row(lay, "weapons", weapon, index)
         resync()
 
     def _armor_editor(self, lay, index, armor) -> None:
         ruleset, char = self._ruleset, self._char()
         summary = QLabel("")
+        summary.setWordWrap(True)
         summary.setStyleSheet(f"color:{MUTED};")
 
         def resync() -> None:
@@ -473,58 +604,49 @@ class GearPage(QWidget):
                 derivemod.effective_armor(ruleset, char, armor),
                 material=material.name if material else ""))
 
-        head = QHBoxLayout()
         names = [a.name for a in ruleset.armor_catalog.values()]
-        head.addWidget(self._name_combo(
+        self._labelled(lay, "Armour", self._name_combo(
             names, armor.name,
             lambda text: (gear_actions.set_armor(ruleset, char, index, text),
-                          self._rebuild())), 1)
-        head.addWidget(summary)
-        head.addWidget(self._library_button("armor", armor))
-        head.addWidget(self._delete_button("armor", index))
-        lay.addLayout(head)
-
-        self._stat_row(lay, armor, _ARMOR_STATS, resync)
-        tail = QHBoxLayout()
-        tail.addWidget(QLabel("Material"))
-        tail.addWidget(self._material_combo(armor, resync))
-        tail.addStretch(1)
-        lay.addLayout(tail)
+                          self._rebuild())))
+        lay.addWidget(summary)
+        self._labelled(lay, "Material", self._material_combo(armor, resync))
+        lay.addWidget(self._heading("Stats"))
+        self._stat_grid(lay, armor, _ARMOR_STATS, resync)
+        self._buttons_row(lay, "armor", armor, index)
         resync()
 
     def _goods_editor(self, lay, index, item) -> None:
-        head = QHBoxLayout()
         name = QLineEdit(item.name)
         name.setPlaceholderText("item")
         name.textChanged.connect(
             lambda t: (setattr(item, "name", t), self._changed()))
-        head.addWidget(name, 1)
-        qty = QLabel("Qty")
-        qty.setStyleSheet(f"color:{MUTED};")
-        head.addWidget(qty)
-        spin = QSpinBox()
-        spin.setRange(1, 999)
-        spin.setValue(item.quantity)
-        spin.valueChanged.connect(
+        self._labelled(lay, "Item", name)
+
+        qty = QSpinBox()
+        qty.setRange(1, 999)
+        qty.setValue(item.quantity)
+        qty.valueChanged.connect(
             lambda v: (setattr(item, "quantity", v), self._changed()))
-        head.addWidget(spin)
+        self._labelled(lay, "Quantity", qty)
+
         # LABELLED. A bare "•••" beside an item is unreadable — the browser asked what
         # it meant (2026-08-13), and every other dot column on the sheet is a rated
         # trait, which this is not: it is what the thing COST.
-        res = QLabel(f"Res {'•' * item.resources_cost}" if item.resources_cost
-                     else "Res —")
-        res.setStyleSheet(f"color:{MUTED};")
-        res.setToolTip(_RES_TOOLTIP)
-        head.addWidget(res)
-        head.addWidget(self._library_button("gear", item))
-        head.addWidget(self._delete_button("gear", index))
-        lay.addLayout(head)
+        cost = QSpinBox()
+        cost.setRange(0, 10)
+        cost.setValue(item.resources_cost)
+        cost.setToolTip(_RES_TOOLTIP)
+        cost.valueChanged.connect(
+            lambda v: (setattr(item, "resources_cost", v), self._changed()))
+        self._labelled(lay, "Resources", cost)
 
         note = QLineEdit(item.note)
         note.setPlaceholderText("note")
         note.textChanged.connect(
             lambda t: (setattr(item, "note", t), self._changed()))
-        lay.addWidget(note)
+        self._labelled(lay, "Note", note)
+        self._buttons_row(lay, "gear", item, index)
 
     def _artifact_editor(self, lay, index, artifact) -> None:
         ruleset, char = self._ruleset, self._char()
@@ -545,26 +667,21 @@ class GearPage(QWidget):
         def on_name(text: str) -> None:
             if gear_actions.set_artifact(ruleset, char, index, text):
                 # A catalogue pick may have granted a stat line and changed the budget,
-                # so the whole body goes — but the spin box is pushed first so the
-                # rebuild reads the new rating rather than the stale one.
+                # so everything goes — but the spin box is pushed first so the rebuild
+                # reads the new rating rather than the stale one.
                 rating.setValue(artifact.rating)
                 self._rebuild()
                 return
             sync_description()
             self._changed()
 
-        head = QHBoxLayout()
-        head.addWidget(self._name_combo(
-            [a.name for a in catalog], artifact.name, on_name), 1)
-        note = QLineEdit(artifact.note)
-        note.setPlaceholderText("note")
-        note.textChanged.connect(
-            lambda t: (setattr(artifact, "note", t), self._changed()))
-        head.addWidget(note, 1)
-        head.addWidget(QLabel("Rating"))
+        self._labelled(lay, "Artifact", self._name_combo(
+            [a.name for a in catalog], artifact.name, on_name))
+        lay.addWidget(description)
         rating.valueChanged.connect(
             lambda v: (setattr(artifact, "rating", v), self._changed()))
-        head.addWidget(rating)
+        self._labelled(lay, "Rating", rating)
+
         # How it was acquired. POST-LOCK ONLY: at creation the Background is the only
         # channel there is (core p.342, "to start the game owning"), so offering the
         # choice would be offering an illegal pick. `validate` bars it either way; this
@@ -576,32 +693,26 @@ class GearPage(QWidget):
                                  (artifactsmod.ACQUIRED_LEGENDARY, "Merit")):
                 acquired.addItem(label, value)
             acquired.setCurrentIndex(max(0, acquired.findData(artifact.acquired)))
-            # ⚠ Through the engine, never `setattr`: changing the channel must
-            # re-stamp any stat line this artifact granted, or the two drift and the
-            # orphan is charged to the wrong budget.
+            # ⚠ Through the engine, never `setattr`: changing the channel must re-stamp
+            # any stat line this artifact granted, or the two drift and the orphan is
+            # charged to the wrong budget.
             acquired.currentIndexChanged.connect(
                 lambda _i: (gear_actions.set_acquired(char, index,
                                                       acquired.currentData()),
                             self._rebuild()))
-            head.addWidget(QLabel("Acquired"))
-            head.addWidget(acquired)
-        head.addWidget(self._library_button("artifacts", artifact))
-        head.addWidget(self._delete_button("artifacts", index))
-        lay.addLayout(head)
-        lay.addWidget(description)
+            self._labelled(lay, "Acquired", acquired)
+
+        note = QLineEdit(artifact.note)
+        note.setPlaceholderText("note")
+        note.textChanged.connect(
+            lambda t: (setattr(artifact, "note", t), self._changed()))
+        self._labelled(lay, "Note", note)
+        self._buttons_row(lay, "artifacts", artifact, index)
         sync_description()
 
-    # ---- Buy ------------------------------------------------------------ #
-
-    def _buy_row(self) -> None:
-        row = QHBoxLayout()
-        button = QPushButton("Buy")
-        button.setObjectName("buyButton")
-        button.clicked.connect(self._open_shop)
-        row.addWidget(button)
-        row.addWidget(self._muted(
-            "Weapons, armour and goods — everything a book prices."), 1)
-        self._body_lay.addLayout(row)
+    # ------------------------------------------------------------------ #
+    # Buy
+    # ------------------------------------------------------------------ #
 
     def _build_shop_dialog(self) -> CatalogueDialog:
         """One shop over every priced catalogue, BUILT but not run.
@@ -633,29 +744,6 @@ class GearPage(QWidget):
             self._notify(message, "positive")
         self._rebuild()
 
-    # ---- artifacts -------------------------------------------------------- #
-
-    def _artifacts_panel(self) -> None:
-        """The standalone artifacts — those that are neither weapon nor armour — under
-        the budget line that governs them.
-
-        ⚠ Artifact weapons and armour are NOT edited here; they are equipment, and they
-        appear in the inventory above. They are only COUNTED, which the "also counted"
-        line says out loud so the combined total does not look wrong.
-        """
-        char = self._char()
-        lay = self._panel(viewmod.artifacts_header(self._ruleset, char))
-        lay.addWidget(self._muted("bought with the Artifact Background"))
-        bought = viewmod.artifacts_bought_note(char)
-        if bought:
-            lay.addWidget(self._muted(bought))
-        also = viewmod.artifacts_also_counted(char)
-        if also:
-            lay.addWidget(self._muted(also, italic=True))
-        add = QPushButton("+ Add artifact")
-        add.clicked.connect(self._open_artifact_catalogue)
-        lay.addWidget(add)
-
     def _build_artifact_dialog(self) -> CatalogueDialog:
         # ⚠ Recomputed per OPEN, never captured. The list depends on character state
         # that changes on ANOTHER tab — taking or dropping the Legendary Artifact Merit
@@ -676,21 +764,25 @@ class GearPage(QWidget):
         gear_actions.add_artifact(self._ruleset, self._char(), name)
         self._rebuild()
 
-    # ---- the services price list ------------------------------------------ #
+    # ------------------------------------------------------------------ #
+    # the services price list
+    # ------------------------------------------------------------------ #
 
-    def _prices_panel(self) -> None:
+    def _fill_prices(self) -> None:
         """The other half of the same tables, and NOT inventory: upkeep, events,
         commissions and rentals.
 
         ⚠ A character does not carry a month of stabling in her pack, so these are a
         price list she can consult and never own (human's ruling 2026-08-13) — the
-        ruling holds at the OFFER too, which is why `view.shop_rows` skips them.
+        ruling holds at the OFFER too, which is why `view.shop_rows` skips them. It
+        gets its own sub-tab rather than a card under the inventory: it is reference
+        material, not something owned.
         """
+        self._clear_lay(self._prices_lay)
         services = viewmod.service_rows(self._ruleset, self._char())
         if not services:
             return
-        lay = self._panel("Prices — services & upkeep")
-        lay.addWidget(self._muted(
+        self._prices_lay.addWidget(self._muted(
             "Reference only — not owned, and nothing here is tracked. Jade and silver "
             "are the printed equivalents (M&C p.123); the conversion is the "
             "Storyteller's call, so nothing is computed from them."))
@@ -698,9 +790,7 @@ class GearPage(QWidget):
         for category, name, dots, cash, notes, affordable in services:
             if category != last_category:
                 last_category = category
-                heading = QLabel(category)
-                heading.setStyleSheet(f"font-weight:600; color:{self._accent()};")
-                lay.addWidget(heading)
+                self._prices_lay.addWidget(self._heading(category))
             row = QHBoxLayout()
             dot_label = QLabel("•" * dots)
             dot_label.setMinimumWidth(56)
@@ -719,6 +809,7 @@ class GearPage(QWidget):
             if not affordable:
                 for widget in (dot_label, name_label):
                     widget.setStyleSheet(f"color:{MUTED};")
-            lay.addLayout(row)
+            self._prices_lay.addLayout(row)
             if notes:
-                lay.addWidget(self._muted(notes, italic=True))
+                self._prices_lay.addWidget(self._muted(notes, italic=True))
+        self._prices_lay.addStretch(1)

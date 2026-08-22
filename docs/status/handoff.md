@@ -2,11 +2,11 @@
 
 # 👉 YOU ARE HERE
 
-Suite green and measured: **2,653 passed, 1 skipped** (main PC, `qt-port`, 7m39s). The
+Suite green and measured: **2,659 passed, 1 skipped** (main PC, `qt-port`, 7m58s). The
 branch is **4 commits ahead of where the session started, no upstream, unpushed.**
 
-Nothing is half-finished. **Pick up by clicking milestone 4 through on the real
-display** — it is the only thing standing between here and milestone 5.
+Nothing is half-finished. **Milestone 4 is human-clicked and approved** — including the
+Gear rebuild below. Pick up at **milestone 5, the Play tab**.
 
 ## What happened
 
@@ -73,26 +73,47 @@ Two things worth knowing before touching the shell:
   control that the tab bar was built at all. Caught only because the change was made
   deliberately — this is the rot CLAUDE.md warns about, in the wild.
 
-## Next up: click milestone 4, then milestone 5
+## ⚠ Gear was built twice, and the second build is the lesson
 
-**Milestone 4 is NOT human-verified.** It is tests-green and smoke-driven offscreen
-across all four example characters — every rail page built, the shop dialog opened, the
-chips correct, artifacts appearing only post-lock. That is not the same thing.
+The first Gear tab was the NiceGUI page **transliterated**: a Buy button floating
+mid-page with an explanatory sentence beside it, accordion "Edit" expanders, and a stack
+of cards in a scroll area. Every test passed. The human's verdict on seeing it: *"the
+page as a whole is a copy of the NiceGUI's look."* They were right, and the plan had
+predicted it in as many words — *"a port attempted as a mechanical translation will
+produce something that works and feels wrong."*
 
-⚠ The standing warning applies hardest to this tab: **a control can be correct,
-reachable, fully tested, and nowhere near the thing it configures.** What to look at:
+**The rule this bought, and it governs Play / ST Options / Custom: a new Qt surface
+copies `qt/charms.py`'s LAYOUT, not `ui/<tab>.py`'s.** Toolbar for actions, table with a
+header for lists, splitter with a detail pane for the selected thing. Concretely, what
+changed on the rebuild:
 
-- the inventory's filter chips and the per-row Edit expanders (a merged artifact daiklave
-  should show **both** editors under one Edit);
-- the Buy shop's type chips, and that artifacts appear only after the lock;
-- the artifacts budget header, and the services price list's **cash** column;
-- the Combos sub-tab sitting between the trees and Spells, reading **Arrays** for an
-  Alchemical and absent entirely for a ghost.
+| Web idiom | Native replacement |
+|---|---|
+| Buy button floating in the content | a toolbar (`Buy…`, `+ Artifact`, filter, search) |
+| Filter pills | a `Show:` dropdown carrying live counts |
+| Accordion "Edit" expanders | select a row, edit in the detail pane |
+| `QLabel` rows in an HBox | `QTreeWidget`, sortable, five real columns |
+| Card stack in one scroll | splitter; Prices became its own sub-tab |
 
-After that, milestone 5 is **Play**, then ST Options and Custom. Ask the milestone-2
-question of each — Play's answer is not obvious, since `ui/play.py` still holds the
-PlayState mutators that tier 3 of the audit wants in `engine/` (⚠ decision 0006: if they
-land in an `engine/play.py`, play-state must stay unreachable from validation).
+Two things the rebuild fixed that the accordion had hidden:
+
+- **The stat grid now wraps at three pairs per row.** Thirteen weapon stats on one line
+  is the "no-wrap crushes later children to slivers" trap the Advantages merit rows
+  already paid for once.
+- ⚠ **Re-optioning the filter combo emits `currentIndexChanged`**, so without blocking
+  signals the filter reset to "All" on every table rebuild — the filter was literally
+  un-keepable while editing. `test_the_filter_survives_a_table_rebuild` pins it.
+
+## Next up: milestone 5, the Play tab
+
+Ask the milestone-2 question first — Play's answer is **not** obvious, since
+`ui/play.py` still holds the PlayState mutators that tier 3 of the `ui/` audit wants in
+`engine/`. ⚠ **decision 0006**: if they land in an `engine/play.py`, play-state must stay
+unreachable from validation.
+
+Then ST Options and Custom. All three are unported, and each will be either a
+**collection** (table + detail, like Gear and Charms) or a **form** — see the open
+question below.
 
 ## Known Qt gaps (unchanged except Gear)
 
@@ -105,6 +126,32 @@ land in an `engine/play.py`, play-state must stay unreachable from validation).
   Resonance/Limit, Virtue Flaw, bonus health levels, Downtime.
 - Rail placeholders still on the webapp: **Play, ST Options, Custom** — plus the Combos
   sub-tab.
+
+## One open DESIGN question — `spikes/qt_advantages/`
+
+Not a rules question, and not scheduled. The human, after approving the Gear rebuild:
+*"I think it's fine as is, but I am curious"* about an Advantages redo. The spike is
+that curiosity answered — one window, four tabs, the same live character:
+
+```sh
+.venv/bin/python -m spikes.qt_advantages
+```
+
+Tab 0 is the REAL `AdvantagesPage`; A/B/C are throwaway layout mockups (they render
+real data and their controls move, but they buy and validate nothing — say so before
+anyone reads a missing price as a bug). All three read one `advantage_rows()`, so a
+difference on screen is never a difference in data.
+
+**The question the spike actually poses, and it outlives Advantages:** is a tab a
+**collection** (browse and revisit → table + detail, the Gear/Charms pattern) or a
+**form** (fill in once at chargen → everything visible, the shipped pattern)? Answering
+it decides Play, ST Options and Custom too. Settling it is worth doing even if the
+answer is "leave Advantages alone" — in which case the app deliberately carries two
+patterns, and that should be written down rather than drifted into.
+
+⚠ **Delete the spike once the question is answered**, either way. The other three spikes
+were kept because they became build records; this one is a comparison, and a stale
+comparison is worse than none.
 
 ## No open rules questions
 
