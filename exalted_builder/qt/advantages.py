@@ -38,7 +38,7 @@ from exalted_builder.models.rules import VirtueName
 from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
-from .catalogue import open_catalogue
+from .catalogue import CatalogueDialog, open_catalogue
 from .editor import DotTrack, _FilterCombo, _Panel
 from .theme import MUTED, accent as accent_light
 
@@ -50,6 +50,20 @@ from .theme import MUTED, accent as accent_light
 _MY_ISSUES = ("background", "merit", "flaw", "artifact")
 
 _MF_SIDES = {"": "All", "merit": "Merits", "flaw": "Flaws"}
+
+
+
+def _resync(holder) -> None:
+    """Re-label a catalogue dialog's confirm button, if it exists yet.
+
+    ⚠ No-op on the first pass, and that is not a guard against a bug: the dialog's
+    constructor selects row 0, so `extras` runs — and syncs — before
+    `CatalogueDialog.__init__` has returned and the caller could stash the reference.
+    `_show_detail` labels the button itself straight afterwards, so nothing is missed.
+    """
+    dialog = holder.get("dialog")
+    if dialog is not None:
+        dialog.refresh_confirm()
 
 
 class AdvantagesPage(QWidget):
@@ -66,10 +80,13 @@ class AdvantagesPage(QWidget):
         # The pending in-play purchase — nothing is bought until Gain is pressed.
         self._gain: dict = {"id": "", "tier": "", "points": 0, "taken_as": "",
                             "detail": ""}
+        # The add-dialogs' pending picks — the controls now live in the dialog, so the
+        # chosen rating/tier has to survive until the confirm button commits it.
+        self._pending_mf: dict = {}
+        self._pending_bg: dict = {}
         self._mf_filter: dict[str, str] = {"text": "", "kind": "", "category": ""}
         self._mf_rows: list[tuple[QComboBox, MeritFlawPurchase]] = []
         self._mf_count: QLabel | None = None
-        self._mf_detail_lay: QVBoxLayout | None = None
         self._drop_idx: str = ""
 
         self.issues = QLabel("")
@@ -127,7 +144,6 @@ class AdvantagesPage(QWidget):
         self._clear_lay(self._body_lay)
         self._mf_rows = []
         self._mf_count = None
-        self._mf_detail_lay = None
         self._build_body()
         self._body_lay.addStretch(1)
         self._changed()
@@ -256,13 +272,11 @@ class AdvantagesPage(QWidget):
             lower it (Innocuous caps Allies/Contacts/Mentor at 2) or close it outright —
             that half is engine.merits'; the DATA ceiling (MF Backing ≤2, the mortal
             Artifact bar, the MF Artifact lift to 10) is engine.validate's. A cap you
-            can click past is not a ceiling."""
-            key = (name or "").strip().lower()
-            if key in mf.barred_backgrounds:
-                return 0
-            data_cap = validate.background_rating_cap(b, char, name)
-            merit_cap = mf.background_caps.get(key)
-            return data_cap if merit_cap is None else min(data_cap, merit_cap)
+            can click past is not a ceiling.
+
+            ⚠ ONE copy of this rule: the add-dialog's spinner asks `_bg_cap_for` too. A
+            second implementation here would let the two ceilings drift apart."""
+            return self._bg_cap_for(b, name)
 
         for idx, bg in enumerate(char.backgrounds):
             self._background_row(lay, b, bg, idx, catalog, descriptions, cap_for)
@@ -436,9 +450,12 @@ class AdvantagesPage(QWidget):
         for s in stones:
             over = s.rating > remaining or (allowance and allowance.individual_max
                                             and s.rating > allowance.individual_max)
-            note = " — exceeds this Manse's remaining Hearthstone levels" if over else ""
+            # ⚠ The over-budget warning goes FIRST. The dialog clamps a row's summary to
+            # a few words, so anything tacked on the end of the description is exactly
+            # what gets cut — and this is the one part of the line that must survive.
+            note = "⚠ exceeds this Manse's remaining levels — " if over else ""
             rows.append((s.name, s.name,
-                         f"{s.rating_notes or ('•' * s.rating)} — {s.description}{note}",
+                         f"{note}{s.rating_notes or ('•' * s.rating)} — {s.description}",
                          s.description))
         ratings = {s.name: s.rating for s in stones}
 
@@ -454,10 +471,17 @@ class AdvantagesPage(QWidget):
 
         open_catalogue(self, self._pal(), "Hearthstones", rows, pick)
 
+    # ⚠ Each `_build_*_dialog` returns the dialog WITHOUT running it, and the `_open_*`
+    # wrapper execs it. `exec()` blocks, so a test can only reach the in-dialog rating
+    # and tier controls through the builder.
     def _open_bg_catalogue(self) -> None:
-        """Browse the splat-filtered catalogue, pick one, or choose Custom for a blank
-        row. The dialog is where a rating gets CHOSEN, so its full text carries the whole
-        printed ladder — the row itself shows only the rung the character holds."""
+        self._build_bg_dialog().exec()
+
+    def _build_bg_dialog(self) -> CatalogueDialog:
+        """Browse the splat-filtered catalogue, set the rating, and add it — or choose
+        Custom for a blank row. The dialog is where a rating gets CHOSEN, so its full
+        text carries the whole printed ladder and the spinner sits directly under it;
+        the row itself shows only the rung the character holds."""
         catalog = self._bg_catalog()
         rows = []
         for t in sorted(catalog, key=lambda t: t.name):
@@ -466,11 +490,64 @@ class AdvantagesPage(QWidget):
                 "\n\n" + "\n\n".join(f"{dot}  {text}" for dot, text in ladder)
                 if ladder else "")
             rows.append((t.name, t.name, t.description, full))
-        open_catalogue(self, self._pal(), "Backgrounds", rows, self._pick_bg)
+
+        b = validate.effective_budgets(self._ruleset, self._char())
+        holder: dict = {}
+
+        def extras(key, lay) -> None:
+            # ⚠ The cap is per-NAME and can be 0 (a Flaw may bar a Background outright).
+            # A spinner whose maximum is 0 is the correct, clickable-nowhere answer —
+            # the confirm hook is what refuses it, so the reason can be stated.
+            cap = self._bg_cap_for(b, key)
+            self._pending_bg.clear()
+            self._pending_bg.update(name=key, rating=min(1, cap))
+            row = QHBoxLayout()
+            row.addWidget(QLabel("Rating"))
+            spin = QSpinBox()
+            spin.setRange(0, max(0, cap))
+            spin.setValue(self._pending_bg["rating"])
+            spin.valueChanged.connect(
+                lambda v: (self._pending_bg.update(rating=v), _resync(holder)))
+            row.addWidget(spin)
+            row.addStretch(1)
+            lay.addLayout(row)
+            if cap == 0:
+                lay.addWidget(self._warn("A Flaw this character holds bars this "
+                                         "Background entirely."))
+            else:
+                lay.addWidget(self._muted(f"Highest this character may take: {cap}"))
+
+        def confirm(key) -> tuple[str, bool]:
+            if self._bg_cap_for(b, key) == 0:
+                return "Barred by a Flaw", False
+            rating = self._pending_bg.get("rating", 1)
+            return f"Add at {'•' * rating if rating else '0'}", True
+
+        dialog = CatalogueDialog(self._pal(), "Backgrounds", rows, self._pick_bg,
+                                 extras=extras, confirm=confirm, parent=self)
+        holder["dialog"] = dialog
+        return dialog
+
+    def _bg_cap_for(self, b, name: str) -> int:
+        """The highest rating `name` may be taken at — the same two-sided answer
+        `_backgrounds_panel.cap_for` gives: engine.merits' bar or lowered cap, and
+        engine.validate's data ceiling, whichever is tighter."""
+        mf = meritsmod.merits_and_flaws_calc(self._ruleset, self._char())
+        key = (name or "").strip().lower()
+        if key in mf.barred_backgrounds:
+            return 0
+        data_cap = validate.background_rating_cap(b, self._char(), name)
+        merit_cap = mf.background_caps.get(key)
+        return data_cap if merit_cap is None else min(data_cap, merit_cap)
 
     def _pick_bg(self, name) -> None:
-        self._char().backgrounds.append(
-            BackgroundEntry(name="" if name is None else name, rating=1))
+        # Custom rows start at 1: there is no printed ladder to read a rating off, and
+        # the row's own dot track is where it gets set.
+        pending = self._pending_bg if self._pending_bg.get("name") == name else {}
+        self._char().backgrounds.append(BackgroundEntry(
+            name="" if name is None else name,
+            rating=1 if name is None else pending.get("rating", 1)))
+        self._pending_bg.clear()
         self.reload()
 
     def _remove_bg(self, idx: int) -> None:
@@ -543,10 +620,16 @@ class AdvantagesPage(QWidget):
         return (f"{total} available" if shown == total
                 else f"{shown} of {total} shown — clear the filter to see the rest")
 
-    def _merit_rules_text(self, lay, definition) -> None:
+    def _merit_rules_text(self, lay, definition, *, with_description: bool = True) -> None:
         """The printed cost line, restrictions, gates and rules text under a row. The
         cost line always shows: a few qualifiers cannot be priced by the engine (a
-        per-caste rate, a relative one), so the ST must see what the book says."""
+        per-caste rate, a relative one), so the ST must see what the book says.
+
+        `with_description=False` omits the trailing rules text, for the catalogue
+        dialog — its detail pane is already showing that same string in full, and
+        printing it twice (once scrollable, once truncated) reads as a bug, because it
+        is one (human, 2026-08-21). The cost/restriction/requires lines are NOT in the
+        detail pane, so they stay."""
         if definition.cost_note:
             lay.addWidget(self._muted(definition.cost_note))
         if definition.exalt_types:
@@ -564,7 +647,7 @@ class AdvantagesPage(QWidget):
             wants.append(definition.prerequisite_note)
         if wants:
             lay.addWidget(self._muted("Requires: " + "; ".join(wants), italic=True))
-        if definition.description:
+        if with_description and definition.description:
             text = self._muted(self._clamp(definition.description, 320))
             text.setToolTip(definition.description)
             lay.addWidget(text)
@@ -838,12 +921,47 @@ class AdvantagesPage(QWidget):
         self.reload()
 
     def _open_mf_catalogue(self, available) -> None:
-        """Browse the filtered set, pick one, or choose Custom for a display-only
-        player-authored row — never a blind "add" that appends the cheapest entry."""
+        self._build_mf_dialog(available).exec()
+
+    def _build_mf_dialog(self, available) -> CatalogueDialog:
+        """Browse the filtered set, configure it, and take it — or choose Custom for a
+        display-only player-authored row. Never a blind "add" that appends the cheapest
+        entry. The tier / points / side controls are the same block the in-play card
+        uses, so the row lands fully specified instead of on a default tier the player
+        never saw."""
         rows = [(m.id, viewmod.merit_option_label(m), m.description, m.description)
                 for m in available]
-        open_catalogue(self, self._pal(), "Merits & Flaws", rows, self._pick_mf,
-                       subtitle=f"{len(available)} available to this character")
+        holder: dict = {}
+
+        def extras(key, lay) -> None:
+            definition = self._ruleset.merits_flaws.get(key)
+            if definition is None:
+                return
+            char = self._char()
+            self._pending_mf.clear()
+            self._pending_mf.update(
+                id=key, taken_as="", points=0, detail="",
+                tier=viewmod.default_merit_tier(definition, char.exalt_type, char.caste))
+            self._mf_purchase_block(
+                definition, lay, self._pending_mf,
+                on_sync=lambda: _resync(holder))
+            self._merit_rules_text(lay, definition, with_description=False)
+
+        def confirm(key) -> tuple[str, bool]:
+            definition = self._ruleset.merits_flaws.get(key)
+            if definition is None:
+                return "Take", False
+            if self._mf_side_needed(definition, self._pending_mf):
+                return "Choose Merit or Flaw first", False
+            points, _xp = self._mf_price(definition, self._pending_mf)
+            return f"Take ({points} points)", True
+
+        dialog = CatalogueDialog(
+            self._pal(), "Merits & Flaws", rows, self._pick_mf,
+            subtitle=f"{len(available)} available to this character",
+            extras=extras, confirm=confirm, parent=self)
+        holder["dialog"] = dialog
+        return dialog
 
     def _pick_mf(self, key) -> None:
         char = self._char()
@@ -858,9 +976,17 @@ class AdvantagesPage(QWidget):
         definition = self._ruleset.merits_flaws.get(key)
         if definition is None:
             return
+        # The dialog's controls have already chosen these. Fall back to the splat-aware
+        # default tier for a caller that picked without them (the tests do).
+        pending = self._pending_mf if self._pending_mf.get("id") == key else {}
         char.merits_flaws.append(MeritFlawPurchase(
             merit_id=key,
-            tier=viewmod.default_merit_tier(definition, char.exalt_type, char.caste)))
+            tier=pending.get("tier") or viewmod.default_merit_tier(
+                definition, char.exalt_type, char.caste),
+            taken_as=pending.get("taken_as", ""),
+            points=pending.get("points", 0),
+            detail=pending.get("detail", "")))
+        self._pending_mf.clear()
         self.reload()
 
     # ------------------------------------------------------------------ #
@@ -913,24 +1039,17 @@ class AdvantagesPage(QWidget):
             sum(1 for m in available if self._mf_matches(m)), len(available)))
         lay.addWidget(self._mf_count)
 
+        # ONE way in. What the selected entry actually IS — cost line, restriction, the
+        # price this character would pay, the rules text — now lives in the dialog
+        # beside its controls, because buying blind off a menu label is how you take a
+        # Flaw by accident. There is no bare "Gain" button out here to press with
+        # nothing selected.
         row = QHBoxLayout()
-        browse = QPushButton("Browse catalogue")
+        browse = QPushButton("Gain a Merit or Flaw…")
         browse.clicked.connect(lambda: self._open_gain_catalogue(available))
         row.addWidget(browse)
-        gain = QPushButton("Gain")
-        gain.clicked.connect(self._gain_mf)
-        row.addWidget(gain)
         row.addStretch(1)
         lay.addLayout(row)
-
-        # What the selected entry actually IS — cost line, restriction, the price this
-        # character would pay, the rules text. Buying blind off a menu label is how you
-        # take a Flaw by accident.
-        holder = QWidget()
-        self._mf_detail_lay = QVBoxLayout(holder)
-        self._mf_detail_lay.setContentsMargins(0, 0, 0, 0)
-        lay.addWidget(holder)
-        self._rebuild_gain_detail()
 
         # --- lose --------------------------------------------------------- #
         if char.merits_flaws:
@@ -962,18 +1081,58 @@ class AdvantagesPage(QWidget):
         return name + (f" ({mp.tier})" if mp.tier else "")
 
     def _open_gain_catalogue(self, available) -> None:
+        self._build_gain_dialog(available).exec()
+
+    def _build_gain_dialog(self, available) -> CatalogueDialog:
+        """Browse, configure and BUY in one dialog. The tier, the point value and the
+        Merit-or-Flaw side are set beside the entry's printed text, and the confirm
+        button carries the resulting XP — so no purchase is committed from a menu label
+        alone (human, 2026-08-21: picking an entry appeared to do nothing, because the
+        controls were on a card below the fold)."""
         rows = [(m.id, f"{m.name} {m.cost_note or ''}".strip(), m.description,
                  m.description)
                 for m in available if self._mf_matches(m)]
-        open_catalogue(self, self._pal(), "Merits & Flaws", rows, self._pick_gain,
-                       subtitle=f"{len(rows)} available to this character")
+        holder: dict = {}
+
+        def extras(key, lay) -> None:
+            definition = self._ruleset.merits_flaws.get(key)
+            if definition is None:
+                return
+            # A fresh selection starts a fresh purchase. Every value is entry-specific,
+            # and a tier carried over from the previous row silently mis-prices — the
+            # same reason `_set_merit` clears on change.
+            self._gain.clear()
+            self._gain.update(id=key, taken_as="", tier="", points=0, detail="")
+            self._mf_purchase_block(
+                definition, lay, self._gain,
+                on_sync=lambda: _resync(holder))
+            self._merit_rules_text(lay, definition, with_description=False)
+
+        def confirm(key) -> tuple[str, bool]:
+            definition = self._ruleset.merits_flaws.get(key)
+            if definition is None:
+                return "Gain", False
+            if self._mf_side_needed(definition, self._gain):
+                return "Choose Merit or Flaw first", False
+            _points, xp = self._mf_price(definition, self._gain)
+            side = self._gain.get("taken_as") or definition.kind
+            return (f"Gain — pays {xp} XP" if side == "flaw"
+                    else f"Gain for {xp} XP"), True
+
+        dialog = CatalogueDialog(
+            self._pal(), "Merits & Flaws", rows, self._pick_gain,
+            subtitle=f"{len(rows)} available to this character",
+            extras=extras, confirm=confirm, parent=self)
+        holder["dialog"] = dialog
+        return dialog
 
     def _pick_gain(self, key) -> None:
+        """Confirmed out of the dialog: `self._gain` is already fully specified by the
+        extras controls, so this commits it."""
         if key is None:
             self._custom_gain()
             return
-        self._gain.update(id=key, taken_as="", tier="", points=0, detail="")
-        self._rebuild_gain_detail()
+        self._gain_mf()
 
     def _custom_gain(self) -> None:
         dialog = QDialog(self)
@@ -1005,24 +1164,44 @@ class AdvantagesPage(QWidget):
         lay.addWidget(cancel)
         dialog.exec()
 
-    def _rebuild_gain_detail(self) -> None:
-        """The pending purchase's preview — repainted in place, so the filter bar and
-        the buttons above it are never rebuilt under the player."""
-        if self._mf_detail_lay is None:
-            return
-        self._clear_lay(self._mf_detail_lay)
-        lay = self._mf_detail_lay
-        ruleset, char = self._ruleset, self._char()
-        definition = ruleset.merits_flaws.get(self._gain.get("id") or "")
-        if definition is None:
-            lay.addWidget(self._muted("Select an entry to see its rules text.",
-                                      italic=True))
-            return
-        # For a two-sided entry the chosen side decides the direction of the
-        # transaction, so it drives this banner too — an unchosen one says so rather
-        # than implying the Merit branch.
-        chosen = self._gain.get("taken_as", "")
-        effective = chosen if definition.kind == "either" else definition.kind
+    # ------------------------------------------------------------------ #
+    # the shared Merit/Flaw purchase controls
+    # ------------------------------------------------------------------ #
+
+    def _mf_price(self, definition, state) -> tuple[int, int]:
+        """Input: a definition and a pending-purchase `state` dict. Output:
+        `(points, xp)` for that entry at the selected tier / point value / side."""
+        char = self._char()
+        price = validate.merit_points(
+            definition,
+            MeritFlawPurchase(merit_id=definition.id, tier=state.get("tier", ""),
+                              points=state.get("points", 0),
+                              taken_as=state.get("taken_as", ""),
+                              detail=state.get("detail", "")),
+            char.exalt_type, char.caste)
+        xp = price * self._ruleset.xp_costs_for(char.exalt_type).new_merit_bp_multiplier
+        return price, xp
+
+    def _mf_side_needed(self, definition, state) -> bool:
+        """True when the entry can be taken either way and no side has been chosen.
+        The side is what makes the transaction positive or negative, so a purchase in
+        this condition is half-specified and must not be allowed to land."""
+        return definition.kind == "either" and not state.get("taken_as")
+
+    def _mf_purchase_block(self, definition, lay, state, on_sync=None):
+        """Build the entry-specific purchase controls into `lay`, driving the mutable
+        `state` dict (taken_as / tier / points / detail). Input: the definition, a
+        layout, the state, and an optional callback fired after each change. Output:
+        a `sync()` callable that refreshes the banner and the price line from `state`.
+
+        ⚠ `sync()` refreshes text IN PLACE and never rebuilds a widget. The controls
+        call it from their own change signals, and deleting a widget from inside its
+        own handler is the Qt crash this shape exists to avoid.
+
+        Shared by the in-play card and the catalogue dialog, so the two surfaces cannot
+        drift into pricing the same purchase differently.
+        """
+        char = self._char()
         head = QHBoxLayout()
         name = QLabel(definition.name)
         name.setStyleSheet("font-weight:600;")
@@ -1030,26 +1209,40 @@ class AdvantagesPage(QWidget):
         head.addWidget(self._muted(definition.cost_note or ""))
         head.addStretch(1)
         lay.addLayout(head)
-        side_text = ("Flaw — GAINING this pays the character" if effective == "flaw"
-                     else "Merit — gaining this costs XP" if effective == "merit"
-                     else "Merit OR Flaw — choose a side before gaining it")
-        banner = QLabel(side_text)
-        banner.setStyleSheet("font-weight:600; color:%s;" % (
-            "#4ade80" if effective == "flaw"
-            else "#d19a3a" if effective == "merit" else "#f87171"))
-        lay.addWidget(banner)
 
+        banner = QLabel("")
+        banner.setWordWrap(True)
+        lay.addWidget(banner)
+        price_line = self._muted("")
         controls = QHBoxLayout()
+
+        def sync() -> None:
+            # For a two-sided entry the chosen side decides the direction of the
+            # transaction, so it drives this banner too — an unchosen one says so
+            # rather than implying the Merit branch.
+            effective = (state.get("taken_as", "") if definition.kind == "either"
+                         else definition.kind)
+            banner.setText(
+                "Flaw — GAINING this pays the character" if effective == "flaw"
+                else "Merit — gaining this costs XP" if effective == "merit"
+                else "Merit OR Flaw — choose a side before gaining it")
+            banner.setStyleSheet("font-weight:600; color:%s;" % (
+                "#4ade80" if effective == "flaw"
+                else "#d19a3a" if effective == "merit" else "#f87171"))
+            points, xp = self._mf_price(definition, state)
+            price_line.setText(f"At the selected tier: {points} points = {xp} XP")
+            if on_sync is not None:
+                on_sync()
+
         if definition.kind == "either":
             controls.addWidget(QLabel("Take it"))
             side = QComboBox()
             side.addItem("", "")
             side.addItem("as Merit", "merit")
             side.addItem("as Flaw", "flaw")
-            side.setCurrentIndex(max(0, side.findData(chosen)))
+            side.setCurrentIndex(max(0, side.findData(state.get("taken_as", ""))))
             side.currentIndexChanged.connect(
-                lambda _i, s=side: (self._gain.update(taken_as=s.currentData() or ""),
-                                    self._rebuild_gain_detail()))
+                lambda _i, s=side: (state.update(taken_as=s.currentData() or ""), sync()))
             controls.addWidget(side)
         # The value controls, entry-aware — the same set chargen offers. This was ONE
         # free-text box doing double duty (a tier key for a menu-priced entry, a point
@@ -1064,10 +1257,10 @@ class AdvantagesPage(QWidget):
             for key, value in opts.items():
                 if key in tiers:
                     tier.addItem(f"{viewmod.merit_tier_label(key)} ({value})", key)
-            tier.setCurrentIndex(max(0, tier.findData(self._gain.get("tier") or "")))
-            self._gain["tier"] = tier.currentData() or ""
+            tier.setCurrentIndex(max(0, tier.findData(state.get("tier") or "")))
+            state["tier"] = tier.currentData() or ""
             tier.currentIndexChanged.connect(
-                lambda _i, t=tier: self._gain.update(tier=t.currentData() or ""))
+                lambda _i, t=tier: (state.update(tier=t.currentData() or ""), sync()))
             controls.addWidget(tier)
         elif definition.variable_cost:
             rate = meritsmod.forfeit_rate(definition)
@@ -1076,13 +1269,13 @@ class AdvantagesPage(QWidget):
             if rate:
                 controls.addWidget(QLabel(
                     f"{meritsmod.forfeit_trait_label(definition)} dots"))
-                spin.setValue(self._gain.get("points", 0) // rate)
+                spin.setValue(state.get("points", 0) // rate)
                 spin.valueChanged.connect(
-                    lambda v, r=rate: self._gain.update(points=v * r))
+                    lambda v, r=rate: (state.update(points=v * r), sync()))
             else:
                 controls.addWidget(QLabel("Points"))
-                spin.setValue(self._gain.get("points", 0))
-                spin.valueChanged.connect(lambda v: self._gain.update(points=v))
+                spin.setValue(state.get("points", 0))
+                spin.valueChanged.connect(lambda v: (state.update(points=v), sync()))
             controls.addWidget(spin)
         choices = meritsmod.detail_choices(definition)
         if choices:
@@ -1091,23 +1284,15 @@ class AdvantagesPage(QWidget):
             detail.addItem("", "")
             for c in choices:
                 detail.addItem(c, c)
-            detail.setCurrentIndex(max(0, detail.findData(self._gain.get("detail") or "")))
+            detail.setCurrentIndex(max(0, detail.findData(state.get("detail") or "")))
             detail.currentIndexChanged.connect(
-                lambda _i, d=detail: self._gain.update(detail=d.currentData() or ""))
+                lambda _i, d=detail: (state.update(detail=d.currentData() or ""), sync()))
             controls.addWidget(detail)
         controls.addStretch(1)
         lay.addLayout(controls)
-
-        price = validate.merit_points(
-            definition,
-            MeritFlawPurchase(merit_id=definition.id, tier=self._gain.get("tier", ""),
-                              points=self._gain.get("points", 0), taken_as=chosen,
-                              detail=self._gain.get("detail", "")),
-            char.exalt_type, char.caste)
-        xp_cost = price * ruleset.xp_costs_for(char.exalt_type).new_merit_bp_multiplier
-        lay.addWidget(self._muted(
-            f"At the selected tier: {price} points = {xp_cost} XP"))
-        self._merit_rules_text(lay, definition)
+        lay.addWidget(price_line)
+        sync()
+        return sync
 
     def _gain_mf(self) -> None:
         """Gain a Merit or Flaw in play. Which side of the transaction it is depends on

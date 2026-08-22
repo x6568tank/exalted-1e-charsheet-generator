@@ -4,9 +4,12 @@ Flaws, Fetters and Passions on one surface, in both regimes.
 Covers what the widget decides for itself: which controls a regime gets, that the caps
 and prices come from the engine, that the labels keyed to a Background's rating move
 when it does, and that the in-play card routes a purchase through
-`advancement.gain_merit_or_flaw` rather than choosing a side of its own. The catalogue
-dialog is exercised through its list and its `on_pick` contract — `exec()` would block
-a headless run.
+`advancement.gain_merit_or_flaw` rather than choosing a side of its own, and that a
+purchase configured in the catalogue dialog lands as configured.
+
+⚠ The dialogs are reached through `AdvantagesPage._build_*_dialog`, which returns one
+WITHOUT running it. `exec()` would block a headless run, so the `_open_*` wrappers are
+not testable and the builders are the seam.
 """
 
 from pathlib import Path
@@ -18,13 +21,16 @@ import pytest
 # turn into a COLLECTION ERROR — that kills the whole run, not just these tests.
 pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
 
-from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QSpinBox
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QComboBox, QLabel, QLineEdit, QPushButton,
+                               QSpinBox)
 
 import exalted_builder
 from exalted_builder import persistence
 from exalted_builder.engine import advancement, lifecycle, validate
 from exalted_builder.models.character import (BackgroundEntry, Character,
                                               HearthstoneEntry, MeritFlawPurchase)
+from exalted_builder.qt import catalogue
 from exalted_builder.qt.advantages import AdvantagesPage
 from exalted_builder.qt.catalogue import CatalogueDialog
 from exalted_builder.qt.editor import DotTrack
@@ -62,6 +68,16 @@ def _widgets(page, kind):
 
 def _labels(page) -> list[str]:
     return [w.text() for w in _widgets(page, QLabel)]
+
+
+def _select(dialog, key: str) -> None:
+    """Drive the catalogue dialog's list to the row carrying `key`, which is what
+    repaints its extras and re-labels the confirm button."""
+    for i in range(dialog.list.count()):
+        if dialog.list.item(i).data(Qt.UserRole) == key:
+            dialog.list.setCurrentRow(i)
+            return
+    raise AssertionError(f"{key} is not offered by this dialog")
 
 
 # --------------------------------------------------------------------------- #
@@ -195,6 +211,46 @@ def test_picking_from_the_background_catalogue_appends_a_row(qtbot, ruleset):
     assert [bg.name for bg in char.backgrounds] == ["Resources", ""]
 
 
+def test_the_background_dialog_adds_at_the_rating_chosen_in_it(qtbot, ruleset):
+    """The rating is set beside the printed ladder that describes each rung, and it is
+    the rating that lands — not a default of 1 to be corrected on the row afterwards."""
+    char = _solar()
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    dialog = page._build_bg_dialog()
+    qtbot.addWidget(dialog)
+    _select(dialog, "Resources")
+    dialog.extras_box.findChildren(QSpinBox)[0].setValue(3)
+    assert "•••" in dialog.choose_btn.text()
+    dialog._choose()
+    assert [(bg.name, bg.rating) for bg in char.backgrounds] == [("Resources", 3)]
+
+
+def test_the_background_dialog_will_not_exceed_the_characters_cap(qtbot, ruleset):
+    """A cap you can click past is not a cap — the spinner's maximum is the same
+    `_bg_cap_for` answer the row's dot track uses, not a fixed 5."""
+    char = _solar()
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    b = validate.effective_budgets(ruleset, char)
+    dialog = page._build_bg_dialog()
+    qtbot.addWidget(dialog)
+    _select(dialog, "Resources")
+    spin = dialog.extras_box.findChildren(QSpinBox)[0]
+    assert spin.maximum() == page._bg_cap_for(b, "Resources")
+
+
+def test_a_custom_background_ignores_a_rating_left_over_from_a_browsed_row(qtbot, ruleset):
+    """Custom has no printed ladder to read a rating off, so it starts at 1 — the
+    pending rating belongs to the entry it was chosen for and must not leak."""
+    char = _solar()
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    page._pending_bg.update(name="Resources", rating=4)
+    page._pick_bg(None)
+    assert [(bg.name, bg.rating) for bg in char.backgrounds] == [("", 1)]
+
+
 def test_removing_a_background_row(qtbot, ruleset):
     char = _solar(backgrounds=[BackgroundEntry(name="Resources", rating=1),
                                BackgroundEntry(name="Allies", rating=1)])
@@ -280,6 +336,40 @@ def test_adding_from_the_catalogue_opens_the_row_on_an_available_tier(qtbot, rul
         ruleset.merits_flaws[PRODIGY], "Solar", "dawn")
 
 
+def test_the_chargen_dialog_takes_the_entry_at_the_tier_chosen_in_it(qtbot, ruleset):
+    """Chargen buys through the same block the in-play card uses, so the row lands
+    fully specified rather than on a default tier the player never saw. ⚠ Prodigy's
+    menu leads with a tier Solars may not take — the dialog must open on an AVAILABLE
+    one, exactly as the row does."""
+    char = _solar()
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    dialog = page._build_mf_dialog(page._available_merits())
+    qtbot.addWidget(dialog)
+    _select(dialog, PRODIGY)
+    tiers = validate.merit_tiers_available(ruleset.merits_flaws[PRODIGY],
+                                           "Solar", "dawn")
+    assert page._pending_mf["tier"] in tiers
+    assert "Take (" in dialog.choose_btn.text()
+    dialog._choose()
+    assert char.merits_flaws[0].merit_id == PRODIGY
+    assert char.merits_flaws[0].tier in tiers
+
+
+def test_the_chargen_dialog_also_refuses_a_sideless_two_sided_entry(qtbot, ruleset):
+    """The same refusal as in play — an `either` entry taken with no side is
+    half-specified in both regimes."""
+    char = _solar()
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    dialog = page._build_mf_dialog(page._available_merits())
+    qtbot.addWidget(dialog)
+    _select(dialog, MUTATION)
+    assert not dialog.choose_btn.isEnabled()
+    dialog._choose()                                    # a disabled button buys nothing
+    assert char.merits_flaws == []
+
+
 def test_the_custom_option_appends_a_row_with_no_mechanical_effect(qtbot, ruleset):
     char = _solar()
     page = _page(ruleset, char)
@@ -347,17 +437,82 @@ def test_a_non_experience_table_says_so_instead_of_offering_zero_xp_buttons(qtbo
     assert not any(w.text() == "Gain" for w in _widgets(page, QPushButton))
 
 
-def test_the_gain_preview_prices_the_pending_pick(qtbot, ruleset):
-    """Buying blind off a menu label is how you take a Flaw by accident: the preview
-    names the side and the price before Gain is pressed, and nothing is bought until
-    it is."""
+def _dialog_labels(dialog) -> str:
+    return " ".join(w.text() for w in dialog.findChildren(QLabel))
+
+
+def test_the_gain_dialog_prices_the_pending_pick(qtbot, ruleset):
+    """Buying blind off a menu label is how you take a Flaw by accident: the dialog
+    names the side and the price beside the entry's own text, and nothing is bought
+    until the confirm button is pressed."""
     char = _locked_with_xp(ruleset, _solar())
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    page._pick_gain(MUTATION)
-    text = " ".join(_labels(page))
+    dialog = page._build_gain_dialog(page._available_merits())
+    qtbot.addWidget(dialog)
+    _select(dialog, MUTATION)
+    text = _dialog_labels(dialog)
     assert "Merit OR Flaw" in text and "points =" in text
     assert char.merits_flaws == []
+
+
+def test_a_two_sided_entry_cannot_be_confirmed_until_a_side_is_chosen(qtbot, ruleset):
+    """The side is what makes the transaction positive or negative, so it is not a
+    detail to fix up afterwards — the button refuses and says which choice is missing."""
+    char = _locked_with_xp(ruleset, _solar())
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    dialog = page._build_gain_dialog(page._available_merits())
+    qtbot.addWidget(dialog)
+    _select(dialog, MUTATION)
+    assert not dialog.choose_btn.isEnabled()
+    assert "Choose Merit or Flaw" in dialog.choose_btn.text()
+
+    side = next(w for w in dialog.extras_box.findChildren(QComboBox)
+                if w.findData("flaw") >= 0)
+    side.setCurrentIndex(side.findData("flaw"))
+    assert dialog.choose_btn.isEnabled()
+    # A Flaw PAYS: the button has to say so, or it reads as a cost.
+    assert "pays" in dialog.choose_btn.text()
+
+
+def test_confirming_the_gain_dialog_buys_the_configured_entry(qtbot, ruleset):
+    """The dialog is the whole transaction — the side chosen in it is the side that
+    lands on the character, not a default filled in afterwards."""
+    char = _locked_with_xp(ruleset, _solar())
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    before = advancement.xp_available(char)
+    dialog = page._build_gain_dialog(page._available_merits())
+    qtbot.addWidget(dialog)
+    _select(dialog, MUTATION)
+    side = next(w for w in dialog.extras_box.findChildren(QComboBox)
+                if w.findData("flaw") >= 0)
+    side.setCurrentIndex(side.findData("flaw"))
+    # Mutation is variable-cost, so the point value is part of the configuration —
+    # at the spinner's opening 0 the Flaw is worth nothing and pays nothing.
+    dialog.extras_box.findChildren(QSpinBox)[0].setValue(2)
+    dialog._choose()
+    assert char.merits_flaws[-1].merit_id == MUTATION
+    assert char.merits_flaws[-1].taken_as == "flaw"
+    assert advancement.xp_available(char) > before
+
+
+def test_switching_entries_does_not_carry_the_previous_tier_over(qtbot, ruleset):
+    """A tier is entry-specific; carrying one across a selection change silently
+    mis-prices the new entry (the reason `_set_merit` clears on change)."""
+    char = _locked_with_xp(ruleset, _solar())
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    available = page._available_merits()
+    dialog = page._build_gain_dialog(available)
+    qtbot.addWidget(dialog)
+    _select(dialog, MUTATION)
+    page._gain.update(taken_as="flaw", points=4)
+    other = next(m.id for m in available if m.id != MUTATION)
+    _select(dialog, other)
+    assert page._gain["id"] == other
+    assert page._gain["taken_as"] == "" and page._gain["points"] == 0
 
 
 # --------------------------------------------------------------------------- #
@@ -451,3 +606,70 @@ def test_catalogue_dialog_custom_picks_none(qtbot, ruleset):
     qtbot.addWidget(dialog)
     dialog._custom()
     assert picks == [None]
+
+
+def test_selecting_a_second_entry_detaches_the_first_ones_controls(qtbot, ruleset):
+    """⚠ The previous entry's widgets painted ON TOP of the next one's
+    (human, 2026-08-21). The cause was a widget-only sweep: the caller builds its
+    controls as nested rows, and a layout answers `item.widget() is None`, so nothing
+    inside one was ever detached. Counting the LIVE descendants is what catches it —
+    a stale row is still a child of the extras box."""
+    char = _locked_with_xp(ruleset, _solar())
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    available = page._available_merits()
+    dialog = page._build_gain_dialog(available)
+    qtbot.addWidget(dialog)
+
+    _select(dialog, MUTATION)
+    first = len(dialog.extras_box.findChildren(QLabel))
+    assert first                                     # it built something to begin with
+    other = next(m.id for m in available if m.id != MUTATION)
+    for _ in range(3):                               # thrash it; leaks accumulate
+        _select(dialog, other)
+        _select(dialog, MUTATION)
+    assert len(dialog.extras_box.findChildren(QLabel)) == first
+
+
+def test_the_dialog_does_not_reprint_the_description_the_detail_pane_shows(qtbot, ruleset):
+    """Once scrollable in the detail pane and once truncated underneath reads as a bug
+    (human, 2026-08-21). The cost/restriction/requires lines are NOT in the pane, so
+    those stay."""
+    char = _locked_with_xp(ruleset, _solar())
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    dialog = page._build_gain_dialog(page._available_merits())
+    qtbot.addWidget(dialog)
+    _select(dialog, MUTATION)
+    description = ruleset.merits_flaws[MUTATION].description
+    assert description in dialog.detail.toPlainText()
+    extras = " ".join(w.text() for w in dialog.extras_box.findChildren(QLabel))
+    assert description[:40] not in extras
+
+
+def test_a_long_summary_is_cut_to_a_few_words_in_the_list(qtbot, ruleset):
+    """A whole printed paragraph on every row scrolled the list off the screen
+    (human, 2026-08-21). The full text still reaches the detail pane."""
+    paragraph = " ".join(f"word{i}" for i in range(60))
+    dialog = CatalogueDialog(theme.palette("Solar"), "Things",
+                             [("a", "Alpha", paragraph, None)], lambda _k: None)
+    qtbot.addWidget(dialog)
+    label = dialog.list.item(0).text()
+    assert label.startswith("Alpha\n")
+    assert label.endswith("…")
+    # The ellipsis is glued to the last kept word, so the token count is the limit.
+    assert len(label.split("\n")[1].split()) == catalogue.BLURB_WORDS
+    assert paragraph in dialog.detail.toPlainText()
+
+
+def test_the_filter_still_matches_words_the_clamped_row_no_longer_shows(qtbot, ruleset):
+    """⚠ The clamp is DISPLAY only. Filtering the truncated text would make an entry
+    unfindable by a word its own description contains."""
+    paragraph = " ".join(f"word{i}" for i in range(60))
+    dialog = CatalogueDialog(theme.palette("Solar"), "Things",
+                             [("a", "Alpha", paragraph, None),
+                              ("b", "Beta", "nothing alike", None)], lambda _k: None)
+    qtbot.addWidget(dialog)
+    assert "word55" not in dialog.list.item(0).text()    # clamped away
+    dialog.search.setText("word55")
+    assert not dialog.list.item(0).isHidden() and dialog.list.item(1).isHidden()
