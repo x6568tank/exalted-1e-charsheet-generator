@@ -52,9 +52,12 @@ def _select_path(page, path_id):
 
 
 def test_solar_page_tabs(ruleset, qtbot):
+    # ⚠ Combos sits between the trees and Spells since 2026-08-21 — it moved here from
+    # the rail, because a Combo is assembled out of Charms the character already owns.
     page = CharmsPage(ruleset, {"char": Character(id="char.new", exalt_type="Solar")})
     qtbot.addWidget(page)
-    assert _visible_tabs(page) == ["Charms", "Martial Arts", "Spells", "Thaumaturgy"]
+    assert _visible_tabs(page) == ["Charms", "Martial Arts", "Combos", "Spells",
+                                   "Thaumaturgy"]
     assert "abilities" in page._tree_views
 
 

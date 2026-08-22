@@ -1,8 +1,8 @@
 """exalted_builder/qt/main_window.py — the native builder window (decision 0018).
 
 The shell is the master-detail the human approved in spikes/qt_edit: a left RAIL of
-app tabs (Identity / Traits / Gear / Advantages / Charms / Combos / Play / ST
-Options / Custom / Sheet) beside a stack of pages, a top toolbar (New / Load / Save /
+app tabs (Identity / Traits / Gear / Advantages / Charms / Play / ST Options /
+Custom / Sheet) beside a stack of pages, a top toolbar (New / Load / Save /
 Print / Finish & Lock / Unlock / Party), a readout bar whose "≡ details" opens a
 popover with validation + bonus-points + the post-lock Experience card, and a bottom
 status strip (Willpower · pools · Soak).
@@ -35,12 +35,18 @@ from exalted_builder.ui import view as viewmod
 from . import theme as qtheme
 from .advantages import AdvantagesPage
 from .charms import CharmsPage
+from .gear import GearPage
 from .editor import IdentityPage, TraitsPage
 from .sheet import SheetPage
 
 # The rail's tabs: the app's viewmod._TABS with the "Edit" tab split into Identity +
 # Traits (the human-approved spike layout).
-_RAIL_TABS = ("Identity", "Traits", "Gear", "Advantages", "Charms", "Combos",
+# ⚠ "Combos" is NOT here. It is a SUB-TAB of Charms in the native shell (2026-08-21,
+# the human's call), because a Combo is assembled out of Charms the character already
+# owns and the two were a rail apart. The webapp keeps its top-level Combos tab, so
+# `viewmod.visible_tabs` still names one and `_visible_rail_tabs` drops it — the
+# show/hide rule itself moved inward to `CharmsPage`.
+_RAIL_TABS = ("Identity", "Traits", "Gear", "Advantages", "Charms",
               "Play", "ST", "Custom", "Sheet")
 _RAIL_LABELS = {t: t for t in _RAIL_TABS}
 _RAIL_LABELS["ST"] = "ST Options"
@@ -165,13 +171,11 @@ class MainWindow(QMainWindow):
             on_theme_change=self._apply_chrome, on_change=self._refresh)
         self._pages["Traits"] = TraitsPage(
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
-        self._pages["Gear"] = _PlaceholderPage(
-            "The Gear tab is still on the webapp.")
+        self._pages["Gear"] = GearPage(
+            ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Advantages"] = AdvantagesPage(
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Charms"] = CharmsPage(ruleset, ctx, notify=self._notify)
-        self._pages["Combos"] = _PlaceholderPage(
-            "The Combos tab is still on the webapp.")
         self._pages["Play"] = _PlaceholderPage(
             "The Play tab is still on the webapp.")
         self._pages["ST"] = _PlaceholderPage(
@@ -216,32 +220,35 @@ class MainWindow(QMainWindow):
 
     def _visible_rail_tabs(self) -> set[str]:
         """The rail tabs to show: view.visible_tabs with the old "Edit" key mapped to
-        showing both Identity and Traits."""
+        showing both Identity and Traits, and "Combos" dropped.
+
+        ⚠ Combos is a Charms SUB-TAB here, so the shared presenter's answer about it is
+        deliberately discarded rather than the presenter changed — `visible_tabs` is
+        still exactly right for the webapp, where Combos is top-level. `CharmsPage`
+        asks `has_combos_tab` itself and adds or drops its own page.
+        """
         char = self._ctx["char"]
         locked = char.chargen_locked
         combos = viewmod.has_combos_tab(self._ruleset, char)
         vis = set(viewmod.visible_tabs(locked, combos=combos))
+        vis.discard("Combos")
         if "Edit" in vis:
             vis.discard("Edit")
             vis |= {"Identity", "Traits"}
         return vis
 
     def _sync_tabs(self) -> None:
-        """Show the rail tabs this character's stage has; Play appears at the lock,
-        Combos disappears for a splat that builds neither. If the tab we are on just
-        disappeared, land on its counterpart."""
+        """Show the rail tabs this character's stage has; Play appears at the lock. If
+        the tab we are on just disappeared, land on its counterpart."""
         combos = viewmod.has_combos_tab(self._ruleset, self._ctx["char"])
         visible = self._visible_rail_tabs()
         self._syncing = True
         for name in _RAIL_TABS:
             self.rail.item(_RAIL_TABS.index(name)).setHidden(name not in visible)
-        # Relabel the Combos tab for a Charm-Slot splat (Alchemical builds Arrays).
-        if combos:
-            label = "Arrays" if viewmod.uses_arrays(self._ruleset, self._ctx["char"]) \
-                else "Combos"
-            self.rail.item(_RAIL_TABS.index("Combos")).setText(label)
         # resolve_tab speaks the old keys; map the current rail tab to old, resolve,
-        # map back (an "Edit" answer lands on Identity).
+        # map back (an "Edit" answer lands on Identity). ⚠ It can still answer "Combos",
+        # which is no longer a rail tab — the `target not in _RAIL_TABS` fallback below
+        # is what catches that, and it is load-bearing now rather than defensive.
         old = _RAIL_TO_OLD.get(self._state["tab"], self._state["tab"])
         resolved = viewmod.resolve_tab(old, self._ctx["char"].chargen_locked,
                                        combos=combos)

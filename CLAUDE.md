@@ -128,7 +128,18 @@ Each is written up in full where it happened; these are the reusable one-liners.
   A stale "page-blocked" line reads exactly like a live one.
 - **Negative controls go stale silently and keep passing.** After authoring content that
   used to be missing, grep the tests for the names you just added; when no real subject
-  remains, rebuild the control on a synthetic fixture — never delete it.
+  remains, rebuild the control on a synthetic fixture — never delete it. **Moving a
+  feature stales them too** — once Combos left the rail, "a ghost's rail has no Combos"
+  passed for every splat and proved nothing.
+- **When code copies one model into another field by field, derive the field set from the
+  models.** A hand-written copy list documents the fields someone thought of: `ui/gear.py`
+  carried `from_artifact` across a catalogue re-pick because a comment warned about it,
+  and silently dropped `acquired` — re-charging the Artifact budget for a cash-bought
+  item. `gear_actions._owned_fields` is the complement of `_catalogue_stats`, so neither
+  half can be forgotten.
+- **Address a widget by name, never by position in a `findChildren` list.** A test that
+  grabbed `findChildren(QSpinBox)[0]` got the row's quantity box instead of the stat it
+  meant, and passed a wrong assertion into existence.
 
 ## Architecture, layout and data conventions → `docs/ARCHITECTURE.md`
 **Read that file before touching the engine, the loader, the models or the data
@@ -209,14 +220,20 @@ pool calculation.
   questions: `QGraphicsView` fits the charm-tree picker; the sheet becomes a
   `QTextDocument` (on-screen and print from one source); and retained-mode widgets
   test well with pytest-qt (28 + 14 tests, offscreen). **Milestones 1–3 have shipped
-  and are all human-clicked on the real display** (the shell + Edit/Charms/Sheet; the
-  left-rail shell + Identity/Traits; the Advantages tab). Run it with
-  `python -m exalted_builder.qt [path]`; the code is `exalted_builder/qt/`. **What each
-  milestone contains, and every trap it cost, is in `docs/plans/qt-port.md` — read that
-  before touching the port rather than re-deriving it here.** Rail placeholders still on
-  the webapp: **Gear, Combos, Play, ST Options, Custom**; Gear is next.
+  and are human-clicked on the real display** (the shell + Edit/Charms/Sheet; the
+  left-rail shell + Identity/Traits; the Advantages tab). **Milestone 4 — the Gear tab,
+  and Combos moving under Charms — has shipped and is NOT yet human-clicked.** Run it
+  with `python -m exalted_builder.qt [path]`; the code is `exalted_builder/qt/`. **What
+  each milestone contains, and every trap it cost, is in `docs/plans/qt-port.md` — read
+  that before touching the port rather than re-deriving it here.** Rail placeholders
+  still on the webapp: **Play, ST Options, Custom**, plus the Combos sub-tab; Play is
+  next.
 
-  Two things that affect work NOW, so they live here:
+  Three things that affect work NOW, so they live here:
+  - ⚠ **The two shells' tab sets differ deliberately.** Combos is a **sub-tab of Charms**
+    in Qt and a top-level tab on the webapp. `view.visible_tabs` still names it — the Qt
+    shell discards that one answer and `CharmsPage` runs `has_combos_tab` itself. Do not
+    "fix" the presenter to match the rail.
   - The port is cheap only because nothing outside `ui/` imports `nicegui` and
     `ui/view.py` is a pure presenter. **Keep it that way** — prefer derived state in
     `view.py` over inline computation in a widget module.
@@ -265,14 +282,14 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,597 passing, 1 skipped** (2026-08-21, main PC, the `qt-port` branch after Qt
-milestone 3 — includes the Qt-port tests in `tests/test_qt_*.py`,
-`tests/test_charm_actions.py` and `tests/test_qt_advantages.py`).
+**2,648 passing, 1 skipped** (2026-08-21, main PC, the `qt-port` branch after Qt
+milestone 4 — includes the Qt-port tests in `tests/test_qt_*.py`,
+`tests/test_charm_actions.py` and `tests/test_gear_actions.py`).
 
-- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (72 of them,
-  four whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
+- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (149 of them,
+  six whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
   a bare import was a COLLECTION ERROR, which takes the entire run down rather than
-  those tests. **A count 72 lower on a webapp-only machine is that working**, not
+  those tests. **A count 149 lower on a webapp-only machine is that working**, not
   tests going missing — install with `.venv/bin/pip install -e '.[qt]'`.
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
@@ -325,7 +342,7 @@ are pointers only; the traps and history live in the files.
 | Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
-| The Qt port — decision 0018; the build record (milestones 1–3: the shell + Edit/Charms/Sheet, the left-rail shell + Identity/Traits + bio fields, and the Advantages tab — **all three human-clicked**) | `plans/qt-port.md` |
+| The Qt port — decision 0018; the build record (milestones 1–4: the shell + Edit/Charms/Sheet, the left-rail shell + Identity/Traits + bio fields, the Advantages tab — **those three human-clicked** — and the Gear tab + Combos-under-Charms, **not yet clicked**) | `plans/qt-port.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms

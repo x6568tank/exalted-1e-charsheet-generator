@@ -40,6 +40,7 @@ from exalted_builder.models.rules import Orientation
 from exalted_builder.ui import theme
 
 from .theme import CARD, MUTED, TREE, accent as accent_light
+from exalted_builder.ui import view as viewmod
 from exalted_builder.ui.view import (CIRCLE_DISPLAY_ORDER, _cost_str, _style_label,
                                      CharmGraph, CharmNode, augmentation_category,
                                      build_augmentation_view,
@@ -1274,6 +1275,26 @@ class CharmsPage(QWidget):
     # Elemental Powers) — the picker's pages the spike deferred
     # ------------------------------------------------------------------ #
 
+    def _combos_label(self) -> str:
+        """"Combos", or "Arrays" for a Charm-Slot splat.
+
+        ⚠ The build matches the book's vocabulary deliberately (`charm_noun`, "Arrays"
+        for Alchemicals), and `view.uses_arrays` is the one place that decides which
+        word a character gets — this must never hardcode either."""
+        return "Arrays" if viewmod.uses_arrays(self._ruleset, self._char()) \
+            else "Combos"
+
+    def _combos_page(self):
+        """The Combos sub-tab. Still the webapp's surface — this is the placeholder in
+        its new home, not a port of the tab."""
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        label = QLabel(f"The {self._combos_label()} tab is still on the webapp.")
+        label.setAlignment(Qt.AlignCenter)
+        label.setStyleSheet(f"color:{MUTED};")
+        lay.addWidget(label)
+        return page
+
     def _form_library_page(self):
         """The Lunar Form Library: the Totem plus every animal shape recorded.
 
@@ -2098,6 +2119,14 @@ class CharmsPage(QWidget):
             if _cached(cache, "augmentation_category",
                        lambda: augmentation_category(self._ruleset, char)) is not None:
                 self.tabs.addTab(self._augment_page(), "Augmentations")
+            # Combos sit with the Charms they are assembled from (2026-08-21, the
+            # human's call) — on the webapp this is a top-level tab, and the two were a
+            # rail apart. ⚠ The show/hide rule came WITH it: `has_combos_tab` is false
+            # for a splat that builds neither Combos nor Arrays (the dead may never
+            # learn Combos — E:Ab p.234), and an empty tab answering every attempt with
+            # a validation error is worse than no tab.
+            if viewmod.has_combos_tab(self._ruleset, char):
+                self.tabs.addTab(self._combos_page(), self._combos_label())
             circles = spell_circles(self._ruleset, char)
             if circles:
                 self.tabs.addTab(self._spells_page(circles), "Spells")

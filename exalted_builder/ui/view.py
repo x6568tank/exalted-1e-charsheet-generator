@@ -316,6 +316,257 @@ def inventory_counts(rows: list[InventoryRow]) -> dict[str, int]:
     return {k: len(filter_inventory(rows, k)) for k in INVENTORY_FILTERS}
 
 
+def inventory_filter_label(kind: str, count: int) -> str:
+    """One filter chip's caption. `"all"` is spelled "Everything" — a chip reading
+    "All (6)" beside a heading reading "Inventory (6)" says the same thing twice."""
+    return ("Everything" if kind == "all" else kind.capitalize()) + f" ({count})"
+
+
+def inventory_heading(rows: list[InventoryRow], counts: dict[str, int],
+                      active: str) -> str:
+    """The inventory panel's title, naming the ACTIVE filter as well as the total.
+
+    ⚠ EVERY state names its filter, including "all". Without it the only evidence of a
+    filter click is rows disappearing, which reads as loss rather than as a view — and a
+    heading reading "Inventory (6)" when unfiltered is a strict PREFIX of the filtered
+    one, so nothing matching on it, a test or a player's glance, can tell the two apart.
+    """
+    shown = "Everything" if active == "all" else active.capitalize()
+    return f"Inventory ({len(rows)}) · showing {shown} ({counts.get(active, 0)})"
+
+
+def inventory_row_tags(row: InventoryRow) -> list[str]:
+    """The little kind chips beside one inventory row.
+
+    Weapon/armour/ammunition are dropped — the stat line beside them already says which
+    it is, so the chip is noise.
+
+    ⚠ A plot device has NO rating to print. Its dots are a placeholder the model's 1-5
+    bound demands and its page prints "(ARTIFACT N/A)"; showing "Artifact •••••" here
+    would be the one place in the build that states the fiction as a fact.
+    """
+    tags = []
+    for kind in row.kinds:
+        if kind in ("weapon", "armor", "ammunition"):
+            continue
+        if kind != "artifact":
+            tags.append(kind.capitalize())
+        elif row.acquired == artifactsmod.ACQUIRED_LEGENDARY:
+            tags.append("Artifact N/A · by Merit")
+        else:
+            tags.append("Artifact " + "•" * row.artifact_rating
+                        + (" · bought" if row.acquired == artifactsmod.ACQUIRED_PURCHASED
+                           else ""))
+    return tags
+
+
+# --------------------------------------------------------------------------- #
+# The artifacts budget header
+# --------------------------------------------------------------------------- #
+
+def artifacts_header(ruleset: RuleSet, character: Character) -> str:
+    """The artifacts panel's title, stating the budget rule and where this character
+    stands against it.
+
+    ⚠ It counts the BUDGET's items, not everything owned: a purchased artifact is
+    charged to nothing, so counting it here would print a number the validator does not
+    agree with — the header and the rule must tell the same story. What is left out is
+    said out loud by `artifacts_bought_note`.
+    """
+    items = artifactsmod.budgeted_items(character)
+    rule = artifactsmod.artifact_rule(validate.effective_budgets(ruleset, character))
+    rating = sum(bg.rating for bg in character.backgrounds
+                 if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
+    if artifactsmod.uses_corebook_rule(rule):
+        # The corebook rule (ruling 2026-08-13) governs most splats, and until it was
+        # enforced this header said the bare word "Artifacts" — so the first a player
+        # heard of the one-artifact limit was a validation error after they had picked
+        # two. The line states the rule whether or not they are over it.
+        #
+        # ONE PER ROW: a character may hold the Artifact Background more than once, and
+        # two Artifact •• rows are two artifacts (`validate.background_rows`). The
+        # header counts ROWS, not their sum — printing "/1" beside two rows is what made
+        # the browser read the validator's error as arbitrary.
+        rows = sorted((r for r in validate.background_rows(
+            character.backgrounds, artifactsmod.ARTIFACT_BACKGROUND) if r > 0),
+            reverse=True)
+        if not rows:
+            return f"Artifacts ({len(items)} — no Artifact Background)"
+        allowance = " + ".join(f"up to {r}" for r in rows)
+        return (f"Artifacts ({len(items)}/{len(rows)} — Artifact "
+                f"{'+'.join(str(r) for r in rows)}, {allowance})")
+    if rule is not None and rule.budget_tiers:
+        tier = artifactsmod.budget_tier(
+            validate.effective_budgets(ruleset, character), rating)
+        combined = sum(i.rating for i in items)
+        if tier is None:
+            return f"Artifacts ({combined} combined — no Artifact Background)"
+        # The row name is optional — the Cult of the Illuminated's table (p.96) prints
+        # bare dot rows where the Abyssal's names each one, and a blank left a trailing
+        # comma inside the parenthesis.
+        named = f", {tier.name}" if tier.name else ""
+        return (f"Artifacts ({combined}/{tier.combined_max} combined — "
+                f"Artifact {rating}{named})")
+    return "Artifacts"
+
+
+def artifacts_bought_note(character: Character) -> str:
+    """The cash-bought artifacts the header above deliberately does not count, or "".
+
+    Said out loud, because the alternative is a header whose count is lower than the
+    visible list for no stated reason.
+    """
+    bought = artifactsmod.purchased_items(character)
+    if not bought:
+        return ""
+    return (f"+ {len(bought)} bought with Resources, not charged to the Background")
+
+
+def artifacts_also_counted(character: Character) -> str:
+    """The artifact weapons and armour that count against the same budget but are
+    edited as equipment, or "". Listed so the combined total above is accounted for
+    rather than looking wrong."""
+    gear = [i for i in artifactsmod.artifact_items(character)
+            if i.source != artifactsmod.SOURCE_ARTIFACT]
+    if not gear:
+        return ""
+    return ("Also counted, from equipment: "
+            + ", ".join(f"{i.name} ({i.rating})" for i in gear))
+
+
+# --------------------------------------------------------------------------- #
+# The Buy shop — one priced list over four catalogues
+# --------------------------------------------------------------------------- #
+
+def catalog_weapon_summary(weapon_type) -> str:
+    """One-line stat summary for a catalogue weapon — the SAME line the equipment row
+    shows, minus the material tag (that needs a wielder; the dialog is pre-pick)."""
+    return weapon_stat_line(weapon_type)
+
+
+def catalog_armor_summary(armor_type) -> str:
+    """One-line stat summary for a catalogue armour — see `catalog_weapon_summary`."""
+    return armor_stat_line(armor_type)
+
+
+# Core p.325 prices gear in Resources dots rather than money, so the shop says what a
+# row would COST this character before she picks it. Presentation only: the three cases
+# come from `validate.gear_affordability`, which owns the rule.
+_AFFORDABILITY_NOTE = {
+    "easy": "within your means",
+    "serious": "a serious expense (buying it drops Resources by 1)",
+    "unaffordable": "beyond your Resources",
+}
+
+
+def gear_cost_note(resources_cost: int, affordability: str) -> str:
+    """The Resources clause appended to a gear row's summary, e.g.
+    "Resources ●●● — beyond your Resources". Empty for gear with no printed cost."""
+    if not resources_cost or not affordability:
+        return ""
+    return (f"Resources {'●' * resources_cost}"
+            f" — {_AFFORDABILITY_NOTE.get(affordability, '')}".rstrip(" —"))
+
+
+@dataclass(frozen=True)
+class ShopRow:
+    """One buyable thing, as the Buy dialog shows it.
+
+    ⚠ `key` carries the KIND (`weapon:` / `armor:` / `goods:` / `artifact:`) so one
+    dialog can append to four differently typed lists — `engine.gear_actions.buy` reads
+    it back. `group` is the filter chip and is the bare kind word: folding the rating
+    into it ("Artifact •••") would make one chip per rating.
+
+    `tags` rides along rather than an icon, because the two shells draw from different
+    icon sets. Whether a row is dimmed comes from `affordability`, not from a flag —
+    the shop states a price, it never refuses a purchase (core p.325).
+    """
+    key: str
+    name: str
+    group: str
+    summary: str
+    full: Optional[str]
+    tags: tuple[str, ...]
+    affordability: str
+
+
+def shop_rows(ruleset: RuleSet, character: Character) -> list[ShopRow]:
+    """Everything a book prices for this character, plus their own library.
+
+    ⚠ Services are NEVER offered — they are a reference price list, not inventory
+    (human's ruling 2026-08-13), and the ruling holds at the OFFER, not just in the data.
+
+    ⚠ Artifacts appear only POST-LOCK (decision 0017): the Artifact Background is the
+    pre-game channel ("to start the game owning", core p.342) and cash is the in-play
+    one. A shop that offered them at chargen would be the hole that decision closes.
+    """
+    rows: list[ShopRow] = []
+
+    def add(key, name, group, cost, summary, full=None, tags=()):
+        afford = validate.gear_affordability(ruleset, character, cost)
+        note = gear_cost_note(cost, afford)
+        bits = [group] + [x for x in (summary, note) if x]
+        # Your own library rows sit in the same list as the books', because that is the
+        # point of a library — but they say which they are. The loader tags them
+        # (`rules_db._merge_custom_gear`); nothing here decides it.
+        if "custom" in tags:
+            bits.insert(0, "★ yours")
+        rows.append(ShopRow(key=key, name=name, group=group, summary=" · ".join(bits),
+                            full=full, tags=tuple(tags), affordability=afford))
+
+    for w in sorted(ruleset.weapon_catalog.values(), key=lambda x: x.name):
+        add(f"weapon:{w.name}", w.name, "Weapon", w.resources_cost,
+            catalog_weapon_summary(w), tags=w.tags)
+    for a in sorted(ruleset.armor_catalog.values(), key=lambda x: x.name):
+        add(f"armor:{a.name}", a.name, "Armour", a.resources_cost,
+            catalog_armor_summary(a), tags=a.tags)
+    for g in sorted(ruleset.gear_catalog.values(), key=lambda x: x.name):
+        if g.kind != "goods":
+            continue
+        add(f"goods:{g.id}", g.name, "Goods", g.resources_cost, g.category,
+            g.notes or None, tags=g.tags)
+    if character.chargen_locked:
+        for art in sorted(artifactsmod.purchasable_with_artifact(
+                ruleset.artifact_catalog), key=lambda x: x.name):
+            if not art.resources_cost:
+                continue
+            add(f"artifact:{art.name}", art.name, "Artifact", art.resources_cost,
+                "•" * art.rating, art.description, tags=art.tags)
+    return rows
+
+
+def shop_custom_kinds(character: Character) -> dict[str, str]:
+    """The "Custom …" rows the shop offers, keyed by the list a blank row lands in.
+
+    Making a thing and buying a thing are ONE surface: these are what let the four
+    per-panel Add buttons be deleted, because a shop CAN know which list a blank row
+    belongs in once you say which kind you are making. Artifacts are absent at chargen
+    for the same reason they are absent from the shop above — decision 0017.
+    """
+    kinds = {"weapons": "Custom weapon", "armor": "Custom armour",
+             "gear": "Custom goods"}
+    if character.chargen_locked:
+        kinds["artifacts"] = "Custom artifact"
+    return kinds
+
+
+def service_rows(ruleset: RuleSet, character: Character) -> list[tuple]:
+    """The services price list, as `(category, name, dots, cash, notes, affordable)`
+    ordered by category then name.
+
+    ⚠ `GearType.cash` — the printed jade and silver equivalents — is the whole point of
+    this panel and its only read site. A name and a dot column alone is a PRICE list
+    showing no prices, which is the house bug; what makes a reference panel worth its
+    space is the information you cannot get anywhere else. Nothing computes from it:
+    M&C p.122 says outright the Resources ladder is not linear.
+    """
+    services = [g for g in ruleset.gear_catalog.values() if g.kind == "service"]
+    return [(g.category, g.name, g.resources_cost, g.cash, g.notes,
+             validate.gear_affordability(ruleset, character, g.resources_cost)
+             != "unaffordable")
+            for g in sorted(services, key=lambda g: (g.category, g.name))]
+
+
 def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) -> Optional[CharmDetail]:
     """Display detail for a single Charm: its requirements (gating ability + min
     essence), prerequisite Charms by name, and the character's relationship to it.

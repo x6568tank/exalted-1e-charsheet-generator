@@ -1,13 +1,14 @@
 """exalted_builder/qt/catalogue.py — the native browse-before-you-choose dialog.
 
 Input: `(key, name, summary, full)` rows, the same shape `ui/catalogue.py` takes, plus
-an `on_pick` callback and two optional hooks, `extras` and `confirm`. Output: a modal
-list filtered live by a text box, with the selected row's full text beside it and the
-caller's own controls under that text; confirming calls `on_pick(key)`, the Custom
-button calls `on_pick(None)`, and the dialog closes either way. Mechanism: a
-QListWidget whose items carry the key in `Qt.UserRole` and are hidden (never removed)
-by the filter, so the selection survives typing; changing the selection re-runs
-`extras` into a container the dialog owns and `confirm` to re-label the button.
+an `on_pick` callback and the optional `extras`, `confirm`, `group_of`, `custom_kinds`
+and `dimmed`. Output: a modal list filtered live by a text box and by type chips, with
+the selected row's full text beside it and the caller's own controls under that text;
+confirming calls `on_pick(key)`, a Custom button calls `on_pick(None)` or
+`on_pick("custom:<kind>")`, and the dialog closes either way. Mechanism: a QListWidget
+whose items carry the key in `Qt.UserRole` and are hidden (never removed) by the
+filter, so the selection survives typing; changing the selection re-runs `extras` into
+a container the dialog owns and `confirm` to re-label the button.
 
 Pure UI — no game logic. The caller hands it an already-filtered list, supplies whatever
 per-entry controls that entry needs, and owns what happens to the character, exactly as
@@ -20,6 +21,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QDialog, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
     QPushButton, QTextBrowser, QVBoxLayout, QWidget,
@@ -31,6 +33,7 @@ from .theme import MUTED, accent
 
 
 BLURB_WORDS = 14
+ALL_GROUPS = "All"
 
 
 def _blurb(summary: str, limit: int = BLURB_WORDS) -> str:
@@ -55,6 +58,9 @@ class CatalogueDialog(QDialog):
                  on_pick: Callable[[str | None], None], *,
                  subtitle: str = "", custom_label: str = "Custom",
                  allow_custom: bool = True,
+                 group_of: dict[str, str] | None = None,
+                 custom_kinds: dict[str, str] | None = None,
+                 dimmed: set[str] | None = None,
                  extras: Callable[[str, QVBoxLayout], None] | None = None,
                  confirm: Callable[[str], tuple[str, bool]] | None = None,
                  parent=None):
@@ -63,6 +69,9 @@ class CatalogueDialog(QDialog):
         self._on_pick = on_pick
         self._extras = extras
         self._confirm = confirm
+        self._group_of = dict(group_of or {})
+        self._dimmed = set(dimmed or ())
+        self._group = ALL_GROUPS
         self.setWindowTitle(title)
         self.resize(820, 560)
 
@@ -77,8 +86,26 @@ class CatalogueDialog(QDialog):
 
         self.search = QLineEdit()
         self.search.setPlaceholderText("filter by name or text…")
-        self.search.textChanged.connect(self._apply_filter)
+        self.search.textChanged.connect(lambda *_: self._apply_filter())
         root.addWidget(self.search)
+
+        # Type chips. A dialog spanning four catalogues is a wall of names otherwise,
+        # and the text box only helps someone who already knows what to type. The chips
+        # come from the caller's `group_of` — the dialog does not classify anything.
+        self.group_buttons: dict[str, QPushButton] = {}
+        groups = [g for g in dict.fromkeys(self._group_of.values()) if g]
+        if groups:
+            chips = QHBoxLayout()
+            for group in [ALL_GROUPS] + groups:
+                chip = QPushButton(group)
+                chip.setCheckable(True)
+                chip.setChecked(group == ALL_GROUPS)
+                chip.clicked.connect(
+                    lambda _checked=False, g=group: self._set_group(g))
+                chips.addWidget(chip)
+                self.group_buttons[group] = chip
+            chips.addStretch(1)
+            root.addLayout(chips)
 
         body = QHBoxLayout()
         self.list = QListWidget()
@@ -86,6 +113,11 @@ class CatalogueDialog(QDialog):
             blurb = _blurb(summary)
             item = QListWidgetItem(f"{name}\n{blurb}" if blurb else name)
             item.setData(Qt.UserRole, key)
+            if key in self._dimmed:
+                # Beyond this character's Resources. DIMMED, never removed or disabled:
+                # core p.325 makes the cost a hint and nothing is deducted, so the shop
+                # states a price and never refuses a purchase.
+                item.setForeground(QColor(MUTED))
             self.list.addItem(item)
         # ⚠ Connected AFTER the buttons are built, further down: `_show_detail` now
         # re-labels `choose_btn`, so a selection signal arriving before that button
@@ -114,10 +146,20 @@ class CatalogueDialog(QDialog):
         cancel.clicked.connect(self.reject)
         buttons.addWidget(cancel)
         buttons.addStretch(1)
-        if allow_custom:
+        # `custom_kinds` is the multi-kind form of the Custom button: making a thing and
+        # buying a thing are ONE surface, and a shop CAN know which list a blank row
+        # belongs in once you say which kind you are making. The kind rides back to the
+        # caller as `custom:<kind>` — the dialog never decides what a blank row is.
+        for kind, label in (custom_kinds or {}).items():
+            button = QPushButton(label)
+            button.setToolTip("Add a blank row of your own instead")
+            button.clicked.connect(
+                lambda _checked=False, k=kind: self._custom(f"custom:{k}"))
+            buttons.addWidget(button)
+        if allow_custom and not custom_kinds:
             custom = QPushButton(custom_label)
             custom.setToolTip("Add a free-text entry of your own instead")
-            custom.clicked.connect(self._custom)
+            custom.clicked.connect(lambda *_: self._custom(None))
             buttons.addWidget(custom)
         self.choose_btn = QPushButton("Choose")
         self.choose_btn.clicked.connect(self._choose)
@@ -135,14 +177,35 @@ class CatalogueDialog(QDialog):
 
     # ---- behaviour ------------------------------------------------------- #
 
-    def _apply_filter(self, text: str) -> None:
-        """Hide the rows that do not match; never remove them, so the current
-        selection survives a filter that excludes it and the counts stay honest."""
-        needle = (text or "").strip().lower()
+    def _set_group(self, group: str) -> None:
+        """Select one type chip. Chips are radio-like — the buttons are checkable so
+        the active one is visibly held down, and `setChecked` here is what keeps the
+        other chips from staying down alongside it."""
+        self._group = group
+        for name, chip in self.group_buttons.items():
+            chip.setChecked(name == group)
+        self._apply_filter()
+        # ⚠ A chip click re-homes the selection; typing in the search box deliberately
+        # does NOT. Hiding the selected row leaves the confirm button labelled and
+        # enabled for something no longer on screen, and `_choose` then silently
+        # refuses — a dead button with no stated reason. Typing is exempt because the
+        # selection must survive a half-typed word.
+        current = self.list.currentItem()
+        if current is None or current.isHidden():
+            first = next((i for i in range(self.list.count())
+                          if not self.list.item(i).isHidden()), None)
+            self.list.setCurrentRow(-1 if first is None else first)
+
+    def _apply_filter(self, _text: str | None = None) -> None:
+        """Hide the rows that match neither the text box nor the active type chip;
+        never remove them, so the current selection survives a filter that excludes it
+        and the counts stay honest."""
+        needle = self.search.text().strip().lower()
         shown = 0
-        for i, (_key, name, summary, full) in enumerate(self._entries):
+        for i, (key, name, summary, full) in enumerate(self._entries):
             hay = f"{name} {summary} {full or ''}".lower()
-            match = needle in hay
+            match = needle in hay and (self._group == ALL_GROUPS
+                                       or self._group_of.get(key) == self._group)
             self.list.item(i).setHidden(not match)
             shown += bool(match)
         total = len(self._entries)
@@ -213,9 +276,12 @@ class CatalogueDialog(QDialog):
         self.accept()
         self._on_pick(item.data(Qt.UserRole))
 
-    def _custom(self) -> None:
+    def _custom(self, key: str | None = None) -> None:
+        """A Custom button. `key` is None for the single-button form (the caller gets
+        None and decides what a blank row is) and `custom:<kind>` when the caller
+        supplied `custom_kinds` and the kind is part of the answer."""
         self.accept()
-        self._on_pick(None)
+        self._on_pick(key)
 
 
 def open_catalogue(parent, pal: Palette, title: str,

@@ -558,6 +558,126 @@ in instructive ways: the first asserted a 5× ratio *tuned until it passed*, the
 was off by one against the data (the test character has exactly 10 trees). Its negative
 control now asserts only "more than once", so it will not rot when a Charm is added.
 
+## Milestone 4 — the Gear tab; Combos moves under Charms (2026-08-21)
+
+Everything the character OWNS on one native surface (`qt/gear.py`), filling the rail's
+last big placeholder — and the Combos rail entry becomes a **Charms sub-tab** in the
+same pass.
+
+### The milestone-2 question, asked of Gear: YES
+
+Unlike Advantages, Gear was full of rules living in a widget, and every one of them
+would have been copied into a second shell. **`engine/gear_actions.py`** is
+`thaum_actions`/`charm_actions`' shape applied to equipment: `add_row` / `remove_row` /
+`remove_artifact`, `set_weapon` / `set_armor` (the catalogue re-pick), `grant_gear`,
+`add_artifact` / `set_artifact`, `buy` (the shop's key dispatch) and the library codec
+`library_payload` / `reserved_ids`. `ui/gear.py` went **947 → 650 lines** and is now
+thin refresh wrappers.
+
+⚠ **The extraction found a live bug in shipped code, and it is the `from_artifact` bug
+on a sibling field.** `set_weapon`/`set_armor` REPLACE the row with a catalogue copy,
+carrying the player's own fields across by a hand-written list. That list carried
+`from_artifact` because a comment warned about it — and never knew **`acquired`**
+existed. So re-picking a cash-bought artifact weapon's own name from its dropdown reset
+it to `background` and charged the p.131 budget for something Resources had paid for.
+Confirmed against the real catalogue before fixing:
+
+```
+budgeted before re-pick: []
+budgeted after  re-pick: ['Daiklave']
+```
+
+The fix is not "add `acquired` to the list" — it is `_owned_fields`, the **complement**
+of `_catalogue_stats`, both derived from the two pydantic models. What a copy leaves out
+is exactly what gets silently discarded, so neither half may be written by hand.
+**Generalises: when code copies one model into another field by field, derive the field
+set from the models — a hand list documents the fields someone thought of.**
+
+### Presentation moved to `view.py`
+
+So the Qt shell re-derives none of it: `artifacts_header` (the budget line, all three
+regimes), `artifacts_bought_note`, `artifacts_also_counted`, `inventory_heading`,
+`inventory_filter_label`, `inventory_row_tags` (including the "Artifact N/A · by Merit"
+plot-device case), `shop_rows` + `ShopRow`, `shop_custom_kinds`, `service_rows`, and
+`catalog_weapon_summary` / `catalog_armor_summary` / `gear_cost_note` lifted out of
+`ui/catalogue.py` (which re-exports them). ⚠ That last move is not tidying: `qt/` must
+never import `ui/catalogue.py`, because it imports nicegui and "nothing outside `ui/`
+imports nicegui" is the invariant the whole port rests on.
+
+**Icons stayed per-shell** — `icon_for` returns Material Icon names and Qt draws from a
+different set, so `ShopRow` carries `tags` and each shell picks its own.
+
+### `qt/catalogue.py` grew the shop's two missing features
+
+**Type chips** (`group_of`) and **multiple Custom buttons** (`custom_kinds`, the kind
+riding back as `custom:<kind>`), plus `dimmed` for unaffordable rows. Still no game
+logic: the dialog cannot tell a weapon from a bolt of silk and must not learn to.
+
+⚠ **A chip click re-homes the selection; typing does not.** Hiding the selected row
+leaves the confirm button labelled and enabled for something off screen, and `_choose`
+then silently refuses — a dead button with no stated reason. Typing is exempt because
+the selection must survive a half-typed word.
+
+### The tab itself
+
+The inventory is one filterable list whose rows each expand to the editor for their kind
+(built on expand, torn down on collapse — eager construction would put a dozen spin
+boxes behind every row, which is the cost the Charms tab already paid once). A merged
+artifact row renders **both** editors under one Edit. Then the Buy shop, the artifacts
+budget panel, and the services price list with its `cash` column.
+
+Traps this cost, all now tested:
+
+- ⚠ **`editingFinished` fires on every focus loss**, and a name re-pick rebuilds the
+  body — so an untouched combo must stay silent, or tabbing past it collapses the editor
+  the player is working in. The combo remembers its last text and compares.
+- ⚠ **The expanded-row set is keyed on POSITION**, and adding or deleting a row
+  renumbers everything after it. `_rebuild` clears the set rather than leaving a key
+  pointing at whatever slid into that slot.
+- ⚠ **Address a widget by `objectName`, not by position in `findChildren`.** The first
+  test of a stat edit grabbed `findChildren(QSpinBox)[0]` and got the row's *quantity*
+  box — it passed a wrong assertion into existence. The stat boxes are named
+  `stat.<field>`.
+- ⚠ `Armor.mobility_penalty` is stored NEGATIVE, so its spin box is signed. A box
+  floored at 0 makes every printed armour penalty unenterable.
+
+### Combos is now a sub-tab of Charms
+
+The human's call, and cheap because the Combos page had never been ported — so this was
+a placement decision, not a move. A Combo is assembled out of Charms the character
+already owns, and the two were a rail apart.
+
+- `"Combos"` is gone from `_RAIL_TABS`; `_visible_rail_tabs` **discards** the presenter's
+  answer about it rather than changing the presenter — `view.visible_tabs` is still
+  exactly right for the webapp, where Combos stays top-level. **The two shells now have
+  different tab sets, deliberately.**
+- The **show/hide rule came with it**: `CharmsPage.reload` asks `has_combos_tab` itself
+  (the dead may never learn Combos — E:Ab p.234), and the **Arrays** relabel for a
+  Charm-Slot splat is `_combos_label`, still off `view.uses_arrays`.
+- ⚠ **`resolve_tab` can still answer "Combos"**, which is no longer a rail tab. The
+  `target not in _RAIL_TABS` fallback in `_sync_tabs` is what catches that, and it is
+  **load-bearing now rather than defensive**.
+- ⚠ **`test_shell_hides_combos_for_a_ghost` went stale the moment the rail entry
+  vanished** — with nothing to hide it passed for every splat and proved nothing. It now
+  asserts on the ghost's *sub-tabs*, with `"Arcanoi" in subtabs` as the positive control
+  that the tab bar was built at all. Exactly the negative-control rot CLAUDE.md warns
+  about, caught because the change was made deliberately rather than discovered later.
+
+The page is a **placeholder in its new home** — the Combos surface itself is still on the
+webapp.
+
+Tests: `tests/test_qt_gear.py` (26), `tests/test_gear_actions.py` (21), plus the shell's
+three new Combos tests. Full suite on `qt-port`, main PC: **2,648 passed, 1 skipped, 1
+warning** (6m20s).
+
+### NOT yet human-verified
+
+Milestone 4 is tests-green and smoke-driven offscreen across all four example characters
+(every rail page built, the shop dialog opened, chips correct, artifacts appearing only
+post-lock). **It has not been clicked on the real display** — and the standing warning
+applies hardest here: *a control can be correct, reachable, tested, and still nowhere
+near the thing it configures.*
+
 ## Open questions — not decided
 
 * **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets

@@ -93,11 +93,44 @@ def test_shell_adds_play_at_the_lock(ruleset, qtbot):
     assert "Play" in _visible(win)
 
 
+def _charm_subtabs(win):
+    tabs = win._pages["Charms"].tabs
+    return [tabs.tabText(i) for i in range(tabs.count())]
+
+
+def test_combos_is_not_a_rail_tab_at_all(ruleset, qtbot):
+    # Combos moved UNDER Charms (2026-08-21). ⚠ This is what makes the ghost test
+    # below a real negative control again: with no rail entry to hide, an assertion
+    # that the ghost's RAIL lacks Combos would pass for every splat and prove nothing.
+    win = MainWindow(ruleset, Character(id="char.new", exalt_type="Solar"),
+                     Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    assert "Combos" not in _rail_labels(win)
+    assert "Combos" in _charm_subtabs(win)
+
+
 def test_shell_hides_combos_for_a_ghost(ruleset, qtbot):
+    # "The dead may never learn Combos" (E:Ab p.234) and a ghost builds no Arrays
+    # either, so the sub-tab is absent — an empty tab answering every attempt with a
+    # validation error is worse than no tab.
     win = MainWindow(ruleset, Character(id="char.new", exalt_type="Ghost"),
                      Path("/tmp/c.json"))
     qtbot.addWidget(win)
-    assert "Combos" not in _visible(win)
+    subtabs = _charm_subtabs(win)
+    assert "Combos" not in subtabs
+    # The positive control: the tab bar was built, so the absence above is the rule
+    # firing and not an empty Charms page.
+    assert "Arcanoi" in subtabs
+
+
+def test_a_charm_slot_splat_gets_the_arrays_label(ruleset, qtbot):
+    # The build matches the book's vocabulary: an Alchemical builds Arrays, not Combos.
+    win = MainWindow(ruleset, Character(id="char.new", exalt_type="Alchemical"),
+                     Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    subtabs = _charm_subtabs(win)
+    assert "Arrays" in subtabs
+    assert "Combos" not in subtabs
 
 
 def test_shell_lands_on_identity_when_play_disappears(ruleset, qtbot):

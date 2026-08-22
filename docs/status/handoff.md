@@ -1,60 +1,87 @@
-# Session handoff — 2026-08-21 (Advantages clicked through; Charms tab made instant)
+# Session handoff — 2026-08-21 (Gear ported; Combos moved under Charms)
 
 # 👉 YOU ARE HERE
 
-Suite green and measured: **2,597 passed, 1 skipped** (main PC, `qt-port`). The branch is
-**3 commits ahead of where the session started, no upstream, unpushed.**
+Suite green and measured: **2,648 passed, 1 skipped** (main PC, `qt-port`, 6m20s). The
+branch is **4 commits ahead of where the session started, no upstream, unpushed.**
 
-Nothing is half-finished. Pick up at **the Gear tab** (milestone 4).
+Nothing is half-finished. **Pick up by clicking milestone 4 through on the real
+display** — it is the only thing standing between here and milestone 5.
 
 ## What happened
 
-**Milestone 3 is now human-clicked and approved** — the deferral the last handoff opened
-is closed. Driving it on the real display found three things, all fixed and committed:
+**Milestone 4 shipped: the Gear tab is native, and Combos moved under Charms.** Full
+write-up in `docs/plans/qt-port.md`; the Gear-specific half is also in
+`docs/status/gear-and-inventory.md`.
 
-1. **The M&F and Background pickers didn't let you buy.** They did, technically: picking
-   an entry painted its tier/side/points controls onto a card **below the fold**, so the
-   dialog closed and nothing visibly happened. Buying now happens **inside the catalogue
-   dialog**, for every picker that has a choice to make.
-2. **Selecting a second catalogue entry painted over the first** — my bug, from (1).
-   `_clear_extras` swept only widgets and the controls are nested layouts.
-3. **The description printed twice**, and long summaries scrolled rows off the screen.
+The milestone-2 question ("does this surface need an engine dispatcher extracted?") was
+asked of Gear first and came back **yes, emphatically** — unlike Advantages.
+`engine/gear_actions.py` now owns what a catalogue re-pick carries across, what an
+artifact grants, and which channel stamps a purchase. `ui/gear.py` went **947 → 650
+lines** and both shells call the same code.
 
-Full write-up: `docs/status/advantages-tab.md`. Commit `0d82513`.
+## ⚠ The extraction found a live bug in shipped code
 
-**The Charms tab's "notable loading delay" was not the trees.** It was 190,859
-`charm_matches_splat` calls per build — three catalogue-scanning helpers called from
-inside loops over that same catalogue. A per-build memo took it **0.791s → 0.099s**
-("Instant now"). Write-up in `docs/plans/qt-port.md`; commit `999abd4`.
+`set_weapon`/`set_armor` REPLACE the row with a catalogue copy, carrying the player's
+own fields across by a hand-written list. That list carried `from_artifact` because a
+comment warned about it — and **never knew `acquired` existed**. So re-picking a
+cash-bought artifact weapon's own name from its own dropdown reset it to `background`
+and charged the p.131 budget for something Resources had already paid for:
 
-## The two lessons worth carrying into Gear
+```
+budgeted before re-pick: []
+budgeted after  re-pick: ['Daiklave']
+```
 
-- ⚠ **A control can be correct, reachable, fully tested — and nowhere near the thing it
-  configures.** That was defect (1), and *every offscreen test passed*. A screenshot test
-  would have passed too. Gear, Combos and Play all have pickers. `qt/catalogue.py` now
-  carries the answer: `extras` + `confirm` hooks, with all game logic staying in the
-  caller (the dialog still cannot tell a Merit from a Flaw, and must not learn to).
-- ⚠ **A teardown sweep must recurse into nested layouts** — `item.widget()` is `None` for
-  a `QLayout`. This has now bitten **twice** (`_clear_lay`, then `_clear_extras`). Copy
-  the recursive shape; don't write a fresh loop. **Test it by thrashing the rebuild and
-  counting live descendants** — a single rebuild passes while leaking.
+**This affects the shipped webapp, not just the port**, and the fix is in shared code,
+so the webapp is fixed too. It is worth a moment of your attention: the fix is not "add
+`acquired` to the list" but `_owned_fields`, the complement of `_catalogue_stats`, both
+derived from the two pydantic models — because what a field-by-field copy leaves out is
+exactly what gets silently discarded.
 
-## No open rules questions
+**The reusable one-liner:** *when code copies one model into another field by field,
+derive the field set from the models. A hand-written list documents the fields someone
+thought of.*
 
-The one that was outstanding is **ruled and implemented**: a variable-cost Merit/Flaw
-**opens at 1 point, never 0** (human, 2026-08-21). At 0 it priced to nothing, so
-confirming added a row that neither cost nor paid — a purchase that looked made and did
-nothing. `qt/advantages.py::_mf_purchase_block`. ⚠ The opening value is seeded into the
-pending-purchase STATE as well as the spinner, because the confirm button prices the
-state, not the widget.
+## Combos under Charms — and a negative control that went stale
 
-## Next up: the Gear tab
+Cheap, because the Combos page had never been ported: this was a placement decision, not
+a move. It is a **placeholder in its new home**; the surface is still on the webapp.
 
-Apply the milestone-2 question first — **does it need an engine dispatcher extracted?**
-(Advantages' answer was no; Charms' was yes.) `qt/catalogue.py` is ready for its pickers
-and now supports in-dialog configuration, which Gear wants for quantities and attunement.
+Two things worth knowing before touching the shell:
 
-## Known Qt gaps (unchanged)
+- **The two shells now have different tab sets, deliberately.**
+  `_visible_rail_tabs` *discards* the presenter's answer about Combos rather than
+  changing the presenter — `view.visible_tabs` is still exactly right for the webapp,
+  where Combos stays top-level.
+- ⚠ **`test_shell_hides_combos_for_a_ghost` went stale the instant the rail entry
+  vanished.** With nothing to hide it passed for every splat and proved nothing. It now
+  asserts on the ghost's Charms *sub-tabs*, with `"Arcanoi" in subtabs` as the positive
+  control that the tab bar was built at all. Caught only because the change was made
+  deliberately — this is the rot CLAUDE.md warns about, in the wild.
+
+## Next up: click milestone 4, then milestone 5
+
+**Milestone 4 is NOT human-verified.** It is tests-green and smoke-driven offscreen
+across all four example characters — every rail page built, the shop dialog opened, the
+chips correct, artifacts appearing only post-lock. That is not the same thing.
+
+⚠ The standing warning applies hardest to this tab: **a control can be correct,
+reachable, fully tested, and nowhere near the thing it configures.** What to look at:
+
+- the inventory's filter chips and the per-row Edit expanders (a merged artifact daiklave
+  should show **both** editors under one Edit);
+- the Buy shop's type chips, and that artifacts appear only after the lock;
+- the artifacts budget header, and the services price list's **cash** column;
+- the Combos sub-tab sitting between the trees and Spells, reading **Arrays** for an
+  Alchemical and absent entirely for a ghost.
+
+After that, milestone 5 is **Play**, then ST Options and Custom. Ask the milestone-2
+question of each — Play's answer is not obvious, since `ui/play.py` still holds the
+PlayState mutators that tier 3 of the audit wants in `engine/` (⚠ decision 0006: if they
+land in an `engine/play.py`, play-state must stay unreachable from validation).
+
+## Known Qt gaps (unchanged except Gear)
 
 - **Ox-Body Technique + Deadly Beastman gifts**: the picker still needs the variant MENU.
   The mis-write is closed — `engine.charm_actions` refuses a package Charm from an
@@ -63,7 +90,13 @@ and now supports in-dialog configuration, which Gear wants for quantities and at
   foreign-charms splat dropdown, "Add another" for repeatable Charms.
 - Edit's deferred panels: Training Camp & Calling, Colleges, Specialties, Permanent
   Resonance/Limit, Virtue Flaw, bonus health levels, Downtime.
-- Rail placeholders still on the webapp: **Gear, Combos, Play, ST Options, Custom**.
+- Rail placeholders still on the webapp: **Play, ST Options, Custom** — plus the Combos
+  sub-tab.
+
+## No open rules questions
+
+Nothing this milestone needed a ruling for. The `acquired` fix restores the behaviour
+decision 0017 already specifies; it is a bug fix, not an interpretation.
 
 ## Still deferred, still NOT gaps
 
