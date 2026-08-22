@@ -41,7 +41,7 @@ from PySide6.QtWidgets import (
     QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
-from exalted_builder.engine import elder, merits, validate
+from exalted_builder.engine import derive, elder, health_actions, merits, validate
 from exalted_builder.persistence import load_character
 from exalted_builder.rules_db import load_ruleset
 from exalted_builder.qt import theme as qtheme
@@ -86,6 +86,13 @@ class TraitData:
                            else merits.DOT_MAX)
         self.essence_cap, _ = elder.essence_cap(ruleset, char)
         self.ability_groups = viewmod.ability_group_defs(ruleset, char.exalt_type)
+        # The panels that landed on Traits after the card layout was designed. Each is
+        # asked of the ENGINE, never of the splat name — `perm_cap` non-zero IS the
+        # "holds Death's Taint" test, and `college_dots` is the "ships Colleges" one.
+        self.has_virtue_flaw = derive.has_virtue_flaw(ruleset, char)
+        self.perm_cap = derive.permanent_limit_cap(ruleset, char)
+        self.limit_label = derive.limit_label(ruleset, char)
+        self.college_dots = self.b.college_dots
 
     def track(self, get, setv, lo, hi):
         return DotTrack(get, setv, lo, hi, accent=self.accent)
@@ -490,15 +497,23 @@ def build_collection(data: TraitData) -> QWidget:
 
     ⚠ A **QTreeWidget**, not a QTableWidget: that is what `qt/gear.py` and
     `qt/advantages.py` are built from, so it is what "the app's design language"
-    actually means here. It also groups for free — category as a top-level row, traits
-    as its children — which a flat table cannot do without sorting Appearance, Archery
-    and Athletics into one meaningless run.
+    actually means here. It also groups for free — category as a top-level row — which
+    a flat table cannot do without sorting Appearance, Archery and Athletics into one
+    meaningless run.
 
-    Toolbar of actions · the tree with a header · a splitter with the selected trait's
-    detail pane. The dots ride in the Rating column as item widgets, so the dot track
-    survives intact; what changes is that a trait becomes a row you select.
+    TWO sub-tabs (human, 2026-08-22), which is the settled layout's own rule — a
+    sub-tab per category where a tab has more than one:
+
+      Attributes & Abilities   the dot surface, third column SPECIALTIES
+      Virtues & Advantages     everything else, third column NOTES
+
+    ⚠ **The two sub-tabs do NOT share a third column.** Specialties hang off Abilities
+    and nothing else — a Virtue cannot have one — so carrying a "Specialties" header
+    over an all-empty column would be a promise the rules do not make. The second tab
+    carries free NOTES instead: the flawed Virtue, a college's house, a health tier's
+    printed count.
     """
-    char = data.char
+    char, ruleset = data.char, data.ruleset
     outer = QWidget()
     lay = QVBoxLayout(outer)
     lay.setContentsMargins(0, 0, 0, 0)
@@ -506,27 +521,9 @@ def build_collection(data: TraitData) -> QWidget:
 
     bar = QToolBar()
     bar.setMovable(False)
-    for action in ("Add craft", "Add specialty", "Favoured picks…"):
-        bar.addAction(action)
     lay.addWidget(bar)
-
-    split = QSplitter(Qt.Orientation.Horizontal)
-    lay.addWidget(split, 1)
-    tree = QTreeWidget()
-    tree.setColumnCount(3)
-    tree.setHeaderLabels(["Trait", "Rating", "Specialties"])
-    tree.setRootIsDecorated(True)
-    tree.setUniformRowHeights(False)
-    tree.setAlternatingRowColors(False)
-    split.addWidget(tree)
-
-    detail = QWidget()
-    detail_lay = QVBoxLayout(detail)
-    detail_lay.setContentsMargins(14, 12, 14, 12)
-    detail_lay.setSpacing(6)
-    split.addWidget(detail)
-    split.setStretchFactor(0, 3)
-    split.setStretchFactor(1, 2)
+    tabs = QTabWidget()
+    lay.addWidget(tabs, 1)
 
     def dots_cell(track) -> QWidget:
         """⚠ Wrap the track and pad it. A bare DotTrack in a column wider than itself
@@ -539,88 +536,186 @@ def build_collection(data: TraitData) -> QWidget:
         box.addStretch(1)
         return holder
 
-    def group(title: str) -> QTreeWidgetItem:
-        node = QTreeWidgetItem(tree, [title])
-        font = node.font(0)
-        font.setBold(True)
-        node.setFont(0, font)
-        node.setExpanded(True)
-        return node
+    def make_tab(third_column: str, name: str):
+        """A sub-tab: tree on the left, detail pane on the right. Returns
+        (tree, add_group, add_leaf, detail_layout)."""
+        page = QWidget()
+        page_lay = QVBoxLayout(page)
+        page_lay.setContentsMargins(0, 0, 0, 0)
+        split = QSplitter(Qt.Orientation.Horizontal)
+        page_lay.addWidget(split, 1)
+        tree = QTreeWidget()
+        tree.setColumnCount(3)
+        tree.setHeaderLabels(["Trait", "Rating", third_column])
+        # ⚠ NAMED. `findChildren(QTreeWidget)[1]` does not reliably hand back the second
+        # sub-tab's tree — it bit the verification script for this very spike.
+        tree.setObjectName(name)
+        tree.setUniformRowHeights(False)
+        split.addWidget(tree)
+        detail = QWidget()
+        detail_lay = QVBoxLayout(detail)
+        detail_lay.setContentsMargins(14, 12, 14, 12)
+        detail_lay.setSpacing(6)
+        split.addWidget(detail)
+        split.setStretchFactor(0, 3)
+        split.setStretchFactor(1, 2)
+        tree.setColumnWidth(0, 240)
+        tree.setColumnWidth(1, 150)
 
-    def leaf(parent, name: str, mark: str, track, note: str = ""):
-        item = QTreeWidgetItem(parent, [f"{mark} {name}".strip(), "", note])
-        tree.setItemWidget(item, 1, dots_cell(track))
-        item.setData(0, Qt.ItemDataRole.UserRole, name)
-        return item
+        def add_group(title):
+            node = QTreeWidgetItem(tree, [title])
+            font = node.font(0)
+            font.setBold(True)
+            node.setFont(0, font)
+            node.setExpanded(True)
+            return node
 
+        def add_leaf(parent, name, mark="", track=None, note="", kind=""):
+            item = QTreeWidgetItem(parent, [f"{mark} {name}".strip(), "", note])
+            if track is not None:
+                tree.setItemWidget(item, 1, dots_cell(track))
+            item.setData(0, Qt.ItemDataRole.UserRole, (name, kind))
+            return item
+
+        return page, tree, add_group, add_leaf, detail_lay
+
+    # ---- sub-tab 1: attributes & abilities ------------------------------- #
+    page1, tree1, group1, leaf1, detail1 = make_tab("Specialties", "traits.dots")
     for category, members in validate.ATTRIBUTE_CATEGORIES.items():
-        node = group(f"Attributes · {category}")
+        node = group1(f"Attributes · {category}")
         for a in members:
-            leaf(node, _label(a.value),
-                 "●" if a in data.caste_abilities else "",
-                 data.track(lambda k=a: char.attributes[k],
-                            lambda v, k=a: char.attributes.__setitem__(k, v),
-                            1, data.attr_cap))
+            leaf1(node, _label(a.value),
+                  "●" if a in data.caste_abilities else "",
+                  data.track(lambda k=a: char.attributes[k],
+                             lambda v, k=a: char.attributes.__setitem__(k, v),
+                             1, data.attr_cap), kind="attribute")
     for group_label, abilities in data.ability_groups:
-        node = group(f"Abilities · {group_label}" if group_label else "Abilities")
+        node = group1(f"Abilities · {group_label}" if group_label else "Abilities")
         for a in abilities:
             extra = data.specialties_for(a)
-            note = " · ".join(f"{n} ×{c}" if c > 1 else n for n, c in extra.items())
-            leaf(node, _label(a.value),
-                 "●" if a in data.caste_abilities else ("✦" if a in data.favored else ""),
-                 data.track(lambda k=a: char.abilities[k],
-                            lambda v, k=a: char.abilities.__setitem__(k, v),
-                            0, data.abil_cap),
-                 note)
+            leaf1(node, _label(a.value),
+                  "●" if a in data.caste_abilities else ("✦" if a in data.favored else ""),
+                  data.track(lambda k=a: char.abilities[k],
+                             lambda v, k=a: char.abilities.__setitem__(k, v),
+                             0, data.abil_cap),
+                  " · ".join(f"{n} ×{c}" if c > 1 else n for n, c in extra.items()),
+                  kind="ability")
     if char.crafts:
-        node = group("Abilities · Craft")
+        node = group1("Abilities · Craft")
         for cr in char.crafts:
-            leaf(node, cr.focus or "(unnamed craft)", "",
-                 data.track(lambda k=cr: k.rating,
-                            lambda v, k=cr: setattr(k, "rating", v),
-                            0, data.abil_cap))
-    node = group("Virtues · Essence · Willpower")
+            leaf1(node, cr.focus or "(unnamed craft)", "",
+                  data.track(lambda k=cr: k.rating,
+                             lambda v, k=cr: setattr(k, "rating", v),
+                             0, data.abil_cap), kind="craft")
+    tabs.addTab(page1, "Attributes && Abilities")
+
+    # ---- sub-tab 2: virtues, essence, willpower and the rest ------------- #
+    page2, tree2, group2, leaf2, detail2 = make_tab("Notes", "traits.rest")
+    node = group2("Virtues · Essence · Willpower")
+    flawed = char.virtue_flaw.virtue if char.virtue_flaw else None
     for v in VirtueName:
-        leaf(node, _label(v.value), "",
-             data.track(lambda k=v: char.virtues[k],
-                        lambda val, k=v: char.virtues.__setitem__(k, val),
-                        1, data.virtue_cap))
-    leaf(node, "Essence", "",
-         data.track(lambda: char.essence_rating,
-                    lambda v: setattr(char, "essence_rating", v),
-                    1, min(elder.DOT_MAX, data.essence_cap)))
-    QTreeWidgetItem(node, ["Willpower", "6", ""])
-    QTreeWidgetItem(node, ["Virtue Flaw", "", "none chosen"])
+        leaf2(node, _label(v.value), "",
+              data.track(lambda k=v: char.virtues[k],
+                         lambda val, k=v: char.virtues.__setitem__(k, val),
+                         1, data.virtue_cap),
+              "flawed Virtue" if v == flawed else "", kind="virtue")
+    leaf2(node, "Essence", "",
+          data.track(lambda: char.essence_rating,
+                     lambda v: setattr(char, "essence_rating", v),
+                     1, min(elder.DOT_MAX, data.essence_cap)),
+          "personal & peripheral pools follow from this", kind="essence")
+    leaf2(node, "Willpower", note="6 — the two highest Virtues, pinned at the lock",
+          kind="willpower")
+    if data.has_virtue_flaw:
+        leaf2(node, "Virtue Flaw",
+              note=(char.virtue_flaw.description if char.virtue_flaw
+                    and char.virtue_flaw.description else "none chosen"),
+              kind="virtue_flaw")
 
-    tree.setColumnWidth(0, 240)
-    tree.setColumnWidth(1, 150)
+    if data.college_dots and ruleset.colleges:
+        node = group2("Astrological Colleges")
+        for cr in char.colleges:
+            col = ruleset.colleges.get(cr.college_id)
+            leaf2(node, col.name if col else cr.college_id,
+                  "★" if col and col.house == char.caste else "",
+                  data.track(lambda k=cr: k.rating,
+                             lambda v, k=cr: setattr(k, "rating", v), 0, 5),
+                  col.house_label if col else "not in the catalogue", kind="college")
+        if not char.colleges:
+            leaf2(node, "(none yet)", note="use Add college", kind="college")
 
-    def show_detail():
-        clear_layout(detail_lay)
-        item = tree.currentItem()
-        name = item.data(0, Qt.ItemDataRole.UserRole) if item else None
-        if not name:
-            detail_lay.addWidget(_sub("Select a trait."))
+    node = group2("Health levels")
+    for tier in health_actions.EDITABLE_TIERS:
+        total = health_actions.level_total(char, tier)
+        base = health_actions.BASE_COUNTS.get(tier, 0)
+        delta = ("" if total == base
+                 else f"  ({total - base:+d} from Charms or curses)")
+        leaf2(node, "-0" if tier == 0 else str(tier),
+              note=f"{total} level(s) · printed {base}{delta}", kind="health")
+
+    if data.perm_cap:
+        node = group2(f"Permanent {data.limit_label}")
+        leaf2(node, f"Permanent {data.limit_label}",
+              note=f"{char.limit_permanent} of {data.perm_cap} — capped at Essence; "
+                   f"gained on overflow, shed with a Harrowing",
+              kind="resonance")
+    tabs.addTab(page2, "Virtues && Advantages")
+
+    # ---- toolbars follow the sub-tab ------------------------------------- #
+    ACTIONS = {0: ("Add craft", "Add specialty", "Favoured picks…"),
+               1: ("Add college", "Set Virtue Flaw…", "Gain/shed Resonance…")}
+
+    def retool(index: int) -> None:
+        bar.clear()
+        for action in ACTIONS.get(index, ()):
+            bar.addAction(action)
+
+    tabs.currentChanged.connect(retool)
+    retool(0)
+
+    # ---- detail panes ----------------------------------------------------- #
+    def detail_for(tree, detail_lay):
+        def show():
+            clear_layout(detail_lay)
+            item = tree.currentItem()
+            payload = item.data(0, Qt.ItemDataRole.UserRole) if item else None
+            if not payload:
+                detail_lay.addWidget(_sub("Select a trait."))
+                detail_lay.addStretch(1)
+                return
+            name, kind = payload
+            detail_lay.addWidget(_heading(name.upper(), data, size=11))
+            parent = item.parent()
+            detail_lay.addWidget(_sub(parent.text(0) if parent else ""))
+            detail_lay.addWidget(_rule())
+            blurb = {
+                "ability": "Specialties — max 3 per Ability; take one twice to stack "
+                           "it.\n[ + add specialty ]",
+                "craft": "Each craft focus is a separate Ability.",
+                "attribute": "Caps, breed bonuses and the buy price print here.",
+                "virtue": "The flawed Virtue is chosen here, with the book's sample "
+                          "Flaws for it.",
+                "willpower": "Pinned to the two highest Virtues at the lock; raising a "
+                             "Virtue afterwards does NOT raise it.",
+                "virtue_flaw": "Flawed Virtue, a sample Flaw to fill the description, "
+                               "and the Limit Break Condition.",
+                "college": "★ marks your Maiden's house. Reducible to 0.",
+                "health": "Charms raise a tier, curses lower it. The stored value is "
+                          "the DELTA from the printed track.",
+                "resonance": "Gain is free and logged; shedding costs 5 XP and a "
+                             "Harrowing.",
+                "essence": "Drives both Essence pools and every trait ceiling past 5.",
+            }.get(kind, "")
+            if blurb:
+                detail_lay.addWidget(_sub(blurb))
             detail_lay.addStretch(1)
-            return
-        parent = item.parent()
-        detail_lay.addWidget(_heading(name.upper(), data, size=11))
-        detail_lay.addWidget(_sub(parent.text(0) if parent else ""))
-        detail_lay.addWidget(_rule())
-        if parent is not None and parent.text(0).startswith("Abilities"):
-            detail_lay.addWidget(QLabel("Specialties"))
-            detail_lay.addWidget(_sub("max 3 per Ability; take one twice to stack it"))
-            detail_lay.addWidget(_sub("[ + add specialty ]"))
-        elif parent is not None and parent.text(0).startswith("Virtues"):
-            detail_lay.addWidget(QLabel("Virtue Flaw"))
-            detail_lay.addWidget(_sub("the flawed Virtue and its sample Flaws sit with "
-                                      "the Virtue they belong to"))
-        else:
-            detail_lay.addWidget(_sub("caps, breed bonuses and the buy price print here"))
-        detail_lay.addStretch(1)
+        return show
 
-    tree.currentItemChanged.connect(lambda *_: show_detail())
-    show_detail()
+    show1, show2 = detail_for(tree1, detail1), detail_for(tree2, detail2)
+    tree1.currentItemChanged.connect(lambda *_: show1())
+    tree2.currentItemChanged.connect(lambda *_: show2())
+    show1()
+    show2()
     return outer
 
 
