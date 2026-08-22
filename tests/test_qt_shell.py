@@ -184,5 +184,7 @@ def test_the_advantages_rail_item_is_the_real_page(ruleset, qtbot):
     char.backgrounds.append(BackgroundEntry(name="Resources", rating=2))
     win.rail.setCurrentRow(_RAIL_TABS.index("Advantages"))
     assert win.stack.currentWidget() is page
-    assert any("Resources" in w.text()
-               for w in page._body_container.findChildren(type(page.issues)))
+    # Shape B: the held Backgrounds are a TABLE, not stacked rows (2026-08-21).
+    table = page._tables["Backgrounds"]
+    assert [table.topLevelItem(i).text(0)
+            for i in range(table.topLevelItemCount())] == ["Resources"]

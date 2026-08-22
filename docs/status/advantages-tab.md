@@ -308,3 +308,40 @@ spinner — the confirm button prices the state, so a widget-only default would 
 deliberately; only the default moved.
 
 44 tests in `tests/test_qt_advantages.py`. **2,597 passing, 1 skipped** (main PC).
+
+
+## Rebuilt as a COLLECTION — the Qt port, milestone 5 (2026-08-21)
+
+⚠ This file describes the **NiceGUI** tab, which is unchanged and still ships. The
+native tab is now a different shape, and the difference is deliberate.
+
+The human's ruling (2026-08-21, after a throwaway spike put the real page beside three
+candidates): **a Qt tab is a collection.** One layout for the whole app — toolbar for
+actions · a sub-tab per category · a sortable table with a header · a splitter with the
+selected entry's editor in a detail pane. `qt/advantages.py` has it; so do Charms and
+Gear; **Play, ST Options and Custom will.**
+
+Only the containers changed. The catalogue dialogs, `_mf_purchase_block`, the pricing,
+`_bg_cap_for`, `_merit_rules_text`, the hearthstones and the fetter/passion controls all
+survived intact — which is the whole argument for having extracted them.
+
+Three things the detail pane does that the card stack could not:
+
+- **A Background shows its whole printed LADDER, with the rung held called out.** This
+  was the human's condition for accepting a table at all. ⚠ Not one paragraph — the
+  printed text differs per rating — and it reuses `view.background_ladder` rather than
+  inventing a second rendering. ⚠ The lookup goes through the SPLAT-FILTERED catalogue:
+  `BackgroundEntry` stores a name, not an id, and several names belong to two splats with
+  different printed text.
+- **Post-lock, a held Merit shows its rules text.** The web card lists held entries in a
+  dropdown and says nothing about any of them.
+- **"Lose / buy off" acts on the table selection**, not a second "Held" dropdown beside a
+  list of the same entries — two controls naming one thing, where the one you were
+  looking at was not the one the button acted on.
+
+**One feature moved rather than being dropped.** The on-page filter bar (search + side +
+category) is gone from the native tab; filtering belongs where the choosing happens, so
+both M&F dialogs carry the five printed categories as chips plus their own search box.
+`_mf_matches` survives and still gates what a dialog offers.
+
+Full write-up and the traps: `docs/plans/qt-port.md`, milestone 5.

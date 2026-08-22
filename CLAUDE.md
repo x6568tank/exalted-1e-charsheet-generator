@@ -221,22 +221,28 @@ pool calculation.
   `QTextDocument` (on-screen and print from one source); and retained-mode widgets
   test well with pytest-qt (28 + 14 tests, offscreen). **Milestones 1–3 have shipped
   and are human-clicked on the real display** (the shell + Edit/Charms/Sheet; the
-  left-rail shell + Identity/Traits; the Advantages tab). **Milestone 4 — the Gear tab,
-  and Combos moving under Charms — has shipped and is human-clicked.** Run it
+  left-rail shell + Identity/Traits; the Advantages tab). **Milestones 4 and 5 — the Gear tab
+  with Combos moving under Charms, and Advantages rebuilt as a collection — have
+  shipped and are human-clicked.** Run it
   with `python -m exalted_builder.qt [path]`; the code is `exalted_builder/qt/`. **What
   each milestone contains, and every trap it cost, is in `docs/plans/qt-port.md` — read
   that before touching the port rather than re-deriving it here.** Rail placeholders
   still on the webapp: **Play, ST Options, Custom**, plus the Combos sub-tab; Play is
-  next.
+  milestone 6.
 
   Four things that affect work NOW, so they live here:
-  - ⚠ **A new Qt surface copies `qt/charms.py`'s LAYOUT, not `ui/<tab>.py`'s.** Toolbar
-    for actions, a table with a header for lists, a splitter with a detail pane for the
-    selected thing. Gear was built twice because the first version ported the webapp's
-    structure by reflex — floating button, accordion expanders, card stack — and was
-    rejected on sight with every test green. Whether a given tab is a **collection**
-    (table + detail) or a **form** (everything visible) is the open question
-    `spikes/qt_advantages/` poses; it decides Play, ST Options and Custom too.
+  - ⚠ **A Qt tab is a COLLECTION, and there is ONE layout.** Settled by the human
+    2026-08-21 after the `qt_advantages` spike: toolbar for actions · sub-tab per
+    category where a tab has more than one · a sortable table with a header · a
+    splitter with the selected entry's editor in a detail pane. Charms, Gear and
+    Advantages all have it; **Play, ST Options and Custom get it too — do not
+    re-litigate per tab.** Gear was built TWICE because its first version ported the
+    webapp's structure by reflex (floating button, accordion expanders, card stack) and
+    was rejected on sight with every test green. **Copy `qt/gear.py` or
+    `qt/advantages.py`; never transliterate `ui/<tab>.py`.**
+  - ⚠ **Tear a layout down with `qt/layout.py::clear_layout`** — never a fresh loop.
+    `item.widget()` is None for a nested `QLayout` and `deleteLater()` is deferred, and
+    the six-line hand-written version got that wrong on its fourth outing.
   - ⚠ **The two shells' tab sets differ deliberately.** Combos is a **sub-tab of Charms**
     in Qt and a top-level tab on the webapp. `view.visible_tabs` still names it — the Qt
     shell discards that one answer and `CharmsPage` runs `has_combos_tab` itself. Do not
@@ -289,14 +295,14 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,659 passing, 1 skipped** (2026-08-21, main PC, the `qt-port` branch after Qt
-milestone 4 — includes the Qt-port tests in `tests/test_qt_*.py`,
+**2,674 passing, 1 skipped** (2026-08-21, main PC, the `qt-port` branch after Qt
+milestone 5 — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py` and `tests/test_gear_actions.py`).
 
-- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (157 of them,
-  six whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
+- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (171 of them,
+  seven whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
   a bare import was a COLLECTION ERROR, which takes the entire run down rather than
-  those tests. **A count 157 lower on a webapp-only machine is that working**, not
+  those tests. **A count 171 lower on a webapp-only machine is that working**, not
   tests going missing — install with `.venv/bin/pip install -e '.[qt]'`.
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
@@ -349,7 +355,7 @@ are pointers only; the traps and history live in the files.
 | Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
-| The Qt port — decision 0018; the build record (milestones 1–4: the shell + Edit/Charms/Sheet, the left-rail shell + Identity/Traits + bio fields, the Advantages tab, and the Gear tab + Combos-under-Charms — **all four human-clicked**) | `plans/qt-port.md` |
+| The Qt port — decision 0018; the build record (milestones 1–5: the shell + Edit/Charms/Sheet, the left-rail shell + Identity/Traits + bio fields, Advantages, the Gear tab + Combos-under-Charms, and Advantages rebuilt as a collection — **all human-clicked**; milestone 5 also SETTLES the one layout every remaining tab gets) | `plans/qt-port.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms

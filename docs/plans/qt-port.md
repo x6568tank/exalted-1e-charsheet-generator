@@ -712,22 +712,77 @@ dialog opened, chips correct, artifacts appearing only post-lock — and it was 
 wrong design. *A control can be correct, reachable, tested, and still nowhere near the
 thing it configures*; a whole tab can be all of those and still read as a web page.
 
+## Milestone 5 — Advantages rebuilt as a collection; the layout is settled (2026-08-21)
+
+Not a new tab: the **third** rebuild of an existing one, and the one that fixed the
+pattern for everything left.
+
+### The question, and the answer
+
+Asked after the Gear rebuild — *"I think it's fine as is, but I am curious"* — and posed
+concretely by a throwaway spike (`spikes/qt_advantages/`, now deleted): one window, the
+real `AdvantagesPage` beside three mockups. **Is a tab a COLLECTION (browse and revisit →
+table + detail) or a FORM (fill in once at chargen → everything visible)?**
+
+The human ruled out the form candidate on sight, asked the two table candidates for the
+full printed text on the right, and chose **B — a sub-tab per category**.
+
+⚠ **This is now settled for the whole app, not just Advantages.** One layout: toolbar
+for actions · a sub-tab per category where a tab has more than one · a sortable table
+with a header · a splitter with the selected entry's editor in a detail pane. **Play, ST
+Options and Custom get it. Do not re-litigate per tab.**
+
+### What the rebuild changed, and what it did not
+
+Most of `qt/advantages.py` survived — the catalogue dialogs, `_mf_purchase_block`, the
+pricing, `_bg_cap_for`, `_merit_rules_text`, the hearthstones, the fetter/passion
+controls. Only the CONTAINERS changed: five panel builders became three table fillers,
+and `_background_row` / `_merit_row` became detail-pane editors.
+
+Three things the pane can do that the card stack could not:
+
+- **A Background shows its whole printed LADDER, with the rung held called out.** This
+  was the human's condition for either table candidate. ⚠ It is not one paragraph — a
+  Background's printed text differs per rating — and it reuses `view.background_ladder`
+  rather than inventing a second rendering. The lookup goes through the SPLAT-FILTERED
+  catalogue: `BackgroundEntry` stores a name, not an id, and several names belong to two
+  splats with different text.
+- **Post-lock, a held Merit shows its rules text.** The shipped card listed held entries
+  in a dropdown and said nothing about any of them.
+- **"Lose / buy off" acts on the table selection.** The card carried its own "Held"
+  dropdown beside a list of the same entries — two controls naming one thing, and the
+  one you were looking at was not the one the button acted on.
+
+**One feature MOVED rather than being dropped.** The on-page filter bar (search + side +
+category) is gone; filtering belongs where the choosing happens, so both M&F dialogs now
+carry the five printed categories as `group_of` chips plus their own search box.
+`_mf_matches` survives and still gates what a dialog offers — with no bar to set
+`_mf_filter` it simply passes everything, which is what a self-filtering dialog wants.
+
+### Traps
+
+- ⚠ **`setSortingEnabled(True)` with no explicit indicator** sorted the first fill
+  reverse-alphabetical, which reads as a bug rather than a sort. Pin it:
+  `sortByColumn(0, Qt.AscendingOrder)`.
+- ⚠ **Re-optioning a filter/tab control emits its change signal** — block signals across
+  the refill or the selection resets on every rebuild. (Third time: Gear's `Show:`
+  combo, the Charms tab bar, now this.)
+- ⚠ **In the offscreen harness `isVisible()` is False for any widget whose parent was
+  never shown.** A test asserting a button is visible fails however the code is written;
+  assert `not w.isHidden()`.
+- ⚠ **Deleting a container method takes its helpers with it.** `_fetter_play_controls`
+  lived inside the `_fetters_panel` → `_do_reload` range and vanished with the panel; the
+  post-lock Fetter test caught it. Check what a deleted range actually spanned.
+
+Tests: `tests/test_qt_advantages.py` (54 — the 44 retargeted at tables and the pane, plus
+10 for what shape B newly guarantees). Full suite: **2,674 passed, 1 skipped** (main PC,
+`qt-port`, 6m45s).
+
+### Human-verified on the real display — 2026-08-21
+
+Clicked and approved.
+
 ## Open questions — not decided
-
-* **Is a tab a COLLECTION or a FORM?** Raised by the human 2026-08-21 after approving
-  the Gear rebuild — *"I think it's fine as is, but I am curious"* about Advantages.
-  A collection (browse, revisit) wants table + detail, the Gear/Charms pattern; a form
-  (fill in once at chargen) wants everything visible, which is what Advantages ships.
-  **`spikes/qt_advantages/` poses the question concretely**: one window, four tabs, the
-  same live character — the real `AdvantagesPage` beside three throwaway mockups (one
-  table / sub-tabs / native form). Run
-  `.venv/bin/python -m spikes.qt_advantages`.
-
-  It is worth settling even if the answer is "leave Advantages alone", because **Play,
-  ST Options and Custom are all unported** and each is one or the other. If the answer
-  is "two patterns, deliberately", write that down rather than drifting into it.
-  ⚠ **Delete the spike once answered** — the other three spikes were kept because they
-  became build records; a stale comparison is worse than none.
 
 * **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets
   test well with pytest-qt (28 + 14 tests, offscreen) — what each of the existing 228

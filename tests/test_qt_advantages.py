@@ -35,6 +35,7 @@ from exalted_builder.qt.advantages import AdvantagesPage
 from exalted_builder.qt.catalogue import CatalogueDialog
 from exalted_builder.qt.editor import DotTrack
 from exalted_builder.ui import theme
+from exalted_builder.ui import view as viewmod
 
 EXAMPLE = Path(exalted_builder.__file__).parent.parent / "examples" / "ashes-of-dawn.character.json"
 
@@ -63,11 +64,59 @@ def _locked_with_xp(ruleset, character, amount=100):
 
 
 def _widgets(page, kind):
-    return page._body_container.findChildren(kind)
+    """Widgets in the DETAIL PANE — where every editor lives since the tab became
+    tables + a detail pane (shape B, human 2026-08-21). Select a row first."""
+    return page._detail_body.findChildren(kind)
 
 
 def _labels(page) -> list[str]:
     return [w.text() for w in _widgets(page, QLabel)]
+
+
+def _tab(page, label: str):
+    """Switch to a sub-tab and return its table."""
+    for i in range(page.tabs.count()):
+        if page.tabs.tabText(i) == label:
+            page.tabs.setCurrentIndex(i)
+            return page._current_table()
+    raise AssertionError(f"no {label!r} sub-tab; have "
+                         f"{[page.tabs.tabText(i) for i in range(page.tabs.count())]}")
+
+
+def _tab_labels(page) -> list[str]:
+    return [page.tabs.tabText(i) for i in range(page.tabs.count())]
+
+
+def _notes_text(page, tab_label: str) -> list[str]:
+    """The contextual note lines above one table (budgets, pricing rules, caps)."""
+    notes = page._notes[tab_label]
+    out = []
+    for i in range(notes.count()):
+        widget = notes.itemAt(i).widget()
+        if widget is not None and hasattr(widget, "text"):
+            out.append(widget.text())
+    return out
+
+
+def _rows(table) -> list[str]:
+    return [table.topLevelItem(i).text(0) for i in range(table.topLevelItemCount())]
+
+
+def _pick(page, tab_label: str, index: int = 0):
+    """Select one table row, which is what builds its editor in the detail pane."""
+    table = _tab(page, tab_label)
+    assert table.topLevelItemCount() > index, f"{tab_label} has no row {index}"
+    table.setCurrentItem(table.topLevelItem(index))
+    return table
+
+
+def _pick_named(page, tab_label: str, name: str):
+    table = _tab(page, tab_label)
+    for i in range(table.topLevelItemCount()):
+        if table.topLevelItem(i).text(0) == name:
+            table.setCurrentItem(table.topLevelItem(i))
+            return table
+    raise AssertionError(f"{name!r} not in {tab_label}: {_rows(table)}")
 
 
 def _select(dialog, key: str) -> None:
@@ -87,7 +136,8 @@ def _select(dialog, key: str) -> None:
 def test_page_builds_for_a_fresh_character(qtbot, ruleset):
     page = _page(ruleset, _solar())
     qtbot.addWidget(page)
-    assert "Backgrounds" in " ".join(_labels(page))
+    # Shape B: a sub-tab per category, not stacked panels (human, 2026-08-21).
+    assert _tab_labels(page) == ["Backgrounds", "Merits & Flaws"]
 
 
 def test_page_builds_for_the_example_and_reports_only_its_own_issues(qtbot, ruleset):
@@ -294,35 +344,46 @@ def test_a_custom_row_is_keyed_on_the_empty_merit_id_not_the_name(qtbot, ruleset
     mp = MeritFlawPurchase(merit_id="", custom_name="")
     page = _page(ruleset, _solar(merits_flaws=[mp]))
     qtbot.addWidget(page)
-    assert "Custom Merit / Flaw" in _labels(page)
-    # A custom row offers no catalogue combo, so it never joins the filter's row list.
+    _pick(page, "Merits & Flaws")
+    assert any("Custom Merit / Flaw" in text for text in _labels(page))
+    # A custom row offers no catalogue combo, so it never joins the entry-combo list.
     assert page._mf_rows == []
 
 
-def test_the_filter_reoptions_the_rows_in_place(qtbot, ruleset):
-    """⚠ The filter must NOT rebuild the body: a rebuilt search box has lost focus and
-    would eat every character after the first. And a row's own held entry survives a
-    filter that excludes it — a combo raises when its value is not among its
-    options."""
-    mp = MeritFlawPurchase(merit_id=PRODIGY, tier="aptitude")
-    page = _page(ruleset, _solar(merits_flaws=[mp]))
+def test_filtering_moved_into_the_catalogue_dialog_as_category_chips(qtbot, ruleset):
+    """⚠ The page's old search + side + category bar is GONE, deliberately: filtering
+    belongs where the CHOOSING happens, not beside the list of what you already hold.
+    The five printed categories are chips on the dialog, and its own search box
+    replaces the bar's text field."""
+    page = _page(ruleset, _solar())
     qtbot.addWidget(page)
-    combo, _mp = page._mf_rows[0]
-    everything = combo.count()
-    searches = [w for w in _widgets(page, QLineEdit)
+    # Nothing on the page filters the held list by category any more...
+    assert not [w for w in page.findChildren(QLineEdit)
                 if w.placeholderText().startswith("search")]
-    assert len(searches) == 1
-    searches[0].setText("zzzz-matches-nothing")
-    assert combo.count() < everything
-    assert combo.findData(PRODIGY) >= 0                 # the held entry stayed
-    assert searches[0] is [w for w in _widgets(page, QLineEdit)
-                           if w.placeholderText().startswith("search")][0]
+    # ...because the dialog does it.
+    dialog = page._build_mf_dialog(page._available_merits())
+    qtbot.addWidget(dialog)
+    assert set(dialog.group_buttons) >= {"Mental", "Physical", "Social",
+                                         "Supernatural"}
+
+
+def test_a_dialog_chip_narrows_the_offer_to_that_category(qtbot, ruleset):
+    page = _page(ruleset, _solar())
+    qtbot.addWidget(page)
+    dialog = page._build_mf_dialog(page._available_merits())
+    qtbot.addWidget(dialog)
+    dialog._set_group("Physical")
+    shown = {dialog._group_of[key]
+             for i, (key, *_rest) in enumerate(dialog._entries)
+             if not dialog.list.item(i).isHidden()}
+    assert shown == {"Physical"}
 
 
 def test_a_two_sided_row_offers_the_side_control(qtbot, ruleset):
     mp = MeritFlawPurchase(merit_id=MUTATION)
     page = _page(ruleset, _solar(merits_flaws=[mp]))
     qtbot.addWidget(page)
+    _pick(page, "Merits & Flaws")
     assert "Taken" in _labels(page)
 
 
@@ -422,8 +483,15 @@ def test_dropping_a_held_entry_removes_it(qtbot, ruleset):
     advancement.gain_merit_or_flaw(ruleset, char, MUTATION, taken_as="flaw", points=2)
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    assert page._drop_idx == "0"                        # the card opens on the first
-    page._drop_mf()
+    # ⚠ Drop acts on the TABLE selection. The old card carried its own "Held" dropdown
+    # beside a table listing the same entries — two controls naming one thing, and the
+    # one you were looking at was not the one the button acted on.
+    _pick(page, "Merits & Flaws")
+    # ⚠ `isHidden()`, not `isVisible()`: a widget whose parent is never shown reports
+    # isVisible() False however it is configured, so the positive form silently fails
+    # in the offscreen harness.
+    assert not page.drop_btn.isHidden() and page.drop_btn.isEnabled()
+    page._drop_selected()
     assert char.merits_flaws == []
 
 
@@ -433,8 +501,14 @@ def test_a_non_experience_table_says_so_instead_of_offering_zero_xp_buttons(qtbo
     _locked_with_xp(ruleset, char)
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    assert any("method (Player's Guide p.17)" in text for text in _labels(page))
-    assert not any(w.text() == "Gain" for w in _widgets(page, QPushButton))
+    # The pricing rules sit above the table they govern, not in the detail pane.
+    _tab(page, "Merits & Flaws")
+    notes = " ".join(_notes_text(page, "Merits & Flaws"))
+    assert "method (Player's Guide p.17)" in notes
+    assert not any(w.text() == "Gain" for w in page.findChildren(QPushButton))
+    # ⚠ And no Drop either: under a non-experience method a change "costs and rewards
+    # nothing", so a button that always reads 0 XP would be a lie.
+    assert page.drop_btn.isHidden()
 
 
 def _dialog_labels(dialog) -> str:
@@ -558,15 +632,16 @@ def test_a_solar_gets_no_fetter_or_passion_panel(qtbot, ruleset):
     assert "Fetters" not in text and "Passions" not in text
 
 
-def test_a_ghost_gets_both_panels_with_the_live_cap(qtbot, ruleset):
-    char = _ghost()
+def test_a_ghost_gets_the_fetters_and_passions_tab_with_the_live_cap(qtbot, ruleset):
+    from exalted_builder.models.character import FetterEntry
+    char = _ghost(fetters=[FetterEntry(name="Grave", rating=1)])
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    text = " ".join(_labels(page))
-    assert "Fetters" in text and "Passions" in text
+    assert "Fetters & Passions" in _tab_labels(page)
+    _pick(page, "Fetters & Passions")
     # The cap is Willpower + Essence and it MOVES, so it is a live number on both
     # sides of the lock rather than a chargen note.
-    assert "cap = Willpower + Essence" in text
+    assert any("cap = Willpower + Essence" in text for text in _labels(page))
 
 
 def test_a_fetter_is_read_only_post_lock_and_bought_through_the_engine(qtbot, ruleset):
@@ -577,7 +652,8 @@ def test_a_fetter_is_read_only_post_lock_and_bought_through_the_engine(qtbot, ru
     _locked_with_xp(ruleset, char)
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    assert _widgets(page, DotTrack) == []               # no free setter on the row
+    _pick_named(page, "Fetters & Passions", "Grave")
+    assert _widgets(page, DotTrack) == []               # no free setter on the entry
     assert any(w.text().startswith("Form (") for w in _widgets(page, QPushButton))
     assert any(w.text() == "Raise" for w in _widgets(page, QPushButton))
 
@@ -593,6 +669,7 @@ def test_a_passion_keeps_a_free_dot_track_after_the_lock(qtbot, ruleset):
     _locked_with_xp(ruleset, char)
     page = _page(ruleset, char)
     qtbot.addWidget(page)
+    _pick_named(page, "Fetters & Passions", "Revenge")
     tracks = _widgets(page, DotTrack)
     assert tracks, "a locked Passion still gets a free dot track"
     before = len(char.xp_log)
@@ -698,3 +775,107 @@ def test_the_filter_still_matches_words_the_clamped_row_no_longer_shows(qtbot, r
     assert "word55" not in dialog.list.item(0).text()    # clamped away
     dialog.search.setText("word55")
     assert not dialog.list.item(0).isHidden() and dialog.list.item(1).isHidden()
+
+
+# --------------------------------------------------------------------------- #
+# shape B — what the tables-plus-detail-pane layout guarantees
+# --------------------------------------------------------------------------- #
+
+def test_a_background_shows_its_whole_printed_ladder_with_the_rung_held(qtbot, ruleset):
+    """⚠ A Background's printed text differs PER RATING, so one paragraph is not the
+    answer. The pane shows the blurb, then every rung, with the one held called out —
+    the thing the card stack had no room for and the reason the spike's candidates
+    were rejected until they had it."""
+    char = _solar(backgrounds=[BackgroundEntry(name="Resources", rating=2)])
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    _pick_named(page, "Backgrounds", "Resources")
+    labels = _labels(page)
+    assert any("What each rating buys" in text for text in labels)
+    catalog = validate.background_catalogue_for(ruleset, char)
+    ladder = viewmod.background_ladder(catalog, "Resources")
+    assert ladder, "Resources has no transcribed ladder to probe with"
+    for dots, line in ladder:
+        assert any(line in text for text in labels)
+
+
+def test_the_ladder_is_the_shared_presenter_not_a_second_rendering(qtbot, ruleset):
+    # ⚠ `view.background_ladder` already renders this for the catalogue dialog. A
+    # second copy here is how two renderings of one rule drift apart.
+    char = _solar(backgrounds=[BackgroundEntry(name="Resources", rating=3)])
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    _pick_named(page, "Backgrounds", "Resources")
+    catalog = validate.background_catalogue_for(ruleset, char)
+    held = viewmod.background_ladder(catalog, "Resources")[3][1]
+    assert any(held in text for text in _labels(page))
+
+
+def test_selecting_a_different_entry_replaces_the_editor(qtbot, ruleset):
+    """⚠ The ghosting bug, at the page level. The detail pane is torn down between
+    selections, and a widget-only sweep leaves the previous entry's controls painted on
+    top of the next — `qt/layout.py` owns the fix; this pins that the page uses it."""
+    char = _solar(backgrounds=[BackgroundEntry(name="Resources", rating=2),
+                               BackgroundEntry(name="Allies", rating=1)])
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    for _ in range(6):
+        _pick_named(page, "Backgrounds", "Resources")
+        _pick_named(page, "Backgrounds", "Allies")
+    # One entry is being edited, so exactly one rating control exists.
+    assert len(_widgets(page, DotTrack)) == 1
+    assert page.detail_title.text() == "Allies"
+
+
+def test_the_add_button_follows_the_active_sub_tab(qtbot, ruleset):
+    page = _page(ruleset, _solar())
+    qtbot.addWidget(page)
+    _tab(page, "Backgrounds")
+    assert page.add_btn.text() == "+ Background"
+    _tab(page, "Merits & Flaws")
+    assert page.add_btn.text() == "+ Merit or Flaw"
+
+
+def test_post_lock_the_add_button_becomes_the_gain_dialog(qtbot, ruleset):
+    page = _page(ruleset, _locked_with_xp(ruleset, _solar()))
+    qtbot.addWidget(page)
+    _tab(page, "Merits & Flaws")
+    assert page.add_btn.text() == "Gain a Merit or Flaw…"
+
+
+def test_a_solar_gets_no_fetters_and_passions_tab(qtbot, ruleset):
+    page = _page(ruleset, _solar())
+    qtbot.addWidget(page)
+    # An empty tab answering every attempt with a validation error is worse than none.
+    assert "Fetters & Passions" not in _tab_labels(page)
+
+
+def test_the_chargen_budget_sits_above_the_table_it_governs(qtbot, ruleset):
+    page = _page(ruleset, _solar())
+    qtbot.addWidget(page)
+    _tab(page, "Backgrounds")
+    assert any("dots to spend" in text
+               for text in _notes_text(page, "Backgrounds"))
+
+
+def test_post_lock_a_held_merit_shows_its_rules_text(qtbot, ruleset):
+    """What the shipped card could NOT do: post-lock it listed held entries in a
+    dropdown and showed nothing about them. The pane prints the printed text."""
+    char = _locked_with_xp(ruleset, _solar())
+    advancement.gain_merit_or_flaw(ruleset, char, MUTATION, taken_as="flaw", points=2)
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    _pick(page, "Merits & Flaws")
+    description = ruleset.merits_flaws[MUTATION].description
+    assert any(description[:40] in text for text in _labels(page))
+
+
+def test_the_table_row_tracks_an_edit_without_losing_the_selection(qtbot, ruleset):
+    char = _solar(backgrounds=[BackgroundEntry(name="Resources", rating=1)])
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    table = _pick_named(page, "Backgrounds", "Resources")
+    _widgets(page, DotTrack)[0]._click(4)
+    assert char.backgrounds[0].rating == 4
+    assert table.topLevelItem(0).text(1).startswith("●●●●")
+    assert page._selected == ("backgrounds", 0)
