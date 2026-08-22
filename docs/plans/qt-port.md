@@ -1034,6 +1034,78 @@ Tests: 37 added across `tests/test_qt_editor.py` and `tests/test_qt_shell.py`. S
 
 ### Human-verified on the real display — NOT YET
 
+## The Edit click-through, and the Traits redesign that was declined (2026-08-22)
+
+The human clicked the whole Edit surface (both commits of group 4 item 2) and approved
+it. Everything worked; three defects came out of the click, none of which any test saw.
+
+### The three the click found
+
+1. **The details popover clipped its own content.** Two causes, and the second matters
+   more: no floor size on the dialog, AND `rebuild()` swept the layout with a
+   hand-written widget-only loop. ⚠ `item.widget()` is None for a nested `QLayout`, so
+   the bonus-point ROWS' labels stayed parented and painted over the new build — that is
+   what made wrapped issue lines look like they clipped into each other. Now
+   `clear_layout` (the helper that exists for this, **bitten a fifth time**), a 560×420
+   floor, and the body scrolls with Done pinned outside it.
+2. **An unresolved camp style choice ANNOUNCED a pick the character did not hold.** Qt
+   has no empty state for a combo: handed a value that is not among the keys it sits on
+   index 0, so the select displayed the first martial art with no Charm list beneath it,
+   reading as "a style is chosen and its Charms failed to load". Fixed at the helper
+   with `_combo(..., placeholder=…)` rather than per caller; the placeholder row exists
+   only while the value is missing, so a resolved control never offers a blank.
+3. **A camp with no Calling held an empty right column open.** Cult p.96 gives a
+   Dragon-Blooded a camp and no Calling; the panel now builds ONE column in that case.
+
+### Bonus points are chargen-only (human's call)
+
+The popover's BP breakdown is pre-lock only. The readout BAR already dropped the line
+post-lock, so a popover reporting "12 / 15 spent" for a locked character disagreed with
+the bar directly above it. Post-lock that slot is the Experience card and its ledger.
+
+### The Traits redesign — asked, spiked, DECLINED
+
+The human asked whether Traits should stop being "a UI of scrolled cards". Four shapes
+were built in `spikes/qt_traits/`, then two more from their notes: cards (baseline),
+sub-tabs, sheet grid, flat rules, a COLLECTION built on QTreeWidget like Gear and
+Advantages, and a revised sheet grid.
+
+**The answer was no.** *"The way it is right now works best for this information
+specifically."* ⚠ **Identity and Traits are a written EXCEPTION to the one-tab-layout
+rule** — see CLAUDE.md. Do not re-propose a Traits redesign without the human reopening
+it; the spike is the record of what was tried and why it lost.
+
+One thing DID come out of it: specialties fold into their Abilities as child rows.
+Written up in `docs/status/edit-xp-merge.md`, not here.
+
+### ⚠ The theme bug the spike exposed, which was NOT spike-only
+
+**The Gear and Advantages trees had been rendering WHITE on the dark page** — both
+shipped, both human-clicked, both live the whole time. The QSS had no `QTreeWidget`
+rule at all and relied on `QPalette.Base`; but setting a stylesheet on the window hands
+the stylesheet renderer every descendant, and it ignores the palette. Fixed in `qss()`
+so both tabs and any future tree get it.
+
+That is now **three** instances of one rule — `QTextEdit` in a `_Panel`, the trees, and
+the invisible card-on-card buttons. **An ancestor stylesheet beats a set palette, every
+time; the only fix is an inline stylesheet on the widget itself.**
+
+### Traps the spike paid for, worth keeping
+
+* A stretch on a row's NAME label pushes the dots to the far edge of the column —
+  invisible inside a narrow card, glaring the moment a column goes full width.
+* **QGridLayout cells overlap SILENTLY.** A `section()` helper returning the row it
+  *started* at drew CRAFTS straight through the middle of VIRTUES. No exception.
+* **QTableWidget will not move `setCellWidget` widgets when it sorts** — ratings stay
+  put while names move, silently pairing every trait with the wrong dots. (Moot: the
+  app is built on QTreeWidget, which is the actual answer to "the app's design
+  language".)
+* A short final row of ability groups must be PADDED or its columns stop lining up.
+* ⚠ **`findChildren(QTreeWidget)[1]` does not reliably return the second sub-tab's
+  tree.** It silently handed back the first and made a verification script report the
+  wrong groups for every splat. Third time this session that addressing a widget by
+  position produced a confident wrong answer.
+
 ## Open questions — not decided
 
 * **Porting the 228 NiceGUI harness tests.** Both spikes proved retained-mode widgets

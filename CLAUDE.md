@@ -216,6 +216,11 @@ by 0016: computing a BASE dice pool is in scope — read 0016 before citing 0008
 pool calculation.
 
 ### Standing bars that are not numbered decisions
+- **⚠ Backwards compatibility with old saves is NOT a concern** (human, 2026-08-22:
+  *"there's no backwards compatability to really worry about"*). The build is months
+  old and the saves are the human's own. **Do not write a migration, a schema version
+  or a compat shim without asking** — and do not carry "this old save may be damaged"
+  as an open item, which is what prompted the ruling.
 - **⚠️ Training times are almost certainly NEVER being added** (human, 2026-07-30:
   *"that goes out of the dumb-tracker scope"*). Hedged rather than closed, so treat it as
   a no unless they reopen it — **do not propose it, plan around it, or offer it as a
@@ -252,13 +257,14 @@ pool calculation.
   those are what decide whether the native app can replace the webapp.
   `docs/status/handoff.md` carries the itemised list. **The within-tab gaps are NEXT**
   (human, 2026-08-22) — before any further tab is ported. ⚠ Nothing will remind you they
-  exist: every tab holding one is shipped, human-clicked and green. **Two are done** —
-  the Ox-Body / Deadly Beastman variant menu (human-clicked 2026-08-22) and **Edit's
-  seven deferred panels (2026-08-22, green but NOT yet clicked)**. The list is not done,
-  and **it is a LOWER bound**: closing the first turned up a stale shell readout that
-  appeared nowhere on it, and closing the second turned up two more — a `reload()` that
-  never pinged the shell, and `_combo` degrading enum keys to plain strings.
-  **Audit each remaining tab against its `ui/` counterpart before trusting the list.**
+  exist: every tab holding one is shipped, human-clicked and green. **Two are done and
+  BOTH are human-clicked** — the Ox-Body / Deadly Beastman variant menu and Edit's seven
+  deferred panels (2026-08-22). What remains is the per-splat Charm surfaces. The list
+  is **a LOWER bound**: closing the first item turned up a stale shell readout that
+  appeared nowhere on it; closing the second turned up a `reload()` that never pinged
+  the shell and a `_combo` degrading enum keys — and the click-through then found three
+  more that no test saw. **Audit each remaining tab against its `ui/` counterpart
+  before trusting the list, and click it before believing it.**
 
   Four things that affect work NOW, so they live here:
   - ⚠ **A Qt tab is a COLLECTION, and there is ONE layout.** Settled by the human
@@ -266,18 +272,33 @@ pool calculation.
     category where a tab has more than one · a sortable table with a header · a
     splitter with the selected entry's editor in a detail pane. Charms, Gear and
     Advantages all have it; **ST Options and Custom get it too — do not re-litigate per
-    tab.** ⚠ **Play is the ONE stated exception** (human, 2026-08-22): it is a live
-    TRACKER, not a list — a health track you click to mark, mote pools, the dice-pool
-    sidebar — so there is nothing to select and a detail pane would hide numbers you
-    glance at mid-roll. It gets a toolbar over panels, and `qt/play.py` is built that
-    way. **An exception that is written down is not drift; a second unwritten one is.**
+    tab.** ⚠ **TWO exceptions are stated, and both are WRITTEN DOWN** — an exception
+    that is written down is not drift; an unwritten one is.
+    **Play** (human, 2026-08-22) is a live TRACKER, not a list — a health track you
+    click to mark, mote pools, the dice-pool sidebar — so there is nothing to select and
+    a detail pane would hide numbers you glance at mid-roll. Toolbar over panels;
+    `qt/play.py` is built that way.
+    **Identity + Traits** (human, 2026-08-22) KEEP their card scroll. Asked, spiked six
+    ways — including a `QTreeWidget` collection exactly like Gear's — and declined:
+    *"the way it is right now works best for this information specifically."* A trait
+    surface is a fixed FORM, not a collection; there is nothing to select. **Do not
+    re-propose a Traits redesign** — `spikes/qt_traits/` records what lost.
     Gear was built TWICE because its first version ported the
     webapp's structure by reflex (floating button, accordion expanders, card stack) and
     was rejected on sight with every test green. **Copy `qt/gear.py` or
     `qt/advantages.py`; never transliterate `ui/<tab>.py`.**
   - ⚠ **Tear a layout down with `qt/layout.py::clear_layout`** — never a fresh loop.
     `item.widget()` is None for a nested `QLayout` and `deleteLater()` is deferred, and
-    the six-line hand-written version got that wrong on its fourth outing.
+    the hand-written version has now got that wrong on five separate outings — most
+    recently leaving the details popover's old rows painting over its new ones.
+  - ⚠ **An ancestor stylesheet BEATS a set palette, every time.** Setting a stylesheet
+    on the window hands the stylesheet renderer every descendant, and it ignores
+    `QPalette`. Bitten three times in different disguises: a `QTextEdit` in a `_Panel`
+    painting the card shade; the Gear and Advantages **trees rendering white on the dark
+    page for two shipped, human-clicked milestones**; and small buttons inside a card
+    going invisible because the QSS gives every `QPushButton` `background:CARD`. **The
+    only fix is an inline stylesheet on the widget itself** — and if a widget class is
+    not named in `qt/theme.py::qss`, assume it is unstyled.
   - ⚠ **The two shells' tab sets differ deliberately.** Combos is a **sub-tab of Charms**
     in Qt and a top-level tab on the webapp. `view.visible_tabs` still names it — the Qt
     shell discards that one answer and `CharmsPage` runs `has_combos_tab` itself. Do not
@@ -330,9 +351,10 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,766 passing, 1 skipped** (2026-08-22, main PC, the `qt-port` branch after group 4's
-Edit panels — includes the Qt-port tests in `tests/test_qt_*.py`,
-`tests/test_charm_actions.py` and `tests/test_gear_actions.py`).
+**2,776 passing, 1 skipped** (2026-08-22, main PC, the `qt-port` branch after group 4's
+Edit panels, the click-through fixes and specialties-under-Abilities — includes the
+Qt-port tests in `tests/test_qt_*.py`, `tests/test_charm_actions.py` and
+`tests/test_gear_actions.py`).
 
 - ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (203 of them,
   eight whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
