@@ -47,7 +47,8 @@ this exist; 0009 is untouched and was not reopened.
 | `view.build_custom_pool` / `pools.custom_roll` | both | the player's own Attribute + Ability |
 | `play.custom_pool_panel` | UI | the same, in the main column |
 | `view.build_pool_view` / `build_pool_choices` | presenter | one roll at a time (kept; nothing on screen uses it now) |
-| `play.dice_pool_sidebar` | UI | layout only |
+| `ui/play.dice_pool_sidebar` | UI (webapp) | layout only |
+| `qt/play.PlayPage._fill_pools` / `_custom_pool_panel` | UI (native) | the same two surfaces on the Qt Play tab (milestone 6, 2026-08-22) — layout only, off the same two presenter calls |
 
 `PoolBreakdown` is `(roll, lines, total, excludes, notes)`; every contribution is a
 signed `PoolLine`, and `total` is the sum of `lines` and nothing else, so a rendered
@@ -132,6 +133,12 @@ cannot reach across, and the failure is the silent kind this build keeps produci
 **the switch goes on working where you can see it and stops working where you
 cannot.** `test_a_sidebar_toggle_reaches_the_custom_panel_in_the_other_column` is the
 binding for it and has a verified negative control.
+
+⚠ **The Qt tab has the same shape and the same trap.** `PlayPage._pool_state` is built
+once in `__init__` and never inside a rebuild, and `_refresh()` redraws BOTH columns
+rather than the one that was clicked — for the same reason, plus a second: a health mark
+is a term in every pool row on the other side. A per-panel redraw would leave the roll
+list showing an undamaged character's dice.
 
 ## Play-state isolation, concretely
 

@@ -1,127 +1,74 @@
-# Session handoff — 2026-08-22 (Gear + Advantages native; the Qt layout is settled;
-# milestone 6 prepped)
+# Session handoff — 2026-08-22 (milestone 6: the Play tab is native)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **2,675 passed, 1 skipped** (main PC, `qt-port`, 6m55s) at
-`1f3ba76`. Three commits since are covered by targeted runs only — see **Next up**. The
-branch is **10 commits ahead** of where the session started and **23 ahead of `main`** (this handoff commit included), no
-upstream, **unpushed**.
+Last FULL green suite: **2,710 passed, 1 skipped** (main PC, `qt-port`, 6m51s) at this
+session's tip — a fresh run AFTER the last code change, not the one that was in flight
+while `_pool_row` was rebuilt.
 
-Nothing is half-finished, and the tree is clean. Everything shipped below was
-human-clicked and approved on the real display. Pick up at **milestone 6's remaining
-half: building `qt/play.py`** — its engine prep is already done and committed.
+The tree is clean and nothing is half-finished. **`qt/play.py` is built, tests-green and
+smoke-rendered, and has NOT been human-clicked.** That is the one thing this session
+leaves open, and it is the only thing that has ever caught a wrong Qt design.
 
-## The one thing to read before touching the Qt port
+## What shipped: milestone 6 — the Play tab
 
-⚠ **A Qt tab is a COLLECTION, and there is ONE layout.** Settled by the human
-2026-08-21: toolbar for actions · a sub-tab per category where a tab has more than one ·
-a sortable table with a header · a splitter with the selected entry's editor in a detail
-pane. Charms, Gear and Advantages all have it.
+`exalted_builder/qt/play.py` (689 lines) replaces the rail's Play placeholder. Both of
+the milestone's questions were answered before a line was written — `engine/play.py`
+landed last session (`2ac4465`) and the layout was ruled on — so this was the widget and
+nothing else.
 
-**Play, ST Options and Custom get it too. Do not re-litigate per tab.** Copy
-`qt/gear.py` or `qt/advantages.py`; never transliterate `ui/<tab>.py`.
+**Toolbar over panels**, the ONE written exception to the collection layout: a tracker
+has nothing to select. Two scrolling columns in a splitter — the tracker LEFT (health,
+armour fatigue, Essence, temporary Willpower, Limit **or** Clarity, luck, the custom
+Attribute + Ability pool), the roll list RIGHT — under `Clear damage` and
+`Clear motes spent`.
 
-That rule cost two rebuilds to learn. Gear was built twice — the first version ported
-the webapp's *structure* by reflex (a Buy button floating mid-page with a sentence beside
-it, accordion "Edit" expanders, a stack of cards) and the human rejected it on sight with
-every test green: *"the page as a whole is a copy of the NiceGUI's look."* The plan had
-predicted exactly that. Advantages was then rebuilt to match, after a throwaway spike put
-the real page beside three candidates and the human chose one.
+⚠ The column order is the webapp's **reversed**, deliberately. Every other Qt tab puts
+the interactive half left and the reference half right, and the tab should read like the
+app it is in rather than like the page it came from.
 
-## What shipped
+`worst_penalty` moved from `ui/play.py` to `view.py` — the last row of the port plan's
+extraction table, and the easy one. `ui/play.py` re-exports it because `ui/gm.py` reaches
+it through that module by name.
 
-**Milestone 4 — the Gear tab, and Combos moved under Charms.** `engine/gear_actions.py`
-took the rules out of the widget (`ui/gear.py` 947 → 650 lines); the presentation went to
-`view.py`. Combos is now a Charms sub-tab, a placeholder in its new home.
+Full write-up, with every trap: `docs/plans/qt-port.md`, milestone 6.
 
-**Milestone 5 — Advantages as a collection.** Most of the module survived; only the
-containers changed. Three things the detail pane does that the card stack could not: a
-Background shows its whole printed **ladder** with the rung held called out; a held Merit
-shows its rules text post-lock (the old card showed nothing); and "Lose / buy off" acts on
-the table selection instead of a second dropdown naming the same entries.
+## The lessons this session bought
 
-**`qt/layout.py::clear_layout`** — one teardown, replacing six hand-written copies.
+- **A word-wrapped QLabel needs an unbroken vertical layout chain to the top.**
+  QBoxLayout does not propagate `heightForWidth` from a nested child layout, so the first
+  `_pool_row` — a total in a column beside a nested QVBoxLayout — drew all sixty rows on
+  top of each other. Anywhere text wraps, watch for a QHBoxLayout in the ancestry.
+- **Screenshot only after the layout has SETTLED.** One `processEvents()` after `show()`
+  catches the pre-layout pass, and it looks exactly like a real sizing bug — squeezed
+  panels, clipped last lines, no scrollbar. Eight, and the same build is correct. Two of
+  the "defects" I found that way were not real. ⚠ **The offscreen grab is still worth
+  doing**: it is what caught the row overlap, which no test saw.
+- **Species 2 of the house bug, in a field rather than a mechanism.** `PoolRow.note` is
+  filled by `view.build_pool_sidebar` and was rendered by NO shell — a printed rider with
+  zero readers, sitting there looking healthy. It is a row tooltip in Qt now.
+- **Rendering must not create state.** `engineplay.play_state` writes a `PlayState` on
+  first call, so the draw path reads `char.play or PlayState()` — otherwise merely
+  OPENING the tab makes a never-played character save dirty. There is a test.
 
-**A Traits spacing fix** (`c75b8c9`). ⚠ A nested layout whose spacing is unset (`-1`)
-INHERITS its parent's, so the 24px gap set between the Attribute COLUMNS became the gap
-between the ROWS inside them — 41px against the Virtues' 21, which reads as the card
-trying to fill itself vertically. Abilities had it too. One `_ROW_SPACING` constant now
-carries the warning.
+## The one thing left
 
-**`engine/play.py`** (`2ac4465`) — milestone 6's prep, see below.
+⚠ **Get the tab human-clicked on the real display.** Milestone 4 is the standing proof
+that tests-green plus a smoke render cannot tell anyone whether a surface is right — the
+first Gear tab was both and was rejected on sight.
 
-Full write-ups: `docs/plans/qt-port.md` (milestones 4 and 5),
-`docs/status/gear-and-inventory.md` (the Gear extraction and the bug below).
-
-## ⚠ A live bug in shipped code, found and fixed — worth your attention
-
-The Gear extraction turned up `set_weapon`/`set_armor` dropping **`acquired`**, the
-artifact's acquisition channel (decision 0017). Re-picking a cash-bought artifact weapon's
-own name from its own dropdown reset it to `background` and charged the p.131 budget for
-something Resources had already paid for:
-
-```
-budgeted before re-pick: []
-budgeted after  re-pick: ['Daiklave']
+```sh
+python -m exalted_builder.qt examples/ashes-of-dawn.character.json
 ```
 
-**This affected the shipped webapp, not just the port.** Checking the neighbours found two
-more routes to the same defect (`grant_gear` not copying the channel; switching it after
-the grant), both closed — `gear_actions.set_acquired` is now the only way either shell
-writes the field.
+Then **Finish & Lock** — Play only appears at the lock — and open Play.
 
-⚠ **No migration.** A save already damaged has `acquired` sitting at `background` on
-disk; it just stops being re-damaged. Worth a look if you have a character with a
-cash-bought artifact weapon.
+## Next up
 
-## The reusable lessons this session bought
-
-- **When code copies one model into another field by field, derive the field set from the
-  models.** A hand-written list documents the fields someone *thought of* — that list
-  carried `from_artifact` because a comment warned about it and never knew `acquired`
-  existed. `_owned_fields` is the complement of `_catalogue_stats`, so neither half can be
-  forgotten.
-- **A warning in a doc is not enough; make it a function.** "Copy the recursive teardown
-  shape, do not write a fresh loop" was already written down and I wrote a fresh loop
-  anyway — fourth occurrence. It is `clear_layout` now.
-- **Moving a feature stales its negative controls.** Once Combos left the rail, "a ghost's
-  rail has no Combos" passed for every splat and proved nothing.
-- **Address a widget by name, never by position in `findChildren`.** A test grabbed
-  `findChildren(QSpinBox)[0]`, got the quantity box instead of the stat it meant, and
-  passed a wrong assertion into existence.
-
-## Next up: milestone 6 — build `qt/play.py`
-
-**Both questions are already answered and the prep is committed.** What remains is the
-widget.
-
-*The engine question* was YES, and it is done: `engine/play.py` (`2ac4465`) holds
-`play_state`, `normalize_health`, `cycle_mark`, `set_motes`, `set_fatigue`, `set_count`,
-`clear_damage` and `clear_motes`. `ui/play.py` re-exports every name — ⚠ `ui/gm.py`
-imports several off that module by name, so do not remove the re-exports.
-
-⚠ **decision 0006 is now enforced structurally**, not by memory:
-`tests/test_play.py` walks the AST of every `engine/validate/` module and fails on any
-`play` import OR any `.play` attribute read. Both were verified against a planted
-violation. If you need play-state in validation, that is a decision to reopen with the
-human, not a guard to delete.
-
-*The layout question* was answered separately and is **the one stated exception to the
-collection rule** (human, 2026-08-22): Play is a live TRACKER with nothing to select — a
-health track you click to mark, mote pools, the dice-pool sidebar — so a detail pane
-would hide the numbers you glance at mid-roll. **Toolbar over panels.** Everything else
-(ST Options, Custom) still gets the collection layout.
-
-What the tab needs, from `ui/play.py` (617 lines) and `view.build_play_view`: the health
-track with its wound penalties, Personal/Peripheral motes, temporary Willpower, Limit,
-armour fatigue, the dice-pool sidebar and custom pools. Roughly Gear-sized.
-
-⚠ **Run the full suite before calling milestone 6 done** — the last full green run
-predates the spacing fix, the play extraction and this. Targeted runs since: 172 Qt tests
-(`c75b8c9`) and 228 play/pools/GM/shell tests (`2ac4465`).
-
-After Play: ST Options, then Custom.
+**ST Options, then Custom** — both get the COLLECTION layout (toolbar · sub-tab per
+category · sortable table · splitter with a detail pane). Copy `qt/gear.py` or
+`qt/advantages.py`; never transliterate `ui/<tab>.py`. That leaves the Combos sub-tab and
+the known gaps below.
 
 ## Known Qt gaps
 
@@ -132,14 +79,23 @@ After Play: ST Options, then Custom.
   foreign-charms splat dropdown, "Add another" for repeatable Charms.
 - Edit's deferred panels: Training Camp & Calling, Colleges, Specialties, Permanent
   Resonance/Limit, Virtue Flaw, bonus health levels, Downtime.
-- Still on the webapp: **Play, ST Options, Custom**, plus the Combos sub-tab.
+- Still on the webapp: **ST Options and Custom**, plus the Combos sub-tab.
+- The Play tab does not render Lunar **Renown** or **face** — neither does the webapp's,
+  so this is parity, not a port gap. Both are wholly Storyteller-adjudicated
+  (`PlayState`'s docstring).
+
+## A live bug in shipped code, still unmigrated (carried from last session)
+
+`set_weapon` / `set_armor` used to drop an artifact's `acquired` channel, re-charging the
+p.131 budget for something Resources had already paid for. **The routes are all closed**
+— `gear_actions.set_acquired` is the only writer in either shell — but there is **no
+migration**: a save already damaged has `acquired` sitting at `background` on disk. Worth
+a look if you have a character with a cash-bought artifact weapon.
 
 ## No open questions
 
-No rules questions, and the layout question is closed. `spikes/qt_advantages/` was deleted
-when it was answered, as its README said to — the other three spikes were kept because
-they became build records; a stale comparison is worse than none. It is in git at
-`2a45a34` if anyone wants to look.
+No rules questions. The layout question is closed and its one exception is written down
+in `CLAUDE.md`, `docs/plans/qt-port.md` and this file.
 
 ## Still deferred, still NOT gaps
 

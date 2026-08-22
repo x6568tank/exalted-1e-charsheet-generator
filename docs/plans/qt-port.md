@@ -148,8 +148,8 @@ toolkit-free, so it is a lift-and-shift whenever its module comes up:
 
 | Where | What | Belongs in |
 |---|---|---|
-| `ui/play.py` (~42L) | `play_state`, `normalize_health`, `cycle_mark`, `set_motes`, `set_count` — the PlayState mutators, and the "ui/play.py precedent" the thaumaturgy move cited. **⚠ decision 0006:** if these land in an `engine/play.py`, play-state must stay unreachable from validation | `engine/` |
-| `ui/play.py` | `worst_penalty` — already takes a `viewmod.PlayView` | `view.py` |
+| ~~`ui/play.py` (~42L)~~ **DONE 2026-08-22** (`2ac4465`) | `play_state`, `normalize_health`, `cycle_mark`, `set_motes`, `set_count` — the PlayState mutators, and the "ui/play.py precedent" the thaumaturgy move cited. **⚠ decision 0006:** if these land in an `engine/play.py`, play-state must stay unreachable from validation | `engine/` |
+| ~~`ui/play.py`~~ **DONE 2026-08-22** (milestone 6) | `worst_penalty` — already takes a `viewmod.PlayView`; `ui/play.py` re-exports it for `ui/gm.py` | `view.py` |
 | `ui/editor.py` (~25L) | `_origin_options`, `upbringing_options`, `_heritage_uses_origin` — splat-shape questions, i.e. rules | `view.py` or `engine/` |
 | `ui/builder.py` (33L) | `visible_tabs` — which tabs a splat shows | `view.py` |
 | `ui/storyteller.py` (19L) | `set_rule` — HouseRules coercion | `engine/` |
@@ -781,6 +781,86 @@ Tests: `tests/test_qt_advantages.py` (54 — the 44 retargeted at tables and the
 ### Human-verified on the real display — 2026-08-21
 
 Clicked and approved.
+
+## Milestone 6 — the Play tab (2026-08-22)
+
+`exalted_builder/qt/play.py`, 689 lines, wired into the rail in place of its
+placeholder. Both of the milestone's questions were already answered before the widget
+was written — the engine extraction (`engine/play.py`, `2ac4465`) and the layout ruling
+— so this was the widget and nothing else.
+
+### The layout: the ONE stated exception
+
+**Toolbar over panels**, not the collection layout (human, 2026-08-22). A tracker has
+nothing to select: you click a health box and glance at a mote count mid-roll, and a
+detail pane would hide the numbers the surface exists to show. Two scrolling columns in
+a splitter — the tracker on the LEFT (the thing you click), the roll list on the right
+(the thing you read) — under a toolbar holding `Clear damage` and `Clear motes spent`.
+
+⚠ **An exception that is written down is not drift; a second unwritten one is.** ST
+Options and Custom still get the collection layout.
+
+The column order is the webapp's reversed, deliberately: on the web the pool sidebar sat
+left, but every other Qt tab puts the interactive half left and the reference half
+right, and the tab should read like the app it is in rather than like the page it came
+from.
+
+### What it renders
+
+Health (clickable boxes carrying their wound-penalty labels, the marked counts and the
+deepest penalty), armour fatigue, the Essence pools, temporary Willpower, Limit **or**
+Clarity, luck pools, the custom Attribute + Ability pool, and the full roll list with its
+controls and its exclusions block. Every capacity comes from `view.build_play_view` /
+`view.build_pool_sidebar`; every mutation from `engine.play`. Zero game logic.
+
+### What moved
+
+`worst_penalty` went from `ui/play.py` to `view.py` — the last row of the extraction
+table above, and the easy one: it only ever read a `PlayView`. `ui/play.py` re-exports
+it, because `ui/gm.py` reaches it through that module by name.
+
+### Traps
+
+- ⚠ **Rendering must not create a `PlayState`.** `engineplay.play_state` writes one on
+  first call, so the draw path reads `char.play or PlayState()` — otherwise merely
+  OPENING the tab makes a never-played character save dirty. There is a test.
+- ⚠ **A spin box must not trigger a redraw of the panel it lives in.** `clear_layout`
+  would delete the widget mid-keystroke and take the focus with it. The mote and fatigue
+  inputs write to the model and move only their own readout (plus the pools, which are a
+  different widget); the box tracks are QPushButtons, so those can redraw freely. Same
+  `_rebuild` / `_changed` split `qt/gear.py` uses.
+- ⚠ **The shell stylesheet paints every QPushButton's hover the splat accent** — which
+  is exactly the colour a FILLED Willpower box already is, so an empty box read as full
+  under the mouse. Each tracker box sets its own `:hover` keeping its fill and adding an
+  accent border.
+- ⚠ **A word-wrapped QLabel inside a nested QHBoxLayout does not get its height.**
+  `QLabel` sizes itself through `heightForWidth`; **QBoxLayout does not propagate that
+  from a nested child layout**, so the first `_pool_row` — total in a column beside a
+  nested QVBoxLayout of name + breakdown — drew every row on top of the one below it,
+  sixty deep. The fix is to put both labels STRAIGHT into the panel's QVBoxLayout; the
+  aligned total column was worth less than a legible list. **This is the shape to watch
+  anywhere text wraps: a wrapped label wants an unbroken vertical chain to the top.**
+- ⚠ **Screenshot only after the layout has SETTLED.** `w.show(); processEvents()` once
+  catches the pre-layout pass — squeezed panels, clipped last lines, no scrollbar — and
+  it looks exactly like a real sizing bug. Eight `processEvents()` and the same build
+  renders correctly and scrolls. Two of the "defects" found this way were not real.
+- **`PoolRow.note` had ZERO readers** — `build_pool_sidebar` fills it and neither shell
+  rendered it. Species 2 of the house bug, in a field rather than a mechanism. It is a
+  row TOOLTIP here; a paragraph per row on a list built for scanning is not an option.
+- ⚠ **No `on_change` hook to the shell.** Play-state moves nothing the readout bar or
+  status strip shows, and decision 0006 keeps it out of every one of them; a hook wired
+  "for symmetry" would be a dormant invitation to change that.
+- Health-track box colour changed shape from the webapp's: gold fill plus a tinted glyph
+  reads as one colour at a glance on the dark base, so the BOX carries the damage type
+  and the glyph only disambiguates it.
+
+Tests: `tests/test_qt_play.py` (32).
+
+### Human-verified on the real display
+
+**Not yet clicked** — the tab is tests-green and smoke-driven across the four example
+characters. ⚠ Milestone 4 is the standing reminder that neither of those can tell anyone
+whether a surface is right.
 
 ## Open questions — not decided
 

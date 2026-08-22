@@ -37,6 +37,7 @@ from .advantages import AdvantagesPage
 from .charms import CharmsPage
 from .gear import GearPage
 from .editor import IdentityPage, TraitsPage
+from .play import PlayPage
 from .sheet import SheetPage
 
 # The rail's tabs: the app's viewmod._TABS with the "Edit" tab split into Identity +
@@ -176,8 +177,11 @@ class MainWindow(QMainWindow):
         self._pages["Advantages"] = AdvantagesPage(
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Charms"] = CharmsPage(ruleset, ctx, notify=self._notify)
-        self._pages["Play"] = _PlaceholderPage(
-            "The Play tab is still on the webapp.")
+        # ⚠ No `on_change`: play-state moves nothing the shell's readout bar or status
+        # strip shows — those are permanent derivations, and decision 0006 keeps
+        # play-state out of every one of them. A hook wired here would be a dormant
+        # invitation to change that.
+        self._pages["Play"] = PlayPage(ruleset, ctx, notify=self._notify)
         self._pages["ST"] = _PlaceholderPage(
             "The ST Options tab is still on the webapp.")
         self._pages["Custom"] = _PlaceholderPage(

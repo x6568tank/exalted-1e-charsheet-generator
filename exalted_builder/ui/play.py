@@ -63,6 +63,9 @@ set_motes = engineplay.set_motes
 set_fatigue = engineplay.set_fatigue
 set_count = engineplay.set_count
 _MARK_CYCLE = engineplay.MARK_CYCLE
+# ⚠ Also re-exported: `worst_penalty` moved to `view.py` (it only ever read a PlayView)
+# and `ui/gm.py` reaches it through this module by name.
+worst_penalty = viewmod.worst_penalty
 
 
 # Boxes are clickable <div>s (not q-btns) so the white/gold background applies
@@ -88,18 +91,6 @@ def count_box(character: Character, i: int, filled: bool, field: str, cap: int,
     box.style(f"width:1.5rem;height:1.5rem;border-radius:4px;border:1px solid {_BORDER};"
               f"background:{_GOLD if filled else _WHITE};")
     box.on("click", lambda: (set_count(character, field, i + 1, cap), on_change()))
-
-
-def worst_penalty(pv: "viewmod.PlayView", marks: list) -> str:
-    """The label of the deepest marked health box — a convenience read of the marks
-    (it does not enforce fill order). 'none' when undamaged."""
-    deepest = None
-    for box, mark in zip(pv.health_boxes, marks):
-        if mark is not None:
-            deepest = box
-    if deepest is None:
-        return "none"
-    return "Incapacitated" if deepest.incapacitated else deepest.label
 
 
 def new_pool_state(ruleset: RuleSet) -> dict:

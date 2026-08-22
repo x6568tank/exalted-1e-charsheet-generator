@@ -2947,6 +2947,18 @@ class PlayView:
     fatigue_difficulties: list[str] = dc_field(default_factory=list)
 
 
+def worst_penalty(play: PlayView, marks: list) -> str:
+    """The label of the deepest marked health box — a convenience read of the marks
+    (it does not enforce fill order). 'none' when undamaged."""
+    deepest = None
+    for box, mark in zip(play.health_boxes, marks):
+        if mark is not None:
+            deepest = box
+    if deepest is None:
+        return "none"
+    return "Incapacitated" if deepest.incapacitated else deepest.label
+
+
 def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
     """Capacities for the in-play tracker. Pure read of the engine derivations —
     the health track shape, the Essence pools, and permanent Willpower."""
