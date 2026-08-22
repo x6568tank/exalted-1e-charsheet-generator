@@ -861,3 +861,48 @@ def test_an_ordinary_charm_still_has_no_package_dialog(ruleset, qtbot):
     qtbot.addWidget(page)
     ordinary = next(cid for cid in ruleset.charms if cid.startswith("solar.melee."))
     assert page._build_package_dialog(ordinary) is None
+
+
+def test_picking_a_gift_does_not_rebuild_the_rows(ruleset, qtbot):
+    # ⚠ The scroll bar jumped to the bottom on every click: rebuilding the rows under
+    # the click deletes the focused checkbox, focus moves on, and a QScrollArea
+    # scrolls to whatever has it. A pick changes no row's EXISTENCE, so it syncs in
+    # place — the identity of the widgets is the thing being asserted.
+    char = _gift_char()
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    dialog = page._build_package_dialog(validate.gift_charm_id(ruleset, char))
+    qtbot.addWidget(dialog)
+    before = dict(dialog.checks)
+    dialog.checks["bestial-reflexes"].setChecked(True)
+    assert dialog.checks == before                 # the same widget objects, updated
+    assert dialog.checks["spider-foot-climbing"].isEnabled()
+
+
+def test_charms_tab_tells_the_shell_its_budget_moved(ruleset, qtbot):
+    # ⚠ Spending on the Charms tab moves the SHELL's readout bar (a Charm pick past
+    # the free pool costs bonus points), and CharmsPage was the one page the shell
+    # built without an on_change hook — so the bar sat stale until another tab was
+    # touched. Every purchase path here funnels through _update_readout.
+    char = _learnable_char()
+    beats = []
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None,
+                      on_change=lambda: beats.append(1))
+    qtbot.addWidget(page)
+    beats.clear()
+    cid = next(c.id for c in ruleset.charms.values()
+               if c.id.startswith("solar.melee.") and
+               validate.meets_charm_requirements(ruleset, char, c))
+    page._toggle_charm(cid)
+    assert cid in char.charms
+    assert beats                                    # the shell was told
+
+
+def test_the_shell_wires_the_charms_tab_to_its_readout(ruleset, qtbot):
+    # The other half of the same bug: the hook exists only if the shell passes it.
+    from pathlib import Path
+
+    from exalted_builder.qt.main_window import MainWindow
+    win = MainWindow(ruleset, _learnable_char(), Path("unused.json"))
+    qtbot.addWidget(win)
+    assert win._pages["Charms"]._on_change == win._refresh

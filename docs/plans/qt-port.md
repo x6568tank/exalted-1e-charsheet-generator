@@ -911,10 +911,42 @@ purchase, and every test on the Gift side still passes. There is a test for it.
 run) — the Gear/Advantages seam. Its handles are `.selection`, `.checks` (keyed by pick
 key, never a `findChildren` index), `.confirm`, `.rebuild`.
 
-Tests: 8 in `tests/test_view.py`, 8 in `tests/test_qt_charms.py`. Suite **2,726 passed,
-1 skipped** (main PC, 7m05s).
+### The click found two, and only one of them was in the new code
 
-**Not yet human-clicked on the real display.**
+⚠ **A rebuild under the click sends a QScrollArea to the bottom.** Every Gift pick tore
+the rows down and built them again; that deletes the checkbox being clicked, Qt hands
+focus to the next widget in the chain, and a `QScrollArea` scrolls to whatever has focus.
+The fix is the shape, not a scroll-position patch: a pick changes no row's EXISTENCE —
+only ticked/enabled and the reason text — so `sync()` updates the rows in place and
+`rebuild()` is reserved for a buy or a remove, where the held-packages list above the
+picks really does change. (`rebuild` restores the scroll offset as well.) **The test
+asserts widget IDENTITY survives a pick**, because that is the property that keeps the
+scroll still; asserting the enabled states would pass over the bug.
+
+⚠ **`CharmsPage` was the ONE page the shell built without `on_change`.** Identity,
+Traits, Gear and Advantages all pass `on_change=self._refresh`; Play omits it
+deliberately and says so in a comment. Charms just omitted it — so nothing bought on that
+tab (Charms, spells, Thaumaturgy, packages, and now the packages' dialog) ever told the
+shell its readout bar had moved, and a bonus-point spend sat stale in the top bar until
+another tab was touched. **Not a bug in this work** — it predates the whole port's Charms
+tab and was found only because a package purchase was the first thing anyone watched the
+top bar during.
+
+`_update_readout` is now a two-line wrapper over `_draw_readout`, because the body has
+two exits (locked / chargen) and a hook appended to the end would have fired from one of
+them. Two tests, one per half: the page fires the hook, and the shell passes it.
+
+**This is the house bug's second species again** (`CLAUDE.md`): the mechanism existed,
+every sibling page used it correctly, and the tab's own local readout updated fine —
+which is exactly what made the missing half invisible.
+
+Tests: 8 in `tests/test_view.py`, 11 in `tests/test_qt_charms.py`. Suite **2,729 passed,
+1 skipped** (main PC, 7m12s).
+
+### Human-verified on the real display — 2026-08-22
+
+Clicked and **approved** — *"Looks good."* The two defects above are what that click
+bought; both were fixed and re-clicked before the approval.
 
 ## Open questions — not decided
 

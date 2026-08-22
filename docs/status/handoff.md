@@ -1,64 +1,50 @@
-# Session handoff — 2026-08-22 (milestone 6: the Play tab is native)
+# Session handoff — 2026-08-22 (group 4 begins: the variant-menu chooser)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **2,726 passed, 1 skipped** (main PC, `qt-port`, 7m05s) — after
-group 4's first item. The 16 new tests are the variant-menu chooser's, 8 on the
-presenter and 8 on the widget. ⚠ Two cosmetic edits landed after that run (the Charm
-description dropped from the dialog); the touched modules' tests were re-run green.
+Last FULL green suite: **2,729 passed, 1 skipped** (main PC, `qt-port`, 7m12s), run
+after the last code change. The tree is clean and nothing is half-finished.
 
-The tree is clean and nothing is half-finished. **`qt/play.py` shipped and was
-human-clicked and approved on the real display** — first build, no rebuild.
+**Group 4's first item shipped and is human-clicked and approved** — the Ox-Body /
+Deadly Beastman variant menu in the Qt Charm picker. The click found two defects; both
+are fixed and re-clicked. Full write-up: `docs/plans/qt-port.md`, "Group 4 … item 1".
 
-## What shipped: milestone 6 — the Play tab
+## What shipped
 
-`exalted_builder/qt/play.py` (689 lines) replaces the rail's Play placeholder. Both of
-the milestone's questions were answered before a line was written — `engine/play.py`
-landed last session (`2ac4465`) and the layout was ruled on — so this was the widget and
-nothing else.
+`view.build_package_menu` / `package_menu_kind` / `prune_package_selection` — one
+presenter for both package Charms — plus `CharmsPage._build_package_dialog`, one dialog
+that draws both. The web picker's Gift chooser now runs the same two functions and its
+local `_blocked`/`_prune` are gone, so the cascade cannot live in one shell again.
 
-**Toolbar over panels**, the ONE written exception to the collection layout: a tracker
-has nothing to select. Two scrolling columns in a splitter — the tracker LEFT (health,
-armour fatigue, Essence, temporary Willpower, Limit **or** Clarity, luck, the custom
-Attribute + Ability pool), the roll list RIGHT — under `Clear damage` and
-`Clear motes spent`.
-
-⚠ The column order is the webapp's **reversed**, deliberately. Every other Qt tab puts
-the interactive half left and the reference half right, and the tab should read like the
-app it is in rather than like the page it came from.
-
-`worst_penalty` moved from `ui/play.py` to `view.py` — the last row of the port plan's
-extraction table, and the easy one. `ui/play.py` re-exports it because `ui/gm.py` reaches
-it through that module by name.
-
-Full write-up, with every trap: `docs/plans/qt-port.md`, milestone 6.
+⚠ **`CharmVariant.max_purchases` is 1 for every Ox-Body variant and means nothing
+there** — a repeat purchase picks a variant again, same or different. The taken/max rule
+is Gifts-only; applying it to both greys the whole Ox-Body menu out after one purchase
+while every Gift-side test stays green.
 
 ## The lessons this session bought
 
-- **A word-wrapped QLabel needs an unbroken vertical layout chain to the top.**
-  QBoxLayout does not propagate `heightForWidth` from a nested child layout, so the first
-  `_pool_row` — a total in a column beside a nested QVBoxLayout — drew all sixty rows on
-  top of each other. Anywhere text wraps, watch for a QHBoxLayout in the ancestry.
-- **Screenshot only after the layout has SETTLED.** One `processEvents()` after `show()`
-  catches the pre-layout pass, and it looks exactly like a real sizing bug — squeezed
-  panels, clipped last lines, no scrollbar. Eight, and the same build is correct. Two of
-  the "defects" I found that way were not real. ⚠ **The offscreen grab is still worth
-  doing**: it is what caught the row overlap, which no test saw.
-- **Species 2 of the house bug, in a field rather than a mechanism.** `PoolRow.note` is
-  filled by `view.build_pool_sidebar` and was rendered by NO shell — a printed rider with
-  zero readers, sitting there looking healthy. It is a row tooltip in Qt now.
-- **Rendering must not create state.** `engineplay.play_state` writes a `PlayState` on
-  first call, so the draw path reads `char.play or PlayState()` — otherwise merely
-  OPENING the tab makes a never-played character save dirty. There is a test.
+- **A rebuild under the click sends a QScrollArea to the bottom.** Deleting the focused
+  checkbox hands focus on, and the scroll area follows it. Fixed by shape: a pick changes
+  no row's EXISTENCE, so it syncs in place; a full rebuild is reserved for a buy or a
+  remove. **The test asserts widget IDENTITY survives a pick** — asserting the enabled
+  states would have passed straight over the bug.
+- **`CharmsPage` was the one page the shell built without `on_change`**, so nothing bought
+  on the Charms tab ever moved the shell's top readout bar. Species 2 of the house bug:
+  the mechanism existed, every sibling page used it, and the tab's own local readout
+  updated fine — which is what made the missing half invisible. ⚠ **When a page is added
+  to the shell, its hook set is a contract with the sibling pages; diff against them.**
+- **A hook belongs in a wrapper when the function it guards has two exits.**
+  `_update_readout` now wraps `_draw_readout` for exactly that reason.
+- The **offscreen grab** earned its keep a second milestone running: Deadly Beastman's
+  eleven-line description pushed every pick off the dialog's first screen. No test sees
+  that.
 
 ## ⚠ What is actually left — the rail is NOT the measure
 
-Counted at the end of the session — the human asked *"ST Options & Custom are all that's
-left?"* and immediately added *"And Combos, and Party."* **Two rail tabs, one sub-tab,
-one whole window, and a list of within-tab gaps.** Written down because the RAIL shows
-only the first of those four: a rail with no placeholders left will look finished while
-Combos is empty, Party answers "not part of this milestone", and the tabs that are
-"ported" are still missing panels.
+Unchanged from last session except item 4's first line. **Two rail tabs, one sub-tab, one
+whole window, and the within-tab gaps.** The RAIL shows only the first: a rail with no
+placeholders left will look finished while Combos is empty, Party answers "not part of
+this milestone", and the ported tabs are still missing panels.
 
 **1 — the last two rail placeholders.** `ui/storyteller.py` (183 lines) and
 `ui/custom.py` (576). Both get the COLLECTION layout — toolbar · sub-tab per category ·
@@ -66,59 +52,50 @@ sortable table · splitter with a detail pane. Copy `qt/gear.py` or `qt/advantag
 never transliterate `ui/<tab>.py`.
 
 **2 — the Combos sub-tab** (`ui/combos.py`, 423 lines) is still a placeholder in its new
-home under Charms. ⚠ **It is easy to miss because it is not on the rail** — a rail with
-no placeholders left will look finished while this is empty.
+home under Charms. ⚠ **It is easy to miss because it is not on the rail.**
 
 **3 — the Party / ST screen has NO Qt counterpart at all.** `ui/gm.py` (610) +
 `ui/adversaries.py` (489) ≈ 1,100 lines, and the toolbar's `Party` button still answers
 "not part of this milestone". This is a second WINDOW, not a tab, so the settled tab
-layout does not decide its shape — that is an open design question, not a port.
+layout does not decide its shape — an open design question, not a port.
 
 **4 — the within-tab gaps, which are what decide whether the native app can replace the
 webapp:**
 
-- ~~**Ox-Body Technique + Deadly Beastman gifts**: the picker still needs the variant
-  MENU.~~ **DONE 2026-08-22**, not yet human-clicked — `view.build_package_menu` +
-  `CharmsPage._build_package_dialog`; see `docs/plans/qt-port.md`, "Group 4 … item 1".
+- ~~Ox-Body Technique + Deadly Beastman gifts: the picker needs the variant MENU.~~
+  **DONE and human-clicked, 2026-08-22.**
 - Submodules (Alchemical), the Immaculate-vs-standard DB banner, the MA style panel, the
   foreign-charms splat dropdown, "Add another" for repeatable Charms.
 - Edit's deferred panels: Training Camp & Calling, Colleges, Specialties, Permanent
   Resonance/Limit, Virtue Flaw, bonus health levels, Downtime.
 
 **NOT a gap:** the Play tab does not render Lunar **Renown** or **face** — neither does
-the webapp's, so that is parity. Both are wholly Storyteller-adjudicated (`PlayState`'s
-docstring).
+the webapp's, so that is parity. Both are wholly Storyteller-adjudicated.
 
-## Next up — group 4, the within-tab gaps (the human's call, 2026-08-22)
+## Next up — the rest of group 4 (the human's call, 2026-08-22)
 
 **Close the gaps in the tabs that already shipped, BEFORE porting another tab.** Not ST
 Options, not Custom, not Party — those wait.
 
 ⚠ **Nothing will remind you these exist.** Every tab in group 4 is ported, human-clicked
-and green; the rail shows no placeholder and the suite reports no failure. That is the
-whole reason this went to the top of the list rather than the bottom, and it is the
-condition on which the native app can *replace* the webapp instead of sitting beside it.
+and green; the rail shows no placeholder and the suite reports no failure.
 
-The list is group 4 above. Suggested order, cheapest and most load-bearing first:
+Remaining order, cheapest and most load-bearing first:
 
-1. ~~**The Ox-Body / Deadly Beastman variant MENU** in the Charm picker.~~ **SHIPPED
-   2026-08-22 — awaiting a click on the real display.** Both Charms buy through one
-   dialog off one presenter (`view.build_package_menu`), and the web picker's Gift
-   cascade moved to that presenter too, so the two shells cannot drift again.
-2. **Edit's deferred panels** — Training Camp & Calling, Colleges, Specialties, Permanent
-   Resonance/Limit, Virtue Flaw, bonus health levels, Downtime. Seven panels, and
-   Specialties and Permanent Resonance both have rulings attached (see
-   `docs/status/edit-xp-merge.md` and the Limit panel in `qt/play.py`, which shows
-   permanent Resonance READ-ONLY and points at Traits for the edit — that pointer is
-   currently to a panel that does not exist).
-3. **The per-splat Charm surfaces** — Alchemical submodules, the Immaculate-vs-standard
+1. **Edit's deferred panels** — seven of them. Specialties and Permanent Resonance both
+   have rulings attached (`docs/status/edit-xp-merge.md`, and the Limit panel in
+   `qt/play.py` shows permanent Resonance READ-ONLY and points at Traits for the edit —
+   **that pointer is currently to a panel that does not exist**).
+2. **The per-splat Charm surfaces** — Alchemical submodules, the Immaculate-vs-standard
    DB banner, the MA style panel, the foreign-charms splat dropdown, "Add another" for
    repeatable Charms.
 
-⚠ **Audit before building.** The gap list was assembled milestone by milestone and has
-never been re-derived against the webapp. Diff each shipped Qt tab against its
-`ui/<tab>.py` counterpart before trusting the list to be complete — the same reasoning
-that put "a fuzzy gap count is a LOWER bound on the work" in `CLAUDE.md`.
+⚠ **Audit before building, and this session is why.** The gap list was assembled
+milestone by milestone and has never been re-derived against the webapp — the stale top
+bar was in none of its entries, and it was a shipped, human-clicked, fully green tab
+missing a hook every sibling page had. **Diff each shipped Qt tab against its
+`ui/<tab>.py` counterpart AND against its sibling Qt pages' constructor signatures**
+before trusting the list to be complete.
 
 **After group 4:** ST Options, then Custom, then Combos, then Party.
 
@@ -132,8 +109,8 @@ a look if you have a character with a cash-bought artifact weapon.
 
 ## No open questions
 
-No rules questions. The layout question is closed and its one exception is written down
-in `CLAUDE.md`, `docs/plans/qt-port.md` and this file.
+No rules questions. This work needed no new rules call: every number came from
+`engine.validate` and the two Charms' own `variants` data.
 
 ## Still deferred, still NOT gaps
 

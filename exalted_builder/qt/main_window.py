@@ -176,7 +176,8 @@ class MainWindow(QMainWindow):
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Advantages"] = AdvantagesPage(
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
-        self._pages["Charms"] = CharmsPage(ruleset, ctx, notify=self._notify)
+        self._pages["Charms"] = CharmsPage(
+            ruleset, ctx, notify=self._notify, on_change=self._refresh)
         # ⚠ No `on_change`: play-state moves nothing the shell's readout bar or status
         # strip shows — those are permanent derivations, and decision 0006 keeps
         # play-state out of every one of them. A hook wired here would be a dormant

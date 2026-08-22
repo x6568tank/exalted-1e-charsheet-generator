@@ -140,6 +140,10 @@ Each is written up in full where it happened; these are the reusable one-liners.
   and silently dropped `acquired` — re-charging the Artifact budget for a cash-bought
   item. `gear_actions._owned_fields` is the complement of `_catalogue_stats`, so neither
   half can be forgotten.
+- **A page added to a shell inherits a HOOK CONTRACT from its sibling pages** — diff the
+  constructor calls, not the page. `CharmsPage` was built without the `on_change` every
+  other Qt page passes, so spending on it never moved the shell's readout bar; the tab's
+  own local readout updated fine, which is what hid it.
 - **Address a widget by name, never by position in a `findChildren` list.** A test that
   grabbed `findChildren(QSpinBox)[0]` got the row's quantity box instead of the stat it
   meant, and passed a wrong assertion into existence.
@@ -240,7 +244,10 @@ pool calculation.
   those are what decide whether the native app can replace the webapp.
   `docs/status/handoff.md` carries the itemised list. **The within-tab gaps are NEXT**
   (human, 2026-08-22) — before any further tab is ported. ⚠ Nothing will remind you they
-  exist: every tab holding one is shipped, human-clicked and green.
+  exist: every tab holding one is shipped, human-clicked and green. **The first is
+  done** — the Ox-Body / Deadly Beastman variant menu (human-clicked 2026-08-22); the
+  list is not, and it is a LOWER bound: closing it turned up a stale shell readout that
+  appeared nowhere on it.
 
   Four things that affect work NOW, so they live here:
   - ⚠ **A Qt tab is a COLLECTION, and there is ONE layout.** Settled by the human
@@ -312,8 +319,8 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,710 passing, 1 skipped** (2026-08-22, main PC, the `qt-port` branch after Qt
-milestone 6 — includes the Qt-port tests in `tests/test_qt_*.py`,
+**2,729 passing, 1 skipped** (2026-08-22, main PC, the `qt-port` branch after group 4's
+variant-menu chooser — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py` and `tests/test_gear_actions.py`).
 
 - ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (203 of them,

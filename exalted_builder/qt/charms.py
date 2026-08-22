@@ -680,11 +680,15 @@ class CharmsPage(QWidget):
     tree view; the shared detail panel shows the selection in whichever is active.
     `reload()` rebuilds the whole tab set for the character currently in ctx."""
 
-    def __init__(self, ruleset, ctx, *, notify=None, parent=None):
+    def __init__(self, ruleset, ctx, *, notify=None, on_change=None, parent=None):
         super().__init__(parent)
         self._ruleset = ruleset
         self._ctx = ctx
         self._notify = notify or (lambda text, kind="info": None)
+        # ⚠ Spending on THIS tab moves the shell's readout bar too — a Charm pick past
+        # the free pool costs bonus points, and every buy here is a buy. Fired from
+        # `_update_readout`, which is the one place every purchase path already meets.
+        self._on_change = on_change or (lambda: None)
         self._selected_node: str | None = None
         self._selected_spell: str | None = None
         self._selected_thaum: tuple | None = None
@@ -1082,6 +1086,15 @@ class CharmsPage(QWidget):
         self._update_action()
 
     def _update_readout(self) -> None:
+        """Redraw this tab's budget line AND tell the shell its own bar moved.
+
+        ⚠ A wrapper rather than a call at the end of `_draw_readout`, because that has
+        two exits (locked/chargen) and the shell hook must fire from both. Every
+        purchase path on this tab already funnels through here."""
+        self._draw_readout()
+        self._on_change()
+
+    def _draw_readout(self) -> None:
         """The budget line: in play it is XP, in chargen the Charm pick count and the
         validation verdict — so buying Charms here shows when the budget breaks, the
         way the Edit tab's side column does for traits."""
@@ -1690,6 +1703,7 @@ class CharmsPage(QWidget):
         # the LAST rebuild computed rather than a snapshot taken before any purchase.
         menu_needed = [1]
         menu_kind = [""]
+        sync_parts: list = []    # [the "Choose N" label, {pick key: its reason label}]
 
         buttons = QHBoxLayout()
         buttons.addStretch(1)
@@ -1712,7 +1726,11 @@ class CharmsPage(QWidget):
                     selection.remove(key)
                 selection[:] = prune_package_selection(
                     self._ruleset, self._char(), charm_id, selection)
-            rebuild()
+            # ⚠ SYNC, never rebuild. A pick changes no row's existence, and tearing
+            # the rows down under the click sent the scroll area to the bottom —
+            # deleting the focused checkbox hands focus on, and a QScrollArea scrolls
+            # to whatever has it. Only a buy or a remove changes the dialog's shape.
+            sync()
 
         def buy() -> None:
             if menu_kind[0] == "gift":
@@ -1734,6 +1752,10 @@ class CharmsPage(QWidget):
                 rebuild()
 
         def rebuild() -> None:
+            # A remove changes the held list above the picks, so the rows really are
+            # rebuilt here — hold the scroll where the reader left it.
+            at = scroll.verticalScrollBar().value()
+            QTimer.singleShot(0, lambda: scroll.verticalScrollBar().setValue(at))
             clear_layout(body)
             char = self._char()
             menu = build_package_menu(self._ruleset, char, charm_id, selection)
@@ -1771,31 +1793,27 @@ class CharmsPage(QWidget):
                                    f"{menu.cap_trait}.")
                 over.setStyleSheet(f"color:{MUTED};")
                 body.addWidget(over)
-            choose = QLabel(f"Choose {menu.needed} — {len(selection)}/{menu.needed} "
-                            f"selected")
+            choose = QLabel("")
             choose.setStyleSheet("font-weight:bold;")
             body.addWidget(choose)
-            full = len(selection) >= menu.needed
             dialog.checks = {}
+            reasons = {}
             for pick in menu.picks:
                 row = QHBoxLayout()
                 cb = QCheckBox(pick.label)
                 dialog.checks[pick.key] = cb
-                cb.setChecked(pick.key in selection)
-                # A one-pick menu never disables an unpicked row — picking replaces —
-                # so its two variants stay clickable the way radio buttons would.
-                blocked = bool(pick.reason) or (full and menu.needed > 1)
-                cb.setEnabled(pick.key in selection or not blocked)
                 cb.toggled.connect(lambda checked, k=pick.key: flip(k, checked))
                 row.addWidget(cb)
                 if pick.max_purchases > 1:
                     rep = QLabel(f"repeatable ×{pick.max_purchases}")
                     rep.setStyleSheet(f"color:{MUTED};")
                     row.addWidget(rep)
-                if pick.reason:
-                    why = QLabel(pick.reason)
-                    why.setStyleSheet("color:#b45309; font-style:italic;")
-                    row.addWidget(why)
+                # Built empty even when the pick is free right now: its reason appears
+                # and disappears as the selection moves, and `sync` only sets text.
+                why = QLabel("")
+                why.setStyleSheet("color:#b45309; font-style:italic;")
+                reasons[pick.key] = why
+                row.addWidget(why)
                 row.addStretch(1)
                 body.addLayout(row)
                 if pick.description:
@@ -1805,6 +1823,31 @@ class CharmsPage(QWidget):
                     text.setStyleSheet(f"color:{MUTED};")
                     body.addWidget(text)
             body.addStretch(1)
+            sync_parts[:] = [choose, reasons]
+            sync()
+
+        def sync() -> None:
+            """Re-derive the pick rows in place from the current selection: what is
+            ticked, what is now pickable, each row's reason, and the confirm button.
+            Creates and destroys nothing, so the scroll position holds."""
+            menu = build_package_menu(self._ruleset, self._char(), charm_id, selection)
+            if menu is None:
+                return
+            choose, reasons = sync_parts
+            choose.setText(f"Choose {menu.needed} — {len(selection)}/{menu.needed} "
+                           f"selected")
+            full = len(selection) >= menu.needed
+            for pick in menu.picks:
+                cb = dialog.checks[pick.key]
+                picked = pick.key in selection
+                cb.blockSignals(True)
+                cb.setChecked(picked)
+                cb.blockSignals(False)
+                # A one-pick menu never disables an unpicked row — picking replaces —
+                # so its variants stay clickable the way radio buttons would.
+                blocked = bool(pick.reason) or (full and menu.needed > 1)
+                cb.setEnabled(picked or not blocked)
+                reasons[pick.key].setText(pick.reason)
             confirm.setText(f"Buy · {menu.price} XP" if menu.price else "Add")
             confirm.setEnabled(len(selection) == menu.needed)
 
