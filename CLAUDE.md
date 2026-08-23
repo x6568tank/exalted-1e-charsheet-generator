@@ -155,6 +155,16 @@ Each is written up in full where it happened; these are the reusable one-liners.
 - **Address a widget by name, never by position in a `findChildren` list.** A test that
   grabbed `findChildren(QSpinBox)[0]` got the row's quantity box instead of the stat it
   meant, and passed a wrong assertion into existence.
+- **A guard in a DISPATCHER can shadow a more careful guard one layer down, turning
+  implemented support into dead code.** `charm_actions.learn_charm` refused any owned
+  Charm post-lock with a bare `in character.charms`; `advancement.learn_charm` beneath
+  it had supported the repeatable case all along, cap check and page citation included.
+  Both shells go through the dispatcher, so nothing could reach it. **When you write a
+  broad refusal, check what the layer below already handles more precisely.**
+- **A test's SUBJECT can quietly become the wrong subject.** The Qt "Add another" tests
+  used a Charm that later turned out to be a variant menu, not a generic repeatable.
+  They were green throughout and proved nothing about the case they named. When a
+  thing's classification changes, grep the tests that named it.
 
 ## Architecture, layout and data conventions → `docs/ARCHITECTURE.md`
 **Read that file before touching the engine, the loader, the models or the data
@@ -255,16 +265,20 @@ pool calculation.
   (`ui/gm.py` + `ui/adversaries.py`, ~1,100 lines, and a second WINDOW rather than a tab,
   so the settled tab layout does not decide its shape); and the **within-tab gaps** —
   those are what decide whether the native app can replace the webapp.
-  `docs/status/handoff.md` carries the itemised list. **The within-tab gaps are NEXT**
-  (human, 2026-08-22) — before any further tab is ported. ⚠ Nothing will remind you they
-  exist: every tab holding one is shipped, human-clicked and green. **Two are done and
-  BOTH are human-clicked** — the Ox-Body / Deadly Beastman variant menu and Edit's seven
-  deferred panels (2026-08-22). What remains is the per-splat Charm surfaces. The list
-  is **a LOWER bound**: closing the first item turned up a stale shell readout that
-  appeared nowhere on it; closing the second turned up a `reload()` that never pinged
-  the shell and a `_combo` degrading enum keys — and the click-through then found three
-  more that no test saw. **Audit each remaining tab against its `ui/` counterpart
-  before trusting the list, and click it before believing it.**
+  `docs/status/handoff.md` carries the itemised list. **The within-tab gaps were taken
+  FIRST** (human, 2026-08-22), before any further tab, and **all three items are now
+  closed** — the Ox-Body / Deadly Beastman variant menu, Edit's seven deferred panels
+  (both human-clicked) and the per-splat Charm surfaces (**NOT yet human-clicked**).
+  **Next is ST Options, then Custom, then the Combos sub-tab, then Party.**
+
+  ⚠ **The gap list was a LOWER bound every single time — three for three.** Item 1
+  turned up a stale shell readout on no list; item 2 a `reload()` that never pinged the
+  shell and a `_combo` degrading enum keys, then three more at click-through; item 3 a
+  detail pane missing five cost-relevant flag lines and a QSS with no
+  `QPushButton:disabled` rule, which made every disabled button in the WHOLE port look
+  clickable. **Audit each remaining tab against its `ui/` counterpart before trusting
+  the list, click it before believing it, and render it offscreen and LOOK — the
+  disabled-button defect was invisible to all 2,837 tests.**
 
   Four things that affect work NOW, so they live here:
   - ⚠ **A Qt tab is a COLLECTION, and there is ONE layout.** Settled by the human
@@ -351,15 +365,15 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,776 passing, 1 skipped** (2026-08-22, main PC, the `qt-port` branch after group 4's
-Edit panels, the click-through fixes and specialties-under-Abilities — includes the
-Qt-port tests in `tests/test_qt_*.py`, `tests/test_charm_actions.py` and
-`tests/test_gear_actions.py`).
+**2,837 passing, 1 skipped** (2026-08-22, main PC, the `qt-port` branch after group 4's
+Charm surfaces and the variant-menu wiring — includes the Qt-port tests in
+`tests/test_qt_*.py`, `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
+`tests/test_variant_purchases.py`).
 
-- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (203 of them,
+- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (302 of them,
   eight whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
   a bare import was a COLLECTION ERROR, which takes the entire run down rather than
-  those tests. **A count 203 lower on a webapp-only machine is that working**, not
+  those tests. **A count 302 lower on a webapp-only machine is that working**, not
   tests going missing — install with `.venv/bin/pip install -e '.[qt]'`.
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
@@ -416,7 +430,8 @@ are pointers only; the traps and history live in the files.
 | Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
-| The Qt port — decision 0018; the build record (milestones 1–5: the shell + Edit/Charms/Sheet, the left-rail shell + Identity/Traits + bio fields, Advantages, the Gear tab + Combos-under-Charms, and Advantages rebuilt as a collection, then the Play tab; **all six human-clicked**. Milestone 5 SETTLES the one layout every remaining tab gets, and milestone 6 is its one written exception) | `plans/qt-port.md` |
+| The Qt port — decision 0018; the build record (milestones 1–6, **all human-clicked**, then group 4's three within-tab items, of which the Charm surfaces are **not yet clicked**. Milestone 5 SETTLES the one layout every remaining tab gets; milestone 6 and Identity+Traits are its two written exceptions) | `plans/qt-port.md` |
+| Variant-menu Charms — the generic `variant_purchases` list, `Charm.variants_unique`, and why Ox-Body and the Gifts were deliberately NOT migrated onto it | `plans/variant-menu-charms.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms

@@ -1032,7 +1032,10 @@ appeared in none of its entries. It paid twice, both the house bug's first speci
 Tests: 37 added across `tests/test_qt_editor.py` and `tests/test_qt_shell.py`. Suite
 **2,766 passed, 1 skipped** (main PC, 7m36s).
 
-### Human-verified on the real display — NOT YET
+### Human-verified on the real display — YES, 2026-08-22
+
+Written as "NOT YET" and left that way after the click happened; corrected 2026-08-22.
+The click is the next section, and it found three defects.
 
 ## The Edit click-through, and the Traits redesign that was declined (2026-08-22)
 
@@ -1105,6 +1108,118 @@ time; the only fix is an inline stylesheet on the widget itself.**
   tree.** It silently handed back the first and made a verification script report the
   wrong groups for every splat. Third time this session that addressing a widget by
   position produced a confident wrong answer.
+
+## Group 4 item 3 — the per-splat Charm surfaces (2026-08-22) — GROUP 4 CLOSED
+
+The last of the within-tab gaps. **Audited `qt/charms.py` against `ui/picker.py`
+before building**, as the handoff insisted: all five listed gaps were real (no stale
+entries), and the list was a lower bound for the third time running.
+
+### The five, as built
+
+| Gap | Where it landed |
+|---|---|
+| Foreign-charms **Splat dropdown** (core p.127) | `splats_for` + a PER-TAB combo in `_tree_page` |
+| **"Add another"** for generic repeatables | `again_btn` beside the action button; `charm_actions.learn_charm` |
+| **Martial-arts style panel** | `_style_panel` / `_sync_style_panel`, collapsible above the tree |
+| **Alchemical submodules** (p.89) | `_rebuild_submodules` under the detail pane |
+| **Immaculate-vs-standard DB banner** | `_immaculate_path_line`, in the readout's chargen branch |
+
+⚠ **The Splat dropdown is PER TAB in Qt, and that is not a port defect.** The web
+picker has ONE shared dropdown over a group toggle; Qt builds an independent
+`_tree_page` per group, so each tab offers only the splats with trees in ITS group.
+That deletes `set_splat`'s fall-back-to-another-group dance entirely — a splat with no
+martial arts simply is not on the Martial Arts tab's list. `splats_for` scans the
+catalogue rather than calling `trees_for` per splat, which would lay out every splat's
+whole Charm tree to fill a dropdown.
+
+⚠ **The tab set is still decided by NATIVE trees** (`reload` asks `trees_for` with
+`char.exalt_type`). An Eclipse whose own splat has no Arcanoi gets no Arcanoi tab and
+so cannot reach foreign Arcanoi. **The webapp has the same limitation** — its `GROUPS`
+is built from `_all_categories`, which is `charm_matches_splat`, native-only. Parity,
+not a regression, and not fixed here.
+
+### Two more the audit found, on no list
+
+* **The detail pane rendered NONE of the five flag lines** the web card shows —
+  homebrew, foreign-splat, Immaculate Order, Calling, camp-granted. Four of the five
+  change what the Charm COSTS. It stayed invisible because the foreign one is only
+  reachable through the Splat-dropdown gap above. Now `_charm_flags_html`.
+* **The QSS had no `QPushButton:disabled` rule**, so a disabled button was
+  pixel-identical to a live one — every "Add" whose prerequisites are unmet read as
+  clickable, across the WHOLE port. Found only by the offscreen grab; no test sees it.
+  Fixed in `qt/theme.py::qss`, which fixes it everywhere.
+
+### The house bug, species 1, caught by a test that fails against the old code
+
+`char.exalt_type` was passed straight to `show_tree` at THREE call sites, and the one
+on the purchase path (`_refresh_current_tree`) does not run until you buy something —
+so a foreign tree silently snapped back to the native splat on the next click, with
+nothing else on screen showing it. All three now go through
+`CharmTreeView.reload_tree`, which is the ONE place the (category, splat) pair is read.
+
+### Traps
+
+* ⚠ **`isVisible()` is useless on a child of a widget that was never shown** — False
+  however the widget is configured, so a negative assertion passes vacuously.
+  `test_qt_advantages.py:490` already recorded this and the first splat-dropdown test
+  walked into it anyway. `isHidden()` throughout.
+* ⚠ **A QGraphicsScene selection is not exclusive.** `setSelected(True)` on a second
+  node leaves BOTH selected and `_tree_detail` keeps reading the first, so a test that
+  moved the selection went on asserting about the old node. Clear first.
+* ⚠ **Hide a conditional button at the TOP of `_update_action`, not per branch.** It
+  has a dozen early returns; one that forgot would offer "Add another" against
+  somebody else's Charm.
+* The style panel's mechanics glyph ⚖ renders as tofu offscreen. Now `•`.
+* `_first_available` returns a LIST despite the singular name.
+
+### Submodules moved INTO the engine
+
+The web picker mutated `character.submodules` directly with no legality check — it
+relied on the button being greyed, which is a guard in a widget.
+`charm_actions.learn_submodule` / `drop_submodule` now own it, both shells call them,
+and the chargen path gained the `submodule_block_reason` check it never had.
+
+### Human-verified on the real display — NOT YET
+
+All four new surfaces were rendered offscreen and looked at (that is what caught the
+disabled-button defect). **Not browser-verified and not human-clicked.** What to click:
+an Eclipse with ST permission switching the Splat dropdown and buying a foreign Charm;
+a martial-arts tab expanding the style panel and changing category; an Alchemical
+selecting Chemical Fog Generator and adding a submodule; a Dragon-Blooded's readout
+before and after picking a Dragon-style Charm; a Jadeborn buying a second Essence
+Satiation Method.
+
+## Group 4's tail — three defects behind the gaps (2026-08-22)
+
+Found while explaining the above, all three filed initially as judgement calls and all
+three actually bugs.
+
+**The chargen BP preview under-quoted the pick that flips the Immaculate path.**
+`_chargen_pick_bp` derived the free-pool SIZE once, before staging the candidate, then
+sliced the STAGED pool with it. A DB's pool is 7 standard / 5 Immaculate, so the pick
+that flips the path changes its own denominator. Measured, pool exactly full, picking
+Air Dragon's Sight: **button 7 BP, accounting 21 BP**. Display-only — `build_sheet_view`
+was right both sides — but a 3x under-quote on the one decision the banner exists for.
+
+**Post-lock repeatable purchases were unreachable.** The house bug again:
+`advancement.learn_charm` has supported a second copy since it was written, cap check
+and CH6 pp.245-246 citation included — but `charm_actions.learn_charm`'s post-lock
+guard was a bare `charm_id in character.charms` with no cap, and it refuses first.
+Both shells go through the dispatcher, so the support was dead code. Ox-Body and the
+Gifts were never affected (their ids never enter `character.charms`), which is why it
+never surfaced.
+
+**Post-lock "Remove" was a button that always failed.** Enabled, and `drop_charm`
+refuses every post-lock removal. Now `charm_actions.undo_charm` / `undo_charm_reason`:
+enabled only for the LAST XP entry (the log is append-only and undo is LIFO, decision
+0004), otherwise disabled with the reason as a tooltip. The webapp's in-play card gets
+the same offer, which "Known." had been hiding.
+
+⚠ **`test_selecting_a_charm_in_play_buys_it_with_xp` changed meaning, not correctness.**
+It asserted "Known." after a buy; the just-bought Charm is now the undoable one. The
+discriminating case — a known Charm that is NOT the last entry — still says "Known."
+and has its own test.
 
 ## Open questions — not decided
 

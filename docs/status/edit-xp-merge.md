@@ -134,6 +134,13 @@ either, so the downward dialog greys its curse branch for them. That one is fine
       Charm, Combo, spell, specialty or thaumaturgy buy would have been stranded. It names
       the row it will reverse, because "Undo" alone is a guess. Click-through tested: the
       label appears, the click reverses, the label goes.
+      * ⚠ **Amended 2026-08-22: a CHARM buy now has a downward gesture of its own too.**
+        The Charms tab's "Remove" is enabled when the selected Charm IS the most recent
+        XP entry, and reverses it (`charm_actions.undo_charm` / `undo_charm_reason`);
+        otherwise it is disabled and says why. This does NOT replace "Undo last" — the
+        log is LIFO, so only one Charm is ever reachable that way, and Combos, spells
+        and thaumaturgy still have no gesture of their own. The reason above stands;
+        only "a Charm buy would have been stranded" is now out of date.
 * [x] **Rehomed the four things that lived ONLY on the XP tab**, before deleting anything
       — the order matters, since deleting first would have silently removed Death's
       Taint's whole play-time mechanic:

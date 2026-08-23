@@ -3,6 +3,17 @@
 Built 2026-08-22. The human's call, over the alternative of restoring the deferral
 recorded in `docs/status/solar-castebooks.md`.
 
+**Suite at that moment: 2,837 passed, 1 skipped** (main PC, `qt-port`), of which
+`tests/test_variant_purchases.py` is 21.
+
+⚠ **Not browser-verified.** The Qt chooser was rendered offscreen and looked at; the
+**webapp's `variant_menu_detail` panel has never been rendered at all**, in a browser
+or otherwise — it is covered by engine tests through `build_package_menu` and by
+nothing else. What to click: a Solar with Resistance 5 selecting Environmental
+Hazard-Resisting Meditation on the Resistance tree, adding two versions, checking the
+third is offered and a taken one is greyed with "Already taken", then locking and
+buying a fourth with XP.
+
 ## What a variant-menu Charm is
 
 A repeatable Charm bought as a **package**: each purchase picks one or more named
