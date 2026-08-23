@@ -359,6 +359,13 @@ def gift_cost(ruleset: RuleSet, character: Character) -> int:
     return charm_cost(ruleset, character, charm) if charm else 0
 
 
+def variant_purchase_cost(ruleset: RuleSet, character: Character, charm) -> int:
+    """XP to buy one more purchase of a generic variant-menu Charm: priced as a normal
+    new Charm, like Ox-Body's — the version chosen does not change the cost. 0 if the
+    Charm is absent."""
+    return charm_cost(ruleset, character, charm) if charm else 0
+
+
 def combo_cost(ruleset: RuleSet, charm_ids: list[str]) -> int:
     """XP for a new Combo: the sum of its member Charms' minimum Ability values
     (core p.213). Unknown ids contribute nothing (reference checks flag them)."""

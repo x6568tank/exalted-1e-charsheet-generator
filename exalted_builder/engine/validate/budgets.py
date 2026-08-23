@@ -346,7 +346,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     (attributes, abilities, crafts, virtues, backgrounds, specialties,
      charms, spells, combos, ox_body, essence, wp_purchased,
      beastman_gifts, arrays, submodules, colleges, thaumaturgy, paths,
-     favored_path, elemental_powers) = _chargen_source(character)
+     favored_path, elemental_powers, variant_purchases) = _chargen_source(character)
 
     cf = _caste_favored(ruleset, character)
     cf_set = (cf[0] | cf[1]) if cf is not None else set()
@@ -1294,7 +1294,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
      charms, spells, _combos, ox_body, essence, wp_purchased,
      beastman_gifts, arrays, _submodules, colleges, thaumaturgy, paths,
-     _favored_path, _elemental_powers) = _chargen_source(character)
+     _favored_path, _elemental_powers, _variant_purchases) = _chargen_source(character)
 
     # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
     # for every splat whose Backgrounds are purely narrative.

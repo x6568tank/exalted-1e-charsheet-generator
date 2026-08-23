@@ -92,12 +92,16 @@ async def test_locked_picker_shows_xp_instead_of_the_chargen_pool(user: User) ->
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_selecting_a_charm_in_play_buys_it_with_xp(user: User) -> None:
     # the detail card sells instead of toggling, and the purchase runs through the
-    # engine: the price leaves the XP pool (50 - 8) and the Charm becomes Known.
+    # engine: the price leaves the XP pool (50 - 8).
     await user.open('/inplay-picker-buy')
     await user.should_see("Buy · 8 XP")      # Melee is a Dawn caste ability → 8, not 10
     user.find("Buy · 8 XP").click()
-    await user.should_see("Known.")
     await user.should_see("42 XP available")
+    # ⚠ NOT "Known." — the Charm just bought is the most recent XP entry, so it is the
+    # one thing undo can reach (decision 0004's LIFO log) and the card offers it back.
+    # A known Charm that is NOT the last entry still reads "Known." — see
+    # test_a_known_charm_offers_no_remove_in_play, which is the discriminating case.
+    await user.should_see("Remove — refund XP")
 
 
 @pytest.mark.asyncio

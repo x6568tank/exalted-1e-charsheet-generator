@@ -91,6 +91,10 @@ def _chargen_source(character: Character):
         snap.paths if snap else character.paths,
         snap.favored_path if snap else character.favored_path,
         snap.elemental_powers if snap else character.elemental_powers,
+        # ⚠ APPENDED, never inserted: callers index this tuple positionally
+        # (`src[6]`, `src[9]`, …), so a new element anywhere but the end silently
+        # re-points every reader after it.
+        snap.variant_purchases if snap else character.variant_purchases,
     )
 
 

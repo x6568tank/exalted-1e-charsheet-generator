@@ -118,13 +118,98 @@ def gift_charm(ruleset: RuleSet, character: Character) -> Charm | None:
     return ruleset.charms.get(gift_charm_id(ruleset, character))
 
 
+def is_variant_menu_charm(ruleset: RuleSet, character: Character, charm) -> bool:
+    """Whether `charm` is a repeatable variant-menu Charm stored on the GENERIC
+    `character.variant_purchases` list — i.e. it offers variants and is neither this
+    character's Ox-Body nor their Gift Charm, which have lists of their own.
+
+    ⚠ Data-driven: the discriminator is `Charm.variants`, which no widget can edit.
+    Every Charm in the catalogue carrying variants is a variant menu, so there is no
+    id list to keep in step — a new one needs data and nothing else."""
+    if charm is None or not charm.variants:
+        return False
+    return charm.id not in (ox_body_charm_id(ruleset, character),
+                            gift_charm_id(ruleset, character))
+
+
+def variant_purchase_cap(ruleset: RuleSet, character: Character, charm) -> int:
+    """How many times this character may buy a generic variant-menu Charm.
+
+    The repeatable trait cap, further bounded by the number of variants when the Charm
+    marks them unique (`variants_unique`) — Environmental Hazard-Resisting Meditation
+    is capped by BOTH its Resistance dots and its four versions (Zenith p.72-73), and
+    a Resistance-5 Solar must not buy a fifth."""
+    if charm is None:
+        return 0
+    cap = _repeatable_purchase_cap(charm, character)
+    if charm.variants_unique:
+        cap = min(cap, len(charm.variants)) if cap else len(charm.variants)
+    return cap
+
+
+def variant_purchases_for(character: Character, charm_id: str):
+    """This character's purchases of ONE generic variant-menu Charm, in buy order."""
+    return [p for p in character.variant_purchases if p.charm_id == charm_id]
+
+
+def known_variant_keys(character: Character, charm_id: str) -> list[str]:
+    """Every variant key taken across all purchases of `charm_id`, in buy order."""
+    return [k for p in variant_purchases_for(character, charm_id) for k in p.variants]
+
+
+def check_variant_purchases(ruleset: RuleSet, character: Character) -> list[Issue]:
+    """Legality of the generic variant-menu purchases: the Charm exists and is one,
+    every chosen key is a real variant, its min essence/ability are met, the purchase
+    cap holds, and no variant repeats when the Charm marks them unique."""
+    issues: list[Issue] = []
+    by_charm: dict[str, list] = {}
+    for p in character.variant_purchases:
+        by_charm.setdefault(p.charm_id, []).append(p)
+    for charm_id, purchases in by_charm.items():
+        charm = ruleset.charms.get(charm_id)
+        if charm is None:
+            issues.append(Issue(code="variant-charm-unknown", severity="error",
+                                message=f"Unknown Charm {charm_id!r} in variant purchases."))
+            continue
+        if not is_variant_menu_charm(ruleset, character, charm):
+            issues.append(Issue(
+                code="variant-charm-not-a-menu", severity="error",
+                message=f"{charm.name} is not a variant-menu Charm for this character."))
+            continue
+        keys = {v.key for v in charm.variants}
+        seen: set[str] = set()
+        for p in purchases:
+            for k in p.variants:
+                if k not in keys:
+                    issues.append(Issue(
+                        code="variant-unknown", severity="error",
+                        message=f"{charm.name}: unknown version {k!r}."))
+                elif charm.variants_unique and k in seen:
+                    labels = {v.key: v.label for v in charm.variants}
+                    issues.append(Issue(
+                        code="variant-repeated", severity="error",
+                        message=f"{charm.name}: {labels.get(k, k)} taken more than once."))
+                seen.add(k)
+        cap = variant_purchase_cap(ruleset, character, charm)
+        if len(purchases) > cap:
+            issues.append(Issue(
+                code="variant-over-cap", severity="error",
+                message=f"{charm.name}: {len(purchases)} purchases, maximum {cap}."))
+        if character.essence_rating < charm.min_essence:
+            issues.append(Issue(
+                code="variant-essence", severity="error",
+                message=f"{charm.name} requires Essence {charm.min_essence}."))
+    return issues
+
+
 class CharmPick(BaseModel):
     """One Charm a character holds, from whichever list stores it.
 
-    Charms live on three separate `Character` lists — `charms`, the repeatables
-    (`ox_body`, `beastman_gifts`, which need N copies representable), and
-    `granted_charms` (a training camp's, p.90). This type is the single enumeration
-    consumers read instead of walking those lists themselves.
+    Charms live on several separate `Character` lists — `charms`, the repeatables
+    (`ox_body`, `beastman_gifts` and the generic `variant_purchases`, which need N
+    copies representable), and `granted_charms` (a training camp's, p.90). This type
+    is the single enumeration consumers read instead of walking those lists
+    themselves.
 
     `counts_toward_pool` is False only for granted Charms, which cost no pick and no
     bonus points. `label` is display-ready and folds in a repeatable's chosen
@@ -138,7 +223,8 @@ class CharmPick(BaseModel):
     name: str                  # the Charm's own name, or the raw id if unresolved
     label: str                 # display name; includes variant labels for repeatables
     category: str = ""
-    source: str = "charms"     # charms | ox_body | beastman_gifts | granted | origin
+    source: str = "charms"     # charms | ox_body | beastman_gifts | variant_purchases
+                               #        | granted | origin
     counts_toward_pool: bool = True
     caste_favored: bool = False
 
@@ -156,7 +242,7 @@ def charm_picks(ruleset: RuleSet, character: Character) -> list[CharmPick]:
     return _charm_picks_from(
         ruleset, character,
         character.charms, character.ox_body, character.beastman_gifts,
-        character.granted_charms,
+        character.granted_charms, character.variant_purchases,
     )
 
 
@@ -170,12 +256,13 @@ def chargen_charm_picks(ruleset: RuleSet, character: Character) -> list[CharmPic
     src = _chargen_source(character)
     return _charm_picks_from(
         ruleset, character,
-        src[6], src[9], src[12], character.granted_charms,
+        src[6], src[9], src[12], character.granted_charms, src[20],
     )
 
 
 def _charm_picks_from(ruleset: RuleSet, character: Character,
-                      charms, ox_body, beastman_gifts, granted) -> list[CharmPick]:
+                      charms, ox_body, beastman_gifts, granted,
+                      variant_purchases=()) -> list[CharmPick]:
     """Build the pick list from explicit trait lists, so the same enumeration serves
     both the live character and the chargen snapshot."""
     cf_set = caste_favored_abilities(ruleset, character)
@@ -214,6 +301,19 @@ def _charm_picks_from(ruleset: RuleSet, character: Character,
             taken = ", ".join(labels.get(k, k) for k in p.gifts)
             picks.append(_pick(gift.id, gift, f"{gift.name} ({taken})",
                                source="beastman_gifts"))
+
+    # Every other repeatable variant-menu Charm, keyed by charm_id on ONE list —
+    # Environmental Hazard-Resisting Meditation today (Zenith p.72-73).
+    for p in variant_purchases:
+        charm = ruleset.charms.get(p.charm_id)
+        if charm is None:
+            picks.append(_pick(p.charm_id, None, p.charm_id,
+                               source="variant_purchases"))
+            continue
+        labels = {v.key: v.label for v in charm.variants}
+        taken = ", ".join(labels.get(k, k) for k in p.variants)
+        picks.append(_pick(charm.id, charm, f"{charm.name} ({taken})" if taken
+                           else charm.name, source="variant_purchases"))
 
     for cid in granted:
         charm = ruleset.charms.get(cid)

@@ -32,7 +32,7 @@ where both shells run it.
 from __future__ import annotations
 
 from ..models.character import (BeastmanGiftPurchase, Character, OxBodyPurchase,
-                                SubmodulePurchase)
+                                SubmodulePurchase, VariantPurchase)
 from ..models.rules import RuleSet
 from . import advancement, costs, validate
 
@@ -61,6 +61,14 @@ def variant_menu_reason(ruleset: RuleSet, character: Character, charm_id: str) -
     if charm_id and charm_id == validate.gift_charm_id(ruleset, character):
         return ("Deadly Beastman Transformation is bought as a package — choose its "
                 "Gifts from its detail panel.")
+    # ⚠ Every OTHER Charm carrying variants, caught by the DATA rather than by a
+    # third hardcoded id. Without this branch such a Charm fell through to the
+    # ordinary toggle and was stored as a duplicate id in `character.charms`, losing
+    # which version was taken — see `validate.is_variant_menu_charm`.
+    charm = ruleset.charms.get(charm_id) if charm_id else None
+    if validate.is_variant_menu_charm(ruleset, character, charm):
+        return (f"{charm.name} is bought as a package — choose a version from its "
+                "detail panel.")
     return ""
 
 
@@ -123,6 +131,46 @@ def drop_charm(ruleset: RuleSet, character: Character, charm_id: str) -> str:
         _refuse(f"{name}: can't remove — needed by {', '.join(blockers)}")
     character.charms.remove(charm_id)
     return f"Removed {name}"
+
+
+# The XP-log targets a Charm purchase can be filed under. `crossover_charms` is an
+# Eclipse/Moonshadow Alchemical Charm (it also granted a Slot) and the withheld target
+# is a Weak Essence credit redemption — all three put the id in `character.charms`, so
+# all three are undoable the same way.
+_CHARM_XP_TARGETS = ("charms", "crossover_charms", validate.WITHHELD_CHARM_TARGET)
+
+
+def undo_charm_reason(character: Character, charm_id: str) -> str:
+    """Why `charm_id` cannot be handed back post-lock, or "" when it can.
+
+    ⚠ The XP log is APPEND-ONLY and undo is last-in-first-out (decision 0004), so the
+    only Charm a shell may offer to remove is the one the MOST RECENT entry bought —
+    prerequisites and Combo members have to come off after the things that depend on
+    them, which is exactly what LIFO guarantees. Anything else has no correct
+    implementation: removing it without the ledger leaves the XP spent and the Charm
+    gone.
+    """
+    if not character.chargen_locked:
+        return ""
+    if not character.xp_log:
+        return "Nothing has been bought with experience yet."
+    entry = character.xp_log[-1]
+    domain, _, _ = entry.target.partition(".")
+    if domain in _CHARM_XP_TARGETS and entry.detail == charm_id:
+        return ""
+    return ("Only the most recent experience purchase can be undone — do it from the "
+            "Edit tab's experience log.")
+
+
+def undo_charm(ruleset: RuleSet, character: Character, charm_id: str) -> str:
+    """Hand back a post-lock Charm by reversing the XP entry that bought it. Refuses
+    unless it is the most recent one — see `undo_charm_reason`."""
+    reason = undo_charm_reason(character, charm_id)
+    if reason:
+        _refuse(reason)
+    charm = ruleset.charms.get(charm_id)
+    advancement.undo_last(ruleset, character)
+    return f"Removed {charm.name if charm else charm_id} — experience refunded"
 
 
 def toggle_charm(ruleset: RuleSet, character: Character, charm_id: str) -> str:
@@ -286,3 +334,58 @@ def drop_submodule(character: Character, charm_id: str, key: str) -> str:
             del character.submodules[i]
             return "Removed a submodule"
     _refuse("No such submodule purchase.")
+
+
+# ---- Generic variant-menu Charms (everything but Ox-Body and the Gifts) ---- #
+#
+# Environmental Hazard-Resisting Meditation (Caste Book: Zenith p.72-73) is the only
+# member today: four named resistances, one per purchase, at most one purchase per
+# Resistance dot and each version only once. Stored on `character.variant_purchases`
+# keyed by charm_id, so a second Charm of this shape needs data and nothing else.
+
+def add_variant_purchase(ruleset: RuleSet, character: Character, charm_id: str,
+                         variant_keys: list[str]) -> str:
+    """Buy one package of a generic variant-menu Charm: an XP purchase after the lock,
+    an append to `character.variant_purchases` before it."""
+    charm = ruleset.charms.get(charm_id)
+    if charm is None:
+        _refuse(f"Unknown Charm {charm_id!r}.")
+    if not validate.is_variant_menu_charm(ruleset, character, charm):
+        _refuse(f"{charm.name} is not bought as a package.")
+    labels = {v.key: v.label for v in charm.variants}
+    taken = ", ".join(labels.get(k, k) for k in variant_keys)
+    if character.chargen_locked:
+        cost = costs.variant_purchase_cost(ruleset, character, charm)
+        advancement.learn_variant_purchase(ruleset, character, charm_id, variant_keys)
+        return f"Bought {charm.name} ({taken}) — {cost} XP"
+    if not validate.meets_charm_requirements(ruleset, character, charm):
+        _refuse(f"{charm.name}: prerequisites not met")
+    held = validate.variant_purchases_for(character, charm_id)
+    cap = validate.variant_purchase_cap(ruleset, character, charm)
+    if len(held) >= cap:
+        # ⚠ Name the cap that ACTUALLY bound. Two apply here and the trait one is not
+        # always the tighter: Environmental Hazard-Resisting Meditation needs
+        # Resistance 5 to learn at all, so its four versions run out FIRST, every
+        # time — "already bought once per dot of Resistance" would be a lie.
+        if charm.variants_unique and cap >= len(charm.variants):
+            _refuse(f"{charm.name}: all {len(charm.variants)} versions bought.")
+        _refuse(f"{charm.name}: already bought {_cap_phrase(charm)}.")
+    known = validate.known_variant_keys(character, charm_id)
+    for key in variant_keys:
+        if key not in labels:
+            _refuse(f"Unknown version {key!r} of {charm.name}.")
+        if charm.variants_unique and key in known:
+            _refuse(f"{labels[key]} has already been taken.")
+    character.variant_purchases.append(
+        VariantPurchase(charm_id=charm_id, variants=list(variant_keys)))
+    return f"Added {charm.name} ({taken})"
+
+
+def remove_variant_purchase(character: Character, index: int) -> str:
+    """Give back one chargen package by its position in `variant_purchases`."""
+    if character.chargen_locked:
+        _refuse("That purchase was bought with XP — undo it on the Edit tab.")
+    if not 0 <= index < len(character.variant_purchases):
+        _refuse("No such purchase.")
+    del character.variant_purchases[index]
+    return "Removed a purchase"

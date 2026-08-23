@@ -473,6 +473,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if selected["id"] and selected["id"] == validate.gift_charm_id(ruleset, character):
             gift_detail()
             return
+        # Every OTHER variant-menu Charm, keyed off the DATA rather than a third
+        # hardcoded id (Environmental Hazard-Resisting Meditation, Zenith p.72-73).
+        if selected["id"] and viewmod.package_menu_kind(
+                ruleset, character, selected["id"]) == "variant":
+            variant_menu_detail(selected["id"])
+            return
         d = viewmod.build_charm_detail(ruleset, character, selected["id"]) if selected["id"] else None
         if d is None:
             ui.label("Tap a charm to see its details.").classes("text-xs text-gray-400")
@@ -602,9 +608,17 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if charm is None:
             return
         if d.owned:
+            # ⚠ Only the LAST XP purchase can be handed back — the log is append-only
+            # and undo is LIFO (decision 0004). Offered here rather than only on the
+            # Edit tab so the mistake can be fixed where it was made.
+            _undo_block = charm_actions.undo_charm_reason(character, d.id)
+            if not _undo_block:
+                ui.button("Remove — refund XP", icon="undo",
+                          on_click=lambda: undo_charm(d.id)).props("dense color=negative")
             _cap = validate._repeatable_purchase_cap(charm, character)
             if not _cap or character.charms.count(d.id) >= _cap:
-                ui.label("Known.").classes("text-xs text-gray-500")
+                if _undo_block:
+                    ui.label("Known.").classes("text-xs text-gray-500")
                 return
             _price = costs.charm_cost(ruleset, character, charm)
             _btn = ui.button(f"Add another · {_price} XP", icon="add",
@@ -681,6 +695,54 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         if bought >= cap:
             ui.label(f"Raise {cap_trait} to buy more." if cap else
                      f"Needs at least 1 {cap_unit} of {cap_trait}.").classes(
+                "text-xs text-gray-500")
+
+    # ---- Generic variant-menu Charms (Zenith p.72-73) ---------------------- #
+    # Driven entirely off `view.build_package_menu`, so a second Charm of this shape
+    # needs data and nothing else — no panel per Charm, unlike Ox-Body's bespoke card.
+
+    def add_variant_purchase(charm_id: str, key: str) -> None:
+        if _act(charm_actions.add_variant_purchase, ruleset, character,
+                charm_id, [key]):
+            _after_charm_change(); readout.refresh()
+
+    def remove_variant_purchase(index: int) -> None:
+        if _act(charm_actions.remove_variant_purchase, character, index, kind="info"):
+            _after_charm_change(); readout.refresh()
+
+    def variant_menu_detail(charm_id: str) -> None:
+        menu = viewmod.build_package_menu(ruleset, character, charm_id)
+        if menu is None:
+            return
+        ui.label(menu.name).classes("text-sm font-bold").style(f"color:{pal.accent}")
+        ui.label(menu.description).classes("text-xs")
+        ui.separator()
+        ui.label(f"Bought {menu.bought} / {menu.cap}  ·  {menu.cap_phrase}").classes(
+            "text-xs font-semibold")
+        for h in menu.held:
+            with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
+                ui.label(f"• {h.label}").classes("text-xs")
+                if not in_play():   # in play, undo the purchase from the XP ledger
+                    ui.button(icon="remove",
+                              on_click=lambda _=None, i=h.index:
+                              remove_variant_purchase(i)).props(
+                        "dense flat round size=sm color=negative")
+        ui.separator()
+        ui.label(f"Buy a version  ·  {menu.price} XP each:" if in_play()
+                 else "Add a version:").classes("text-xs font-semibold")
+        for pick in menu.picks:
+            label = pick.label if not in_play() else f"{pick.label} · {menu.price} XP"
+            btn = ui.button(label, icon="add" if not in_play() else "shopping_cart",
+                            on_click=lambda _=None, k=pick.key:
+                            add_variant_purchase(charm_id, k)).props("dense color=positive")
+            if (pick.reason or menu.bought >= menu.cap
+                    or (in_play() and not _afford(menu.price))):
+                btn.props("disable")
+            if pick.reason:
+                ui.label(pick.reason).classes("text-xs text-gray-500")
+        if menu.bought >= menu.cap:
+            ui.label(f"Raise {menu.cap_trait} to buy more." if menu.cap else
+                     f"Needs at least 1 {menu.cap_unit} of {menu.cap_trait}.").classes(
                 "text-xs text-gray-500")
 
     # ---- Deadly Beastman Transformation Gifts (repeatable, multi-pick; Lunar) -- #
@@ -1816,6 +1878,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
         repaint wrapper."""
         if _act(charm_actions.toggle_charm, ruleset, character, charm_id):
             _after_charm_change()
+
+    def undo_charm(charm_id: str) -> None:
+        """Hand back the most recent XP-bought Charm, reversing its ledger row."""
+        if _act(charm_actions.undo_charm, ruleset, character, charm_id,
+                kind="negative"):
+            _after_charm_change(); readout.refresh()
 
     def add_another(charm_id: str) -> None:
         """Pre-lock: buy ONE MORE copy of a generic repeatable Charm the character

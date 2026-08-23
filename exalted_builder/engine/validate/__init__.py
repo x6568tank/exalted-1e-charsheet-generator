@@ -242,6 +242,7 @@ from .charms import (          # noqa: F401 — re-exported for callers
     check_charm_prerequisites,
     check_gift_prerequisites,
     check_ox_body,
+    check_variant_purchases,
     crossover_alchemical_charm,
     crossover_panoply_xp,
     db_enlightenment_met,
@@ -250,6 +251,10 @@ from .charms import (          # noqa: F401 — re-exported for callers
     foreign_charms_permitted,
     gift_charm,
     gift_charm_id,
+    is_variant_menu_charm,
+    known_variant_keys,
+    variant_purchase_cap,
+    variant_purchases_for,
     gift_purchase_cap,
     gifts_per_purchase,
     has_perfected_lotus_matrix,
@@ -308,6 +313,7 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += validate_submodules(ruleset, character)
     issues += check_ox_body(ruleset, character)
     issues += check_beastman_gifts(ruleset, character)
+    issues += check_variant_purchases(ruleset, character)
     issues += check_specialties(ruleset, character)
     issues += check_fetters_and_passions(ruleset, character)
     issues += check_artifacts(ruleset, character)

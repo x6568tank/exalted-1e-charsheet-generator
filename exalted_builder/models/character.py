@@ -488,6 +488,23 @@ class OxBodyPurchase(BaseModel):
     health_levels: list[int] = Field(default_factory=list)
 
 
+class VariantPurchase(BaseModel):
+    """One purchase of a repeatable variant-menu Charm OTHER than Ox-Body and Deadly
+    Beastman Transformation, which predate this and keep their own lists.
+
+    `charm_id` names the Charm, so ONE list serves any number of such Charms — a new
+    one needs data and nothing else. `variants` are the `rules.CharmVariant.key`s
+    chosen with this purchase (one for every Charm of this shape today; the list shape
+    matches Deadly Beastman's, which takes two on its first purchase).
+
+    Today's only member is Environmental Hazard-Resisting Meditation (Caste Book:
+    Zenith p.72-73): four named resistances, at most one purchase per Resistance dot,
+    and each resistance only once — see `rules.Charm.variants_unique`.
+    """
+    charm_id: str
+    variants: list[str] = Field(default_factory=list)
+
+
 class BeastmanGiftPurchase(BaseModel):
     """One purchase of the repeatable Deadly Beastman Transformation Charm
     (Lunar, p.124-127). `gifts` are the Gift variant keys (rules.CharmVariant.key
@@ -727,6 +744,9 @@ class ChargenSnapshot(BaseModel):
     submodules: list[SubmodulePurchase] = Field(default_factory=list)
     ox_body: list[OxBodyPurchase] = Field(default_factory=list)
     beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
+    # Every OTHER repeatable variant-menu Charm, keyed by charm_id (see
+    # VariantPurchase). Also NOT in `charms`, for the reason ox_body is not.
+    variant_purchases: list[VariantPurchase] = Field(default_factory=list)
     # Thaumaturgy bought at chargen. None (not an empty state) for a character who
     # never touched it, so "locked before thaumaturgy existed" and "locked with
     # none bought" stay distinguishable in the XP audit.
@@ -979,6 +999,9 @@ class Character(BaseModel):
     # per purchase, each carrying the Gift(s) chosen with that purchase. Also NOT
     # in `charms`, same reasoning as ox_body.
     beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
+    # Every other repeatable variant-menu Charm (see VariantPurchase). NOT in
+    # `charms`, same reasoning as ox_body.
+    variant_purchases: list[VariantPurchase] = Field(default_factory=list)
 
     # Thaumaturgy (Player's Guide CH3) — a cross-splat capability layer, available
     # to every splat, keyed to none. None on a character that has never taken any,

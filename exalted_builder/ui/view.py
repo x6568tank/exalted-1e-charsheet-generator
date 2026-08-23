@@ -1206,6 +1206,15 @@ def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> s
         # advancement.learn_gift logs the purchase's Gift keys joined by '|'
         gifts = ", ".join(labels.get(k, k) for k in entry.detail.split("|") if k)
         return f"{charm.name if charm else 'Beastman Gifts'}: {gifts}"
+    if domain == "variant_purchases":
+        # detail is "<charm_id>:<key|key>" — advancement.learn_variant_purchase logs
+        # the Charm and the versions this purchase took.
+        cid, _, keys = entry.detail.partition(":")
+        charm = ruleset.charms.get(cid)
+        labels = {v.key: v.label for v in (charm.variants if charm else [])}
+        taken = ", ".join(labels.get(k, k) for k in keys.split("|") if k)
+        name = charm.name if charm else cid
+        return f"{name}: {taken}" if taken else f"Charm: {name}"
     # Thaumaturgy (Player's Guide CH3). Names are resolved from the catalogue where
     # there is one and fall back to the logged id, so a custom ritual — or a stale id
     # whose catalogue entry has since gone — still reads as itself rather than
@@ -2299,7 +2308,7 @@ class PackageHeld:
 @dataclass
 class PackageMenu:
     """Everything a shell needs to draw one variant-menu Charm's chooser."""
-    kind: str               # "ox_body" | "gift"
+    kind: str               # "ox_body" | "gift" | "variant"
     charm_id: str
     name: str
     description: str
@@ -2312,20 +2321,44 @@ class PackageMenu:
     held: list[PackageHeld]
     picks: list[PackagePick]
     note: str               # book rider, when the page prints one
+    # Each version may be taken at most once (rules.Charm.variants_unique).
+    unique_versions: bool = False
+
+    @property
+    def cap_phrase(self) -> str:
+        """What actually limits the purchases, as a phrase.
+
+        ⚠ Not always the trait. A menu whose versions are unique runs out of VERSIONS
+        first whenever the version count is the tighter bound — Environmental
+        Hazard-Resisting Meditation needs Resistance 5 to learn at all, so its four
+        versions always bind and "once per dot of Resistance" is simply untrue there.
+        Composed here so no shell reassembles it from `cap_trait`/`cap_unit`."""
+        if self.unique_versions and self.cap >= len(self.picks):
+            return f"one of each of its {len(self.picks)} versions"
+        if not self.cap_trait:
+            return "its maximum"
+        return f"once per {self.cap_unit} of {self.cap_trait}"
 
 
 def package_menu_kind(ruleset: RuleSet, character: Character, charm_id: str) -> str:
-    """"ox_body", "gift", or "" when `charm_id` is an ordinary toggleable Charm.
+    """"ox_body", "gift", "variant", or "" when `charm_id` is an ordinary toggleable
+    Charm.
 
-    ⚠ The discriminator is the character's OWN package-Charm ids, not the name or
-    the category: which Charm fills each role is per-splat data (a heritage points at
-    its parent's copy), and no widget can edit it."""
+    ⚠ The discriminator is the character's OWN package-Charm ids and the Charm's
+    `variants` list, not the name or the category: which Charm fills the Ox-Body and
+    Gift roles is per-splat data (a heritage points at its parent's copy), and no
+    widget can edit any of it.
+
+    "variant" is the generic case — every other Charm carrying variants, stored on
+    `character.variant_purchases` keyed by charm_id."""
     if not charm_id:
         return ""
     if charm_id == validate.ox_body_charm_id(ruleset, character):
         return "ox_body"
     if charm_id == validate.gift_charm_id(ruleset, character):
         return "gift"
+    if validate.is_variant_menu_charm(ruleset, character, ruleset.charms.get(charm_id)):
+        return "variant"
     return ""
 
 
@@ -2361,6 +2394,7 @@ def build_package_menu(ruleset: RuleSet, character: Character, charm_id: str,
         return None
     is_gift = kind == "gift"
     charm = (validate.gift_charm(ruleset, character) if is_gift
+             else ruleset.charms.get(charm_id) if kind == "variant"
              else validate.ox_body_charm(ruleset, character))
     if charm is None:
         return None
@@ -2390,6 +2424,24 @@ def build_package_menu(ruleset: RuleSet, character: Character, charm_id: str,
         # so rather than implying the listed ones are the whole rule.
         note = ("Sample Gifts (p.126-127) — the book's list is not exhaustive; "
                 "anything else is a Storyteller call.")
+    elif kind == "variant":
+        # The generic menu. Its versions may be marked unique (`variants_unique`), in
+        # which case one already taken is offered with a reason rather than hidden —
+        # the player should see the whole printed list and why a row is closed.
+        purchases = validate.variant_purchases_for(character, charm_id)
+        held = [PackageHeld(i, ", ".join(labels.get(k, k) for k in p.variants))
+                for i, p in enumerate(purchases)]
+        cap = validate.variant_purchase_cap(ruleset, character, charm)
+        needed = validate.gifts_per_purchase(charm, len(purchases))
+        price = (costs.variant_purchase_cost(ruleset, character, charm)
+                 if character.chargen_locked else 0)
+        known = set(validate.known_variant_keys(character, charm_id))
+        picks = [PackagePick(v.key, v.label, v.description, v.max_purchases,
+                             1 if v.key in known else 0,
+                             "Already taken" if charm.variants_unique
+                             and v.key in known else "")
+                 for v in charm.variants]
+        note = ""
     else:
         purchases = character.ox_body
         held = [PackageHeld(i, labels.get(p.variant, p.variant))
@@ -2403,7 +2455,8 @@ def build_package_menu(ruleset: RuleSet, character: Character, charm_id: str,
     return PackageMenu(
         kind=kind, charm_id=charm_id, name=charm.name, description=charm.description,
         bought=len(purchases), cap=cap, cap_trait=cap_trait, cap_unit=cap_unit,
-        needed=needed, price=price, held=held, picks=picks, note=note)
+        needed=needed, price=price, held=held, picks=picks, note=note,
+        unique_versions=charm.variants_unique)
 
 
 def prune_package_selection(ruleset: RuleSet, character: Character, charm_id: str,

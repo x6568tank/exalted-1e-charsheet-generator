@@ -1083,15 +1083,19 @@ def test_a_homebrew_charm_is_marked_as_unbacked(ruleset, qtbot):
 # Owned-but-under-cap is the one state the single action button cannot express: it
 # reads "Remove", and a repeatable Charm wants one MORE copy.
 
-REPEATABLE = "solar.resistance.environmental-hazard-resisting-meditation"
+# ⚠ A GENERIC repeatable — no variants, so N copies live as duplicate ids in
+# `character.charms`. Not Environmental Hazard-Resisting Meditation, which looks
+# repeatable but carries four versions and is therefore a variant MENU: it is bought
+# as a package into `character.variant_purchases` and never toggled.
+REPEATABLE = "mountainfolk.foundation.essence-satiation-method"
 
 
 def _repeatable_char():
-    """A Solar who can actually learn REPEATABLE: it wants Resistance 5 and Essence 2,
-    and Resistance is also its cap trait — so the copy cap is 5."""
-    char = Character(id="c", exalt_type="Solar", caste="dawn", essence_rating=2)
-    char.abilities[AbilityName.RESISTANCE] = 5
-    return char
+    """A Jadeborn who can learn REPEATABLE. Its cap trait is Essence and it also
+    carries the printed flat ceiling of three (CH6 pp.245-246), so with Essence 3 the
+    two agree and the copy cap is 3."""
+    return Character(id="c", exalt_type="Mountain-Folk", caste="jade",
+                     essence_rating=3)
 
 
 def _select(page, charm_id):
@@ -1155,7 +1159,7 @@ def test_add_another_appends_a_copy_rather_than_removing(ruleset, qtbot):
 def test_add_another_disappears_at_the_cap(ruleset, qtbot):
     char = _repeatable_char()
     cap = validate._repeatable_purchase_cap(ruleset.charms[REPEATABLE], char)
-    assert cap == 5                                  # Resistance 5, per _repeatable_char
+    assert cap == 3                                  # the printed flat ceiling
     page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
     qtbot.addWidget(page)
     _show_repeatable(ruleset, page, REPEATABLE)
@@ -1227,7 +1231,6 @@ def test_add_another_hides_when_the_selection_moves_on(ruleset, qtbot):
     early returns would each have to remember, and one that forgot would offer
     "Add another" against somebody else's Charm."""
     char = _repeatable_char()
-    char.abilities[AbilityName.MELEE] = 3
     page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
     qtbot.addWidget(page)
     _show_repeatable(ruleset, page, REPEATABLE)
@@ -1552,3 +1555,87 @@ def test_an_ordinary_pick_still_quotes_its_price(ruleset, qtbot):
         before = _bp_spent(ruleset, char)
         char.charms.append(cid)
         assert quoted == _bp_spent(ruleset, char) - before
+
+
+# --- post-lock Remove is the LAST XP entry only ------------------------------ #
+#
+# ⚠ The button read "Remove <Charm>" and was ENABLED post-lock, but `drop_charm`
+# refuses every post-lock removal — so it failed on every click. The log is
+# append-only and undo is LIFO (decision 0004), so the only Charm that can come back
+# is the one the most recent entry bought.
+
+
+def _locked_with_two_charms(ruleset):
+    char = _learnable_char()
+    avail = _first_available(ruleset, char)
+    char.chargen_locked = True
+    char.xp_earned = 200
+    first, second = avail[0], avail[1]
+    charm_actions.learn_charm(ruleset, char, first)
+    charm_actions.learn_charm(ruleset, char, second)
+    return char, first, second
+
+
+def test_the_last_purchase_can_be_removed(ruleset, qtbot):
+    char, _first, second = _locked_with_two_charms(ruleset)
+    spent = advancement.xp_spent(char)
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._selected_node = second
+    page._update_action()
+    assert page.action_btn.isEnabled()
+    assert page.action_btn.text().startswith("Remove")
+    assert page.action_btn.toolTip() == ""
+
+    page._toggle_charm(second)
+    assert second not in char.charms
+    assert advancement.xp_spent(char) < spent          # the XP came back
+    assert len(char.xp_log) == 1                       # and the ledger row went
+
+
+def test_an_earlier_purchase_is_disabled_with_the_reason(ruleset, qtbot):
+    char, first, _second = _locked_with_two_charms(ruleset)
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._selected_node = first
+    page._update_action()
+    assert not page.action_btn.isEnabled()
+    assert "most recent" in page.action_btn.toolTip()
+
+
+def test_removing_the_last_one_promotes_the_one_before_it(ruleset, qtbot):
+    """LIFO: undo the top row and the next becomes removable in turn."""
+    char, first, second = _locked_with_two_charms(ruleset)
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._toggle_charm(second)
+    page._selected_node = first
+    page._update_action()
+    assert page.action_btn.isEnabled()
+
+
+def test_a_chargen_charm_is_still_removed_outright(ruleset, qtbot):
+    """The negative control: pre-lock nothing about this changed."""
+    char = _learnable_char()
+    cid = _first_available(ruleset, char)[0]
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._toggle_charm(cid)
+    assert cid in char.charms
+    page._toggle_charm(cid)
+    assert cid not in char.charms
+    assert char.xp_log == []
+
+
+def test_a_charm_bought_before_a_trait_raise_is_not_removable(ruleset, qtbot):
+    """⚠ The last entry need not be a Charm at all. Raising an Ability after buying a
+    Charm makes that Charm un-undoable until the raise is undone first — which is what
+    LIFO means and what the tooltip has to say."""
+    char, _first, second = _locked_with_two_charms(ruleset)
+    advancement.raise_ability(ruleset, char, AbilityName.MELEE)
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._selected_node = second
+    page._update_action()
+    assert not page.action_btn.isEnabled()
+    assert "most recent" in page.action_btn.toolTip()

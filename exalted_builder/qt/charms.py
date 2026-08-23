@@ -904,7 +904,9 @@ class CharmsPage(QWidget):
             # must open the chooser instead of offering Learn.
             menu = build_package_menu(self._ruleset, char, cid)
             if menu is not None:
-                verb = "Choose Gifts…" if menu.kind == "gift" else "Choose a package…"
+                verb = {"gift": "Choose Gifts…",
+                        "variant": "Choose a version…"}.get(menu.kind,
+                                                            "Choose a package…")
                 self.action_btn.setText(
                     f"{verb} — {menu.price} XP each" if menu.price else verb)
                 self.action_btn.setEnabled(True)
@@ -912,6 +914,7 @@ class CharmsPage(QWidget):
                 return
             owned = cid in char.charms
             label = f"Remove {charm.name}" if owned else f"Learn {charm.name}"
+            blocked = ""
             if not owned:
                 if char.chargen_locked:
                     label += f" — {costs.charm_cost(self._ruleset, char, charm)} XP"
@@ -932,8 +935,14 @@ class CharmsPage(QWidget):
                         f"Add another — {costs.charm_cost(self._ruleset, char, charm)} XP"
                         if char.chargen_locked else "Add another")
                     self.again_btn.setToolTip(f"{held} of {cap} copies")
+                # ⚠ Post-lock "Remove" is only ever the LAST XP purchase: the log is
+                # append-only and undo is LIFO (decision 0004), so there is no correct
+                # way to pull an arbitrary Charm out. This button used to be enabled
+                # regardless and refuse every click.
+                blocked = charm_actions.undo_charm_reason(char, cid)
             self.action_btn.setText(label)
-            self.action_btn.setEnabled(True)
+            self.action_btn.setEnabled(not blocked)
+            self.action_btn.setToolTip(blocked)
             return
         if self._selected_spell is not None:
             sid = self._selected_spell
@@ -1126,7 +1135,14 @@ class CharmsPage(QWidget):
         variant menu reached only the web copy, so this one would have appended the
         package Charm's id straight into `char.charms`). `variant_menu_reason` now
         refuses that here rather than relying on a widget-level branch."""
-        if self._act(charm_actions.toggle_charm, self._ruleset, self._char(), charm_id):
+        char = self._char()
+        # Post-lock an owned Charm is handed back through the XP ledger, not dropped —
+        # `toggle_charm` would try to LEARN it again.
+        if char.chargen_locked and charm_id in char.charms:
+            if self._act(charm_actions.undo_charm, self._ruleset, char, charm_id):
+                self._refresh_current_tree()
+            return
+        if self._act(charm_actions.toggle_charm, self._ruleset, char, charm_id):
             self._refresh_current_tree()
 
     def _rebuild_submodules(self, charm_id) -> None:
@@ -1583,8 +1599,8 @@ class CharmsPage(QWidget):
         """The packages already bought and the cap, appended to a variant-menu
         Charm's detail. The tree paints the node "owned" off a single Charm id; what
         a player needs here is HOW MANY packages and which."""
-        rows = [f"<b>Bought:</b> {menu.bought} / {menu.cap} · once per "
-                f"{html.escape(menu.cap_unit)} of {html.escape(menu.cap_trait)}"]
+        rows = [f"<b>Bought:</b> {menu.bought} / {menu.cap} · "
+                f"{html.escape(menu.cap_phrase)}"]
         for h in menu.held:
             rows.append("• " + html.escape(h.label))
         if not menu.held:
@@ -2098,9 +2114,14 @@ class CharmsPage(QWidget):
             sync()
 
         def buy() -> None:
+            # ⚠ Each kind lands on its OWN Character list, so the dispatcher is chosen
+            # by `menu.kind` and never by the shape of the selection.
             if menu_kind[0] == "gift":
                 ok = self._act(charm_actions.add_gift_purchase, self._ruleset,
                                self._char(), sorted(selection))
+            elif menu_kind[0] == "variant":
+                ok = self._act(charm_actions.add_variant_purchase, self._ruleset,
+                               self._char(), charm_id, sorted(selection))
             else:
                 ok = self._act(charm_actions.add_ox_body, self._ruleset,
                                self._char(), selection[0])
@@ -2109,8 +2130,9 @@ class CharmsPage(QWidget):
                 dialog.accept()
 
         def remove(index: int) -> None:
-            action = (charm_actions.remove_gift_purchase if menu_kind[0] == "gift"
-                      else charm_actions.remove_ox_body)
+            action = {"gift": charm_actions.remove_gift_purchase,
+                      "variant": charm_actions.remove_variant_purchase}.get(
+                          menu_kind[0], charm_actions.remove_ox_body)
             if self._act(action, self._char(), index):
                 selection.clear()
                 self._refresh_current_tree()
@@ -2138,10 +2160,11 @@ class CharmsPage(QWidget):
                 note.setWordWrap(True)
                 note.setStyleSheet(f"color:{MUTED};")
                 body.addWidget(note)
-            # Which trait caps the purchases is per-splat data, never a literal:
-            # Lunar Ox-Body counts Stamina where every other splat counts Endurance.
-            head = QLabel(f"Bought {menu.bought} / {menu.cap}  ·  once per "
-                          f"{menu.cap_unit} of {menu.cap_trait}")
+            # What caps the purchases is per-splat data, never a literal: Lunar
+            # Ox-Body counts Stamina where every other splat counts Endurance, and a
+            # unique-version menu is capped by its versions instead — `cap_phrase`
+            # is the ONE place that sentence is composed.
+            head = QLabel(f"Bought {menu.bought} / {menu.cap}  ·  {menu.cap_phrase}")
             head.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
             body.addWidget(head)
             for h in menu.held:
