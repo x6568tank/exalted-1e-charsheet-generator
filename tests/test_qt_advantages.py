@@ -373,9 +373,11 @@ def test_a_dialog_chip_narrows_the_offer_to_that_category(qtbot, ruleset):
     dialog = page._build_mf_dialog(page._available_merits())
     qtbot.addWidget(dialog)
     dialog._set_group("Physical")
-    shown = {dialog._group_of[key]
+    # ⚠ `_group_of` holds a LIST per key since 2026-08-27; M&F pass one group per row.
+    shown = {group
              for i, (key, *_rest) in enumerate(dialog._entries)
-             if not dialog.list.item(i).isHidden()}
+             if not dialog.list.item(i).isHidden()
+             for group in dialog._group_of[key]}
     assert shown == {"Physical"}
 
 

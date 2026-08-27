@@ -45,7 +45,7 @@ from .layout import clear_layout, empty_note
 from .theme import CARD, INPUT, MUTED, accent as accent_light
 from .trackers import MARK_FILL, box as tracker_box
 
-_COLUMNS = ("Name", "Category", "Damage", "Stats")
+_COLUMNS = ("Name", "Categories", "Damage", "Stats")
 
 # Qt has no flex-wrap; a health track runs to 22 boxes on a Deathlord, so it wraps by
 # construction — the same reason `qt/play.py` carries this number.
@@ -86,10 +86,10 @@ _POOLS = (
      "Elementals pay this instead — their natural state is the physical one (p.295)."),
 )
 
+# ⚠ `categories` is NOT in this table: it is a codec line (comma-separated), not a
+# plain string field, so it is built separately in `_identity_panel`.
 _IDENTITY = (
     ("name", "Name", ""),
-    ("category", "Category",
-     "Free text — Extra, Beast, Spirit, whatever groups your roster"),
     ("nature", "Nature", ""),
     ("caste", "Caste / Aspect", ""),
 )
@@ -153,7 +153,13 @@ class AdversariesPage(QWidget):
         # clears the indicator and leaves the header clickable.
         self.table.sortByColumn(-1, Qt.AscendingOrder)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.table.header().setStretchLastSection(False)
         self.table.header().setSectionResizeMode(3, QHeaderView.Stretch)
+        # ⚠ Widths set, not left to Qt. A list of categories needs room the single
+        # word never did — "Undead · Sold…" in a 90px column is the one cell you file a
+        # squad by, truncated. Interactive, so they stay draggable.
+        for column, width in ((0, 175), (1, 175), (2, 115)):
+            self.table.header().resizeSection(column, width)
         self.table.itemSelectionChanged.connect(self._selection_changed)
         empty_note(self.table,
                    "No adversaries yet.\n\nUse “Add…” for a catalogue template — an "
@@ -176,7 +182,7 @@ class AdversariesPage(QWidget):
         split = QSplitter()
         split.addWidget(self.table)
         split.addWidget(detail_panel)
-        split.setSizes([560, 620])
+        split.setSizes([720, 560])
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -244,7 +250,8 @@ class AdversariesPage(QWidget):
         self.table.clear()
         restore = None
         for entry in self._entries():
-            item = QTreeWidgetItem([entry.name or "(unnamed)", entry.category,
+            item = QTreeWidgetItem([entry.name or "(unnamed)",
+                                    adv.category_label(entry),
                                     self._damage_cell(entry),
                                     viewmod.summary_line(self._ruleset, entry)])
             item.setData(0, Qt.UserRole, entry.id)
@@ -271,7 +278,7 @@ class AdversariesPage(QWidget):
         if item is None or entry is None:
             return
         item.setText(0, entry.name or "(unnamed)")
-        item.setText(1, entry.category)
+        item.setText(1, adv.category_label(entry))
         item.setText(2, self._damage_cell(entry))
         item.setText(3, viewmod.summary_line(self._ruleset, entry))
 
@@ -290,9 +297,9 @@ class AdversariesPage(QWidget):
         """The template picker, BUILT but not run — `exec()` blocks a headless run, so
         this is the seam the tests drive (the shape `GearPage` uses)."""
         templates = sorted(self._ctx.get("adversary_catalog", {}).values(),
-                           key=lambda t: (t.category, t.name))
+                           key=lambda t: (adv.category_label(t), t.name))
         rows = [(t.id, t.name, viewmod.summary_line(self._ruleset, t),
-                 "\n".join(x for x in (t.category, t.nature, t.notes) if x))
+                 "\n".join(x for x in (adv.category_label(t), t.nature, t.notes) if x))
                 for t in templates]
         pal = theme.palette(None)
         splats = {m.character.exalt_type for m in self._party().members}
@@ -301,7 +308,9 @@ class AdversariesPage(QWidget):
         return CatalogueDialog(
             pal, "Add an adversary", rows, self._add,
             subtitle=_ADD_SUBTITLE if rows else "",
-            group_of={t.id: t.category for t in templates},
+            # ⚠ EVERY category, not the first — a template filed under two headings
+            # must be findable under both, which is the point of the list.
+            group_of=adv.catalogue_groups(templates),
             custom_label="Blank adversary", parent=self)
 
     def _open_catalogue(self) -> None:
@@ -519,7 +528,20 @@ class AdversariesPage(QWidget):
 
     def _identity_panel(self, a: Adversary) -> None:
         body = self._panel("IDENTITY")
-        for field, label, tooltip in _IDENTITY:
+        self._labelled(body, "Name", self._text_line(a, "name"))
+        # Several labels, all equal — a skeletal legionnaire is Undead AND a Soldier,
+        # and the roster files it under both. ⚠ Committed on `editingFinished`, not per
+        # keystroke: splitting on every comma mid-type would fight the typist.
+        categories = QLineEdit(adv.category_line(a.categories))
+        categories.setObjectName("adv.categories")
+        categories.setPlaceholderText("Extra, Guild")
+        categories.editingFinished.connect(
+            lambda: (setattr(a, "categories", adv.parse_categories(categories.text())),
+                     self._refresh_row()))
+        self._labelled(body, "Categories", categories,
+                       "Free text, comma-separated — Extra, Beast, Spirit, whatever "
+                       "groups your roster. An entry is filed under every one of them.")
+        for field, label, tooltip in _IDENTITY[1:]:
             self._labelled(body, label, self._text_line(a, field), tooltip)
         if a.template_id:
             body.addWidget(self._muted(

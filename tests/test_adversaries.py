@@ -32,7 +32,7 @@ def ruleset():
 
 def _extra() -> Adversary:
     """A Weak extra exactly as p.241 prints it: four numbers and three boxes."""
-    return Adversary(id="adv.thug", name="Hired Thug", category="Extra",
+    return Adversary(id="adv.thug", name="Hired Thug", categories=["Extra"],
                      base_initiative=4, willpower=3,
                      virtues={"valor": 2},
                      health_levels=adv.expand_health("-1/-3/I"))
@@ -351,10 +351,10 @@ def test_the_four_exalt_templates_are_roles_not_people(catalog):
     the genuinely unique ones (Fakharu, the Mask of Winters, Juggernaut) are not.
 
     Human's ruling 2026-08-01, taking option 2 of three."""
-    exalts = {t.name for t in catalog.values() if t.category == "Exalt"}
+    exalts = {t.name for t in catalog.values() if "Exalt" in t.categories}
     assert exalts == {"Dynasty Noble", "Ambitious Young Officer",
                       "Bronze Faction Functionary", "Deathknight"}
-    for t in (x for x in catalog.values() if x.category == "Exalt"):
+    for t in (x for x in catalog.values() if "Exalt" in x.categories):
         assert t.caste, f"{t.name} should carry its Caste/Aspect"
         assert t.personal_essence and t.peripheral_essence, t.name
 
@@ -392,7 +392,7 @@ def test_no_fair_folk(catalog):
     """Decision 0010: permanently out of scope, statblocks included."""
     for t in catalog.values():
         assert "fair folk" not in t.name.lower()
-        assert "fair folk" not in t.category.lower()
+        assert "fair folk" not in adv.category_label(t).lower()
 
 
 def test_the_three_extra_tiers_are_p241(catalog):
@@ -516,7 +516,7 @@ def test_every_shield_reference_resolves(ruleset, catalog):
 
 def test_beasts_carry_the_p317_default_attributes(catalog):
     """p.317: assume Intelligence 1, Perception 2 and Wits 3 unless stated."""
-    beasts = [t for t in catalog.values() if t.category == "Beast"]
+    beasts = [t for t in catalog.values() if "Beast" in t.categories]
     assert len(beasts) >= 20
     for b in beasts:
         assert b.attributes["intelligence"] == 1
@@ -537,7 +537,7 @@ def test_beast_attacks_have_no_defense(catalog):
     """p.317 says to use the Atk value for parries, so the table has no Defense
     column and none may be invented."""
     for t in catalog.values():
-        if t.category == "Beast":
+        if "Beast" in t.categories:
             assert all(a.defense is None for a in t.attacks), t.name
 
 
@@ -666,3 +666,50 @@ def test_a_count_track_fills_to_the_click_and_empties_back():
     assert entry.willpower_spent == 3
     adv.set_count(entry, "willpower_spent", 2, entry.willpower)
     assert entry.willpower_spent == 2
+
+
+# --------------------------------------------------------------------------- #
+# Categories — a LIST of equal filing labels (human, 2026-08-27)
+# --------------------------------------------------------------------------- #
+
+def test_the_category_codec_round_trips():
+    """⚠ `category_line` and `parse_categories` are a CODEC PAIR, like the trait and
+    attack pairs: one fills the input, the other reads it back."""
+    for text in ("", "Extra", "Undead, Soldier", "Beast, Wyld, Darkbrood"):
+        assert adv.category_line(adv.parse_categories(text)) == text
+
+
+def test_parsing_categories_trims_drops_blanks_and_keeps_the_typed_order():
+    """Order is the GM's, not alphabetical — they typed the one they file it under
+    first. Duplicates go, because a chip list with "Undead" twice is a bug on screen."""
+    assert adv.parse_categories(" Undead , , Soldier ,Undead") == ["Undead", "Soldier"]
+    assert adv.parse_categories("   ") == []
+
+
+def test_an_entry_is_filed_under_every_category_it_carries():
+    """The whole point of the list: a picker's chips must offer BOTH, or a two-headed
+    entry is unfindable under one of them."""
+    templates = [Adversary(id="a", name="Legionnaire",
+                           categories=["Undead", "Soldier"]),
+                 Adversary(id="b", name="Bear", categories=["Beast"])]
+    groups = adv.catalogue_groups(templates)
+    assert groups["a"] == ["Undead", "Soldier"]
+    assert [k for k, v in groups.items() if "Soldier" in v] == ["a"]
+    assert [k for k, v in groups.items() if "Beast" in v] == ["b"]
+
+
+def test_the_display_label_joins_them():
+    assert adv.category_label(Adversary(id="a", categories=["Undead", "Soldier"])) == \
+        "Undead  ·  Soldier"
+    assert adv.category_label(Adversary(id="b")) == ""
+
+
+def test_every_catalogue_row_still_carries_at_least_one_category(catalog):
+    """⚠ The catalogue was CONVERTED, not re-authored: each template keeps exactly the
+    heading the book filed it under, as a one-element list. Adding a second to any of
+    them is an authoring decision that needs the page, not a migration."""
+    for t in catalog.values():
+        assert t.categories, f"{t.name} lost its category in the conversion"
+        assert len(t.categories) == 1, (
+            f"{t.name} gained a category the books did not print — "
+            f"{t.categories}. That is authoring, and needs a page behind it.")

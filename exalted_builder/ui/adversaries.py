@@ -65,7 +65,8 @@ _VIRTUES = ["compassion", "conviction", "temperance", "valor"]
 # --------------------------------------------------------------------------- #
 
 from ..engine.adversaries import (  # noqa: F401  (re-export for existing callers)
-    _copy_name, attack_line, next_id, parse_attacks, parse_traits, trait_line)
+    _copy_name, attack_line, category_line, next_id, parse_attacks, parse_categories,
+    parse_traits, trait_line)
 from .view import summary_line, trait_map_line  # noqa: F401  (re-export)
 
 
@@ -123,9 +124,10 @@ def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None]) -> 
 
         with ui.row().classes("w-full gap-2 no-wrap"):
             name = ui.input("Name", value=a.name).props("dense outlined").classes("grow")
-            category = ui.input("Category", value=a.category).props(
-                "dense outlined").classes("w-40").tooltip(
-                "Free text — Extra, Beast, Spirit, whatever groups your roster")
+            category = ui.input("Categories", value=adv.category_line(a.categories)).props(
+                "dense outlined").classes("w-64").tooltip(
+                "Free text, comma-separated — Extra, Beast, Spirit, whatever groups "
+                "your roster. An entry is filed under every one of them.")
         with ui.row().classes("w-full gap-2 no-wrap"):
             nature = ui.input("Nature", value=a.nature).props("dense outlined").classes("grow")
             caste = ui.input("Caste / Aspect", value=a.caste).props(
@@ -235,7 +237,7 @@ def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None]) -> 
 
         def commit() -> None:
             a.name = name.value or ""
-            a.category = category.value or ""
+            a.categories = adv.parse_categories(category.value or "")
             a.nature = nature.value or ""
             a.caste = caste.value or ""
             a.attributes = {k: int(w.value) for k, w in attr_inputs.items()
@@ -324,7 +326,8 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
         refresh()
 
     def add_dialog() -> None:
-        templates = sorted(catalog.values(), key=lambda t: (t.category, t.name))
+        templates = sorted(catalog.values(),
+                           key=lambda t: (adv.category_label(t), t.name))
         with ui.dialog() as dialog, ui.card().classes("w-full max-w-2xl gap-2"):
             ui.label("Add an adversary").classes("text-lg font-bold")
             if templates:
@@ -338,7 +341,8 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
                 def rows() -> None:
                     needle = (search.value or "").lower()
                     shown = [t for t in templates
-                             if needle in t.name.lower() or needle in t.category.lower()]
+                             if needle in t.name.lower()
+                             or needle in adv.category_label(t).lower()]
                     with ui.column().classes("w-full gap-1 max-h-96 overflow-y-auto"):
                         for template in shown:
                             # The whole row is the click target (a bare button
@@ -354,7 +358,7 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
                                         "text-sm font-semibold truncate")
                                     ui.label(summary_line(ruleset, template)).classes(
                                         "text-xs text-gray-600 truncate")
-                                ui.label(template.category).classes(
+                                ui.label(adv.category_label(template)).classes(
                                     "text-xs text-gray-500 shrink-0")
                         if not shown:
                             ui.label("Nothing matches.").classes(
@@ -377,7 +381,8 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
                 with ui.column().classes("gap-0 min-w-0"):
                     ui.label(a.name or "(unnamed)").classes(
                         "text-base font-bold truncate").style(f"color:{pal.accent}")
-                    line = "  ·  ".join(x for x in (a.category, a.nature, a.caste) if x)
+                    line = "  ·  ".join(x for x in (adv.category_label(a), a.nature,
+                                                    a.caste) if x)
                     if line:
                         ui.label(line).classes("text-xs text-gray-600 truncate")
                 ui.label(summary_line(ruleset, a)).classes(

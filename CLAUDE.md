@@ -389,8 +389,8 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**3,015 passing, 1 skipped** (2026-08-27, main PC, the `qt-port` branch after the Party
-/ ST window — includes the Qt-port tests in `tests/test_qt_*.py`,
+**3,027 passing, 1 skipped** (2026-08-27, main PC, the `qt-port` branch after the Party
+/ ST window and multi-category adversaries — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
 `tests/test_variant_purchases.py`).
 

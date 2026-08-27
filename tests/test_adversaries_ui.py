@@ -335,7 +335,7 @@ def test_trait_line_round_trips():
 # --------------------------------------------------------------------------- #
 
 # Everything that is not a printed stat: identity, provenance, tracked state.
-_NOT_STATS = {"id", "name", "template_id", "category", "nature", "caste",
+_NOT_STATS = {"id", "name", "template_id", "categories", "nature", "caste",
               "damage", "willpower_spent", "motes_spent", "notes"}
 
 

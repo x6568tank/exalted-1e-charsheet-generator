@@ -2,7 +2,7 @@
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,015 passed, 1 skipped** (main PC, `qt-port`, 7m34s), run
+Last FULL green suite: **3,027 passed, 1 skipped** (main PC, `qt-port`, 7m54s), run
 after the last code change. The tree is clean and nothing is half-finished.
 
 **The Qt port has nothing left to build.** The Party / ST window shipped this session —
@@ -39,6 +39,14 @@ either window that holds no rows and says nothing. ⚠ Its slot must be a bound 
 the label, not a closure: the Advantages/Custom tables are rebuilt with their sub-tab
 pages, so a closure fires into a deleted C++ object — and that crash surfaces in the NEXT
 test, not the one that caused it.
+
+**Adversaries now carry SEVERAL categories** (asked for at the same sitting, human's
+call: one list, all equal, no primary). `Adversary.category` → `categories: list[str]`,
+edited as a comma-separated codec line, joined for display, and the Add dialog files an
+entry under **every** one of its labels — `CatalogueDialog.group_of` learned to take a
+list per key. ⚠ The 52 catalogue rows were CONVERTED, not re-authored: each keeps exactly
+the heading its book filed it under, and a test now fails if any of them grows a second
+without a page behind it. `docs/status/adversary-roster.md`.
 
 **The rest of the click-through is still owed.**
 

@@ -279,8 +279,12 @@ def test_a_type_chip_hides_the_other_kinds(ruleset, qtbot):
     dialog = page._build_shop_dialog()
     qtbot.addWidget(dialog)
     dialog._set_group("Armour")
-    shown = {dialog._group_of[key] for i, (key, *_rest) in enumerate(dialog._entries)
-             if not dialog.list.item(i).isHidden()}
+    # ⚠ `_group_of` holds a LIST per key since 2026-08-27 (a row may sit in several
+    # groups — an adversary is filed under all of its categories). Gear passes one group
+    # per row, so the flattened set is still a single kind.
+    shown = {group for i, (key, *_rest) in enumerate(dialog._entries)
+             if not dialog.list.item(i).isHidden()
+             for group in dialog._group_of[key]}
     assert shown == {"Armour"}
 
 

@@ -101,11 +101,16 @@ class Adversary(BaseModel):
     id: str
     name: str = ""
     template_id: str = ""
-    # Free-text identity. `category` is the roster's own grouping label
+    # Free-text identity. `categories` are the roster's own grouping labels
     # ("Extra", "Beast", "Spirit"…); the rest are printed fields that only some
     # templates carry. `caste` serves both the Sidereal/Abyssal `Caste:` line and
     # the Dragon-Blooded `Aspect:` — one field, since no block prints both.
-    category: str = ""
+    #
+    # ⚠ A LIST, and every entry equal — there is no primary (human, 2026-08-27). A
+    # skeletal legionnaire is Undead and a Soldier, and the roster should file it
+    # under both. This is the GM's own filing label with no printed meaning, which is
+    # why it can be several at once where `caste` cannot.
+    categories: list[str] = Field(default_factory=list)
     nature: str = ""
     caste: str = ""
 

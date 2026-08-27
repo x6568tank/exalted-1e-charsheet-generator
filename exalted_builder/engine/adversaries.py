@@ -327,6 +327,34 @@ def _copy_name(existing: list[Adversary], base: str) -> str:
     return f"{stem} {n}"
 
 
+def category_line(categories: list[str]) -> str:
+    """The roster's filing labels as one editable line: "Undead, Soldier"."""
+    return ", ".join(categories)
+
+
+def parse_categories(text: str) -> list[str]:
+    """Read that line back. Blanks dropped, duplicates dropped, ORDER KEPT — the GM
+    typed them in the order they want them shown, and `dict.fromkeys` is the one-liner
+    that dedupes without sorting.
+
+    ⚠ A CODEC PAIR with `category_line`, like the trait and attack pairs below: the
+    formatter fills the input, this reads it back, and the round trip is asserted.
+    """
+    return list(dict.fromkeys(part.strip() for part in text.split(",") if part.strip()))
+
+
+def category_label(adversary: Adversary) -> str:
+    """The filing labels as one cell/line of display: "Undead · Soldier"."""
+    return "  ·  ".join(adversary.categories)
+
+
+def catalogue_groups(templates) -> dict[str, list[str]]:
+    """`{template id: its categories}` for a picker's group chips. ⚠ Every category,
+    not the first: an entry filed under two headings must be findable under both, which
+    is the whole point of the list."""
+    return {t.id: list(t.categories) for t in templates}
+
+
 def attack_line(atk: AdversaryAttack) -> str:
     """One printed attack, rendered the way the book prints it."""
     parts = []

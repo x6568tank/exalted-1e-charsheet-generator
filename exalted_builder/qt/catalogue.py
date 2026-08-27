@@ -1,7 +1,8 @@
 """exalted_builder/qt/catalogue.py — the native browse-before-you-choose dialog.
 
 Input: `(key, name, summary, full)` rows, the same shape `ui/catalogue.py` takes, plus
-an `on_pick` callback and the optional `extras`, `confirm`, `group_of`, `custom_kinds`
+an `on_pick` callback and the optional `extras`, `confirm`, `group_of` (one group per
+key, or several), `custom_kinds`
 and `dimmed`. Output: a modal list filtered live by a text box and by type chips, with
 the selected row's full text beside it and the caller's own controls under that text;
 confirming calls `on_pick(key)`, a Custom button calls `on_pick(None)` or
@@ -59,7 +60,7 @@ class CatalogueDialog(QDialog):
                  on_pick: Callable[[str | None], None], *,
                  subtitle: str = "", custom_label: str = "Custom",
                  allow_custom: bool = True,
-                 group_of: dict[str, str] | None = None,
+                 group_of: dict[str, str | Sequence[str]] | None = None,
                  custom_kinds: dict[str, str] | None = None,
                  dimmed: set[str] | None = None,
                  extras: Callable[[str, QVBoxLayout], None] | None = None,
@@ -70,7 +71,12 @@ class CatalogueDialog(QDialog):
         self._on_pick = on_pick
         self._extras = extras
         self._confirm = confirm
-        self._group_of = dict(group_of or {})
+        # ⚠ A row may belong to SEVERAL groups. `group_of` takes a string or a list of
+        # them per key, normalised to a list here, because an adversary carries a list of
+        # filing labels and must be findable under every one (2026-08-27). Every other
+        # caller passes a plain string and is unaffected.
+        self._group_of = {key: [value] if isinstance(value, str) else list(value)
+                          for key, value in dict(group_of or {}).items()}
         self._dimmed = set(dimmed or ())
         self._group = ALL_GROUPS
         self.setWindowTitle(title)
@@ -94,7 +100,8 @@ class CatalogueDialog(QDialog):
         # and the text box only helps someone who already knows what to type. The chips
         # come from the caller's `group_of` — the dialog does not classify anything.
         self.group_buttons: dict[str, QPushButton] = {}
-        groups = [g for g in dict.fromkeys(self._group_of.values()) if g]
+        groups = [g for g in dict.fromkeys(
+            g for values in self._group_of.values() for g in values) if g]
         if groups:
             chips = QHBoxLayout()
             for group in [ALL_GROUPS] + groups:
@@ -206,7 +213,7 @@ class CatalogueDialog(QDialog):
         for i, (key, name, summary, full) in enumerate(self._entries):
             hay = f"{name} {summary} {full or ''}".lower()
             match = needle in hay and (self._group == ALL_GROUPS
-                                       or self._group_of.get(key) == self._group)
+                                       or self._group in self._group_of.get(key, ()))
             self.list.item(i).setHidden(not match)
             shown += bool(match)
         total = len(self._entries)

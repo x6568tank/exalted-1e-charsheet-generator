@@ -272,3 +272,32 @@ which a grep can never see. `tests/test_qt_adversaries.py`.
 2. **The nullable combat numbers run from −1**, shown as "—", because absent is not zero
    (the Bear prints no dodge, p.316; Nagezzer "does not dodge", p.307).
 3. **Charms / Spells / Powers stay free text** (p.303).
+
+## Categories are a LIST (2026-08-27)
+
+`Adversary.category: str` became **`categories: list[str]`**, every entry equal — there
+is no primary (the human's call). A skeletal legionnaire is Undead *and* a Soldier, and
+the roster files it under both.
+
+* **Edited as a codec line** — "Undead, Soldier" — beside the Abilities and Attacks
+  lines it now matches. `category_line` / `parse_categories` are the pair, and the round
+  trip is asserted. Parsing trims, drops blanks, and **dedupes while keeping the typed
+  order**: the GM typed the label they file it under first, and alphabetising would
+  overrule that.
+* **Displayed joined** by `category_label` ("Undead · Soldier"), on the webapp card line
+  and in the native roster's Categories column.
+* **The picker offers an entry under EVERY one of its categories**
+  (`catalogue_groups`). An entry findable under only the first is the feature not
+  working, so it has its own test.
+
+⚠ **`CatalogueDialog.group_of` now takes a string OR a list per key.** One row may sit
+in several chip groups. Every other caller (Gear, M&F) passes a plain string and is
+unaffected — but two tests read the dialog's normalised `_group_of` directly and had to
+learn the list shape.
+
+⚠ **The catalogue was CONVERTED, never re-authored.** All 52 templates keep exactly the
+heading the book filed them under, as a one-element list.
+`test_every_catalogue_row_still_carries_at_least_one_category` asserts that none has
+gained a second: giving the Skeletal Legionnaire "Undead + Soldier" would be authoring
+from memory, and needs a page like anything else in `data/`. The GM's own entries are
+theirs to file however they like.

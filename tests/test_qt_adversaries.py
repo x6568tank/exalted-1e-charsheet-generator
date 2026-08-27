@@ -49,7 +49,7 @@ def make_page(ruleset, qtbot):
 
 
 def _template() -> Adversary:
-    return Adversary(id="tpl.bandit", name="Bandit", category="Extra",
+    return Adversary(id="tpl.bandit", name="Bandit", categories=["Extra"],
                      base_initiative=5, combat_pool=4, willpower=3,
                      health_levels=adv.expand_health("-1/-3/I"))
 
@@ -57,7 +57,7 @@ def _template() -> Adversary:
 def _full() -> Adversary:
     """An entry with every field filled — the fixture the field walks drive."""
     return Adversary(
-        id="adv.1", name="Fakharu", template_id="tpl.x", category="Spirit",
+        id="adv.1", name="Fakharu", template_id="tpl.x", categories=["Spirit", "Elemental"],
         nature="Bureaucrat", caste="Water",
         attributes={"strength": 5, "wits": 4}, virtues={"valor": 3},
         abilities=[AdversaryTrait(name="Melee", rating=4, specialties="Swords +2")],
@@ -190,6 +190,39 @@ def test_the_add_dialog_offers_every_template_grouped_by_category(make_page):
     assert dialog._entries[0][0] == "tpl.bandit"
 
 
+def test_a_two_category_template_gets_a_chip_for_each_and_shows_under_both(make_page):
+    """⚠ The reason categories are a LIST: a skeletal legionnaire is Undead AND a
+    Soldier, and an entry findable under only the first is the feature not working."""
+    template = Adversary(id="tpl.legion", name="Skeletal Legionnaire",
+                         categories=["Undead", "Soldier"])
+    page = make_page(catalog={template.id: template})
+    dialog = page.build_add_dialog()
+    assert {"Undead", "Soldier"} <= set(dialog.group_buttons)
+    for group in ("Undead", "Soldier"):
+        dialog._set_group(group)
+        assert not dialog.list.item(0).isHidden(), f"hidden under {group}"
+
+
+def test_the_roster_column_shows_every_category(make_page):
+    party = Party(id="p", adversaries=[
+        Adversary(id="a.1", name="Legionnaire", categories=["Undead", "Soldier"])])
+    page = make_page(party)
+    assert page.table.topLevelItem(0).text(1) == "Undead  ·  Soldier"
+
+
+def test_the_categories_line_is_a_codec_not_a_plain_field(make_page):
+    """Typed as text, stored as a list — and re-read from the model, so the editor and
+    the table cannot disagree about what the entry is filed under."""
+    entry = Adversary(id="a.1", name="Legionnaire", categories=["Undead"])
+    page = make_page(Party(id="p", adversaries=[entry]))
+    line = _widget(page, "adv.categories", QLineEdit)
+    assert line.text() == "Undead"
+    line.setText("Undead, Soldier,  Undead ")
+    line.editingFinished.emit()
+    assert entry.categories == ["Undead", "Soldier"]          # trimmed and deduped
+    assert page.table.topLevelItem(0).text(1) == "Undead  ·  Soldier"
+
+
 # --------------------------------------------------------------------------- #
 # The trackers
 # --------------------------------------------------------------------------- #
@@ -240,6 +273,11 @@ def _drive(page, entry, field):
         key = "strength" if field == "attributes" else "valor"
         _widget(page, f"adv.{field}.{key}", QSpinBox).setValue(7)
         return {**getattr(entry, field), key: 7}
+    if field == "categories":
+        line = _widget(page, "adv.categories", QLineEdit)
+        line.setText("Undead, Soldier")
+        line.editingFinished.emit()
+        return ["Undead", "Soldier"]
     if field in ("abilities", "backgrounds"):
         line = _widget(page, f"adv.{field}", QLineEdit)
         line.setText("Awareness 2 (Owls +1)")
