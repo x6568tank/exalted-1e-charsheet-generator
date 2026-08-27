@@ -27,6 +27,21 @@ display can answer:
    one. Does the Damage column carry what the card stack used to?
 4. **Close the builder.** The party window must go with it.
 
+## The click-through started, and its first finding is fixed
+
+**"The adversaries list doesn't load anything?"** — an empty collection table is a header
+over a blank rectangle, and reads as broken rather than empty. **Every collection tab in
+the port had it** (Gear, Advantages, Combos, Custom); the roster is where it bit because
+empty is that tab's opening state. `qt/layout.py::empty_note` is the fix, wired to the
+model's own row signals so no `_fill_table` can forget it, and guarded by a SWEEP —
+`test_no_empty_table_anywhere_in_the_port_is_a_bare_void` fails for any table anywhere in
+either window that holds no rows and says nothing. ⚠ Its slot must be a bound method of
+the label, not a closure: the Advantages/Custom tables are rebuilt with their sub-tab
+pages, so a closure fires into a deleted C++ object — and that crash surfaces in the NEXT
+test, not the one that caused it.
+
+**The rest of the click-through is still owed.**
+
 ## What shipped this session
 
 | Thing | Where |

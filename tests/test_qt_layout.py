@@ -111,3 +111,73 @@ def test_a_naive_widget_only_sweep_would_fail_these(qtbot):
         if item.widget() is not None:
             item.widget().setParent(None)
     assert len(host.findChildren(QLabel)) == 3      # the three nested ones survive
+
+
+# --------------------------------------------------------------------------- #
+# The empty-table note
+# --------------------------------------------------------------------------- #
+
+def _tree(qtbot, rows=0):
+    from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem
+    tree = QTreeWidget()
+    tree.setColumnCount(1)
+    qtbot.addWidget(tree)
+    for i in range(rows):
+        tree.addTopLevelItem(QTreeWidgetItem([f"row {i}"]))
+    return tree
+
+
+def test_the_note_shows_only_while_the_table_is_empty(qtbot):
+    from PySide6.QtWidgets import QTreeWidgetItem
+
+    from exalted_builder.qt.layout import empty_note
+    tree = _tree(qtbot)
+    note = empty_note(tree, "Nothing yet.")
+    assert note.isVisibleTo(tree)
+    tree.addTopLevelItem(QTreeWidgetItem(["a bandit"]))
+    assert not note.isVisibleTo(tree)
+    tree.takeTopLevelItem(0)
+    assert note.isVisibleTo(tree)
+
+
+def test_the_note_survives_a_clear_and_refill(qtbot):
+    """⚠ `clear()` emits modelReset, not rowsRemoved. A note wired only to the row
+    signals comes back from a rebuild permanently hidden — and every `_fill_table` in
+    the port clears before it fills."""
+    from PySide6.QtWidgets import QTreeWidgetItem
+
+    from exalted_builder.qt.layout import empty_note
+    tree = _tree(qtbot, rows=3)
+    note = empty_note(tree, "Nothing yet.")
+    assert not note.isVisibleTo(tree)
+    tree.clear()
+    assert note.isVisibleTo(tree)
+    tree.addTopLevelItem(QTreeWidgetItem(["back"]))
+    assert not note.isVisibleTo(tree)
+
+
+def test_the_note_is_the_receiver_so_a_dead_label_cannot_be_signalled(qtbot):
+    """⚠ A plain closure crashes here: the Advantages and Custom tables are rebuilt with
+    their sub-tab pages, so the label dies while its model lives on, and the next signal
+    fires into a deleted C++ object. Qt drops a connection when its RECEIVER dies — which
+    only works because the slot is a bound method of the label.
+
+    ⚠ The failure is ASYNCHRONOUS to the test that causes it: the RuntimeError surfaces
+    inside Qt's event loop, so without `capture_exceptions` it fails whichever test runs
+    next and this one passes. Negative-controlled by putting the closure back.
+    """
+    from PySide6.QtWidgets import QApplication, QTreeWidgetItem
+
+    from exalted_builder.qt.layout import empty_note
+    tree = _tree(qtbot)
+    note = empty_note(tree, "Nothing yet.")
+    # The contract, asserted structurally: the slot is a BOUND METHOD OF THE LABEL, which
+    # is the only reason Qt can drop the connection when the label dies. A closure would
+    # satisfy every behavioural test above and still crash in the app.
+    assert note.sync.__self__ is note
+    note.setParent(None)
+    note.deleteLater()
+    del note
+    QApplication.processEvents()                 # the delete actually happens here
+    tree.addTopLevelItem(QTreeWidgetItem(["a bandit"]))
+    tree.clear()

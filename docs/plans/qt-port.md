@@ -1582,3 +1582,38 @@ have to learn two damage trackers, and three copies of a colour map is how they 
 
 **NOT human-clicked yet.** Rendered offscreen and looked at, tab by tab and dialog by
 dialog; that is not the same thing.
+
+### The first click found it in seconds: an empty table looks BROKEN (2026-08-27)
+
+The human opened the Adversaries tab and reported *"the adversaries list doesn't load
+anything?"* — a header over a large blank rectangle, and no way to tell "empty" from
+"failed to load". The catalogue was fine (52 templates); there was simply nothing on
+screen to say the roster starts empty.
+
+**Every collection tab in the port had the same hole.** Gear, Advantages, Combos and
+Custom all render a bare void before you own anything; the detail pane's "select one, or
+add one" sits on the far side of a splitter and does not answer it. The roster is where
+it bit because empty is that tab's *opening* state, every session.
+
+`qt/layout.py::empty_note(tree, text)` is the mechanism — a muted label over the table's
+viewport, wired to the MODEL's own row signals so no `_fill_table` has to remember to
+toggle it (`tree.clear()` emits `modelReset`, so it survives every rebuild). Applied to
+all six tables that can legitimately be empty; ST Options' tables are fixed by the books
+and never are.
+
+⚠ **The slot must be a BOUND METHOD of the label, not a closure.** The Advantages and
+Custom tables are rebuilt with their sub-tab pages, so the label dies while its model
+lives on — a closure keeps firing into a deleted C++ object ("libshiboken: Internal C++
+object already deleted"). Qt drops a connection when its *receiver* QObject is destroyed,
+which is the whole reason `_EmptyNote` is a class.
+
+⚠ **That crash is ASYNCHRONOUS to the code that causes it.** It surfaces inside Qt's
+event loop, so pytest-qt reports it against whichever test runs NEXT — the first version
+of the guard passed while the closure crashed three other tests. The assertion that
+actually holds is structural: `note.sync.__self__ is note`.
+
+The guard is a **sweep, not a per-tab test**:
+`test_no_empty_table_anywhere_in_the_port_is_a_bare_void` builds every page of both
+windows for a fresh character and fails on any table that holds no rows and offers no
+explanation — so a new collection tab fails there until it is wired. Negative-controlled
+by deleting Gear's call.

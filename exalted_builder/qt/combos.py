@@ -42,7 +42,7 @@ from exalted_builder.engine import advancement, combo_actions, costs, validate
 from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
-from .layout import clear_layout
+from .layout import clear_layout, empty_note
 from .theme import MUTED, accent as accent_light
 
 _COLUMNS = ("", "Name", "Charms", "Cost")
@@ -106,6 +106,7 @@ class CombosPage(QWidget):
         self.table.header().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table.header().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.table.itemSelectionChanged.connect(self._selection_changed)
+        self._empty_note = empty_note(self.table, "")
 
         self.detail_title = QLabel("")
         self.detail_title.setWordWrap(True)
@@ -239,6 +240,15 @@ class CombosPage(QWidget):
     def _fill_table(self) -> None:
         rows, _addable, _total = self._rows()
         locked = self._locked()
+        # ⚠ The empty-table message is re-texted per fill, not set once: this tab names
+        # its own subject (a Combo, or an Alchemical's Array) and the way in changes at
+        # the lock — assembled in place at chargen, bought whole in play.
+        self._empty_note.setText(
+            f"No {self._noun()}s yet.\n\n"
+            + (f"Use “Buy {self._noun()}…” — in play one is bought whole, and priced "
+               f"in XP." if locked
+               else f"Use “+ {self._noun()}” and add Charms this character already "
+                    f"owns."))
         self.table.setSortingEnabled(False)
         self.table.blockSignals(True)
         self.table.clear()

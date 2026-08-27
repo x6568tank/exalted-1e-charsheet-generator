@@ -423,3 +423,34 @@ def test_a_builder_change_redraws_a_VISIBLE_party_window_only(ruleset, qtbot):
     party.show()
     win._refresh()
     assert calls == [1]
+
+
+def test_no_empty_table_anywhere_in_the_port_is_a_bare_void(ruleset, qtbot):
+    """⚠ An empty table is indistinguishable from a broken one — reported against the
+    adversary roster the first time it was opened (human, 2026-08-27): a header over a
+    large blank rectangle reads as "nothing loaded". Every collection tab had the same
+    hole, so the guard is a SWEEP rather than one tab's test: build every page of both
+    windows for a fresh character and demand that any table holding no rows says why.
+
+    ⚠ Written against the shell, not against a list of tabs, so a NEW collection tab
+    fails here until it is wired. `qt/layout.py::empty_note` is the one way to satisfy it.
+    """
+    from PySide6.QtWidgets import QLabel, QTreeWidget
+
+    win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    for row in range(win.rail.count()):
+        win.rail.setCurrentRow(row)
+    party = win.party_window()
+    bare = []
+    for root in (win, party):
+        for table in root.findChildren(QTreeWidget):
+            if table.model().rowCount():
+                continue
+            notes = [w for w in table.viewport().findChildren(QLabel)
+                     if w.objectName() == "emptyNote"]
+            if not notes:
+                bare.append(table.objectName()
+                            or " / ".join(table.headerItem().text(c)
+                                          for c in range(table.columnCount())))
+    assert not bare, f"empty tables with no explanation: {bare}"

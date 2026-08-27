@@ -41,7 +41,7 @@ from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
 from .catalogue import CatalogueDialog
-from .layout import clear_layout
+from .layout import clear_layout, empty_note
 from .theme import CARD, INPUT, MUTED, accent as accent_light
 from .trackers import MARK_FILL, box as tracker_box
 
@@ -155,6 +155,9 @@ class AdversariesPage(QWidget):
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.header().setSectionResizeMode(3, QHeaderView.Stretch)
         self.table.itemSelectionChanged.connect(self._selection_changed)
+        empty_note(self.table,
+                   "No adversaries yet.\n\nUse “Add…” for a catalogue template — an "
+                   "extra, a beast, an NPC — or a blank one to type off the page.")
 
         self.detail_title = QLabel("")
         self.detail_title.setWordWrap(True)

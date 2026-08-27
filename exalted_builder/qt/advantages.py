@@ -40,7 +40,7 @@ from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
 from .catalogue import CatalogueDialog, open_catalogue
-from .layout import clear_layout
+from .layout import clear_layout, empty_note
 from .editor import DotTrack, _FilterCombo
 from .theme import MUTED, accent as accent_light
 
@@ -57,6 +57,21 @@ _TABLE_COLUMNS = {
     "Backgrounds": ["Background", "Rating", "Note"],
     "Merits & Flaws": ["Entry", "Side", "Cost", "Detail"],
     "Fetters & Passions": ["Name", "Kind", "Rating", "Note"],
+}
+
+# What an EMPTY table says. ⚠ A header over a blank rectangle reads as "nothing
+# loaded" rather than "nothing yet" — see `qt/layout.py::empty_note`. Each names its
+# own way in, because the toolbar button differs per sub-tab.
+_EMPTY_NOTES = {
+    "Backgrounds": "No Backgrounds yet.\n\nUse “+ Background” — contacts, artifacts, "
+                   "a manse, the people who owe you.",
+    "Merits & Flaws": "No Merits or Flaws yet.\n\nUse “+ Merit / Flaw”. A Flaw refunds "
+                      "bonus points rather than costing them.",
+    # ⚠ The toolbar button here is "+ Fetter" or "+ Passion" depending on the splat
+    # (`_has_fetters`), so the note names the pair rather than a button that may not
+    # be the one on screen.
+    "Fetters & Passions": "Nothing here yet.\n\nFetters and Passions are what hold the "
+                          "dead to Creation (E:Ab p.126-127) — add one from the toolbar.",
 }
 
 
@@ -252,6 +267,7 @@ class AdvantagesPage(QWidget):
         table.header().setSectionResizeMode(
             len(_TABLE_COLUMNS[label]) - 1, QHeaderView.Stretch)
         table.itemSelectionChanged.connect(self._selection_changed)
+        empty_note(table, _EMPTY_NOTES[label])
         lay.addWidget(table, 1)
         self._tables[label] = table
         return page

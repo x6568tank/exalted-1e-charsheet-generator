@@ -53,7 +53,7 @@ from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
 from .editor import _FavoredPicker, _FilterCombo
-from .layout import clear_layout
+from .layout import clear_layout, empty_note
 from .theme import CUSTOM, MUTED, accent as accent_light
 
 _KINDS = ("charm", "spell", "gear")
@@ -63,6 +63,20 @@ _KIND_LABELS = {"charm": "Charms", "spell": "Spells", "gear": "Gear"}
 _COLUMNS = {"charm": ("", "Name", "Detail"),
             "spell": ("", "Name", "Detail"),
             "gear": ("", "Name", "Kind", "Detail")}
+
+# What an EMPTY library says. ⚠ A header over a blank rectangle reads as "nothing
+# loaded" rather than "nothing yet" — see `qt/layout.py::empty_note`. This tab is the
+# one where empty is the NORMAL state for most players, so it says what the library is
+# FOR rather than only how to fill it.
+_EMPTY_NOTES = {
+    "charm": "Your Charm library is empty.\n\nAnything you write here is yours and "
+             "yours alone — it never goes in the rulebook data, and a character who "
+             "owns it carries a copy in their save.",
+    "spell": "Your spell library is empty.\n\nWrite a spell here and it becomes "
+             "learnable by every character you make.",
+    "gear": "Your gear library is empty.\n\nAuthor a weapon, armour or an artifact "
+            "here, or save one off a character's Gear tab — both write the same row.",
+}
 
 # ⚠ Gear IS authorable here as of 2026-08-27, which REVERSES the 2026-08-13 ruling that
 # "no authoring form was needed: you tweak an item on a character and click once"
@@ -214,6 +228,7 @@ class CustomPage(QWidget):
                     else QHeaderView.ResizeToContents)
             table.header().resizeSection(len(columns) - 1, 170)
             table.itemSelectionChanged.connect(self._selection_changed)
+            empty_note(table, _EMPTY_NOTES[kind])
             self._tables[kind] = table
             self.tabs.addTab(table, _KIND_LABELS[kind])
         self.tabs.currentChanged.connect(self._kind_changed)

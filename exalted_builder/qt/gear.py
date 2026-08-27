@@ -38,7 +38,7 @@ from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
 from .catalogue import CatalogueDialog
-from .layout import clear_layout
+from .layout import clear_layout, empty_note
 from .editor import _FilterCombo
 from .theme import MUTED, accent as accent_light
 
@@ -138,6 +138,9 @@ class GearPage(QWidget):
         self.table.header().setSectionResizeMode(0, QHeaderView.Stretch)
         self.table.header().setSectionResizeMode(4, QHeaderView.Stretch)
         self.table.itemSelectionChanged.connect(self._selection_changed)
+        empty_note(self.table,
+                   "Nothing owned yet.\n\nUse “Buy…” for anything a book prices, "
+                   "“+ Artifact” for a rated one — or buy a blank row and rename it.")
 
         self.tabs = QTabWidget()
         self.tabs.setDocumentMode(True)
