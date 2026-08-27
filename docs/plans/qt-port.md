@@ -1402,3 +1402,64 @@ Two port-shaped notes:
 ### Human-verified on the real display — YES (2026-08-27)
 
 Clicked and approved, form and list, all four kinds. *"No notes, everything looks good."*
+
+## The Combos sub-tab (2026-08-27)
+
+`qt/combos.py` + `engine/combo_actions.py`. **Human-clicked the same day** — *"Everything
+looks good, no complaints from me."* The last thing under Charms; only the Party / ST
+screen remains after this.
+
+⚠ **THE GAP LIST WAS A LOWER BOUND FOR THE SIXTH TIME.** It read "the Combos sub-tab,
+`ui/combos.py`, 423 lines". It is **two systems, not one**: a Charm-Slot splat
+(Alchemical, p.89-90) builds **Arrays** *instead of* Combos. Same tab, different noun,
+different presenter (`build_array_view`), different engine calls, different cost sentence
+— and `view.uses_arrays` is the ONE place that decides which. A splat that builds neither
+gets no sub-tab at all (`view.has_combos_tab`; the dead may never learn Combos, E:Ab
+p.234).
+
+### The mutations had no engine home
+
+The chargen edits — create, delete, add member, drop member, rename, for both systems —
+were **closures inside `ui/combos.py`**, so the native shell could not reach them at all.
+`engine/combo_actions.py` now owns them and the webapp calls it too; one path, both
+shells. Same shape as `thaum_actions` and `house_rule_actions`.
+
+⚠ **Legality is NOT enforced at add time.** `validate.combo_issues` reports an illegal
+set as an issue on the row, so a half-built Combo can be inspected rather than refused
+mid-assembly. An empty one is legal to HAVE and illegal to KEEP, and shows ⚠ from the
+moment it is created.
+
+### Two shapes, not one shape greyed
+
+At chargen a Combo is assembled in place and priced in bonus points. In play it is bought
+**whole** — `advancement.add_combo` prices, validates and logs in one go — so the toolbar
+swaps `+ Combo` for `Buy Combo…`, the table goes read-only, and a bought one is undone in
+the shell's Experience card, not here.
+
+⚠ **A bought Combo's Cost column reads "—", not a BP figure.** Bonus points are a chargen
+fact; in play the thing is already paid for and its XP price is on the ledger, so quoting
+BP beside it invents a cost that is not owed.
+
+### What the render caught — three, none visible to the tests
+
+1. ⚠ **TWO detail panes on screen.** Every other Charms sub-tab is a content pane that
+   FEEDS the shared `QTextBrowser`; this one brings its own splitter, so the shared panel
+   sat beside it as an empty column saying "Select an entry to see details." **A page
+   added to a shell inherits a LAYOUT contract from its siblings** — this one breaks it
+   deliberately, so `_tab_changed` hides the shared panel for `CombosPage` and says why.
+2. The buy dialog's price line clipped its page citation — "…minimum Ability ratings
+   (p.21". Not word-wrapped.
+3. ⚠ **A multi-select `QListWidget` highlights row 0 by default**, so the dialog opened
+   looking like something was already picked while `selectedItems()` was empty and Buy
+   was disabled: a visible selection and a dead button, with no way to tell why.
+   `setCurrentRow(-1)`.
+
+Both the shared-pane fix and the one-Array-per-Charm pool rule are negative-controlled —
+each guard removed, the right test watched to go red.
+
+### One rule worth not re-deriving
+
+⚠ **An Array's add-pool excludes every Charm linked into ANY Array**, not merely the one
+being edited: a Charm may join only one (p.90). The engine refuses a reuse either way, so
+offering it would produce nothing but a rejection. `combo_actions.linked_array_charms` is
+the one copy of that set.

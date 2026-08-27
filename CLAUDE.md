@@ -259,32 +259,34 @@ pool calculation.
   each milestone contains, and every trap it cost, is in `docs/plans/qt-port.md` — read
   that before touching the port rather than re-deriving it here.**
 
-  ⚠ **THE RAIL IS NOT THE MEASURE OF WHAT IS LEFT — and it is now EMPTY of
-  placeholders, which is not the same as the port being done.** Two things remain. The
-  **Combos sub-tab** under Charms (`ui/combos.py`, 423 lines — a Charms SUB-TAB here and
-  a top-level tab on the webapp, so it never appears on the rail); and the **Party / ST
-  screen**, which has no Qt counterpart at all (`ui/gm.py` + `ui/adversaries.py`, ~1,100
-  lines, and a second WINDOW rather than a tab, so the settled tab layout does not decide
-  its shape). The **within-tab gaps** were the third and are closed.
+  ⚠ **THE RAIL WAS NEVER THE MEASURE OF WHAT IS LEFT**, and it is worth remembering why
+  even now that only one thing remains: the **Combos sub-tab** never appeared on it (a
+  Charms SUB-TAB here, a top-level tab on the webapp) and the **within-tab gaps** never
+  could. Both are closed. What remains is the **Party / ST screen** — `ui/gm.py` +
+  `ui/adversaries.py`, ~1,100 lines, a second WINDOW rather than a tab, so the settled
+  tab layout does not decide its shape. **That is an open design question; ask first.**
   `docs/status/handoff.md` carries the itemised list. **The within-tab gaps were taken
   FIRST** (human, 2026-08-22), before any further tab, and **all three items are now
   closed** — the Ox-Body / Deadly Beastman variant menu, Edit's seven deferred panels
   (both human-clicked) and the per-splat Charm surfaces (**NOT yet human-clicked**).
-  **ST Options and Custom both shipped AND were human-clicked 2026-08-27**
-  (`qt/storyteller.py`, `qt/custom.py`), with the port-wide checkbox/dialog theme fixes.
-  **The rail has NO placeholders left** — ⚠ which is not the same as the port being
-  done. Group 4's five per-splat Charm surfaces are still unclicked (rendered offscreen
-  and test-covered, so a low-priority sweep rather than an owed verification).
-  **Next is the Combos sub-tab, then Party.**
+  **ST Options, Custom and the Combos sub-tab all shipped AND were human-clicked
+  2026-08-27** (`qt/storyteller.py`, `qt/custom.py`, `qt/combos.py`), with the port-wide
+  checkbox/dialog theme fixes. Group 4's five per-splat Charm surfaces are still
+  unclicked (rendered offscreen and test-covered, so a low-priority sweep rather than an
+  owed verification). ⚠ **ONE thing is left: the Party / ST screen — and it is a DESIGN
+  QUESTION, not a port.** It is a second WINDOW rather than a tab, so the settled tab
+  layout does not decide its shape, and that has never been put to the human. **Ask
+  before building it.**
 
-  ⚠ **The gap list was a LOWER bound every single time — five for five.** Item 1
+  ⚠ **The gap list was a LOWER bound every single time — six for six.** Item 1
   turned up a stale shell readout on no list; item 2 a `reload()` that never pinged the
   shell and a `_combo` degrading enum keys, then three more at click-through; item 3 a
   detail pane missing five cost-relevant flag lines and a QSS with no
   `QPushButton:disabled` rule, which made every disabled button in the WHOLE port look
   clickable; ST Options, listed as one placeholder module, four more — including the
   SAME hole for `QCheckBox`, again port-wide and older than the tab; Custom, four more
-  again — including the SAME hole a third time, for `QDialog` and `QPlainTextEdit`.
+  again — including the SAME hole a third time, for `QDialog` and `QPlainTextEdit`; and
+  "the Combos sub-tab, 423 lines" turned out to be TWO systems, Combos *or* Arrays.
   **A defect one widget class over is still your defect: when you add a rule for one
   widget class, add it for every interactive class in the QSS.** **Audit each
   remaining tab against its `ui/` counterpart before trusting the list, click it before
@@ -387,15 +389,15 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**2,900 passing, 1 skipped** (2026-08-27, main PC, the `qt-port` branch after the ST
-Options and Custom ports — includes the Qt-port tests in `tests/test_qt_*.py`,
+**2,921 passing, 1 skipped** (2026-08-27, main PC, the `qt-port` branch after the ST
+Options, Custom and Combos ports — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
 `tests/test_variant_purchases.py`).
 
-- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (362 of them,
-  eleven whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
+- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (383 of them,
+  twelve whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
   a bare import was a COLLECTION ERROR, which takes the entire run down rather than
-  those tests. **A count 362 lower on a webapp-only machine is that working**, not
+  those tests. **A count 383 lower on a webapp-only machine is that working**, not
   tests going missing — install with `.venv/bin/pip install -e '.[qt]'`.
 
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
@@ -452,7 +454,7 @@ are pointers only; the traps and history live in the files.
 | Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
-| The Qt port — decision 0018; the build record (milestones 1–6 and the **ST Options** tab, **all human-clicked**; group 4’s per-splat Charm surfaces are the one unclicked remainder. Milestone 5 SETTLES the one layout every remaining tab gets; milestone 6 and Identity+Traits are its two written exceptions) | `plans/qt-port.md` |
+| The Qt port — decision 0018; the build record (milestones 1–6 and the **ST Options**, **Custom** and **Combos** tabs, **all human-clicked**; group 4’s per-splat Charm surfaces are the one unclicked remainder, and the **Party / ST screen** the one unbuilt thing. Milestone 5 SETTLES the one layout every remaining tab gets; milestone 6 and Identity+Traits are its two written exceptions) | `plans/qt-port.md` |
 | Variant-menu Charms — the generic `variant_purchases` list, `Charm.variants_unique`, and why Ox-Body and the Gifts were deliberately NOT migrated onto it | `plans/variant-menu-charms.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;

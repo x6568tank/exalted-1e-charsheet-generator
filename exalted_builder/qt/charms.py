@@ -35,6 +35,7 @@ from exalted_builder.engine import (advancement, charm_actions, costs, merits,
                                     refit, thaum_actions, validate)
 from exalted_builder.engine import paths as engine_paths
 from exalted_builder.models.character import AbilityName, AnimalForm, PathRating
+from exalted_builder.qt.combos import CombosPage
 from exalted_builder.qt.editor import DotTrack
 from exalted_builder.qt.layout import clear_layout
 from exalted_builder.models.rules import Orientation
@@ -754,6 +755,7 @@ class CharmsPage(QWidget):
         self.tabs.currentChanged.connect(self._tab_changed)
 
         detail_panel = QWidget()
+        self._detail_panel = detail_panel
         dp = QVBoxLayout(detail_panel)
         dp.setContentsMargins(0, 0, 0, 0)
         dp.setSpacing(4)
@@ -1699,15 +1701,16 @@ class CharmsPage(QWidget):
             else "Combos"
 
     def _combos_page(self):
-        """The Combos sub-tab. Still the webapp's surface — this is the placeholder in
-        its new home, not a port of the tab."""
-        page = QWidget()
-        lay = QVBoxLayout(page)
-        label = QLabel(f"The {self._combos_label()} tab is still on the webapp.")
-        label.setAlignment(Qt.AlignCenter)
-        label.setStyleSheet(f"color:{MUTED};")
-        lay.addWidget(label)
-        return page
+        """The Combos (or Arrays) sub-tab — `qt/combos.py`.
+
+        ⚠ Its own module rather than more of this one: it is a full collection surface,
+        and this file is already the largest in the port.
+
+        ⚠ `on_change` is passed THROUGH, not swallowed. A Combo costs bonus points at
+        chargen and XP in play, so building one moves both this page's readout and the
+        shell's — the hook contract every sibling page has."""
+        return CombosPage(self._ruleset, self._ctx, notify=self._notify,
+                          on_change=self._update_readout)
 
     def _form_library_page(self):
         """The Lunar Form Library: the Totem plus every animal shape recorded.
@@ -2783,4 +2786,12 @@ class CharmsPage(QWidget):
         # A summary-node selection lives on a tree tab; drop it elsewhere.
         if self._selected_augment is not None:
             self._selected_augment = None
+        # ⚠ The Combos sub-tab is the ONE that brings its own detail pane. Every other
+        # sub-tab is a content pane that FEEDS the shared one, so leaving it up beside
+        # `CombosPage`'s splitter put two detail panes on screen — the real one, and an
+        # empty column saying "Select an entry to see details." A page added to a shell
+        # inherits a layout contract from its siblings; this one breaks it deliberately,
+        # so it has to say so here.
+        self._detail_panel.setVisible(
+            not isinstance(self.tabs.currentWidget(), CombosPage))
         self._update_action()
