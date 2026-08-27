@@ -1231,3 +1231,87 @@ and has its own test.
 * **Theming.** `ui/theme.py`'s per-splat palettes are the design asset worth keeping;
   the Tailwind class strings that carry them are not. Qt Style Sheets are the likely
   target, but the mapping is unexamined.
+
+## ST Options — the seventh tab (2026-08-27)
+
+`qt/storyteller.py`, 300 lines, wired into the rail in place of its placeholder. The
+settled collection layout, minus one part of it: **no action toolbar, deliberately.**
+The rules are fixed by the books, so there is nothing to add, buy or delete — the
+absence is written into the module docstring so it reads as a decision rather than
+drift. Everything else is the standard shape: a readout line, a sub-tab per SCOPE
+(Table-wide / This character), a sortable three-column table (Rule · Setting · Source),
+and a splitter with the selected rule's one control in a detail pane.
+
+**The lock is the tab's distinguishing behaviour.** These toggles change how chargen is
+PRICED and are frozen into the snapshot at the lock, so post-lock every control is
+disabled and the readout carries the full explanation plus the pointer at Unlock. Same
+rule the webapp's tab has.
+
+### What moved
+
+* **`engine/house_rule_actions.py`** — `house_rules()` + `set_rule()` lifted out of
+  `ui/storyteller.py`, which now re-exports them. The native shell must not import
+  nicegui to set a toggle, and the value coercion is game data: ⚠ `bool(value)` is
+  right for exactly ONE of the three control shapes. A checkbox sends a bool; the M&F
+  select sends a stored string that `bool()` would turn into True; the Inheritance
+  select sends an option key that must land as None or an int.
+* **`HouseRuleRow.inert`** (new, `ui/view.py`) — True when a rule cannot bite for this
+  character as she stands. Derived in the presenter, ⚠ **not** by reading `note` for a
+  "No effect:" prefix, which would silently un-dim every row the day someone rewords a
+  sentence. The Qt table dims inert rows rather than hiding them, which is the
+  presenter's whole premise: an ST hunting for a toggle must find it and be told why it
+  does nothing.
+* **`view.HOUSE_RULE_SCOPES`** and **`view.house_rule_setting_label`** — the scope
+  headings and the short cell text, in one copy for both shells.
+
+### What the offscreen render caught — four, all invisible to 2,857 tests
+
+**1. A disabled QCheckBox is pixel-identical to a live one.** The `QPushButton:disabled`
+defect from group 4, one widget class over: the base style's greying does not survive
+the stylesheet renderer. This is **port-wide**, not an ST Options bug — Play's pool
+boxes, Advantages' Demesne box and the Charms tab's variant boxes all disable
+legitimately. `qt/theme.py` now styles the disabled states only; the live look is the
+one that shipped and was clicked.
+⚠ **Checked-disabled had to stay distinguishable from unchecked-disabled.** Styling
+`QCheckBox::indicator:disabled` alone replaces the tick with nothing, so a locked rule
+that is ON would render exactly like one that is OFF. The filled MUTED square carries
+"on, frozen".
+
+**2. `setSortingEnabled(True)` sorts immediately**, throwing the rules into alphabetical
+order and losing the presenter's — which is the order the books introduce them in.
+`sortByColumn(-1)` leaves insertion order until the player clicks a header. ⚠ And the
+per-fill disable/re-enable had to save and restore the player's sort, or every toggle
+silently re-imposed column 0 ascending. ⚠ `setSortingEnabled(True)` also turns the sort
+INDICATOR on, and with no section to point at Qt drew the arrow over the last header, as
+though the rules were sorted by Source.
+
+**3. `QHeaderView` stretches its LAST section by default**, so "Sidereal may hold
+Celestial Manse above 3 dots" elided to "…Manse abo…" while dead space sat under the
+Source header. `setStretchLastSection(False)` and the Rule column takes the slack.
+
+**4. The foreign-Charms note printed the caste ID** — "and dawn is not one". A presenter
+bug, so both shells had it. `ruleset.castes.get(...).label` now.
+
+### The test that passed against the defect it was named for
+
+`tests/test_qt_theme.py` is new, and exists because **a QSS rule is invisible to every
+other test in the suite** — that is how the original disabled-button hole shipped green.
+It renders the widget and measures pixels.
+
+⚠ **The first version was worthless and looked fine.** It compared whole-widget images
+with `!=`, which passes whether or not the indicator was fixed, because Qt dims the
+disabled TEXT on its own. Cropping to the indicator was not enough either: Qt's two
+drawings are not byte-identical (border antialiasing), so `!=` STILL passed with the
+theme rules deleted. The measured brightness gap without the fix was **7 out of 255, and
+INVERTED for a ticked box** — the disabled one was brighter. The test now asserts a
+brightness gap, verified by deleting the rules and watching it fail.
+**Negative-control a rendering test by deleting the rule it guards.**
+
+### Human-verified on the real display — NOT YET
+
+Rendered offscreen in five states (Solar unlocked, both sub-tabs, a select control, a
+locked Solar, a God-Blooded whose Inheritance rule is live) and looked at. **Not
+human-clicked.** What to click: flip Magic for Everyone on a character with Occult and
+watch the shell's bonus-point line move; lock and confirm every control reads as
+read-only; a God-Blooded's Inheritance select; and the port-wide checkbox change on
+**Play and Advantages**, which the theme edit touches without their tests noticing.

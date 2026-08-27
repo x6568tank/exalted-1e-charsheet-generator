@@ -1683,6 +1683,12 @@ class HouseRuleRow:
     value: bool | str | int | None
     options: dict[str, str] = dc_field(default_factory=dict)
     note: str = ""          # why it currently does nothing, when it doesn't
+    # True when the rule CANNOT bite for this character as she stands — a wrong splat,
+    # a wrong caste, a threshold not yet reached, or a gate the lock has already
+    # closed. The row is still offered (an ST hunting for a toggle must find it), so
+    # this is what lets a renderer dim it. ⚠ Derived HERE and not by reading `note`
+    # for a prefix: the note is prose and rewording it would silently un-dim rows.
+    inert: bool = False
 
 
 # (field, label, scope, citation, description) — ordered as the tab renders them.
@@ -1765,6 +1771,28 @@ _HOUSE_RULE_OPTIONS: dict[str, dict[str, str]] = {
 }
 
 
+# `HouseRuleRow.scope` -> (heading, what the scope means). ONE copy: both shells group
+# the rules by scope, and a party-wide "apply to all" control may only touch 'table'
+# (models.character.HouseRules says so), so the two must not word it differently.
+HOUSE_RULE_SCOPES: dict[str, tuple[str, str]] = {
+    "table": ("Table-wide", "Applies to the whole game — every character at this "
+                            "table should have it set the same way."),
+    "character": ("This character", "A permission granted to this one character."),
+}
+
+
+def house_rule_setting_label(row: HouseRuleRow) -> str:
+    """A house rule's current setting, short enough for a table cell.
+
+    A boolean toggle reads On/Off. A multiple-choice rule reads its option label with
+    the explanatory tail cut at the em dash — the full label belongs beside the control
+    in a detail pane, not in a column."""
+    if not row.options:
+        return "On" if row.value else "Off"
+    label = row.options.get(str(row.value), str(row.value))
+    return label.split(" — ")[0].strip()
+
+
 def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleRow]:
     """The Storyteller-options rows for this character, with any that cannot bite
     annotated rather than hidden — an ST looking for a toggle should find it and be
@@ -1772,19 +1800,25 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
     rules = character.house_rules or HouseRules()
     rows: list[HouseRuleRow] = []
     for fld, label, scope, citation, description in _HOUSE_RULES:
-        note = ""
+        note, inert = "", False
         if fld == "st_foreign_charms":
             if validate.foreign_charms_caste(ruleset, character) is None:
+                inert = True
+                # The printed caste NAME, not the id — `Character.caste` stores "dawn"
+                # and the sentence read "and dawn is not one".
+                caste = ruleset.castes.get(character.caste)
                 note = (f"No effect: only a caste with the generalist privilege "
                         f"(Eclipse, Moonshadow) can learn foreign Charms, and "
-                        f"{character.caste or 'this caste'} is not one.")
+                        f"{caste.label if caste else 'this caste'} is not one.")
             elif character.chargen_locked:
+                inert = True
                 note = ("No longer applies: chargen is locked, so a willing tutor "
                         "is the only remaining gate.")
         elif fld == "mortal_favored_ability":
             b = ruleset.budgets_for(character.exalt_type, character.origin,
                                     character.upbringing)
             if not b.optional_favored_ability:
+                inert = True
                 note = ("No effect: core p.103 offers this to HEROIC mortals only, "
                         f"and this character is {character.exalt_type}"
                         f"{'/' + character.origin if character.origin else ''}.")
@@ -1792,22 +1826,28 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                 note = "Granting 1 Favored Ability, which must stay the highest-rated."
         elif fld == "st_celestial_manse_over_three":
             if character.exalt_type != "Sidereal":
+                inert = True
                 note = (f"No effect: the Celestial Manse ≤3 ceiling is a Sidereal rule "
                         f"(Sidereals p.106), and this character is {character.exalt_type}.")
             elif getattr(rules, fld):
                 note = "Permission granted: this Sidereal may hold Celestial Manse above 3 dots."
         elif fld == "st_mortal_artifact_manse":
             if character.exalt_type != "Mortal":
+                inert = True
                 note = (f"No effect: core p.103 bars MORTALS from Artifact and Manse, "
                         f"and this character is {character.exalt_type}.")
             elif getattr(rules, fld):
                 note = "Permission granted: this mortal may take Artifact and Manse Backgrounds."
         elif fld == "terrestrial_essence_transcendence":
             if ruleset.exalt_for(character.exalt_type).tier != "Terrestrial":
+                inert = True
                 note = (f"No effect: the Essence 7 ceiling is a Terrestrial rule, and "
                         f"{ruleset.exalt_for(character.exalt_type).label} are not "
                         f"Terrestrial.")
             elif character.essence_rating < 7:
+                # Inert for NOW rather than never — the toggle starts biting the moment
+                # Essence reaches 7, and the note says so.
+                inert = True
                 note = ("Nothing to lift yet: Essence is below the Terrestrial "
                         "ceiling of 7. The toggle matters once it reaches 7.")
         elif fld == "all_backgrounds_available":
@@ -1825,12 +1865,14 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                         f"print; {everything - own} more exist in other splats' books.")
         elif fld == "magic_for_everyone" and getattr(rules, fld):
             grant = validate.magic_for_everyone_grant(ruleset, character)
+            inert = not grant
             note = (f"Currently granting {grant} free purchase(s)." if grant else
                     "Granting nothing yet: the allowance is Occult ÷ 2, rounded down.")
         elif fld == "godblooded_inheritance_rating":
             b = ruleset.budgets_for(character.exalt_type, character.origin,
                                     character.upbringing)
             if not b.inheritance_bonus_points:
+                inert = True
                 note = (f"No effect: Inheritance bonus points are a God-Blooded rule, "
                         f"and this character is {character.exalt_type}.")
             elif getattr(rules, fld) is not None:
@@ -1851,7 +1893,7 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                                  citation=citation, description=description,
                                  value=value,
                                  options=dict(_HOUSE_RULE_OPTIONS.get(fld, {})),
-                                 note=note))
+                                 note=note, inert=inert))
     return rows
 
 

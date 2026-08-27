@@ -40,6 +40,7 @@ from .gear import GearPage
 from .editor import IdentityPage, TraitsPage
 from .play import PlayPage
 from .sheet import SheetPage
+from .storyteller import StorytellerPage
 
 # The rail's tabs: the app's viewmod._TABS with the "Edit" tab split into Identity +
 # Traits (the human-approved spike layout).
@@ -188,8 +189,11 @@ class MainWindow(QMainWindow):
         # play-state out of every one of them. A hook wired here would be a dormant
         # invitation to change that.
         self._pages["Play"] = PlayPage(ruleset, ctx, notify=self._notify)
-        self._pages["ST"] = _PlaceholderPage(
-            "The ST Options tab is still on the webapp.")
+        # ⚠ `on_change` is load-bearing: "Magic for Everyone" grants free purchases and
+        # the God-Blooded Inheritance rating moves the bonus-point pool, so flipping a
+        # rule changes the readout bar's budget line.
+        self._pages["ST"] = StorytellerPage(
+            ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Custom"] = _PlaceholderPage(
             "The Custom (homebrew) tab is still on the webapp.")
         self._pages["Sheet"] = SheetPage(ruleset, ctx)

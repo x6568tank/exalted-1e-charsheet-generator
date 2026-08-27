@@ -84,6 +84,18 @@ QPushButton:hover {{ background:{ac}; color:#1a1a1a; }}
    submodules, the locked Charm button — read as clickable across the whole port. */
 QPushButton:disabled {{ background:{BG}; color:{MUTED}; }}
 QPushButton:disabled:hover {{ background:{BG}; color:{MUTED}; }}
+/* ⚠ The SAME defect, one widget class over: a disabled QCheckBox draws the identical
+   bright indicator as a live one (the base style's greying does not survive the
+   stylesheet renderer), so the ST Options tab's read-only lock and Play's unavailable
+   pool boxes all read as clickable. Only the DISABLED states are styled — the live
+   look is the native one that shipped and was clicked.
+   ⚠ Checked-disabled must stay distinguishable from unchecked-disabled: styling
+   `::indicator:disabled` alone replaces the tick with nothing, and a locked rule that
+   is ON would then read as OFF. The filled MUTED square is what carries "on, frozen". */
+QCheckBox:disabled {{ color:{MUTED}; }}
+QCheckBox::indicator:disabled {{ background:{BG}; border:1px solid {MUTED};
+                                 border-radius:3px; }}
+QCheckBox::indicator:checked:disabled {{ background:{MUTED}; border:1px solid {MUTED}; }}
 QLineEdit, QSpinBox, QComboBox, QListWidget, QTextEdit {{
     background:{INPUT}; color:{INK}; border:none;
     border-radius:4px; padding:2px 5px; }}

@@ -1,34 +1,35 @@
-# Session handoff — 2026-08-22d (group 4 is CLOSED; nothing is human-clicked yet)
+# Session handoff — 2026-08-27 (ST Options shipped; TWO click-throughs now owed)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **2,837 passed, 1 skipped** (main PC, `qt-port`, 7m26s), run
+Last FULL green suite: **2,857 passed, 1 skipped** (main PC, `qt-port`, 7m37s), run
 after the last code change. The tree is clean and nothing is half-finished.
 
-**Group 4 — the within-tab gaps — is closed.** All three items ship. ⚠ **The third
-item is NOT human-clicked**, and neither is the variant-menu work that came out of it.
-That is the only thing outstanding from this session.
+**ST Options is ported.** It is the seventh Qt tab and the first of the two remaining
+rail placeholders. ⚠ **It is NOT human-clicked**, and neither is group 4's Charm work
+from the previous session — **two click-throughs are owed, not one.**
 
 ## What shipped this session
 
 | Thing | Where |
 |---|---|
-| The five per-splat Charm surfaces | `qt/charms.py` |
-| Detail-pane flag lines (5, cost-relevant) — **on no gap list** | `qt/charms.py::_charm_flags_html` |
-| `QPushButton:disabled` — every disabled button in the port looked live | `qt/theme.py::qss` |
-| Submodule add/remove moved into the engine | `engine/charm_actions.py` |
-| Immaculate BP preview: quoted 7 BP, charged 21 | `qt/charms.py::_chargen_pick_bp` |
-| Post-lock repeatable buys, unshadowed | `engine/charm_actions.py::learn_charm` |
-| Post-lock Remove = the last XP entry | `engine/charm_actions.py::undo_charm` |
-| Variant-menu Charms on a generic list | `models/`, `engine/`, both shells |
+| The ST Options tab | `qt/storyteller.py` (new, 300 lines) |
+| House-rule writes moved into the engine | `engine/house_rule_actions.py` (new) |
+| `HouseRuleRow.inert` — a rule that cannot bite, dimmed not hidden | `ui/view.py` |
+| `HOUSE_RULE_SCOPES` + `house_rule_setting_label` — one copy for both shells | `ui/view.py` |
+| **`QCheckBox:disabled` — PORT-WIDE, every disabled checkbox looked live** | `qt/theme.py` |
+| A sort that threw away the presenter's order, and a stray sort arrow | `qt/storyteller.py` |
+| A column that elided while dead space sat beside it | `qt/storyteller.py` |
+| The foreign-Charms note printed the caste ID ("and dawn is not one") | `ui/view.py` |
+| `tests/test_qt_theme.py` — pixels, because a QSS rule is invisible to tests | new |
 
-Full write-ups: **`docs/plans/qt-port.md`** (group 4 item 3 and its tail) and
-**`docs/plans/variant-menu-charms.md`** (the generic list). Do not re-derive them.
+Full write-up: **`docs/plans/qt-port.md`**, section "ST Options — the seventh tab".
+Do not re-derive it.
 
-## 👉 NEXT: click it, then ST Options
+## 👉 NEXT: two click-throughs, then Custom
 
-**1 — the click-through, which is the only unfinished thing.** Five surfaces have been
-rendered offscreen and looked at but never touched by a human:
+**1 — group 4's Charm surfaces**, still owed from the last session. Five surfaces
+rendered offscreen and never touched:
 
 - an **Eclipse with ST permission** switching the Splat dropdown and buying a foreign
   Charm (check the tree re-renders in the foreign splat's accent, and that buying does
@@ -43,14 +44,18 @@ rendered offscreen and looked at but never touched by a human:
   (`ui/picker.py::variant_menu_detail`) has never been rendered at all**, in a browser
   or otherwise. It is the least-verified thing in the tree.
 
-**2 — then ST Options**, then Custom, then the Combos sub-tab, then Party. Both
-placeholders get the COLLECTION layout; copy `qt/gear.py` or `qt/advantages.py`, never
-transliterate `ui/<tab>.py`.
+**2 — ST Options**, new this session. Flip Magic for Everyone on a character with
+Occult and watch the shell's bonus-point line move; lock and confirm every control
+reads read-only; a God-Blooded's Inheritance select. ⚠ **And re-check Play and
+Advantages** — the checkbox theme fix is port-wide and touches surfaces that were
+already signed off.
+
+**3 — then Custom**, then the Combos sub-tab, then Party. Custom gets the COLLECTION
+layout; copy `qt/gear.py` or `qt/advantages.py`, never transliterate `ui/custom.py`.
 
 ## ⚠ What is left overall — the rail is STILL not the measure
 
-**1 — the last two rail placeholders.** `ui/storyteller.py` (183 lines) and
-`ui/custom.py` (576).
+**1 — one rail placeholder left.** `ui/custom.py` (576 lines).
 
 **2 — the Combos sub-tab** (`ui/combos.py`, 423 lines), still a placeholder under
 Charms. ⚠ Easy to miss because it is not on the rail.
@@ -71,34 +76,35 @@ has the same limitation for the same reason.
 
 ## Decisions taken this session — do not relitigate
 
-- **Environmental Hazard-Resisting Meditation is WIRED**, not deferred (human's call),
-  and onto a **generic** `Character.variant_purchases` keyed by charm_id rather than a
-  fifth bespoke list. The discriminator is `Charm.variants` being non-empty — all
-  eleven such Charms in the catalogue are variant menus, so there is no id list.
-- **Ox-Body and the Gifts keep their own lists.** Migrating them onto the generic list
-  is possible and was deliberately NOT done. Not a gap.
-- **Post-lock Remove reaches the LAST XP entry only** (human: "similar to what we have
-  for things in the Edit tab"). The log is append-only and undo is LIFO (decision
-  0004), so there is no correct removal for anything else.
+- **ST Options gets NO action toolbar.** The collection layout puts actions in one and
+  this collection has none — the rules are fixed by the books, so there is nothing to
+  add, buy or delete. Written into the module docstring so the absence reads as a
+  decision rather than drift. This is not the layout being re-litigated per tab.
+- **An inert rule is DIMMED, never hidden**, and `inert` is derived in the presenter
+  rather than by matching a "No effect:" prefix on the note. A prose reword would
+  otherwise silently un-dim every row.
+- **A disabled checkbox that is CHECKED keeps a distinct look** (a filled MUTED square).
+  Styling `::indicator:disabled` alone loses the tick, and a locked rule that is ON
+  would read as OFF.
 
-## The lesson this session keeps re-teaching
+## The lesson this session adds
 
-**The gap list is a lower bound — three items, three times, without exception.** And
-the two worst finds were invisible to the whole suite: the missing detail-pane flag
-lines, and a QSS with no `QPushButton:disabled` rule that made every unmet-prerequisite
-"Add" in the port read as clickable. **The offscreen grab is what caught both.** Render
-it and LOOK, even when 2,837 tests are green.
+**Negative-control a rendering test by deleting the rule it guards.**
+`test_qt_theme.py`'s first version compared whole-widget images with `!=` and passed
+against the exact defect it was named for — Qt dims disabled TEXT by itself. Cropping to
+the indicator was not enough either: the two drawings differ by antialiasing, so `!=`
+still passed with the theme rules deleted. The real gap was **7 out of 255, and
+inverted for a ticked box.** It took a brightness assertion, checked by deleting the
+rules and watching it fail.
+
+And the older lesson held for the fourth time: **the gap list was a lower bound.** ST
+Options was listed as one placeholder module; the render turned up four defects, one of
+them port-wide and older than this session's work.
 
 ## No open rules questions
 
-The one that arose — the "four versions" cap on Environmental Hazard-Resisting
-Meditation — was answered by the page itself (Caste Book: Zenith p.72-73), which prints
-both caps. It is now `Charm.variants_unique` in the data.
-
-⚠ One thing to be aware of rather than answer: that Charm's TRAIT cap can never bind
-(it needs Resistance 5 to learn, so its four versions always run out first).
-`PackageMenu.cap_phrase` says so — do not "correct" it back to "once per dot of
-Resistance".
+Nothing new. The ST Options port introduced no rules interpretation — every value,
+citation and note comes from `view.build_house_rules`, unchanged.
 
 ## Still deferred, still NOT gaps
 
