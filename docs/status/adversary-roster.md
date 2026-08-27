@@ -230,3 +230,45 @@ the card missed it.
    working. Swap its shield to a **tower shield** in the editor and the dodge should
    drop to 1 with `+1/+2` difficulty.
 6. Save and reload the party, and confirm the roster and its marks come back.
+
+## The second shell — the native Party window (2026-08-27)
+
+`qt/adversaries.py`, a tab of `qt/party.py`. Same model, same engine, **a different
+shape**: the webapp's card stack becomes the settled Qt collection layout — toolbar
+(Add / Duplicate / Reset / Delete), a roster table, and the selected entry's trackers and
+editor in a detail pane. The modal editor dialog is that pane; nothing about the data
+changed.
+
+⚠ **Cards did one thing better and it is kept.** Six bandits' damage visible at once is
+now the table's **Damage column** (`1/ 0x 0*  (-1)`); it is the compensation that makes a
+collection acceptable here, not decoration.
+
+⚠ **The table is sortable but NOT SORTED** (`sortByColumn(-1, …)`). Roster order is the
+feature — a duplicate is inserted *beside* its original so a squad reads as a squad — and
+an alphabetical default would scatter it on the click that made it.
+
+### The mutations moved into the engine
+
+`add_blank`, `add_from_template`, `duplicate`, `remove`, `reset_tracking`, `mote_cap`,
+`set_motes_spent` and `set_count` were closures in `ui/adversaries.py`, so the native
+shell could not reach them. They live in `engine/adversaries.py` now and **the webapp
+calls them too** — one path, both shells, exactly as the Combo mutations went.
+
+⚠ `test_reset_clears_exactly_what_instantiate_clears` pins `reset_tracking` against
+`instantiate`: both give an entry a fresh start, and a new tracked field added to one and
+not the other is how a "fresh" duplicate ends up carrying spent motes.
+
+### The dead-field guard, rebuilt as a drive
+
+The webapp's guard greps `edit_dialog`'s source for `a.<field> =`. The Qt one
+parametrises over `Adversary.model_fields` and **drives the named widget**, asserting the
+model changed — so a field wired to a widget that writes the *wrong* attribute fails too,
+which a grep can never see. `tests/test_qt_adversaries.py`.
+
+### Three printed rules the widgets had to encode
+
+1. **0 means ABSENT in the trait grids**, shown as "—" (p.316: a beast prints three of
+   the nine, and no block prints a zero).
+2. **The nullable combat numbers run from −1**, shown as "—", because absent is not zero
+   (the Bear prints no dodge, p.316; Nagezzer "does not dodge", p.307).
+3. **Charms / Spells / Powers stay free text** (p.303).

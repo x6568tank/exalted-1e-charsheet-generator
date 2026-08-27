@@ -95,8 +95,7 @@ def _count_box(a: Adversary, i: int, filled: bool, field: str, cap: int,
                on_change: Callable[[], None]) -> None:
     """One box of a plain spent-count track (temporary Willpower)."""
     def click() -> None:
-        cur = getattr(a, field)
-        setattr(a, field, max(0, min(cap, i if i + 1 == cur else i + 1)))
+        adv.set_count(a, field, i, cap)
         on_change()
 
     box = ui.label("").classes("cursor-pointer select-none")
@@ -297,44 +296,31 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
     character-domain Adversary, which would be a cycle."""
     party = party_of()
 
-    def add(entry: Adversary) -> None:
-        party_of().adversaries.append(entry)
-        refresh()
-
+    # ⚠ Every one of these goes through `engine.adversaries`. The native Party
+    # window runs the same four interactions, and a duplicate that inserts in the
+    # wrong place in one shell only is exactly the drift nothing catches.
     def add_blank() -> None:
-        entry = Adversary(id=next_id(party_of()), name="New adversary",
-                          health_levels=adv.expand_health("-1/-3/I"))
-        add(entry)
+        adv.add_blank(party_of())
+        refresh()
         ui.notify("Added a blank adversary — use Edit to fill it in", type="positive")
 
     def add_from_template(template: Adversary, dialog) -> None:
-        entry = adv.instantiate(template, next_id(party_of()))
+        entry = adv.add_from_template(party_of(), template)
         dialog.close()
-        add(entry)
+        refresh()
         ui.notify(f"Added {entry.name}", type="positive")
 
     def duplicate(index: int) -> None:
-        """Instancing: five bandits, five health tracks."""
-        source = party_of().adversaries[index]
-        p = party_of()
-        copy = adv.instantiate(source, next_id(p),
-                               name=_copy_name(p.adversaries, source.name))
-        # Sit the duplicate next to its original rather than at the end of the
-        # roster — a squad should read as a squad.
-        p.adversaries.insert(index + 1, copy)
+        adv.duplicate(party_of(), index)
         refresh()
 
     def remove(index: int) -> None:
-        gone = party_of().adversaries[index].name or "adversary"
-        del party_of().adversaries[index]
+        gone = adv.remove(party_of(), index)
         refresh()
         ui.notify(f"Removed {gone}", type="warning")
 
     def clear_damage(index: int) -> None:
-        entry = party_of().adversaries[index]
-        entry.damage = []
-        entry.willpower_spent = 0
-        entry.motes_spent = 0
+        adv.reset_tracking(party_of().adversaries[index])
         refresh()
 
     def add_dialog() -> None:
@@ -419,16 +405,15 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
             # One mote counter, whichever pool shape the entry uses. A spirit's
             # single pool and an Exalt's Personal+Peripheral both spend downward;
             # splitting the tracker in two would be tracking for its own sake.
-            mote_cap = a.essence_pool or (a.personal_essence + a.peripheral_essence)
+            mote_cap = adv.mote_cap(a)
             if mote_cap:
                 shape = ("pool" if a.essence_pool
                          else f"{a.personal_essence} personal + {a.peripheral_essence} peripheral")
                 with ui.row().classes("items-center gap-2"):
                     ui.number("Motes spent", value=a.motes_spent, min=0, max=mote_cap,
                               format="%d",
-                              on_change=lambda e, x=a, c=mote_cap: (
-                                  setattr(x, "motes_spent",
-                                          max(0, min(c, int(e.value or 0)))),
+                              on_change=lambda e, x=a: (
+                                  adv.set_motes_spent(x, e.value),
                                   refresh())).props("dense outlined").classes("w-32")
                     ui.label(f"{max(0, mote_cap - a.motes_spent)}/{mote_cap} left "
                              f"({shape})").classes("text-xs text-gray-600")

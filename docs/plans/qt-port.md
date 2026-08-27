@@ -1463,3 +1463,122 @@ each guard removed, the right test watched to go red.
 being edited: a Charm may join only one (p.90). The engine refuses a reuse either way, so
 offering it would produce nothing but a rejection. `combo_actions.linked_array_charms` is
 the one copy of that set.
+
+## The Party / ST window — THE LAST THING (2026-08-27)
+
+`qt/party.py` + `qt/adversaries.py` + `qt/trackers.py`, and roster mutations added to
+`engine/adversaries.py`. **The port is now feature-complete against the webapp.**
+
+It was flagged as a DESIGN QUESTION rather than a port, and it was asked before any code:
+four decisions, all four taken as recommended.
+
+| Question | The human's answer |
+|---|---|
+| Shape | **A second `QMainWindow`**, opened from the builder's Party toolbar action. A `QDialog` was rejected for the same reason — you must be able to read a sheet and the party at once. |
+| Layout | **Sub-tabs, mixed**: Party · Adversaries · Reference. Cards for the members, the settled collection layout for the roster. |
+| "Open in builder" | **Retarget the one builder**, not a window per member. |
+| The ST reference screen | **A tab on this window**, not on the builder's ST Options tab. |
+
+### The Party tab is the THIRD written exception to the collection layout
+
+And it is Play's exception for Play's reason: the cards are live TRACKERS — there is
+nothing to select, and a detail pane would hide the health tracks the surface exists to
+show. **The Adversaries tab beside it IS a collection**, because its entries are *edited*
+as well as tracked. The two halves of one window are deliberately different shapes; that
+is the whole design, not drift.
+
+⚠ **An exception that is written down is not drift.** The three are now: Play,
+Identity+Traits, and the Party tab. ST Options' missing toolbar remains a partial, not a
+fourth.
+
+### What the collection layout bought on the roster, and what it cost
+
+The webapp renders adversaries as cards, and cards did exactly one thing better: six
+bandits' damage visible at once. That is kept as the table's **Damage column**
+(`1/ 0x 0*  (-1)`) — it is not decoration, it is the compensation that makes the
+collection layout acceptable here. The editor that was a modal dialog on the webapp
+becomes the detail pane, which is strictly better for a 28-field statblock.
+
+⚠ **The roster table is sortable but NOT SORTED.** Roster order is meaningful here in a
+way it is not on Gear or Advantages: a duplicate is deliberately inserted *beside* its
+original so a squad reads as a squad, and an alphabetical default would scatter it on the
+very click that made it. `sortByColumn(-1, …)` clears the indicator and leaves the header
+clickable — the only tab in the port that needs it.
+
+### The mutations had no engine home — the same hole Combos had
+
+`add_blank`, `add_from_template`, `duplicate`, `remove`, `reset_tracking`, `mote_cap`,
+`set_motes_spent` and `set_count` were closures inside `ui/adversaries.py`. They are now
+in **`engine/adversaries.py`** and the webapp calls them too: one path, both shells.
+`test_reset_clears_exactly_what_instantiate_clears` pins the pair — a new tracked field
+added to one and not the other is how a "fresh" duplicate ends up carrying spent motes.
+
+### The dead-field guard was rebuilt for Qt, as a DRIVE rather than a grep
+
+This surface has already shipped the dead-field bug once: `powers`, `combat_pool` and
+`cost_to_dematerialize` were authored, editable nowhere, and silently wiped on save, with
+1,777 tests green over it. The webapp's guard greps `edit_dialog`'s source for
+`a.<field> =`. The Qt guard **parametrises over `Adversary.model_fields` and drives the
+named widget**, so a field wired to a widget that writes the *wrong* attribute fails too
+— a grep could never see that.
+
+### Three things the WIDGETS had to decide, all of them printed rules
+
+1. **`0` means absent in the trait grids**, shown as "—". A beast prints three of the
+   nine Attributes (p.316) and no printed block carries a rating of zero, so storing one
+   would claim the book printed it.
+2. **The nullable combat numbers run from −1**, shown as "—", because absent is NOT zero:
+   the Bear prints no dodge figure (p.316) and Nagezzer prints "Does not dodge" (p.307).
+   Both states must be reachable from one box.
+3. **Charms / Spells / Powers stay free text.** "All Solar Charms the Storyteller cares
+   to give him" (p.303) is not a list of ids, and the loader's link-checking would reject
+   the attempt.
+
+### The card fixed a bug the webapp card still has
+
+⚠ **A merged Essence pool is ONE track** — "all of which is considered Peripheral"
+(p.41). `ui/gm.py`'s card draws Personal and Peripheral unconditionally, so a merged-pool
+character gets a Personal box sitting at a permanent 0/0 that reads as broken. The Qt
+card honours `PlayView.single_pool` the way the Play tab does. **The webapp card was not
+changed** — flagged here rather than fixed silently.
+
+### What the render caught — four, none of them visible to the tests
+
+1. **A nested `QVBoxLayout` inherits an 11px margin on all four sides.** Six panels down
+   a card added ~130px of nothing between each heading and the boxes it labelled.
+2. **A grid stretches every card in a row to the tallest**, and a QVBoxLayout hands that
+   spare height to the gaps between its children. `addWidget(…, Qt.AlignTop)` per card.
+3. **A full-width `QSpinBox`** holding a two-digit printed number reads as a text field
+   somebody forgot to size. `_labelled` now sizes spin boxes and stretches nothing else.
+4. **The first grab lied.** A `QScrollArea` measured before the layout settles reports a
+   crushed body — panels overlapping, no scrollbar. It is not a defect; **process events
+   more than once before believing a screenshot.**
+
+### The wiring back to the builder
+
+* **ONE party window**, held on the MainWindow and reused. A fresh one per click would
+  give each its own cards over the same roster, and a box ticked in the old one would be
+  invisible in the new.
+* **The context is SHARED, not copied** — same roster, same member Characters, same
+  adversary catalogue (loaded on demand, as `ui/builder.py` does, because templates are
+  book data but not *rules*).
+* **Members are held BY REFERENCE**, which is what makes "Open in builder" need no
+  syncing code — and what makes a stale `ctx["member"]` dangerous. Every path that drops
+  or replaces the roster calls `on_close_member`, and the builder clears it on New and
+  Load too.
+* **`_refresh` redraws the party window only when it is VISIBLE.** A card shows DERIVED
+  capacities, so spending XP in the builder makes its pixels stale even though both
+  windows hold one object.
+* ⚠ **`closeEvent` takes the party window down with the builder.** A parentless
+  `QMainWindow` is its own top-level window; without this the Storyteller window survives
+  the builder with no way back to one.
+
+### Tests
+
+`tests/test_qt_party.py` (30) and `tests/test_qt_adversaries.py` (49), plus 8 shell tests
+for the wiring and 7 engine tests for the mutations. `qt/trackers.py` now owns the
+tracker box and the damage-colour map for all three surfaces — a Storyteller should not
+have to learn two damage trackers, and three copies of a colour map is how they drift.
+
+**NOT human-clicked yet.** Rendered offscreen and looked at, tab by tab and dialog by
+dialog; that is not the same thing.

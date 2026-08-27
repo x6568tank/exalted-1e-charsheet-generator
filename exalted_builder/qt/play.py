@@ -43,15 +43,7 @@ from exalted_builder.ui import view as viewmod
 
 from .layout import clear_layout
 from .theme import CARD, INPUT, MUTED, accent as accent_light
-
-# The mark a damage type paints its box with. On the dark base the webapp's
-# gold-fill-plus-tinted-glyph reads as one colour at a glance, so the box itself
-# carries the type and the glyph only disambiguates it.
-_MARK_FILL = {
-    Damage.BASHING: "#6b7280",       # grey
-    Damage.LETHAL: "#c0392b",        # red
-    Damage.AGGRAVATED: "#9b59b6",    # purple
-}
+from .trackers import MARK_FILL as _MARK_FILL, box as _tracker_box
 
 # Health tracks run to a dozen boxes and more with Ox-Body. Qt has no flex-wrap, so
 # the row wraps by construction.
@@ -174,25 +166,10 @@ class PlayPage(QWidget):
         return label
 
     def _box(self, name: str, size: int, fill: str, text: str = "") -> QPushButton:
-        """One clickable tracker box.
-
-        ⚠ Named after what it tracks (`play.health.3`, `play.limit.0`), never left to
-        its position in a `findChildren` list — the tab is full of same-shaped boxes
-        and an index picks whichever was built first.
-
-        ⚠ Its own `:hover` is set explicitly: the shell stylesheet paints every
-        QPushButton's hover the splat accent, which is exactly the colour a FILLED
-        Willpower box already is, so an empty box would read as full under the mouse.
-        """
-        button = QPushButton(text)
-        button.setObjectName(name)
-        button.setFixedSize(size, size)
-        button.setFlat(True)
-        button.setStyleSheet(
-            f"QPushButton {{ background:{fill}; color:#f4f2ee; border:none;"
-            f" border-radius:3px; font-weight:700; padding:0px; }}"
-            f"QPushButton:hover {{ background:{fill}; border:1px solid {self._accent()}; }}")
-        return button
+        """One clickable tracker box — `qt/trackers.py` owns the drawing, because the
+        party cards and the adversary roster draw the same box and a Storyteller must
+        not have to learn two damage trackers."""
+        return _tracker_box(name, size, fill, self._accent(), text)
 
     def _labelled(self, lay, caption: str, widget) -> None:
         row = QHBoxLayout()

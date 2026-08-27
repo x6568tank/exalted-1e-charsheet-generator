@@ -323,3 +323,103 @@ def test_the_popover_shows_bonus_points_in_chargen_and_the_ledger_after(ruleset,
     assert "Bonus Points" in popover_text(Character(id="c.new"))
     assert "Bonus Points" not in popover_text(_locked(ruleset))
     assert "Experience" in popover_text(_locked(ruleset))
+
+
+# --------------------------------------------------------------------------- #
+# The Party window — a SECOND window over the same context
+# --------------------------------------------------------------------------- #
+
+def _party_char(name="Dace"):
+    return Character(id=f"c.{name}", name=name, exalt_type="Solar", caste="dawn")
+
+
+def test_the_party_window_is_created_once_and_reused(ruleset, qtbot):
+    """⚠ ONE window, held on the builder. A fresh one per click would give each its own
+    cards over the same roster, and a health box ticked in the old one would be invisible
+    in the new."""
+    win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    first = win.party_window()
+    assert win.party_window() is first
+    win._party()
+    assert win.party_window() is first
+
+
+def test_the_party_window_shares_the_builders_context(ruleset, qtbot):
+    win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    party = win.party_window()
+    assert party._ctx is win._ctx
+
+
+def test_opening_the_party_window_loads_the_adversary_catalogue(ruleset, qtbot):
+    """The templates are book data but NOT rules, so they ride the context and are
+    loaded on demand — the same place `ui/builder.py` puts them for the webapp."""
+    win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    assert win._ctx["adversary_catalog"] == {}
+    win.party_window()
+    assert len(win._ctx["adversary_catalog"]) > 40
+
+
+def test_open_in_builder_retargets_this_window_by_reference(ruleset, qtbot):
+    """The human's call (2026-08-27): ONE builder, retargeted — not a window per member.
+    ⚠ By reference, so every edit lands on the card with no syncing code."""
+    win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    party = win.party_window()
+    member = _party_char("Harmonious Jade")
+    party.add_character(member)
+    win._open_member(0)
+    assert win._ctx["char"] is member
+    assert win._ctx["member"] == 0
+
+
+def test_loading_a_character_forgets_the_party_member_it_was_editing(ruleset, qtbot):
+    """⚠ A stale `member` index attributes a later save to a member this window is no
+    longer editing."""
+    win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    win.party_window().add_character(_party_char("Jade"))
+    win._open_member(0)
+    win._apply_loaded(Character(id="c.other", name="Other"), None, "other")
+    assert win._ctx["member"] is None
+
+
+def test_a_new_character_forgets_the_party_member_too(ruleset, qtbot, monkeypatch):
+    from PySide6.QtWidgets import QMessageBox
+    monkeypatch.setattr(QMessageBox, "question",
+                        lambda *a, **k: QMessageBox.StandardButton.Yes)
+    win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    win.party_window().add_character(_party_char("Jade"))
+    win._open_member(0)
+    win._confirm_new()
+    assert win._ctx["member"] is None
+
+
+def test_closing_the_builder_takes_the_party_window_with_it(ruleset, qtbot):
+    """⚠ A parentless QMainWindow is its own top-level window: without this the
+    Storyteller window survives the builder, with no way back to one."""
+    win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    party = win.party_window()
+    party.show()
+    win.close()
+    assert not party.isVisible()
+
+
+def test_a_builder_change_redraws_a_VISIBLE_party_window_only(ruleset, qtbot):
+    """A card shows DERIVED capacities, so a builder change makes its pixels stale even
+    though both windows hold the same object. Hidden, there is nothing to redraw — it
+    reloads on every open."""
+    win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    party = win.party_window()
+    calls = []
+    party.reload = lambda: calls.append(1)
+    win._refresh()
+    assert calls == []                  # hidden
+    party.show()
+    win._refresh()
+    assert calls == [1]

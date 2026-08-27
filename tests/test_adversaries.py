@@ -592,3 +592,77 @@ def test_templates_carry_no_tracked_state(catalog):
     for t in catalog.values():
         assert t.damage == [] and t.willpower_spent == 0 and t.motes_spent == 0
         assert t.template_id == ""
+
+
+# --------------------------------------------------------------------------- #
+# The roster mutations — shared by BOTH shells (ui/adversaries.py, qt/adversaries.py)
+# --------------------------------------------------------------------------- #
+
+def _played() -> Adversary:
+    return Adversary(id="a.1", name="Bandit", willpower=3, essence_pool=10,
+                     health_levels=adv.expand_health("-1/-3/I"),
+                     damage=[Damage.LETHAL, None, None],
+                     willpower_spent=2, motes_spent=5)
+
+
+def test_reset_clears_exactly_what_instantiate_clears():
+    """⚠ The two must agree on which fields are TRACKED. `instantiate` gives a duplicate
+    a fresh start and `reset_tracking` gives an existing entry one — a new tracked field
+    added to one and not the other means a "fresh" adversary carrying spent motes."""
+    source = _played()
+    fresh = adv.instantiate(source, "a.2")
+    reset = source.model_copy(deep=True)
+    adv.reset_tracking(reset)
+    for field in Adversary.model_fields:
+        if field in ("id", "name", "template_id"):
+            continue
+        assert getattr(fresh, field) == getattr(reset, field), field
+
+
+def test_add_blank_gives_the_extras_printed_three_levels():
+    """p.241: an extra has three health levels. A blank entry with an EMPTY track has no
+    boxes to click, which is not what "bare minimum" means."""
+    party = Party(id="p")
+    entry = adv.add_blank(party)
+    assert party.adversaries == [entry]
+    assert len(entry.health_levels) == 3
+
+
+def test_duplicate_sits_beside_its_original_and_is_numbered():
+    party = Party(id="p", adversaries=[_played(), Adversary(id="a.9", name="Wolf")])
+    copy = adv.duplicate(party, 0)
+    assert [a.name for a in party.adversaries] == ["Bandit", "Bandit 2", "Wolf"]
+    assert copy.damage == [] and copy.id not in ("a.1", "a.9")
+
+
+def test_remove_returns_the_name_it_dropped():
+    party = Party(id="p", adversaries=[_played()])
+    assert adv.remove(party, 0) == "Bandit"
+    assert party.adversaries == []
+
+
+def test_the_mote_cap_is_whichever_pool_shape_the_entry_uses():
+    """A spirit prints one pool; an Exalt prints Personal + Peripheral. Both spend
+    downward against ONE counter — splitting it would be tracking for its own sake."""
+    assert adv.mote_cap(Adversary(id="a", essence_pool=112)) == 112
+    assert adv.mote_cap(Adversary(id="b", personal_essence=11,
+                                  peripheral_essence=27)) == 38
+    assert adv.mote_cap(Adversary(id="c")) == 0
+
+
+def test_setting_motes_clamps_to_that_cap():
+    entry = Adversary(id="a", essence_pool=10)
+    adv.set_motes_spent(entry, 99)
+    assert entry.motes_spent == 10
+    adv.set_motes_spent(entry, -3)
+    assert entry.motes_spent == 0
+
+
+def test_a_count_track_fills_to_the_click_and_empties_back():
+    """The same behaviour `engine.play.set_count` gives a character — one tracker to
+    learn, not two."""
+    entry = _played()
+    adv.set_count(entry, "willpower_spent", 2, entry.willpower)
+    assert entry.willpower_spent == 3
+    adv.set_count(entry, "willpower_spent", 2, entry.willpower)
+    assert entry.willpower_spent == 2

@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QSpinBox, QStackedWidget, QToolBar, QVBoxLayout, QWidget,
 )
 
+import exalted_builder
 from exalted_builder import custom_content, persistence, rules_db
 from exalted_builder.engine import advancement, elder, lifecycle, validate
 from exalted_builder.models.character import Character
@@ -40,6 +41,7 @@ from .charms import CharmsPage
 from .gear import GearPage
 from .editor import IdentityPage, TraitsPage
 from .custom import CustomPage
+from .party import PartyWindow
 from .play import PlayPage
 from .sheet import SheetPage
 from .storyteller import StorytellerPage
@@ -58,6 +60,10 @@ _RAIL_LABELS["ST"] = "ST Options"
 # Old tab keys ("Edit") ↔ rail keys. Everything else maps 1:1.
 _OLD_TO_RAIL = {"Edit": "Identity"}
 _RAIL_TO_OLD = {v: k for k, v in _OLD_TO_RAIL.items()}
+
+# Where the adversary TEMPLATE catalogue is loaded from, on first use of the Party
+# window. It is book data but not rules — see rules_db.load_adversary_catalog.
+_DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
 
 def make_context(character: Character, save_path: Path) -> dict:
@@ -85,6 +91,8 @@ class MainWindow(QMainWindow):
         self._downtime = {"age": 0, "years": 0}
         self._syncing = False
         self._pages: dict[str, QWidget] = {}
+        # The Storyteller window, built on first use and kept — see `party_window`.
+        self._party_window: PartyWindow | None = None
 
         self.resize(1280, 880)
         self._build_toolbar()
@@ -127,7 +135,8 @@ class MainWindow(QMainWindow):
         tb.addAction("Unlock", self._unlock)
         tb.addSeparator()
         party = tb.addAction("Party", self._party)
-        party.setToolTip("The Storyteller party screen is not part of this milestone.")
+        party.setToolTip("The Storyteller's party window — members, adversaries and "
+                         "the ST reference screen")
 
     def _build_shell(self) -> None:
         """The readout bar, the left rail + page stack, and the status strip."""
@@ -285,6 +294,11 @@ class MainWindow(QMainWindow):
         self.status.setText(
             f"Willpower {view.willpower} · {view.essence_pool_label()} · "
             f"Soak B{view.soak.bashing} / L{view.soak.lethal} / A{view.soak.aggravated}")
+        # ⚠ A party member's card shows DERIVED capacities — the health track, the mote
+        # maxima — so spending XP here changes what the card must draw. The two windows
+        # hold the same Character object, which keeps the DATA in step but not the
+        # pixels.
+        self._refresh_party()
 
     def _open_popover(self) -> None:
         """The click-to-open details: validation issues, the bonus-point breakdown,
@@ -542,6 +556,9 @@ class MainWindow(QMainWindow):
             rules_db.reload_custom_layer(self._ruleset)
             self._notify(f"Imported {len(imported)} homebrew definition(s) from this save", "info")
         self._ctx["char"] = loaded
+        # ⚠ Whatever was loaded, it is not the party member this window was pointed at —
+        # leaving the pointer would attribute a later save to a member it never edited.
+        self._ctx["member"] = None
         if path is not None:
             self._ctx["path"] = path
             self._ctx["dir"] = path.resolve().parent
@@ -587,6 +604,7 @@ class MainWindow(QMainWindow):
         if answer != QMessageBox.StandardButton.Yes:
             return
         self._ctx["char"] = Character(id="char.new")
+        self._ctx["member"] = None            # no longer editing a party member
         self._ctx["dir"] = persistence.default_save_dir()
         self._ctx["path"] = self._ctx["dir"] / persistence.suggested_filename(self._ctx["char"])
         self._notify("Started a new character", "info")
@@ -665,8 +683,69 @@ class MainWindow(QMainWindow):
         lay.addLayout(buttons)
         dialog.exec()
 
+    def party_window(self) -> PartyWindow:
+        """The Storyteller window, created on first use and kept thereafter.
+
+        ⚠ ONE window, held on the builder. A fresh one per click would give each its own
+        `party_page` over the same roster, so a card clicked in the old one would tick a
+        health box nobody is looking at. It shares the CONTEXT, not a copy: the roster,
+        the member Characters and the adversary catalogue are the same objects.
+        """
+        if self._party_window is None:
+            # The template catalogue is not rules (it takes no part in prerequisite
+            # resolution or link-checking), so it rides the context and is loaded on
+            # demand — exactly as `ui/builder.py` loads it for the webapp.
+            if not self._ctx.get("adversary_catalog"):
+                self._ctx["adversary_catalog"] = rules_db.load_adversary_catalog(_DATA_DIR)
+            self._party_window = PartyWindow(
+                self._ruleset, self._ctx,
+                on_open_member=self._open_member,
+                on_close_member=lambda: self._ctx.update(member=None),
+                parent=None)
+        return self._party_window
+
     def _party(self) -> None:
-        self._notify("The Storyteller party screen is not part of this milestone.", "info")
+        window = self.party_window()
+        window.reload()
+        window.show()
+        window.raise_()
+        window.activateWindow()
+
+    def _open_member(self, index: int) -> None:
+        """Re-point THIS window at party member `index` (the human's call, 2026-08-27:
+        one builder, retargeted, rather than a window per member).
+
+        ⚠ By REFERENCE, never a copy — `ctx["char"]` becomes the party's own object, so
+        every edit made here lands on the card with no syncing code. `ctx["member"]`
+        records which one, so a later save is attributable.
+        """
+        member = self._ctx["party"].members[index]
+        self._ctx["char"] = member.character
+        self._ctx["member"] = index
+        self._ctx["path"] = self._ctx["dir"] / persistence.suggested_filename(
+            member.character)
+        self._apply_chrome()
+        self._sync_tabs()
+        self.show()
+        self.raise_()
+        self.activateWindow()
+        self._notify(f"The builder is now editing {member.character.name or 'this member'}")
+
+    def _refresh_party(self) -> None:
+        """Redraw the party window when the builder has moved a character it holds.
+
+        ⚠ Only when it is VISIBLE. The window is kept after a close, and redrawing a
+        hidden one is work nobody sees — it reloads on every open anyway."""
+        if self._party_window is not None and self._party_window.isVisible():
+            self._party_window.reload()
+
+    def closeEvent(self, event):              # noqa: N802 - Qt override
+        """⚠ Take the party window down with the builder. A QMainWindow with no parent
+        is its own top-level window, so closing the builder would otherwise leave the
+        Storyteller window open with no way back to a builder."""
+        if self._party_window is not None:
+            self._party_window.close()
+        super().closeEvent(event)
 
 
 def run(ruleset: RuleSet, character: Character, save_path: Path) -> None:

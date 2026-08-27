@@ -216,6 +216,82 @@ def instantiate(template: Adversary, new_id: str, *, name: str = "") -> Adversar
 
 
 # --------------------------------------------------------------------------- #
+# Roster mutations
+#
+# The four things a GM does to the list itself. They live here rather than in
+# either shell because BOTH shells do them — the webapp roster (`ui/adversaries.py`)
+# and the native Party window (`qt/adversaries.py`) — and a duplicate that inserts
+# in the wrong place or a reset that forgets a field is the kind of divergence
+# nothing catches. Each returns what the caller has to select or report.
+# --------------------------------------------------------------------------- #
+
+def add_blank(party: Party, *, name: str = "New adversary",
+              health: str = "-1/-3/I") -> Adversary:
+    """Append an empty entry with the extra's printed three-level track (p.241)."""
+    entry = Adversary(id=next_id(party), name=name, health_levels=expand_health(health))
+    party.adversaries.append(entry)
+    return entry
+
+
+def add_from_template(party: Party, template: Adversary) -> Adversary:
+    """Append an editable copy of a catalogue row. The row is never written to."""
+    entry = instantiate(template, next_id(party))
+    party.adversaries.append(entry)
+    return entry
+
+
+def duplicate(party: Party, index: int) -> Adversary:
+    """Instancing: five bandits, five health tracks. The copy is numbered and sits
+    NEXT TO its original rather than at the end — a squad should read as a squad."""
+    source = party.adversaries[index]
+    copy = instantiate(source, next_id(party),
+                       name=_copy_name(party.adversaries, source.name))
+    party.adversaries.insert(index + 1, copy)
+    return copy
+
+
+def remove(party: Party, index: int) -> str:
+    """Drop entry `index`; returns the name that went, for the caller's message."""
+    gone = party.adversaries[index].name or "adversary"
+    del party.adversaries[index]
+    return gone
+
+
+def reset_tracking(adversary: Adversary) -> None:
+    """Clear damage and both spent pools — "the scene ended", not a healing rule.
+
+    ⚠ Every tracked field, and nothing else. `damage`, `willpower_spent` and
+    `motes_spent` are the three, and they are the same three `instantiate` clears;
+    a reset that misses one leaves a "fresh" adversary carrying spent motes.
+    """
+    adversary.damage = []
+    adversary.willpower_spent = 0
+    adversary.motes_spent = 0
+
+
+def mote_cap(adversary: Adversary) -> int:
+    """The one mote track's maximum, whichever pool shape the entry uses. A spirit's
+    single pool and an Exalt's Personal+Peripheral both spend downward, so the
+    tracker is one counter rather than two (0 = the entry has no motes at all)."""
+    return adversary.essence_pool or (adversary.personal_essence
+                                      + adversary.peripheral_essence)
+
+
+def set_motes_spent(adversary: Adversary, value) -> None:
+    """Write the mote counter, clamped to the entry's own pool."""
+    adversary.motes_spent = max(0, min(mote_cap(adversary), int(value or 0)))
+
+
+def set_count(adversary: Adversary, field: str, clicked: int, cap: int) -> None:
+    """A click on box `clicked` of a spent-count track: fill to here, or empty back
+    to here when this box is already the last full one. Mirrors engine.play.set_count,
+    which drives the character trackers — one behaviour to learn, not two."""
+    cur = getattr(adversary, field)
+    setattr(adversary, field, max(0, min(cap, clicked if clicked + 1 == cur
+                                         else clicked + 1)))
+
+
+# --------------------------------------------------------------------------- #
 # Ids, duplicate naming, and the free-text trait/attack codec
 #
 # Moved verbatim out of `ui/adversaries.py` 2026-08-10: none of it touched the
