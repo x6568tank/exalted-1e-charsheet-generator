@@ -96,7 +96,17 @@ QCheckBox:disabled {{ color:{MUTED}; }}
 QCheckBox::indicator:disabled {{ background:{BG}; border:1px solid {MUTED};
                                  border-radius:3px; }}
 QCheckBox::indicator:checked:disabled {{ background:{MUTED}; border:1px solid {MUTED}; }}
-QLineEdit, QSpinBox, QComboBox, QListWidget, QTextEdit {{
+/* ⚠ A QDialog is a top-level WINDOW: it does not inherit the QPalette set on the main
+   window, and nothing here named it, so every dialog in the port drew the platform's
+   light #efefef. It reads as a thin light halo around the catalogue and the details
+   popover (whose content fills the area) and as a glaring light page around anything
+   with margins. Fixed once, for every dialog. */
+QDialog {{ background:{BG}; }}
+/* ⚠ QPlainTextEdit was missing from this list while QTextEdit was in it — so a paste
+   box rendered white-on-white beside a correctly themed read-only pane. The same
+   "if a class is not named here, it is unstyled" trap; check the SIBLING classes
+   whenever you add one. */
+QLineEdit, QSpinBox, QComboBox, QListWidget, QTextEdit, QPlainTextEdit {{
     background:{INPUT}; color:{INK}; border:none;
     border-radius:4px; padding:2px 5px; }}
 QComboBox QAbstractItemView {{ background:{INPUT}; color:{INK};

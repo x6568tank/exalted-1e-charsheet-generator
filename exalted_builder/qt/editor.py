@@ -145,9 +145,14 @@ class _FavoredPicker(QWidget):
     type; clicking opens the full list. Picking (dropdown, completer or Enter) adds the
     option as a chip, capped at `cap`. `on_change` fires with the current picks whenever
     a chip is added or removed. Disabled when frozen (chargen choices are fixed at the
-    lock)."""
+    lock).
 
-    def __init__(self, options: dict, current: list, cap: int, accent: str,
+    ⚠ **`cap=None` means UNBOUNDED**, and is not the same as a very large number: the
+    placeholder PRINTS the cap, so a caller passing 999 to mean "no limit" put
+    "Type a name… (pick 999)" on screen. The lists on the Custom tab (prerequisites,
+    extra-requirement traits, open-to tiers) have no cap in the models."""
+
+    def __init__(self, options: dict, current: list, cap: int | None, accent: str,
                  on_change, *, frozen: bool = False, parent=None):
         super().__init__(parent)
         self._options = options
@@ -167,7 +172,8 @@ class _FavoredPicker(QWidget):
         completer.setFilterMode(Qt.MatchFlag.MatchContains)
         completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.combo.setCompleter(completer)
-        self.combo.lineEdit().setPlaceholderText(f"Type a name… (pick {cap})")
+        self.combo.lineEdit().setPlaceholderText(
+            "Type a name…" if cap is None else f"Type a name… (pick {cap})")
         self.combo.lineEdit().returnPressed.connect(self._add_current)
         # Both paths: activated(int) on a dropdown pick, textActivated(str) from the
         # completer. `_add_current` is idempotent, so double-fires are safe.
@@ -186,7 +192,9 @@ class _FavoredPicker(QWidget):
         text = self.combo.currentText().strip()
         self.combo.setCurrentText("")
         key = next((k for k, v in self._options.items() if v.lower() == text.lower()), None)
-        if key is None or key in self._picked or len(self._picked) >= self._cap:
+        if key is None or key in self._picked:
+            return
+        if self._cap is not None and len(self._picked) >= self._cap:
             return
         self._picked.append(key)
         self._render_chips()

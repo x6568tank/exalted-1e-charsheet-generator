@@ -834,9 +834,27 @@ def reload_custom_layer(ruleset: RuleSet, custom_dir: str | Path | None = None) 
     for sid in [sid for sid, sp in ruleset.spells.items() if sp.custom]:
         del ruleset.spells[sid]
 
+    # ⚠ The GEAR half was missing here until 2026-08-27, while `load_ruleset` merged it
+    # from the start — so a library weapon appeared in Buy only after an app RESTART,
+    # and anything reading the catalogues after a reload saw the row as unloaded. The
+    # gap was invisible because `library_gear` had exactly one caller (the loader);
+    # nothing surfaced the list until the Custom tab grew one.
+    #
+    # ⚠ Custom gear is identified by its TAG, not a `custom` field: `WeaponType` and
+    # friends are frozen and shared with the book data (`_merge_custom_gear`).
+    gear_catalogs = {
+        "weapons": (ruleset.weapon_catalog, WeaponType),
+        "armor": (ruleset.armor_catalog, ArmorType),
+        "gear": (ruleset.gear_catalog, GearType),
+        "artifacts": (ruleset.artifact_catalog, ArtifactType),
+    }
+    for catalog, _model in gear_catalogs.values():
+        for row_id in [i for i, row in catalog.items() if "custom" in row.tags]:
+            del catalog[row_id]
+
     target = Path(custom_dir) if custom_dir is not None else custom_content.custom_data_dir()
-    problems = _load_custom_layer(target, ruleset.charms, ruleset.spells) \
-        if target.is_dir() else []
+    problems = _load_custom_layer(target, ruleset.charms, ruleset.spells,
+                                  gear_catalogs) if target.is_dir() else []
     ruleset.custom_problems = problems
     return problems
 

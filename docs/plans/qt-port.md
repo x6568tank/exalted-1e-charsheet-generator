@@ -951,8 +951,10 @@ bought; both were fixed and re-clicked before the approval.
 ## Group 4 item 2 — Edit's seven deferred panels (2026-08-22)
 
 Closes the itemised Edit gaps. `d157913` (five panels) + `b9ee454` (the last two).
-**Green, NOT human-clicked** — the human's call was one click-through over the whole
-Edit surface rather than one per panel.
+**Green, NOT human-clicked at the time of writing** — the human's call was one
+click-through over the whole Edit surface rather than one per panel. ⚠ That click
+happened and the whole Edit surface was approved; this line was left standing and read
+as a live claim for days. Corrected 2026-08-27.
 
 | Panel | Home | Gate |
 |---|---|---|
@@ -1307,11 +1309,96 @@ INVERTED for a ticked box** — the disabled one was brighter. The test now asse
 brightness gap, verified by deleting the rules and watching it fail.
 **Negative-control a rendering test by deleting the rule it guards.**
 
-### Human-verified on the real display — NOT YET
+### Human-verified on the real display — YES (2026-08-27)
 
-Rendered offscreen in five states (Solar unlocked, both sub-tabs, a select control, a
-locked Solar, a God-Blooded whose Inheritance rule is live) and looked at. **Not
-human-clicked.** What to click: flip Magic for Everyone on a character with Occult and
-watch the shell's bonus-point line move; lock and confirm every control reads as
-read-only; a God-Blooded's Inheritance select; and the port-wide checkbox change on
-**Play and Advantages**, which the theme edit touches without their tests noticing.
+**Clicked and approved**, on the day it shipped. Four things were driven:
+
+1. **The port-wide checkbox theme change**, against **Play, Advantages and Charms** —
+   the surfaces the shared stylesheet touches that were already signed off under the
+   old look. No regression.
+2. **ST Options on an unlocked Solar** — read at real size, nothing below the fold.
+3. **ST Options on a locked character** — the read-only state reads as locked rather
+   than as broken.
+4. **The variant chooser** on a Solar with Resistance 5, and the cap refusal wording
+   (below).
+
+⚠ **The checklist was cut down before it was run, and that was the right call.** The
+first version had eleven checks; the human asked whether all of it was necessary and it
+was not. Most of it re-drove behaviour that `test_qt_storyteller.py` and
+`test_qt_theme.py` already assert — the Setting column, the readout counts, the dimming,
+`isEnabled`, the three stored types, the checked-vs-unchecked appearance. **What a human
+adds is the class of defect that beats every offscreen check: a control that is correct,
+tested, and below the fold** (milestone 3's M&F picker), **and a shared style regressing
+a surface that was already approved.** Four checks, five minutes. Scope a click-through
+to what only the display can answer.
+
+### Still NOT clicked
+
+Group 4's five per-splat Charm surfaces (Eclipse foreign tree, MA style panel,
+Alchemical submodules, the DB Immaculate banner, the Jadeborn repeat) and the POST-lock
+half of the variant chooser. Each was rendered offscreen and each has test coverage of
+the behaviour; they are not blocking, but they are not clicked.
+
+⚠ **`ui/picker.py::variant_menu_detail` — the WEBAPP's variant panel — has still never
+been rendered at all**, in a browser or anywhere else. The Qt panel was verified here;
+its webapp twin was not. It remains the least-verified code in the tree.
+
+## Custom — the last rail placeholder (2026-08-27)
+
+`qt/custom.py`. The rail now has none left. **Human-clicked the same day, with the gear
+work below.** Details in `docs/status/custom-content.md`; what belongs to the PORT:
+
+* The collection layout, with the webapp's third column becoming a toolbar **dialog**
+  rather than a nested tab — one detail pane is the layout, and JSON in-and-out is an
+  action on the row rather than a property of it.
+* ⚠ **The one collection whose detail pane is not a projection of a selected row.** It
+  also holds an unsaved NEW row. `_fill_tables` must never fall back to row 0 — every
+  other collection does, and here it discards a half-written Charm on every rebuild.
+* ⚠ **`reload()` is deliberately not called in the constructor.** The only tab whose
+  refresh touches the FILESYSTEM, and the shell builds all nine pages up front.
+
+Both invariants have tests, and both were negative-controlled by breaking the code and
+watching the right test go red.
+
+### What the render caught — four, none visible to the tests
+
+1. ⚠ **`QDialog` was never styled — PORT-WIDE.** A dialog is a top-level window and does
+   not inherit the main window's palette, so every dialog in the app drew the platform's
+   light `#efefef`: a thin light halo on the catalogue and the details popover (whose
+   content fills the area), a glaring light page around anything with margins. One QSS
+   rule fixed all of them.
+2. ⚠ **`QPlainTextEdit` was missing from the input rule while `QTextEdit` was in it** —
+   a paste box rendered white-on-white beside a correctly themed pane. The same
+   check-the-siblings trap as `QCheckBox:disabled` the session before.
+3. `_FavoredPicker` PRINTS its cap in the placeholder, so passing 999 to mean
+   "unlimited" put "Type a name… (pick 999)" on screen. It takes `cap=None` now.
+4. A `_labelled` caption is vertically centred by Qt, so the 90px Description box's label
+   floated to its middle and scrolled clean out of view. Top-aligned.
+
+### A test that broke for the right reason and asserted the wrong thing
+
+`test_theme_does_not_border_every_widget` pinned the literal selector string
+`"QLineEdit, QSpinBox, QComboBox, QListWidget, QTextEdit {"`, so adding a sixth class
+turned a correct change red — the shape that teaches the next person to edit the test
+rather than read it. Now asserts MEMBERSHIP, plus a sibling test pinning every editable
+class the port instantiates, so an unthemed input fails here rather than at a
+click-through.
+
+### Gear on the Custom tab, and the ruling it reversed
+
+The human reopened the 2026-08-13 "no authoring form was needed" ruling and it is now
+reversed — `docs/status/custom-content.md` has the full record, including the
+`reload_custom_layer` bug that had made library gear need an app restart to reach Buy.
+Two port-shaped notes:
+
+* ⚠ The form is a **flat dict validated on save**, not `setattr` down a model, because
+  `WeaponType` and friends are FROZEN and shared with the book data. That is the Custom
+  tab's Charm-form pattern, not `qt/gear.py`'s owned-row-editor pattern — **the two tabs
+  edit different models and only one of them is mutable.**
+* A test's SUBJECT changed again: `test_saving_on_the_gear_tab_points_at_the_gear_tab`
+  asserted the old refusal. Replaced with a parametrised authoring test over all four
+  kinds, not deleted.
+
+### Human-verified on the real display — YES (2026-08-27)
+
+Clicked and approved, form and list, all four kinds. *"No notes, everything looks good."*

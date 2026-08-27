@@ -45,9 +45,33 @@ def test_theme_does_not_border_every_widget():
     # A visible border on every input/button/card read as "a border around every
     # element" — the flat design leaves borders off everything; the card shade and
     # the accent carry the structure.
+    #
+    # ⚠ Asserts MEMBERSHIP, not the literal selector list. The first version pinned
+    # "QLineEdit, QSpinBox, QComboBox, QListWidget, QTextEdit {" verbatim and failed the
+    # day a sixth editable class was added to it — a red test for a correct change,
+    # which teaches the next person to edit the test rather than read it.
     solar_qss = qtheme.qss(palette("Solar"))
-    assert "QLineEdit, QSpinBox, QComboBox, QListWidget, QTextEdit {" in solar_qss
-    assert "border:none" in solar_qss
+    selector = next(rule.split("{")[0] for rule in solar_qss.split("}")
+                    if "QLineEdit" in rule.split("{")[0] and "border:none" in rule)
+    for widget in ("QLineEdit", "QSpinBox", "QComboBox", "QListWidget", "QTextEdit",
+                   "QPlainTextEdit"):
+        assert widget in selector, f"{widget} is not in the borderless input rule"
+
+
+def test_every_editable_class_the_port_uses_is_themed():
+    """⚠ "If a widget class is not named in `qt/theme.py::qss`, assume it is unstyled" —
+    and an unstyled input renders the platform's WHITE on the dark page. QPlainTextEdit
+    was missing while its sibling QTextEdit was present, which is how the Custom tab's
+    paste box shipped white-on-white beside a correctly themed pane.
+
+    Pins the classes the port actually instantiates, so adding a new kind of input
+    without theming it fails here rather than at a click-through.
+    """
+    solar_qss = qtheme.qss(palette("Solar"))
+    for widget in ("QLineEdit", "QSpinBox", "QComboBox", "QListWidget", "QTextEdit",
+                   "QPlainTextEdit", "QTreeWidget", "QCheckBox", "QPushButton",
+                   "QDialog"):
+        assert widget in solar_qss, f"{widget} is not styled at all"
 
 
 def test_shell_themes_to_the_splat_palette(ruleset, qtbot):

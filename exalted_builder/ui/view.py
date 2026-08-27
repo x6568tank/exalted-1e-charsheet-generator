@@ -21,9 +21,10 @@ from ..engine import (advancement, adversaries as advmod,
                       merits as meritsmod, paths as engine_paths, validate)
 from ..models.adversary import Adversary
 from ..models.character import Armor, Character, HouseRules, Weapon, XpEntry
-from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, BackgroundType,
-                            CharmCost, Damage, PoolKind, RuleSet, SpellCircle,
-                            TRACK_CIRCLES, VirtueName, circle_kind)
+from ..models.rules import (DAMAGE_LABELS, AbilityName, ArmorType, ArmorWeight,
+                            ArtifactType, AttributeName, BackgroundType, CharmCost,
+                            Damage, GearType, PoolKind, RuleSet, SpellCircle,
+                            TRACK_CIRCLES, VirtueName, WeaponType, circle_kind)
 
 
 @dataclass
@@ -3434,10 +3435,15 @@ class CustomRow:
     """One row in the library list on the left of the authoring page."""
     id: str
     name: str
-    kind: str                  # "charm" | "spell"
+    kind: str                  # "charm" | "spell" | "gear"
     detail: str                # category/circle, for the list's second line
     valid: bool                # False = in the library but rejected by the loader
     problem: str = ""          # why it was rejected, when it was
+    # Which gear catalogue a `kind == "gear"` row lives in ("weapons" / "armor" /
+    # "gear" / "artifacts"). Empty for Charms and spells. The four are ONE concept on
+    # screen — things you own — so they share a list and this is the column that tells
+    # them apart; it is also what `custom_content.delete_gear` needs.
+    subkind: str = ""
 
 
 # Sentinel category: the page swaps in a style-name box and writes
@@ -3693,6 +3699,221 @@ def build_custom_library(ruleset: RuleSet, charm_rows: list[dict],
             detail=f"{loaded.circle.value} Circle" if loaded else row.get("circle", "?"),
             valid=loaded is not None and loaded.custom,
             problem=_problem_for(rid)))
+    return out
+
+
+# The four gear catalogues the custom library can hold, in the order the list shows
+# them, mapped to the RuleSet attribute each merges into and the label for the Kind
+# column. Keys are `custom_content.GEAR_FILES`' keys — `delete_gear` takes one.
+CUSTOM_GEAR_KINDS: dict[str, tuple[str, str]] = {
+    "weapons": ("weapon_catalog", "Weapon"),
+    "armor": ("armor_catalog", "Armour"),
+    "gear": ("gear_catalog", "Goods"),
+    "artifacts": ("artifact_catalog", "Artifact"),
+}
+
+
+def custom_gear_summary(kind: str, entry) -> str:
+    """One line of stats for a library gear row, reusing the shop's own formatters so
+    a homebrew weapon reads exactly as it does in Buy."""
+    if kind == "weapons":
+        return catalog_weapon_summary(entry)
+    if kind == "armor":
+        return catalog_armor_summary(entry)
+    if kind == "artifacts":
+        return f"{'•' * entry.rating} {entry.description}".strip()
+    return entry.category or entry.kind or ""
+
+
+@dataclass(frozen=True)
+class GearField:
+    """One control on the gear authoring form. A spec rather than a widget so both
+    shells build the same form from one description."""
+    key: str
+    label: str
+    kind: str = "int"           # "int" | "signed" | "text" | "longtext" | "choice"
+    options: tuple[tuple[str, str], ...] = ()     # (stored value, label) for "choice"
+    tip: str = ""
+
+
+# The four gear models, as forms. ⚠ Derived from `models/rules.py` FIELD BY FIELD, not
+# from the Gear tab's owned-row editors: a character's `Weapon` is not a `WeaponType`
+# (`gear_actions.library_payload` is the codec between them), and the two field sets
+# differ at both ends.
+#
+# ⚠ Three fields are deliberately ABSENT from every form:
+#   * `id` — it follows the name on first save and freezes after, like a custom Charm's.
+#   * `tags` — the loader stamps `custom` itself, and the one meaningful tag is
+#     `["shield"]` on an ArmorType. Rare enough for the JSON pane.
+#   * `requires_merit` (ArtifactType) — decision 0011: **no module outside
+#     engine/merits.py may name a Merit id**, and a dropdown of Merits would put one in
+#     UI code. A homebrew plot device sets it through the JSON pane.
+#
+# ⚠ `source` is NOT uniform and is not made uniform here: GearType carries a `Source`
+# model, ArtifactType a bare string, and WeaponType/ArmorType have no source field at
+# all. Inventing one for the two that lack it would write a key the model rejects.
+CUSTOM_GEAR_FIELDS: dict[str, tuple[GearField, ...]] = {
+    "weapons": (
+        GearField("speed", "Speed", "signed"),
+        GearField("accuracy", "Accuracy", "signed"),
+        GearField("damage", "Damage", "signed"),
+        GearField("damage_type", "Damage type", "choice",
+                  (("L", "Lethal"), ("B", "Bashing"))),
+        GearField("defense", "Defence", "signed"),
+        GearField("rate", "Rate"),
+        GearField("range", "Range", tip="yards; 0 is melee only"),
+        GearField("min_strength", "Min Strength"),
+        GearField("min_dexterity", "Min Dexterity"),
+        GearField("min_martial_arts", "Min Martial Arts"),
+        GearField("max_strength", "Max Strength",
+                  tip="bows: the Strength the bow is built for"),
+        GearField("artifact_rating", "Artifact rating",
+                  tip="0 is mundane; dots of the Artifact Background to start with it"),
+        GearField("attunement", "Attunement", tip="motes committed to attune"),
+        GearField("resources_cost", "Resources", tip="dots of Resources to buy one"),
+        GearField("notes", "Notes", "text"),
+    ),
+    "armor": (
+        # ⚠ `weight` is REQUIRED by ArmorType and the Gear tab's "Save to my library"
+        # cannot know it — a character's armour row carries none, so that path defaults
+        # to Light and apologises in its notify. Asking here is the point of the form.
+        GearField("weight", "Weight", "choice",
+                  tuple((w.value, w.value) for w in ArmorWeight)),
+        GearField("soak_lethal", "Soak (lethal)"),
+        GearField("soak_bashing", "Soak (bashing)"),
+        GearField("mobility_penalty", "Mobility", "signed",
+                  tip="stored NEGATIVE — a penalty is e.g. -2"),
+        GearField("fatigue", "Fatigue"),
+        GearField("difficulty_melee", "Difficulty (melee)", "signed",
+                  tip="shields: +N to hit the bearer hand-to-hand"),
+        GearField("difficulty_ranged", "Difficulty (ranged)", "signed",
+                  tip="shields: +N to hit the bearer with missile fire"),
+        GearField("artifact_rating", "Artifact rating"),
+        GearField("attunement", "Attunement"),
+        GearField("resources_cost", "Resources"),
+        GearField("notes", "Notes", "text"),
+    ),
+    "gear": (
+        # ⚠ `kind` decides whether the thing is OWNABLE. `view.shop_rows` skips
+        # everything that is not "goods", so a row saved as a service never appears in
+        # Buy — invisible unless the form says so.
+        GearField("kind", "Kind", "choice",
+                  (("goods", "Goods — ownable, appears in Buy"),
+                   ("service", "Service — a price you consult, never owned"))),
+        GearField("category", "Category", "text", tip="the printed table heading"),
+        GearField("resources_cost", "Resources"),
+        GearField("cash", "Cash price", "text",
+                  tip="printed jade/silver equivalent, verbatim — never arithmetic "
+                      "(M&C p.122 makes the conversion the Storyteller's call)"),
+        GearField("notes", "Notes", "text"),
+    ),
+    "artifacts": (
+        GearField("rating", "Artifact rating",
+                  tip="1-5; the dots of Artifact Background that buy it (core p.342)"),
+        GearField("rating_notes", "Rating notes", "text",
+                  tip='e.g. "• or •••" where the book prints a range'),
+        GearField("background", "Paid for by", "choice",
+                  (("artifact", "the Artifact Background"),
+                   ("manse", "the Manse Background — a Hearthstone"))),
+        GearField("resources_cost", "Resources",
+                  tip="what CASH buys one in play (M&C p.125) — a different scale from "
+                      "the rating, and 0 means the book gives no price"),
+        GearField("source", "Source", "text", tip='e.g. "MF p.279"'),
+        GearField("description", "Description", "longtext"),
+    ),
+}
+
+# The model behind each form, so defaults are READ from it rather than restated.
+_GEAR_MODELS = {"weapons": WeaponType, "armor": ArmorType,
+                "gear": GearType, "artifacts": ArtifactType}
+
+# Fields with no model default, which a payload must always carry — and what a BLANK
+# form starts them at, since there is nothing on the model to read.
+#
+# ⚠ An artifact's rating starts at 1, not 0: `ArtifactType.rating` is `ge=1`, so a zero
+# makes the row unloadable. The others are honest zeroes.
+_GEAR_REQUIRED: dict[str, dict[str, object]] = {
+    "armor": {"weight": ArmorWeight.LIGHT.value, "soak_lethal": 0, "soak_bashing": 0},
+    "artifacts": {"rating": 1},
+}
+
+
+def custom_gear_form(kind: str, row: Optional[dict] = None) -> dict:
+    """The form state for one library gear row: blank for a new one, or filled from a
+    library row for an edit. Flat and JSON-safe, the `custom_charm_form` shape.
+
+    ⚠ Defaults come from the MODEL, not from a hand-written copy — `WeaponType` and
+    friends are frozen and shared with the book data, so a form that invented its own
+    defaults would drift from what the loader accepts."""
+    row = row or {}
+    model = _GEAR_MODELS[kind]
+    form = {"name": row.get("name", "")}
+    blanks = _GEAR_REQUIRED.get(kind, {})
+    for spec in CUSTOM_GEAR_FIELDS[kind]:
+        field_info = model.model_fields[spec.key]
+        fallback = (blanks[spec.key] if field_info.is_required()
+                    else field_info.default)
+        value = row.get(spec.key, fallback)
+        form[spec.key] = value.value if hasattr(value, "value") else value
+    if kind == "gear":
+        source = row.get("source") or {}
+        form["book"] = source.get("book", "Homebrew")
+        form["page"] = source.get("page") or None
+    return form
+
+
+def custom_gear_payload(kind: str, form: dict) -> dict:
+    """Form state -> a library row for `custom_content.save_gear_row`.
+
+    Drops empty optional fields so a hand-read library file stays as short as the item
+    actually is — but ⚠ never drops one the model REQUIRES, which is why
+    `_GEAR_REQUIRED` exists: `ArmorType.soak_lethal` has no default, so omitting a zero
+    soak makes the row unloadable rather than making it zero."""
+    payload: dict = {"id": form.get("id") or "",
+                     "name": (form.get("name") or "").strip()}
+    required = _GEAR_REQUIRED.get(kind, {})
+    for spec in CUSTOM_GEAR_FIELDS[kind]:
+        value = form.get(spec.key)
+        if isinstance(value, str):
+            value = value.strip()
+        if value or spec.key in required:
+            payload[spec.key] = value
+    if kind == "gear":
+        payload["source"] = {"book": (form.get("book") or "Homebrew").strip(),
+                             "page": form.get("page") or None}
+    return payload
+
+
+def build_custom_gear_library(ruleset: RuleSet,
+                              rows_by_kind: dict[str, list[dict]]) -> list[CustomRow]:
+    """The gear half of the library list: every row ON DISK, whether or not it loaded.
+
+    Takes the rows as an argument for the same reason `build_custom_library` does —
+    the page reads the disk, this stays pure.
+
+    ⚠ A loaded gear row carries no `custom` FIELD. `WeaponType` and friends are frozen
+    and shared with the book data, so `rules_db._merge_custom_gear` tags them
+    (`"custom" in entry.tags`) rather than flagging them, and that tag is what says the
+    row is yours. Reading a `.custom` attribute here would raise.
+    """
+    problems = list(ruleset.custom_problems)
+
+    def _problem_for(row_id: str) -> str:
+        return next((p for p in problems if f"{row_id!r}" in p), "")
+
+    out: list[CustomRow] = []
+    for kind, (attribute, label) in CUSTOM_GEAR_KINDS.items():
+        catalog = getattr(ruleset, attribute)
+        for row in rows_by_kind.get(kind) or []:
+            row_id = row.get("id", "")
+            loaded = catalog.get(row_id)
+            out.append(CustomRow(
+                id=row_id, name=row.get("name") or row_id, kind="gear",
+                subkind=kind,
+                detail=(custom_gear_summary(kind, loaded) if loaded
+                        else row.get("name", "")),
+                valid=loaded is not None and "custom" in getattr(loaded, "tags", ()),
+                problem=_problem_for(row_id)))
     return out
 
 

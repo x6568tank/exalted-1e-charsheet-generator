@@ -31,7 +31,7 @@ from PySide6.QtWidgets import (
     QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
-from exalted_builder import custom_content as customs
+from exalted_builder import custom_content as customs, rules_db
 from exalted_builder.engine import (artifacts as artifactsmod, derive as derivemod,
                                     gear_actions, validate)
 from exalted_builder.ui import theme
@@ -439,8 +439,16 @@ class GearPage(QWidget):
         # ⚠ The armour default is SAID OUT LOUD rather than guessed silently: a
         # character's armour row carries no weight and `ArmorType` requires one.
         extra = " (armour weight defaults to Light)" if kind == "armor" else ""
-        self._notify(f"Saved {item.name} to your library{extra}. It will appear in Buy "
-                     f"the next time the app loads its rules.", "positive")
+        # ⚠ Re-merge NOW. `reload_custom_layer` skipped the gear catalogues until
+        # 2026-08-27, which is why this used to say "the next time the app loads its
+        # rules" — a restart really was required. It is not any more, and the sentence
+        # went with the fix.
+        # ⚠ No page rebuild: saving to the LIBRARY does not move the character's own
+        # lists, and `_rebuild` drops the selection — it would throw the player out of
+        # the row they just tweaked. The shop reads `view.shop_rows` fresh on each open.
+        rules_db.reload_custom_layer(self._ruleset)
+        self._notify(f"Saved {item.name} to your library{extra}. It is in Buy now, and "
+                     f"on the Custom tab’s Gear list.", "positive")
 
     def _stat_grid(self, lay, item, specs, resync) -> None:
         """The stat spin boxes, wrapped at three pairs a row.

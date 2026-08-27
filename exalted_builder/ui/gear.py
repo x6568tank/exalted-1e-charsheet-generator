@@ -27,7 +27,7 @@ from pathlib import Path
 
 from nicegui import ui
 
-from .. import custom_content as customs, persistence
+from .. import custom_content as customs, persistence, rules_db
 from ..engine import artifacts as artifactsmod, derive, gear_actions, validate
 from ..models.character import Character
 from ..models.rules import RuleSet
@@ -323,8 +323,11 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
             ui.notify(str(ex), type="warning")
             return
         extra = " (armour weight defaults to Light)" if kind == "armor" else ""
-        ui.notify(f"Saved {item.name} to your library{extra}. It will appear in Buy "
-                  f"the next time the app loads its rules.", type="positive")
+        # ⚠ Re-merge NOW — see the same comment in qt/gear.py. The restart this used to
+        # ask for was `reload_custom_layer` skipping the gear catalogues.
+        rules_db.reload_custom_layer(rs)
+        ui.notify(f"Saved {item.name} to your library{extra}. It is in Buy now, and on "
+                  f"the Custom tab's Gear list.", type="positive")
 
     def _library_button(kind: str, item) -> None:
         ui.button(icon="bookmark_add",

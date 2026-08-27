@@ -2,7 +2,8 @@
 
 The shell is the master-detail the human approved in spikes/qt_edit: a left RAIL of
 app tabs (Identity / Traits / Gear / Advantages / Charms / Play / ST Options /
-Custom / Sheet) beside a stack of pages, a top toolbar (New / Load / Save /
+Custom / Sheet — every one of them real as of 2026-08-27; the placeholder class is gone
+with the last of them) beside a stack of pages, a top toolbar (New / Load / Save /
 Print / Finish & Lock / Unlock / Party), a readout bar whose "≡ details" opens a
 popover with validation + bonus-points + the post-lock Experience card, and a bottom
 status strip (Willpower · pools · Soak).
@@ -38,6 +39,7 @@ from .advantages import AdvantagesPage
 from .charms import CharmsPage
 from .gear import GearPage
 from .editor import IdentityPage, TraitsPage
+from .custom import CustomPage
 from .play import PlayPage
 from .sheet import SheetPage
 from .storyteller import StorytellerPage
@@ -65,21 +67,6 @@ def make_context(character: Character, save_path: Path) -> dict:
     return {"char": character, "path": Path(save_path), "dir": Path(save_path).parent,
             "party": Party(id="party.new"), "party_path": None, "member": None,
             "adversary_catalog": {}}
-
-
-class _PlaceholderPage(QWidget):
-    """A tab whose module is not ported yet. Says so plainly rather than rendering an
-    empty pane — the NiceGUI webapp still ships the surface."""
-
-    def __init__(self, text: str, parent=None):
-        super().__init__(parent)
-        lay = QVBoxLayout(self)
-        label = QLabel(text)
-        label.setWordWrap(True)
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setStyleSheet("color:#6b7280; font-size:12pt; padding:40px;")
-        lay.addWidget(label)
-        lay.addStretch(1)
 
 
 class MainWindow(QMainWindow):
@@ -194,8 +181,10 @@ class MainWindow(QMainWindow):
         # rule changes the readout bar's budget line.
         self._pages["ST"] = StorytellerPage(
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
-        self._pages["Custom"] = _PlaceholderPage(
-            "The Custom (homebrew) tab is still on the webapp.")
+        # ⚠ `on_change` is load-bearing: deleting a custom Charm a character owns leaves
+        # the id on the sheet as an `unknown-charm` error, which the readout bar reports.
+        self._pages["Custom"] = CustomPage(
+            ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Sheet"] = SheetPage(ruleset, ctx)
 
         self.stack = QStackedWidget()

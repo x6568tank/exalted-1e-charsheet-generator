@@ -294,6 +294,24 @@ def delete_spell(spell_id: str, *, custom_dir: str | Path | None = None) -> bool
     return _delete([_dir(custom_dir) / SPELLS_FILE], spell_id)
 
 
+def delete_gear(kind: str, row_id: str, *,
+                custom_dir: str | Path | None = None) -> bool:
+    """Remove one gear row from the library. False if it was not there.
+
+    ⚠ Written well after `save_gear_row` (2026-08-27), and its absence is why the gear
+    half of the library was WRITE-ONLY: a row saved with a typo could be neither seen
+    nor removed except by hand-editing the JSON. `library_gear` had exactly one caller
+    — the loader — so nothing surfaced the list either.
+
+    A character that already owns the item is NOT rewritten, for the same reason as
+    `delete_charm`: saves carry inline COPIES of gear (decision 0007), so an owned
+    weapon keeps working and only the shop's offer goes away.
+    """
+    if kind not in GEAR_FILES:
+        raise CustomContentError(f"unknown gear kind {kind!r}")
+    return _delete([_dir(custom_dir) / GEAR_FILES[kind]], row_id)
+
+
 def parse_rows(text: str) -> list[dict]:
     """JSON text from the paste box or an uploaded file -> rows. Accepts a single
     object or an array of them, so pasting one Charm and importing a whole file are

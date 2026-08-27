@@ -673,6 +673,49 @@ def test_reload_reports_problems_on_the_ruleset(tmp_path):
     assert rs.custom_problems and any("ghost" in p for p in rs.custom_problems)
 
 
+def test_reload_re_merges_the_gear_catalogues_too(tmp_path):
+    """⚠ The gear half was MISSING from `reload_custom_layer` until 2026-08-27, while
+    `load_ruleset` merged it from the start — so a library weapon reached Buy only after
+    an app restart, and any surface reading the catalogue after a reload saw the row as
+    unloaded. Invisible for months because `library_gear` had exactly one caller (the
+    loader); nothing surfaced the list until the Custom tab grew one."""
+    book, mine = tmp_path / "data", tmp_path / "custom"
+    _write_clean_set(book)
+    rs = load_ruleset(book, custom_dir=mine)
+    assert "custom.singing-edge" not in rs.weapon_catalog
+
+    custom_content.save_gear_row("weapons", {
+        "id": "custom.singing-edge", "name": "Singing Edge", "accuracy": 3,
+        "damage": 6}, custom_dir=mine)
+    rules_db.reload_custom_layer(rs, mine)
+
+    assert "custom.singing-edge" in rs.weapon_catalog
+    # Tagged, not flagged: WeaponType is frozen and shared with the book data.
+    assert "custom" in rs.weapon_catalog["custom.singing-edge"].tags
+
+
+def test_reload_drops_a_deleted_gear_row(tmp_path):
+    """The other half of the re-merge: a reload that only ADDS leaves a deleted row in
+    the catalogue forever, which is the shape that makes a delete look like it failed."""
+    book, mine = tmp_path / "data", tmp_path / "custom"
+    _write_clean_set(book)
+    custom_content.save_gear_row("weapons", {"id": "custom.doomed-blade",
+                                             "name": "Doomed Blade"}, custom_dir=mine)
+    rs = load_ruleset(book, custom_dir=mine)
+    assert "custom.doomed-blade" in rs.weapon_catalog
+
+    assert custom_content.delete_gear("weapons", "custom.doomed-blade",
+                                      custom_dir=mine) is True
+    rules_db.reload_custom_layer(rs, mine)
+
+    assert "custom.doomed-blade" not in rs.weapon_catalog
+
+
+def test_deleting_gear_of_an_unknown_kind_is_refused(tmp_path):
+    with pytest.raises(custom_content.CustomContentError):
+        custom_content.delete_gear("trinkets", "custom.x", custom_dir=tmp_path)
+
+
 # --------------------------------------------------------------------------- #
 # the library list the page draws
 # --------------------------------------------------------------------------- #
