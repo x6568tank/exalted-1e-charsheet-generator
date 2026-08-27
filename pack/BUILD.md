@@ -1,9 +1,18 @@
 # Building the desktop app
 
-The Exalted 1e Character Builder can be packaged into a **single double-click
-executable** that bundles Python, the app, all rules data, and a local copy of
-Cytoscape — so it runs with no Python install and **no internet**. On launch it
-starts a local server and opens the user's browser to the app.
+**Two products build from this tree**, each a single double-click executable that
+bundles Python, the app and all the rules data, and runs with no Python install and
+**no internet**:
+
+| Build | Spec | Output | What it is |
+|---|---|---|---|
+| **Webapp** | `pack/exalted-builder.spec` | `dist/ExaltedBuilder` | Starts a local server and opens the user's browser. Bundles a local copy of Cytoscape. |
+| **Native** | `pack/exalted-builder-qt.spec` | `dist/ExaltedBuilderQt` | The PySide6 desktop app (decision 0018). No server, no browser. |
+
+They are mirror images: the webapp spec excludes PySide6, the native spec excludes
+nicegui. Their entry points (`pack/run_app.py`, `pack/run_qt.py`) share two guards —
+the stdout/stderr sinks and the `LD_LIBRARY_PATH` restore — for the same reasons.
+**Keep those in step.**
 
 ## Important: no cross-compiling
 PyInstaller builds for the OS it runs **on**. To produce:
@@ -29,8 +38,10 @@ with its build extras, and runs PyInstaller — a fresh clone to a finished bina
 in one command:
 
 ```
-./linux.sh        # Linux/macOS
-windows.bat       # Windows
+./linux.sh           # Linux/macOS — the webapp build
+./linux.sh qt        # Linux/macOS — the native Qt build
+windows.bat          # Windows — the webapp build
+windows.bat qt       # Windows — the native Qt build
 ```
 
 They are line-for-line equivalents; keep them in step when either changes. The
@@ -39,21 +50,23 @@ manual steps below are the same thing spelled out, for when a build misbehaves.
 ## Build steps (same on every OS)
 
 1. Get the repo and a Python 3.11+ environment.
-2. Install the app plus the build tools:
+2. Install the app plus the build tools — `ui` for the webapp build, `qt` for the
+   native one:
    ```
-   python -m pip install -e ".[ui,desktop]"
+   python -m pip install -e ".[ui,desktop]"      # webapp
+   python -m pip install -e ".[qt,desktop]"      # native
    ```
 3. Build from the **repo root**:
    ```
-   pyinstaller pack/exalted-builder.spec
+   pyinstaller pack/exalted-builder.spec         # webapp
+   pyinstaller pack/exalted-builder-qt.spec      # native
    ```
-4. The executable is in `dist/`:
-   - Linux: `dist/ExaltedBuilder`
-   - Windows: `dist/ExaltedBuilder.exe`
-   - macOS: `dist/ExaltedBuilder`
+4. The executable is in `dist/` — `ExaltedBuilder` or `ExaltedBuilderQt`
+   (`.exe` on Windows).
 
-Double-click it (or run it) — it opens the builder in the default browser.
-Distribute that single file; recipients need nothing else installed.
+Double-click it (or run it): `ExaltedBuilder` opens the builder in the default
+browser, `ExaltedBuilderQt` opens a native window. Distribute that single file;
+recipients need nothing else installed.
 
 ## Windows quick recipe
 On a Windows machine with Python installed, run `windows.bat` from the repo root —
@@ -77,7 +90,27 @@ Ship `dist\ExaltedBuilder.exe`.
 - The app opens in the browser for maximum portability and the fewest GUI
   dependencies. Save/Load therefore use a file-upload picker (Load) and a download
   (Save) rather than native OS dialogs.
-- A native-window mode exists in source (`python -m exalted_builder.ui.builder
-  --native`, needs pywebview + a Qt/GTK backend) but is **not** used by the packaged
-  build — it was dropped for packaging because bundling Qt made the binary large and
-  non-portable across Linux distros.
+- ⚠ A `--native` pywebview mode exists in the WEBAPP source and is still not used by
+  its packaged build. That is unrelated to the Qt product above: the native build is
+  `exalted_builder.qt`, a real widget app, not a browser in a window.
+
+## Notes on the native (Qt) build
+
+- **92 MB on Linux**, measured 2026-08-27 — the whole Python runtime plus Qt. About
+  15 MB of that is the QML/Quick shared libraries, which a collected Qt plugin depends
+  on; they are left in rather than risk breaking a plugin to save 15% of an already
+  large binary.
+- **PySide6 installs at ~650 MB**, so the spec excludes every Qt module by name except
+  the three the app imports (QtCore, QtGui, QtWidgets). ⚠ That list is a SUBTRACTION:
+  a module absent from `_PYSIDE_UNUSED` is in the binary.
+- **UPX is off here**, unlike the webapp spec: compressed Qt shared libraries are a
+  known source of crashes that only reproduce on someone else's machine.
+- reportlab is **not optional** in this build — Print and the party window's "Print
+  all" both go through `ui/pdf.py`, and `collect_all` is what brings its runtime font
+  metrics along. Clicking Print is the only thing that exercises it, so test that on
+  any new build.
+- The binary takes an optional character path, exactly like `python -m
+  exalted_builder.qt`: `./ExaltedBuilderQt ~/dace.character.json`.
+- Saves land **next to the executable** (`persistence.default_save_dir` under
+  `sys.frozen`), and the homebrew library in a `custom/` folder beside it. Put the
+  binary somewhere writable, or set `EXALTED_CUSTOM_DIR`.

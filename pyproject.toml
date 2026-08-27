@@ -25,8 +25,12 @@ ui = [
     # an optional extra within it: the Print button is always on the header bar.
     "reportlab>=4",
 ]
-# Tools needed to build the standalone desktop executable (see pack/). The packaged
-# app opens in the browser, so no native-window (pywebview/Qt) dependencies.
+# Tools needed to build a standalone executable (see pack/). TWO products build from
+# this tree and `desktop` is just the toolchain shared by both: pair it with `ui` for
+# the browser build (`pack/exalted-builder.spec`) or with `qt` for the native PySide6
+# one (`pack/exalted-builder-qt.spec`). ⚠ The old note here said the packaged app
+# always opens in a browser and needs no Qt — true until decision 0018 shipped a
+# native app; nicegui stays listed because the webapp build is still a product.
 desktop = [
     "nicegui>=2",
     "reportlab>=4",

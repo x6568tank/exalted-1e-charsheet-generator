@@ -454,3 +454,36 @@ def test_no_empty_table_anywhere_in_the_port_is_a_bare_void(ruleset, qtbot):
                             or " / ".join(table.headerItem().text(c)
                                           for c in range(table.columnCount())))
     assert not bare, f"empty tables with no explanation: {bare}"
+
+
+# --------------------------------------------------------------------------- #
+# The command line (and therefore the packaged binary's startup)
+# --------------------------------------------------------------------------- #
+
+def test_a_path_on_the_command_line_opens_that_character(ruleset, tmp_path):
+    from exalted_builder import persistence
+    from exalted_builder.qt.__main__ import open_character
+
+    path = tmp_path / "dace.character.json"
+    persistence.save_character(_party_char("Dace"), path)
+    character, save_path, complaint = open_character(["prog", str(path)])
+    assert character.name == "Dace" and save_path == path and complaint == ""
+
+
+def test_an_unreadable_path_starts_blank_and_COMPLAINS_rather_than_dying(ruleset, tmp_path):
+    """⚠ Never fatal. The packaged build is windowed (`console=False`), so an exception
+    here kills the executable with its traceback going nowhere — a mistyped path or a
+    stray argument from a desktop launcher would read as "the app doesn't work"."""
+    from exalted_builder.qt.__main__ import open_character
+
+    character, _save_path, complaint = open_character(["prog", str(tmp_path / "nope.json")])
+    assert character.name == ""
+    assert "Could not open" in complaint and "new character" in complaint
+
+
+def test_no_argument_starts_a_blank_character(ruleset):
+    from exalted_builder.qt.__main__ import open_character
+
+    character, save_path, complaint = open_character(["prog"])
+    assert character.name == "" and complaint == ""
+    assert save_path.suffix == ".json"
