@@ -22,6 +22,8 @@ rather fortunately, a better designer.
 
 ## Screenshots
 
+### NiceGUI
+
 ![The builder](assets/screenshot-builder.png)
 ![The Charm tree picker](assets/screenshot-charms.png)
 ![Backgrounds and Merits & Flaws, with the live bonus-point breakdown](assets/screenshot-advantages.png)
@@ -29,6 +31,14 @@ rather fortunately, a better designer.
 ![A finished character sheet](assets/screenshot-sheet.png)
 ![Storyteller party view](assets/screenshot-gm.png)
 
+### PySide 6/Qt
+
+![Native builder](assets/builder-native.png)
+![Native Charm trees](assets/charms-native.png)
+![Advantages (but native)](assets/advantages-native.png)
+![Gear (but native)](assets/gear-native.png)
+![Native sheet](assets/sheet-native.png)
+![Storyteller view (native)](assets/gm-native.png)
 ## Install and run
 
 **The easy way:** grab the executable for your platform from
