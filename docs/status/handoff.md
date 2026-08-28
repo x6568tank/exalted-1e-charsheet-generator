@@ -13,26 +13,44 @@ crash defect it surfaced are all in that commit message and `pack/BUILD.md`); th
 document surfaces went dark**, the last piece of theme drift in the port; and a
 **shell-parity sweep** closed four holes and grew a new custom-library kind.
 
-## 👉 NEXT: still the Party window click-through
+## The Party window is CLICKED — the roster half of it (2026-08-28)
 
-**It remains the only owed work**, unchanged from the last handoff except that its first
-finding is fixed. Scope it to what only a real display can answer:
+**Human-clicked on the real display, commit 617c5d9, verdict "looks good; no issues
+here."** What was driven, and is therefore verified:
 
-1. **Open the Party window from the builder toolbar, add the open character, click a
-   health box, then go back and spend XP in the builder.** The card must redraw.
+- the **Party tab's adversary card grid** — four entries off the real catalogue, two
+  pre-damaged;
+- **tracker clicks on both card kinds** — the pane does not scroll away and the box keeps
+  the focus. That was the reported bug and the two unreported siblings;
+- **Edit / Duplicate / Reset** on a roster card, including "Edit" landing on the right
+  entry on the Adversaries tab;
+- the **Adversaries detail pane** scrolled down, then clicked;
+- **resize and reflow** — columns, matched card widths, stat lines re-eliding.
+
+⚠ **The window was driven with a pre-loaded demo party, so three checks from the old
+list were NOT exercised** and are the remainder of this click-through. Do not read
+"the Party window is clicked" as covering them:
+
+1. **Click a health box on a member card, then spend XP on that character in the
+   builder.** The card must redraw.
 2. **"Builder" on a card, edit something, come back.** One builder, retargeted, same
-   object. Does that read right in use, with two windows open?
-3. **Add a template on the Adversaries tab, duplicate it twice, then go to the Party
-   tab and run the fight off the cards** — damage two of them, spend a Willpower.
-   ⚠ The pane must NOT scroll away under the click; that is the whole point of the fix.
-   Do the same on a member card. Then hit "Edit" on a roster card and confirm it lands
-   you on the right entry.
-4. **Close the builder.** The party window must go with it.
+   object — does that read right with two windows open?
+3. **Close the builder.** The party window must go with it.
 
-Add two glances now, both rendered offscreen and looked at but not used: **the Sheet tab
-and the Reference tab**, dark for the first time; and **the Thaumaturgy → Rituals tab**,
-which grew an authoring row, an Add-version button and a "Known in:" line — plus the
-**Custom tab's Rituals sub-tab** beside it.
+## 👉 NEXT
+
+Nothing is blocked and nothing is half-finished. In rough order of what would bite:
+
+- **Dispatch the release workflow by hand before tagging** (see below) — the four-asset
+  matrix has never been run, and a tag is the wrong place to find that out.
+- **The three interplay checks above**, next time the app is open.
+- **Four surfaces still only rendered offscreen, never used:** the **Sheet tab** and the
+  Party window's **Reference tab**, dark for the first time; the **Thaumaturgy → Rituals
+  tab**, which grew an authoring row, an Add-version button and a "Known in:" line; and
+  the **Custom tab's Rituals sub-tab** beside it.
+- **The comment pass** on `ui/`, `models/` and `engine/` outside validate — still
+  deferred, still the largest tidy-up owed. ⚠ Re-measure the line counts first; `ui/` has
+  shrunk since they were taken.
 
 ⚠ **The binary is built from a working tree, and `dist/` is gitignored** — the one on
 disk is from 2026-08-27 and does NOT have any of this session's work in it. Rebuild
@@ -188,8 +206,17 @@ programmatic click takes no focus, so the bug does not reproduce and the test pa
 against it. The tests call `setFocus(MouseFocusReason)` on a `show()`n, activated widget
 first.
 
-**Owed:** the Party window click-through this was always waiting on — now including the
-roster cards.
+⚠ **A THIRD defect surfaced when the app was launched with real catalogue data**, after
+the tests were green and the offscreen renders looked right: the long ability and prose
+lines were **clipped mid-word with no ellipsis**. The first fix elided by character
+count, and no single count is right for both a one-column and a three-column layout.
+`_StatLine` now elides with `QFontMetrics` against its own width and takes
+`QSizePolicy.Ignored` horizontally, so an "All Solar Charms the Storyteller cares to give
+him" line cannot set the card's minimum width. **Synthetic fixtures agreed with the bug**
+— a two-word adversary name never reached the card edge.
+
+**Clicked and closed** — see the top of this file for what was verified and the three
+interplay checks that were not.
 
 ## Not clicked, not blocking
 

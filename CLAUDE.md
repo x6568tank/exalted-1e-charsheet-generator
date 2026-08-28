@@ -188,6 +188,13 @@ Each is written up in full where it happened; these are the reusable one-liners.
   re-lengthens a track may rebuild. ⚠ **Do not verify this with `QPushButton.click()`** —
   a programmatic click takes no focus, so the bug does not reproduce and the test passes
   against it. `show()`, `waitExposed`, `setFocus(MouseFocusReason)`, *then* click.
+- **Tests, then a render, then a LAUNCH — each catches what the last could not.** The
+  adversary roster card passed 3,083 tests, then two rounds of offscreen renders, and
+  still shipped clipped mid-word text the moment it was opened with the real catalogue.
+  **A render shows you geometry; only real data shows you what the geometry has to
+  hold** — and ⚠ **self-authored fixtures agree with the bug**, because every test
+  adversary is called "Bandit" and no line in the suite is long enough to reach a card
+  edge. When a surface's job is to display real content, render it with real content.
 - **A word-wrapped `QLabel` answers `heightForWidth` and `QGridLayout` does not honour
   it**, so a card in a grid is laid out too short, and the only children that cannot
   shrink gracefully — fixed-size boxes — get painted through whatever is under them. No
@@ -298,9 +305,11 @@ pool calculation.
   Reference, with mixed layouts** · **"Open in builder" retargets the ONE builder** ·
   **the ST reference screen lives on that window**. ⚠ **The rail was never the measure of
   what was left** — the Combos sub-tab never appeared on it and the within-tab gaps never
-  could. **What is OWED is a click-through of the Party window** (rendered offscreen and
-  looked at, not used); group 4's five per-splat Charm surfaces are still unclicked too,
-  a low-priority sweep rather than an owed verification.
+  could. **The Party window is HUMAN-CLICKED (2026-08-28, commit 617c5d9)** — the roster
+  cards, both scroll fixes, the card toolbar and reflow. ⚠ Three builder⇄party interplay
+  checks were NOT exercised and are named in `docs/status/handoff.md`; group 4's five
+  per-splat Charm surfaces are still unclicked too, a low-priority sweep rather than an
+  owed verification.
 
   ⚠ **The gap list was a LOWER bound every single time — SEVEN for seven.** The Party
   window's "~1,100 lines" missed the **ST reference screen** (in no Qt module at all),
@@ -504,7 +513,7 @@ are pointers only; the traps and history live in the files.
 | Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
-| The Qt port — decision 0018; the build record. **FEATURE-COMPLETE 2026-08-27**: milestones 1–6, the **ST Options**, **Custom** and **Combos** tabs (all human-clicked) and the **Party / ST window** (built, NOT yet clicked — that is the one owed thing, with group 4’s per-splat Charm surfaces). Milestone 5 SETTLES the one layout; milestone 6, Identity+Traits and the Party tab are its three written exceptions | `plans/qt-port.md` |
+| The Qt port — decision 0018; the build record. **FEATURE-COMPLETE 2026-08-27**: milestones 1–6, the **ST Options**, **Custom** and **Combos** tabs and the **Party / ST window**, all human-clicked (the Party window 2026-08-28, after its roster gained adversary cards). Milestone 5 SETTLES the one layout; milestone 6, Identity+Traits and the Party tab are its three written exceptions | `plans/qt-port.md` |
 | Variant-menu Charms — the generic `variant_purchases` list, `Charm.variants_unique`, and why Ox-Body and the Gifts were deliberately NOT migrated onto it | `plans/variant-menu-charms.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;

@@ -249,6 +249,12 @@ the webapp always put it. A roster card's "Edit" raises this tab with the entry 
 there is no second editor. `AdversaryTrackers` is the one tracker widget both surfaces
 use, and `qt/party.py::_adversary_card` is the card.
 
+**Clicked 2026-08-28** (commit 617c5d9): the card grid, tracker clicks on both card
+kinds, Edit / Duplicate / Reset, and resize/reflow. ⚠ Build the demo party from
+`rules_db.load_adversary_catalog` when clicking this surface — a two-word fixture name
+never reaches the card edge, and the launch with real entries is what caught the third
+defect (stat lines clipped mid-word).
+
 ⚠ **A compensation you reasoned your way to is a hypothesis until someone uses it.** The
 Damage column is a good column and it is still here; it just was not the same feature as
 seeing the whole fight at once, and no test could tell the difference.

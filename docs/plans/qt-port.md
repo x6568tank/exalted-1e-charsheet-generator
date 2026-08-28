@@ -1835,3 +1835,38 @@ object names and values.
   two-column layout is drawn full width. Harmless while the members were the only cards
   on the tab; with half-width adversary cards under them it read as two card sizes.
   `PartyPage._even_columns` sets an equal stretch on every column of both grids.
+
+### The third defect appeared only when the app was LAUNCHED with real data
+
+Tests green, offscreen renders inspected and corrected twice — and then the app was
+started for the human with a demo party built from the **real adversary catalogue**, and
+the ability and prose lines were **clipped mid-word with no ellipsis at all**.
+
+The first fix elided by character count (`_STAT_CHARS = 88`). ⚠ **No single character
+count is right for both a one-column and a three-column layout**, and the reasoning that
+produced it — "`QFontMetrics.elidedText` needs a width the layout has not computed yet"
+— was solving the problem at the wrong moment. `_StatLine` is a `QLabel` that re-elides
+in its own `resizeEvent`, which is the one place that width is known, and takes
+`QSizePolicy.Ignored` horizontally so that "Archery 1, Athletics 1, Awareness 1, Brawl 1,
+Bureaucracy 1, …" cannot set the card's minimum width and blow the grid apart.
+
+⚠ **Synthetic fixtures agreed with the bug.** Every test adversary is called "Bandit" and
+carries two or three traits; nothing in the suite has a line long enough to reach a card
+edge. The catalogue's do. **When a surface's job is to display real content, render it
+with real content** — `rules_db.load_adversary_catalog` is one call.
+
+⚠ **That is three rounds on one card: tests, then a render, then a launch.** Each caught
+something the previous could not. A render shows you geometry; only real data shows you
+what the geometry has to hold.
+
+### Clicked (2026-08-28, commit 617c5d9)
+
+Human-driven on the real display, verdict "looks good; no issues here": the roster card
+grid, tracker clicks on both card kinds (no scroll jump, focus retained), Edit / Duplicate
+/ Reset, the Adversaries detail pane scrolled and clicked, and resize/reflow.
+
+⚠ **The window was driven with a PRE-LOADED party, so three builder⇄party interplay
+checks were never exercised** — the card redrawing after XP is spent in the builder,
+"Builder" retargeting mid-session, and the party window closing with the builder. They
+are carried in `docs/status/handoff.md`. **"The Party window is clicked" is not the same
+sentence as "everything on it is clicked."**
