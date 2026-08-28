@@ -161,6 +161,11 @@ Each is written up in full where it happened; these are the reusable one-liners.
   it had supported the repeatable case all along, cap check and page citation included.
   Both shells go through the dispatcher, so nothing could reach it. **When you write a
   broad refusal, check what the layer below already handles more precisely.**
+- **A cross-shell parity audit needs THREE axes, and each one's conclusion is a lower
+  bound on the next.** Names by shell, handler functions per tab pair, and printed page
+  citations per tab pair — the third exists to catch what the first two declare they
+  cannot see (a panel that renders FEWER LINES), and it found the only gap outside the
+  panel the other two had agreed was the whole story.
 - **A cross-shell parity audit needs TWO axes, and the answer's SHAPE is the finding.**
   Scoring every `view.py`/`engine/` name by which shell uses it found three holes;
   comparing handler functions per tab pair found three more, and all six were in ONE
@@ -402,7 +407,7 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**3,061 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the dark
+**3,065 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the dark
 document surfaces, the ritual library and the picker parity fixes — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
 `tests/test_variant_purchases.py`).

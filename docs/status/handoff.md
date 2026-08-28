@@ -2,7 +2,7 @@
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,061 passed, 1 skipped** (main PC, `qt-port`, 7m13s), run after
+Last FULL green suite: **3,065 passed, 1 skipped** (main PC, `qt-port`, 7m26s), run after
 the last code change. The tree is clean and nothing is half-finished.
 
 Three things since the Party window: the app is **packaged as a native binary**
@@ -40,12 +40,25 @@ mechanically: every public `ui/view.py` name and every public `engine/` function
 by which shell references it. **Four real holes, three of them ours.** Method, findings
 and the method's blind spot: `docs/plans/qt-port.md`'s last section.
 
-⚠ **It took TWO passes on two different axes, and the second found as many as the
-first.** Names-by-shell found three; handler-functions-per-tab-pair found three more.
-**All six are in ONE panel** — the Thaumaturgy picker, where the port compressed a
-four-column page into a tree, three lists and one detail pane. That is the transferable
-finding: when a port collapses a surface's SHAPE, that surface is where its missing
-controls are.
+⚠ **It took THREE passes on three different axes, and every axis found more.**
+Names-by-shell found three; handler-functions-per-tab-pair found three more; and printed
+page citations per tab pair — a probe aimed squarely at what the first two declared they
+could not see — found the seventh. **The first six are in ONE panel** (the Thaumaturgy
+picker, where the port compressed a four-column page into a tree, three lists and one
+detail pane), which is a real finding about where a port loses controls; **the seventh is
+the correction to it**, and sat on the Traits tab.
+
+⚠ **A mortal at the human Essence ceiling was told nothing** — PG p.114's "mortals that
+exceed Essence 3 become gods", printed beside the webapp's track since Mortals shipped
+and absent from Qt's, where the dots just stopped at 3. Display only; the cap was always
+enforced. ⚠ Its negative control named a SOLAR first and passed against the defect — a
+Solar has no `essence_cap_override` at all, so deleting the splat check changed nothing.
+The real subject is **God-Blooded** (printed cap 1, so Essence Mastery raises it to 3
+exactly as for a mortal). `docs/status/mortals.md`.
+
+⚠ **Open, and NOT ours to invent: a God-Blooded stopped at that same raised cap gets no
+explanation in either shell.** No printed clause covers it and writing one would be
+authoring from memory. The human's call, not a gap to close.
 
 **Six Qt Thaumaturgy holes, all fixed** (`docs/status/thaumaturgy.md`): owned regional
 orientations were never shown; a SECOND regional version was unbuyable, because the combo

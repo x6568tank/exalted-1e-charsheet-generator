@@ -1712,3 +1712,38 @@ Panoply, health-level editing, the p.259 downtime calculator (in `main_window`, 
 reset, and combo/array member removal. One cosmetic difference is left and is **not** a
 gap by the human's call: the webapp's catalogue dialog takes per-row `icons`, and
 `qt/catalogue.py` has no such parameter.
+
+### A THIRD axis, and it found the one outside Thaumaturgy (2026-08-28)
+
+Asked "is that everything?", and answered by running a third pass rather than from
+confidence — deliberately aimed at the blind spot the first two both declared: **a panel
+that renders FEWER LINES than its counterpart**. The probe was page citations in string
+LITERALS (`p.NNN` inside quotes), per tab pair: a citation the webapp prints and the Qt
+page does not is a rule one shell explains and the other silently applies.
+
+Four hits, three of them docstrings (noise — the probe cannot tell prose from a label).
+The fourth was real, and it is the first webapp→Qt gap outside the Thaumaturgy picker:
+
+⚠ **A mortal at the human Essence ceiling was told nothing.** PG p.114 — "the limit of
+human potential — mortals that exceed Essence 3 become gods" — is the one Merit-raised
+cap the book explains in-world rather than mechanically, and the webapp has printed it
+beside the track since Mortals shipped. In Qt the dot track just stopped at 3 with
+nothing on screen saying why the next pip did nothing. Display only; the cap itself was
+always enforced in `advancement.raise_essence`.
+
+**So the "one panel" conclusion was itself a lower bound** — true of the two axes that
+had been run, not of the app. Three axes now: names by shell, handler functions per tab
+pair, and printed citations per tab pair.
+
+⚠ **The negative control for the fix named the wrong subject first, and passed.** The
+note's predicate checks the SPLAT as well as the cap, and the control used a Solar — who
+has no `essence_cap_override` at all, so deleting the splat check changed nothing and the
+test was green either way. The real subject is **God-Blooded**: its printed Essence cap is
+1, which is exactly the condition `engine/merits.py` raises to 3, so a God-Blood holding
+Essence Mastery carries the same override a mortal does and would have been told they
+were about to become a god. The test asserts the override exists before asserting the
+note does not.
+
+**Open, and NOT ours to invent:** a God-Blooded stopped at that same raised cap gets no
+explanation in either shell. There is no printed clause for it that we have, and writing
+one would be authoring from memory. Flagged for the human, not fixed.

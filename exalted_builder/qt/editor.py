@@ -34,7 +34,7 @@ from exalted_builder.models.character import (
     VirtueFlaw, VirtueName,
 )
 from exalted_builder.models.rules import RuleSet
-from .theme import CARD, INPUT, accent as accent_light
+from .theme import CARD, INPUT, MUTED, accent as accent_light
 
 from .layout import clear_layout
 from exalted_builder.ui import theme
@@ -1378,6 +1378,27 @@ class TraitsPage(_EditorPage):
                             1, essence_cap if locked else min(elder.DOT_MAX, essence_cap),
                             target="essence"))
         ew_lay.addLayout(row)
+        # A mortal whose pool is unlocked hits the human ceiling at Essence 3, and the
+        # book explains it in-world rather than mechanically: "the limit of human
+        # potential — mortals that exceed Essence 3 become gods" (PG p.114).
+        #
+        # ⚠ DISPLAY ONLY. The cap is enforced in `advancement.raise_essence` and the
+        # mortal XP table prices nothing past 3 — this says why the next dot is refused,
+        # it does not refuse it. Without the line the track simply stops and nothing on
+        # screen says why (the webapp has had this note since Mortals shipped).
+        #
+        # ⚠ Read off the CALC, never off a Merit id — no module outside engine/merits.py
+        # may name one. The trigger is the same field the cap came from, so the note
+        # fires only where the ceiling really is a raised 3: an Awareness-only mortal
+        # has a ceiling of 1 and must not be blamed on the god-transition clause.
+        if char.exalt_type == "Mortal" and mf.essence_cap_override is not None \
+                and char.essence_rating >= mf.essence_cap_override:
+            note = QLabel("the limit of human potential — mortals that exceed "
+                          "Essence 3 become gods (PG p.114)")
+            note.setObjectName("essence.mortal_ceiling")
+            note.setWordWrap(True)
+            note.setStyleSheet(f"color:{MUTED};")
+            ew_lay.addWidget(note)
         if locked:
             wp = derive.willpower(char, ruleset)
             row = QHBoxLayout()

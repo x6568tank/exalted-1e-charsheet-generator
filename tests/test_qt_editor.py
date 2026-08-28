@@ -974,3 +974,87 @@ def test_a_combo_placeholder_appears_only_while_the_value_is_missing(qtbot, rule
 
 def _label_of(value) -> str:
     return value.value.replace("_", " ").title()
+
+
+# --------------------------------------------------------------------------- #
+# PG p.114 — the human ceiling, explained in-world
+# --------------------------------------------------------------------------- #
+
+def _mastery_mortal(cid: str) -> Character:
+    """A mortal whose Essence pool is unlocked and whose CAP the Merits raise to 3."""
+    from exalted_builder.models.character import MeritFlawPurchase
+    char = Character(id=cid, exalt_type="Mortal", caste="", origin="heroic",
+                     essence_rating=1)
+    char.abilities[AbilityName.MARTIAL_ARTS] = 3
+    char.abilities[AbilityName.OCCULT] = 3
+    char.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness"),
+                         MeritFlawPurchase(merit_id="thaum.essence-mastery")]
+    return char
+
+
+def _ceiling_note(page) -> str:
+    from PySide6.QtWidgets import QLabel
+    label = page.findChild(QLabel, "essence.mortal_ceiling")
+    return label.text() if label is not None else ""
+
+
+def test_a_mortal_at_the_human_ceiling_is_told_why(ruleset, qtbot):
+    """PG p.114 — the one Merit-raised cap the book explains in-world rather than
+    mechanically. Without it the dot track simply stops at 3 and nothing on screen says
+    why the next pip does nothing; the webapp has had the line since Mortals shipped."""
+    char = _mastery_mortal("c.ceiling")
+    char.essence_rating = 3
+    page = _traits(ruleset, char)
+    qtbot.addWidget(page)
+    assert "become gods" in _ceiling_note(page)
+
+
+def test_the_ceiling_note_fires_only_at_the_ceiling(ruleset, qtbot):
+    """The same mortal below the cap has not hit the wall — the note is tied to the
+    ceiling, not to the splat."""
+    page = _traits(ruleset, _mastery_mortal("c.below"))       # essence 1
+    qtbot.addWidget(page)
+    assert _ceiling_note(page) == ""
+
+
+def test_the_ceiling_note_does_not_fire_for_an_awareness_only_mortal(ruleset, qtbot):
+    """⚠ The trigger is `essence_cap_override`, not "the pool is unlocked". Essence
+    Awareness alone unlocks part of the pool and leaves the cap at the splat's 1, so
+    such a mortal clicked to 3 is at an ILLEGAL rating, not at the human limit, and
+    must not be blamed on the god-transition clause. This is the wrong-field
+    regression the webapp already carries a test for."""
+    from exalted_builder.models.character import MeritFlawPurchase
+    char = Character(id="c.aware", exalt_type="Mortal", caste="", origin="heroic")
+    char.abilities[AbilityName.OCCULT] = 3
+    char.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness")]
+    char.essence_rating = 3
+    page = _traits(ruleset, char)
+    qtbot.addWidget(page)
+    assert _ceiling_note(page) == ""
+
+
+def test_the_ceiling_note_is_a_mortals_only_clause(ruleset, qtbot):
+    """⚠ The predicate checks the SPLAT as well as the cap, and the check is
+    LOAD-BEARING — "True, not applicable" outside its subject is a grant waiting to
+    happen.
+
+    God-Blooded is the real subject: its printed Essence cap is 1, which is the
+    condition `engine/merits.py` raises to 3, so a God-Blood holding Essence Mastery
+    carries the same `essence_cap_override` a mortal does. The clause it would print
+    says "mortals that exceed Essence 3 become gods" — of a character who is already
+    part god.
+
+    ⚠ This test named a SOLAR first and passed against the defect: a Solar has no
+    override at all, so removing the splat check changed nothing and the control was
+    green either way."""
+    from exalted_builder.models.character import MeritFlawPurchase
+    char = Character(id="c.gb", exalt_type="God-Blooded", caste="", essence_rating=3)
+    char.abilities[AbilityName.OCCULT] = 3
+    char.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness"),
+                         MeritFlawPurchase(merit_id="thaum.essence-mastery")]
+    from exalted_builder.engine import merits
+    assert merits.merits_and_flaws_calc(ruleset, char).essence_cap_override == 3, \
+        "the subject must actually carry the override, or this proves nothing"
+    page = _traits(ruleset, char)
+    qtbot.addWidget(page)
+    assert _ceiling_note(page) == ""

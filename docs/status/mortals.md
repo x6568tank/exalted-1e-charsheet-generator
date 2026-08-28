@@ -193,3 +193,23 @@ What that work must carry, all recorded in CLAUDE.md's Merits & Flaws TODO:
   a small change to one `costs_xp.json` row plus a `HouseRules` flag.
 * Training times (the table's other half) are not modelled;
   `XpEntry.training_complete` remains the dormant hook it already was.
+
+
+## The p.114 ceiling note reached the Qt shell — 2026-08-28
+
+The in-world explanation of the human ceiling — "the limit of human potential — mortals
+that exceed Essence 3 become gods" (PG p.114) — had been on the webapp's Essence track
+since this splat shipped and on the Qt one not at all: the dots simply stopped at 3.
+Display only, and the cap was always enforced in `advancement.raise_essence`, but "the
+track stops and nothing says why" is the shape a bug takes on a real display.
+
+⚠ **The note's predicate is `exalt_type == "Mortal"` AND the calc's cap override, and
+both halves are load-bearing.** `engine/merits.py` raises the cap for any splat printed
+below 3, and **God-Blooded is capped at 1** — so a God-Blood holding Essence Mastery
+carries the same override, and a cap-only predicate would tell a demigod they were about
+to become a god. ⚠ A negative control written against a SOLAR passes whatever the
+predicate says, because a Solar has no override at all.
+
+**Open and deliberately unanswered:** a God-Blooded at that raised cap gets no
+explanation in either shell. We have no printed clause for it, and inventing one is
+authoring from memory.
